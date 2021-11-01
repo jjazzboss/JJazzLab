@@ -49,7 +49,6 @@ import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.PlaybackListener;
-import org.jjazz.musiccontrol.api.PlaybackListenerAdapter;
 import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.musiccontrol.api.playbacksession.StaticSongSession;
 import org.jjazz.phrase.api.Phrase;
@@ -163,6 +162,7 @@ public class RP_SYS_DrumsTransformComp extends RealTimeRpEditorComponent<RP_SYS_
         originalPhrase = null;
         var insMix = songPartContext.getMidiMix().getInstrumentMixFromKey(rp.getRhythmVoice());
         saveDrumsTrackSoloState = insMix.isSolo();
+        tbtn_solo.setSelected(insMix.isSolo());
 
         uiValue = null;
         setEditedRpValue(rpValue);
@@ -300,6 +300,7 @@ public class RP_SYS_DrumsTransformComp extends RealTimeRpEditorComponent<RP_SYS_
     {
         uiUpdatedByUser();
     }
+    
     // ===============================================================================
     // PlaybackListener interface
     // ===============================================================================  
@@ -1098,6 +1099,7 @@ public class RP_SYS_DrumsTransformComp extends RealTimeRpEditorComponent<RP_SYS_
         pnl_header.add(filler1);
 
         tbtn_solo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/rpcustomeditorfactoryimpl/resources/SoloOff_Icon-21x21.png"))); // NOI18N
+        tbtn_solo.setToolTipText(org.openide.util.NbBundle.getMessage(RP_SYS_DrumsTransformComp.class, "RP_SYS_DrumsTransformComp.tbtn_solo.toolTipText")); // NOI18N
         tbtn_solo.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/rpcustomeditorfactoryimpl/resources/SoloOn_Icon-21x21.png"))); // NOI18N
         tbtn_solo.addActionListener(new java.awt.event.ActionListener()
         {

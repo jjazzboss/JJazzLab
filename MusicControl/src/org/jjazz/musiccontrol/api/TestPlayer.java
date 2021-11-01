@@ -236,6 +236,12 @@ public class TestPlayer
             return false;
         }
 
+        @Override
+        public PlaybackSession getFreshCopy()
+        {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
     }
 
 }

@@ -27,7 +27,6 @@ import org.jjazz.phrasetransform.api.rps.RP_SYS_PhraseTransform;
 import org.jjazz.rpcustomeditorfactoryimpl.api.RealTimeRpEditorDialog;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhrase;
-import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_DrumsMix;
 import org.jjazz.ui.rpviewer.spi.RpCustomEditor;
 import org.jjazz.ui.rpviewer.spi.RpCustomEditorFactory;
 import org.openide.util.lookup.ServiceProvider;
@@ -44,10 +43,7 @@ public class RpCustomEditorFactoryImpl implements RpCustomEditorFactory
     public boolean isSupported(RhythmParameter<?> rp)
     {
         boolean b = false;
-        if (rp instanceof RP_SYS_DrumsMix)
-        {
-            b = true;
-        } else if (rp instanceof RP_SYS_CustomPhrase)
+        if (rp instanceof RP_SYS_CustomPhrase)
         {
             b = true;
         } else if (rp instanceof RP_SYS_PhraseTransform)
@@ -66,13 +62,7 @@ public class RpCustomEditorFactoryImpl implements RpCustomEditorFactory
         RealTimeRpEditorDialog res = null;
 
 
-        if (rp instanceof RP_SYS_DrumsMix)
-        {
-            var rpDrums = (RP_SYS_DrumsMix) rp;
-            var editor = new RP_SYS_DrumsMixComp(rpDrums);
-            res = new RealTimeRpEditorDialog(editor);
-
-        } else if (rp instanceof RP_SYS_CustomPhrase)
+        if (rp instanceof RP_SYS_CustomPhrase)
         {
             var rpCustomPhrase = (RP_SYS_CustomPhrase) rp;
             var editor = new RP_SYS_CustomPhraseComp(rpCustomPhrase);

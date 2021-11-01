@@ -106,6 +106,45 @@ public class PhraseBirdView extends JPanel
             double yRatio = (double) r.height / pitchRange.size();
 
 
+            // Paint bar gradations                
+            final float STEP = 2;
+            int nbBeats = (int) beatRange.size();
+            float beatWidth = (float) r.width / nbBeats;
+            HSLColor cBackground = new HSLColor(getBackground());
+            float lum = cBackground.getLuminance();
+            lum = Math.min(100, lum + STEP);
+            Color cBeat = cBackground.adjustLuminance(lum);
+            lum = Math.min(100, lum + 2 * STEP);
+            Color cBar = cBackground.adjustLuminance(lum);
+            for (int i = 0; i < nbBeats; i++)
+            {
+                double x = r.x + i * beatWidth - 0.5d;
+                Color c = (i % timeSignature.getNbNaturalBeats()) == 0 ? cBar : cBeat;
+                g2.setColor(c);
+                var line = new Line2D.Double(x, r.y, x, yMax);
+                g2.draw(line);
+            }
+
+
+            // Paint marker 
+            if (beatRange.contains(markerPos, true))
+            {
+                final float SIZE = 5;
+                lum = Math.min(100, lum + 2 * STEP);
+                Color cMarker = cBackground.adjustLuminance(lum);
+                double x = r.x + (markerPos - beatRange.from) * beatWidth - 0.5d;
+
+                g2.setColor(cMarker);
+                var triangle = new Path2D.Float();
+                triangle.moveTo(x - SIZE, r.y);
+                triangle.lineTo(x + SIZE, r.y);
+                triangle.lineTo(x, r.y + 2 * SIZE);
+                triangle.lineTo(x - SIZE, r.y);
+
+                g2.fill(triangle);
+            }
+
+
             // Draw a line segment for each note
             for (NoteEvent ne : phrase)
             {
@@ -122,47 +161,6 @@ public class PhraseBirdView extends JPanel
             }
 
 
-            if (!phrase.isEmpty())
-            {
-                // Paint bar gradations                
-                final float STEP = 2;
-                int nbBeats = (int) beatRange.size();
-                float beatWidth = (float) r.width / nbBeats;
-                HSLColor cBackground = new HSLColor(getBackground());
-                float lum = cBackground.getLuminance();
-                lum = Math.min(100, lum + STEP);
-                Color cBeat = cBackground.adjustLuminance(lum);
-                lum = Math.min(100, lum + 2 * STEP);
-                Color cBar = cBackground.adjustLuminance(lum);
-
-                for (int i = 0; i < nbBeats; i++)
-                {
-                    double x = r.x + i * beatWidth - 0.5d;
-                    Color c = (i % timeSignature.getNbNaturalBeats()) == 0 ? cBar : cBeat;
-                    g2.setColor(c);
-                    var line = new Line2D.Double(x, r.y, x, yMax);
-                    g2.draw(line);
-                }
-
-
-                // Paint marker 
-                if (beatRange.contains(markerPos, true))
-                {
-                    final float SIZE = 5;
-                    lum = Math.min(100, lum + 2 * STEP);
-                    Color cMarker = cBackground.adjustLuminance(lum);
-                    double x = r.x + (markerPos - beatRange.from) * beatWidth - 0.5d;
-
-                    g2.setColor(cMarker);
-                    var triangle = new Path2D.Float();
-                    triangle.moveTo(x - SIZE, r.y);
-                    triangle.lineTo(x + SIZE, r.y);
-                    triangle.lineTo(x, r.y + 2 * SIZE);
-                    triangle.lineTo(x - SIZE, r.y);
-
-                    g2.fill(triangle);
-                }
-            }
         } else
         {
             // Write "void" centered

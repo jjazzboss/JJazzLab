@@ -42,9 +42,12 @@ import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
 import java.awt.geom.Rectangle2D;
 import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -56,6 +59,8 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JRootPane;
 import javax.swing.JSeparator;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
@@ -76,6 +81,7 @@ public class Utilities
 
     private static JFileChooser fileChooser;
     private static final NoAction NoActionInstance = new NoAction();
+    private static final Map<Container, List<JComponent>> enabledContainers = new HashMap<Container, List<JComponent>>();
 
     public static JFileChooser getFileChooserInstance()
     {
@@ -575,6 +581,82 @@ public class Utilities
                 y += bounds[i].getHeight();
             }
         }
+    }
+
+    /**
+     * Convenience static method to disable all components of a given Container, including nested Containers.
+     * <p>
+     * The method saves the enabled state of children, in order to reenable them (or not) as required when calling enableContainer().
+     *
+     * @param container the Container containing Components to be disabled
+     * @see #enableContainer(java.awt.Container)
+     */
+    public static void disableContainer(Container container)
+    {
+        List<JComponent> components = getDescendantsOfType(JComponent.class, container, true);
+        List<JComponent> enabledComponents = new ArrayList<>();
+        enabledContainers.put(container, enabledComponents);
+
+        for (JComponent component : components)
+        {
+            if (component.isEnabled())
+            {
+                enabledComponents.add(component);
+                component.setEnabled(false);
+            }
+        }
+    }
+
+    /**
+     * Convenience static method to enable Components previously disabled by using the disableContainer() method.
+     * <p>
+     * Only Components disable by the disableContainer() method will be enabled.
+     *
+     * @param container a Container that has been previously disabled.
+     * @see #disableContainer(java.awt.Container)
+     */
+    public static void enableContainer(Container container)
+    {
+        List<JComponent> enabledComponents = enabledContainers.get(container);
+        if (enabledComponents != null)
+        {
+            for (JComponent component : enabledComponents)
+            {
+                component.setEnabled(true);
+            }
+            enabledContainers.remove(container);
+        }
+    }
+
+    /**
+     * Convenience method for searching below <code>container</code> in the component hierarchy and return nested components that
+     * are instances of class <code>clazz</code> it finds.
+     * <p>
+     * Returns an empty list if no such components exist in the container.
+     * <p>
+     * Invoking this method with a class parameter of JComponent.class will return all nested components.
+     *
+     * @param <T>
+     * @param clazz the class of components whose instances are to be found.
+     * @param container the container at which to begin the search
+     * @param nested true to list components nested within another listed component, false otherwise
+     * @return the List of components
+     */
+    public static <T extends JComponent> List<T> getDescendantsOfType(Class<T> clazz, Container container, boolean nested)
+    {
+        List<T> tList = new ArrayList<>();
+        for (Component component : container.getComponents())
+        {
+            if (clazz.isAssignableFrom(component.getClass()))
+            {
+                tList.add(clazz.cast(component));
+            }
+            if (nested || !clazz.isAssignableFrom(component.getClass()))
+            {
+                tList.addAll(getDescendantsOfType(clazz, (Container) component, nested));
+            }
+        }
+        return tList;
     }
 
     /**

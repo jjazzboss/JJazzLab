@@ -22,6 +22,8 @@
  */
 package org.jjazz.ui.cl_editor;
 
+import com.google.common.collect.ContiguousSet;
+import com.google.common.collect.DiscreteDomain;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -38,6 +40,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
@@ -84,6 +87,7 @@ import org.openide.awt.UndoRedo;
 import org.openide.util.NbBundle.Messages;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.ui.cl_editor.barrenderer.spi.BarRendererProvider;
 
 /**
  * A chordleadsheet editor using BarBox objects to render bars.
@@ -101,12 +105,16 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     private static final int NB_EXTRA_LINES = 4;
 
     /**
-     * The default BarBoxConfig to be used when creating the editor.
+     * The default BarRenderer types.
      */
-    private final BarBoxConfig DEFAULT_BARBOX_CONFIG = new BarBoxConfig(
-            BarRendererFactory.Type.ChordSymbol,
-            BarRendererFactory.Type.ChordPosition,
-            BarRendererFactory.Type.Section);
+    private final String[] DEFAULT_BAR_RENDERER_TYPES =
+    {
+        BarRendererFactory.BR_CHORD_SYMBOL,
+        BarRendererFactory.BR_CHORD_POSITION,
+        BarRendererFactory.BR_SECTION
+    };
+
+
     // GUI variables
     /**
      * Our LayoutManager.
@@ -755,6 +763,34 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     }
 
     @Override
+    public void setBarBoxConfig(BarBoxConfig bbConfig, Integer... barIndexes)
+    {
+        if (barIndexes.length == 0)
+        {
+            for (int i = 0; i < getNbBarBoxes(); i++)
+            {
+                BarBox bb = getBarBox(i);
+                bb.setConfig(bbConfig);
+            }
+        } else
+        {
+            for (int barIndex : barIndexes)
+            {
+                BarBox bb = getBarBox(barIndex);
+                bb.setConfig(bbConfig);
+            }
+        }
+    }
+
+    @Override
+    public BarBoxConfig getBarBoxConfig(int barIndex)
+    {
+        BarBox bb = getBarBox(barIndex);
+        return bb.getConfig();
+    }
+
+
+    @Override
     public void showInsertionPoint(boolean show, ChordLeadSheetItem<?> item, Position pos, boolean copyMode)
     {
         if (item == null || (show && pos == null))
@@ -1244,7 +1280,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     // ----------------------------------------------------------------------------------
     private void setSongModified()
     {
-        SavableSong s = lookup.lookup(SavableSong.class);
+        SavableSong s = lookup.lookup(SavableSong.class
+        );
         if (s == null)
         {
             s = new SavableSong(songModel);
@@ -1255,7 +1292,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
 
     private void resetSongModified()
     {
-        SavableSong s = lookup.lookup(SavableSong.class);
+        SavableSong s = lookup.lookup(SavableSong.class
+        );
         if (s != null)
         {
             Savable.ToBeSavedList.remove(s);
@@ -1297,7 +1335,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
             // Need to add BarBoxes at the end
 
             // The BarBoxConfig to use, default one or the one of the last bar
-            BarBoxConfig config = (oldNnBarBoxes == 0) ? DEFAULT_BARBOX_CONFIG : getBarBox(oldNnBarBoxes - 1).getConfig();
+            BarBoxConfig config = (oldNnBarBoxes == 0) ? getDefaultBarBoxConfig() : getBarBox(oldNnBarBoxes - 1).getConfig();
             int modelSize = clsModel.getSize();
             for (int i = oldNnBarBoxes; i < newNbBarBoxes; i++)
             {
@@ -1558,6 +1596,43 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         }
     }
 
+    /**
+     * Build the default BarBoxConfig from DEFAULT_BARBOX_CONFIG + optional data from BarRendererProviders.
+     */
+    private BarBoxConfig getDefaultBarBoxConfig()
+    {
+
+        List<String> allTypes = new ArrayList<>();
+        List<String> activeTypes = new ArrayList<>();
+        Collections.addAll(allTypes, DEFAULT_BAR_RENDERER_TYPES);
+        Collections.addAll(activeTypes, DEFAULT_BAR_RENDERER_TYPES);
+
+
+        var brProviders = Lookup.getDefault().lookupAll(BarRendererProvider.class);
+        for (var brProvider : brProviders)
+        {
+            var map = brProvider.getSupportedTypes();
+            for (String brType : map.keySet())
+            {
+                if (!allTypes.contains(brType))
+                {
+                    allTypes.add(brType);
+                    if (map.get(brType))
+                    {
+                        activeTypes.add(brType);
+                    }
+                }
+            }
+        }
+
+
+        var res = new BarBoxConfig(allTypes.toArray(new String[0]));        // All active by default
+        res = res.setActive(activeTypes.toArray(new String[0]));
+
+
+        return res;
+    }
+
     private int computeNbColsToXFactor(int nbCols)
     {
         int xFactor = (int) Math.round((16 - nbCols) * 100.0 / 15.0);
@@ -1644,7 +1719,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         }
 
         // Add PaddingBoxes starting from the end
-        List<? extends CLI_Section> cliSections = clsModel.getItems(CLI_Section.class);
+        List<? extends CLI_Section> cliSections = clsModel.getItems(CLI_Section.class
+        );
         int offset = 0;
         for (CLI_Section cliSection : cliSections)
         {
@@ -1665,6 +1741,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         if (needRevalidate)
         {
             revalidate();
+
+
         }
     }
 

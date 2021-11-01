@@ -47,7 +47,7 @@ import org.openide.windows.WindowManager;
 )
 @TopComponent.Registration(mode = "jlnavigator", openAtStartup = false, position=10)
 @ActionID(category = "Window", id = "org.jjazz.notesviewer.api.NotesViewerTopComponent")
-@ActionReference(path = "Menu/Window", position = 4)
+@ActionReference(path = "Menu/Window", position = 10)
 @TopComponent.OpenActionRegistration(
         displayName = "#CTL_NotesViewerAction",
         preferredID = "NotesViewerTopComponent"

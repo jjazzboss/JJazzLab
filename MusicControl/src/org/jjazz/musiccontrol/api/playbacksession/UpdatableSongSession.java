@@ -140,7 +140,6 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
     private Sequence sequence;
     private final HashMap<Integer, Boolean> mapTrackIdMuted = new HashMap<>();
     private static final List<UpdatableSongSession> sessions = new ArrayList<>();
-    private static final ClosedSessionsListener CLOSED_SESSIONS_LISTENER = new ClosedSessionsListener();
 
     private final SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(UpdatableSongSession.class.getSimpleName());  //NOI18N
@@ -171,7 +170,6 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
         if (updatableSession == null)
         {
             UpdatableSongSession newSession = new UpdatableSongSession(session);
-            newSession.addPropertyChangeListener(CLOSED_SESSIONS_LISTENER);
             sessions.add(newSession);
             return newSession;
         } else
@@ -205,6 +203,16 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
     public BaseSongSession getBaseSession()
     {
         return baseSongSession;
+    }
+
+
+    @Override
+    public UpdatableSongSession getFreshCopy()
+    {
+        var newBaseSession = baseSongSession.getFreshCopy();
+        UpdatableSongSession newSession = new UpdatableSongSession(newBaseSession);
+        sessions.add(newSession);
+        return newSession;
     }
 
 
@@ -447,12 +455,12 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
     public long getTick(int barIndex)
     {
         return baseSongSession.getTick(barIndex);
-
     }
 
     @Override
     public void close()
     {
+        sessions.remove(this);
         baseSongSession.removePropertyChangeListener(this);
         baseSongSession.close();
     }
@@ -792,22 +800,6 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
             return sb.toString();
         }
 
-    }
-
-
-    private static class ClosedSessionsListener implements PropertyChangeListener
-    {
-
-        @Override
-        public void propertyChange(PropertyChangeEvent evt)
-        {
-            UpdatableSongSession session = (UpdatableSongSession) evt.getSource();
-            if (evt.getPropertyName().equals(PlaybackSession.PROP_STATE) && session.getState().equals(PlaybackSession.State.CLOSED))
-            {
-                sessions.remove(session);
-                session.removePropertyChangeListener(this);
-            }
-        }
     }
 
 }

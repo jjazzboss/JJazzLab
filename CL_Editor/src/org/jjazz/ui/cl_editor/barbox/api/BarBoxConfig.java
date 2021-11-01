@@ -22,13 +22,14 @@
  */
 package org.jjazz.ui.cl_editor.barbox.api;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import java.util.*;
-import org.jjazz.ui.cl_editor.barrenderer.api.BarRendererFactory;
+import java.util.logging.Logger;
 
 /**
- * A BarBoxConfig defines the BarRenderer types supported by a BarBox.
+ * A BarBoxConfig defines the BarRenderer types supported by a BarBox and the active ones.
  * <p>
- * It also says which BarRenderer types are active for one BarBox.
+ * This is an immutable class.
  */
 public class BarBoxConfig
 {
@@ -36,49 +37,84 @@ public class BarBoxConfig
     /**
      * The supported BarRenderer types.
      */
-    private final ArrayList<BarRendererFactory.Type> supportedBarRenderers = new ArrayList<>();
+    private final List<String> supportedBarRenderers = new ArrayList<>();
     /**
-     * The currently active BarRenderer types.
+     * The active BarRenderer types.
      */
-    private final ArrayList<BarRendererFactory.Type> activeBarRenderers = new ArrayList<>();
+    private final List<String> activeBarRenderers = new ArrayList<>();
+    private static final Logger LOGGER = Logger.getLogger(BarBoxConfig.class.getSimpleName());
 
     /**
-     * Create a config with all BarRendererFactories active by default.
-     *
-     * @param brs BarRendererFactory.Type[]
+     * Restricted.
      */
-    public BarBoxConfig(BarRendererFactory.Type... brs)
+    private BarBoxConfig()
     {
-        if (brs == null || brs.length < 0)
-        {
-            throw new IllegalArgumentException("brs=" + brs);   //NOI18N
-        }
-        Collections.addAll(supportedBarRenderers, brs);
-        Collections.addAll(activeBarRenderers, brs);
+
     }
 
-    public void setActiveBarRenderers(BarRendererFactory.Type... brTypes)
+    /**
+     * Create a config with all BarRenderer types active by default.
+     *
+     * @param brTypes Duplicate strings are ignored. No blank string allowed.
+     */
+    public BarBoxConfig(String... brTypes)
     {
-        // Check that each passed bar renderer type is supported
-        for (BarRendererFactory.Type type : brTypes)
+        if (brTypes.length == 0)
         {
-            if (!supportedBarRenderers.contains(type))
+            throw new IllegalArgumentException("brs=" + brTypes);   //NOI18N
+        }
+        for (String brType : brTypes)
+        {
+            if (brType.isBlank())
             {
-                throw new IllegalArgumentException("type=" + type);   //NOI18N
+                throw new IllegalArgumentException("brTypse=" + Arrays.asList(brTypes));
+            }
+            if (!supportedBarRenderers.contains(brType))
+            {
+                supportedBarRenderers.add(brType);
+                activeBarRenderers.add(brType);
             }
         }
-        activeBarRenderers.clear();
-        Collections.addAll(activeBarRenderers, brTypes);
     }
 
-    public List<BarRendererFactory.Type> getSupportedBarRenderers()
+
+    /**
+     * Return a new instance of this BarBoxConfig with only the specified BarRenderer types active.
+     *
+     * @param brTypes Duplicate strings are ignored
+     * @return
+     */
+    public BarBoxConfig setActive(String... brTypes)
     {
-        return supportedBarRenderers;
+        checkArgument(brTypes.length > 0, "brTypes.length=%s", brTypes.length);
+
+        var res = new BarBoxConfig();
+        res.supportedBarRenderers.addAll(supportedBarRenderers);
+
+
+        for (String brType : brTypes)
+        {
+            if (!supportedBarRenderers.contains(brType))
+            {
+                throw new IllegalArgumentException("brType=" + brType);   //NOI18N
+            }
+            if (!res.activeBarRenderers.contains(brType))
+            {
+                res.activeBarRenderers.add(brType);
+            }
+        }
+
+        return res;
     }
 
-    public List<BarRendererFactory.Type> getActiveBarRenderers()
+    public List<String> getSupportedBarRenderers()
     {
-        return activeBarRenderers;
+        return new ArrayList<>(supportedBarRenderers);
+    }
+
+    public List<String> getActiveBarRenderers()
+    {
+        return new ArrayList<>(activeBarRenderers);
     }
 
     @Override
@@ -99,7 +135,7 @@ public class BarBoxConfig
         {
             return false;
         }
-        for (BarRendererFactory.Type type : supportedBarRenderers)
+        for (var type : supportedBarRenderers)
         {
             if (!bbc.supportedBarRenderers.contains(type))
             {
@@ -110,29 +146,63 @@ public class BarBoxConfig
     }
 
     /**
-     * True if both the supported and active BarRenderers are the same.
+     * Return true if bbc has the same active BarRenderers (order is not taken into account).
      *
-     * @param o
+     * @param bbc
      * @return
      */
-    @Override
-    public boolean equals(Object o)
+    public boolean hasSameActiveBarRenderers(BarBoxConfig bbc)
     {
-        if (!(o instanceof BarBoxConfig))
+        if (activeBarRenderers.size() != bbc.activeBarRenderers.size())
         {
             return false;
         }
-        BarBoxConfig cfg = (BarBoxConfig) o;
-        return cfg.supportedBarRenderers.equals(supportedBarRenderers)
-                && cfg.activeBarRenderers.equals(activeBarRenderers);
+        for (var type : activeBarRenderers)
+        {
+            if (!bbc.activeBarRenderers.contains(type))
+            {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override
     public int hashCode()
     {
         int hash = 5;
-        hash = 67 * hash + (this.supportedBarRenderers != null ? this.supportedBarRenderers.hashCode() : 0);
-        hash = 67 * hash + (this.activeBarRenderers != null ? this.activeBarRenderers.hashCode() : 0);
+        hash = 67 * hash + Objects.hashCode(this.supportedBarRenderers);
+        hash = 67 * hash + Objects.hashCode(this.activeBarRenderers);
         return hash;
     }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+        if (this == obj)
+        {
+            return true;
+        }
+        if (obj == null)
+        {
+            return false;
+        }
+        if (getClass() != obj.getClass())
+        {
+            return false;
+        }
+        final BarBoxConfig other = (BarBoxConfig) obj;
+        if (!Objects.equals(this.supportedBarRenderers, other.supportedBarRenderers))
+        {
+            return false;
+        }
+        if (!Objects.equals(this.activeBarRenderers, other.activeBarRenderers))
+        {
+            return false;
+        }
+        return true;
+    }
+
+    
+    
 }

@@ -471,7 +471,7 @@ public class SongFactory implements PropertyChangeListener
     /**
      * Get a new song with the lead sheet developped/unrolled according to the song structure.
      * <p>
-     * Return song where each SongPart corresponds to one Section in a linear order. Created song is registered.
+     * Return song where each SongPart corresponds to one Section in a linear order. 
      *
      * @param song
      * @param register If true register the created song

@@ -166,7 +166,7 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
         kbdComponent.setEnabled(b);
         updateSptUI();
     }
-    
+
     // ================================================================================    
     // PropertyChangeListener interface
     // ================================================================================   
@@ -247,29 +247,28 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
 
             // Check everything is OK
             String errorMessage = null;
+            SS_Editor ssEditor = null;
+            SS_SelectionUtilities selection = null;
 
 
             if (jms.getDefaultInDevice() == null)
             {
                 errorMessage = ResUtil.getString(getClass(), "ErrNoMidiInputDevice");
-            }
-
-            if (mc.getState().equals(MusicController.State.PLAYING))
+            } else if (mc.getState().equals(MusicController.State.PLAYING))
             {
                 errorMessage = ResUtil.getString(getClass(), "ErrSequenceAlreadyPlaying");
-            }
-
-            if (song == null)
+            } else if (song == null)
             {
                 errorMessage = ResUtil.getString(getClass(), "ErrNoActiveSong");
-            }
-
-            SS_EditorTopComponent ssTc = SS_EditorTopComponent.get(song.getSongStructure());
-            SS_Editor ssEditor = ssTc.getSS_Editor();
-            SS_SelectionUtilities selection = new SS_SelectionUtilities(ssEditor.getLookup());
-            if (selection.isEmpty())
+            } else
             {
-                errorMessage = ResUtil.getString(getClass(), "ErrNoSelectedSongPart");
+                SS_EditorTopComponent ssTc = SS_EditorTopComponent.get(song.getSongStructure());
+                ssEditor = ssTc.getSS_Editor();
+                selection = new SS_SelectionUtilities(ssEditor.getLookup());
+                if (selection.isEmpty())
+                {
+                    errorMessage = ResUtil.getString(getClass(), "ErrNoSelectedSongPart");
+                }
             }
 
             // If error notify error and rollback UI

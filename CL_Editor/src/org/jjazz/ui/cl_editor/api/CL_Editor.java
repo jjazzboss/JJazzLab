@@ -33,6 +33,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.song.api.Song;
+import org.jjazz.ui.cl_editor.barbox.api.BarBoxConfig;
 import org.jjazz.ui.cl_editor.barrenderer.api.BarRendererFactory;
 import org.jjazz.ui.itemrenderer.api.IR_Type;
 import org.openide.awt.UndoRedo;
@@ -45,7 +46,10 @@ import org.openide.util.Lookup;
  * - editor's ActionMap<br>
  * - edited ChordLeadSheet<br>
  * - edited Song (container of the ChordLeadSheet if there is one)<br>
- * - selected items or bars<br>
+ * - selected items or bars<p>
+ * <p>
+ * The editor creates BarBoxes using a BarBoxConfig based on the editor's default config, and on the BarRenderer types obtained
+ * from the BarRendererProvider instances found in the global lookup.
  */
 public abstract class CL_Editor extends JPanel implements Lookup.Provider
 {
@@ -116,6 +120,22 @@ public abstract class CL_Editor extends JPanel implements Lookup.Provider
      * @return True if section bar should start on new line.
      */
     abstract public boolean isSectionStartOnNewLine(CLI_Section section);
+
+    /**
+     * Set the BarBoxConfig for specified bars.
+     *
+     * @param bbConfig
+     * @param barIndexes If no arg specified, apply bbConfig to all bars
+     */
+    abstract public void setBarBoxConfig(BarBoxConfig bbConfig, Integer... barIndexes);
+
+    /**
+     * Get the BarBoxConfig of the specified bar.
+     *
+     * @param barIndex
+     * @return
+     */
+    abstract public BarBoxConfig getBarBoxConfig(int barIndex);
 
     /**
      * Set the number of columns per line.

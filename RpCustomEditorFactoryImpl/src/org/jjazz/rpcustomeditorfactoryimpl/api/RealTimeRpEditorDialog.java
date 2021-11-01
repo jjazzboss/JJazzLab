@@ -44,11 +44,14 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.MusicController.State;
 import org.jjazz.musiccontrol.api.playbacksession.DynamicSongSession;
+import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
+import org.jjazz.musiccontrol.api.playbacksession.SongContextProvider;
 import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
+import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.songcontext.api.SongPartContext;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructure;
@@ -80,6 +83,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
     private final E rpDefaultValue;
     private E saveRpValue;
     private GlobalKeyActionListener globalKeyListener;
+    private PlaybackSession previousPlaybackSession;
     private static final Logger LOGGER = Logger.getLogger(RealTimeRpEditorDialog.class.getSimpleName());  //NOI18N
 
     public RealTimeRpEditorDialog(RealTimeRpEditorComponent<E> comp)
@@ -188,7 +192,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
     static public <T> SongPartContext buildPreviewContext(SongPartContext sptContext, RhythmParameter<T> rp, T rpValue)
     {
         checkArgument(sptContext.getSongParts().size() == 1, "sptContext=%s, rp=%s, rpValue=%s", sptContext, rp, rpValue);
-        
+
         // Get a song copy which uses the edited RP value        
         Song songCopy = SongFactory.getInstance().getCopy(sptContext.getSong(), false);
         SongStructure ss = songCopy.getSongStructure();
@@ -242,10 +246,25 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
     // Private methods
     // ======================================================================================
     private void exit(boolean ok)
-    {
+    {      
         MusicController mc = MusicController.getInstance();
+        boolean wasPlaying = mc.getState().equals(State.PLAYING);
         mc.stop();
 
+
+        // If song was playing and we're playing, restart with the original session
+        if (previousPlaybackSession != null && wasPlaying)
+        {
+            try
+            {
+                mc.setPlaybackSession(previousPlaybackSession);
+                mc.play(previousPlaybackSession.getBarRange().from);
+            } catch (MusicGenerationException ex)
+            {
+                // Should never happen, it was working before this dialog opened
+                Exceptions.printStackTrace(ex);
+            }
+        }
 
         exitOk = ok;
         setVisible(false);
@@ -529,7 +548,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
 
     private void formWindowClosed(java.awt.event.WindowEvent evt)//GEN-FIRST:event_formWindowClosed
     {//GEN-HEADEREND:event_formWindowClosed
-        // Triggerd by dispose() call
+        // Triggered by dispose() call
         if (editor != null)
         {
             editor.cleanup();
@@ -554,16 +573,27 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
         }
 
         // If song was already playing, directly switch to the preview mode
+        previousPlaybackSession = null;
         var mc = MusicController.getInstance();
         if (mc.getState().equals(State.PLAYING))
         {
             mc.stop();
 
-            if (!mc.isArrangerPlaying())
+
+            // Start preview mode, except if we were in arranger mode
+            var prevSession = mc.getPlaybackSession();
+            if (prevSession instanceof UpdatableSongSession)
             {
-                tbtn_hear.setSelected(true);
-                tbtn_hearActionPerformed(null);     // This will start playing the preview
+                Song song = ((SongContextProvider) prevSession).getSongContext().getSong();
+                if (!song.getName().startsWith("*!ArrangerSONG!*"))
+                {
+                    tbtn_hear.setSelected(true);
+                    tbtn_hearActionPerformed(null);     // This will start playing the preview
+
+                    previousPlaybackSession = prevSession.getFreshCopy();
+                }
             }
+
         }
 
 

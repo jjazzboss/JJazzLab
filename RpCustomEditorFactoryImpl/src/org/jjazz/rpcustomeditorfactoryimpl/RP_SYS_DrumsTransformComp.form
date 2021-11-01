@@ -668,6 +668,9 @@
             <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
               <Image iconType="3" name="/org/jjazz/rpcustomeditorfactoryimpl/resources/SoloOff_Icon-21x21.png"/>
             </Property>
+            <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+              <ResourceString bundle="org/jjazz/rpcustomeditorfactoryimpl/Bundle.properties" key="RP_SYS_DrumsTransformComp.tbtn_solo.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+            </Property>
             <Property name="selectedIcon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
               <Image iconType="3" name="/org/jjazz/rpcustomeditorfactoryimpl/resources/SoloOn_Icon-21x21.png"/>
             </Property>

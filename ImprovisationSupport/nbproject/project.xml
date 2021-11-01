@@ -3,35 +3,11 @@
     <type>org.netbeans.modules.apisupport.project</type>
     <configuration>
         <data xmlns="http://www.netbeans.org/ns/nb-module-project/3">
-            <code-name-base>org.jjazz.ui.cl_editor</code-name-base>
+            <code-name-base>org.jjazz.improvisionsupport</code-name-base>
             <suite-component/>
             <module-dependencies>
                 <dependency>
                     <code-name-base>org.jjazz.activesong</code-name-base>
-                    <build-prerequisite/>
-                    <compile-dependency/>
-                    <run-dependency>
-                        <specification-version>1.0</specification-version>
-                    </run-dependency>
-                </dependency>
-                <dependency>
-                    <code-name-base>org.jjazz.analytics</code-name-base>
-                    <build-prerequisite/>
-                    <compile-dependency/>
-                    <run-dependency>
-                        <specification-version>1.0</specification-version>
-                    </run-dependency>
-                </dependency>
-                <dependency>
-                    <code-name-base>org.jjazz.base</code-name-base>
-                    <build-prerequisite/>
-                    <compile-dependency/>
-                    <run-dependency>
-                        <specification-version>1.0</specification-version>
-                    </run-dependency>
-                </dependency>
-                <dependency>
-                    <code-name-base>org.jjazz.chordsymboltextinput</code-name-base>
                     <build-prerequisite/>
                     <compile-dependency/>
                     <run-dependency>
@@ -51,7 +27,7 @@
                     <build-prerequisite/>
                     <compile-dependency/>
                     <run-dependency>
-                        <specification-version>1.0</specification-version>
+                        <specification-version>1.1</specification-version>
                     </run-dependency>
                 </dependency>
                 <dependency>
@@ -71,31 +47,15 @@
                     </run-dependency>
                 </dependency>
                 <dependency>
-                    <code-name-base>org.jjazz.rhythm</code-name-base>
-                    <build-prerequisite/>
-                    <compile-dependency/>
-                    <run-dependency>
-                        <specification-version>1.0</specification-version>
-                    </run-dependency>
-                </dependency>
-                <dependency>
-                    <code-name-base>org.jjazz.rhythm.database</code-name-base>
-                    <build-prerequisite/>
-                    <compile-dependency/>
-                    <run-dependency>
-                        <specification-version>1.0</specification-version>
-                    </run-dependency>
-                </dependency>
-                <dependency>
-                    <code-name-base>org.jjazz.savablesong</code-name-base>
-                    <build-prerequisite/>
-                    <compile-dependency/>
-                    <run-dependency>
-                        <specification-version>1.0</specification-version>
-                    </run-dependency>
-                </dependency>
-                <dependency>
                     <code-name-base>org.jjazz.song</code-name-base>
+                    <build-prerequisite/>
+                    <compile-dependency/>
+                    <run-dependency>
+                        <specification-version>1.1</specification-version>
+                    </run-dependency>
+                </dependency>
+                <dependency>
+                    <code-name-base>org.jjazz.songeditormanager</code-name-base>
                     <build-prerequisite/>
                     <compile-dependency/>
                     <run-dependency>
@@ -111,7 +71,23 @@
                     </run-dependency>
                 </dependency>
                 <dependency>
+                    <code-name-base>org.jjazz.ui.cl_editor</code-name-base>
+                    <build-prerequisite/>
+                    <compile-dependency/>
+                    <run-dependency>
+                        <specification-version>1.0</specification-version>
+                    </run-dependency>
+                </dependency>
+                <dependency>
                     <code-name-base>org.jjazz.ui.colorsetmanager</code-name-base>
+                    <build-prerequisite/>
+                    <compile-dependency/>
+                    <run-dependency>
+                        <specification-version>1.0</specification-version>
+                    </run-dependency>
+                </dependency>
+                <dependency>
+                    <code-name-base>org.jjazz.ui.flatcomponents</code-name-base>
                     <build-prerequisite/>
                     <compile-dependency/>
                     <run-dependency>
@@ -131,31 +107,7 @@
                     <build-prerequisite/>
                     <compile-dependency/>
                     <run-dependency>
-                        <specification-version>1.0</specification-version>
-                    </run-dependency>
-                </dependency>
-                <dependency>
-                    <code-name-base>org.jjazz.uisettings</code-name-base>
-                    <build-prerequisite/>
-                    <compile-dependency/>
-                    <run-dependency>
-                        <specification-version>1.0</specification-version>
-                    </run-dependency>
-                </dependency>
-                <dependency>
-                    <code-name-base>org.jjazz.undomanager</code-name-base>
-                    <build-prerequisite/>
-                    <compile-dependency/>
-                    <run-dependency>
-                        <specification-version>1.0</specification-version>
-                    </run-dependency>
-                </dependency>
-                <dependency>
-                    <code-name-base>org.jjazz.upgrade</code-name-base>
-                    <build-prerequisite/>
-                    <compile-dependency/>
-                    <run-dependency>
-                        <specification-version>1.0</specification-version>
+                        <specification-version>1.1</specification-version>
                     </run-dependency>
                 </dependency>
                 <dependency>
@@ -167,37 +119,12 @@
                     </run-dependency>
                 </dependency>
                 <dependency>
-                    <code-name-base>org.jjazz.util.diff.api</code-name-base>
-                    <build-prerequisite/>
-                    <compile-dependency/>
-                    <run-dependency>
-                        <specification-version>1.0</specification-version>
-                    </run-dependency>
-                </dependency>
-                <dependency>
-                    <code-name-base>org.netbeans.api.annotations.common</code-name-base>
-                    <build-prerequisite/>
-                    <compile-dependency/>
-                    <run-dependency>
-                        <release-version>1</release-version>
-                        <specification-version>1.26.1</specification-version>
-                    </run-dependency>
-                </dependency>
-                <dependency>
                     <code-name-base>org.netbeans.modules.settings</code-name-base>
                     <build-prerequisite/>
                     <compile-dependency/>
                     <run-dependency>
                         <release-version>1</release-version>
-                        <specification-version>1.26.1</specification-version>
-                    </run-dependency>
-                </dependency>
-                <dependency>
-                    <code-name-base>org.openide.actions</code-name-base>
-                    <build-prerequisite/>
-                    <compile-dependency/>
-                    <run-dependency>
-                        <specification-version>6.29.1</specification-version>
+                        <specification-version>1.61</specification-version>
                     </run-dependency>
                 </dependency>
                 <dependency>
@@ -205,23 +132,7 @@
                     <build-prerequisite/>
                     <compile-dependency/>
                     <run-dependency>
-                        <specification-version>7.65.1</specification-version>
-                    </run-dependency>
-                </dependency>
-                <dependency>
-                    <code-name-base>org.openide.dialogs</code-name-base>
-                    <build-prerequisite/>
-                    <compile-dependency/>
-                    <run-dependency>
-                        <specification-version>7.41.1</specification-version>
-                    </run-dependency>
-                </dependency>
-                <dependency>
-                    <code-name-base>org.openide.filesystems</code-name-base>
-                    <build-prerequisite/>
-                    <compile-dependency/>
-                    <run-dependency>
-                        <specification-version>9.0</specification-version>
+                        <specification-version>7.80</specification-version>
                     </run-dependency>
                 </dependency>
                 <dependency>
@@ -229,7 +140,7 @@
                     <build-prerequisite/>
                     <compile-dependency/>
                     <run-dependency>
-                        <specification-version>9.5.1</specification-version>
+                        <specification-version>9.19</specification-version>
                     </run-dependency>
                 </dependency>
                 <dependency>
@@ -237,7 +148,7 @@
                     <build-prerequisite/>
                     <compile-dependency/>
                     <run-dependency>
-                        <specification-version>8.32.1</specification-version>
+                        <specification-version>8.46</specification-version>
                     </run-dependency>
                 </dependency>
                 <dependency>
@@ -245,7 +156,7 @@
                     <build-prerequisite/>
                     <compile-dependency/>
                     <run-dependency>
-                        <specification-version>9.4.1</specification-version>
+                        <specification-version>9.20</specification-version>
                     </run-dependency>
                 </dependency>
                 <dependency>
@@ -253,26 +164,11 @@
                     <build-prerequisite/>
                     <compile-dependency/>
                     <run-dependency>
-                        <specification-version>6.33.1</specification-version>
+                        <specification-version>6.89</specification-version>
                     </run-dependency>
                 </dependency>
             </module-dependencies>
-            <test-dependencies>
-                <test-type>
-                    <name>unit</name>
-                    <test-dependency>
-                        <code-name-base>org.netbeans.libs.junit4</code-name-base>
-                        <compile-dependency/>
-                    </test-dependency>
-                </test-type>
-            </test-dependencies>
-            <public-packages>
-                <package>org.jjazz.ui.cl_editor.api</package>
-                <package>org.jjazz.ui.cl_editor.barbox.api</package>
-                <package>org.jjazz.ui.cl_editor.barrenderer.api</package>
-                <package>org.jjazz.ui.cl_editor.barrenderer.spi</package>
-                <package>org.jjazz.ui.cl_editor.spi</package>
-            </public-packages>
+            <public-packages/>
         </data>
     </configuration>
 </project>

@@ -43,7 +43,7 @@ import org.openide.util.actions.BooleanStateAction;
 public class AutoPreviewToolBarPanel extends javax.swing.JPanel implements PropertyChangeListener, LookupListener
 {
 
-    private Lookup.Result<Song> lookupResult;
+    private final Lookup.Result<Song> lookupResult;
     private Song currentSong;
     private static final Logger LOGGER = Logger.getLogger(AutoPreviewToolBarPanel.class.getSimpleName());
 
@@ -184,8 +184,7 @@ public class AutoPreviewToolBarPanel extends javax.swing.JPanel implements Prope
         setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.X_AXIS));
         add(filler4);
 
-        fbtn_autopreview.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/Click-OFF-24x24.png"))); // NOI18N
-        fbtn_autopreview.setToolTipText(org.openide.util.NbBundle.getMessage(AutoPreviewToolBarPanel.class, "AutoPreviewToolBarPanel.fbtn_autopreview.toolTipText")); // NOI18N
+        fbtn_autopreview.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/AutoUpdate-OFF-24x24.png"))); // NOI18N
         fbtn_autopreview.setDisabledIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/ClickDisabled-24x24.png"))); // NOI18N
         fbtn_autopreview.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/Click-ON-24x24.png"))); // NOI18N
         add(fbtn_autopreview);

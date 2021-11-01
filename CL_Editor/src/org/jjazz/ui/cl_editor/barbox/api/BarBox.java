@@ -464,29 +464,29 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
      * <p>
      * There must be at least 1 active BarRenderer.
      *
-     * @param cfg
+     * @param bbConfig
      * @return boolean true if BarBoxConfig has been really changed, false otherwise (e.g. same value)
      */
-    public final boolean setConfig(BarBoxConfig cfg)
+    public final boolean setConfig(BarBoxConfig bbConfig)
     {
-        if (cfg == null || cfg.getActiveBarRenderers().isEmpty())
+        if (bbConfig == null || bbConfig.getActiveBarRenderers().isEmpty())
         {
-            throw new IllegalArgumentException("cfg=" + cfg);   //NOI18N
+            throw new IllegalArgumentException("bbConfig=" + bbConfig);   //NOI18N
         }
 
-        if (cfg.equals(barBoxConfig))
+        if (bbConfig.equals(barBoxConfig))
         {
             return false;
         }
 
-        if (barBoxConfig != null && cfg.getActiveBarRenderers().equals(barBoxConfig.getActiveBarRenderers()))
+        if (barBoxConfig != null && bbConfig.getActiveBarRenderers().equals(barBoxConfig.getActiveBarRenderers()))
         {
-            barBoxConfig = cfg;
+            barBoxConfig = bbConfig;
             // Supported BarRenderers have changed, but not the active ones, we can leave
             return true;
         }
 
-        barBoxConfig = cfg;
+        barBoxConfig = bbConfig;
 
         // Remove previous BarRenderers
         for (BarRenderer br : getBarRenderers())
@@ -496,9 +496,9 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
 
 
         // Add new ones
-        for (BarRendererFactory.Type brType : barBoxConfig.getActiveBarRenderers())
+        for (String brType : barBoxConfig.getActiveBarRenderers())
         {
-            BarRenderer br = barRendererFactory.createBarRenderer(editor, brType, barIndex, model, bbSettings.getBarRendererSettings(), barRendererFactory.getItemRendererFactory());
+            BarRenderer br = barRendererFactory.createBarRenderer(editor, brType, barIndex, bbSettings.getBarRendererSettings(), barRendererFactory.getItemRendererFactory());
             br.setZoomVFactor(zoomVFactor);
             br.setDisplayQuantizationValue(displayQuantization);
             br.setEnabled(isEnabled());

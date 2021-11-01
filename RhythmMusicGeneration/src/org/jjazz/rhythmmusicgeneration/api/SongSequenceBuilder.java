@@ -71,8 +71,6 @@ import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.RhythmVoiceDelegate;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhrase;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhraseValue;
-import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_DrumsMix;
-import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_DrumsMixValue;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Mute;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_TempoFactor;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
@@ -501,12 +499,6 @@ public class SongSequenceBuilder
             }
         }
 
-
-        // Handle the RP_SYS_DrumsMix changes : must be DONE after the merge of the phrases for RhythmVoiceDelegates.
-        // RP_SYS_DrumsMix rp is directly reused by AdaptedRhythm instances, so RP_SYS_DrumsMix.getRhythmVoice() returns
-        // the rhythm voice of the source rhythm. 
-        // processDrumsMixSettings(songContext, res);
-
         // 
         // From here no more SongPart-based processing allowed, since the phrases for SongParts using an AdaptedRhythm have 
         // been merged into the tracks of its source rhythm.
@@ -768,63 +760,7 @@ public class SongSequenceBuilder
         }
     }
 
-    /**
-     * Change some note velocities depending on the RP_SYS_DrumsMix value for each SongPart.
-     *
-     * @param context
-     * @param rvPhrases Keys can NOT contain RhythmVoiceDelegates
-     */
-    private void processDrumsMixSettings(SongContext context, Map<RhythmVoice, Phrase> rvPhrases)
-    {
-        for (SongPart spt : context.getSongParts())
-        {
-
-            // Get the RhythmParameter
-            Rhythm r = spt.getRhythm();
-            RP_SYS_DrumsMix rpDrums = RP_SYS_DrumsMix.getDrumsMixRp(r);
-            if (rpDrums == null)
-            {
-                continue;
-            }
-
-
-            // Get the RP value
-            RP_SYS_DrumsMixValue rpValue = spt.getRPValue(rpDrums);
-            var mapSubsetOffset = rpValue.getMapSubsetOffset(); // The offsets to apply for each Subset
-            if (mapSubsetOffset.isEmpty())
-            {
-                continue;
-            }
-
-
-            // Retrieve drums keymap
-            RhythmVoice rvDrums = rpDrums.getRhythmVoice();
-            var drumkit = context.getMidiMix().getInstrumentMixFromKey(rvDrums).getInstrument().getDrumKit();   // Can be null for "Not Set" drums voice
-            var keymap = drumkit != null ? drumkit.getKeyMap() : KeyMapGM.getInstance();
-
-
-            // Apply the velocity offsets on the SongPart drums notes
-            Phrase p = rvPhrases.get(rvDrums);
-            assert p != null : "rpDrums=" + rpDrums + " rvDrums=" + rvDrums;
-            FloatRange sptRange = context.getSptBeatRange(spt);
-            for (NoteEvent ne : p.getNotes(sptRange, true))
-            {
-                int pitch = ne.getPitch();
-                for (DrumKit.Subset subset : mapSubsetOffset.keySet())
-                {
-                    if (keymap.getKeys(subset).contains(pitch))
-                    {
-                        // Replace with a new NoteEvent with adjusted velocity
-                        int v = MidiUtilities.limit(ne.getVelocity() + mapSubsetOffset.get(subset));
-                        NoteEvent newNote = new NoteEvent(ne, ne.getPitch(), ne.getDurationInBeats(), v);
-                        p.set(p.indexOf(ne), newNote);
-                    }
-                }
-            }
-        }
-    }
-
-    /**
+     /**
      * Replace phrases by custom phrases depending on the RP_SYS_CustomPhrase value.
      *
      * @param context

@@ -79,6 +79,7 @@ public interface PlaybackSession
      */
     public static final String PROP_LOOP_COUNT = "PropLoopCount";
 
+
     /**
      * Create the sequence and the related data.
      * <p>
@@ -89,6 +90,13 @@ public interface PlaybackSession
      * @throws IllegalStateException If State is not NEW.
      */
     void generate(boolean silent) throws MusicGenerationException;
+
+    /**
+     * Get a copy of this session in the NEW state.
+     *
+     * @return
+     */
+    PlaybackSession getFreshCopy();
 
     /**
      * The Midi sequence.

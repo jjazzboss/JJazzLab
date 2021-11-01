@@ -43,10 +43,7 @@
     <Component class="org.jjazz.ui.flatcomponents.api.FlatToggleButton" name="fbtn_autopreview">
       <Properties>
         <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-          <Image iconType="3" name="/org/jjazz/ui/musiccontrolactions/resources/Click-OFF-24x24.png"/>
-        </Property>
-        <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/jjazz/ui/musiccontrolactions/Bundle.properties" key="AutoPreviewToolBarPanel.fbtn_autopreview.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+          <Image iconType="3" name="/org/jjazz/ui/musiccontrolactions/resources/AutoUpdate-OFF-24x24.png"/>
         </Property>
         <Property name="disabledIcon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
           <Image iconType="3" name="/org/jjazz/ui/musiccontrolactions/resources/ClickDisabled-24x24.png"/>

@@ -112,7 +112,12 @@ public class SongContext
     {
         this(sgContext.getSong(), sgContext.getMidiMix(), newRange);
     }
-
+    
+    @Override
+    public SongContext clone()
+    {
+        return new SongContext(this, getBarRange());
+    }
 
     /**
      * Music should be produced for this song.
