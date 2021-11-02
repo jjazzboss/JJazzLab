@@ -105,13 +105,6 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
         }
         spn_splitNote.setModel(new SpinnerListModel(notes));
 
-
-        // Listen to active song changes
-        var asm = ActiveSongManager.getInstance();
-        asm.addPropertyListener(this);
-        activeSongChanged(asm.getActiveSong(), asm.getActiveMidiMix());
-
-
         // Prepare the data
         chordSymbolFinderBuildFuture = Executors.newSingleThreadExecutor().submit(() -> ChordSymbolFinder.buildStaticData());   // Can take a few seconds on slow computers
         chordSymbolFinder = new ChordSymbolFinder(4);
@@ -130,6 +123,11 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
         if (chordReceiver != null)
         {
             chordReceiver.close();
+        }
+        if (song != null)
+        {
+            song.getSongStructure().removeSgsChangeListener(this);
+            song.removePropertyChangeListener(this);
         }
     }
 
@@ -156,6 +154,43 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
     }
 
 
+    /**
+     * Set the model to operate on.
+     * <p>
+     * Both values can be null in the same time.
+     *
+     * @param sg
+     * @param mm
+     */
+    public void setModel(Song sg, MidiMix mm)
+    {
+        if (song != sg)
+        {
+            if (arranger != null)
+            {
+                arranger.stop();    // will set songPart to null as well
+            }
+
+            if (song != null)
+            {
+                song.getSongStructure().removeSgsChangeListener(this);
+                song.removePropertyChangeListener(this);
+            }
+
+            song = sg;
+            midiMix = mm;
+
+            if (song != null)
+            {
+                song.getSongStructure().addSgsChangeListener(this);
+                song.addPropertyChangeListener(this);
+            }
+        }
+
+        refreshUI();
+    }
+
+
     @Override
     public void setEnabled(boolean b)
     {
@@ -164,7 +199,7 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
         lbl_rhythm.setEnabled(b);
         lbl_songPart.setEnabled(b);
         kbdComponent.setEnabled(b);
-        updateSptUI();
+        refreshUI();
     }
 
     // ================================================================================    
@@ -174,19 +209,13 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
-        if (evt.getSource() == ActiveSongManager.getInstance())
-        {
-            if (evt.getPropertyName().equals(ActiveSongManager.PROP_ACTIVE_SONG))
-            {
-                activeSongChanged((Song) evt.getNewValue(), (MidiMix) evt.getOldValue());
-            }
-        } else if (evt.getSource() == arranger)
+        if (evt.getSource() == arranger)
         {
             if (evt.getPropertyName().equals(Arranger.PROP_PLAYING))
             {
                 if (arranger.isPlaying())
                 {
-                    updateSptUI();
+                    refreshUI();
                 } else
                 {
                     arrangerStopped();
@@ -216,7 +245,7 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
     @Override
     public void songStructureChanged(SgsChangeEvent e)
     {
-        updateSptUI();
+        refreshUI();
     }
 
     // ================================================================================    
@@ -358,34 +387,6 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
     }
 
 
-    private void activeSongChanged(Song sg, MidiMix mm)
-    {
-        if (song != sg)
-        {
-            if (arranger != null)
-            {
-                arranger.stop();
-            }
-
-            if (song != null)
-            {
-                song.getSongStructure().removeSgsChangeListener(this);
-                song.removePropertyChangeListener(this);
-            }
-
-            song = sg;
-            midiMix = mm;
-
-            if (song != null)
-            {
-                song.getSongStructure().addSgsChangeListener(this);
-                song.addPropertyChangeListener(this);
-            }
-        }
-
-        updateSptUI();
-    }
-
     /**
      * Called by the ChordReceiver when a chord was changed.
      *
@@ -422,16 +423,18 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
      *
      * @param spt
      */
-    private void updateSptUI()
+    private void refreshUI()
     {
         LOGGER.log(Level.FINE, "updateSptUI() -- songPart={0}", songPart);
         String sSpt, sRhythm;
         if (songPart == null)
         {
+            // Not playing
             sSpt = " "; // Must not be "" to keep JLabel height unchanged
             sRhythm = " ";
         } else
         {
+            // Playing
             sSpt = ResUtil.getString(getClass(), "SongPartRef", songPart.getName(), songPart.getStartBarIndex() + 1);
             Rhythm r = songPart.getRhythm();
             var rpVariation = RP_STD_Variation.getVariationRp(r);
@@ -442,11 +445,14 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
         lbl_songPart.setText(sSpt);
         lbl_rhythm.setText(sRhythm);
 
+        tbtn_playPause.setEnabled(song != null);
+
         boolean b = arranger != null && arranger.isPlaying()
                 && songPart != null && song != null
                 && song.getSongStructure().getSongParts().contains(songPart);
         lbl_songPart.setEnabled(b);
         lbl_rhythm.setEnabled(b);
+
     }
 
     private void updateSplitNoteUI(int splitNote)
@@ -462,7 +468,7 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
         arranger.cleanup();
         tbtn_playPause.setSelected(false);
         songPart = null;
-        updateSptUI();
+        refreshUI();
     }
 
     /**

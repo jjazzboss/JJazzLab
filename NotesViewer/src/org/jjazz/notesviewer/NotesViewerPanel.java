@@ -81,11 +81,22 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
     private Song songPlaybackMode, songSelectionMode;
     private CLI_ChordSymbol selectedChordSymbol;
     private MidiMix midiMixPlaybackMode, midiMixSelectionMode;
-    private final NotesViewerListener noteListener;
+    private NotesViewerListener noteListener;
     private final Font chordSymbolFont;
     private final HashMap<NotesViewer, FlatButton> mapViewerButton = new HashMap<>();
     private final CL_ContextActionSupport cap;
     private final int saveInitalTooltipDelay = 500;
+    private final PlaybackListenerAdapter playbackAdapter = new PlaybackListenerAdapter()
+    {
+        @Override
+        public void chordSymbolChanged(CLI_ChordSymbol cliCs)
+        {
+            if (isUIinPlaybackMode())
+            {
+                updateCurrentChordSymbolUI(cliCs);
+            }
+        }
+    };
 
     private static final Logger LOGGER = Logger.getLogger(NotesViewerPanel.class.getSimpleName());
 
@@ -102,37 +113,13 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
 
         cmb_srcChannel.addActionListener(this);
 
-        // Get the chord symbols changes
-        MusicController mc = MusicController.getInstance();
-        mc.addPlaybackListener(new PlaybackListenerAdapter()
-        {
-            @Override
-            public void chordSymbolChanged(CLI_ChordSymbol cliCs)
-            {
-                if (isUIinPlaybackMode())
-                {
-                    updateCurrentChordSymbolUI(cliCs);
-                }
-            }
-        });
-
-        // Get the playback state changes
-        mc.addPropertyChangeListener(this);
-
-        // Get the incoming notes to update the keyboard
-        noteListener = new NotesViewerListener();
-        mc.addNoteListener(noteListener);
 
         // Initialize the viewers
+        noteListener = new NotesViewerListener();
         setActiveNotesViewer(initNotesViewers());
         modeChanged();
 
-        // Listen to active song changes
-        var asm = ActiveSongManager.getInstance();
-        asm.addPropertyListener(this);
-        activeSongChanged(asm.getActiveSong(), asm.getActiveMidiMix());
-        
-        
+
         // Listen to selection changes in the current leadsheet editor
         cap = CL_ContextActionSupport.getInstance(Utilities.actionsGlobalContext());
         cap.addListener(this);
@@ -163,6 +150,66 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
         lbl_chordSymbol.setEnabled(b);
         lbl_scale.setEnabled(b);
         notesViewer.setEnabled(b);
+    }
+
+
+    public void opened()
+    {
+        // Get the chord symbol changes
+        MusicController mc = MusicController.getInstance();
+        mc.addPlaybackListener(playbackAdapter);
+
+        // Get the playback state changes
+        mc.addPropertyChangeListener(this);
+
+        // Get the incoming notes to update the keyboard
+        mc.addNoteListener(noteListener);
+    }
+
+    public void closing()
+    {
+        if (midiMixPlaybackMode != null)
+        {
+            midiMixPlaybackMode.removePropertyChangeListener(this);
+        }
+
+        MusicController mc = MusicController.getInstance();
+        mc.removeNoteListener(noteListener);
+        mc.removePropertyChangeListener(this);
+        mc.removePlaybackListener(playbackAdapter);
+
+    }
+
+    /**
+     *
+     * @param sg Can be null
+     * @param mm Can be null
+     */
+    public void setModel(Song sg, MidiMix mm)
+    {
+        if (songPlaybackMode != sg)
+        {
+            if (midiMixPlaybackMode != null)
+            {
+                midiMixPlaybackMode.removePropertyChangeListener(this);
+            }
+
+
+            songPlaybackMode = sg;
+            midiMixPlaybackMode = mm;
+
+
+            // Listen to midiMix changes
+            if (midiMixPlaybackMode != null)
+            {
+                midiMixPlaybackMode.addPropertyChangeListener(this);
+
+                // Update model and NotesViewer context
+                updateComboModel();
+            }
+        }
+
+        cmb_srcChannel.setEnabled(songPlaybackMode != null);
     }
 
 
@@ -228,6 +275,7 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
         // Nothing
     }
 
+
     // =================================================================================
     // ActionListener implementation 
     // =================================================================================
@@ -246,13 +294,7 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
-        if (evt.getSource() == ActiveSongManager.getInstance())
-        {
-            if (evt.getPropertyName().equals(ActiveSongManager.PROP_ACTIVE_SONG))
-            {
-                activeSongChanged((Song) evt.getNewValue(), (MidiMix) evt.getOldValue());
-            }
-        } else if (evt.getSource() == MusicController.getInstance())
+        if (evt.getSource() == MusicController.getInstance())
         {
             if (evt.getPropertyName().equals(MusicController.PROP_STATE) && notesViewer.getMode().equals(NotesViewer.Mode.ShowBackingTrack))
             {
@@ -435,41 +477,6 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
     // =================================================================================
     // Private methods
     // =================================================================================
-    /**
-     *
-     * @param sg Can be null
-     * @param mm Can be null
-     */
-    private void activeSongChanged(Song sg, MidiMix mm)
-    {
-        if (sg != null && mm != null)
-        {
-
-            if (midiMixPlaybackMode != null)
-            {
-                midiMixPlaybackMode.removePropertyChangeListener(this);
-            }
-
-            songPlaybackMode = sg;
-            midiMixPlaybackMode = mm;
-
-            // Listen to midiMix changes
-            mm.addPropertyChangeListener(this);
-
-            // Update model and NotesViewer context
-            updateComboModel();
-
-            if (isUIinPlaybackMode())
-            {
-                cmb_srcChannel.setEnabled(true);        // If there was no active song before
-                lbl_chordSymbol.setText(" ");
-                lbl_scale.setText(" ");
-            }
-        } else
-        {
-            cmb_srcChannel.setEnabled(false);
-        }
-    }
 
     private void channelChanged()
     {
@@ -484,9 +491,14 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
         return ((ComboChannelElement) cmb_srcChannel.getSelectedItem()).channel;
     }
 
+    /**
+     * Update the combomodel with the new midiMixPlaybackMode value.
+     */
     private void updateComboModel()
     {
         LOGGER.fine("updateComboModel() -- ");
+        assert midiMixPlaybackMode != null;
+
 
         // Disable listening while updating the model
         cmb_srcChannel.removeActionListener(this);
@@ -522,7 +534,7 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
         } else
         {
             // First time use of the panel
-            channelChanged();                   
+            channelChanged();
         }
 
     }
@@ -587,9 +599,11 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
         var mode = getUIMode();
         switch (mode)
         {
+
             case ShowBackingTrack:
-                noteListener.setEnabled(true);
-                cmb_srcChannel.setEnabled(true);
+                boolean b = songPlaybackMode != null;
+                noteListener.setEnabled(b);
+                cmb_srcChannel.setEnabled(b);
                 notesViewer.setMode(mode);
                 lbl_chordSymbol.setText(" ");
                 lbl_scale.setText(" ");
