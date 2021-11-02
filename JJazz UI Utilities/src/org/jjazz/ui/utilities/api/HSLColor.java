@@ -322,6 +322,25 @@ public class HSLColor
     }
 
     /**
+     * Get a new color by adjusting the luminance of Color c.
+     * <p>
+     * For example a luminanceOffset of 3 with c=GREEN will return a little brighter GREEN.
+     *
+     * @param c
+     * @param luminanceOffset The value in the range [-100; 100] to be added to c's luminance. The resulting luminance is maintained in the [0-100] range.
+     * @return  
+     */
+    public static Color changeLuminance(Color c, int luminanceOffset)
+    {
+        HSLColor hsl = new HSLColor(c);
+        float lum = hsl.getLuminance();
+        lum += luminanceOffset;
+        lum = Math.min(100, lum);
+        lum = Math.max(0, lum);
+        return hsl.adjustLuminance(lum);
+    }
+
+    /**
      * Convert HSL values to a RGB Color with a default alpha value of 1.
      * <p>
      * H (Hue) is specified as degrees in the range 0 - 360.<br>

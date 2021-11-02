@@ -140,6 +140,7 @@ public class ImproSupportPanel extends javax.swing.JPanel implements PropertyCha
         cb_enable = new javax.swing.JCheckBox();
 
         org.openide.awt.Mnemonics.setLocalizedText(btn_generate, org.openide.util.NbBundle.getMessage(ImproSupportPanel.class, "ImproSupportPanel.btn_generate.text")); // NOI18N
+        btn_generate.setToolTipText(org.openide.util.NbBundle.getMessage(ImproSupportPanel.class, "ImproSupportPanel.btn_generate.toolTipText")); // NOI18N
         btn_generate.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -148,10 +149,8 @@ public class ImproSupportPanel extends javax.swing.JPanel implements PropertyCha
             }
         });
 
-        jScrollPane1.setBackground(null);
         jScrollPane1.setBorder(null);
 
-        hlp_area.setBackground(null);
         hlp_area.setColumns(20);
         hlp_area.setRows(5);
         jScrollPane1.setViewportView(hlp_area);
@@ -178,7 +177,7 @@ public class ImproSupportPanel extends javax.swing.JPanel implements PropertyCha
                     .addComponent(jScrollPane1)
                     .addComponent(cmb_improSupportMode, javax.swing.GroupLayout.Alignment.TRAILING, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addGap(0, 233, Short.MAX_VALUE)
+                        .addGap(0, 221, Short.MAX_VALUE)
                         .addComponent(btn_generate)))
                 .addContainerGap())
         );
@@ -189,8 +188,8 @@ public class ImproSupportPanel extends javax.swing.JPanel implements PropertyCha
                 .addComponent(cb_enable)
                 .addGap(18, 18, 18)
                 .addComponent(cmb_improSupportMode, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(38, 38, 38)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 79, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 111, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(btn_generate)
                 .addContainerGap())

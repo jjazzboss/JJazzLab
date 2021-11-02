@@ -26,10 +26,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.beans.PropertyChangeListener;
 import java.util.List;
 import javax.swing.event.SwingPropertyChangeSupport;
-import org.jjazz.song.api.Song;
-import org.jjazz.song.api.SongFactory;
 import org.jjazz.ui.cl_editor.api.CL_Editor;
 import org.jjazz.ui.cl_editor.barbox.api.BarBoxConfig;
+import org.jjazz.ui.cl_editor.barrenderer.api.BarRendererFactory;
 import org.jjazz.util.api.ResUtil;
 
 /**
@@ -154,6 +153,10 @@ public class ImproSupport
         }
         this.enabled = enabled;
         showImproSupportBarRenderer(enabled);
+        if (this.enabled)
+        {
+            generateGuide();
+        }
         pcs.firePropertyChange(PROP_ENABLED, !enabled, enabled);
     }
 
@@ -175,12 +178,7 @@ public class ImproSupport
     {
         var scenario = new PlayRestScenario(level, clEditor.getSongModel());
         scenario.generate();
-        
-        List<BR_ImproSupport> brs = BR_ImproSupport.getBR_ImproSupportInstances(clEditor);
-        for (var br : brs)
-        {
-            br.setScenario(scenario);
-        }       
+        BR_ImproSupport.getBR_ImproSupportInstances(clEditor).forEach(br -> br.setScenario(scenario));
     }
 
     private void showImproSupportBarRenderer(boolean b)
@@ -192,9 +190,11 @@ public class ImproSupport
             if (!b)
             {
                 activeBrTypes.remove(ImproSupportBrProvider.BR_IMPRO_SUPPORT);
+                activeBrTypes.add(1, BarRendererFactory.BR_CHORD_POSITION);
             } else
             {
-                activeBrTypes.add(ImproSupportBrProvider.BR_IMPRO_SUPPORT);
+                activeBrTypes.add(1, ImproSupportBrProvider.BR_IMPRO_SUPPORT);
+                activeBrTypes.remove(BarRendererFactory.BR_CHORD_POSITION);
             }
             bbc = bbc.setActive(activeBrTypes.toArray(new String[0]));
             clEditor.setBarBoxConfig(bbc, i);

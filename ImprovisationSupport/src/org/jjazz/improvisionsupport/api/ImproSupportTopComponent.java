@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.improvisionsupport;
+package org.jjazz.improvisionsupport.api;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -28,10 +28,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 import org.jjazz.activesong.api.ActiveSongManager;
+import org.jjazz.improvisionsupport.BR_ImproSupport;
+import org.jjazz.improvisionsupport.ImproSupport;
+import org.jjazz.improvisionsupport.ImproSupportPanel;
 import org.jjazz.song.api.Song;
 import org.jjazz.ui.cl_editor.api.CL_Editor;
 import org.jjazz.ui.cl_editor.api.CL_EditorTopComponent;
-import org.jjazz.ui.cl_editor.barrenderer.api.BarRenderer;
 import org.jjazz.util.api.ResUtil;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.awt.ActionID;
@@ -44,7 +46,7 @@ import org.openide.windows.WindowManager;
  * Top component which displays something.
  */
 @ConvertAsProperties(
-        dtd = "-//org.jjazz.improvisationsupport//ImproSupport//EN",
+        dtd = "-//org.jjazz.improvisationsupport.api//ImproSupport//EN",
         autostore = false
 )
 @TopComponent.Description(
@@ -53,7 +55,7 @@ import org.openide.windows.WindowManager;
         persistenceType = TopComponent.PERSISTENCE_ALWAYS
 )
 @TopComponent.Registration(mode = "jlnavigator", openAtStartup = false, position = 30)
-@ActionID(category = "Window", id = "org.jjazz.improvisionsupport.ImproSupportTopComponent")
+@ActionID(category = "Window", id = "org.jjazz.improvisionsupport.api.ImproSupportTopComponent")
 @ActionReference(path = "Menu/Window", position = 30, separatorAfter = 35)
 @TopComponent.OpenActionRegistration(
         displayName = "#CTL_ImproSupportAction",
@@ -78,9 +80,6 @@ public final class ImproSupportTopComponent extends TopComponent implements Prop
 
         improSupportPanel = new ImproSupportPanel();
         add(improSupportPanel);
-        LOGGER.severe("ImproSupportTopComponent() ================****** apply same design TopComponent/panel to NoteViewer and SongMemo and Arranger");
-        LOGGER.severe("ImproSupportTopComponent() ================****** apply same design TopComponent/panel to NoteViewer and SongMemo and Arranger");
-        LOGGER.severe("ImproSupportTopComponent() ================****** apply same design TopComponent/panel to NoteViewer and SongMemo and Arranger");
 
     }
     // ================================================================================    

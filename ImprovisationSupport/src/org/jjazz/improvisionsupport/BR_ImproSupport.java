@@ -25,13 +25,15 @@ package org.jjazz.improvisionsupport;
 import static com.google.common.base.Preconditions.checkNotNull;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.awt.RenderingHints;
+import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
@@ -49,6 +51,9 @@ import org.jjazz.ui.cl_editor.barrenderer.api.BarRenderer;
 import org.jjazz.ui.cl_editor.barrenderer.api.BarRendererSettings;
 import org.jjazz.ui.itemrenderer.api.ItemRenderer;
 import org.jjazz.ui.itemrenderer.api.ItemRendererFactory;
+import org.jjazz.ui.utilities.api.StringMetrics;
+import org.jjazz.uisettings.api.GeneralUISettings;
+import org.jjazz.util.api.ResUtil;
 
 /**
  * A BarRenderer to show improvisition support info.
@@ -56,11 +61,17 @@ import org.jjazz.ui.itemrenderer.api.ItemRendererFactory;
 public class BR_ImproSupport extends BarRenderer implements ChangeListener
 {
 
-    private static Dimension MIN_SIZE = new Dimension(10, 10);
+    private static final Color REST_BACKGROUND_COLOR = Color.LIGHT_GRAY;
+    private static final Font PLAY_FONT = GeneralUISettings.getInstance().getStdCondensedFont();
+    private static final Color FONT_COLOR = Color.DARK_GRAY.darker();
+    private static final int PREF_HEIGHT = 15;
+
+
     private PlayRestScenario scenario;
 
-
-    private int nbBeats;
+    private final String playString = ResUtil.getString(getClass(), "Play");
+    private final String restString = ResUtil.getString(getClass(), "Rest");
+    private int nbBeats;    // A negative value means the bar is beyond the chord leadsheet model
     private int zoomVFactor = 50;
     /**
      * Maintain an ordered list of BR_ImproSupport instances per editor.
@@ -83,10 +94,11 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
     {
         super(editor, barIndex, settings, irf);
 
-        setMinimumSize(MIN_SIZE);
+        setPreferredSize(new Dimension(10, PREF_HEIGHT));      // Width ignored because of the containers layout
 
 
         nbBeats = -1; // By default, we assume the bar renderer is past the chord leadsheet end
+
 
         // Update the list of instances ordered by bar index
         var brs = mapEditorBrs.get(editor);
@@ -111,21 +123,8 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
         {
             return;
         }
-        if (scenario != null)
-        {
-            scenario.removeChangeListener(this);
-        }
         this.scenario = scenario;
-        if (scenario != null)
-        {
-            scenario.addChangeListener(this);
-        }
         repaint();
-    }
-
-    public PlayRestScenario getScenario()
-    {
-        return scenario;
     }
 
     /**
@@ -176,6 +175,9 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
         }
 
         Graphics2D g2 = (Graphics2D) g;
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        g2.setFont(PLAY_FONT);
 
 
         Rectangle r = getDrawingArea();
@@ -183,21 +185,61 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
         final float h = r.height;
         final float x0 = r.x;
         final float y0 = r.y;
-        final float wBeat = (float) w / nbBeats;
+        final float wBeat = (float) Math.ceil(w / nbBeats);
         final float yc = y0 + h / 2;
-        final float lineHeight = 4;
 
 
         List<Value> values = scenario.getPlayRestValues(getBarIndex());
 
+        // Get last value of previous bar
+        Value prevValue = Value.REST;
+        if (getBarIndex() > 0)
+        {
+            var prevValues = scenario.getPlayRestValues(getBarIndex() - 1);
+            prevValue = prevValues.get(prevValues.size() - 1);
+        }
+
+        StringMetrics sm = new StringMetrics(g2);
+        var playBounds = sm.getLogicalBoundsNoLeading(playString);
+        var restBounds = sm.getLogicalBoundsNoLeading(restString);
+
+
+        // Fill the bar when playing, and print "Play" on each first Play beat
+        final int strPadding = 3;
         for (int i = 0; i < nbBeats; i++)
         {
-            Color c = computeColor(values.get(i));
-            g2.setColor(c);
+            Value value = values.get(i);
             float x = x0 + i * wBeat;
-            var shape = new Rectangle2D.Float(x, yc - lineHeight / 2, wBeat, lineHeight);
-            g2.fill(shape);
+            if (value.equals(Value.REST))
+            {
+                g2.setColor(REST_BACKGROUND_COLOR);
+                var shape = new Rectangle2D.Float(x, y0, wBeat, h);
+                g2.fill(shape);
+                if (prevValue.equals(Value.PLAY))
+                {
+                    x += strPadding;
+                    float y = (float) (r.y + (r.height - restBounds.getHeight()) / 2 - restBounds.getY());  // bounds are in baseline-relative coordinates!
+                    g2.setColor(FONT_COLOR);
+                    g2.drawString(restString, x, y);
+
+                }
+            } else if (prevValue.equals(Value.REST))
+            {
+                x += strPadding;
+                float y = (float) (r.y + (r.height - playBounds.getHeight()) / 2 - playBounds.getY());  // bounds are in baseline-relative coordinates!
+                g2.setColor(FONT_COLOR);
+                g2.drawString(playString, x, y);
+            }
+            prevValue = value;
         }
+
+
+        // Draw top and bottom lines
+        g2.setColor(REST_BACKGROUND_COLOR);
+        var line = new Line2D.Float(x0, y0, x0 + w - 1, y0);
+        g2.draw(line);
+        line = new Line2D.Float(x0, y0 + h - 1, x0 + w - 1, y0 + h - 1);
+        g2.draw(line);
 
     }
 
@@ -336,9 +378,9 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
     {
         return v.equals(Value.PLAY) ? Color.BLUE : Color.MAGENTA;
     }
+
+
     // ---------------------------------------------------------------
     // Private classes
     // ---------------------------------------------------------------
-
-
 }
