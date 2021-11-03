@@ -49,7 +49,7 @@ import org.openide.windows.WindowManager;
 @ActionRegistration(
         displayName = "#CTL_ResetWindows"
 )
-@ActionReference(path = "Menu/Window", position = 10155)
+@ActionReference(path = "Menu/Window", position = 200)
 public final class ResetWindows implements ActionListener
 {
 

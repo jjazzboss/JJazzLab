@@ -42,7 +42,6 @@ import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.border.Border;
-import org.jjazz.activesong.api.ActiveSongManager;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Item;
 import org.jjazz.midi.api.Instrument;
@@ -85,7 +84,6 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
     private final Font chordSymbolFont;
     private final HashMap<NotesViewer, FlatButton> mapViewerButton = new HashMap<>();
     private final CL_ContextActionSupport cap;
-    private final int saveInitalTooltipDelay = 500;
     private final PlaybackListenerAdapter playbackAdapter = new PlaybackListenerAdapter()
     {
         @Override

@@ -31,7 +31,9 @@ import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.geom.Line2D;
+import java.awt.geom.Path2D;
 import java.awt.geom.Rectangle2D;
+import java.awt.geom.RoundRectangle2D;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -40,6 +42,7 @@ import java.util.WeakHashMap;
 import java.util.logging.Logger;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.improvisionsupport.PlayRestScenario.Value;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
@@ -47,6 +50,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.song.api.Song;
 import org.jjazz.ui.cl_editor.api.CL_Editor;
+import org.jjazz.ui.cl_editor.barrenderer.api.BeatBasedLayoutManager;
 import org.jjazz.ui.cl_editor.barrenderer.api.BarRenderer;
 import org.jjazz.ui.cl_editor.barrenderer.api.BarRendererSettings;
 import org.jjazz.ui.itemrenderer.api.ItemRenderer;
@@ -61,16 +65,21 @@ import org.jjazz.util.api.ResUtil;
 public class BR_ImproSupport extends BarRenderer implements ChangeListener
 {
 
-    private static final Color REST_BACKGROUND_COLOR = Color.LIGHT_GRAY;
+    private static final Color PLAY_BACKGROUND_COLOR = new Color(88, 189, 235);
     private static final Font PLAY_FONT = GeneralUISettings.getInstance().getStdCondensedFont();
     private static final Color FONT_COLOR = Color.DARK_GRAY.darker();
     private static final int PREF_HEIGHT = 15;
+    private static final String PLAY_STRING = ResUtil.getString(BR_ImproSupport.class, "Play");
+    private static final String REST_STRING = ResUtil.getString(BR_ImproSupport.class, "Rest");
+    private static Rectangle2D PLAY_STRING_BOUNDS;
+    private static Rectangle2D REST_STRING_BOUNDS;
 
 
     private PlayRestScenario scenario;
+    private boolean playbackPointEnabled;
+    private Position playbackPosition;
+    private Quantization quantization;
 
-    private final String playString = ResUtil.getString(getClass(), "Play");
-    private final String restString = ResUtil.getString(getClass(), "Rest");
     private int nbBeats;    // A negative value means the bar is beyond the chord leadsheet model
     private int zoomVFactor = 50;
     /**
@@ -93,11 +102,10 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
     public BR_ImproSupport(CL_Editor editor, int barIndex, BarRendererSettings settings, ItemRendererFactory irf)
     {
         super(editor, barIndex, settings, irf);
-
         setPreferredSize(new Dimension(10, PREF_HEIGHT));      // Width ignored because of the containers layout
 
-
         nbBeats = -1; // By default, we assume the bar renderer is past the chord leadsheet end
+        playbackPointEnabled = false;
 
 
         // Update the list of instances ordered by bar index
@@ -146,7 +154,17 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
         {
             nbBeats = -1;
         }
+    }
 
+    public boolean isPlaybackPointEnabled()
+    {
+        return playbackPointEnabled;
+    }
+
+    public void setPlaybackPointEnabled(boolean playbackPointEnabled)
+    {
+        this.playbackPointEnabled = playbackPointEnabled;
+        repaint();
     }
 
     /**
@@ -191,55 +209,146 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
 
         List<Value> values = scenario.getPlayRestValues(getBarIndex());
 
+
         // Get last value of previous bar
-        Value prevValue = Value.REST;
+        Value prevBarValue = null;
         if (getBarIndex() > 0)
         {
             var prevValues = scenario.getPlayRestValues(getBarIndex() - 1);
-            prevValue = prevValues.get(prevValues.size() - 1);
+            prevBarValue = prevValues.get(prevValues.size() - 1);
         }
 
-        StringMetrics sm = new StringMetrics(g2);
-        var playBounds = sm.getLogicalBoundsNoLeading(playString);
-        var restBounds = sm.getLogicalBoundsNoLeading(restString);
-
-
-        // Fill the bar when playing, and print "Play" on each first Play beat
-        final int strPadding = 3;
-        for (int i = 0; i < nbBeats; i++)
+        // Get the first value of next bar
+        Value nextBarValue = null;
+        if (getBarIndex() < getModel().getSize() - 1)
         {
-            Value value = values.get(i);
-            float x = x0 + i * wBeat;
-            if (value.equals(Value.REST))
-            {
-                g2.setColor(REST_BACKGROUND_COLOR);
-                var shape = new Rectangle2D.Float(x, y0, wBeat, h);
-                g2.fill(shape);
-                if (prevValue.equals(Value.PLAY))
-                {
-                    x += strPadding;
-                    float y = (float) (r.y + (r.height - restBounds.getHeight()) / 2 - restBounds.getY());  // bounds are in baseline-relative coordinates!
-                    g2.setColor(FONT_COLOR);
-                    g2.drawString(restString, x, y);
-
-                }
-            } else if (prevValue.equals(Value.REST))
-            {
-                x += strPadding;
-                float y = (float) (r.y + (r.height - playBounds.getHeight()) / 2 - playBounds.getY());  // bounds are in baseline-relative coordinates!
-                g2.setColor(FONT_COLOR);
-                g2.drawString(playString, x, y);
-            }
-            prevValue = value;
+            var nextValues = scenario.getPlayRestValues(getBarIndex() + 1);
+            nextBarValue = nextValues.get(0);
         }
+
+
+        // Draw the Play rectangle(s) and Play/Rest strings
+        final int PLAY_RECT_RADIUS = 12;
+        final int STR_PADDING = PLAY_RECT_RADIUS / 2;
+        float halfBeat = getTimeSignature().getHalfBarBeat(quantization.isTernary());
+        Value value0 = values.get(0);
+        Value value1 = values.get(1);
+
+        
+        // First half  
+        float x = x0;        
+        float wRect = halfBeat * wBeat;        
+        if (value0.equals(Value.PLAY))
+        {
+            if (prevBarValue != null && prevBarValue.equals(Value.PLAY))
+            {
+                // Hide the left rounded corners
+                x -= PLAY_RECT_RADIUS;
+                wRect += PLAY_RECT_RADIUS;
+            }
+
+            if (value1.equals(Value.PLAY))
+            {
+                // Hide the right rounded corners                    
+                wRect += PLAY_RECT_RADIUS;
+            }
+
+            // Draw the round rectangle
+            var shape = new RoundRectangle2D.Float(x, y0, wRect, h, PLAY_RECT_RADIUS, PLAY_RECT_RADIUS);
+            g2.setColor(PLAY_BACKGROUND_COLOR);
+            g2.fill(shape);
+
+
+            // If first Play, add the string, except if not enough space
+            Rectangle2D bounds = getPlayStringBounds(g2);
+            if ((prevBarValue == null || prevBarValue.equals(Value.REST)) && bounds.getWidth() < wRect - STR_PADDING)
+            {
+                x += STR_PADDING;
+                float y = (float) (r.y + (r.height - bounds.getHeight()) / 2 - bounds.getY());  // bounds are in baseline-relative coordinates!
+                g2.setColor(FONT_COLOR);
+                g2.drawString(PLAY_STRING, x, y);
+            }
+        } else if (prevBarValue == null || prevBarValue.equals(Value.PLAY))
+        {
+            // First rest 
+            x += STR_PADDING;
+            Rectangle2D bounds = getRestStringBounds(g2);
+            float y = (float) (r.y + (r.height - bounds.getHeight()) / 2 - bounds.getY());  // bounds are in baseline-relative coordinates!
+            g2.setColor(FONT_COLOR);
+            g2.drawString(REST_STRING, x, y);
+        }
+
+
+          // Second half  
+        x = x0 + halfBeat * wBeat;        
+        wRect = w - halfBeat * wBeat;        
+        if (value1.equals(Value.PLAY))
+        {
+            if (value0.equals(Value.PLAY))
+            {
+                // Hide the left rounded corners
+                x -= PLAY_RECT_RADIUS;
+                wRect += PLAY_RECT_RADIUS;
+            }
+
+            if (nextBarValue != null && nextBarValue.equals(Value.PLAY))
+            {
+                // Hide the right rounded corners                    
+                wRect += PLAY_RECT_RADIUS;
+            }
+
+            // Draw the round rectangle
+            var shape = new RoundRectangle2D.Float(x, y0, wRect, h, PLAY_RECT_RADIUS, PLAY_RECT_RADIUS);
+            g2.setColor(PLAY_BACKGROUND_COLOR);
+            g2.fill(shape);
+
+
+            // If first Play, add the string, except if not enough space
+            Rectangle2D bounds = getPlayStringBounds(g2);
+            if (value0.equals(Value.REST) && bounds.getWidth() < wRect - STR_PADDING)
+            {
+                x += STR_PADDING;
+                float y = (float) (r.y + (r.height - bounds.getHeight()) / 2 - bounds.getY());  // bounds are in baseline-relative coordinates!
+                g2.setColor(FONT_COLOR);
+                g2.drawString(PLAY_STRING, x, y);
+            }
+        } else if (value0.equals(Value.PLAY))
+        {
+            // First rest 
+            x += STR_PADDING;
+            Rectangle2D bounds = getRestStringBounds(g2);
+            float y = (float) (r.y + (r.height - bounds.getHeight()) / 2 - bounds.getY());  // bounds are in baseline-relative coordinates!
+            g2.setColor(FONT_COLOR);
+            g2.drawString(REST_STRING, x, y);
+        }
+        
 
 
         // Draw top and bottom lines
-        g2.setColor(REST_BACKGROUND_COLOR);
+        g2.setColor(Color.LIGHT_GRAY);
         var line = new Line2D.Float(x0, y0, x0 + w - 1, y0);
         g2.draw(line);
         line = new Line2D.Float(x0, y0 + h - 1, x0 + w - 1, y0 + h - 1);
         g2.draw(line);
+
+
+        // Draw the playback point if required
+        if (playbackPosition != null && playbackPointEnabled)
+        {
+            Color c = new Color(186, 34, 23);
+            x = x0 + Math.round(playbackPosition.getBeat() * wBeat);
+            float y = r.y + h - 1;
+
+            final float SIZE = 5;
+            var triangle = new Path2D.Float();
+            triangle.moveTo(x - SIZE, y);
+            triangle.lineTo(x + SIZE, y);
+            triangle.lineTo(x, y - 1.5f * SIZE);
+            triangle.lineTo(x - SIZE, y);
+
+            g2.setColor(c);
+            g2.fill(triangle);
+        }
 
     }
 
@@ -304,20 +413,21 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
     @Override
     public void showPlaybackPoint(boolean b, Position pos)
     {
-        // Nothing
+        playbackPosition = b ? new Position(pos) : null;
+        repaint();
     }
 
     @Override
     public void setDisplayQuantizationValue(Quantization q)
     {
-        // Do nothing
+        quantization = q;
+        repaint();
     }
 
     @Override
     public Quantization getDisplayQuantizationValue()
     {
-        // Do nothing
-        return null;
+        return quantization;
     }
 
     /**
@@ -374,11 +484,31 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
     // ---------------------------------------------------------------
     // Private methods
     // ---------------------------------------------------------------
-    private Color computeColor(Value v)
+
+    private Rectangle2D getPlayStringBounds(Graphics2D g2)
     {
-        return v.equals(Value.PLAY) ? Color.BLUE : Color.MAGENTA;
+        if (PLAY_STRING_BOUNDS == null)
+        {
+            StringMetrics sm = new StringMetrics(g2);
+            PLAY_STRING_BOUNDS = sm.getLogicalBoundsNoLeading(PLAY_STRING);
+        }
+        return PLAY_STRING_BOUNDS;
     }
 
+    private Rectangle2D getRestStringBounds(Graphics2D g2)
+    {
+        if (REST_STRING_BOUNDS == null)
+        {
+            StringMetrics sm = new StringMetrics(g2);
+            REST_STRING_BOUNDS = sm.getLogicalBoundsNoLeading(REST_STRING);
+        }
+        return REST_STRING_BOUNDS;
+    }
+
+    private TimeSignature getTimeSignature()
+    {
+        return getModel().getSection(getModelBarIndex()).getData().getTimeSignature();
+    }
 
     // ---------------------------------------------------------------
     // Private classes

@@ -112,6 +112,10 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
 
     public void closing()
     {
+        if (arranger != null && arranger.isPlaying())
+        {
+            arranger.stop();
+        }
         if (transmitterChordSymbolFinder != null)
         {
             transmitterChordSymbolFinder.close();

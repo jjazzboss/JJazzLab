@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.ui.cl_editor.barrenderer;
+package org.jjazz.ui.cl_editor.barrenderer.api;
 
 import org.jjazz.ui.cl_editor.barrenderer.api.BeatBasedBarRenderer;
 import org.jjazz.ui.cl_editor.barrenderer.api.BarRenderer;
@@ -69,6 +69,7 @@ public class BeatBasedLayoutManager implements LayoutManager
      *
      * @param beat A float representing the beat position.
      * @param barWidth An integer for the width of the bar.
+     * @param ts
      *
      * @return An integer representing the X position of pos.
      */

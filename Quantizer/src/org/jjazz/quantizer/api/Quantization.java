@@ -37,6 +37,11 @@ public enum Quantization
     {
         this.beats = beats;
     }
+    
+    public boolean isTernary()
+    {
+        return this.equals(ONE_THIRD_BEAT);
+    }
 
     /**
      * An array of the quantized values within a beat.

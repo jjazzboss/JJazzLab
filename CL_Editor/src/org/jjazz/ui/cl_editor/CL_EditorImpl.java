@@ -22,8 +22,7 @@
  */
 package org.jjazz.ui.cl_editor;
 
-import com.google.common.collect.ContiguousSet;
-import com.google.common.collect.DiscreteDomain;
+import static com.google.common.base.Preconditions.checkNotNull;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -45,6 +44,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import javax.swing.Scrollable;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
@@ -765,20 +766,20 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     @Override
     public void setBarBoxConfig(BarBoxConfig bbConfig, Integer... barIndexes)
     {
+        checkNotNull(bbConfig);
+
         if (barIndexes.length == 0)
         {
-            for (int i = 0; i < getNbBarBoxes(); i++)
-            {
-                BarBox bb = getBarBox(i);
-                bb.setConfig(bbConfig);
-            }
-        } else
+            barIndexes = IntStream.range(0, getNbBarBoxes())
+                    .boxed()
+                    .collect(Collectors.toList()).toArray(new Integer[0]);
+        }
+        for (int barIndex : barIndexes)
         {
-            for (int barIndex : barIndexes)
-            {
-                BarBox bb = getBarBox(barIndex);
-                bb.setConfig(bbConfig);
-            }
+            BarBox bb = getBarBox(barIndex);
+            unregisterBarBox(bb);
+            bb.setConfig(bbConfig);
+            registerBarBox(bb);
         }
     }
 

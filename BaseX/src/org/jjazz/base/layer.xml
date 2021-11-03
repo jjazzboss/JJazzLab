@@ -37,6 +37,7 @@
             <file name="Separator1.instance_hidden"/>
             <file name="Separator2.instance_hidden"/>
             <file name="org-netbeans-modules-autoupdate-ui-actions-PluginManagerAction.shadow_hidden"/>
+            <file name="org-netbeans-modules-options-OptionsWindowAction-separatorBefore.instance_hidden"/>
             <file name="org-netbeans-modules-templates-actions-TemplatesAction.shadow_hidden"/>
         </folder>
         <file name="View_hidden"/>
@@ -48,10 +49,11 @@
             <file name="SwitchToRecentDocumentAction.shadow_hidden"/>
             <file name="ToggleFullScreenAction.shadow">
                 <attr name="originalFile" stringvalue="Actions/Window/org-netbeans-core-windows-actions-ToggleFullScreenAction.instance"/>
-                <attr name="position" intvalue="10"/>
+                <attr name="position" intvalue="100"/>
             </file>
             <file name="Tools_hidden"/>
             <file name="Web_hidden"/>
+            <file name="org-jjazz-improvisionsupport-api-ImproSupportTopComponent-separatorAfter.instance_hidden"/>
             <file name="org-netbeans-core-io-ui-IOWindowAction.shadow_hidden"/>
             <file name="org-netbeans-core-windows-actions-ResetWindowsAction.shadow_hidden"/>
             <file name="org-netbeans-modules-favorites-View.shadow_hidden"/>

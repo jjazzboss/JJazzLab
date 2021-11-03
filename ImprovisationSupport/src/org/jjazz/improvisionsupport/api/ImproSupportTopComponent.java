@@ -56,7 +56,7 @@ import org.openide.windows.WindowManager;
 )
 @TopComponent.Registration(mode = "jlnavigator", openAtStartup = false, position = 30)
 @ActionID(category = "Window", id = "org.jjazz.improvisionsupport.api.ImproSupportTopComponent")
-@ActionReference(path = "Menu/Window", position = 30, separatorAfter = 35)
+@ActionReference(path = "Menu/Window", position = 30)
 @TopComponent.OpenActionRegistration(
         displayName = "#CTL_ImproSupportAction",
         preferredID = "ImproSupportTopComponent"

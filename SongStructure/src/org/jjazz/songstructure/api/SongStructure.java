@@ -176,10 +176,21 @@ public interface SongStructure
      * The position of the specified bar in natural beats: take into account the possible different time signatures before
      * specified bar.
      *
-     * @param absoluteBarIndex A value in the range [0 - getSizeInBars()]
+     * @param absoluteBarIndex A value in the range [0; getSizeInBars()].
      * @return
      */
     public float getPositionInNaturalBeats(int absoluteBarIndex);
+
+    /**
+     * The position in natural beats: take into account the possible different time signatures before specified bar.
+     *
+     * @param pos
+     * @return
+     */
+    default public float getPositionInNaturalBeats(Position pos)
+    {
+        return getPositionInNaturalBeats(pos.getBar()) + pos.getBeat();
+    }
 
     /**
      * The position in bars/beats converted from a position specified in natural beats.
@@ -190,6 +201,7 @@ public interface SongStructure
      * @return Null if posInBeats is beyond the end of the song.
      */
     public Position getPosition(float posInBeats);
+
 
     /**
      * Get the absolute position in the song structure of a chordleadsheet item referred to by the specified song part.

@@ -47,7 +47,7 @@ public class ImproSupportPanel extends javax.swing.JPanel implements PropertyCha
         cmb_model.addAll(Arrays.asList(ImproSupport.Mode.values()));
         cmb_improSupportMode.setModel(cmb_model);
         cmb_improSupportMode.addActionListener(this);
-        
+
         refreshUI();
 
     }
@@ -68,6 +68,10 @@ public class ImproSupportPanel extends javax.swing.JPanel implements PropertyCha
 
     public void closing()
     {
+        if (model != null)
+        {
+            model.setEnabled(false);
+        }
     }
 
     public void opened()
@@ -105,12 +109,13 @@ public class ImproSupportPanel extends javax.swing.JPanel implements PropertyCha
 
     private void refreshUI()
     {
-        cb_enable.setEnabled(model!=null);
-        boolean b = model != null && model.isEnabled();        
+        cb_enable.setEnabled(model != null);
+        boolean b = model != null && model.isEnabled();
         cb_enable.setSelected(b);
         cmb_improSupportMode.setEnabled(b);
         hlp_area.setEnabled(b);
         btn_generate.setEnabled(b);
+        cb_hideChordPositions.setEnabled(b);
         if (model != null)
         {
             var mode = model.getMode();
@@ -118,6 +123,7 @@ public class ImproSupportPanel extends javax.swing.JPanel implements PropertyCha
             cmb_improSupportMode.setSelectedItem(mode);
             cmb_improSupportMode.addActionListener(this);
             hlp_area.setText(mode.getHelpText());
+            cb_hideChordPositions.setSelected(model.isChordPositionsHidden());
         }
     }
 
@@ -138,6 +144,7 @@ public class ImproSupportPanel extends javax.swing.JPanel implements PropertyCha
         jScrollPane1 = new javax.swing.JScrollPane();
         hlp_area = new org.jjazz.ui.utilities.api.HelpTextArea();
         cb_enable = new javax.swing.JCheckBox();
+        cb_hideChordPositions = new javax.swing.JCheckBox();
 
         org.openide.awt.Mnemonics.setLocalizedText(btn_generate, org.openide.util.NbBundle.getMessage(ImproSupportPanel.class, "ImproSupportPanel.btn_generate.text")); // NOI18N
         btn_generate.setToolTipText(org.openide.util.NbBundle.getMessage(ImproSupportPanel.class, "ImproSupportPanel.btn_generate.toolTipText")); // NOI18N
@@ -156,11 +163,22 @@ public class ImproSupportPanel extends javax.swing.JPanel implements PropertyCha
         jScrollPane1.setViewportView(hlp_area);
 
         org.openide.awt.Mnemonics.setLocalizedText(cb_enable, org.openide.util.NbBundle.getMessage(ImproSupportPanel.class, "ImproSupportPanel.cb_enable.text")); // NOI18N
+        cb_enable.setToolTipText(org.openide.util.NbBundle.getMessage(ImproSupportPanel.class, "ImproSupportPanel.cb_enable.toolTipText")); // NOI18N
         cb_enable.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
             {
                 cb_enableActionPerformed(evt);
+            }
+        });
+
+        cb_hideChordPositions.setSelected(true);
+        org.openide.awt.Mnemonics.setLocalizedText(cb_hideChordPositions, org.openide.util.NbBundle.getMessage(ImproSupportPanel.class, "ImproSupportPanel.cb_hideChordPositions.text")); // NOI18N
+        cb_hideChordPositions.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                cb_hideChordPositionsActionPerformed(evt);
             }
         });
 
@@ -174,24 +192,27 @@ public class ImproSupportPanel extends javax.swing.JPanel implements PropertyCha
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(cb_enable)
                         .addGap(0, 0, Short.MAX_VALUE))
-                    .addComponent(jScrollPane1)
-                    .addComponent(cmb_improSupportMode, javax.swing.GroupLayout.Alignment.TRAILING, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addGap(0, 221, Short.MAX_VALUE)
-                        .addComponent(btn_generate)))
+                        .addComponent(cb_hideChordPositions)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 30, Short.MAX_VALUE)
+                        .addComponent(btn_generate))
+                    .addComponent(cmb_improSupportMode, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap(15, Short.MAX_VALUE)
+                .addContainerGap()
                 .addComponent(cb_enable)
                 .addGap(18, 18, 18)
                 .addComponent(cmb_improSupportMode, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 111, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 119, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(btn_generate)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btn_generate)
+                    .addComponent(cb_hideChordPositions))
                 .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
@@ -206,11 +227,17 @@ public class ImproSupportPanel extends javax.swing.JPanel implements PropertyCha
         model.setEnabled(cb_enable.isSelected());
     }//GEN-LAST:event_cb_enableActionPerformed
 
+    private void cb_hideChordPositionsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cb_hideChordPositionsActionPerformed
+    {//GEN-HEADEREND:event_cb_hideChordPositionsActionPerformed
+        model.setChordPositionsHidden(cb_hideChordPositions.isSelected());
+    }//GEN-LAST:event_cb_hideChordPositionsActionPerformed
+
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_generate;
     private javax.swing.JCheckBox cb_enable;
+    private javax.swing.JCheckBox cb_hideChordPositions;
     private javax.swing.JComboBox<ImproSupport.Mode> cmb_improSupportMode;
     private org.jjazz.ui.utilities.api.HelpTextArea hlp_area;
     private javax.swing.JScrollPane jScrollPane1;

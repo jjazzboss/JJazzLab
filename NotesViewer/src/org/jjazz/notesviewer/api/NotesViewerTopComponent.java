@@ -48,9 +48,9 @@ import org.openide.windows.WindowManager;
         //iconBase="SET/PATH/TO/ICON/HERE",
         persistenceType = TopComponent.PERSISTENCE_ALWAYS
 )
-@TopComponent.Registration(mode = "jlnavigator", openAtStartup = false, position = 10)
+@TopComponent.Registration(mode = "jlnavigator", openAtStartup = false, position = 20)
 @ActionID(category = "Window", id = "org.jjazz.notesviewer.api.NotesViewerTopComponent")
-@ActionReference(path = "Menu/Window", position = 10)
+@ActionReference(path = "Menu/Window", position = 20)
 @TopComponent.OpenActionRegistration(
         displayName = "#CTL_NotesViewerAction",
         preferredID = "NotesViewerTopComponent"
@@ -85,8 +85,9 @@ public final class NotesViewerTopComponent extends TopComponent implements Prope
 
         var asm = ActiveSongManager.getInstance();
         Song song = asm.getActiveSong();
-        updateTabName(song);
         asm.addPropertyListener(this);
+        updateTabName(song);        
+        viewer.setModel(song, asm.getActiveMidiMix());
     }
 
     @Override

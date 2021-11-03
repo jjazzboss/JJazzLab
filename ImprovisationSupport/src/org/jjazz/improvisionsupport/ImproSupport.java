@@ -24,8 +24,10 @@ package org.jjazz.improvisionsupport;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
 import java.util.List;
 import javax.swing.event.SwingPropertyChangeSupport;
+import org.jjazz.improvisionsupport.PlayRestScenario.Value;
 import org.jjazz.ui.cl_editor.api.CL_Editor;
 import org.jjazz.ui.cl_editor.barbox.api.BarBoxConfig;
 import org.jjazz.ui.cl_editor.barrenderer.api.BarRendererFactory;
@@ -39,12 +41,13 @@ public class ImproSupport
 
     public final static String PROP_MODE = "PropMode";
     public final static String PROP_ENABLED = "PropEnabled";
+    public final static String PROP_CHORD_POSITIONS_HIDDEN = "PropChordPositionsHidden";
 
 
     public enum Mode
     {
-        PLAY_REST_EASY(ResUtil.getString(ImproSupport.class, "PlayRestEasyDisplayName"), ResUtil.getString(ImproSupport.class, "PlayRestHelpText")),
-        PLAY_REST_MEDIUM(ResUtil.getString(ImproSupport.class, "PlayRestMediumDisplayName"), ResUtil.getString(ImproSupport.class, "PlayRestHelpText"));
+        PLAY_REST_EASY(ResUtil.getString(ImproSupport.class, "PlayRestEasyDisplayName"), ResUtil.getString(ImproSupport.class, "PlayRestEasyHelpText")),
+        PLAY_REST_MEDIUM(ResUtil.getString(ImproSupport.class, "PlayRestMediumDisplayName"), ResUtil.getString(ImproSupport.class, "PlayRestMediumHelpText"));
 
         private final String displayName;
         private final String helpText;
@@ -69,7 +72,9 @@ public class ImproSupport
 
     private final CL_Editor clEditor;
     private Mode mode;
+    private PlayRestScenario scenario;
     private boolean enabled;
+    private boolean chordPositionsHidden;
 
 
     private final SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
@@ -80,6 +85,7 @@ public class ImproSupport
         this.clEditor = clEditor;
         this.mode = Mode.PLAY_REST_EASY;
         this.enabled = false;
+        this.chordPositionsHidden = true;
     }
 
     public CL_Editor getCL_Editor()
@@ -112,6 +118,30 @@ public class ImproSupport
 
     }
 
+    public boolean isChordPositionsHidden()
+    {
+        return chordPositionsHidden;
+    }
+
+    public void setChordPositionsHidden(boolean chordPositionsHidden)
+    {
+        if (!enabled || this.chordPositionsHidden == chordPositionsHidden)
+        {
+            return;
+        }
+
+        this.chordPositionsHidden = chordPositionsHidden;
+
+        showImproSupportBarRenderer(true, chordPositionsHidden);
+
+        if (scenario != null)
+        {
+            getBarRenderers().forEach(br -> br.setScenario(scenario));
+        }
+
+        pcs.firePropertyChange(PROP_CHORD_POSITIONS_HIDDEN, !chordPositionsHidden, chordPositionsHidden);
+    }
+
     public Mode getMode()
     {
         return mode;
@@ -119,26 +149,16 @@ public class ImproSupport
 
     public void setMode(Mode mode)
     {
-        if (this.mode.equals(mode))
+        if (!enabled || this.mode.equals(mode))
         {
             return;
         }
         var old = this.mode;
         this.mode = mode;
-
-//        switch (mode)
-//        {
-//            case PLAY_REST_EASY:
-//                break;
-//            case PLAY_REST_MEDIUM:
-//                break;
-//            default:
-//                throw new AssertionError(mode.name());
-//
-//        }
-
+        generateGuide();
         pcs.firePropertyChange(PROP_MODE, old, this.mode);
     }
+
 
     public boolean isEnabled()
     {
@@ -152,7 +172,7 @@ public class ImproSupport
             return;
         }
         this.enabled = enabled;
-        showImproSupportBarRenderer(enabled);
+        showImproSupportBarRenderer(enabled, chordPositionsHidden);
         if (this.enabled)
         {
             generateGuide();
@@ -174,30 +194,58 @@ public class ImproSupport
     // Private methods
     //================================================================================================
 
-    private void generatePlayRest(PlayRestScenario.Level level)
+    private List<BR_ImproSupport> getBarRenderers()
     {
-        var scenario = new PlayRestScenario(level, clEditor.getSongModel());
-        scenario.generate();
-        BR_ImproSupport.getBR_ImproSupportInstances(clEditor).forEach(br -> br.setScenario(scenario));
+        return BR_ImproSupport.getBR_ImproSupportInstances(clEditor);
     }
 
-    private void showImproSupportBarRenderer(boolean b)
+    private void generatePlayRest(PlayRestScenario.Level level)
     {
+        // Generate a scenario until it's different from the previous one (if any)
+        List<Value> oldValues = scenario == null ? new ArrayList<>() : scenario.getPlayRestValues();
+        List<Value> newValues = null;
+        while (newValues == null || oldValues.equals(newValues))
+        {
+            scenario = new PlayRestScenario(level, clEditor.getSongModel());
+            newValues = scenario.generatePlayRestValues();
+        }
+
+        getBarRenderers().forEach(br -> br.setScenario(scenario));
+    }
+
+    private void showImproSupportBarRenderer(boolean show, boolean hideChordPositions)
+    {
+        // Update the BarBoxConfig of each barbox
         for (int i = 0; i < clEditor.getNbBarBoxes(); i++)
         {
             BarBoxConfig bbc = clEditor.getBarBoxConfig(i);
             var activeBrTypes = bbc.getActiveBarRenderers();
-            if (!b)
+            if (!show)
             {
                 activeBrTypes.remove(ImproSupportBrProvider.BR_IMPRO_SUPPORT);
-                activeBrTypes.add(1, BarRendererFactory.BR_CHORD_POSITION);
+                if (!activeBrTypes.contains(BarRendererFactory.BR_CHORD_POSITION))
+                {
+                    activeBrTypes.add(1, BarRendererFactory.BR_CHORD_POSITION);
+                }
             } else
             {
-                activeBrTypes.add(1, ImproSupportBrProvider.BR_IMPRO_SUPPORT);
-                activeBrTypes.remove(BarRendererFactory.BR_CHORD_POSITION);
+                if (!activeBrTypes.contains(ImproSupportBrProvider.BR_IMPRO_SUPPORT))
+                {
+                    activeBrTypes.add(1, ImproSupportBrProvider.BR_IMPRO_SUPPORT);
+                }
+                if (hideChordPositions)
+                {
+                    activeBrTypes.remove(BarRendererFactory.BR_CHORD_POSITION);
+                } else if (!activeBrTypes.contains(BarRendererFactory.BR_CHORD_POSITION))
+                {
+                    activeBrTypes.add(2, BarRendererFactory.BR_CHORD_POSITION);
+                }
             }
             bbc = bbc.setActive(activeBrTypes.toArray(new String[0]));
             clEditor.setBarBoxConfig(bbc, i);
         }
+
+        // Udate all BarRenderers
+        getBarRenderers().forEach(br -> br.setPlaybackPointEnabled(hideChordPositions));
     }
 }
