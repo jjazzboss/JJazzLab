@@ -27,7 +27,7 @@ import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.event.SwingPropertyChangeSupport;
-import org.jjazz.improvisionsupport.PlayRestScenario.Value;
+import org.jjazz.improvisionsupport.PlayRestScenario.PlayRestValue;
 import org.jjazz.ui.cl_editor.api.CL_Editor;
 import org.jjazz.ui.cl_editor.barbox.api.BarBoxConfig;
 import org.jjazz.ui.cl_editor.barrenderer.api.BarRendererFactory;
@@ -46,8 +46,9 @@ public class ImproSupport
 
     public enum Mode
     {
-        PLAY_REST_EASY(ResUtil.getString(ImproSupport.class, "PlayRestEasyDisplayName"), ResUtil.getString(ImproSupport.class, "PlayRestEasyHelpText")),
-        PLAY_REST_MEDIUM(ResUtil.getString(ImproSupport.class, "PlayRestMediumDisplayName"), ResUtil.getString(ImproSupport.class, "PlayRestMediumHelpText"));
+        PLAY_REST_EASY(ResUtil.getString(ImproSupport.class, "PlayRest1DisplayName"), ResUtil.getString(ImproSupport.class, "PlayRestHelpText")),
+        PLAY_REST_MEDIUM(ResUtil.getString(ImproSupport.class, "PlayRest2DisplayName"), ResUtil.getString(ImproSupport.class, "PlayRestHelpText")),
+        DENSE_SPARSE(ResUtil.getString(ImproSupport.class, "DenseSparse1DisplayName"), ResUtil.getString(ImproSupport.class, "DenseSparseHelpText"));
 
         private final String displayName;
         private final String helpText;
@@ -106,10 +107,12 @@ public class ImproSupport
         switch (mode)
         {
             case PLAY_REST_EASY:
-                generatePlayRest(PlayRestScenario.Level.EASY);
+                generatePlayRest(PlayRestScenario.Level.LEVEL1);
                 break;
             case PLAY_REST_MEDIUM:
-                generatePlayRest(PlayRestScenario.Level.MEDIUM);
+                generatePlayRest(PlayRestScenario.Level.LEVEL2);
+                break;
+            case DENSE_SPARSE:
                 break;
             default:
                 throw new AssertionError(mode.name());
@@ -202,8 +205,8 @@ public class ImproSupport
     private void generatePlayRest(PlayRestScenario.Level level)
     {
         // Generate a scenario until it's different from the previous one (if any)
-        List<Value> oldValues = scenario == null ? new ArrayList<>() : scenario.getPlayRestValues();
-        List<Value> newValues = null;
+        List<PlayRestValue> oldValues = scenario == null ? new ArrayList<>() : scenario.getPlayRestValues();
+        List<PlayRestValue> newValues = null;
         while (newValues == null || oldValues.equals(newValues))
         {
             scenario = new PlayRestScenario(level, clEditor.getSongModel());

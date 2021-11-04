@@ -43,7 +43,7 @@ import java.util.logging.Logger;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.jjazz.harmony.api.TimeSignature;
-import org.jjazz.improvisionsupport.PlayRestScenario.Value;
+import org.jjazz.improvisionsupport.PlayRestScenario.PlayRestValue;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
@@ -207,11 +207,11 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
         final float yc = y0 + h / 2;
 
 
-        List<Value> values = scenario.getPlayRestValues(getBarIndex());
+        List<PlayRestValue> values = scenario.getPlayRestValues(getBarIndex());
 
 
         // Get last value of previous bar
-        Value prevBarValue = null;
+        PlayRestValue prevBarValue = null;
         if (getBarIndex() > 0)
         {
             var prevValues = scenario.getPlayRestValues(getBarIndex() - 1);
@@ -219,7 +219,7 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
         }
 
         // Get the first value of next bar
-        Value nextBarValue = null;
+        PlayRestValue nextBarValue = null;
         if (getBarIndex() < getModel().getSize() - 1)
         {
             var nextValues = scenario.getPlayRestValues(getBarIndex() + 1);
@@ -231,23 +231,23 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
         final int PLAY_RECT_RADIUS = 12;
         final int STR_PADDING = PLAY_RECT_RADIUS / 2;
         float halfBeat = getTimeSignature().getHalfBarBeat(quantization.isTernary());
-        Value value0 = values.get(0);
-        Value value1 = values.get(1);
+        PlayRestValue value0 = values.get(0);
+        PlayRestValue value1 = values.get(1);
 
         
         // First half  
         float x = x0;        
         float wRect = halfBeat * wBeat;        
-        if (value0.equals(Value.PLAY))
+        if (value0.equals(PlayRestValue.PLAY))
         {
-            if (prevBarValue != null && prevBarValue.equals(Value.PLAY))
+            if (prevBarValue != null && prevBarValue.equals(PlayRestValue.PLAY))
             {
                 // Hide the left rounded corners
                 x -= PLAY_RECT_RADIUS;
                 wRect += PLAY_RECT_RADIUS;
             }
 
-            if (value1.equals(Value.PLAY))
+            if (value1.equals(PlayRestValue.PLAY))
             {
                 // Hide the right rounded corners                    
                 wRect += PLAY_RECT_RADIUS;
@@ -261,14 +261,14 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
 
             // If first Play, add the string, except if not enough space
             Rectangle2D bounds = getPlayStringBounds(g2);
-            if ((prevBarValue == null || prevBarValue.equals(Value.REST)) && bounds.getWidth() < wRect - STR_PADDING)
+            if ((prevBarValue == null || prevBarValue.equals(PlayRestValue.REST)) && bounds.getWidth() < wRect - STR_PADDING)
             {
                 x += STR_PADDING;
                 float y = (float) (r.y + (r.height - bounds.getHeight()) / 2 - bounds.getY());  // bounds are in baseline-relative coordinates!
                 g2.setColor(FONT_COLOR);
                 g2.drawString(PLAY_STRING, x, y);
             }
-        } else if (prevBarValue == null || prevBarValue.equals(Value.PLAY))
+        } else if (prevBarValue == null || prevBarValue.equals(PlayRestValue.PLAY))
         {
             // First rest 
             x += STR_PADDING;
@@ -282,16 +282,16 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
           // Second half  
         x = x0 + halfBeat * wBeat;        
         wRect = w - halfBeat * wBeat;        
-        if (value1.equals(Value.PLAY))
+        if (value1.equals(PlayRestValue.PLAY))
         {
-            if (value0.equals(Value.PLAY))
+            if (value0.equals(PlayRestValue.PLAY))
             {
                 // Hide the left rounded corners
                 x -= PLAY_RECT_RADIUS;
                 wRect += PLAY_RECT_RADIUS;
             }
 
-            if (nextBarValue != null && nextBarValue.equals(Value.PLAY))
+            if (nextBarValue != null && nextBarValue.equals(PlayRestValue.PLAY))
             {
                 // Hide the right rounded corners                    
                 wRect += PLAY_RECT_RADIUS;
@@ -305,14 +305,14 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
 
             // If first Play, add the string, except if not enough space
             Rectangle2D bounds = getPlayStringBounds(g2);
-            if (value0.equals(Value.REST) && bounds.getWidth() < wRect - STR_PADDING)
+            if (value0.equals(PlayRestValue.REST) && bounds.getWidth() < wRect - STR_PADDING)
             {
                 x += STR_PADDING;
                 float y = (float) (r.y + (r.height - bounds.getHeight()) / 2 - bounds.getY());  // bounds are in baseline-relative coordinates!
                 g2.setColor(FONT_COLOR);
                 g2.drawString(PLAY_STRING, x, y);
             }
-        } else if (value0.equals(Value.PLAY))
+        } else if (value0.equals(PlayRestValue.PLAY))
         {
             // First rest 
             x += STR_PADDING;
