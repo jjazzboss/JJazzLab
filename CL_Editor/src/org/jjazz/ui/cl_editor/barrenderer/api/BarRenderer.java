@@ -297,7 +297,7 @@ abstract public class BarRenderer extends JPanel implements PropertyChangeListen
      */
     public void setModelBarIndex(int bar)
     {
-        if (bar >= model.getSize())
+        if (bar >= model.getSizeInBars())
         {
             throw new IllegalArgumentException("this=" + this + " bar=" + bar);   //NOI18N
         }

@@ -392,7 +392,7 @@ public class SS_EditorTransferHandler extends TransferHandler
         // Prepare data
         SongPart prevSpt = (sptIndex == 0) ? null : spts.get(sptIndex - 1);
         int startBarIndex = (prevSpt == null) ? 0 : prevSpt.getBarRange().to + 1;
-        int nbBars = parentSection.getContainer().getSectionRange(parentSection).size();
+        int nbBars = parentSection.getContainer().getBarRange(parentSection).size();
 
 
         // Choose rhythm

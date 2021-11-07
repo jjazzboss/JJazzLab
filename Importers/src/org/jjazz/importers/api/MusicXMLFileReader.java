@@ -176,7 +176,7 @@ public class MusicXMLFileReader
             }
             try
             {
-                song.getChordLeadSheet().setSize(songSizeInBars);
+                song.getChordLeadSheet().setSizeInBars(songSizeInBars);
             } catch (UnsupportedEditException ex)
             {
                 // Should never happen

@@ -120,7 +120,7 @@ public class InsertSpt extends AbstractAction implements ContextAwareAction, SS_
             // Create the new song part
             int startBarIndex = spts.get(selection.getMinStartSptIndex()).getStartBarIndex();
             Rhythm r = sgs.getRecommendedRhythm(parentSection.getData().getTimeSignature(), startBarIndex);
-            int nbBars = cls.getSectionRange(parentSection).size();
+            int nbBars = cls.getBarRange(parentSection).size();
             SongPart newSpt = sgs.createSongPart(r, parentSection.getData().getName(), startBarIndex, nbBars, parentSection, true);
 
 

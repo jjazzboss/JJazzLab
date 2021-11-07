@@ -75,7 +75,7 @@ public class OpenHiHatTransform implements PhraseTransform
         SizedPhrase res = new SizedPhrase(inPhrase.getChannel(), inPhrase.getBeatRange(), inPhrase.getTimeSignature());
 
 
-        KeyMap keyMap = PhraseTransforms.getInstrument(inPhrase, context).getDrumKit().getKeyMap();
+        KeyMap keyMap = PhraseTransforms.getDrumKit(inPhrase, context).getKeyMap();
         var srcPitches = keyMap.getKeys(DrumKit.Subset.HI_HAT_CLOSED);
         int destPitch = keyMap.getKeys(DrumKit.Subset.HI_HAT_OPEN).get(0);
 
@@ -97,19 +97,7 @@ public class OpenHiHatTransform implements PhraseTransform
     @Override
     public int getFitScore(SizedPhrase inPhrase, SongPartContext context)
     {
-        DrumKit kit = PhraseTransforms.getRhythmVoice(inPhrase, context).getDrumKit();
-        int res = 0;
-        if (kit != null)
-        {
-            KeyMap keyMap = PhraseTransforms.getInstrument(inPhrase, context).getDrumKit().getKeyMap();
-            var srcPitches = keyMap.getKeys(DrumKit.Subset.HI_HAT_CLOSED);
-            var destPitches = keyMap.getKeys(DrumKit.Subset.HI_HAT_OPEN);
-            if (!srcPitches.isEmpty() && !destPitches.isEmpty())
-            {
-                res = 100;
-            }
-        }
-        return res;
+        return PhraseTransforms.getRhythmVoice(inPhrase, context).isDrums() ? 100 : 0;
     }
 
 

@@ -258,6 +258,24 @@ public interface ChordLeadSheet
      */
     public CLI_Section getSection(String sectionName);
 
+
+
+    /**
+     * Get the size of the leadsheet in bars.
+     *
+     * @return
+     */
+    public int getSizeInBars();
+
+    /**
+     * Get the bar range of this chord leadsheet.
+     *
+     * @return [0; getSizeInBars()-1]
+     */
+    default public IntRange getBarRange()
+    {
+        return new IntRange(0, getSizeInBars() - 1);
+    }
     /**
      * The bar range corresponding to this section.
      *
@@ -265,15 +283,9 @@ public interface ChordLeadSheet
      * @return
      * @throws IllegalArgumentException If section does not exist in this ChordLeadSheet.
      */
-    public IntRange getSectionRange(CLI_Section section);
-
-    /**
-     * Get the size of the leadsheet in bars.
-     *
-     * @return
-     */
-    public int getSize();
-
+    public IntRange getBarRange(CLI_Section section);
+    
+    
     /**
      * Set the size of the ChordLeadSheet.
      *
@@ -281,7 +293,7 @@ public interface ChordLeadSheet
      * @throws UnsupportedEditException If a ChordLeadSheet change listener does not authorize this edit. Exception is thrown
      * before any change is done.
      */
-    public void setSize(int size) throws UnsupportedEditException;
+    public void setSizeInBars(int size) throws UnsupportedEditException;
 
     /**
      * Add a listener to item changes of this object.

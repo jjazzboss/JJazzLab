@@ -86,7 +86,7 @@ public class SelectAll extends AbstractAction implements ContextAwareAction, CL_
         if (selection.isEmpty())
         {
             // Select all leadsheet
-            int lastBar = cls.getSize() - 1;
+            int lastBar = cls.getSizeInBars() - 1;
             editor.selectBars(0, lastBar, true);
         } else if (selection.isBarSelected())
         {
@@ -123,7 +123,7 @@ public class SelectAll extends AbstractAction implements ContextAwareAction, CL_
     private void selectBarsIn2Steps(CL_Editor editor, CL_SelectionUtilities selection)
     {
         ChordLeadSheet cls = editor.getModel();
-        int clsSize = cls.getSize();
+        int clsSize = cls.getSizeInBars();
         if (selection.getSelectedBarIndexesWithinCls().size() < selection.getSelectedBars().size())
         {
             // There are some selected bars which are past end, reselect from 1st bar to last selected bar
@@ -134,7 +134,7 @@ public class SelectAll extends AbstractAction implements ContextAwareAction, CL_
 
         CLI_Section sectionStart = cls.getSection(selection.getMinBarIndexWithinCls());
         int sectionIndex = sectionStart.getPosition().getBar();
-        int sectionSize = cls.getSectionRange(sectionStart).size();
+        int sectionSize = cls.getBarRange(sectionStart).size();
         CLI_Section sectionEnd = cls.getSection(selection.getMaxBarIndexWithinCls());
 
         if (sectionStart == sectionEnd && selection.getSelectedBarIndexesWithinCls().size() < sectionSize)

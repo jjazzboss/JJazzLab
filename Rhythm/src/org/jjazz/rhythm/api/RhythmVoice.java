@@ -153,7 +153,6 @@ public class RhythmVoice
     /**
      * Create a RhythmVoice for Drums/Percussion instruments.
      * <p>
-     * The preferred Instrument is set to the VoidInstrument.
      *
      * @param kit
      * @param container The Rhythm this RhythmVoice belongs to.

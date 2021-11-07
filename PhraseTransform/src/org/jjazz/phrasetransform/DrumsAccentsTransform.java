@@ -97,13 +97,7 @@ public class DrumsAccentsTransform implements PhraseTransform
 
 
         // Get the pitch list
-        int channel = inPhrase.getChannel();
-        DrumKit kit = context.getMidiMix().getInstrumentMixFromChannel(channel).getInstrument().getDrumKit();
-        if (kit == null)
-        {
-            throw new IllegalStateException("channel=" + channel + " midiMix=" + context.getMidiMix().toDumpString());
-        }
-        DrumKit.KeyMap keyMap = kit.getKeyMap();
+        DrumKit.KeyMap keyMap = PhraseTransforms.getDrumKit(inPhrase, context).getKeyMap();
         Set<Integer> validPitches = new HashSet<>();
         for (var subset : subsets)
         {

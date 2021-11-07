@@ -29,11 +29,11 @@ import java.util.NoSuchElementException;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.songstructure.api.SongStructure;
+import org.jjazz.util.api.IntRange;
 
 /**
  * A beat Iterator within a Song.
  * <p>
- * TODO: create an Iterable for Song.
  */
 public class BeatIterator implements Iterator<Position>
 {
@@ -41,6 +41,7 @@ public class BeatIterator implements Iterator<Position>
     private final Song song;
     private final SongStructure songStructure;
     private Position position;
+    private int lastBar;
 
     /**
      * Create a beat iterator for the specified song.
@@ -64,13 +65,45 @@ public class BeatIterator implements Iterator<Position>
      */
     public BeatIterator(Song song, Position pos)
     {
+        this(song, song.getSongStructure().getBarRange(), pos);
+    }
+
+    /**
+     * Construct an iterator for the specified bar range within a song.
+     * <p>
+     * NOTE: modifying the song while using this iterator will produce unknown results.
+     *
+     * @param song
+     * @param barRange A bar range within the song.
+     */
+    public BeatIterator(Song song, IntRange barRange)
+    {
+        this(song,
+                barRange,
+                song.getSongStructure().getPosition(song.getSongStructure().getPositionInNaturalBeats(barRange.from)));
+    }
+
+    /**
+     * Construct an iterator for the specified bar range within a song, starting at pos.
+     * <p>
+     * NOTE: modifying the song while using this iterator will produce unknown results.
+     *
+     * @param song
+     * @param pos must be within the bar range.
+     * @param barRange A bar range within the song.
+     */
+    public BeatIterator(Song song, IntRange barRange, Position pos)
+    {
         checkNotNull(song);
+        checkNotNull(barRange);
         checkNotNull(pos);
+        checkArgument(barRange.contains(pos.getBar()), "song=%s pos=%s barRange=%s", song, pos, barRange);
+        checkArgument(song.getSongStructure().getBarRange().contains(barRange), "song=%s pos=%s barRange=%s", song, pos, barRange);
 
         this.song = song;
         this.songStructure = song.getSongStructure();
-        checkArgument(songStructure.getBeatRange(null).contains(songStructure.getPositionInNaturalBeats(pos), true), "song=%s pos=%s", song, pos);
         this.position = pos;
+        this.lastBar = songStructure.getSizeInBars() - 1;
     }
 
     public Song getSong()
@@ -78,34 +111,28 @@ public class BeatIterator implements Iterator<Position>
         return song;
     }
 
-    public Position getPosition()
+    /**
+     * Get the next position without advancing the iterator.
+     * <p>
+     * NOTE: Position might be out of the song.
+     *
+     * @return
+     */
+    public Position peek()
     {
         return new Position(position);
     }
 
     /**
-     * True if there is a next (integer) beat in the song.
+     * True if next integer beat position is not in the song.
      *
      * @return
      */
     @Override
     public boolean hasNext()
     {
-        boolean b = true;
-
-        if (position.getBar() == songStructure.getSizeInBars() - 1)
-        {
-            var ts = getTimeSignature();
-            int iBeat = (int) position.getBeat();
-            if (iBeat >= ts.getNbNaturalBeats() - 1)
-            {
-                b = false;
-            }
-        } else if (position.getBar() > songStructure.getSizeInBars() - 1)
-        {
-            b = false;
-        }
-
+        boolean b = position.getBar() < lastBar
+                || (position.getBar() == lastBar && position.getBeat() <= getTimeSignature().getNbNaturalBeats() - 1);
         return b;
     }
 
@@ -122,8 +149,27 @@ public class BeatIterator implements Iterator<Position>
         {
             throw new NoSuchElementException("position=" + position + " songStructure=" + songStructure);
         }
-
         var ts = getTimeSignature();
+
+
+        // If current position is not an int beat, advance position
+        Position res = new Position(position);
+        int intbeat = (int) position.getBeat();
+        if (position.getBeat() - intbeat > 0)
+        {
+            int bar = position.getBar();
+            intbeat++;
+            if (intbeat >= ts.getNbNaturalBeats())
+            {
+                intbeat = 0;
+                bar++;
+            }
+            position = new Position(bar, intbeat);
+            res = new Position(position);
+        }
+
+
+        // Set position to next int beat
         int bar = position.getBar();
         int beat = (int) position.getBeat() + 1;
         if (beat >= ts.getNbNaturalBeats())
@@ -131,10 +177,9 @@ public class BeatIterator implements Iterator<Position>
             beat = 0;
             bar++;
         }
-
         position = new Position(bar, beat);
 
-        return new Position(position);
+        return res;
     }
 
     /**
@@ -144,12 +189,13 @@ public class BeatIterator implements Iterator<Position>
      */
     public boolean hasNextBar()
     {
-        boolean b = position.getBar() < songStructure.getSizeInBars() - 1;
+        boolean b = position.getBar() < lastBar
+                || (position.getBar() == lastBar && position.isFirstBarBeat());
         return b;
     }
 
     /**
-     * Get the song position corresponding to the next bar.
+     * Get the song position corresponding to the next bar (with beat 0).
      *
      * @return A position with beat=0
      * @throws NoSuchElementException
@@ -161,9 +207,19 @@ public class BeatIterator implements Iterator<Position>
             throw new NoSuchElementException("position=" + position + " songStructure=" + songStructure);
         }
 
+        // If position is not on first beat, advance position
+        Position res = new Position(position);
+        if (!position.isFirstBarBeat())
+        {
+            position = new Position(position.getBar() + 1, 0);
+            res = new Position(position);
+        }
+
+
+        // Set position to next bar
         position = new Position(position.getBar() + 1, 0);
 
-        return new Position(position);
+        return res;
     }
 
     /**
@@ -174,26 +230,13 @@ public class BeatIterator implements Iterator<Position>
      */
     public boolean hasNextHalfBar(boolean swing)
     {
-        boolean b = true;
-
-        if (position.getBar() == songStructure.getSizeInBars() - 1)
-        {
-            var ts = getTimeSignature();
-            float halfBeat = ts.getHalfBarBeat(swing);
-            if (position.getBeat() >= halfBeat)
-            {
-                b = false;
-            }
-        } else if (position.getBar() > songStructure.getSizeInBars() - 1)
-        {
-            b = false;
-        }
-
+        boolean b = position.getBar() < lastBar
+                || (position.getBar() == lastBar && position.getBeat() <= getTimeSignature().getHalfBarBeat(swing));
         return b;
     }
 
     /**
-     * Get the song position corresponding to the next half bar.
+     * Get the song position corresponding to the next half bar (beat=0 or half-bar).
      *
      * @param swing
      * @return
@@ -205,64 +248,46 @@ public class BeatIterator implements Iterator<Position>
         {
             throw new NoSuchElementException("position=" + position + " songStructure=" + songStructure);
         }
+        float halfBeat = getTimeSignature().getHalfBarBeat(swing);
 
-        var ts = getTimeSignature();
-        float halfBeat = ts.getHalfBarBeat(swing);
-        int bar = position.getBar();
-        float beat = halfBeat;
-        if (position.getBeat() >= halfBeat)
+
+        // Advance if not on a half-bar
+        Position res;
+        if (position.isFirstBarBeat() || position.getBeat() == halfBeat)
         {
-            bar++;
-            beat = 0;
+            res = new Position(position);
+        } else if (position.getBeat() < halfBeat)
+        {
+            position = new Position(position.getBar(), halfBeat);
+            res = new Position(position);
+        } else
+        {
+            position = new Position(position.getBar() + 1, 0);
+            res = new Position(position);
         }
 
-        position = new Position(bar, beat);
 
-        return new Position(position);
-    }
+        // Set position to the next half-bar         
+        position = position.isFirstBarBeat() ? new Position(position.getBar(), halfBeat) : new Position(position.getBar() + 1, 0);
 
 
-    /**
-     * True if position beat is 0 (strict), or &lt; 1 (not strict).
-     *
-     * @param strict
-     * @return
-     */
-    public boolean isFirstBeat(boolean strict)
-    {
-        return position.isFirstBarBeat();
-    }
-
-    /**
-     * True is position beat if on the last beat of the bar (strict), or &gt;= the last beat of the bar (not strict).
-     *
-     * @return
-     */
-    public boolean isLastBeat(boolean strict)
-    {
-        return position.isLastBarBeat(getTimeSignature());
-    }
-
-    /**
-     * True if position beat is on the half-bar position.
-     *
-     * @param swing
-     * @return
-     */
-    public boolean isHalfBeat(boolean swing)
-    {
-        return position.isHalfBarBeat(getTimeSignature(), swing);
+        return res;
     }
 
 
     /**
      * The time signature corresponding to the current position.
      *
-     * @return
+     * @return Can be null if outside the song
      */
     public TimeSignature getTimeSignature()
     {
-        return songStructure.getSongPart(position.getBar()).getRhythm().getTimeSignature();
+        TimeSignature res = null;
+        if (position.getBar() < songStructure.getSizeInBars())
+        {
+            res = songStructure.getSongPart(position.getBar()).getRhythm().getTimeSignature();
+        }
+        return res;
     }
 
 

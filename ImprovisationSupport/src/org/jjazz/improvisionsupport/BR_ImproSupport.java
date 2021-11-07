@@ -43,6 +43,7 @@ import java.util.logging.Logger;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.jjazz.harmony.api.TimeSignature;
+import org.jjazz.improvisionsupport.PlayRestScenario.DenseSparseValue;
 import org.jjazz.improvisionsupport.PlayRestScenario.PlayRestValue;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
@@ -50,11 +51,11 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.song.api.Song;
 import org.jjazz.ui.cl_editor.api.CL_Editor;
-import org.jjazz.ui.cl_editor.barrenderer.api.BeatBasedLayoutManager;
 import org.jjazz.ui.cl_editor.barrenderer.api.BarRenderer;
 import org.jjazz.ui.cl_editor.barrenderer.api.BarRendererSettings;
 import org.jjazz.ui.itemrenderer.api.ItemRenderer;
 import org.jjazz.ui.itemrenderer.api.ItemRendererFactory;
+import org.jjazz.ui.utilities.api.HSLColor;
 import org.jjazz.ui.utilities.api.StringMetrics;
 import org.jjazz.uisettings.api.GeneralUISettings;
 import org.jjazz.util.api.ResUtil;
@@ -66,12 +67,18 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
 {
 
     private static final Color PLAY_BACKGROUND_COLOR = new Color(88, 189, 235);
+    private static final Color PLAY_DENSE_BACKGROUND_COLOR = HSLColor.changeLuminance(PLAY_BACKGROUND_COLOR, -7);
+    private static final Color PLAY_SPARSE_BACKGROUND_COLOR = HSLColor.changeLuminance(PLAY_BACKGROUND_COLOR, +7);
     private static final Font PLAY_FONT = GeneralUISettings.getInstance().getStdCondensedFont();
     private static final Color FONT_COLOR = Color.DARK_GRAY.darker();
     private static final int PREF_HEIGHT = 15;
     private static final String PLAY_STRING = ResUtil.getString(BR_ImproSupport.class, "Play");
+    private static final String PLAY_DENSE_STRING = ResUtil.getString(BR_ImproSupport.class, "PlayDense");
+    private static final String PLAY_SPARSE_STRING = ResUtil.getString(BR_ImproSupport.class, "PlaySparse");
     private static final String REST_STRING = ResUtil.getString(BR_ImproSupport.class, "Rest");
     private static Rectangle2D PLAY_STRING_BOUNDS;
+    private static Rectangle2D PLAY_SPARSE_STRING_BOUNDS;
+    private static Rectangle2D PLAY_DENSE_STRING_BOUNDS;
     private static Rectangle2D REST_STRING_BOUNDS;
 
 
@@ -79,8 +86,8 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
     private boolean playbackPointEnabled;
     private Position playbackPosition;
     private Quantization quantization;
+    private int songBarIndex;
 
-    private int nbBeats;    // A negative value means the bar is beyond the chord leadsheet model
     private int zoomVFactor = 50;
     /**
      * Maintain an ordered list of BR_ImproSupport instances per editor.
@@ -104,8 +111,8 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
         super(editor, barIndex, settings, irf);
         setPreferredSize(new Dimension(10, PREF_HEIGHT));      // Width ignored because of the containers layout
 
-        nbBeats = -1; // By default, we assume the bar renderer is past the chord leadsheet end
         playbackPointEnabled = false;
+        songBarIndex = -1;
 
 
         // Update the list of instances ordered by bar index
@@ -145,14 +152,33 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
     {
         super.setModelBarIndex(barIndex);
 
-        if (barIndex >= 0)
+        if (barIndex < 0)
         {
-            var song = getEditor().getSongModel();
-            var ss = song.getSongStructure();
-            nbBeats = (int) ss.getSongPart(barIndex).getParentSection().getData().getTimeSignature().getNbNaturalBeats();
-        } else
+            songBarIndex = -1;
+        }
+    }
+
+    /**
+     * The barIndex in the whole song.
+     *
+     * @param songBarIndex
+     */
+    public int getSongBarIndex()
+    {
+        return songBarIndex;
+    }
+
+    /**
+     * Set the barIndex in the whole song.
+     *
+     * @param songBarIndex
+     */
+    public void setSongBarIndex(int songBarIndex)
+    {
+        if (this.songBarIndex != songBarIndex)
         {
-            nbBeats = -1;
+            this.songBarIndex = songBarIndex;
+            repaint();
         }
     }
 
@@ -176,6 +202,7 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
         super.cleanup();
         var brs = mapEditorBrs.get(getEditor());
         brs.remove(this);
+        songBarIndex = -1;
     }
 
 
@@ -187,7 +214,7 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
     @Override
     public void paintComponent(Graphics g)
     {
-        if (scenario == null || nbBeats < 0)
+        if (scenario == null || songBarIndex == -1 || !scenario.isPlayRestDataAvailable(songBarIndex))
         {
             return;
         }
@@ -196,34 +223,41 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         g2.setFont(PLAY_FONT);
-
-
+                
         Rectangle r = getDrawingArea();
         final float w = r.width;
         final float h = r.height;
         final float x0 = r.x;
         final float y0 = r.y;
-        final float wBeat = (float) Math.ceil(w / nbBeats);
-        final float yc = y0 + h / 2;
+        TimeSignature ts = getEditor().getSongModel().getSongStructure().getSongPart(songBarIndex).getRhythm().getTimeSignature();        
+        final float wBeat = (float) Math.ceil(w / ts.getNbNaturalBeats());
 
 
-        List<PlayRestValue> values = scenario.getPlayRestValues(getBarIndex());
+        List<PlayRestValue> playRestValues = scenario.getPlayRestValues(songBarIndex);
+        List<DenseSparseValue> denseSparseValues = scenario.getDenseSparseValues(songBarIndex);
 
 
-        // Get last value of previous bar
-        PlayRestValue prevBarValue = null;
-        if (getBarIndex() > 0)
+        // Get last values of previous bar
+        PlayRestValue prevBarPlayRestValue = null;
+        DenseSparseValue prevBarDenseSparseValue = null;
+        if (songBarIndex > 0)
         {
-            var prevValues = scenario.getPlayRestValues(getBarIndex() - 1);
-            prevBarValue = prevValues.get(prevValues.size() - 1);
+            var prevPRvalues = scenario.getPlayRestValues(songBarIndex - 1);
+            prevBarPlayRestValue = prevPRvalues.get(1);
+            if (scenario.isDenseSparseDataAvailable(songBarIndex - 1))
+            {
+                var prevDSvalues = scenario.getDenseSparseValues(songBarIndex - 1);
+                prevBarDenseSparseValue = prevDSvalues.get(1);
+            }
         }
 
-        // Get the first value of next bar
-        PlayRestValue nextBarValue = null;
-        if (getBarIndex() < getModel().getSize() - 1)
+        // Get the first values of next bar
+        PlayRestValue nextBarPlayRestValue = null;
+        Song song = getEditor().getSongModel();
+        if (songBarIndex < song.getSongStructure().getSizeInBars() - 1 && scenario.isPlayRestDataAvailable(songBarIndex + 1))
         {
-            var nextValues = scenario.getPlayRestValues(getBarIndex() + 1);
-            nextBarValue = nextValues.get(0);
+            var nextValues = scenario.getPlayRestValues(songBarIndex + 1);
+            nextBarPlayRestValue = nextValues.get(0);
         }
 
 
@@ -231,44 +265,72 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
         final int PLAY_RECT_RADIUS = 12;
         final int STR_PADDING = PLAY_RECT_RADIUS / 2;
         float halfBeat = getTimeSignature().getHalfBarBeat(quantization.isTernary());
-        PlayRestValue value0 = values.get(0);
-        PlayRestValue value1 = values.get(1);
+        PlayRestValue playRestValue0 = playRestValues.get(0);
+        PlayRestValue playRestValue1 = playRestValues.get(1);
+        DenseSparseValue denseSparseValue0 = denseSparseValues.isEmpty() ? null : denseSparseValues.get(0);
+        DenseSparseValue denseSparseValue1 = denseSparseValues.isEmpty() ? null : denseSparseValues.get(1);
 
-        
+
         // First half  
-        float x = x0;        
-        float wRect = halfBeat * wBeat;        
-        if (value0.equals(PlayRestValue.PLAY))
+        float x = x0;
+        float wRect = halfBeat * wBeat;
+        if (playRestValue0.equals(PlayRestValue.PLAY))
         {
-            if (prevBarValue != null && prevBarValue.equals(PlayRestValue.PLAY))
+            if (prevBarPlayRestValue != null && prevBarPlayRestValue.equals(PlayRestValue.PLAY))
             {
                 // Hide the left rounded corners
                 x -= PLAY_RECT_RADIUS;
                 wRect += PLAY_RECT_RADIUS;
             }
 
-            if (value1.equals(PlayRestValue.PLAY))
+            if (playRestValue1.equals(PlayRestValue.PLAY))
             {
                 // Hide the right rounded corners                    
                 wRect += PLAY_RECT_RADIUS;
             }
 
+            // Do we also have dense/sparse info ?
+
             // Draw the round rectangle
             var shape = new RoundRectangle2D.Float(x, y0, wRect, h, PLAY_RECT_RADIUS, PLAY_RECT_RADIUS);
-            g2.setColor(PLAY_BACKGROUND_COLOR);
+            Color c = PLAY_BACKGROUND_COLOR;
+            if (denseSparseValue0 != null)
+            {
+                c = denseSparseValue0.equals(DenseSparseValue.DENSE) ? PLAY_DENSE_BACKGROUND_COLOR : PLAY_SPARSE_BACKGROUND_COLOR;
+            }
+            g2.setColor(c);
             g2.fill(shape);
 
 
-            // If first Play, add the string, except if not enough space
             Rectangle2D bounds = getPlayStringBounds(g2);
-            if ((prevBarValue == null || prevBarValue.equals(PlayRestValue.REST)) && bounds.getWidth() < wRect - STR_PADDING)
+            if (denseSparseValue0 != null)
+            {
+                bounds = denseSparseValue0.equals(DenseSparseValue.DENSE) ? getPlayDenseStringBounds(g2) : getPlaySparseStringBounds(g2);
+            }
+
+            // If first Play, add the string, except if not enough space            
+            if ((prevBarPlayRestValue == null || prevBarPlayRestValue.equals(PlayRestValue.REST)) && bounds.getWidth() < wRect - STR_PADDING)
             {
                 x += STR_PADDING;
                 float y = (float) (r.y + (r.height - bounds.getHeight()) / 2 - bounds.getY());  // bounds are in baseline-relative coordinates!
                 g2.setColor(FONT_COLOR);
-                g2.drawString(PLAY_STRING, x, y);
+                String s = PLAY_STRING;
+                if (denseSparseValue0 != null)
+                {
+                    s = denseSparseValue0.equals(DenseSparseValue.DENSE) ? PLAY_DENSE_STRING : PLAY_SPARSE_STRING;
+                }
+                g2.drawString(s, x, y);
+
+            } else if (denseSparseValue0 != null && !denseSparseValue0.equals(prevBarDenseSparseValue))
+            {
+                x += STR_PADDING;
+                float y = (float) (r.y + (r.height - bounds.getHeight()) / 2 - bounds.getY());  // bounds are in baseline-relative coordinates!
+                g2.setColor(FONT_COLOR);
+                String s = denseSparseValue0.equals(DenseSparseValue.DENSE) ? PLAY_DENSE_STRING : PLAY_SPARSE_STRING;
+                g2.drawString(s, x, y);
             }
-        } else if (prevBarValue == null || prevBarValue.equals(PlayRestValue.PLAY))
+
+        } else if (prevBarPlayRestValue == null || prevBarPlayRestValue.equals(PlayRestValue.PLAY))
         {
             // First rest 
             x += STR_PADDING;
@@ -279,19 +341,19 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
         }
 
 
-          // Second half  
-        x = x0 + halfBeat * wBeat;        
-        wRect = w - halfBeat * wBeat;        
-        if (value1.equals(PlayRestValue.PLAY))
+        // Second half  
+        x = x0 + halfBeat * wBeat;
+        wRect = w - halfBeat * wBeat;
+        if (playRestValue1.equals(PlayRestValue.PLAY))
         {
-            if (value0.equals(PlayRestValue.PLAY))
+            if (playRestValue0.equals(PlayRestValue.PLAY))
             {
                 // Hide the left rounded corners
                 x -= PLAY_RECT_RADIUS;
                 wRect += PLAY_RECT_RADIUS;
             }
 
-            if (nextBarValue != null && nextBarValue.equals(PlayRestValue.PLAY))
+            if (nextBarPlayRestValue != null && nextBarPlayRestValue.equals(PlayRestValue.PLAY))
             {
                 // Hide the right rounded corners                    
                 wRect += PLAY_RECT_RADIUS;
@@ -299,20 +361,43 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
 
             // Draw the round rectangle
             var shape = new RoundRectangle2D.Float(x, y0, wRect, h, PLAY_RECT_RADIUS, PLAY_RECT_RADIUS);
-            g2.setColor(PLAY_BACKGROUND_COLOR);
+            Color c = PLAY_BACKGROUND_COLOR;
+            if (denseSparseValue1 != null)
+            {
+                c = denseSparseValue1.equals(DenseSparseValue.DENSE) ? PLAY_DENSE_BACKGROUND_COLOR : PLAY_SPARSE_BACKGROUND_COLOR;
+            }
+            g2.setColor(c);
             g2.fill(shape);
 
 
-            // If first Play, add the string, except if not enough space
             Rectangle2D bounds = getPlayStringBounds(g2);
-            if (value0.equals(PlayRestValue.REST) && bounds.getWidth() < wRect - STR_PADDING)
+            if (denseSparseValue1 != null)
+            {
+                bounds = denseSparseValue1.equals(DenseSparseValue.DENSE) ? getPlayDenseStringBounds(g2) : getPlaySparseStringBounds(g2);
+            }
+
+            // If first Play, add the string, except if not enough space
+            if (playRestValue0.equals(PlayRestValue.REST) && bounds.getWidth() < wRect - STR_PADDING)
             {
                 x += STR_PADDING;
                 float y = (float) (r.y + (r.height - bounds.getHeight()) / 2 - bounds.getY());  // bounds are in baseline-relative coordinates!
                 g2.setColor(FONT_COLOR);
-                g2.drawString(PLAY_STRING, x, y);
+                String s = PLAY_STRING;
+                if (denseSparseValue1 != null)
+                {
+                    s = denseSparseValue1.equals(DenseSparseValue.DENSE) ? PLAY_DENSE_STRING : PLAY_SPARSE_STRING;
+                }
+                g2.drawString(s, x, y);
+            } else if (denseSparseValue1 != null && !denseSparseValue1.equals(denseSparseValue0))
+            {
+                x += STR_PADDING;
+                float y = (float) (r.y + (r.height - bounds.getHeight()) / 2 - bounds.getY());  // bounds are in baseline-relative coordinates!
+                g2.setColor(FONT_COLOR);
+                String s = denseSparseValue1.equals(DenseSparseValue.DENSE) ? PLAY_DENSE_STRING : PLAY_SPARSE_STRING;
+                g2.drawString(s, x, y);
             }
-        } else if (value0.equals(PlayRestValue.PLAY))
+
+        } else if (playRestValue0.equals(PlayRestValue.PLAY))
         {
             // First rest 
             x += STR_PADDING;
@@ -321,7 +406,6 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
             g2.setColor(FONT_COLOR);
             g2.drawString(REST_STRING, x, y);
         }
-        
 
 
         // Draw top and bottom lines
@@ -355,7 +439,7 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
     @Override
     public String toString()
     {
-        return "BR_ImproSupport[" + getBarIndex() + "]";
+        return "BR_ImproSupport[barIndex=" + getBarIndex() + ", songBarIndex=" + songBarIndex + "]";
     }
 
     /**
@@ -447,7 +531,7 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
         }
         return res;
     }
-
+    
     /**
      * Should be called when a song is discarded, in order to remove all the references to its CL_Editor and BR_Instances.
      *
@@ -493,6 +577,26 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
             PLAY_STRING_BOUNDS = sm.getLogicalBoundsNoLeading(PLAY_STRING);
         }
         return PLAY_STRING_BOUNDS;
+    }
+
+    private Rectangle2D getPlaySparseStringBounds(Graphics2D g2)
+    {
+        if (PLAY_SPARSE_STRING_BOUNDS == null)
+        {
+            StringMetrics sm = new StringMetrics(g2);
+            PLAY_SPARSE_STRING_BOUNDS = sm.getLogicalBoundsNoLeading(PLAY_SPARSE_STRING);
+        }
+        return PLAY_SPARSE_STRING_BOUNDS;
+    }
+
+    private Rectangle2D getPlayDenseStringBounds(Graphics2D g2)
+    {
+        if (PLAY_DENSE_STRING_BOUNDS == null)
+        {
+            StringMetrics sm = new StringMetrics(g2);
+            PLAY_DENSE_STRING_BOUNDS = sm.getLogicalBoundsNoLeading(PLAY_DENSE_STRING);
+        }
+        return PLAY_DENSE_STRING_BOUNDS;
     }
 
     private Rectangle2D getRestStringBounds(Graphics2D g2)

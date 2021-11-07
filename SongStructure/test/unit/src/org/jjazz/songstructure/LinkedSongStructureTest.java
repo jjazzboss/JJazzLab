@@ -91,7 +91,7 @@ public class LinkedSongStructureTest
         undoManager = new JJazzUndoManager();
         try
         {
-            cls1.setSize(8);
+            cls1.setSizeInBars(8);
             cls1.addItem(new CLI_ChordSymbolImpl(new ExtChordSymbol("Dm7"), new Position(0, 0)));
             cls1.addItem(new CLI_ChordSymbolImpl(new ExtChordSymbol("F#7"), new Position(1, 0)));
             cls1.addItem(new CLI_ChordSymbolImpl(new ExtChordSymbol("Bbmaj7#5"), new Position(1, 3)));
@@ -337,7 +337,7 @@ public class LinkedSongStructureTest
         System.out.println("\n============ TestResize");
         try
         {
-            cls1.setSize(10);
+            cls1.setSizeInBars(10);
         } catch (UnsupportedEditException ex)
         {
             Exceptions.printStackTrace(ex);

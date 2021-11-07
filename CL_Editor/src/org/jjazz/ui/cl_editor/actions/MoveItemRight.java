@@ -77,7 +77,7 @@ public final class MoveItemRight implements ActionListener
         {
             ChordLeadSheet model = cli.getContainer();
             int barIndex = cli.getPosition().getBar();
-            if (barIndex > 0 && barIndex < (model.getSize() - 1) && model.getSection(barIndex + 1) == cli)
+            if (barIndex > 0 && barIndex < (model.getSizeInBars() - 1) && model.getSection(barIndex + 1) == cli)
             {
                 try
                 {
@@ -98,7 +98,7 @@ public final class MoveItemRight implements ActionListener
         {
             ChordLeadSheet model = cli.getContainer();
             Position pos = cli.getPosition();
-            if (pos.getBar() < (model.getSize() - 1))
+            if (pos.getBar() < (model.getSizeInBars() - 1))
             {
                 // No section on the previous bar, move ok   
                 model.moveItem(cli, new Position(pos.getBar() + 1, pos.getBeat()));

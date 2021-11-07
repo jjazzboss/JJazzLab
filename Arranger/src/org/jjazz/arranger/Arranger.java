@@ -345,7 +345,7 @@ public class Arranger implements SgsChangeListener, PropertyChangeListener
                 if (sptWork.getNbBars() > maxSptWorkNbBars)
                 {
                     var parentSection = sptWork.getParentSection();
-                    clsWork.setSize(parentSection.getPosition().getBar() + maxSptWorkNbBars);  // throws UnsupportedEditException
+                    clsWork.setSizeInBars(parentSection.getPosition().getBar() + maxSptWorkNbBars);  // throws UnsupportedEditException
                 }
 
             } else
@@ -390,7 +390,7 @@ public class Arranger implements SgsChangeListener, PropertyChangeListener
                     if (sptWorkParentSectionBar > srcSptWorkParentSectionBar)
                     {
                         // We can just shorten the chord leadsheet
-                        clsWork.setSize(sptWorkParentSectionBar + maxSptWorkNbBars);   // throws UnsupportedEditException
+                        clsWork.setSizeInBars(sptWorkParentSectionBar + maxSptWorkNbBars);   // throws UnsupportedEditException
                     } else
                     {
                         // Can't shorten cls size, need to move the next section

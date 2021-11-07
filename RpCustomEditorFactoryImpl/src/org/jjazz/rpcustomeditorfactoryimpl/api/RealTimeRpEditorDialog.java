@@ -202,13 +202,13 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
 
         // Make sure SongPart size does not exceed maxNbBars 
         CLI_Section section = spt.getParentSection();
-        IntRange sectionRange = cls.getSectionRange(section);
+        IntRange sectionRange = cls.getBarRange(section);
         if (sectionRange.size() > previewMaxNbBars)
         {
             // Shorten the section
             try
             {
-                cls.setSize(sectionRange.from + previewMaxNbBars);
+                cls.setSizeInBars(sectionRange.from + previewMaxNbBars);
             } catch (UnsupportedEditException ex)
             {
                 // We're removing a section, should never happen

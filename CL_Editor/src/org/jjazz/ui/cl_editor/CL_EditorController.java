@@ -438,7 +438,7 @@ public class CL_EditorController implements CL_EditorMouseListener
             editor.setFocusOnBar(barIndex);
 
             // Edit bar using registered action
-            if (barIndex < editor.getModel().getSize())
+            if (barIndex < editor.getModel().getSizeInBars())
             {
                 editAction.actionPerformed(null);
             }

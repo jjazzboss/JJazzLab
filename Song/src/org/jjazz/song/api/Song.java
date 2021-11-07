@@ -854,7 +854,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
         map.put("Memo Char Size", getComments().length());
         map.put("Nb Chord Symbols", cris.stream().count());
         map.put("Nb Song Parts", songStructure.getSongParts().size());
-        map.put("LeadSheet Bar Size", chordLeadSheet.getSize());
+        map.put("LeadSheet Bar Size", chordLeadSheet.getSizeInBars());
         map.put("Song Structure Bar Size", songStructure.getSizeInBars());
         map.put("Use Bass Pedal Chord", cris.stream().anyMatch(cri -> cri.hasOneFeature(ChordRenderingInfo.Feature.PEDAL_BASS)));
         map.put("Use Accent Chord", cris.stream().anyMatch(cri -> cri.hasOneFeature(ChordRenderingInfo.Feature.ACCENT)));

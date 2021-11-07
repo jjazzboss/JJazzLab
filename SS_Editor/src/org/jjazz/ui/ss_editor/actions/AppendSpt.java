@@ -113,7 +113,7 @@ public class AppendSpt extends AbstractAction
             Rhythm r = sgs.getRecommendedRhythm(parentSection.getData().getTimeSignature(), startBarIndex);
 
             
-            int nbBars = cls.getSectionRange(parentSection).size();
+            int nbBars = cls.getBarRange(parentSection).size();
             SongPart newSpt = sgs.createSongPart(r, parentSection.getData().getName(), startBarIndex, nbBars, parentSection, true);            
             
             

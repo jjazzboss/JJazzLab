@@ -86,7 +86,7 @@ public final class SetEndBar extends AbstractAction implements ContextAwareActio
 
         try
         {
-            cls.setSize(endBar + 1);
+            cls.setSizeInBars(endBar + 1);
         } catch (UnsupportedEditException ex)
         {
             String msg = "Impossible to resize.\n" + ex.getLocalizedMessage();

@@ -135,7 +135,7 @@ public class ChordSymbolTextInput
      */
 //   public static List<CLI_ChordSymbol> toCLI_ChordSymbols(String str, int barIndex, ChordLeadSheet cls) throws ParseException
 //   {
-//      if ((barIndex < 0) || str == null || cls == null || barIndex >= cls.getSize())
+//      if ((barIndex < 0) || str == null || cls == null || barIndex >= cls.getSizeInBars())
 //      {
 //         throw new IllegalArgumentException("str=" + str + " barIndex=" + barIndex + " cls=" + cls);
 //      }
@@ -227,7 +227,7 @@ public class ChordSymbolTextInput
      */
     public static List<CLI_ChordSymbol> toCLI_ChordSymbolsNoPosition(String str, int barIndex, ChordLeadSheet cls, boolean swing) throws ParseException
     {
-        if ((barIndex < 0) || str == null || cls == null || barIndex >= cls.getSize())
+        if ((barIndex < 0) || str == null || cls == null || barIndex >= cls.getSizeInBars())
         {
             throw new IllegalArgumentException("str=" + str + " barIndex=" + barIndex + " cls=" + cls);   //NOI18N
         }

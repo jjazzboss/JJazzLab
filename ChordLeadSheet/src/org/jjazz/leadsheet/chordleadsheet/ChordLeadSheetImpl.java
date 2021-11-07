@@ -87,14 +87,14 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     }
 
     @Override
-    public void setSize(final int newSize) throws UnsupportedEditException
+    public void setSizeInBars(final int newSize) throws UnsupportedEditException
     {
         setSize(newSize, true);
     }
 
 
     @Override
-    public int getSize()
+    public int getSizeInBars()
     {
         return size;
     }
@@ -213,7 +213,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     @Override
     public <T> T getLastItem(int barFrom, int barTo, Class<T> aClass)
     {
-        if (barFrom < 0 || barTo < barFrom || barTo >= getSize())
+        if (barFrom < 0 || barTo < barFrom || barTo >= getSizeInBars())
         {
             throw new IllegalArgumentException( //NOI18N
                     "barFrom=" + barFrom + " barTo=" + barTo + " aClass=" + aClass);
@@ -247,7 +247,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     @SuppressWarnings("unchecked")
     public <T> List<? extends T> getItems(int barFrom, int barTo, Class<T> aClass)
     {
-        if (barFrom < 0 || barTo < barFrom || barTo >= getSize())
+        if (barFrom < 0 || barTo < barFrom || barTo >= getSizeInBars())
         {
             throw new IllegalArgumentException( //NOI18N
                     "barFrom=" + barFrom + " barTo=" + barTo + " aClass=" + aClass);
@@ -302,7 +302,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     @Override
     public CLI_Section getSection(int barIndex)
     {
-        if (barIndex < 0 || barIndex >= getSize())
+        if (barIndex < 0 || barIndex >= getSizeInBars())
         {
             throw new IllegalArgumentException("barIndex=" + barIndex);   //NOI18N
         }
@@ -344,7 +344,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     }
 
     @Override
-    public IntRange getSectionRange(CLI_Section cliSection)
+    public IntRange getBarRange(CLI_Section cliSection)
     {
         if (cliSection == null)
         {
@@ -367,7 +367,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             }
             index++;
         }
-        return new IntRange(startBar, getSize() - 1);
+        return new IntRange(startBar, getSizeInBars() - 1);
     }
 
     @Override
@@ -415,7 +415,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     @Override
     public String toString()
     {
-        return "ChordLeadSheet section0=" + getSection(0).getData().getName() + " size=" + getSize();
+        return "ChordLeadSheet section0=" + getSection(0).getData().getName() + " size=" + getSizeInBars();
     }
 
     public String toDumpString()
@@ -467,7 +467,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         } else if (delta < 0)
         {
             // For undo to work we need to remove possible extra items before setting the size
-            int newLastBarIndex = getSize() - 1 + delta;
+            int newLastBarIndex = getSizeInBars() - 1 + delta;
 
             for (int index = items.size() - 1; index > 0; index--)
             {
@@ -548,9 +548,9 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
         final WritableItem<?> wItem = (WritableItem<?>) item;
         int barIndex = wItem.getPosition().getBar();
-        if (barIndex >= getSize())
+        if (barIndex >= getSizeInBars())
         {
-            throw new IllegalArgumentException("item=" + item + " size=" + getSize());   //NOI18N
+            throw new IllegalArgumentException("item=" + item + " size=" + getSizeInBars());   //NOI18N
         }
 
         fireActionEvent(enableActionEvent, "addItem", false);
@@ -639,11 +639,11 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
     private void addSection(final CLI_Section cliSection, boolean enableActionEvent) throws UnsupportedEditException
     {
-        if (cliSection == null || cliSection.getPosition().getBar() >= getSize() || getSection(cliSection.getData().getName()) != null
+        if (cliSection == null || cliSection.getPosition().getBar() >= getSizeInBars() || getSection(cliSection.getData().getName()) != null
                 || !(cliSection instanceof WritableItem))
         {
             throw new IllegalArgumentException("cliSection=" + cliSection //NOI18N
-                    + ", getSize()=" + getSize()
+                    + ", getSize()=" + getSizeInBars()
                     + (cliSection != null ? ", getSection(cliSection.getData().getName())=" + getSection(cliSection.getData().getName()) : ""));
         }
 
@@ -768,7 +768,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
     private void moveSection(final CLI_Section cliSection, final int newBarIndex, boolean enableActionEvent) throws UnsupportedEditException
     {
-        if (cliSection == null || newBarIndex <= 0 || newBarIndex >= getSize() || !(cliSection instanceof WritableItem))
+        if (cliSection == null || newBarIndex <= 0 || newBarIndex >= getSizeInBars() || !(cliSection instanceof WritableItem))
         {
             throw new IllegalArgumentException("cliSection=" + cliSection + " newBarIndex=" + newBarIndex);   //NOI18N
         }
@@ -810,7 +810,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
         // Section before old position might need to be checked too
         CLI_Section oldPosPrevSection = getSection(oldBarIndex - 1);
-        var oldItems = getItems(oldBarIndex, getSectionRange(oldPosPrevSection).to, ChordLeadSheetItem.class);
+        var oldItems = getItems(oldBarIndex, getBarRange(oldPosPrevSection).to, ChordLeadSheetItem.class);
         adjustItemsToTimeSignature(cliSection.getData().getTimeSignature(), oldPosPrevSection.getData().getTimeSignature(), oldItems);
 
         // Create the undoable event
@@ -1004,7 +1004,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
     private void insertBars(final int barIndex, final int nbBars, boolean enableActionEvent)
     {
-        if (barIndex < 0 || barIndex > getSize() || nbBars <= 0)
+        if (barIndex < 0 || barIndex > getSizeInBars() || nbBars <= 0)
         {
             throw new IllegalArgumentException("barIndex=" + barIndex + " nbBars=" + nbBars);   //NOI18N
         }
@@ -1016,7 +1016,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
 
         // First set the size larger
-        final int newSize = getSize() + nbBars;
+        final int newSize = getSizeInBars() + nbBars;
         try
         {
             setSize(newSize, false);
@@ -1055,8 +1055,8 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
     private void deleteBars(int barIndexFrom, int barIndexTo, boolean enableActionEvent) throws UnsupportedEditException
     {
-        if (barIndexFrom < 0 || barIndexTo < barIndexFrom || barIndexTo >= getSize()
-                || (barIndexTo - barIndexFrom + 1) >= getSize())
+        if (barIndexFrom < 0 || barIndexTo < barIndexFrom || barIndexTo >= getSizeInBars()
+                || (barIndexTo - barIndexFrom + 1) >= getSizeInBars())
         {
             throw new IllegalArgumentException( //NOI18N
                     "barIndexFrom=" + barIndexFrom + " barIndexTo=" + barIndexTo);
@@ -1074,7 +1074,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         List<? extends ChordLeadSheetItem> afterDeletionItems = null;
         if (afterDeletionSection != null)
         {
-            afterDeletionItems = getItems(barIndexTo + 1, getSectionRange(afterDeletionSection).to, ChordLeadSheetItem.class);
+            afterDeletionItems = getItems(barIndexTo + 1, getBarRange(afterDeletionSection).to, ChordLeadSheetItem.class);
         }
 
         // Get items to be moved or removed
@@ -1140,7 +1140,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         }
 
         // Adjust the size
-        setSize(getSize() - range, false);         // Possible exception here! But should not happen since we removed items/sections before.
+        setSize(getSizeInBars() - range, false);         // Possible exception here! But should not happen since we removed items/sections before.
 
         // Adjust positions of items after the deletion if any
         if (afterDeletionItems != null)
@@ -1336,10 +1336,10 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             oldPositions.add(wItem.getPosition());
             Position newPos = wItem.getPosition();
             int newBar = newPos.getBar() + nbBars;
-            if (newBar < 0 || newBar >= getSize())
+            if (newBar < 0 || newBar >= getSizeInBars())
             {
                 throw new IllegalArgumentException("wItem=" + wItem + " nbBars=" + nbBars + " size=" //NOI18N
-                        + getSize());
+                        + getSizeInBars());
             }
             newPos.setBar(newBar);
             wItem.setPosition(newPos);
@@ -1552,7 +1552,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
         private SerializationProxy(ChordLeadSheetImpl cls)
         {
-            spSize = cls.getSize();
+            spSize = cls.getSizeInBars();
             spItems = new ArrayList<>();
             spItems.addAll(cls.getItems());
         }

@@ -57,13 +57,13 @@ public final class InsertBarDialog extends javax.swing.JDialog
      * Prepare the dialog.
      *
      * @param cls The model on which to operate.
-     * @param fromBar Insertion will start from this bar, must be in the range [0,cls.getSize], the latter to append a bar at the
-     * end.
+     * @param fromBar Insertion will start from this bar, must be in the range [0,cls.getSizeInBars], the latter to append a bar at the
+ end.
      * @param nbBars For this number of bars.
      */
     public void preset(ChordLeadSheet cls, int fromBar, int nbBars)
     {
-        if (cls == null || fromBar < 0 || nbBars < 0 || fromBar > cls.getSize())
+        if (cls == null || fromBar < 0 || nbBars < 0 || fromBar > cls.getSizeInBars())
         {
             throw new IllegalArgumentException("cls=" + cls + " fromBar=" + fromBar + " nbBars=" + nbBars);   //NOI18N
         }

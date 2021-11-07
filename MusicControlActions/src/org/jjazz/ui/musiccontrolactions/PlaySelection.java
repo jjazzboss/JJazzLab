@@ -256,7 +256,7 @@ public class PlaySelection extends AbstractAction
      */
     private IntRange toSgsRange(SongStructure ss, ChordLeadSheet cls, IntRange clsRange, SS_SelectionUtilities ssSelection)
     {
-        if (ss == null || cls == null || clsRange.to > cls.getSize() - 1)
+        if (ss == null || cls == null || clsRange.to > cls.getSizeInBars() - 1)
         {
             throw new IllegalArgumentException("cls=" + cls + ", ss=" + ss + ", clsRange=" + clsRange);   //NOI18N
         }

@@ -92,7 +92,7 @@ public class SongStructureFactoryImpl extends SongStructureFactory
                     r,
                     section.getData().getName(),
                     sptBarIndex,
-                    cls.getSectionRange(section).size(),
+                    cls.getBarRange(section).size(),
                     section,
                     false);
             newSpts.add(spt);

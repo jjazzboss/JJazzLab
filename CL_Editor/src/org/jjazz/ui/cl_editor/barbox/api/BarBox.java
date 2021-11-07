@@ -148,7 +148,7 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
      */
     public final void setModel(int modelBarIndex, ChordLeadSheet model)
     {
-        if (model == null || modelBarIndex >= model.getSize())
+        if (model == null || modelBarIndex >= model.getSizeInBars())
         {
             throw new IllegalArgumentException("model=" + model);   //NOI18N
         }
@@ -380,7 +380,7 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
      */
     public void setModelBarIndex(int bar)
     {
-        if (bar >= model.getSize())
+        if (bar >= model.getSizeInBars())
         {
             throw new IllegalArgumentException("bar=" + bar);   //NOI18N
         }
@@ -631,14 +631,14 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
         }
         if (!isEnabled())
         {
-            if (modelBarIndex < 0 || modelBarIndex >= model.getSize())
+            if (modelBarIndex < 0 || modelBarIndex >= model.getSizeInBars())
             {
                 setBackground(bbSettings.getDisabledPastEndColor());
             } else
             {
                 setBackground(bbSettings.getDisabledColor());
             }
-        } else if (modelBarIndex < 0 || modelBarIndex >= model.getSize())
+        } else if (modelBarIndex < 0 || modelBarIndex >= model.getSizeInBars())
         {
             setBackground(isSelected ? bbSettings.getPastEndSelectedColor() : bbSettings.getPastEndColor());
         } else

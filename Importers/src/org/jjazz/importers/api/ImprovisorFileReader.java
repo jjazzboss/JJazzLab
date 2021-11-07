@@ -176,7 +176,7 @@ public class ImprovisorFileReader
                         CLI_Section section = clif.createSection(cls, String.valueOf(sectionIndex), ts, barIndex);
                         try
                         {
-                            cls.setSize(barIndex + 1);
+                            cls.setSizeInBars(barIndex + 1);
                             cls.addSection(section);
                         } catch (UnsupportedEditException ex)
                         {
@@ -252,7 +252,7 @@ public class ImprovisorFileReader
         {
             try
             {
-                cls.setSize(barIndex + 1);     // Make sure chordleadsheet is big enough            
+                cls.setSizeInBars(barIndex + 1);     // Make sure chordleadsheet is big enough            
             } catch (UnsupportedEditException ex)
             {
                 // Should never happen 

@@ -297,7 +297,7 @@ public class PlayFromHere extends AbstractAction
     private int getSelectedBarIndexRelativeToSection(CLI_Section cliSection, CL_SelectionUtilities clSelection)
     {
         int sectionStartBar = cliSection.getPosition().getBar();
-        int sectionEndBar = sectionStartBar + cliSection.getContainer().getSectionRange(cliSection).size() - 1;
+        int sectionEndBar = sectionStartBar + cliSection.getContainer().getBarRange(cliSection).size() - 1;
 
 
         int clsInSectionBarIndex = -1;

@@ -185,7 +185,7 @@ final public class CL_SelectionUtilities
      */
     public boolean isBarSelectedWithinCls()
     {
-        return isBarSelected() && geMinBarIndex() < getChordLeadSheet().getSize();
+        return isBarSelected() && geMinBarIndex() < getChordLeadSheet().getSizeInBars();
     }
 
     /**

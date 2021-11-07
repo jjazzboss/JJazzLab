@@ -66,7 +66,7 @@ final public class SelectedBar implements Comparable<SelectedBar>
      */
     public int getModelBarIndex()
     {
-        return barBoxIndex < container.getSize() ? barBoxIndex : POST_END_BAR_MODEL_BAR_INDEX;
+        return barBoxIndex < container.getSizeInBars() ? barBoxIndex : POST_END_BAR_MODEL_BAR_INDEX;
     }
 
     public ChordLeadSheet getContainer()

@@ -335,7 +335,7 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
 
                 // Go to next bar if chords have changed
                 boolean chordSymbolChange = !resultAddedItems.isEmpty() || !resultRemovedItems.isEmpty() || !map.isEmpty();
-                if (barIndex < cls.getSize() - 1 && chordSymbolChange)
+                if (barIndex < cls.getSizeInBars() - 1 && chordSymbolChange)
                 {
                     CL_SelectionUtilities selection = new CL_SelectionUtilities(editor.getLookup());
                     selection.unselectAll(editor);

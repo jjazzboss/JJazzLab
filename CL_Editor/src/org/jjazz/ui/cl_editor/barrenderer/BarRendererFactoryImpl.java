@@ -94,7 +94,7 @@ public class BarRendererFactoryImpl implements BarRendererFactory
 
         // Set the model
         var model = editor.getModel();
-        int modelBarIndex = barIndex < model.getSize() ? barIndex : -1;
+        int modelBarIndex = barIndex < model.getSizeInBars() ? barIndex : -1;
         br.setModel(modelBarIndex, model);
         return br;
     }

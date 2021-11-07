@@ -147,7 +147,7 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
     @Override
     public void preset(final Preset preset, ChordLeadSheet cls, int barIndx, boolean swng)
     {
-        if (preset == null || cls == null || barIndx < 0 || barIndx >= cls.getSize())
+        if (preset == null || cls == null || barIndx < 0 || barIndx >= cls.getSizeInBars())
         {
             throw new IllegalArgumentException("preset=" + preset + " cls=" + cls + " barIndx=" + barIndx + " swing=" + swing);   //NOI18N
         }

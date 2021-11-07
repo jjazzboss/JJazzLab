@@ -163,6 +163,17 @@ public interface SongStructure
     public int getSizeInBars();
 
     /**
+     * The bar range corresponding to this song structure.
+     *
+     * @return [0;getSizeInBars()-1]
+     * @see #getSizeInBars()
+     */
+    default public IntRange getBarRange()
+    {
+        return new IntRange(0, getSizeInBars() - 1);
+    }
+
+    /**
      * Convert the specified bar range into a natural beat range.
      * <p>
      * The method must take into account SongParts with possibly different time signatures.

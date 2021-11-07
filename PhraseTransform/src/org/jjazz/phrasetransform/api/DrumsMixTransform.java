@@ -164,14 +164,7 @@ public class DrumsMixTransform implements PhraseTransform
         SizedPhrase res = new SizedPhrase(inPhrase.getChannel(), inPhrase.getBeatRange(), inPhrase.getTimeSignature());
 
 
-        int channel = inPhrase.getChannel();
-        DrumKit kit = context.getMidiMix().getInstrumentMixFromChannel(channel).getInstrument().getDrumKit();
-        if (kit == null)
-        {
-            throw new IllegalStateException("channel=" + channel + " midiMix=" + context.getMidiMix().toDumpString());
-        }
-
-
+        DrumKit kit = PhraseTransforms.getDrumKit(inPhrase, context);
         var mapPitchSubset = kit.getSubsetPitches(Subset.BASS, Subset.SNARE, Subset.HI_HAT, Subset.CYMBAL, Subset.CRASH, Subset.TOM, Subset.PERCUSSION);
 
 
@@ -188,7 +181,6 @@ public class DrumsMixTransform implements PhraseTransform
                     int velocity = MidiUtilities.limit(ne.getVelocity() + offset);
                     nne = new NoteEvent(ne, ne.getPitch(), ne.getDurationInBeats(), velocity);
                 }
-
             }
 
             res.add(nne);           // addOrdered() not needed here

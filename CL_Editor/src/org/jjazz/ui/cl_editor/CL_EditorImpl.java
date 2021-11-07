@@ -1315,7 +1315,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         {
             throw new IllegalArgumentException("nbExtraLines=" + nbExtraLines);   //NOI18N
         }
-        int modelSize = clsModel.getSize() + nbExtraLines * nbColumns;
+        int modelSize = clsModel.getSizeInBars() + nbExtraLines * nbColumns;
         int bars = ((modelSize / nbColumns) + 1) * nbColumns;
         return bars;
     }
@@ -1337,7 +1337,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
 
             // The BarBoxConfig to use, default one or the one of the last bar
             BarBoxConfig config = (oldNnBarBoxes == 0) ? getDefaultBarBoxConfig() : getBarBox(oldNnBarBoxes - 1).getConfig();
-            int modelSize = clsModel.getSize();
+            int modelSize = clsModel.getSizeInBars();
             for (int i = oldNnBarBoxes; i < newNbBarBoxes; i++)
             {
                 insertBarBox(i, i >= modelSize ? SelectedBar.POST_END_BAR_MODEL_BAR_INDEX : i, config);
@@ -1376,7 +1376,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
      */
     private BarBox insertBarBox(int bbIndex, int modelBarIndex, BarBoxConfig config)
     {
-        if (bbIndex < 0 || bbIndex > getNbBarBoxes() || modelBarIndex > clsModel.getSize() - 1)
+        if (bbIndex < 0 || bbIndex > getNbBarBoxes() || modelBarIndex > clsModel.getSizeInBars() - 1)
         {
             throw new IllegalArgumentException("bbIndex=" + bbIndex + " getNbBarBoxes()=" + getNbBarBoxes() + " modelBarIndex=" + modelBarIndex + " config=" + config + " clsModel=" + clsModel);   //NOI18N
         }
@@ -1586,7 +1586,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
      */
     private void propagateSectionChange(CLI_Section cliSection)
     {
-        int sectionSize = clsModel.getSectionRange(cliSection).size();
+        int sectionSize = clsModel.getBarRange(cliSection).size();
         int barIndex = cliSection.getPosition().getBar();
         Quantization q = getDisplayQuantizationValue(cliSection);
         for (int i = barIndex; i < barIndex + sectionSize; i++)

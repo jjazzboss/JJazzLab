@@ -118,7 +118,7 @@ public class InsertBar extends AbstractAction implements ContextAwareAction, CL_
             } else
             {
                 // Insert at the end of the leadsheet if no selected bar within the leadsheet
-                insertModelBarIndex = selection.getChordLeadSheet().getSize();
+                insertModelBarIndex = selection.getChordLeadSheet().getSizeInBars();
                 insertNbBars = selection.getSelectedBars().size();
             }
         }

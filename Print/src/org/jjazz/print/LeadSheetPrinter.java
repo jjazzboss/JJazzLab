@@ -314,7 +314,7 @@ public class LeadSheetPrinter implements Printable, Pageable
 
         // Scaled editor dimensions
         scaleFactor = width / clEditor.getWidth();
-        Rectangle rLast = clEditor.getBarRectangle(clEditor.getModel().getSize() - 1);
+        Rectangle rLast = clEditor.getBarRectangle(clEditor.getModel().getSizeInBars() - 1);
         scaledEditorBarHeight = rLast.height * scaleFactor;
         Point pLastBar = rLast.getLocation();
         scaledEditorHeight = pLastBar.y * scaleFactor + scaledEditorBarHeight;

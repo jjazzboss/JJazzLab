@@ -174,7 +174,7 @@ public class ChordLeadSheetFactoryImpl implements ChordLeadSheetFactory
     public ChordLeadSheet getCopy(ChordLeadSheet cls)
     {
         CLI_Section initSection = cls.getSection(0);
-        ChordLeadSheet clsCopy = new ChordLeadSheetImpl(initSection.getData().getName(), initSection.getData().getTimeSignature(), cls.getSize());
+        ChordLeadSheet clsCopy = new ChordLeadSheetImpl(initSection.getData().getName(), initSection.getData().getTimeSignature(), cls.getSizeInBars());
         for (ChordLeadSheetItem<?> item : cls.getItems())
         {
             if (item == initSection)
@@ -206,7 +206,7 @@ public class ChordLeadSheetFactoryImpl implements ChordLeadSheetFactory
     {
         ChordLeadSheet simplifiedCls = getCopy(cls);
         
-        for (int barIndex = 0; barIndex < simplifiedCls.getSize(); barIndex++)
+        for (int barIndex = 0; barIndex < simplifiedCls.getSizeInBars(); barIndex++)
         {
             float halfBarBeat = simplifiedCls.getSection(barIndex).getData().getTimeSignature().getHalfBarBeat(false);
             var items = simplifiedCls.getItems(barIndex, barIndex, CLI_ChordSymbol.class);

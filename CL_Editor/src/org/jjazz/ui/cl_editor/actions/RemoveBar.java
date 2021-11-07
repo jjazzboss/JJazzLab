@@ -89,7 +89,7 @@ public class RemoveBar extends AbstractAction implements ContextAwareAction, CL_
         ChordLeadSheet cls = selection.getChordLeadSheet();
         int minBar = selection.getMinBarIndexWithinCls();
         int maxBar = selection.getMaxBarIndexWithinCls();
-        int lastBar = cls.getSize() - 1;
+        int lastBar = cls.getSizeInBars() - 1;
 
 
         LOGGER.log(Level.FINE, "actionPerformed() minBar=" + minBar + " cls=" + cls + " context=" + context);   //NOI18N
@@ -120,7 +120,7 @@ public class RemoveBar extends AbstractAction implements ContextAwareAction, CL_
     {
         boolean b = false;
         ChordLeadSheet cls = selection.getChordLeadSheet();
-        if (selection.isContiguousBarSelection() && (selection.getMinBarIndexWithinCls() > 0 || selection.getMaxBarIndexWithinCls() < cls.getSize() - 1))
+        if (selection.isContiguousBarSelection() && (selection.getMinBarIndexWithinCls() > 0 || selection.getMaxBarIndexWithinCls() < cls.getSizeInBars() - 1))
         {
             b = true;
         }
