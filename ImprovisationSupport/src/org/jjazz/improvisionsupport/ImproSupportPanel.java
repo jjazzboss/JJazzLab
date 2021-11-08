@@ -113,7 +113,6 @@ public class ImproSupportPanel extends javax.swing.JPanel implements PropertyCha
         boolean b = model != null && model.isEnabled();
         cb_enable.setSelected(b);
         cmb_improSupportMode.setEnabled(b);
-        cb_updateDuringPlayback.setEnabled(b);
         hlp_area.setEnabled(b);
         btn_generate.setEnabled(b);
         if (model != null)
@@ -123,7 +122,6 @@ public class ImproSupportPanel extends javax.swing.JPanel implements PropertyCha
             cmb_improSupportMode.setSelectedItem(mode);
             cmb_improSupportMode.addActionListener(this);
             hlp_area.setText(mode.getHelpText());
-            cb_updateDuringPlayback.setSelected(model.isUpdateDuringPlayback());
         }
     }
 
@@ -144,7 +142,6 @@ public class ImproSupportPanel extends javax.swing.JPanel implements PropertyCha
         jScrollPane1 = new javax.swing.JScrollPane();
         hlp_area = new org.jjazz.ui.utilities.api.HelpTextArea();
         cb_enable = new javax.swing.JCheckBox();
-        cb_updateDuringPlayback = new javax.swing.JCheckBox();
 
         org.openide.awt.Mnemonics.setLocalizedText(btn_generate, org.openide.util.NbBundle.getMessage(ImproSupportPanel.class, "ImproSupportPanel.btn_generate.text")); // NOI18N
         btn_generate.setToolTipText(org.openide.util.NbBundle.getMessage(ImproSupportPanel.class, "ImproSupportPanel.btn_generate.toolTipText")); // NOI18N
@@ -172,15 +169,6 @@ public class ImproSupportPanel extends javax.swing.JPanel implements PropertyCha
             }
         });
 
-        org.openide.awt.Mnemonics.setLocalizedText(cb_updateDuringPlayback, org.openide.util.NbBundle.getMessage(ImproSupportPanel.class, "ImproSupportPanel.cb_updateDuringPlayback.text")); // NOI18N
-        cb_updateDuringPlayback.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                cb_updateDuringPlaybackActionPerformed(evt);
-            }
-        });
-
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -193,10 +181,9 @@ public class ImproSupportPanel extends javax.swing.JPanel implements PropertyCha
                         .addGap(0, 0, Short.MAX_VALUE))
                     .addComponent(cmb_improSupportMode, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(cb_updateDuringPlayback)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGap(0, 0, Short.MAX_VALUE)
                         .addComponent(btn_generate))
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING)))
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 232, Short.MAX_VALUE)))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -208,9 +195,7 @@ public class ImproSupportPanel extends javax.swing.JPanel implements PropertyCha
                 .addGap(18, 18, 18)
                 .addComponent(jScrollPane1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(btn_generate)
-                    .addComponent(cb_updateDuringPlayback))
+                .addComponent(btn_generate)
                 .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
@@ -225,17 +210,11 @@ public class ImproSupportPanel extends javax.swing.JPanel implements PropertyCha
         model.setEnabled(cb_enable.isSelected());
     }//GEN-LAST:event_cb_enableActionPerformed
 
-    private void cb_updateDuringPlaybackActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cb_updateDuringPlaybackActionPerformed
-    {//GEN-HEADEREND:event_cb_updateDuringPlaybackActionPerformed
-        model.setUpdateDuringPlayback(cb_updateDuringPlayback.isSelected());
-    }//GEN-LAST:event_cb_updateDuringPlaybackActionPerformed
-
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_generate;
     private javax.swing.JCheckBox cb_enable;
-    private javax.swing.JCheckBox cb_updateDuringPlayback;
     private javax.swing.JComboBox<ImproSupport.Mode> cmb_improSupportMode;
     private org.jjazz.ui.utilities.api.HelpTextArea hlp_area;
     private javax.swing.JScrollPane jScrollPane1;

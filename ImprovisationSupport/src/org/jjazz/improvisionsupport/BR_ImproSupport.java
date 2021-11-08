@@ -39,6 +39,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -61,7 +62,7 @@ import org.jjazz.uisettings.api.GeneralUISettings;
 import org.jjazz.util.api.ResUtil;
 
 /**
- * A BarRenderer to show improvisition support info.
+ * A BarRenderer to show improvisation support info.
  */
 public class BR_ImproSupport extends BarRenderer implements ChangeListener
 {
@@ -87,6 +88,7 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
     private Position playbackPosition;
     private Quantization quantization;
     private int songBarIndex;
+    private int saveModelBarIndex;
 
     private int zoomVFactor = 50;
     /**
@@ -113,6 +115,7 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
 
         playbackPointEnabled = false;
         songBarIndex = -1;
+        saveModelBarIndex = -2;
 
 
         // Update the list of instances ordered by bar index
@@ -143,7 +146,7 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
     }
 
     /**
-     * Overridden to know if we're past the end of the chord leadsheet.
+     * Overridden to know if leadsheet model has changed.
      *
      * @param barIndex
      */
@@ -152,10 +155,12 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
     {
         super.setModelBarIndex(barIndex);
 
-        if (barIndex < 0)
+        if (barIndex != saveModelBarIndex)
         {
-            songBarIndex = -1;
+            // LOGGER.log(Level.INFO, "setModelBarIndex() -- barIndex=" + barIndex + "  saveModelBarIndex=" + saveModelBarIndex);
+            setSongBarIndex(-1);
         }
+
     }
 
     /**
@@ -171,13 +176,15 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
     /**
      * Set the barIndex in the whole song.
      *
-     * @param songBarIndex
+     * @param songBarIndex -1 means no data available
      */
     public void setSongBarIndex(int songBarIndex)
     {
+        // LOGGER.log(Level.INFO, "setSongBarIndex() -- songBarIndex=" + songBarIndex + " oldSongBarIndex=" + this.songBarIndex);
         if (this.songBarIndex != songBarIndex)
         {
             this.songBarIndex = songBarIndex;
+            this.saveModelBarIndex = getModelBarIndex();
             repaint();
         }
     }
@@ -214,27 +221,47 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
     @Override
     public void paintComponent(Graphics g)
     {
-        if (scenario == null || songBarIndex == -1 || !scenario.isPlayRestDataAvailable(songBarIndex))
+        if (getBarIndex() == 0)
         {
-            return;
+            // LOGGER.info("paintComponent() barIndex=" + getBarIndex() + "  songBarIndex=" + songBarIndex);
         }
 
         Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         g2.setFont(PLAY_FONT);
-                
+
         Rectangle r = getDrawingArea();
         final float w = r.width;
         final float h = r.height;
         final float x0 = r.x;
         final float y0 = r.y;
-        TimeSignature ts = getEditor().getSongModel().getSongStructure().getSongPart(songBarIndex).getRhythm().getTimeSignature();        
+
+
+        // Do nothing if model not ready yet or no model data available
+        var ss = getEditor().getSongModel().getSongStructure();
+        if (scenario == null
+                || songBarIndex == -1
+                || songBarIndex >= ss.getSizeInBars()
+                || !scenario.isPlayRestDataAvailable(songBarIndex))
+        {
+            drawTopBottomLines(g2);
+            return;
+        }
+
+
+        TimeSignature ts = getEditor().getSongModel().getSongStructure().getSongPart(songBarIndex).getRhythm().getTimeSignature();
         final float wBeat = (float) Math.ceil(w / ts.getNbNaturalBeats());
 
 
         List<PlayRestValue> playRestValues = scenario.getPlayRestValues(songBarIndex);
         List<DenseSparseValue> denseSparseValues = scenario.getDenseSparseValues(songBarIndex);
+
+
+        if (getBarIndex() == 0)
+        {
+            // LOGGER.info("paintComponent() bar=0 songBarIndex=" + songBarIndex + " playRestValues=" + playRestValues);
+        }
 
 
         // Get last values of previous bar
@@ -408,12 +435,7 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
         }
 
 
-        // Draw top and bottom lines
-        g2.setColor(Color.LIGHT_GRAY);
-        var line = new Line2D.Float(x0, y0, x0 + w - 1, y0);
-        g2.draw(line);
-        line = new Line2D.Float(x0, y0 + h - 1, x0 + w - 1, y0 + h - 1);
-        g2.draw(line);
+        drawTopBottomLines(g2);
 
 
         // Draw the playback point if required
@@ -531,7 +553,7 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
         }
         return res;
     }
-    
+
     /**
      * Should be called when a song is discarded, in order to remove all the references to its CL_Editor and BR_Instances.
      *
@@ -568,6 +590,20 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
     // ---------------------------------------------------------------
     // Private methods
     // ---------------------------------------------------------------
+
+    private void drawTopBottomLines(Graphics2D g2)
+    {
+        Rectangle r = getDrawingArea();
+        final float w = r.width;
+        final float h = r.height;
+        final float x0 = r.x;
+        final float y0 = r.y;
+        g2.setColor(Color.LIGHT_GRAY);
+        var line = new Line2D.Float(x0, y0, x0 + w - 1, y0);
+        g2.draw(line);
+        line = new Line2D.Float(x0, y0 + h - 1, x0 + w - 1, y0 + h - 1);
+        g2.draw(line);
+    }
 
     private Rectangle2D getPlayStringBounds(Graphics2D g2)
     {

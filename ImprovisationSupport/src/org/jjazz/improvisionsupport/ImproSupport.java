@@ -30,6 +30,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.improvisionsupport.PlayRestScenario.DenseSparseValue;
@@ -40,11 +41,11 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.PlaybackListener;
 import org.jjazz.song.api.Song;
+import org.jjazz.song.api.StructuralChangeListener;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.cl_editor.api.CL_Editor;
 import org.jjazz.ui.cl_editor.barbox.api.BarBoxConfig;
 import org.jjazz.ui.cl_editor.barrenderer.api.BarRendererFactory;
-import org.jjazz.util.api.IntRange;
 import org.jjazz.util.api.ResUtil;
 
 /**
@@ -66,6 +67,8 @@ public class ImproSupport
     private boolean chordPositionsHidden;
     private boolean updateDuringPlayback;
     private ImproSupportPlaybackListener playbackListener;
+    private final StructuralChangeListener songListener;
+    private boolean dirty;
 
     private final SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(ImproSupport.class.getSimpleName());
@@ -76,13 +79,27 @@ public class ImproSupport
         this.clEditor = clEditor;
         this.mode = Mode.PLAY_REST_EASY;
         this.enabled = false;
-        this.chordPositionsHidden = true;
-        this.setUpdateDuringPlayback(true);
+        this.dirty = true;
+        chordPositionsHidden = true;
+
+        updateDuringPlayback = true;
+        playbackListener = new ImproSupportPlaybackListener();
+        MusicController.getInstance().addPlaybackListener(playbackListener);
+
+
+        songListener = new StructuralChangeListener(clEditor.getSongModel(), ae -> songStructurallyChanged());
+
     }
 
     public CL_Editor getCL_Editor()
     {
         return clEditor;
+    }
+
+    public void cleanup()
+    {
+        songListener.cleanup();
+        MusicController.getInstance().removePlaybackListener(playbackListener);
     }
 
     /**
@@ -94,6 +111,8 @@ public class ImproSupport
         {
             return;
         }
+        setDirty(false);
+        
         PlayRestScenario prs;
         switch (mode)
         {
@@ -126,7 +145,7 @@ public class ImproSupport
         }
 
         this.chordPositionsHidden = chordPositionsHidden;
-        getBarRenderers().forEach(br -> br.setPlaybackPointEnabled(chordPositionsHidden));
+        showImproSupportBarRenderer(true, chordPositionsHidden);
 
         pcs.firePropertyChange(PROP_CHORD_POSITIONS_HIDDEN, !chordPositionsHidden, chordPositionsHidden);
     }
@@ -230,7 +249,7 @@ public class ImproSupport
      */
     private PlayRestScenario generatePlayRestScenario(PlayRestScenario.Level level, PlayRestScenario oldScenario, boolean addDenseSparse)
     {
-        LOGGER.info("generatePlayRestScenario() -- level=" + level);
+        LOGGER.log(Level.FINE, "generatePlayRestScenario() -- level={0}", level);
 
         PlayRestScenario res = null;
 
@@ -250,7 +269,7 @@ public class ImproSupport
             }
         }
         assert res != null;
-        LOGGER.info("generatePlayRestScenario() newPrValues=" + newPrValues + " newDsValues=" + newDsValues);
+        LOGGER.log(Level.FINE, "generatePlayRestScenario() newPrValues={0} newDsValues={1}", new Object[]{newPrValues, newDsValues});
 
         return res;
     }
@@ -264,6 +283,8 @@ public class ImproSupport
         {
             br.setScenario(scenario);
         }
+
+        updateSongBarIndexes();
     }
 
     private void showImproSupportBarRenderer(boolean show, boolean hideChordPositions)
@@ -300,19 +321,43 @@ public class ImproSupport
 
         if (show)
         {
+            getBarRenderers().forEach(br -> br.setPlaybackPointEnabled(hideChordPositions));
             updateSongBarIndexes();
         }
     }
+    
+    private synchronized void setDirty(boolean b)
+    {
+        dirty = b;
+    }
+    
+    private synchronized boolean isDirty()
+    {
+        return dirty;
+    }
+
+    private void songStructurallyChanged()
+    {
+        setDirty(true);
+        getBarRenderers().forEach(br -> br.setSongBarIndex(-1));
+    }
 
     /**
-     * Update the songBarIndexes of all BarRenderers depending on the playback position.
+     * Update the songBarIndexes of all BarRenderers depending on the current playback position.
+     * <p>
+     * Do nothing if state is dirty.
      */
     private void updateSongBarIndexes()
     {
+        if (isDirty() || !enabled)
+        {
+            return;
+        }
         Song song = clEditor.getSongModel();
         var ss = song.getSongStructure();
         var spts = ss.getSongParts();
-        SongPart spt = ss.getSongPart(MusicController.getInstance().getCurrentBeatPosition().getBar());
+        int barIndex = MusicController.getInstance().getCurrentBeatPosition().getBar();
+        SongPart spt = ss.getSongPart(barIndex);
         var brs = getBarRenderers();
         Set<CLI_Section> doneSections = new HashSet<>();
 
@@ -338,12 +383,6 @@ public class ImproSupport
             int sptIndex = spts.indexOf(spt) + 1;
             spt = sptIndex == spts.size() ? null : spts.get(sptIndex);
         }
-
-        if (playbackListener != null)
-        {
-            playbackListener.reset();
-        }
-
     }
 
     // ===================================================================================
@@ -382,11 +421,6 @@ public class ImproSupport
 
         private final Map<CLI_Section, Boolean> mapSectionPlayed = new HashMap<>();
 
-        public synchronized void reset()
-        {
-            mapSectionPlayed.clear();
-        }
-
         @Override
         public void enabledChanged(boolean b)
         {
@@ -412,30 +446,11 @@ public class ImproSupport
         }
 
         @Override
-        public synchronized void songPartChanged(SongPart spt)
+        public void songPartChanged(SongPart spt)
         {
-            LOGGER.info("ImproSupportPlaybackListener.songPartChanged() -- spt=" + spt);
-            var section = spt.getParentSection();
-            var cls = section.getContainer();
+            LOGGER.log(Level.FINE, "ImproSupportPlaybackListener.songPartChanged() -- spt={0}", spt);
+            updateSongBarIndexes();
 
-            if (Boolean.TRUE.equals(mapSectionPlayed.get(section)))
-            {
-                // Second time we play this section, need to update the songBarIndex of its BarRenderers
-                var brs = getBarRenderers();
-                int clsBarIndex = spt.getParentSection().getPosition().getBar();
-                for (int i = 0; i < spt.getNbBars(); i++)
-                {
-                    var br = brs.get(clsBarIndex + i);
-                    br.setSongBarIndex(spt.getStartBarIndex() + i);
-                }
-
-                // Remove once updated
-                mapSectionPlayed.remove(section);
-            } else
-            {
-                // Mark section as played once
-                mapSectionPlayed.put(section, true);
-            }
         }
 
         @Override

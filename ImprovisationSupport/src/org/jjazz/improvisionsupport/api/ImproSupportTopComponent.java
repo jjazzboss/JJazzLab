@@ -147,7 +147,12 @@ public final class ImproSupportTopComponent extends TopComponent implements Prop
         var clEditor = BR_ImproSupport.removeBR_ImproSupportInstances(song);
         if (clEditor != null)
         {
-            mapEditorImproSupport.remove(clEditor);
+            var improSupport = mapEditorImproSupport.get(clEditor);
+            if (improSupport!=null)
+            {
+                improSupport.cleanup();
+                mapEditorImproSupport.remove(clEditor);
+            }
         }
     }
 
