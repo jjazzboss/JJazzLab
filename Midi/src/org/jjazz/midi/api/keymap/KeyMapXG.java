@@ -70,10 +70,10 @@ public class KeyMapXG implements DrumKit.KeyMap
         addNote("Metronome Bell", 22);
         addNote("Seq Click Low", 23);
         addNote("Seq Click High", 24);
-        addNote("Brush Tap", 25, Subset.SNARE);
-        addNote("Brush Swirl Low", 26, Subset.SNARE);
-        addNote("Brush Slap", 27, Subset.ACCENT, Subset.SNARE);
-        addNote("Brush Tap Swirl", 28, Subset.SNARE);
+        addNote("Brush Tap", 25, Subset.SNARE, Subset.SNARE_BRUSH);
+        addNote("Brush Swirl Low", 26, Subset.SNARE, Subset.SNARE_BRUSH);
+        addNote("Brush Slap", 27, Subset.ACCENT, Subset.SNARE, Subset.SNARE_BRUSH);
+        addNote("Brush Tap Swirl", 28, Subset.SNARE, Subset.SNARE_BRUSH);
         addNote("Snare Roll", 29, Subset.SNARE);
         addNote("Castanets", 30);
         addNote("Snare Soft", 31, Subset.ACCENT, Subset.SNARE, Subset.SNARE_DRUM);

@@ -75,7 +75,7 @@ public class SnareToRimShotTransform implements PhraseTransform
 
 
         KeyMap keyMap = PhraseTransforms.getDrumKit(inPhrase, context).getKeyMap();
-        var srcPitches = keyMap.getKeys(DrumKit.Subset.SNARE_DRUM, DrumKit.Subset.SNARE_HANDCLAP);
+        var srcPitches = keyMap.getKeys(DrumKit.Subset.SNARE_DRUM, DrumKit.Subset.SNARE_HANDCLAP, DrumKit.Subset.SNARE_BRUSH);
         if (srcPitches.isEmpty())
         {
             return res;

@@ -53,6 +53,7 @@ public class DrumKit implements Serializable
         BASS_DEFAULT, // Default bass
         SNARE, // All snares
         SNARE_DEFAULT,  // the default snare
+        SNARE_BRUSH, 
         SNARE_RIMSHOT,  // only rimshots
         SNARE_HANDCLAP, // onlu hand claps
         SNARE_DRUM,     // snare drums except rimshots

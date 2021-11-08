@@ -565,7 +565,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         int row = getRowIndex(barIndex);
 
 
-        if (nbVisibleRows < 1.8f || row == getNbRows() - 1)
+        if (nbVisibleRows < 1.8f || row == getNbRows() - 1 || row==0)
         {
             // Can't see clearly 2 rows, or it's the last row
             // Make sure row is visible
