@@ -148,7 +148,7 @@ public final class ImproSupportTopComponent extends TopComponent implements Prop
         if (clEditor != null)
         {
             var improSupport = mapEditorImproSupport.get(clEditor);
-            if (improSupport!=null)
+            if (improSupport != null)
             {
                 improSupport.cleanup();
                 mapEditorImproSupport.remove(clEditor);
@@ -162,14 +162,17 @@ public final class ImproSupportTopComponent extends TopComponent implements Prop
 
         if (sg != null)
         {
-            CL_EditorTopComponent clTc = CL_EditorTopComponent.get(sg.getChordLeadSheet());
-            var clEditor = clTc.getCL_Editor();
-            improSupport = mapEditorImproSupport.get(clEditor);
-            if (improSupport == null)
+            CL_EditorTopComponent clTc = CL_EditorTopComponent.get(sg.getChordLeadSheet()); // Can be null in some cases eg when rhythm previewer is used
+            if (clTc != null)
             {
-                improSupport = new ImproSupport(clEditor);
-                mapEditorImproSupport.put(clEditor, improSupport);
-                sg.addPropertyChangeListener(this);
+                var clEditor = clTc.getCL_Editor();
+                improSupport = mapEditorImproSupport.get(clEditor);
+                if (improSupport == null)
+                {
+                    improSupport = new ImproSupport(clEditor);
+                    mapEditorImproSupport.put(clEditor, improSupport);
+                    sg.addPropertyChangeListener(this);
+                }
             }
         }
 
