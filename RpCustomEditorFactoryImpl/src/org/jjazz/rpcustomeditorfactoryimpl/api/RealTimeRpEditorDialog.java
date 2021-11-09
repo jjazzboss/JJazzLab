@@ -51,7 +51,6 @@ import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
-import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.songcontext.api.SongPartContext;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructure;
@@ -590,7 +589,9 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
                     tbtn_hear.setSelected(true);
                     tbtn_hearActionPerformed(null);     // This will start playing the preview
 
-                    previousPlaybackSession = prevSession.getFreshCopy();
+                    
+                    // Commented out to disable the feature (auto-restart playback when exiting)
+                    // previousPlaybackSession = prevSession.getFreshCopy();
                 }
             }
 

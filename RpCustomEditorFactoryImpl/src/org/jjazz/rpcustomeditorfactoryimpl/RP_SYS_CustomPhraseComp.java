@@ -265,7 +265,7 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
         long tickPos = songPartContext.getRelativeTick(newPos);
         if (tickPos >= 0)
         {
-            pos = songPartContext.getBeatRange().from + (float) tickPos / MidiConst.PPQ_RESOLUTION;
+            pos = (float) tickPos / MidiConst.PPQ_RESOLUTION - birdViewComponent.getBeatRange().from;
         }
         birdViewComponent.setMarkerPosition(pos);
     }

@@ -414,7 +414,10 @@ public class RP_SYS_PhraseTransformComp extends RealTimeRpEditorComponent<RP_SYS
 
     private void fireUiValueChanged()
     {
-        LOGGER.severe("fireUiValueChanged() -- lastvalue=" + lastValue + " uiValue=" + uiValue);
+        LOGGER.log(Level.FINE, "fireUiValueChanged() -- lastvalue={0} uiValue={1}", new Object[]
+        {
+            lastValue, uiValue
+        });
         firePropertyChange(PROP_EDITED_RP_VALUE, lastValue, uiValue);
     }
 

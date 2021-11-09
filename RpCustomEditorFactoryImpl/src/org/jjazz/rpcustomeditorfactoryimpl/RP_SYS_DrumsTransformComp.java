@@ -300,7 +300,7 @@ public class RP_SYS_DrumsTransformComp extends RealTimeRpEditorComponent<RP_SYS_
     {
         uiUpdatedByUser();
     }
-    
+
     // ===============================================================================
     // PlaybackListener interface
     // ===============================================================================  
@@ -318,7 +318,7 @@ public class RP_SYS_DrumsTransformComp extends RealTimeRpEditorComponent<RP_SYS_
         long tickPos = songPartContext.getRelativeTick(newPos);
         if (tickPos >= 0)
         {
-            pos = songPartContext.getBeatRange().from + (float) tickPos / MidiConst.PPQ_RESOLUTION;
+            pos = (float) tickPos / MidiConst.PPQ_RESOLUTION - birdview_outPhrase.getBeatRange().from;
         }
         birdview_outPhrase.setMarkerPosition(pos);
     }
