@@ -85,6 +85,7 @@ import org.jjazz.util.api.ResUtil;
 import org.jjazz.util.api.Utilities;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
+import org.openide.util.Exceptions;
 
 /**
  * A set of up to 16 InstrumentMixes, 1 per Midi channel with 1 RhythmVoice associated.
@@ -326,6 +327,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      *
      * @param channel A valid midi channel number.
      * @param rvKey Can be null if insMix is also null. Is a song is set, must be consistent with its rhythms and user phrases.
+     * Can't be a RhythmVoiceDelegate.
      * @param insMix Can be null if rvKey is also null.
      * @throws IllegalArgumentException if insMix is already part of this MidiMix for a different channel, or if rvKey is a
      * RhythmVoiceDelegate.
@@ -336,7 +338,12 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
         {
             throw new IllegalArgumentException("channel=" + channel + " rvKey=" + rvKey + " insMix=" + insMix);   //NOI18N
         }
-        LOGGER.fine("setInstrumentMix() channel=" + channel + " rvKey=" + rvKey + " insMix=" + insMix);   //NOI18N
+
+        LOGGER.log(Level.FINE, "setInstrumentMix() channel={0} rvKey={1} insMix={2}", new Object[]
+        {
+            channel, rvKey, insMix
+        });   //NOI18N
+
         if (rvKey != null && song != null)
         {
             // Check that rvKey belongs to song
@@ -1197,20 +1204,13 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
                 String name = (String) e.getNewValue();
                 if (name != null)
                 {
-                    // It's a new user phrase, create an InstrumentMix
-                    int channel = getUsedChannels().contains(UserRhythmVoice.DEFAULT_USER_PHRASE_CHANNEL) ? findFreeChannel(false) : UserRhythmVoice.DEFAULT_USER_PHRASE_CHANNEL;
-                    if (channel == -1)
+                    try
                     {
-                        String msg = ResUtil.getString(getClass(), "ERR_NotEnoughChannels");
-                        throw new PropertyVetoException(msg, e);
+                        addUserChannel(name);
+                    } catch (MidiUnavailableException ex)
+                    {
+                        throw new PropertyVetoException(ex.getMessage(), e);
                     }
-
-                    // Use a RhythmVoiceInstrumentProvider to get the instrument
-                    var urv = new UserRhythmVoice(name);
-                    RhythmVoiceInstrumentProvider p = RhythmVoiceInstrumentProvider.Util.getProvider();
-                    Instrument ins = p.findInstrument(urv);
-                    var insMix = new InstrumentMix(ins, new InstrumentSettings());
-                    setInstrumentMix(channel, urv, insMix);
 
                 } else
                 {
@@ -1344,7 +1344,11 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      */
     private void changeInstrumentMix(final int channel, final InstrumentMix insMix, final RhythmVoice rvKey)
     {
-        LOGGER.finer("changeInstrumentMix() -- channel=" + channel + " rvKey=" + rvKey + " insMix=" + insMix);   //NOI18N
+        LOGGER.log(Level.FINER, "changeInstrumentMix() -- channel={0} rvKey={1} insMix={2}", new Object[]
+        {
+            channel, rvKey, insMix
+        });   //NOI18N
+
         final InstrumentMix oldInsMix = instrumentMixes[channel];
         final RhythmVoice oldRvKey = rvKeys[channel];
         if (oldInsMix == null && insMix == null)
@@ -1396,7 +1400,12 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
                     // Not doing this caused some problems in some cases with undo/redo when changing rhythm in a multi-ryhtm song
                     setDrumsReroutedChannel(false, channel);
                 }
-                LOGGER.finer("changeInstrumentMix().undoBody() oldInsMix=" + oldInsMix + " insMix=" + insMix);   //NOI18N
+
+                LOGGER.log(Level.FINER, "changeInstrumentMix().undoBody() oldInsMix={0} insMix={1}", new Object[]
+                {
+                    oldInsMix, insMix
+                });   //NOI18N
+
                 pcs.firePropertyChange(PROP_CHANNEL_INSTRUMENT_MIX, insMix, channel);
                 fireIsModified();
             }
@@ -1422,7 +1431,12 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
                     // Not doing this caused some problems in some cases with undo/redo when changing rhythm in a multi-ryhtm song
                     setDrumsReroutedChannel(false, channel);
                 }
-                LOGGER.finer("changeInstrumentMix().redoBody() oldInsMix=" + oldInsMix + " insMix=" + insMix);   //NOI18N
+
+                LOGGER.log(Level.FINER, "changeInstrumentMix().redoBody() oldInsMix={0} insMix={1}", new Object[]
+                {
+                    oldInsMix, insMix
+                });   //NOI18N
+
                 pcs.firePropertyChange(PROP_CHANNEL_INSTRUMENT_MIX, oldInsMix, channel);
                 fireIsModified();
             }
@@ -1477,6 +1491,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
         {
             r.getName(), Arrays.asList(rvKeys).toString()
         });
+
         MidiMix mm = MidiMixManager.getInstance().findMix(r);
         if (!getUniqueRhythmsWithInsMixes().isEmpty())
         {
@@ -1613,6 +1628,29 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
         }
     }
 
+    /**
+     * Add a user phrase channel for the specified name.
+     *
+     * @param userPhraseName
+     * @throws MidiUnavailableException
+     */
+    protected void addUserChannel(String userPhraseName) throws MidiUnavailableException
+    {
+        int channel = getUsedChannels().contains(UserRhythmVoice.DEFAULT_USER_PHRASE_CHANNEL) ? findFreeChannel(false) : UserRhythmVoice.DEFAULT_USER_PHRASE_CHANNEL;
+        if (channel == -1)
+        {
+            String msg = ResUtil.getString(getClass(), "ERR_NotEnoughChannels");
+            throw new MidiUnavailableException(msg);
+
+        }
+
+        // Use a RhythmVoiceInstrumentProvider to get the instrument
+        var urv = new UserRhythmVoice(userPhraseName);
+        RhythmVoiceInstrumentProvider p = RhythmVoiceInstrumentProvider.Util.getProvider();
+        Instrument ins = p.findInstrument(urv);
+        var insMix = new InstrumentMix(ins, new InstrumentSettings());
+        setInstrumentMix(channel, urv, insMix);
+    }
 
     /**
      * Remove the user phrase channel with specific name.

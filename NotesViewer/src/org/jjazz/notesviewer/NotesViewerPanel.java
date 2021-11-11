@@ -42,6 +42,7 @@ import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.border.Border;
+import org.jjazz.analytics.api.Analytics;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Item;
 import org.jjazz.midi.api.Instrument;
@@ -80,7 +81,7 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
     private Song songPlaybackMode, songSelectionMode;
     private CLI_ChordSymbol selectedChordSymbol;
     private MidiMix midiMixPlaybackMode, midiMixSelectionMode;
-    private NotesViewerListener noteListener;
+    private final NotesViewerListener noteListener;
     private final Font chordSymbolFont;
     private final HashMap<NotesViewer, FlatButton> mapViewerButton = new HashMap<>();
     private final CL_ContextActionSupport cap;
@@ -590,6 +591,8 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
         noteListener.setViewerComponent(notesViewer);
         mapViewerButton.get(notesViewer).setBorderNothing(BORDER_NOTHING_SELECTED);
         mapViewerButton.get(notesViewer).setBorderEntered(BORDER_ENTERED_SELECTED);
+
+        Analytics.logEvent("Set Active Notes Viewer", Analytics.buildMap("NoteViewer", notesViewer.getClass().getSimpleName()));
     }
 
     private void modeChanged()
@@ -597,7 +600,6 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
         var mode = getUIMode();
         switch (mode)
         {
-
             case ShowBackingTrack:
                 boolean b = songPlaybackMode != null;
                 noteListener.setEnabled(b);
@@ -622,6 +624,8 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
             default:
                 throw new AssertionError(mode.name());
         }
+        
+        Analytics.logEvent("Set Notes Viewer Mode", Analytics.buildMap("Mode", mode.name()));
     }
 
     private NotesViewer.Mode getUIMode()

@@ -26,6 +26,7 @@ import java.util.logging.Logger;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
+import org.jjazz.analytics.api.Analytics;
 import org.jjazz.harmony.api.StandardScaleInstance;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.midimix.api.MidiMix;
@@ -80,7 +81,7 @@ public class GuitarNotesViewer implements NotesViewer
     {
         this.song = song;
         this.midiMix = midiMix;
-        this.rhythmVoice = rv;
+        this.rhythmVoice = rv;        
     }
 
     @Override

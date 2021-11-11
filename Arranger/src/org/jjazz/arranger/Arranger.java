@@ -32,6 +32,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.Sequencer;
 import javax.swing.event.SwingPropertyChangeSupport;
+import org.jjazz.analytics.api.Analytics;
 import org.jjazz.harmony.api.ChordSymbol;
 import org.jjazz.harmony.api.ChordTypeDatabase;
 import org.jjazz.harmony.api.Note;
@@ -176,6 +177,8 @@ public class Arranger implements SgsChangeListener, PropertyChangeListener
 
         playing = true;
         pcs.firePropertyChange(PROP_PLAYING, false, true);
+        
+        Analytics.incrementProperties("Play Arranger Mode", 1);
     }
 
     public void stop()

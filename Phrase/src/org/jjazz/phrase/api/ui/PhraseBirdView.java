@@ -107,22 +107,27 @@ public class PhraseBirdView extends JPanel
 
 
             // Paint bar gradations                
-            final float STEP = 2;
+            final int STEP = 2;
             int nbBeats = (int) beatRange.size();
             float beatWidth = (float) r.width / nbBeats;
-            HSLColor cBackground = new HSLColor(getBackground());
-            float lum = cBackground.getLuminance();
-            lum = Math.min(100, lum + STEP);
-            Color cBeat = cBackground.adjustLuminance(lum);
-            lum = Math.min(100, lum + 2 * STEP);
-            Color cBar = cBackground.adjustLuminance(lum);
+            Color cBeat = HSLColor.changeLuminance(getBackground(), STEP);
+            Color cBar = HSLColor.changeLuminance(getBackground(), 2 * STEP);
+
             for (int i = 0; i < nbBeats; i++)
             {
-                double x = r.x + i * beatWidth - 0.5d;
-                Color c = (i % timeSignature.getNbNaturalBeats()) == 0 ? cBar : cBeat;
+                double x = r.x + i * beatWidth; //  - 0.5d;
+                boolean isBar = (i % timeSignature.getNbNaturalBeats()) == 0;
+                Color c = isBar ? cBar : cBeat;
                 g2.setColor(c);
-                var line = new Line2D.Double(x, r.y, x, yMax);
-                g2.draw(line);
+
+                // Don't draw gradations if too small
+                if ((!isBar && beatWidth > 4) // Too small for a beat
+                        || (isBar && beatWidth > 1))     // Too smal for a bar too!
+                {
+                    var line = new Line2D.Double(x, r.y, x, yMax);
+                    g2.draw(line);
+                }
+
             }
 
 
@@ -130,17 +135,17 @@ public class PhraseBirdView extends JPanel
             if (beatRange.contains(markerPos, true))
             {
                 final float SIZE = 5;
-                lum = Math.min(100, lum + 2 * STEP);
-                Color cMarker = cBackground.adjustLuminance(lum);
                 double x = r.x + (markerPos - beatRange.from) * beatWidth - 0.5d;
 
-                g2.setColor(cMarker);
+
                 var triangle = new Path2D.Float();
                 triangle.moveTo(x - SIZE, r.y);
                 triangle.lineTo(x + SIZE, r.y);
                 triangle.lineTo(x, r.y + 2 * SIZE);
                 triangle.lineTo(x - SIZE, r.y);
 
+                Color cMarker = HSLColor.changeLuminance(getBackground(), 2 * STEP + 10);
+                g2.setColor(cMarker);
                 g2.fill(triangle);
             }
 

@@ -33,6 +33,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.event.SwingPropertyChangeSupport;
+import org.jjazz.analytics.api.Analytics;
 import org.jjazz.improvisionsupport.PlayRestScenario.DenseSparseValue;
 import org.jjazz.improvisionsupport.PlayRestScenario.PlayRestValue;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
@@ -130,6 +131,8 @@ public class ImproSupport
         }
 
         setPlayRestScenario(prs);
+        
+        Analytics.incrementProperties("Impro Support Generate", 1);
     }
 
     public boolean isChordPositionsHidden()
@@ -212,7 +215,7 @@ public class ImproSupport
         {
             generate();
         }
-        pcs.firePropertyChange(PROP_ENABLED, !enabled, enabled);
+        pcs.firePropertyChange(PROP_ENABLED, !enabled, enabled);                
     }
 
     public void addPropertyChangeListener(PropertyChangeListener l)

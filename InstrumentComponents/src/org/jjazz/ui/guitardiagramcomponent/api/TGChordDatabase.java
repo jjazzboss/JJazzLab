@@ -29,7 +29,7 @@ package org.jjazz.ui.guitardiagramcomponent.api;
 /**
  * Stores the information about the chord name, structure and alteration abilities into a list
  *
- * @author Nikola Kolarovic <nikola.kolarovic@gmail.com>
+ * @author Nikola Kolarovic &lt;nikola.kolarovic@gmail.com&gt;
  *
  */
 public class TGChordDatabase

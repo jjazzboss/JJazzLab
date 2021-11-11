@@ -27,6 +27,7 @@ import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.WeakHashMap;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiUnavailableException;
 import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
@@ -36,7 +37,6 @@ import org.jjazz.midimix.spi.RhythmVoiceInstrumentProvider;
 import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
-import org.jjazz.rhythm.api.RhythmVoiceDelegate;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongCreationException;
 import org.jjazz.util.api.ResUtil;
@@ -88,7 +88,7 @@ public class MidiMixManager implements PropertyChangeListener
      */
     public MidiMix findMix(Song s) throws MidiUnavailableException
     {
-        LOGGER.fine("findMix() -- s=" + s);   //NOI18N
+        LOGGER.log(Level.FINE, "findMix() -- s={0}", s);   //NOI18N
         // Try to get existing MidiMix in memory
         MidiMix mm = mapSongMix.get(s);
         if (mm == null)
@@ -150,7 +150,7 @@ public class MidiMixManager implements PropertyChangeListener
      */
     public MidiMix findMix(Rhythm r)
     {
-        LOGGER.fine("findMix() -- r=" + r);   //NOI18N
+        LOGGER.log(Level.FINE, "findMix() -- r={0}", r);   //NOI18N
         MidiMix mm = null;
         File mixFile = r instanceof AdaptedRhythm ? null : FileDirectoryManager.getInstance().getRhythmMixFile(r.getName(), r.getFile());
         if (mixFile != null && mixFile.canRead())
@@ -175,7 +175,7 @@ public class MidiMixManager implements PropertyChangeListener
     /**
      * Create a new MidiMix for the specified song.
      * <p>
-     * Use the default rhythm mix for each song's rhythm.
+     * Use the default rhythm mix for each song's rhythm. Create UserRhythmVoices key if song as some user phrases.
      *
      * @param sg
      * @return
@@ -183,15 +183,26 @@ public class MidiMixManager implements PropertyChangeListener
      */
     public MidiMix createMix(Song sg) throws MidiUnavailableException
     {
-        LOGGER.fine("createMix() -- sg=" + sg);   //NOI18N
+
+        LOGGER.log(Level.FINE, "createMix() -- sg={0}", sg);   //NOI18N
         MidiMix mm = new MidiMix(sg);
+
+
         for (Rhythm r : sg.getSongStructure().getUniqueRhythms(true))
         {
             MidiMix rMm = findMix(r);
             mm.addInstrumentMixes(rMm, r);
         }
+
+        for (String userPhraseName : sg.getUserPhraseNames())
+        {
+            mm.addUserChannel(userPhraseName);
+        }
+
+
         registerSong(mm, sg);
         return mm;
+
     }
 
     /**
@@ -200,21 +211,21 @@ public class MidiMixManager implements PropertyChangeListener
      * Create one InstrumentMix per rhythm voice, using rhythm voice's preferred instrument and settings, and preferred channel
      * (except if several voices share the same preferred channel)
      * .<p>
-     * Rhythm's RhythmVoiceDelegates are added as such in the created mix.
      *
-     * @param r
+     * @param r If r is
      * @return A MidiMix associated to this rhythm. Rhythm voices are used as keys for InstrumentMixes.
      */
     public MidiMix createMix(Rhythm r)
     {
-        LOGGER.fine("createMix() -- r=" + r);   //NOI18N
+        LOGGER.log(Level.FINE, "createMix() -- r={0}", r);
 
         MidiMix mm = new MidiMix();
 
-        for (RhythmVoice rv : r.getRhythmVoices())
+        if (!(r instanceof AdaptedRhythm))
         {
-            if (!(rv instanceof RhythmVoiceDelegate))
+            for (RhythmVoice rv : r.getRhythmVoices())
             {
+
                 RhythmVoiceInstrumentProvider p = RhythmVoiceInstrumentProvider.Util.getProvider();
                 Instrument ins = p.findInstrument(rv);
                 assert ins != null : "rv=" + rv;   //NOI18N
@@ -223,7 +234,10 @@ public class MidiMixManager implements PropertyChangeListener
                 if (mm.getInstrumentMixFromChannel(channel) != null)
                 {
                     // If 2 rhythm voices have the same preferred channel (strange...)
-                    LOGGER.warning("createMix() 2 rhythm voices have the same preferredChannel. r=" + r.getName() + " mm=" + mm + " channel=" + channel);   //NOI18N
+                    LOGGER.log(Level.WARNING, "createMix() 2 rhythm voices have the same preferredChannel. r={0} mm={1} channel={2}", new Object[]
+                    {
+                        r.getName(), mm, channel
+                    });
                     channel = mm.findFreeChannel(rv.isDrums());
                     if (channel == -1)
                     {
@@ -233,7 +247,10 @@ public class MidiMixManager implements PropertyChangeListener
 
                 InstrumentMix im = new InstrumentMix(ins, rv.getPreferredInstrumentSettings());
                 mm.setInstrumentMix(channel, rv, im);
-                LOGGER.fine("createMix()    created InstrumentMix for rv=" + rv + " ins=" + ins);   //NOI18N
+                LOGGER.log(Level.FINE, "createMix()    created InstrumentMix for rv={0} ins={1}", new Object[]
+                {
+                    rv, ins
+                });
             }
         }
 
@@ -250,7 +267,7 @@ public class MidiMixManager implements PropertyChangeListener
         {
             Song song = (Song) e.getSource();
             assert mapSongMix.get(song) != null : "song=" + song + " mapSongMix=" + mapSongMix;   //NOI18N
-            if (e.getPropertyName() == Song.PROP_CLOSED)
+            if (e.getPropertyName().equals(Song.PROP_CLOSED))
             {
                 unregisterSong(song);
             }
