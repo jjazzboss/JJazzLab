@@ -22,7 +22,6 @@
  */
 package org.jjazz.ui.spteditor.api;
 
-import java.awt.Dimension;
 import org.jjazz.ui.spteditor.spi.SptEditorFactory;
 import org.jjazz.util.api.ResUtil;
 import org.netbeans.api.settings.ConvertAsProperties;
@@ -73,7 +72,6 @@ public final class SptEditorTopComponent extends TopComponent
 
         SptEditorFactory factory = SptEditorFactory.getDefault();
         sptEditor = factory.createEditor(factory.getDefaultSptEditorSettings(), factory.getDefaultRpEditorFactory());
-        sptEditor.setPreferredSize(new Dimension(80, 100));        
         
         initComponents();      
 

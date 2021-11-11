@@ -67,19 +67,19 @@ public class SptEditorImpl extends SptEditor implements PropertyChangeListener
     private LookupListener sptpLkpListener;
     private Lookup.Result<SongPart> sptLkpResult;
     private LookupListener sptLkpListener;
-    private Lookup.Result<Song> songLkpResult;
+    private final Lookup.Result<Song> songLkpResult;
     private LookupListener songLkpListener;
-    private Lookup lookup;
+    private final Lookup lookup;
     private InstanceContent instanceContent;
     /**
      * The songparts currently edited by this editor.
      */
-    private List<SongPart> songParts;
+    private final List<SongPart> songParts;
     private Rhythm previousRhythm;
     private Song songModel;
     private SS_Editor ssEditor;
-    private SptEditorSettings settings;
-    private DefaultRpEditorComponentFactory defaultRpEditorComponentFactory;
+    private final SptEditorSettings settings;
+    private final DefaultRpEditorComponentFactory defaultRpEditorComponentFactory;
     private static final Logger LOGGER = Logger.getLogger(SptEditorImpl.class.getSimpleName());
 
     public SptEditorImpl(SptEditorSettings settings, DefaultRpEditorComponentFactory factory)
@@ -650,6 +650,7 @@ public class SptEditorImpl extends SptEditor implements PropertyChangeListener
         }
 
 
+        panel_RhythmParameters.revalidate();
         panel_RhythmParameters.repaint();
     }
 
@@ -658,6 +659,7 @@ public class SptEditorImpl extends SptEditor implements PropertyChangeListener
         rpe.removePropertyChangeListener(this);
         rpe.cleanup();
         panel_RhythmParameters.remove(rpe);
+        panel_RhythmParameters.revalidate();        
         panel_RhythmParameters.repaint();
     }
 
