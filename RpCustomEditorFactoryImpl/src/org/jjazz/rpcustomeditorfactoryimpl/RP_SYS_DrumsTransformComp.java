@@ -1110,7 +1110,6 @@ public class RP_SYS_DrumsTransformComp extends RealTimeRpEditorComponent<RP_SYS_
         });
         pnl_header.add(tbtn_solo);
 
-        org.openide.awt.Mnemonics.setLocalizedText(flatHelpButton1, org.openide.util.NbBundle.getMessage(RP_SYS_DrumsTransformComp.class, "RP_SYS_DrumsTransformComp.flatHelpButton1.text")); // NOI18N
         flatHelpButton1.setHelpText(org.openide.util.NbBundle.getMessage(RP_SYS_DrumsTransformComp.class, "RP_SYS_DrumsTransformComp.flatHelpButton1.helpText")); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);

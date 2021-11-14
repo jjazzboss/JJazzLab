@@ -453,7 +453,7 @@ final class MidiPanel extends javax.swing.JPanel implements ListSelectionListene
         });
 
         tf_midiMessages.setEditable(false);
-        tf_midiMessages.setText(org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.tf_midiMessages.text")); // NOI18N
+        tf_midiMessages.setText("C4  (60)"); // NOI18N
         tf_midiMessages.setToolTipText(org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.tf_midiMessages.toolTipText")); // NOI18N
 
         javax.swing.GroupLayout pnl_remoteControlLayout = new javax.swing.GroupLayout(pnl_remoteControl);

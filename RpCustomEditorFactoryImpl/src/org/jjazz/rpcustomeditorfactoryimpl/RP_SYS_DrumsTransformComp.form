@@ -683,9 +683,6 @@
     </Container>
     <Component class="org.jjazz.ui.flatcomponents.api.FlatHelpButton" name="flatHelpButton1">
       <Properties>
-        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/jjazz/rpcustomeditorfactoryimpl/Bundle.properties" key="RP_SYS_DrumsTransformComp.flatHelpButton1.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-        </Property>
         <Property name="helpText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
           <ResourceString bundle="org/jjazz/rpcustomeditorfactoryimpl/Bundle.properties" key="RP_SYS_DrumsTransformComp.flatHelpButton1.helpText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
         </Property>
