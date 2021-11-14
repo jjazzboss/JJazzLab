@@ -33,7 +33,7 @@ import java.util.List;
 
 public class TGString
 {
-
+    
     public static final int[][] DEFAULT_TUNING_VALUES =
     {
         {

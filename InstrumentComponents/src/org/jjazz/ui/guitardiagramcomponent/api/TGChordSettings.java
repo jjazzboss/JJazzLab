@@ -1,5 +1,7 @@
 package org.jjazz.ui.guitardiagramcomponent.api;
 
+import org.jjazz.util.api.ResUtil;
+
 /*
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  * 
@@ -24,12 +26,39 @@ package org.jjazz.ui.guitardiagramcomponent.api;
  *  
  */
  /*
- * NOTE: code reused and modified from the TuxGuitar software (GNU Lesser GPL license), author: Julián Gabriel Casadesús
+ * NOTE: code reused and modified from the TuxGuitar software (GNU Lesser GPL license,  author: Julián Gabriel Casadesús)
  */
 public class TGChordSettings
 {
 
-    private static TGChordSettings instance;
+    public enum ChordMode
+    {
+        MOST_COMMON(ResUtil.getString(TGChordSettings.class, "ModeMostCommonChords")),
+        OPEN(ResUtil.getString(TGChordSettings.class, "ModeOpenVoicedChords")),
+        CLOSE(ResUtil.getString(TGChordSettings.class, "ModeCloseVoicedChords")),
+        INVERSIONS(ResUtil.getString(TGChordSettings.class, "ModeInversionChords"));
+
+        private final String displayName;
+
+        private ChordMode(String name)
+        {
+            displayName = name;
+        }
+
+        public ChordMode next()
+        {
+            int index = (ordinal() + 1) % values().length;
+            return values()[index];
+        }
+
+        @Override
+        public String toString()
+        {
+            return displayName;
+        }
+    }
+
+    private static TGChordSettings INSTANCE;
 
     private boolean emptyStringChords;
     private float bassGrade;
@@ -40,7 +69,7 @@ public class TGChordSettings
     private float goodChordSemanticsGrade;
     private int chordsToDisplay;
     private int howManyIncompleteChords;
-    private int chordTypeIndex;
+    private ChordMode chordMode;
     private int findChordsMin;
     private int findChordsMax;
 
@@ -53,20 +82,20 @@ public class TGChordSettings
         this.requiredBasicsGrade = 150.0f;
         this.manyStringsGrade = 100.0f;
         this.goodChordSemanticsGrade = 200.0f;
-        this.chordsToDisplay = 30;   
+        this.chordsToDisplay = 30;
         this.howManyIncompleteChords = 4;
-        this.chordTypeIndex = 0;
+        this.chordMode = ChordMode.MOST_COMMON;
         this.findChordsMin = 0;
         this.findChordsMax = 15;
     }
 
-    public static TGChordSettings instance()
+    public static TGChordSettings getInstance()
     {
-        if (instance == null)
+        if (INSTANCE == null)
         {
-            instance = new TGChordSettings();
+            INSTANCE = new TGChordSettings();
         }
-        return instance;
+        return INSTANCE;
     }
 
     public float getBassGrade()
@@ -179,16 +208,16 @@ public class TGChordSettings
         this.findChordsMax = max;
     }
 
-    public int getChordTypeIndex()
+    public ChordMode getChordMode()
     {
-        return this.chordTypeIndex;
+        return this.chordMode;
     }
 
-    public void setChordTypeIndex(int index)
+    public void setChordMode(ChordMode mode)
     {
-        switch (index)
+        switch (mode)
         {
-            case 0: // normal
+            case MOST_COMMON: // normal
                 this.bassGrade = 200.0f;
                 this.fingeringGrade = 150.0f;
                 this.subsequentGrade = 200.0f;
@@ -196,7 +225,7 @@ public class TGChordSettings
                 this.manyStringsGrade = 100.0f;
                 this.goodChordSemanticsGrade = 200.0f;
                 break;
-            case 1: // inversions
+            case INVERSIONS: // inversions
                 this.bassGrade = -100.0f;
                 this.fingeringGrade = 150.0f;
                 this.subsequentGrade = 200.0f;
@@ -204,7 +233,7 @@ public class TGChordSettings
                 this.manyStringsGrade = 50.0f;
                 this.goodChordSemanticsGrade = 200.0f;
                 break;
-            case 2: // close-voiced
+            case CLOSE: // close-voiced
                 this.bassGrade = 50.0f;
                 this.fingeringGrade = 200.0f;
                 this.subsequentGrade = 350.0f;
@@ -212,7 +241,7 @@ public class TGChordSettings
                 this.manyStringsGrade = -100.0f;
                 this.goodChordSemanticsGrade = 200.0f;
                 break;
-            case 3: // open-voiced
+            case OPEN: // open-voiced
                 this.bassGrade = 100.0f;
                 this.fingeringGrade = 100.0f;
                 this.subsequentGrade = -80.0f;
@@ -221,6 +250,6 @@ public class TGChordSettings
                 this.goodChordSemanticsGrade = 200.0f;
                 break;
         }
-        this.chordTypeIndex = index;
+        this.chordMode = mode;
     }
 }

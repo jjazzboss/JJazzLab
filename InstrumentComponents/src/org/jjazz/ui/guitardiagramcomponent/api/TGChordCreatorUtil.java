@@ -60,7 +60,7 @@ public class TGChordCreatorUtil
      * Maximum fret distance for a chord
      */
 
-    public static final int MAX_FRET_SPAN = 5;
+    public static final int MAX_FRET_SPAN = 5;      
 
     /**
      * mark for bass note type *
@@ -85,6 +85,8 @@ public class TGChordCreatorUtil
     private int alteration;
 
     private int chordIndex;
+    
+    private int maxFretSpan;
 
     /**
      * essential notes for the chord (from ChordInfo)
@@ -115,6 +117,15 @@ public class TGChordCreatorUtil
      */
     private int[] tuning;
 
+    public TGChordCreatorUtil()
+    {
+        this(MAX_FRET_SPAN);        // TuxGuitar default
+    }
+    
+    public TGChordCreatorUtil(int maxFretSpan)
+    {
+        this.maxFretSpan = maxFretSpan;
+    }
 
     public List<TGChord> getChords(ChordSymbol chordSymbol)
     {
@@ -482,12 +493,12 @@ public class TGChordCreatorUtil
 
             // search all the frets
 
-            if (TGChordSettings.instance().getFindChordsMin() > 0 && TGChordSettings.instance().isEmptyStringChords())
+            if (TGChordSettings.getInstance().getFindChordsMin() > 0 && TGChordSettings.getInstance().isEmptyStringChords())
             {
                 find(this.tuning[string], string, 0, currentStringList); // if it's open chord but wanted to search from different minimal fret
             }
 
-            for (int fret = TGChordSettings.instance().getFindChordsMin(); fret <= TGChordSettings.instance().getFindChordsMax(); fret++)
+            for (int fret = TGChordSettings.getInstance().getFindChordsMin(); fret <= TGChordSettings.getInstance().getFindChordsMax(); fret++)
             {
                 // put in all the needed notes
                 find(this.tuning[string], string, fret, currentStringList);
@@ -687,7 +698,7 @@ public class TGChordCreatorUtil
      * <p>
      * if the distance between lowest and highest fret is less than
      * <p>
-     * <i>ChordCreatorUtil.MAX_FRET_SPAN</i>.
+     * <i>ChordCreatorUtil.maxFretSpan</i>.
      * <p>
      * Also note that this method eliminates or includes the chords with empty strings,
      * <p>
@@ -712,7 +723,7 @@ public class TGChordCreatorUtil
             int fret = ((StringValue) it.next()).getFret();
 
             //chords with empty-string are welcome
-            if (fret != 0 || !TGChordSettings.instance().isEmptyStringChords())
+            if (fret != 0 || !TGChordSettings.getInstance().isEmptyStringChords())
             {
 
                 if (fret < maxLeft)
@@ -729,7 +740,7 @@ public class TGChordCreatorUtil
 
         }
 
-        if (Math.abs(maxLeft - maxRight) >= MAX_FRET_SPAN)
+        if (Math.abs(maxLeft - maxRight) >= maxFretSpan)
 
         {
             return false;
@@ -792,9 +803,9 @@ public class TGChordCreatorUtil
             // uses many strings
             // 4 and less strings will be more praised in case of negative grade
             // 4 and more strings will be more praised in case of positive grade 
-            priority += TGChordSettings.instance().getManyStringsGrade() / 3
+            priority += TGChordSettings.getInstance().getManyStringsGrade() / 3
                     * (stringValueCombination.size() - this.tuning.length
-                    / (TGChordSettings.instance().getManyStringsGrade() > 0 ? 2 : 1.2));
+                    / (TGChordSettings.getInstance().getManyStringsGrade() > 0 ? 2 : 1.2));
 
             // uses good fingering positions
 
@@ -826,7 +837,7 @@ public class TGChordCreatorUtil
     {
 
 
-        int maximum = TGChordSettings.instance().getChordsToDisplay();
+        int maximum = TGChordSettings.getInstance().getChordsToDisplay();
 
         List<List<StringValue>> bestOnes = new ArrayList<List<StringValue>>(maximum);
 
@@ -889,7 +900,7 @@ public class TGChordCreatorUtil
 
         if (currentIndex == this.requiredNotes.length)
         {
-            return TGChordSettings.instance().getRequiredBasicsGrade();
+            return TGChordSettings.getInstance().getRequiredBasicsGrade();
         }
 
         if (currentIndex == this.requiredNotes.length - 1)
@@ -916,7 +927,7 @@ public class TGChordCreatorUtil
                 //Replaced by "String.indexOf(String) >= 0"
                 if (TGChordDatabase.get(this.chordIndex).getName().indexOf("sus") >= 0 && this.requiredNotes.length != 2 && this.add5 == 0)
                 {
-                    return (TGChordSettings.instance().getRequiredBasicsGrade() * 4 / 5);
+                    return (TGChordSettings.getInstance().getRequiredBasicsGrade() * 4 / 5);
                 }
             }
 
@@ -926,7 +937,7 @@ public class TGChordCreatorUtil
         int noteCount = (this.alteration == 0 ? 0 : 1 + this.alteration) + currentIndex + (this.bassTonic == this.chordTonic ? 0 : 1);
 
         // sometimes, when noteCount is bigger then tunning length, this pennalty will become positive, which may help
-        return -TGChordSettings.instance().getRequiredBasicsGrade()
+        return -TGChordSettings.getInstance().getRequiredBasicsGrade()
                 * (this.tuning.length - noteCount) / this.tuning.length * 2;
 
     }
@@ -962,7 +973,7 @@ public class TGChordCreatorUtil
                 }
                 if (penalty) // penalty for skipped strings
                 {
-                    return -TGChordSettings.instance().getSubsequentGrade();
+                    return -TGChordSettings.getInstance().getSubsequentGrade();
                 }
             } else if (stumbled)
             {
@@ -975,7 +986,7 @@ public class TGChordCreatorUtil
             return 0.0f;
         }
 
-        return TGChordSettings.instance().getSubsequentGrade();
+        return TGChordSettings.getInstance().getSubsequentGrade();
     }
 
     /**
@@ -997,10 +1008,10 @@ public class TGChordCreatorUtil
                 { // stumbled upon lowest tone
                     if ((this.tuning[sv.getString()] + sv.getFret()) % 12 == this.bassTonic)
                     {
-                        return TGChordSettings.instance().getBassGrade();
+                        return TGChordSettings.getInstance().getBassGrade();
                     }
                     // else
-                    return -TGChordSettings.instance().getBassGrade();
+                    return -TGChordSettings.getInstance().getBassGrade();
                 }
             }
 
@@ -1045,13 +1056,13 @@ public class TGChordCreatorUtil
         // algorithm
 
         // distance between fingers
-        int min = TGChordSettings.instance().getFindChordsMax() + 2, max = 0, maxCount = 0;
+        int min = TGChordSettings.getInstance().getFindChordsMax() + 2, max = 0, maxCount = 0;
         boolean openChord = false, zeroString = false;
 
         for (int i = 0; i < this.tuning.length; i++)
         {
 
-            openChord |= TGChordSettings.instance().isEmptyStringChords() && positions[i] == 0;
+            openChord |= TGChordSettings.getInstance().isEmptyStringChords() && positions[i] == 0;
             zeroString |= positions[i] == 0;
 
             if (positions[i] < min && positions[i] != 0 && positions[i] != -1)
@@ -1086,14 +1097,14 @@ public class TGChordCreatorUtil
         {
             if (zeroString)
             {
-                finalGrade += TGChordSettings.instance().getFingeringGrade() / 8;
+                finalGrade += TGChordSettings.getInstance().getFingeringGrade() / 8;
             } else if (count >= 2)
             {
-                finalGrade += TGChordSettings.instance().getFingeringGrade() / 8;
+                finalGrade += TGChordSettings.getInstance().getFingeringGrade() / 8;
             }
         } else if (openChord)
         {
-            finalGrade += TGChordSettings.instance().getFingeringGrade() / 8;
+            finalGrade += TGChordSettings.getInstance().getFingeringGrade() / 8;
         }
 
         // position distance: 1-2 nice 3 good 4 bad 5 disaster
@@ -1102,20 +1113,20 @@ public class TGChordCreatorUtil
         switch (Math.abs(max - min))
         {
             case 0:
-                distanceGrade = TGChordSettings.instance().getFingeringGrade() / 5;
+                distanceGrade = TGChordSettings.getInstance().getFingeringGrade() / 5;
                 break;
             case 1:
-                distanceGrade = TGChordSettings.instance().getFingeringGrade() / (5 + maxCount);
+                distanceGrade = TGChordSettings.getInstance().getFingeringGrade() / (5 + maxCount);
                 break;
             case 2:
-                distanceGrade = TGChordSettings.instance().getFingeringGrade() / (6 + maxCount);
+                distanceGrade = TGChordSettings.getInstance().getFingeringGrade() / (6 + maxCount);
                 if (min < 5)
                 {
                     distanceGrade *= 0.9;
                 }
                 break;
             case 3:
-                distanceGrade = -TGChordSettings.instance().getFingeringGrade() / 10 * maxCount;
+                distanceGrade = -TGChordSettings.getInstance().getFingeringGrade() / 10 * maxCount;
                 // I emphasize the penalty if big difference is on some 
                 // lower frets (it is greater distance then)
                 if (min < 5)
@@ -1124,14 +1135,14 @@ public class TGChordCreatorUtil
                 }
                 break;
             case 4:
-                distanceGrade = -TGChordSettings.instance().getFingeringGrade() / 4 * maxCount;
+                distanceGrade = -TGChordSettings.getInstance().getFingeringGrade() / 4 * maxCount;
                 if (min <= 5)
                 {
                     distanceGrade *= 1.8;
                 }
                 break;
             default:
-                distanceGrade = -TGChordSettings.instance().getFingeringGrade() * maxCount;
+                distanceGrade = -TGChordSettings.getInstance().getFingeringGrade() * maxCount;
                 break;
         }
         finalGrade += distanceGrade;
@@ -1207,10 +1218,10 @@ public class TGChordCreatorUtil
 
         if (finger > 4)
         {
-            finalGrade -= TGChordSettings.instance().getFingeringGrade();
+            finalGrade -= TGChordSettings.getInstance().getFingeringGrade();
         } else
         {
-            finalGrade += TGChordSettings.instance().getFingeringGrade() * 0.1 * (15 - 2 * finger);
+            finalGrade += TGChordSettings.getInstance().getFingeringGrade() * 0.1 * (15 - 2 * finger);
         }
 
         // TODO: maybe to put each finger's distance from the minimum
@@ -1274,7 +1285,7 @@ public class TGChordCreatorUtil
                 {
                     if (current.getRequiredNoteIndex() == this.BASS_INDEX)
                     {
-                        finalGrade -= TGChordSettings.instance().getGoodChordSemanticsGrade();
+                        finalGrade -= TGChordSettings.getInstance().getGoodChordSemanticsGrade();
                     }
 
                     if (current.getRequiredNoteIndex() < 0)
@@ -1282,13 +1293,13 @@ public class TGChordCreatorUtil
                         // expanding tone found before the tonic
                         if (foundTonic == -1)
                         {
-                            finalGrade -= TGChordSettings.instance().getGoodChordSemanticsGrade() / 2;
+                            finalGrade -= TGChordSettings.getInstance().getGoodChordSemanticsGrade() / 2;
                         } else
                         {
                             // if expanding note isn't higher than tonic's octave
                             if (foundTonic + 11 > this.tuning[current.getString()] + current.getFret())
                             {
-                                finalGrade -= TGChordSettings.instance().getGoodChordSemanticsGrade() / 3;
+                                finalGrade -= TGChordSettings.getInstance().getGoodChordSemanticsGrade() / 3;
                             }
                         }
 
@@ -1326,18 +1337,18 @@ public class TGChordCreatorUtil
 
             if (essentials + nonEssentials == this.expandingNotes.length)
             {
-                finalGrade += TGChordSettings.instance().getGoodChordSemanticsGrade();
+                finalGrade += TGChordSettings.getInstance().getGoodChordSemanticsGrade();
             } else
             {
                 if (essentials == 2) // if all essentials are there, it's good enough
                 {
-                    finalGrade += TGChordSettings.instance().getGoodChordSemanticsGrade() / 2;
+                    finalGrade += TGChordSettings.getInstance().getGoodChordSemanticsGrade() / 2;
                 } // but if some are missing, that's BAD:
                 else
                 {
-                    finalGrade += (essentials + nonEssentials - this.expandingNotes.length) * TGChordSettings.instance().getGoodChordSemanticsGrade();
+                    finalGrade += (essentials + nonEssentials - this.expandingNotes.length) * TGChordSettings.getInstance().getGoodChordSemanticsGrade();
                     // half of the penalty for non-essential notes
-                    finalGrade += nonEssentials * TGChordSettings.instance().getGoodChordSemanticsGrade() / 2;
+                    finalGrade += nonEssentials * TGChordSettings.getInstance().getGoodChordSemanticsGrade() / 2;
                 }
             }
         }

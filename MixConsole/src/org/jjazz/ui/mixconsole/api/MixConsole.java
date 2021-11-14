@@ -31,7 +31,6 @@ import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionAdapter;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -47,7 +46,6 @@ import java.util.logging.Logger;
 import javax.sound.midi.MidiDevice;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.MidiUnavailableException;
-import javax.sound.midi.Sequence;
 import javax.sound.midi.Track;
 import javax.swing.Box;
 import javax.swing.ComboBoxModel;
@@ -347,7 +345,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         panel_mixChannels = new javax.swing.JPanel();
 
         setBackground(new java.awt.Color(153, 153, 153));
-        setMinimumSize(new java.awt.Dimension(50, 282));
+        setMinimumSize(new java.awt.Dimension(50, 70));
         setLayout(new java.awt.BorderLayout());
 
         panel_Main.setBackground(new java.awt.Color(202, 202, 202));

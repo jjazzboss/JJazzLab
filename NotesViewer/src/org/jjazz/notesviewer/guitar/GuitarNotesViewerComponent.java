@@ -22,21 +22,29 @@
  */
 package org.jjazz.notesviewer.guitar;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.JLabel;
+import org.jjazz.harmony.api.ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.notesviewer.spi.NotesViewer;
 import org.jjazz.ui.guitardiagramcomponent.api.GuitarDiagramComponent;
 import org.jjazz.ui.guitardiagramcomponent.api.TGChord;
 import org.jjazz.ui.guitardiagramcomponent.api.TGChordCreatorUtil;
+import org.jjazz.ui.guitardiagramcomponent.api.TGChordSettings;
+import org.jjazz.ui.guitardiagramcomponent.api.TGChordSettings.ChordMode;
 
 public class GuitarNotesViewerComponent extends javax.swing.JPanel
 {
 
-    private GuitarNotesViewer notesViewer;
+
+    private static final Color TONIC_NOTE_COLOR = new Color(231, 83, 35);
+    private final GuitarNotesViewer notesViewer;
+    private ChordSymbol lastChordSymbol;
+    private final int maxFretSpan = 4;
     private static final Logger LOGGER = Logger.getLogger(GuitarNotesViewerComponent.class.getSimpleName());
 
     /**
@@ -45,8 +53,9 @@ public class GuitarNotesViewerComponent extends javax.swing.JPanel
     public GuitarNotesViewerComponent(GuitarNotesViewer viewer)
     {
         notesViewer = viewer;
-
         initComponents();
+
+        fbtn_chordMode.setText(TGChordSettings.getInstance().getChordMode().toString());
     }
 
     public void clear()
@@ -75,17 +84,7 @@ public class GuitarNotesViewerComponent extends javax.swing.JPanel
 
     public void showDiagrams(CLI_ChordSymbol cliCs)
     {
-        pnl_instrument.removeAll();
-        List<TGChord> tgChords = new TGChordCreatorUtil().getChords(cliCs.getData());
-        tgChords.stream().limit(30).forEach(tgChord ->
-        {     
-            GuitarDiagramComponent diagram = new GuitarDiagramComponent(tgChord);
-            pnl_instrument.add(diagram);
-        }
-        );
-
-        revalidate();
-        repaint();
+        updateDiagrams(cliCs.getData());
     }
 
     @Override
@@ -101,6 +100,25 @@ public class GuitarNotesViewerComponent extends javax.swing.JPanel
     // ===============================================================================
     // Private methods
     // ===============================================================================
+
+    private void updateDiagrams(ChordSymbol cs)
+    {
+        lastChordSymbol = cs;
+
+        pnl_instrument.removeAll();
+        List<TGChord> tgChords = new TGChordCreatorUtil(maxFretSpan).getChords(cs);
+        tgChords.stream().limit(30).forEach(tgChord ->
+        {
+            GuitarDiagramComponent diagram = new GuitarDiagramComponent(tgChord, cs);
+            diagram.setTonicNoteColor(TONIC_NOTE_COLOR);
+            pnl_instrument.add(diagram);
+        }
+        );
+
+        revalidate();
+        repaint();
+
+    }
 
     private List<GuitarDiagramComponent> getDiagrams()
     {
@@ -126,16 +144,54 @@ public class GuitarNotesViewerComponent extends javax.swing.JPanel
 
         jScrollPane1 = new javax.swing.JScrollPane();
         pnl_instrument = new javax.swing.JPanel();
+        fbtn_chordMode = new org.jjazz.ui.utilities.api.SmallFlatDarkLafButton();
 
-        setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.Y_AXIS));
-
+        pnl_instrument.setLayout(new java.awt.GridLayout(0, 2, 5, 5));
         jScrollPane1.setViewportView(pnl_instrument);
 
-        add(jScrollPane1);
+        org.openide.awt.Mnemonics.setLocalizedText(fbtn_chordMode, "Most common chords"); // NOI18N
+        fbtn_chordMode.setToolTipText(org.openide.util.NbBundle.getMessage(GuitarNotesViewerComponent.class, "GuitarNotesViewerComponent.fbtn_chordMode.toolTipText")); // NOI18N
+        fbtn_chordMode.setFont(fbtn_chordMode.getFont().deriveFont(fbtn_chordMode.getFont().getSize()-2f));
+        fbtn_chordMode.setMargin(new java.awt.Insets(2, 5, 2, 5));
+        fbtn_chordMode.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                fbtn_chordModeActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
+        this.setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jScrollPane1)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap(85, Short.MAX_VALUE)
+                .addComponent(fbtn_chordMode, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(fbtn_chordMode, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 266, Short.MAX_VALUE))
+        );
     }// </editor-fold>//GEN-END:initComponents
+
+    private void fbtn_chordModeActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_fbtn_chordModeActionPerformed
+    {//GEN-HEADEREND:event_fbtn_chordModeActionPerformed
+        var tgs = TGChordSettings.getInstance();
+        ChordMode mode = tgs.getChordMode().next();
+        TGChordSettings.getInstance().setChordMode(mode);
+        updateDiagrams(lastChordSymbol);
+        fbtn_chordMode.setText(mode.toString());
+    }//GEN-LAST:event_fbtn_chordModeActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private org.jjazz.ui.utilities.api.SmallFlatDarkLafButton fbtn_chordMode;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JPanel pnl_instrument;
     // End of variables declaration//GEN-END:variables

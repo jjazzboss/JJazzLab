@@ -25,6 +25,7 @@ package org.jjazz.ui.guitardiagramcomponent.api;
  *  Contributor(s): 
  *  
  */
+import static com.google.common.base.Preconditions.checkNotNull;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -39,6 +40,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.logging.Logger;
 import javax.swing.JPanel;
+import org.jjazz.harmony.api.ChordSymbol;
 import org.jjazz.ui.utilities.api.StringMetrics;
 
 /*
@@ -60,6 +62,7 @@ public class GuitarDiagramComponent extends JPanel
     private static final float CHORD_NOTE_SIZE = 6;
     private static final float CHORD_LINE_WIDTH = 1f;
     private Color noteColor;
+    private Color tonicNoteColor;
     private Font firstFretFont = FIRST_FRET_FONT;
     private float firstFretSpacing = CHORD_FIRST_FRET_SPACING;
     private float stringSpacing = CHORD_STRING_SPACING;
@@ -68,16 +71,24 @@ public class GuitarDiagramComponent extends JPanel
     private float lineWidth = CHORD_LINE_WIDTH;
     private BufferedImage image;
     private TGChord chordModel;
+    private ChordSymbol chordSymbol;
     private static final Logger LOGGER = Logger.getLogger(GuitarDiagramComponent.class.getSimpleName());
 
     public GuitarDiagramComponent()
     {
-        this(null);
+        this(null, null);
     }
 
-    public GuitarDiagramComponent(TGChord chordModel)
+
+    /**
+     *
+     * @param chordModel Can be null
+     * @param cs Can be null
+     */
+    public GuitarDiagramComponent(TGChord chordModel, ChordSymbol cs)
     {
         setChordModel(chordModel);
+        this.chordSymbol = cs;
     }
 
     /**
@@ -113,6 +124,17 @@ public class GuitarDiagramComponent extends JPanel
     public void setNoteColor(Color noteColor)
     {
         this.noteColor = noteColor;
+        repaint();
+    }
+
+    public Color getTonicNoteColor()
+    {
+        return tonicNoteColor;
+    }
+
+    public void setTonicNoteColor(Color tonicNoteColor)
+    {
+        this.tonicNoteColor = tonicNoteColor;
         repaint();
     }
 
@@ -194,6 +216,8 @@ public class GuitarDiagramComponent extends JPanel
     {
         super.paintComponent(g); // Honor the opaque property
 
+        // LOGGER.severe("paintComponent() -- ");
+
         Graphics2D g2 = (Graphics2D) g.create();
 
         Insets in = getInsets();
@@ -241,14 +265,13 @@ public class GuitarDiagramComponent extends JPanel
      * Paint the diagram in a buffered image.
      *
      * @param chord
+     * @return
      */
     private BufferedImage buildImage(TGChord chord)
     {
-        if (chord == null)
-        {
-            throw new NullPointerException("chord");
-        }
+        checkNotNull(chord);
 
+        // LOGGER.severe("buildImage() -- chord="+chord);
 
         BufferedImage img;
         Graphics2D g2;
@@ -256,7 +279,7 @@ public class GuitarDiagramComponent extends JPanel
 
         // Temporary img to compute fret text width
         final int H_PADDING = 5;
-        String firstFretString = String.valueOf(chordModel.getFirstFret());        
+        String firstFretString = String.valueOf(chordModel.getFirstFret());
         img = new BufferedImage(20, 20, BufferedImage.TYPE_INT_ARGB);
         g2 = img.createGraphics();
         Rectangle2D firstFretStringBounds = new StringMetrics(g2, getFirstFretFont()).getLogicalBoundsNoLeading(firstFretString);  // Bounds in baseline relative coordinates
@@ -319,8 +342,9 @@ public class GuitarDiagramComponent extends JPanel
         float noteRadius = noteDiameter / 2;
         for (int i = 0; i < chordModel.getStrings().length; i++)
         {
+            g2.setColor(getForeground());
             int fret = chordModel.getFretValue(i);
-            float noteX = x + ((getStringSpacing() * (chordModel.countStrings() - 1)) - (getStringSpacing() * i));
+            float noteX = x + ((getStringSpacing() * (chordModel.countStrings() - 1)) - (getStringSpacing() * i)) + 0.5f;
             if (fret < 0)
             {
                 // Draw a cross above the top line
@@ -337,14 +361,15 @@ public class GuitarDiagramComponent extends JPanel
             {
                 // Draw the note
                 fret -= (chordModel.getFirstFret() - 1);
-                float noteY = y + getFretSpacing() * fret;
+                float noteY = y + getFretSpacing() * fret - getFretSpacing() / 2;
                 var shape = new Ellipse2D.Float(noteX - noteRadius, noteY - noteRadius, noteDiameter, noteDiameter);
-                if (noteColor != null)
+                Color c = noteColor == null ? getForeground() : noteColor;
+                if (isTonicFret(i, chordModel.getFretValue(i)) && tonicNoteColor != null)
                 {
-                    g2.setColor(noteColor);
+                    c = tonicNoteColor;
                 }
+                g2.setColor(c);
                 g2.fill(shape);
-                g2.setColor(getForeground());
             }
         }
 
@@ -352,5 +377,20 @@ public class GuitarDiagramComponent extends JPanel
 
         return img;
 
+    }
+
+
+    private boolean isTonicFret(int sIndex, int fret)
+    {
+        boolean b = false;
+        if (chordSymbol != null)
+        {
+            TGString string = TGString.createDefaultInstrumentStrings().get(sIndex);
+            int sValue = string.getValue();
+            int relPitch = (sValue + fret) % 12;
+            int tonicRelPitch = chordSymbol.getRootNote().getRelativePitch();
+            b = relPitch % 12 == tonicRelPitch;
+        }
+        return b;
     }
 }
