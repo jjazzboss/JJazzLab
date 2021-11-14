@@ -34,6 +34,8 @@ import javax.swing.Action;
 import static javax.swing.Action.ACCELERATOR_KEY;
 import static javax.swing.Action.NAME;
 import javax.swing.KeyStroke;
+import javax.swing.event.UndoableEditEvent;
+import javax.swing.undo.UndoableEdit;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.database.api.RhythmDatabase;
@@ -43,8 +45,8 @@ import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
 import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
 import org.jjazz.ui.ss_editor.spi.RhythmSelectionDialog;
-import org.jjazz.undomanager.JJazzUndoManager;
-import org.jjazz.undomanager.JJazzUndoManagerFinder;
+import org.jjazz.undomanager.api.JJazzUndoManager;
+import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
@@ -56,7 +58,8 @@ import org.openide.windows.WindowManager;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
-import org.jjazz.util.ResUtil;
+import org.jjazz.undomanager.api.SimpleEdit;
+import org.jjazz.util.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 
@@ -124,13 +127,13 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
         // Initialize and show dialog
         RhythmSelectionDialog dlg = RhythmSelectionDialog.getDefault();
         Rhythm rSelSpt0 = selSpt0.getRhythm();
-        EditRhythmPreviewer previewer;
+        RhythmSelectionDialog.RhythmPreviewProvider previewer = RhythmSelectionDialog.RhythmPreviewProvider.getDefault();
         try
         {
-            previewer = new EditRhythmPreviewer(song, selSpt0);
+            previewer.setContext(song, selSpt0);
         } catch (MidiUnavailableException ex)
         {
-            LOGGER.warning("changeRhythm() Can't create RhythmPreviewer ex=" + ex.getMessage() + ". RhythmPreviewer disabled.");   //NOI18N
+            LOGGER.warning("changeRhythm() Can't set context ex=" + ex.getMessage() + ". RhythmPreviewProvider disabled.");   //NOI18N
             previewer = null;
         }
         var rdb = RhythmDatabase.getDefault();
@@ -180,10 +183,30 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
 
 
         // Change tempo if required
-        if (dlg.isUseRhythmTempo())
+        int newTempo = newRhythm.getPreferredTempo();
+        int oldTempo = song.getTempo();
+        if (dlg.isUseRhythmTempo() && newTempo!=oldTempo)
         {
-            int tempo = newRhythm.getPreferredTempo();
-            song.setTempo(tempo);
+            song.setTempo(newTempo);
+
+            // Create an undoable edit so that undo restores previous rhythm AND previous tempo
+            UndoableEdit edit = new SimpleEdit("Set tempo " + newTempo)
+            {
+                @Override
+                public void undoBody()
+                {
+                    song.setTempo(oldTempo);
+                }
+
+                @Override
+                public void redoBody()
+                {
+                    song.setTempo(newTempo);
+                }
+            };
+            
+            // Directly notify UndoManager
+            um.undoableEditHappened(new UndoableEditEvent(song, edit));
         }
 
 

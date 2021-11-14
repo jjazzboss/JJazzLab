@@ -23,11 +23,17 @@
 package org.jjazz.ui.ss_editor.spi;
 
 import java.awt.event.ActionListener;
+import java.util.Map;
+import javax.sound.midi.MidiUnavailableException;
 import javax.swing.JDialog;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.Rhythm;
+import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.rhythm.database.api.RhythmInfo;
+import org.jjazz.song.api.Song;
+import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.ss_editor.editors.SimpleRhythmSelectionDialog;
+import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 import org.openide.windows.WindowManager;
 
@@ -44,6 +50,34 @@ abstract public class RhythmSelectionDialog extends JDialog
     {
 
         /**
+         * Find an implementation in the global lookup.
+         * <p>
+         * Implementation should be done in another module because we don't want to add music control/generation dependencies in
+         * this editor module, which would cause other dependencies problems.
+         *
+         * @return
+         */
+        public static RhythmPreviewProvider getDefault()
+        {
+            RhythmPreviewProvider result = Lookup.getDefault().lookup(RhythmPreviewProvider.class);
+            if (result == null)
+            {
+                Exceptions.printStackTrace(new IllegalStateException("No RhythmPreviewProvider instance found!"));
+                return null;
+            }
+            return result;
+        }
+
+        /**
+         * Set the context for which the object will preview rhythms.
+         *
+         * @param sg The song for which we preview rhythm
+         * @param spt The spt for which rhythm is changed
+         * @throws MidiUnavailableException
+         */
+        void setContext(Song sg, SongPart spt) throws MidiUnavailableException;
+
+        /**
          * Should be called when provider will no longer be used.
          * <p>
          * Enable the provider to release resources or restore settings if needed.
@@ -53,9 +87,12 @@ abstract public class RhythmSelectionDialog extends JDialog
         /**
          * Hear a "preview" of the specified rhythm.
          * <p>
-         * If a preview is already being played on a different rhythm, stop it and start a new one.
+         * If a preview is already being played on a different rhythm, stop it and start a new one. The context must have been set
+         * previously.
          *
          * @param r
+         * @param rpValues The rhythm RhythmParameter values. Can't be null. For non defined values the previewer should use the
+         * default RhythmParameter values in this case.
          * @param useRhythmTempo If true use r preferred tempo, otherwise use default tempo.
          * @param loop If true the rhythm preview loops until stop() is called.
          * @param endActionListener Called when preview is complete (if loop disabled) or stopped. Called on the EDT. Can be null
@@ -63,7 +100,7 @@ abstract public class RhythmSelectionDialog extends JDialog
          * @throws org.jjazz.rhythm.api.MusicGenerationException If a problem occured. endActionListener is not called in this
          * case.
          */
-        void previewRhythm(Rhythm r, boolean useRhythmTempo, boolean loop, ActionListener endActionListener) throws MusicGenerationException;
+        void previewRhythm(Rhythm r, Map<RhythmParameter<?>, Object> rpValues, boolean useRhythmTempo, boolean loop, ActionListener endActionListener) throws MusicGenerationException;
 
         /**
          * The rhythm currently being previewed.

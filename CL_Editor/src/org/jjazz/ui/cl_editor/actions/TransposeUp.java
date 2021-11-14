@@ -30,13 +30,13 @@ import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import static javax.swing.Action.ACCELERATOR_KEY; 
-import org.jjazz.harmony.Note;
+import org.jjazz.harmony.api.Note;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.ui.cl_editor.api.CL_SelectionUtilities;
-import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
-import org.jjazz.undomanager.JJazzUndoManagerFinder;
+import static org.jjazz.ui.utilities.api.Utilities.getGenericControlKeyStroke;
+import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
@@ -44,7 +44,7 @@ import org.openide.awt.ActionRegistration;
 import org.openide.util.ContextAwareAction;
 import org.openide.util.Lookup;
 import org.openide.util.Utilities;
-import org.jjazz.util.ResUtil;
+import org.jjazz.util.api.ResUtil;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ui.cl_editor.actions.transposeup")
 @ActionRegistration(displayName = "#CTL_TransposeUp", lazy = false)

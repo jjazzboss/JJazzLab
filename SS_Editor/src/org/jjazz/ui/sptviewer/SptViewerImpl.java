@@ -25,6 +25,8 @@ package org.jjazz.ui.sptviewer;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.MouseEvent;
@@ -47,16 +49,19 @@ import org.jjazz.leadsheet.chordleadsheet.api.Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.rhythm.api.Rhythm;
-import org.jjazz.rhythm.parameters.RhythmParameter;
+import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.ui.colorsetmanager.api.ColorSetManager;
 import org.jjazz.ui.sptviewer.api.SptViewer;
 import org.jjazz.ui.sptviewer.api.SptViewerMouseListener;
-import org.jjazz.ui.sptviewer.api.SptViewerSettings;
+import org.jjazz.ui.sptviewer.spi.SptViewerSettings;
 import org.jjazz.ui.rpviewer.api.RpViewer;
-import org.jjazz.ui.rpviewer.api.RpViewerFactory;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.uisettings.GeneralUISettings;
-import org.jjazz.util.ResUtil;
+import org.jjazz.ui.rpviewer.api.RpViewerEditableRenderer;
+import org.jjazz.uisettings.api.GeneralUISettings;
+import org.jjazz.util.api.ResUtil;
+import org.jjazz.ui.rpviewer.api.RpViewerRenderer;
+import org.jjazz.ui.rpviewer.spi.RpViewerRendererFactory;
+import org.jjazz.ui.rpviewer.spi.DefaultRpViewerRendererFactory;
 
 /**
  * An implementation of a SptViewer.
@@ -89,10 +94,10 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
      * Our graphical settings.
      */
     private SptViewerSettings settings;
-    private RpViewerFactory rpViewerFactory;
+    private DefaultRpViewerRendererFactory defaultRpRendererFactory;
     private static final Logger LOGGER = Logger.getLogger(SptViewerImpl.class.getSimpleName());
 
-    public SptViewerImpl(SongPart spt, SptViewerSettings settings, RpViewerFactory factory)
+    public SptViewerImpl(SongPart spt, SptViewerSettings settings, DefaultRpViewerRendererFactory factory)
     {
         if (spt == null || settings == null || factory == null)
         {
@@ -108,7 +113,7 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
         settings.addPropertyChangeListener(this);
 
 
-        rpViewerFactory = factory;
+        defaultRpRendererFactory = factory;
 
 
         // Keep track if section colors change
@@ -139,6 +144,7 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
     public void setController(SptViewerMouseListener controller)
     {
         this.controller = controller;
+        getRpViewers().forEach(rpv -> rpv.setController(controller));
     }
 
     @Override
@@ -148,9 +154,9 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
     }
 
     @Override
-    public RpViewerFactory getRpViewerFactory()
+    public DefaultRpViewerRendererFactory getDefaultRpRendererFactory()
     {
-        return rpViewerFactory;
+        return defaultRpRendererFactory;
     }
 
     @Override
@@ -206,8 +212,7 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
     }
 
     /**
-     * Overridden to enable SongPartEditors to be aligned on their baseline (for
-     * example by FlowLayout).
+     * Overridden to enable SongPartEditors to be aligned on their baseline (for example by FlowLayout).
      *
      * @param width
      * @param height
@@ -288,26 +293,20 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
     @Override
     public void setSelected(RhythmParameter<?> rp, boolean b)
     {
-        for (RpViewer rpv : getRpViewers())
+        RpViewer rpv = getRpViewer(rp);
+        if (rpv != null)
         {
-            if (rpv.getRpModel() == rp)
-            {
-                rpv.setSelected(b);
-                return;
-            }
+            rpv.setSelected(b);
         }
     }
 
     @Override
     public void setFocusOnRpViewer(RhythmParameter<?> rp)
     {
-        for (RpViewer rpv : getRpViewers())
+        RpViewer rpv = getRpViewer(rp);
+        if (rpv != null)
         {
-            if (rpv.getRpModel() == rp)
-            {
-                rpv.requestFocusInWindow();
-                return;
-            }
+            rpv.requestFocusInWindow();
         }
     }
 
@@ -320,11 +319,25 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
             rpv.cleanup();
         }
         pnl_RpEditors.removeAll();
+
+
         for (RhythmParameter<?> rp : rps)
         {
             if (sptModel.getRhythm().getRhythmParameters().contains(rp))
             {
-                RpViewer rpv = rpViewerFactory.createRpViewer(sptModel, rp, settings.getRpViewerSettings());
+                // Try to get first a specific factory for this rp
+                RpViewerRendererFactory factory = RpViewerRendererFactory.findFactory(rp);
+                if (factory == null)
+                {
+                    // Use default
+                    factory = defaultRpRendererFactory;
+                }
+                RpViewerRenderer renderer = factory.getRpViewerRenderer(rp, settings.getRpViewerSettings());
+                RpViewer rpv = new RpViewer(sptModel, rp, settings.getRpViewerSettings(), renderer);
+                rpv.setController(controller);
+                renderer.setRpViewer(rpv);
+
+
                 registerRpViewer(rpv);
                 rpv.setZoomVFactor(zoomVFactor);
                 pnl_RpEditors.add((Component) rpv);
@@ -360,6 +373,18 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
         }
 
         updateUIComponents();
+    }
+
+    @Override
+    public Rectangle getRpViewerRectangle(RhythmParameter<?> rp)
+    {
+        RpViewer rpv = getRpViewer(rp);
+        Point p = rpv.getLocationOnScreen();
+        Rectangle r = new Rectangle(p);
+        r.width = rpv.getWidth();
+        r.height = rpv.getHeight();
+        return r;
+
     }
 
     @Override
@@ -547,9 +572,8 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
     }
 
     /**
-     * This method is called from within the constructor to initialize the form.
-     * WARNING: Do NOT modify this code. The content of this method is always
-     * regenerated by the Form Editor.
+     * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of
+     * this method is always regenerated by the Form Editor.
      */
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -559,11 +583,11 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
         pnl_top = new javax.swing.JPanel();
         filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(3, 0), new java.awt.Dimension(3, 0), new java.awt.Dimension(3, 32767));
         pnl_labels = new javax.swing.JPanel();
-        fbtn_sptName = new org.jjazz.ui.flatcomponents.FlatButton();
+        fbtn_sptName = new org.jjazz.ui.flatcomponents.api.FlatButton();
         multiSelectBar = new org.jjazz.ui.sptviewer.MultiSelectBar();
         lbl_Parent = new javax.swing.JLabel();
         filler2 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 10), new java.awt.Dimension(0, 10), new java.awt.Dimension(32767, 10));
-        fbtn_rhythm = new org.jjazz.ui.flatcomponents.FlatButton();
+        fbtn_rhythm = new org.jjazz.ui.flatcomponents.api.FlatButton();
         pnl_RpEditors = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
@@ -644,8 +668,8 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
     }//GEN-LAST:event_fbtn_rhythmActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private org.jjazz.ui.flatcomponents.FlatButton fbtn_rhythm;
-    private org.jjazz.ui.flatcomponents.FlatButton fbtn_sptName;
+    private org.jjazz.ui.flatcomponents.api.FlatButton fbtn_rhythm;
+    private org.jjazz.ui.flatcomponents.api.FlatButton fbtn_sptName;
     private javax.swing.Box.Filler filler1;
     private javax.swing.Box.Filler filler2;
     private javax.swing.JLabel jLabel1;
@@ -725,26 +749,46 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
         {
             if (c instanceof RpViewer)
             {
-                RpViewer rpv = (RpViewer) c;
-                rpvs.add(rpv);
+                rpvs.add((RpViewer) c);
             }
         }
         return rpvs;
     }
 
+    private RpViewer getRpViewer(RhythmParameter<?> rp)
+    {
+        for (Component c : pnl_RpEditors.getComponents())
+        {
+            if (c instanceof RpViewer)
+            {
+                RpViewer rpv = (RpViewer) c;
+                if (rpv.getRpModel() == rp)
+                {
+                    return rpv;
+                }
+            }
+        }
+        return null;
+    }
+
     private void registerRpViewer(RpViewer rpv)
     {
         rpv.addMouseListener(this);
-        rpv.addMouseMotionListener(this);
-        // Use mouse wheel only if enabled
-        GeneralUISettings.getInstance().installChangeValueWithMouseWheelSupport(rpv, this);
+        if (rpv.getRenderer() instanceof RpViewerEditableRenderer)
+        {
+            // Nothing: drag and mousewheel events should be ignored if RpViewer is directly editable
+        } else
+        {
+            rpv.addMouseMotionListener(this);
+            GeneralUISettings.getInstance().installChangeValueWithMouseWheelSupport(rpv, this);
+        }
     }
 
     private void unregisterRpViewer(RpViewer rpv)
     {
         rpv.removeMouseListener(this);
         rpv.removeMouseMotionListener(this);
-        rpv.removeMouseWheelListener(this);
+        rpv.removeMouseWheelListener(this);         // Sometimes useless but it's ok
     }
 
     private void refreshBackground()

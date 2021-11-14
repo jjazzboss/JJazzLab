@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 AutoUpdate-Show-In-Client: true
 OpenIDE-Module: org.jjazz.filedirectorymanager
-OpenIDE-Module-Localizing-Bundle: org/jjazz/filedirectorymanager/Bundle.properties
+OpenIDE-Module-Localizing-Bundle: org/jjazz/filedirectorymanager/api/Bundle.properties
 OpenIDE-Module-Specification-Version: 1.0
 

@@ -50,14 +50,14 @@ import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.SwingPropertyChangeSupport;
-import org.jjazz.base.actions.Savable;
-import org.jjazz.harmony.TimeSignature;
+import org.jjazz.base.api.actions.Savable;
+import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.rhythm.api.Rhythm;
-import org.jjazz.rhythm.parameters.RP_SYS_Marker;
-import org.jjazz.rhythm.parameters.RP_SYS_TempoFactor;
-import org.jjazz.rhythm.parameters.RhythmParameter;
+import org.jjazz.rhythm.api.RhythmParameter;
+import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Marker;
+import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_TempoFactor;
 import org.jjazz.songstructure.api.event.SgsChangeEvent;
 import org.jjazz.songstructure.api.event.RpChangedEvent;
 import org.jjazz.songstructure.api.event.SptAddedEvent;
@@ -66,23 +66,23 @@ import org.jjazz.songstructure.api.event.SptRenamedEvent;
 import org.jjazz.songstructure.api.event.SptReplacedEvent;
 import org.jjazz.songstructure.api.event.SptResizedEvent;
 import org.jjazz.ui.sptviewer.api.SptViewer;
-import org.jjazz.ui.sptviewer.api.SptViewerFactory;
+import org.jjazz.ui.sptviewer.spi.SptViewerFactory;
 import org.jjazz.ui.ss_editor.api.SS_Editor;
-import org.jjazz.ui.ss_editor.api.SS_EditorSettings;
+import org.jjazz.ui.ss_editor.spi.SS_EditorSettings;
 import org.jjazz.songstructure.api.SongPartParameter;
 import org.jjazz.ui.rpviewer.api.RpViewer;
-import org.jjazz.ui.utilities.Zoomable;
-import org.jjazz.undomanager.JJazzUndoManager;
-import org.jjazz.undomanager.JJazzUndoManagerFinder;
-import org.jjazz.util.SmallMap;
+import org.jjazz.ui.utilities.api.Zoomable;
+import org.jjazz.undomanager.api.JJazzUndoManager;
+import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
+import org.jjazz.util.api.SmallMap;
 import org.openide.util.Lookup;
 import org.openide.util.lookup.AbstractLookup;
 import org.openide.util.lookup.InstanceContent;
 import org.openide.util.lookup.ProxyLookup;
-import org.jjazz.savablesong.SavableSong;
-import org.jjazz.savablesong.SaveAsCapableSong;
+import org.jjazz.savablesong.api.SavableSong;
+import org.jjazz.savablesong.api.SaveAsCapableSong;
 import org.jjazz.song.api.Song;
-import org.jjazz.ui.utilities.Utilities;
+import org.jjazz.ui.utilities.api.Utilities;
 import org.openide.awt.UndoRedo;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SgsChangeListener;
@@ -277,7 +277,6 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         return sptViewerFactory;
     }
 
-
     @Override
     public UndoRedo getUndoManager()
     {
@@ -440,6 +439,13 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         r.width = sptv.getWidth();
         r.height = sptv.getHeight();
         return r;
+    }
+
+    @Override
+    public Rectangle getRpViewerRectangle(SongPart spt, RhythmParameter<?> rp)
+    {
+        SptViewer sptv = getSptViewer(spt);
+        return sptv.getRpViewerRectangle(rp);
     }
 
     @Override
@@ -690,10 +696,10 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
             sptv.setZoomVFactor(zoomVFactor);
         }
         zoomable.fireYPropertyChange(oldFactor, zoomVFactor);
-        
+
         // Save the zoom factor with the song as a client property
         songModel.putClientProperty(PROP_ZOOM_FACTOR_Y, Integer.toString(factor));
-                
+
         revalidate();
         repaint();
     }
@@ -765,13 +771,11 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
     //------------------------------------------------------------------------------
     // SgsChangeListener interface
     //------------------------------------------------------------------------------   
-
     @Override
     public void authorizeChange(SgsChangeEvent e) throws UnsupportedEditException
     {
         // Nothing
     }
-
 
     @Override
     public void songStructureChanged(final SgsChangeEvent e)
@@ -852,7 +856,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
                             {
                                 List<RhythmParameter<?>> newRps = newSpt.getRhythm().getRhythmParameters();
                                 assert !newRps.isEmpty() : "no RhythmParameters ! newSpt=" + newSpt;   //NOI18N
-                                RhythmParameter<?> newRp = RhythmParameter.Utilities.findFirstCompatibleRp(newRps, rp);
+                                RhythmParameter<?> newRp = RhythmParameter.findFirstCompatibleRp(newRps, rp);
                                 if (newRp != null)
                                 {
                                     selectRhythmParameter(newSpt, newRp, true);
@@ -1020,15 +1024,15 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
     private void addSptViewer(SongPart spt)
     {
         assert spt != null;   //NOI18N
-        SptViewer sptv = sptViewerFactory.createDefaultEditor(spt, settings.getSptViewerSettings(), sptViewerFactory.getRpViewerFactory());
+        SptViewer sptv = sptViewerFactory.createSptViewer(spt, sptViewerFactory.getDefaultSptViewerSettings(), sptViewerFactory.getDefaultRpViewerFactory());
+        registerSptViewer(sptv);
         sptv.setZoomHFactor(zoomHFactor);
         sptv.setZoomVFactor(zoomVFactor);
         List<RhythmParameter<?>> rps = this.getVisibleRps(spt.getRhythm());
         sptv.setVisibleRps(rps);
-        registerSptViewer(sptv);
         int index = sgsModel.getSongParts().indexOf(spt);
         assert index >= 0 : "spt=" + spt + " model.getSongParts()=" + sgsModel.getSongParts();   //NOI18N
-        LOGGER.log(Level.FINE, "addSptViewer() spt=" + spt + " +index=" + index + " panel_SongParts.size=" + panel_SongParts.   //NOI18N
+        LOGGER.log(Level.FINE, "addSptViewer() spt=" + spt + " +index=" + index + " panel_SongParts.size=" + panel_SongParts. //NOI18N
                 getComponentCount());
         panel_SongParts.add(sptv, index);
     }
@@ -1181,56 +1185,44 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
      */
     private List<RhythmParameter<?>> getInitialVisibleRps(Rhythm r)
     {
+
         var tmp = new ArrayList<RhythmParameter<?>>();
 
-        var spts = sgsModel.getSongParts(sp -> sp.getRhythm() == r);
-        assert !spts.isEmpty() : "r=" + r + " sgsModel=" + sgsModel;   //NOI18N
-        var spt0 = spts.get(0);
+        // Add all except Marker an TempoFactor (handled below)
+        r.getRhythmParameters().stream()
+                .filter(rp -> !((rp instanceof RP_SYS_Marker) || (rp instanceof RP_SYS_TempoFactor)))
+                .forEach(tmp::add);
 
-        if (spt0.getStartBarIndex() > 0)
+
+        // Add marker only if supported by the rhythm and actually used by other SongParts 
+        RP_SYS_Marker rMarker = RP_SYS_Marker.getMarkerRp(r);
+        if (rMarker != null)
         {
-            // Not the first SongPart, try to reuse the visible rps of the previous song part
-            var prevRps = getVisibleRps(sgsModel.getSongPart(spt0.getStartBarIndex() - 1).getRhythm());
-            for (RhythmParameter<?> prevRp : prevRps)
+            for (SongPart spt : sgsModel.getSongParts())
             {
-                var rp = getRpFromClass(r.getRhythmParameters(), prevRp.getClass());
-                if (rp != null)
+                RP_SYS_Marker rpm = RP_SYS_Marker.getMarkerRp(spt.getRhythm());
+                if (rpm != null && !spt.getRPValue(rpm).equals(rpm.getDefaultValue()))
                 {
-                    tmp.add(rp);
+                    tmp.add(rMarker);
+                    break;
                 }
             }
-        } else
-        {
-            // First song part, add all except Marker an TempoFactor (handled below)
-            r.getRhythmParameters().stream()
-                    .filter(rp -> !((rp instanceof RP_SYS_Marker) || (rp instanceof RP_SYS_TempoFactor)))
-                    .forEach(tmp::add);
         }
 
-
-        // Add TempoFactor and Marker only if there are actually used, and not already present
-        r.getRhythmParameters().stream()
-                .filter(rp -> rp instanceof RP_SYS_Marker)
-                .filter(rp -> sgsModel.getSongParts().stream()
-                .anyMatch(spt -> RP_SYS_Marker.getMarkerRp(spt.getRhythm()) != null && !spt.getRPValue(rp).equals(rp.getDefaultValue())))
-                .forEach(rp ->
+        // Add tempo only if supported by the rhythm and actually used by other SongParts 
+        RP_SYS_TempoFactor rTempo = RP_SYS_TempoFactor.getTempoFactorRp(r);
+        if (rTempo != null)
+        {
+            for (SongPart spt : sgsModel.getSongParts())
+            {
+                RP_SYS_TempoFactor rpm = RP_SYS_TempoFactor.getTempoFactorRp(spt.getRhythm());
+                if (rpm != null && !spt.getRPValue(rpm).equals(rpm.getDefaultValue()))
                 {
-                    if (!tmp.contains(rp))
-                    {
-                        tmp.add(rp);
-                    }
-                });
-        r.getRhythmParameters().stream()
-                .filter(rp -> rp instanceof RP_SYS_TempoFactor)
-                .filter(rp -> sgsModel.getSongParts().stream()
-                .anyMatch(spt -> RP_SYS_TempoFactor.getTempoFactorRp(spt.getRhythm()) != null && !spt.getRPValue(rp).equals(rp.getDefaultValue())))
-                .forEach(rp ->
-                {
-                    if (!tmp.contains(rp))
-                    {
-                        tmp.add(rp);
-                    }
-                });
+                    tmp.add(rTempo);
+                    break;
+                }
+            }
+        }
 
 
         // Reorder
@@ -1256,6 +1248,8 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
     private RhythmParameter<?> getRpFromClass(List<RhythmParameter<?>> rps, Class<?> rpClass)
     {
         return rps.stream().filter(rp -> rpClass.isAssignableFrom(rp.getClass())).findAny().orElse(null);
+
+
     }
 
     //===========================================================================

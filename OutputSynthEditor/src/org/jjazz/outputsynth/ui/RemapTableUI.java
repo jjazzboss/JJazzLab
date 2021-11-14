@@ -37,12 +37,12 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
-import org.jjazz.midi.synths.GM1Instrument;
-import org.jjazz.midi.Instrument;
-import org.jjazz.midi.synths.Family;
-import org.jjazz.midi.synths.StdSynth;
-import org.jjazz.outputsynth.GMRemapTable;
-import org.jjazz.util.ResUtil;
+import org.jjazz.midi.api.synths.GM1Instrument;
+import org.jjazz.midi.api.Instrument;
+import org.jjazz.midi.api.synths.Family;
+import org.jjazz.midi.api.synths.StdSynth;
+import org.jjazz.outputsynth.api.GMRemapTable;
+import org.jjazz.util.api.ResUtil;
 
 /**
  * A JTable to edit a GM1RemapTable.

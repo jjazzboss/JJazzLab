@@ -30,7 +30,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import static javax.swing.Action.ACCELERATOR_KEY;
 import static javax.swing.Action.NAME;
-import org.jjazz.ui.ss_editor.api.CopyBuffer;
+import org.jjazz.ui.ss_editor.api.SongPartCopyBuffer;
 import org.jjazz.ui.ss_editor.api.SS_Editor;
 import org.jjazz.ui.ss_editor.api.SS_EditorTopComponent;
 import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
@@ -43,8 +43,8 @@ import org.openide.util.Lookup;
 import org.openide.util.Utilities;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
-import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
-import org.jjazz.util.ResUtil;
+import static org.jjazz.ui.utilities.api.Utilities.getGenericControlKeyStroke;
+import org.jjazz.util.api.ResUtil;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.copy")
 @ActionRegistration(displayName = "#CTL_Copy", lazy = false)
@@ -84,23 +84,22 @@ public class Copy extends AbstractAction implements ContextAwareAction, SS_Conte
     public void actionPerformed(ActionEvent e)
     {
         SS_SelectionUtilities selection = cap.getSelection();
-        CopyBuffer buffer = CopyBuffer.getInstance();
+        SongPartCopyBuffer buffer = SongPartCopyBuffer.getInstance();
         List<SongPart> spts = selection.getSelectedSongParts();
         buffer.put(spts);
+
+
         // Force a selection change so that the Paste action enabled status can be updated 
-        // (otherwise Paste action will not see that CopyBuffer is no more empty)
+        // (otherwise Paste action will not see that SongPartCopyBuffer is no more empty)
         SS_Editor editor = SS_EditorTopComponent.getActive().getSS_Editor();
-        selection.unselectAll(editor);
-        for (SongPart spt : spts)
-        {
-            editor.selectSongPart(spt, true);
-        }
+        editor.selectSongPart(spts.get(0), false);
+        editor.selectSongPart(spts.get(0), true);
     }
 
     @Override
     public void selectionChange(SS_SelectionUtilities selection)
     {
-        setEnabled(selection.isSongPartSelected() && selection.isOneSectionSptSelection());
+        setEnabled(selection.isSongPartSelected() && selection.isContiguousSptSelection());
     }
 
 }

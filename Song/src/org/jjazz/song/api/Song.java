@@ -22,10 +22,15 @@
  */
 package org.jjazz.song.api;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.XStreamException;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.beans.PropertyVetoException;
+import java.beans.VetoableChangeListener;
+import java.beans.VetoableChangeSupport;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -39,31 +44,35 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.undo.UndoableEdit;
 import org.jjazz.analytics.api.Analytics;
-import org.jjazz.filedirectorymanager.FileDirectoryManager;
+import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.ClsChangeListener;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.leadsheet.chordleadsheet.api.event.ClsChangeEvent;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo;
-import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
+import org.jjazz.phrase.api.Phrase;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.TempoRange;
 import org.jjazz.songstructure.api.SongStructureFactory;
 import org.jjazz.songstructure.api.event.SgsChangeEvent;
-import org.jjazz.undomanager.SimpleEdit;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SgsChangeListener;
-import org.jjazz.util.ResUtil;
+import org.jjazz.undomanager.api.SimpleEdit;
+import org.jjazz.util.api.FloatRange;
+import org.jjazz.util.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
+import org.openide.util.Exceptions;
 
 /**
  * The song object.
@@ -79,6 +88,15 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
     public static final String PROP_TAGS = "PROP_TAGS";   //NOI18N 
     public static final String PROP_TEMPO = "PROP_TEMPO";   //NOI18N 
     /**
+     * If a user phrase is removed: oldValue=name and newValue=null.<br>
+     * If a user phrase is added, oldValue=null and newValue=name<br>
+     */
+    public static final String PROP_VETOABLE_USER_PHRASE = "PROP_VETOABLE_USER_PHRASE";   //NOI18N
+    /**
+     * An existing phrase was updated. oldValue=old phrase, newValue=name.
+     */
+    public static final String PROP_VETOABLE_USER_PHRASE_CONTENT = "PROP_VETOABLE_USER_PHRASE_CONTENT";   //NOI18N 
+    /**
      * Fired when the close() method is called.
      */
     public static final String PROP_CLOSED = "PROP_CLOSED";   //NOI18N 
@@ -91,7 +109,8 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
     private String name;
     private String comments = ResUtil.getString(getClass(), "EDIT_ME");
     private int tempo = 120;
-    private ArrayList<String> tags = new ArrayList<>();
+    private List<String> tags = new ArrayList<>();
+    private Map<String, Phrase> mapUserPhrases = new HashMap<>();
     private final Properties clientProperties = new Properties();
     private transient File file;
     private transient boolean needSave = false;
@@ -100,6 +119,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
      */
     protected transient List<UndoableEditListener> undoListeners = new ArrayList<>();
     private final transient PropertyChangeSupport pcs = new java.beans.PropertyChangeSupport(this);
+    private final transient VetoableChangeSupport vcs = new VetoableChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(Song.class.getSimpleName());
 
     /**
@@ -183,6 +203,226 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
         fireIsModified();
     }
 
+    /**
+     * Set a user phrase for the specified name.
+     * <p>
+     * If a user phrase was already associated to name, it's replaced. Phrase is shortened if longer than the song. Fire a
+     * VeotableChange PROP_VETOABLE_USER_PHRASE if no phrase is replaced, otherwise use PROP_VETOABLE_USER_PHRASE_CONTENT.
+     * <p>
+     * @param name Can't be blank.
+     * @param p Can't be null. The phrase channel is not used.
+     * @throws PropertyVetoException If no Midi channel available for the user phrase
+     * @see Song#PROP_VETOABLE_USER_PHRASE
+     * @see Song#PROP_VETOABLE_USER_PHRASE_CONTENT
+     */
+    public void setUserPhrase(String name, Phrase p) throws PropertyVetoException
+    {
+        checkNotNull(name);
+        checkNotNull(p);
+        checkArgument(!name.isBlank(), "name=%s", name);
+
+        
+        if (getSongStructure().getSongParts().isEmpty())
+        {
+            return;
+        }
+
+        
+        // Make phrase no longer than the song
+        p = p.clone();
+        FloatRange beatRange = getSongStructure().getBeatRange(null);
+        p.slice(0, beatRange.to, false, true);
+
+
+        final Phrase oldPhrase = mapUserPhrases.get(name) == null ? null : mapUserPhrases.get(name).clone();
+        final Phrase newPhrase = p;
+
+
+        // Perform the change
+        final var oldMap = new HashMap<>(mapUserPhrases);
+        mapUserPhrases.put(name, newPhrase);
+        final var newMap = new HashMap<>(mapUserPhrases);
+
+
+        // Create the undoable event        
+        UndoableEdit edit;
+        if (oldPhrase == null)
+        {
+            // First time adding this user phrase
+            edit = new SimpleEdit("Add user phrase")
+            {
+                @Override
+                public void undoBody()
+                {
+                    mapUserPhrases = oldMap;
+                    try
+                    {
+                        vcs.fireVetoableChange(PROP_VETOABLE_USER_PHRASE, name, null);
+                    } catch (PropertyVetoException ex)
+                    {
+                        // Should never happen
+                        Exceptions.printStackTrace(ex);
+                    }
+                    fireIsModified();
+                }
+
+                @Override
+                public void redoBody()
+                {
+                    mapUserPhrases = newMap;
+                    try
+                    {
+                        vcs.fireVetoableChange(PROP_VETOABLE_USER_PHRASE, null, name);
+                    } catch (PropertyVetoException ex)
+                    {
+                        // Should never happen
+                        Exceptions.printStackTrace(ex);
+                    }
+                    fireIsModified();
+                }
+            };
+
+            fireUndoableEditHappened(edit);
+            vcs.fireVetoableChange(PROP_VETOABLE_USER_PHRASE, null, name);          // throws PropertyVetoException
+
+        } else
+        {
+            // User phrase is updated
+            edit = new SimpleEdit("Update user phrase")
+            {
+                @Override
+                public void undoBody()
+                {
+                    mapUserPhrases = oldMap;
+                    try
+                    {
+                        vcs.fireVetoableChange(PROP_VETOABLE_USER_PHRASE_CONTENT, newPhrase, name);
+                    } catch (PropertyVetoException ex)
+                    {
+                        // Should never happen
+                        Exceptions.printStackTrace(ex);
+                    }
+                    fireIsModified();
+                }
+
+                @Override
+                public void redoBody()
+                {
+                    mapUserPhrases = newMap;
+                    try
+                    {
+                        vcs.fireVetoableChange(PROP_VETOABLE_USER_PHRASE_CONTENT, oldPhrase, name);
+                    } catch (PropertyVetoException ex)
+                    {
+                        // Should never happen
+                        Exceptions.printStackTrace(ex);
+                    }
+                    fireIsModified();
+                }
+            };
+
+            fireUndoableEditHappened(edit);
+            vcs.fireVetoableChange(PROP_VETOABLE_USER_PHRASE_CONTENT, oldPhrase, name);          // throws PropertyVetoException
+
+        }
+
+        fireIsModified();
+    }
+
+    /**
+     * Remove the user phrase associated to name.
+     * <p>
+     * Fire a PROP_VETOABLE_USER_PHRASE event with oldValue=name and newValue=null.
+     *
+     * @param name
+     */
+    public void removeUserPhrase(String name)
+    {
+        checkNotNull(name);
+
+
+        if (mapUserPhrases.get(name) == null)
+        {
+            return;
+        }
+
+
+        // Perform the change
+        final var oldMap = new HashMap<>(mapUserPhrases);
+        mapUserPhrases.remove(name);
+        final var newMap = new HashMap<>(mapUserPhrases);
+
+
+        // Create the undoable event
+        UndoableEdit edit = new SimpleEdit("Remove user phrase")
+        {
+            @Override
+            public void undoBody()
+            {
+                mapUserPhrases = oldMap;
+                try
+                {
+                    vcs.fireVetoableChange(PROP_VETOABLE_USER_PHRASE, null, name);
+                } catch (PropertyVetoException ex)
+                {
+                    // Should never happen
+                    Exceptions.printStackTrace(ex);
+                }
+                fireIsModified();
+            }
+
+            @Override
+            public void redoBody()
+            {
+                mapUserPhrases = newMap;
+                try
+                {
+                    vcs.fireVetoableChange(PROP_VETOABLE_USER_PHRASE, name, null);
+                } catch (PropertyVetoException ex)
+                {
+                    // Should never happen
+                    Exceptions.printStackTrace(ex);
+                }
+                fireIsModified();
+            }
+        };
+        fireUndoableEditHappened(edit);
+
+
+        try
+        {
+            vcs.fireVetoableChange(PROP_VETOABLE_USER_PHRASE, name, null);
+        } catch (PropertyVetoException ex)
+        {
+            // Should never happen
+            Exceptions.printStackTrace(ex);
+        }
+        fireIsModified();
+
+    }
+
+    /**
+     * Get all the names of the user phrases.
+     *
+     * @return Can't be null.
+     */
+    public Set<String> getUserPhraseNames()
+    {
+        return mapUserPhrases.keySet();
+    }
+
+    /**
+     * Get the user phrase associated to specified name.
+     *
+     * @param name
+     * @return Null if no phrase associated to name. The Phrase channel should be ignored.
+     */
+    public Phrase getUserPhrase(String name)
+    {
+        return mapUserPhrases.get(name);
+    }
+
+
     public ChordLeadSheet getChordLeadSheet()
     {
         return chordLeadSheet;
@@ -193,6 +433,11 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
         return songStructure;
     }
 
+    /**
+     * Get the preferred tempo for this song.
+     *
+     * @return
+     */
     public int getTempo()
     {
         return tempo;
@@ -216,26 +461,6 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
         if (oldTempo != newTempo)
         {
             tempo = newTempo;
-
-            // Create the undoable event
-            UndoableEdit edit = new SimpleEdit("Set tempo " + newTempo)
-            {
-                @Override
-                public void undoBody()
-                {
-                    tempo = oldTempo;
-                    pcs.firePropertyChange(PROP_TEMPO, newTempo, oldTempo);
-                }
-
-                @Override
-                public void redoBody()
-                {
-                    tempo = newTempo;
-                    pcs.firePropertyChange(PROP_TEMPO, oldTempo, newTempo);
-                }
-            };
-            fireUndoableEditHappened(edit);
-
             pcs.firePropertyChange(PROP_TEMPO, oldTempo, newTempo);
             fireIsModified();
         }
@@ -266,25 +491,6 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
             return;
         }
         tags = newTagsLowerCase;
-
-        // Create the undoable event
-        UndoableEdit edit = new SimpleEdit("Set tags")
-        {
-            @Override
-            public void undoBody()
-            {
-                tags = oldTags;
-                pcs.firePropertyChange(PROP_TAGS, newTagsLowerCase, tags);
-            }
-
-            @Override
-            public void redoBody()
-            {
-                tags = newTagsLowerCase;
-                pcs.firePropertyChange(PROP_TAGS, oldTags, tags);
-            }
-        };
-        fireUndoableEditHappened(edit);
 
         pcs.firePropertyChange(PROP_TAGS, oldTags, tags);
         fireIsModified();
@@ -325,25 +531,6 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
         {
             final String oldName = name;
             name = newName;
-
-            // Create the undoable event
-            UndoableEdit edit = new SimpleEdit("Set name " + newName)
-            {
-                @Override
-                public void undoBody()
-                {
-                    name = oldName;
-                    pcs.firePropertyChange(PROP_NAME, newName, oldName);
-                }
-
-                @Override
-                public void redoBody()
-                {
-                    name = newName;
-                    pcs.firePropertyChange(PROP_NAME, oldName, newName);
-                }
-            };
-            fireUndoableEditHappened(edit);
 
             pcs.firePropertyChange(PROP_NAME, oldName, newName);
             fireIsModified();
@@ -398,25 +585,6 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
         {
             final String oldComments = comments;
             comments = newComments;
-
-            // Create the undoable event
-            UndoableEdit edit = new SimpleEdit("Set comments")
-            {
-                @Override
-                public void undoBody()
-                {
-                    comments = oldComments;
-                    pcs.firePropertyChange(PROP_COMMENTS, newComments, oldComments);
-                }
-
-                @Override
-                public void redoBody()
-                {
-                    comments = newComments;
-                    pcs.firePropertyChange(PROP_COMMENTS, oldComments, newComments);
-                }
-            };
-            fireUndoableEditHappened(edit);
 
             pcs.firePropertyChange(PROP_COMMENTS, oldComments, newComments);
             fireIsModified();
@@ -561,16 +729,6 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
         pcs.firePropertyChange(PROP_MODIFIED_OR_SAVED, true, false);
     }
 
-    public void addPropertyChangeListener(PropertyChangeListener l)
-    {
-        pcs.addPropertyChangeListener(l);
-    }
-
-    public void removePropertyChangeListener(PropertyChangeListener l)
-    {
-        pcs.removePropertyChangeListener(l);
-    }
-
     public void addUndoableEditListener(UndoableEditListener l)
     {
         if (l == null)
@@ -588,6 +746,26 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
             throw new NullPointerException("l=" + l);   //NOI18N
         }
         undoListeners.remove(l);
+    }
+
+    public void addPropertyChangeListener(PropertyChangeListener l)
+    {
+        pcs.addPropertyChangeListener(l);
+    }
+
+    public void removePropertyChangeListener(PropertyChangeListener l)
+    {
+        pcs.removePropertyChangeListener(l);
+    }
+
+    public synchronized void addVetoableChangeListener(VetoableChangeListener listener)
+    {
+        vcs.addVetoableChangeListener(listener);
+    }
+
+    public synchronized void removeVetoableChangeListener(VetoableChangeListener listener)
+    {
+        vcs.removeVetoableChangeListener(listener);
     }
 
     @Override
@@ -676,7 +854,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
         map.put("Memo Char Size", getComments().length());
         map.put("Nb Chord Symbols", cris.stream().count());
         map.put("Nb Song Parts", songStructure.getSongParts().size());
-        map.put("LeadSheet Bar Size", chordLeadSheet.getSize());
+        map.put("LeadSheet Bar Size", chordLeadSheet.getSizeInBars());
         map.put("Song Structure Bar Size", songStructure.getSizeInBars());
         map.put("Use Bass Pedal Chord", cris.stream().anyMatch(cri -> cri.hasOneFeature(ChordRenderingInfo.Feature.PEDAL_BASS)));
         map.put("Use Accent Chord", cris.stream().anyMatch(cri -> cri.hasOneFeature(ChordRenderingInfo.Feature.ACCENT)));
@@ -695,17 +873,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
         Analytics.setPropertiesOnce(Analytics.buildMap("First Save", Analytics.toStdDateTimeString()));
     }
 
-//    private static boolean checkRhythmVoiceExists(Song s, RhythmVoice rv)
-//    {
-//        for (SongPart spt : s.songStructure.getSongParts())
-//        {
-//            if (spt.getRhythm().getRhythmVoices().contains(rv))
-//            {
-//                return true;
-//            }
-//        }
-//        return false;
-//    }
+
     // --------------------------------------------------------------------- 
     // Serialization
     // ---------------------------------------------------------------------
@@ -731,7 +899,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
     {
 
         private static final long serialVersionUID = 571097826016222L;
-        private final int spVERSION = 1;
+        private final int spVERSION = 2;
         private final String spName;
         private final String spComments;
         private final int spTempo;
@@ -739,6 +907,8 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
         private final List<String> spTags;
         private final ChordLeadSheet spChordLeadSheet;
         private final SongStructure spSongStructure;
+        // Since spVERSION 2
+        private final Map<String, Phrase> spMapUserPhrases;
 
         private SerializationProxy(Song s)
         {
@@ -749,6 +919,8 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
             spTempo = s.getTempo();
             spTags = s.getTags();
             spClientProperties = s.clientProperties;
+            // Since spVERSION 2
+            spMapUserPhrases = s.mapUserPhrases;
         }
 
         private Object readResolve() throws ObjectStreamException
@@ -761,6 +933,24 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
             {
                 newSong.putClientProperty(key, spClientProperties.getProperty(key));
             }
+
+            // Since spVERSION 2
+            if (spMapUserPhrases != null)
+            {
+                for (String name : spMapUserPhrases.keySet())
+                {
+                    Phrase p = spMapUserPhrases.get(name);
+                    try
+                    {
+                        newSong.setUserPhrase(name, p);
+                    } catch (PropertyVetoException ex)
+                    {
+                        LOGGER.warning("readResolve() Can't add user phrase for name=" + name + ". ex=" + ex.getMessage());
+                    }
+                }
+            }
+
+
             return newSong;
         }
     }

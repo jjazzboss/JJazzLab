@@ -24,6 +24,7 @@ package org.jjazz.ui.rpviewer;
 
 import java.awt.Color;
 import java.awt.Font;
+import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,13 +35,13 @@ import javax.swing.BorderFactory;
 import javax.swing.UIManager;
 import javax.swing.border.Border;
 import javax.swing.event.SwingPropertyChangeSupport;
-import org.jjazz.ui.rpviewer.api.RpViewerSettings;
-import org.jjazz.ui.sptviewer.api.SptViewerSettings;
-import org.jjazz.ui.utilities.FontColorUserSettingsProvider;
-import org.jjazz.uisettings.GeneralUISettings;
-import org.jjazz.upgrade.UpgradeManager;
+import org.jjazz.ui.rpviewer.spi.RpViewerSettings;
+import org.jjazz.ui.sptviewer.spi.SptViewerSettings;
+import org.jjazz.ui.utilities.api.FontColorUserSettingsProvider;
+import org.jjazz.uisettings.api.GeneralUISettings;
+import org.jjazz.upgrade.api.UpgradeManager;
 import org.jjazz.upgrade.spi.UpgradeTask;
-import org.jjazz.util.Utilities;
+import org.jjazz.util.api.Utilities;
 import org.openide.util.NbPreferences;
 import org.openide.util.lookup.ServiceProvider;
 import org.openide.util.lookup.ServiceProviders;
@@ -51,7 +52,7 @@ import org.openide.util.lookup.ServiceProviders;
     @ServiceProvider(service = FontColorUserSettingsProvider.class)
 }
 )
-public class RpViewerSettingsImpl implements RpViewerSettings, FontColorUserSettingsProvider
+public class RpViewerSettingsImpl implements RpViewerSettings, FontColorUserSettingsProvider, PropertyChangeListener
 {
 
     /**
@@ -63,6 +64,12 @@ public class RpViewerSettingsImpl implements RpViewerSettings, FontColorUserSett
      */
     private SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(RpViewerSettingsImpl.class.getSimpleName());
+
+    public RpViewerSettingsImpl()
+    {
+        // Listen to locale changes
+        GeneralUISettings.getInstance().addPropertyChangeListener(this);
+    }
 
     @Override
     public Color getSelectedBackgroundColor()
@@ -234,6 +241,27 @@ public class RpViewerSettingsImpl implements RpViewerSettings, FontColorUserSett
     public synchronized void removePropertyChangeListener(PropertyChangeListener listener)
     {
         pcs.removePropertyChangeListener(listener);
+    }
+
+    // =====================================================================================
+    // PropertyChangeListener implementation
+    // =====================================================================================
+    @Override
+    public void propertyChange(PropertyChangeEvent evt)
+    {
+        if (evt.getSource() == GeneralUISettings.getInstance())
+        {
+            if (evt.getPropertyName().equals(GeneralUISettings.PROP_LOCALE_UPON_RESTART))
+            {
+                // If we switch between latin and non latin, we must reset nameFont
+                Locale oldLocale = (Locale) evt.getOldValue();
+                Locale newLocale = (Locale) evt.getNewValue();
+                if (GeneralUISettings.isLatin(oldLocale) != GeneralUISettings.isLatin(newLocale))
+                {
+                    setNameFont(null);      // Reset 
+                }
+            }
+        }
     }
 
     // =====================================================================================

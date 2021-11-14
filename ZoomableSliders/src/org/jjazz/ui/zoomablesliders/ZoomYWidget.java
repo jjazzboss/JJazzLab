@@ -26,9 +26,9 @@ import java.awt.Component;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.logging.Logger;
-import static org.jjazz.ui.flatcomponents.FlatIntegerHorizontalSlider.PROP_HIDE_VALUE;
-import static org.jjazz.ui.flatcomponents.FlatIntegerHorizontalSlider.PROP_NB_GRADUATION_MARKS;
-import org.jjazz.ui.utilities.Zoomable;
+import static org.jjazz.ui.flatcomponents.api.FlatIntegerHorizontalSlider.PROP_HIDE_VALUE;
+import static org.jjazz.ui.flatcomponents.api.FlatIntegerHorizontalSlider.PROP_NB_GRADUATION_MARKS;
+import org.jjazz.ui.utilities.api.Zoomable;
 import org.openide.awt.StatusLineElementProvider;
 import org.openide.util.*;
 import org.openide.util.lookup.ServiceProvider;
@@ -131,7 +131,7 @@ public class ZoomYWidget extends javax.swing.JPanel implements StatusLineElement
     {
 
         label = new javax.swing.JLabel();
-        slider = new org.jjazz.ui.flatcomponents.FlatIntegerHorizontalSlider();
+        slider = new org.jjazz.ui.flatcomponents.api.FlatIntegerHorizontalSlider();
         slider.putClientProperty(PROP_NB_GRADUATION_MARKS, 0);
         slider.putClientProperty(PROP_HIDE_VALUE, 1);
 
@@ -167,6 +167,6 @@ public class ZoomYWidget extends javax.swing.JPanel implements StatusLineElement
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel label;
-    private org.jjazz.ui.flatcomponents.FlatIntegerHorizontalSlider slider;
+    private org.jjazz.ui.flatcomponents.api.FlatIntegerHorizontalSlider slider;
     // End of variables declaration//GEN-END:variables
 }

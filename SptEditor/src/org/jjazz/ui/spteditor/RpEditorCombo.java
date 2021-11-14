@@ -22,6 +22,7 @@
  */
 package org.jjazz.ui.spteditor;
 
+import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
@@ -30,32 +31,27 @@ import java.util.logging.Logger;
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
-import javax.swing.JComponent;
 import org.jjazz.rhythm.api.Rhythm;
-import org.jjazz.rhythm.parameters.RP_State;
-import org.jjazz.rhythm.parameters.RhythmParameter;
+import org.jjazz.rhythm.api.RP_State;
+import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.ui.spteditor.api.RpEditor;
 import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.ui.spteditor.spi.RpEditorComponent;
 
 /**
  * A RpEditor using a JComboBox for RP_State parameters.
  * <p>
  */
-public class RpEditorCombo extends RpEditor implements ActionListener, PropertyChangeListener
+public class RpEditorCombo extends RpEditorComponent<String> implements ActionListener, PropertyChangeListener
 {
 
     private final JComboBox<String> combo_rpValue;
 
     private static final Logger LOGGER = Logger.getLogger(RpEditorCombo.class.getSimpleName());
 
-    public RpEditorCombo(SongPart spt, RhythmParameter<?> rp)
+    public RpEditorCombo(SongPart spt, RP_State rp)
     {
-        super(spt, rp);
-
-        if (!(rp instanceof RP_State))
-        {
-            throw new IllegalArgumentException("RhythmParameter type not supported for this editor. rp=" + rp);   //NOI18N
-        }
+        super(spt, rp);     
 
         // Listen to rhythm resource load event, as it might impact our tooltip
         spt.getRhythm().addPropertyChangeListener(this);
@@ -64,60 +60,45 @@ public class RpEditorCombo extends RpEditor implements ActionListener, PropertyC
         // Prepare our editor component
         combo_rpValue = new JComboBox<>();
         combo_rpValue.addActionListener(this);
-        RhythmParameter<?> rpModel = getRpModel();
-        SongPart sptModel = getSptModel();
-        ComboBoxModel<String> cbModel = new DefaultComboBoxModel<>(rpModel.getPossibleValues().toArray(new String[0]));
+        RP_State rpState = (RP_State) rp;
+        ComboBoxModel<String> cbModel = new DefaultComboBoxModel<>(rpState.getPossibleValues().toArray(new String[0]));
         combo_rpValue.setModel(cbModel);
-        combo_rpValue.setSelectedItem(sptModel.getRPValue(rpModel));
-        setEditor(combo_rpValue);
+        combo_rpValue.setSelectedItem(songPart.getRPValue(rpState));
+
+
+        // Add it
+        setLayout(new BorderLayout());
+        add(combo_rpValue);
     }
 
     @Override
-    protected JComponent getEditor()
+    public void updateEditorValue(String value)
     {
-        return combo_rpValue;
-    }
-
-    /**
-     * Update the value in the editor.
-     *
-     * @param value
-     * @param firePropChangeEvent If false don't fire a change event.
-     */
-    @Override
-    public void setRpValue(Object value, boolean firePropChangeEvent)
-    {
-        if (value != null && !value.equals(getRpValue()))
+        if (value != null && !value.equals(getEditorValue()))
         {
-            if (!firePropChangeEvent)
-            {
-                combo_rpValue.removeActionListener(this);
-            }
+            combo_rpValue.removeActionListener(this);
             combo_rpValue.setSelectedItem(value);
-            if (!firePropChangeEvent)
-            {
-                combo_rpValue.addActionListener(this);
-            }
+            combo_rpValue.addActionListener(this);
         }
     }
 
     @Override
-    protected void showMultiValueMode(boolean b)
+    public void showMultiValueMode(boolean b)
     {
-        showMultiModeUsingFont(isMultiValueMode(), combo_rpValue);
+        RpEditor.showMultiModeUsingFont(b, combo_rpValue);
     }
 
     @Override
-    public Object getRpValue()
+    public String getEditorValue()
     {
-        return combo_rpValue.getSelectedItem();
+        return combo_rpValue.getModel().getElementAt(combo_rpValue.getSelectedIndex());
     }
 
     @Override
     public void cleanup()
     {
-        combo_rpValue.removeActionListener(this);
-        getSptModel().getRhythm().removePropertyChangeListener(this);
+        super.cleanup();
+        songPart.getRhythm().removePropertyChangeListener(this);
     }
 
     // ==============================================================================
@@ -126,7 +107,7 @@ public class RpEditorCombo extends RpEditor implements ActionListener, PropertyC
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
-        if (evt.getSource() == getSptModel().getRhythm())
+        if (evt.getSource() == songPart.getRhythm())
         {
             if (evt.getPropertyName().equals(Rhythm.PROP_RESOURCES_LOADED))
             {
@@ -143,7 +124,7 @@ public class RpEditorCombo extends RpEditor implements ActionListener, PropertyC
     {
         Object newValue = combo_rpValue.getSelectedItem();
         updateToolTip();
-        firePropertyChange(PROP_RPVALUE, null, newValue);
+        firePropertyChange(RpEditor.PROP_RP_VALUE, null, newValue);
     }
 
     // -----------------------------------------------------------------------------
@@ -151,11 +132,8 @@ public class RpEditorCombo extends RpEditor implements ActionListener, PropertyC
     // -----------------------------------------------------------------------------
     private void updateToolTip()
     {
-        Object newValue = combo_rpValue.getSelectedItem();
-        @SuppressWarnings("rawtypes")
-        RhythmParameter rp = getRpModel();      // Needed to get rid of the unbounded wildcard <?>
-        @SuppressWarnings("unchecked")
+        String newValue = combo_rpValue.getModel().getElementAt(combo_rpValue.getSelectedIndex());
         String valueDesc = rp.getValueDescription(newValue);
-        combo_rpValue.setToolTipText(valueDesc == null ? newValue.toString() : valueDesc);
+        combo_rpValue.setToolTipText(valueDesc == null ? newValue : valueDesc);
     }
 }

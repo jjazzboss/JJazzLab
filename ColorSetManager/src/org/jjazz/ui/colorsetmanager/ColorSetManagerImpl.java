@@ -28,10 +28,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.prefs.Preferences;
 import javax.swing.event.SwingPropertyChangeSupport;
-import org.jjazz.util.SmallMap;
+import org.jjazz.util.api.SmallMap;
 import org.openide.util.NbPreferences;
 import org.jjazz.ui.colorsetmanager.api.ColorSetManager;
-import org.jjazz.upgrade.UpgradeManager;
+import org.jjazz.upgrade.api.UpgradeManager;
 import org.jjazz.upgrade.spi.UpgradeTask;
 import org.openide.util.lookup.ServiceProvider;
 
@@ -55,7 +55,7 @@ public class ColorSetManagerImpl implements ColorSetManager
     // private final Color WHITE = new Color(251, 248, 245);        // "our" white = "old paper"
     // private final Color WHITE = new Color(235, 232, 225);        // "our" white for FlatLAF
     // 
-    // Application variables
+    // Application variables -
     private static final int NB_COLORS = 6;
     private static final String COLOR_PROP_PREFIX = "REFCOLOR-";
     private static ColorSetManagerImpl INSTANCE;

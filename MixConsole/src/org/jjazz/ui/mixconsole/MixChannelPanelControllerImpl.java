@@ -23,25 +23,23 @@
 package org.jjazz.ui.mixconsole;
 
 import java.util.logging.Logger;
-import javax.sound.midi.MidiUnavailableException;
 import org.jjazz.instrumentchooser.spi.InstrumentChooserDialog;
-import org.jjazz.midi.DrumKit;
-import org.jjazz.midi.Instrument;
-import org.jjazz.midi.InstrumentBank;
-import org.jjazz.midi.InstrumentMix;
-import org.jjazz.midi.MidiConst;
-import org.jjazz.midi.synths.Family;
+import org.jjazz.midi.api.DrumKit;
+import org.jjazz.midi.api.Instrument;
+import org.jjazz.midi.api.InstrumentBank;
+import org.jjazz.midi.api.InstrumentMix;
+import org.jjazz.midi.api.MidiConst;
+import org.jjazz.midi.api.synths.Family;
 import org.jjazz.midiconverters.api.ConverterManager;
 import org.jjazz.rhythm.api.RhythmVoice;
-import org.jjazz.midimix.MidiMix;
-import org.jjazz.midimix.UserChannelRvKey;
-import org.jjazz.musiccontrol.ClickManager;
-import org.jjazz.outputsynth.OutputSynthManager;
-import org.jjazz.util.ResUtil;
+import org.jjazz.midimix.api.MidiMix;
+import org.jjazz.midimix.api.UserRhythmVoice;
+import org.jjazz.musiccontrol.api.PlaybackSettings;
+import org.jjazz.outputsynth.api.OutputSynthManager;
+import org.jjazz.util.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.awt.StatusDisplayer;
-import org.openide.util.Exceptions;
 
 /**
  *
@@ -99,7 +97,7 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
 
 
         // Can't override the click channel
-        int clickChannel = ClickManager.getInstance().getClickChannel(midiMix);
+        int clickChannel = PlaybackSettings.getInstance().getClickChannel(midiMix);
         if (newChannelId == clickChannel && !rvKeySrc.isDrums())
         {
             String msg = ResUtil.getString(getClass(), "MixChannelPanelControllerImpl.Channel10ClickReserved", clickChannel + 1);
@@ -117,70 +115,16 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
         // Perform the changes
         if (insMixDest == null)
         {
-            // We don't replace an existing InstrumentMix
-
-            if (rvKeySrc == UserChannelRvKey.getInstance())
-            {
-                // It's a user channel
-                midiMix.removeUserChannel();
-                try
-                {
-                    midiMix.addUserChannel(insMixSrc, newChannelId);
-                } catch (MidiUnavailableException ex)
-                {
-                    // Should never happen since we removed the user channel just before
-                    Exceptions.printStackTrace(ex);
-                }
-            } else
-            {
-                // Standard channel                          
-                midiMix.setInstrumentMix(channelId, null, null);
-                midiMix.setInstrumentMix(newChannelId, rvKeySrc, insMixSrc);
-            }
+            // We don't replace an existing InstrumentMix                              
+            midiMix.setInstrumentMix(channelId, null, null);
+            midiMix.setInstrumentMix(newChannelId, rvKeySrc, insMixSrc);
 
         } else
         {
             // We replace an existing InstrumentMix, swap
-
-            if (rvKeySrc == UserChannelRvKey.getInstance())
-            {
-                // Source is the user channel
-                midiMix.removeUserChannel();    // free channelId
-                midiMix.setInstrumentMix(newChannelId, null, null);
-                try
-                {
-                    midiMix.addUserChannel(insMixSrc, newChannelId);
-                } catch (MidiUnavailableException ex)
-                {
-                    // Should never happen since we removed the user channel just before
-                    Exceptions.printStackTrace(ex);
-                }
-                midiMix.setInstrumentMix(channelId, rvKeyDest, insMixDest);
-
-            } else if (rvKeyDest == UserChannelRvKey.getInstance())
-            {
-                // Destination is the user channel
-                midiMix.setInstrumentMix(channelId, null, null);
-                midiMix.removeUserChannel();    // free newChannelId                
-                try
-                {
-                    midiMix.addUserChannel(insMixDest, channelId);
-                } catch (MidiUnavailableException ex)
-                {
-                    // Should never happen since we removed the user channel just before
-                    Exceptions.printStackTrace(ex);
-                }
-                midiMix.setInstrumentMix(newChannelId, rvKeySrc, insMixSrc);
-
-
-            } else
-            {
-                // No user channel
-
-                midiMix.setInstrumentMix(channelId, null, null);
-                midiMix.setInstrumentMix(newChannelId, rvKeySrc, insMixSrc);
-                midiMix.setInstrumentMix(channelId, rvKeyDest, insMixDest);
-            }
+            midiMix.setInstrumentMix(channelId, null, null);
+            midiMix.setInstrumentMix(newChannelId, rvKeySrc, insMixSrc);
+            midiMix.setInstrumentMix(channelId, rvKeyDest, insMixDest);
         }
     }
 
@@ -260,12 +204,12 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
         Instrument ins = bank.getPreviousInstrument(insMix.getInstrument());
         insMix.setInstrument(ins);
     }
-
+    
     private String buildTitle()
     {
-        StringBuilder title = new StringBuilder(ResUtil.getString(getClass(), "MixChannelPanelControllerImpl.DialogTitle", channelId + 1));        
+        StringBuilder title = new StringBuilder(ResUtil.getString(getClass(), "MixChannelPanelControllerImpl.DialogTitle", channelId + 1));
         RhythmVoice rv = midiMix.getRhythmVoice(channelId);
-        if (rv instanceof UserChannelRvKey)
+        if (rv instanceof UserRhythmVoice)
         {
             title.append(" - ").append(ResUtil.getString(getClass(), "MixChannelPanelControllerImpl.User"));
         } else

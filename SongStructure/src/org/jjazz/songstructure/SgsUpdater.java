@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import org.jjazz.harmony.TimeSignature;
+import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.Section;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.event.SectionMovedEvent;
@@ -39,9 +39,9 @@ import org.jjazz.leadsheet.chordleadsheet.api.event.ItemChangedEvent;
 import org.jjazz.leadsheet.chordleadsheet.api.event.ItemRemovedEvent;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.rhythm.api.Rhythm;
-import org.jjazz.undomanager.JJazzUndoManager;
-import org.jjazz.undomanager.JJazzUndoManagerFinder;
-import org.jjazz.util.SmallMap;
+import org.jjazz.undomanager.api.JJazzUndoManager;
+import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
+import org.jjazz.util.api.SmallMap;
 import org.jjazz.leadsheet.chordleadsheet.api.ClsChangeListener;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.leadsheet.chordleadsheet.api.event.SizeChangedEvent;
@@ -185,7 +185,7 @@ public class SgsUpdater implements ClsChangeListener
 
             // We remove and re-add
             sgs.removeSongParts(getSongParts(cliSection));
-            SongPart spt = createSptAfterSection(cliSection, parentCls.getSectionRange(cliSection).size(), prevSection);
+            SongPart spt = createSptAfterSection(cliSection, parentCls.getBarRange(cliSection).size(), prevSection);
             sgs.addSongParts(Arrays.asList(spt));
 
             // Resize impacted SongParts 
@@ -272,7 +272,7 @@ public class SgsUpdater implements ClsChangeListener
             } else
             {
                 // Possible exception here !
-                SongPart spt = createSptAfterSection(cliSection, parentCls.getSectionRange(cliSection).size(), prevSection);
+                SongPart spt = createSptAfterSection(cliSection, parentCls.getBarRange(cliSection).size(), prevSection);
                 sgs.addSongParts(Arrays.asList(spt));
             }
             if (prevSection != null && !authorizeOnly)
@@ -379,7 +379,7 @@ public class SgsUpdater implements ClsChangeListener
 
         // Need to update size of impacted SongParts
         SmallMap<SongPart, Integer> mapSptSize = new SmallMap<>();
-        CLI_Section lastSection = parentCls.getSection(parentCls.getSize() - 1);
+        CLI_Section lastSection = parentCls.getSection(parentCls.getSizeInBars() - 1);
         fillMapSptSize(mapSptSize, lastSection);
         sgs.resizeSongParts(mapSptSize);
     }
@@ -411,7 +411,7 @@ public class SgsUpdater implements ClsChangeListener
      */
     private void fillMapSptSize(SmallMap<SongPart, Integer> mapSptSize, CLI_Section parentSection)
     {
-        int size = parentCls.getSectionRange(parentSection).size();
+        int size = parentCls.getBarRange(parentSection).size();
         for (SongPart spt : getSongParts(parentSection))
         {
             mapSptSize.putValue(spt, size);
@@ -483,6 +483,6 @@ public class SgsUpdater implements ClsChangeListener
     private int getVirtualSectionSize(int sectionBar)
     {
         CLI_Section curSection = parentCls.getSection(sectionBar);
-        return parentCls.getSectionRange(curSection).to - sectionBar + 1;
+        return parentCls.getBarRange(curSection).to - sectionBar + 1;
     }
 }

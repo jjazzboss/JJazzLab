@@ -22,23 +22,25 @@
  */
 package org.jjazz.ui.cl_editor.barrenderer;
 
+import org.jjazz.ui.cl_editor.barrenderer.api.BeatBasedLayoutManager;
 import java.awt.*;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
+import java.awt.geom.Path2D;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.WeakHashMap;
 import java.util.logging.Logger;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
-import org.jjazz.harmony.TimeSignature;
+import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Factory;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
-import org.jjazz.quantizer.Quantization;
+import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.ui.cl_editor.api.CL_Editor;
 import org.jjazz.ui.cl_editor.barrenderer.api.BarRenderer;
 import org.jjazz.ui.cl_editor.barrenderer.api.BarRendererSettings;
@@ -184,6 +186,8 @@ public class BR_ChordPositions extends BarRenderer implements BeatBasedBarRender
         int barTop = getDrawingArea().y;
 
         Graphics2D g2 = (Graphics2D) g;
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
 
         // Draw the axis
         g2.setColor(Color.GRAY);
@@ -228,14 +232,24 @@ public class BR_ChordPositions extends BarRenderer implements BeatBasedBarRender
             g2.drawLine(x, h, x, axisY);
         }
 
+
         // Draw the playback position
         if (playbackPosition != null)
         {
             float beat = playbackPosition.getBeat();
-            int x = ((BeatBasedLayoutManager) getLayout()).getBeatXPosition(beat, barWidth, lastTimeSignature) + barLeft;
-            g2.setColor(Color.GRAY);
-            int r = 4;
-            g2.fillOval(x - r, axisY - r, 2 * r, 2 * r);
+            float x = layoutManager.getBeatXPosition(beat, barWidth, lastTimeSignature) + barLeft;
+            float y = axisY;
+
+            final float SIZE = 5;
+            var triangle = new Path2D.Float();
+            triangle.moveTo(x - SIZE, y);
+            triangle.lineTo(x + SIZE, y);
+            triangle.lineTo(x, y - 1.5f * SIZE);
+            triangle.lineTo(x - SIZE, y);
+
+            Color c = new Color(186, 34, 23);
+            g2.setColor(c);
+            g2.fill(triangle);
         }
     }
 

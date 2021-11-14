@@ -129,7 +129,7 @@
                 </test-type>
             </test-dependencies>
             <public-packages>
-                <package>org.jjazz.savablesong</package>
+                <package>org.jjazz.savablesong.api</package>
             </public-packages>
         </data>
     </configuration>

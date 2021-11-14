@@ -25,7 +25,7 @@ package org.jjazz.rhythm.database.api;
 import java.io.File;
 import java.io.Serializable;
 import java.util.List;
-import org.jjazz.harmony.TimeSignature;
+import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmFeatures;
 import org.jjazz.rhythm.spi.RhythmProvider;

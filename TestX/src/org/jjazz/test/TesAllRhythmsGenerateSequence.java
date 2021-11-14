@@ -29,20 +29,20 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Sequence;
-import org.jjazz.harmony.TimeSignature;
+import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
-import org.jjazz.midimix.MidiMix;
-import org.jjazz.midimix.MidiMixManager;
+import org.jjazz.midimix.api.MidiMix;
+import org.jjazz.midimix.api.MidiMixManager;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.database.api.RhythmDatabase;
-import org.jjazz.rhythmmusicgeneration.MidiSequenceBuilder;
-import org.jjazz.rhythmmusicgeneration.MusicGenerationContext;
+import org.jjazz.rhythmmusicgeneration.api.SongSequenceBuilder;
+import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.database.api.RhythmInfo;
 import org.jjazz.rhythm.database.api.UnavailableRhythmException;
 import org.jjazz.song.api.Song;
-import org.jjazz.undomanager.JJazzUndoManager;
-import org.jjazz.undomanager.JJazzUndoManagerFinder;
+import org.jjazz.undomanager.api.JJazzUndoManager;
+import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.netbeans.api.progress.BaseProgressUtils;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -103,7 +103,7 @@ public final class TesAllRhythmsGenerateSequence implements ActionListener
         @Override
         public void run()
         {
-            MidiSequenceBuilder seqBuilder = new MidiSequenceBuilder(new MusicGenerationContext(song, midiMix));
+            SongSequenceBuilder seqBuilder = new SongSequenceBuilder(new SongContext(song, midiMix));
             SongStructure sgs = song.getSongStructure();
             JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(sgs);
             um.setLimit(1);      // to not use too much memory with all rhythms instances...
@@ -138,7 +138,7 @@ public final class TesAllRhythmsGenerateSequence implements ActionListener
                     // Build the sequence
                     try
                     {
-                        Sequence sequence = seqBuilder.buildSequence(false);       // Can raise MusicGenerationException               
+                        seqBuilder.buildAll(false);       // Can raise MusicGenerationException               
                         // LOGGER.severe("sequence resolution=" + sequence.getResolution());
                     } catch (MusicGenerationException ex)
                     {

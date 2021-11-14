@@ -22,7 +22,7 @@
  */
 package org.jjazz.ui.mixconsole.actions;
 
-import org.jjazz.midimix.MidiMix;
+import org.jjazz.midimix.api.MidiMix;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.util.logging.Logger;
@@ -30,9 +30,9 @@ import javax.swing.AbstractAction;
 import static javax.swing.Action.NAME;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import org.jjazz.filedirectorymanager.FileDirectoryManager;
-import org.jjazz.ui.utilities.Utilities;
-import org.jjazz.util.ResUtil;
+import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
+import org.jjazz.ui.utilities.api.Utilities;
+import org.jjazz.util.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.windows.WindowManager;
@@ -102,7 +102,7 @@ public class ExportMix extends AbstractAction
             String mixFileName = mixFile.getName();
 
             // Add extension if required
-            if (!org.jjazz.util.Utilities.endsWithIgnoreCase(mixFileName, "." + FileDirectoryManager.MIX_FILE_EXTENSION))
+            if (!org.jjazz.util.api.Utilities.endsWithIgnoreCase(mixFileName, "." + FileDirectoryManager.MIX_FILE_EXTENSION))
             {
                 mixFile = new File(mixFile.getParent(), mixFileName + "." + FileDirectoryManager.MIX_FILE_EXTENSION);
             }

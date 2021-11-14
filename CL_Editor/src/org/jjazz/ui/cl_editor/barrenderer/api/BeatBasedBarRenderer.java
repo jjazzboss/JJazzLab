@@ -22,7 +22,7 @@
  */
 package org.jjazz.ui.cl_editor.barrenderer.api;
 
-import org.jjazz.harmony.TimeSignature;
+import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 
 /**

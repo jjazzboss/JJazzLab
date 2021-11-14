@@ -30,21 +30,21 @@ import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.event.SwingPropertyChangeSupport;
-import org.jjazz.midi.Instrument;
-import org.jjazz.midi.InstrumentMix;
-import org.jjazz.midi.InstrumentSettings;
-import org.jjazz.midi.MidiConst;
-import org.jjazz.midimix.MidiMix;
-import org.jjazz.midimix.UserChannelRvKey;
+import org.jjazz.midi.api.Instrument;
+import org.jjazz.midi.api.InstrumentMix;
+import org.jjazz.midi.api.InstrumentSettings;
+import org.jjazz.midi.api.MidiConst;
+import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.rhythm.api.Rhythm;
+import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.ui.mixconsole.api.MixConsoleTopComponent;
 
 /**
  * Model based on a channel/InstrumentMix data belonging to a MidiMix.
  * <p>
- * Listen to InstrumentMix model changes and notify listeners. UI updates are propagated on the InstrumentMix model and possibly to the
- * enclosing MidiMix.
- *
+ * Listen to InstrumentMix model changes and notify listeners. UI updates are propagated on the InstrumentMix model and possibly
+ * to the enclosing MidiMix.
+ * <p>
  */
 public class MixChannelPanelModelImpl implements MixChannelPanelModel, PropertyChangeListener
 {
@@ -53,10 +53,11 @@ public class MixChannelPanelModelImpl implements MixChannelPanelModel, PropertyC
     private InstrumentMix insMix;
     private InstrumentSettings insSettings;
     private int channelId;
+    private RhythmVoice rhythmVoice;
     private transient SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
 
     /**
-     * @param mMix    The MidiMix containing all data of our model.
+     * @param mMix The MidiMix containing all data of our model.
      * @param channel Used to retrieve the InstrumentMix from mMix.
      */
     public MixChannelPanelModelImpl(MidiMix mMix, int channel)
@@ -67,11 +68,18 @@ public class MixChannelPanelModelImpl implements MixChannelPanelModel, PropertyC
         }
         channelId = channel;
         midiMix = mMix;
-        midiMix.addPropertyListener(this);
+        midiMix.addPropertyChangeListener(this);
         insMix = mMix.getInstrumentMixFromChannel(channel);
         insMix.addPropertyChangeListener(this);
         insSettings = insMix.getSettings();
         insSettings.addPropertyChangeListener(this);
+        rhythmVoice = midiMix.getRhythmVoice(channelId);
+    }
+
+    @Override
+    public RhythmVoice getRhythmVoice()
+    {
+        return rhythmVoice;
     }
 
     /**
@@ -94,12 +102,7 @@ public class MixChannelPanelModelImpl implements MixChannelPanelModel, PropertyC
         insMix.removePropertyChangeListener(this);
         insSettings.removePropertyChangeListener(this);
     }
-
-    @Override
-    public boolean isUserChannel()
-    {
-        return midiMix.getRhythmVoice(channelId) instanceof UserChannelRvKey;
-    }
+  
 
     @Override
     public boolean isDrumsReroutingEnabled()
@@ -146,8 +149,8 @@ public class MixChannelPanelModelImpl implements MixChannelPanelModel, PropertyC
     /**
      * Set volume of the channel.
      * <p>
-     * If volume was changed using mouse with SHIFT pressed, then we apply the volume delta change to other channels as well, unless one
-     * channel reaches min or max volume.
+     * If volume was changed using mouse with SHIFT pressed, then we apply the volume delta change to other channels as well,
+     * unless one channel reaches min or max volume.
      *
      * @param oldValue
      * @param newValue

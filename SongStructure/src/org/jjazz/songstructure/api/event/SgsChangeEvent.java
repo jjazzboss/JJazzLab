@@ -23,6 +23,7 @@
 package org.jjazz.songstructure.api.event;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -35,15 +36,20 @@ import org.jjazz.songstructure.api.SongPart;
 public class SgsChangeEvent
 {
 
-    private SongStructure source;
+    private final SongStructure source;
     /**
      * Ordered list.
      */
-    private ArrayList<SongPart> songParts = new ArrayList<>();
+    private final ArrayList<SongPart> songParts = new ArrayList<>();
+
+    public SgsChangeEvent(SongStructure src)
+    {
+        this(src, new ArrayList<SongPart>());
+    }
 
     public SgsChangeEvent(SongStructure src, SongPart spt)
     {
-        this(src, Collections.singletonList(spt));
+        this(src, Arrays.asList(spt));
     }
 
     /**
@@ -72,7 +78,7 @@ public class SgsChangeEvent
 
     /**
      *
-     * @return A list of SongParts changed ordered by startBarIndex (lowest first)
+     * @return A list of SongParts ordered by startBarIndex (lowest first)
      */
     public List<SongPart> getSongParts()
     {

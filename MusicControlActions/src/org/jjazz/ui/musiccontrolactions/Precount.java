@@ -30,12 +30,12 @@ import java.beans.PropertyChangeListener;
 import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
-import org.jjazz.activesong.ActiveSongManager;
-import org.jjazz.musiccontrol.ClickManager;
-import org.jjazz.musiccontrol.ClickManager.PrecountMode;
+import org.jjazz.activesong.api.ActiveSongManager;
+import org.jjazz.musiccontrol.api.PlaybackSettings;
+import org.jjazz.musiccontrol.api.PlaybackSettings.PrecountMode;
 import org.jjazz.song.api.Song;
-import org.jjazz.ui.flatcomponents.FlatToggleButton;
-import org.jjazz.util.ResUtil;
+import org.jjazz.ui.flatcomponents.api.FlatToggleButton;
+import org.jjazz.util.api.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
@@ -65,9 +65,11 @@ public class Precount extends BooleanStateAction implements PropertyChangeListen
     public Precount()
     {
         setBooleanState(false);
-        ClickManager cm = ClickManager.getInstance();
+        PlaybackSettings cm = PlaybackSettings.getInstance();
         cm.addPropertyChangeListener(this);
         updateUI(cm.getClickPrecountMode());
+        
+        putValue("JJazzDisabledIcon", new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/precountDisabled-24x24.png")));   //NOI18N                        
         putValue("hideActionText", true);
 
         setSelected(cm.isClickPrecountEnabled());
@@ -88,7 +90,7 @@ public class Precount extends BooleanStateAction implements PropertyChangeListen
         if (shift)
         {
             // If shift used just change the precount mode
-            ClickManager cm = ClickManager.getInstance();
+            PlaybackSettings cm = PlaybackSettings.getInstance();
             PrecountMode mode = cm.getClickPrecountMode();
             switch (mode)
             {
@@ -116,7 +118,7 @@ public class Precount extends BooleanStateAction implements PropertyChangeListen
         {
             return;
         }
-        ClickManager cm = ClickManager.getInstance();
+        PlaybackSettings cm = PlaybackSettings.getInstance();
         cm.setClickPrecountEnabled(b);
         setBooleanState(b);  // Notify action listeners
     }
@@ -173,13 +175,13 @@ public class Precount extends BooleanStateAction implements PropertyChangeListen
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
-        ClickManager cm = ClickManager.getInstance();
+        PlaybackSettings cm = PlaybackSettings.getInstance();
         if (evt.getSource() == cm)
         {
-            if (evt.getPropertyName().equals(ClickManager.PROP_CLICK_PRECOUNT_ENABLED))
+            if (evt.getPropertyName().equals(PlaybackSettings.PROP_CLICK_PRECOUNT_ENABLED))
             {
                 setBooleanState((boolean) evt.getNewValue());
-            } else if (evt.getPropertyName().equals(ClickManager.PROP_CLICK_PRECOUNT_MODE))
+            } else if (evt.getPropertyName().equals(PlaybackSettings.PROP_CLICK_PRECOUNT_MODE))
             {
                 updateUI(cm.getClickPrecountMode());
             }
@@ -220,7 +222,7 @@ public class Precount extends BooleanStateAction implements PropertyChangeListen
         currentSongChanged();
     }
 
-    private void updateUI(ClickManager.PrecountMode mode)
+    private void updateUI(PlaybackSettings.PrecountMode mode)
     {
         switch (mode)
         {

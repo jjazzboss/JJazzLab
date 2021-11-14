@@ -37,7 +37,7 @@ public class JumpToEnd extends AbstractAction
         CL_Editor editor = CL_EditorTopComponent.getActive().getCL_Editor();
         CL_SelectionUtilities selection = new CL_SelectionUtilities(editor.getLookup());
         selection.unselectAll(editor);
-        int lastBarIndex = editor.getModel().getSize() - 1;
+        int lastBarIndex = editor.getModel().getSizeInBars() - 1;
         editor.selectBars(lastBarIndex, lastBarIndex, true);
         editor.setFocusOnBar(lastBarIndex);
         editor.makeBarVisible(lastBarIndex);

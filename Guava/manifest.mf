@@ -1,0 +1,6 @@
+Manifest-Version: 1.0
+AutoUpdate-Show-In-Client: true
+OpenIDE-Module: org.jjazz.guava
+OpenIDE-Module-Localizing-Bundle: org/jjazz/guava/Bundle.properties
+OpenIDE-Module-Specification-Version: 1.0
+

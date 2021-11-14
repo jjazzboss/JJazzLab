@@ -11,7 +11,8 @@
         <javadoc destdir="${suite.build.dir}/javadoc/" useexternalfile="yes" access="public" encoding="UTF-8" charset="UTF-8">
             <sourcefiles>
                 <fileset dir="${basedir}">
-                    <include name="**/src/**/*.java" />
+                    <include name="**/src/**/api/**/*.java" />
+                    <include name="**/src/**/spi/**/*.java" />
                     <exclude name="**/package-info.java" />     <!-- special file with no class defined -->
                 </fileset>
             </sourcefiles>         

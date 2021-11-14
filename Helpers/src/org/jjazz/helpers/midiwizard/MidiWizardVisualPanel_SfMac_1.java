@@ -28,8 +28,8 @@ import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import org.jjazz.ui.utilities.Utilities;
-import org.jjazz.util.ResUtil;
+import org.jjazz.ui.utilities.api.Utilities;
+import org.jjazz.util.api.ResUtil;
 import org.openide.windows.WindowManager;
 
 public final class MidiWizardVisualPanel_SfMac_1 extends JPanel
@@ -73,7 +73,7 @@ public final class MidiWizardVisualPanel_SfMac_1 extends JPanel
     {
 
         buttonGroup1 = new javax.swing.ButtonGroup();
-        ta_notUserOnlyToGetFont = new org.jjazz.ui.utilities.WizardTextArea();
+        ta_notUserOnlyToGetFont = new org.jjazz.ui.utilities.api.WizardTextArea();
         jScrollPane2 = new javax.swing.JScrollPane();
         editorPane = new javax.swing.JEditorPane();
         editorPane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE); // To make setFont work
@@ -162,7 +162,7 @@ public final class MidiWizardVisualPanel_SfMac_1 extends JPanel
     {//GEN-HEADEREND:event_editorPaneHyperlinkUpdate
         if (evt.getEventType() == HyperlinkEvent.EventType.ACTIVATED)
         {
-            org.jjazz.util.Utilities.openInBrowser(evt.getURL(), false);
+            org.jjazz.util.api.Utilities.openInBrowser(evt.getURL(), false);
         }
     }//GEN-LAST:event_editorPaneHyperlinkUpdate
 
@@ -199,7 +199,7 @@ public final class MidiWizardVisualPanel_SfMac_1 extends JPanel
     private javax.swing.JEditorPane editorPane;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JScrollPane jScrollPane2;
-    private org.jjazz.ui.utilities.WizardTextArea ta_notUserOnlyToGetFont;
+    private org.jjazz.ui.utilities.api.WizardTextArea ta_notUserOnlyToGetFont;
     private javax.swing.JTextField tf_soundFont;
     // End of variables declaration//GEN-END:variables
 }

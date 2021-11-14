@@ -33,8 +33,8 @@ import java.text.AttributedString;
 import java.util.Objects;
 import java.util.logging.Logger;
 import javax.swing.Timer;
-import org.jjazz.harmony.ChordSymbol;
-import org.jjazz.harmony.ChordTypeDatabase;
+import org.jjazz.harmony.api.ChordSymbol;
+import org.jjazz.harmony.api.ChordTypeDatabase;
 import org.jjazz.leadsheet.chordleadsheet.api.item.AltDataFilter;
 import org.jjazz.leadsheet.chordleadsheet.api.item.AltExtChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
@@ -47,8 +47,8 @@ import org.jjazz.ui.itemrenderer.api.IR_Copiable;
 import org.jjazz.ui.itemrenderer.api.IR_Type;
 import org.jjazz.ui.itemrenderer.api.ItemRenderer;
 import org.jjazz.ui.itemrenderer.api.ItemRendererSettings;
-import org.jjazz.ui.utilities.TextLayoutUtils;
-import org.jjazz.util.ResUtil;
+import org.jjazz.ui.utilities.api.TextLayoutUtils;
+import org.jjazz.util.api.ResUtil;
 
 /**
  * An ItemRenderer for ChordSymbols.

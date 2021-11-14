@@ -22,62 +22,17 @@
  */
 package org.jjazz.rhythmmusicgeneration.spi;
 
-import org.jjazz.rhythmmusicgeneration.MusicGenerationContext;
-import java.util.HashMap;
+import org.jjazz.songcontext.api.SongContext;
+import java.util.Map;
+import org.jjazz.phrase.api.Phrase;
 import org.jjazz.rhythm.api.MusicGenerationException;
-import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
-import org.jjazz.rhythmmusicgeneration.Phrase;
 
 /**
- * A music generator for a given rhythm.
+ * Define the music generation capability of a Rhythm.
  */
 public interface MusicGenerator
 {
-
-    /**
-     * Post-processor of Phrases returned by generateMusic().
-     */
-    public interface PostProcessor
-    {
-
-        /**
-         * If several PostProcessor instances exist, priority is used to set the order of execution.
-         *
-         * @param context
-         * @return 0 is highest priority, Integer.MAX is lowest priority
-         */
-        int getPriority(MusicGenerationContext context);
-
-        /**
-         * Identifier of the PostProcessor.
-         *
-         * @return
-         */
-        String getId();
-
-        /**
-         * Description of the PostProcessor.
-         *
-         * @return
-         */
-        String getDescription();
-
-        /**
-         * Apply some post-processing to the specified phrases.
-         *
-         * @param context
-         * @param mapRvPhrase
-         * @return True if some changes have been done.
-         * @throws MusicGenerationException
-         */
-        boolean postProcess(MusicGenerationContext context, HashMap<RhythmVoice, Phrase> mapRvPhrase) throws MusicGenerationException;
-    }
-
-    /**
-     * @return The Rhythm for which we generate music.
-     */
-    Rhythm getRhythm();
 
     /**
      * Generate the note Phrases which correspond to a musical accompaniment for a given rhythm.
@@ -87,21 +42,23 @@ public interface MusicGenerator
      * Notes must be generated for the context bars which use this generator's rhythm. For example, if context range is bars 3-4
      * with rhythm1 on bar3 and rhythm2 on bar4, then the rhythm1 generator must add notes for bar 3 only.
      * <p>
-     * The MidiMix from <code>context</code> is used to retrieve the Midi channel associated to each RhythmVoice. Use
+     * The MidiMix from <code>context</code> should be only used to retrieve the Midi channel associated to each RhythmVoice. Use
      * <code>MidiMix.getChannel(RhythmVoice)</code> for a standard <code>RhythmVoice</code>, and
      * <code>MidiMix.getChannel(RhythmVoiceDelegate.getSource())</code> for a <code>RhythmVoiceDelegate</code>.
      * <p>
      * If the context song contains several rhythms, the method must add notes ONLY for bars which use this MidiMusicGenerator's
      * rhythm.
      * <p>
-     * Note that some features are directly managed by the JJazzLab framework :<br>
-     * - Instrument selection and settings (Program changes, Midi controller messages such as bank select, volume, reverb,
-     * panoramic, etc.)
-     * <br>
+     * Note that the following features are directly managed by the JJazzLab framework (by postprocessing the output of generateMusic())
+     * :<br>
+     * - Midi Instrument selection and settings (Program changes, Midi controller messages such as bank select, volume, reverb,
+     * panoramic) <br>
      * - RP_SYS_Mute rhythm parameter handling (muting a specific track for a specific SongPart)<br>
+     * - RP_SYS_DrumsMix rhythm parameter handling (adjusting some drums track instruments velocity)<br>
+     * - RP_SYS_CustomPhrase rhythm parameter handling <br>
      * - Handling of the channel's specific velocity shift<br>
      * - Handling of the instrument's specific transposition<br>
-     * - Post-processing
+     * - Drums rerouting<br>
      *
      * @param context The information to be used for music generation
      * @return One Phrase per rhythm voice/channel.
@@ -110,5 +67,5 @@ public interface MusicGenerator
      * notifying the user of the error message associated to the exception.
      *
      */
-    HashMap<RhythmVoice, Phrase> generateMusic(MusicGenerationContext context) throws MusicGenerationException;
+    Map<RhythmVoice, Phrase> generateMusic(SongContext context) throws MusicGenerationException;
 }

@@ -22,12 +22,13 @@
  */
 package org.jjazz.ui.spteditor;
 
+import java.awt.BorderLayout;
+import java.awt.Component;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
-import javax.swing.JComponent;
 import javax.swing.JList;
 import javax.swing.JScrollPane;
 import javax.swing.ListCellRenderer;
@@ -35,20 +36,20 @@ import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import org.jjazz.rhythm.parameters.RP_StringSet;
-import org.jjazz.rhythm.parameters.RhythmParameter;
+import org.jjazz.rhythm.api.RP_StringSet;
 import org.jjazz.ui.spteditor.api.RpEditor;
 import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.ui.spteditor.spi.RpEditorComponent;
 
 /**
  * A RpEditor using a JList for RP_StringSet parameters.
  * <p>
  */
-public class RpEditorList extends RpEditor implements ListSelectionListener
+public class RpEditorList extends RpEditorComponent<Set<String>> implements ListSelectionListener
 {
-
-    private final JScrollPane scrollPane;
-    private final JList<String> list_rpValue;
+    
+    JScrollPane scrollPane;
+    JList<String> list_rpValue;
     private final List<String> possibleValues = new ArrayList<>();
     private static final Logger LOGGER = Logger.getLogger(RpEditorList.class.getSimpleName());
 
@@ -59,96 +60,68 @@ public class RpEditorList extends RpEditor implements ListSelectionListener
      * @param rp
      * @param renderer Can be null
      */
-    public RpEditorList(SongPart spt, RhythmParameter<?> rp, ListCellRenderer<? super String> renderer)
+    public RpEditorList(SongPart spt, RP_StringSet rp, ListCellRenderer<? super String> renderer)
     {
         super(spt, rp);
 
-        if (!(rp instanceof RP_StringSet))
-        {
-            throw new IllegalArgumentException("spt=" + spt + " rp=" + rp);   //NOI18N
-        }
-
         // Prepare our editor component
         list_rpValue = new JList<>();
+        list_rpValue.addListSelectionListener(this);
         if (renderer != null)
         {
             list_rpValue.setCellRenderer(renderer);
         }
-
         list_rpValue.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-        RP_StringSet rpss = (RP_StringSet) rp;
-        possibleValues.addAll(rpss.getPossibleValues().get(0));
+        possibleValues.addAll(rp.getPossibleValues().get(0));   // see special return value of RP_StringSet.getPossibleValues() 
         list_rpValue.setListData(possibleValues.toArray(new String[0]));
         list_rpValue.setVisibleRowCount(possibleValues.size());
-        list_rpValue.setSelectedValue(spt.getRPValue(rpss), true);
+        list_rpValue.setSelectedValue(spt.getRPValue(rp), true);
 
+
+        // Add it
+        setLayout(new BorderLayout());
         scrollPane = new JScrollPane(list_rpValue);
-        setEditor(scrollPane);
-        list_rpValue.addListSelectionListener(this);
-    }
-
-    @Override
-    protected JComponent getEditor()
-    {
-        return scrollPane;
+        add(scrollPane, BorderLayout.CENTER);
     }
 
     /**
-     * Update the value in the editor.
+     * Overridden because we need to reach the JList in the JScrollPane.
      *
-     * @param value
-     * @param firePropChangeEvent If false don't fire a change event.
+     * @param b
      */
     @Override
-    public void setRpValue(Object value, boolean firePropChangeEvent)
+    public void setEnabled(boolean b)
     {
-        if (!(value instanceof Set<?>))
+        scrollPane.setEnabled(b);
+        list_rpValue.setEnabled(b);
+    }
+    
+    @Override
+    public void updateEditorValue(Set<String> value)
+    {
+        if (value != null && !value.equals(getEditorValue()))
         {
-            throw new IllegalArgumentException("value=" + value);   //NOI18N
-        }
-        if (value != null && !value.equals(getRpValue()))
-        {
-            if (!firePropChangeEvent)
-            {
-                list_rpValue.removeListSelectionListener(this);
-            }
-            @SuppressWarnings("unchecked")
-            Set<String> values = (Set<String>) value;
+            list_rpValue.removeListSelectionListener(this);
             list_rpValue.clearSelection();
-            int[] indices = new int[values.size()];
-            int i = 0;
-            for (String v : values)
-            {
-                indices[i] = possibleValues.indexOf(v);
-                i++;
-            }
+            int[] indices = value.stream().mapToInt(v -> possibleValues.indexOf(v)).toArray();
             list_rpValue.setSelectedIndices(indices);
-            if (!firePropChangeEvent)
-            {
-                list_rpValue.addListSelectionListener(this);
-            }
+            list_rpValue.addListSelectionListener(this);
         }
     }
-
+    
     @Override
-    protected void showMultiValueMode(boolean b)
+    public void showMultiValueMode(boolean b)
     {
-        showMultiModeUsingFont(isMultiValueMode(), list_rpValue);
+        RpEditor.showMultiModeUsingFont(b, list_rpValue);
     }
-
+    
     @Override
-    public Object getRpValue()
+    public Set<String> getEditorValue()
     {
         HashSet<String> set = new HashSet<>();
-        List<String> selValues = list_rpValue.getSelectedValuesList();
+        var selValues = list_rpValue.getSelectedValuesList();
         set.addAll(selValues);
         return set;
-    }
-
-    @Override
-    public void cleanup()
-    {
-        list_rpValue.removeListSelectionListener(this);
     }
 
     // -----------------------------------------------------------------------------
@@ -159,8 +132,7 @@ public class RpEditorList extends RpEditor implements ListSelectionListener
     {
         if (!e.getValueIsAdjusting())
         {
-            Object newValue = getRpValue();
-            firePropertyChange(PROP_RPVALUE, null, newValue);
+            firePropertyChange(RpEditor.PROP_RP_VALUE, null, getEditorValue());
         }
     }
 }

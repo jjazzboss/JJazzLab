@@ -28,9 +28,9 @@ import java.util.logging.Logger;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongUtils;
-import org.jjazz.undomanager.JJazzUndoManager;
-import org.jjazz.undomanager.JJazzUndoManagerFinder;
-import org.jjazz.util.ResUtil;
+import org.jjazz.undomanager.api.JJazzUndoManager;
+import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
+import org.jjazz.util.api.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
@@ -45,7 +45,7 @@ import org.openide.awt.ActionRegistration;
 @ActionRegistration(displayName = "#CTL_HalfLeadsheet", lazy = true)
 @ActionReferences(
         {
-            @ActionReference(path = "Menu/Tools", position = 110)
+            @ActionReference(path = "Menu/Edit", position = 2100, separatorBefore=2099)
         })
 public class HalfLeadsheet implements ActionListener
 {

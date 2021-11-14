@@ -31,32 +31,35 @@ import java.beans.PropertyChangeListener;
 import java.util.logging.Logger;
 import javax.swing.Icon;
 import javax.swing.JTextField;
-import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
-import org.jjazz.midi.synths.StdSynth;
-import org.jjazz.midi.Instrument;
-import org.jjazz.midi.MidiConst;
-import org.jjazz.musiccontrol.MusicController;
-import org.jjazz.musiccontrol.PlaybackListener;
-import org.jjazz.ui.flatcomponents.FlatIntegerKnob;
-import org.jjazz.ui.flatcomponents.FlatIntegerVerticalSlider;
-import org.jjazz.ui.flatcomponents.FlatTextEditDialog;
+import javax.swing.SwingUtilities;
+import javax.swing.TransferHandler;
+import org.jjazz.midi.api.synths.StdSynth;
+import org.jjazz.midi.api.Instrument;
+import org.jjazz.midi.api.MidiConst;
+import org.jjazz.musiccontrol.api.MusicController;
+import org.jjazz.musiccontrol.api.PlaybackListener;
+import org.jjazz.musiccontrol.api.PlaybackListenerAdapter;
+import org.jjazz.rhythm.api.RhythmVoice;
+import org.jjazz.ui.flatcomponents.api.FlatIntegerKnob;
+import org.jjazz.ui.flatcomponents.api.FlatIntegerVerticalSlider;
+import org.jjazz.ui.flatcomponents.api.FlatTextEditDialog;
 import org.jjazz.ui.mixconsole.api.MixConsoleSettings;
-import org.jjazz.uisettings.GeneralUISettings;
-import org.jjazz.util.Utilities;
+import org.jjazz.uisettings.api.GeneralUISettings;
+import org.jjazz.util.api.Utilities;
 
 /**
  * Display a MixChannel.
  */
-public class MixChannelPanel extends javax.swing.JPanel implements PropertyChangeListener, PlaybackListener
+public class MixChannelPanel extends javax.swing.JPanel implements PropertyChangeListener
 {
 
-    private static FlatTextEditDialog TEXT_EDIT_DIALOG;
     private MixChannelPanelModel model;
     private MixChannelPanelController controller;
     private MixConsoleSettings settings;
     private Color channelColor;
     private boolean selected;
-    private Font FONT = GeneralUISettings.getInstance().getStdCondensedFont();
+    private final PlaybackListener playbackListener;
+    private final Font FONT = GeneralUISettings.getInstance().getStdCondensedFont();
     private static final Logger LOGGER = Logger.getLogger(MixChannelPanel.class.getSimpleName());
 
     /**
@@ -66,6 +69,7 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
     public MixChannelPanel()
     {
         model = new BaseMixChannelPanelModel();
+        playbackListener = null;
     }
 
     public MixChannelPanel(final MixChannelPanelModel model, final MixChannelPanelController controller, MixConsoleSettings settings)
@@ -78,22 +82,37 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         this.controller = controller;
         this.settings = settings;
 
+
         this.settings.addPropertyChangeListener(this);
         this.model.addPropertyChangeListener(this);
 
-        MusicController.getInstance().addPlaybackListener(this);
+
+        playbackListener = new PlaybackListenerAdapter()
+        {
+            @Override
+            public void midiActivity(long tick, int channel)
+            {
+                if (model.getChannelId() == channel)
+                {
+                    fled_midiActivity.showActivity();
+                }
+            }
+        };
+        MusicController.getInstance().addPlaybackListener(playbackListener);
+
 
         initComponents();
 
-        this.fbtn_mute.setEnabled(!model.isUserChannel());
-        this.fbtn_solo.setEnabled(!model.isUserChannel());
+
+        knob_panoramic.addPropertyChangeListener(this);
+        knob_reverb.addPropertyChangeListener(this);
+        knob_chorus.addPropertyChangeListener(this);
+
         this.lbl_Icon.setText(null);
 
         // Listen to UI changes
         this.fslider_volume.addPropertyChangeListener(this);
-        this.knob_chorus.addPropertyChangeListener(this);
-        this.knob_panoramic.addPropertyChangeListener(this);
-        this.knob_reverb.addPropertyChangeListener(this);
+
 
         refreshUI();
     }
@@ -105,7 +124,7 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
 
     public void cleanup()
     {
-        MusicController.getInstance().removePlaybackListener(this);
+        MusicController.getInstance().removePlaybackListener(playbackListener);
         model.removePropertyChangeListener(this);
         settings.removePropertyChangeListener(this);
         model.cleanup();
@@ -115,8 +134,10 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
     public void setChannelColor(Color c)
     {
         channelColor = c;
-        lbl_name.setForeground(c);
-        fbtn_channelId.setForeground(c);
+        knob_panoramic.setValueLineColor(c);
+        knob_reverb.setValueLineColor(c);
+        knob_chorus.setValueLineColor(c);
+        fslider_volume.setValueLineColor(c);
     }
 
     public Color getChannelColor()
@@ -167,30 +188,6 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         return selected;
     }
 
-    // ======================================================================
-    // Playbackistener interface
-    // ======================================================================  
-    @Override
-    public void beatChanged(Position oldPos, Position newPos)
-    {
-        // Nothing
-    }
-
-    @Override
-    public void barChanged(int oldBar, int newBar)
-    {
-        // Nothing
-    }
-
-    @Override
-    public void midiActivity(int channel, long tick)
-    {
-        if (model.getChannelId() == channel)
-        {
-            fled_midiActivity.showActivity();
-        }
-    }
-
     // ----------------------------------------------------------------------------
     // PropertyChangeListener interface
     // ----------------------------------------------------------------------------
@@ -198,16 +195,34 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
     public void propertyChange(PropertyChangeEvent evt)
     {
         // UI changed, update model
-        if (evt.getSource() == this.knob_chorus && evt.getPropertyName() == FlatIntegerKnob.PROP_VALUE)
+        if (evt.getSource() == this.knob_chorus)
         {
-            model.setChorus(knob_chorus.getValue());
-        } else if (evt.getSource() == this.knob_reverb && evt.getPropertyName() == FlatIntegerKnob.PROP_VALUE)
+            if (evt.getPropertyName().equals(FlatIntegerKnob.PROP_VALUE))
+            {
+                model.setChorus(knob_chorus.getValue());
+            } else if ("enabled".equals(evt.getPropertyName()))
+            {
+                lbl_cho.setEnabled(knob_chorus.isEnabled());
+            }
+        } else if (evt.getSource() == this.knob_reverb)
         {
-            model.setReverb(knob_reverb.getValue());
-        } else if (evt.getSource() == this.knob_panoramic && evt.getPropertyName() == FlatIntegerKnob.PROP_VALUE)
+            if (evt.getPropertyName().equals(FlatIntegerKnob.PROP_VALUE))
+            {
+                model.setReverb(knob_reverb.getValue());
+            } else if ("enabled".equals(evt.getPropertyName()))
+            {
+                lbl_rev.setEnabled(knob_reverb.isEnabled());
+            }
+        } else if (evt.getSource() == this.knob_panoramic)
         {
-            model.setPanoramic(knob_panoramic.getValue());
-        } else if (evt.getSource() == this.fslider_volume && evt.getPropertyName() == FlatIntegerVerticalSlider.PROP_VALUE)
+            if (evt.getPropertyName().equals(FlatIntegerKnob.PROP_VALUE))
+            {
+                model.setPanoramic(knob_panoramic.getValue());
+            } else if ("enabled".equals(evt.getPropertyName()))
+            {
+                lbl_pan.setEnabled(knob_panoramic.isEnabled());
+            }
+        } else if (evt.getSource() == this.fslider_volume && evt.getPropertyName().equals(FlatIntegerVerticalSlider.PROP_VALUE))
         {
             int oldValue = (int) evt.getOldValue();
             int newValue = (int) evt.getNewValue();
@@ -266,12 +281,16 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
 
 
         // Colors
-        Color c = settings.getMixChannelBackgroundColor();
-        roundedPanel.setBackground(c);
-        this.knob_chorus.setColorKnobFill(c);
-        this.knob_panoramic.setColorKnobFill(c);
-        this.knob_reverb.setColorKnobFill(c);
-        this.fslider_volume.setColorKnobFill(c);
+        roundedPanel.setBackground(settings.getMixChannelBackgroundColor());
+
+    }
+
+    private void startDragOut(MouseEvent evt)
+    {
+        if (SwingUtilities.isLeftMouseButton(evt))
+        {
+            getTransferHandler().exportAsDrag(this, evt, TransferHandler.COPY);
+        }
     }
 
     /**
@@ -283,51 +302,62 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
     private void initComponents()
     {
 
-        roundedPanel = new org.jjazz.ui.flatcomponents.RoundedPanel();
+        roundedPanel = new org.jjazz.ui.flatcomponents.api.RoundedPanel();
         pnl_led_close = new javax.swing.JPanel();
-        fled_midiActivity = new org.jjazz.ui.flatcomponents.FlatLedIndicator();
-        filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(2, 0), new java.awt.Dimension(2, 0), new java.awt.Dimension(3, 32767));
-        fbtn_Settings = new org.jjazz.ui.flatcomponents.FlatButton();
+        fled_midiActivity = new org.jjazz.ui.flatcomponents.api.FlatLedIndicator();
+        filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(1, 0), new java.awt.Dimension(1, 0), new java.awt.Dimension(1, 32767));
+        fbtn_Settings = new org.jjazz.ui.flatcomponents.api.FlatButton();
         pnl_mute = new javax.swing.JPanel();
-        fbtn_mute = new org.jjazz.ui.flatcomponents.FlatToggleButton();
+        fbtn_mute = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
         pnl_solo = new javax.swing.JPanel();
-        fbtn_solo = new org.jjazz.ui.flatcomponents.FlatToggleButton();
-        pnl_pan = new javax.swing.JPanel();
-        knob_panoramic = new org.jjazz.ui.mixconsole.PanoramicKnob();
-        pnl_rev = new javax.swing.JPanel();
-        knob_reverb = new org.jjazz.ui.flatcomponents.FlatIntegerKnob();
-        pnl_cho = new javax.swing.JPanel();
-        knob_chorus = new org.jjazz.ui.flatcomponents.FlatIntegerKnob();
+        fbtn_solo = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
         pnl_inst_volume = new javax.swing.JPanel();
-        fslider_volume = new org.jjazz.ui.flatcomponents.FlatIntegerVerticalSlider();
+        fslider_volume = new org.jjazz.ui.flatcomponents.api.FlatIntegerVerticalSlider();
         fbtn_Instrument = new org.jjazz.ui.mixconsole.VInstrumentButton();
         pnl_icon = new javax.swing.JPanel();
         lbl_Icon = new javax.swing.JLabel();
         pnl_name = new javax.swing.JPanel();
         lbl_name = new javax.swing.JLabel();
         pnl_channelId = new javax.swing.JPanel();
-        fbtn_channelId = new org.jjazz.ui.flatcomponents.FlatButton();
+        fbtn_channelId = new org.jjazz.ui.flatcomponents.api.FlatButton();
+        knob_panoramic = new org.jjazz.ui.flatcomponents.api.FlatIntegerKnob();
+        knob_chorus = new org.jjazz.ui.flatcomponents.api.FlatIntegerKnob();
+        knob_reverb = new org.jjazz.ui.flatcomponents.api.FlatIntegerKnob();
+        lbl_pan = new javax.swing.JLabel();
+        lbl_rev = new javax.swing.JLabel();
+        lbl_cho = new javax.swing.JLabel();
 
+        setBackground(new java.awt.Color(26, 26, 26));
         setMinimumSize(new java.awt.Dimension(10, 53));
         setOpaque(false);
+        addMouseMotionListener(new java.awt.event.MouseMotionAdapter()
+        {
+            public void mouseDragged(java.awt.event.MouseEvent evt)
+            {
+                formMouseDragged(evt);
+            }
+        });
 
+        roundedPanel.setBackground(new java.awt.Color(46, 46, 46));
         roundedPanel.setArcDiameter(20);
         roundedPanel.setInheritsPopupMenu(true);
+        roundedPanel.setInsetsThickness(1);
         roundedPanel.setMinimumSize(new java.awt.Dimension(20, 53));
         roundedPanel.setOpaque(true);
-        roundedPanel.setThickness(1);
 
         pnl_led_close.setOpaque(false);
         java.awt.FlowLayout flowLayout1 = new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 0, 0);
         flowLayout1.setAlignOnBaseline(true);
         pnl_led_close.setLayout(flowLayout1);
 
-        fled_midiActivity.setForeground(new java.awt.Color(153, 153, 153));
+        fled_midiActivity.setAlphaStepActivity(150);
+        fled_midiActivity.setColorMax(new java.awt.Color(255, 67, 16));
+        fled_midiActivity.setColorMin(new java.awt.Color(70, 70, 70));
         fled_midiActivity.setDiameter(8);
-        fled_midiActivity.setLuminanceStepEventReceived(-35);
         pnl_led_close.add(fled_midiActivity);
         pnl_led_close.add(filler1);
 
+        fbtn_Settings.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
         fbtn_Settings.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         fbtn_Settings.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/mixconsole/resources/Settings11x11.png"))); // NOI18N
         fbtn_Settings.setToolTipText(org.openide.util.NbBundle.getMessage(MixChannelPanel.class, "MixChannelPanel.fbtn_Settings.toolTipText")); // NOI18N
@@ -340,9 +370,15 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         });
 
         pnl_mute.setOpaque(false);
+        pnl_mute.addMouseMotionListener(new java.awt.event.MouseMotionAdapter()
+        {
+            public void mouseDragged(java.awt.event.MouseEvent evt)
+            {
+                pnl_muteMouseDragged(evt);
+            }
+        });
         pnl_mute.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 0, 0));
 
-        fbtn_mute.setToolTipText(org.openide.util.NbBundle.getMessage(MixChannelPanel.class, "MixChannelPanel.fbtn_mute.toolTipText")); // NOI18N
         fbtn_mute.setAlignmentX(0.5F);
         fbtn_mute.setDisabledIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/mixconsole/resources/MuteDisabled_Icon-21x21.png"))); // NOI18N
         fbtn_mute.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/mixconsole/resources/MuteOn_Icon-21x21.png"))); // NOI18N
@@ -357,10 +393,16 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         pnl_mute.add(fbtn_mute);
 
         pnl_solo.setOpaque(false);
+        pnl_solo.addMouseMotionListener(new java.awt.event.MouseMotionAdapter()
+        {
+            public void mouseDragged(java.awt.event.MouseEvent evt)
+            {
+                pnl_soloMouseDragged(evt);
+            }
+        });
         pnl_solo.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 0, 0));
 
         fbtn_solo.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        fbtn_solo.setToolTipText(org.openide.util.NbBundle.getMessage(MixChannelPanel.class, "MixChannelPanel.fbtn_solo.toolTipText")); // NOI18N
         fbtn_solo.setAlignmentX(0.5F);
         fbtn_solo.setDisabledIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/mixconsole/resources/SoloDisabled_Icon-21x21.png"))); // NOI18N
         fbtn_solo.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/mixconsole/resources/SoloOn_Icon-21x21.png"))); // NOI18N
@@ -374,46 +416,16 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         });
         pnl_solo.add(fbtn_solo);
 
-        pnl_pan.setOpaque(false);
-        pnl_pan.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 0, 0));
-
-        knob_panoramic.setFont(FONT);
-        knob_panoramic.setInheritsPopupMenu(true);
-        knob_panoramic.setKnobDiameter(20);
-        knob_panoramic.setLabel("pan"); // NOI18N
-        knob_panoramic.setTooltipLabel(org.openide.util.NbBundle.getMessage(MixChannelPanel.class, "MixChannelPanel.knob_panoramic.tooltipLabel")); // NOI18N
-        pnl_pan.add(knob_panoramic);
-
-        pnl_rev.setOpaque(false);
-        pnl_rev.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 0, 0));
-
-        knob_reverb.setFont(knob_panoramic.getFont());
-        knob_reverb.setInheritsPopupMenu(true);
-        knob_reverb.setKnobDiameter(20);
-        knob_reverb.setLabel("rev"); // NOI18N
-        knob_reverb.setTooltipLabel(org.openide.util.NbBundle.getMessage(MixChannelPanel.class, "MixChannelPanel.knob_reverb.tooltipLabel")); // NOI18N
-        pnl_rev.add(knob_reverb);
-
-        pnl_cho.setOpaque(false);
-        pnl_cho.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 0, 0));
-
-        knob_chorus.setFont(knob_panoramic.getFont());
-        knob_chorus.setInheritsPopupMenu(true);
-        knob_chorus.setKnobDiameter(20);
-        knob_chorus.setLabel("cho"); // NOI18N
-        knob_chorus.setTooltipLabel(org.openide.util.NbBundle.getMessage(MixChannelPanel.class, "MixChannelPanel.knob_chorus.tooltipLabel")); // NOI18N
-        pnl_cho.add(knob_chorus);
-
         pnl_inst_volume.setOpaque(false);
-        pnl_inst_volume.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 3, 0));
+        pnl_inst_volume.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 0, 0));
 
-        fslider_volume.setToolTipText(org.openide.util.NbBundle.getMessage(MixChannelPanel.class, "MixChannelPanel.fslider_volume.toolTipText")); // NOI18N
-        fslider_volume.setFaderWidth(6);
+        fslider_volume.setButtonColor(new java.awt.Color(208, 208, 208));
+        fslider_volume.setButtonHeight(20);
         fslider_volume.setInheritsPopupMenu(true);
-        fslider_volume.setKnobDiameter(14);
+        fslider_volume.setTooltipLabel(org.openide.util.NbBundle.getBundle(MixChannelPanel.class).getString("MixChannelPanel.fslider_volume.tooltipLabel")); // NOI18N
+        fslider_volume.setValueLineColor(knob_panoramic.getValueLineColor());
         pnl_inst_volume.add(fslider_volume);
 
-        fbtn_Instrument.setForeground(new java.awt.Color(0, 102, 102));
         fbtn_Instrument.setToolTipText(org.openide.util.NbBundle.getMessage(MixChannelPanel.class, "MixChannelPanel.fbtn_Instrument.toolTipText")); // NOI18N
         fbtn_Instrument.setVerticalAlignment(javax.swing.SwingConstants.BOTTOM);
         fbtn_Instrument.setAlignmentX(0.5F);
@@ -432,10 +444,16 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         pnl_icon.setOpaque(false);
         pnl_icon.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 0, 0));
 
-        lbl_Icon.setForeground(new java.awt.Color(0, 102, 102));
         lbl_Icon.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/mixconsole/api/resources/Drums-48x48.png"))); // NOI18N
         lbl_Icon.setAlignmentX(0.5F);
         lbl_Icon.setBorder(javax.swing.BorderFactory.createEmptyBorder(2, 0, 2, 0));
+        lbl_Icon.addMouseMotionListener(new java.awt.event.MouseMotionAdapter()
+        {
+            public void mouseDragged(java.awt.event.MouseEvent evt)
+            {
+                lbl_IconMouseDragged(evt);
+            }
+        });
         pnl_icon.add(lbl_Icon);
 
         pnl_name.setOpaque(false);
@@ -443,17 +461,24 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
 
         lbl_name.setBackground(new java.awt.Color(153, 255, 153));
         lbl_name.setFont(FONT);
-        lbl_name.setForeground(new java.awt.Color(0, 102, 102));
+        lbl_name.setForeground(fbtn_Instrument.getForeground());
         lbl_name.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         org.openide.awt.Mnemonics.setLocalizedText(lbl_name, "swing latin"); // NOI18N
         lbl_name.setAlignmentX(0.5F);
         lbl_name.setBorder(javax.swing.BorderFactory.createEmptyBorder(3, 0, 4, 0));
+        lbl_name.addMouseMotionListener(new java.awt.event.MouseMotionAdapter()
+        {
+            public void mouseDragged(java.awt.event.MouseEvent evt)
+            {
+                lbl_nameMouseDragged(evt);
+            }
+        });
         pnl_name.add(lbl_name);
 
         pnl_channelId.setOpaque(false);
         pnl_channelId.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 0, 0));
 
-        fbtn_channelId.setForeground(new java.awt.Color(0, 70, 70));
+        fbtn_channelId.setForeground(fbtn_Instrument.getForeground());
         fbtn_channelId.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         org.openide.awt.Mnemonics.setLocalizedText(fbtn_channelId, "12"); // NOI18N
         fbtn_channelId.setToolTipText(org.openide.util.NbBundle.getMessage(MixChannelPanel.class, "MixChannelPanel.fbtn_channelId.toolTipText")); // NOI18N
@@ -461,6 +486,13 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         fbtn_channelId.setFont(FONT);
         fbtn_channelId.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         fbtn_channelId.setName(""); // NOI18N
+        fbtn_channelId.addMouseMotionListener(new java.awt.event.MouseMotionAdapter()
+        {
+            public void mouseDragged(java.awt.event.MouseEvent evt)
+            {
+                fbtn_channelIdMouseDragged(evt);
+            }
+        });
         fbtn_channelId.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -469,6 +501,58 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
             }
         });
         pnl_channelId.add(fbtn_channelId);
+
+        knob_panoramic.setOpaque(false);
+        knob_panoramic.setPanoramicType(true);
+        knob_panoramic.setValueLineGap(3.0);
+        knob_panoramic.setValueLineThickness(2.0);
+
+        javax.swing.GroupLayout knob_panoramicLayout = new javax.swing.GroupLayout(knob_panoramic);
+        knob_panoramic.setLayout(knob_panoramicLayout);
+        knob_panoramicLayout.setHorizontalGroup(
+            knob_panoramicLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 0, Short.MAX_VALUE)
+        );
+        knob_panoramicLayout.setVerticalGroup(
+            knob_panoramicLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 31, Short.MAX_VALUE)
+        );
+
+        knob_chorus.setOpaque(false);
+        knob_chorus.setValueLineGap(3.0);
+        knob_chorus.setValueLineThickness(2.0);
+
+        javax.swing.GroupLayout knob_chorusLayout = new javax.swing.GroupLayout(knob_chorus);
+        knob_chorus.setLayout(knob_chorusLayout);
+        knob_chorusLayout.setHorizontalGroup(
+            knob_chorusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 0, Short.MAX_VALUE)
+        );
+        knob_chorusLayout.setVerticalGroup(
+            knob_chorusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 31, Short.MAX_VALUE)
+        );
+
+        knob_reverb.setKnobStartAngle(220.0);
+        knob_reverb.setOpaque(false);
+        knob_reverb.setValueLineGap(3.0);
+        knob_reverb.setValueLineThickness(2.0);
+        knob_reverb.setLayout(null);
+
+        lbl_pan.setFont(lbl_pan.getFont().deriveFont(lbl_pan.getFont().getSize()-2f));
+        lbl_pan.setForeground(fbtn_Instrument.getForeground());
+        lbl_pan.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_pan, org.openide.util.NbBundle.getBundle(MixChannelPanel.class).getString("MixChannelPanel.lbl_pan.text")); // NOI18N
+
+        lbl_rev.setFont(lbl_rev.getFont().deriveFont(lbl_rev.getFont().getSize()-2f));
+        lbl_rev.setForeground(fbtn_Instrument.getForeground());
+        lbl_rev.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_rev, org.openide.util.NbBundle.getBundle(MixChannelPanel.class).getString("MixChannelPanel.lbl_rev.text")); // NOI18N
+
+        lbl_cho.setFont(lbl_cho.getFont().deriveFont(lbl_cho.getFont().getSize()-2f));
+        lbl_cho.setForeground(fbtn_Instrument.getForeground());
+        lbl_cho.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_cho, org.openide.util.NbBundle.getBundle(MixChannelPanel.class).getString("MixChannelPanel.lbl_cho.text")); // NOI18N
 
         javax.swing.GroupLayout roundedPanelLayout = new javax.swing.GroupLayout(roundedPanel);
         roundedPanel.setLayout(roundedPanelLayout);
@@ -479,14 +563,17 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(pnl_led_close, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
             .addComponent(pnl_mute, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(pnl_solo, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(pnl_pan, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(pnl_rev, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(pnl_cho, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(pnl_inst_volume, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
             .addComponent(pnl_name, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addComponent(pnl_icon, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addComponent(pnl_channelId, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(knob_panoramic, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(pnl_solo, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(knob_reverb, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(knob_chorus, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(pnl_inst_volume, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(lbl_pan, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(lbl_rev, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(lbl_cho, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         roundedPanelLayout.setVerticalGroup(
             roundedPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -494,17 +581,23 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
                 .addGroup(roundedPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(pnl_led_close, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(fbtn_Settings, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGap(10, 10, 10)
                 .addComponent(pnl_mute, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, 0)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(pnl_solo, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(7, 7, 7)
-                .addComponent(pnl_pan, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(knob_panoramic, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, 0)
-                .addComponent(pnl_rev, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(lbl_pan)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(knob_reverb, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, 0)
-                .addComponent(pnl_cho, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(3, 3, 3)
+                .addComponent(lbl_rev)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(knob_chorus, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, 0)
+                .addComponent(lbl_cho)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(pnl_inst_volume, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(7, 7, 7)
                 .addComponent(pnl_icon, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -512,14 +605,14 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
                 .addComponent(pnl_name, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, 0)
                 .addComponent(pnl_channelId, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(3, 3, 3))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(roundedPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(roundedPanel, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -564,52 +657,75 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         {
             return;
         }
-        if (TEXT_EDIT_DIALOG == null)
-        {
-            TEXT_EDIT_DIALOG = FlatTextEditDialog.getInstance();
-            TEXT_EDIT_DIALOG.setForeground(fbtn_channelId.getForeground());
-            TEXT_EDIT_DIALOG.setBackground(Color.WHITE);
-            TEXT_EDIT_DIALOG.setFont(fbtn_channelId.getFont());
-            TEXT_EDIT_DIALOG.setHorizontalAlignment(JTextField.CENTER);
-            TEXT_EDIT_DIALOG.setColumns(2);
-        }
+        var dlg = FlatTextEditDialog.getInstance();
+        dlg.setTextNbColumns(2);
+        dlg.setTextHorizontalAlignment(JTextField.CENTER);
         String oldValue = this.fbtn_channelId.getText();
-        TEXT_EDIT_DIALOG.setText(oldValue);
-        TEXT_EDIT_DIALOG.pack();
-        TEXT_EDIT_DIALOG.setPositionCenter(fbtn_channelId);
-        TEXT_EDIT_DIALOG.setVisible(true);
-        String newValue = TEXT_EDIT_DIALOG.getText().trim();
-        if (TEXT_EDIT_DIALOG.isExitOk() && newValue.length() > 0 && !newValue.equals(oldValue))
+        dlg.setText(oldValue);
+        dlg.setPositionCenter(fbtn_channelId);
+        dlg.setVisible(true);
+        String newValue = dlg.getText().trim();
+        if (dlg.isExitOk() && newValue.length() > 0 && !newValue.equals(oldValue))
         {
             controller.editChannelId(newValue);
         }
     }//GEN-LAST:event_fbtn_channelIdActionPerformed
 
+    private void formMouseDragged(java.awt.event.MouseEvent evt)//GEN-FIRST:event_formMouseDragged
+    {//GEN-HEADEREND:event_formMouseDragged
+        startDragOut(evt);
+    }//GEN-LAST:event_formMouseDragged
+
+    private void pnl_muteMouseDragged(java.awt.event.MouseEvent evt)//GEN-FIRST:event_pnl_muteMouseDragged
+    {//GEN-HEADEREND:event_pnl_muteMouseDragged
+        startDragOut(evt);
+    }//GEN-LAST:event_pnl_muteMouseDragged
+
+    private void pnl_soloMouseDragged(java.awt.event.MouseEvent evt)//GEN-FIRST:event_pnl_soloMouseDragged
+    {//GEN-HEADEREND:event_pnl_soloMouseDragged
+        startDragOut(evt);
+    }//GEN-LAST:event_pnl_soloMouseDragged
+
+    private void lbl_IconMouseDragged(java.awt.event.MouseEvent evt)//GEN-FIRST:event_lbl_IconMouseDragged
+    {//GEN-HEADEREND:event_lbl_IconMouseDragged
+        startDragOut(evt);
+    }//GEN-LAST:event_lbl_IconMouseDragged
+
+    private void lbl_nameMouseDragged(java.awt.event.MouseEvent evt)//GEN-FIRST:event_lbl_nameMouseDragged
+    {//GEN-HEADEREND:event_lbl_nameMouseDragged
+        startDragOut(evt);
+    }//GEN-LAST:event_lbl_nameMouseDragged
+
+    private void fbtn_channelIdMouseDragged(java.awt.event.MouseEvent evt)//GEN-FIRST:event_fbtn_channelIdMouseDragged
+    {//GEN-HEADEREND:event_fbtn_channelIdMouseDragged
+        startDragOut(evt);
+    }//GEN-LAST:event_fbtn_channelIdMouseDragged
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private org.jjazz.ui.mixconsole.VInstrumentButton fbtn_Instrument;
-    private org.jjazz.ui.flatcomponents.FlatButton fbtn_Settings;
-    private org.jjazz.ui.flatcomponents.FlatButton fbtn_channelId;
-    private org.jjazz.ui.flatcomponents.FlatToggleButton fbtn_mute;
-    private org.jjazz.ui.flatcomponents.FlatToggleButton fbtn_solo;
+    private org.jjazz.ui.flatcomponents.api.FlatButton fbtn_Settings;
+    private org.jjazz.ui.flatcomponents.api.FlatButton fbtn_channelId;
+    private org.jjazz.ui.flatcomponents.api.FlatToggleButton fbtn_mute;
+    private org.jjazz.ui.flatcomponents.api.FlatToggleButton fbtn_solo;
     private javax.swing.Box.Filler filler1;
-    private org.jjazz.ui.flatcomponents.FlatLedIndicator fled_midiActivity;
-    private org.jjazz.ui.flatcomponents.FlatIntegerVerticalSlider fslider_volume;
-    private org.jjazz.ui.flatcomponents.FlatIntegerKnob knob_chorus;
-    private org.jjazz.ui.mixconsole.PanoramicKnob knob_panoramic;
-    private org.jjazz.ui.flatcomponents.FlatIntegerKnob knob_reverb;
+    private org.jjazz.ui.flatcomponents.api.FlatLedIndicator fled_midiActivity;
+    private org.jjazz.ui.flatcomponents.api.FlatIntegerVerticalSlider fslider_volume;
+    private org.jjazz.ui.flatcomponents.api.FlatIntegerKnob knob_chorus;
+    private org.jjazz.ui.flatcomponents.api.FlatIntegerKnob knob_panoramic;
+    private org.jjazz.ui.flatcomponents.api.FlatIntegerKnob knob_reverb;
     private javax.swing.JLabel lbl_Icon;
+    private javax.swing.JLabel lbl_cho;
     private javax.swing.JLabel lbl_name;
+    private javax.swing.JLabel lbl_pan;
+    private javax.swing.JLabel lbl_rev;
     private javax.swing.JPanel pnl_channelId;
-    private javax.swing.JPanel pnl_cho;
     private javax.swing.JPanel pnl_icon;
     private javax.swing.JPanel pnl_inst_volume;
     private javax.swing.JPanel pnl_led_close;
     private javax.swing.JPanel pnl_mute;
     private javax.swing.JPanel pnl_name;
-    private javax.swing.JPanel pnl_pan;
-    private javax.swing.JPanel pnl_rev;
     private javax.swing.JPanel pnl_solo;
-    private org.jjazz.ui.flatcomponents.RoundedPanel roundedPanel;
+    private org.jjazz.ui.flatcomponents.api.RoundedPanel roundedPanel;
     // End of variables declaration//GEN-END:variables
 
     private class BaseMixChannelPanelModel implements MixChannelPanelModel
@@ -784,10 +900,11 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         }
 
         @Override
-        public boolean isUserChannel()
+        public RhythmVoice getRhythmVoice()
         {
-            return false;
+            return null;
         }
+
 
     }
 

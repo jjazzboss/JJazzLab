@@ -31,12 +31,12 @@ import java.util.EnumSet;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.jjazz.harmony.ChordSymbol;
-import org.jjazz.harmony.ChordType;
-import org.jjazz.harmony.ChordTypeDatabase;
-import org.jjazz.harmony.Degree;
-import org.jjazz.harmony.Note;
-import org.jjazz.harmony.SymbolicDuration;
+import org.jjazz.harmony.api.ChordSymbol;
+import org.jjazz.harmony.api.ChordType;
+import org.jjazz.harmony.api.ChordTypeDatabase;
+import org.jjazz.harmony.api.Degree;
+import org.jjazz.harmony.api.Note;
+import org.jjazz.harmony.api.SymbolicDuration;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo.Feature;
 import org.openide.util.Exceptions;
 

@@ -27,8 +27,8 @@ import java.awt.datatransfer.Transferable;
 import java.beans.PropertyChangeListener;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.rhythm.api.Rhythm;
-import org.jjazz.rhythm.parameters.RhythmParameter;
-import org.jjazz.util.IntRange;
+import org.jjazz.rhythm.api.RhythmParameter;
+import org.jjazz.util.api.IntRange;
 
 /**
  * A song part defines how a rhythm is played for a number of bars starting at startBarIndex.
@@ -82,7 +82,7 @@ public interface SongPart extends Transferable
     public CLI_Section getParentSection();
 
     /**
-     * Get the value of a RhythmParameter.
+     * Get a copy of the RhythmParameter value.
      *
      * @param <T>
      * @param rp

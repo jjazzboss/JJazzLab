@@ -26,9 +26,9 @@ package org.jjazz.outputsynth.ui;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.stream.Collectors;
-import org.jjazz.outputsynth.OutputSynth;
-import org.jjazz.outputsynth.OutputSynthManager;
-import org.jjazz.util.Utilities;
+import org.jjazz.outputsynth.api.OutputSynth;
+import org.jjazz.outputsynth.api.OutputSynthManager;
+import org.jjazz.util.api.Utilities;
 import org.openide.awt.Actions;
 
 /**
@@ -97,9 +97,9 @@ public class OutputSynthToolbarPanel extends javax.swing.JPanel implements Prope
     {
 
         filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(5, 0), new java.awt.Dimension(5, 0), new java.awt.Dimension(5, 32767));
-        fbtn_playbackTransposition = new org.jjazz.ui.flatcomponents.FlatButton();
+        fbtn_playbackTransposition = new org.jjazz.ui.flatcomponents.api.FlatButton();
         filler3 = new javax.swing.Box.Filler(new java.awt.Dimension(5, 0), new java.awt.Dimension(5, 0), new java.awt.Dimension(5, 32767));
-        fbtn_editOutputSynth = new org.jjazz.ui.flatcomponents.FlatButton();
+        fbtn_editOutputSynth = new org.jjazz.ui.flatcomponents.api.FlatButton();
         filler2 = new javax.swing.Box.Filler(new java.awt.Dimension(2, 0), new java.awt.Dimension(2, 0), new java.awt.Dimension(2, 32767));
         pnl_labels = new javax.swing.JPanel();
         lbl_stdBanks = new javax.swing.JLabel();
@@ -107,8 +107,6 @@ public class OutputSynthToolbarPanel extends javax.swing.JPanel implements Prope
 
         setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.LINE_AXIS));
         add(filler1);
-
-        fbtn_playbackTransposition.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/outputsynth/ui/resources/Sax-OFF-24x24.png"))); // NOI18N
         add(fbtn_playbackTransposition);
         add(filler3);
 
@@ -134,8 +132,8 @@ public class OutputSynthToolbarPanel extends javax.swing.JPanel implements Prope
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private org.jjazz.ui.flatcomponents.FlatButton fbtn_editOutputSynth;
-    private org.jjazz.ui.flatcomponents.FlatButton fbtn_playbackTransposition;
+    private org.jjazz.ui.flatcomponents.api.FlatButton fbtn_editOutputSynth;
+    private org.jjazz.ui.flatcomponents.api.FlatButton fbtn_playbackTransposition;
     private javax.swing.Box.Filler filler1;
     private javax.swing.Box.Filler filler2;
     private javax.swing.Box.Filler filler3;

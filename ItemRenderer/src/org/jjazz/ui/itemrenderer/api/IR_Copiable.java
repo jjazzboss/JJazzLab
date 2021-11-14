@@ -27,7 +27,7 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
-import org.jjazz.ui.utilities.CrossShape;
+import org.jjazz.ui.utilities.api.CrossShape;
 
 /**
  * ItemRenderers which can handle the copy mode implement this interface.

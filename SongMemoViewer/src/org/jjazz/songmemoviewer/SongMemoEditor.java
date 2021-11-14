@@ -32,18 +32,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.JEditorPane;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.event.HyperlinkEvent;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.PlainDocument;
 import org.jjazz.song.api.Song;
 import org.jjazz.songmemoviewer.api.SongMemoEditorSettings;
-import org.jjazz.undomanager.JJazzUndoManager;
-import org.jjazz.util.ResUtil;
+import org.jjazz.undomanager.api.JJazzUndoManager;
+import org.jjazz.util.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.awt.UndoRedo;
@@ -87,7 +85,7 @@ public class SongMemoEditor extends javax.swing.JPanel implements PropertyChange
         initComponents();
 
 
-        org.jjazz.ui.utilities.Utilities.installPrintableAsciiKeyTrap(txt_notes);
+        org.jjazz.ui.utilities.api.Utilities.installPrintableAsciiKeyTrap(txt_notes);
 
 
         // UI Settings
@@ -110,8 +108,7 @@ public class SongMemoEditor extends javax.swing.JPanel implements PropertyChange
 
 
         // Disabled by default
-        setEditorEnabled(false);
-
+        setEditorEnabled(false);        
 
         songPresenceChanged(null);
     }
@@ -229,7 +226,7 @@ public class SongMemoEditor extends javax.swing.JPanel implements PropertyChange
     private void setEditorEnabled(boolean b)
     {
         txt_notes.setBackground(b ? settings.getBackgroundColor() : null);
-        org.jjazz.ui.utilities.Utilities.setRecursiveEnabled(b, this);
+        org.jjazz.ui.utilities.api.Utilities.setRecursiveEnabled(b, this);
     }
 
     private void resetModel()
@@ -332,7 +329,7 @@ public class SongMemoEditor extends javax.swing.JPanel implements PropertyChange
     {
 
         jScrollPane1 = new javax.swing.JScrollPane();
-        helpTextArea1 = new org.jjazz.ui.utilities.HelpTextArea();
+        helpTextArea1 = new org.jjazz.ui.utilities.api.HelpTextArea();
         lbl_songName = new javax.swing.JLabel();
         btn_insertLink = new javax.swing.JButton();
         jScrollPane3 = new javax.swing.JScrollPane();
@@ -430,8 +427,8 @@ public class SongMemoEditor extends javax.swing.JPanel implements PropertyChange
     private void btn_openLinksActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_openLinksActionPerformed
     {//GEN-HEADEREND:event_btn_openLinksActionPerformed
         // Open the memo links
-        List<URL> webLinks = org.jjazz.util.Utilities.extractHttpURLs(songModel.getComments());
-        List<File> fileLinks = org.jjazz.util.Utilities.extractFileURLsAsFiles(songModel.getComments());
+        List<URL> webLinks = org.jjazz.util.api.Utilities.extractHttpURLs(songModel.getComments());
+        List<File> fileLinks = org.jjazz.util.api.Utilities.extractFileURLsAsFiles(songModel.getComments());
         if (webLinks.isEmpty() && fileLinks.isEmpty())
         {
             String msg = ResUtil.getString(getClass(), "SongMemoEditor.ERR_NoLinksToOpen");
@@ -446,12 +443,12 @@ public class SongMemoEditor extends javax.swing.JPanel implements PropertyChange
             for (URL url : webLinks)
             {
                 LOGGER.info("btn_openLinksActionPerformed() songModel=" + songModel.getName() + " opening song memo internet link: " + url);
-                org.jjazz.util.Utilities.openInBrowser(url, true);         // No user notifying
+                org.jjazz.util.api.Utilities.openInBrowser(url, true);         // No user notifying
             }
             for (File file : fileLinks)
             {
                 LOGGER.info("btn_openLinksActionPerformed() songModel=" + songModel.getName() + " opening song memo file link: " + file);
-                org.jjazz.util.Utilities.openFile(file, true);              // No user notifying
+                org.jjazz.util.api.Utilities.openFile(file, true);              // No user notifying
             }
         };
 
@@ -463,7 +460,7 @@ public class SongMemoEditor extends javax.swing.JPanel implements PropertyChange
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_insertLink;
     private javax.swing.JButton btn_openLinks;
-    private org.jjazz.ui.utilities.HelpTextArea helpTextArea1;
+    private org.jjazz.ui.utilities.api.HelpTextArea helpTextArea1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JLabel lbl_songName;

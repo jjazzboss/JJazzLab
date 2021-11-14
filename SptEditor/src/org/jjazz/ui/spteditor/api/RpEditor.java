@@ -24,79 +24,101 @@ package org.jjazz.ui.spteditor.api;
 
 import java.awt.Color;
 import java.awt.Font;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.logging.Logger;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JLabel;
-import javax.swing.UIManager;
-import org.jjazz.rhythm.parameters.RhythmParameter;
+import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.ui.spteditor.spi.RpEditorComponent;
 
 /**
- * The base class for RpEditors.
+ * RpEditor combines a label with an editor component adapted to the type of RhythmParameter.<br>
  * <p>
- * Combine a label with an editor component adapted to the type of RhythmParameter.<br>
- * RpEditor must fire a PROP_RPVALUE change event when modified.<br>
- * Framework will update the editor value using setRpValue().
  */
-public abstract class RpEditor extends JPanel
+public final class RpEditor extends JPanel implements PropertyChangeListener
 {
-    
-    public static final Color MULTI_FOREGROUND_COLOR = new Color(121, 21, 42);      // Dark brown/red
 
     /**
      * This property change event must be fired each time value is modified by the editor.
      */
-    public static final String PROP_RPVALUE = "rpValue";   //NOI18N 
+    public static final String PROP_RP_VALUE = "rpValue";   //NOI18N     
+
+    public static final Color MULTI_FOREGROUND_COLOR = new Color(121, 21, 42);      // Dark brown/red
+
     private SongPart sptModel;
     private RhythmParameter<?> rpModel;
     private boolean isMultiValueMode = false;
+    private RpEditorComponent editorComponent;
     private static final Logger LOGGER = Logger.getLogger(RpEditor.class.getSimpleName());
-    
-    private RpEditor()
-    {
-        initComponents();
-    }
 
     /**
-     * Initialize the RpEditor for the specified RhythmParameter.
+     * Initialize the RpEditor for the specified RhythmParameter with the specified editor.
      * <p>
-     * Editor value must be set using setRpValue().
      *
      * @param spt
      * @param rp
+     * @param editor
      * @see setRpValue()
      */
-    protected RpEditor(SongPart spt, RhythmParameter<?> rp)
+    public RpEditor(SongPart spt, RhythmParameter<?> rp, RpEditorComponent editor)
     {
-        this();
+        if (spt == null || rp == null || editor == null)
+        {
+            throw new IllegalArgumentException("spt=" + spt + " rp=" + rp + " editor=" + editor);
+        }
+        sptModel = spt;
+        rpModel = rp;
+        editorComponent = editor;
+        editorComponent.addPropertyChangeListener(this);
+
+        // Prepare UI
+        initComponents();
+        pnl_placeHolder.remove(lbl_placeHolder);  // Used only to properly visualize design when using the Netbeans UI form designer!
+        pnl_placeHolder.add(editorComponent);
         if (sptModel != null)
         {
             setHighlighted(false);
         }
-        sptModel = spt;
-        rpModel = rp;
         lbl_rpName.setText(rpModel.getDisplayName().toLowerCase());
         lbl_rpName.setToolTipText(rpModel.getDescription());
     }
-    
+
+    public void cleanup()
+    {
+        editorComponent.cleanup();
+    }
+
+    public void updateEditorValue(Object value)
+    {
+        editorComponent.updateEditorValue(value);
+    }
+
+    public Object getEditorValue()
+    {
+        return editorComponent.getEditorValue();
+    }
+
     @Override
     public void setEnabled(boolean b)
     {
         super.setEnabled(b);
-        getEditor().setEnabled(b);
+        lbl_rpName.setEnabled(b);
+        editorComponent.setEnabled(b);
     }
-    
+
     public final SongPart getSptModel()
     {
         return sptModel;
     }
-    
+
     public final RhythmParameter<?> getRpModel()
     {
         return rpModel;
     }
-    
+
     public JLabel getRpNameLabel()
     {
         return lbl_rpName;
@@ -111,22 +133,6 @@ public abstract class RpEditor extends JPanel
     {
         pnl_rpName.setFixedPreferredWidth(w);
     }
-    
-    abstract protected JComponent getEditor();
-    
-    abstract public Object getRpValue();
-
-    /**
-     * Update the value in the editor.
-     *
-     * @param value
-     * @param firePropChangeEvent If false don't fire a change event.
-     */
-    abstract public void setRpValue(Object value, boolean firePropChangeEvent);
-    
-    abstract public void cleanup();
-    
-    abstract protected void showMultiValueMode(boolean b);
 
     /**
      * Change graphics to show that the displayed value correspond to the multi-value mode.
@@ -140,14 +146,14 @@ public abstract class RpEditor extends JPanel
             return;
         }
         isMultiValueMode = b;
-        showMultiValueMode(isMultiValueMode);
+        editorComponent.showMultiValueMode(isMultiValueMode);
     }
-    
+
     public boolean isMultiValueMode()
     {
         return isMultiValueMode;
     }
-    
+
     public void setHighlighted(boolean b)
     {
         String txt = lbl_rpName.getText();
@@ -161,17 +167,10 @@ public abstract class RpEditor extends JPanel
             lbl_rpName.setText(txt);
         }
     }
-    
+
     public boolean isHighlighted()
     {
         return lbl_rpName.getText().contains("</U></HTML>");
-    }
-    
-    protected final void setEditor(JComponent editor)
-    {
-        // Replace the placeHolder by this editor      
-        pnl_placeHolder.remove(lbl_placeHolder);
-        pnl_placeHolder.add(editor);
     }
 
     /**
@@ -186,13 +185,27 @@ public abstract class RpEditor extends JPanel
         if (!b)
         {
             f = f.deriveFont(Font.PLAIN);
-            jc.setForeground(UIManager.getColor("Textfield.foreground"));
         } else
         {
             f = f.deriveFont(Font.ITALIC);
-            jc.setForeground(MULTI_FOREGROUND_COLOR);
         }
         jc.setFont(f);
+    }
+    //------------------------------------------------------------------------------
+    // PropertyChangeListener interface
+    //------------------------------------------------------------------------------
+
+    @Override
+    public void propertyChange(final PropertyChangeEvent evt)
+    {
+        if (evt.getSource() == editorComponent)
+        {
+            if (PROP_RP_VALUE.equals(evt.getPropertyName()))
+            {
+                // Forward the change event to our listeners
+                firePropertyChange(PROP_RP_VALUE, null, evt.getNewValue());
+            }
+        }
     }
 
     // -----------------------------------------------------------------------------
@@ -209,7 +222,7 @@ public abstract class RpEditor extends JPanel
 
         pnl_placeHolder = new javax.swing.JPanel();
         lbl_placeHolder = new javax.swing.JLabel();
-        pnl_rpName = new org.jjazz.ui.utilities.FixedPreferredWidthPanel();
+        pnl_rpName = new org.jjazz.ui.utilities.api.FixedPreferredWidthPanel();
         lbl_rpName = new javax.swing.JLabel();
 
         setMaximumSize(new java.awt.Dimension(30000, 3000));
@@ -253,7 +266,7 @@ public abstract class RpEditor extends JPanel
     private javax.swing.JLabel lbl_placeHolder;
     private javax.swing.JLabel lbl_rpName;
     private javax.swing.JPanel pnl_placeHolder;
-    private org.jjazz.ui.utilities.FixedPreferredWidthPanel pnl_rpName;
+    private org.jjazz.ui.utilities.api.FixedPreferredWidthPanel pnl_rpName;
     // End of variables declaration//GEN-END:variables
 
 }

@@ -35,11 +35,11 @@ import javax.swing.KeyStroke;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
-import org.jjazz.ui.ss_editor.api.CopyBuffer;
+import org.jjazz.ui.ss_editor.api.SongPartCopyBuffer;
 import org.jjazz.ui.ss_editor.api.SS_EditorTopComponent;
 import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
-import org.jjazz.undomanager.JJazzUndoManager;
-import org.jjazz.undomanager.JJazzUndoManagerFinder;
+import org.jjazz.undomanager.api.JJazzUndoManager;
+import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
@@ -50,7 +50,7 @@ import org.openide.util.Utilities;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
-import org.jjazz.util.ResUtil;
+import org.jjazz.util.api.ResUtil;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.pasteappend")
 @ActionRegistration(displayName = "#CTL_PasteAppend", lazy = false)
@@ -78,7 +78,7 @@ public class PasteAppend extends AbstractAction implements ContextAwareAction, S
         putValue(NAME, undoText);
         putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_I, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx() | InputEvent.SHIFT_DOWN_MASK));
         setEnabled(false);
-        CopyBuffer buffer = CopyBuffer.getInstance();
+        SongPartCopyBuffer buffer = SongPartCopyBuffer.getInstance();
         buffer.addChangeListener(this);
     }
 
@@ -98,7 +98,7 @@ public class PasteAppend extends AbstractAction implements ContextAwareAction, S
             return;
         }
         SongStructure targetSgs = tc.getSS_Editor().getModel();
-        CopyBuffer buffer = CopyBuffer.getInstance();
+        SongPartCopyBuffer buffer = SongPartCopyBuffer.getInstance();
         List<SongPart> spts = targetSgs.getSongParts();
         int startBarIndex = 0;
         if (!spts.isEmpty())
@@ -129,7 +129,7 @@ public class PasteAppend extends AbstractAction implements ContextAwareAction, S
     @Override
     public void selectionChange(SS_SelectionUtilities selection)
     {
-        CopyBuffer buffer = CopyBuffer.getInstance();
+        SongPartCopyBuffer buffer = SongPartCopyBuffer.getInstance();
         setEnabled(!buffer.isEmpty());
     }
 

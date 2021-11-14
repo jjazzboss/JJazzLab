@@ -24,20 +24,20 @@ package org.jjazz.options;
 
 import java.util.Arrays;
 import javax.swing.JComboBox;
-import org.jjazz.midi.MidiConst;
-import org.jjazz.musiccontrol.ClickManager;
-import org.jjazz.musiccontrol.ClickManager.PrecountMode;
-import org.jjazz.musiccontrol.TestPlayer;
+import org.jjazz.midi.api.MidiConst;
+import org.jjazz.musiccontrol.api.PlaybackSettings;
+import org.jjazz.musiccontrol.api.PlaybackSettings.PrecountMode;
+import org.jjazz.musiccontrol.api.TestPlayer;
+import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.rhythm.api.MusicGenerationException;
-import org.jjazz.rhythmmusicgeneration.NoteEvent;
-import org.jjazz.rhythmmusicgeneration.Phrase;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
+import org.jjazz.phrase.api.Phrase;
 
 final class ClickPanel extends javax.swing.JPanel
 {
 
-    private final ClickOptionsPanelController controller;
+    private final ClickOptionsPanelController controller; 
 
     ClickPanel(ClickOptionsPanelController controller)
     {
@@ -67,23 +67,23 @@ final class ClickPanel extends javax.swing.JPanel
         jPanel1 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         lbl_lowVelocity = new javax.swing.JLabel();
-        spn_velocityHigh = new org.jjazz.ui.utilities.WheelSpinner();
-        spn_velocityLow = new org.jjazz.ui.utilities.WheelSpinner();
+        spn_velocityHigh = new org.jjazz.ui.utilities.api.WheelSpinner();
+        spn_velocityLow = new org.jjazz.ui.utilities.api.WheelSpinner();
         lbl_soundHigh = new javax.swing.JLabel();
         lbl_highVelocity = new javax.swing.JLabel();
         combo_soundHigh = new JComboBox<>(MidiConst.getGMPercussions());
-        spn_channel = new org.jjazz.ui.utilities.WheelSpinner();
+        spn_channel = new org.jjazz.ui.utilities.api.WheelSpinner();
         btn_Hear = new javax.swing.JButton();
         combo_soundLow = new JComboBox<>(MidiConst.getGMPercussions());
         lbl_soundLow = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
-        helpTextArea1 = new org.jjazz.ui.utilities.HelpTextArea();
+        helpTextArea1 = new org.jjazz.ui.utilities.api.HelpTextArea();
         jPanel2 = new javax.swing.JPanel();
         rbtn_precount_auto = new javax.swing.JRadioButton();
         rbtn_precount2 = new javax.swing.JRadioButton();
         rbtn_precount1 = new javax.swing.JRadioButton();
         jScrollPane2 = new javax.swing.JScrollPane();
-        helpTextArea2 = new org.jjazz.ui.utilities.HelpTextArea();
+        helpTextArea2 = new org.jjazz.ui.utilities.api.HelpTextArea();
 
         jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder(org.openide.util.NbBundle.getMessage(ClickPanel.class, "ClickPanel.jPanel1.border.title"))); // NOI18N
 
@@ -316,8 +316,9 @@ final class ClickPanel extends javax.swing.JPanel
        try
        {
            tp.playTestNotes(p, endAction);
-       } catch (MusicGenerationException ex)
+       } catch (MusicGenerationException ex) 
        {
+           endAction.run();
            NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
            DialogDisplayer.getDefault().notify(d);
        }
@@ -332,12 +333,12 @@ final class ClickPanel extends javax.swing.JPanel
         // someCheckBox.setSelected(NbPreferences.forModule(ClickPanel.class).getBoolean("someFlag", false));
         // or:
         // someTextField.setText(SomeSystemOption.getDefault().getSomeStringProperty());
-        combo_soundHigh.setSelectedItem(MidiConst.getGMPercussionMap()[ClickManager.getInstance().getClickPitchHigh()]);
-        combo_soundLow.setSelectedItem(MidiConst.getGMPercussionMap()[ClickManager.getInstance().getClickPitchLow()]);
-        spn_velocityHigh.setValue(ClickManager.getInstance().getClickVelocityHigh());
-        spn_velocityLow.setValue(ClickManager.getInstance().getClickVelocityLow());
-        spn_channel.setValue(ClickManager.getInstance().getPreferredClickChannel() + 1);
-        setPrecountMode(ClickManager.getInstance().getClickPrecountMode());
+        combo_soundHigh.setSelectedItem(MidiConst.getGMPercussionMap()[PlaybackSettings.getInstance().getClickPitchHigh()]);
+        combo_soundLow.setSelectedItem(MidiConst.getGMPercussionMap()[PlaybackSettings.getInstance().getClickPitchLow()]);
+        spn_velocityHigh.setValue(PlaybackSettings.getInstance().getClickVelocityHigh());
+        spn_velocityLow.setValue(PlaybackSettings.getInstance().getClickVelocityLow());
+        spn_channel.setValue(PlaybackSettings.getInstance().getPreferredClickChannel() + 1);
+        setPrecountMode(PlaybackSettings.getInstance().getClickPrecountMode());
     }
 
     void store()
@@ -351,13 +352,13 @@ final class ClickPanel extends javax.swing.JPanel
         // SomeSystemOption.getDefault().setSomeStringProperty(someTextField.getText());
 
         int pitchHigh = Arrays.asList(MidiConst.getGMPercussionMap()).indexOf(combo_soundHigh.getSelectedItem());
-        ClickManager.getInstance().setClickPitchHigh(pitchHigh);
+        PlaybackSettings.getInstance().setClickPitchHigh(pitchHigh);
         int pitchLow = Arrays.asList(MidiConst.getGMPercussionMap()).indexOf(combo_soundLow.getSelectedItem());
-        ClickManager.getInstance().setClickPitchLow(pitchLow);
-        ClickManager.getInstance().setClickVelocityHigh((int) spn_velocityHigh.getValue());
-        ClickManager.getInstance().setClickVelocityLow((int) spn_velocityLow.getValue());
-        ClickManager.getInstance().setPreferredClickChannel((int) spn_channel.getValue() - 1);
-        ClickManager.getInstance().setClickPrecountMode(getPrecountMode());
+        PlaybackSettings.getInstance().setClickPitchLow(pitchLow);
+        PlaybackSettings.getInstance().setClickVelocityHigh((int) spn_velocityHigh.getValue());
+        PlaybackSettings.getInstance().setClickVelocityLow((int) spn_velocityLow.getValue());
+        PlaybackSettings.getInstance().setPreferredClickChannel((int) spn_channel.getValue() - 1);
+        PlaybackSettings.getInstance().setClickPrecountMode(getPrecountMode());
     }
 
     boolean valid()
@@ -402,8 +403,8 @@ final class ClickPanel extends javax.swing.JPanel
     private javax.swing.JButton btn_Hear;
     private javax.swing.JComboBox<String> combo_soundHigh;
     private javax.swing.JComboBox<String> combo_soundLow;
-    private org.jjazz.ui.utilities.HelpTextArea helpTextArea1;
-    private org.jjazz.ui.utilities.HelpTextArea helpTextArea2;
+    private org.jjazz.ui.utilities.api.HelpTextArea helpTextArea1;
+    private org.jjazz.ui.utilities.api.HelpTextArea helpTextArea2;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
@@ -417,8 +418,8 @@ final class ClickPanel extends javax.swing.JPanel
     private javax.swing.JRadioButton rbtn_precount1;
     private javax.swing.JRadioButton rbtn_precount2;
     private javax.swing.JRadioButton rbtn_precount_auto;
-    private org.jjazz.ui.utilities.WheelSpinner spn_channel;
-    private org.jjazz.ui.utilities.WheelSpinner spn_velocityHigh;
-    private org.jjazz.ui.utilities.WheelSpinner spn_velocityLow;
+    private org.jjazz.ui.utilities.api.WheelSpinner spn_channel;
+    private org.jjazz.ui.utilities.api.WheelSpinner spn_velocityHigh;
+    private org.jjazz.ui.utilities.api.WheelSpinner spn_velocityLow;
     // End of variables declaration//GEN-END:variables
 }

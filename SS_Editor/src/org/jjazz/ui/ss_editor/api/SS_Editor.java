@@ -22,6 +22,7 @@
  */
 package org.jjazz.ui.ss_editor.api;
 
+import org.jjazz.ui.ss_editor.spi.SS_EditorSettings;
 import org.jjazz.songstructure.api.SongPartParameter;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -30,18 +31,18 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import javax.swing.JPanel;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.rhythm.api.Rhythm;
-import org.jjazz.rhythm.parameters.RhythmParameter;
+import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.song.api.Song;
 import org.openide.awt.UndoRedo;
 import org.openide.util.Lookup;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.ui.sptviewer.api.SptViewerFactory;
+import org.jjazz.ui.sptviewer.spi.SptViewerFactory;
 
 /**
  * A SongStructure editor.
  * <p>
- * his Lookup contains :<br>
+ * Its Lookup must contain :<br>
  * - editor's ActionMap<br>
  * - edited SongStructure<br>
  * - edited Song (container of the SongStructure if there is one) <br>
@@ -63,7 +64,6 @@ public abstract class SS_Editor extends JPanel implements Lookup.Provider
      * @return The UndoManager used but this editor.
      */
     abstract public UndoRedo getUndoManager();
-
 
     abstract public SS_EditorSettings getSettings();
 
@@ -162,11 +162,21 @@ public abstract class SS_Editor extends JPanel implements Lookup.Provider
     abstract public SongPartParameter getSongPartParameterFromPoint(Point editorPoint, AtomicBoolean sptLeft);
 
     /**
+     * Get the bounds of the component representing the specified SongPart.
      *
      * @param spt
      * @return The bounds in the screen coordinates space.
      */
     abstract public Rectangle getSptViewerRectangle(SongPart spt);
+
+    /**
+     * Get the bounds of the component representing the specified RhythmParameter.
+     *
+     * @param spt
+     * @param rp
+     * @return The bounds in the screen coordinates space.
+     */
+    abstract public Rectangle getRpViewerRectangle(SongPart spt, RhythmParameter<?> rp);
 
     abstract public void makeSptViewerVisible(SongPart spt);
 

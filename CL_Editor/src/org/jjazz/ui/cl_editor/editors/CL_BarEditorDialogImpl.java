@@ -40,8 +40,8 @@ import javax.swing.KeyStroke;
 import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoManager;
 import javax.swing.text.DefaultCaret;
-import org.jjazz.chordsymboltextinput.ChordSymbolTextInput;
-import org.jjazz.harmony.TimeSignature;
+import org.jjazz.chordsymboltextinput.api.ChordSymbolTextInput;
+import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
@@ -50,7 +50,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.ui.cl_editor.spi.CL_BarEditorDialog;
 import org.jjazz.ui.cl_editor.spi.Preset;
-import org.jjazz.util.ResUtil;
+import org.jjazz.util.api.ResUtil;
 import org.jjazz.util.diff.api.DiffProvider;
 import org.jjazz.util.diff.api.Difference;
 import org.openide.DialogDisplayer;
@@ -147,7 +147,7 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
     @Override
     public void preset(final Preset preset, ChordLeadSheet cls, int barIndx, boolean swng)
     {
-        if (preset == null || cls == null || barIndx < 0 || barIndx >= cls.getSize())
+        if (preset == null || cls == null || barIndx < 0 || barIndx >= cls.getSizeInBars())
         {
             throw new IllegalArgumentException("preset=" + preset + " cls=" + cls + " barIndx=" + barIndx + " swing=" + swing);   //NOI18N
         }

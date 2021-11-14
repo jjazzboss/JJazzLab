@@ -28,19 +28,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
-import org.jjazz.harmony.TimeSignature;
-import org.jjazz.midi.DrumKit;
-import org.jjazz.midi.DrumKit.Type;
-import org.jjazz.midi.synths.GM1Bank;
-import org.jjazz.midi.synths.StdSynth;
-import org.jjazz.midi.keymap.KeyMapGM;
-import org.jjazz.midi.synths.Family;
+import org.jjazz.harmony.api.TimeSignature;
+import org.jjazz.midi.api.DrumKit;
+import org.jjazz.midi.api.DrumKit.Type;
+import org.jjazz.midi.api.synths.GM1Bank;
+import org.jjazz.midi.api.synths.StdSynth;
+import org.jjazz.midi.api.keymap.KeyMapGM;
+import org.jjazz.midi.api.synths.Family;
+import org.jjazz.rhythm.api.RP_Integer;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmFeatures;
 import org.jjazz.rhythm.api.RhythmVoice;
-import org.jjazz.rhythm.parameters.RP_STD_Variation;
-import org.jjazz.rhythm.parameters.RhythmParameter;
-import org.openide.util.Lookup;
+import org.jjazz.rhythm.api.RhythmParameter;
 
 /**
  * UNIT TEST STUB
@@ -51,7 +50,6 @@ public class STUBRhythm implements Rhythm
 
     protected String uniqueId;
     protected TimeSignature timeSignature;
-    protected Lookup lookup;
 
     /**
      * The default RhythmParameters associated to this rhythm.
@@ -90,7 +88,7 @@ public class STUBRhythm implements Rhythm
         rhythmVoices.add(new RhythmVoice(this, RhythmVoice.Type.PAD, "Pad", gmb.getDefaultInstrument(Family.Strings), 13));
 
         // Our Rhythm Parameters
-        rhythmParameters.add(new RP_STD_Variation());
+        rhythmParameters.add(new RP_Integer("unitRpI", "unitRp", "desc", 0, 0, 10, 1));
 
         // The music generator
         // lookup = Lookups.fixed(new DummyGenerator(this));
@@ -128,12 +126,7 @@ public class STUBRhythm implements Rhythm
     {
         return new ArrayList<>(rhythmParameters);
     }
-
-    @Override
-    public Lookup getLookup()
-    {
-        return lookup;
-    }
+  
 
     @Override
     public TimeSignature getTimeSignature()

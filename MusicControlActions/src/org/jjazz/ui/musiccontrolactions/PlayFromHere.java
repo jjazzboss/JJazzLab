@@ -31,13 +31,17 @@ import java.util.logging.Logger;
 import javax.sound.midi.MidiUnavailableException;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import org.jjazz.activesong.ActiveSongManager;
+import org.jjazz.activesong.api.ActiveSongManager;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
-import org.jjazz.midimix.MidiMix;
-import org.jjazz.midimix.MidiMixManager;
-import org.jjazz.musiccontrol.MusicController;
-import org.jjazz.rhythmmusicgeneration.MusicGenerationContext;
+import org.jjazz.midimix.api.MidiMix;
+import org.jjazz.midimix.api.MidiMixManager;
+import org.jjazz.musiccontrol.api.MusicController;
+import org.jjazz.musiccontrol.api.PlaybackSettings;
+import org.jjazz.musiccontrol.api.playbacksession.DynamicSongSession;
+import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
+import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession;
+import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.song.api.Song;
 import org.jjazz.ui.cl_editor.api.CL_EditorTopComponent;
@@ -55,8 +59,8 @@ import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.cl_editor.api.CL_Editor;
 import org.jjazz.ui.mixconsole.api.MixConsoleTopComponent;
 import org.jjazz.ui.ss_editor.api.SS_Editor;
-import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
-import org.jjazz.util.ResUtil;
+import static org.jjazz.ui.utilities.api.Utilities.getGenericControlKeyStroke;
+import org.jjazz.util.api.ResUtil;
 import org.openide.windows.TopComponent;
 
 /**
@@ -173,14 +177,29 @@ public class PlayFromHere extends AbstractAction
 
 
         // Configure and play
+        UpdatableSongSession session = null;
         try
         {
             MidiMix midiMix = MidiMixManager.getInstance().findMix(song);      // Can raise MidiUnavailableException
-            MusicGenerationContext context = new MusicGenerationContext(song, midiMix);
-            mc.setContext(context);
+            SongContext context = new SongContext(song, midiMix);
+
+            // Check that all listeners are OK to start playback     
+            PlaybackSettings.getInstance().firePlaybackStartVetoableChange(context);  // can raise PropertyVetoException
+
+            session = UpdatableSongSession.getSession(DynamicSongSession.getSession(context));
+            if (session.getState().equals(PlaybackSession.State.NEW))
+            {
+                session.generate(false);        // can raise MusicGenerationException
+                mc.setPlaybackSession(session); // can raise MusicGenerationException
+            }
             mc.play(playFromBar);
         } catch (MusicGenerationException | PropertyVetoException | MidiUnavailableException ex)
         {
+            if (session != null)
+            {
+                session.close();
+            }
+
             if (ex.getMessage() != null)
             {
                 NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
@@ -278,7 +297,7 @@ public class PlayFromHere extends AbstractAction
     private int getSelectedBarIndexRelativeToSection(CLI_Section cliSection, CL_SelectionUtilities clSelection)
     {
         int sectionStartBar = cliSection.getPosition().getBar();
-        int sectionEndBar = sectionStartBar + cliSection.getContainer().getSectionRange(cliSection).size() - 1;
+        int sectionEndBar = sectionStartBar + cliSection.getContainer().getBarRange(cliSection).size() - 1;
 
 
         int clsInSectionBarIndex = -1;

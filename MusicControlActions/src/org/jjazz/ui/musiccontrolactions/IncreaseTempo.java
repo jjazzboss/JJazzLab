@@ -24,9 +24,11 @@ package org.jjazz.ui.musiccontrolactions;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import org.jjazz.activesong.ActiveSongManager;
+import org.jjazz.activesong.api.ActiveSongManager;
 import org.jjazz.rhythm.api.TempoRange;
 import org.jjazz.song.api.Song;
+import org.jjazz.undomanager.api.JJazzUndoManager;
+import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
@@ -59,8 +61,23 @@ public final class IncreaseTempo implements ActionListener
             int tempo = song.getTempo() + 5;
             if (TempoRange.checkTempo(tempo))
             {
-                song.setTempo(tempo);
+                setSongTempo(song, tempo);
             }
         }
+    }
+
+    /**
+     * Set the specified song tempo with an undoable edit.
+     *
+     * @param song
+     * @param tempo
+     */
+    static public void setSongTempo(Song song, int tempo)
+    {
+//        JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(song);
+//        String editName = "Set tempo " + tempo;
+//        um.startCEdit(editName);
+        song.setTempo(tempo);
+//        um.endCEdit(editName);
     }
 }

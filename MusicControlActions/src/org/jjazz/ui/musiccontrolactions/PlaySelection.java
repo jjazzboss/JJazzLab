@@ -32,13 +32,17 @@ import javax.sound.midi.MidiUnavailableException;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.KeyStroke;
-import org.jjazz.activesong.ActiveSongManager;
+import org.jjazz.activesong.api.ActiveSongManager;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
-import org.jjazz.midimix.MidiMix;
-import org.jjazz.midimix.MidiMixManager;
-import org.jjazz.musiccontrol.MusicController;
-import org.jjazz.rhythmmusicgeneration.MusicGenerationContext;
+import org.jjazz.midimix.api.MidiMix;
+import org.jjazz.midimix.api.MidiMixManager;
+import org.jjazz.musiccontrol.api.MusicController;
+import org.jjazz.musiccontrol.api.PlaybackSettings;
+import org.jjazz.musiccontrol.api.playbacksession.DynamicSongSession;
+import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
+import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession;
+import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.song.api.Song;
 import org.jjazz.ui.cl_editor.api.CL_EditorTopComponent;
@@ -56,8 +60,8 @@ import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.cl_editor.api.CL_Editor;
 import org.jjazz.ui.mixconsole.api.MixConsoleTopComponent;
 import org.jjazz.ui.ss_editor.api.SS_Editor;
-import org.jjazz.util.IntRange;
-import org.jjazz.util.ResUtil;
+import org.jjazz.util.api.IntRange;
+import org.jjazz.util.api.ResUtil;
 import org.openide.windows.TopComponent;
 
 /**
@@ -144,13 +148,13 @@ public class PlaySelection extends AbstractAction
         if (lastValidActivatedTc == clTc && clSelection.isContiguousBarboxSelectionWithinCls())
         {
             // Focus in the CL_Editor            
-            rg = toSgsRange(ss, cls, new IntRange(clSelection.getMinBarIndexWithinCls(), clSelection.getMaxBarIndexWithinCls()));   // Can be null
+            rg = toSgsRange(ss, cls, new IntRange(clSelection.getMinBarIndexWithinCls(), clSelection.getMaxBarIndexWithinCls()), ssSelection);   // Can be null
             if (rg == null)
             {
                 errMsg = ResUtil.getString(getClass(), "ERR_BadSelection");
             }
 
-        } else if (lastValidActivatedTc == ssTc && ssSelection.isOneSectionSptSelection())
+        } else if (lastValidActivatedTc == ssTc && ssSelection.isContiguousSptSelection())
         {
             // Focus in the SS_Editor
             List<SongPart> spts = ssSelection.getIndirectlySelectedSongParts();
@@ -175,14 +179,28 @@ public class PlaySelection extends AbstractAction
 
 
         // OK we can go
+        UpdatableSongSession session = null;
         try
         {
             MidiMix midiMix = MidiMixManager.getInstance().findMix(song);      // Can raise MidiUnavailableException
-            MusicGenerationContext context = new MusicGenerationContext(song, midiMix, rg);
-            mc.setContext(context);
+            SongContext context = new SongContext(song, midiMix, rg);
+
+            // Check that all listeners are OK to start playback     
+            PlaybackSettings.getInstance().firePlaybackStartVetoableChange(context);  // can raise PropertyVetoException
+
+            session = UpdatableSongSession.getSession(DynamicSongSession.getSession(context));
+            if (session.getState().equals(PlaybackSession.State.NEW))
+            {
+                session.generate(false);        // can raise MusicGenerationException
+                mc.setPlaybackSession(session); // can raise MusicGenerationException
+            }
             mc.play(rg.from);
         } catch (MusicGenerationException | PropertyVetoException | MidiUnavailableException ex)
         {
+            if (session != null)
+            {
+                session.close();
+            }
             if (ex.getMessage() != null)
             {
                 NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
@@ -211,7 +229,7 @@ public class PlaySelection extends AbstractAction
         {
             song = ssTc.getSongModel();
             lastValidActivatedTc = ssTc;
-        } else if (mcTc!=null && TopComponent.getRegistry().getActivated() == mcTc)
+        } else if (mcTc != null && TopComponent.getRegistry().getActivated() == mcTc)
         {
             song = (lastValidActivatedTc != null) ? mcTc.getEditor().getSong() : null;
         }
@@ -236,9 +254,9 @@ public class PlaySelection extends AbstractAction
      * @param clsRange
      * @return Null if no valid range could be constructed
      */
-    private IntRange toSgsRange(SongStructure ss, ChordLeadSheet cls, IntRange clsRange)
+    private IntRange toSgsRange(SongStructure ss, ChordLeadSheet cls, IntRange clsRange, SS_SelectionUtilities ssSelection)
     {
-        if (ss == null || cls == null || clsRange.to > cls.getSize() - 1)
+        if (ss == null || cls == null || clsRange.to > cls.getSizeInBars() - 1)
         {
             throw new IllegalArgumentException("cls=" + cls + ", ss=" + ss + ", clsRange=" + clsRange);   //NOI18N
         }
@@ -247,7 +265,8 @@ public class PlaySelection extends AbstractAction
         CLI_Section toSection = cls.getSection(clsRange.to);
         int toBar = -1;
         IntRange r = null;
-        for (SongPart spt : ss.getSongParts())
+        List<SongPart> spts = ssSelection.isEmpty() || !ssSelection.isContiguousSptSelection() ? ss.getSongParts() : ssSelection.getIndirectlySelectedSongParts();
+        for (SongPart spt : spts)
         {
             if (fromBar == -1 && spt.getParentSection() == fromSection)
             {

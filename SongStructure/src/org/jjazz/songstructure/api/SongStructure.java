@@ -27,7 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 import javax.swing.event.UndoableEditListener;
-import org.jjazz.harmony.TimeSignature;
+import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
@@ -36,14 +36,15 @@ import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.RhythmVoiceDelegate;
-import org.jjazz.rhythm.parameters.RhythmParameter;
-import org.jjazz.util.FloatRange;
-import org.jjazz.util.IntRange;
-import org.jjazz.util.SmallMap;
+import org.jjazz.rhythm.api.RhythmParameter;
+import org.jjazz.util.api.FloatRange;
+import org.jjazz.util.api.IntRange;
+import org.jjazz.util.api.SmallMap;
 
 /**
  * A SongStructure manages SongParts.
  * <p>
+ * Implement must fire the relevant SgsChangeEvents when a method mutates the song structure.
  */
 public interface SongStructure
 {
@@ -52,7 +53,7 @@ public interface SongStructure
      * Return the list of unique rhythms used in this SongStructure.
      *
      * @param excludeAdaptedRhythms
-     * @return
+     * @return The list of rhythms, in the order they are used in the song.
      */
     default public List<Rhythm> getUniqueRhythms(boolean excludeAdaptedRhythms)
     {
@@ -162,12 +163,23 @@ public interface SongStructure
     public int getSizeInBars();
 
     /**
+     * The bar range corresponding to this song structure.
+     *
+     * @return [0;getSizeInBars()-1]
+     * @see #getSizeInBars()
+     */
+    default public IntRange getBarRange()
+    {
+        return new IntRange(0, getSizeInBars() - 1);
+    }
+
+    /**
      * Convert the specified bar range into a natural beat range.
      * <p>
-     * The method must take into account song with possibly different time signatures.
+     * The method must take into account SongParts with possibly different time signatures.
      *
      * @param barRange If null use the whole song structure.
-     * @return
+     * @return Can be an empty range if barRange is not contained in the song structure.
      */
     public FloatRange getBeatRange(IntRange barRange);
 
@@ -175,10 +187,21 @@ public interface SongStructure
      * The position of the specified bar in natural beats: take into account the possible different time signatures before
      * specified bar.
      *
-     * @param absoluteBarIndex A value in the range [0 - getSizeInBars()]
+     * @param absoluteBarIndex A value in the range [0; getSizeInBars()].
      * @return
      */
     public float getPositionInNaturalBeats(int absoluteBarIndex);
+
+    /**
+     * The position in natural beats: take into account the possible different time signatures before specified bar.
+     *
+     * @param pos
+     * @return
+     */
+    default public float getPositionInNaturalBeats(Position pos)
+    {
+        return getPositionInNaturalBeats(pos.getBar()) + pos.getBeat();
+    }
 
     /**
      * The position in bars/beats converted from a position specified in natural beats.
@@ -190,6 +213,7 @@ public interface SongStructure
      */
     public Position getPosition(float posInBeats);
 
+
     /**
      * Get the absolute position in the song structure of a chordleadsheet item referred to by the specified song part.
      *
@@ -200,7 +224,6 @@ public interface SongStructure
      * @throws IllegalStateException If getParentChordLeadSheet() returns null.
      */
     public Position getSptItemPosition(SongPart spt, ChordLeadSheetItem<?> clsItem);
-
 
     /**
      * Check if add operation is doable.
@@ -226,7 +249,6 @@ public interface SongStructure
      * @throws UnsupportedEditException Exception is thrown before any change is done. See authorizeAddSongParts().
      */
     public void addSongParts(List<SongPart> spts) throws UnsupportedEditException;
-
 
     /**
      * Check if remove operation is doable.
@@ -256,7 +278,6 @@ public interface SongStructure
      * @param mapSptSize A map which associates a SongPart and the new desired size.
      */
     public void resizeSongParts(SmallMap<SongPart, Integer> mapSptSize);
-
 
     /**
      * Check if replace operation is doable.

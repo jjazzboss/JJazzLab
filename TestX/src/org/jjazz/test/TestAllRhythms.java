@@ -28,16 +28,17 @@ import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
-import org.jjazz.harmony.TimeSignature;
+import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.database.api.RhythmDatabase;
 import org.jjazz.rhythm.database.api.RhythmInfo;
 import org.jjazz.rhythm.database.api.UnavailableRhythmException;
-import org.jjazz.rhythm.parameters.RhythmParameter;
+import org.jjazz.rhythm.api.RhythmParameter;
+import org.jjazz.rhythm.api.RP_State;
 import org.jjazz.song.api.Song;
-import org.jjazz.undomanager.JJazzUndoManager;
-import org.jjazz.undomanager.JJazzUndoManagerFinder;
+import org.jjazz.undomanager.api.JJazzUndoManager;
+import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.netbeans.api.progress.BaseProgressUtils;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -116,7 +117,7 @@ public final class TestAllRhythms implements ActionListener
                 try
                 {
                     sgs.replaceSongParts(Arrays.asList(spt), Arrays.asList(newSpt));
-                    if (rp0.getDisplayName().equals("Style part") && rp0.getPossibleValues().contains("Main A"))
+                    if (rp0.getDisplayName().equals("Style part") && ((RP_State) rp0).getPossibleValues().contains("Main A"))
                     {
                         @SuppressWarnings("unchecked")
                         RhythmParameter<String> rpString = (RhythmParameter<String>) rp0;

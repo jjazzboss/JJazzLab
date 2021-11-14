@@ -29,12 +29,12 @@ import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 import javax.swing.JComboBox;
 import org.jjazz.analytics.api.Analytics;
-import org.jjazz.base.actions.ShowLogWindow;
-import org.jjazz.midi.JJazzMidiSystem;
-import org.jjazz.midi.device.MidiFilter;
-import org.jjazz.musiccontrol.MusicController;
-import org.jjazz.ui.utilities.Utilities;
-import org.jjazz.util.ResUtil;
+import org.jjazz.base.api.actions.ShowLogWindow;
+import org.jjazz.midi.api.JJazzMidiSystem;
+import org.jjazz.midi.api.device.MidiFilter;
+import org.jjazz.musiccontrol.api.MusicController;
+import org.jjazz.ui.utilities.api.Utilities;
+import org.jjazz.util.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.LifecycleManager;
 import org.openide.NotifyDescriptor;
@@ -85,7 +85,7 @@ public final class AdvancedPanel extends javax.swing.JPanel
         btn_resetSettings = new javax.swing.JButton();
         cb_noAnalytics = new javax.swing.JCheckBox();
         jScrollPane1 = new javax.swing.JScrollPane();
-        helpTextArea = new org.jjazz.ui.utilities.HelpTextArea();
+        helpTextArea = new org.jjazz.ui.utilities.api.HelpTextArea();
 
         panel_Debug.setBorder(javax.swing.BorderFactory.createTitledBorder(org.openide.util.NbBundle.getMessage(AdvancedPanel.class, "AdvancedPanel.panel_Debug.border.title"))); // NOI18N
 
@@ -349,7 +349,7 @@ public final class AdvancedPanel extends javax.swing.JPanel
         // or:
         // someTextField.setText(SomeSystemOption.getDefault().getSomeStringProperty());
         cb_logMidiOut.setSelected(JJazzMidiSystem.getInstance().getMidiOutLogConfig().contains(MidiFilter.ConfigLog.LOG_PASSED_MESSAGES));
-        cb_debugBuiltSequence.setSelected(MusicController.getInstance().isDebugBuiltSequence());
+        cb_debugBuiltSequence.setSelected(MusicController.getInstance().isDebugPlayedSequence());
         cb_noAnalytics.setSelected(!Analytics.getInstance().isEnabled());
 
     }
@@ -370,7 +370,7 @@ public final class AdvancedPanel extends javax.swing.JPanel
         {
             JJazzMidiSystem.getInstance().getMidiOutLogConfig().remove(MidiFilter.ConfigLog.LOG_PASSED_MESSAGES);
         }
-        MusicController.getInstance().setDebugBuiltSequence(cb_debugBuiltSequence.isSelected());
+        MusicController.getInstance().setDebugPlayedSequence(cb_debugBuiltSequence.isSelected());
 
         Analytics.getInstance().setEnabled(!cb_noAnalytics.isSelected());
     }
@@ -425,7 +425,7 @@ public final class AdvancedPanel extends javax.swing.JPanel
     private javax.swing.JCheckBox cb_logMidiOut;
     private javax.swing.JComboBox<Level> cb_loggerLevel;
     private javax.swing.JCheckBox cb_noAnalytics;
-    private org.jjazz.ui.utilities.HelpTextArea helpTextArea;
+    private org.jjazz.ui.utilities.api.HelpTextArea helpTextArea;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;

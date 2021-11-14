@@ -45,7 +45,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
-import org.jjazz.quantizer.Quantization;
+import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.ui.cl_editor.spi.CL_BarEditorDialog;
 import org.jjazz.ui.cl_editor.spi.Preset;
 import org.jjazz.ui.cl_editor.api.CL_EditorTopComponent;
@@ -53,9 +53,9 @@ import org.jjazz.ui.cl_editor.api.CL_Editor;
 import org.jjazz.ui.cl_editor.api.CL_SelectionUtilities;
 import org.jjazz.ui.cl_editor.spi.SectionEditorDialog;
 import org.jjazz.ui.cl_editor.spi.ChordSymbolEditorDialog;
-import org.jjazz.undomanager.JJazzUndoManager;
-import org.jjazz.undomanager.JJazzUndoManagerFinder;
-import org.jjazz.util.ResUtil;
+import org.jjazz.undomanager.api.JJazzUndoManager;
+import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
+import org.jjazz.util.api.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
@@ -111,8 +111,7 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
     }
 
     /**
-     * @param e If action triggered by a key press, e.getActionCommand() provide
-     * the key pressed.
+     * @param e If action triggered by a key press, e.getActionCommand() provide the key pressed.
      */
     @Override
     public void actionPerformed(ActionEvent e)
@@ -122,7 +121,7 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
         final CL_Editor editor = CL_EditorTopComponent.getActive().getCL_Editor();
         char key = (char) 0;
         LOGGER.fine("e=" + e);   //NOI18N
-        
+
         // Is it a chord note ?        
         if (e != null && e.getActionCommand().length() == 1)
         {
@@ -132,8 +131,8 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
                 key = c;
             }
         }
-        
-        
+
+
         if (selection.isItemSelected())
         {
             ChordLeadSheetItem<?> item = selection.getSelectedItems().get(0);
@@ -145,11 +144,11 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
                 if (dialog != null)
                 {
                     // Use specific editor if service is provided
-                    editCSWithDialog(dialog, csItem, key, cls);
+                    editCSWithDialog(dialog, csItem, key, cls, undoText);
                 } else
                 {
                     // Otherwise use the standard Bar dialog
-                    editBarWithDialog(editor, barIndex, new Preset(Preset.Type.ChordSymbolEdit, item, key), cls);
+                    editBarWithDialog(editor, barIndex, new Preset(Preset.Type.ChordSymbolEdit, item, key), cls, undoText);
                 }
             } else if (item instanceof CLI_Section)
             {
@@ -158,18 +157,18 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
                 if (dialog != null)
                 {
                     // Use specific editor if service is provided               
-                    editSectionWithDialog(dialog, sectionItem, key, cls);
+                    editSectionWithDialog(dialog, sectionItem, key, cls, undoText);
                 } else
                 {
                     // Otherwise use the standard Bar dialog
-                    editBarWithDialog(editor, barIndex, new Preset(Preset.Type.SectionNameEdit, item, (char) 0), cls);
+                    editBarWithDialog(editor, barIndex, new Preset(Preset.Type.SectionNameEdit, item, (char) 0), cls, undoText);
                 }
             }
         } else
         {
             assert selection.isBarSelectedWithinCls() == true : "selection=" + selection;   //NOI18N
             int modelBarIndex = selection.getMinBarIndexWithinCls();
-            editBarWithDialog(editor, modelBarIndex, new Preset(Preset.Type.BarEdit, null, key), cls);
+            editBarWithDialog(editor, modelBarIndex, new Preset(Preset.Type.BarEdit, null, key), cls, undoText);
         }
     }
 
@@ -194,7 +193,7 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
         selectionChange(cap.getSelection());
     }
 
-    private void editSectionWithDialog(final SectionEditorDialog dialog, final CLI_Section sectionItem, final char key, final ChordLeadSheet cls)
+    static protected void editSectionWithDialog(final SectionEditorDialog dialog, final CLI_Section sectionItem, final char key, final ChordLeadSheet cls, String undoText)
     {
         // Use specific editor if service is provided
         Runnable run = new Runnable()
@@ -231,7 +230,7 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
         SwingUtilities.invokeLater(run);
     }
 
-    private void editCSWithDialog(final ChordSymbolEditorDialog dialog, final CLI_ChordSymbol csItem, final char key, final ChordLeadSheet cls)
+    static protected void editCSWithDialog(final ChordSymbolEditorDialog dialog, final CLI_ChordSymbol csItem, final char key, final ChordLeadSheet cls, String undoText)
     {
         Runnable run = new Runnable()
         {
@@ -262,7 +261,7 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
         SwingUtilities.invokeLater(run);
     }
 
-    private void editBarWithDialog(final CL_Editor editor, final int barIndex, final Preset preset, final ChordLeadSheet cls)
+    static protected void editBarWithDialog(final CL_Editor editor, final int barIndex, final Preset preset, final ChordLeadSheet cls, String undoText)
     {
         Runnable run = new Runnable()
         {
@@ -336,7 +335,7 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
 
                 // Go to next bar if chords have changed
                 boolean chordSymbolChange = !resultAddedItems.isEmpty() || !resultRemovedItems.isEmpty() || !map.isEmpty();
-                if (barIndex < cls.getSize() - 1 && chordSymbolChange)
+                if (barIndex < cls.getSizeInBars() - 1 && chordSymbolChange)
                 {
                     CL_SelectionUtilities selection = new CL_SelectionUtilities(editor.getLookup());
                     selection.unselectAll(editor);
@@ -355,7 +354,7 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
         SwingUtilities.invokeLater(run);
     }
 
-    private void adjustDialogPosition(JDialog dialog, int barIndex)
+    static private void adjustDialogPosition(JDialog dialog, int barIndex)
     {
         CL_Editor editor = CL_EditorTopComponent.getActive().getCL_Editor();
         Rectangle r = editor.getBarRectangle(barIndex);

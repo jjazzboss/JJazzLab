@@ -22,8 +22,8 @@
  */
 package org.jjazz.rhythm.database;
 
-import org.jjazz.util.MultipleErrorsReportDialog;
-import org.jjazz.ui.utilities.PleaseWaitDialog;
+import org.jjazz.util.api.MultipleErrorsReportDialog;
+import org.jjazz.ui.utilities.api.PleaseWaitDialog;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -44,21 +44,21 @@ import java.util.stream.Collectors;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import org.jjazz.filedirectorymanager.FileDirectoryManager;
-import org.jjazz.harmony.TimeSignature;
+import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
+import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.spi.RhythmProvider;
 import org.jjazz.rhythm.database.api.RhythmDatabase;
 import org.jjazz.rhythm.database.api.RhythmInfo;
 import org.jjazz.rhythm.database.api.UnavailableRhythmException;
-import org.jjazz.util.MultipleErrorsReport;
+import org.jjazz.util.api.MultipleErrorsReport;
 import org.jjazz.rhythm.spi.StubRhythmProvider;
 import org.jjazz.startup.spi.StartupTask;
-import org.jjazz.upgrade.UpgradeManager;
+import org.jjazz.upgrade.api.UpgradeManager;
 import org.jjazz.upgrade.spi.UpgradeTask;
-import org.jjazz.util.ResUtil;
-import org.jjazz.util.Utilities;
+import org.jjazz.util.api.ResUtil;
+import org.jjazz.util.api.Utilities;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.openide.util.Lookup;
 import org.netbeans.api.progress.ProgressHandle;
@@ -73,14 +73,11 @@ import org.openide.windows.WindowManager;
  * RhythmDatabase implementation.
  * <p>
  * Upon clean/fresh start:<br>
- * - retrieve all available builtin & file-based rhythm instances by polling
- * RhythmProviders (this can be long if many rhythm files need to be
- * scanned).<br>
- * - create RhythmInfo instances from the Rhythm instances and save the
- * file-based RhythmInfos to a cache file.<p>
+ * - retrieve all available builtin & file-based rhythm instances by polling RhythmProviders (this can be long if many rhythm
+ * files need to be scanned).<br>
+ * - create RhythmInfo instances from the Rhythm instances and save the file-based RhythmInfos to a cache file.<p>
  * Then upon normal start:<br>
- * - retrieve all available builtin rhythm instances by polling RhythmProviders,
- * create the corresponding RhythmInfos.<br>
+ * - retrieve all available builtin rhythm instances by polling RhythmProviders, create the corresponding RhythmInfos.<br>
  * - load additional file-based RhythmInfos from the cache file<br>
  * - create Rhythm instances only when required.<p>
  * <p>
@@ -121,8 +118,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
     private static final Logger LOGGER = Logger.getLogger(RhythmDatabaseImpl.class.getSimpleName());
 
     /**
-     * If database is not ready yet (scanning rhythm files) then the call blocks
-     * and shows a dialog to inform user we're waiting.
+     * If database is not ready yet (scanning rhythm files) then the call blocks and shows a dialog to inform user we're waiting.
      *
      * @return
      */
@@ -131,9 +127,9 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         if (INSTANCE != null && INSTANCE.unitTestMode)
         {
             // In unit test we don't use initTask
-            return INSTANCE;            
+            return INSTANCE;
         }
-        
+
         if (INSTANCE == null || INSTANCE.initTask == null)
         {
             // getInstance() calls should happen after initialization
@@ -147,7 +143,8 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         }
 
         // Show a dialog while waiting for end of the init task
-        PleaseWaitDialog dlg = new PleaseWaitDialog(WindowManager.getDefault().getMainWindow());
+        PleaseWaitDialog dlg = new PleaseWaitDialog(ResUtil.getString(RhythmDatabaseImpl.class, "CTL_PleaseWait"));
+
 
         // Add listener before showing modal dialog. If initTask is finished now directly call the listener
         INSTANCE.initTask.addTaskListener(task ->
@@ -331,8 +328,10 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
     public Rhythm getRhythmInstance(String rId) throws UnavailableRhythmException
     {
         Rhythm r = null;
+                
         if (rId.contains(AdaptedRhythm.RHYTHM_ID_DELIMITER))
         {
+            // It's an adapted rhythm
             String[] strs = rId.split(AdaptedRhythm.RHYTHM_ID_DELIMITER);
             if (strs.length == 3)
             {
@@ -340,33 +339,22 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
                 String rIdOriginal = strs[1];
                 TimeSignature newTs = null;
 
-                // Parse time signature and try to get a cached instance of the AdaptedRhythm
                 try
                 {
                     newTs = TimeSignature.parse(strs[2]);   // Possible ParseException
-                    r = mapAdaptedRhythms.get(getAdaptedRhythmKey(rIdOriginal, newTs));       // Can be null if first time request                   
                 } catch (ParseException ex)
                 {
-                    LOGGER.warning("getRhythmInstance() Invalid time signature in AdaptedRhythm rId=" + rId);   //NOI18N
+                    LOGGER.warning("getRhythmInstance() Invalid time signature in AdaptedRhythm rId=" + rId);   
+                    throw new UnavailableRhythmException("Invalid time signature in adapted rhythm id=" + rId);
                 }
 
-
-                // Create the AdaptedRhythm if possible
-                if (r == null && newTs != null)
-                {
-                    Rhythm rOriginal = getRhythmInstance(rIdOriginal);      // Possible exception here                    
-                    RhythmProvider rp = getRhythmProviders().stream().filter(rhp -> rhp.getInfo().getUniqueId().equals(rpId)).findAny().orElse(null);
-                    if (rp == null)
-                    {
-                        LOGGER.warning("getRhythmInstance() Unknown rhythm provider id in AdaptedRhythm rId=" + rId);   //NOI18N
-                    } else
-                    {
-                        r = rp.getAdaptedRhythm(rOriginal, newTs);        // Can be null!
-                    }
-                }
+                Rhythm rOriginal = getRhythmInstance(rIdOriginal);      // Possible UnavailableRhythmException exception here                   
+                r = getAdaptedRhythmInstance(rOriginal, newTs);         // Can be null
+                          
             }
         } else
         {
+            // This a standard rhythm
             RhythmInfo ri = getRhythm(rId);     // Can be null
             if (ri != null)
             {
@@ -381,6 +369,33 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         }
 
         return r;
+    }
+
+    @Override
+    public AdaptedRhythm getAdaptedRhythmInstance(Rhythm r, TimeSignature ts)
+    {
+        if (r == null || ts == null || r.getTimeSignature().equals(ts))
+        {
+            throw new IllegalArgumentException("r=" + r + " ts=" + ts);   //NOI18N
+        }
+
+        String adaptedRhythmKey = getAdaptedRhythmKey(r.getUniqueId(), ts);
+        
+        AdaptedRhythm ar = mapAdaptedRhythms.get(adaptedRhythmKey);
+        if (ar == null)
+        {
+            for (RhythmProvider rp : getRhythmProviders())
+            {
+                ar = rp.getAdaptedRhythm(r, ts);
+                if (ar != null)
+                {
+                    addRhythm(rp, ar);
+                    mapAdaptedRhythms.put(adaptedRhythmKey, ar);
+                    break;
+                }
+            }
+        }
+        return ar;
     }
 
     @Override
@@ -486,30 +501,6 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         return res;
     }
 
-    @Override
-    public AdaptedRhythm getAdaptedRhythmInstance(Rhythm r, TimeSignature ts)
-    {
-        if (r == null || ts == null || r.getTimeSignature().equals(ts))
-        {
-            throw new IllegalArgumentException("r=" + r + " ts=" + ts);   //NOI18N
-        }
-
-        AdaptedRhythm ar = mapAdaptedRhythms.get(getAdaptedRhythmKey(r.getUniqueId(), ts));
-        if (ar == null)
-        {
-            for (RhythmProvider rp : getRhythmProviders())
-            {
-                ar = rp.getAdaptedRhythm(r, ts);
-                if (ar != null)
-                {
-                    addRhythm(rp, ar);
-                    mapAdaptedRhythms.put(getAdaptedRhythmKey(r.getUniqueId(), ts), ar);
-                    break;
-                }
-            }
-        }
-        return ar;
-    }
 
     @Override
     public RhythmProvider getRhythmProvider(Rhythm r)
@@ -1081,8 +1072,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
     }
 
     /**
-     * Create the database instance once the CopyDefaultRhythmFilesTask is
-     * complete.
+     * Create the database instance once the CopyDefaultRhythmFilesTask is complete.
      */
     @ServiceProvider(service = StartupTask.class)
     public static class CreateDatabaseTask implements StartupTask

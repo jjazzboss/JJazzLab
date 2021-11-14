@@ -22,7 +22,6 @@
  */
 package org.jjazz.ui.cl_editor.barrenderer.api;
 
-import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.ui.cl_editor.api.CL_Editor;
 import org.jjazz.ui.cl_editor.barrenderer.BarRendererFactoryImpl;
 import org.jjazz.ui.itemrenderer.api.ItemRendererFactory;
@@ -35,13 +34,27 @@ public interface BarRendererFactory
 {
 
     /**
-     * The types of BarRenderers supported by this factory.
+     * BarRenderer type for chord symbols.
      */
-    public enum Type
-    {
-        ChordSymbol, ChordPosition, Section
-    }
+    public final String BR_CHORD_SYMBOL = "BrChordSymbol";
+    /**
+     * BarRenderer type for chord positions.
+     */
+    public final String BR_CHORD_POSITION = "BrChordPosition";
+    /**
+     * BarRenderer type for sections.
+     */
+    public final String BR_SECTION = "BrSection";
 
+
+    /**
+     * Return the default implementation.
+     * <p>
+     * If brType is not handled by the default implementation, it tries to find a relevant BarRendererProvider in the global
+     * lookup.
+     *
+     * @return
+     */
     public static BarRendererFactory getDefault()
     {
         BarRendererFactory result = Lookup.getDefault().lookup(BarRendererFactory.class);
@@ -61,27 +74,25 @@ public interface BarRendererFactory
      * Create a BarRender with default settings.
      *
      * @param editor Can be null
-     * @param type
+     * @param brType
      * @param barIndex
-     * @param model
      * @return
      */
-    default BarRenderer createBarRenderer(CL_Editor editor, Type type, int barIndex, ChordLeadSheet model)
+    default BarRenderer createBarRenderer(CL_Editor editor, String brType, int barIndex)
     {
-        return createBarRenderer(editor, type, barIndex, model, BarRendererSettings.getDefault(), getItemRendererFactory());
+        return createBarRenderer(editor, brType, barIndex, BarRendererSettings.getDefault(), getItemRendererFactory());
     }
 
     /**
      * Create a BarRender of the specified type.
      *
      * @param editor Can be null
-     * @param type
+     * @param brType
      * @param barIndex
-     * @param model
      * @param settings
      * @param irf
      * @return
      */
-    BarRenderer createBarRenderer(CL_Editor editor, Type type, int barIndex, ChordLeadSheet model, BarRendererSettings settings, ItemRendererFactory irf);
+    BarRenderer createBarRenderer(CL_Editor editor, String brType, int barIndex, BarRendererSettings settings, ItemRendererFactory irf);
 
 }

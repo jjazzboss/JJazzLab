@@ -105,7 +105,7 @@
                   <Color blue="99" green="99" red="99" type="rgb"/>
                 </Property>
                 <Property name="faderHeight" type="int" value="4"/>
-                <Property name="knobDiameter" type="int" value="12"/>
+                <Property name="knobDiameter" type="int" value="10"/>
               </Properties>
 
               <Layout class="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout">
@@ -128,7 +128,7 @@
                 <AuxValue name="classDetails" type="java.lang.String" value="Box.Filler.HorizontalStrut"/>
               </AuxValues>
             </Component>
-            <Component class="org.jjazz.ui.flatcomponents.FlatButton" name="fbtn_switchAllMute">
+            <Component class="org.jjazz.ui.flatcomponents.api.FlatButton" name="fbtn_switchAllMute">
               <Properties>
                 <Property name="horizontalAlignment" type="int" value="0"/>
                 <Property name="text" type="java.lang.String" value=" M " noResource="true"/>
@@ -158,13 +158,10 @@
                 <AuxValue name="classDetails" type="java.lang.String" value="Box.Filler.HorizontalStrut"/>
               </AuxValues>
             </Component>
-            <Component class="org.jjazz.ui.flatcomponents.FlatButton" name="fbtn_allSoloOff">
+            <Component class="org.jjazz.ui.flatcomponents.api.FlatButton" name="fbtn_allSoloOff">
               <Properties>
                 <Property name="horizontalAlignment" type="int" value="0"/>
                 <Property name="text" type="java.lang.String" value=" S " noResource="true"/>
-                <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-                  <ResourceString bundle="org/jjazz/ui/mixconsole/api/Bundle.properties" key="MixConsole.fbtn_allSoloOff.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-                </Property>
                 <Property name="font" type="java.awt.Font" editor="org.netbeans.modules.form.editors2.FontEditor">
                   <FontInfo relative="true">
                     <Font component="fbtn_allSoloOff" property="font" relativeSize="true" size="-1"/>
@@ -188,7 +185,7 @@
                 <AuxValue name="classDetails" type="java.lang.String" value="Box.Filler.HorizontalStrut"/>
               </AuxValues>
             </Component>
-            <Component class="org.jjazz.ui.flatcomponents.FlatButton" name="fbtn_panic">
+            <Component class="org.jjazz.ui.flatcomponents.api.FlatButton" name="fbtn_panic">
               <Properties>
                 <Property name="horizontalAlignment" type="int" value="0"/>
                 <Property name="text" type="java.lang.String" value=" PANIC " noResource="true"/>
@@ -217,6 +214,13 @@
               <AuxValues>
                 <AuxValue name="classDetails" type="java.lang.String" value="Box.Filler.HorizontalStrut"/>
               </AuxValues>
+            </Component>
+            <Component class="org.jjazz.ui.flatcomponents.api.FlatButton" name="fbtn_addUserChannel">
+              <Properties>
+                <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
+                  <Image iconType="3" name="/org/jjazz/ui/mixconsole/resources/AddUser-16x16.png"/>
+                </Property>
+              </Properties>
             </Component>
           </SubComponents>
           <LayoutCode>
@@ -302,6 +306,14 @@
           <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
           <SubComponents>
             <Container class="javax.swing.JPanel" name="panel_mixChannels">
+              <Properties>
+                <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+                  <ResourceString bundle="org/jjazz/ui/mixconsole/api/Bundle.properties" key="MixConsole.panel_mixChannels.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+                </Property>
+              </Properties>
+              <Events>
+                <EventHandler event="mouseDragged" listener="java.awt.event.MouseMotionListener" parameters="java.awt.event.MouseEvent" handler="panel_mixChannelsMouseDragged"/>
+              </Events>
 
               <Layout class="org.netbeans.modules.form.compat2.layouts.DesignFlowLayout">
                 <Property name="alignment" type="int" value="0"/>

@@ -48,26 +48,26 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import org.jjazz.analytics.api.Analytics;
 import org.jjazz.instrumentchooser.spi.InstrumentChooserDialog;
-import org.jjazz.midi.synths.GSSynth;
-import org.jjazz.midi.Instrument;
-import org.jjazz.midi.InstrumentBank;
-import org.jjazz.midi.JJazzMidiSystem;
-import org.jjazz.midi.MidiConst;
-import org.jjazz.midi.MidiSynth;
-import org.jjazz.midi.synths.GM1Instrument;
-import org.jjazz.midi.synths.StdSynth;
-import org.jjazz.midi.ui.InstrumentTable;
-import org.jjazz.midimix.UserChannelRvKey;
+import org.jjazz.midi.api.synths.GSSynth;
+import org.jjazz.midi.api.Instrument;
+import org.jjazz.midi.api.InstrumentBank;
+import org.jjazz.midi.api.JJazzMidiSystem;
+import org.jjazz.midi.api.MidiConst;
+import org.jjazz.midi.api.MidiSynth;
+import org.jjazz.midi.api.synths.GM1Instrument;
+import org.jjazz.midi.api.synths.StdSynth;
+import org.jjazz.midi.api.ui.InstrumentTable;
+import org.jjazz.midimix.api.UserRhythmVoice;
 import org.jjazz.midisynthmanager.api.MidiSynthManager;
-import org.jjazz.musiccontrol.TestPlayer;
-import org.jjazz.outputsynth.GMRemapTable;
-import org.jjazz.outputsynth.GMRemapTable.ArgumentsException;
-import org.jjazz.outputsynth.OutputSynth;
-import org.jjazz.outputsynth.OutputSynth.SendModeOnUponStartup;
+import org.jjazz.musiccontrol.api.TestPlayer;
+import org.jjazz.outputsynth.api.GMRemapTable;
+import org.jjazz.outputsynth.api.GMRemapTable.ArgumentsException;
+import org.jjazz.outputsynth.api.OutputSynth;
+import org.jjazz.outputsynth.api.OutputSynth.SendModeOnUponStartup;
 import org.jjazz.outputsynth.ui.spi.RemapTableInstrumentChooser;
 import org.jjazz.rhythm.api.MusicGenerationException;
-import org.jjazz.uisettings.GeneralUISettings;
-import org.jjazz.util.ResUtil;
+import org.jjazz.uisettings.api.GeneralUISettings;
+import org.jjazz.util.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.util.Exceptions;
@@ -143,6 +143,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
         combo_sendMessageUponPlay.setSelectedItem(outputSynth.getSendModeOnUponPlay());
         btn_userInstrument.setText(outputSynth.getUserInstrument().getPatchName());
         btn_userInstrument.setToolTipText(outputSynth.getUserInstrument().getFullName());
+        spn_audioLatency.setValue((Integer) outputSynth.getAudioLatency());
         btn_Hear.setEnabled(false);
         tbl_Remap.setPrimaryModel(outputSynth.getGMRemapTable());
     }
@@ -206,6 +207,9 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
             {
                 this.btn_userInstrument.setText(outputSynth.getUserInstrument().getPatchName());
                 this.btn_userInstrument.setToolTipText(outputSynth.getUserInstrument().getFullName());
+            } else if (evt.getPropertyName().equals(OutputSynth.PROP_AUDIO_LATENCY_MS))
+            {
+                this.spn_audioLatency.setValue((Integer) evt.getNewValue());
             }
         } else if (evt.getSource() == outputSynth.getGMRemapTable())
         {
@@ -416,11 +420,11 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
         btn_AddSynth = new javax.swing.JButton();
         btn_RemoveSynth = new javax.swing.JButton();
         jScrollPane7 = new javax.swing.JScrollPane();
-        tbl_Instruments = new org.jjazz.midi.ui.InstrumentTable();
+        tbl_Instruments = new org.jjazz.midi.api.ui.InstrumentTable();
         btn_Hear = new javax.swing.JButton();
         pnl_defaultInstruments = new javax.swing.JPanel();
         jScrollPane3 = new javax.swing.JScrollPane();
-        helpTextArea1 = new org.jjazz.ui.utilities.HelpTextArea();
+        helpTextArea1 = new org.jjazz.ui.utilities.api.HelpTextArea();
         jScrollPane5 = new javax.swing.JScrollPane();
         tbl_Remap = new org.jjazz.outputsynth.ui.RemapTableUI();
         btn_changeRemappedIns = new javax.swing.JButton();
@@ -431,13 +435,17 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
         jLabel1 = new javax.swing.JLabel();
         btn_userInstrument = new javax.swing.JButton();
         jLabel6 = new javax.swing.JLabel();
+        spn_audioLatency = new org.jjazz.ui.utilities.api.WheelSpinner();
+        jLabel5 = new javax.swing.JLabel();
+        jScrollPane4 = new javax.swing.JScrollPane();
+        helpTextArea2 = new org.jjazz.ui.utilities.api.HelpTextArea();
         pnl_Compatibility = new javax.swing.JPanel();
         cb_GM = new javax.swing.JCheckBox();
         cb_GM2 = new javax.swing.JCheckBox();
         cb_XG = new javax.swing.JCheckBox();
         cb_GS = new javax.swing.JCheckBox();
         jScrollPane1 = new javax.swing.JScrollPane();
-        hlp_area = new org.jjazz.ui.utilities.HelpTextArea();
+        hlp_area = new org.jjazz.ui.utilities.api.HelpTextArea();
         lbl_synthImage = new javax.swing.JLabel();
 
         setLayout(new java.awt.CardLayout());
@@ -663,6 +671,24 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel6, org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.jLabel6.text")); // NOI18N
 
+        spn_audioLatency.setModel(new javax.swing.SpinnerNumberModel(0, 0, 2000, 5));
+        spn_audioLatency.addChangeListener(new javax.swing.event.ChangeListener()
+        {
+            public void stateChanged(javax.swing.event.ChangeEvent evt)
+            {
+                spn_audioLatencyStateChanged(evt);
+            }
+        });
+
+        org.openide.awt.Mnemonics.setLocalizedText(jLabel5, org.openide.util.NbBundle.getBundle(OutputSynthEditor.class).getString("OutputSynthEditor.jLabel5.text")); // NOI18N
+
+        jScrollPane4.setBorder(null);
+
+        helpTextArea2.setColumns(20);
+        helpTextArea2.setRows(4);
+        helpTextArea2.setText(org.openide.util.NbBundle.getBundle(OutputSynthEditor.class).getString("OutputSynthEditor.helpTextArea2.text")); // NOI18N
+        jScrollPane4.setViewportView(helpTextArea2);
+
         javax.swing.GroupLayout pnl_advancedLayout = new javax.swing.GroupLayout(pnl_advanced);
         pnl_advanced.setLayout(pnl_advancedLayout);
         pnl_advancedLayout.setHorizontalGroup(
@@ -670,13 +696,21 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
             .addGroup(pnl_advancedLayout.createSequentialGroup()
                 .addGap(10, 10, 10)
                 .addGroup(pnl_advancedLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(spn_audioLatency, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btn_userInstrument, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(combo_sendMessageUponPlay, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(pnl_advancedLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel1)
-                    .addComponent(jLabel6))
-                .addContainerGap(429, Short.MAX_VALUE))
+                    .addGroup(pnl_advancedLayout.createSequentialGroup()
+                        .addComponent(jLabel5)
+                        .addGap(18, 18, 18)
+                        .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 537, Short.MAX_VALUE))
+                    .addGroup(pnl_advancedLayout.createSequentialGroup()
+                        .addGroup(pnl_advancedLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel1)
+                            .addComponent(jLabel6))
+                        .addGap(0, 0, Short.MAX_VALUE)))
+                .addContainerGap())
         );
         pnl_advancedLayout.setVerticalGroup(
             pnl_advancedLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -689,7 +723,13 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
                 .addGroup(pnl_advancedLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel6)
                     .addComponent(btn_userInstrument))
-                .addContainerGap(351, Short.MAX_VALUE))
+                .addGap(18, 18, 18)
+                .addGroup(pnl_advancedLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(pnl_advancedLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(spn_audioLatency, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jLabel5))
+                    .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(279, Short.MAX_VALUE))
         );
 
         tabPane.addTab(org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.pnl_advanced.TabConstraints.tabTitle"), pnl_advanced); // NOI18N
@@ -991,6 +1031,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
             tp.playTestNotes(CHANNEL, -1, TRANSPOSE, endAction);
         } catch (MusicGenerationException ex)
         {
+            endAction.run();
             NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(d);
         }
@@ -1064,6 +1105,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
 
         } catch (MusicGenerationException ex)
         {
+            endAction.run();
             NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(d);
         }
@@ -1110,10 +1152,10 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
     {//GEN-HEADEREND:event_btn_userInstrumentActionPerformed
         InstrumentChooserDialog dlg = InstrumentChooserDialog.getDefault();
         dlg.preset(outputSynth,
-                UserChannelRvKey.getInstance(),
+                new UserRhythmVoice("dummyName"),
                 outputSynth.getUserInstrument(),
                 0,
-                UserChannelRvKey.getInstance().getPreferredUserChannel());
+                UserRhythmVoice.DEFAULT_USER_PHRASE_CHANNEL);
         dlg.setVisible(true);
         Instrument ins = dlg.getSelectedInstrument();
         if (ins != null)
@@ -1121,6 +1163,11 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
             outputSynth.setUserInstrument(ins);
         }
     }//GEN-LAST:event_btn_userInstrumentActionPerformed
+
+    private void spn_audioLatencyStateChanged(javax.swing.event.ChangeEvent evt)//GEN-FIRST:event_spn_audioLatencyStateChanged
+    {//GEN-HEADEREND:event_spn_audioLatencyStateChanged
+        outputSynth.setAudioLatency((Integer) spn_audioLatency.getValue());
+    }//GEN-LAST:event_spn_audioLatencyStateChanged
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -1136,17 +1183,20 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
     private javax.swing.JCheckBox cb_GS;
     private javax.swing.JCheckBox cb_XG;
     private javax.swing.JComboBox<SendModeOnUponStartup> combo_sendMessageUponPlay;
-    private org.jjazz.ui.utilities.HelpTextArea helpTextArea1;
-    private org.jjazz.ui.utilities.HelpTextArea hlp_area;
+    private org.jjazz.ui.utilities.api.HelpTextArea helpTextArea1;
+    private org.jjazz.ui.utilities.api.HelpTextArea helpTextArea2;
+    private org.jjazz.ui.utilities.api.HelpTextArea hlp_area;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
+    private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JScrollPane jScrollPane5;
     private javax.swing.JScrollPane jScrollPane6;
     private javax.swing.JScrollPane jScrollPane7;
@@ -1158,8 +1208,9 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
     private javax.swing.JPanel pnl_defaultInstruments;
     private javax.swing.JPanel pnl_main;
     private javax.swing.ButtonGroup rbtnGroup_SendMsgUponStartup;
+    private org.jjazz.ui.utilities.api.WheelSpinner spn_audioLatency;
     private javax.swing.JTabbedPane tabPane;
-    private org.jjazz.midi.ui.InstrumentTable tbl_Instruments;
+    private org.jjazz.midi.api.ui.InstrumentTable tbl_Instruments;
     private org.jjazz.outputsynth.ui.RemapTableUI tbl_Remap;
     // End of variables declaration//GEN-END:variables
 }

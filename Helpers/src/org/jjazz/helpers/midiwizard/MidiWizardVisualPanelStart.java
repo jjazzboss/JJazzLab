@@ -24,7 +24,7 @@ package org.jjazz.helpers.midiwizard;
 
 import javax.swing.AbstractButton;
 import javax.swing.JPanel;
-import org.jjazz.util.ResUtil;
+import org.jjazz.util.api.ResUtil;
 
 public final class MidiWizardVisualPanelStart extends JPanel
 {    
@@ -76,7 +76,7 @@ public final class MidiWizardVisualPanelStart extends JPanel
         jPanel4 = new javax.swing.JPanel();
         lbl_image = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
-        helpTextArea1 = new org.jjazz.ui.utilities.HelpTextArea();
+        helpTextArea1 = new org.jjazz.ui.utilities.api.HelpTextArea();
 
         jPanel1.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 5, 0));
 
@@ -166,7 +166,7 @@ public final class MidiWizardVisualPanelStart extends JPanel
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup buttonGroup1;
-    private org.jjazz.ui.utilities.HelpTextArea helpTextArea1;
+    private org.jjazz.ui.utilities.api.HelpTextArea helpTextArea1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;

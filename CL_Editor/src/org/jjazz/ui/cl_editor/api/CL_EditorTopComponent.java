@@ -26,15 +26,16 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 import javax.swing.Action;
-import org.jjazz.activesong.ActiveSongManager;
-import org.jjazz.base.actions.Savable;
+import org.jjazz.activesong.api.ActiveSongManager;
+import org.jjazz.base.api.actions.Savable;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
-import org.jjazz.savablesong.SavableSong;
+import org.jjazz.savablesong.api.SavableSong;
 import org.jjazz.song.api.Song;
 import org.jjazz.ui.cl_editor.CL_EditorController;
 import org.openide.DialogDisplayer;
@@ -42,7 +43,7 @@ import org.openide.NotifyDescriptor;
 import org.openide.awt.UndoRedo;
 import org.openide.util.Lookup;
 import org.openide.windows.TopComponent;
-import org.jjazz.util.ResUtil;
+import org.jjazz.util.api.ResUtil;
 import org.openide.util.Utilities;
 
 /**
@@ -128,7 +129,7 @@ public final class CL_EditorTopComponent extends TopComponent implements Propert
         {
             actions.add(null);   // Separator         
         }
-        actions.addAll(Arrays.asList(super.getActions())); // Get the standard builtin actions Close, Close All, Close Other      
+        Collections.addAll(actions, super.getActions()); // Get the standard builtin actions Close, Close All, Close Other      
         return actions.toArray(new Action[0]);
     }
 
@@ -320,7 +321,7 @@ public final class CL_EditorTopComponent extends TopComponent implements Propert
                 }
             }
         };
-        org.jjazz.ui.utilities.Utilities.invokeLaterIfNeeded(run);
+        org.jjazz.ui.utilities.api.Utilities.invokeLaterIfNeeded(run);
     }
 
     // -------------------------------------------------------------------------------------

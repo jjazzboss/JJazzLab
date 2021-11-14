@@ -38,10 +38,10 @@ import org.jjazz.ui.cl_editor.api.CopyBuffer;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.ui.cl_editor.api.CL_SelectionUtilities;
-import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
-import org.jjazz.undomanager.JJazzUndoManager;
-import org.jjazz.undomanager.JJazzUndoManagerFinder;
-import org.jjazz.util.ResUtil;
+import static org.jjazz.ui.utilities.api.Utilities.getGenericControlKeyStroke;
+import org.jjazz.undomanager.api.JJazzUndoManager;
+import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
+import org.jjazz.util.api.ResUtil;
 import org.openide.actions.PasteAction;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -105,7 +105,7 @@ public class Paste extends AbstractAction implements ContextAwareAction, CL_Cont
         CL_SelectionUtilities selection = cap.getSelection();
         ChordLeadSheet targetCls = selection.getChordLeadSheet();
         int targetBarIndex = selection.geMinBarIndex();
-        int lastBar = targetCls.getSize() - 1;
+        int lastBar = targetCls.getSizeInBars() - 1;
 
 
         JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(targetCls);
@@ -122,7 +122,7 @@ public class Paste extends AbstractAction implements ContextAwareAction, CL_Cont
                 {
                     try
                     {
-                        targetCls.setSize(targetBarIndex + range);
+                        targetCls.setSizeInBars(targetBarIndex + range);
                     } catch (UnsupportedEditException ex)
                     {
                         // Should never happen when resizing bigger
@@ -141,7 +141,7 @@ public class Paste extends AbstractAction implements ContextAwareAction, CL_Cont
             {
                 int barIndex = item.getPosition().getBar();
                 // Items which arrive after end of leadsheet are skipped.
-                if (barIndex < targetCls.getSize())
+                if (barIndex < targetCls.getSizeInBars())
                 {
                     if (item instanceof CLI_Section)
                     {

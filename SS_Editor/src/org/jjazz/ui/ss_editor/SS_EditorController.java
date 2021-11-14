@@ -43,7 +43,7 @@ import javax.swing.JComponent;
 import javax.swing.JPopupMenu;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
-import org.jjazz.rhythm.parameters.RhythmParameter;
+import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.ui.ss_editor.actions.ExtendSelectionLeft;
 import org.jjazz.ui.ss_editor.actions.ExtendSelectionRight;
 import org.jjazz.ui.ss_editor.actions.JumpToEnd;
@@ -57,22 +57,24 @@ import org.jjazz.ui.ss_editor.api.SS_Editor;
 import org.jjazz.songstructure.api.SongPartParameter;
 import org.jjazz.ui.ss_editor.api.SS_EditorTopComponent;
 import org.jjazz.ui.rpviewer.api.RpViewer;
-import org.jjazz.undomanager.JJazzUndoManagerFinder;
+import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.openide.awt.Actions;
 import org.openide.util.Utilities;
-import org.openide.windows.TopComponent;
-import org.openide.windows.WindowManager;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.ss_editor.api.SS_EditorMouseListener;
-import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
-import org.jjazz.util.ResUtil;
+import static org.jjazz.ui.utilities.api.Utilities.getGenericControlKeyStroke;
+import org.jjazz.util.api.ResUtil;
+import org.jjazz.rhythm.api.RpEnumerable;
+import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
+import org.jjazz.ui.ss_editor.api.SS_ContextActionSupport;
 
 /**
  * Controller implementation of a SS_Editor.
  */
 public class SS_EditorController implements SS_EditorMouseListener
 {
+
     /**
      * The graphical editor we control.
      */
@@ -91,6 +93,10 @@ public class SS_EditorController implements SS_EditorMouseListener
      * The RhythmParameter on which a drag was started.
      */
     private RhythmParameter<?> dragStartRp;
+    /**
+     * To listen to selection changes
+     */
+    private SS_ContextActionSupport cap;
     private static final Logger LOGGER = Logger.getLogger(SS_EditorController.class.getSimpleName());
 
     public SS_EditorController(SS_Editor ed)
@@ -98,6 +104,7 @@ public class SS_EditorController implements SS_EditorMouseListener
         editor = ed;
         dragStartSpt = null;
         dragStartRp = null;
+
 
         // Actions created by annotations (equivalent to org.openide.awt.Actions.context())
         editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(getGenericControlKeyStroke(KeyEvent.VK_DOWN), "PreviousRpValue");  //NOI18N
@@ -118,37 +125,85 @@ public class SS_EditorController implements SS_EditorMouseListener
         editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("Z"), "ResetRpValue");  //NOI18N
         editor.getActionMap().put("ResetRpValue", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.resetrpvalue"));   //NOI18N
 
-        // Our delegates for standard Netbeans callback actions
-        editor.getActionMap().put("cut-to-clipboard", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.cut"));   //NOI18N
+
+        // Set the delegate actions for standard Netbeans copy/cut/paste actions
+        editor.getActionMap().put("cut-to-clipboard", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.cut"));   //NOI18N        
         editor.getActionMap().put("copy-to-clipboard", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.copy"));   //NOI18N
         editor.getActionMap().put("paste-from-clipboard", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.paste"));   //NOI18N
 
+        // Change these delegate actions depending on the current selection
+        cap = SS_ContextActionSupport.getInstance(editor.getLookup());
+        SS_ContextActionListener cas = new SS_ContextActionListener()
+        {
+            boolean songMode = true;
+
+            @Override
+            public void selectionChange(SS_SelectionUtilities selection)
+            {
+                if (selection.isSongPartSelected() && !songMode)
+                {
+                    editor.getActionMap().put("copy-to-clipboard", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.copy"));   //NOI18N
+                    editor.getActionMap().put("paste-from-clipboard", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.paste"));   //NOI18N
+                    songMode = true;
+                } else if (selection.isRhythmParameterSelected() && songMode)
+                {
+                    editor.getActionMap().put("copy-to-clipboard", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.copyrpvalue"));   //NOI18N
+                    editor.getActionMap().put("paste-from-clipboard", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.pasterpvalue"));   //NOI18N
+                    songMode = false;
+                }
+            }
+        };
+        cap.addListener(cas);
+
+
         // Delegates for our callback actions        
-        editor.getActionMap().put("jjazz-delete", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.removespt"));   //NOI18N
-        editor.getActionMap().put("jjazz-selectall", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.selectall"));   //NOI18N
-        editor.getActionMap().put("jjazz-edit", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.editsptname"));   //NOI18N
-        editor.getActionMap().put("jjazz-zoomfitwidth", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.zoomfitwidth"));   //NOI18N
+        editor.getActionMap()
+                .put("jjazz-delete", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.removespt"));   //NOI18N
+        editor.getActionMap()
+                .put("jjazz-selectall", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.selectall"));   //NOI18N
+        editor.getActionMap()
+                .put("jjazz-edit", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.editsptname"));   //NOI18N
+        editor.getActionMap()
+                .put("jjazz-zoomfitwidth", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.zoomfitwidth"));   //NOI18N
 
 //        // Add keybindings which would be otherwise consumed by enclosing JScrollPane or other enclosing components
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("LEFT"), "MoveSelectionLeft");   //NOI18N
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("shift TAB"), "MoveSelectionLeft");  //NOI18N
-        editor.getActionMap().put("MoveSelectionLeft", new MoveSelectionLeft());
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("RIGHT"), "MoveSelectionRight");  //NOI18N
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("TAB"), "MoveSelectionRight");  //NOI18N
-        editor.getActionMap().put("MoveSelectionRight", new MoveSelectionRight());
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("shift LEFT"), "ExtendSelectionLeft");  //NOI18N
-        editor.getActionMap().put("ExtendSelectionLeft", new ExtendSelectionLeft());
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("shift RIGHT"), "ExtendSelectionRight");  //NOI18N
-        editor.getActionMap().put("ExtendSelectionRight", new ExtendSelectionRight());
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("UP"), "MoveSelectionUp");   //NOI18N
-        editor.getActionMap().put("MoveSelectionUp", new MoveSelectionUp());
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("DOWN"), "MoveSelectionDown");  //NOI18N
-        editor.getActionMap().put("MoveSelectionDown", new MoveSelectionDown());
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("HOME"), "JumpToHome");   //NOI18N
-        editor.getActionMap().put("JumpToHome", new JumpToHome());
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("END"), "JumpToEnd");  //NOI18N
-        editor.getActionMap().put("JumpToEnd", new JumpToEnd());
-     
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+                .put(KeyStroke.getKeyStroke("LEFT"), "MoveSelectionLeft");   //NOI18N
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+                .put(KeyStroke.getKeyStroke("shift TAB"), "MoveSelectionLeft");  //NOI18N
+        editor.getActionMap()
+                .put("MoveSelectionLeft", new MoveSelectionLeft());
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+                .put(KeyStroke.getKeyStroke("RIGHT"), "MoveSelectionRight");  //NOI18N
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+                .put(KeyStroke.getKeyStroke("TAB"), "MoveSelectionRight");  //NOI18N
+        editor.getActionMap()
+                .put("MoveSelectionRight", new MoveSelectionRight());
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+                .put(KeyStroke.getKeyStroke("shift LEFT"), "ExtendSelectionLeft");  //NOI18N
+        editor.getActionMap()
+                .put("ExtendSelectionLeft", new ExtendSelectionLeft());
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+                .put(KeyStroke.getKeyStroke("shift RIGHT"), "ExtendSelectionRight");  //NOI18N
+        editor.getActionMap()
+                .put("ExtendSelectionRight", new ExtendSelectionRight());
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+                .put(KeyStroke.getKeyStroke("UP"), "MoveSelectionUp");   //NOI18N
+        editor.getActionMap()
+                .put("MoveSelectionUp", new MoveSelectionUp());
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+                .put(KeyStroke.getKeyStroke("DOWN"), "MoveSelectionDown");  //NOI18N
+        editor.getActionMap()
+                .put("MoveSelectionDown", new MoveSelectionDown());
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+                .put(KeyStroke.getKeyStroke("HOME"), "JumpToHome");   //NOI18N
+        editor.getActionMap()
+                .put("JumpToHome", new JumpToHome());
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+                .put(KeyStroke.getKeyStroke("END"), "JumpToEnd");  //NOI18N
+        editor.getActionMap()
+                .put("JumpToEnd", new JumpToEnd());
+
     }
 
     @Override
@@ -408,12 +463,12 @@ public class SS_EditorController implements SS_EditorMouseListener
 
         SS_SelectionUtilities selection = new SS_SelectionUtilities(editor.getLookup());
 
-        LOGGER.log(Level.FINE, "rhythmParameterClicked() spt=" + spt + " rp=" + rp);   //NOI18N
+        LOGGER.log(Level.FINE, "rhythmParameterClicked() -- spt=" + spt + " rp=" + rp);   //NOI18N
 
         if (e.getClickCount() == 1 && SwingUtilities.isLeftMouseButton(e))
         {
-            if (selection.isSongPartSelected() || selection.isEmpty() || focusedRp == null || !RhythmParameter.Utilities.
-                    checkCompatibility(rp, focusedRp)
+            if (selection.isSongPartSelected() || selection.isEmpty() || focusedRp == null 
+                    || !rp.isCompatibleWith(focusedRp)
                     || (e.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) == 0)
             {
                 // SIMPLE CLICK, or no previous selection set on a similar item
@@ -445,7 +500,7 @@ public class SS_EditorController implements SS_EditorMouseListener
                 for (int i = minIndex; i <= maxIndex; i++)
                 {
                     SongPart spti = spts.get(i);
-                    RhythmParameter<?> rpi = RhythmParameter.Utilities.findFirstCompatibleRp(spti.getRhythm().getRhythmParameters(), rp);
+                    RhythmParameter<?> rpi = RhythmParameter.findFirstCompatibleRp(spti.getRhythm().getRhythmParameters(), rp);
                     if (rpi != null)
                     {
                         editor.selectRhythmParameter(spti, rpi, true);
@@ -455,13 +510,8 @@ public class SS_EditorController implements SS_EditorMouseListener
         } else if (e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e))
         {
             // DOUBLE CLICK 
-            // Show the SptViewer TopComponent
-            TopComponent tcSptEditor = WindowManager.getDefault().findTopComponent("SptEditorTopComponent");
-            if (tcSptEditor != null)
-            {
-                tcSptEditor.requestVisible();
-                tcSptEditor.requestAttention(true);
-            }
+            editRpWithCustomEditor();
+
         } else if (e.getClickCount() == 1 && SwingUtilities.isRightMouseButton(e))
         {
             // Right click        
@@ -489,6 +539,8 @@ public class SS_EditorController implements SS_EditorMouseListener
     @Override
     public void rhythmParameterWheelMoved(MouseWheelEvent e, SongPart spt, RhythmParameter rp)
     {
+        LOGGER.log(Level.FINE, "rhythmParameterWheelMoved() -- spt=" + spt + " rp=" + rp);   //NOI18N        
+
         boolean shift = (e.getModifiersEx() & InputEvent.SHIFT_DOWN_MASK) == InputEvent.SHIFT_DOWN_MASK;
         if ((e.getModifiersEx() & InputEvent.CTRL_DOWN_MASK) == InputEvent.CTRL_DOWN_MASK)
         {
@@ -516,10 +568,13 @@ public class SS_EditorController implements SS_EditorMouseListener
         }
 
         SS_SelectionUtilities selection = new SS_SelectionUtilities(editor.getLookup());
-        if (!selection.isRhythmParameterSelected(spt, rp))
+        if (!selection.isRhythmParameterSelected(spt, rp) || !(rp instanceof RpEnumerable))
         {
             return;
         }
+
+        // From here rp is an instance of Enumerable
+
         // Make sure our TopComponent is active so that global lookup represents our editor's selection. 
         // Because wheel action can be enabled even if the TopComponent is inactive, if editor's selection was indirectly 
         // changed while editor was not active (e.g. rhythm was changed from another TopComponent, or a chordleadsheet section was removed)
@@ -529,25 +584,30 @@ public class SS_EditorController implements SS_EditorMouseListener
         SS_EditorTopComponent ssTc = SS_EditorTopComponent.get(sgs);
         ssTc.requestActive();
 
+
+        // If shift is pressed we first align the values on the first selected RP
         if (shift)
         {
-            // First align the RhythmParameters values
-            double dValue = rp.calculatePercentage(spt.getRPValue(rp));
+            double dValue = ((RpEnumerable) rp).calculatePercentage(spt.getRPValue(rp));
             String editName = ResUtil.getString(getClass(), "CTL_SetRpValue");
+
+
             JJazzUndoManagerFinder.getDefault().get(sgs).startCEdit(editName);
-            for (SongPartParameter srb : selection.getSelectedSongPartParameters())
+            for (SongPartParameter sptp : selection.getSelectedSongPartParameters())
             {
-                SongPart spti = srb.getSpt();
-                RhythmParameter rpi = srb.getRp();
+                SongPart spti = sptp.getSpt();
+                RhythmParameter rpi = sptp.getRp();
                 if (spti != spt)
                 {
-                    Object compatibleValue = rpi.calculateValue(dValue); // selected RPs might be different types (but compatible)
+                    Object compatibleValue = ((RpEnumerable) rpi).calculateValue(dValue); // selected RPs might be different types (but compatible)
                     editor.getModel().setRhythmParameterValue(spti, rpi, compatibleValue);
                 }
             }
             JJazzUndoManagerFinder.getDefault().get(sgs).endCEdit(editName);
         }
 
+
+        // Next or previous actions
         if (e.getWheelRotation() < 0)
         {
             Action action = Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.nextrpvalue");   //NOI18N
@@ -567,6 +627,9 @@ public class SS_EditorController implements SS_EditorMouseListener
             // Ctrl or Shift not allowed
             return;
         }
+
+        // LOGGER.log(Level.FINE, "rhythmParameterDragged() -- spt=" + spt + " rp=" + rp);   //NOI18N
+
         SS_SelectionUtilities selection = new SS_SelectionUtilities(editor.getLookup());
         List<SongPart> spts = editor.getModel().getSongParts();
         if (dragStartSpt == null)
@@ -577,7 +640,7 @@ public class SS_EditorController implements SS_EditorMouseListener
             selection.unselectAll(editor);
             editor.selectRhythmParameter(spt, rp, true);
             editor.setFocusOnRhythmParameter(spt, rp);
-            LOGGER.log(Level.FINE, "rpDragged() start drag dragStartSptIndex={0}", dragStartSpt);   //NOI18N
+            LOGGER.log(Level.FINE, "                      start drag dragStartSptIndex={0}", dragStartSpt);   //NOI18N
         } else
         {
             // We continue a drag operation previously started
@@ -594,8 +657,7 @@ public class SS_EditorController implements SS_EditorMouseListener
             for (int i = minIndex; i <= maxIndex; i++)
             {
                 SongPart spti = spts.get(i);
-                RhythmParameter<?> rpi = RhythmParameter.Utilities.
-                        findFirstCompatibleRp(spti.getRhythm().getRhythmParameters(), dragStartRp);
+                RhythmParameter<?> rpi = RhythmParameter.findFirstCompatibleRp(spti.getRhythm().getRhythmParameters(), dragStartRp);
                 if (rpi != null)
                 {
                     editor.selectRhythmParameter(spti, rpi, true);
@@ -607,8 +669,36 @@ public class SS_EditorController implements SS_EditorMouseListener
     @Override
     public void rhythmParameterReleased(MouseEvent e, SongPart spt, RhythmParameter<?> rp)
     {
-        LOGGER.log(Level.FINE, "rhythmParameterReleased() spt=" + spt + " rp=" + rp);   //NOI18N
+        LOGGER.log(Level.FINE, "rhythmParameterReleased() -- spt=" + spt + " rp=" + rp);   //NOI18N
         dragStartSpt = null;
+    }
+
+    @Override
+    public void rhythmParameterEditWithCustomDialog(SongPart spt, RhythmParameter<?> rp)
+    {
+        LOGGER.fine("rhythmParameterEditWithCustomDialog() -- spt=" + spt + " rp=" + rp);
+        // First set selection on this RP
+        SS_SelectionUtilities selection = new SS_SelectionUtilities(editor.getLookup());
+        selection.unselectAll(editor);
+        editor.selectRhythmParameter(spt, rp, true);
+        editor.setFocusOnRhythmParameter(spt, rp);
+
+        // Edit
+        editRpWithCustomEditor();
+    }
+
+    @Override
+    public <E> void rhythmParameterEdit(SongPart spt, RhythmParameter<E> rp, E rpValue)
+    {
+        LOGGER.fine("rhythmParameterEdit() -- rpValue=" + rpValue);
+
+        var sgs = editor.getModel();
+        String editName = ResUtil.getString(getClass(), "CTL_SetRpValue");
+        JJazzUndoManagerFinder.getDefault().get(sgs).startCEdit(editName);
+
+        sgs.setRhythmParameterValue(spt, rp, rpValue);
+
+        JJazzUndoManagerFinder.getDefault().get(sgs).endCEdit(editName);
     }
 
     /**
@@ -652,4 +742,14 @@ public class SS_EditorController implements SS_EditorMouseListener
     //----------------------------------------------------------------------------------
     // Private methods
     //----------------------------------------------------------------------------------    
+    private void editRpWithCustomEditor()
+    {
+        // The action will rely on the current selection
+        Action action = Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.editrpwithcustomeditor");   //NOI18N
+        if (action.isEnabled())     // Sanity check
+        {
+            action.actionPerformed(null);
+        }
+    }
+
 }

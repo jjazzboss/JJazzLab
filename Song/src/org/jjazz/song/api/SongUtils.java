@@ -77,8 +77,8 @@ public class SongUtils
         }
 
         // Update size as well
-        int size = cls.getSize();
-        cls.setSize(size / 2 + size % 2);
+        int size = cls.getSizeInBars();
+        cls.setSizeInBars(size / 2 + size % 2);
     }
 
     /**
@@ -99,7 +99,7 @@ public class SongUtils
         try
         {
             // Update size
-            cls.setSize(cls.getSize() * 2);
+            cls.setSizeInBars(cls.getSizeInBars() * 2);
         } catch (UnsupportedEditException ex)
         {
             // Should never happen

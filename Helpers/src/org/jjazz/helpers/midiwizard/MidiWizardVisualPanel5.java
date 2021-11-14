@@ -25,15 +25,15 @@ package org.jjazz.helpers.midiwizard;
 import javax.sound.midi.MidiDevice;
 import javax.sound.midi.MidiUnavailableException;
 import javax.swing.JPanel;
-import org.jjazz.midi.synths.StdSynth;
-import org.jjazz.midi.Instrument;
-import org.jjazz.midi.JJazzMidiSystem;
-import org.jjazz.midi.MidiUtilities;
-import org.jjazz.midi.synths.Family;
-import org.jjazz.midi.synths.GSSynth;
-import org.jjazz.musiccontrol.TestPlayer;
+import org.jjazz.midi.api.synths.StdSynth;
+import org.jjazz.midi.api.Instrument;
+import org.jjazz.midi.api.JJazzMidiSystem;
+import org.jjazz.midi.api.MidiUtilities;
+import org.jjazz.midi.api.synths.Family;
+import org.jjazz.midi.api.synths.GSSynth;
+import org.jjazz.musiccontrol.api.TestPlayer;
 import org.jjazz.rhythm.api.MusicGenerationException;
-import org.jjazz.util.ResUtil;
+import org.jjazz.util.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 
@@ -202,6 +202,7 @@ public final class MidiWizardVisualPanel5 extends JPanel
             tp.playTestNotes(channel, -1, transpose, endAction);
         } catch (MusicGenerationException ex)
         {
+            endAction.run();
             NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(d);
         }
@@ -219,11 +220,11 @@ public final class MidiWizardVisualPanel5 extends JPanel
         buttonGroupXG = new javax.swing.ButtonGroup();
         buttonGroupGS = new javax.swing.ButtonGroup();
         jScrollPane1 = new javax.swing.JScrollPane();
-        wizardTextArea1 = new org.jjazz.ui.utilities.WizardTextArea();
+        wizardTextArea1 = new org.jjazz.ui.utilities.api.WizardTextArea();
         btn_test1 = new javax.swing.JButton();
         btn_test2 = new javax.swing.JButton();
         jScrollPane2 = new javax.swing.JScrollPane();
-        helpTextArea1 = new org.jjazz.ui.utilities.HelpTextArea();
+        helpTextArea1 = new org.jjazz.ui.utilities.api.HelpTextArea();
         lbl_outDevice = new javax.swing.JLabel();
         jPanel1 = new javax.swing.JPanel();
         rbtn_yesGM2 = new javax.swing.JRadioButton();
@@ -510,7 +511,7 @@ public final class MidiWizardVisualPanel5 extends JPanel
     private javax.swing.ButtonGroup buttonGroupGM2;
     private javax.swing.ButtonGroup buttonGroupGS;
     private javax.swing.ButtonGroup buttonGroupXG;
-    private org.jjazz.ui.utilities.HelpTextArea helpTextArea1;
+    private org.jjazz.ui.utilities.api.HelpTextArea helpTextArea1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JPanel jPanel1;
@@ -526,6 +527,6 @@ public final class MidiWizardVisualPanel5 extends JPanel
     private javax.swing.JRadioButton rbtn_yesGM2;
     private javax.swing.JRadioButton rbtn_yesGS;
     private javax.swing.JRadioButton rbtn_yesXG;
-    private org.jjazz.ui.utilities.WizardTextArea wizardTextArea1;
+    private org.jjazz.ui.utilities.api.WizardTextArea wizardTextArea1;
     // End of variables declaration//GEN-END:variables
 }

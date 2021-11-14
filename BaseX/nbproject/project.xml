@@ -53,6 +53,14 @@
                     </run-dependency>
                 </dependency>
                 <dependency>
+                    <code-name-base>org.openide.filesystems</code-name-base>
+                    <build-prerequisite/>
+                    <compile-dependency/>
+                    <run-dependency>
+                        <specification-version>9.23</specification-version>
+                    </run-dependency>
+                </dependency>
+                <dependency>
                     <code-name-base>org.openide.io</code-name-base>
                     <build-prerequisite/>
                     <compile-dependency/>
@@ -119,7 +127,7 @@
                 </test-type>
             </test-dependencies>
             <public-packages>
-                <package>org.jjazz.base.actions</package>
+                <package>org.jjazz.base.api.actions</package>
             </public-packages>
         </data>
     </configuration>

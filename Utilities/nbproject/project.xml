@@ -73,7 +73,7 @@
                 </test-type>
             </test-dependencies>
             <public-packages>
-                <package>org.jjazz.util</package>
+                <package>org.jjazz.util.api</package>
             </public-packages>
         </data>
     </configuration>

@@ -33,9 +33,9 @@ import javax.swing.KeyStroke;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.ui.cl_editor.api.CL_SelectionUtilities;
-import org.jjazz.undomanager.JJazzUndoManager;
-import org.jjazz.undomanager.JJazzUndoManagerFinder;
-import org.jjazz.util.ResUtil;
+import org.jjazz.undomanager.api.JJazzUndoManager;
+import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
+import org.jjazz.util.api.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
@@ -89,7 +89,7 @@ public class RemoveBar extends AbstractAction implements ContextAwareAction, CL_
         ChordLeadSheet cls = selection.getChordLeadSheet();
         int minBar = selection.getMinBarIndexWithinCls();
         int maxBar = selection.getMaxBarIndexWithinCls();
-        int lastBar = cls.getSize() - 1;
+        int lastBar = cls.getSizeInBars() - 1;
 
 
         LOGGER.log(Level.FINE, "actionPerformed() minBar=" + minBar + " cls=" + cls + " context=" + context);   //NOI18N
@@ -120,7 +120,7 @@ public class RemoveBar extends AbstractAction implements ContextAwareAction, CL_
     {
         boolean b = false;
         ChordLeadSheet cls = selection.getChordLeadSheet();
-        if (selection.isContiguousBarSelection() && (selection.getMinBarIndexWithinCls() > 0 || selection.getMaxBarIndexWithinCls() < cls.getSize() - 1))
+        if (selection.isContiguousBarSelection() && (selection.getMinBarIndexWithinCls() > 0 || selection.getMaxBarIndexWithinCls() < cls.getSizeInBars() - 1))
         {
             b = true;
         }

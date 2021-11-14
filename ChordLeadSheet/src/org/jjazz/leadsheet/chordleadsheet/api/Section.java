@@ -24,7 +24,7 @@ package org.jjazz.leadsheet.chordleadsheet.api;
 
 import java.util.Objects;
 import java.util.logging.Logger;
-import org.jjazz.harmony.TimeSignature;
+import org.jjazz.harmony.api.TimeSignature;
 
 /**
  * A section in a leadsheet has a name and a TimeSignature.

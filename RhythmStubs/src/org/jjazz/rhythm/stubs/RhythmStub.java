@@ -25,36 +25,37 @@ package org.jjazz.rhythm.stubs;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
-import org.jjazz.harmony.TimeSignature;
-import org.jjazz.midi.DrumKit;
-import org.jjazz.midi.DrumKit.Type;
-import org.jjazz.midi.synths.GM1Bank;
-import org.jjazz.midi.synths.StdSynth;
-import org.jjazz.midi.keymap.KeyMapGM;
-import org.jjazz.midi.synths.Family;
+import org.jjazz.harmony.api.TimeSignature;
+import org.jjazz.midi.api.DrumKit;
+import org.jjazz.midi.api.DrumKit.Type;
+import org.jjazz.midi.api.synths.GM1Bank;
+import org.jjazz.midi.api.synths.StdSynth;
+import org.jjazz.midi.api.keymap.KeyMapGM;
+import org.jjazz.midi.api.synths.Family;
+import org.jjazz.phrase.api.Phrase;
+import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmFeatures;
 import org.jjazz.rhythm.api.RhythmVoice;
-import org.jjazz.rhythm.parameters.RP_STD_Variation;
-import org.jjazz.rhythm.parameters.RhythmParameter;
-import org.jjazz.rhythmmusicgeneration.DummyGenerator;
-import org.openide.util.Lookup;
-import org.openide.util.lookup.Lookups;
+import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Variation;
+import org.jjazz.rhythm.api.RhythmParameter;
+import org.jjazz.rhythmmusicgeneration.api.DummyGenerator;
+import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
+import org.jjazz.songcontext.api.SongContext;
 
 /**
  * A rhythm stub whatever the time signature.
  * <p>
  */
-public class RhythmStub implements Rhythm
+public class RhythmStub implements Rhythm, MusicGenerator
 {
 
     protected String uniqueId;
     protected TimeSignature timeSignature;
-    protected Lookup lookup;
-
     /**
      * The default RhythmParameters associated to this rhythm.
      */
@@ -90,9 +91,12 @@ public class RhythmStub implements Rhythm
         // Our Rhythm Parameters
         rhythmParameters.add(new RP_STD_Variation());
 
+    }
 
-        // The music generator
-        lookup = Lookups.fixed(new DummyGenerator(this));
+    @Override
+    public HashMap<RhythmVoice, Phrase> generateMusic(SongContext context) throws MusicGenerationException
+    {
+        return new DummyGenerator(this).generateMusic(context);
     }
 
     @Override
@@ -126,12 +130,6 @@ public class RhythmStub implements Rhythm
     public List<RhythmParameter<?>> getRhythmParameters()
     {
         return new ArrayList<>(rhythmParameters);
-    }
-
-    @Override
-    public Lookup getLookup()
-    {
-        return lookup;
     }
 
     @Override

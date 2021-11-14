@@ -35,12 +35,13 @@ import javax.swing.Action;
 import static javax.swing.Action.ACCELERATOR_KEY;
 import static javax.swing.Action.NAME;
 import javax.swing.JDialog;
+import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import org.jjazz.ui.ss_editor.api.SS_Editor;
 import org.jjazz.ui.ss_editor.api.SS_EditorTopComponent;
 import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
-import org.jjazz.ui.flatcomponents.FlatTextEditDialog;
-import org.jjazz.undomanager.JJazzUndoManagerFinder;
+import org.jjazz.ui.flatcomponents.api.FlatTextEditDialog;
+import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
@@ -51,7 +52,7 @@ import org.openide.util.Utilities;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
-import org.jjazz.util.ResUtil;
+import org.jjazz.util.api.ResUtil;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.editsptname")
 @ActionRegistration(displayName = "#CTL_EditSptName", lazy = false)
@@ -92,10 +93,11 @@ public class EditSptName extends AbstractAction implements ContextAwareAction, S
         SongPart spt0 = spts.get(0);
         SongStructure sgs = selection.getModel();
         FlatTextEditDialog dlg = FlatTextEditDialog.getInstance();
-        adjustDialogPosition(dlg, spt0);
+        dlg.setTextHorizontalAlignment(JTextField.LEADING);
         String name = spt0.getName();
+        dlg.setTextNbColumns(Math.max(name.length() + 2, 8));
         dlg.setText(name);
-        dlg.setColumns(Math.max(name.length() + 2, 8));
+        adjustDialogPosition(dlg, spt0);
         dlg.setVisible(true);
         String text = dlg.getText().trim();
         if (dlg.isExitOk() && text.length() > 0 && !(spts.size() == 1 && text.equals(spt0.getName())))
@@ -112,7 +114,7 @@ public class EditSptName extends AbstractAction implements ContextAwareAction, S
     @Override
     public void selectionChange(SS_SelectionUtilities selection)
     {
-        boolean b = selection.isOneSectionSptSelection();
+        boolean b = selection.isContiguousSptSelection();
         LOGGER.log(Level.FINE, "selectionChange() b={0}", b);   //NOI18N
         setEnabled(b);
     }

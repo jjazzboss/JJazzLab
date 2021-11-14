@@ -30,14 +30,15 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.helpers.FixMidiMixDialog.FixChoice;
-import org.jjazz.midi.Instrument;
-import org.jjazz.midi.InstrumentMix;
-import org.jjazz.midi.synths.StdSynth;
-import org.jjazz.midimix.MidiMix;
-import org.jjazz.musiccontrol.MusicController;
-import org.jjazz.outputsynth.OutputSynth;
-import org.jjazz.outputsynth.OutputSynthManager;
-import org.jjazz.rhythmmusicgeneration.MusicGenerationContext;
+import org.jjazz.midi.api.Instrument;
+import org.jjazz.midi.api.InstrumentMix;
+import org.jjazz.midi.api.synths.StdSynth;
+import org.jjazz.midimix.api.MidiMix;
+import org.jjazz.musiccontrol.api.MusicController;
+import org.jjazz.musiccontrol.api.PlaybackSettings;
+import org.jjazz.outputsynth.api.OutputSynth;
+import org.jjazz.outputsynth.api.OutputSynthManager;
+import org.jjazz.songcontext.api.SongContext;
 import org.openide.windows.OnShowing;
 
 /**
@@ -46,6 +47,7 @@ import org.openide.windows.OnShowing;
 @OnShowing              // Used only to get the automatic object creation upon startup
 public class FixMidiMixAction implements VetoableChangeListener, Runnable
 {
+
     private static FixMidiMixDialog DIALOG;
     private static final Logger LOGGER = Logger.getLogger(FixMidiMixAction.class.getSimpleName());
     FixChoice savedChoice = FixChoice.CANCEL;
@@ -53,8 +55,7 @@ public class FixMidiMixAction implements VetoableChangeListener, Runnable
     public FixMidiMixAction()
     {
         // Register for song playback
-        MusicController mc = MusicController.getInstance();
-        mc.addVetoableChangeListener(this);
+        PlaybackSettings.getInstance().addPlaybackStartVetoableListener(this);
     }
 
     @Override
@@ -74,18 +75,22 @@ public class FixMidiMixAction implements VetoableChangeListener, Runnable
     {
         LOGGER.log(Level.FINE, "vetoableChange() -- evt={0}", evt);   //NOI18N
 
-        MusicController mc = MusicController.getInstance();
-        if (evt.getSource() != mc
-                || !evt.getPropertyName().equals(MusicController.PROPVETO_PRE_PLAYBACK)
-                || !mc.getState().equals(MusicController.State.STOPPED))  // Don't check in pause mode
+        if (evt.getSource() != PlaybackSettings.getInstance()
+                || !evt.getPropertyName().equals(PlaybackSettings.PROP_VETO_PRE_PLAYBACK)
+                || !MusicController.getInstance().getState().equals(MusicController.State.STOPPED))  // Don't check in pause mode
         {
             return;
         }
 
-        MusicGenerationContext context = (MusicGenerationContext) evt.getNewValue();
-        assert context != null : "evt=" + evt;   //NOI18N
-        MidiMix midiMix = context.getMidiMix();
+        SongContext context = (SongContext) evt.getNewValue();
+        if (context == null)
+        {
+            // No context, we can't check anything
+            return;
+        }
 
+
+        MidiMix midiMix = context.getMidiMix();
         OutputSynth outputSynth = OutputSynthManager.getInstance().getOutputSynth();
         HashMap<Integer, Instrument> mapNewInstruments = outputSynth.getNeedFixInstruments(midiMix);
         List<Integer> reroutableChannels = midiMix.getChannelsNeedingDrumsRerouting(mapNewInstruments);
@@ -156,7 +161,5 @@ public class FixMidiMixAction implements VetoableChangeListener, Runnable
             midiMix.setDrumsReroutedChannel(true, ch);
         }
     }
-
-
 
 }

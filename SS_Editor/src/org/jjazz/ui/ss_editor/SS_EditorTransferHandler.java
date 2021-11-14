@@ -43,11 +43,11 @@ import org.jjazz.songstructure.api.SongPartParameter;
 import org.jjazz.ui.ss_editor.api.SS_Editor;
 import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
 import org.jjazz.ui.sptviewer.api.SptViewer;
-import org.jjazz.undomanager.JJazzUndoManager;
-import org.jjazz.undomanager.JJazzUndoManagerFinder;
+import org.jjazz.undomanager.api.JJazzUndoManager;
+import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.util.ResUtil;
+import org.jjazz.util.api.ResUtil;
 
 /**
  * Drag n Drop Transfer handler for Section/SongParts.
@@ -392,7 +392,7 @@ public class SS_EditorTransferHandler extends TransferHandler
         // Prepare data
         SongPart prevSpt = (sptIndex == 0) ? null : spts.get(sptIndex - 1);
         int startBarIndex = (prevSpt == null) ? 0 : prevSpt.getBarRange().to + 1;
-        int nbBars = parentSection.getContainer().getSectionRange(parentSection).size();
+        int nbBars = parentSection.getContainer().getBarRange(parentSection).size();
 
 
         // Choose rhythm

@@ -34,19 +34,20 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.event.SwingPropertyChangeSupport;
-import org.jjazz.harmony.TimeSignature;
+import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.rhythm.api.Rhythm;
-import org.jjazz.rhythm.parameters.RhythmParameter;
+import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.rhythm.database.api.RhythmDatabase;
 import org.jjazz.rhythm.database.api.RhythmInfo;
 import org.jjazz.rhythm.database.api.UnavailableRhythmException;
-import org.jjazz.util.SmallMap;
+import org.jjazz.util.api.SmallMap;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.util.ResUtil;
+import org.jjazz.util.api.ResUtil;
+import org.jjazz.rhythm.api.RpEnumerable;
 
 public class SongPartImpl implements SongPart, Serializable
 {
@@ -150,7 +151,7 @@ public class SongPartImpl implements SongPart, Serializable
     }
 
     /**
-     * Get the value of a RhythmParameter at a specified barIndex.
+     * Get a copy of the value of a RhythmParameter at a specified barIndex.
      *
      * @param rp
      * @return the java.lang.Object
@@ -163,13 +164,15 @@ public class SongPartImpl implements SongPart, Serializable
             throw new IllegalArgumentException("this=" + this + " rp=" + rp);   //NOI18N
         }
         @SuppressWarnings("unchecked")
-        T value = (T) mapRpValue.getValue(rp);
+        T value = rp.cloneValue((T) mapRpValue.getValue(rp));
         assert value != null : "rp=" + rp + " mapRpValueProfile=" + mapRpValue;   //NOI18N
         return value;
     }
 
     /**
-     * Change the v for a given RhythmParameter. Fire a PropertyChangeEvent with OldValue=rp, NewValue=vp.
+     * Change the value for a given RhythmParameter.
+     * <p>
+     * Fire a PropertyChangeEvent with OldValue=rp, NewValue=vp.
      *
      * @param rp
      * @param value Must be a valid value for rp
@@ -183,9 +186,9 @@ public class SongPartImpl implements SongPart, Serializable
         @SuppressWarnings("unchecked")
         T oldValue = (T) mapRpValue.getValue(rp);
         assert oldValue != null : "rpValueProfileMap=" + mapRpValue + " rp=" + rp + " value=" + value;   //NOI18N
-        if (oldValue != value)
+        if (!oldValue.equals(value))
         {
-            mapRpValue.putValue(rp, value);
+            mapRpValue.putValue(rp, rp.cloneValue(value));
             pcs.firePropertyChange(PROPERTY_RP_VALUE, rp, value);
         }
     }
@@ -240,30 +243,28 @@ public class SongPartImpl implements SongPart, Serializable
             throw new IllegalArgumentException("r=" + r + " newRhythm=" + newRhythm + " cliSection=" + cliSection);   //NOI18N
         }
 
+
         SongPartImpl newSpt = new SongPartImpl(newRhythm, newStartBarIndex, newNbBars, cliSection);
         newSpt.setContainer(container);
         newSpt.setName(name);
 
+
         // Update the values for compatible RhythmParameters
         for (RhythmParameter<?> newRp : newRhythm.getRhythmParameters())
         {
-            RhythmParameter crp = findCompatibleRP(newRp);
+            RhythmParameter crp = RhythmParameter.findFirstCompatibleRp(getRhythm().getRhythmParameters(), newRp);
             if (crp != null)
             {
-                // rp can reuse existing crp value: try first using the RP string value, then use percentageValue 
-                Object crpValue = mapRpValue.getValue(crp);
-                Object newRpValue = null;
-                String crpStringValue = crp.valueToString(crpValue);
-                if (crpStringValue != null)
+                Object crpValue = getRPValue(crp);
+                Object newRpValue = newRp.convertValue(crp, crpValue);
+                if (newRpValue != null)
                 {
-                    newRpValue = newRp.stringToValue(crpStringValue);     // May return null
-                }
-                if (newRpValue == null)
+                    newSpt.mapRpValue.putValue(newRp, newRpValue);
+                } else
                 {
-                    double crpPercentageValue = crp.calculatePercentage(crpValue);
-                    newRpValue = newRp.calculateValue(crpPercentageValue);
+                    LOGGER.warning("clone() Can't transpose value crpValue=" + crpValue + " to newRp=" + newRp.getId() + " (newRhythm=" + newRhythm.getName()
+                            + "), despite newRp being compatible with crp=" + crp.getId() + " (rhythm=" + rhythm.getName() + ")");
                 }
-                newSpt.mapRpValue.putValue(newRp, newRpValue);
             }
         }
         return newSpt;
@@ -374,25 +375,6 @@ public class SongPartImpl implements SongPart, Serializable
     // -------------------------------------------------------------------------------------------
     // Private methods
     // -------------------------------------------------------------------------------------------
-    /**
-     * Find the first RhythmParameter compatible with rp in this object's Rhythm.
-     * <p>
-     * Compatible = same name ignoring case and value has same class.
-     *
-     * @param rp
-     * @return Null if not found.
-     */
-    private RhythmParameter<?> findCompatibleRP(RhythmParameter<?> rp)
-    {
-        for (RhythmParameter<?> rpi : getRhythm().getRhythmParameters())
-        {
-            if (RhythmParameter.Utilities.checkCompatibility(rp, rpi))
-            {
-                return rpi;
-            }
-        }
-        return null;
-    }
 
     // --------------------------------------------------------------------- 
     // Serialization
@@ -423,16 +405,16 @@ public class SongPartImpl implements SongPart, Serializable
         private static transient List<String> saveUnavailableRhythmIds = new ArrayList<>();
 
         private final int spVERSION = 1;
-        private String spRhythmId;
-        private String spRhythmName;
-        private TimeSignature spRhythmTs;
-        private int spStartBarIndex;
-        private String spName;
-        private int spNbBars;
-        private CLI_Section spParentSection;
-        private SmallMap<String, String> spMapRpIdValue = new SmallMap<>();
-        private SmallMap<String, String> spMapRpIdDisplayName = new SmallMap<>();        // Used to find a matching RP when rpId does not work
-        private SmallMap<String, Double> spMapRpIdPercentageValue = new SmallMap<>();   // Used as backup when RP's valueToString() does not work
+        private final String spRhythmId;
+        private final String spRhythmName;
+        private final TimeSignature spRhythmTs;
+        private final int spStartBarIndex;
+        private final String spName;
+        private final int spNbBars;
+        private final CLI_Section spParentSection;
+        private final SmallMap<String, String> spMapRpIdValue = new SmallMap<>();
+        private final SmallMap<String, String> spMapRpIdDisplayName = new SmallMap<>();        // Used to find a matching RP when rpId does not work
+        private final SmallMap<String, Double> spMapRpIdPercentageValue = new SmallMap<>();   // Used as backup when RP's valueToString() does not work
 
         @SuppressWarnings(
                 {
@@ -451,10 +433,10 @@ public class SongPartImpl implements SongPart, Serializable
             for (RhythmParameter rp : spt.getRhythm().getRhythmParameters())
             {
                 Object value = spt.getRPValue(rp);
-                double percentage = rp.calculatePercentage(value);
+                double percentage = rp instanceof RpEnumerable ? ((RpEnumerable) rp).calculatePercentage(value) : -1;
                 spMapRpIdPercentageValue.putValue(rp.getId(), percentage);
                 spMapRpIdDisplayName.putValue(rp.getId(), rp.getDisplayName());
-                String strValue = rp.valueToString(value);
+                String strValue = rp.saveAsString(value);
                 if (strValue != null)
                 {
                     spMapRpIdValue.putValue(rp.getId(), strValue);
@@ -505,17 +487,26 @@ public class SongPartImpl implements SongPart, Serializable
                 RhythmParameter newRp = findMatchingRp(r.getRhythmParameters(), savedRpId, savedRpDisplayName);
                 if (newRp != null)
                 {
-                    // Try to reuse the string value if available and if it works, otherwise use percentage value
+                    // Try to reuse the string value if available, otherwise use percentage value if RP is enumerable
                     Object newValue = null;
                     String savedRpStringValue = spMapRpIdValue.getValue(savedRpId);
                     if (savedRpStringValue != null)
                     {
-                        newValue = newRp.stringToValue(savedRpStringValue);      // newValue can still be null after this
+                        newValue = newRp.loadFromString(savedRpStringValue);      // newValue can still be null after this
+                    }
+                    if (newValue == null && newRp instanceof RpEnumerable)
+                    {
+                        double savedRpPercentageValue = spMapRpIdPercentageValue.getValue(savedRpId);
+                        if (savedRpPercentageValue >= 0 && savedRpPercentageValue <= 1)
+                        {
+                            newValue = ((RpEnumerable) newRp).calculateValue(savedRpPercentageValue);
+                        }
                     }
                     if (newValue == null)
                     {
-                        double savedRpPercentageValue = spMapRpIdPercentageValue.getValue(savedRpId);
-                        newValue = newRp.calculateValue(savedRpPercentageValue);
+                        LOGGER.warning("readResolve() Could not restore value of rhythm parameter " + newRp.getId()
+                                + " from savedRpStringValue='" + savedRpStringValue + "'. Using default value instead.");
+                        newValue = newRp.getDefaultValue();
                     }
                     newSpt.setRPValue(newRp, newValue);
                 } else if (!saveUnavailableRhythmIds.contains(spRhythmId))

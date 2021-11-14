@@ -26,7 +26,7 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import org.jjazz.harmony.TimeSignature;
+import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.ChordLeadSheetImpl;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
@@ -39,8 +39,8 @@ import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.database.api.RhythmDatabase;
 import org.jjazz.rhythm.database.api.UnavailableRhythmException;
 import org.jjazz.songstructure.api.SongStructureFactory;
-import org.jjazz.undomanager.JJazzUndoManager;
-import org.jjazz.undomanager.JJazzUndoManagerFinder;
+import org.jjazz.undomanager.api.JJazzUndoManager;
+import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.junit.*;
 import static org.junit.Assert.assertTrue;
 import org.openide.util.Exceptions;
@@ -91,7 +91,7 @@ public class LinkedSongStructureTest
         undoManager = new JJazzUndoManager();
         try
         {
-            cls1.setSize(8);
+            cls1.setSizeInBars(8);
             cls1.addItem(new CLI_ChordSymbolImpl(new ExtChordSymbol("Dm7"), new Position(0, 0)));
             cls1.addItem(new CLI_ChordSymbolImpl(new ExtChordSymbol("F#7"), new Position(1, 0)));
             cls1.addItem(new CLI_ChordSymbolImpl(new ExtChordSymbol("Bbmaj7#5"), new Position(1, 3)));
@@ -337,7 +337,7 @@ public class LinkedSongStructureTest
         System.out.println("\n============ TestResize");
         try
         {
-            cls1.setSize(10);
+            cls1.setSizeInBars(10);
         } catch (UnsupportedEditException ex)
         {
             Exceptions.printStackTrace(ex);

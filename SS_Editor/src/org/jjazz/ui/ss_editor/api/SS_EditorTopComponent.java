@@ -22,33 +22,34 @@
  */
 package org.jjazz.ui.ss_editor.api;
 
+import org.jjazz.ui.ss_editor.spi.SS_EditorSettings;
+import org.jjazz.ui.ss_editor.spi.SS_EditorFactory;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.SwingUtilities;
-import org.jjazz.activesong.ActiveSongManager;
-import org.jjazz.base.actions.Savable;
+import org.jjazz.activesong.api.ActiveSongManager;
+import org.jjazz.base.api.actions.Savable;
 import org.jjazz.song.api.Song;
 import org.jjazz.ui.ss_editor.SS_EditorController;
-import org.jjazz.savablesong.SavableSong;
+import org.jjazz.savablesong.api.SavableSong;
 import org.openide.awt.UndoRedo;
 import org.openide.util.Lookup;
 import org.openide.util.Utilities;
 import org.openide.windows.TopComponent;
 import org.jjazz.songstructure.api.SongStructure;
-import org.jjazz.ui.sptviewer.api.SptViewerFactory;
+import org.jjazz.ui.sptviewer.spi.SptViewerFactory;
 import org.jjazz.ui.ss_editor.SS_EditorImpl;
 import org.jjazz.ui.ss_editor.SS_EditorToolBar;
-import org.jjazz.ui.utilities.Zoomable;
-import org.jjazz.util.ResUtil;
-import org.openide.DialogDisplayer;
-import org.openide.NotifyDescriptor;
+import org.jjazz.ui.utilities.api.Zoomable;
+import org.jjazz.util.api.ResUtil;
 
 /**
  * Top component for the SongStructure editor.
@@ -135,7 +136,7 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
         {
             actions.add(null);   // Separator         
         }
-        actions.addAll(Arrays.asList(super.getActions())); // Get the standard builtin actions Close, Close All, Close Other      
+        Collections.addAll(actions, super.getActions());// Get the standard builtin actions Close, Close All, Close Other      
         return actions.toArray(new Action[0]);
     }
 
@@ -331,13 +332,13 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
 //        // better to version settings since initial version as advocated at
 //        // http://wiki.apidesign.org/wiki/PropertyFiles
 //        p.setProperty("version", "1.0");
-//        // TODO store your settings
+//        // to do store your settings
 //    }
 //
 //    void readProperties(java.util.Properties p)
 //    {
 //        String version = p.getProperty("version");
-//        // TODO read your settings according to their version
+//        // TO DO read your settings according to their version
 //    }
     @Override
     public void propertyChange(final PropertyChangeEvent evt)
@@ -363,7 +364,7 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
                 }
             }
         };
-        org.jjazz.ui.utilities.Utilities.invokeLaterIfNeeded(run);
+        org.jjazz.ui.utilities.api.Utilities.invokeLaterIfNeeded(run);
     }
 
     // -------------------------------------------------------------------------------------

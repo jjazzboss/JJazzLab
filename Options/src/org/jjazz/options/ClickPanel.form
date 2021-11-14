@@ -154,7 +154,7 @@
             </Property>
           </Properties>
         </Component>
-        <Component class="org.jjazz.ui.utilities.WheelSpinner" name="spn_velocityHigh">
+        <Component class="org.jjazz.ui.utilities.api.WheelSpinner" name="spn_velocityHigh">
           <Properties>
             <Property name="model" type="javax.swing.SpinnerModel" editor="org.netbeans.modules.form.editors2.SpinnerModelEditor">
               <SpinnerModel initial="0" maximum="127" minimum="0" numberType="java.lang.Integer" stepSize="1" type="number"/>
@@ -164,7 +164,7 @@
             </Property>
           </Properties>
         </Component>
-        <Component class="org.jjazz.ui.utilities.WheelSpinner" name="spn_velocityLow">
+        <Component class="org.jjazz.ui.utilities.api.WheelSpinner" name="spn_velocityLow">
           <Properties>
             <Property name="model" type="javax.swing.SpinnerModel" editor="org.netbeans.modules.form.editors2.SpinnerModelEditor">
               <SpinnerModel initial="0" maximum="127" minimum="0" numberType="java.lang.Integer" stepSize="1" type="number"/>
@@ -206,7 +206,7 @@
             <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;String&gt;"/>
           </AuxValues>
         </Component>
-        <Component class="org.jjazz.ui.utilities.WheelSpinner" name="spn_channel">
+        <Component class="org.jjazz.ui.utilities.api.WheelSpinner" name="spn_channel">
           <Properties>
             <Property name="model" type="javax.swing.SpinnerModel" editor="org.netbeans.modules.form.editors2.SpinnerModelEditor">
               <SpinnerModel initial="10" maximum="16" minimum="1" numberType="java.lang.Integer" stepSize="1" type="number"/>
@@ -257,7 +257,7 @@
 
           <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
           <SubComponents>
-            <Component class="org.jjazz.ui.utilities.HelpTextArea" name="helpTextArea1">
+            <Component class="org.jjazz.ui.utilities.api.HelpTextArea" name="helpTextArea1">
               <Properties>
                 <Property name="columns" type="int" value="20"/>
                 <Property name="rows" type="int" value="5"/>
@@ -366,7 +366,7 @@
 
           <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
           <SubComponents>
-            <Component class="org.jjazz.ui.utilities.HelpTextArea" name="helpTextArea2">
+            <Component class="org.jjazz.ui.utilities.api.HelpTextArea" name="helpTextArea2">
               <Properties>
                 <Property name="columns" type="int" value="20"/>
                 <Property name="rows" type="int" value="5"/>

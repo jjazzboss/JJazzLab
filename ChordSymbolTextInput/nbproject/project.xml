@@ -30,6 +30,14 @@
                         <specification-version>1.0</specification-version>
                     </run-dependency>
                 </dependency>
+                <dependency>
+                    <code-name-base>org.jjazz.util</code-name-base>
+                    <build-prerequisite/>
+                    <compile-dependency/>
+                    <run-dependency>
+                        <specification-version>1.0</specification-version>
+                    </run-dependency>
+                </dependency>
             </module-dependencies>
             <test-dependencies>
                 <test-type>
@@ -41,7 +49,7 @@
                 </test-type>
             </test-dependencies>
             <public-packages>
-                <package>org.jjazz.chordsymboltextinput</package>
+                <package>org.jjazz.chordsymboltextinput.api</package>
             </public-packages>
         </data>
     </configuration>

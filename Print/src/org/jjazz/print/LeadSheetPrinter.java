@@ -46,7 +46,7 @@ import javax.swing.event.ChangeListener;
 import org.jjazz.song.api.Song;
 import org.jjazz.ui.cl_editor.api.CL_Editor;
 import org.jjazz.ui.cl_editor.api.CL_EditorFactory;
-import org.jjazz.ui.utilities.FixedPreferredWidthPanel;
+import org.jjazz.ui.utilities.api.FixedPreferredWidthPanel;
 
 /**
  * A printer for a ChordLeadSheet editor which fits available width and breaks pages at a BarBox edge.
@@ -314,7 +314,7 @@ public class LeadSheetPrinter implements Printable, Pageable
 
         // Scaled editor dimensions
         scaleFactor = width / clEditor.getWidth();
-        Rectangle rLast = clEditor.getBarRectangle(clEditor.getModel().getSize() - 1);
+        Rectangle rLast = clEditor.getBarRectangle(clEditor.getModel().getSizeInBars() - 1);
         scaledEditorBarHeight = rLast.height * scaleFactor;
         Point pLastBar = rLast.getLocation();
         scaledEditorHeight = pLastBar.y * scaleFactor + scaledEditorBarHeight;

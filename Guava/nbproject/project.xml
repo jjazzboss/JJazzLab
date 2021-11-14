@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://www.netbeans.org/ns/project/1">
+    <type>org.netbeans.modules.apisupport.project</type>
+    <configuration>
+        <data xmlns="http://www.netbeans.org/ns/nb-module-project/3">
+            <code-name-base>org.jjazz.guava</code-name-base>
+            <suite-component/>
+            <module-dependencies/>
+            <public-packages>
+                <package>com.google.common.annotations</package>
+                <package>com.google.common.base</package>
+                <package>com.google.common.base.internal</package>
+                <package>com.google.common.cache</package>
+                <package>com.google.common.collect</package>
+                <package>com.google.common.escape</package>
+                <package>com.google.common.eventbus</package>
+                <package>com.google.common.graph</package>
+                <package>com.google.common.hash</package>
+                <package>com.google.common.html</package>
+                <package>com.google.common.io</package>
+                <package>com.google.common.math</package>
+                <package>com.google.common.net</package>
+                <package>com.google.common.primitives</package>
+                <package>com.google.common.reflect</package>
+                <package>com.google.common.util.concurrent</package>
+                <package>com.google.common.util.concurrent.internal</package>
+                <package>com.google.common.xml</package>
+                <package>com.google.thirdparty.publicsuffix</package>
+            </public-packages>
+            <class-path-extension>
+                <runtime-relative-path>ext/failureaccess-1.0.1.jar</runtime-relative-path>
+                <binary-origin>release/modules/ext/failureaccess-1.0.1.jar</binary-origin>
+            </class-path-extension>
+            <class-path-extension>
+                <runtime-relative-path>ext/guava-30.1.1-jre.jar</runtime-relative-path>
+                <binary-origin>release/modules/ext/guava-30.1.1-jre.jar</binary-origin>
+            </class-path-extension>
+        </data>
+    </configuration>
+</project>

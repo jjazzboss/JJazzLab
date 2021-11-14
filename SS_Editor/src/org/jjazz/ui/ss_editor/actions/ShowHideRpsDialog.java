@@ -38,10 +38,9 @@ import javax.swing.KeyStroke;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import org.jjazz.rhythm.api.Rhythm;
-import org.jjazz.rhythm.parameters.RhythmParameter;
-import org.jjazz.songstructure.api.SongStructure;
+import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.ui.ss_editor.api.SS_Editor;
-import org.jjazz.util.ResUtil;
+import org.jjazz.util.api.ResUtil;
 import org.openide.windows.WindowManager;
 
 public class ShowHideRpsDialog extends javax.swing.JDialog
@@ -352,7 +351,7 @@ public class ShowHideRpsDialog extends javax.swing.JDialog
         {
             if (columnIndex == COL_RP)
             {
-                return this.uniqueRps.get(rowIndex);
+                return this.uniqueRps.get(rowIndex).getDisplayName();
             } else
             {
                 return data[columnIndex - COL_FIRST_RHYTHM][rowIndex];

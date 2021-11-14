@@ -1,5 +1,5 @@
 Manifest-Version: 1.0
 OpenIDE-Module: org.jjazz.ui.utilities
-OpenIDE-Module-Localizing-Bundle: org/jjazz/ui/utilities/Bundle.properties
+OpenIDE-Module-Localizing-Bundle: org/jjazz/ui/utilities/api/Bundle.properties
 OpenIDE-Module-Specification-Version: 1.1
 

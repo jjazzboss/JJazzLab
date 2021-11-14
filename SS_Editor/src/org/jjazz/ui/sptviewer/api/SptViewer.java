@@ -22,17 +22,19 @@
  */
 package org.jjazz.ui.sptviewer.api;
 
+import java.awt.Rectangle;
+import org.jjazz.ui.sptviewer.spi.SptViewerSettings;
 import java.util.List;
 import javax.swing.JPanel;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
-import org.jjazz.rhythm.parameters.RhythmParameter;
+import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.ui.rpviewer.api.RpViewerFactory;
+import org.jjazz.ui.rpviewer.spi.DefaultRpViewerRendererFactory;
 
 /**
- * A SongPart viewer.
+ * A base class for SongPart viewers.
  * <p>
- * Must keep itself updated by listening to model changes. User actions are send to the controller.
+ * Must keep itself updated by listening to model changes. User actions are sent to the controller.
  */
 public abstract class SptViewer extends JPanel
 {
@@ -41,7 +43,7 @@ public abstract class SptViewer extends JPanel
 
     public abstract SptViewerSettings getSettings();
 
-    public abstract RpViewerFactory getRpViewerFactory();
+    public abstract DefaultRpViewerRendererFactory getDefaultRpRendererFactory();
 
     public abstract void setController(SptViewerMouseListener controller);
 
@@ -70,6 +72,8 @@ public abstract class SptViewer extends JPanel
     public abstract void setFocusOnRpViewer(RhythmParameter<?> rp);
 
     public abstract void setVisibleRps(List<RhythmParameter<?>> rps);
+    
+    public abstract Rectangle getRpViewerRectangle(RhythmParameter<?> rp);
 
     /**
      * True by default.

@@ -28,6 +28,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -43,10 +44,10 @@ import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
 import org.jjazz.song.api.SongCreationException;
 import org.jjazz.song.spi.SongImporter;
-import org.jjazz.songeditormanager.SongEditorManager;
-import org.jjazz.upgrade.UpgradeManager;
+import org.jjazz.songeditormanager.api.SongEditorManager;
+import org.jjazz.upgrade.api.UpgradeManager;
 import org.jjazz.upgrade.spi.UpgradeTask;
-import org.jjazz.util.ResUtil;
+import org.jjazz.util.api.ResUtil;
 import org.netbeans.api.progress.*;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -96,7 +97,7 @@ public final class ImportSongAction implements ActionListener
         {
             for (FileNameExtensionFilter filter : importer.getSupportedFileTypes())
             {
-                allExtensions.addAll(Arrays.asList(filter.getExtensions()));
+                Collections.addAll(allExtensions, filter.getExtensions());
             }
         }
         if (allExtensions.size() > 1)
@@ -106,7 +107,7 @@ public final class ImportSongAction implements ActionListener
 
 
         // Initialize the file chooser
-        JFileChooser chooser = org.jjazz.ui.utilities.Utilities.getFileChooserInstance();
+        JFileChooser chooser = org.jjazz.ui.utilities.api.Utilities.getFileChooserInstance();
         chooser.resetChoosableFileFilters();
         if (allExtensionsFilter != null)
         {
@@ -150,7 +151,7 @@ public final class ImportSongAction implements ActionListener
         HashMap<String, SongImporter> mapExtImporter = new HashMap<>();
         for (File f : files)
         {
-            String ext = org.jjazz.util.Utilities.getExtension(f.getAbsolutePath());
+            String ext = org.jjazz.util.api.Utilities.getExtension(f.getAbsolutePath());
             SongImporter importer = mapExtImporter.get(ext);
             if (importer == null)
             {

@@ -32,8 +32,8 @@ import javax.swing.Action;
 import javax.swing.KeyStroke;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.ui.cl_editor.api.CL_SelectionUtilities;
-import org.jjazz.undomanager.JJazzUndoManagerFinder;
-import org.jjazz.util.ResUtil;
+import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
+import org.jjazz.util.api.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
@@ -118,7 +118,7 @@ public class InsertBar extends AbstractAction implements ContextAwareAction, CL_
             } else
             {
                 // Insert at the end of the leadsheet if no selected bar within the leadsheet
-                insertModelBarIndex = selection.getChordLeadSheet().getSize();
+                insertModelBarIndex = selection.getChordLeadSheet().getSizeInBars();
                 insertNbBars = selection.getSelectedBars().size();
             }
         }

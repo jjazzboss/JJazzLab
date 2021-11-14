@@ -27,19 +27,28 @@ import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyVetoException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiUnavailableException;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
-import org.jjazz.activesong.ActiveSongManager;
-import org.jjazz.midimix.MidiMix;
-import org.jjazz.midimix.MidiMixManager;
-import org.jjazz.musiccontrol.MusicController;
-import org.jjazz.rhythmmusicgeneration.MusicGenerationContext;
+import org.jjazz.activesong.api.ActiveSongManager;
+import org.jjazz.analytics.api.Analytics;
+import org.jjazz.midimix.api.MidiMix;
+import org.jjazz.midimix.api.MidiMixManager;
+import org.jjazz.musiccontrol.api.MusicController;
+import org.jjazz.musiccontrol.api.PlaybackSettings;
+import org.jjazz.musiccontrol.api.playbacksession.DynamicSongSession;
+import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
+import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession;
+import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.song.api.Song;
-import org.jjazz.ui.flatcomponents.FlatToggleButton;
-import org.jjazz.util.ResUtil;
+import org.jjazz.ui.flatcomponents.api.FlatToggleButton;
+import org.jjazz.ui.musiccontrolactions.api.RemoteAction;
+import org.jjazz.ui.musiccontrolactions.api.RemoteActionProvider;
+import org.jjazz.util.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.awt.ActionID;
@@ -50,9 +59,9 @@ import org.openide.util.HelpCtx;
 import org.openide.util.Lookup;
 import org.openide.util.LookupEvent;
 import org.openide.util.LookupListener;
-import org.openide.util.NbBundle;
 import org.openide.util.Utilities;
 import org.openide.util.actions.BooleanStateAction;
+import org.openide.util.lookup.ServiceProvider;
 
 /**
  * Show/hide the playback point in editors during song playback.
@@ -63,10 +72,6 @@ import org.openide.util.actions.BooleanStateAction;
         {
             // 
             @ActionReference(path = "Shortcuts", name = "SPACE")
-        })
-@NbBundle.Messages(
-        {
-
         })
 public class Play extends BooleanStateAction implements PropertyChangeListener, LookupListener
 {
@@ -79,8 +84,9 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
     {
         setBooleanState(false);
 
-        putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PlayButtonBorder-24x24.png")));
-        putValue(Action.LARGE_ICON_KEY, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PlayButtonBorderOn-24x24.png")));
+        putValue(Action.NAME, "Play/Pause");        // For our RemoteActionProvider
+        putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PlayButton-24x24.png")));
+        putValue(Action.LARGE_ICON_KEY, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PlayButtonOn-24x24-orange.png")));
         putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(), "CTL_PlayToolTip"));
         putValue("hideActionText", true);
 
@@ -96,15 +102,20 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
         currentSongChanged();
     }
 
+    /**
+     * Just toggle the selected state.
+     *
+     * @param e
+     */
     @Override
     public void actionPerformed(ActionEvent e)
     {
         setSelected(!getBooleanState());
     }
 
-    public void setSelected(boolean newState)
+    public synchronized void setSelected(boolean newState)
     {
-        if (newState == getBooleanState())
+        if (newState == getBooleanState() || currentSong == null)
         {
             return;
         }
@@ -120,15 +131,14 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
                 if (newState)
                 {
                     // Start from last position
-                    assert currentSong != null; // Otherwise button should be disabled   //NOI18N
                     try
                     {
                         mc.resume();
-                    } catch (MusicGenerationException | PropertyVetoException ex)
+                    } catch (MusicGenerationException ex)
                     {
-                        if (ex.getLocalizedMessage() != null)
+                        if (ex.getMessage() != null)
                         {
-                            NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
+                            NotifyDescriptor d = new NotifyDescriptor.Message(ex.getMessage(), NotifyDescriptor.ERROR_MESSAGE);
                             DialogDisplayer.getDefault().notify(d);
                         }
                         setBooleanState(!newState);
@@ -142,24 +152,54 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
             case STOPPED:
                 if (newState)
                 {
-                    // Start playback from initial position
-                    assert currentSong != null; // Otherwise button should be disabled   //NOI18N
+                    // Start playback from initial position   
+                    UpdatableSongSession session = null;
                     try
                     {
                         MidiMix midiMix = MidiMixManager.getInstance().findMix(currentSong);      // Can raise MidiUnavailableException
-                        MusicGenerationContext context = new MusicGenerationContext(currentSong, midiMix);
-                        mc.setContext(context);
+                        SongContext context = new SongContext(currentSong, midiMix);
+
+                        // Check that all listeners are OK to start playback     
+                        PlaybackSettings.getInstance().firePlaybackStartVetoableChange(context);  // can raise PropertyVetoException
+
+
+                        // Prepare the session
+                        DynamicSongSession dynSession = DynamicSongSession.getSession(context);
+                        session = UpdatableSongSession.getSession(dynSession);
+                        if (session.getState().equals(PlaybackSession.State.NEW))
+                        {
+                            session.generate(false);        // can raise MusicGenerationException
+                            mc.setPlaybackSession(session); // can raise MusicGenerationException
+                        }
+
+                        // Start sequencer
                         mc.play(0);
+
+
+                        // Log the song play event        
+                        Analytics.setPropertiesOnce(Analytics.buildMap("First Play", Analytics.toStdDateTimeString()));
+                        Analytics.incrementProperties("Nb Play", 1);
+                        var mapParams = Analytics.buildMap("Bar Range", context.getBarRange().toString(), "Rhythms", Analytics.toStrList(context.getUniqueRhythms()));
+                        Analytics.logEvent("Play", mapParams);
+
                     } catch (MusicGenerationException | PropertyVetoException | MidiUnavailableException ex)
                     {
-                        if (ex.getLocalizedMessage() != null)
+                        if (session != null)
                         {
-                            NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
+                            session.close();
+                        }
+
+                        if (ex.getMessage() != null)
+                        {
+                            NotifyDescriptor d = new NotifyDescriptor.Message(ex.getMessage(), NotifyDescriptor.ERROR_MESSAGE);
                             DialogDisplayer.getDefault().notify(d);
                         }
+
                         setBooleanState(!newState);
                         return;
                     }
+
+
                 } else
                 {
                     // Nothing
@@ -192,7 +232,7 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
     }
 
     @Override
-    public void resultChanged(LookupEvent ev)
+    public synchronized void resultChanged(LookupEvent ev)
     {
         int i = 0;
         Song newSong = null;
@@ -235,7 +275,7 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
     // PropertyChangeListener interface
     // ======================================================================    
     @Override
-    public void propertyChange(PropertyChangeEvent evt)
+    public synchronized void propertyChange(PropertyChangeEvent evt)
     {
         MusicController mc = MusicController.getInstance();
         if (evt.getSource() == mc)
@@ -250,6 +290,27 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
             {
                 activeSongChanged();
             }
+        }
+    }
+    // ======================================================================
+    // Inner classes
+    // ======================================================================   
+
+    @ServiceProvider(service = RemoteActionProvider.class)
+    public static class PlayRemoteActionProvider implements RemoteActionProvider
+    {
+
+        @Override
+        public List<RemoteAction> getRemoteActions()
+        {
+            RemoteAction ra = RemoteAction.loadFromPreference("MusicControls", "org.jjazz.ui.musiccontrolactions.play");
+            if (ra == null)
+            {
+                ra = new RemoteAction("MusicControls", "org.jjazz.ui.musiccontrolactions.play");
+                ra.setMidiMessages(RemoteAction.noteOnMidiMessages(0, 24));
+            }
+            ra.setDefaultMidiMessages(RemoteAction.noteOnMidiMessages(0, 24));
+            return Arrays.asList(ra);
         }
     }
 

@@ -23,7 +23,7 @@
 package org.jjazz.ui.mixconsole;
 
 import java.util.logging.Logger;
-import org.jjazz.ui.flatcomponents.FlatIntegerKnob;
+import org.jjazz.ui.flatcomponents.api.FlatIntegerKnob;
 
 /**
  * A knob for panoramic
@@ -33,13 +33,15 @@ public class PanoramicKnob extends FlatIntegerKnob
 
     private static final Logger LOGGER = Logger.getLogger(PanoramicKnob.class.getSimpleName());
 
-    public PanoramicKnob()
+    @Override
+    protected String prepareToolTipText()
     {
-        setLabel("panoramic");
+        String valueAstring = isEnabled() ? valueToPanString(getValue()) : "OFF";
+        String text = (getTooltipLabel() == null) ? valueAstring : getTooltipLabel() + "=" + valueAstring;
+        return text;
     }
 
-    @Override
-    protected String valueToString(int v)
+    private String valueToPanString(int v)
     {
         String text = "C";
         if (v < 64)
@@ -50,63 +52,5 @@ public class PanoramicKnob extends FlatIntegerKnob
             text = "R" + (v - 64);
         }
         return text;
-    }
-
-    /**
-     * Return the Midi value : 0-127
-     *
-     * @param text Accepted strings are "C", "R12" (0-64), "L20" (0-63), "120" (0-127)
-     * @return -1 if string is not valid
-     */
-    @Override
-    protected int stringToValue(String text)
-    {
-        int value = -1;
-        String t = text.toUpperCase();
-        if (t.equals("C"))
-        {
-            value = 64;
-        } else if (t.charAt(0) == 'L')
-        {
-            try
-            {
-                int v = Integer.parseUnsignedInt(t.substring(1));
-                v = Math.max(0, v);
-                v = Math.min(64, v);
-                value = 64 - v;
-            } catch (NumberFormatException e)
-            {
-                // Nothing leave value unchanged
-            }
-        } else if (t.charAt(0) == 'R')
-        {
-            try
-            {
-                int v = Integer.parseUnsignedInt(t.substring(1));
-                v = Math.max(0, v);
-                v = Math.min(63, v);
-                value = 64 + v;
-            } catch (NumberFormatException e)
-            {
-                // Nothing leave value unchanged
-            }
-        } else
-        {
-            try
-            {
-                int v = Integer.parseUnsignedInt(t.substring(1));
-                v = Math.max(0, v);
-                v = Math.min(127, v);
-                value = v;
-            } catch (NumberFormatException e)
-            {
-                // Nothing leave value unchanged
-            }
-        }
-        if (value == -1)
-        {
-            LOGGER.fine("parseString() text=" + text);   //NOI18N
-        }
-        return value;
     }
 }

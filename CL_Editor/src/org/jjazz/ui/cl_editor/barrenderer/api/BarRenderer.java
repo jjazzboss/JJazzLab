@@ -33,7 +33,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
-import org.jjazz.quantizer.Quantization;
+import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.ui.cl_editor.api.CL_Editor;
 import org.jjazz.ui.itemrenderer.api.ItemRenderer;
 import org.jjazz.ui.itemrenderer.api.ItemRendererFactory;
@@ -41,7 +41,7 @@ import org.jjazz.ui.itemrenderer.api.ItemRendererFactory;
 /**
  * Base class for BarRenderer.
  * <p>
- * BarRenderer is used as a container for ItemRenderers. BarRenderer has a barIndex, and a modelBarIndex (the barIndex within the
+ * A BarRenderer is a container for ItemRenderers. A BarRenderer has a barIndex and a modelBarIndex (the barIndex within the
  * model). Both values are equal when showing bars within the model, but if showing a bar past the end of the model, modelBarIndex
  * = -1.
  */
@@ -51,7 +51,7 @@ abstract public class BarRenderer extends JPanel implements PropertyChangeListen
     /**
      * Store the font rendering hidden dialogs.
      */
-    private static HashMap<CL_Editor, JDialog> mapEditorDialog = new HashMap<>();
+    private static final HashMap<CL_Editor, JDialog> mapEditorDialog = new HashMap<>();
     private static JDialog noEditorDialog;
 
 
@@ -129,17 +129,17 @@ abstract public class BarRenderer extends JPanel implements PropertyChangeListen
      * Set the model for this BarRenderer.
      *
      * @param modelBarIndex If &lt; 0, it means this BarRenderer does not represent a valid bar for model
-     * @param aModel
+     * @param clsModel
      */
-    public void setModel(int modelBarIndex, ChordLeadSheet aModel)
+    public void setModel(int modelBarIndex, ChordLeadSheet clsModel)
     {
-        if (aModel == null)
+        if (clsModel == null)
         {
-            throw new IllegalArgumentException("modelBarIndex=" + modelBarIndex + " aModel=" + aModel);   //NOI18N
+            throw new IllegalArgumentException("modelBarIndex=" + modelBarIndex + " clsModel=" + clsModel);   //NOI18N
         }
 
-        model = aModel;
-        this.modelBarIndex = -9786561;  // Make sure it is different from the new value
+        model = clsModel;
+        this.modelBarIndex = -9786561;  // Make sure it is different from the new value        
         setModelBarIndex(modelBarIndex);
     }
 
@@ -297,7 +297,7 @@ abstract public class BarRenderer extends JPanel implements PropertyChangeListen
      */
     public void setModelBarIndex(int bar)
     {
-        if (bar >= model.getSize())
+        if (bar >= model.getSizeInBars())
         {
             throw new IllegalArgumentException("this=" + this + " bar=" + bar);   //NOI18N
         }
@@ -331,7 +331,9 @@ abstract public class BarRenderer extends JPanel implements PropertyChangeListen
     }
 
     /**
-     * Move one item of this bar. The new position is also within this bar.
+     * Move one item of this bar.
+     * <p>
+     * The new position is also within this bar.
      *
      * @param item
      */
@@ -380,6 +382,8 @@ abstract public class BarRenderer extends JPanel implements PropertyChangeListen
 
     /**
      * Clean up everything so this object can be garbaged.
+     * <p>
+     * Model is set to null.
      */
     public void cleanup()
     {

@@ -22,21 +22,21 @@
  */
 package org.jjazz.ui.mixconsole.actions;
 
-import org.jjazz.midimix.MidiMix;
+import org.jjazz.midimix.api.MidiMix;
 import java.awt.event.ActionEvent;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.JMenuItem;
-import org.jjazz.midi.Instrument;
-import org.jjazz.midi.InstrumentMix;
-import org.jjazz.midimix.UserChannelRvKey;
+import org.jjazz.midi.api.Instrument;
+import org.jjazz.midi.api.InstrumentMix;
+import org.jjazz.midimix.api.UserRhythmVoice;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.song.api.Song;
 import org.jjazz.ui.mixconsole.api.MixConsole;
 import org.jjazz.ui.mixconsole.api.MixConsoleTopComponent;
-import org.jjazz.undomanager.JJazzUndoManagerFinder;
-import org.jjazz.util.ResUtil;
+import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
+import org.jjazz.util.api.ResUtil;
 import org.openide.awt.StatusDisplayer;
 import org.openide.util.actions.Presenter;
 
@@ -75,7 +75,7 @@ public class UseDefaultInstruments extends AbstractAction implements Presenter.M
         for (Integer channel : songMidiMix.getUsedChannels())
         {
             RhythmVoice rv = songMidiMix.getRhythmVoice(channel);
-            if (rhythm == null || rv instanceof UserChannelRvKey || rhythm == rv.getContainer())
+            if (rhythm == null || rv instanceof UserRhythmVoice || rhythm == rv.getContainer())
             {
                 InstrumentMix insMix = new InstrumentMix(songMidiMix.getInstrumentMixFromChannel(channel));
                 setDefaultInstrument(insMix, rv);

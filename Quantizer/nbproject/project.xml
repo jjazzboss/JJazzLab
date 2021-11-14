@@ -7,6 +7,14 @@
             <suite-component/>
             <module-dependencies>
                 <dependency>
+                    <code-name-base>org.jjazz.guava</code-name-base>
+                    <build-prerequisite/>
+                    <compile-dependency/>
+                    <run-dependency>
+                        <specification-version>1.0</specification-version>
+                    </run-dependency>
+                </dependency>
+                <dependency>
                     <code-name-base>org.jjazz.harmony</code-name-base>
                     <build-prerequisite/>
                     <compile-dependency/>
@@ -49,7 +57,7 @@
                 </test-type>
             </test-dependencies>
             <public-packages>
-                <package>org.jjazz.quantizer</package>
+                <package>org.jjazz.quantizer.api</package>
             </public-packages>
         </data>
     </configuration>

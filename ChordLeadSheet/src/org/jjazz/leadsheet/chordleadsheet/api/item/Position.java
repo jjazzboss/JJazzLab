@@ -28,7 +28,8 @@ import java.io.*;
 import java.text.ParseException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.jjazz.harmony.TimeSignature;
+import org.jjazz.harmony.api.Note;
+import org.jjazz.harmony.api.TimeSignature;
 import static org.jjazz.leadsheet.chordleadsheet.api.item.Bundle.CTL_InvalidValue;
 import static org.jjazz.leadsheet.chordleadsheet.api.item.Bundle.CTL_MissingEnclosingChars;
 import static org.jjazz.leadsheet.chordleadsheet.api.item.Bundle.CTL_NegativeValue;
@@ -58,28 +59,7 @@ public final class Position implements Comparable<Position>, Serializable
     private float beat;
     private static final Logger LOGGER = Logger.getLogger(Position.class.getSimpleName());
     private transient final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
-    private String string;
-
-    /**
-     * Get the value of string
-     *
-     * @return the value of string
-     */
-    public String getString()
-    {
-        return string;
-    }
-
-    /**
-     * Set the value of string
-     *
-     * @param string new value of string
-     */
-    public void setString(String string)
-    {
-        this.string = string;
-    }
-
+   
     /**
      * Equivalent to Position(0,0)
      */
@@ -114,6 +94,7 @@ public final class Position implements Comparable<Position>, Serializable
             throw new IllegalArgumentException("beat=" + beat);   //NOI18N
         }
         float old = this.beat;
+//        this.beat = Note.roundForMusic(beat);
         this.beat = beat;
         pcs.firePropertyChange(PROP_BEAT, old, this.beat);
 
@@ -234,7 +215,7 @@ public final class Position implements Comparable<Position>, Serializable
     {
         return beat >= (ts.getNbNaturalBeats() - 1);
     }
-
+        
     /**
      * True if position is at the half of the bar for the specified TimeSignature.
      * <p>

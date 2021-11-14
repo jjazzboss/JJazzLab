@@ -24,7 +24,7 @@ package org.jjazz.songmemoviewer.api;
 
 import java.util.logging.Logger;
 import org.jjazz.songmemoviewer.SongMemoEditor;
-import org.jjazz.util.ResUtil;
+import org.jjazz.util.api.ResUtil;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -45,9 +45,9 @@ import org.openide.windows.WindowManager;
         //iconBase="SET/PATH/TO/ICON/HERE",
         persistenceType = TopComponent.PERSISTENCE_ALWAYS
 )
-@TopComponent.Registration(mode = "explorer", openAtStartup = true, position = 500)
+@TopComponent.Registration(mode = "explorer", openAtStartup = false, position = 500)
 @ActionID(category = "Window", id = "org.jjazz.songnotesviewer.api.SongNotesTopComponent")
-@ActionReference(path = "Menu/Window", position = 1, separatorAfter = 2)
+@ActionReference(path = "Menu/Window", position = 10)
 @TopComponent.OpenActionRegistration(
         displayName = "#CTL_SongNotesAction",
         preferredID = "SongNotesTopComponent"

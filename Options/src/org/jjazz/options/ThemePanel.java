@@ -32,22 +32,18 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
-import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JComponent;
 import javax.swing.JList;
 import javax.swing.SwingUtilities;
 import org.openide.awt.ColorComboBox;
 import org.openide.util.Lookup;
-import org.jjazz.ui.utilities.FontColorUserSettingsProvider;
-import org.jjazz.ui.utilities.FontColorUserSettingsProvider.FCSetting;
-import org.jjazz.ui.utilities.JFontChooser;
-import org.jjazz.uisettings.GeneralUISettings;
-import org.jjazz.util.ResUtil;
-import org.jjazz.util.Utilities;
+import org.jjazz.ui.utilities.api.FontColorUserSettingsProvider;
+import org.jjazz.ui.utilities.api.FontColorUserSettingsProvider.FCSetting;
+import org.jjazz.ui.utilities.api.JFontChooser;
+import org.jjazz.util.api.ResUtil;
+import org.jjazz.util.api.Utilities;
 import org.openide.DialogDisplayer;
-import org.openide.LifecycleManager;
 import org.openide.NotifyDescriptor;
 
 final class ThemePanel extends javax.swing.JPanel implements ActionListener
@@ -115,15 +111,7 @@ final class ThemePanel extends javax.swing.JPanel implements ActionListener
         {
             list_fcSettings.setSelectedIndex(0);
         }
-        btn_resetAll.setEnabled(!saveListValues.isEmpty());
-
-        // Init theme combo
-        var uis = GeneralUISettings.getInstance();
-        List<String> themeNames = uis.getAvailableThemes().stream().map(t -> t.getName()).collect(Collectors.toList());
-        var cmbModel = new DefaultComboBoxModel<String>(themeNames.toArray(new String[0]));
-        cmb_themes.setModel(cmbModel);
-        cmb_themes.setSelectedItem(uis.getThemeNameUponRestart());
-
+        btn_resetAll.setEnabled(!saveListValues.isEmpty());  
     }
 
     void store()
@@ -135,13 +123,6 @@ final class ThemePanel extends javax.swing.JPanel implements ActionListener
         // NbPreferences.forModule(EditorPanel.class).putBoolean("someFlag", someCheckBox.isSelected());
         // or:
         // SomeSystemOption.getDefault().setSomeStringProperty(someTextField.getText());
-
-        var uis = GeneralUISettings.getInstance();
-        String themeName = (String) cmb_themes.getSelectedItem();
-        if (!themeName.equals(uis.getThemeNameUponRestart()))
-        {
-            changeTheme(themeName);
-        }
 
     }
 
@@ -191,30 +172,6 @@ final class ThemePanel extends javax.swing.JPanel implements ActionListener
     // =========================================================================================
     // Private methods
     // =========================================================================================
-    private void changeTheme(String themeName)
-    {
-        var uis = GeneralUISettings.getInstance();        
-        if (org.openide.util.Utilities.isMac())
-        {
-            String msg = ResUtil.getString(getClass(), "ERR_NoThemeSupportOnMacOS");
-            NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
-            DialogDisplayer.getDefault().notify(d);
-            cmb_themes.setSelectedItem(uis.getThemeNameUponRestart());      // Roll back
-            return;
-        }
-
-        String msg = ResUtil.getString(getClass(), "CTL_ConfirmResetColorsFontsRestart");
-        NotifyDescriptor d = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.OK_CANCEL_OPTION);
-        Object result = DialogDisplayer.getDefault().notify(d);
-        if (NotifyDescriptor.OK_OPTION == result)
-        {
-            resetAllSettings();
-            uis.setThemeUponRestart(uis.getTheme(themeName));
-            LifecycleManager.getDefault().markForRestart();
-            LifecycleManager.getDefault().exit();
-        }
-
-    }
 
     // =========================================================================================
     // Private classes
@@ -339,8 +296,6 @@ final class ThemePanel extends javax.swing.JPanel implements ActionListener
         jScrollPane1 = new javax.swing.JScrollPane();
         list_fcSettings = new javax.swing.JList<>();
         lbl_color = new javax.swing.JLabel();
-        cmb_themes = new javax.swing.JComboBox<>();
-        lbl_theme = new javax.swing.JLabel();
 
         jPanel2.setBorder(javax.swing.BorderFactory.createTitledBorder(org.openide.util.NbBundle.getMessage(ThemePanel.class, "ThemePanel.jPanel2.border.title"))); // NOI18N
 
@@ -470,21 +425,9 @@ final class ThemePanel extends javax.swing.JPanel implements ActionListener
                         .addComponent(btn_resetAll)
                         .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 273, Short.MAX_VALUE)
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 328, Short.MAX_VALUE)
                         .addContainerGap())))
         );
-
-        cmb_themes.setMaximumRowCount(4);
-        cmb_themes.setToolTipText(org.openide.util.NbBundle.getMessage(ThemePanel.class, "ThemePanel.cmb_themes.toolTipText")); // NOI18N
-        cmb_themes.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                cmb_themesActionPerformed(evt);
-            }
-        });
-
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_theme, org.openide.util.NbBundle.getMessage(ThemePanel.class, "ThemePanel.lbl_theme.text")); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -492,23 +435,13 @@ final class ThemePanel extends javax.swing.JPanel implements ActionListener
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jPanel2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(lbl_theme)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(cmb_themes, javax.swing.GroupLayout.PREFERRED_SIZE, 127, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 0, Short.MAX_VALUE)))
+                .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGap(0, 0, 0))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(21, 21, 21)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(cmb_themes, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(lbl_theme))
-                .addGap(21, 21, 21)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap()
                 .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addContainerGap())
         );
@@ -586,12 +519,6 @@ final class ThemePanel extends javax.swing.JPanel implements ActionListener
         }
     }//GEN-LAST:event_tf_fontMouseClicked
 
-    private void cmb_themesActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cmb_themesActionPerformed
-    {//GEN-HEADEREND:event_cmb_themesActionPerformed
-     
-        controller.changed();
-    }//GEN-LAST:event_cmb_themesActionPerformed
-
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_font;
@@ -599,12 +526,10 @@ final class ThemePanel extends javax.swing.JPanel implements ActionListener
     private javax.swing.JButton btn_resetColor;
     private javax.swing.JButton btn_resetFont;
     private javax.swing.JComboBox cmb_color;
-    private javax.swing.JComboBox<String> cmb_themes;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JLabel lbl_color;
     private javax.swing.JLabel lbl_font;
-    private javax.swing.JLabel lbl_theme;
     private javax.swing.JList<FCSetting> list_fcSettings;
     private javax.swing.JTextField tf_font;
     // End of variables declaration//GEN-END:variables

@@ -24,16 +24,17 @@ package org.jjazz.leadsheet.chordleadsheet.api;
 
 import java.util.List;
 import javax.swing.event.UndoableEditListener;
-import org.jjazz.harmony.TimeSignature;
+import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
-import org.jjazz.util.IntRange;
+import org.jjazz.util.api.IntRange;
 
 /**
  * The model for a chord leadsheet.
  * <p>
- * The leadsheet is made of sections (a name + a time signature) and items like chord symbols.
+ * The leadsheet is made of sections (a name + a time signature) and items like chord symbols. Implement must fire the relevant
+ * ClsChangeEvents when a method mutates the chord leadsheet.
  * <p>
  * Regarding sections:<br>
  * - The first bar must always contain a section <br>
@@ -186,6 +187,18 @@ public interface ChordLeadSheet
     public void cleanup();
 
     /**
+     * Get the last matching item in the specified bar range.
+     * <p>
+     *
+     * @param <T>
+     * @param barFrom
+     * @param barTo
+     * @param aClass The class or superclass of the item to be searched. If null return any item.
+     * @return Can be null if no item found.
+     */
+    public <T> T getLastItem(int barFrom, int barTo, Class<T> aClass);
+
+    /**
      * Get all the items of this chordleadsheet.
      *
      * @return
@@ -193,7 +206,7 @@ public interface ChordLeadSheet
     public List<ChordLeadSheetItem<?>> getItems();
 
     /**
-     * Get all the items of this leadsheet which match a specicic class.
+     * Get all the items of this leadsheet which match a specific class.
      *
      * @param <T>
      * @param aClass Return only items which are instance of class cl. If null all items are returned.
@@ -245,6 +258,24 @@ public interface ChordLeadSheet
      */
     public CLI_Section getSection(String sectionName);
 
+
+
+    /**
+     * Get the size of the leadsheet in bars.
+     *
+     * @return
+     */
+    public int getSizeInBars();
+
+    /**
+     * Get the bar range of this chord leadsheet.
+     *
+     * @return [0; getSizeInBars()-1]
+     */
+    default public IntRange getBarRange()
+    {
+        return new IntRange(0, getSizeInBars() - 1);
+    }
     /**
      * The bar range corresponding to this section.
      *
@@ -252,15 +283,9 @@ public interface ChordLeadSheet
      * @return
      * @throws IllegalArgumentException If section does not exist in this ChordLeadSheet.
      */
-    public IntRange getSectionRange(CLI_Section section);
-
-    /**
-     * Get the size of the leadsheet in bars.
-     *
-     * @return
-     */
-    public int getSize();
-
+    public IntRange getBarRange(CLI_Section section);
+    
+    
     /**
      * Set the size of the ChordLeadSheet.
      *
@@ -268,7 +293,7 @@ public interface ChordLeadSheet
      * @throws UnsupportedEditException If a ChordLeadSheet change listener does not authorize this edit. Exception is thrown
      * before any change is done.
      */
-    public void setSize(int size) throws UnsupportedEditException;
+    public void setSizeInBars(int size) throws UnsupportedEditException;
 
     /**
      * Add a listener to item changes of this object.

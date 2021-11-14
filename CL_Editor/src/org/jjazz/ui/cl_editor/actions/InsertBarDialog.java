@@ -57,13 +57,13 @@ public final class InsertBarDialog extends javax.swing.JDialog
      * Prepare the dialog.
      *
      * @param cls The model on which to operate.
-     * @param fromBar Insertion will start from this bar, must be in the range [0,cls.getSize], the latter to append a bar at the
-     * end.
+     * @param fromBar Insertion will start from this bar, must be in the range [0,cls.getSizeInBars], the latter to append a bar at the
+ end.
      * @param nbBars For this number of bars.
      */
     public void preset(ChordLeadSheet cls, int fromBar, int nbBars)
     {
-        if (cls == null || fromBar < 0 || nbBars < 0 || fromBar > cls.getSize())
+        if (cls == null || fromBar < 0 || nbBars < 0 || fromBar > cls.getSizeInBars())
         {
             throw new IllegalArgumentException("cls=" + cls + " fromBar=" + fromBar + " nbBars=" + nbBars);   //NOI18N
         }
@@ -106,7 +106,7 @@ public final class InsertBarDialog extends javax.swing.JDialog
         lblFromBar = new javax.swing.JLabel();
         jButton1 = new javax.swing.JButton();
         btn_Cancel = new javax.swing.JButton();
-        spnNbBars = new org.jjazz.ui.utilities.WheelSpinner();
+        spnNbBars = new org.jjazz.ui.utilities.api.WheelSpinner();
 
         setTitle(org.openide.util.NbBundle.getMessage(InsertBarDialog.class, "InsertBarDialog.title")); // NOI18N
         addWindowFocusListener(new java.awt.event.WindowFocusListener()
@@ -205,7 +205,7 @@ public final class InsertBarDialog extends javax.swing.JDialog
     private javax.swing.JButton jButton1;
     private javax.swing.JLabel lblFromBar;
     private javax.swing.JLabel lbl_spinner;
-    private org.jjazz.ui.utilities.WheelSpinner spnNbBars;
+    private org.jjazz.ui.utilities.api.WheelSpinner spnNbBars;
     // End of variables declaration//GEN-END:variables
 
     /**

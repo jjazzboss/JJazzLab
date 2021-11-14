@@ -34,11 +34,11 @@ import static javax.swing.Action.NAME;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
-import org.jjazz.ui.ss_editor.api.CopyBuffer;
+import org.jjazz.ui.ss_editor.api.SongPartCopyBuffer;
 import org.jjazz.ui.ss_editor.api.SS_EditorTopComponent;
 import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
-import org.jjazz.undomanager.JJazzUndoManager;
-import org.jjazz.undomanager.JJazzUndoManagerFinder;
+import org.jjazz.undomanager.api.JJazzUndoManager;
+import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
@@ -49,8 +49,8 @@ import org.openide.util.Utilities;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
-import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
-import org.jjazz.util.ResUtil;
+import static org.jjazz.ui.utilities.api.Utilities.getGenericControlKeyStroke;
+import org.jjazz.util.api.ResUtil;
 
 /**
  * Paste SongParts.
@@ -82,7 +82,7 @@ public class Paste extends AbstractAction implements ContextAwareAction, SS_Cont
         cap.addListener(this);
         putValue(NAME, undoText);
         putValue(ACCELERATOR_KEY, getGenericControlKeyStroke(KeyEvent.VK_V));
-        CopyBuffer buffer = CopyBuffer.getInstance();
+        SongPartCopyBuffer buffer = SongPartCopyBuffer.getInstance();
         buffer.addChangeListener(this);
         selectionChange(cap.getSelection());
     }
@@ -96,7 +96,7 @@ public class Paste extends AbstractAction implements ContextAwareAction, SS_Cont
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        CopyBuffer buffer = CopyBuffer.getInstance();
+        SongPartCopyBuffer buffer = SongPartCopyBuffer.getInstance();
         SS_SelectionUtilities selection = cap.getSelection();
         SongStructure targetSgs = selection.getModel();
         List<SongPart> spts = targetSgs.getSongParts();
@@ -123,8 +123,8 @@ public class Paste extends AbstractAction implements ContextAwareAction, SS_Cont
     @Override
     public void selectionChange(SS_SelectionUtilities selection)
     {
-        CopyBuffer buffer = CopyBuffer.getInstance();
-        setEnabled(selection.isOneSectionSptSelection() && !buffer.isEmpty());
+        SongPartCopyBuffer buffer = SongPartCopyBuffer.getInstance();
+        setEnabled(selection.isContiguousSptSelection() && !buffer.isEmpty());
     }
 
     @Override

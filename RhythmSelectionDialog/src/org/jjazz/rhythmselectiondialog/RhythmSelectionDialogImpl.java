@@ -22,8 +22,9 @@
  */
 package org.jjazz.rhythmselectiondialog;
 
-import org.jjazz.rhythmselectiondialog.ui.RhythmProviderList;
+import org.jjazz.rhythmselectiondialog.api.RhythmProviderList;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -35,11 +36,13 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
 import javax.swing.AbstractAction;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JRootPane;
@@ -55,47 +58,53 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import org.jjazz.analytics.api.Analytics;
-import org.jjazz.filedirectorymanager.FileDirectoryManager;
-import org.jjazz.harmony.TimeSignature;
+import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
+import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.Rhythm;
+import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.rhythm.database.api.RhythmInfo;
 import org.jjazz.rhythm.database.api.FavoriteRhythms;
 import org.jjazz.rhythm.spi.RhythmProvider;
 import org.jjazz.rhythm.database.api.RhythmDatabase;
 import org.jjazz.rhythm.database.api.UnavailableRhythmException;
-import org.jjazz.rhythmselectiondialog.ui.RhythmTable;
+import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Variation;
+import org.jjazz.rhythmselectiondialog.api.RhythmTable;
 import org.jjazz.ui.ss_editor.spi.RhythmSelectionDialog;
-import org.jjazz.ui.utilities.Utilities;
-import org.jjazz.util.MultipleErrorsReport;
-import org.jjazz.util.MultipleErrorsReportDialog;
-import org.jjazz.util.ResUtil;
+import org.jjazz.ui.utilities.api.Utilities;
+import org.jjazz.util.api.MultipleErrorsReport;
+import org.jjazz.util.api.MultipleErrorsReportDialog;
+import org.jjazz.util.api.ResUtil;
 import org.openide.*;
 import org.openide.util.NbPreferences;
 import org.openide.util.lookup.ServiceProvider;
 import org.openide.windows.WindowManager;
 
 @ServiceProvider(service = RhythmSelectionDialog.class)
-public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements ListSelectionListener
+public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements ListSelectionListener, ActionListener
 {
 
-    private static final String PREF_HIDE_ADDRHYTM_INFO_DIALOG = "HideAddRhythmInfoDialog";
+    private static final String PREF_HIDE_ADD_RHYTHM_INFO_DIALOG = "HideAddRhythmInfoDialog";
     private TimeSignature timeSignature;
     private RhythmInfo presetRhythm;
     private RhythmProvider presetRhythmProvider;
     private RhythmProvider selectedRhythmProvider;
     private RhythmPreviewProvider rhythmPreviewProvider;
+    private boolean previewDone;
     private boolean exitOk;
     private File lastRhythmDir = null;
     private final HashMap<RhythmProvider, RhythmInfo> mapRpSelectedrythm = new HashMap<>();
-    private RhythmTable rhythmTable = new RhythmTable();
-    private static Preferences prefs = NbPreferences.forModule(RhythmSelectionDialogImpl.class);
+    private final RhythmTable rhythmTable = new RhythmTable();
+    private static final Preferences prefs = NbPreferences.forModule(RhythmSelectionDialogImpl.class);
 
     private static final Logger LOGGER = Logger.getLogger(RhythmSelectionDialogImpl.class.getSimpleName());
 
     public RhythmSelectionDialogImpl()
     {
         initComponents();
+
+        // Listen to ComboBox changes
+        cmb_variation.addActionListener(this);
 
 
         // Update UI
@@ -163,6 +172,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         }
         LOGGER.log(Level.FINE, "preset() -- ri={0}", ri);   //NOI18N
         exitOk = false;
+        previewDone = false;
 
 
         cleanup();
@@ -265,6 +275,32 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
     }
 
     // ===================================================================================
+    // ActionListener interfacce
+    // ===================================================================================
+
+    @Override
+    public void actionPerformed(ActionEvent e)
+    {
+        if (e.getSource() == cmb_variation)
+        {
+            // Used has changed the variation using the JComboBox
+            assert rhythmPreviewProvider != null;
+            Rhythm r = rhythmPreviewProvider.getPreviewedRhythm();
+            if (r == null)
+            {
+                // Should not happen since cmb_variation should be disabled when not previewing...
+                return;
+            }
+            RhythmInfo ri = RhythmDatabase.getDefault().getRhythm(r.getUniqueId());
+            previewRhythm(ri);
+
+            // previewRhythm will first stop => endAction=>previewComplete() is executed and cmb_variation is disabled
+            // so we lose focus, need to regain it, user may want to change other variation using the keyboard
+            cmb_variation.requestFocusInWindow();
+        }
+    }
+
+    // ===================================================================================
     // ListSelectionListener interfacce
     // ===================================================================================
     @Override
@@ -283,7 +319,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
 
             if (rp != null && selectedRhythmProvider != rp)
             {
-                if (rhythmPreviewProvider != null)
+                if (rhythmPreviewProvider != null && previewDone)
                 {
                     rhythmPreviewProvider.stop();
                 }
@@ -298,6 +334,9 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
 
             LOGGER.fine("valueChanged() selected rhythm ri=" + ri);   //NOI18N
 
+            btn_deleteRhythm.setEnabled(ri != null && !ri.getFile().getName().equals(""));
+            btn_openFolder.setEnabled(ri != null && !ri.getFile().getName().equals(""));
+
             // Manage rhythm preview
             if (rhythmPreviewProvider != null)
             {
@@ -308,26 +347,41 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
                     // RhythmPreview is ON
                     RhythmInfo pri = RhythmDatabase.getDefault().getRhythm(pr.getUniqueId());
                     LOGGER.fine("valueChanged() pri=" + pri);   //NOI18N
-                    if (fbtn_autoPreviewMode.isSelected() && ri != null && ri != pri)
+                    if (fbtn_autoPreviewMode.isSelected())
                     {
                         // Change previewed rhythm only if auto preview button is ON and 
-                        previewRhythm(ri);
+                        if (ri != null && ri != pri)
+                        {
+                            previewRhythm(ri);
+                        }
+                    } else
+                    {
+                        // It's a one time preview
+                        // Other rhythms may have different variations that currently played rhythm, so disable for other rhythms
+                        cmb_variation.setEnabled(ri == pri);
                     }
                 } else if (fbtn_autoPreviewMode.isEnabled() && fbtn_autoPreviewMode.isSelected())
                 {
-                    // Rhythm preview is OFF, but auto preview is ON. This typically happens after a new RhythmProvider is selected
+                    // RhythmPreview is OFF, but auto preview is ON. This typically happens after a new RhythmProvider is selected
                     if (ri != null)
                     {
                         // Preview rhythm if not
                         previewRhythm(ri);
+                    } else
+                    {
+                        cmb_variation.setEnabled(false);
                     }
-
                 } else
                 {
                     // Rhythm preview is OFF and autoPreview is OFF. 
                     // Just update enabled button status              
                     fbtn_autoPreviewMode.setEnabled(ri != null);
+                    cmb_variation.setEnabled(false);
                 }
+            } else
+            {
+                // No RhythmPreview capability
+                cmb_variation.setEnabled(false);
             }
         }
     }
@@ -425,12 +479,12 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         RhythmDatabase rdb = RhythmDatabase.getDefault();
 
         // Show notification first time
-        if (!prefs.getBoolean(PREF_HIDE_ADDRHYTM_INFO_DIALOG, false))
+        if (!prefs.getBoolean(PREF_HIDE_ADD_RHYTHM_INFO_DIALOG, false))
         {
             AddRhythmInfoDialog dlg = new AddRhythmInfoDialog(WindowManager.getDefault().getMainWindow(), true);
             dlg.setLocationRelativeTo(WindowManager.getDefault().getMainWindow());
             dlg.setVisible(true);
-            prefs.putBoolean(PREF_HIDE_ADDRHYTM_INFO_DIALOG, dlg.isDoNotShowAnymmore());
+            prefs.putBoolean(PREF_HIDE_ADD_RHYTHM_INFO_DIALOG, dlg.isDoNotShowAnymmore());
         }
 
 
@@ -489,7 +543,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         for (File f : chooser.getSelectedFiles())
         {
             lastRhythmDir = f.getParentFile();
-            String ext = org.jjazz.util.Utilities.getExtension(f.getName()).toLowerCase();
+            String ext = org.jjazz.util.api.Utilities.getExtension(f.getName()).toLowerCase();
             Rhythm r = null;
             for (RhythmProvider rp : rps)
             {
@@ -615,15 +669,31 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         }
     }
 
-    private void previewRhythm(RhythmInfo ri)
+    /**
+     * Preview the specified rhythm.
+     *
+     * @param ri
+     * @param rpVariationValue If not null
+     * @return True if preview was successfully launched.
+     */
+    private boolean previewRhythm(RhythmInfo ri)
     {
         if (ri == null)
         {
             throw new IllegalArgumentException("ri=" + ri);   //NOI18N
         }
 
+        if (rhythmPreviewProvider == null)
+        {
+            return false;
+        }
+
+        previewDone = true;
+
         LOGGER.fine("previewRhythm() ri=" + ri);   //NOI18N
 
+
+        // Get the Rhythm instance
         RhythmDatabase rdb = RhythmDatabase.getDefault();
         Rhythm r;
         try
@@ -633,21 +703,80 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         {
             NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(d);
-            return;
+            return false;
         }
-        if (rhythmPreviewProvider != null)
+
+
+        // Update cmb_variation
+        String rpStdVariationValue = updateCmbVariation(r);
+
+
+        // Prepare the RpValue map
+        Map<RhythmParameter<?>, Object> mapRpValues = new HashMap<>();      // No specific value by default
+        if (rpStdVariationValue != null)
         {
-            try
-            {
-                LOGGER.fine("previewRhythm() calling rhythmPreviewProvider().previewRhythm()");   //NOI18N
-                rhythmPreviewProvider.previewRhythm(r, cb_useRhythmTempo.isSelected(), fbtn_autoPreviewMode.isSelected(), e -> rhythmPreviewComplete(r));
-                rhythmTable.getModel().setHighlighted(ri, true);
-            } catch (MusicGenerationException ex)
-            {
-                NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
-                DialogDisplayer.getDefault().notify(d);
-            }
+            mapRpValues.put(RP_STD_Variation.getVariationRp(r), rpStdVariationValue);
         }
+
+
+        // Preview
+        try
+        {
+            LOGGER.fine("previewRhythm() calling rhythmPreviewProvider().previewRhythm()");   //NOI18N
+            rhythmPreviewProvider.previewRhythm(r, mapRpValues, cb_useRhythmTempo.isSelected(), fbtn_autoPreviewMode.isSelected(), e -> rhythmPreviewComplete(r));
+            // previewRhythm will first stop => endAction => previewComplete() => cmb_variation is disabled/lose focus + highlight is removed
+            // So need to restore state
+            cmb_variation.setEnabled(true);
+            rhythmTable.getModel().setHighlighted(rhythmTable.getSelectedRhythm(), true);
+        } catch (MusicGenerationException ex)
+        {
+            NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
+            DialogDisplayer.getDefault().notify(d);
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Update cmbVariation to fit the specified rhythm.
+     * <p>
+     * Adjust to the rhythm RP_STD_Variation possible values. Select a default value, reuse previous one if possible. The changes
+     * done by this method do not trigger an JComboBox.actionPerformed(). If r does not use RP_STD_Variation disable cmbVariation.
+     *
+     * @param r
+     * @return Null if r does not use RP_STD_Variation, otherwise return the RP_STD_Variation value to use (we try to reuse the
+     * previous value)
+     */
+    private String updateCmbVariation(Rhythm r)
+    {
+        String newSelectedValue = null;
+        RP_STD_Variation rpVariation = RP_STD_Variation.getVariationRp(r);
+
+        if (rhythmPreviewProvider.getPreviewedRhythm() == r)
+        {
+            newSelectedValue = (String) cmb_variation.getSelectedItem();
+
+        } else if (rpVariation != null)
+        {
+            cmb_variation.removeActionListener(this);
+
+            String oldSelectedValue = (String) cmb_variation.getSelectedItem();
+            var possibleValues = rpVariation.getPossibleValues();
+            cmb_variation.setModel(new DefaultComboBoxModel<>(possibleValues.toArray(new String[0])));
+            newSelectedValue = oldSelectedValue; // Try to reuse previous value by default
+            if (oldSelectedValue == null || !possibleValues.contains(oldSelectedValue))
+            {
+                // If new rhythm does not support the old value, use default
+                newSelectedValue = rpVariation.getDefaultValue();
+            }
+            cmb_variation.setSelectedItem(newSelectedValue);
+
+            cmb_variation.addActionListener(this);
+        }
+
+        cmb_variation.setEnabled(rpVariation != null);
+        return newSelectedValue;
     }
 
     /**
@@ -672,8 +801,8 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
 
     private void rhythmPreviewComplete(Rhythm r)
     {
-        // Nothing
         rhythmTable.getModel().setHighlighted(RhythmDatabase.getDefault().getRhythm(r.getUniqueId()), false);
+        cmb_variation.setEnabled(false);
     }
 
     /**
@@ -702,9 +831,13 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         btn_clearFilter = new javax.swing.JButton();
         lbl_timeSignature = new javax.swing.JLabel();
         jScrollPane3 = new javax.swing.JScrollPane();
-        helpTextArea1 = new org.jjazz.ui.utilities.HelpTextArea();
+        helpTextArea1 = new org.jjazz.ui.utilities.api.HelpTextArea();
         btn_addRhythms = new javax.swing.JButton();
-        fbtn_autoPreviewMode = new org.jjazz.ui.flatcomponents.FlatToggleButton();
+        jPanel2 = new javax.swing.JPanel();
+        fbtn_autoPreviewMode = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
+        cmb_variation = new javax.swing.JComboBox<>();
+        btn_deleteRhythm = new javax.swing.JButton();
+        btn_openFolder = new javax.swing.JButton();
         lbl_Title = new javax.swing.JLabel();
         cb_applyRhythmToNextSpts = new javax.swing.JCheckBox();
         cb_useRhythmTempo = new javax.swing.JCheckBox();
@@ -790,9 +923,36 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
             }
         });
 
+        jPanel2.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 3, 0));
+
         fbtn_autoPreviewMode.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/rhythmselectiondialog/resources/SpeakerOff-24x24.png"))); // NOI18N
         fbtn_autoPreviewMode.setToolTipText(org.openide.util.NbBundle.getMessage(RhythmSelectionDialogImpl.class, "RhythmSelectionDialogImpl.fbtn_autoPreviewMode.toolTipText")); // NOI18N
         fbtn_autoPreviewMode.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/rhythmselectiondialog/resources/SpeakerOnRed-24x24.png"))); // NOI18N
+        jPanel2.add(fbtn_autoPreviewMode);
+
+        cmb_variation.setToolTipText(org.openide.util.NbBundle.getMessage(RhythmSelectionDialogImpl.class, "RhythmSelectionDialogImpl.cmb_variation.toolTipText")); // NOI18N
+        cmb_variation.setEnabled(false);
+        jPanel2.add(cmb_variation);
+
+        org.openide.awt.Mnemonics.setLocalizedText(btn_deleteRhythm, org.openide.util.NbBundle.getMessage(RhythmSelectionDialogImpl.class, "RhythmSelectionDialogImpl.btn_deleteRhythm.text")); // NOI18N
+        btn_deleteRhythm.setEnabled(false);
+        btn_deleteRhythm.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                btn_deleteRhythmActionPerformed(evt);
+            }
+        });
+
+        org.openide.awt.Mnemonics.setLocalizedText(btn_openFolder, org.openide.util.NbBundle.getMessage(RhythmSelectionDialogImpl.class, "RhythmSelectionDialogImpl.btn_openFolder.text")); // NOI18N
+        btn_openFolder.setToolTipText(org.openide.util.NbBundle.getMessage(RhythmSelectionDialogImpl.class, "RhythmSelectionDialogImpl.btn_openFolder.toolTipText")); // NOI18N
+        btn_openFolder.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                btn_openFolderActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -809,22 +969,26 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
                         .addComponent(lbl_timeSignature)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(lbl_rhythms)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 67, Short.MAX_VALUE)
                         .addComponent(btn_clearFilter)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btn_Filter)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(tf_filter, javax.swing.GroupLayout.PREFERRED_SIZE, 177, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 491, Short.MAX_VALUE))
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane3, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                    .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(fbtn_autoPreviewMode, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(btn_addRhythms))
-                        .addGap(0, 33, Short.MAX_VALUE)))
-                .addContainerGap())
+                            .addComponent(jScrollPane3, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                    .addComponent(btn_deleteRhythm, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(btn_addRhythms, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(btn_openFolder, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                .addGap(0, 66, Short.MAX_VALUE)))
+                        .addContainerGap())))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -840,13 +1004,17 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jScrollPane1)
-                    .addComponent(jScrollPane2)
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 433, Short.MAX_VALUE)
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(fbtn_autoPreviewMode, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(18, 18, 18)
-                        .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 338, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(btn_addRhythms)))
+                        .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 192, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(85, 85, 85)
+                        .addComponent(btn_addRhythms)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btn_deleteRhythm)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btn_openFolder)))
                 .addContainerGap())
         );
 
@@ -876,27 +1044,22 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
+                        .addGap(12, 12, 12)
+                        .addComponent(lbl_Title)
+                        .addGap(99, 99, 99)
+                        .addComponent(jLabel1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(tf_userRhythmDir)
+                        .addContainerGap())
+                    .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(10, 10, 10)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(cb_applyRhythmToNextSpts)
-                                        .addGap(0, 0, Short.MAX_VALUE))
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(cb_useRhythmTempo)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                        .addComponent(btn_Ok, javax.swing.GroupLayout.PREFERRED_SIZE, 61, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(btn_Cancel))))
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(12, 12, 12)
-                                .addComponent(lbl_Title)
-                                .addGap(99, 99, 99)
-                                .addComponent(jLabel1)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(tf_userRhythmDir)))
-                        .addContainerGap())))
+                            .addComponent(cb_useRhythmTempo)
+                            .addComponent(cb_applyRhythmToNextSpts))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(btn_Ok, javax.swing.GroupLayout.PREFERRED_SIZE, 61, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btn_Cancel)
+                        .addGap(8, 8, 8))))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -909,13 +1072,16 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
                 .addGap(9, 9, 9)
                 .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(cb_applyRhythmToNextSpts)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(cb_useRhythmTempo)
-                    .addComponent(btn_Cancel)
-                    .addComponent(btn_Ok))
-                .addContainerGap())
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(cb_useRhythmTempo)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(cb_applyRhythmToNextSpts))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(btn_Ok)
+                            .addComponent(btn_Cancel))
+                        .addContainerGap())))
         );
 
         pack();
@@ -983,18 +1149,52 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         addRhythms();
     }//GEN-LAST:event_btn_addRhythmsActionPerformed
 
+    private void btn_deleteRhythmActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_deleteRhythmActionPerformed
+    {//GEN-HEADEREND:event_btn_deleteRhythmActionPerformed
+        var ri = getSelectedRhythm();
+        if (ri == null || ri.getFile().getName().equals(""))
+        {
+            return;
+        }
+
+        String msg = ResUtil.getString(getClass(), "CTL_ConfirmRhythmFileDelete", ri.getFile().getAbsolutePath());
+        NotifyDescriptor d = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.YES_NO_CANCEL_OPTION);
+        Object result = DialogDisplayer.getDefault().notify(d);
+        if (NotifyDescriptor.YES_OPTION == result)
+        {
+            ri.getFile().deleteOnExit();
+            RhythmDatabase.getDefault().forceRescan(false);
+        }
+
+    }//GEN-LAST:event_btn_deleteRhythmActionPerformed
+
+    private void btn_openFolderActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_openFolderActionPerformed
+    {//GEN-HEADEREND:event_btn_openFolderActionPerformed
+        var ri = getSelectedRhythm();
+        if (ri == null || ri.getFile().getName().equals(""))
+        {
+            return;
+        }
+        org.jjazz.util.api.Utilities.browseFileDirectory(ri.getFile(), false);
+
+    }//GEN-LAST:event_btn_openFolderActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_Cancel;
     private javax.swing.JButton btn_Filter;
     private javax.swing.JButton btn_Ok;
     private javax.swing.JButton btn_addRhythms;
     private javax.swing.JButton btn_clearFilter;
+    private javax.swing.JButton btn_deleteRhythm;
+    private javax.swing.JButton btn_openFolder;
     private javax.swing.JCheckBox cb_applyRhythmToNextSpts;
     private javax.swing.JCheckBox cb_useRhythmTempo;
-    private org.jjazz.ui.flatcomponents.FlatToggleButton fbtn_autoPreviewMode;
-    private org.jjazz.ui.utilities.HelpTextArea helpTextArea1;
+    private javax.swing.JComboBox<String> cmb_variation;
+    private org.jjazz.ui.flatcomponents.api.FlatToggleButton fbtn_autoPreviewMode;
+    private org.jjazz.ui.utilities.api.HelpTextArea helpTextArea1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;

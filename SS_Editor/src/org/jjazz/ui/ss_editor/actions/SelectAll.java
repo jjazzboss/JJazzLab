@@ -30,7 +30,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import static javax.swing.Action.ACCELERATOR_KEY;
 import static javax.swing.Action.NAME;
-import org.jjazz.rhythm.parameters.RhythmParameter;
+import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.ui.ss_editor.api.SS_Editor;
 import org.jjazz.ui.ss_editor.api.SS_EditorTopComponent;
 import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
@@ -42,8 +42,8 @@ import org.openide.util.*;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
-import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
-import org.jjazz.util.ResUtil;
+import static org.jjazz.ui.utilities.api.Utilities.getGenericControlKeyStroke;
+import org.jjazz.util.api.ResUtil;
 
 /**
  * SelectAll
@@ -52,7 +52,7 @@ import org.jjazz.util.ResUtil;
 @ActionRegistration(displayName = "not_used", lazy = false)
 @ActionReferences(
         {
-            @ActionReference(path = "Actions/SongPart", position = 1300),
+            @ActionReference(path = "Actions/SongPart", position = 1300, separatorBefore = 1290),
             @ActionReference(path = "Actions/RhythmParameter", position = 1300, separatorBefore = 1290),
         })
 public class SelectAll extends AbstractAction implements ContextAwareAction, SS_ContextActionListener
@@ -101,7 +101,7 @@ public class SelectAll extends AbstractAction implements ContextAwareAction, SS_
             RhythmParameter<?> rp = selection.getSelectedSongPartParameters().get(0).getRp();
             for (SongPart spt : sgs.getSongParts())
             {
-                RhythmParameter<?> crp = RhythmParameter.Utilities.findFirstCompatibleRp(spt.getRhythm().getRhythmParameters(), rp);
+                RhythmParameter<?> crp = RhythmParameter.findFirstCompatibleRp(spt.getRhythm().getRhythmParameters(), rp);
                 if (crp != null)
                 {
                     editor.selectRhythmParameter(spt, crp, true);

@@ -24,8 +24,8 @@ package org.jjazz.rhythm.database.api;
 
 import java.io.Serializable;
 import java.util.Objects;
-import org.jjazz.midi.DrumKit;
-import org.jjazz.midi.Instrument;
+import org.jjazz.midi.api.DrumKit;
+import org.jjazz.midi.api.Instrument;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.RhythmVoice.Type;
 

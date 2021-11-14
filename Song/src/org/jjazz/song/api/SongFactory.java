@@ -26,6 +26,7 @@ import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.XStreamException;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.beans.PropertyVetoException;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -36,7 +37,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.WeakHashMap;
 import java.util.logging.Logger;
-import org.jjazz.harmony.TimeSignature;
+import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheetFactory;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
@@ -47,7 +48,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructureFactory;
-import org.jjazz.util.Utilities;
+import org.jjazz.util.api.Utilities;
 import org.openide.util.Exceptions;
 
 /**
@@ -146,6 +147,15 @@ public class SongFactory implements PropertyChangeListener
 
 
         XStream xstream = Utilities.getSecuredXStreamInstance();
+        xstream.alias("Song", Song.class);
+        // From 3.0 all public packages are renamed with api or spi somewhere in the path
+        // Need package aliasing required to be able to load old sng/mix files
+        xstream.aliasPackage("org.jjazz.harmony.api", "org.jjazz.harmony.api"); // Make sure new package name is not replaced by next alias
+        xstream.aliasPackage("org.jjazz.harmony", "org.jjazz.harmony.api");
+        xstream.aliasPackage("org.jjazz.midi.api", "org.jjazz.midi.api");   // Make sure new package name is not replaced by next alias
+        xstream.aliasPackage("org.jjazz.midi", "org.jjazz.midi.api");
+        xstream.aliasPackage("org.jjazz.midimix.api", "org.jjazz.midimix.api");   // Make sure new package name is not replaced by next alias
+        xstream.aliasPackage("org.jjazz.midimix", "org.jjazz.midimix.api");
 
 
         // Read file
@@ -300,17 +310,18 @@ public class SongFactory implements PropertyChangeListener
     /**
      * Return a deep copy of the specified song.
      * <p>
-     * Copy only the following variables: chordleadsheet, songStructure, name, tempo, comments, tags<br>
-     * Listeners or file are NOT copied. Created song is registered.
+     * Copy only the following variables: chordleadsheet, songStructure, name, tempo, comments, tags, user phrases<br>
+     * Listeners or file are NOT copied.
      *
      * @param song
+     * @param register If true register the created song
      * @return
      */
     @SuppressWarnings(
             {
                 "unchecked"
             })
-    public Song getCopy(Song song)
+    public Song getCopy(Song song, boolean register)
     {
         if (song == null)
         {
@@ -331,6 +342,18 @@ public class SongFactory implements PropertyChangeListener
         s.setComments(song.getComments());
         s.setTempo(song.getTempo());
         s.setTags(song.getTags());
+        for (String name : song.getUserPhraseNames())
+        {
+            try
+            {
+                s.setUserPhrase(name, song.getUserPhrase(name));
+            } catch (PropertyVetoException ex)
+            {
+                // Should never happen as it was OK for song
+                Exceptions.printStackTrace(ex);
+            }
+        }
+
 
         // Clean the default songStructure
         SongStructure newSgs = s.getSongStructure();
@@ -364,7 +387,10 @@ public class SongFactory implements PropertyChangeListener
 
 
         s.resetNeedSave();
-        registerSong(s);
+        if (register)
+        {
+            registerSong(s);
+        }
         return s;
     }
 
@@ -373,17 +399,18 @@ public class SongFactory implements PropertyChangeListener
      * <p>
      * WARNING: Because SongStructure and ChordLeadsheet are not linked, changing them might result in inconsistent states. This
      * should be used only in special cases.<p>
-     * Copy the following variables: chordleadsheet, songStructure, name, tempo, comments, tags. Listeners or file are NOT copied.
-     * Created song is registered.
+     * Copy the following variables: chordleadsheet, songStructure, name, tempo, comments, tags, user phrases. Listeners or file
+     * are NOT copied.
      *
      * @param song
+     * @param register If true register the created song.
      * @return
      */
     @SuppressWarnings(
             {
                 "unchecked"
             })
-    public Song getCopyUnlinked(Song song)
+    public Song getCopyUnlinked(Song song, boolean register)
     {
         if (song == null)
         {
@@ -420,21 +447,37 @@ public class SongFactory implements PropertyChangeListener
         s.setComments(song.getComments());
         s.setTempo(song.getTempo());
         s.setTags(song.getTags());
+        for (String name : song.getUserPhraseNames())
+        {
+            try
+            {
+                s.setUserPhrase(name, song.getUserPhrase(name));
+            } catch (PropertyVetoException ex)
+            {
+                // Should never happen as it was OK for song
+                Exceptions.printStackTrace(ex);
+            }
+        }
+
 
         s.resetNeedSave();
-        registerSong(s);
+        if (register)
+        {
+            registerSong(s);
+        }
         return s;
     }
 
     /**
      * Get a new song with the lead sheet developped/unrolled according to the song structure.
      * <p>
-     * Return song where each SongPart corresponds to one Section in a linear order. Created song is registered.
+     * Return song where each SongPart corresponds to one Section in a linear order. 
      *
      * @param song
+     * @param register If true register the created song
      * @return
      */
-    public Song getDeveloppedLeadSheet(Song song)
+    public Song getDeveloppedLeadSheet(Song song, boolean register)
     {
         if (song == null)
         {
@@ -447,7 +490,7 @@ public class SongFactory implements PropertyChangeListener
         if (ss.getSongParts().isEmpty())
         {
             // Special case
-            return getCopy(song);
+            return getCopy(song, register);
         }
 
 
@@ -539,8 +582,10 @@ public class SongFactory implements PropertyChangeListener
             Exceptions.printStackTrace(ex);
         }
 
-
-        registerSong(resSong);
+        if (register)
+        {
+            registerSong(resSong);
+        }
         return resSong;
     }
 
@@ -551,10 +596,11 @@ public class SongFactory implements PropertyChangeListener
      * Created song is registered.
      *
      * @param song
+     * @param register If true register the created song
      * @return
      * @see ChordLeadSheetFactory#getSimplified(ChordLeadSheet)
      */
-    public Song getSimplifiedLeadSheet(Song song)
+    public Song getSimplifiedLeadSheet(Song song, boolean register)
     {
         if (song == null)
         {
@@ -562,7 +608,7 @@ public class SongFactory implements PropertyChangeListener
         }
 
         // Create a full copy to preserve links between SongParts and Sections
-        Song resSong = getCopy(song);
+        Song resSong = getCopy(song, register);
         ChordLeadSheet resCls = resSong.getChordLeadSheet();
 
 
@@ -582,10 +628,11 @@ public class SongFactory implements PropertyChangeListener
             resCls.addItem(item);
         }
 
-
         simplifiedCls.cleanup();
-
-        registerSong(resSong);
+        if (register)
+        {
+            registerSong(resSong);
+        }
 
         return resSong;
     }

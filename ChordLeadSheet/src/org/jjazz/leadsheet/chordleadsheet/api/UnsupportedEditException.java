@@ -23,9 +23,10 @@
 package org.jjazz.leadsheet.chordleadsheet.api;
 
 /**
- * An exception to be raised by listeners to veto a ChordLeadSheet change. For example, changing the time signature, which can
- * impact a SongStructure which can not accomadate the new related Rhythm, for example if there is not enough Midi channels
- * available.
+ * An exception to be raised by listeners to veto a ChordLeadSheet change.
+ * <p>
+ * For example, changing the time signature, which can impact a SongStructure which can not accomadate the new related Rhythm, for
+ * example if there is not enough Midi channels available.
  */
 public class UnsupportedEditException extends Exception
 {

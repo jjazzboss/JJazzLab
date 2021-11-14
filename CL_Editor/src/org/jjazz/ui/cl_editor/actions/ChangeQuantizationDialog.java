@@ -29,7 +29,7 @@ import javax.swing.JComponent;
 import javax.swing.JRootPane;
 import javax.swing.KeyStroke;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
-import org.jjazz.quantizer.Quantization;
+import org.jjazz.quantizer.api.Quantization;
 import org.openide.windows.WindowManager;
 
 /**
@@ -190,7 +190,7 @@ public class ChangeQuantizationDialog extends javax.swing.JDialog
         noteBtnGroup = new javax.swing.ButtonGroup();
         btn_Cancel = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
-        helpTextArea1 = new org.jjazz.ui.utilities.HelpTextArea();
+        helpTextArea1 = new org.jjazz.ui.utilities.api.HelpTextArea();
         btn_Ok = new javax.swing.JButton();
         pnl_radioButtons = new javax.swing.JPanel();
         rbtn_off = new javax.swing.JRadioButton();
@@ -389,7 +389,7 @@ public class ChangeQuantizationDialog extends javax.swing.JDialog
     private javax.swing.JButton btn_Ok;
     private javax.swing.JCheckBox cbx_allSections;
     private javax.swing.Box.Filler filler6;
-    private org.jjazz.ui.utilities.HelpTextArea helpTextArea1;
+    private org.jjazz.ui.utilities.api.HelpTextArea helpTextArea1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JLabel lbl_beat1;
     private javax.swing.JLabel lbl_beat2;

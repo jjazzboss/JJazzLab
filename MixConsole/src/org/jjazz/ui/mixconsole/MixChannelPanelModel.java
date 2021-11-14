@@ -24,7 +24,8 @@ package org.jjazz.ui.mixconsole;
 
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeListener;
-import org.jjazz.midi.Instrument;
+import org.jjazz.midi.api.Instrument;
+import org.jjazz.rhythm.api.RhythmVoice;
 
 /**
  * Model of a MixChannelPanel + controller.
@@ -87,8 +88,8 @@ public interface MixChannelPanelModel
     public int getPanoramic();
 
     public boolean isDrumsReroutingEnabled();
-    
-    public boolean isUserChannel();            
+
+    public RhythmVoice getRhythmVoice();
 
     /**
      * @param oldValue

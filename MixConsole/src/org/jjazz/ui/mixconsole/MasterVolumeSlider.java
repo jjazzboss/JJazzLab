@@ -26,8 +26,8 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.jjazz.midi.JJazzMidiSystem;
-import org.jjazz.ui.flatcomponents.FlatIntegerHorizontalSlider;
+import org.jjazz.midi.api.JJazzMidiSystem;
+import org.jjazz.ui.flatcomponents.api.FlatIntegerHorizontalSlider;
 import static org.jjazz.ui.mixconsole.Bundle.CTL_MasterToolTip;
 import org.openide.util.NbBundle.Messages;
 
@@ -47,8 +47,9 @@ public class MasterVolumeSlider extends FlatIntegerHorizontalSlider implements P
         setMinValue(0);
         setMaxValue(200);
         setValue(100);
-        // putClientProperty(PROP_HIDE_VALUE, 1);
+        putClientProperty(PROP_HIDE_VALUE, 1);
         putClientProperty(PROP_WH_RATIO, Float.valueOf(6));
+        putClientProperty(PROP_NB_GRADUATION_MARKS, 4);
         updateToolTipText();
 
         // Listen to ourself to get the value changes

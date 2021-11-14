@@ -26,10 +26,11 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.jjazz.activesong.ActiveSongManager;
+import javax.swing.SwingUtilities;
+import org.jjazz.activesong.api.ActiveSongManager;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
-import org.jjazz.musiccontrol.MusicController;
-import org.jjazz.musiccontrol.PlaybackListener;
+import org.jjazz.musiccontrol.api.MusicController;
+import org.jjazz.musiccontrol.api.PlaybackListenerAdapter;
 import org.jjazz.song.api.Song;
 
 import org.openide.awt.Actions;
@@ -42,10 +43,10 @@ import org.openide.util.actions.BooleanStateAction;
 /**
  * The panel used as a control toolbar.
  */
-public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyChangeListener, LookupListener, PlaybackListener
+public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyChangeListener, LookupListener
 {
 
-    private Lookup.Result<Song> lookupResult;
+    private final Lookup.Result<Song> lookupResult;
     private Song currentSong;
     private Position posModel;
     private static final Logger LOGGER = Logger.getLogger(ControlToolbarPanel.class.getSimpleName());
@@ -55,7 +56,7 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
         initComponents();
 
         // Initialize actions
-        fbtn_Active.setAction((BooleanStateAction) Actions.forID("MixConsole", "org.jjazz.ui.mixconsole.setactive"));   //NOI18N
+        fbtn_Active.setAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.setactive"));   //NOI18N
         fbtn_Play.setAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.play"));   //NOI18N
         fbtn_Pause.setAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.pause"));   //NOI18N
         fbtn_Stop.setAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.stop"));   //NOI18N
@@ -63,13 +64,24 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
         fbtn_Precount.setAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.precount"));   //NOI18N
         fbtn_Loop.setAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.loop"));   //NOI18N
         fbtn_PlaybackPoint.setAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.showplaybackpoint"));   //NOI18N
+        fbtn_next.setAction(Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.playbacktonextsongpart"));   //NOI18N
+        fbtn_previous.setAction(Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.playbacktoprevioussongpart"));   //NOI18N
+
 
         // The model for the PositionViewer
         posModel = new Position();
-        
+
         // Listen to playbackState and position changes
         MusicController.getInstance().addPropertyChangeListener(this);
-        MusicController.getInstance().addPlaybackListener(this);
+        MusicController.getInstance().addPlaybackListener(new PlaybackListenerAdapter()
+        {
+            @Override
+            public void beatChanged(final Position oldPos, final Position newPos)
+            {
+                // Changes are generated outside the EDT
+                SwingUtilities.invokeLater(() -> posModel.set(newPos)); // PositionViewer listens to posModel changes
+            }
+        });
 
 
         // Listen to the active MidiMix changes
@@ -111,36 +123,6 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
         {
             newSong, currentSong
         });
-    }
-    // ======================================================================
-    // Playbackistener interface
-    // ======================================================================  
-
-    @Override
-    public void beatChanged(final Position oldPos, final Position newPos)
-    {
-        // Changes can be generated outside the EDT
-        Runnable run = new Runnable()
-        {
-            @Override
-            public void run()
-            {
-                posModel.set(newPos);   // PositionViewer listens to posModel changes
-            }
-        };
-        org.jjazz.ui.utilities.Utilities.invokeLaterIfNeeded(run);
-    }
-
-    @Override
-    public void barChanged(int oldBar, int newBar)
-    {
-        // Nothing
-    }
-
-    @Override
-    public void midiActivity(int channel, long tick)
-    {
-        // Nothing
     }
 
     // ======================================================================
@@ -235,18 +217,19 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
     {
 
         filler2 = new javax.swing.Box.Filler(new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 32767));
-        fbtn_Active = new org.jjazz.ui.flatcomponents.FlatToggleButton();
+        fbtn_Active = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
         filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 32767));
         panel_PlayButtons = new javax.swing.JPanel();
-        fbtn_Stop = new org.jjazz.ui.flatcomponents.FlatToggleButton();
-        fbtn_Play = new org.jjazz.ui.flatcomponents.FlatToggleButton();
-        fbtn_Pause = new org.jjazz.ui.flatcomponents.FlatToggleButton();
-        filler3 = new javax.swing.Box.Filler(new java.awt.Dimension(3, 0), new java.awt.Dimension(3, 0), new java.awt.Dimension(3, 32767));
-        filler10 = new javax.swing.Box.Filler(new java.awt.Dimension(20, 0), new java.awt.Dimension(20, 0), new java.awt.Dimension(20, 32767));
+        fbtn_previous = new org.jjazz.ui.flatcomponents.api.FlatButton();
+        fbtn_Stop = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
+        fbtn_Play = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
+        fbtn_Pause = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
+        fbtn_next = new org.jjazz.ui.flatcomponents.api.FlatButton();
+        filler10 = new javax.swing.Box.Filler(new java.awt.Dimension(20, 0), new java.awt.Dimension(16, 0), new java.awt.Dimension(20, 32767));
         posViewer = new org.jjazz.ui.musiccontrolactions.PositionViewer();
         filler4 = new javax.swing.Box.Filler(new java.awt.Dimension(3, 0), new java.awt.Dimension(3, 0), new java.awt.Dimension(3, 32767));
-        fbtn_Loop = new org.jjazz.ui.flatcomponents.FlatToggleButton();
-        fbtn_PlaybackPoint = new org.jjazz.ui.flatcomponents.FlatToggleButton();
+        fbtn_Loop = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
+        fbtn_PlaybackPoint = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
         filler5 = new javax.swing.Box.Filler(new java.awt.Dimension(20, 0), new java.awt.Dimension(20, 0), new java.awt.Dimension(20, 32767));
         panel_Tempo = new javax.swing.JPanel()
         {
@@ -257,13 +240,14 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
             }
         };
         filler6 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 32767));
-        spn_Tempo = new org.jjazz.ui.utilities.WheelSpinner();
+        spn_Tempo = new org.jjazz.ui.utilities.api.WheelSpinner();
         filler7 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 32767));
         filler8 = new javax.swing.Box.Filler(new java.awt.Dimension(3, 0), new java.awt.Dimension(3, 0), new java.awt.Dimension(3, 32767));
-        fbtn_Click = new org.jjazz.ui.flatcomponents.FlatToggleButton();
-        fbtn_Precount = new org.jjazz.ui.flatcomponents.FlatToggleButton();
+        fbtn_Click = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
+        fbtn_Precount = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
         filler9 = new javax.swing.Box.Filler(new java.awt.Dimension(3, 0), new java.awt.Dimension(3, 0), new java.awt.Dimension(3, 32767));
 
+        setBackground(new java.awt.Color(60, 63, 65));
         setOpaque(false);
         setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.X_AXIS));
         add(filler2);
@@ -274,23 +258,30 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
         add(fbtn_Active);
         add(filler1);
 
-        panel_PlayButtons.setBackground(new java.awt.Color(127, 126, 126));
+        panel_PlayButtons.setBackground(new java.awt.Color(48, 50, 52));
+        panel_PlayButtons.setOpaque(false);
         panel_PlayButtons.setLayout(new javax.swing.BoxLayout(panel_PlayButtons, javax.swing.BoxLayout.LINE_AXIS));
 
-        fbtn_Stop.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/StopButtonBorderOff-24x24.png"))); // NOI18N
+        fbtn_previous.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PreviousSongpart-24x24.png"))); // NOI18N
+        panel_PlayButtons.add(fbtn_previous);
+
+        fbtn_Stop.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/StopButton-24x24.png"))); // NOI18N
+        fbtn_Stop.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/StopButtonOn-24x24.png"))); // NOI18N
         panel_PlayButtons.add(fbtn_Stop);
 
-        fbtn_Play.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PlayButtonBorder-24x24.png"))); // NOI18N
-        fbtn_Play.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PlayButtonBorderOn-24x24.png"))); // NOI18N
+        fbtn_Play.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PlayButton-24x24.png"))); // NOI18N
+        fbtn_Play.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PlayButtonOn-24x24.png"))); // NOI18N
         panel_PlayButtons.add(fbtn_Play);
 
-        fbtn_Pause.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PauseButtonBorder-24x24.png"))); // NOI18N
+        fbtn_Pause.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PauseButton-24x24.png"))); // NOI18N
         fbtn_Pause.setToolTipText(org.openide.util.NbBundle.getMessage(ControlToolbarPanel.class, "ControlToolbarPanel.fbtn_Pause.toolTipText")); // NOI18N
-        fbtn_Pause.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PauseButtonBorderOn-24x24.png"))); // NOI18N
+        fbtn_Pause.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PauseButtonOn-24x24.png"))); // NOI18N
         panel_PlayButtons.add(fbtn_Pause);
 
         add(panel_PlayButtons);
-        add(filler3);
+
+        fbtn_next.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/NextSongpart-24x24.png"))); // NOI18N
+        add(fbtn_next);
         add(filler10);
 
         posViewer.setBorder(javax.swing.BorderFactory.createCompoundBorder(spn_Tempo.getBorder(), javax.swing.BorderFactory.createEmptyBorder(1, 8, 1, 8)));
@@ -343,22 +334,23 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
     private void spn_TempoStateChanged(javax.swing.event.ChangeEvent evt)//GEN-FIRST:event_spn_TempoStateChanged
     {//GEN-HEADEREND:event_spn_TempoStateChanged
         assert currentSong != null; // Otherwise button should be disabled   //NOI18N
-        currentSong.setTempo((int) spn_Tempo.getValue());
+        IncreaseTempo.setSongTempo(currentSong, (int) spn_Tempo.getValue());
     }//GEN-LAST:event_spn_TempoStateChanged
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private org.jjazz.ui.flatcomponents.FlatToggleButton fbtn_Active;
-    private org.jjazz.ui.flatcomponents.FlatToggleButton fbtn_Click;
-    private org.jjazz.ui.flatcomponents.FlatToggleButton fbtn_Loop;
-    private org.jjazz.ui.flatcomponents.FlatToggleButton fbtn_Pause;
-    private org.jjazz.ui.flatcomponents.FlatToggleButton fbtn_Play;
-    private org.jjazz.ui.flatcomponents.FlatToggleButton fbtn_PlaybackPoint;
-    private org.jjazz.ui.flatcomponents.FlatToggleButton fbtn_Precount;
-    private org.jjazz.ui.flatcomponents.FlatToggleButton fbtn_Stop;
+    private org.jjazz.ui.flatcomponents.api.FlatToggleButton fbtn_Active;
+    private org.jjazz.ui.flatcomponents.api.FlatToggleButton fbtn_Click;
+    private org.jjazz.ui.flatcomponents.api.FlatToggleButton fbtn_Loop;
+    private org.jjazz.ui.flatcomponents.api.FlatToggleButton fbtn_Pause;
+    private org.jjazz.ui.flatcomponents.api.FlatToggleButton fbtn_Play;
+    private org.jjazz.ui.flatcomponents.api.FlatToggleButton fbtn_PlaybackPoint;
+    private org.jjazz.ui.flatcomponents.api.FlatToggleButton fbtn_Precount;
+    private org.jjazz.ui.flatcomponents.api.FlatToggleButton fbtn_Stop;
+    private org.jjazz.ui.flatcomponents.api.FlatButton fbtn_next;
+    private org.jjazz.ui.flatcomponents.api.FlatButton fbtn_previous;
     private javax.swing.Box.Filler filler1;
     private javax.swing.Box.Filler filler10;
     private javax.swing.Box.Filler filler2;
-    private javax.swing.Box.Filler filler3;
     private javax.swing.Box.Filler filler4;
     private javax.swing.Box.Filler filler5;
     private javax.swing.Box.Filler filler6;
@@ -368,7 +360,7 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
     private javax.swing.JPanel panel_PlayButtons;
     private javax.swing.JPanel panel_Tempo;
     private org.jjazz.ui.musiccontrolactions.PositionViewer posViewer;
-    private org.jjazz.ui.utilities.WheelSpinner spn_Tempo;
+    private org.jjazz.ui.utilities.api.WheelSpinner spn_Tempo;
     // End of variables declaration//GEN-END:variables
 
 }

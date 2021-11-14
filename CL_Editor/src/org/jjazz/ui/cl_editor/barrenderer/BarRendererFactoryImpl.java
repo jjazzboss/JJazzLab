@@ -27,7 +27,9 @@ import org.jjazz.ui.cl_editor.api.CL_Editor;
 import org.jjazz.ui.cl_editor.barrenderer.api.BarRenderer;
 import org.jjazz.ui.cl_editor.barrenderer.api.BarRendererFactory;
 import org.jjazz.ui.cl_editor.barrenderer.api.BarRendererSettings;
+import org.jjazz.ui.cl_editor.barrenderer.spi.BarRendererProvider;
 import org.jjazz.ui.itemrenderer.api.ItemRendererFactory;
+import org.openide.util.Lookup;
 
 public class BarRendererFactoryImpl implements BarRendererFactory
 {
@@ -54,31 +56,45 @@ public class BarRendererFactoryImpl implements BarRendererFactory
      * Use the default ItemRendererFactory.
      *
      * @param editor Can be null
-     * @param type
+     * @param brType
      * @param barIndex
-     * @param model
      * @return
      */
     @Override
-    public BarRenderer createBarRenderer(CL_Editor editor, Type type, int barIndex, ChordLeadSheet model, BarRendererSettings settings, ItemRendererFactory irf)
+    public BarRenderer createBarRenderer(CL_Editor editor, String brType, int barIndex, BarRendererSettings settings, ItemRendererFactory irf)
     {
         BarRenderer br = null;
-        switch (type)
+        switch (brType)
         {
-            case ChordSymbol:
+            case BarRendererFactory.BR_CHORD_SYMBOL:
                 br = new BR_Chords(editor, barIndex, settings, irf);
                 break;
-            case ChordPosition:
+            case BarRendererFactory.BR_CHORD_POSITION:
                 br = new BR_ChordPositions(editor, barIndex, settings, irf);
                 break;
-            case Section:
+            case BarRendererFactory.BR_SECTION:
                 br = new BR_Sections(editor, barIndex, settings, irf);
                 break;
             default:
-                throw new IllegalStateException("type=" + type);   //NOI18N
+                // Search a provider in the global lookup
+                var brProviders = Lookup.getDefault().lookupAll(BarRendererProvider.class);
+                for (var brProvider : brProviders)
+                {
+                    br = brProvider.createBarRenderer(editor, brType, barIndex, settings, irf);
+                    if (br != null)
+                    {
+                        break;
+                    }
+                }
+                if (br == null)
+                {
+                    throw new IllegalStateException("No BarRendererProvider found for brType=" + brType);   //NOI18N
+                }
         }
+
         // Set the model
-        int modelBarIndex = barIndex < model.getSize() ? barIndex : -1;
+        var model = editor.getModel();
+        int modelBarIndex = barIndex < model.getSizeInBars() ? barIndex : -1;
         br.setModel(modelBarIndex, model);
         return br;
     }

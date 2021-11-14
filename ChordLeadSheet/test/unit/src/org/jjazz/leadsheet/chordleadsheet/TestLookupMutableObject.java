@@ -32,7 +32,7 @@ import org.openide.awt.UndoRedo;
 import java.text.ParseException;
 import org.jjazz.leadsheet.chordleadsheet.item.CLI_ChordSymbolImpl;
 import org.jjazz.leadsheet.chordleadsheet.item.CLI_SectionImpl;
-import org.jjazz.harmony.TimeSignature;
+import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
 import org.junit.After;
@@ -83,7 +83,7 @@ public class TestLookupMutableObject
         try
         {
             // Test leadsheet init
-            cls1.setSize(8);
+            cls1.setSizeInBars(8);
             cls1.addItem(new CLI_ChordSymbolImpl(new ExtChordSymbol("Dm7"), new Position(0, 0)));
             cls1.addItem(new CLI_ChordSymbolImpl(new ExtChordSymbol("F#7"), new Position(1, 0)));
             cls1.addItem(new CLI_ChordSymbolImpl(new ExtChordSymbol("Bbmaj7#5"), new Position(1, 3)));
@@ -97,7 +97,7 @@ public class TestLookupMutableObject
             cls1.addUndoableEditListener(undoManager);
 
             // COPY
-            cls2.setSize(8);
+            cls2.setSizeInBars(8);
             cls2.addItem(new CLI_ChordSymbolImpl(new ExtChordSymbol("Dm7"), new Position(0, 0)));
             cls2.addItem(new CLI_ChordSymbolImpl(new ExtChordSymbol("F#7"), new Position(1, 0)));
             cls2.addItem(new CLI_ChordSymbolImpl(new ExtChordSymbol("Bbmaj7#5"), new Position(1, 3)));

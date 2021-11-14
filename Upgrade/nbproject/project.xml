@@ -65,7 +65,7 @@
                 </test-type>
             </test-dependencies>
             <public-packages>
-                <package>org.jjazz.upgrade</package>
+                <package>org.jjazz.upgrade.api</package>
                 <package>org.jjazz.upgrade.spi</package>
             </public-packages>
         </data>
