@@ -23,7 +23,9 @@
 package org.jjazz.uisettings.api;
 
 import com.formdev.flatlaf.FlatDarkLaf;
+import java.awt.Color;
 import java.util.logging.Logger;
+import java.util.prefs.Preferences;
 import javax.swing.UIManager;
 import org.openide.modules.ModuleInstall;
 import org.openide.util.NbPreferences;
@@ -48,13 +50,13 @@ public class LookAndFeelInstaller extends ModuleInstall
         GeneralUISettings.LookAndFeelId lafId = uis.getLafIdUponRestart();
 
         LOGGER.info("validate() Installing Look & Feel: " + lafId.name());   //NOI18N
-        
+
         switch (lafId)
         {
             case LOOK_AND_FEEL_SYSTEM_DEFAULT:
-                // NbPreferences.root().node("laf").remove("laf");
-                // break;
-                
+            // NbPreferences.root().node("laf").remove("laf");
+            // break;
+
             case LOOK_AND_FEEL_FLAT_DARK_LAF:
                 // On Thu, 25 Jun 2020 at 00:40, Laszlo Kishalmi <laszlo.kishalmi@gmail.com> wrote:
                 // > NbPreferences.root().node( "laf" ).put( "laf", "com.formdev.flatlaf.FlatDarkLaf" ); 
@@ -65,8 +67,13 @@ public class LookAndFeelInstaller extends ModuleInstall
                 // You can see use of validate() in eg.
                 // https://github.com/Revivius/nb-darcula/blob/master/src/main/java/com/revivius/nb/darcula/Installer.java#L29
                 // and https://github.com/praxis-live/praxis-live/blob/v2.3.3/praxis.live.laf/src/net/neilcsmith/praxis/live/laf/Installer.java#L53
-                NbPreferences.root().node("laf").put("laf", "com.formdev.flatlaf.FlatDarkLaf");
-                UIManager.installLookAndFeel(new UIManager.LookAndFeelInfo("FlatLaf Dark", FlatDarkLaf.class.getName()));           
+                // NbPreferences.root().node("laf").put("laf", "com.formdev.flatlaf.FlatDarkLaf");
+                // UIManager.put("nb.options.categories.tabPanelBackground", Color.ORANGE);
+                Preferences prefs = NbPreferences.root().node("laf");
+                if (prefs.get("laf", "").isBlank())
+                {
+                    prefs.put("laf", "com.formdev.flatlaf.FlatDarkLaf");
+                }
                 break;
             default:
                 throw new AssertionError(lafId.name());
