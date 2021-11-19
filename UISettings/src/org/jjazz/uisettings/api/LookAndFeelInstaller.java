@@ -58,17 +58,9 @@ public class LookAndFeelInstaller extends ModuleInstall
             // break;
 
             case LOOK_AND_FEEL_FLAT_DARK_LAF:
-                // On Thu, 25 Jun 2020 at 00:40, Laszlo Kishalmi <laszlo.kishalmi@gmail.com> wrote:
-                // > NbPreferences.root().node( "laf" ).put( "laf", "com.formdev.flatlaf.FlatDarkLaf" ); 
-                // Somewhere really early, probably at an @OnStart marked runnable.
-                // This probably needs to be done in ModuleInstall::validate - @OnStart
-                // is too late to work consistently, unless behaviour has changed
-                // recently.
-                // You can see use of validate() in eg.
-                // https://github.com/Revivius/nb-darcula/blob/master/src/main/java/com/revivius/nb/darcula/Installer.java#L29
-                // and https://github.com/praxis-live/praxis-live/blob/v2.3.3/praxis.live.laf/src/net/neilcsmith/praxis/live/laf/Installer.java#L53
-                // NbPreferences.root().node("laf").put("laf", "com.formdev.flatlaf.FlatDarkLaf");
-                // UIManager.put("nb.options.categories.tabPanelBackground", Color.ORANGE);
+                // Code from Netbeans mailing list, see PraxisLive application 
+                // IMPORTANT NB 12.5: need to add **both** FlatLaf NB modules as dependencies, including the non-API one FlatLaf Look & Feel, otherwise
+                // some settings are NOT correctly set (e.g. white background in the Options panel)
                 Preferences prefs = NbPreferences.root().node("laf");
                 if (prefs.get("laf", "").isBlank())
                 {
