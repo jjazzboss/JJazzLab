@@ -22,11 +22,8 @@
  */
 package org.jjazz.uisettings.api;
 
-import com.formdev.flatlaf.FlatDarkLaf;
-import java.awt.Color;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
-import javax.swing.UIManager;
 import org.openide.modules.ModuleInstall;
 import org.openide.util.NbPreferences;
 
@@ -64,7 +61,7 @@ public class LookAndFeelInstaller extends ModuleInstall
                 Preferences prefs = NbPreferences.root().node("laf");
                 if (prefs.get("laf", "").isBlank())
                 {
-                    prefs.put("laf", "com.formdev.flatlaf.FlatDarkLaf");
+                    prefs.put("laf", "com.formdev.flatlaf.FlatDarkLaf");                    
                 }
                 break;
             default:
