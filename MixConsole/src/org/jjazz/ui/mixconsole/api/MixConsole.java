@@ -641,7 +641,12 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
             // User channel
             mcp = createMixChannelPanelForUserVoice(mm, channel);
             insertMixChannelPanel(channel, mcp);
-            UserExtensionPanel ucep = new UserExtensionPanel(songModel, songMidiMix, (UserRhythmVoice) rv, new UserExtensionPanelController());
+            UserExtensionPanel ucep = new UserExtensionPanel(songModel, 
+                    songMidiMix, 
+                    (UserRhythmVoice) rv, 
+                    new UserExtensionPanelController(),
+                    settings
+            );
             panel_mixChannels.add(ucep);        // Add always at the last position
         } else
         {

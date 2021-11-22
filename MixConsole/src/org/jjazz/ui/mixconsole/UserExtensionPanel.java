@@ -24,6 +24,7 @@ package org.jjazz.ui.mixconsole;
 
 import java.awt.Font;
 import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.beans.VetoableChangeListener;
 import java.io.File;
 import java.util.logging.Logger;
@@ -40,6 +41,7 @@ import org.jjazz.songstructure.api.event.SptRemovedEvent;
 import org.jjazz.songstructure.api.event.SptReplacedEvent;
 import org.jjazz.songstructure.api.event.SptResizedEvent;
 import org.jjazz.ui.flatcomponents.api.FlatTextEditDialog;
+import org.jjazz.ui.mixconsole.api.MixConsoleSettings;
 import org.jjazz.ui.utilities.api.MidiFileDragInTransferHandler;
 import org.jjazz.uisettings.api.GeneralUISettings;
 import org.jjazz.util.api.FloatRange;
@@ -49,25 +51,33 @@ import org.jjazz.util.api.Utilities;
  * An extension of a MixChannelPanel to add specific controls for user phrase channels.
  * <p>
  */
-public class UserExtensionPanel extends javax.swing.JPanel implements VetoableChangeListener, SgsChangeListener
+public class UserExtensionPanel extends javax.swing.JPanel implements VetoableChangeListener, SgsChangeListener, PropertyChangeListener
 {
 
     private UserRhythmVoice userRhythmVoice;
     private Song song;
     private MidiMix midiMix;
+    private final MixConsoleSettings settings;
     private final Font FONT = GeneralUISettings.getInstance().getStdCondensedFont();
     private UserExtensionPanelController controller;
     private static final Logger LOGGER = Logger.getLogger(UserExtensionPanel.class.getSimpleName());
 
     public UserExtensionPanel()
     {
-        this(null, null, null, null);
+        this(null, null, null, null, null);
     }
 
-    public UserExtensionPanel(Song song, MidiMix midiMix, UserRhythmVoice urv, UserExtensionPanelController controller)
+    public UserExtensionPanel(Song song, MidiMix midiMix, UserRhythmVoice urv, UserExtensionPanelController controller, MixConsoleSettings settings)
     {
         initComponents();
 
+        this .settings = settings;
+        if (this.settings!=null)
+        {
+            this.settings.addPropertyChangeListener(this);
+            this.roundedPanel1.setBackground(settings.getMixChannelBackgroundColor());
+        }
+        
         this.controller = controller;
         this.controller.setUserExtentionPanel(this);
         this.song = song;
@@ -83,7 +93,7 @@ public class UserExtensionPanel extends javax.swing.JPanel implements VetoableCh
 
         // By default enable the drag in transfer handler
         setTransferHandler(new MidiFileDragInTransferHandlerImpl());
-
+        
 
         phraseUpdated();
     }
@@ -107,8 +117,19 @@ public class UserExtensionPanel extends javax.swing.JPanel implements VetoableCh
     {
         song.removeVetoableChangeListener(this);
         song.getSongStructure().removeSgsChangeListener(this);
+        settings.removePropertyChangeListener(this);
     }
-
+ // ----------------------------------------------------------------------------
+    // PropertyChangeListener interface
+    // ----------------------------------------------------------------------------
+    @Override
+    public void propertyChange(PropertyChangeEvent evt)
+    {
+        if (evt.getSource() == settings)
+        {
+            refreshUI();
+        }
+    }
     //-----------------------------------------------------------------------
     // Implementation of the VetoableListener interface
     //-----------------------------------------------------------------------
@@ -164,6 +185,10 @@ public class UserExtensionPanel extends javax.swing.JPanel implements VetoableCh
         birdViewComp.setModel(song.getUserPhrase(userRhythmVoice.getName()), ts, beatRange);
     }
 
+    private void refreshUI()
+    {
+        this.roundedPanel1.setBackground(settings.getMixChannelBackgroundColor());
+    }
 
     //-----------------------------------------------------------------------
     // Private classes
