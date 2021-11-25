@@ -69,7 +69,9 @@ public class GeneralUISettings
         new Locale("en", "US"),
         new Locale("fr", "FR"),
         new Locale("de", "DE"),
-        new Locale("zh", "CN")
+        new Locale("zh", "CN"),
+        new Locale("es", "ES"),
+        new Locale("pt", "BR")
     };
 
     /**
