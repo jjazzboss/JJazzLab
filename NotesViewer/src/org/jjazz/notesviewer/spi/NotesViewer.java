@@ -22,7 +22,6 @@
  */
 package org.jjazz.notesviewer.spi;
 
-import java.util.List;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 import org.jjazz.harmony.api.StandardScaleInstance;

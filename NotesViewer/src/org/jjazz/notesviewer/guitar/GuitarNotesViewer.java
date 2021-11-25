@@ -137,7 +137,7 @@ public class GuitarNotesViewer implements NotesViewer
     @Override
     public void cleanup()
     {
-        // Nothing
+        component.clear();
     }
 
     @Override

@@ -668,7 +668,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
 
     private MixChannelPanel createMixChannelPanelForRhythmVoice(MidiMix mm, int channel, RhythmVoice rv)
     {
-        LOGGER.fine("createMixChannelPanelForRhythmVoice() -- mm=" + mm + " channel=" + channel + " rv=" + rv);   //NOI18N
+        LOGGER.log(Level.FINE, "createMixChannelPanelForRhythmVoice() -- mm={0} channel={1} rv={2}", new Object[]{mm, channel, rv});   //NOI18N
         MixChannelPanelModelImpl mcpModel = new MixChannelPanelModelImpl(mm, channel);
         MixChannelPanelControllerImpl mcpController = new MixChannelPanelControllerImpl(mm, channel);
         MixChannelPanel mcp = new MixChannelPanel(mcpModel, mcpController, settings);

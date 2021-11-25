@@ -167,7 +167,7 @@ public class PianoNotesViewer implements NotesViewer
     @Override
     public void cleanup()
     {
-        // Nothing
+        releaseAllNotes();
     }
 
     @Override

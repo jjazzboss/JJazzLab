@@ -206,9 +206,15 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
                 // Update model and NotesViewer context
                 updateComboModel();
             }
+
+            if (songPlaybackMode == null)
+            {
+                notesViewer.cleanup();
+                updateCurrentChordSymbolUI(null);
+            }
         }
 
-        cmb_srcChannel.setEnabled(songPlaybackMode != null);
+        cmb_srcChannel.setEnabled(songPlaybackMode != null && isUIinPlaybackMode());
     }
 
 
@@ -624,7 +630,7 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
             default:
                 throw new AssertionError(mode.name());
         }
-        
+
         Analytics.logEvent("Set Notes Viewer Mode", Analytics.buildMap("Mode", mode.name()));
     }
 
@@ -655,10 +661,17 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
 
     private void updateCurrentChordSymbolUI(CLI_ChordSymbol cliCs)
     {
-        var ecs = cliCs.getData();
-        lbl_chordSymbol.setText(ecs.getOriginalName());
-        var scale = ecs.getRenderingInfo().getScaleInstance();
-        lbl_scale.setText(scale == null ? " " : scale.toString());
+        String strCs = " ";
+        String strScale = " ";
+        if (cliCs != null)
+        {
+            var ecs = cliCs.getData();
+            strCs = ecs.getOriginalName();
+            var scale = ecs.getRenderingInfo().getScaleInstance();
+            strScale = scale == null ? " " : scale.toString();
+        }
+        lbl_chordSymbol.setText(strCs);
+        lbl_scale.setText(strScale);
     }
 
 

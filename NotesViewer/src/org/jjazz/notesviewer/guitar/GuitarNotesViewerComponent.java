@@ -60,7 +60,7 @@ public class GuitarNotesViewerComponent extends javax.swing.JPanel
 
     public void clear()
     {
-        pnl_instrument.removeAll();
+        updateDiagrams(null);
         revalidate();
         repaint();
     }
@@ -104,16 +104,20 @@ public class GuitarNotesViewerComponent extends javax.swing.JPanel
     private void updateDiagrams(ChordSymbol cs)
     {
         lastChordSymbol = cs;
-
         pnl_instrument.removeAll();
-        List<TGChord> tgChords = new TGChordCreatorUtil(maxFretSpan).getChords(cs);
-        tgChords.stream().limit(30).forEach(tgChord ->
+
+
+        if (cs != null)
         {
-            GuitarDiagramComponent diagram = new GuitarDiagramComponent(tgChord, cs);
-            diagram.setTonicNoteColor(TONIC_NOTE_COLOR);
-            pnl_instrument.add(diagram);
+            List<TGChord> tgChords = new TGChordCreatorUtil(maxFretSpan).getChords(cs);
+            tgChords.stream().limit(30).forEach(tgChord ->
+            {
+                GuitarDiagramComponent diagram = new GuitarDiagramComponent(tgChord, cs);
+                diagram.setTonicNoteColor(TONIC_NOTE_COLOR);
+                pnl_instrument.add(diagram);
+            }
+            );
         }
-        );
 
         revalidate();
         repaint();
@@ -146,7 +150,7 @@ public class GuitarNotesViewerComponent extends javax.swing.JPanel
         pnl_instrument = new javax.swing.JPanel();
         fbtn_chordMode = new org.jjazz.ui.utilities.api.SmallFlatDarkLafButton();
 
-        pnl_instrument.setLayout(new java.awt.GridLayout(0, 2, 5, 5));
+        pnl_instrument.setLayout(new java.awt.GridLayout(0, 3, 3, 5));
         jScrollPane1.setViewportView(pnl_instrument);
 
         org.openide.awt.Mnemonics.setLocalizedText(fbtn_chordMode, "Most common chords"); // NOI18N
