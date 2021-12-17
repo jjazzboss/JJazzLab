@@ -30,6 +30,7 @@ import java.io.Serializable;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -59,7 +60,7 @@ import org.jjazz.util.api.LongRange;
 /**
  * A list of NoteEvents sorted by start position.
  * <p>
- * Use addOrdered() to add a NoteEvent: this will ensure NoteEvents are kept ordered. Use of other add() methods should be used
+ * Use addOrdered() to add a NoteEvent: this will ensure NoteEvents are kept ordered. Use of other add()/addAll() methods should be used
  * for optimization only when you are sure it will not break the NoteEvents order.
  * <p>
  * LinkedList implementation to speed up item insertion/remove rather than random access.
@@ -102,14 +103,15 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
     }
 
     /**
-     * Add NoteEvents from a list of NOTE_ON/OFF Midi events.
+     * Add NoteEvents from a list of NOTE_ON/OFF Midi events at MidiConst.PPQ_RESOLUTION.
      * <p>
      * NOTE_ON events without a corresponding NOTE_OFF event are ignored.
      *
-     * @param midiEvents MidiEvents which are not ShortMessage.Note_ON/OFF are ignored. Must be ordered by tick position.
+     * @param midiEvents MidiEvents which are not ShortMessage.Note_ON/OFF are ignored. Must be ordered by tick position, resolution must be MidiConst.PPQ_RESOLUTION.
      * @param posInBeatsOffset The position in natural beats of the first tick of the track.
      * @param ignoreChannel If true, add also NoteEvents for MidiEvents which do not match this phrase channel.
      * @see MidiUtilities#getMidiEvents(javax.sound.midi.Track, java.util.function.Predicate, LongRange)
+     * @see MidiConst#PPQ_RESOLUTION
      */
     public void add(List<MidiEvent> midiEvents, float posInBeatsOffset, boolean ignoreChannel)
     {
@@ -192,7 +194,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
 
         add(index, mne);
     }
-
+        
     /**
      * A deep clone: returned phrase contains clones of the original NoteEvents.
      *
@@ -566,18 +568,19 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
     }
 
     /**
-     * Get the NoteEvents whose start position is in the [posFrom:posTo] or [posFrom:posTo[ range.
+     * Get the NoteEvents which match the tester and whose start position is in the [posFrom:posTo] or [posFrom:posTo[ range.
      *
+     * @param tester
      * @param range
      * @param excludeUpperBound
      * @return
      */
-    public List<NoteEvent> getNotes(FloatRange range, boolean excludeUpperBound)
+    public List<NoteEvent> getNotes(Predicate<NoteEvent> tester, FloatRange range, boolean excludeUpperBound)
     {
         var res = new ArrayList<NoteEvent>();
         for (NoteEvent ne : this)
         {
-            if (range.contains(ne.getPositionInBeats(), excludeUpperBound))
+            if (tester.test(ne) && range.contains(ne.getPositionInBeats(), excludeUpperBound))
             {
                 res.add(ne);
             }
@@ -1017,11 +1020,12 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
      * <p>
      * A track can use notes from different channels. Notes from a given channel can be on several tracks.
      *
+     * @param tracksPPQ The Midi PPQ resolution (pulses per quarter) used in the tracks.
      * @param tracks
      * @param channels Get phrases only for the specified channels. If empty, get phrases for all channels.
      * @return
      */
-    static public List<Phrase> getPhrases(Track[] tracks, Integer... channels)
+    static public List<Phrase> getPhrases(int tracksPPQ, Track[] tracks, Integer... channels)
     {
         Map<Integer, Phrase> mapRes = new HashMap<>();
         var selectedChannels = channels.length > 0 ? Arrays.asList(channels) : Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15);
@@ -1029,6 +1033,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
         for (Track track : tracks)
         {
             var trackEvents = MidiUtilities.getMidiEvents(track,
+                    tracksPPQ,
                     ShortMessage.class,
                     sm -> sm.getCommand() == ShortMessage.NOTE_OFF || sm.getCommand() == ShortMessage.NOTE_ON,
                     null);

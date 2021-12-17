@@ -194,7 +194,9 @@ public enum TimeSignature
         if (beat == SYSTEM_END_BEAT)
         {
             return true;
-        } // normal case
+        } 
+
+        // normal case
         return !((beat < 0) || (beat >= getNbNaturalBeats()));
     }
 

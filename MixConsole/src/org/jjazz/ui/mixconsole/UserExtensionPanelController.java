@@ -241,10 +241,14 @@ public class UserExtensionPanelController
 
         // Load file into a sequence
         Sequence sequence = MidiSystem.getSequence(midiFile);       // Throws IOException, InvalidMidiDataException
-
+        if (sequence.getDivisionType() != Sequence.PPQ)
+        {
+            throw new InvalidMidiDataException("Midi file does not use PPQ division: midifile="+midiFile.getAbsolutePath());
+        }
+        
         // Get our phrase
         Track[] tracks = sequence.getTracks();
-        List<Phrase> phrases = Phrase.getPhrases(tracks, channel);
+        List<Phrase> phrases = Phrase.getPhrases(sequence.getResolution(), tracks, channel);
         if (phrases.size() == 1)
         {
             res.addAll(phrases.get(0));

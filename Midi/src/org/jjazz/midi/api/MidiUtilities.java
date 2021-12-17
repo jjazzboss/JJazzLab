@@ -67,29 +67,38 @@ public class MidiUtilities
     }
 
     /**
-     * Get track MidiEvents whose tick position is within range [tickMin;tickMax] and which satisfy the specified tester.
+     * Get track MidiEvents whose tick position is within tickRange and which satisfy the specified tester.
+     * <p>
+     * Note that the returned MidiEvents are converted to resolution MidiConst.PPQ_RESOLUTION.
      *
      * @param track
-     * @param tester
-     * @param tickRange If null there is no filtering on tick position
-     * @return
+     * @param trackPPQ The Midi resolution (pulses per quarter) used in the track.
+     * @param tester Test the Midi event (assume MidiConst.PPQ_RESOLUTION if you test tick position).
+     * @param tickRange Computed using MidiConst.PPQ_RESOLUTION. If null there is no filtering on tick position.
+     * @return A list of MidiEvents using MidiConst.PPQ_RESOLUTION.
+     * @see MidiConst#PPQ_RESOLUTION
      */
-    static public List<MidiEvent> getMidiEvents(Track track, Predicate<MidiEvent> tester, LongRange tickRange)
+    static public List<MidiEvent> getMidiEvents(Track track, int trackPPQ, Predicate<MidiEvent> tester, LongRange tickRange)
     {
         var res = new ArrayList<MidiEvent>();
+        double tickRatio = (double) MidiConst.PPQ_RESOLUTION / trackPPQ;
+
+
         for (int i = 0; i < track.size(); i++)
         {
-            MidiEvent me = track.get(i);
-            if (tickRange != null && me.getTick() < tickRange.from)
+            MidiEvent me0 = track.get(i);
+            long tick = (long) Math.round(tickRatio * me0.getTick());
+            MidiEvent me1 = new MidiEvent(me0.getMessage(), tick);
+            if (tickRange != null && tick < tickRange.from)
             {
                 continue;
-            } else if (tickRange != null && me.getTick() > tickRange.to)
+            } else if (tickRange != null && tick > tickRange.to)
             {
                 break;
             }
-            if (tester.test(me))
+            if (tester.test(me1))
             {
-                res.add(me);
+                res.add(me1);
             }
         }
         return res;
@@ -97,34 +106,44 @@ public class MidiUtilities
 
     /**
      * Get track MidiEvents whose MidiMessage is instance of msgClass, which satisfy the specified MidiMessage tester, and whose
-     * tick position is within range [tickMin;tickMax].
+     * tick position is within tickRange.
+     * <p>
+     * Note that the returned MidiEvents are converted to resolution MidiConst.PPQ_RESOLUTION.
      *
      * @param <T>
      * @param track
+     * @param trackPPQ The Midi resolution (pulses per quarter) used in the track.
      * @param msgClass MidiMessage class
      * @param msgTester
-     * @param tickRange If null there is no filtering on tick position
-     * @return
+     * @param tickRange Computed using MidiConst.PPQ_RESOLUTION. If null there is no filtering on tick position.
+     * @return A list of MidiEvents using MidiConst.PPQ_RESOLUTION.
+     * @see MidiConst#PPQ_RESOLUTION
      */
-    static public <T extends MidiMessage> List<MidiEvent> getMidiEvents(Track track, Class<T> msgClass, Predicate<T> msgTester, LongRange tickRange)
+    static public <T extends MidiMessage> List<MidiEvent> getMidiEvents(Track track, int trackPPQ, Class<T> msgClass, Predicate<T> msgTester, LongRange tickRange)
     {
         var res = new ArrayList<MidiEvent>();
+        double tickRatio = (double) MidiConst.PPQ_RESOLUTION / trackPPQ;
+
+
         for (int i = 0; i < track.size(); i++)
         {
-            MidiEvent me = track.get(i);
-            if (tickRange != null && me.getTick() < tickRange.from)
+            MidiEvent me0 = track.get(i);
+            long tick = (long) Math.round(tickRatio * me0.getTick());
+            MidiEvent me1 = new MidiEvent(me0.getMessage(), tick);
+
+            if (tickRange != null && me1.getTick() < tickRange.from)
             {
                 continue;
-            } else if (tickRange != null && me.getTick() > tickRange.to)
+            } else if (tickRange != null && me1.getTick() > tickRange.to)
             {
                 break;
             }
-            if (msgClass.isInstance(me.getMessage()))
+            if (msgClass.isInstance(me1.getMessage()))
             {
-                T msg = (T) me.getMessage();
+                T msg = (T) me1.getMessage();
                 if (msgTester.test(msg))
                 {
-                    res.add(me);
+                    res.add(me1);
                 }
             }
         }
@@ -789,17 +808,17 @@ public class MidiUtilities
 
     /**
      * Check if the Midi sequence supports the specified Midi file type.
-     * 
+     *
      * @param sequence
      * @param fileType 0 or 1
      * @param notifyUser If true and fileType is not supported, notify end user.
-     * @return True if fileType is supported 
+     * @return True if fileType is supported
      */
     static public boolean checkMidiFileTypeSupport(Sequence sequence, int fileType, boolean notifyUser)
     {
         checkNotNull(sequence);
-        checkArgument(fileType==0 || fileType==1, "Invalid file type=%s", fileType);
-        
+        checkArgument(fileType == 0 || fileType == 1, "Invalid file type=%s", fileType);
+
         int[] fileTypes = MidiSystem.getMidiFileTypes(sequence);
         boolean res = false;
         for (int type : fileTypes)
@@ -810,7 +829,7 @@ public class MidiUtilities
                 break;
             }
         }
-        
+
         if (!res && notifyUser)
         {
             String msg = ResUtil.getString(MidiUtilities.class, "ERR_MidiFileTypeNotSupported", fileType);
@@ -818,7 +837,7 @@ public class MidiUtilities
             NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(nd);
         }
-        
+
         return res;
     }
 

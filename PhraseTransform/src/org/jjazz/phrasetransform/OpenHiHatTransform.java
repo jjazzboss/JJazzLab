@@ -44,8 +44,6 @@ import org.netbeans.api.annotations.common.StaticResource;
  */
 public class OpenHiHatTransform implements PhraseTransform
 {
-
-
     @StaticResource(relative = true)
     private static final String ICON_PATH = "resources/OpenHiHatTransformer-48x24.png";
     private static final Icon ICON = new ImageIcon(OpenHiHatTransform.class.getResource(ICON_PATH));

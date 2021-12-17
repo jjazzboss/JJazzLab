@@ -34,6 +34,7 @@ import org.jjazz.midi.api.InstrumentMix;
 import org.jjazz.midi.api.InstrumentSettings;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midimix.api.MidiMix;
+import org.jjazz.midimix.api.UserRhythmVoice;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.ui.utilities.api.Utilities;
 import org.openide.windows.WindowManager;
@@ -105,7 +106,7 @@ public class MixChannelPanelSettingsDialog extends javax.swing.JDialog implement
 
         lbl_title.setText(title);
         RhythmVoice rv = mm.getRhythmVoice(channel);
-        if (channel != MidiConst.CHANNEL_DRUMS && rv.isDrums())
+        if (channel != MidiConst.CHANNEL_DRUMS && (rv.isDrums() || rv instanceof UserRhythmVoice))
         {
             // Enable drums rerouting
             Utilities.setRecursiveEnabled(true, pnl_rerouting);

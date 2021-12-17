@@ -456,6 +456,10 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
         try
         {
             sequence = MidiSystem.getSequence(midiFile);
+            if (sequence.getDivisionType() != Sequence.PPQ)
+            {
+                throw new InvalidMidiDataException("Midi file does not use PPQ division: midifile=" + midiFile.getAbsolutePath());
+            }
         } catch (IOException | InvalidMidiDataException ex)
         {
             NotifyDescriptor d = new NotifyDescriptor.Message(ex.getMessage(), NotifyDescriptor.ERROR_MESSAGE);
@@ -467,7 +471,7 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
 
         // Get one phrase per channel
         Track[] tracks = sequence.getTracks();
-        List<Phrase> phrases = Phrase.getPhrases(tracks);
+        List<Phrase> phrases = Phrase.getPhrases(sequence.getResolution(), tracks);
 
 
         boolean contentFound = false;
