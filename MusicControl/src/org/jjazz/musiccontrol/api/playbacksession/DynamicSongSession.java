@@ -385,16 +385,8 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
             switch (e.getPropertyName())
             {
                 case Song.PROP_VETOABLE_USER_PHRASE:
-                    String name = (String) e.getNewValue();
-                    if (name != null)
-                    {
-                        // It's a new phrase, we can NOT handle it
-                        doDisableUpdates = true;
-                    } else
-                    {
-                        // It's an update, handle it
-                        doUpdate = true;
-                    }
+                    // A user phrase was added or removed, can't handle it
+                    doDisableUpdates = true;
                     break;
                 
                 case Song.PROP_VETOABLE_USER_PHRASE_CONTENT:

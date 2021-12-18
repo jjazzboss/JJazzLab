@@ -68,17 +68,52 @@ public class DefaultPhraseTransformProvider implements PhraseTransformProvider
     private static final String ACCENT4_ICON_PATH = "resources/Accent16-4-Transformer-48x24.png";
     private static final Icon ACCENT4_ICON = new ImageIcon(DefaultPhraseTransformProvider.class.getResource(ACCENT4_ICON_PATH));
     @StaticResource(relative = true)
-    private static final String ADD_PERC_ICON_PATH = "resources/AddPerc-Transformer-48x24.png";
-    private static final Icon ADD_PERC_ICON = new ImageIcon(DefaultPhraseTransformProvider.class.getResource(ADD_PERC_ICON_PATH));
+    private static final String ADD_CABASA_ICON_PATH = "resources/AddCabasa-Transformer-48x24.png";
+    private static final Icon ADD_CABASA_ICON = new ImageIcon(DefaultPhraseTransformProvider.class.getResource(ADD_CABASA_ICON_PATH));
+    @StaticResource(relative = true)
+    private static final String ADD_CONGAS_ICON_PATH = "resources/AddCongas-Transformer-48x24.png";
+    private static final Icon ADD_CONGAS_ICON = new ImageIcon(DefaultPhraseTransformProvider.class.getResource(ADD_CONGAS_ICON_PATH));
+    @StaticResource(relative = true)
+    private static final String ADD_TAMBOURINE_ICON_PATH = "resources/AddTambourine-Transformer-48x24.png";
+    private static final Icon ADD_TAMBOURINE_ICON = new ImageIcon(DefaultPhraseTransformProvider.class.getResource(ADD_TAMBOURINE_ICON_PATH));
+    @StaticResource(relative = true)
+    private static final String ADD_TRIANGLE_ICON_PATH = "resources/AddTriangle-Transformer-48x24.png";
+    private static final Icon ADD_TRIANGLE_ICON = new ImageIcon(DefaultPhraseTransformProvider.class.getResource(ADD_TRIANGLE_ICON_PATH));
+    @StaticResource(relative = true)
+    private static final String ADD_COWBELL_ICON_PATH = "resources/AddTriangle-Transformer-48x24.png";
+    private static final Icon ADD_COWBELL_ICON = new ImageIcon(DefaultPhraseTransformProvider.class.getResource(ADD_COWBELL_ICON_PATH));
+    @StaticResource(relative = true)
+    private static final String ADD_SHAKER_ICON_PATH = "resources/AddMaracas-Transformer-48x24.png";
+    private static final Icon ADD_SHAKER_ICON = new ImageIcon(DefaultPhraseTransformProvider.class.getResource(ADD_SHAKER_ICON_PATH));    
     @StaticResource(relative = true)
     private static final String ADD_TAMBOURINE24_PATH = "resources/Tambourine2-4.mid";
     @StaticResource(relative = true)
     private static final String ADD_TAMBOURINE_OFFBEAT_PATH = "resources/TambourineOffBeat.mid";
     @StaticResource(relative = true)
-    private static final String ADD_TAMBOURINE_EIGHTS_PATH = "resources/TambourineEighths.mid";
+    private static final String ADD_TAMBOURINE_EIGHTHS_PATH = "resources/TambourineEighths.mid";
+    @StaticResource(relative = true)
+    private static final String ADD_TAMBOURINE_SIXTEENTH_PATH = "resources/TambourineSixteenths.mid";
+    @StaticResource(relative = true)
+    private static final String ADD_CONGAS1_PATH = "resources/Congas1-2bar.mid";
+    @StaticResource(relative = true)
+    private static final String ADD_CONGAS2_PATH = "resources/Congas2-2bar.mid";
+    @StaticResource(relative = true)
+    private static final String ADD_CONGAS3_PATH = "resources/Congas3-2bar.mid";
+    @StaticResource(relative = true)
+    private static final String ADD_CONGAS4_PATH = "resources/Congas4-2bar.mid";
+    @StaticResource(relative = true)
+    private static final String ADD_SHAKER_SIXTEENTH_PATH = "resources/ShakerSixteenths.mid";
+    @StaticResource(relative = true)
+    private static final String ADD_TRIANGLE_SIXTEENTH_PATH = "resources/TriangleSixteenths.mid";
+    @StaticResource(relative = true)
+    private static final String ADD_TRIANGLE_EIGHTH_PATH = "resources/TriangleEighths.mid";
+    @StaticResource(relative = true)
+    private static final String ADD_COWBELL_BEAT_PATH = "resources/CowBellBeat.mid";
+    @StaticResource(relative = true)
+    private static final String ADD_CABASAS_EIGHTH_PATH = "resources/CabasaEighths.mid";
 
 
-    private List<PhraseTransform> transforms = new ArrayList<>();
+    private final List<PhraseTransform> transforms = new ArrayList<>();
 
     private static final Logger LOGGER = Logger.getLogger(DefaultPhraseTransformProvider.class.getSimpleName());
 
@@ -93,6 +128,18 @@ public class DefaultPhraseTransformProvider implements PhraseTransformProvider
         transforms.add(getAddTambourine24());
         transforms.add(getAddTambourineOffBeat());
         transforms.add(getAddTambourineEights());
+        transforms.add(getAddTambourineSixteenths());
+
+        transforms.add(getCongas2bar(1, ADD_CONGAS1_PATH));
+        transforms.add(getCongas2bar(2, ADD_CONGAS2_PATH));
+        transforms.add(getCongas2bar(3, ADD_CONGAS3_PATH));
+        transforms.add(getCongas2bar(4, ADD_CONGAS4_PATH));
+
+        transforms.add(getCowBellBeat());
+        transforms.add(getCabasaEighths());
+        transforms.add(getTriangleEighths());                
+        transforms.add(getTriangleSixteenths());
+        transforms.add(getShakerSixteenths());
 
         transforms.add(getAccent1());
         transforms.add(getAccent2());
@@ -180,6 +227,91 @@ public class DefaultPhraseTransformProvider implements PhraseTransformProvider
         return t;
     }
 
+    private AddDrumsMidiPhraseTransform getCongas2bar(int index, String midiResourcePath)
+    {
+        String name = "AddCongas" + index;
+        PhraseTransform.Info info = new PhraseTransform.Info(name + "Id",
+                ResUtil.getString(getClass(),  name + "_name"),
+                ResUtil.getString(getClass(), name + "_desc"),
+                PhraseTransformCategory.DRUMS,
+                ADD_CONGAS_ICON
+        );
+
+        SizedPhrase sp = loadDrumsSizedPhrase(midiResourcePath, 2, TimeSignature.FOUR_FOUR);
+        AddDrumsMidiPhraseTransform t = new AddDrumsMidiPhraseTransform(info, sp, false);
+        return t;
+    }
+
+    private AddDrumsMidiPhraseTransform getShakerSixteenths()
+    {
+        PhraseTransform.Info info = new PhraseTransform.Info("AddShakerSixteenthsId",
+                ResUtil.getString(getClass(), "AddShakerSixteenths_name"),
+                ResUtil.getString(getClass(), "AddShakerSixteenths_desc"),
+                PhraseTransformCategory.DRUMS,
+                ADD_SHAKER_ICON
+        );
+
+        SizedPhrase sp = loadDrumsSizedPhrase(ADD_SHAKER_SIXTEENTH_PATH, 1, TimeSignature.FOUR_FOUR);
+        AddDrumsMidiPhraseTransform t = new AddDrumsMidiPhraseTransform(info, sp, true);
+        return t;
+    }
+
+    private AddDrumsMidiPhraseTransform getTriangleSixteenths()
+    {
+        PhraseTransform.Info info = new PhraseTransform.Info("AddTriangleSixteenthsId",
+                ResUtil.getString(getClass(), "AddTriangleSixteenths_name"),
+                ResUtil.getString(getClass(), "AddTriangleSixteenths_desc"),
+                PhraseTransformCategory.DRUMS,
+                ADD_TRIANGLE_ICON
+        );
+
+        SizedPhrase sp = loadDrumsSizedPhrase(ADD_TRIANGLE_SIXTEENTH_PATH, 1, TimeSignature.FOUR_FOUR);
+        AddDrumsMidiPhraseTransform t = new AddDrumsMidiPhraseTransform(info, sp, true);
+        return t;
+    }
+    
+        private AddDrumsMidiPhraseTransform getTriangleEighths()
+    {
+        PhraseTransform.Info info = new PhraseTransform.Info("AddTriangleEighthsId",
+                ResUtil.getString(getClass(), "AddTriangleEighths_name"),
+                ResUtil.getString(getClass(), "AddTriangleEighths_desc"),
+                PhraseTransformCategory.DRUMS,
+                ADD_TRIANGLE_ICON
+        );
+
+        SizedPhrase sp = loadDrumsSizedPhrase(ADD_TRIANGLE_EIGHTH_PATH, 1, TimeSignature.FOUR_FOUR);
+        AddDrumsMidiPhraseTransform t = new AddDrumsMidiPhraseTransform(info, sp, true);
+        return t;
+    }
+
+    private AddDrumsMidiPhraseTransform getCabasaEighths()
+    {
+        PhraseTransform.Info info = new PhraseTransform.Info("AddCabasaEighths",
+                ResUtil.getString(getClass(), "AddCabasaEighths_name"),
+                ResUtil.getString(getClass(), "AddCabasaEighths_desc"),
+                PhraseTransformCategory.DRUMS,
+                ADD_CABASA_ICON
+        );
+
+        SizedPhrase sp = loadDrumsSizedPhrase(ADD_CABASAS_EIGHTH_PATH, 1, TimeSignature.FOUR_FOUR);
+        AddDrumsMidiPhraseTransform t = new AddDrumsMidiPhraseTransform(info, sp, true);
+        return t;
+    }
+
+    private AddDrumsMidiPhraseTransform getCowBellBeat()
+    {
+        PhraseTransform.Info info = new PhraseTransform.Info("AddCowbellBeat",
+                ResUtil.getString(getClass(), "AddCowbellBeat_name"),
+                ResUtil.getString(getClass(), "AddCowbellBeat_desc"),
+                PhraseTransformCategory.DRUMS,
+                ADD_COWBELL_ICON
+        );
+
+        SizedPhrase sp = loadDrumsSizedPhrase(ADD_COWBELL_BEAT_PATH, 1, TimeSignature.FOUR_FOUR);
+        AddDrumsMidiPhraseTransform t = new AddDrumsMidiPhraseTransform(info, sp, false);
+        return t;
+    }
+
 
     private AddDrumsMidiPhraseTransform getAddTambourine24()
     {
@@ -187,7 +319,7 @@ public class DefaultPhraseTransformProvider implements PhraseTransformProvider
                 ResUtil.getString(getClass(), "AddTambourine24_name"),
                 ResUtil.getString(getClass(), "AddTambourine24_desc"),
                 PhraseTransformCategory.DRUMS,
-                ADD_PERC_ICON
+                ADD_TAMBOURINE_ICON
         );
 
         SizedPhrase sp = loadDrumsSizedPhrase(ADD_TAMBOURINE24_PATH, 1, TimeSignature.FOUR_FOUR);
@@ -201,7 +333,7 @@ public class DefaultPhraseTransformProvider implements PhraseTransformProvider
                 ResUtil.getString(getClass(), "AddTambourineOffBeat_name"),
                 ResUtil.getString(getClass(), "AddTambourineOffBeat_desc"),
                 PhraseTransformCategory.DRUMS,
-                ADD_PERC_ICON
+                ADD_TAMBOURINE_ICON
         );
 
         SizedPhrase sp = loadDrumsSizedPhrase(ADD_TAMBOURINE_OFFBEAT_PATH, 1, TimeSignature.FOUR_FOUR);
@@ -215,10 +347,25 @@ public class DefaultPhraseTransformProvider implements PhraseTransformProvider
                 ResUtil.getString(getClass(), "AddTambourineEights_name"),
                 ResUtil.getString(getClass(), "AddTambourineEights_desc"),
                 PhraseTransformCategory.DRUMS,
-                ADD_PERC_ICON
+                ADD_TAMBOURINE_ICON
         );
 
-        SizedPhrase sp = loadDrumsSizedPhrase(ADD_TAMBOURINE_EIGHTS_PATH, 1, TimeSignature.FOUR_FOUR);
+        SizedPhrase sp = loadDrumsSizedPhrase(ADD_TAMBOURINE_EIGHTHS_PATH, 1, TimeSignature.FOUR_FOUR);
+
+        AddDrumsMidiPhraseTransform t = new AddDrumsMidiPhraseTransform(info, sp, true);
+        return t;
+    }
+
+    private AddDrumsMidiPhraseTransform getAddTambourineSixteenths()
+    {
+        PhraseTransform.Info info = new PhraseTransform.Info("AddTambourineSixteenthsId",
+                ResUtil.getString(getClass(), "AddTambourineSixteenths_name"),
+                ResUtil.getString(getClass(), "AddTambourineSixteenths_desc"),
+                PhraseTransformCategory.DRUMS,
+                ADD_TAMBOURINE_ICON
+        );
+
+        SizedPhrase sp = loadDrumsSizedPhrase(ADD_TAMBOURINE_SIXTEENTH_PATH, 1, TimeSignature.FOUR_FOUR);
 
         AddDrumsMidiPhraseTransform t = new AddDrumsMidiPhraseTransform(info, sp, true);
         return t;

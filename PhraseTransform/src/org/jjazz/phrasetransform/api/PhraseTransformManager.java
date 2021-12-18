@@ -35,7 +35,7 @@ import org.openide.util.Lookup;
  * <p>
  * Implementation should populate the database upon creation.
  * <p>
- * @TODO Use tags instead of (or in addition to) category.
+ * @see org.jjazz.phrasetransform.spi.PhraseTransformProvider
  */
 public interface PhraseTransformManager
 {
@@ -43,7 +43,8 @@ public interface PhraseTransformManager
     /**
      * Use the first implementation present in the global lookup.
      * <p>
-     * If nothing found, use the default one.
+     * If nothing found, use the default implementation which relies on all PhraseTransformProvider implementations found in the
+     * global lookup.
      *
      * @return
      */
@@ -86,7 +87,7 @@ public interface PhraseTransformManager
     }
 
     /**
-     * Get the PhraseTransform which match the specified category.
+     * Get the PhraseTransforms which match the specified category.
      *
      * @param category
      * @return
