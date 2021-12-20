@@ -38,7 +38,7 @@ import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongCreationException;
 import org.jjazz.startup.spi.StartupTask;
 import org.jjazz.upgrade.api.UpgradeManager;
-import org.jjazz.upgrade.spi.UpgradeTask;
+import org.jjazz.upgrade.api.UpgradeTask;
 import org.jjazz.util.api.ResUtil;
 import org.netbeans.api.sendopts.CommandException;
 import org.netbeans.spi.sendopts.Env;

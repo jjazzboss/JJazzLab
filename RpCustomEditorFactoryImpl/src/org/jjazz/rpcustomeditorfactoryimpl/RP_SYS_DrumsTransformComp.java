@@ -65,8 +65,8 @@ import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.RhythmVoiceDelegate;
 import static org.jjazz.rpcustomeditorfactoryimpl.RP_SYS_CustomPhraseComp.PHRASE_COMP_FOREGROUND;
 import org.jjazz.rpcustomeditorfactoryimpl.api.RealTimeRpEditorDialog;
-import org.jjazz.rpcustomeditorfactoryimpl.spi.RealTimeRpEditorComponent;
-import static org.jjazz.rpcustomeditorfactoryimpl.spi.RealTimeRpEditorComponent.PROP_EDITED_RP_VALUE;
+import org.jjazz.rpcustomeditorfactoryimpl.api.RealTimeRpEditorComponent;
+import static org.jjazz.rpcustomeditorfactoryimpl.api.RealTimeRpEditorComponent.PROP_EDITED_RP_VALUE;
 import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.songcontext.api.SongPartContext;
 import org.jjazz.songstructure.api.SongPart;
@@ -747,7 +747,7 @@ public class RP_SYS_DrumsTransformComp extends RealTimeRpEditorComponent<RP_SYS_
         btn_ptSettings = new javax.swing.JButton();
         pnl_arrows = new javax.swing.JPanel();
         lbl_arrows = new javax.swing.JLabel();
-        birdview_outPhrase = new org.jjazz.phrase.api.ui.PhraseBirdView();
+        birdview_outPhrase = new org.jjazz.phrase.api.ui.PhraseBirdsEyeView();
         jLabel3 = new javax.swing.JLabel();
         btn_remove = new javax.swing.JButton();
         pnl_mix = new javax.swing.JPanel();
@@ -1256,7 +1256,7 @@ public class RP_SYS_DrumsTransformComp extends RealTimeRpEditorComponent<RP_SYS_
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private org.jjazz.phrase.api.ui.PhraseBirdView birdview_outPhrase;
+    private org.jjazz.phrase.api.ui.PhraseBirdsEyeView birdview_outPhrase;
     private javax.swing.JButton btn_clear;
     private javax.swing.JButton btn_ptSettings;
     private javax.swing.JButton btn_remove;

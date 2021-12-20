@@ -2,7 +2,7 @@
 
 <Form version="1.5" maxVersion="1.9" type="org.netbeans.modules.form.forminfo.JPanelFormInfo">
   <NonVisualComponents>
-    <Container class="org.jjazz.phrase.api.ui.PhraseBirdView" name="phraseBirdView1">
+    <Container class="org.jjazz.phrase.api.ui.PhraseBirdsEyeView" name="phraseBirdView1">
 
       <Layout>
         <DimensionLayout dim="0">
@@ -164,7 +164,7 @@
             </Container>
           </SubComponents>
         </Container>
-        <Container class="org.jjazz.phrase.api.ui.PhraseBirdView" name="birdViewComp">
+        <Container class="org.jjazz.phrase.api.ui.PhraseBirdsEyeView" name="birdViewComp">
           <Properties>
             <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
               <Border info="org.netbeans.modules.form.compat2.border.LineBorderInfo">

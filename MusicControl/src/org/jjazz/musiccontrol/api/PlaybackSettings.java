@@ -49,7 +49,7 @@ import org.jjazz.songcontext.api.SongContext;
 import org.openide.util.NbPreferences;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.upgrade.api.UpgradeManager;
-import org.jjazz.upgrade.spi.UpgradeTask;
+import org.jjazz.upgrade.api.UpgradeTask;
 import org.openide.util.lookup.ServiceProvider;
 
 /**

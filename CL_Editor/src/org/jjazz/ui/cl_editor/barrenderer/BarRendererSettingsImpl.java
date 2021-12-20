@@ -28,7 +28,7 @@ import javax.swing.border.Border;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.ui.cl_editor.barrenderer.api.BarRendererSettings;
 import org.jjazz.upgrade.api.UpgradeManager;
-import org.jjazz.upgrade.spi.UpgradeTask;
+import org.jjazz.upgrade.api.UpgradeTask;
 import org.openide.util.NbPreferences;
 import org.openide.util.lookup.ServiceProvider;
 

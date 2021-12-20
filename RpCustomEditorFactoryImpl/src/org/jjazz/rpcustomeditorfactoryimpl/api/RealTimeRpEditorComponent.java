@@ -20,11 +20,10 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.rpcustomeditorfactoryimpl.spi;
+package org.jjazz.rpcustomeditorfactoryimpl.api;
 
 import javax.swing.JComponent;
 import org.jjazz.rhythm.api.RhythmParameter;
-import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.songcontext.api.SongPartContext;
 
 /**

@@ -27,7 +27,7 @@ import java.util.logging.*;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 import org.jjazz.upgrade.api.UpgradeManager;
-import org.jjazz.upgrade.spi.UpgradeTask;
+import org.jjazz.upgrade.api.UpgradeTask;
 import org.jjazz.util.api.ResUtil;
 import org.openide.util.*;
 import org.openide.util.lookup.ServiceProvider;

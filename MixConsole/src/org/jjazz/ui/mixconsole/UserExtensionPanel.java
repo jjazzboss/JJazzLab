@@ -220,7 +220,7 @@ public class UserExtensionPanel extends javax.swing.JPanel implements VetoableCh
     private void initComponents()
     {
 
-        phraseBirdView1 = new org.jjazz.phrase.api.ui.PhraseBirdView();
+        phraseBirdView1 = new org.jjazz.phrase.api.ui.PhraseBirdsEyeView();
         roundedPanel1 = new org.jjazz.ui.flatcomponents.api.RoundedPanel();
         fbtn_name = new org.jjazz.ui.flatcomponents.api.FlatButton();
         jPanel2 = new javax.swing.JPanel();
@@ -228,7 +228,7 @@ public class UserExtensionPanel extends javax.swing.JPanel implements VetoableCh
         fbtn_help = new org.jjazz.ui.flatcomponents.api.FlatHelpButton();
         pnl_edit = new javax.swing.JPanel();
         fbtn_edit = new org.jjazz.ui.flatcomponents.api.FlatButton();
-        birdViewComp = new org.jjazz.phrase.api.ui.PhraseBirdView();
+        birdViewComp = new org.jjazz.phrase.api.ui.PhraseBirdsEyeView();
         pnl_close = new javax.swing.JPanel();
         fbtn_remove = new org.jjazz.ui.flatcomponents.api.FlatButton();
 
@@ -379,13 +379,13 @@ public class UserExtensionPanel extends javax.swing.JPanel implements VetoableCh
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private org.jjazz.phrase.api.ui.PhraseBirdView birdViewComp;
+    private org.jjazz.phrase.api.ui.PhraseBirdsEyeView birdViewComp;
     private org.jjazz.ui.flatcomponents.api.FlatButton fbtn_edit;
     private org.jjazz.ui.flatcomponents.api.FlatHelpButton fbtn_help;
     private org.jjazz.ui.flatcomponents.api.FlatButton fbtn_name;
     private org.jjazz.ui.flatcomponents.api.FlatButton fbtn_remove;
     private javax.swing.JPanel jPanel2;
-    private org.jjazz.phrase.api.ui.PhraseBirdView phraseBirdView1;
+    private org.jjazz.phrase.api.ui.PhraseBirdsEyeView phraseBirdView1;
     private javax.swing.JPanel pnl_close;
     private javax.swing.JPanel pnl_edit;
     private javax.swing.JPanel pnl_help;

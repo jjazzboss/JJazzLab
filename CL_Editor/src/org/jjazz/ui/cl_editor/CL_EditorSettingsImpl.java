@@ -29,7 +29,7 @@ import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.ui.cl_editor.api.CL_EditorSettings;
 import org.jjazz.uisettings.api.GeneralUISettings;
 import org.jjazz.upgrade.api.UpgradeManager;
-import org.jjazz.upgrade.spi.UpgradeTask;
+import org.jjazz.upgrade.api.UpgradeTask;
 import org.openide.util.NbPreferences;
 import org.openide.util.lookup.ServiceProvider;
 

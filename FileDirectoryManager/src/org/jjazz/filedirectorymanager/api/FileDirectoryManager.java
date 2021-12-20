@@ -31,7 +31,7 @@ import javax.swing.event.SwingPropertyChangeSupport;
 //import org.jjazz.rhythm.api.AdaptedRhythm;
 //import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.upgrade.api.UpgradeManager;
-import org.jjazz.upgrade.spi.UpgradeTask;
+import org.jjazz.upgrade.api.UpgradeTask;
 import org.jjazz.util.api.Utilities;
 import org.openide.modules.Places;
 import org.openide.util.NbPreferences;

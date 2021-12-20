@@ -48,7 +48,7 @@ import org.jjazz.util.api.IntRange;
  * <p>
  * Call repaint() to update the component if model has changed.
  */
-public class PhraseBirdView extends JPanel
+public class PhraseBirdsEyeView extends JPanel
 {
 
     public static final int MIN_HEIGHT = 10;
@@ -67,7 +67,7 @@ public class PhraseBirdView extends JPanel
     private boolean showVelocity = true;
     private float markerPos = -1;
     private static final Font FONT = GeneralUISettings.getInstance().getStdCondensedFont().deriveFont(10f);
-    private static final Logger LOGGER = Logger.getLogger(PhraseBirdView.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(PhraseBirdsEyeView.class.getSimpleName());
 
     /**
      * Set the position of the marker.

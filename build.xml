@@ -13,7 +13,7 @@
                 <fileset dir="${basedir}">
                     <include name="**/src/**/api/**/*.java" />
                     <include name="**/src/**/spi/**/*.java" />
-                    <exclude name="**/package-info.java" />     <!-- special file with no class defined -->
+                 <!--   <exclude name="**/package-info.java" />      special file with no class defined -->
                 </fileset>
             </sourcefiles>         
             <classpath>

@@ -23,7 +23,6 @@
 package org.jjazz.rpcustomeditorfactoryimpl.api;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import org.jjazz.rpcustomeditorfactoryimpl.spi.RealTimeRpEditorComponent;
 import java.awt.BorderLayout;
 import java.awt.DefaultKeyboardFocusManager;
 import java.awt.KeyEventPostProcessor;

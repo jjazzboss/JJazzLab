@@ -64,7 +64,7 @@ import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.RhythmVoiceDelegate;
 import static org.jjazz.rpcustomeditorfactoryimpl.RP_SYS_CustomPhraseComp.PHRASE_COMP_FOREGROUND;
 import org.jjazz.rpcustomeditorfactoryimpl.api.RealTimeRpEditorDialog;
-import org.jjazz.rpcustomeditorfactoryimpl.spi.RealTimeRpEditorComponent;
+import org.jjazz.rpcustomeditorfactoryimpl.api.RealTimeRpEditorComponent;
 import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.songcontext.api.SongPartContext;
 import org.jjazz.ui.utilities.api.Utilities;
@@ -687,7 +687,7 @@ public class RP_SYS_PhraseTransformComp extends RealTimeRpEditorComponent<RP_SYS
         btn_ptSettings = new javax.swing.JButton();
         pnl_arrows = new javax.swing.JPanel();
         lbl_arrows = new javax.swing.JLabel();
-        birdview_outPhrase = new org.jjazz.phrase.api.ui.PhraseBirdView();
+        birdview_outPhrase = new org.jjazz.phrase.api.ui.PhraseBirdsEyeView();
         jScrollPane3 = new javax.swing.JScrollPane();
         hlp_area = new org.jjazz.ui.utilities.api.HelpTextArea();
         cmb_rhythmVoices = new javax.swing.JComboBox<>();
@@ -905,7 +905,7 @@ public class RP_SYS_PhraseTransformComp extends RealTimeRpEditorComponent<RP_SYS
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private org.jjazz.phrase.api.ui.PhraseBirdView birdview_outPhrase;
+    private org.jjazz.phrase.api.ui.PhraseBirdsEyeView birdview_outPhrase;
     private javax.swing.JButton btn_clearChain;
     private javax.swing.JButton btn_ptSettings;
     private javax.swing.JComboBox<RhythmVoice> cmb_rhythmVoices;

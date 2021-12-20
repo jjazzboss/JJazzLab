@@ -56,7 +56,7 @@ import org.jjazz.util.api.MultipleErrorsReport;
 import org.jjazz.rhythm.spi.StubRhythmProvider;
 import org.jjazz.startup.spi.StartupTask;
 import org.jjazz.upgrade.api.UpgradeManager;
-import org.jjazz.upgrade.spi.UpgradeTask;
+import org.jjazz.upgrade.api.UpgradeTask;
 import org.jjazz.util.api.ResUtil;
 import org.jjazz.util.api.Utilities;
 import org.netbeans.api.annotations.common.StaticResource;

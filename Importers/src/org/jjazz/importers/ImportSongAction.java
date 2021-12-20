@@ -46,7 +46,7 @@ import org.jjazz.song.api.SongCreationException;
 import org.jjazz.song.spi.SongImporter;
 import org.jjazz.songeditormanager.api.SongEditorManager;
 import org.jjazz.upgrade.api.UpgradeManager;
-import org.jjazz.upgrade.spi.UpgradeTask;
+import org.jjazz.upgrade.api.UpgradeTask;
 import org.jjazz.util.api.ResUtil;
 import org.netbeans.api.progress.*;
 import org.openide.awt.ActionID;
