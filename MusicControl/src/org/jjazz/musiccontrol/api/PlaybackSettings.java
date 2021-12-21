@@ -26,7 +26,9 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyVetoException;
 import java.beans.VetoableChangeListener;
 import java.beans.VetoableChangeSupport;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
@@ -494,8 +496,10 @@ public class PlaybackSettings
      * - Meta track name<br>
      * - Meta time signature<br>
      * - Meta tempo<br>
-     * - All Controller events <p>
-     * 
+     * - Meta copyright<br>
+     * - All Controller events
+     * <p>
+     *
      *
      * @param sequence The sequence for which we add the precount click track.
      * @param context
@@ -512,37 +516,57 @@ public class PlaybackSettings
         int nbPrecountBars = getClickPrecountNbBars(ts, context.getSong().getTempo());
         long songStartTick = (long) (nbPrecountBars * ts.getNbNaturalBeats() * MidiConst.PPQ_RESOLUTION);
 
-        // Shift all existing MidiEvents except some meta events
+
         for (Track track : sequence.getTracks())
         {
-            for (int i = track.size() - 1; i >= 0; i--)
+            // Save all the events as we may remove some of them from the track
+            List<MidiEvent> trackEvents = MidiUtilities.getMidiEvents(track, MidiConst.PPQ_RESOLUTION, evt -> true, null);
+            List<MidiEvent> tick0SpecialEvents = new ArrayList<>();
+
+            // Remove events which should not be shifted, so they can be re-added after: this ensures tick order
+            // is preserved in the track (fix bug Issue #247)
+            for (var me : trackEvents)
             {
-                MidiEvent me = track.get(i);
                 long tick = me.getTick();
                 MidiMessage mm = me.getMessage();
+
                 if (tick == 0)
                 {
                     // Special handling for initial events
+                    boolean special = false;
                     if (mm instanceof MetaMessage)
                     {
                         int type = ((MetaMessage) mm).getType();
                         if (type == MidiConst.META_TRACKNAME
                                 || type == MidiConst.META_TIME_SIGNATURE
-                                || type == MidiConst.META_TEMPO)
+                                || type == MidiConst.META_TEMPO
+                                || type == MidiConst.META_COPYRIGHT)
                         {
-                            continue;
+                            special = true;
                         }
                     } else if (mm instanceof ShortMessage)
                     {
                         ShortMessage sm = (ShortMessage) mm;
                         if (sm.getCommand() == ShortMessage.CONTROL_CHANGE)
                         {
-                            continue;
+                            special = true;
                         }
                     }
+                    if (special)
+                    {
+                        tick0SpecialEvents.add(me);
+                        track.remove(me);
+                        continue;
+                    }
                 }
+
+                // Shift the event
                 me.setTick(tick + songStartTick);
             }
+
+            // Re-add the special events at tick 0
+            tick0SpecialEvents.forEach(me -> track.add(me));
+
         }
 
         // Add the precount click track
@@ -628,7 +652,7 @@ public class PlaybackSettings
         {
             LOGGER.log(Level.SEVERE, null, ex);   //NOI18N
         }
-        
+
         // Next section tick
         long nextTick = tickOffset + (long) (nbNaturalBeats * MidiConst.PPQ_RESOLUTION);
         return nextTick;

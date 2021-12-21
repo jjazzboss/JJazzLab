@@ -642,7 +642,7 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
      * Update one track.
      *
      * @param trackId
-     * @param newEvents
+     * @param newEvents IMPORTANT events positions will be modified!
      * @param precountShift
      * @throws IllegalArgumentException
      */

@@ -238,7 +238,7 @@ public class SongSequenceBuilder
     /**
      * Create a sequence (for the current SongContext) ready to be exported and read by an external sequencer.
      * <p>
-     * Get rid of all JJazzLab-only MidiEvents or add some initialization events:<br>
+     * Get rid of all JJazzLab-only MidiEvents and add some initialization events:<br>
      * - add copyright message<br>
      * - remove JJazzLab-specific tempo factor and beat <br>
      * - add tempo events<br>
