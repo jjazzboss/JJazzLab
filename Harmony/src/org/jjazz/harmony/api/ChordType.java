@@ -715,6 +715,45 @@ final public class ChordType
     }
 
     /**
+     * Compute how much "similar" is the specified ChordType with this object.
+     * <p>
+     * Index is calculated by adding the weights below until a mismatch is found. Identical ChordTypes have a similarity index of
+     * 63. For example C7 and Cm7 have a similarity index=0 (different families). C7 and C9 have a similarity index=32+16+8=56 (same
+     * family, same fifth, same sixth_seventh, but extension1 mismatch).
+     * <p>
+     * Same ChordType.FAMILY:32<br>
+     * Same DegreeIndex.FIFTH: 16<br>
+     * Same DegreeIndex.SIXTH_SEVENTH: 8<br>
+     * Same DegreeIndex.EXTENSION1: 4<br>
+     * Same DegreeIndex.EXTENSION2: 2<br>
+     * Same DegreeIndex.EXTENSION3: 1<br>
+     *
+     * @param ct
+     * @return
+     */
+    public int getSimilarityIndex(ChordType ct)
+    {
+        int res = 0;
+        if (!family.equals(ct.family))
+        {
+            return res;
+        }
+        res = 32;
+
+        for (int i = 2; i <= 6; i++)
+        {
+            Degree d = i < degrees.size() ? degrees.get(i) : null;
+            Degree dct = i < ct.degrees.size() ? ct.degrees.get(i) : null;
+            if (!Objects.equals(d, dct))
+            {
+                return res;
+            }
+            res += 2 ^ (6 - i);
+        }
+        return res;
+    }
+
+    /**
      * Calculate the pitch of degree nd if chord's root=rootPitch and chord's type=this.
      *
      * @param rootPitch
