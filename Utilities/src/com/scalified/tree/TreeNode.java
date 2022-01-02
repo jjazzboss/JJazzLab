@@ -21,6 +21,7 @@ import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Predicate;
 
 /**
  * This interface represents the basic tree data structure
@@ -460,6 +461,33 @@ public abstract class TreeNode<T> implements Iterable<TreeNode<T>>, Serializable
                 for (TreeNode<T> subtree : subtrees())
                 {
                     subtree.traversePreOrder(action);
+                }
+            }
+        }
+    }
+
+    /**
+     * Same as traversePreOrder but children are traversed in the order specified by comparator.
+     *
+     * @param action action, which is to be performed on each tree node, while traversing the tree
+     * @param comparator The comparator used to sort traversed subtrees. If null subtrees are not sorted.
+     * @param tester Traverse nodes which satisfies the tester. If null all nodes are traversed.
+     */
+    public void traversePreOrder(TraversalAction<TreeNode<T>> action, Comparator<TreeNode<T>> comparator, Predicate<TreeNode<T>> tester)
+    {
+        if (!action.isCompleted() && (isRoot() || tester == null || tester.test(this)))
+        {
+            action.perform(this);
+            if (!isLeaf())
+            {
+                var children = new ArrayList<>(subtrees());
+                if (comparator != null)
+                {
+                    children.sort(comparator);
+                }
+                for (TreeNode<T> subtree : children)
+                {
+                    subtree.traversePreOrder(action, comparator, tester);
                 }
             }
         }

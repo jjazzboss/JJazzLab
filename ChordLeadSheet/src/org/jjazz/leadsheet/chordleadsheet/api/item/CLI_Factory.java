@@ -40,8 +40,25 @@ public abstract class CLI_Factory
         return result;
     }
 
+    /**
+     * Create a Section.
+     *
+     * @param cls Can be null.
+     * @param sectionName
+     * @param ts
+     * @param barIndex
+     * @return
+     */
     abstract public CLI_Section createSection(ChordLeadSheet cls, String sectionName, TimeSignature ts, int barIndex);
 
+    /**
+     * Create a CLI_ChordSymbol.
+     *
+     * @param cls Can be null.
+     * @param cs
+     * @param pos
+     * @return
+     */
     abstract public CLI_ChordSymbol createChordSymbol(ChordLeadSheet cls, ExtChordSymbol cs, Position pos);
 
     abstract public CLI_Section getSampleSection();

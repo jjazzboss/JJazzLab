@@ -40,14 +40,15 @@ public interface ChordLeadSheetFactory
     }
 
     /**
-     * Create an empty leadsheet except initial section and a C chord on bar 0.
+     * Create an empty leadsheet except initial section.
      *
      * @param sectionName The name of the initial section.
      * @param ts The time signature of the initial section
      * @param size The size in bars (must be &gt; 0)
+     * @param addInitialChordSymbol If true add an initial C chord symbol on first bar.
      * @return
      */
-    ChordLeadSheet createEmptyLeadSheet(String sectionName, TimeSignature ts, int size);
+    ChordLeadSheet createEmptyLeadSheet(String sectionName, TimeSignature ts, int size, boolean addInitialChordSymbol);
 
     /**
      * Create a 12 bars (or more) leadsheet which contains sample sections and chords.

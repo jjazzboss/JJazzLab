@@ -56,7 +56,7 @@ import org.jjazz.musiccontrol.api.playbacksession.SongContextProvider;
 import org.jjazz.outputsynth.api.OutputSynthManager;
 import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.rhythm.api.MusicGenerationException;
-import org.jjazz.rhythmmusicgeneration.api.ContextChordSequence;
+import org.jjazz.rhythmmusicgeneration.api.SongChordSequence;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.util.api.ResUtil;
 import org.jjazz.util.api.Utilities;
@@ -806,7 +806,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                     if (controlTrack != null)
                     {
                         // Fire chord symbol change
-                        ContextChordSequence cSeq = controlTrack.getContextChordGetSequence();
+                        SongChordSequence cSeq = controlTrack.getContextChordGetSequence();
                         int csIndex = Integer.valueOf(s.substring(8));
 
                         CLI_ChordSymbol cliCs = cSeq.get(csIndex);
@@ -1115,7 +1115,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                     ControlTrack controlTrack = controlTrackProvider.getControlTrack();    // Might be null if disabled for a BaseSongSession instance
                     if (controlTrack != null)
                     {
-                        ContextChordSequence cSeq = controlTrack.getContextChordGetSequence();
+                        SongChordSequence cSeq = controlTrack.getContextChordGetSequence();
                         // Fire chord symbol change if no chord symbol at current position (current chord symbol is the previous one)
                         // Fire a song part change event
                         long loopStartTick = playbackSession.getLoopStartTick();

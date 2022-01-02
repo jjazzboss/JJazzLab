@@ -49,7 +49,7 @@ public interface ChordLeadSheet
     /**
      * Add an item to the leadsheet.
      * <p>
-     * Item position might be adjusted to the bar's TimeSignature.
+     * Item position might be adjusted to the bar's TimeSignature. This will set the item's container to this ChordLeadSheet.
      *
      * @param <T>
      * @param item The ChordLeadSheetItem to add.
@@ -199,6 +199,27 @@ public interface ChordLeadSheet
     public <T> T getLastItem(int barFrom, int barTo, Class<T> aClass);
 
     /**
+     * Get the next similar item after the specified item.
+     *
+     * @param <T>
+     * @param item
+     * @return Can be null if item is the last item of its kind.
+     * @throws IllegalArgumentException If item is not found.
+     */
+    public <T> ChordLeadSheetItem<T> getNextItem(ChordLeadSheetItem<T> item);
+
+
+    /**
+     * Get the previous similar item before the specified item.
+     *
+     * @param <T>
+     * @param item
+     * @return Can be null if item is the first item of its kind.
+     * @throws IllegalArgumentException If item is not found.
+     */
+    public <T> ChordLeadSheetItem<T> getPreviousItem(ChordLeadSheetItem<T> item);
+
+    /**
      * Get all the items of this chordleadsheet.
      *
      * @return
@@ -259,7 +280,6 @@ public interface ChordLeadSheet
     public CLI_Section getSection(String sectionName);
 
 
-
     /**
      * Get the size of the leadsheet in bars.
      *
@@ -276,6 +296,7 @@ public interface ChordLeadSheet
     {
         return new IntRange(0, getSizeInBars() - 1);
     }
+
     /**
      * The bar range corresponding to this section.
      *
@@ -284,8 +305,8 @@ public interface ChordLeadSheet
      * @throws IllegalArgumentException If section does not exist in this ChordLeadSheet.
      */
     public IntRange getBarRange(CLI_Section section);
-    
-    
+
+
     /**
      * Set the size of the ChordLeadSheet.
      *

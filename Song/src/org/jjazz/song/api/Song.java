@@ -221,17 +221,16 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
         checkNotNull(p);
         checkArgument(!name.isBlank(), "name=%s", name);
 
-        
+
         if (getSongStructure().getSongParts().isEmpty())
         {
             return;
         }
 
-        
+
         // Make phrase no longer than the song
-        p = p.clone();
         FloatRange beatRange = getSongStructure().getBeatRange(null);
-        p.slice(0, beatRange.to, false, true);
+        p = p.getSlice(0, beatRange.to, false, 1, 0.1f);
 
 
         final Phrase oldPhrase = mapUserPhrases.get(name) == null ? null : mapUserPhrases.get(name).clone();

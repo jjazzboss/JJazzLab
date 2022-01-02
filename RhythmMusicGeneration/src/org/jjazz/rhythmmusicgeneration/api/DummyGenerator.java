@@ -56,12 +56,12 @@ public class DummyGenerator implements MusicGenerator
 
 
     @Override
-    public HashMap<RhythmVoice, Phrase> generateMusic(SongContext context)
+    public HashMap<RhythmVoice, Phrase> generateMusic(SongContext sgContext)
     {
         HashMap<RhythmVoice, Phrase> res = new HashMap<>();
 
         // Loop only on song parts belonging to context
-        for (SongPart spt : context.getSongParts())
+        for (SongPart spt : sgContext.getSongParts())
         {
             Rhythm r = spt.getRhythm();
             if (!r.equals(rhythm))
@@ -71,16 +71,18 @@ public class DummyGenerator implements MusicGenerator
             }
 
             TimeSignature ts = r.getTimeSignature();
-            IntRange sptRange = context.getSptBarRange(spt); // Context bars can start/end in the middle of a song part
-            float sptPosInBeats = context.getSong().getSongStructure().getPositionInNaturalBeats(sptRange.from);
+            IntRange sptRange = sgContext.getSptBarRange(spt); // Context bars can start/end in the middle of a song part
+            float sptPosInBeats = sgContext.getSong().getSongStructure().getPositionInNaturalBeats(sptRange.from);
 
-            // Get the ChordSequence corresponding to the song part
-            SongContext rContext = new SongContext(context, sptRange);
-            ContextChordSequence cSeq = new ContextChordSequence(rContext);
+            // Get the SimpleChordSequence corresponding to the song part
+            SongChordSequence scSeq = new SongChordSequence(sgContext.getSong(), sptRange);
+            SimpleChordSequence cSeq = new SimpleChordSequence(scSeq, ts);
+            
+
             for (RhythmVoice rv : rhythm.getRhythmVoices())
             {
                 // Get or create the resulting phrase for this RhythmVoice
-                int destChannel = context.getMidiMix().getChannel(rv);
+                int destChannel = sgContext.getMidiMix().getChannel(rv);
                 Phrase pRes = res.get(rv);
                 if (pRes == null)
                 {
@@ -97,7 +99,7 @@ public class DummyGenerator implements MusicGenerator
                     if (rv.getPreferredInstrument().getSubstitute().getFamily().equals(Family.Bass))
                     {
                         LOGGER.fine("generateMusic() generate dummy bass track for RhythmVoice: " + rv.getName());   //NOI18N
-                        Phrase p = getBasicBassPhrase(sptPosInBeats, cSeq, ts, destChannel);
+                        Phrase p = getBasicBassPhrase(sptPosInBeats, cSeq, destChannel);
                         pRes.add(p);
                     } else
                     {
@@ -115,23 +117,22 @@ public class DummyGenerator implements MusicGenerator
      *
      * @param startPosInBeats
      * @param cSeq
-     * @param ts
      * @param channel The channel of the returned phrase
      * @return
      */
-    static public Phrase getBasicBassPhrase(float startPosInBeats, ChordSequence cSeq, TimeSignature ts, int channel)
+    static public Phrase getBasicBassPhrase(float startPosInBeats, SimpleChordSequence cSeq, int channel)
     {
-        if (cSeq == null || ts == null || !MidiConst.checkMidiChannel(channel))
+        if (cSeq == null || !MidiConst.checkMidiChannel(channel))
         {
-            throw new IllegalArgumentException("cSeq=" + cSeq + " ts=" + ts + " channel=" + channel);   //NOI18N
+            throw new IllegalArgumentException("cSeq=" + cSeq + " channel=" + channel);   //NOI18N
         }
         Phrase p = new Phrase(channel);
         for (int i = 0; i < cSeq.size(); i++)
         {
             CLI_ChordSymbol cli = cSeq.get(i);
             int bassPitch = 3 * 12 + cli.getData().getBassNote().getRelativePitch(); // stay on the 3rd octave            
-            float duration = cSeq.getChordDuration(i, ts);
-            float posInBeats = cSeq.toPositionInBeats(cli.getPosition(), ts, startPosInBeats);
+            float duration = cSeq.getChordDuration(i);
+            float posInBeats = cSeq.toPositionInBeats(cli.getPosition(), startPosInBeats);
             NoteEvent ne = new NoteEvent(bassPitch, duration, 80, posInBeats);
             p.addOrdered(ne);
         }

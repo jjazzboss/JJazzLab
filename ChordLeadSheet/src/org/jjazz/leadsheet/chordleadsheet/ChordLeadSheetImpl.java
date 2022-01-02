@@ -113,7 +113,6 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     }
 
 
-
     @Override
     public void removeSection(final CLI_Section cliSection) throws UnsupportedEditException
     {
@@ -225,8 +224,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             int barIndex = item.getPosition().getBar();
 
 
-            if (barIndex > barTo
-                    || (aClass != null && !aClass.isAssignableFrom(item.getClass())))
+            if (barIndex > barTo || (aClass != null && !aClass.isAssignableFrom(item.getClass())))
             {
                 continue;
             }
@@ -238,6 +236,72 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
             res = (T) item;
             break;
+        }
+
+        return res;
+    }
+
+    @Override
+    public <T> ChordLeadSheetItem<T> getNextItem(ChordLeadSheetItem<T> item)
+    {
+        ChordLeadSheetItem<T> res = null;
+        boolean takeNext = false;
+        boolean itemFound = false;
+
+        for (int i = 0; i < items.size(); i++)
+        {
+            var it = items.get(i);
+
+            if (takeNext && item.getClass().isAssignableFrom(it.getClass()))
+            {
+                res = (ChordLeadSheetItem<T>) it;
+                break;
+            }
+
+            if (it == item)
+            {
+                takeNext = true;
+                itemFound = true;
+            }
+
+        }
+
+        if (!itemFound)
+        {
+            throw new IllegalArgumentException("Item not found: " + item);
+        }
+
+        return res;
+    }
+
+    @Override
+    public <T> ChordLeadSheetItem<T> getPreviousItem(ChordLeadSheetItem<T> item)
+    {
+        ChordLeadSheetItem<T> res = null;
+        boolean takeNext = false;
+        boolean itemFound = false;
+
+        for (int i = items.size() - 1; i >= 0; i--)
+        {
+            var it = items.get(i);
+
+            if (takeNext && item.getClass().isAssignableFrom(it.getClass()))
+            {
+                res = (ChordLeadSheetItem<T>) it;
+                break;
+            }
+
+            if (it == item)
+            {
+                takeNext = true;
+                itemFound = true;
+            }
+
+        }
+
+        if (!itemFound)
+        {
+            throw new IllegalArgumentException("Item not found: " + item);
         }
 
         return res;

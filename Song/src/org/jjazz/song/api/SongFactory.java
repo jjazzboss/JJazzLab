@@ -276,7 +276,7 @@ public class SongFactory implements PropertyChangeListener
             throw new IllegalArgumentException("name=" + name + " clsSize=" + clsSize);   //NOI18N
         }
         ChordLeadSheetFactory clsf = ChordLeadSheetFactory.getDefault();
-        ChordLeadSheet cls = clsf.createEmptyLeadSheet("A", TimeSignature.FOUR_FOUR, clsSize);
+        ChordLeadSheet cls = clsf.createEmptyLeadSheet("A", TimeSignature.FOUR_FOUR, clsSize, true);
         Song song = null;
         try
         {

@@ -22,6 +22,7 @@
  */
 package org.jjazz.phrase.api;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
@@ -60,8 +61,8 @@ import org.jjazz.util.api.LongRange;
 /**
  * A list of NoteEvents sorted by start position.
  * <p>
- * Use addOrdered() to add a NoteEvent: this will ensure NoteEvents are kept ordered. Use of other add()/addAll() methods should be used
- * for optimization only when you are sure it will not break the NoteEvents order.
+ * Use addOrdered() to add a NoteEvent: this will ensure NoteEvents are kept ordered. Use of other add()/addAll() methods should
+ * be used for optimization only when you are sure it will not break the NoteEvents order.
  * <p>
  * LinkedList implementation to speed up item insertion/remove rather than random access.
  */
@@ -103,11 +104,40 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
     }
 
     /**
+     * Overridden to throw UnsupportedOperationException, can't be used since NoteEvents are ordered by position.
+     *
+     * @param index
+     * @param c
+     * @return
+     */
+    @Override
+    public boolean addAll​(int index, Collection<? extends NoteEvent> c)
+    {
+        throw new UnsupportedOperationException("Can't be used: notes are ordered by position");
+    }
+
+    /**
+     * Add a collection of NoteEvents.
+     * <p>
+     * Overridden to rely on addOrdered().
+     *
+     * @param c
+     * @return
+     */
+    @Override
+    public boolean addAll(Collection<? extends NoteEvent> c)
+    {
+        c.forEach(ne -> addOrdered(ne));
+        return !c.isEmpty();
+    }
+
+    /**
      * Add NoteEvents from a list of NOTE_ON/OFF Midi events at MidiConst.PPQ_RESOLUTION.
      * <p>
      * NOTE_ON events without a corresponding NOTE_OFF event are ignored.
      *
-     * @param midiEvents MidiEvents which are not ShortMessage.Note_ON/OFF are ignored. Must be ordered by tick position, resolution must be MidiConst.PPQ_RESOLUTION.
+     * @param midiEvents MidiEvents which are not ShortMessage.Note_ON/OFF are ignored. Must be ordered by tick position,
+     * resolution must be MidiConst.PPQ_RESOLUTION.
      * @param posInBeatsOffset The position in natural beats of the first tick of the track.
      * @param ignoreChannel If true, add also NoteEvents for MidiEvents which do not match this phrase channel.
      * @see MidiUtilities#getMidiEvents(javax.sound.midi.Track, java.util.function.Predicate, LongRange)
@@ -194,7 +224,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
 
         add(index, mne);
     }
-        
+
     /**
      * A deep clone: returned phrase contains clones of the original NoteEvents.
      *
@@ -443,67 +473,161 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
         }
     }
 
+
     /**
-     * Remove all events whose start position is before startPos, or equal/after endPos.
+     * Get a new phrase where all events whose start position is before startPos, or equal/after endPos, are removed, taking into
+     * account possible live-played/non-quantized notes via the beatWindow parameter.
      * <p>
-     * If a note is starting before startPos and ending after startPos: <br>
-     * - if keepLeft is false, the note is removed.<br>
-     * - if keepLeft is true, the note is replaced by a shorter identical one starting at startPos.<br>
+     * First, if beatWindow &gt; 0 then notes starting in the range [startPos-beatWindow; startPos[ are changed so they start at
+     * startPos, and notes starting in the range [endPos-beatWindow; endPos[ are removed.
+     * <p>
+     * Then, if a note is starting before startPos and ending after startPos: <br>
+     * - if keepLeft is false, the note is removed<br>
+     * - if keepLeft is true, the note is replaced by a shorter identical one starting at startPos
+     * <p>
      * If a note is starting before endPos and ending after endPos: <br>
-     * - if cutRight is false, the note is not removed.<br>
-     * - if cutRight is true, the note is replaced by a shorter identical that ends at endPos.<br>
+     * - if cutRight == 0 the note is not removed.<br>
+     * - if cutRight == 1, the note is replaced by a shorter identical that ends at endPos.<br>
+     * - if cutRight == 2, the note is removed<br>
+     * <p>
      *
      * @param startPos
      * @param endPos
      * @param keepLeft
      * @param cutRight
+     * @param beatWindow A tolerance window if this phrase contains live-played/non-quantized notes. Typical value is 0.1f.
+     * @return
      * @see #split(org.jjazz.util.api.FloatRange, boolean, boolean)
      */
-    public void slice(float startPos, float endPos, boolean keepLeft, boolean cutRight)
+    public Phrase getSlice(float startPos, float endPos, boolean keepLeft, int cutRight, float beatWindow)
     {
-        ArrayList<NoteEvent> toBeAdded = new ArrayList<>();
+        checkArgument(cutRight >= 0 && cutRight <= 2, "cutRight=%s", cutRight);
 
+        Phrase res = new Phrase(channel);
+
+
+        // Preprocess to accomadate for live playing / non-quantized notes
+        List<NoteEvent> beatWindowProcessedNotes = new ArrayList<>();
+        if (beatWindow > 0)
+        {
+            FloatRange frLeft = startPos - beatWindow > 0 ? new FloatRange(startPos - beatWindow, startPos) : null;
+            FloatRange frRight = new FloatRange(endPos - beatWindow, endPos);
+
+            ListIterator<NoteEvent> it = listIterator();
+            while (it.hasNext())
+            {
+                var ne = it.next();
+                var neBr = ne.getBeatRange();
+                if (frLeft != null && frLeft.contains(neBr.from, true))
+                {
+                    if (frLeft.contains(neBr, false))
+                    {
+                        // Note is fully contained in the beatWindow! Probably a drums/perc note, move it
+                        NoteEvent newNe = new NoteEvent(ne, ne.getDurationInBeats(), startPos);
+                        res.addOrdered(newNe);
+                    } else
+                    {
+                        // Note crosses startPos, make it start at startPos
+                        float newDur = Math.max(neBr.to - startPos, 0.05f);
+                        NoteEvent newNe = new NoteEvent(ne, newDur, startPos);
+                        res.addOrdered(newNe);
+                    }
+                    beatWindowProcessedNotes.add(ne);
+
+                } else if (frRight.contains(neBr.from, true))
+                {
+                    // Remove the note
+                    beatWindowProcessedNotes.add(ne);
+                }
+            }
+
+        }
+
+
+        // 
         ListIterator<NoteEvent> it = listIterator();
         while (it.hasNext())
         {
             NoteEvent ne = it.next();
+
+
+            if (beatWindowProcessedNotes.contains(ne))
+            {
+                // It's already processed, skip
+                continue;
+            }
+
             float nePosFrom = ne.getPositionInBeats();
             float nePosTo = nePosFrom + ne.getDurationInBeats();
+
+
             if (nePosFrom < startPos)
             {
-                it.remove();
+                // It starts before the slice zone, don't add, except if it overlaps the slice zone
                 if (keepLeft && nePosTo > startPos)
                 {
-                    if (cutRight && nePosTo > endPos)
+                    // It even goes beyond the slice zone!                                        
+                    if (nePosTo > endPos)
                     {
-                        nePosTo = endPos;
+                        switch (cutRight)
+                        {
+                            case 0:
+                                // Add it but don't change its end point
+                                break;
+                            case 1:
+                                // Make it shorter
+                                nePosTo = endPos;
+                                break;
+                            case 2:
+                                // Do not add
+                                continue;
+                            default:
+                                throw new IllegalStateException("cutRight=" + cutRight);
+                        }
                     }
                     float newDur = nePosTo - startPos;
                     NoteEvent newNe = new NoteEvent(ne, newDur, startPos);
-                    toBeAdded.add(newNe);
+                    res.addOrdered(newNe);
                 }
             } else if (nePosFrom < endPos)
             {
-                if (cutRight && nePosTo > endPos)
+                // It starts in the slice zone, add it
+                if (nePosTo <= endPos)
                 {
-                    float newDur = endPos - nePosFrom;
-                    NoteEvent newNe = new NoteEvent(ne, newDur, nePosFrom);
-                    it.set(newNe);
+                    // It ends in the slice zone, easy
+                    res.addOrdered(ne);
+                } else
+                {
+                    // It goes beyond the slice zone
+                    switch (cutRight)
+                    {
+                        case 0:
+                            // Add it anyway
+                            res.addOrdered(ne);
+                            break;
+                        case 1:
+                            // Add it but make it shorter
+                            float newDur = endPos - nePosFrom;
+                            NoteEvent newNe = new NoteEvent(ne, newDur);
+                            res.addOrdered(newNe);
+                            break;
+                        case 2:
+                            // Do not add
+                            break;
+                        default:
+                            throw new IllegalStateException("cutRight=" + cutRight);
+                    }
                 }
             } else
             {
-                // nePosFrom is after endPost
-                it.remove();
+                // It starts after the slice zone, do nothing
             }
         }
 
-        // Add the new NoteEvents
-        for (NoteEvent ne : toBeAdded)
-        {
-            addOrdered(ne);
-        }
 
+        return res;
     }
+
 
     /**
      * Remove all events whose start position is equal/after range.from or before range.to.
@@ -518,7 +642,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
      * @param range
      * @param cutLeft
      * @param keepRight
-     * @see #slice(float, float, boolean, boolean)
+     * @see #getSlice(float, float, boolean, int, float)
      */
     public void split(FloatRange range, boolean cutLeft, boolean keepRight)
     {
@@ -1032,11 +1156,14 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
 
         for (Track track : tracks)
         {
+            // Get all the events at the appropriate resolution
             var trackEvents = MidiUtilities.getMidiEvents(track,
-                    tracksPPQ,
                     ShortMessage.class,
                     sm -> sm.getCommand() == ShortMessage.NOTE_OFF || sm.getCommand() == ShortMessage.NOTE_ON,
                     null);
+            trackEvents = MidiUtilities.getMidiEventsAtPPQ(trackEvents, tracksPPQ, MidiConst.PPQ_RESOLUTION);
+
+
             for (int channel : MidiUtilities.getUsedChannels(track))
             {
                 if (selectedChannels.contains(channel))

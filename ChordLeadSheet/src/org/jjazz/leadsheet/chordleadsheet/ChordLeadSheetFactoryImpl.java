@@ -43,14 +43,14 @@ import org.openide.util.NbBundle;
 @NbBundle.Messages(
         {
             "ERR_CreateSampleLeadSheet12=Problem creating chord leadsheet"
-        
+
         })
 public class ChordLeadSheetFactoryImpl implements ChordLeadSheetFactory
 {
-    
+
     static private ChordLeadSheetFactoryImpl INSTANCE;
     private static final Logger LOGGER = Logger.getLogger(ChordLeadSheetFactoryImpl.class.getSimpleName());
-    
+
     static public ChordLeadSheetFactoryImpl getInstance()
     {
         synchronized (ChordLeadSheetFactoryImpl.class)
@@ -62,20 +62,23 @@ public class ChordLeadSheetFactoryImpl implements ChordLeadSheetFactory
         }
         return INSTANCE;
     }
-    
+
     private ChordLeadSheetFactoryImpl()
     {
     }
-    
+
     @Override
-    public ChordLeadSheet createEmptyLeadSheet(String sectionName, TimeSignature ts, int size)
+    public ChordLeadSheet createEmptyLeadSheet(String sectionName, TimeSignature ts, int size, boolean addInitialChordSymbol)
     {
         ChordLeadSheet cls = new ChordLeadSheetImpl(sectionName, ts, size);
         CLI_Factory clif = CLI_Factory.getDefault();
-        cls.addItem(clif.createChordSymbol(cls, new ExtChordSymbol(), new Position(0, 0)));
+        if (addInitialChordSymbol)
+        {
+            cls.addItem(clif.createChordSymbol(cls, new ExtChordSymbol(), new Position(0, 0)));
+        }
         return cls;
     }
-    
+
     @Override
     public ChordLeadSheet createSampleLeadSheet12bars(String sectionName, int size)
     {
@@ -128,7 +131,7 @@ public class ChordLeadSheetFactoryImpl implements ChordLeadSheetFactory
         }
         return cls;
     }
-    
+
     @Override
     public ChordLeadSheet createRamdomLeadSheet(String sectionName, TimeSignature ts, int size)
     {
@@ -169,7 +172,7 @@ public class ChordLeadSheetFactoryImpl implements ChordLeadSheetFactory
         }
         return cls;
     }
-    
+
     @Override
     public ChordLeadSheet getCopy(ChordLeadSheet cls)
     {
@@ -199,13 +202,13 @@ public class ChordLeadSheetFactoryImpl implements ChordLeadSheetFactory
         }
         return clsCopy;
     }
-    
-    
+
+
     @Override
     public ChordLeadSheet getSimplified(ChordLeadSheet cls)
     {
         ChordLeadSheet simplifiedCls = getCopy(cls);
-        
+
         for (int barIndex = 0; barIndex < simplifiedCls.getSizeInBars(); barIndex++)
         {
             float halfBarBeat = simplifiedCls.getSection(barIndex).getData().getTimeSignature().getHalfBarBeat(false);
@@ -234,7 +237,7 @@ public class ChordLeadSheetFactoryImpl implements ChordLeadSheetFactory
                 }
             }
         }
-        
+
         return simplifiedCls;
     }
 
