@@ -25,8 +25,10 @@ package org.jjazz.rhythmmusicgeneration.api;
 import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
+import org.jjazz.harmony.api.Note;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Factory;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo;
@@ -69,6 +71,26 @@ public class ChordSequence extends ArrayList<CLI_ChordSymbol> implements Compara
             cSeq.add(cs);
         }
         return cSeq;
+    }
+
+    /**
+     * The relative root ascending intervals of N chord symbols of this chord sequence.
+     * <p>
+     * Example: if chords=[Em,D7,F/A] then returned list is [10;3].
+     *
+     * @return A list with N-1 values in the range [0;11].
+     */
+    public List<Integer> getRootAscIntervals()
+    {
+        ArrayList<Integer> res = new ArrayList<>();
+        for (int i = 0; i < size() - 1; i++)
+        {
+            Note root = get(i).getData().getRootNote();
+            Note root2 = get(i + 1).getData().getRootNote();
+            int delta = root.getRelativeAscInterval(root2);
+            res.add(delta);
+        }
+        return res;
     }
 
     public final IntRange getBarRange()

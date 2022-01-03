@@ -178,4 +178,65 @@ public class SimpleChordSequence extends ChordSequence
         return new SimpleChordSequence(cSeq, timeSignature);
     }
 
+    /**
+     * A String which combines the relative root ascending intervals and chord durations, to allow a quick comparison between 2
+     * SimpleChordSequences.
+     * <p>
+     * If 2 root profiles of 2 SimpleChordSequences are equal, it means that the 2 ChordSequences have the same size, same number
+     * of ChordSymbols at the same position, and that the root relative root ascending intervals are equals, like for e.g.
+     * |Dm|G7|C7M|%| and |E7|Am|Dm|%|.
+     * <p>
+     * Example: |Dm|G7|Ab7M|%| will produce "4_5:4_1:",  <br>
+     * "4_5" means advance 4 beats to next chord with a root ascending relative interval==5.<br>
+     * If String starts with a "2:", it means the first chord symbol of the chord sequence is on beat 2 (starting at beat 0).
+     *
+     * @return A String like "4_5:4_1:". If chord sequence is empty returns "".
+     * @see #getChordTypeSimilarityIndex(org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence)
+     */
+    public String getRootProfile()
+    {
+        if (isEmpty())
+        {
+            return "";
+        }
+
+
+        StringBuilder sb = new StringBuilder();
+        if (!hasChordAtBeginning())
+        {
+            float posInBeats = toPositionInBeats(get(0).getPosition(), 0);
+            sb.append(String.format("%.3f:", posInBeats));
+        }
+
+
+        for (int i = 0; i < size() - 1; i++)
+        {
+            int interval = get(i).getData().getRootNote().getRelativeAscInterval(get(i + 1).getData().getRootNote());
+            float dur = getChordDuration(i);
+            sb.append(String.format("%.3f_%d:", dur, interval));
+            i++;
+        }
+
+        return sb.toString();
+    }
+
+    /**
+     * Compute an index which indicates how similar are the chord types of cSeq and this object.
+     * <p>
+     *
+     * @param cSeq Must have the same number of chord symbols than this Simple ChordSequence.
+     * @return The sum of ChordType.getSimilarityIndex() run on each chord.
+     * @see org.jjazz.harmony.api.ChordType#getSimilarityIndex(org.jjazz.harmony.api.ChordType)
+     */
+    public int getChordTypeSimilarityIndex(SimpleChordSequence cSeq)
+    {
+        checkArgument(cSeq.size() == size(), "cSeq=%s this=%s", cSeq, this);
+        int res = 0;
+        for (int i = 0; i < size(); i++)
+        {
+            res += get(i).getData().getChordType().getSimilarityIndex(cSeq.get(i).getData().getChordType());
+        }
+        return res;
+    }
+
 }
