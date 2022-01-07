@@ -34,9 +34,11 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.WeakHashMap;
 import java.util.logging.Logger;
+import org.jjazz.analytics.api.Analytics;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheetFactory;
@@ -174,6 +176,9 @@ public class SongFactory implements PropertyChangeListener
         song.resetNeedSave();
         registerSong(song);
 
+        
+        Analytics.logEvent("Open Song");
+        Analytics.incrementProperties("Nb Open Song", 1);
 
         return song;
     }
