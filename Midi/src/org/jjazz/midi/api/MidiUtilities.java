@@ -67,83 +67,94 @@ public class MidiUtilities
     }
 
     /**
-     * Get track MidiEvents whose tick position is within tickRange and which satisfy the specified tester.
+     * Get MidiEvents converted from MidiEvents with a different PPQ resolution (Midi Pulses Per Quarter).
+     *
+     * @param srcEvents A list of MidiEvents at srcPPQ resolution
+     * @param srcPPQ E.g. 480
+     * @param destPPQ E.g. 960
+     * @return A list of new MidiEvents at destPPQ resolution.
+     */
+    static public List<MidiEvent> getMidiEventsAtPPQ(List<MidiEvent> srcEvents, int srcPPQ, int destPPQ)
+    {
+        List<MidiEvent> res = new ArrayList<>();
+
+        double tickRatio = (double) destPPQ / srcPPQ;
+
+        for (var me : srcEvents)
+        {
+            long tick = (long) Math.round(tickRatio * me.getTick());
+            res.add(new MidiEvent(me.getMessage(), tick));
+        }
+
+        return res;
+    }
+
+    /**
+     * Get track MidiEvents whose tick position is within trackTickRange and which satisfy the specified tester.
      * <p>
-     * Note that the returned MidiEvents are converted to resolution MidiConst.PPQ_RESOLUTION.
      *
      * @param track
-     * @param trackPPQ The Midi resolution (pulses per quarter) used in the track.
-     * @param tester Test the Midi event (assume MidiConst.PPQ_RESOLUTION if you test tick position).
-     * @param tickRange Computed using MidiConst.PPQ_RESOLUTION. If null there is no filtering on tick position.
-     * @return A list of MidiEvents using MidiConst.PPQ_RESOLUTION.
-     * @see MidiConst#PPQ_RESOLUTION
+     * @param tester Test the Midi event
+     * @param trackTickRange If null there is no filtering on tick position. The range must be based on the track's resolution.
+     * @return A list of track MidiEvents
      */
-    static public List<MidiEvent> getMidiEvents(Track track, int trackPPQ, Predicate<MidiEvent> tester, LongRange tickRange)
+    static public List<MidiEvent> getMidiEvents(Track track, Predicate<MidiEvent> tester, LongRange trackTickRange)
     {
         var res = new ArrayList<MidiEvent>();
-        double tickRatio = (double) MidiConst.PPQ_RESOLUTION / trackPPQ;
-
 
         for (int i = 0; i < track.size(); i++)
         {
-            MidiEvent me0 = track.get(i);
-            long tick = (long) Math.round(tickRatio * me0.getTick());
-            MidiEvent me1 = new MidiEvent(me0.getMessage(), tick);
-            if (tickRange != null && tick < tickRange.from)
+            MidiEvent me = track.get(i);
+            long tick = me.getTick();
+            if (trackTickRange != null && tick < trackTickRange.from)
             {
                 continue;
-            } else if (tickRange != null && tick > tickRange.to)
+            } else if (trackTickRange != null && tick > trackTickRange.to)
             {
                 break;
             }
-            if (tester.test(me1))
+            if (tester.test(me))
             {
-                res.add(me1);
+                res.add(me);
             }
         }
+
         return res;
     }
 
     /**
      * Get track MidiEvents whose MidiMessage is instance of msgClass, which satisfy the specified MidiMessage tester, and whose
-     * tick position is within tickRange.
+     * tick position is within trackTickRange.
      * <p>
-     * Note that the returned MidiEvents are converted to resolution MidiConst.PPQ_RESOLUTION.
-     *
      * @param <T>
      * @param track
-     * @param trackPPQ The Midi resolution (pulses per quarter) used in the track.
      * @param msgClass MidiMessage class
-     * @param msgTester
-     * @param tickRange Computed using MidiConst.PPQ_RESOLUTION. If null there is no filtering on tick position.
-     * @return A list of MidiEvents using MidiConst.PPQ_RESOLUTION.
-     * @see MidiConst#PPQ_RESOLUTION
+     * @param msgTester Test the MidiMessage of the MidiEvent
+     * @param trackTickRange If null there is no filtering on tick position. The range must be based on the track's resolution.
+     * @return A list of track MidiEvents
      */
-    static public <T extends MidiMessage> List<MidiEvent> getMidiEvents(Track track, int trackPPQ, Class<T> msgClass, Predicate<T> msgTester, LongRange tickRange)
+    static public <T extends MidiMessage> List<MidiEvent> getMidiEvents(Track track, Class<T> msgClass, Predicate<T> msgTester, LongRange trackTickRange)
     {
         var res = new ArrayList<MidiEvent>();
-        double tickRatio = (double) MidiConst.PPQ_RESOLUTION / trackPPQ;
-
 
         for (int i = 0; i < track.size(); i++)
         {
-            MidiEvent me0 = track.get(i);
-            long tick = (long) Math.round(tickRatio * me0.getTick());
-            MidiEvent me1 = new MidiEvent(me0.getMessage(), tick);
+            MidiEvent me = track.get(i);
+            long tick = me.getTick();
 
-            if (tickRange != null && me1.getTick() < tickRange.from)
+            if (trackTickRange != null && tick < trackTickRange.from)
             {
                 continue;
-            } else if (tickRange != null && me1.getTick() > tickRange.to)
+            } else if (trackTickRange != null && tick > trackTickRange.to)
             {
                 break;
             }
-            if (msgClass.isInstance(me1.getMessage()))
+            if (msgClass.isInstance(me.getMessage()))
             {
-                T msg = (T) me1.getMessage();
+                T msg = (T) me.getMessage();
                 if (msgTester.test(msg))
                 {
-                    res.add(me1);
+                    res.add(me);
                 }
             }
         }
@@ -1030,6 +1041,39 @@ public class MidiUtilities
     }
 
     /**
+     * Retrieve the text from the specified MidiEvent message, when possible.
+     * <p>
+     * The event's message should be a text-based MetaMessage such TrackName, Text, Marker, Lyrics, Copyright, Instrument.
+     *
+     * @param me
+     * @return Null if the event's message is not a text-based MetaMessage
+     *
+     */
+    static public String getText(MidiEvent me)
+    {
+        if (!(me.getMessage() instanceof MetaMessage))
+        {
+            return null;
+        }
+        MetaMessage mm = (MetaMessage) me.getMessage();
+        String res = null;
+        switch (mm.getType())
+        {
+            case MidiConst.META_TEXT:
+            case MidiConst.META_COPYRIGHT:
+            case MidiConst.META_TRACKNAME:
+            case MidiConst.META_INSTRUMENT:
+            case MidiConst.META_LYRICS:
+            case MidiConst.META_MARKER:
+                res = Utilities.toString(mm.getData());
+                break;
+            default:
+            // Nothing
+        }
+        return res;
+    }
+
+    /**
      * Provide an explicit string for a MidiMessage.
      *
      * @param msg A MidiMessage.
@@ -1048,7 +1092,7 @@ public class MidiUtilities
         {
             ShortMessage sm = (ShortMessage) msg;
             sb.append(String.format(" ch=%-2d", sm.getChannel()));
-            String cmd = getCmdString(sm.getCommand());
+            String cmd = getShortMessageCommandString(sm.getCommand());
             if (cmd.equals("?"))
             {
                 cmd = String.valueOf(sm.getCommand());
@@ -1058,7 +1102,7 @@ public class MidiUtilities
             if (sm.getCommand() == ShortMessage.CONTROL_CHANGE)
             {
                 // It's a control change, we can display a text
-                d1 = getCtrlChgString(sm.getData1());
+                d1 = getControllerChangeString(sm.getData1());
             } else if (sm.getCommand() == ShortMessage.NOTE_ON || sm.getCommand() == ShortMessage.NOTE_OFF)
             {
                 // Display the note instead of pitch
@@ -1340,38 +1384,52 @@ public class MidiUtilities
     }
 
     /**
-     * Convert a control Midi id into string.
+     * Convert a ShortMessage controller id into an understandable string.
+     * <p>
+     * For ex. if controller == 7 return "VOLUME_MSB".
+     *
+     * @param controllerId
+     * @return
      */
-    public static String getCtrlChgString(int ctrl)
+    public static String getControllerChangeString(int controllerId)
     {
-        if (ctrl < 0 || ctrl >= 256)
+        if (controllerId < 0 || controllerId >= 256)
         {
-            throw new IllegalArgumentException("ctrl=" + ctrl);   //NOI18N
+            throw new IllegalArgumentException("ctrl=" + controllerId);   //NOI18N
         }
         if (CONTROL_CHANGE_STRINGS == null)
         {
             initControlChangeStrings();
         }
 
-        return CONTROL_CHANGE_STRINGS[ctrl];
+        return CONTROL_CHANGE_STRINGS[controllerId];
     }
 
     /**
-     * Convert a command Midi id into string.
+     * Convert the ShortMessage command number into an understandable string.
+     * <p>
+     * For example if command==ShortMessage.CONTROL_CHANGE, return "CONTROL_CHANGE".
+     *
+     * @param command
+     * @return
      */
-    public static String getCmdString(int cmd)
+    public static String getShortMessageCommandString(int command)
     {
-        if (cmd < 0 || cmd > 255)
+        if (command < 0 || command > 255)
         {
-            throw new IllegalArgumentException("cmd=" + cmd);   //NOI18N
+            throw new IllegalArgumentException("cmd=" + command);   //NOI18N
         }
         if (COMMAND_STRINGS == null)
         {
             initCommandStrings();
         }
-        return COMMAND_STRINGS[cmd];
+        return COMMAND_STRINGS[command];
     }
 
+
+    // =====================================================================================
+    // Private methods
+    // =====================================================================================
     private static void initCommandStrings()
     {
         COMMAND_STRINGS = new String[256];

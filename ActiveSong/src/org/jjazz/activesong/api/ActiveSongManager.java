@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.activesong.api; 
+package org.jjazz.activesong.api;
 
 
 import java.beans.PropertyChangeEvent;
@@ -42,12 +42,13 @@ import org.jjazz.musiccontrol.api.playbacksession.SongContextProvider;
 import org.jjazz.outputsynth.api.OutputSynthManager;
 import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.song.api.Song;
+import org.jjazz.util.api.ResUtil;
 
 /**
  * Manage the active song and MidiMix.
  * <p>
- * Midi messages are sent upon MidiMix changes depending on getSendMessagePolicy(). If last song is closed, active song is reset to
- * null.
+ * Midi messages are sent upon MidiMix changes depending on getSendMessagePolicy(). If last song is closed, active song is reset
+ * to null.
  */
 public class ActiveSongManager implements PropertyChangeListener, VetoableChangeListener
 {
@@ -75,7 +76,6 @@ public class ActiveSongManager implements PropertyChangeListener, VetoableChange
     private Song activeSong;
     private SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(ActiveSongManager.class.getSimpleName());
-    private static final ResourceBundle bundle = ResourceBundle.getBundle("org/jjazz/activesong/api/Bundle");
 
     public static ActiveSongManager getInstance()
     {
@@ -124,7 +124,7 @@ public class ActiveSongManager implements PropertyChangeListener, VetoableChange
         SongContext sgContext = session instanceof SongContextProvider ? ((SongContextProvider) session).getSongContext() : null;
         if (mc.getState() == MusicController.State.PLAYING && (sgContext == null || sg != sgContext.getSong()))
         {
-            err = bundle.getString("ErrSongIsPlaying");
+            err = ResUtil.getString(getClass(), "ErrSongIsPlaying");
         }
         return err;
     }

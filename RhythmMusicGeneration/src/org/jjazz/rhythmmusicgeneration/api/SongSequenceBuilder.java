@@ -519,7 +519,7 @@ public class SongSequenceBuilder
 
 
             // Adapt the phrase to the current context
-            p.slice(br.from, br.to, false, true);
+            p = p.getSlice(br.from, br.to, false, 1, 0.1f);
 
             LOGGER.log(Level.FINE, "buildMapRvPhrase() Adding user phrase for name={0} p={1}", new Object[]
             {
@@ -865,14 +865,11 @@ public class SongSequenceBuilder
             {
 
                 // Keep the slice only for the current songpart
-                Phrase p = rvPhrases.get(rv);
-                Phrase tp = p.clone();
-                tp.slice(sptBeatRange.from, sptBeatRange.to, false, true);
-
+                Phrase p = rvPhrases.get(rv).getSlice(sptBeatRange.from, sptBeatRange.to, false, 1, 0.1f);
 
                 // Make it a SizedPhrase and transform it
-                SizedPhrase inSp = new SizedPhrase(tp.getChannel(), sptBeatRange, r.getTimeSignature());
-                inSp.add(tp);
+                SizedPhrase inSp = new SizedPhrase(p.getChannel(), sptBeatRange, r.getTimeSignature());
+                inSp.add(p);
                 var chain = rpValue.getTransformChain(rv);
                 var outSp = chain.transform(inSp, sptContext);
 
@@ -921,14 +918,12 @@ public class SongSequenceBuilder
 
 
             // Keep the slice only for the current songpart
-            Phrase p = rvPhrases.get(rvDrums);
-            Phrase tp = p.clone();
-            tp.slice(sptBeatRange.from, sptBeatRange.to, false, true);
+            Phrase p = rvPhrases.get(rvDrums).getSlice(sptBeatRange.from, sptBeatRange.to, false, 1, 0.1f);
 
 
             // Make it a SizedPhrase and transform it
-            SizedPhrase inSp = new SizedPhrase(tp.getChannel(), sptBeatRange, r.getTimeSignature());
-            inSp.add(tp);
+            SizedPhrase inSp = new SizedPhrase(p.getChannel(), sptBeatRange, r.getTimeSignature());
+            inSp.add(p);
             var chain = rpValue.getTransformChain(false);
             var outSp = chain.transform(inSp, sptContext);
 

@@ -22,10 +22,13 @@
  */
 package org.jjazz.harmony.api;
 
+import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkArgument;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import static org.jjazz.harmony.api.Degree.*;
 
 /**
@@ -715,11 +718,35 @@ final public class ChordType
     }
 
     /**
+     * Get a simplified ChordType by keeping only the first nbMaxDegrees degrees.
+     *
+     * @param nbMaxDegrees Must be &gt; 2
+     * @return Can't be null
+     */
+    public ChordType getSimplified(int nbMaxDegrees)
+    {
+        checkArgument(nbMaxDegrees >= 3, "nbMaxDegrees=%s", nbMaxDegrees);
+
+        var res = this;
+
+        if (degrees.size() > nbMaxDegrees)
+        {
+            var resDegrees = getDegrees().stream()
+                    .limit(nbMaxDegrees)
+                    .collect(Collectors.toList());
+            res = ChordTypeDatabase.getInstance().getChordType(resDegrees);
+            assert res != null : "this=" + this + " resDegrees=" + resDegrees;
+        }
+
+        return res;
+    }
+
+    /**
      * Compute how much "similar" is the specified ChordType with this object.
      * <p>
      * Index is calculated by adding the weights below until a mismatch is found. Identical ChordTypes have a similarity index of
-     * 63. For example C7 and Cm7 have a similarity index=0 (different families). C7 and C9 have a similarity index=32+16+8=56 (same
-     * family, same fifth, same sixth_seventh, but extension1 mismatch).
+     * 63. For example C7 and Cm7 have a similarity index=0 (different families). C7 and C9 have a similarity index=32+16+8=56
+     * (same family, same fifth, same sixth_seventh, but extension1 mismatch).
      * <p>
      * Same ChordType.FAMILY:32<br>
      * Same DegreeIndex.FIFTH: 16<br>

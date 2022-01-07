@@ -22,9 +22,13 @@
  */
 package org.jjazz.rhythmmusicgeneration.api;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
+import org.jjazz.harmony.api.Note;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Factory;
@@ -32,34 +36,27 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo.Feature;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
-import org.jjazz.util.api.FloatRange;
 import org.jjazz.util.api.IntRange;
 
 /**
- * A convenience class to manipulate chord symbols sequences.
+ * A convenience class to manipulate a suite of chord symbols extracted from a ChordLeadSheet, possibly with different
+ * TimeSignatures.
  * <p>
- * User is responsible to ensure CLI_ChordSymbols are added in the right position order and in the startBar/nbBars range.
+ * User is responsible to ensure CLI_ChordSymbols are added in the right position order and in the bar range.
+ *
+ * @see org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence
  */
 public class ChordSequence extends ArrayList<CLI_ChordSymbol> implements Comparable<ChordSequence>, Cloneable
 {
 
-    private static int HASH_CODE_COUNTER = 0;
-    private int hashCode;
-    private int startBar;
-    private int nbBars;
+    private final IntRange barRange;
 
-    protected static final Logger LOGGER = Logger.getLogger(ChordSequence.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(ChordSequence.class.getSimpleName());
 
-    public ChordSequence(int startBar, int nbBars)
+    public ChordSequence(IntRange barRange)
     {
-        super();
-        if (startBar < 0 || nbBars < 0)
-        {
-            throw new IllegalArgumentException("startBar=" + startBar + " nbBars=" + nbBars);   //NOI18N
-        }
-        this.startBar = startBar;
-        this.nbBars = nbBars;
-        hashCode = HASH_CODE_COUNTER++;
+        checkNotNull(barRange);
+        this.barRange = barRange;
     }
 
     /**
@@ -69,7 +66,7 @@ public class ChordSequence extends ArrayList<CLI_ChordSymbol> implements Compara
     @Override
     public ChordSequence clone()
     {
-        ChordSequence cSeq = new ChordSequence(startBar, nbBars);
+        ChordSequence cSeq = new ChordSequence(barRange);
         for (CLI_ChordSymbol cs : this)
         {
             cSeq.add(cs);
@@ -77,108 +74,62 @@ public class ChordSequence extends ArrayList<CLI_ChordSymbol> implements Compara
         return cSeq;
     }
 
-    public final int getNbBars()
-    {
-        return nbBars;
-    }
-
-    public final int getStartBar()
-    {
-        return startBar;
-    }
-
-    public final IntRange getRange()
-    {
-        return new IntRange(startBar, startBar + nbBars - 1);
-    }
-
     /**
-     * The beat range provided sequence starts at startBarPosInBeats.
-     *
-     * @param startBarPosInBeats
-     * @param ts
-     * @return
-     */
-    public final FloatRange getBeatRange(float startBarPosInBeats, TimeSignature ts)
-    {
-        if (startBarPosInBeats < 0 || ts == null)
-        {
-            throw new IllegalArgumentException("startBarPosInBeats=" + startBarPosInBeats + " ts=" + ts);   //NOI18N
-        }
-        return new FloatRange(startBarPosInBeats, startBarPosInBeats + nbBars * ts.getNbNaturalBeats());
-    }
-
-    /**
-     * Override hashCode to use a constant for each object, ie it does not depend on ChordSequence contents.
+     * The relative root ascending intervals of N chord symbols of this chord sequence.
      * <p>
-     * This way ChordSequence objects can be used as HashMap keys.
+     * Example: if chords=[Em,D7,F/A] then returned list is [10;3].
      *
-     * @return
+     * @return A list with N-1 values in the range [0;11].
      */
+    public List<Integer> getRootAscIntervals()
+    {
+        ArrayList<Integer> res = new ArrayList<>();
+        for (int i = 0; i < size() - 1; i++)
+        {
+            Note root = get(i).getData().getRootNote();
+            Note root2 = get(i + 1).getData().getRootNote();
+            int delta = root.getRelativeAscInterval(root2);
+            res.add(delta);
+        }
+        return res;
+    }
+
+    public final IntRange getBarRange()
+    {
+        return barRange;
+    }
+
     @Override
     public int hashCode()
     {
-        return hashCode;
+        int hash = super.hashCode();
+        hash = 17 * hash + Objects.hashCode(barRange);
+        return hash;
     }
 
-    /**
-     * @param o
-     * @return True if o==this;
-     */
     @Override
-    @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
-    public boolean equals(Object o)
+    public boolean equals(Object obj)
     {
-        return this == o;
+        if (this == obj)
+        {
+            return true;
+        }
+        if (obj == null)
+        {
+            return false;
+        }
+        if (getClass() != obj.getClass())
+        {
+            return false;
+        }
+        final ChordSequence other = (ChordSequence) obj;
+        if (!this.barRange.equals(other.barRange))
+        {
+            return false;
+        }
+        return super.equals(other);
     }
 
-    /**
-     * Return the duration in natural beats of the chord at specified index.
-     * <p>
-     * This is the duration until next chord or the end of the chordsequence.
-     *
-     * @param chordIndex
-     * @param ts
-     * @return
-     */
-    public float getChordDuration(int chordIndex, TimeSignature ts)
-    {
-        if (chordIndex < 0 || chordIndex >= size() || ts == null)
-        {
-            throw new IllegalArgumentException("chordIndex=" + chordIndex + " ts=" + ts);   //NOI18N
-        }
-        Position pos = get(chordIndex).getPosition();
-        Position nextPos;
-        if (chordIndex == size() - 1)
-        {
-            // Duration until end of the sequence
-            nextPos = new Position(startBar + nbBars, 0);
-        } else
-        {
-            // Duration until next chord
-            nextPos = get(chordIndex + 1).getPosition();
-        }
-        float duration = pos.getDuration(nextPos, ts);
-        return duration;
-    }
-
-    /**
-     * Convert the specified position into an absolute position in natural beats.
-     *
-     * @param pos
-     * @param ts The TimeSignature of this chord sequence.
-     * @param startBarPosInBeats The start position of this chord sequence.
-     * @return If pos is beyond the end of this ChordSequence, then returned value will also be beyond this ChordSequence.
-     */
-    public float toPositionInBeats(Position pos, TimeSignature ts, float startBarPosInBeats)
-    {
-        if (pos == null || ts == null || startBarPosInBeats < 0)
-        {
-            throw new IllegalArgumentException("pos=" + pos + " ts=" + ts + " startBarPosInBeats=" + startBarPosInBeats);   //NOI18N
-        }
-        float relPosInBeats = (pos.getBar() - startBar) * ts.getNbNaturalBeats() + pos.getBeat();
-        return startBarPosInBeats + relPosInBeats;
-    }
 
     /**
      * Get the CLI_ChordSymbol from this ChordSequence which is active at the specified position.
@@ -200,40 +151,85 @@ public class ChordSequence extends ArrayList<CLI_ChordSymbol> implements Compara
     }
 
     /**
-     * A new sub-sequence from this sequence.
+     * A new sub-sequence which uses only 1 time signature.
      *
-     * @param subStartBar Chords from startBar are included
-     * @param subEndBar Chords until endBar (included) are included
+     * @param subRange
+     * @param ts The TimeSignature of the sub-sequence.
      * @param addInitChordSymbol If true, try to add an init chordsymbol if the resulting subsequence does not have one: reuse the
-     * last chord symbol before subStartBar.
+     * last chord symbol before subRange.from if any
      * @return
+     * @throws IllegalArgumentException If one chord symbol position is not compatible with the time signature ts
      */
-    public ChordSequence subSequence(int subStartBar, int subEndBar, boolean addInitChordSymbol)
+    public SimpleChordSequence subSequence(IntRange subRange, TimeSignature ts, boolean addInitChordSymbol)
     {
-        // LOGGER.severe("subSequence() -- subStartBar=" + subStartBar + ", subEndBar=" + subEndBar + ", addInitChordSymbol=" + addInitChordSymbol + ", this=" + this);
-        if (subStartBar < startBar || subEndBar > (startBar + nbBars - 1))
+        if (!barRange.contains(subRange))
         {
-            throw new IllegalArgumentException("subStartBar=" + subStartBar + " subEndBar=" + subEndBar + " this=" + this);   //NOI18N
+            throw new IllegalArgumentException("barRange=" + barRange + " subRange=" + subRange);
         }
-        ChordSequence cSeq = new ChordSequence(subStartBar, subEndBar - subStartBar + 1);
+
+
+        SimpleChordSequence scSeq = new SimpleChordSequence(subRange, ts);
+
+
         for (CLI_ChordSymbol cs : this)
         {
             int bar = cs.getPosition().getBar();
-            if (bar < subStartBar)
+            if (!subRange.contains(bar))
             {
                 continue;
             }
-            if (bar > subEndBar)
+            if (!ts.checkBeat(cs.getPosition().getBeat()))
             {
-                break;
+                throw new IllegalArgumentException("ts=" + ts + " cs=" + cs);
+            }
+            scSeq.add(cs);
+        }
+
+        if (addInitChordSymbol && subRange.from > barRange.from && (scSeq.isEmpty() || !scSeq.get(0).getPosition().equals(new Position(subRange.from, 0))))
+        {
+            int index = indexOfLastChordBeforeBar(subRange.from);
+            if (index != -1)
+            {
+                CLI_ChordSymbol newCs = scSeq.getInitCopy(get(index));
+                scSeq.add(0, newCs);
+            }
+        }
+
+        return scSeq;
+    }
+
+    /**
+     * A new sub-sequence from this sequence.
+     *
+     * @param subRange The range of the sub-sequence.
+     * @param addInitChordSymbol If true, try to add an init chordsymbol if the resulting subsequence does not have one: reuse the
+     * last chord symbol before subRange.from if any
+     * @return
+     */
+    public ChordSequence subSequence(IntRange subRange, boolean addInitChordSymbol)
+    {
+        if (!barRange.contains(subRange))
+        {
+            throw new IllegalArgumentException("barRange=" + barRange + " subRange=" + subRange);
+        }
+
+
+        ChordSequence cSeq = new ChordSequence(subRange);
+
+
+        for (CLI_ChordSymbol cs : this)
+        {
+            int bar = cs.getPosition().getBar();
+            if (!subRange.contains(bar))
+            {
+                continue;
             }
             cSeq.add(cs);
         }
-        // LOGGER.severe("subSequence()   cSeq=" + cSeq);
-        if (subStartBar > startBar && (cSeq.isEmpty() || !cSeq.get(0).getPosition().equals(new Position(subStartBar, 0))))
+
+        if (addInitChordSymbol && subRange.from > barRange.from && (cSeq.isEmpty() || !cSeq.get(0).getPosition().equals(new Position(subRange.from, 0))))
         {
-            int index = indexOfLastBeforeBar(subStartBar);
-            // LOGGER.severe("subSequence()   index=" + index);
+            int index = indexOfLastChordBeforeBar(subRange.from);
             if (index != -1)
             {
                 CLI_ChordSymbol newCs = cSeq.getInitCopy(get(index));
@@ -249,7 +245,7 @@ public class ChordSequence extends ArrayList<CLI_ChordSymbol> implements Compara
      * @param absoluteBarIndex
      * @return -1 if not found.
      */
-    public int indexOfFirstFromBar(int absoluteBarIndex)
+    public int indexOfFirstChordFromBar(int absoluteBarIndex)
     {
         for (int i = 0; i < size(); i++)
         {
@@ -267,14 +263,14 @@ public class ChordSequence extends ArrayList<CLI_ChordSymbol> implements Compara
      * @param absoluteBarIndex Must be &gt;= 1.
      * @return -1 if no chord found before absoluteBarIndex.
      */
-    public int indexOfLastBeforeBar(int absoluteBarIndex)
+    public int indexOfLastChordBeforeBar(int absoluteBarIndex)
     {
         if (absoluteBarIndex < 1)
         {
             throw new IllegalArgumentException("absoluteBarIndex=" + absoluteBarIndex);   //NOI18N
         }
         int index = -1;
-        int firstIndex = indexOfFirstFromBar(absoluteBarIndex);
+        int firstIndex = indexOfFirstChordFromBar(absoluteBarIndex);
         if (isEmpty())
         {
             // Do nothing
@@ -302,7 +298,7 @@ public class ChordSequence extends ArrayList<CLI_ChordSymbol> implements Compara
             return false;
         }
         Position pos = get(0).getPosition();
-        return pos.getBar() == startBar && pos.getBeat() == 0;
+        return pos.getBar() == barRange.from && pos.isFirstBarBeat();
     }
 
     /**
@@ -314,14 +310,14 @@ public class ChordSequence extends ArrayList<CLI_ChordSymbol> implements Compara
     @Override
     public int compareTo(ChordSequence cSeq)
     {
-        return Integer.valueOf(startBar).compareTo(cSeq.startBar);
+        return Integer.valueOf(barRange.from).compareTo(cSeq.barRange.from);
     }
 
     @Override
     public String toString()
     {
         StringBuilder sb = new StringBuilder();
-        sb.append("cSeq<start=").append(startBar).append(", nbBars=").append(nbBars).append(":").append(super.toString()).append(">");
+        sb.append("cSeq=<").append(barRange).append(super.toString()).append(">");
         return sb.toString();
     }
 
@@ -340,7 +336,7 @@ public class ChordSequence extends ArrayList<CLI_ChordSymbol> implements Compara
     {
         // Add a copy of the chord symbol
         ExtChordSymbol ecs = cliCs.getData();
-        Position newPos = new Position(startBar, 0);
+        Position newPos = new Position(barRange.from, 0);
         ChordRenderingInfo newCri = new ChordRenderingInfo((EnumSet<Feature>) null, ecs.getRenderingInfo().getScaleInstance());
         ExtChordSymbol newEcs = new ExtChordSymbol(ecs, newCri, null, null);
         CLI_ChordSymbol res = CLI_Factory.getDefault().createChordSymbol(cliCs.getContainer(), newEcs, newPos);

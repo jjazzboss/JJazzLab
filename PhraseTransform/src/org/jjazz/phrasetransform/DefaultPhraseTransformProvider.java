@@ -376,7 +376,7 @@ public class DefaultPhraseTransformProvider implements PhraseTransformProvider
     {
         try (InputStream is = getClass().getResourceAsStream(midiResourcePath))
         {
-            Phrase p = importDrumsPhrase(midiResourcePath, is);
+            Phrase p = importDrumsPhrase(is);
             if (p.isEmpty())
             {
                 throw new IOException("p is empty");
@@ -399,11 +399,11 @@ public class DefaultPhraseTransformProvider implements PhraseTransformProvider
      * Import a Drums phrase (Midi channel 10) from the Midi stream.
      * <p>
      *
-     * @param midiFile
+     * @param midiStream
      *
      * @return Can be an empty phrase. Phrase with channel 10.
      */
-    private Phrase importDrumsPhrase(String midiResourcePath, InputStream midiStream) throws IOException, InvalidMidiDataException
+    private Phrase importDrumsPhrase(InputStream midiStream) throws IOException, InvalidMidiDataException
     {
         Phrase res = new Phrase(MidiConst.CHANNEL_DRUMS);
 
@@ -411,7 +411,7 @@ public class DefaultPhraseTransformProvider implements PhraseTransformProvider
         Sequence sequence = MidiSystem.getSequence(midiStream);       // Throws IOException, InvalidMidiDataException
         if (sequence.getDivisionType() != Sequence.PPQ)
         {
-            throw new InvalidMidiDataException("Midi stream does not use PPQ division: midiResourcePath=" + midiResourcePath);
+            throw new InvalidMidiDataException("Midi stream does not use PPQ division");
         }
 
         // Get our phrase

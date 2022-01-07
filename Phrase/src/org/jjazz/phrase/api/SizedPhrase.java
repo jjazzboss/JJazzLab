@@ -43,7 +43,7 @@ public class SizedPhrase extends Phrase
     private static final Logger LOGGER = Logger.getLogger(SizedPhrase.class.getSimpleName());
 
     /**
-     * Create an empty sized phrase.
+     * Create a sized phrase with no notes.
      *
      * @param channel
      * @param beatRange
@@ -160,6 +160,12 @@ public class SizedPhrase extends Phrase
     public TimeSignature getTimeSignature()
     {
         return timeSignature;
+    }
+
+
+    public int getSizeInBars()
+    {
+        return Math.round(beatRange.size() / timeSignature.getNbNaturalBeats());
     }
 
 

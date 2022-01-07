@@ -85,7 +85,6 @@ import org.jjazz.util.api.ResUtil;
 import org.jjazz.util.api.Utilities;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
-import org.openide.util.Exceptions;
 
 /**
  * A set of up to 16 InstrumentMixes, 1 per Midi channel with 1 RhythmVoice associated.

@@ -501,13 +501,13 @@ public class PlaybackSettings
      * <p>
      *
      *
-     * @param sequence The sequence for which we add the precount click track.
+     * @param sequence The sequence for which we add the precount click track. Resolution must be MidiConst.PPQ.
      * @param context
      * @return The tick position of the start of the song.
      */
     public long addPrecountClickTrack(Sequence sequence, SongContext context)
     {
-        if (sequence == null || context == null)
+        if (sequence == null || context == null || sequence.getDivisionType() != Sequence.PPQ || sequence.getResolution() != MidiConst.PPQ_RESOLUTION)
         {
             throw new IllegalArgumentException("seq=" + sequence + " context=" + context);   //NOI18N
         }
@@ -520,7 +520,7 @@ public class PlaybackSettings
         for (Track track : sequence.getTracks())
         {
             // Save all the events as we may remove some of them from the track
-            List<MidiEvent> trackEvents = MidiUtilities.getMidiEvents(track, MidiConst.PPQ_RESOLUTION, evt -> true, null);
+            List<MidiEvent> trackEvents = MidiUtilities.getMidiEvents(track, evt -> true, null);
             List<MidiEvent> tick0SpecialEvents = new ArrayList<>();
 
             // Remove events which should not be shifted, so they can be re-added after: this ensures tick order

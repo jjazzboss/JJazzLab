@@ -800,7 +800,7 @@ final class JJazzLabSequencer extends AbstractMidiDevice implements Sequencer, A
                 || ((loopStart > tick) && (tick != -1))
                 || (tick < -1))
         {
-            throw new IllegalArgumentException("invalid loop end point: " + tick);
+            throw new IllegalArgumentException("invalid loop end point: " + tick + " getTickLength()=" + getTickLength() + " loopStart=" + loopStart);
         }
         loopEnd = tick;
     }
@@ -1683,7 +1683,7 @@ final class JJazzLabSequencer extends AbstractMidiDevice implements Sequencer, A
             if (running || tickPos > 0)
             {
                 // will also reindex
-                chaseEvents(oldLastTick, tickPos);      
+                chaseEvents(oldLastTick, tickPos);
             } else
             {
                 needReindex = true;
@@ -2361,9 +2361,8 @@ final class JJazzLabSequencer extends AbstractMidiDevice implements Sequencer, A
                     //            is correct, and doesn't drift away with several repetition,
                     //            there is a slight lag when looping back, probably caused
                     //            by the chasing.
-                    
-                    // Jerome JJazzLab: see bug fix on setTickPos+chasing which improves chasing perf. => could reduce this drift?
 
+                    // Jerome JJazzLab: see bug fix on setTickPos+chasing which improves chasing perf. => could reduce this drift?
                     checkPointMillis = oldCheckPointMillis + tick2millis(loopEndTick - checkPointTick);
                     checkPointTick = loopStart;
                     // no need for reindexing, is done in setTickPos

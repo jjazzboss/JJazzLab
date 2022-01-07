@@ -73,6 +73,8 @@
                 </test-type>
             </test-dependencies>
             <public-packages>
+                <package>com.scalified.tree</package>
+                <package>com.scalified.tree.multinode</package>
                 <package>org.jjazz.util.api</package>
             </public-packages>
         </data>

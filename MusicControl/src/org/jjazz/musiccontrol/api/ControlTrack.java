@@ -33,7 +33,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.MidiUtilities;
-import org.jjazz.rhythmmusicgeneration.api.ContextChordSequence;
+import org.jjazz.rhythmmusicgeneration.api.SongChordSequence;
 import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.util.api.IntRange;
@@ -42,8 +42,8 @@ import org.jjazz.util.api.IntRange;
  * A control track contains special Midi events used by the MusicController to fire PlaybackListener events.
  * <p>
  * - a trackname event <br>
- * - a marker event for each chord symbol, with text="csIndex=chord_symbol_index" (index of the ContextChordSequence provided by
- * {@link #getContextChordSequence()}). <br>
+ - a marker event for each chord symbol, with text="csIndex=chord_symbol_index" (index of the SongChordSequence provided by
+ {@link #getContextChordSequence()}). <br>
  * - a CTRL_CHG_JJAZZ_BEAT_CHANGE controller Midi event at every beat change, use {@link #getSongPositions()} to get the
  * corresponding Position.<br>
  */
@@ -52,7 +52,7 @@ public class ControlTrack
 
     public static String TRACK_NAME = "JJazzControlTrack";
     private List<MidiEvent> midiEvents = new ArrayList<>();
-    private ContextChordSequence contextChordSequence;
+    private SongChordSequence contextChordSequence;
     private List<Position> songPositions = new ArrayList<>();
     private int trackId;
     private static final Logger LOGGER = Logger.getLogger(ControlTrack.class.getSimpleName());
@@ -65,7 +65,7 @@ public class ControlTrack
      */
     public ControlTrack(SongContext sgContext, int trackId)
     {
-        contextChordSequence = new ContextChordSequence(sgContext);       // This will process the substitute chord symbols
+        contextChordSequence = new SongChordSequence(sgContext.getSong(), sgContext.getBarRange());       // This will process the substitute chord symbols
 
         // Add track name
         midiEvents.add(new MidiEvent(MidiUtilities.getTrackNameMetaMessage(TRACK_NAME), 0));
@@ -94,7 +94,7 @@ public class ControlTrack
      * @param songPositions
      * @param trackId
      */
-    public ControlTrack(List<MidiEvent> controlTrackEvents, ContextChordSequence contextChordSequence, List<Position> songPositions, int trackId)
+    public ControlTrack(List<MidiEvent> controlTrackEvents, SongChordSequence contextChordSequence, List<Position> songPositions, int trackId)
     {
         if (controlTrackEvents == null || contextChordSequence == null || songPositions == null)
         {
@@ -138,7 +138,7 @@ public class ControlTrack
      *
      * @return Can't be null
      */
-    public ContextChordSequence getContextChordGetSequence()
+    public SongChordSequence getContextChordGetSequence()
     {
         return contextChordSequence;
     }

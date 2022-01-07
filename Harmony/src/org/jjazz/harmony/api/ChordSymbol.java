@@ -92,8 +92,8 @@ public class ChordSymbol implements Cloneable
         {
             throw new IllegalArgumentException("rootDg=" + rootDg + " bassDg=" + bassDg + " ct=" + ct);   //NOI18N
         }
-        rootNote = rootDg;
-        bassNote = (bassDg != null) ? bassDg : rootDg;
+        rootNote = buildStdNote(rootDg);
+        bassNote = (bassDg != null) ? buildStdNote(bassDg) : rootNote;
         chordType = ct;
         name = computeName();
         originalName = name;
@@ -144,7 +144,7 @@ public class ChordSymbol implements Cloneable
             // There is a bass degree e.g. "Am7/D"
             try
             {
-                bassNote = new Note(originalName.substring(bass_index + 1));
+                bassNote = buildStdNote(new Note(originalName.substring(bass_index + 1)));
             } catch (ParseException e)
             {
                 throw new ParseException(CTL_InvalidChordSymbol() + ": " + originalName + ". " + e.getLocalizedMessage(), 0);
@@ -156,7 +156,7 @@ public class ChordSymbol implements Cloneable
         // Get the root note
         try
         {
-            rootNote = new Note(sb.toString());
+            rootNote = buildStdNote(new Note(sb.toString()));
         } catch (ParseException e)
         {
             throw new ParseException(CTL_InvalidChordSymbol() + ": " + originalName + ". " + e.getLocalizedMessage(), 0);
@@ -286,6 +286,23 @@ public class ChordSymbol implements Cloneable
         }
 
         return cs;
+    }
+
+    /**
+     * Get a simplified ChordSymbol by keeping only the first nbMaxDegrees degrees.
+     *
+     * @param nbMaxDegrees Must be &gt; 2
+     * @return Can't be null
+     */
+    public ChordSymbol getSimplified(int nbMaxDegrees)
+    {
+        var res = this;
+        var ct = chordType.getSimplified(nbMaxDegrees);
+        if (ct != chordType)
+        {
+            res = new ChordSymbol(rootNote, bassNote, ct);
+        }
+        return res;
     }
 
     /**
@@ -444,7 +461,7 @@ public class ChordSymbol implements Cloneable
         int rootPitch = (int) Math.round(Math.random() * 11);
         int bassPitch = Math.round(1) > 0.7 ? rootPitch : (int) Math.round(Math.random() * 11);
         var chordTypes = ChordTypeDatabase.getInstance().getChordTypes();
-        int index = (int) Math.round(Math.random() * (chordTypes.length-1));
+        int index = (int) Math.round(Math.random() * (chordTypes.length - 1));
         ChordType ct = chordTypes[index];
         ChordSymbol res = new ChordSymbol(new Note(rootPitch), new Note(bassPitch), ct);
         return res;
@@ -463,6 +480,11 @@ public class ChordSymbol implements Cloneable
         String s = rootNote.toRelativeNoteString() + chordType.getName() + (bassNote.equalsRelativePitch(rootNote) ? "" : ("/" + bassNote.
                 toRelativeNoteString()));
         return s;
+    }
+
+    private Note buildStdNote(Note n)
+    {
+        return new Note(n.getRelativePitch(), 1, 64, n.getAlterationDisplay());
     }
 
     // --------------------------------------------------------------------- 
