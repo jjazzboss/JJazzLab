@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
 import org.jjazz.harmony.api.Note;
+import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Factory;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo;
@@ -150,11 +151,59 @@ public class ChordSequence extends ArrayList<CLI_ChordSymbol> implements Compara
     }
 
     /**
+     * A new sub-sequence which uses only 1 time signature.
+     *
+     * @param subRange
+     * @param ts The TimeSignature of the sub-sequence.
+     * @param addInitChordSymbol If true, try to add an init chordsymbol if the resulting subsequence does not have one: reuse the
+     * last chord symbol before subRange.from if any
+     * @return
+     * @throws IllegalArgumentException If one chord symbol position is not compatible with the time signature ts
+     */
+    public SimpleChordSequence subSequence(IntRange subRange, TimeSignature ts, boolean addInitChordSymbol)
+    {
+        if (!barRange.contains(subRange))
+        {
+            throw new IllegalArgumentException("barRange=" + barRange + " subRange=" + subRange);
+        }
+
+
+        SimpleChordSequence scSeq = new SimpleChordSequence(subRange, ts);
+
+
+        for (CLI_ChordSymbol cs : this)
+        {
+            int bar = cs.getPosition().getBar();
+            if (!subRange.contains(bar))
+            {
+                continue;
+            }
+            if (!ts.checkBeat(cs.getPosition().getBeat()))
+            {
+                throw new IllegalArgumentException("ts=" + ts + " cs=" + cs);
+            }
+            scSeq.add(cs);
+        }
+
+        if (addInitChordSymbol && subRange.from > barRange.from && (scSeq.isEmpty() || !scSeq.get(0).getPosition().equals(new Position(subRange.from, 0))))
+        {
+            int index = indexOfLastChordBeforeBar(subRange.from);
+            if (index != -1)
+            {
+                CLI_ChordSymbol newCs = scSeq.getInitCopy(get(index));
+                scSeq.add(0, newCs);
+            }
+        }
+
+        return scSeq;
+    }
+
+    /**
      * A new sub-sequence from this sequence.
      *
      * @param subRange The range of the sub-sequence.
      * @param addInitChordSymbol If true, try to add an init chordsymbol if the resulting subsequence does not have one: reuse the
-     * last chord symbol before subRange.from
+     * last chord symbol before subRange.from if any
      * @return
      */
     public ChordSequence subSequence(IntRange subRange, boolean addInitChordSymbol)
@@ -178,7 +227,7 @@ public class ChordSequence extends ArrayList<CLI_ChordSymbol> implements Compara
             cSeq.add(cs);
         }
 
-        if (subRange.from > barRange.from && (cSeq.isEmpty() || !cSeq.get(0).getPosition().equals(new Position(subRange.from, 0))))
+        if (addInitChordSymbol && subRange.from > barRange.from && (cSeq.isEmpty() || !cSeq.get(0).getPosition().equals(new Position(subRange.from, 0))))
         {
             int index = indexOfLastChordBeforeBar(subRange.from);
             if (index != -1)
