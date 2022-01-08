@@ -28,7 +28,6 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import javax.swing.JComponent;
 import javax.swing.plaf.LayerUI;
-import org.jjazz.ui.utilities.api.Utilities;
 
 /**
  * A LayerUI that display a centered text over the view component using a semi-transparent background.

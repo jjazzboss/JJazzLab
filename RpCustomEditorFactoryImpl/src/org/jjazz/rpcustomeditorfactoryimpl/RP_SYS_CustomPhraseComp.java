@@ -494,7 +494,7 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
                 }
 
                 Phrase pOld = getPhrase(rv);
-                if (!pNew.equalsLoosePosition(pOld, PHRASE_COMPARE_BEAT_WINDOW))
+                if (!pNew.equalsNearPosition(pOld, PHRASE_COMPARE_BEAT_WINDOW))
                 {
 //                    LOGGER.info("importMidiFile() setting custom phrase for rv=" + rv);
 //                    LOGGER.info("importMidiFile() pOld=" + pOld);

@@ -955,11 +955,11 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
      *
      *
      * @param p
-     * @param beatWindow Used to compare NoteEvents position and duration.
+     * @param nearWindow Used to compare NoteEvents position and duration.
      * @return
-     * @see NoteEvent#equalsLoosePosition(org.jjazz.phrase.api.NoteEvent, float)
+     * @see NoteEvent#equalsNearPosition(org.jjazz.phrase.api.NoteEvent, float)
      */
-    public boolean equalsLoosePosition(Phrase p, float beatWindow)
+    public boolean equalsNearPosition(Phrase p, float nearWindow)
     {
         checkNotNull(p);
         if (size() != p.size())
@@ -969,7 +969,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
         Iterator<NoteEvent> pIt = p.iterator();
         for (NoteEvent ne : this)
         {
-            if (!pIt.next().equalsLoosePosition(ne, beatWindow))
+            if (!pIt.next().equalsNearPosition(ne, nearWindow))
             {
                 return false;
             }

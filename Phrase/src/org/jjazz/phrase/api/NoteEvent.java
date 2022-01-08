@@ -230,10 +230,10 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
      * ClientProperties are ignored.
      *
      * @param ne
-     * @param beatWindow
+     * @param nearWindow
      * @return
      */
-    public boolean equalsLoosePosition(NoteEvent ne, float beatWindow)
+    public boolean equalsNearPosition(NoteEvent ne, float nearWindow)
     {
         Preconditions.checkNotNull(ne);
         if (ne.getPitch() != getPitch())
@@ -244,8 +244,11 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
         {
             return false;
         }
-
-        if (ne.getDurationInBeats() < getDurationInBeats() - 2 * beatWindow || ne.getDurationInBeats() > getDurationInBeats() + 2 * beatWindow)
+        if (!ne.isNear(position, nearWindow))
+        {
+            return false;
+        }
+        if (ne.getDurationInBeats() < getDurationInBeats() - 2 * nearWindow || ne.getDurationInBeats() > getDurationInBeats() + 2 * nearWindow)
         {
             return false;
         }
@@ -255,7 +258,7 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
     /**
      * Test if this note is near the specified position.
      * <p>
-     * A "near" position means in the interval [posInBeats-nearWindow;posInBeats+nearWindow[.
+     * A "near" position is in the interval [posInBeats-nearWindow;posInBeats+nearWindow[.
      *
      * @param posInBeats
      * @param nearWindow
