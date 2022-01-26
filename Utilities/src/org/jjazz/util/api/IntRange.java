@@ -92,6 +92,46 @@ public class IntRange
     }
 
     /**
+     * Test if r is adjacent to this range, e.g. [4;6] and [7;12] are adjacent.
+     * <p>
+     * If ranges intersect, there are not adjacent. If one of the range is empty, return false.
+     *
+     * @param r
+     * @return
+     */
+    public boolean isAdjacent(IntRange r)
+    {
+        if (r == EMPTY_RANGE || this == EMPTY_RANGE)
+        {
+            return false;
+        }
+        if (intersects(r))
+        {
+            return false;
+        }
+        return from < r.from ? to == r.from - 1 : r.to == from - 1;
+    }
+
+    /**
+     * Get a new range made from the lowest and highest bounds from this object and r.
+     * <p>
+     * If one of the range is empty, return the empty range.
+     *
+     * @param r
+     * @return
+     */
+    public IntRange getUnionRange(IntRange r)
+    {
+        if (r == EMPTY_RANGE || this == EMPTY_RANGE)
+        {
+            return EMPTY_RANGE;
+        }
+        int low = Math.min(from, r.from);
+        int high = Math.max(to, r.to);
+        return new IntRange(low, high);
+    }
+
+    /**
      *
      * @param r
      * @return Can return the EMPTY_RANGE if no intersection.
