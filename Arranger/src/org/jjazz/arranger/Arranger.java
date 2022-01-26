@@ -177,7 +177,7 @@ public class Arranger implements SgsChangeListener, PropertyChangeListener
 
         playing = true;
         pcs.firePropertyChange(PROP_PLAYING, false, true);
-        
+
         Analytics.incrementProperties("Play Arranger Mode", 1);
     }
 
@@ -203,9 +203,10 @@ public class Arranger implements SgsChangeListener, PropertyChangeListener
         {
             newCs, System.nanoTime()
         });
+
         if (songContextWork == null)
         {
-            LOGGER.warning("updateChordSymbol() songContextWork is null!");
+            return;
         }
 
         ChordLeadSheet cls = songContextWork.getSong().getChordLeadSheet();
