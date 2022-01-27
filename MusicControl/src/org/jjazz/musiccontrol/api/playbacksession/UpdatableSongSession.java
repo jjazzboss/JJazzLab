@@ -152,7 +152,7 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
      * is created.
      * <p>
      * @param session Must be in the NEW or GENERATED state. If it is an UpdateProvider instance automatically apply the updates
-     * when available.
+     *                when available.
      * @return
      */
     static public UpdatableSongSession getSession(BaseSongSession session)
@@ -270,7 +270,7 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
      *
      * @param update
      * @throws IllegalArgumentException If a MidiEvent tick position is beyond getOriginalSequenceSize(), or if session is not in
-     * the GENERATED state.
+     *                                  the GENERATED state.
      */
     public void updateSequence(Update update)
     {
@@ -318,9 +318,9 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
         {
             var updatedPhrase = update.getMapRvPhrases().get(rv);
             var currentPhrase = currentMapRvPhrase.get(rv);
-//            LOGGER.log(Level.INFO, "   rv={0}", rv);
-//            LOGGER.log(Level.INFO, "     currentPhrase={0}", currentPhrase);
-//            LOGGER.log(Level.INFO, "     updatedPhrase={0}", updatedPhrase);
+            LOGGER.log(Level.FINE, "   rv={0}", rv);
+            LOGGER.log(Level.FINE, "     currentPhrase={0}", currentPhrase);
+            LOGGER.log(Level.FINE, "     updatedPhrase={0}", updatedPhrase);
 
 
             if (currentPhrase.equals(updatedPhrase))
@@ -363,7 +363,9 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
         }
 
 
-//        LOGGER.info("updateSequence() AFTER: mapTrackIdMuted=" + mapTrackIdMuted);
+        LOGGER.log(Level.FINE, "updateSequence() AFTER: mapTrackIdMuted={0}", mapTrackIdMuted);
+
+
         // Notify our listeners that tracks mute status has changed
         pcs.firePropertyChange(PlaybackSession.PROP_MUTED_TRACKS, null, mapTrackIdMuted);
     }
@@ -632,9 +634,9 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
         }
 
 
-        LOGGER.log(Level.FINE, "generate() mapTrackIdMuted={0}", mapTrackIdMuted);
-        LOGGER.log(Level.FINE, "generate() mapRvTrackId={0}", baseSongSession.getRvTrackIdMap());
-        LOGGER.log(Level.FINE, "generate() trackSet={0}", trackSet);
+        LOGGER.log(Level.FINE, "prepareData() mapTrackIdMuted={0}", mapTrackIdMuted);
+        LOGGER.log(Level.FINE, "prepareData() mapRvTrackId={0}", baseSongSession.getRvTrackIdMap());
+        LOGGER.log(Level.FINE, "prepareData() trackSet={0}", trackSet);
     }
 
 
@@ -642,7 +644,7 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
      * Update one track.
      *
      * @param trackId
-     * @param newEvents IMPORTANT events positions will be modified!
+     * @param newEvents     IMPORTANT events positions will be modified!
      * @param precountShift
      * @throws IllegalArgumentException
      */

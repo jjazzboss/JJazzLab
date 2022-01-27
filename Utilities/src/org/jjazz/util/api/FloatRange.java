@@ -68,7 +68,7 @@ public class FloatRange
      */
     public float size()
     {
-        return this == EMPTY_FLOAT_RANGE ? 0 : to - from;
+        return isEmpty() ? 0 : to - from;
     }
 
     /**
@@ -80,7 +80,7 @@ public class FloatRange
      */
     public boolean contains(float x, boolean excludeUpperBound)
     {
-        if (this == EMPTY_FLOAT_RANGE)
+        if (isEmpty())
         {
             return false;
         }
@@ -129,7 +129,7 @@ public class FloatRange
      */
     public boolean intersects(FloatRange rg)
     {
-        return !(this == EMPTY_FLOAT_RANGE || rg == EMPTY_FLOAT_RANGE || rg.from >= to || from >= rg.to);
+        return !(isEmpty() || rg.isEmpty() || rg.from >= to || from >= rg.to);
     }
 
     /**

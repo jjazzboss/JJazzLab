@@ -1209,7 +1209,6 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      * <p>
      * Depends on songPartTempoFactor and songTempoFactor. Sequencer tempo must always be MidiConst.SEQUENCER_REF_TEMPO.
      *
-     * @param bpm
      */
     private void updateTempoFactor()
     {

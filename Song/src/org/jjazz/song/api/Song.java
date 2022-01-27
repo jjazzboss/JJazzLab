@@ -230,7 +230,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
 
         // Make phrase no longer than the song
         FloatRange beatRange = getSongStructure().getBeatRange(null);
-        p = p.getSlice(0, beatRange.to, false, 1, 0.1f);
+        p = p.getSlice(beatRange, false, 1, 0f);
 
 
         final Phrase oldPhrase = mapUserPhrases.get(name) == null ? null : mapUserPhrases.get(name).clone();

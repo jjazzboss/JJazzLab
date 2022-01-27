@@ -125,7 +125,7 @@
             <EventHandler event="mouseDragged" listener="java.awt.event.MouseMotionListener" parameters="java.awt.event.MouseEvent" handler="lbl_rhythmVoiceMouseDragged"/>
           </Events>
         </Component>
-        <Container class="org.jjazz.phrase.api.ui.PhraseBirdsEyeView" name="birdViewComponent">
+        <Container class="org.jjazz.phrase.api.ui.PhraseBirdsEyeViewComponent" name="birdViewComponent">
           <Properties>
             <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
               <Border info="org.netbeans.modules.form.compat2.border.EtchedBorderInfo">

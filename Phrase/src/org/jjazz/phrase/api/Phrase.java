@@ -136,10 +136,10 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
      * <p>
      * NOTE_ON events without a corresponding NOTE_OFF event are ignored.
      *
-     * @param midiEvents MidiEvents which are not ShortMessage.Note_ON/OFF are ignored. Must be ordered by tick position,
-     * resolution must be MidiConst.PPQ_RESOLUTION.
+     * @param midiEvents       MidiEvents which are not ShortMessage.Note_ON/OFF are ignored. Must be ordered by tick position,
+     *                         resolution must be MidiConst.PPQ_RESOLUTION.
      * @param posInBeatsOffset The position in natural beats of the first tick of the track.
-     * @param ignoreChannel If true, add also NoteEvents for MidiEvents which do not match this phrase channel.
+     * @param ignoreChannel    If true, add also NoteEvents for MidiEvents which do not match this phrase channel.
      * @see MidiUtilities#getMidiEvents(javax.sound.midi.Track, java.util.function.Predicate, LongRange)
      * @see MidiConst#PPQ_RESOLUTION
      */
@@ -475,43 +475,43 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
 
 
     /**
-     * Get a new phrase where all events whose start position is before startPos, or equal/after endPos, are removed, taking into
-     * account possible live-played/non-quantized notes via the beatWindow parameter.
+     * Get a new phrase which keeps only the notes in the specified beat range, taking into account possible
+     * live-played/non-quantized notes via the beatWindow parameter.
      * <p>
-     * First, if beatWindow &gt; 0 then notes starting in the range [startPos-beatWindow; startPos[ are changed so they start at
-     * startPos, and notes starting in the range [endPos-beatWindow; endPos[ are removed.
+     * First, if beatWindow &gt; 0 then notes starting in the range [range.from-beatWindow; range.from[ are changed in the
+     * returned phrase so they start at range.from, and notes starting in the range [range.to-beatWindow; range.to[ are removed.
      * <p>
-     * Then, if a note is starting before startPos and ending after startPos: <br>
+     * Then, if a note is starting before startPos and ending after range.from: <br>
      * - if keepLeft is false, the note is removed<br>
-     * - if keepLeft is true, the note is replaced by a shorter identical one starting at startPos
+     * - if keepLeft is true, the note is replaced by a shorter identical one starting at range.from
      * <p>
-     * If a note is starting before endPos and ending after endPos: <br>
+     * If a note is starting before range.to and ending after range.to: <br>
      * - if cutRight == 0 the note is not removed.<br>
-     * - if cutRight == 1, the note is replaced by a shorter identical that ends at endPos.<br>
+     * - if cutRight == 1, the note is replaced by a shorter identical that ends at range.to.<br>
      * - if cutRight == 2, the note is removed<br>
      * <p>
      *
-     * @param startPos
-     * @param endPos
+     * @param range
      * @param keepLeft
      * @param cutRight
      * @param beatWindow A tolerance window if this phrase contains live-played/non-quantized notes. Typical value is 0.1f.
      * @return
-     * @see #split(org.jjazz.util.api.FloatRange, boolean, boolean)
+     * @see #silence(org.jjazz.util.api.FloatRange, boolean, boolean)
      */
-    public Phrase getSlice(float startPos, float endPos, boolean keepLeft, int cutRight, float beatWindow)
+    public Phrase getSlice(FloatRange range, boolean keepLeft, int cutRight, float beatWindow)
     {
         checkArgument(cutRight >= 0 && cutRight <= 2, "cutRight=%s", cutRight);
+        checkArgument(beatWindow >= 0);
 
         Phrase res = new Phrase(channel);
 
 
-        // Preprocess to accomadate for live playing / non-quantized notes
+        // Preprocess to accomodate for live playing / non-quantized notes
         List<NoteEvent> beatWindowProcessedNotes = new ArrayList<>();
         if (beatWindow > 0)
         {
-            FloatRange frLeft = startPos - beatWindow > 0 ? new FloatRange(startPos - beatWindow, startPos) : null;
-            FloatRange frRight = new FloatRange(endPos - beatWindow, endPos);
+            FloatRange frLeft = range.from - beatWindow > 0 ? new FloatRange(range.from - beatWindow, range.from) : null;
+            FloatRange frRight = new FloatRange(range.to - beatWindow, range.to);
 
             ListIterator<NoteEvent> it = listIterator();
             while (it.hasNext())
@@ -523,13 +523,13 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
                     if (frLeft.contains(neBr, false))
                     {
                         // Note is fully contained in the beatWindow! Probably a drums/perc note, move it
-                        NoteEvent newNe = new NoteEvent(ne, ne.getDurationInBeats(), startPos);
+                        NoteEvent newNe = new NoteEvent(ne, ne.getDurationInBeats(), range.from);
                         res.addOrdered(newNe);
                     } else
                     {
-                        // Note crosses startPos, make it start at startPos
-                        float newDur = Math.max(neBr.to - startPos, 0.05f);
-                        NoteEvent newNe = new NoteEvent(ne, newDur, startPos);
+                        // Note crosses range.from, make it start at range.from
+                        float newDur = Math.max(neBr.to - range.from, 0.05f);
+                        NoteEvent newNe = new NoteEvent(ne, newDur, range.from);
                         res.addOrdered(newNe);
                     }
                     beatWindowProcessedNotes.add(ne);
@@ -561,13 +561,13 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
             float nePosTo = nePosFrom + ne.getDurationInBeats();
 
 
-            if (nePosFrom < startPos)
+            if (nePosFrom < range.from)
             {
                 // It starts before the slice zone, don't add, except if it overlaps the slice zone
-                if (keepLeft && nePosTo > startPos)
+                if (keepLeft && nePosTo > range.from)
                 {
                     // It even goes beyond the slice zone!                                        
-                    if (nePosTo > endPos)
+                    if (nePosTo > range.to)
                     {
                         switch (cutRight)
                         {
@@ -576,7 +576,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
                                 break;
                             case 1:
                                 // Make it shorter
-                                nePosTo = endPos;
+                                nePosTo = range.to;
                                 break;
                             case 2:
                                 // Do not add
@@ -585,14 +585,14 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
                                 throw new IllegalStateException("cutRight=" + cutRight);
                         }
                     }
-                    float newDur = nePosTo - startPos;
-                    NoteEvent newNe = new NoteEvent(ne, newDur, startPos);
+                    float newDur = nePosTo - range.from;
+                    NoteEvent newNe = new NoteEvent(ne, newDur, range.from);
                     res.addOrdered(newNe);
                 }
-            } else if (nePosFrom < endPos)
+            } else if (nePosFrom < range.to)
             {
                 // It starts in the slice zone, add it
-                if (nePosTo <= endPos)
+                if (nePosTo <= range.to)
                 {
                     // It ends in the slice zone, easy
                     res.addOrdered(ne);
@@ -607,7 +607,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
                             break;
                         case 1:
                             // Add it but make it shorter
-                            float newDur = endPos - nePosFrom;
+                            float newDur = range.to - nePosFrom;
                             NoteEvent newNe = new NoteEvent(ne, newDur);
                             res.addOrdered(newNe);
                             break;
@@ -630,23 +630,39 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
 
 
     /**
-     * Remove all events whose start position is equal/after range.from or before range.to.
+     * Remove all notes whose start position is in the specified beat range, taking into account possible
+     * live-played/non-quantized notes via the beatWindow parameter.
      * <p>
-     * If a note is starting before range.from and ending after startPos: <br>
+     * If a note is starting before range.from and ending after range.from: <br>
      * - if cutLeft is false, the note is not removed.<br>
-     * - if cutLeft is true, the note is replaced by a shorter identical that ends at range.from.<br>
+     * - if cutLeft is true, the note is replaced by a shorter identical that ends at range.from, except if the note starts in the
+     * range [range.from-beatWindow;range.from[, then it's removed.<p>
      * If a note is starting before range.to and ending after range.to: <br>
-     * - if keepRight is false, the note is removed.<br>
-     * - if keepRight is true, the note is replaced by a shorter identical one starting at range.to.<br>
+     * - if keepRight is false, the note is removed, except if the note starts in the range [range.to-beatWindow;range.to[, then
+     * it's replaced by a shorter identical one starting at range<br>
+     * - if keepRight is true, the note is replaced by a shorter identical one starting at range.to<br>
      *
      * @param range
      * @param cutLeft
      * @param keepRight
-     * @see #getSlice(float, float, boolean, int, float)
+     * @param beatWindow A tolerance window if this phrase contains live-played/non-quantized notes. Typical value is 0.1f.
+     * @see #getSlice(org.jjazz.util.api.FloatRange, boolean, int, float)
      */
-    public void split(FloatRange range, boolean cutLeft, boolean keepRight)
+    public void silence(FloatRange range, boolean cutLeft, boolean keepRight, float beatWindow)
     {
+        checkArgument(beatWindow >= 0);
+
         ArrayList<NoteEvent> toBeAdded = new ArrayList<>();
+
+        FloatRange frLeft = FloatRange.EMPTY_FLOAT_RANGE;
+        FloatRange frRight = FloatRange.EMPTY_FLOAT_RANGE;
+
+        if (beatWindow > 0)
+        {
+            frLeft = range.from - beatWindow >= 0 ? new FloatRange(range.from - beatWindow, range.from) : FloatRange.EMPTY_FLOAT_RANGE;
+            frRight = range.to - beatWindow >= range.from ? new FloatRange(range.to - beatWindow, range.to) : FloatRange.EMPTY_FLOAT_RANGE;
+        }
+
 
         ListIterator<NoteEvent> it = listIterator();
         while (it.hasNext())
@@ -654,24 +670,46 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
             NoteEvent ne = it.next();
             float nePosFrom = ne.getPositionInBeats();
             float nePosTo = nePosFrom + ne.getDurationInBeats();
+
             if (nePosFrom < range.from)
             {
-                if (cutLeft && nePosTo > range.from)
+                if (nePosTo <= range.from)
                 {
-                    if (keepRight && nePosTo > range.from)
+                    // Leave note unchanged
+
+                } else if (cutLeft)
+                {
+                    // Replace the note by a shorter one, except if it's in the frLeft beat window
+                    if (!frLeft.contains(nePosFrom, true))
                     {
-                        float newDur = nePosTo - range.to;
-                        NoteEvent newNe = new NoteEvent(ne, newDur, range.to);
-                        toBeAdded.add(newNe);
+
+                        // Replace
+                        float newDur = range.from - nePosFrom;
+                        NoteEvent newNe = new NoteEvent(ne, newDur, nePosFrom);
+                        it.set(newNe);
+
+
+                        // Special case if note was extending beyond range.to and keepRight is true, add a note after range
+                        if (keepRight && nePosTo > range.to)
+                        {
+                            newDur = nePosTo - range.to;
+                            newNe = new NoteEvent(ne, newDur, range.to);
+                            toBeAdded.add(newNe);
+                        }
+                    } else
+                    {
+                        // It's in the left beat window, directly remove the note
+                        it.remove();
                     }
-                    float newDur = range.from - nePosFrom;
-                    NoteEvent newNe = new NoteEvent(ne, newDur, nePosFrom);
-                    it.set(newNe);
+
                 }
             } else if (nePosFrom < range.to)
             {
+                // Remove the note
                 it.remove();
-                if (keepRight && nePosTo > range.to)
+
+                // Re-add a note after range if required
+                if (nePosTo > range.to && (keepRight || frRight.contains(nePosFrom, true)))
                 {
                     float newDur = nePosTo - range.to;
                     NoteEvent newNe = new NoteEvent(ne, newDur, range.to);
@@ -679,12 +717,12 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
                 }
             } else
             {
-                // nePosFrom is after endPost
+                // nePosFrom is after range.to
                 // Nothing
             }
         }
 
-        // Add the new NoteEvents
+        // Add the new NoteEvents after range
         for (NoteEvent ne : toBeAdded)
         {
             addOrdered(ne);
@@ -721,8 +759,8 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
      * <p>
      *
      * @param posInBeats
-     * @param strict If true, notes starting or ending at posInBeats are excluded.
-     * @return The list of notes whose startPos is before (or equals) posInBeats and endPos eafter (or equals) posInBeats
+     * @param strict     If true, notes starting or ending at posInBeats are excluded.
+     * @return The list of notes whose startPos is before (or equals) posInBeats and range.to eafter (or equals) posInBeats
      */
     public List<NoteEvent> getCrossingNotes(float posInBeats, boolean strict)
     {
@@ -923,7 +961,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
      * <p>
      * Fixed new notes's PARENT_NOTE client property is preserved.
      *
-     * @param lowLimit There must be at least 1 octave between lowLimit and highLimit
+     * @param lowLimit  There must be at least 1 octave between lowLimit and highLimit
      * @param highLimit There must be at least 1 octave between lowLimit and highLimit
      */
     public void limitPitch(int lowLimit, int highLimit)
@@ -1063,7 +1101,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
      * Get a phrase with random notes at random positions.
      *
      * @param channel
-     * @param nbBars Number of 4/4 bars.
+     * @param nbBars  Number of 4/4 bars.
      * @param nbNotes Number of random notes to generate.
      * @return
      */
@@ -1089,7 +1127,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
      * @param startPosInBeats
      * @param nbBars
      * @param ts
-     * @param channel The channel of the returned phrase
+     * @param channel         The channel of the returned phrase
      * @return
      */
     static public Phrase getBasicDrumPhrase(float startPosInBeats, int nbBars, TimeSignature ts, int channel)
@@ -1146,7 +1184,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
      *
      * @param tracksPPQ The Midi PPQ resolution (pulses per quarter) used in the tracks.
      * @param tracks
-     * @param channels Get phrases only for the specified channels. If empty, get phrases for all channels.
+     * @param channels  Get phrases only for the specified channels. If empty, get phrases for all channels.
      * @return
      */
     static public List<Phrase> getPhrases(int tracksPPQ, Track[] tracks, Integer... channels)

@@ -689,7 +689,7 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
         jScrollPane1 = new javax.swing.JScrollPane();
         list_rhythmVoices = new javax.swing.JList<>();
         lbl_rhythmVoice = new javax.swing.JLabel();
-        birdViewComponent = new org.jjazz.phrase.api.ui.PhraseBirdsEyeView();
+        birdViewComponent = new org.jjazz.phrase.api.ui.PhraseBirdsEyeViewComponent();
         lbl_phraseInfo = new javax.swing.JLabel();
         jScrollPane2 = new javax.swing.JScrollPane();
         hlp_area = new org.jjazz.ui.utilities.api.HelpTextArea();
@@ -954,7 +954,7 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private org.jjazz.phrase.api.ui.PhraseBirdsEyeView birdViewComponent;
+    private org.jjazz.phrase.api.ui.PhraseBirdsEyeViewComponent birdViewComponent;
     private org.jjazz.ui.utilities.api.SmallFlatDarkLafButton btn_edit;
     private org.jjazz.ui.utilities.api.SmallFlatDarkLafButton btn_restore;
     private javax.swing.Box.Filler filler1;

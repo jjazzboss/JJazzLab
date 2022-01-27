@@ -44,11 +44,11 @@ import org.jjazz.util.api.FloatRange;
 import org.jjazz.util.api.IntRange;
 
 /**
- * A component to get a "bird view" of whole or part of a Phrase.
+ * A component to show a "bird's eye view" of whole or part of a Phrase.
  * <p>
  * Call repaint() to update the component if model has changed.
  */
-public class PhraseBirdsEyeView extends JPanel
+public class PhraseBirdsEyeViewComponent extends JPanel
 {
 
     public static final int MIN_HEIGHT = 10;
@@ -57,7 +57,7 @@ public class PhraseBirdsEyeView extends JPanel
     public static final int PREF_BAR_WIDTH = 10;
     public static final int BAR_GRADATION_LENGTH = 7;
     public static final int BEAT_GRADATION_LENGTH = 3;
-    private static final IntRange MID_RANGE = new IntRange(36, 84);
+    private static final IntRange MID_PITCH_RANGE = new IntRange(36, 84);
     private static final int OUT_OF_RANGE_PITCH_RATIO = 4;
 
 
@@ -67,7 +67,7 @@ public class PhraseBirdsEyeView extends JPanel
     private boolean showVelocity = true;
     private float markerPos = -1;
     private static final Font FONT = GeneralUISettings.getInstance().getStdCondensedFont().deriveFont(10f);
-    private static final Logger LOGGER = Logger.getLogger(PhraseBirdsEyeView.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(PhraseBirdsEyeViewComponent.class.getSimpleName());
 
     /**
      * Set the position of the marker.
@@ -102,7 +102,7 @@ public class PhraseBirdsEyeView extends JPanel
             int yMax = r.y + r.height - 1;
             int nbBars = getSizeInBars();
             double xRatio = r.width / beatRange.size();
-            IntRange pitchRange = getViewablePitchRange(MID_RANGE, OUT_OF_RANGE_PITCH_RATIO);
+            IntRange pitchRange = getViewablePitchRange(MID_PITCH_RANGE, OUT_OF_RANGE_PITCH_RATIO);
             double yRatio = (double) r.height / pitchRange.size();
 
 
@@ -155,7 +155,7 @@ public class PhraseBirdsEyeView extends JPanel
             {
                 double x0 = r.x + (ne.getPositionInBeats() - beatRange.from) * xRatio;
                 double x1 = r.x + (ne.getPositionInBeats() + ne.getDurationInBeats() - beatRange.from) * xRatio;
-                double y = yMax - (getCorrectedPitch(ne.getPitch(), MID_RANGE, OUT_OF_RANGE_PITCH_RATIO) - pitchRange.from) * yRatio;
+                double y = yMax - (getCorrectedPitch(ne.getPitch(), MID_PITCH_RANGE, OUT_OF_RANGE_PITCH_RATIO) - pitchRange.from) * yRatio;
                 if (x1 - x0 < 0.7d)
                 {
                     x1 = x0 + 0.7d;
@@ -269,10 +269,12 @@ public class PhraseBirdsEyeView extends JPanel
     // ================================================================================
 
     /**
-     * Map notes out of midRange closer to midRange.
+     * Map notes out of midRange pitch closer to midRange.
+     * <p>
+     * Mostly useful for some drums tracks with possibly very low and high notes.
      *
      * @param pitch
-     * @param midRange For ex. [36-84]
+     * @param midRange             For ex. [36-84]
      * @param outOfRangePitchRatio
      * @return
      */

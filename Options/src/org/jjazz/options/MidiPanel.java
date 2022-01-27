@@ -173,7 +173,7 @@ final class MidiPanel extends javax.swing.JPanel implements ListSelectionListene
         MidiDevice outDevice = list_OutDevices.getSelectedValue();
         openOutDevice(outDevice);
 
-        
+
         RemoteController rc = RemoteController.getInstance();
         rc.setEnabled(cb_enableRemoteControl.isSelected());
         for (RemoteAction ra : rc.getRemoteActions())
@@ -182,7 +182,7 @@ final class MidiPanel extends javax.swing.JPanel implements ListSelectionListene
         }
 
 
-        if (outDevice != saveOutDevice)
+        if (outDevice != saveOutDevice && outDevice != null)
         {
             Analytics.setProperties(Analytics.buildMap("Midi Out", outDevice.getDeviceInfo().getName()));
         }
@@ -823,8 +823,7 @@ final class MidiPanel extends javax.swing.JPanel implements ListSelectionListene
             }
         }
 
-                        
-        
+
         StringBuilder sb = new StringBuilder();
         boolean first = true;
         for (var mm : messages)
