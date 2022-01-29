@@ -368,6 +368,10 @@ public class RP_SYS_DrumsTransformComp extends RealTimeRpEditorComponent<RP_SYS_
     {
         var res = new PhraseTransformChain();
 
+        List<PhraseTransform> pts = Utilities.getListModelAsList(list_transformChainModel);
+        res.addAll(pts);
+
+        // Add the drums mix transform AFTER the transformation chain: it's more natural for user
         var dmt = new DrumsMixTransform();
         dmt.setBassDrumOffset(knb_bassDrum.getValue());
         dmt.setSnareOffset(knb_snare.getValue());
@@ -378,9 +382,7 @@ public class RP_SYS_DrumsTransformComp extends RealTimeRpEditorComponent<RP_SYS_
         dmt.setHiHatOffset(knb_hihat.getValue());
         res.add(dmt);
 
-        List<PhraseTransform> pts = Utilities.getListModelAsList(list_transformChainModel);
-        res.addAll(pts);
-
+        
         return res;
     }
 

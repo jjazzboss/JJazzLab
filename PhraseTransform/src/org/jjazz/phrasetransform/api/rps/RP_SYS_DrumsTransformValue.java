@@ -15,7 +15,7 @@ import org.jjazz.rhythm.api.RhythmVoice.Type;
 /**
  * A RhythmParameter value to transform a drums phrase.
  * <p>
- * Always contains a DrumsMixTransform() at first position in the transform chain.
+ * Always contains a DrumsMixTransform() at last position in the transform chain.
  */
 public class RP_SYS_DrumsTransformValue
 {
@@ -59,13 +59,13 @@ public class RP_SYS_DrumsTransformValue
     /**
      * Return a copy of this object but with the specified chain.
      *
-     * @param chain If null, the returned copy will use the default value. If not null, the first PhraseTransform must be a
-     * DrumsMixTransform instance.
+     * @param chain If null, the returned copy will use the default value. If not null, the last PhraseTransform must be a
+     *              DrumsMixTransform instance.
      * @return
      */
     public RP_SYS_DrumsTransformValue getCopy(PhraseTransformChain chain)
     {
-        checkArgument(chain == null || (!chain.isEmpty() && chain.get(0) instanceof DrumsMixTransform), "chain=%s", chain);
+        checkArgument(chain == null || (!chain.isEmpty() && chain.get(chain.size() - 1) instanceof DrumsMixTransform), "chain=%s", chain);
         var res = new RP_SYS_DrumsTransformValue(rhythmVoice);
         res.transformChain = chain == null ? new PhraseTransformChain(Arrays.asList(new DrumsMixTransform())) : chain.deepClone();
         return res;
@@ -74,22 +74,22 @@ public class RP_SYS_DrumsTransformValue
     /**
      * Get a copy of the chain associated to rv.
      *
-     * @param excludeDrumsMixTransform If true do not include in the return value the DrumsMixTransform at first position
+     * @param excludeDrumsMixTransform If true do not include in the return value the DrumsMixTransform at last position
      * @return Can't be null
      */
     public PhraseTransformChain getTransformChain(boolean excludeDrumsMixTransform)
     {
         var res = transformChain.deepClone();
-        if (excludeDrumsMixTransform)
+        if (excludeDrumsMixTransform && !res.isEmpty())
         {
-            res.remove(0);
+            res.remove(res.size() - 1);
         }
         return res;
     }
 
     public DrumsMixTransform getDrumsMixTransform()
     {
-        return (DrumsMixTransform) transformChain.get(0);
+        return (DrumsMixTransform) transformChain.get(transformChain.size() - 1);
     }
 
 
@@ -119,7 +119,7 @@ public class RP_SYS_DrumsTransformValue
      * Create an object from a string.
      *
      * @param rv Must have a container defined and be of RhythmVoice.Type.DRUMS
-     * @param s Example "[uniqueId1#prop1=value1,prop2=value2|uniqueId2#|uniqueId3#prop1=value1]"
+     * @param s  Example "[uniqueId1#prop1=value1,prop2=value2|uniqueId2#|uniqueId3#prop1=value1]"
      * @return Can be null
      * @see #saveAsString(org.jjazz.phrasetransform.api.rps.RP_SYS_DrumsTransformValue)
      * @see PhraseTransformChain#loadFromString(java.lang.String)
