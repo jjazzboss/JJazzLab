@@ -167,6 +167,8 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         {
             throw new IllegalArgumentException("settings=" + settings);   //NOI18N
         }
+
+
         // Listen to settings change events
         this.settings = settings;
         settings.addPropertyChangeListener(this);
@@ -641,9 +643,9 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
             // User channel
             mcp = createMixChannelPanelForUserVoice(mm, channel);
             insertMixChannelPanel(channel, mcp);
-            UserExtensionPanel ucep = new UserExtensionPanel(songModel, 
-                    songMidiMix, 
-                    (UserRhythmVoice) rv, 
+            UserExtensionPanel ucep = new UserExtensionPanel(songModel,
+                    songMidiMix,
+                    (UserRhythmVoice) rv,
                     new UserExtensionPanelController(),
                     settings
             );
@@ -657,7 +659,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
 
 
         // Set a transfer handler for each panel
-        mcp.setTransferHandler(new MidiFileDragOutTransferHandler(rv));      
+        mcp.setTransferHandler(new MidiFileDragOutTransferHandler(rv));
 
 
         panel_mixChannels.revalidate();
@@ -668,7 +670,10 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
 
     private MixChannelPanel createMixChannelPanelForRhythmVoice(MidiMix mm, int channel, RhythmVoice rv)
     {
-        LOGGER.log(Level.FINE, "createMixChannelPanelForRhythmVoice() -- mm={0} channel={1} rv={2}", new Object[]{mm, channel, rv});   //NOI18N
+        LOGGER.log(Level.FINE, "createMixChannelPanelForRhythmVoice() -- mm={0} channel={1} rv={2}", new Object[]
+        {
+            mm, channel, rv
+        });   //NOI18N
         MixChannelPanelModelImpl mcpModel = new MixChannelPanelModelImpl(mm, channel);
         MixChannelPanelControllerImpl mcpController = new MixChannelPanelControllerImpl(mm, channel);
         MixChannelPanel mcp = new MixChannelPanel(mcpModel, mcpController, settings);

@@ -22,11 +22,14 @@
  */
 package org.jjazz.ui.mixconsole.api;
 
-import java.awt.Dimension;
+import java.util.logging.Logger;
 import org.jjazz.util.api.ResUtil;
 import org.netbeans.api.settings.ConvertAsProperties;
+import org.openide.DialogDisplayer;
+import org.openide.NotifyDescriptor;
 import org.openide.awt.ActionID;
 import org.openide.awt.UndoRedo;
+import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 import org.openide.windows.TopComponent;
 
@@ -56,6 +59,7 @@ public final class MixConsoleTopComponent extends TopComponent
 
     private static MixConsoleTopComponent INSTANCE;
     private MixConsole editor;
+    private static final Logger LOGGER = Logger.getLogger(MixConsoleTopComponent.class.getSimpleName());
 
     public MixConsoleTopComponent()
     {
@@ -71,8 +75,25 @@ public final class MixConsoleTopComponent extends TopComponent
 
         initComponents();
 
-        editor = new MixConsole(MixConsoleSettings.getDefault());
-        add(editor);
+
+        try
+        {
+            // Catch exception & assertion errors to make sure user is notified, and that MixConsoleTopComponent is opened.
+            // Fix Issue #261: If there is a bug in MixConsole(), MixConsoleTopComponent will not be displayed, user will exit JJazzLab and Netbeans
+            // will save the window configuration (WindowManager.wswmgr) without MixConsoleTopComponent. When user restarts JJazzLab, MixConsoleTopComponent will not appear
+            // anymore, even if the bug has gone!
+            editor = new MixConsole(MixConsoleSettings.getDefault());
+            add(editor);
+        } catch (Throwable t)
+        {
+            // Log & notify user, this is serious
+            String msg = "ERROR can't create the MixConsole, please report this bug with the Log file content. err='" + t.getMessage() + "'";
+            LOGGER.severe("MixConsoleTopComponent() " + msg);
+            Exceptions.printStackTrace(t);
+            NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
+            DialogDisplayer.getDefault().notifyLater(nd);
+        }
+
 
         INSTANCE = this;
     }
