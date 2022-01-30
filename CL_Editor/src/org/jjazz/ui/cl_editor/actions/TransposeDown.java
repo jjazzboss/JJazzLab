@@ -108,8 +108,7 @@ public final class TransposeDown extends AbstractAction implements ContextAwareA
     @Override
     public void selectionChange(CL_SelectionUtilities selection)
     {
-        // Action is enable if at least 2 chord symbols are selected
-        setEnabled(selection.getSelectedChordSymbols().size() >= 2);
+        setEnabled(selection.isItemSelected() && (selection.getSelectedItems().get(0) instanceof CLI_ChordSymbol));
     }
 
     @Override
