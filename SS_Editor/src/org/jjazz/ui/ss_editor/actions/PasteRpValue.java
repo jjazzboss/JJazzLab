@@ -108,18 +108,18 @@ public class PasteRpValue extends AbstractAction implements ContextAwareAction, 
         var rp = buffer.getRhythmParameter();
         List<Object> values = buffer.get();
         assert !values.isEmpty() : "buffer=" + buffer;
-        var spts = getPastableSongParts(selection, r, rp);
+        var selSpts = getPastableSongParts(selection, r, rp);
 
 
         JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(sgs);
         um.startCEdit(undoText);
 
 
-        if (spts.size() == 1)
+        if (selSpts.size() == 1)
         {
             // Single spt selection is special case: we try to paste all buffer values on next compatible song parts
             var allSpts = sgs.getSongParts();
-            int sptIndex = allSpts.indexOf(spts.get(0));
+            int sptIndex = allSpts.indexOf(selSpts.get(0));
 
             for (var itValue = values.iterator(); itValue.hasNext();)
             {
@@ -145,14 +145,14 @@ public class PasteRpValue extends AbstractAction implements ContextAwareAction, 
         {
             // Multple spt selection : we paste only on the selected song parts, cycling through the buffer values if required
             Iterator<Object> itValue = Iterables.cycle(values).iterator();
-            for (var spt : spts)
+            for (var spt : selSpts)
             {
                 var crp = RhythmParameter.findFirstCompatibleRp(spt.getRhythm().getRhythmParameters(), rp);
                 if (crp != null)
                 {
                     Object value = itValue.next();
                     Object newValue = crp.convertValue((RhythmParameter) rp, value);
-                    sgs.setRhythmParameterValue(spt, (RhythmParameter) rp, newValue);
+                    sgs.setRhythmParameterValue(spt, (RhythmParameter) crp, newValue);
                 }
             }
         }
@@ -169,6 +169,15 @@ public class PasteRpValue extends AbstractAction implements ContextAwareAction, 
         setEnabled(b);
     }
 
+
+    // =======================================================================
+    // ChangeListener interface
+    // =======================================================================
+    /**
+     * Called when the RpValueCopyBuffer buffer has changed
+     *
+     * @param e
+     */
     @Override
     public void stateChanged(ChangeEvent e)
     {
