@@ -703,6 +703,7 @@ final class MidiPanel extends javax.swing.JPanel implements ListSelectionListene
             DialogDisplayer.getDefault().notify(nd);
         } else
         {
+            LOGGER.info("btn_learnActionPerformed() Midi learn session success - ra=" + ra.toString());
             valueChanged(null);
         }
         rc.setEnabled(saveEnabled);
