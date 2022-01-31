@@ -46,6 +46,7 @@ import javax.sound.midi.Synthesizer;
 import javax.sound.midi.Transmitter;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.midi.api.device.JJazzMidiDevice;
+import org.jjazz.midi.api.device.MidiFilter.Config;
 import org.jjazz.upgrade.api.UpgradeManager;
 import org.jjazz.upgrade.api.UpgradeTask;
 import org.jjazz.util.api.ResUtil;
@@ -150,6 +151,18 @@ public final class JJazzMidiSystem
     {
         // The IN/OUT virtual devices to be used by the application
         jjazzMidiIn = new MidiFilter("[JJazz Midi IN device]");
+
+
+        // Discard some messages we should never need
+        jjazzMidiIn.setFilterConfig(EnumSet.of(Config.FILTER_ACTIVE_SENSING,
+                Config.FILTER_CHANNEL_PRESSURE,
+                Config.FILTER_MIDI_TIME_CODE,
+                Config.FILTER_POLY_PRESSURE,
+                Config.FILTER_TIMING_CLOCK,
+                Config.FILTER_TUNE_REQUEST
+        ));
+
+
         jjazzMidiOut = new MidiFilter("[JJazz Midi OUT device]");
         transmitterJJazzOut2PhysicalOut = jjazzMidiOut.getTransmitter();
         receiverJJazzOut = jjazzMidiOut.getReceiver();
@@ -505,7 +518,7 @@ public final class JJazzMidiSystem
      *
      * @param f
      * @param silentRun If false wait until completion of the task and show progress bar. If true nothing is shown and method
-     * immediatly returns true.
+     *                  immediatly returns true.
      * @return true If success. If silentRun=true always return true.
      */
     public boolean loadSoundbankFileOnSynth(final File f, boolean silentRun)

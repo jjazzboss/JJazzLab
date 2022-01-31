@@ -37,7 +37,8 @@ public class MidiFilter extends JJazzMidiDevice
 
     public enum Config
     {
-        FILTER_EVERYTHING, FILTER_SYSEXMESSAGE, FILTER_METAMESSAGE, FILTER_ALL_EXCEPT_NOTE_ON_OFF_MESSAGES, FILTER_ACTIVE_SENSING
+        FILTER_EVERYTHING, FILTER_SYSEXMESSAGE, FILTER_METAMESSAGE, FILTER_ALL_EXCEPT_NOTE_ON_OFF_MESSAGES, FILTER_ACTIVE_SENSING, FILTER_CHANNEL_PRESSURE, FILTER_MIDI_TIME_CODE, FILTER_POLY_PRESSURE, FILTER_SONG_POSITION_POINTER, FILTER_SONG_SELECT,
+        FILTER_TIMING_CLOCK, FILTER_TUNE_REQUEST, FILTER_START, FILTER_STOP, FILTER_CONTINUE, FILTER_PITCHBEND
     }
 
     public enum ConfigLog
@@ -91,6 +92,9 @@ public class MidiFilter extends JJazzMidiDevice
     // ================================================================================    
     /**
      * Operation called when a MidiMessage has been filtered
+     *
+     * @param msg
+     * @param timestamp
      */
     private void filtered(MidiMessage msg, long timestamp)
     {
@@ -106,6 +110,9 @@ public class MidiFilter extends JJazzMidiDevice
 
     /**
      * Operation called when a MidiMessage has not been filtered
+     *
+     * @param msg
+     * @param timestamp
      */
     private void passed(MidiMessage msg, long timestamp)
     {
@@ -147,11 +154,15 @@ public class MidiFilter extends JJazzMidiDevice
         }
 
         /**
-         * Operation called each time a MidiMessage arrives. Filter incoming MidiMessages.
+         * Operation called each time a MidiMessage arrives.Filter incoming MidiMessages.
+         *
+         * @param msg
+         * @param timestamp
          */
         @Override
         synchronized public void send(MidiMessage msg, long timestamp)
         {
+
             if (!isOpen)
             {
                 throw new IllegalStateException("FilterReceiver object is closed");   //NOI18N
@@ -191,32 +202,49 @@ public class MidiFilter extends JJazzMidiDevice
                 }
             }
 
-            if (configFilter.contains(Config.FILTER_ACTIVE_SENSING))
+
+            if (configFilter.contains(Config.FILTER_SYSEXMESSAGE) && msg instanceof SysexMessage)
             {
-                if (msg instanceof ShortMessage && (((ShortMessage) msg).getCommand() == 240))
+                filtered(msg, timestamp);
+                return;
+            }
+
+
+            if (configFilter.contains(Config.FILTER_METAMESSAGE) && msg instanceof MetaMessage)
+            {
+                filtered(msg, timestamp);
+                return;
+            }
+
+
+            if (msg instanceof ShortMessage)
+            {
+                int cmd = ((ShortMessage) msg).getCommand();
+                if ((configFilter.contains(Config.FILTER_CHANNEL_PRESSURE) && cmd == ShortMessage.CHANNEL_PRESSURE)
+                        || (configFilter.contains(Config.FILTER_POLY_PRESSURE) && cmd == ShortMessage.POLY_PRESSURE)
+                        || (configFilter.contains(Config.FILTER_PITCHBEND) && cmd == ShortMessage.PITCH_BEND))
                 {
                     filtered(msg, timestamp);
                     return;
                 }
             }
 
-            if (configFilter.contains(Config.FILTER_SYSEXMESSAGE))
+
+            int st = msg.getStatus();
+            if ((configFilter.contains(Config.FILTER_ACTIVE_SENSING) && st == ShortMessage.ACTIVE_SENSING)
+                    || (configFilter.contains(Config.FILTER_CONTINUE) && st == ShortMessage.CONTINUE)
+                    || (configFilter.contains(Config.FILTER_MIDI_TIME_CODE) && st == ShortMessage.MIDI_TIME_CODE)
+                    || (configFilter.contains(Config.FILTER_SONG_POSITION_POINTER) && st == ShortMessage.SONG_POSITION_POINTER)
+                    || (configFilter.contains(Config.FILTER_SONG_SELECT) && st == ShortMessage.SONG_SELECT)
+                    || (configFilter.contains(Config.FILTER_START) && st == ShortMessage.START)
+                    || (configFilter.contains(Config.FILTER_STOP) && st == ShortMessage.STOP)
+                    || (configFilter.contains(Config.FILTER_TIMING_CLOCK) && st == ShortMessage.TIMING_CLOCK)
+                    || (configFilter.contains(Config.FILTER_TUNE_REQUEST) && st == ShortMessage.TUNE_REQUEST))
             {
-                if (msg instanceof SysexMessage)
-                {
-                    filtered(msg, timestamp);
-                    return;
-                }
+                filtered(msg, timestamp);
+                return;
             }
 
-            if (configFilter.contains(Config.FILTER_METAMESSAGE))
-            {
-                if (msg instanceof MetaMessage)
-                {
-                    filtered(msg, timestamp);
-                    return;
-                }
-            }
 
             // Ok message is not filtered
             passed(msg, timestamp);
