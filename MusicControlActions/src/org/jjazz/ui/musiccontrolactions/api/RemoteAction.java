@@ -66,9 +66,9 @@ public class RemoteAction
      * Create a RemoteAction with no MidiMessage.
      *
      * @param actionCategory Must be a valid JJazzLab/Netbeans action category.
-     * @param actionId Must be a valid JJazzLab/Netbeans action id.
+     * @param actionId       Must be a valid JJazzLab/Netbeans action id.
      * @throws IllegalArgumentException If parameters do not represent a valid JJazzLab action, or if the action does not have a
-     * NAME property defined.
+     *                                  NAME property defined.
      */
     public RemoteAction(String actionCategory, String actionId)
     {
@@ -300,7 +300,7 @@ public class RemoteAction
      *
      * @param mm
      * @return True if this message comparison is the last successful comparison with each of the reference MidiMessages of this
-     * RemoteAction.
+     *         RemoteAction.
      */
     public boolean check(MidiMessage mm)
     {
@@ -359,37 +359,71 @@ public class RemoteAction
     // ================================================================================================
     // Private methods
     // ================================================================================================
+    /**
+     * Compare mm with the reference MidiMessage.
+     *
+     * @param mmRef
+     * @param mm
+     * @return
+     */
     private boolean compare(MidiMessage mmRef, MidiMessage mm)
     {
-        if (mmRef instanceof ShortMessage && mm instanceof ShortMessage)          // Can't just compare == classes, because both JJazzLab and JDK use their own ShortMessage subclasses
+        if (mmRef instanceof ShortMessage && mm instanceof ShortMessage)          // Can't just compare with == classes, because both JJazzLab and JDK use their own ShortMessage subclasses
         {
             ShortMessage smRef = (ShortMessage) mmRef;
             ShortMessage sm = (ShortMessage) mm;
-            if (smRef.getCommand() != sm.getCommand() || smRef.getChannel() != sm.getChannel())
+            int refCommand = smRef.getCommand();
+            int refStatus = smRef.getStatus();
+            int refChannel = smRef.getChannel();
+            int channel = sm.getChannel();
+            int command = sm.getCommand();
+            int status = sm.getStatus();
+
+
+            // Special case if mmRef is a NoteON or NoteOFF
+            if (MidiUtilities.getNoteOffShortMessage(smRef) != null)        // Note_OFF OR Note_ON with velocity=0
             {
-                return false;
+                return MidiUtilities.getNoteOffShortMessage(sm) != null && sm.getData1() == smRef.getData1() && channel == refChannel;
+
+            } else if (smRef.getCommand() == ShortMessage.NOTE_ON)      // Note_ON with velocity > 0
+            {
+                return MidiUtilities.getNoteOnShortMessage(sm) != null && sm.getData1() == smRef.getData1() && channel == refChannel;
+
+            } else if (refCommand == ShortMessage.CONTROL_CHANGE
+                    || refCommand == ShortMessage.PITCH_BEND)
+            {
+                // Use 2 data
+                return command == refCommand && sm.getData1() == smRef.getData1() && sm.getData2() == smRef.getData2() && channel == refChannel;
+
+            } else if (refCommand == ShortMessage.PROGRAM_CHANGE)
+            {
+                // Use 1 data
+                return command == refCommand && sm.getData1() == smRef.getData1() && channel == refChannel;
+
+            } else if (refStatus == ShortMessage.CONTINUE
+                    || refStatus == ShortMessage.START
+                    || refStatus == ShortMessage.STOP)
+            {
+                // Status message with no data
+                return status == refStatus;
+
+            } else if (refStatus == ShortMessage.SONG_SELECT)
+            {
+                // Status message with 1 data
+                return status == refStatus && sm.getData1() == smRef.getData1();
+
+            } else if (refStatus == ShortMessage.SONG_POSITION_POINTER)
+            {
+                // Status message with 2 data
+                return status == refStatus && sm.getData1() == smRef.getData1() && sm.getData2() == smRef.getData2();
             }
 
-            if (smRef.getCommand() == ShortMessage.NOTE_ON)
-            {
-                // Ignore velocity in the comparison, except if it's a NOTE_ON with 0 velocity (NOTE_OFF equivalent)
-                if (smRef.getData2() == 0)
-                {
-                    return smRef.getData1() == sm.getData1() && sm.getData2() == 0;
-                } else
-                {
-                    return smRef.getData1() == sm.getData1();
-                }
-            } else if (smRef.getCommand() == ShortMessage.NOTE_OFF)
-            {
-                return smRef.getData1() == sm.getData1();
-            }
             return false;
-            
+
         } else if (mmRef instanceof SysexMessage && mm instanceof SysexMessage) // Can't just compare == classes, because both JJazzLab and JDK might use their own subclasses
         {
             return Arrays.equals(mmRef.getMessage(), mm.getMessage());
-            
+
         } else if (mmRef instanceof MetaMessage && mm instanceof MetaMessage)  // Can't just compare == classes, because both JJazzLab and JDK might use their own subclasses
         {
             return Arrays.equals(mmRef.getMessage(), mm.getMessage());
