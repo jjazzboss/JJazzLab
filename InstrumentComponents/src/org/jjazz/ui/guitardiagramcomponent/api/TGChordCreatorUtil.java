@@ -31,10 +31,13 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Logger;
 import org.jjazz.harmony.api.ChordSymbol;
 import org.jjazz.harmony.api.ChordType;
 import org.jjazz.harmony.api.Degree;
 import org.jjazz.harmony.api.Degree.Natural;
+import org.openide.DialogDisplayer;
+import org.openide.NotifyDescriptor;
 
 
 /**
@@ -60,7 +63,7 @@ public class TGChordCreatorUtil
      * Maximum fret distance for a chord
      */
 
-    public static final int MAX_FRET_SPAN = 5;      
+    public static final int MAX_FRET_SPAN = 5;
 
     /**
      * mark for bass note type *
@@ -85,7 +88,7 @@ public class TGChordCreatorUtil
     private int alteration;
 
     private int chordIndex;
-    
+
     private int maxFretSpan;
 
     /**
@@ -116,12 +119,13 @@ public class TGChordCreatorUtil
      * current tunning
      */
     private int[] tuning;
+    private static final Logger LOGGER = Logger.getLogger(TGChordCreatorUtil.class.getSimpleName());
 
     public TGChordCreatorUtil()
     {
         this(MAX_FRET_SPAN);        // TuxGuitar default
     }
-    
+
     public TGChordCreatorUtil(int maxFretSpan)
     {
         this.maxFretSpan = maxFretSpan;
@@ -135,6 +139,15 @@ public class TGChordCreatorUtil
         int root = chordSymbol.getRootNote().getRelativePitch();
         boolean sharp = !chordSymbol.getRootNote().isFlat();
         int index = getChordIndex(ct);
+        if (index == -1)
+        {
+            String msg = "getChords() ERROR - unrecognized chordSymbol=" + chordSymbol + ". Please report this bug.";
+            NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
+            DialogDisplayer.getDefault().notify(d);
+            LOGGER.warning(msg);
+            return Collections.EMPTY_LIST;
+        }
+        
         int plusMin = 0;
         int ad5 = getAddParameter(ct.getDegree(Natural.FIFTH));
         int ad9 = 0;
@@ -201,14 +214,14 @@ public class TGChordCreatorUtil
      * @param tuning
      * @param chordIndex Index of TGChordDatabase
      * @param alteration 0="", 1="9", 2="11", 3="13", 11 implies 7+9+11, etc.
-     * @param plusMinus 0="", 1="+", 2="-" : change the alteration
-     * @param add If true just add the alteration, e.g. C11 is C7 +11 (no 9)
-     * @param add5 0="", 1="+", 2="-"
+     * @param plusMinus  0="", 1="+", 2="-" : change the alteration
+     * @param add        If true just add the alteration, e.g. C11 is C7 +11 (no 9)
+     * @param add5       0="", 1="+", 2="-"
      * @param add9
      * @param add11
      * @param bassTonic
      * @param chordTonic
-     * @param sharp True/false
+     * @param sharp      True/false
      * @return
      */
     public List<TGChord> getChords(int[] tuning,
@@ -443,7 +456,7 @@ public class TGChordCreatorUtil
     /**
      * Returns the wanted note for ADD chord
      *
-     * @param type 0==add9; 1==add11; 2==add13;
+     * @param type           0==add9; 1==add11; 2==add13;
      * @param selectionIndex index of selected item in the List combo
      * @return wanted note, or -1 if nothing was selected
      *
@@ -640,7 +653,7 @@ public class TGChordCreatorUtil
      *
      * @param lastLevelCombination structure to be expanded by current level
      *
-     * @param notes notes that can be considered into making a chord
+     * @param notes                notes that can be considered into making a chord
      *
      * @return structure of StringValue combinations : AL { AL(StringValue,SV,SV), AL(SV), AL(SV,SV),AL(SV,SV,SV,SV,SV,SV) }
      *
@@ -1362,7 +1375,7 @@ public class TGChordCreatorUtil
      * duplicate.
      *
      * @param stringValues current StringValue to be examined
-     * @param betterOnes ArrayList of already stored StringList chords
+     * @param betterOnes   ArrayList of already stored StringList chords
      * @return true if it is duplicate, false if it is unique
      */
     private boolean checkIfSubset(List<StringValue> stringValues, List<List<StringValue>> betterOnes)
@@ -1461,7 +1474,12 @@ public class TGChordCreatorUtil
                 }
                 break;
             case DIMINISHED:
-                if (ct.getExtension().equals("dim"))
+                if (ct.isSeventhMinor())
+                {
+                    // m7b5, m9b5, m11b5
+                    res = 5;
+                }
+                else if (ct.getExtension().equals("dim"))
                 {
                     // dim
                     res = 12;
@@ -1469,7 +1487,7 @@ public class TGChordCreatorUtil
                 {
                     // dim7
                     res = 13;
-                }
+                } 
                 break;
             case SUS:
                 if (ct.isSeventhMinor())
