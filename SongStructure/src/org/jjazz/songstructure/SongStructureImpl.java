@@ -217,15 +217,15 @@ public class SongStructureImpl implements SongStructure, Serializable
     public void authorizeAddSongParts(List<SongPart> spts) throws UnsupportedEditException
     {
         // Check that after the operation each AdaptedRhythm must have its source rhythm present
-        var finalSpts = new ArrayList<SongPart>(songParts);
-        finalSpts.addAll(spts);
-        AdaptedRhythm faultyAdRhythm = checkAdaptedRhythmConsistency(finalSpts);
-        if (faultyAdRhythm != null)
-        {
-            var sr = faultyAdRhythm.getSourceRhythm();
-            String msg = ResUtil.getString(getClass(), "ERR_CantAddAdaptedRhythm", faultyAdRhythm.getName(), sr.getName());
-            throw new UnsupportedEditException(msg);
-        }
+//        var finalSpts = new ArrayList<SongPart>(songParts);
+//        finalSpts.addAll(spts);
+//        AdaptedRhythm faultyAdRhythm = checkAdaptedRhythmConsistency(finalSpts);
+//        if (faultyAdRhythm != null)
+//        {
+//            var sr = faultyAdRhythm.getSourceRhythm();
+//            String msg = ResUtil.getString(getClass(), "ERR_CantAddAdaptedRhythm", faultyAdRhythm.getName(), sr.getName());
+//            throw new UnsupportedEditException(msg);
+//        }
 
 
         // Check change is not vetoed by listeners
@@ -244,15 +244,15 @@ public class SongStructureImpl implements SongStructure, Serializable
     public void authorizeRemoveSongParts(List<SongPart> spts) throws UnsupportedEditException
     {
         // Check that after the operation each AdaptedRhythm has its source rhythm present
-        var remainingSpts = new ArrayList<SongPart>(songParts);
-        remainingSpts.removeAll(spts);
-        AdaptedRhythm faultyAdRhythm = checkAdaptedRhythmConsistency(remainingSpts);
-        if (faultyAdRhythm != null)
-        {
-            var sr = faultyAdRhythm.getSourceRhythm();
-            String msg = ResUtil.getString(getClass(), "ERR_CantRemoveRhythm", sr, faultyAdRhythm.getName());
-            throw new UnsupportedEditException(msg);
-        }
+//        var remainingSpts = new ArrayList<SongPart>(songParts);
+//        remainingSpts.removeAll(spts);
+//        AdaptedRhythm faultyAdRhythm = checkAdaptedRhythmConsistency(remainingSpts);
+//        if (faultyAdRhythm != null)
+//        {
+//            var sr = faultyAdRhythm.getSourceRhythm();
+//            String msg = ResUtil.getString(getClass(), "ERR_CantRemoveRhythm", sr, faultyAdRhythm.getName());
+//            throw new UnsupportedEditException(msg);
+//        }
 
 
         // Check change is not vetoed by listeners 
@@ -277,17 +277,17 @@ public class SongStructureImpl implements SongStructure, Serializable
     @Override
     public void authorizeReplaceSongParts(List<SongPart> oldSpts, List<SongPart> newSpts) throws UnsupportedEditException
     {
-        // Check that after the operation each AdaptedRhythm must have its source rhythm present
-        var remainingSpts = new ArrayList<SongPart>(songParts);
-        remainingSpts.removeAll(oldSpts);
-        remainingSpts.addAll(newSpts);
-        AdaptedRhythm faultyAdRhythm = checkAdaptedRhythmConsistency(remainingSpts);
-        if (faultyAdRhythm != null)
-        {
-            var sr = faultyAdRhythm.getSourceRhythm();
-            String msg = ResUtil.getString(getClass(), "ERR_CantReplaceSongPart", faultyAdRhythm.getName(), sr.getName());
-            throw new UnsupportedEditException(msg);
-        }
+        // Check that after the operation each AdaptedRhythm has its source rhythm present
+//        var remainingSpts = new ArrayList<SongPart>(songParts);
+//        remainingSpts.removeAll(oldSpts);
+//        remainingSpts.addAll(newSpts);
+//        AdaptedRhythm faultyAdRhythm = checkAdaptedRhythmConsistency(remainingSpts);
+//        if (faultyAdRhythm != null)
+//        {
+//            var sr = faultyAdRhythm.getSourceRhythm();
+//            String msg = ResUtil.getString(getClass(), "ERR_CantReplaceSongPart", faultyAdRhythm.getName(), sr.getName());
+//            throw new UnsupportedEditException(msg);
+//        }
 
         // Check that change is not vetoed
         var event = new SptReplacedEvent(SongStructureImpl.this, oldSpts, newSpts);
@@ -297,7 +297,7 @@ public class SongStructureImpl implements SongStructure, Serializable
 
     /**
      * We need a method that works with a list of SongParts because replacing a single spt at a time may cause problems when there
-     * is an unsupportedEditException.
+     * is an UnsupportedEditException.
      * <p>
      * Example: We have spt1=rhythm0, spt2=rhythm0, spt3=rhythm1. There are enough Midi channels for both rhythms.<br>
      * We want to change rhythm of both spt1 and spt2. If we do one spt at a time, after the first replacement on spt0 we'll have

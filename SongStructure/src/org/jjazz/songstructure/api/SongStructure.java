@@ -95,7 +95,7 @@ public interface SongStructure
     /**
      * All the RhythmVoices used by this SongStructure.
      *
-     * @param excludeRhythmVoiceDelegates
+     * @param excludeRhythmVoiceDelegates If true exclude the RhythmVoiceDelegate instances in the result
      * @return
      */
     default public List<RhythmVoice> getUniqueRhythmVoices(boolean excludeRhythmVoiceDelegates)
@@ -125,10 +125,10 @@ public interface SongStructure
      * Use default rhythm parameters values, unless reusePrevParamValues is true and there is a previous song part.
      *
      * @param r
-     * @param name The name of the created SongPart.
+     * @param name                 The name of the created SongPart.
      * @param startBarIndex
      * @param nbBars
-     * @param parentSection Can be null
+     * @param parentSection        Can be null
      * @param reusePrevParamValues
      * @return
      */
@@ -221,15 +221,14 @@ public interface SongStructure
      * @param clsItem
      * @return A position within spt range
      * @throws IllegalArgumentException If clsItem does not belong to spt's parent Section.
-     * @throws IllegalStateException If getParentChordLeadSheet() returns null.
+     * @throws IllegalStateException    If getParentChordLeadSheet() returns null.
      */
     public Position getSptItemPosition(SongPart spt, ChordLeadSheetItem<?> clsItem);
 
     /**
      * Check if add operation is doable.
      * <p>
-     * Operation is not doable if a new rhythm could not be accepted by listeners, or if the operation adds an AdaptedRhythm but
-     * its source rhythm will not be present in this SongStructure.
+     * Operation is not doable if a new rhythm could not be accepted by listeners.
      *
      * @param spts
      * @throws UnsupportedEditException
@@ -253,7 +252,6 @@ public interface SongStructure
     /**
      * Check if remove operation is doable.
      * <p>
-     * If an AdaptedRhythm is used in this SongStructure, the song part for its source rhythm can't be removed.
      *
      * @param spts
      * @throws UnsupportedEditException
@@ -284,8 +282,6 @@ public interface SongStructure
      * <p>
      * UnsupportedEditException is thrown if replacement is impossible, because :<br>
      * - not enough Midi channels for a new rhythm<br>
-     * - if the operation removes a source rhythm of a remaining AdaptedRhyth<br>
-     * - an AdaptedRhythm is added without the presence of its source Rhythm.
      *
      * @param oldSpts
      * @param newSpts
@@ -317,8 +313,8 @@ public interface SongStructure
      * Change the value of a specific RhythmParameter.
      *
      * @param <T>
-     * @param spt The SongPart rp belongs to.
-     * @param rp The RhythmParameter.
+     * @param spt   The SongPart rp belongs to.
+     * @param rp    The RhythmParameter.
      * @param value The new value to apply for rp.
      */
     public <T> void setRhythmParameterValue(SongPart spt, RhythmParameter<T> rp, T value);
@@ -339,10 +335,10 @@ public interface SongStructure
      * Get the recommended rhythm to use for a new SongPart.
      * <p>
      * If possible use getLastUsedRhythm(). If not possible then :<br>
-     * - return an AdaptedRhythm if there is a previous SongPart<br>
+     * - return an AdaptedRhythm, <br>
      * - otherwise return the RhythmDatabase default rhythm for the time signature.<br>
      *
-     * @param ts The TimeSignature of the rhythm
+     * @param ts               The TimeSignature of the rhythm
      * @param sptStartBarIndex The start bar index of the new song part.
      * @return Can't be null
      */

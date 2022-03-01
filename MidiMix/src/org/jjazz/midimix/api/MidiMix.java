@@ -325,11 +325,11 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      * Fire a PROP_CHANNEL_INSTRUMENT_MIX change event for this channel, and one UndoableEvent.
      *
      * @param channel A valid midi channel number.
-     * @param rvKey Can be null if insMix is also null. Is a song is set, must be consistent with its rhythms and user phrases.
-     * Can't be a RhythmVoiceDelegate.
-     * @param insMix Can be null if rvKey is also null.
+     * @param rvKey   Can be null if insMix is also null. Is a song is set, must be consistent with its rhythms and user phrases.
+     *                Can't be a RhythmVoiceDelegate.
+     * @param insMix  Can be null if rvKey is also null.
      * @throws IllegalArgumentException if insMix is already part of this MidiMix for a different channel, or if rvKey is a
-     * RhythmVoiceDelegate.
+     *                                  RhythmVoiceDelegate.
      */
     public void setInstrumentMix(int channel, RhythmVoice rvKey, InstrumentMix insMix)
     {
@@ -373,6 +373,8 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
     }
 
     /**
+     * Get the instrumet mix for the specified channel.
+     *
      * @param channel A valid midi channel number
      * @return The InstrumentMix assigned to the specified Midi channel, or null if no InstrumentMix for this channel.
      */
@@ -386,6 +388,8 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
     }
 
     /**
+     * Get the instrumet mix for the specified RhythmVoice.
+     *
      * @param rvKey If it's a RhythmVoiceDelegate, return the channel associated to its source RhythmVoice.
      * @return The InstrumentMix associated to rvKey. Null if no InstrumentMix found.
      */
@@ -602,7 +606,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      * 3/ instrument (or new instrument if one is provided in the mapChannelNewIns parameter) is the VoidInstrument<br>
      *
      * @param mapChannelNewIns Optional new instruments to use for some channels. Ignored if null. See
-     * OutputSynth.getNeedFixInstruments().
+     *                         OutputSynth.getNeedFixInstruments().
      * @return Can be empty
      */
     public List<Integer> getChannelsNeedingDrumsRerouting(HashMap<Integer, Instrument> mapChannelNewIns)
@@ -675,7 +679,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      * The operation will fire UndoableEvent edits.
      *
      * @param fromMm
-     * @param r If non null, copy fromMm instrumentMixes only if they belong to rhythm r
+     * @param r      If non null, copy fromMm instrumentMixes only if they belong to rhythm r
      * @throws MidiUnavailableException If not enough channels available to accommodate mm instruments.
      */
     public final void addInstrumentMixes(MidiMix fromMm, Rhythm r) throws MidiUnavailableException
@@ -864,7 +868,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      *
      * @param f
      * @param isCopy Indicate that we save a copy, ie perform the file save but nothing else (eg no PROP_MODIFIED_OR_SAVED state
-     * change)
+     *               change)
      * @throws java.io.IOException
      */
     public void saveToFile(File f, boolean isCopy) throws IOException
@@ -1605,7 +1609,6 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
     /**
      * Remove a rhythm.
      * <p>
-     * Possibly remove also the related RhythmVoiceDelegates.
      *
      * @param r
      */
@@ -1622,7 +1625,6 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
             {
                 int channel = getChannel(rvKey);
                 setInstrumentMix(channel, null, null);
-
             }
         }
     }
@@ -1675,7 +1677,6 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
     /**
      * The unique rhythms list for which this MidiMix has InstrumentMixes.
      * <p>
-     * RhythmVoiceDelegates' rhythms are not included. Include the User channel if enabled.
      *
      * @return
      */
