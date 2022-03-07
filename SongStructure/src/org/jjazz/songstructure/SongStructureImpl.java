@@ -104,7 +104,7 @@ public class SongStructureImpl implements SongStructure, Serializable
 
     /**
      *
-     * @param cls The parent chordleadsheet
+     * @param cls         The parent chordleadsheet
      * @param keepUpdated If true listen to cls changes to remain uptodate
      */
     public SongStructureImpl(ChordLeadSheet cls, boolean keepUpdated)
@@ -333,15 +333,15 @@ public class SongStructureImpl implements SongStructure, Serializable
     public Rhythm getLastUsedRhythm(TimeSignature ts)
     {
         Rhythm r = mapTsLastRhythm.getValue(ts);
-        if (r instanceof AdaptedRhythm)
-        {
-            // Don't return an AdaptedRhythm if its source rhythm is not present
-            Rhythm sr = ((AdaptedRhythm) r).getSourceRhythm();
-            if (!getUniqueRhythms(true).contains(sr))
-            {
-                r = null;
-            }
-        }
+//        if (r instanceof AdaptedRhythm)
+//        {
+//            // Don't return an AdaptedRhythm if its source rhythm is not present
+//            Rhythm sr = ((AdaptedRhythm) r).getSourceRhythm();
+//            if (!getUniqueRhythms(true).contains(sr))
+//            {
+//                r = null;
+//            }
+//        }
         LOGGER.fine("getLastUsedRhythm() ts=" + ts + " result r=" + r);   //NOI18N
         return r;
     }
@@ -365,19 +365,15 @@ public class SongStructureImpl implements SongStructure, Serializable
         Rhythm r = getLastUsedRhythm(ts);
 
 
-        // Try to use an AdaptedRhythm for the previous song part's rhythm
+        // Try to use an AdaptedRhythm from the current rhythm
         if (r == null)
         {
-            SongPart prevSpt = sptBarIndex == 0 ? null : getSongPart(sptBarIndex - 1);
-            if (prevSpt != null)
+            Rhythm curRhythm = getSongPart(sptBarIndex).getRhythm();
+            if (curRhythm instanceof AdaptedRhythm)
             {
-                Rhythm prevRhythm = prevSpt.getRhythm();
-                if (prevRhythm instanceof AdaptedRhythm)
-                {
-                    prevRhythm = ((AdaptedRhythm) prevRhythm).getSourceRhythm();
-                }
-                r = rdb.getAdaptedRhythmInstance(prevRhythm, ts);        // may be null
+                curRhythm = ((AdaptedRhythm) curRhythm).getSourceRhythm();
             }
+            r = rdb.getAdaptedRhythmInstance(curRhythm, ts);        // may be null
         }
 
 
@@ -961,7 +957,7 @@ public class SongStructureImpl implements SongStructure, Serializable
 
     /**
      *
-     * @param doFire If false do nothing.
+     * @param doFire   If false do nothing.
      * @param actionId
      * @param complete
      */

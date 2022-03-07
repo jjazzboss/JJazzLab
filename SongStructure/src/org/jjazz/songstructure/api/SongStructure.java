@@ -57,6 +57,8 @@ public interface SongStructure
      */
     default public List<Rhythm> getUniqueRhythms(boolean excludeAdaptedRhythms)
     {
+        need to change if AdaptedRhythm without Rhythm
+                
         ArrayList<Rhythm> res = new ArrayList<>();
         for (SongPart spt : getSongParts())
         {
@@ -322,12 +324,9 @@ public interface SongStructure
     /**
      * Returns the last rhythm used in this songStructure for this TimeSignature.
      * <p>
-     * Return null if:<br>
-     * - The specified time signature has never been used by this SongStructure<br>
-     * - If the last used rhythm is an AdaptedRhythm but its source rhythm is no more present
      *
      * @param ts
-     * @return Can be null
+     * @return Can be null if the specified time signature has never been used by this SongStructure.
      */
     public Rhythm getLastUsedRhythm(TimeSignature ts);
 
@@ -335,7 +334,7 @@ public interface SongStructure
      * Get the recommended rhythm to use for a new SongPart.
      * <p>
      * If possible use getLastUsedRhythm(). If not possible then :<br>
-     * - return an AdaptedRhythm, <br>
+     * - return an AdaptedRhythm of the current rhythm at sptStartBarIndex, <br>
      * - otherwise return the RhythmDatabase default rhythm for the time signature.<br>
      *
      * @param ts               The TimeSignature of the rhythm

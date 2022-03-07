@@ -64,6 +64,7 @@ import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.synths.Family;
 import org.jjazz.midi.api.synths.StdSynth;
 import org.jjazz.midimix.spi.RhythmVoiceInstrumentProvider;
+import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.RhythmVoiceDelegate;
@@ -251,7 +252,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
         {
             for (RhythmVoice rvKey : sgRvs)
             {
-                if (!(rvKey instanceof RhythmVoiceDelegate) && getChannel(rvKey) == -1)
+                if (getChannel(rvKey) == -1)
                 {
                     throw new SongCreationException("song rvKey=" + rvKey + " not found in MidiMix " + toString());   //NOI18N
                 }
@@ -431,6 +432,8 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
     }
 
     /**
+     * Get the RhythmVoice for the specified Midi channel.
+     * <p>
      *
      * @param channel
      * @return The RhythmVoice key corresponding to specified channel. Can be null.
@@ -484,7 +487,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
     /**
      * Get the list of used channels for specified rhythm in this MidiMix.
      *
-     * @param r If null return all used channels
+     * @param r If null return all used channels. If r is an AdaptedRhythm, returns the channels from it source rhythm.
      * @return The list of Midi channel numbers for rhythm r and for which a non-null InstrumentMix is assigned.
      */
     public List<Integer> getUsedChannels(Rhythm r)
@@ -493,6 +496,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
         {
             return getUsedChannels();
         }
+        r = getSourceRhythm(r);
         ArrayList<Integer> channels = new ArrayList<>();
         for (int i = MidiConst.CHANNEL_MIN; i <= MidiConst.CHANNEL_MAX; i++)
         {
@@ -523,7 +527,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
     /**
      * Get all the RhythmVoices corresponding to the non-null InstrumentMixes.
      * <p>
-     * Returned list includes UserRhythmVoice instances as well.
+     * Returned list includes UserRhythmVoice instances as well. The list does not contain RhythmVoiceDelegate instances.
      *
      * @return
      */
@@ -679,7 +683,8 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      * The operation will fire UndoableEvent edits.
      *
      * @param fromMm
-     * @param r      If non null, copy fromMm instrumentMixes only if they belong to rhythm r
+     * @param r      If non null, copy fromMm instrumentMixes only if they belong to rhythm r (if r is an AdaptedRhythm, use its
+     *               source rhythm).
      * @throws MidiUnavailableException If not enough channels available to accommodate mm instruments.
      */
     public final void addInstrumentMixes(MidiMix fromMm, Rhythm r) throws MidiUnavailableException
@@ -884,7 +889,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
             file = f;
         }
 
-        try (FileOutputStream fos = new FileOutputStream(f))
+        try ( FileOutputStream fos = new FileOutputStream(f))
         {
             XStream xstream = new XStream();
             xstream.alias("MidiMix", MidiMix.class);
@@ -1011,7 +1016,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
         }
         MidiMix mm = null;
 
-        try (var fis = new FileInputStream(f))
+        try ( var fis = new FileInputStream(f))
         {
             XStream xstream = Utilities.getSecuredXStreamInstance();
             // From 3.0 all public packages are renamed with api or spi somewhere in the path
@@ -1071,11 +1076,10 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
         int nbVoices = getUserChannels().size();      // Initialize with user rhythm voices
         for (SongPart spt : spts)
         {
-            Rhythm r = spt.getRhythm();
+            Rhythm r = getSourceRhythm(spt.getRhythm());
             if (!rhythms.contains(r))
             {
-                // Exclude RhythmVoiceDelegate
-                nbVoices += r.getRhythmVoices().stream().filter(rv -> !(rv instanceof RhythmVoiceDelegate)).count();
+                nbVoices += r.getRhythmVoices().size();
                 rhythms.add(r);
             }
         }
@@ -1114,7 +1118,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
             for (SongPart spt : e2.getSongParts())
             {
 
-                Rhythm r = spt.getRhythm();
+                Rhythm r = getSourceRhythm(spt.getRhythm());
                 if (!mixRhythms.contains(r))
                 {
                     try
@@ -1135,6 +1139,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
             SptRemovedEvent e2 = (SptRemovedEvent) e;
             for (SongPart spt : e2.getSongParts())
             {
+                TO DO
                 Rhythm r = spt.getRhythm();
                 if (!songRhythms.contains(r) && mixRhythms.contains(r))
                 {
@@ -1704,6 +1709,21 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
         {
             l.undoableEditHappened(event);
         }
+    }
+
+    /**
+     * Return the source rhythm if r is an AdaptedRhythm, otherwise return r.
+     *
+     * @param r
+     * @return A Rhythm instance which is not an AdaptedRhythm
+     */
+    private Rhythm getSourceRhythm(Rhythm r)
+    {
+        if (r instanceof AdaptedRhythm)
+        {
+            return ((AdaptedRhythm) r).getSourceRhythm();
+        }
+        return r;
     }
 
     // ---------------------------------------------------------------------
