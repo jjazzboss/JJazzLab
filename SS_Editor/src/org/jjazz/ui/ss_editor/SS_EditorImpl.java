@@ -551,7 +551,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
     @Override
     public List<RhythmParameter<?>> getVisibleRps(Rhythm r)
     {
-        if (!sgsModel.getUniqueRhythms(false).contains(r))
+        if (!sgsModel.getUniqueRhythms(false, true).contains(r))
         {
             throw new IllegalArgumentException("r=" + r + " sgsModel=" + sgsModel);   //NOI18N
         }

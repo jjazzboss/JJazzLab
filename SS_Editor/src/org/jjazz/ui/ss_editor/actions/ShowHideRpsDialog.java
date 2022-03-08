@@ -76,7 +76,7 @@ public class ShowHideRpsDialog extends javax.swing.JDialog
      */
     public void setModel(SS_Editor editor)
     {
-        List<Rhythm> uniqueRhythms = editor.getSongModel().getSongStructure().getUniqueRhythms(false);
+        List<Rhythm> uniqueRhythms = editor.getSongModel().getSongStructure().getUniqueRhythms(false, true);
         tblModel = new MyModel(uniqueRhythms, editor);
         tbl_rhythmParameters.setModel(tblModel);
         for (int i = MyModel.COL_FIRST_RHYTHM; i < tbl_rhythmParameters.getColumnCount(); i++)

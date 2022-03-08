@@ -26,6 +26,8 @@ import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 import javax.swing.event.UndoableEditListener;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
@@ -51,22 +53,56 @@ public interface SongStructure
 
     /**
      * Return the list of unique rhythms used in this SongStructure.
+     * <p>
+     * Parameters can be used to exclude from the return list AdaptedRhythm and "implicit source rhythm" instances.
+     * <p>
+     * An "implicit source rhythm" is the source rhythm of an AdaptedRhythm in a song which does not directly use the source
+     * rhythm. For example if song contains only spt1=bossa[3/4], then bossa(4/4) is the implicit source rhythm of the
+     * AdaptedRhythm bossa[3/4]. If song contains spt1=bossa and spt2=bossa[3/4], then bossa(4/4) is a source rhythm but is not an
+     * "implicit source rhythm".
+     * <p>
+     * If both excludeAdaptedRhythms and excludeImplicitSourceRhythms parameters are false and there is an AdaptedRhythm with an
+     * implicit source rhythm, then the return list will contain the AdaptedRhythm instance juste before the implicit rhythm
+     * instance.
      *
-     * @param excludeAdaptedRhythms
+     * @param excludeAdaptedRhythms        If true, don't return AdaptedRhythm instances
+     * @param excludeImplicitSourceRhythms If true don't return "implicit source rhythms" instances
      * @return The list of rhythms, in the order they are used in the song.
      */
-    default public List<Rhythm> getUniqueRhythms(boolean excludeAdaptedRhythms)
+    default public List<Rhythm> getUniqueRhythms(boolean excludeAdaptedRhythms, boolean excludeImplicitSourceRhythms)
     {
-        need to change if AdaptedRhythm without Rhythm
-                
         ArrayList<Rhythm> res = new ArrayList<>();
+        var allRhythms = getSongParts().stream()
+                .map(spt -> spt.getRhythm())
+                .collect(Collectors.toList());
+
+
         for (SongPart spt : getSongParts())
         {
             Rhythm r = spt.getRhythm();
-            if (!res.contains(r) && (!excludeAdaptedRhythms || !(r instanceof AdaptedRhythm)))
+
+            if (res.contains(r))
             {
-                res.add(spt.getRhythm());
+                continue;
             }
+
+            if (r instanceof AdaptedRhythm)
+            {
+                if (!excludeAdaptedRhythms)
+                {
+                    res.add(spt.getRhythm());
+                }
+
+                var sr = ((AdaptedRhythm) r).getSourceRhythm();
+                if (!excludeImplicitSourceRhythms && !allRhythms.contains(sr) && !res.contains(sr))
+                {
+                    res.add(sr);
+                }
+            } else
+            {
+                res.add(r);
+            }
+
         }
         return res;
     }
@@ -82,32 +118,31 @@ public interface SongStructure
         for (SongPart spt : getSongParts())
         {
             Rhythm r = spt.getRhythm();
-            if (!(r instanceof AdaptedRhythm))
+            if (r instanceof AdaptedRhythm)
             {
-                continue;
-            }
-            AdaptedRhythm ar = (AdaptedRhythm) r;
-            {
-                res.add(ar);
+                res.add((AdaptedRhythm) r);
             }
         }
         return res;
     }
 
     /**
-     * All the RhythmVoices used by this SongStructure.
+     * Get all the unique RhythmVoices used by this SongStructure.
+     * <p>
+     * Parameters are used to exclude RhythmVoice instances from AdaptedRhythms or "implicit source rhythms" (see
+     * getUniqueRhythms()).
      *
-     * @param excludeRhythmVoiceDelegates If true exclude the RhythmVoiceDelegate instances in the result
+     * @param excludeAdaptedRhythms  If true exclude the RhythmVoiceDelegate instances of AdaptedRhythms
+     * @param excludeImplicitRhythms If true exclude the RhythmVoice instances of the "implicit source rhythms"
      * @return
+     * @see #getUniqueRhythms(boolean, boolean)
      */
-    default public List<RhythmVoice> getUniqueRhythmVoices(boolean excludeRhythmVoiceDelegates)
+    default public List<RhythmVoice> getUniqueRhythmVoices(boolean excludeAdaptedRhythms, boolean excludeImplicitRhythms)
     {
         ArrayList<RhythmVoice> rvs = new ArrayList<>();
-        for (Rhythm r : getUniqueRhythms(false))
+        for (Rhythm r : getUniqueRhythms(excludeAdaptedRhythms, excludeImplicitRhythms))
         {
-            r.getRhythmVoices().stream()
-                    .filter(rv -> !excludeRhythmVoiceDelegates || !(rv instanceof RhythmVoiceDelegate))
-                    .forEach(rv -> rvs.add(rv));
+            r.getRhythmVoices().forEach(rv -> rvs.add(rv));
         }
         return rvs;
     }

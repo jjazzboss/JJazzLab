@@ -104,7 +104,7 @@ public class ShowHideRp extends AbstractAction implements SgsChangeListener
     private int getNbHiddenParameters()
     {
         int res = 0;
-        for (Rhythm r : editor.getModel().getUniqueRhythms(false))
+        for (Rhythm r : editor.getModel().getUniqueRhythms(false, true))
         {
             res = Math.max(res, r.getRhythmParameters().size() - editor.getVisibleRps(r).size());
         }

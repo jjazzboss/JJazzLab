@@ -93,7 +93,7 @@ public class SongStructureImpl implements SongStructure, Serializable
     /**
      * Manage updates from parentChordLeadSheet
      */
-    private transient SgsUpdater clsListener;
+    private transient SgsUpdater sgsUpdater;
     private static final Logger LOGGER = Logger.getLogger(SongStructureImpl.class.getSimpleName());
     private static int DEBUG_UNDOEDIT_ID = 0;
 
@@ -118,7 +118,7 @@ public class SongStructureImpl implements SongStructure, Serializable
         if (parentCls != null && keepSgsUpdated)
         {
             // We want to be updated when parentCls changes
-            clsListener = new SgsUpdater(this);
+            sgsUpdater = new SgsUpdater(this);
         }
     }
 
@@ -541,35 +541,8 @@ public class SongStructureImpl implements SongStructure, Serializable
     }
 
 
-    /**
-     * Make sure all possible AdaptedRhythms are generated if this is a multi-time signature song.
-     */
-    public void generateAllAdaptedRhythms()
-    {
-        RhythmDatabase rdb = RhythmDatabase.getDefault();
-        Set<TimeSignature> timeSignatures = getUniqueRhythms(false) // Include AdaptedRhythms to get all time signatures
-                .stream()
-                .map(r -> r.getTimeSignature())
-                .collect(Collectors.toSet());
-
-        for (Rhythm r : getUniqueRhythms(true))         // No adapted rhythms
-        {
-            for (TimeSignature ts : timeSignatures)
-            {
-                if (!ts.equals(r.getTimeSignature()))
-                {
-                    // Have the adapted rhythm created and made available in the database
-                    if (rdb.getAdaptedRhythmInstance(r, ts) == null)
-                    {
-                        LOGGER.info("generateAllAdaptedRhythms() Can't get a " + ts + "-adapted rhythm for r=" + r);   //NOI18N
-                    }
-                }
-            }
-        }
-    }
-
     // -------------------------------------------------------------------------------------------
-    // Private functions
+    // Private methods
     // -------------------------------------------------------------------------------------------
     private void addSongParts(final List<SongPart> spts, boolean enableActionEvent) throws UnsupportedEditException
     {
@@ -953,6 +926,34 @@ public class SongStructureImpl implements SongStructure, Serializable
 
 
         fireActionEvent(enableActionEvent, "setRhythmParameterValue", true);
+    }
+
+
+    /**
+     * Make sure all possible AdaptedRhythms are generated if this is a multi-time signature song.
+     */
+    private void generateAllAdaptedRhythms()
+    {
+        RhythmDatabase rdb = RhythmDatabase.getDefault();
+        Set<TimeSignature> timeSignatures = getUniqueRhythms(false, true) // Include AdaptedRhythms to get all time signatures
+                .stream()
+                .map(r -> r.getTimeSignature())
+                .collect(Collectors.toSet());
+
+        for (Rhythm r : getUniqueRhythms(true, false))         // No adapted rhythms
+        {
+            for (TimeSignature ts : timeSignatures)
+            {
+                if (!ts.equals(r.getTimeSignature()))
+                {
+                    // Have the adapted rhythm created and made available in the database
+                    if (rdb.getAdaptedRhythmInstance(r, ts) == null)
+                    {
+                        LOGGER.info("generateAllAdaptedRhythms() Can't get a " + ts + "-adapted rhythm for r=" + r);   //NOI18N
+                    }
+                }
+            }
+        }
     }
 
     /**
