@@ -534,11 +534,11 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
     public List<RhythmVoice> getRhythmVoices()
     {
         ArrayList<RhythmVoice> res = new ArrayList<>();
-        for (int i = 0; i < rvKeys.length; i++)
+        for (RhythmVoice rvKey : rvKeys)
         {
-            if (rvKeys[i] != null)
+            if (rvKey != null)
             {
-                res.add(rvKeys[i]);
+                res.add(rvKey);
             }
         }
         return res;
