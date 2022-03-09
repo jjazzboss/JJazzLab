@@ -93,7 +93,7 @@ public class SongStructureImpl implements SongStructure, Serializable
     /**
      * Manage updates from parentChordLeadSheet
      */
-    private transient SgsUpdater clsListener;
+    private transient SgsUpdater sgsUpdater;
     private static final Logger LOGGER = Logger.getLogger(SongStructureImpl.class.getSimpleName());
     private static int DEBUG_UNDOEDIT_ID = 0;
 
@@ -104,7 +104,7 @@ public class SongStructureImpl implements SongStructure, Serializable
 
     /**
      *
-     * @param cls The parent chordleadsheet
+     * @param cls         The parent chordleadsheet
      * @param keepUpdated If true listen to cls changes to remain uptodate
      */
     public SongStructureImpl(ChordLeadSheet cls, boolean keepUpdated)
@@ -118,7 +118,7 @@ public class SongStructureImpl implements SongStructure, Serializable
         if (parentCls != null && keepSgsUpdated)
         {
             // We want to be updated when parentCls changes
-            clsListener = new SgsUpdater(this);
+            sgsUpdater = new SgsUpdater(this);
         }
     }
 
@@ -217,15 +217,15 @@ public class SongStructureImpl implements SongStructure, Serializable
     public void authorizeAddSongParts(List<SongPart> spts) throws UnsupportedEditException
     {
         // Check that after the operation each AdaptedRhythm must have its source rhythm present
-        var finalSpts = new ArrayList<SongPart>(songParts);
-        finalSpts.addAll(spts);
-        AdaptedRhythm faultyAdRhythm = checkAdaptedRhythmConsistency(finalSpts);
-        if (faultyAdRhythm != null)
-        {
-            var sr = faultyAdRhythm.getSourceRhythm();
-            String msg = ResUtil.getString(getClass(), "ERR_CantAddAdaptedRhythm", faultyAdRhythm.getName(), sr.getName());
-            throw new UnsupportedEditException(msg);
-        }
+//        var finalSpts = new ArrayList<SongPart>(songParts);
+//        finalSpts.addAll(spts);
+//        AdaptedRhythm faultyAdRhythm = checkAdaptedRhythmConsistency(finalSpts);
+//        if (faultyAdRhythm != null)
+//        {
+//            var sr = faultyAdRhythm.getSourceRhythm();
+//            String msg = ResUtil.getString(getClass(), "ERR_CantAddAdaptedRhythm", faultyAdRhythm.getName(), sr.getName());
+//            throw new UnsupportedEditException(msg);
+//        }
 
 
         // Check change is not vetoed by listeners
@@ -244,15 +244,15 @@ public class SongStructureImpl implements SongStructure, Serializable
     public void authorizeRemoveSongParts(List<SongPart> spts) throws UnsupportedEditException
     {
         // Check that after the operation each AdaptedRhythm has its source rhythm present
-        var remainingSpts = new ArrayList<SongPart>(songParts);
-        remainingSpts.removeAll(spts);
-        AdaptedRhythm faultyAdRhythm = checkAdaptedRhythmConsistency(remainingSpts);
-        if (faultyAdRhythm != null)
-        {
-            var sr = faultyAdRhythm.getSourceRhythm();
-            String msg = ResUtil.getString(getClass(), "ERR_CantRemoveRhythm", sr, faultyAdRhythm.getName());
-            throw new UnsupportedEditException(msg);
-        }
+//        var remainingSpts = new ArrayList<SongPart>(songParts);
+//        remainingSpts.removeAll(spts);
+//        AdaptedRhythm faultyAdRhythm = checkAdaptedRhythmConsistency(remainingSpts);
+//        if (faultyAdRhythm != null)
+//        {
+//            var sr = faultyAdRhythm.getSourceRhythm();
+//            String msg = ResUtil.getString(getClass(), "ERR_CantRemoveRhythm", sr, faultyAdRhythm.getName());
+//            throw new UnsupportedEditException(msg);
+//        }
 
 
         // Check change is not vetoed by listeners 
@@ -277,17 +277,17 @@ public class SongStructureImpl implements SongStructure, Serializable
     @Override
     public void authorizeReplaceSongParts(List<SongPart> oldSpts, List<SongPart> newSpts) throws UnsupportedEditException
     {
-        // Check that after the operation each AdaptedRhythm must have its source rhythm present
-        var remainingSpts = new ArrayList<SongPart>(songParts);
-        remainingSpts.removeAll(oldSpts);
-        remainingSpts.addAll(newSpts);
-        AdaptedRhythm faultyAdRhythm = checkAdaptedRhythmConsistency(remainingSpts);
-        if (faultyAdRhythm != null)
-        {
-            var sr = faultyAdRhythm.getSourceRhythm();
-            String msg = ResUtil.getString(getClass(), "ERR_CantReplaceSongPart", faultyAdRhythm.getName(), sr.getName());
-            throw new UnsupportedEditException(msg);
-        }
+        // Check that after the operation each AdaptedRhythm has its source rhythm present
+//        var remainingSpts = new ArrayList<SongPart>(songParts);
+//        remainingSpts.removeAll(oldSpts);
+//        remainingSpts.addAll(newSpts);
+//        AdaptedRhythm faultyAdRhythm = checkAdaptedRhythmConsistency(remainingSpts);
+//        if (faultyAdRhythm != null)
+//        {
+//            var sr = faultyAdRhythm.getSourceRhythm();
+//            String msg = ResUtil.getString(getClass(), "ERR_CantReplaceSongPart", faultyAdRhythm.getName(), sr.getName());
+//            throw new UnsupportedEditException(msg);
+//        }
 
         // Check that change is not vetoed
         var event = new SptReplacedEvent(SongStructureImpl.this, oldSpts, newSpts);
@@ -297,7 +297,7 @@ public class SongStructureImpl implements SongStructure, Serializable
 
     /**
      * We need a method that works with a list of SongParts because replacing a single spt at a time may cause problems when there
-     * is an unsupportedEditException.
+     * is an UnsupportedEditException.
      * <p>
      * Example: We have spt1=rhythm0, spt2=rhythm0, spt3=rhythm1. There are enough Midi channels for both rhythms.<br>
      * We want to change rhythm of both spt1 and spt2. If we do one spt at a time, after the first replacement on spt0 we'll have
@@ -333,15 +333,15 @@ public class SongStructureImpl implements SongStructure, Serializable
     public Rhythm getLastUsedRhythm(TimeSignature ts)
     {
         Rhythm r = mapTsLastRhythm.getValue(ts);
-        if (r instanceof AdaptedRhythm)
-        {
-            // Don't return an AdaptedRhythm if its source rhythm is not present
-            Rhythm sr = ((AdaptedRhythm) r).getSourceRhythm();
-            if (!getUniqueRhythms(true).contains(sr))
-            {
-                r = null;
-            }
-        }
+//        if (r instanceof AdaptedRhythm)
+//        {
+//            // Don't return an AdaptedRhythm if its source rhythm is not present
+//            Rhythm sr = ((AdaptedRhythm) r).getSourceRhythm();
+//            if (!getUniqueRhythms(true).contains(sr))
+//            {
+//                r = null;
+//            }
+//        }
         LOGGER.fine("getLastUsedRhythm() ts=" + ts + " result r=" + r);   //NOI18N
         return r;
     }
@@ -365,19 +365,15 @@ public class SongStructureImpl implements SongStructure, Serializable
         Rhythm r = getLastUsedRhythm(ts);
 
 
-        // Try to use an AdaptedRhythm for the previous song part's rhythm
+        // Try to use an AdaptedRhythm from the current rhythm
         if (r == null)
         {
-            SongPart prevSpt = sptBarIndex == 0 ? null : getSongPart(sptBarIndex - 1);
-            if (prevSpt != null)
+            Rhythm curRhythm = getSongPart(sptBarIndex).getRhythm();
+            if (curRhythm instanceof AdaptedRhythm)
             {
-                Rhythm prevRhythm = prevSpt.getRhythm();
-                if (prevRhythm instanceof AdaptedRhythm)
-                {
-                    prevRhythm = ((AdaptedRhythm) prevRhythm).getSourceRhythm();
-                }
-                r = rdb.getAdaptedRhythmInstance(prevRhythm, ts);        // may be null
+                curRhythm = ((AdaptedRhythm) curRhythm).getSourceRhythm();
             }
+            r = rdb.getAdaptedRhythmInstance(curRhythm, ts);        // may be null
         }
 
 
@@ -545,35 +541,8 @@ public class SongStructureImpl implements SongStructure, Serializable
     }
 
 
-    /**
-     * Make sure all possible AdaptedRhythms are generated if this is a multi-time signature song.
-     */
-    public void generateAllAdaptedRhythms()
-    {
-        RhythmDatabase rdb = RhythmDatabase.getDefault();
-        Set<TimeSignature> timeSignatures = getUniqueRhythms(false) // Include AdaptedRhythms to get all time signatures
-                .stream()
-                .map(r -> r.getTimeSignature())
-                .collect(Collectors.toSet());
-
-        for (Rhythm r : getUniqueRhythms(true))         // No adapted rhythms
-        {
-            for (TimeSignature ts : timeSignatures)
-            {
-                if (!ts.equals(r.getTimeSignature()))
-                {
-                    // Have the adapted rhythm created and made available in the database
-                    if (rdb.getAdaptedRhythmInstance(r, ts) == null)
-                    {
-                        LOGGER.info("generateAllAdaptedRhythms() Can't get a " + ts + "-adapted rhythm for r=" + r);   //NOI18N
-                    }
-                }
-            }
-        }
-    }
-
     // -------------------------------------------------------------------------------------------
-    // Private functions
+    // Private methods
     // -------------------------------------------------------------------------------------------
     private void addSongParts(final List<SongPart> spts, boolean enableActionEvent) throws UnsupportedEditException
     {
@@ -959,9 +928,37 @@ public class SongStructureImpl implements SongStructure, Serializable
         fireActionEvent(enableActionEvent, "setRhythmParameterValue", true);
     }
 
+
+    /**
+     * Make sure all possible AdaptedRhythms are generated if this is a multi-time signature song.
+     */
+    private void generateAllAdaptedRhythms()
+    {
+        RhythmDatabase rdb = RhythmDatabase.getDefault();
+        Set<TimeSignature> timeSignatures = getUniqueRhythms(false, true) // Include AdaptedRhythms to get all time signatures
+                .stream()
+                .map(r -> r.getTimeSignature())
+                .collect(Collectors.toSet());
+
+        for (Rhythm r : getUniqueRhythms(true, false))         // No adapted rhythms
+        {
+            for (TimeSignature ts : timeSignatures)
+            {
+                if (!ts.equals(r.getTimeSignature()))
+                {
+                    // Have the adapted rhythm created and made available in the database
+                    if (rdb.getAdaptedRhythmInstance(r, ts) == null)
+                    {
+                        LOGGER.info("generateAllAdaptedRhythms() Can't get a " + ts + "-adapted rhythm for r=" + r);   //NOI18N
+                    }
+                }
+            }
+        }
+    }
+
     /**
      *
-     * @param doFire If false do nothing.
+     * @param doFire   If false do nothing.
      * @param actionId
      * @param complete
      */

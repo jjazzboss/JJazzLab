@@ -26,6 +26,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import javax.swing.event.UndoableEditListener;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
@@ -35,7 +36,6 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
-import org.jjazz.rhythm.api.RhythmVoiceDelegate;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.util.api.FloatRange;
 import org.jjazz.util.api.IntRange;
@@ -51,20 +51,56 @@ public interface SongStructure
 
     /**
      * Return the list of unique rhythms used in this SongStructure.
+     * <p>
+     * Parameters can be used to exclude from the return list AdaptedRhythm and "implicit source rhythm" instances.
+     * <p>
+     * An "implicit source rhythm" is the source rhythm of an AdaptedRhythm in a song which does not directly use the source
+     * rhythm. For example if song contains only spt1=bossa[3/4], then bossa(4/4) is the implicit source rhythm of the
+     * AdaptedRhythm bossa[3/4]. If song contains spt1=bossa and spt2=bossa[3/4], then bossa(4/4) is a source rhythm but is not an
+     * "implicit source rhythm".
+     * <p>
+     * If both excludeAdaptedRhythms and excludeImplicitSourceRhythms parameters are false and there is an AdaptedRhythm with an
+     * implicit source rhythm, then the return list will contain the AdaptedRhythm instance juste before the implicit rhythm
+     * instance.
      *
-     * @param excludeAdaptedRhythms
+     * @param excludeAdaptedRhythms        If true, don't return AdaptedRhythm instances
+     * @param excludeImplicitSourceRhythms If true don't return "implicit source rhythms" instances
      * @return The list of rhythms, in the order they are used in the song.
      */
-    default public List<Rhythm> getUniqueRhythms(boolean excludeAdaptedRhythms)
+    default public List<Rhythm> getUniqueRhythms(boolean excludeAdaptedRhythms, boolean excludeImplicitSourceRhythms)
     {
         ArrayList<Rhythm> res = new ArrayList<>();
+        var allRhythms = getSongParts().stream()
+                .map(spt -> spt.getRhythm())
+                .collect(Collectors.toList());
+
+
         for (SongPart spt : getSongParts())
         {
             Rhythm r = spt.getRhythm();
-            if (!res.contains(r) && (!excludeAdaptedRhythms || !(r instanceof AdaptedRhythm)))
+
+            if (res.contains(r))
             {
-                res.add(spt.getRhythm());
+                continue;
             }
+
+            if (r instanceof AdaptedRhythm)
+            {
+                if (!excludeAdaptedRhythms)
+                {
+                    res.add(spt.getRhythm());
+                }
+
+                var sr = ((AdaptedRhythm) r).getSourceRhythm();
+                if (!excludeImplicitSourceRhythms && !allRhythms.contains(sr) && !res.contains(sr))
+                {
+                    res.add(sr);
+                }
+            } else
+            {
+                res.add(r);
+            }
+
         }
         return res;
     }
@@ -80,32 +116,31 @@ public interface SongStructure
         for (SongPart spt : getSongParts())
         {
             Rhythm r = spt.getRhythm();
-            if (!(r instanceof AdaptedRhythm))
+            if (r instanceof AdaptedRhythm)
             {
-                continue;
-            }
-            AdaptedRhythm ar = (AdaptedRhythm) r;
-            {
-                res.add(ar);
+                res.add((AdaptedRhythm) r);
             }
         }
         return res;
     }
 
     /**
-     * All the RhythmVoices used by this SongStructure.
+     * Get all the unique RhythmVoices used by this SongStructure.
+     * <p>
+     * Parameters are used to exclude RhythmVoice instances from AdaptedRhythms or "implicit source rhythms" (see
+     * getUniqueRhythms()).
      *
-     * @param excludeRhythmVoiceDelegates
+     * @param excludeAdaptedRhythms  If true exclude the RhythmVoiceDelegate instances of AdaptedRhythms
+     * @param excludeImplicitRhythms If true exclude the RhythmVoice instances of the "implicit source rhythms"
      * @return
+     * @see #getUniqueRhythms(boolean, boolean)
      */
-    default public List<RhythmVoice> getUniqueRhythmVoices(boolean excludeRhythmVoiceDelegates)
+    default public List<RhythmVoice> getUniqueRhythmVoices(boolean excludeAdaptedRhythms, boolean excludeImplicitRhythms)
     {
         ArrayList<RhythmVoice> rvs = new ArrayList<>();
-        for (Rhythm r : getUniqueRhythms(false))
+        for (Rhythm r : getUniqueRhythms(excludeAdaptedRhythms, excludeImplicitRhythms))
         {
-            r.getRhythmVoices().stream()
-                    .filter(rv -> !excludeRhythmVoiceDelegates || !(rv instanceof RhythmVoiceDelegate))
-                    .forEach(rv -> rvs.add(rv));
+            r.getRhythmVoices().forEach(rv -> rvs.add(rv));
         }
         return rvs;
     }
@@ -125,10 +160,10 @@ public interface SongStructure
      * Use default rhythm parameters values, unless reusePrevParamValues is true and there is a previous song part.
      *
      * @param r
-     * @param name The name of the created SongPart.
+     * @param name                 The name of the created SongPart.
      * @param startBarIndex
      * @param nbBars
-     * @param parentSection Can be null
+     * @param parentSection        Can be null
      * @param reusePrevParamValues
      * @return
      */
@@ -221,15 +256,14 @@ public interface SongStructure
      * @param clsItem
      * @return A position within spt range
      * @throws IllegalArgumentException If clsItem does not belong to spt's parent Section.
-     * @throws IllegalStateException If getParentChordLeadSheet() returns null.
+     * @throws IllegalStateException    If getParentChordLeadSheet() returns null.
      */
     public Position getSptItemPosition(SongPart spt, ChordLeadSheetItem<?> clsItem);
 
     /**
      * Check if add operation is doable.
      * <p>
-     * Operation is not doable if a new rhythm could not be accepted by listeners, or if the operation adds an AdaptedRhythm but
-     * its source rhythm will not be present in this SongStructure.
+     * Operation is not doable if a new rhythm could not be accepted by listeners.
      *
      * @param spts
      * @throws UnsupportedEditException
@@ -253,7 +287,6 @@ public interface SongStructure
     /**
      * Check if remove operation is doable.
      * <p>
-     * If an AdaptedRhythm is used in this SongStructure, the song part for its source rhythm can't be removed.
      *
      * @param spts
      * @throws UnsupportedEditException
@@ -284,8 +317,6 @@ public interface SongStructure
      * <p>
      * UnsupportedEditException is thrown if replacement is impossible, because :<br>
      * - not enough Midi channels for a new rhythm<br>
-     * - if the operation removes a source rhythm of a remaining AdaptedRhyth<br>
-     * - an AdaptedRhythm is added without the presence of its source Rhythm.
      *
      * @param oldSpts
      * @param newSpts
@@ -317,8 +348,8 @@ public interface SongStructure
      * Change the value of a specific RhythmParameter.
      *
      * @param <T>
-     * @param spt The SongPart rp belongs to.
-     * @param rp The RhythmParameter.
+     * @param spt   The SongPart rp belongs to.
+     * @param rp    The RhythmParameter.
      * @param value The new value to apply for rp.
      */
     public <T> void setRhythmParameterValue(SongPart spt, RhythmParameter<T> rp, T value);
@@ -326,12 +357,9 @@ public interface SongStructure
     /**
      * Returns the last rhythm used in this songStructure for this TimeSignature.
      * <p>
-     * Return null if:<br>
-     * - The specified time signature has never been used by this SongStructure<br>
-     * - If the last used rhythm is an AdaptedRhythm but its source rhythm is no more present
      *
      * @param ts
-     * @return Can be null
+     * @return Can be null if the specified time signature has never been used by this SongStructure.
      */
     public Rhythm getLastUsedRhythm(TimeSignature ts);
 
@@ -339,10 +367,10 @@ public interface SongStructure
      * Get the recommended rhythm to use for a new SongPart.
      * <p>
      * If possible use getLastUsedRhythm(). If not possible then :<br>
-     * - return an AdaptedRhythm if there is a previous SongPart<br>
+     * - return an AdaptedRhythm of the current rhythm at sptStartBarIndex, <br>
      * - otherwise return the RhythmDatabase default rhythm for the time signature.<br>
      *
-     * @param ts The TimeSignature of the rhythm
+     * @param ts               The TimeSignature of the rhythm
      * @param sptStartBarIndex The start bar index of the new song part.
      * @return Can't be null
      */

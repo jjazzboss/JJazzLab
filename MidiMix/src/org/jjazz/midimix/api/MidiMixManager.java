@@ -188,7 +188,7 @@ public class MidiMixManager implements PropertyChangeListener
         MidiMix mm = new MidiMix(sg);
 
 
-        for (Rhythm r : sg.getSongStructure().getUniqueRhythms(true))
+        for (Rhythm r : sg.getSongStructure().getUniqueRhythms(true, false))
         {
             MidiMix rMm = findMix(r);
             mm.addInstrumentMixes(rMm, r);

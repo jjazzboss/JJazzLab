@@ -28,8 +28,6 @@ import java.nio.file.Path;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import javax.swing.event.SwingPropertyChangeSupport;
-//import org.jjazz.rhythm.api.AdaptedRhythm;
-//import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.upgrade.api.UpgradeManager;
 import org.jjazz.upgrade.api.UpgradeTask;
 import org.jjazz.util.api.Utilities;

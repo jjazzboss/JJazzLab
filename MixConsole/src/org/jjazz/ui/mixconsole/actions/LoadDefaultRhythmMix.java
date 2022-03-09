@@ -72,12 +72,15 @@ public class LoadDefaultRhythmMix extends AbstractAction
         {
             return;
         }
+        
+        
+        
         Song song = songMidiMix.getSong();
         Rhythm rhythm = mixConsole.getVisibleRhythm();
         var rhythms = new ArrayList<Rhythm>();
         if (rhythm == null)
         {
-            rhythms.addAll(song.getSongStructure().getUniqueRhythms(true));
+            rhythms.addAll(song.getSongStructure().getUniqueRhythms(true, false));
         } else
         {
             rhythms.add(rhythm);
@@ -88,6 +91,8 @@ public class LoadDefaultRhythmMix extends AbstractAction
             return;
         }
         assert !rhythms.isEmpty() : "song.getSongStructure()=" + song.getSongStructure() + " rhythm=" + rhythm;   //NOI18N
+        
+        
         String loadedFiles = "";
         for (Rhythm r : rhythms)
         {
