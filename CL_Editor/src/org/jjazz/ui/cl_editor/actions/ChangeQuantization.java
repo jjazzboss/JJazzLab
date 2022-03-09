@@ -95,15 +95,22 @@ public class ChangeQuantization extends AbstractAction implements ContextAwareAc
         CLI_Section section = cls.getSection(selection.getMinBarIndexWithinCls());
         Quantization q = editor.getDisplayQuantizationValue(section);
         LOGGER.log(Level.FINE, "actionPerformed() initialize dialog with section=" + section + " q=" + q);       //NOI18N   //NOI18N
+        
+        
+        // Prepare and show quantization dialog
         ChangeQuantizationDialog dialog = ChangeQuantizationDialog.getInstance();
         dialog.setLocationRelativeTo(WindowManager.getDefault().getMainWindow());
         dialog.preset(section, q);
         dialog.setVisible(true);
+        
+        
+        // Analyze result
         if (dialog.getExitStatus().equals(ChangeQuantizationDialog.ExitStatus.OK_CURRENT_SECTION))       //NOI18N
         {
             q = dialog.getQuantization();
             editor.setDisplayQuantizationValue(section, q);
             LOGGER.log(Level.FINE, "actionPerformed() apply q=" + q + " for section=" + section);   //NOI18N
+            
         } else if (dialog.getExitStatus().equals(ChangeQuantizationDialog.ExitStatus.OK_ALL_SECTIONS))   //NOI18N
         {
             q = dialog.getQuantization();

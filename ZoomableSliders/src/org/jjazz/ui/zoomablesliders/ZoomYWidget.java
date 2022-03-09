@@ -26,6 +26,7 @@ import java.awt.Component;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.logging.Logger;
+import org.jjazz.ui.flatcomponents.api.FlatIntegerHorizontalSlider;
 import static org.jjazz.ui.flatcomponents.api.FlatIntegerHorizontalSlider.PROP_HIDE_VALUE;
 import static org.jjazz.ui.flatcomponents.api.FlatIntegerHorizontalSlider.PROP_NB_GRADUATION_MARKS;
 import org.jjazz.ui.utilities.api.Zoomable;
@@ -157,12 +158,11 @@ public class ZoomYWidget extends javax.swing.JPanel implements StatusLineElement
 
    private void sliderPropertyChange(java.beans.PropertyChangeEvent evt)//GEN-FIRST:event_sliderPropertyChange
    {//GEN-HEADEREND:event_sliderPropertyChange
-       if (currentZoomable == null)
+       if (currentZoomable != null && evt.getPropertyName().equals(FlatIntegerHorizontalSlider.PROP_VALUE))
        {
-           return;
-       }
-       int newValue = slider.getValue();
-       currentZoomable.setZoomYFactor(newValue);
+           int newValue = slider.getValue();
+           currentZoomable.setZoomYFactor(newValue);
+       }       
    }//GEN-LAST:event_sliderPropertyChange
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

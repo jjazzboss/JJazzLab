@@ -30,7 +30,6 @@
     </Container>
     <Container class="javax.swing.JToolBar" name="toolbar">
       <Properties>
-        <Property name="floatable" type="boolean" value="false"/>
         <Property name="orientation" type="int" value="1"/>
         <Property name="rollover" type="boolean" value="true"/>
       </Properties>

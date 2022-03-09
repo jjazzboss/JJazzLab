@@ -101,9 +101,10 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
      */
     public static final String PROP_CLOSED = "PROP_CLOSED";   //NOI18N 
     /**
-     * This property changes each time the song is modified (false&gt;true) or saved (true&gt;false).
+     * This property changes each time the song is modified (oldValue=false, newValue=true) or saved (oldValue=true,
+     * newValue=false) or Song.resetNeedSave() is called (oldValue=null, newValue=false)
      */
-    public static final String PROP_MODIFIED_OR_SAVED = "PROP_MODIFIED_OR_SAVED";   //NOI18N 
+    public static final String PROP_MODIFIED_OR_SAVED_OR_RESET = "PROP_MODIFIED_OR_SAVED_OR_RESET";   //NOI18N 
     private SongStructure songStructure;
     private ChordLeadSheet chordLeadSheet;
     private String name;
@@ -655,8 +656,8 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
     /**
      * Save this song to a file (XML format).
      * <p>
-     * Song's file and name is set to f and f's name. Fire a PROP_MODIFIED_OR_SAVED property change event with oldValue=true and
-     * newValue=false.
+     * Song's file and name is set to f and f's name. Fire a PROP_MODIFIED_OR_SAVED_OR_RESET property change event with
+     * oldValue=true and newValue=false.
      *
      * @param songFile
      * @param isCopy Indicate that the save operation if for a copy, ie just perform the save operation and do nothing else (song
@@ -680,7 +681,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
             file = songFile;
         }
 
-        try (FileOutputStream fos = new FileOutputStream(songFile))
+        try ( FileOutputStream fos = new FileOutputStream(songFile))
         {
             XStream xstream = new XStream();
             xstream.alias("Song", Song.class);
@@ -689,7 +690,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
             if (!isCopy)
             {
                 setName(Song.removeSongExtension(songFile.getName()));
-                resetNeedSave();
+                fireSaved();
             }
         } catch (IOException e)
         {
@@ -720,12 +721,12 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
     /**
      * Reset the need save property.
      * <p>
-     * Fire the PROP_MODIFIED_OR_SAVED true-&gt;false
+     * Fire the PROP_MODIFIED_OR_SAVED_OR_RESET with oldValue=null newValue=false
      */
     public void resetNeedSave()
     {
         needSave = false;
-        pcs.firePropertyChange(PROP_MODIFIED_OR_SAVED, true, false);
+        pcs.firePropertyChange(PROP_MODIFIED_OR_SAVED_OR_RESET, null, false);
     }
 
     public void addUndoableEditListener(UndoableEditListener l)
@@ -820,12 +821,21 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
     // Private methods 
     // ----------------------------------------------------------------------------
     /**
-     * Fire a PROP_MODIFIED_OR_SAVED property change event, oldValue=false, newValue=true
+     * Fire a PROP_MODIFIED_OR_SAVED_OR_RESET property change event with oldValue=false, newValue=true
      */
     private void fireIsModified()
     {
         needSave = true;
-        pcs.firePropertyChange(PROP_MODIFIED_OR_SAVED, false, true);
+        pcs.firePropertyChange(PROP_MODIFIED_OR_SAVED_OR_RESET, false, true);
+    }
+
+    /**
+     * Fire a PROP_MODIFIED_OR_SAVED_OR_RESET property change event with oldValue=true newValue=false
+     */
+    private void fireSaved()
+    {
+        needSave = false;
+        pcs.firePropertyChange(PROP_MODIFIED_OR_SAVED_OR_RESET, true, false);
     }
 
     private void fireUndoableEditHappened(UndoableEdit edit)

@@ -126,7 +126,7 @@ public class StaticSongSession extends BaseSongSession
 
         if (e.getSource() == getSongContext().getSong())
         {
-            if (e.getPropertyName().equals(Song.PROP_MODIFIED_OR_SAVED))
+            if (e.getPropertyName().equals(Song.PROP_MODIFIED_OR_SAVED_OR_RESET))
             {
                 if ((Boolean) e.getNewValue() == true)
                 {

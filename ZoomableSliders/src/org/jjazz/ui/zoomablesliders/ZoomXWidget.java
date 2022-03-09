@@ -29,6 +29,7 @@ import java.beans.PropertyChangeListener;
 import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.SwingUtilities;
+import org.jjazz.ui.flatcomponents.api.FlatIntegerHorizontalSlider;
 import static org.jjazz.ui.flatcomponents.api.FlatIntegerHorizontalSlider.PROP_HIDE_VALUE;
 import static org.jjazz.ui.flatcomponents.api.FlatIntegerHorizontalSlider.PROP_NB_GRADUATION_MARKS;
 import org.jjazz.ui.utilities.api.Zoomable;
@@ -43,13 +44,13 @@ import org.openide.util.lookup.ServiceProvider;
 @ServiceProvider(service = StatusLineElementProvider.class, position = 100)
 public class ZoomXWidget extends javax.swing.JPanel implements StatusLineElementProvider, PropertyChangeListener
 {
-    
+
     private Lookup context;
     private Zoomable currentZoomable;
     private Lookup.Result<Zoomable> lkpResult;
     private LookupListener lkpListener;
     private static final Logger LOGGER = Logger.getLogger(ZoomXWidget.class.getSimpleName());
-    
+
     public ZoomXWidget()
     {
         initComponents();
@@ -69,10 +70,10 @@ public class ZoomXWidget extends javax.swing.JPanel implements StatusLineElement
         // Need to use WeakListeners so than action can be GC'ed
         // See http://forums.netbeans.org/viewtopic.php?t=35921
         lkpResult.addLookupListener(WeakListeners.create(LookupListener.class, lkpListener, lkpResult));
-        
+
         setEnabled(false);
     }
-    
+
     @Override
     public void setEnabled(boolean b)
     {
@@ -80,13 +81,13 @@ public class ZoomXWidget extends javax.swing.JPanel implements StatusLineElement
         label.setEnabled(b);
         slider.setEnabled(b);
     }
-    
+
     @Override
     public Component getStatusLineElement()
     {
         return this;
     }
-    
+
     private void zoomableUpdated()
     {
         if (currentZoomable != null)
@@ -107,7 +108,7 @@ public class ZoomXWidget extends javax.swing.JPanel implements StatusLineElement
         }
         setEnabled(currentZoomable != null);
     }
-    
+
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
@@ -120,7 +121,7 @@ public class ZoomXWidget extends javax.swing.JPanel implements StatusLineElement
             }
             slider.setValue(newFactor);
             slider.setToolTipText(String.valueOf(newFactor));
-            
+
         }
     }
 
@@ -177,12 +178,11 @@ public class ZoomXWidget extends javax.swing.JPanel implements StatusLineElement
 
    private void sliderPropertyChange(java.beans.PropertyChangeEvent evt)//GEN-FIRST:event_sliderPropertyChange
    {//GEN-HEADEREND:event_sliderPropertyChange
-       if (currentZoomable == null)
+       if (currentZoomable != null && evt.getPropertyName().equals(FlatIntegerHorizontalSlider.PROP_VALUE))
        {
-           return;
+           int newValue = slider.getValue();
+           currentZoomable.setZoomXFactor(newValue);
        }
-       int newValue = slider.getValue();
-       currentZoomable.setZoomXFactor(newValue);
    }//GEN-LAST:event_sliderPropertyChange
 
     private void labelMouseClicked(java.awt.event.MouseEvent evt)//GEN-FIRST:event_labelMouseClicked

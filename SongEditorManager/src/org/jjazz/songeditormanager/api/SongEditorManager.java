@@ -26,13 +26,10 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.File;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Scanner;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiUnavailableException;
 import javax.swing.SwingUtilities;
@@ -116,7 +113,7 @@ public class SongEditorManager implements PropertyChangeListener
             Editors editors = getEditors(song);
             if (editors != null)
             {
-                editors.tcCle.close();  // This will make TopComponent.canClosed() be called first, with possibly user confirmation dialog
+                editors.tcCle.close();  // This will make TopComponent.canClose() be called first, with possibly user confirmation dialog
             }
         } else
         {
@@ -205,6 +202,13 @@ public class SongEditorManager implements PropertyChangeListener
                     Exceptions.printStackTrace(ex);
                 }
             }
+
+
+            // Upon initialization the song editors might update the song by calling Song.putClientProperty() to store some UI settings
+            // like quantization of zoom factors. We don't want this to make the song appear as "modified/savable" as we show
+            // it for the first time
+            SwingUtilities.invokeLater(() -> song.resetNeedSave());
+
         };
 
         // Make sure everything is run on the EDT
@@ -342,7 +346,7 @@ public class SongEditorManager implements PropertyChangeListener
         } else if (evt.getSource() instanceof Song)
         {
             Song s = (Song) evt.getSource();
-            if (evt.getPropertyName() == Song.PROP_MODIFIED_OR_SAVED && evt.getNewValue() == Boolean.FALSE)
+            if (evt.getPropertyName() == Song.PROP_MODIFIED_OR_SAVED_OR_RESET && evt.getOldValue() == Boolean.TRUE && evt.getNewValue() == Boolean.FALSE)
             {
                 songSaved(s);
             }
@@ -369,10 +373,12 @@ public class SongEditorManager implements PropertyChangeListener
 
     private void songSaved(Song s)
     {
-        File f = s.getFile();
-        assert f != null : "s=" + s;   //NOI18N
-        FileDirectoryManager.getInstance().setLastSongDirectory(f.getAbsoluteFile().getParentFile());
-        pcs.firePropertyChange(PROP_SONG_SAVED, false, s);
+        File f = s.getFile();   // Might be null for a new song if Song.resetModified() is called
+        if (f != null)
+        {
+            FileDirectoryManager.getInstance().setLastSongDirectory(f.getAbsoluteFile().getParentFile());
+            pcs.firePropertyChange(PROP_SONG_SAVED, false, s);
+        }
     }
 
     private void updateActiveSong()

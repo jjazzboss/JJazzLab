@@ -472,13 +472,13 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         LOGGER.fine("propertyChange() -- e=" + e);   //NOI18N
         if (e.getSource() == settings)
         {
-            if (e.getPropertyName() == MixConsoleSettings.PROP_BACKGROUND_COLOR)
+            if (e.getPropertyName().equals(MixConsoleSettings.PROP_BACKGROUND_COLOR))
             {
                 refreshUI();
             }
         } else if (e.getSource() == songMidiMix)
         {
-            if (e.getPropertyName() == MidiMix.PROP_CHANNEL_INSTRUMENT_MIX)
+            if (e.getPropertyName().equals(MidiMix.PROP_CHANNEL_INSTRUMENT_MIX))
             {
                 int channel = (int) e.getNewValue();
                 RhythmVoice rv = songMidiMix.getRhythmVoice(channel);
@@ -521,7 +521,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
                         addMixChannelPanel(songMidiMix, channel);
                     }
                 }
-            } else if (e.getPropertyName() == Song.PROP_MODIFIED_OR_SAVED)
+            } else if (e.getPropertyName().equals(Song.PROP_MODIFIED_OR_SAVED_OR_RESET))
             {
                 boolean b = (boolean) e.getNewValue();
                 if (b)
@@ -534,7 +534,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
             }
         } else if (e.getSource() == SongEditorManager.getInstance())
         {
-            if (e.getPropertyName() == SongEditorManager.PROP_SONG_CLOSED)
+            if (e.getPropertyName().equals(SongEditorManager.PROP_SONG_CLOSED))
             {
                 Song closedSong = (Song) e.getNewValue();
                 if (songModel == closedSong)
@@ -545,7 +545,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
             }
         } else if (e.getSource() == ActiveSongManager.getInstance())
         {
-            if (e.getPropertyName() == ActiveSongManager.PROP_ACTIVE_SONG)
+            if (e.getPropertyName().equals(ActiveSongManager.PROP_ACTIVE_SONG))
             {
                 MidiMix mm = (MidiMix) e.getOldValue();
                 updateActiveState(mm != null && mm == songMidiMix);

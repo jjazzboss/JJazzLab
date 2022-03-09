@@ -163,11 +163,10 @@ public class SongMemoEditor extends javax.swing.JPanel implements PropertyChange
                 mapSongUndoer.remove(songModel);   // We don't need this UndoManager anymore                
                 resetModel();
 
-            } else if (evt.getPropertyName().equals(Song.PROP_MODIFIED_OR_SAVED)
+            } else if (evt.getPropertyName().equals(Song.PROP_MODIFIED_OR_SAVED_OR_RESET)
                     && evt.getNewValue() == Boolean.FALSE)
             {
                 songNameChanged();
-
             }
         } else if (evt.getSource() == settings)
         {

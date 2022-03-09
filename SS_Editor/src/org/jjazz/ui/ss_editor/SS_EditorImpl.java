@@ -741,26 +741,22 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
     public void propertyChange(final PropertyChangeEvent evt)
     {
         // Model changes can be generated outside the EDT
-        Runnable run = new Runnable()
+        Runnable run = () ->
         {
-            @Override
-            public void run()
+            if (evt.getSource() == settings)
             {
-                if (evt.getSource() == settings)
+                updateUIComponents();
+            } else if (evt.getSource() == songModel)
+            {
+                if (evt.getPropertyName().equals(Song.PROP_MODIFIED_OR_SAVED_OR_RESET))
                 {
-                    updateUIComponents();
-                } else if (evt.getSource() == songModel)
-                {
-                    if (evt.getPropertyName() == Song.PROP_MODIFIED_OR_SAVED)
+                    boolean b = (boolean) evt.getNewValue();
+                    if (b)
                     {
-                        boolean b = (boolean) evt.getNewValue();
-                        if (b)
-                        {
-                            setSongModified();
-                        } else
-                        {
-                            resetSongModified();
-                        }
+                        setSongModified();
+                    } else
+                    {
+                        resetSongModified();
                     }
                 }
             }
@@ -987,8 +983,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
 
     private void setSongModified()
     {
-        SavableSong s = lookup.lookup(SavableSong.class
-        );
+        SavableSong s = lookup.lookup(SavableSong.class);
         if (s == null)
         {
             s = new SavableSong(songModel);
@@ -999,8 +994,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
 
     private void resetSongModified()
     {
-        SavableSong s = lookup.lookup(SavableSong.class
-        );
+        SavableSong s = lookup.lookup(SavableSong.class);
         if (s != null)
         {
             Savable.ToBeSavedList.remove(s);

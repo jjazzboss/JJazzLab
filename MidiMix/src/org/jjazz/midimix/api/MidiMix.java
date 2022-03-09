@@ -92,9 +92,9 @@ import org.openide.NotifyDescriptor;
  * <p>
  * The object manages the solo functionality between the InstrumentMixes.<p>
  * A Song can be associated to the MidiMix so that InstrumentMixes are kept up to date with song's songStructure changes.<p>
- * If MidiMix is modified the corresponding property change event is fired (e.g. PROP_INSTRUMENT_MUTE) then the
- * PROP_MODIFIED_OR_SAVED change event is also fired.
- * <p>
+ If MidiMix is modified the corresponding property change event is fired (e.g. PROP_INSTRUMENT_MUTE) then the
+ PROP_MODIFIED_OR_SAVED_OR_RESET change event is also fired.
+ <p>
  */
 
 public class MidiMix implements SgsChangeListener, PropertyChangeListener, VetoableChangeListener, Serializable
@@ -869,11 +869,11 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
     /**
      * Save this MidiMix to a file.
      * <p>
-     * This will fire a PROP_MODIFIED_OR_SAVED change event (true=&gt;false).
+ This will fire a PROP_MODIFIED_OR_SAVED_OR_RESET change event (true=&gt;false).
      *
      * @param f
-     * @param isCopy Indicate that we save a copy, ie perform the file save but nothing else (eg no PROP_MODIFIED_OR_SAVED state
-     *               change)
+     * @param isCopy Indicate that we save a copy, ie perform the file save but nothing else (eg no PROP_MODIFIED_OR_SAVED_OR_RESET state
+               change)
      * @throws java.io.IOException
      */
     public void saveToFile(File f, boolean isCopy) throws IOException

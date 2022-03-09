@@ -99,7 +99,7 @@ public final class CL_EditorTopComponent extends TopComponent implements Propert
         clEditor = CL_EditorFactory.getDefault().createEditor(songModel);
 
         // Our controller
-        clEditorController = new CL_EditorController(clEditor);
+        clEditorController = new CL_EditorController(clEditor);     // This will update our songModel via Song.putClientProperty() by updating the zoom factors 
         clEditor.setEditorMouseListener(clEditorController);
 
         initComponents();
@@ -308,7 +308,7 @@ public final class CL_EditorTopComponent extends TopComponent implements Propert
                     if (evt.getPropertyName().equals(Song.PROP_NAME))
                     {
                         updateTabName();
-                    } else if (evt.getPropertyName().equals(Song.PROP_MODIFIED_OR_SAVED))
+                    } else if (evt.getPropertyName().equals(Song.PROP_MODIFIED_OR_SAVED_OR_RESET))
                     {
                         updateTabName();
                     }

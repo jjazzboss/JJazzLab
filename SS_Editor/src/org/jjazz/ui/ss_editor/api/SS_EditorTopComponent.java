@@ -27,7 +27,6 @@ import org.jjazz.ui.ss_editor.spi.SS_EditorFactory;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -243,13 +242,14 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
     @Override
     public void componentOpened()
     {
+
         // Try to restore zoom factor X from client property, or zoom to fit width
         Runnable r = new Runnable()
         {
             @Override
             public void run()
             {
-                String str = ssEditor.getSongModel().getClientProperty(SS_EditorImpl.PROP_ZOOM_FACTOR_X, null);
+                String str = songModel.getClientProperty(SS_EditorImpl.PROP_ZOOM_FACTOR_X, null);
                 if (str != null)
                 {
                     int zfx = -1;
@@ -268,13 +268,14 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
                         Zoomable zoomable = ssEditor.getLookup().lookup(Zoomable.class);
                         if (zoomable != null)
                         {
-                            zoomable.setZoomXFactor(zfx);
+                            zoomable.setZoomXFactor(zfx);    // This will mark songModel as modified via Song.putClientProperty()
                         }
                     }
                 } else
                 {
-                    ssEditor.setZoomHFactorToFitWidth(SS_EditorTopComponent.this.getWidth());
+                    ssEditor.setZoomHFactorToFitWidth(SS_EditorTopComponent.this.getWidth());   // This will mark songModel as modified via Song.putClientProperty()
                 }
+         
             }
         };
         // If invokeLater is not used layout is not yet performed and components size are = 0 !
@@ -352,7 +353,7 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
                 if (evt.getPropertyName().equals(Song.PROP_NAME))
                 {
                     updateTabName();
-                } else if (evt.getPropertyName().equals(Song.PROP_MODIFIED_OR_SAVED))
+                } else if (evt.getPropertyName().equals(Song.PROP_MODIFIED_OR_SAVED_OR_RESET))
                 {
                     updateTabName();
                 }
