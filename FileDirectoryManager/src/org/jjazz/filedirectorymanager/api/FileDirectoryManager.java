@@ -147,30 +147,14 @@ public class FileDirectoryManager
     public File getJJazzLabUserDirectory()
     {
         // We need a valid user.home directory        
-        final String uh = System.getProperty("user.home");
+        String uh = System.getProperty("user.home");
         assert uh != null : "user.home property does not exist: " + uh;   //NOI18N
         File userHome = new File(uh);
         assert userHome.isDirectory() : "user.home directory does not exist: " + uh;   //NOI18N
 
-        final String dataDir;
-        if (System.getProperty("os.name").equalsIgnoreCase("linux")) {
-            // Follow XDG spec on linux, https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
-            final String dataHome = System.getenv("XDG_DATA_HOME");
-            dataDir = (dataHome != null && dataHome.length() > 0) ? dataHome : uh + "/.local/share";
-            if (new File(uh + "/" + JJAZZLAB_USER_DIR).exists()) {
-                // The user has a legacy ~/JJazzLab directory, so let's keep using that.
-                dataDir = uh;
-            } else if (!new File(dataDir).mkdirs()) {
-                LOGGER.warning("getJJazzLabUserDirectory() Can't create XDG data directory " + dataDir + ". Using " + uh + " instead...");   //NOI18N
-                dataDir = uh;
-            }
-        } else {
-            // Non-linux, just put our files in the user's home directory.
-            dataDir = uh;
-        }
 
         // Our user dir
-        File userDir = new File(dataDir + "/" + JJAZZLAB_USER_DIR);
+        File userDir = new File(uh + "/" + JJAZZLAB_USER_DIR);
         if (!userDir.isDirectory())
         {
             // Create the directory
