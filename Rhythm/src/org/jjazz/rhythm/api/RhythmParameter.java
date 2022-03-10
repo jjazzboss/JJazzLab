@@ -32,7 +32,7 @@ import java.util.List;
  * <p>
  *
  * @param <E> The type of value of this RhythmParameter. Should be an immutable class. E.toString() should return a short (max ~30
- * characters) user-readable string.
+ *            characters) user-readable string.
  *
  */
 public interface RhythmParameter<E>
@@ -144,12 +144,27 @@ public interface RhythmParameter<E>
     /**
      * Convert the value of a compatible RhythmParameter to a value for this RhythmParameter.
      *
-     * @param <T> A RhythmParameter value
-     * @param rp A compatible RhythmParameter
+     * @param <T>     A RhythmParameter value
+     * @param rp      A compatible RhythmParameter
      * @param rpValue The value to convert
      * @return The rpValue converted for this RhythmParameter. Can't be null.
      * @throws IllegalArgumentException If rp is not a compatible with this RhythmParameter.
      */
     <T> E convertValue(RhythmParameter<T> rp, T rpValue);
+
+    /**
+     * Indicate if this RhythmParameter is a primary parameter for its rhythm.
+     * <p>
+     * This information is made available mainly for the user interface, e.g. to select which RhythmParameters to show first.
+     * <p>
+     * Default implementation returns true.
+     *
+     * @return
+     */
+    default boolean isPrimary()
+    {
+        return true;
+    }
+
 
 }

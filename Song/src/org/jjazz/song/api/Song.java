@@ -45,6 +45,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -144,7 +145,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
      *
      * @param name
      * @param cls
-     * @param sgs Must be kept consistent with cls changes
+     * @param sgs  Must be kept consistent with cls changes
      */
     protected Song(String name, ChordLeadSheet cls, SongStructure sgs)
     {
@@ -168,15 +169,16 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
      */
     public String getClientProperty(String key, String defaultValue)
     {
-        return clientProperties.getProperty(key);
+        String res = clientProperties.getProperty(key);
+        return res != null ? res : defaultValue;
     }
 
     /**
      * Store a client property.
      * <p>
      * Client properties are serialized. This can be used by other components to store information specific to this object, eg UI
-     * settings or others like Section Quantization.<br>
-     * A PropertyChangeEvent(property name=key) is fired to listeners. If newValue=null then property is removed.<p>
+     * settings or others like quantization display of a section, zoom factors, etc.<br>
+     * A PropertyChangeEvent(property name=key) is fired to song listeners. If newValue=null then property is removed.<p>
      * This will fire a song modified event.
      *
      * @param key
@@ -184,15 +186,14 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
      */
     public void putClientProperty(String key, String value)
     {
-        if (key == null)
-        {
-            throw new NullPointerException("key=" + key + " value=" + value);   //NOI18N
-        }
+        checkNotNull(key);
+        
         String oldValue = clientProperties.getProperty(key);
-        if (oldValue == null && value == null)
+        if (Objects.equals(oldValue, value))
         {
             return;
         }
+        
         if (value == null)
         {
             clientProperties.remove(key);
@@ -200,8 +201,10 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
         {
             clientProperties.setProperty(key, value);
         }
-        pcs.firePropertyChange(key, oldValue, oldValue);
+        
+        pcs.firePropertyChange(key, oldValue, value);
         fireIsModified();
+
     }
 
     /**
@@ -211,7 +214,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
      * VeotableChange PROP_VETOABLE_USER_PHRASE if no phrase is replaced, otherwise use PROP_VETOABLE_USER_PHRASE_CONTENT.
      * <p>
      * @param name Can't be blank.
-     * @param p Can't be null. The phrase channel is not used.
+     * @param p    Can't be null. The phrase channel is not used.
      * @throws PropertyVetoException If no Midi channel available for the user phrase
      * @see Song#PROP_VETOABLE_USER_PHRASE
      * @see Song#PROP_VETOABLE_USER_PHRASE_CONTENT
@@ -660,8 +663,8 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
      * oldValue=true and newValue=false.
      *
      * @param songFile
-     * @param isCopy Indicate that the save operation if for a copy, ie just perform the save operation and do nothing else (song
-     * name is not set, etc.)
+     * @param isCopy   Indicate that the save operation if for a copy, ie just perform the save operation and do nothing else
+     *                 (song name is not set, etc.)
      * @throws java.io.IOException
      * @see getFile()
      */

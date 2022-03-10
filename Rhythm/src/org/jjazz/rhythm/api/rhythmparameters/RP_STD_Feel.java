@@ -25,23 +25,18 @@ package org.jjazz.rhythm.api.rhythmparameters;
 import org.jjazz.rhythm.api.RP_State;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.util.api.ResUtil;
-import org.openide.util.NbBundle;
 
 /**
  * Standard RhythmParameter: double feel
  */
-@NbBundle.Messages(
-        {
-
-        })
 public final class RP_STD_Feel extends RP_State
 {
 
     public static String ID = "rpFeelID";
 
-    public RP_STD_Feel()
+    public RP_STD_Feel(boolean isPrimary)
     {
-        super(ID, ResUtil.getString(RP_STD_Feel.class, "CTL_StdFeelName"), ResUtil.getString(RP_STD_Feel.class, "CTL_StdFeelDesc"), "", "", "half-time");
+        super(ID, ResUtil.getString(RP_STD_Feel.class, "CTL_StdFeelName"), ResUtil.getString(RP_STD_Feel.class, "CTL_StdFeelDesc"), isPrimary, "", "", "half-time");
     }
 
     static public RP_STD_Feel getFeelRp(Rhythm rhythm)

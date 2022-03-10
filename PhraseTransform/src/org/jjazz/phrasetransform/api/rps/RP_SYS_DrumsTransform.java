@@ -19,13 +19,14 @@ public class RP_SYS_DrumsTransform implements RhythmParameter<RP_SYS_DrumsTransf
 
     private final RP_SYS_DrumsTransformValue DEFAULT_VALUE;
     private final RhythmVoice rhythmVoice;
+    private final boolean primary;
     private static final Logger LOGGER = Logger.getLogger(RP_SYS_DrumsTransform.class.getSimpleName());
 
     /**
      *
      * @param rv Must have a Rhythm container defined and type==RhythmVoice.Type.DRUMS
      */
-    public RP_SYS_DrumsTransform(RhythmVoice rv)
+    public RP_SYS_DrumsTransform(RhythmVoice rv, boolean primary)
     {
         checkNotNull(rv);
         checkArgument(rv.getContainer() != null
@@ -33,12 +34,19 @@ public class RP_SYS_DrumsTransform implements RhythmParameter<RP_SYS_DrumsTransf
                 "rv=%s", rv);
 
         rhythmVoice = rv;
+        this.primary = primary;
         DEFAULT_VALUE = new RP_SYS_DrumsTransformValue(rhythmVoice);
     }
 
     public Rhythm getRhythm()
     {
         return rhythmVoice.getContainer();
+    }
+
+    @Override
+    public boolean isPrimary()
+    {
+        return primary;
     }
 
     public RhythmVoice getRhythmVoice()

@@ -45,6 +45,8 @@ import org.openide.util.Lookup;
 import org.openide.windows.TopComponent;
 import org.jjazz.util.api.ResUtil;
 import org.openide.util.Utilities;
+import org.openide.windows.Mode;
+import org.openide.windows.WindowManager;
 
 /**
  * Top component for the ChordLeadSheet editor.
@@ -55,6 +57,8 @@ import org.openide.util.Utilities;
  */
 public final class CL_EditorTopComponent extends TopComponent implements PropertyChangeListener
 {
+
+    public static final String MODE = "editor"; // see Netbeans WindowManager modes
 
     /**
      * Our model.
@@ -142,13 +146,13 @@ public final class CL_EditorTopComponent extends TopComponent implements Propert
     @Override
     public boolean canClose()
     {
-        
+
         if (pairedTc != null && !pairedTc.isOpened())
         {
             // SS_Editor was closed first, just let this TopComponent be closed
             return true;
         }
-                
+
         SavableSong ss = getLookup().lookup(SavableSong.class);
         if (ss != null)
         {
@@ -191,13 +195,28 @@ public final class CL_EditorTopComponent extends TopComponent implements Propert
     }
 
     /**
-     * Return the active CL_EditorTopComponent.
+     * Return the active (i.e. focused or ancestor of the focused component) CL_EditorTopComponent.
      *
-     * @return Null if no active CL_EditorTopComponent found.
+     * @return Can be null
      */
     static public CL_EditorTopComponent getActive()
     {
         TopComponent tc = TopComponent.getRegistry().getActivated();
+        return (tc instanceof CL_EditorTopComponent) ? (CL_EditorTopComponent) tc : null;
+    }
+
+    /**
+     * Return the visible CL_EditorTopComponent within its window mode.
+     * <p>
+     * The visible SS_EditorTopComponent might not be the active one (for example if it's the corresponding SS_EditorTopComponent
+     * which is active)
+     *
+     * @return Can be null if no SS_EditorTopComponent within its window mode.
+     */
+    static public CL_EditorTopComponent getVisible()
+    {
+        Mode mode = WindowManager.getDefault().findMode(MODE);
+        TopComponent tc = mode.getSelectedTopComponent();
         return (tc instanceof CL_EditorTopComponent) ? (CL_EditorTopComponent) tc : null;
     }
 

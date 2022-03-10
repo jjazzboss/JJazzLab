@@ -45,17 +45,24 @@ public class RP_StringSet implements RhythmParameter<Set<String>>, RpEnumerable<
     private Set<String> minValue;
     private Set<String> maxValue;
     private List<String> possibleValues;
+    private final boolean primary;
     protected static final Logger LOGGER = Logger.getLogger(RP_StringSet.class.getName());
 
     /**
+     * Create a RP_StringSet.
+     * <p>
+     * Created instance is primary by default.
+     *
      * @param id
-     * @param name The name of the RhythmParameter.
+     * @param name           The name of the RhythmParameter.
      * @param description
-     * @param defaultValue All members of the Set must be one of the possibleValues
+     * @param isPrimary
+     * @param defaultValue   All members of the Set must be one of the possibleValues
      * @param possibleValues String[] The possible values which can be used in a Set (max MAX_SET_SIZE). By convention, min value
-     * is set to the 1st possible value, max value to the last one. The empty string must not be one of the possible values.
+     *                       is set to the 1st possible value, max value to the last one. The empty string must not be one of the
+     *                       possible values.
      */
-    public RP_StringSet(String id, String name, String description, Set<String> defaultValue, String... possibleValues)
+    public RP_StringSet(String id, String name, String description, boolean isPrimary, Set<String> defaultValue, String... possibleValues)
     {
         if (id == null || name == null || defaultValue == null || possibleValues == null || possibleValues.length == 0 || possibleValues.length > MAX_SET_SIZE)
         {
@@ -77,36 +84,70 @@ public class RP_StringSet implements RhythmParameter<Set<String>>, RpEnumerable<
         }
         this.minValue = new HashSet<>();
         this.maxValue = new HashSet<>(this.possibleValues);
+        this.primary = isPrimary;
 
     }
 
+
     @Override
-    public boolean equals(Object o)
+    public boolean isPrimary()
     {
-        boolean b = false;
-        if (o instanceof RP_StringSet)
-        {
-            RP_StringSet rp = (RP_StringSet) o;
-            b = id.equals(rp.id)
-                    && displayName.equalsIgnoreCase(rp.displayName)
-                    && description.equals(rp.description)
-                    && defaultValue.equals(rp.defaultValue)
-                    && possibleValues.equals(rp.possibleValues);
-        }
-        return b;
+        return primary;
     }
 
     @Override
     public int hashCode()
     {
         int hash = 5;
-        hash = 67 * hash + Objects.hashCode(this.id);
-        hash = 67 * hash + Objects.hashCode(this.displayName.toLowerCase());
-        hash = 67 * hash + Objects.hashCode(this.description);
-        hash = 67 * hash + Objects.hashCode(this.defaultValue);
-        hash = 67 * hash + Objects.hashCode(this.possibleValues);
+        hash = 37 * hash + Objects.hashCode(this.id);
+        hash = 37 * hash + Objects.hashCode(this.displayName);
+        hash = 37 * hash + Objects.hashCode(this.description);
+        hash = 37 * hash + Objects.hashCode(this.defaultValue);
+        hash = 37 * hash + Objects.hashCode(this.possibleValues);
+        hash = 37 * hash + (this.primary ? 1 : 0);
         return hash;
     }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+        if (this == obj)
+        {
+            return true;
+        }
+        if (obj == null)
+        {
+            return false;
+        }
+        if (getClass() != obj.getClass())
+        {
+            return false;
+        }
+        final RP_StringSet other = (RP_StringSet) obj;
+        if (this.primary != other.primary)
+        {
+            return false;
+        }
+        if (!Objects.equals(this.id, other.id))
+        {
+            return false;
+        }
+        if (!Objects.equals(this.displayName, other.displayName))
+        {
+            return false;
+        }
+        if (!Objects.equals(this.description, other.description))
+        {
+            return false;
+        }
+        if (!Objects.equals(this.defaultValue, other.defaultValue))
+        {
+            return false;
+        }
+        return Objects.equals(this.possibleValues, other.possibleValues);
+    }
+
+        
 
     @Override
     public final String getId()

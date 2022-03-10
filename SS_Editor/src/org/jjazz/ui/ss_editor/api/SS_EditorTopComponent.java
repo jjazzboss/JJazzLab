@@ -49,6 +49,9 @@ import org.jjazz.ui.ss_editor.SS_EditorImpl;
 import org.jjazz.ui.ss_editor.SS_EditorToolBar;
 import org.jjazz.ui.utilities.api.Zoomable;
 import org.jjazz.util.api.ResUtil;
+import org.openide.windows.Mode;
+import static org.openide.windows.TopComponent.PERSISTENCE_NEVER;
+import org.openide.windows.WindowManager;
 
 /**
  * Top component for the SongStructure editor.
@@ -57,9 +60,11 @@ import org.jjazz.util.api.ResUtil;
  * Accept a paired TopComponent which must be always be shown/closed in the same time.<br>
  * The TopComponent's lookup is the SS_Editor's lookup.
  */
+@TopComponent.Description(preferredID = "SS_EditorTopComponentId", persistenceType = PERSISTENCE_NEVER)
 public final class SS_EditorTopComponent extends TopComponent implements PropertyChangeListener
 {
 
+    public static final String MODE = "output";  // see Netbeans WindowManager modes
     /**
      * Our model.
      */
@@ -110,8 +115,6 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
         ssEditor.setController(ssEditorController);
 
 
-        // Make editor printable by Netbeans PrintManager
-        // ssEditor.putClientProperty("print.printable", Boolean.TRUE); // NOI18N
         // Create the toolbar
         ssToolBar = new SS_EditorToolBar(ssEditor);
 
@@ -151,12 +154,6 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
         return songModel;
     }
 
-    @Override
-    public int getPersistenceType()
-    {
-        return TopComponent.PERSISTENCE_NEVER;
-    }
-
     /**
      * Bind this TopComponent to another TopComponent.
      * <p>
@@ -181,15 +178,31 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
     }
 
     /**
-     * Return the active SS_EditorTopComponent.
+     * Return the active (i.e. focused or ancestor of the focused component) SS_EditorTopComponent.
      *
-     * @return Null if no active SS_EditorTopComponent found.
+     * @return Can be null
      */
     static public SS_EditorTopComponent getActive()
     {
         TopComponent tc = TopComponent.getRegistry().getActivated();
         return (tc instanceof SS_EditorTopComponent) ? (SS_EditorTopComponent) tc : null;
     }
+
+    /**
+     * Return the visible SS_EditorTopComponent within its window mode.
+     * <p>
+     * The visible SS_EditorTopComponent might not be the active one (for example if it's the corresponding CL_EditorTopComponent
+     * which is active).
+     *
+     * @return Can be null if no SS_EditorTopComponent within its window mode.
+     */
+    static public SS_EditorTopComponent getVisible()
+    {
+        Mode mode = WindowManager.getDefault().findMode(MODE);
+        TopComponent tc = mode.getSelectedTopComponent();
+        return (tc instanceof SS_EditorTopComponent) ? (SS_EditorTopComponent) tc : null;
+    }
+
 
     /**
      * Return the editor for a specific SongStructure.
@@ -275,7 +288,7 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
                 {
                     ssEditor.setZoomHFactorToFitWidth(SS_EditorTopComponent.this.getWidth());   // This will mark songModel as modified via Song.putClientProperty()
                 }
-         
+
             }
         };
         // If invokeLater is not used layout is not yet performed and components size are = 0 !

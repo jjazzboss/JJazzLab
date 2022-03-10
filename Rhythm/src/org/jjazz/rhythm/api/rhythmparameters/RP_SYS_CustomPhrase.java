@@ -17,15 +17,23 @@ public class RP_SYS_CustomPhrase implements RhythmParameter<RP_SYS_CustomPhraseV
 {
 
     private final Rhythm rhythm;
-
+    private final boolean primary;
 
     private static final Logger LOGGER = Logger.getLogger(RP_SYS_CustomPhrase.class.getSimpleName());
 
 
-    public RP_SYS_CustomPhrase(Rhythm r)
+    public RP_SYS_CustomPhrase(Rhythm r, boolean primary)
     {
         checkNotNull(r);
         rhythm = r;
+        this.primary = primary;
+    }
+
+
+    @Override
+    public boolean isPrimary()
+    {
+        return primary;
     }
 
     /**
@@ -129,10 +137,10 @@ public class RP_SYS_CustomPhrase implements RhythmParameter<RP_SYS_CustomPhraseV
         Preconditions.checkArgument(isCompatibleWith(rp), "rp=%s is not compatible with this=%s", rp, this);
         Preconditions.checkNotNull(value);
 
-        
+
         RP_SYS_CustomPhraseValue res = getDefaultValue();
 
-        
+
         RP_SYS_CustomPhraseValue rpValue = (RP_SYS_CustomPhraseValue) value;
         var rvs = getRhythm().getRhythmVoices();
 

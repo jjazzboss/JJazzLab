@@ -124,6 +124,8 @@ public class SS_EditorController implements SS_EditorMouseListener
         editor.getActionMap().put("Duplicate", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.duplicatespt"));   //NOI18N
         editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("Z"), "ResetRpValue");  //NOI18N
         editor.getActionMap().put("ResetRpValue", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.resetrpvalue"));   //NOI18N
+//        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("V"), "ToggleRpView");  // Useless because global Netbeans shortcut declared in the action
+//        editor.getActionMap().put("ToggleRpView", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.togglecompactview"));   //NOI18N
 
 
         // Set the delegate actions for standard Netbeans copy/cut/paste actions
@@ -157,14 +159,11 @@ public class SS_EditorController implements SS_EditorMouseListener
 
 
         // Delegates for our callback actions        
-        editor.getActionMap()
-                .put("jjazz-delete", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.removespt"));   //NOI18N
-        editor.getActionMap()
-                .put("jjazz-selectall", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.selectall"));   //NOI18N
-        editor.getActionMap()
-                .put("jjazz-edit", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.editsptname"));   //NOI18N
-        editor.getActionMap()
-                .put("jjazz-zoomfitwidth", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.zoomfitwidth"));   //NOI18N
+        editor.getActionMap().put("jjazz-delete", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.removespt"));   //NOI18N
+        editor.getActionMap().put("jjazz-selectall", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.selectall"));   //NOI18N
+        editor.getActionMap().put("jjazz-edit", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.editsptname"));   //NOI18N
+        editor.getActionMap().put("jjazz-zoomfitwidth", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.zoomfitwidth"));   //NOI18N
+
 
 //        // Add keybindings which would be otherwise consumed by enclosing JScrollPane or other enclosing components
         editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
@@ -467,7 +466,7 @@ public class SS_EditorController implements SS_EditorMouseListener
 
         if (e.getClickCount() == 1 && SwingUtilities.isLeftMouseButton(e))
         {
-            if (selection.isSongPartSelected() || selection.isEmpty() || focusedRp == null 
+            if (selection.isSongPartSelected() || selection.isEmpty() || focusedRp == null
                     || !rp.isCompatibleWith(focusedRp)
                     || (e.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) == 0)
             {

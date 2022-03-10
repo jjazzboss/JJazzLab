@@ -34,14 +34,14 @@ public final class RP_STD_Intensity extends RP_Integer
 
     public static String ID = "rpIntensityID";
 
-    public RP_STD_Intensity()
+    public RP_STD_Intensity(boolean isPrimary)
     {
-        super(ID, ResUtil.getString(RP_STD_Intensity.class, "CTL_RpIntensityName"), ResUtil.getString(RP_STD_Intensity.class, "CTL_RpIntensityDesc"), 0, -10, 10, 1);
+        super(ID, ResUtil.getString(RP_STD_Intensity.class, "CTL_RpIntensityName"), ResUtil.getString(RP_STD_Intensity.class, "CTL_RpIntensityDesc"),isPrimary,  0, -10, 10, 1);
     }
 
-    public RP_STD_Intensity(int defaultVal, int minVal, int maxVal, int step)
+    public RP_STD_Intensity(boolean isPrimary, int defaultVal, int minVal, int maxVal, int step)
     {
-        super(ID, ResUtil.getString(RP_STD_Intensity.class, "CTL_RpIntensityName"), ResUtil.getString(RP_STD_Intensity.class, "CTL_RpIntensityDesc"), defaultVal, minVal, maxVal, step);
+        super(ID, ResUtil.getString(RP_STD_Intensity.class, "CTL_RpIntensityName"), ResUtil.getString(RP_STD_Intensity.class, "CTL_RpIntensityDesc"), isPrimary, defaultVal, minVal, maxVal, step);
     }
 
     static public RP_STD_Intensity getIntensityRp(Rhythm rhythm)

@@ -34,14 +34,14 @@ public class RP_STD_Variation extends RP_State
 
     public static String ID = "rpVariationID";
 
-    public RP_STD_Variation()
+    public RP_STD_Variation(boolean isPrimary)
     {
-        super(ID, ResUtil.getString(RP_STD_Variation.class, "CTL_StdVariationName"), ResUtil.getString(RP_STD_Variation.class, "CTL_StdVariationDesc"), "V1", "V1", "V2", "V3");
+        super(ID, ResUtil.getString(RP_STD_Variation.class, "CTL_StdVariationName"), ResUtil.getString(RP_STD_Variation.class, "CTL_StdVariationDesc"), isPrimary, "V1", "V1", "V2", "V3");
     }
 
-    public RP_STD_Variation(String defaultVal, String... possibleValues)
+    public RP_STD_Variation(boolean isPrimary, String defaultVal, String... possibleValues)
     {
-        super(ID, ResUtil.getString(RP_STD_Variation.class, "CTL_StdVariationName"), ResUtil.getString(RP_STD_Variation.class, "CTL_StdVariationDesc"), defaultVal, possibleValues);
+        super(ID, ResUtil.getString(RP_STD_Variation.class, "CTL_StdVariationName"), ResUtil.getString(RP_STD_Variation.class, "CTL_StdVariationDesc"), isPrimary, defaultVal, possibleValues);
     }
 
     /**
@@ -62,5 +62,5 @@ public class RP_STD_Variation extends RP_State
                 .findAny()
                 .orElse(null);
     }
-    
+
 }

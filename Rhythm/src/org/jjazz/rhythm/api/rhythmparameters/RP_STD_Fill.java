@@ -41,15 +41,17 @@ public class RP_STD_Fill extends RP_State
 
     /**
      * Possible values: "" (default), "always", "random_rare", "random", "break"
+     * 
+     * @param isPrimary
      */
-    public RP_STD_Fill()
+    public RP_STD_Fill(boolean isPrimary)
     {
-        super(ID, ResUtil.getString(RP_STD_Fill.class, "CTL_RpFillName"), ResUtil.getString(RP_STD_Fill.class, "CTL_RpFillDesc"), "", "", VALUE_ALWAYS, VALUE_RANDOM, VALUE_RANDOM_RARE, VALUE_BREAK);
+        super(ID, ResUtil.getString(RP_STD_Fill.class, "CTL_RpFillName"), ResUtil.getString(RP_STD_Fill.class, "CTL_RpFillDesc"), isPrimary, "", "", VALUE_ALWAYS, VALUE_RANDOM, VALUE_RANDOM_RARE, VALUE_BREAK);
     }
 
-    public RP_STD_Fill(String defaultVal, String... possibleValues)
+    public RP_STD_Fill(boolean isPrimary, String defaultVal, String... possibleValues)
     {
-        super(ID, ResUtil.getString(RP_STD_Fill.class, "CTL_RpFillName"), ResUtil.getString(RP_STD_Fill.class, "CTL_RpFillDesc"), defaultVal, possibleValues);
+        super(ID, ResUtil.getString(RP_STD_Fill.class, "CTL_RpFillName"), ResUtil.getString(RP_STD_Fill.class, "CTL_RpFillDesc"), isPrimary, defaultVal, possibleValues);
     }
 
     static public RP_STD_Fill getFillRp(Rhythm rhythm)

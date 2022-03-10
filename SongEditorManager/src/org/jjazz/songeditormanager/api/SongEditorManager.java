@@ -165,12 +165,12 @@ public class SongEditorManager implements PropertyChangeListener
 
             // Create the editors
             CL_EditorTopComponent clTC = new CL_EditorTopComponent(song);
-            Mode mode = WindowManager.getDefault().findMode("editor");
+            Mode mode = WindowManager.getDefault().findMode(CL_EditorTopComponent.MODE);
             mode.dockInto(clTC);
             clTC.open();
 
             SS_EditorTopComponent ssTC = new SS_EditorTopComponent(song);
-            mode = WindowManager.getDefault().findMode("output");
+            mode = WindowManager.getDefault().findMode(SS_EditorTopComponent.MODE);
             mode.dockInto(ssTC);
             ssTC.open();
 

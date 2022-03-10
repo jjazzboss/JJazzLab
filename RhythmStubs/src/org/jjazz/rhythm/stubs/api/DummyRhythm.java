@@ -77,7 +77,7 @@ public class DummyRhythm implements Rhythm
         this.name = name;
         this.timeSignature = ts;
         // Our Rhythm Parameters
-        rhythmParameters.add(new RP_STD_Variation());
+        rhythmParameters.add(new RP_STD_Variation(true));
 
         // Rhythm voices
         GM1Bank gmb = StdSynth.getInstance().getGM1Bank();

@@ -22,6 +22,8 @@
  */
 package org.jjazz.ui.ss_editor;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -341,7 +343,15 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
     @Override
     public void setVisibleRps(Rhythm r, List<RhythmParameter<?>> rps)
     {
+        checkNotNull(r);
+        checkNotNull(rps);
+        
         var sortedRps = sortRhythmParameters(r, rps);
+        if (sortedRps.isEmpty())
+        {
+            throw new IllegalArgumentException("r=" + r + " rps=" + rps + " sortedRps=" + sortedRps);
+        }
+
         var previousRps = mapRhythmVisibleRps.getValue(r);
         if (previousRps != null && previousRps.equals(sortedRps))
         {
@@ -559,10 +569,11 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         List<RhythmParameter<?>> rps = mapRhythmVisibleRps.getValue(r);
         if (rps == null)
         {
-            // Initialize the visible rhythm parameters by default
-            rps = new ArrayList<>(getInitialVisibleRps(r));
+            // Show all the RhythmParameters
+            rps = r.getRhythmParameters();
             mapRhythmVisibleRps.putValue(r, rps);
         }
+
         List<RhythmParameter<?>> newRps = new ArrayList<>();
         newRps.addAll(rps);
         return newRps;
@@ -1168,67 +1179,6 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
                 .stream()
                 .filter(rp -> rps.contains(rp))
                 .collect(Collectors.toList());
-        return res;
-    }
-
-    /**
-     * Decide which RhythmParameters are visible by default for the specified new rhythm.
-     *
-     * @param r
-     * @return
-     */
-    private List<RhythmParameter<?>> getInitialVisibleRps(Rhythm r)
-    {
-
-        var tmp = new ArrayList<RhythmParameter<?>>();
-
-        // Add all except Marker an TempoFactor (handled below)
-        r.getRhythmParameters().stream()
-                .filter(rp -> !((rp instanceof RP_SYS_Marker) || (rp instanceof RP_SYS_TempoFactor)))
-                .forEach(tmp::add);
-
-
-        // Add marker only if supported by the rhythm and actually used by other SongParts 
-        RP_SYS_Marker rMarker = RP_SYS_Marker.getMarkerRp(r);
-        if (rMarker != null)
-        {
-            for (SongPart spt : sgsModel.getSongParts())
-            {
-                RP_SYS_Marker rpm = RP_SYS_Marker.getMarkerRp(spt.getRhythm());
-                if (rpm != null && !spt.getRPValue(rpm).equals(rpm.getDefaultValue()))
-                {
-                    tmp.add(rMarker);
-                    break;
-                }
-            }
-        }
-
-        // Add tempo only if supported by the rhythm and actually used by other SongParts 
-        RP_SYS_TempoFactor rTempo = RP_SYS_TempoFactor.getTempoFactorRp(r);
-        if (rTempo != null)
-        {
-            for (SongPart spt : sgsModel.getSongParts())
-            {
-                RP_SYS_TempoFactor rpm = RP_SYS_TempoFactor.getTempoFactorRp(spt.getRhythm());
-                if (rpm != null && !spt.getRPValue(rpm).equals(rpm.getDefaultValue()))
-                {
-                    tmp.add(rTempo);
-                    break;
-                }
-            }
-        }
-
-
-        // Reorder
-        var res = new ArrayList<RhythmParameter<?>>();
-        for (var rp : r.getRhythmParameters())
-        {
-            if (tmp.contains(rp))
-            {
-                res.add(rp);
-            }
-        }
-
         return res;
     }
 

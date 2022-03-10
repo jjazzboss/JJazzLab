@@ -44,11 +44,25 @@ public class RP_Integer implements RhythmParameter<Integer>, RpEnumerable<Intege
     /**
      * Step used to increase/decrease the value.
      */
-    private int step;
+    private final int step;
+    private final boolean primary;
 
     protected static final Logger LOGGER = Logger.getLogger(RP_Integer.class.getName());
 
-    public RP_Integer(String id, String name, String description, int defaultVal, int minValue, int maxValue, int step)
+    /**
+     * Create a RP_Integer.Created instance is primary by default.
+     *
+     *
+     * @param id
+     * @param name
+     * @param description
+     * @param defaultVal
+     * @param minValue
+     * @param maxValue
+     * @param step
+     * @param isPrimary
+     */
+    public RP_Integer(String id, String name, String description, boolean isPrimary, int defaultVal, int minValue, int maxValue, int step)
     {
         if (id == null || name == null || description == null || name.length() == 0
                 || minValue > maxValue
@@ -65,6 +79,7 @@ public class RP_Integer implements RhythmParameter<Integer>, RpEnumerable<Intege
         this.minValue = minValue;
         this.maxValue = maxValue;
         this.step = step;
+        this.primary = isPrimary;
         if (!isValidValue(defaultVal))
         {
             throw new IllegalArgumentException( //NOI18N
@@ -74,35 +89,71 @@ public class RP_Integer implements RhythmParameter<Integer>, RpEnumerable<Intege
     }
 
     @Override
-    public final boolean equals(Object o)
+    public boolean isPrimary()
     {
-        boolean b = false;
-        if (o instanceof RP_Integer)
-        {
-            RP_Integer rp = (RP_Integer) o;
-            b = id.equals(rp.id)
-                    && displayName.equals(rp.displayName)
-                    && minValue == rp.minValue
-                    && maxValue == rp.maxValue
-                    && step == rp.step
-                    && defaultValue == rp.defaultValue
-                    && description.equals(rp.description);
-        }
-        return b;
+        return primary;
     }
 
     @Override
-    public final int hashCode()
+    public int hashCode()
     {
-        int hash = 3;
-        hash = 97 * hash + Objects.hashCode(this.id);
-        hash = 97 * hash + Objects.hashCode(this.displayName);
-        hash = 97 * hash + Objects.hashCode(this.description);
-        hash = 97 * hash + this.defaultValue;
-        hash = 97 * hash + this.minValue;
-        hash = 97 * hash + this.maxValue;
-        hash = 97 * hash + this.step;
+        int hash = 7;
+        hash = 43 * hash + Objects.hashCode(this.id);
+        hash = 43 * hash + Objects.hashCode(this.displayName);
+        hash = 43 * hash + Objects.hashCode(this.description);
+        hash = 43 * hash + this.defaultValue;
+        hash = 43 * hash + this.minValue;
+        hash = 43 * hash + this.maxValue;
+        hash = 43 * hash + this.step;
+        hash = 43 * hash + (this.primary ? 1 : 0);
         return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+        if (this == obj)
+        {
+            return true;
+        }
+        if (obj == null)
+        {
+            return false;
+        }
+        if (getClass() != obj.getClass())
+        {
+            return false;
+        }
+        final RP_Integer other = (RP_Integer) obj;
+        if (this.defaultValue != other.defaultValue)
+        {
+            return false;
+        }
+        if (this.minValue != other.minValue)
+        {
+            return false;
+        }
+        if (this.maxValue != other.maxValue)
+        {
+            return false;
+        }
+        if (this.step != other.step)
+        {
+            return false;
+        }
+        if (this.primary != other.primary)
+        {
+            return false;
+        }
+        if (!Objects.equals(this.id, other.id))
+        {
+            return false;
+        }
+        if (!Objects.equals(this.displayName, other.displayName))
+        {
+            return false;
+        }
+        return Objects.equals(this.description, other.description);
     }
 
     public final int getStep()

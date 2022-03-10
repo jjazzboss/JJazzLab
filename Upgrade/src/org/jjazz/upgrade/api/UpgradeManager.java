@@ -52,7 +52,7 @@ public class UpgradeManager
      */
     public static final String[] PREVIOUS_VERSIONS = new String[]
     {
-        "3.0.2a", "3.0.2", "3.0.1", "3.0.beta1", "2.3.1", "2.3.beta", "2.2.0", "2.2.beta3", "2.2.beta2", "2.1.2a", "2.1.2", "2.1.1", "2.1.0", "2.0.1", "2.0.0"
+        "3.0.3", "3.0.2a", "3.0.2", "3.0.1", "3.0.beta1", "2.3.1", "2.3.beta", "2.2.0", "2.2.beta3", "2.2.beta2", "2.1.2a", "2.1.2", "2.1.1", "2.1.0", "2.0.1", "2.0.0"
     };
     private static final String PREF_FRESH_START = "FreshStart";
 

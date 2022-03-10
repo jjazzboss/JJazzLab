@@ -157,7 +157,7 @@ public class FlatToggleButton extends FlatButton
         setSelectedIcon((Icon) bsa.getValue(Action.LARGE_ICON_KEY));
         setSelected(bsa.getBooleanState());
     }
-
+    
     public void setUnselectedIcon(Icon icon)
     {
         this.unselectedIcon = icon;

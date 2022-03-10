@@ -89,7 +89,7 @@ public class RhythmStub implements Rhythm, MusicGenerator
         rhythmVoices.add(new RhythmVoice(this, RhythmVoice.Type.BASS, "Bass", gmb.getDefaultInstrument(Family.Bass), 10));
 
         // Our Rhythm Parameters
-        rhythmParameters.add(new RP_STD_Variation());
+        rhythmParameters.add(new RP_STD_Variation(true));
 
     }
 

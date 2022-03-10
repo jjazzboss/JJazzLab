@@ -88,7 +88,7 @@ public class STUBRhythm implements Rhythm
         rhythmVoices.add(new RhythmVoice(this, RhythmVoice.Type.PAD, "Pad", gmb.getDefaultInstrument(Family.Strings), 13));
 
         // Our Rhythm Parameters
-        rhythmParameters.add(new RP_Integer("unitRpI", "unitRp", "desc", 0, 0, 10, 1));
+        rhythmParameters.add(new RP_Integer("unitRpI", "unitRp", "desc", true, 0, 0, 10, 1));
 
         // The music generator
         // lookup = Lookups.fixed(new DummyGenerator(this));

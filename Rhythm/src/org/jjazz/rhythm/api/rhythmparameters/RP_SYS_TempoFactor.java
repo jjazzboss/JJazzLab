@@ -22,7 +22,6 @@
  */
 package org.jjazz.rhythm.api.rhythmparameters;
 
-import java.util.Set;
 import org.jjazz.rhythm.api.RP_Integer;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.util.api.ResUtil;
@@ -31,6 +30,8 @@ import org.jjazz.util.api.ResUtil;
  * Standard RhythmParameter: Tempo percentage change.
  * <p>
  * Default 100%, min 50%, max 200%
+ * .<p>
+ * This RP is not primary and can't be customized: it's a shared instance.
  */
 public final class RP_SYS_TempoFactor extends RP_Integer
 {
@@ -52,7 +53,7 @@ public final class RP_SYS_TempoFactor extends RP_Integer
 
     private RP_SYS_TempoFactor()
     {
-        super(ID, ResUtil.getString(RP_SYS_TempoFactor.class, "CTL_RpTempoFactorName"), ResUtil.getString(RP_SYS_TempoFactor.class, "CTL_RpTempoFactorDesc"), 100, 50, 200, 1);
+        super(ID, ResUtil.getString(RP_SYS_TempoFactor.class, "CTL_RpTempoFactorName"), ResUtil.getString(RP_SYS_TempoFactor.class, "CTL_RpTempoFactorDesc"), false, 100, 50, 200, 1);
     }
 
     /**

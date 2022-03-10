@@ -114,7 +114,7 @@ public abstract class SS_Editor extends JPanel implements Lookup.Provider
      *
      * @param spt
      * @param rp
-     * @param b True to select, False to unselect.
+     * @param b   True to select, False to unselect.
      */
     abstract public void selectRhythmParameter(SongPart spt, RhythmParameter<?> rp, boolean b);
 
@@ -136,7 +136,7 @@ public abstract class SS_Editor extends JPanel implements Lookup.Provider
     /**
      * Show an insertion mark in the editor for SongPart copy/move operations.
      *
-     * @param b Show/hide the insertion point.
+     * @param b        Show/hide the insertion point.
      * @param sptIndex The SongPart index where insertion will be made.
      * @param copyMode If true insertion point is shown for a copy operation, otherwise it's a move operation.
      */
@@ -145,7 +145,7 @@ public abstract class SS_Editor extends JPanel implements Lookup.Provider
     /**
      * Show a playback point in the editor at specified position.
      *
-     * @param b Show/hide the playback point.
+     * @param b   Show/hide the playback point.
      * @param pos The position in the SongStructure model.
      */
     abstract public void showPlaybackPoint(boolean b, Position pos);
@@ -156,7 +156,7 @@ public abstract class SS_Editor extends JPanel implements Lookup.Provider
      * (with sptLeft false). If there is no SongPart, return null values for both spt and rp.
      *
      * @param editorPoint
-     * @param sptLeft Used to return an indicator if point was on the left or right side of the songpart
+     * @param sptLeft     Used to return an indicator if point was on the left or right side of the songpart
      * @return
      */
     abstract public SongPartParameter getSongPartParameterFromPoint(Point editorPoint, AtomicBoolean sptLeft);
@@ -184,7 +184,7 @@ public abstract class SS_Editor extends JPanel implements Lookup.Provider
      * Indicate which RhythmParameters should be made visible for a specific rhythm.
      *
      * @param r
-     * @param rps The list of visible RhythmParameters of specified rhythm.
+     * @param rps The list of visible RhythmParameters of specified rhythm. Can't be empty.
      */
     abstract public void setVisibleRps(Rhythm r, List<RhythmParameter<?>> rps);
 
@@ -192,7 +192,7 @@ public abstract class SS_Editor extends JPanel implements Lookup.Provider
      * The rhythm parameters effectively displayed in the editor for a specific rhythm.
      *
      * @param r
-     * @return
+     * @return A non-empty list.
      */
     abstract public List<RhythmParameter<?>> getVisibleRps(Rhythm r);
 
@@ -200,7 +200,7 @@ public abstract class SS_Editor extends JPanel implements Lookup.Provider
      * Get the focused SongPart, if any.
      *
      * @param includeFocusedRhythmParameter If true and focus is on a RhythmParameter editor, return the SongPart for this
-     * RhythmParameter editor.
+     *                                      RhythmParameter editor.
      * @return Can be null. The SongPart corresponding to the SongPart editor.
      */
     abstract public SongPart getFocusedSongPart(boolean includeFocusedRhythmParameter);

@@ -27,14 +27,16 @@ import javax.swing.Action;
 import javax.swing.Box.Filler;
 import javax.swing.JToolBar;
 import org.jjazz.ui.flatcomponents.api.FlatButton;
-import org.jjazz.ui.ss_editor.actions.ShowHideRp;
+import org.jjazz.ui.ss_editor.actions.ToggleCompactView;
+import org.jjazz.ui.ss_editor.actions.ToggleCompactViewButton;
 import org.jjazz.ui.ss_editor.api.SS_Editor;
+import org.openide.awt.Actions;
 import org.openide.util.Utilities;
 
 /**
  * The side toolbar of the SongStructure editor.
  * <p>
- * Built from stateless unique actions found in the layer.xml at Actions/SS_EditorToolBar, plus some stateful actions.
+ * Built from stateless unique actions found in the layer.xml at Actions/SS_EditorToolBar, plus some stateful specific actions.
  */
 public class SS_EditorToolBar extends JToolBar
 {
@@ -50,8 +52,9 @@ public class SS_EditorToolBar extends JToolBar
             throw new NullPointerException("editor");   //NOI18N
         }
         this.editor = editor;
-        
-        // Add the stateless unique actions (the same action instance is used for all toolbars)
+
+
+        // Add the stateless unique actions like ZoomToFit or (the same action instance is used for all toolbars)
         List<? extends Action> actions = Utilities.actionsForPath("Actions/SS_EditorToolBar");
         for (Action action : actions)
         {
@@ -65,11 +68,16 @@ public class SS_EditorToolBar extends JToolBar
                 add(btn);
             }
         }
-        // Add editor-specific actions
-        Action action = new ShowHideRp(editor);
-        FlatButton btn = new FlatButton(action);
-        add(btn);
-        
+
+
+        // Add song-specific actions
+        // Compact/Full view switching button
+        ToggleCompactView a = (ToggleCompactView) Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.togglecompactview");
+        assert a != null;
+        ToggleCompactViewButton toggleViewButton = new ToggleCompactViewButton(editor, a);
+        add(toggleViewButton);
+
+
         add(FILLER_GLUE);    // At the end
     }
 

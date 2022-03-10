@@ -30,7 +30,6 @@ import java.util.List;
 import java.util.Set;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
-import org.jjazz.rhythm.api.RhythmVoiceDelegate;
 import org.jjazz.util.api.ResUtil;
 
 /**
@@ -45,12 +44,13 @@ public class RP_SYS_Mute extends RP_StringSet
     /**
      * Create a RP_SYS_Mute using the specified parameters.
      *
+     * @param isPrimary
      * @param defaultVal
      * @param possibleValues
      */
-    private RP_SYS_Mute(Set<String> defaultVal, String... possibleValues)
+    private RP_SYS_Mute(boolean isPrimary, Set<String> defaultVal, String... possibleValues)
     {
-        super(ID, ResUtil.getString(RP_SYS_Mute.class, "CTL_RpMuteName"), ResUtil.getString(RP_SYS_Mute.class, "CTL_RpMuteDesc"), defaultVal, possibleValues);
+        super(ID, ResUtil.getString(RP_SYS_Mute.class, "CTL_RpMuteName"), ResUtil.getString(RP_SYS_Mute.class, "CTL_RpMuteDesc"), isPrimary, defaultVal, possibleValues);
     }
 
     /**
@@ -60,11 +60,12 @@ public class RP_SYS_Mute extends RP_StringSet
      * the name of its source RhythmVoice instead.
      *
      * @param r
+     * @param isPrimary
      * @return
      */
-    static public RP_SYS_Mute createMuteRp(Rhythm r)
+    static public RP_SYS_Mute createMuteRp(Rhythm r, boolean isPrimary)
     {
-        RP_SYS_Mute rp = new RP_SYS_Mute(new HashSet<String>(), getMuteValuesMap(r).keySet().toArray(new String[0]));
+        RP_SYS_Mute rp = new RP_SYS_Mute(isPrimary, new HashSet<>(), getMuteValuesMap(r).keySet().toArray(new String[0]));
         return rp;
     }
 

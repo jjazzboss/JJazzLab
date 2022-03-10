@@ -41,29 +41,31 @@ import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.ui.ss_editor.api.SS_Editor;
 import org.jjazz.util.api.ResUtil;
+import org.openide.DialogDisplayer;
+import org.openide.NotifyDescriptor;
 import org.openide.windows.WindowManager;
 
-public class ShowHideRpsDialog extends javax.swing.JDialog
+public class CompactRpViewSettingsDialog extends javax.swing.JDialog
 {
 
-    private static ShowHideRpsDialog INSTANCE;
+    private static CompactRpViewSettingsDialog INSTANCE;
     private MyModel tblModel;
     private boolean exitOk;
-    private static final Logger LOGGER = Logger.getLogger(ShowHideRpsDialog.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(CompactRpViewSettingsDialog.class.getSimpleName());
 
-    public static ShowHideRpsDialog getInstance()
+    public static CompactRpViewSettingsDialog getInstance()
     {
-        synchronized (ShowHideRpsDialog.class)
+        synchronized (CompactRpViewSettingsDialog.class)
         {
             if (INSTANCE == null)
             {
-                INSTANCE = new ShowHideRpsDialog(WindowManager.getDefault().getMainWindow(), true);
+                INSTANCE = new CompactRpViewSettingsDialog(WindowManager.getDefault().getMainWindow(), true);
             }
         }
         return INSTANCE;
     }
 
-    private ShowHideRpsDialog(java.awt.Frame parent, boolean modal)
+    private CompactRpViewSettingsDialog(java.awt.Frame parent, boolean modal)
     {
         super(parent, modal);
         initComponents();
@@ -88,9 +90,9 @@ public class ShowHideRpsDialog extends javax.swing.JDialog
 
 
     /**
-     * Valid only if isExitOk() if true.
+     * Get the list of the visible RhythmParameters for each song rhythm.
      *
-     * @return
+     * @return Valid only if isExitOk() if true.
      */
     public HashMap<Rhythm, List<RhythmParameter<?>>> getResult()
     {
@@ -170,6 +172,19 @@ public class ShowHideRpsDialog extends javax.swing.JDialog
 
     private void actionOK()
     {
+        // Check that there is at least one RP selected for each rhythm
+        var result = getResult();
+        for (var rpList : result.values())
+        {
+            if (rpList.isEmpty())
+            {
+                String msg = ResUtil.getString(getClass(), "CompactRpViewSettingsDialogErrNoRp");
+                NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
+                DialogDisplayer.getDefault().notify(d);
+                return;
+            }
+        }
+
         exitOk = true;
         setVisible(false);
     }
@@ -200,9 +215,9 @@ public class ShowHideRpsDialog extends javax.swing.JDialog
         jScrollPane1 = new javax.swing.JScrollPane();
         tbl_rhythmParameters = new javax.swing.JTable();
 
-        setTitle(org.openide.util.NbBundle.getMessage(ShowHideRpsDialog.class, "ShowHideRpsDialog.title")); // NOI18N
+        setTitle(org.openide.util.NbBundle.getMessage(CompactRpViewSettingsDialog.class, "CompactRpViewSettingsDialog.title")); // NOI18N
 
-        org.openide.awt.Mnemonics.setLocalizedText(btn_Ok, org.openide.util.NbBundle.getMessage(ShowHideRpsDialog.class, "ShowHideRpsDialog.btn_Ok.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(btn_Ok, org.openide.util.NbBundle.getMessage(CompactRpViewSettingsDialog.class, "CompactRpViewSettingsDialog.btn_Ok.text")); // NOI18N
         btn_Ok.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -211,7 +226,7 @@ public class ShowHideRpsDialog extends javax.swing.JDialog
             }
         });
 
-        org.openide.awt.Mnemonics.setLocalizedText(btn_Cancel, org.openide.util.NbBundle.getMessage(ShowHideRpsDialog.class, "ShowHideRpsDialog.btn_Cancel.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(btn_Cancel, org.openide.util.NbBundle.getMessage(CompactRpViewSettingsDialog.class, "CompactRpViewSettingsDialog.btn_Cancel.text")); // NOI18N
         btn_Cancel.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -220,7 +235,7 @@ public class ShowHideRpsDialog extends javax.swing.JDialog
             }
         });
 
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(ShowHideRpsDialog.class, "ShowHideRpsDialog.jLabel1.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(CompactRpViewSettingsDialog.class, "CompactRpViewSettingsDialog.jLabel1.text")); // NOI18N
 
         tbl_rhythmParameters.setAutoCreateRowSorter(true);
         tbl_rhythmParameters.setModel(new javax.swing.table.DefaultTableModel(
@@ -255,7 +270,7 @@ public class ShowHideRpsDialog extends javax.swing.JDialog
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jLabel1)
-                        .addGap(0, 184, Short.MAX_VALUE)))
+                        .addGap(0, 86, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -310,26 +325,33 @@ public class ShowHideRpsDialog extends javax.swing.JDialog
         {
             this.rhythms = rhythms;
             colCount = rhythms.size() + 1;
-            HashSet<Class<?>> mySet = new HashSet<>();
+            
+            
+            // Update uniqueRps
+            HashSet<Class<?>> rpUniqueClasses = new HashSet<>();
             for (var r : rhythms)
             {
                 for (var rp : r.getRhythmParameters())
                 {
-                    if (!mySet.contains(rp.getClass()))
+                    if (!rpUniqueClasses.contains(rp.getClass()))
                     {
                         uniqueRps.add(rp);
-                        mySet.add(rp.getClass());
+                        rpUniqueClasses.add(rp.getClass());
                     }
                 }
-            }
+            }                        
             rowCount = uniqueRps.size();
+            
+            
+            // Update data
             data = new boolean[rhythms.size()][uniqueRps.size()];
             for (int i = 0; i < rhythms.size(); i++)
             {
-                var visibleRps = editor.getVisibleRps(rhythms.get(i));
+                Rhythm r = rhythms.get(i);
+                var compactViewRps = ToggleCompactView.getCompactViewModeVisibleRPs(editor.getSongModel(), r);
                 for (int j = 0; j < uniqueRps.size(); j++)
                 {
-                    data[i][j] = getRpFromClass(visibleRps, uniqueRps.get(j).getClass()) != null;
+                    data[i][j] = getRpFromClass(compactViewRps, uniqueRps.get(j).getClass()) != null;
                 }
             }
         }

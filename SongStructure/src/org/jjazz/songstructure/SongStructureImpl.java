@@ -64,7 +64,6 @@ import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.event.SgsActionEvent;
 import org.jjazz.util.api.FloatRange;
 import org.jjazz.util.api.IntRange;
-import org.jjazz.util.api.ResUtil;
 
 public class SongStructureImpl implements SongStructure, Serializable
 {
@@ -216,18 +215,6 @@ public class SongStructureImpl implements SongStructure, Serializable
     @Override
     public void authorizeAddSongParts(List<SongPart> spts) throws UnsupportedEditException
     {
-        // Check that after the operation each AdaptedRhythm must have its source rhythm present
-//        var finalSpts = new ArrayList<SongPart>(songParts);
-//        finalSpts.addAll(spts);
-//        AdaptedRhythm faultyAdRhythm = checkAdaptedRhythmConsistency(finalSpts);
-//        if (faultyAdRhythm != null)
-//        {
-//            var sr = faultyAdRhythm.getSourceRhythm();
-//            String msg = ResUtil.getString(getClass(), "ERR_CantAddAdaptedRhythm", faultyAdRhythm.getName(), sr.getName());
-//            throw new UnsupportedEditException(msg);
-//        }
-
-
         // Check change is not vetoed by listeners
         var event = new SptAddedEvent(this, spts);
         authorizeChangeEvent(event);            // Possible exception here! 
@@ -243,18 +230,6 @@ public class SongStructureImpl implements SongStructure, Serializable
     @Override
     public void authorizeRemoveSongParts(List<SongPart> spts) throws UnsupportedEditException
     {
-        // Check that after the operation each AdaptedRhythm has its source rhythm present
-//        var remainingSpts = new ArrayList<SongPart>(songParts);
-//        remainingSpts.removeAll(spts);
-//        AdaptedRhythm faultyAdRhythm = checkAdaptedRhythmConsistency(remainingSpts);
-//        if (faultyAdRhythm != null)
-//        {
-//            var sr = faultyAdRhythm.getSourceRhythm();
-//            String msg = ResUtil.getString(getClass(), "ERR_CantRemoveRhythm", sr, faultyAdRhythm.getName());
-//            throw new UnsupportedEditException(msg);
-//        }
-
-
         // Check change is not vetoed by listeners 
         var event = new SptRemovedEvent(this, spts);
         authorizeChangeEvent(event);        // Possible exception here!
@@ -277,18 +252,6 @@ public class SongStructureImpl implements SongStructure, Serializable
     @Override
     public void authorizeReplaceSongParts(List<SongPart> oldSpts, List<SongPart> newSpts) throws UnsupportedEditException
     {
-        // Check that after the operation each AdaptedRhythm has its source rhythm present
-//        var remainingSpts = new ArrayList<SongPart>(songParts);
-//        remainingSpts.removeAll(oldSpts);
-//        remainingSpts.addAll(newSpts);
-//        AdaptedRhythm faultyAdRhythm = checkAdaptedRhythmConsistency(remainingSpts);
-//        if (faultyAdRhythm != null)
-//        {
-//            var sr = faultyAdRhythm.getSourceRhythm();
-//            String msg = ResUtil.getString(getClass(), "ERR_CantReplaceSongPart", faultyAdRhythm.getName(), sr.getName());
-//            throw new UnsupportedEditException(msg);
-//        }
-
         // Check that change is not vetoed
         var event = new SptReplacedEvent(SongStructureImpl.this, oldSpts, newSpts);
         authorizeChangeEvent(event);            // Possible UnsupportedEditException here
@@ -333,15 +296,6 @@ public class SongStructureImpl implements SongStructure, Serializable
     public Rhythm getLastUsedRhythm(TimeSignature ts)
     {
         Rhythm r = mapTsLastRhythm.getValue(ts);
-//        if (r instanceof AdaptedRhythm)
-//        {
-//            // Don't return an AdaptedRhythm if its source rhythm is not present
-//            Rhythm sr = ((AdaptedRhythm) r).getSourceRhythm();
-//            if (!getUniqueRhythms(true).contains(sr))
-//            {
-//                r = null;
-//            }
-//        }
         LOGGER.fine("getLastUsedRhythm() ts=" + ts + " result r=" + r);   //NOI18N
         return r;
     }
@@ -1160,31 +1114,7 @@ public class SongStructureImpl implements SongStructure, Serializable
 
     }
 
-    /**
-     * Check that each AdaptedRhythm has its source rhythm present in the specified SongParts.
-     *
-     * @param spts
-     * @return Return null if OK, otherwise return the AdaptedRhythm which causes problem.
-     */
-    private AdaptedRhythm checkAdaptedRhythmConsistency(ArrayList<SongPart> spts)
-    {
-        var rhythms = spts.stream().map(spt -> spt.getRhythm()).collect(Collectors.toList());
-        for (SongPart spt : spts)
-        {
-            if (spt.getRhythm() instanceof AdaptedRhythm)
-            {
-                AdaptedRhythm ar = (AdaptedRhythm) spt.getRhythm();
-                Rhythm sr = ar.getSourceRhythm();
-                if (!rhythms.contains(sr))
-                {
-                    return ar;
-                }
-            }
-        }
-        return null;
-    }
-
-
+ 
     private int getSptLastBarIndex(int sptIndex)
     {
         if (sptIndex < 0 || sptIndex >= songParts.size())

@@ -42,17 +42,23 @@ public class RP_State implements RhythmParameter<String>, RpEnumerable<String>
     private String minValue;
     private String maxValue;
     private String[] possibleValues;
+    private final boolean primary;
     protected static final Logger LOGGER = Logger.getLogger(RP_State.class.getName());
 
     /**
+     * Create a RP_State RhythmParameter.
+     * <p>
+     * Created instance is primary by default.
+     *
      * @param id
-     * @param name The name of the RhythmParameter.
+     * @param name           The name of the RhythmParameter.
      * @param description
-     * @param defaultValue String The default value.
+     * @param isPrimary
+     * @param defaultValue   String The default value.
      * @param possibleValues String[] The possible values for this parameter. By convention, min value is set to the 1st possible
-     * value, max value to the last one.
+     *                       value, max value to the last one.
      */
-    public RP_State(String id, String name, String description, String defaultValue, String... possibleValues)
+    public RP_State(String id, String name, String description, boolean isPrimary, String defaultValue, String... possibleValues)
     {
         if (id == null || name == null || defaultValue == null || possibleValues == null || possibleValues.length == 0)
         {
@@ -70,35 +76,68 @@ public class RP_State implements RhythmParameter<String>, RpEnumerable<String>
             throw new IllegalArgumentException("n=" + name + " defaultVal=" + defaultValue + " possibleValues=" + Arrays.asList(possibleValues));   //NOI18N
         }
         this.defaultValue = defaultValue;
+        this.primary = isPrimary;
     }
 
+
     @Override
-    public boolean equals(Object o)
+    public boolean isPrimary()
     {
-        boolean b = false;
-        if (o instanceof RP_State)
-        {
-            RP_State rp = (RP_State) o;
-            b = id.equals(rp.id)
-                    && displayName.equalsIgnoreCase(rp.displayName)
-                    && description.equals(rp.description)
-                    && defaultValue.equals(rp.defaultValue)
-                    && Arrays.deepEquals(possibleValues, rp.possibleValues);
-        }
-        return b;
+        return primary;
     }
 
     @Override
     public int hashCode()
     {
         int hash = 5;
-        hash = 67 * hash + Objects.hashCode(this.id);
-        hash = 67 * hash + Objects.hashCode(this.displayName.toLowerCase());
-        hash = 67 * hash + Objects.hashCode(this.description);
-        hash = 67 * hash + Objects.hashCode(this.defaultValue);
-        hash = 67 * hash + Arrays.deepHashCode(this.possibleValues);
+        hash = 61 * hash + Objects.hashCode(this.id);
+        hash = 61 * hash + Objects.hashCode(this.displayName);
+        hash = 61 * hash + Objects.hashCode(this.description);
+        hash = 61 * hash + Objects.hashCode(this.defaultValue);
+        hash = 61 * hash + Arrays.deepHashCode(this.possibleValues);
+        hash = 61 * hash + (this.primary ? 1 : 0);
         return hash;
     }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+        if (this == obj)
+        {
+            return true;
+        }
+        if (obj == null)
+        {
+            return false;
+        }
+        if (getClass() != obj.getClass())
+        {
+            return false;
+        }
+        final RP_State other = (RP_State) obj;
+        if (this.primary != other.primary)
+        {
+            return false;
+        }
+        if (!Objects.equals(this.id, other.id))
+        {
+            return false;
+        }
+        if (!Objects.equals(this.displayName, other.displayName))
+        {
+            return false;
+        }
+        if (!Objects.equals(this.description, other.description))
+        {
+            return false;
+        }
+        if (!Objects.equals(this.defaultValue, other.defaultValue))
+        {
+            return false;
+        }
+        return Arrays.deepEquals(this.possibleValues, other.possibleValues);
+    }
+
 
     @Override
     public final String getId()

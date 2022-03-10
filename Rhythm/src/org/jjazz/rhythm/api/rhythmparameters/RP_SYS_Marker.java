@@ -31,7 +31,7 @@ import org.jjazz.util.api.ResUtil;
  * Standard RhythmParameter: a marker for song parts, used to conditionnaly enable the optional alternate chord symbols.
  * <p>
  * Possible values are Theme, Theme2..Theme4, Solo, Solo2...Solo4.<br>
- * This RP can't be customized: it's a shared instance.
+ * This RP is not primary and can't be customized: it's a shared instance.
  */
 @NbBundle.Messages(
         {
@@ -60,7 +60,7 @@ public class RP_SYS_Marker extends RP_State
 
     private RP_SYS_Marker()
     {
-        super(ID, ResUtil.getString(RP_SYS_Marker.class, "CTL_SysMarker"), ResUtil.getString(RP_SYS_Marker.class, "CTL_SysMarkerDesc"), THEME, THEME, SOLO, THEME + "2", THEME + "3", THEME + "4", SOLO + "2", SOLO + "3", SOLO + "4");
+        super(ID, ResUtil.getString(RP_SYS_Marker.class, "CTL_SysMarker"), ResUtil.getString(RP_SYS_Marker.class, "CTL_SysMarkerDesc"), false, THEME, THEME, SOLO, THEME + "2", THEME + "3", THEME + "4", SOLO + "2", SOLO + "3", SOLO + "4");
     }
 
     /**
@@ -77,4 +77,6 @@ public class RP_SYS_Marker extends RP_State
         }
         return r.getRhythmParameters().contains(INSTANCE) ? INSTANCE : null;
     }
+
+
 }
