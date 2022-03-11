@@ -1018,7 +1018,9 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
     /**
      * Save the specified Phrase as a string.
      * <p>
-     * Example "[8|NoteEventStr0|NoteEventStr1]" means a Phrase for channel 8 with 2 NoteEvents.
+     * Examples: <br>
+     * - "[8|NoteEventStr0|NoteEventStr1]" means a Phrase for channel 8 with 2 NoteEvents<br>
+     * - "[0]" empty phrase on channel 0
      *
      * @param p
      * @return
@@ -1035,7 +1037,8 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
     /**
      * Create a Phrase from the specified string.
      * <p>
-     *
+     * Example "[8|NoteEventStr0|NoteEventStr1]" means a Phrase for channel 8 with 2 NoteEvents.
+     * 
      * @param s
      * @return
      * @throws ParseException If s is not a valid string.
@@ -1044,7 +1047,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
     static public Phrase loadAsString(String s) throws ParseException
     {
         Phrase p = null;
-        if (s.length() >= 4 && s.charAt(0) == '[' && s.charAt(s.length() - 1) == ']')    // minimum string is e.g. [2|]
+        if (s.length() >= 3 && s.charAt(0) == '[' && s.charAt(s.length() - 1) == ']')    // minimum string is e.g. [2]
         {
             String[] strs = s.substring(1, s.length() - 1).split("\\|");
             try
