@@ -345,7 +345,8 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
                 case MidiMix.PROP_INSTRUMENT_TRANSPOSITION:
                 case MidiMix.PROP_INSTRUMENT_VELOCITY_SHIFT:
                     doUpdate = true;
-                
+                    break;
+                    
                 default:    // e.g.  case MidiMix.PROP_INSTRUMENT_MUTE:
                     // Nothing
                     break;
