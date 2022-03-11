@@ -3,7 +3,7 @@
  *
  *  Copyright @2019 Jerome Lelasseux. All rights reserved.
  *
- *  This file is part of the JJazzLabX software.
+ *  This file is part of the JJazzLabX software. 
  *
  *  JJazzLabX is free software: you can redistribute it and/or modify
  *  it under the terms of the Lesser GNU General Public License (LGPLv3)
