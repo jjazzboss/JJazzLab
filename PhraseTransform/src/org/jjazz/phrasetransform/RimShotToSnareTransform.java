@@ -53,7 +53,7 @@ public class RimShotToSnareTransform implements PhraseTransform
 
     public RimShotToSnareTransform()
     {
-        info = new Info("Snare2RimshotId",
+        info = new Info("Rimshot2SnareId",
                 ResUtil.getString(getClass(), "Rimshot2SnareTransformName"),
                 ResUtil.getString(getClass(), "Rimshot2SnareTransformDesc"),
                 PhraseTransformCategory.DRUMS,
