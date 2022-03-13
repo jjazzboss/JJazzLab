@@ -29,6 +29,7 @@ import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
 import org.jjazz.analytics.api.Analytics;
 import org.jjazz.rhythm.api.Rhythm;
+import org.jjazz.ui.ss_editor.CompactViewModeController;
 import org.openide.windows.WindowManager;
 import org.jjazz.ui.ss_editor.api.SS_EditorTopComponent;
 import org.jjazz.util.api.ResUtil;
@@ -90,7 +91,7 @@ public class CompactRpViewSettings extends AbstractAction
             var res = dlg.getResult();
             for (Rhythm r : res.keySet())
             {
-                ToggleCompactView.setCompactViewModeVisibleRPs(song, r, res.get(r));
+                CompactViewModeController.writeCompactViewModeVisibleRPs(song, r, res.get(r));
             }
 
             // Only first rhythm visible parameters

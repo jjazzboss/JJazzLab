@@ -30,8 +30,7 @@ import javax.swing.Action;
 import javax.swing.Icon;
 import org.jjazz.song.api.Song;
 import org.jjazz.ui.flatcomponents.api.FlatToggleButton;
-import static org.jjazz.ui.ss_editor.actions.ToggleCompactView.PROP_COMPACT_VIEW_MODE;
-import static org.jjazz.ui.ss_editor.actions.ToggleCompactView.PROP_COMPACT_VIEW_MODE_VISIBLE_RPS;
+import org.jjazz.ui.ss_editor.CompactViewModeController;
 import org.jjazz.ui.ss_editor.api.SS_Editor;
 
 /**
@@ -56,10 +55,6 @@ public class ToggleCompactViewButton extends FlatToggleButton implements Propert
         this.song.addPropertyChangeListener(this);
 
 
-        // Clicking the button triggers the action
-        this.addActionListener(evt -> toggleAction.actionPerformed(evt));
-
-
         // Init UI from action properties 
         // NB: action should be ideally a BooleanStateAction to use FlatToggleButton.setAction(), but BooleanStateAction generates
         // an error when several instances are created from the same class (which is needed since there is 1 button per song)
@@ -68,11 +63,11 @@ public class ToggleCompactViewButton extends FlatToggleButton implements Propert
         setToolTipText((String) toggleAction.getValue(Action.SHORT_DESCRIPTION));
 
 
-        setSelected(ToggleCompactView.isSongInCompactViewMode(song));
+        setSelected(CompactViewModeController.isSongInCompactViewMode(song));
 
 
-        updateEditor();
-
+        // Clicking the button triggers the action
+        this.addActionListener(evt -> toggleAction.actionPerformed(evt));
     }
 
 
@@ -88,20 +83,11 @@ public class ToggleCompactViewButton extends FlatToggleButton implements Propert
             {
                 song.removePropertyChangeListener(this);
 
-            } else if (evt.getPropertyName().equals(PROP_COMPACT_VIEW_MODE))
+            } else if (evt.getPropertyName().equals(CompactViewModeController.PROP_COMPACT_VIEW_MODE))
             {
                 // View mode has changed update the buttons and the editor
-                boolean b = ToggleCompactView.isSongInCompactViewMode(song);
+                boolean b = CompactViewModeController.isSongInCompactViewMode(song);
                 setSelected(b);
-                updateEditor();
-
-            } else if (evt.getPropertyName().startsWith(PROP_COMPACT_VIEW_MODE_VISIBLE_RPS))
-            {
-                // The list of the visible RPs in compact mode has changed
-                if (ToggleCompactView.isSongInCompactViewMode(song))
-                {
-                    updateEditor();
-                }
             }
         }
     }
@@ -110,27 +96,4 @@ public class ToggleCompactViewButton extends FlatToggleButton implements Propert
     // ======================================================================
     // Private methods
     // ======================================================================
-    /**
-     * Update the editor to show/hide RPs depending on the view mode.
-     */
-    private void updateEditor()
-    {
-        boolean b = ToggleCompactView.isSongInCompactViewMode(song);
-        var allRhythms = song.getSongStructure().getUniqueRhythms(false, true);
-
-        for (var r : allRhythms)
-        {
-            if (b)
-            {
-                // Compact mode
-                editor.setVisibleRps(r, ToggleCompactView.getCompactViewModeVisibleRPs(song, r));
-            } else
-            {
-                // Full mode
-                editor.setVisibleRps(r, r.getRhythmParameters());
-            }
-        }
-    }
-
-
 }

@@ -45,6 +45,7 @@ import org.openide.util.Utilities;
 import org.openide.windows.TopComponent;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.ui.sptviewer.spi.SptViewerFactory;
+import org.jjazz.ui.ss_editor.CompactViewModeController;
 import org.jjazz.ui.ss_editor.SS_EditorImpl;
 import org.jjazz.ui.ss_editor.SS_EditorToolBar;
 import org.jjazz.ui.utilities.api.Zoomable;
@@ -77,11 +78,13 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
      * The editor's controller.
      */
     private SS_EditorMouseListener ssEditorController;
+    private CompactViewModeController compactViewController;    
     /**
      * The paired TopComponent.
      */
     private TopComponent pairedTc;
     private SS_EditorToolBar ssToolBar;
+
     private static final Logger LOGGER = Logger.getLogger(SS_EditorTopComponent.class.getName());
 
     /**
@@ -113,7 +116,8 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
         ssEditor = SS_EditorFactory.getDefault().createEditor(songModel, SS_EditorSettings.getDefault(), SptViewerFactory.getDefault());
         ssEditorController = new SS_EditorController(ssEditor);
         ssEditor.setController(ssEditorController);
-
+        compactViewController = new CompactViewModeController(ssEditor);
+        
 
         // Create the toolbar
         ssToolBar = new SS_EditorToolBar(ssEditor);

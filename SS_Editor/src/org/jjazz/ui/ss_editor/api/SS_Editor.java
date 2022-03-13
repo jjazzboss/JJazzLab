@@ -190,6 +190,8 @@ public abstract class SS_Editor extends JPanel implements Lookup.Provider
 
     /**
      * The rhythm parameters effectively displayed in the editor for a specific rhythm.
+     * <p>
+     * By default return all the rhythm parameters.
      *
      * @param r
      * @return A non-empty list.

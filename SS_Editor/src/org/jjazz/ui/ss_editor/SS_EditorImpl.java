@@ -22,7 +22,6 @@
  */
 package org.jjazz.ui.ss_editor;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
 import java.awt.Component;
@@ -58,8 +57,6 @@ import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmParameter;
-import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Marker;
-import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_TempoFactor;
 import org.jjazz.songstructure.api.event.SgsChangeEvent;
 import org.jjazz.songstructure.api.event.RpChangedEvent;
 import org.jjazz.songstructure.api.event.SptAddedEvent;
@@ -307,6 +304,11 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         }
     }
 
+    protected void setCompactViewController(CompactViewModeController controller)
+    {
+
+    }
+
     @Override
     public void cleanup()
     {
@@ -345,20 +347,25 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
     {
         checkNotNull(r);
         checkNotNull(rps);
-        
+
+        LOGGER.log(Level.FINE, "setVisibleRps() rps={0}", rps);   //NOI18N
+
         var sortedRps = sortRhythmParameters(r, rps);
         if (sortedRps.isEmpty())
         {
             throw new IllegalArgumentException("r=" + r + " rps=" + rps + " sortedRps=" + sortedRps);
         }
-
         var previousRps = mapRhythmVisibleRps.getValue(r);
         if (previousRps != null && previousRps.equals(sortedRps))
         {
             return;
         }
-        LOGGER.log(Level.FINE, "setVisibleRps()");   //NOI18N
+
+        // Store the rps
         mapRhythmVisibleRps.putValue(r, sortedRps);
+        
+        
+        // Update UI
         for (SptViewer sptv : getSptViewers())
         {
             if (sptv.getModel().getRhythm() == r)
@@ -366,6 +373,8 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
                 sptv.setVisibleRps(sortedRps);
             }
         }
+        
+        // Fire event
         firePropertyChange(SS_Editor.PROP_VISIBLE_RPS, false, true);
     }
 
@@ -569,7 +578,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         List<RhythmParameter<?>> rps = mapRhythmVisibleRps.getValue(r);
         if (rps == null)
         {
-            // Show all the RhythmParameters
+            // Show all the RhythmParameters by default
             rps = r.getRhythmParameters();
             mapRhythmVisibleRps.putValue(r, rps);
         }

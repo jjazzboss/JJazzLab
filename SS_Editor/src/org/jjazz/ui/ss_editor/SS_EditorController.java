@@ -96,7 +96,7 @@ public class SS_EditorController implements SS_EditorMouseListener
     /**
      * To listen to selection changes
      */
-    private SS_ContextActionSupport cap;
+    private final SS_ContextActionSupport cap;
     private static final Logger LOGGER = Logger.getLogger(SS_EditorController.class.getSimpleName());
 
     public SS_EditorController(SS_Editor ed)
@@ -124,8 +124,6 @@ public class SS_EditorController implements SS_EditorMouseListener
         editor.getActionMap().put("Duplicate", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.duplicatespt"));   //NOI18N
         editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("Z"), "ResetRpValue");  //NOI18N
         editor.getActionMap().put("ResetRpValue", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.resetrpvalue"));   //NOI18N
-//        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("V"), "ToggleRpView");  // Useless because global Netbeans shortcut declared in the action
-//        editor.getActionMap().put("ToggleRpView", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.togglecompactview"));   //NOI18N
 
 
         // Set the delegate actions for standard Netbeans copy/cut/paste actions

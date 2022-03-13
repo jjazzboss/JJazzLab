@@ -39,6 +39,7 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmParameter;
+import org.jjazz.ui.ss_editor.CompactViewModeController;
 import org.jjazz.ui.ss_editor.api.SS_Editor;
 import org.jjazz.util.api.ResUtil;
 import org.openide.DialogDisplayer;
@@ -348,7 +349,7 @@ public class CompactRpViewSettingsDialog extends javax.swing.JDialog
             for (int i = 0; i < rhythms.size(); i++)
             {
                 Rhythm r = rhythms.get(i);
-                var compactViewRps = ToggleCompactView.getCompactViewModeVisibleRPs(editor.getSongModel(), r);
+                var compactViewRps = CompactViewModeController.readCompactViewModeVisibleRPs(editor.getSongModel(), r);
                 for (int j = 0; j < uniqueRps.size(); j++)
                 {
                     data[i][j] = getRpFromClass(compactViewRps, uniqueRps.get(j).getClass()) != null;
