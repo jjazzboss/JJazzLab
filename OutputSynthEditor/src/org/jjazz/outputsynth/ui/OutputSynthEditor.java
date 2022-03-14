@@ -671,7 +671,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel6, org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.jLabel6.text")); // NOI18N
 
-        spn_audioLatency.setModel(new javax.swing.SpinnerNumberModel(0, 0, 2000, 5));
+        spn_audioLatency.setModel(new javax.swing.SpinnerNumberModel(5, 5, 2000, 5));
         spn_audioLatency.addChangeListener(new javax.swing.event.ChangeListener()
         {
             public void stateChanged(javax.swing.event.ChangeEvent evt)
