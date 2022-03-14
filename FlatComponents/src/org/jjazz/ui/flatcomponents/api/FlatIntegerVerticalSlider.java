@@ -488,7 +488,9 @@ public class FlatIntegerVerticalSlider extends JComponent implements MouseListen
             int v = yValueDragStart + Math.round((getMaxValue() - getMinValue()) * f);
             v = Math.max(v, minValue);
             v = Math.min(v, maxValue);
+            lastMouseEvent = e;
             setValue(v);
+            lastMouseEvent = null;
         }
     }
 
