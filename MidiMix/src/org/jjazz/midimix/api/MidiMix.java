@@ -92,9 +92,9 @@ import org.openide.NotifyDescriptor;
  * <p>
  * The object manages the solo functionality between the InstrumentMixes.<p>
  * A Song can be associated to the MidiMix so that InstrumentMixes are kept up to date with song's songStructure changes.<p>
- If MidiMix is modified the corresponding property change event is fired (e.g. PROP_INSTRUMENT_MUTE) then the
- PROP_MODIFIED_OR_SAVED_OR_RESET change event is also fired.
- <p>
+ * If MidiMix is modified the corresponding property change event is fired (e.g. PROP_INSTRUMENT_MUTE) then the
+ * PROP_MODIFIED_OR_SAVED_OR_RESET change event is also fired.
+ * <p>
  */
 
 public class MidiMix implements SgsChangeListener, PropertyChangeListener, VetoableChangeListener, Serializable
@@ -132,7 +132,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
     /**
      * This property changes when the MidiMix is modified (false-&gt;true) or saved (true-&gt;false).
      */
-    public static final String PROP_MODIFIED_OR_SAVED = "PROP_MODIFIED_OR_SAVED";   //NOI18N 
+    public static final String PROP_MODIFIED_OR_SAVED = "PROP_MIDIMIX_MODIFIED_OR_SAVED";   //NOI18N 
     public static final int NB_AVAILABLE_CHANNELS = MidiConst.CHANNEL_MAX - MidiConst.CHANNEL_MIN + 1;
 
     /**
@@ -869,11 +869,11 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
     /**
      * Save this MidiMix to a file.
      * <p>
- This will fire a PROP_MODIFIED_OR_SAVED_OR_RESET change event (true=&gt;false).
+     * This will fire a PROP_MODIFIED_OR_SAVED change event (true=&gt;false).
      *
      * @param f
-     * @param isCopy Indicate that we save a copy, ie perform the file save but nothing else (eg no PROP_MODIFIED_OR_SAVED_OR_RESET state
-               change)
+     * @param isCopy Indicate that we save a copy, ie perform the file save but nothing else (eg no
+     *               PROP_MODIFIED_OR_SAVED state change)
      * @throws java.io.IOException
      */
     public void saveToFile(File f, boolean isCopy) throws IOException
@@ -1564,7 +1564,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
             RhythmVoice mmRv = mm.rvKeys[mmChannel];
             InstrumentMix mmInsMix = mm.instrumentMixes[mmChannel];
             InstrumentMix insMix;
-            
+
             switch (mmRv.getType())
             {
                 case DRUMS:
@@ -1580,7 +1580,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
                     insMix = mapKeyMix.get(mapKey);
                     break;
             }
-            
+
             if (insMix != null)
             {
                 // Copy InstrumentMix data
@@ -1589,7 +1589,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
                 doneChannels.add(mmChannel);
                 LOGGER.finer("adaptInstrumentMixes() set (1) channel " + mmChannel + " instrument setting to : " + insMix.getSettings());   //NOI18N
             }
-            
+
         }
 
         // Try to convert also the other channels by matching only the instrument family

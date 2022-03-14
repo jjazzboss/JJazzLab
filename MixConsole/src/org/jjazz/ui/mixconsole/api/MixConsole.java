@@ -521,7 +521,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
                         addMixChannelPanel(songMidiMix, channel);
                     }
                 }
-            } else if (e.getPropertyName().equals(Song.PROP_MODIFIED_OR_SAVED_OR_RESET))
+            } else if (e.getPropertyName().equals(MidiMix.PROP_MODIFIED_OR_SAVED))
             {
                 boolean b = (boolean) e.getNewValue();
                 if (b)
