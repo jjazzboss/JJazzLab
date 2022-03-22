@@ -45,7 +45,7 @@ public interface RhythmProvider
     /**
      * See getFileRhythms().
      */
-    public static final int SUBDIR_MAX_DEPTH = 2;
+    public static final int SUBDIR_MAX_DEPTH = 3;
 
     /**
      * Descriptive information about this provider.

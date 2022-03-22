@@ -59,7 +59,7 @@ public final class Position implements Comparable<Position>, Serializable
     private float beat;
     private static final Logger LOGGER = Logger.getLogger(Position.class.getSimpleName());
     private transient final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
-   
+
     /**
      * Equivalent to Position(0,0)
      */
@@ -74,7 +74,7 @@ public final class Position implements Comparable<Position>, Serializable
     }
 
     /**
-     * @param bar The index of the bar (&gt;=0).
+     * @param bar  The index of the bar (&gt;=0).
      * @param beat The beat within this bar.
      */
     public Position(int bar, float beat)
@@ -215,13 +215,13 @@ public final class Position implements Comparable<Position>, Serializable
     {
         return beat >= (ts.getNbNaturalBeats() - 1);
     }
-        
+
     /**
      * True if position is at the half of the bar for the specified TimeSignature.
      * <p>
      * Ex: beat 2 for ts=4/4, beat 1.5 for 3/4 (if not swing), or beat 3 for 5/4.
      *
-     * @param ts The TimeSignature of the bar.
+     * @param ts    The TimeSignature of the bar.
      * @param swing If true for example half beat for a 3/4 waltz is 5/3=1.666...
      *
      * @return
@@ -265,24 +265,42 @@ public final class Position implements Comparable<Position>, Serializable
 
         Position newPos = new Position(this);
         float lastBeat = tsTo.getNbNaturalBeats() - 1;
-        
+
 
         if (beat == tsFrom.getHalfBarBeat(false))
-        {            
+        {
             newPos.setBeat(tsTo.getHalfBarBeat(false));
 
         } else if (beat == tsFrom.getHalfBarBeat(true))
-        {           
+        {
             newPos.setBeat(tsTo.getHalfBarBeat(true));
-            
+
         } else if ((newPos.getBeat() - lastBeat) >= 1)
-        {            
+        {
             newPos.setBeat(lastBeat);
-            
+
         }
 
-
         return newPos;
+    }
+
+    /**
+     * Get a new position where bar and beat are moved by the offset parameters.
+     *
+     * @param barOffset
+     * @param beatOffset
+     * @return
+     * @throws IllegalArgumentException If resulting bar or beat is a negative value.
+     */
+    public Position getMovedPosition(int barOffset, float beatOffset)
+    {
+        int barNew = this.bar + barOffset;
+        float beatNew = this.beat + beatOffset;
+        if (barNew < 0 || beatNew < 0)
+        {
+            throw new IllegalArgumentException("barOffset=" + barOffset + " beatOffset=" + beatOffset + " this=" + this);
+        }
+        return new Position(barNew, beatNew);
     }
 
     /**

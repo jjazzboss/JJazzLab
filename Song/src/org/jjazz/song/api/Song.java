@@ -145,13 +145,13 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
      *
      * @param name
      * @param cls
-     * @param sgs  Must be kept consistent with cls changes
+     * @param sgs  Must be kept consistent with cls changes (sgs.getParentChordLeadSheet() must be non null)
      */
     protected Song(String name, ChordLeadSheet cls, SongStructure sgs)
     {
-        if (name == null || name.trim().isEmpty() || cls == null || sgs == null)
+        if (name == null || name.trim().isEmpty() || cls == null || sgs == null || sgs.getParentChordLeadSheet() == null)
         {
-            throw new IllegalArgumentException("name=" + name + " cls=" + cls + " sgs=" + sgs);   //NOI18N
+            throw new IllegalArgumentException("name=" + name + " cls=" + cls + " sgs=" + sgs + " sgs.getParentChordLeadSheet()=" + sgs.getParentChordLeadSheet());   //NOI18N
         }
         setName(name);
         chordLeadSheet = cls;
@@ -187,13 +187,13 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
     public void putClientProperty(String key, String value)
     {
         checkNotNull(key);
-        
+
         String oldValue = clientProperties.getProperty(key);
         if (Objects.equals(oldValue, value))
         {
             return;
         }
-        
+
         if (value == null)
         {
             clientProperties.remove(key);
@@ -201,7 +201,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
         {
             clientProperties.setProperty(key, value);
         }
-        
+
         pcs.firePropertyChange(key, oldValue, value);
         fireIsModified();
 

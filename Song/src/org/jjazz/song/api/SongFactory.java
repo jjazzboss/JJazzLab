@@ -161,7 +161,7 @@ public class SongFactory implements PropertyChangeListener
 
 
         // Read file
-        try (var fis = new FileInputStream(f))
+        try ( var fis = new FileInputStream(f))
         {
             Reader r = new BufferedReader(new InputStreamReader(fis, "UTF-8"));        // Needed to support special/accented chars
             song = (Song) xstream.fromXML(r);
@@ -176,7 +176,7 @@ public class SongFactory implements PropertyChangeListener
         song.resetNeedSave();
         registerSong(song);
 
-        
+
         Analytics.logEvent("Open Song");
         Analytics.incrementProperties("Nb Open Song", 1);
 
@@ -241,7 +241,7 @@ public class SongFactory implements PropertyChangeListener
      * @param cls
      * @return
      * @throws UnsupportedEditException Can happen if too many timesignature changes resulting in not enough Midi channels for the
-     * various rhythms.
+     *                                  various rhythms.
      */
     public Song createSong(String name, ChordLeadSheet cls) throws UnsupportedEditException
     {
@@ -250,6 +250,27 @@ public class SongFactory implements PropertyChangeListener
             throw new IllegalArgumentException("name=" + name + " cls=" + cls);   //NOI18N
         }
         Song song = new Song(name, cls);
+        registerSong(song);
+        return song;
+    }
+
+    /**
+     * Create a Song from the specified chordleadsheet.
+     *
+     * @param name
+     * @param cls
+     * @param sgs  Must be kept consistent with cls changes (sgs.getParentChordLeadSheet() must be non null)
+     * @return
+     * @throws UnsupportedEditException Can happen if too many timesignature changes resulting in not enough Midi channels for the
+     *                                  various rhythms.
+     */
+    public Song createSong(String name, ChordLeadSheet cls, SongStructure sgs) throws UnsupportedEditException
+    {
+        if (name == null || name.isEmpty() || cls == null || sgs == null)
+        {
+            throw new IllegalArgumentException("name=" + name + " cls=" + cls + " sgs=" + sgs);   //NOI18N
+        }
+        Song song = new Song(name, cls, sgs);
         registerSong(song);
         return song;
     }
@@ -270,7 +291,7 @@ public class SongFactory implements PropertyChangeListener
      * <p>
      * Initial section is "A" with a C starting chord symbol.
      *
-     * @param name The name of the song
+     * @param name    The name of the song
      * @param clsSize The number of bars of the song.
      * @return
      */
@@ -476,7 +497,7 @@ public class SongFactory implements PropertyChangeListener
     /**
      * Get a new song with the lead sheet developped/unrolled according to the song structure.
      * <p>
-     * Return song where each SongPart corresponds to one Section in a linear order. 
+     * Return song where each SongPart corresponds to one Section in a linear order.
      *
      * @param song
      * @param register If true register the created song

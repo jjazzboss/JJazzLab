@@ -40,11 +40,13 @@ import org.jjazz.midimix.api.MidiMixManager;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongCreationException;
 import org.jjazz.song.api.SongFactory;
+import org.jjazz.song.spi.SongDisplayer;
 import org.jjazz.ui.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.ui.ss_editor.api.SS_EditorTopComponent;
 import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.openide.util.Exceptions;
+import org.openide.util.lookup.ServiceProvider;
 import org.openide.windows.Mode;
 import org.openide.windows.TopComponent;
 import org.openide.windows.WindowManager;
@@ -54,7 +56,8 @@ import org.openide.windows.WindowManager;
  * <p>
  * You can register to get some change events (opened, saved, closed) from any song managed by this object.
  */
-public class SongEditorManager implements PropertyChangeListener
+@ServiceProvider(service = SongDisplayer.class)
+public class SongEditorManager implements PropertyChangeListener, SongDisplayer
 {
 
     /**
@@ -93,7 +96,7 @@ public class SongEditorManager implements PropertyChangeListener
         return INSTANCE;
     }
 
-    private SongEditorManager()
+    public SongEditorManager()
     {
         mapSongEditors = new HashMap<>();
         TopComponent.getRegistry().addPropertyChangeListener(this);
@@ -132,6 +135,7 @@ public class SongEditorManager implements PropertyChangeListener
      * @param song
      * @param makeActive If true try to make the song musically active, see ActiveSongManager.
      */
+    @Override
     public void showSong(final Song song, boolean makeActive)
     {
         if (song == null)
@@ -246,10 +250,11 @@ public class SongEditorManager implements PropertyChangeListener
      * @param f
      * @param makeActive
      * @param updateLastSongDirectory If true and the file is not already shown, update the LastSongDirectory in
-     * FileDirectoryManager.
+     *                                FileDirectoryManager.
      * @return The created song from file f
      * @throws org.jjazz.song.api.SongCreationException
      */
+    @Override
     public Song showSong(File f, boolean makeActive, boolean updateLastSongDirectory) throws SongCreationException
     {
 
