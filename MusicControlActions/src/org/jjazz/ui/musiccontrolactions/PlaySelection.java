@@ -73,7 +73,7 @@ import org.openide.windows.TopComponent;
 @ActionRegistration(displayName = "#CTL_PlaySelection", lazy = false)
 @ActionReferences(
         {
-            @ActionReference(path = "Actions/Bar", position = 831, separatorAfter = 832),
+            @ActionReference(path = "Actions/Bar", position = 831),
             @ActionReference(path = "Actions/SongPart", position = 831, separatorAfter = 832),
             @ActionReference(path = "Shortcuts", name = "DS-SPACE")
         })

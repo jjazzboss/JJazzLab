@@ -22,6 +22,8 @@
  */
 package org.jjazz.ui.rpviewer.spi;
 
+import org.jjazz.song.api.Song;
+import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.rpviewer.DefaultRpRendererFactoryImpl;
 import org.openide.util.Lookup;
 import org.jjazz.ui.rpviewer.api.RpViewerRenderer;
@@ -64,10 +66,12 @@ public interface DefaultRpViewerRendererFactory extends RpViewerRendererFactory
     /**
      * Get the RpViewerRenderer of the specified type.
      *
+     * @param song The context song
+     * @param spt The context song part
      * @param type
      * @param settings
      * @return
      */
-    RpViewerRenderer getRpViewerRenderer(Type type, RpViewerSettings settings);
+    RpViewerRenderer getRpViewerRenderer(Song song, SongPart spt, Type type, RpViewerSettings settings);
 
 }

@@ -23,6 +23,8 @@
 package org.jjazz.ui.rpviewer.spi;
 
 import org.jjazz.rhythm.api.RhythmParameter;
+import org.jjazz.song.api.Song;
+import org.jjazz.songstructure.api.SongPart;
 import org.openide.util.Lookup;
 import org.jjazz.ui.rpviewer.api.RpViewerRenderer;
 
@@ -76,10 +78,12 @@ public interface RpViewerRendererFactory
      * Get a RpViewerRenderer instance adapted to the specified RhyhtmParameter.
      * <p>
      *
+     * @param song The context song
+     * @param spt The context song part
      * @param rp
      * @param settings
      * @return Null if rp is not supported.
      */
-    RpViewerRenderer getRpViewerRenderer(RhythmParameter<?> rp, RpViewerSettings settings);
+    RpViewerRenderer getRpViewerRenderer(Song song, SongPart spt, RhythmParameter<?> rp, RpViewerSettings settings);
 
 }

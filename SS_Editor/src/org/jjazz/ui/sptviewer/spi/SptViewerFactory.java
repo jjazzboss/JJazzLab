@@ -22,6 +22,7 @@
  */
 package org.jjazz.ui.sptviewer.spi;
 
+import org.jjazz.song.api.Song;
 import org.jjazz.ui.sptviewer.SptViewerFactoryImpl;
 import org.openide.util.Lookup;
 import org.jjazz.songstructure.api.SongPart;
@@ -54,5 +55,5 @@ public interface SptViewerFactory
         return SptViewerSettings.getDefault();
     }
 
-    SptViewer createSptViewer(SongPart spt, SptViewerSettings settings, DefaultRpViewerRendererFactory factory);
+    SptViewer createSptViewer(Song song, SongPart spt, SptViewerSettings settings, DefaultRpViewerRendererFactory factory);
 }

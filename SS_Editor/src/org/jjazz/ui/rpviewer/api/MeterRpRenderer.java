@@ -20,9 +20,8 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.ui.rpviewer;
+package org.jjazz.ui.rpviewer.api;
 
-import org.jjazz.ui.rpviewer.api.RpViewer;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GradientPaint;
@@ -38,7 +37,7 @@ import org.jjazz.rhythm.api.RP_Integer;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.rhythm.api.RpEnumerable;
-import org.jjazz.ui.rpviewer.api.RpViewerRenderer;
+import org.jjazz.song.api.Song;
 
 /**
  * Display the value as a vertical meter with max 10 leds of 3 colors.
@@ -56,8 +55,28 @@ public class MeterRpRenderer implements RpViewerRenderer
      * Extra height added to the minimum size when vertical zoom is at default value.
      */
     private static final int EXTRA_HEIGHT_ZOOM_50 = 15;
-    private Set<ChangeListener> listeners = new HashSet<>();
+    private final Set<ChangeListener> listeners = new HashSet<>();
     private RpViewer rpViewer;
+    private final Song songModel;
+    private final SongPart sptModel;
+
+    public MeterRpRenderer(Song song, SongPart spt)
+    {
+        this.songModel = song;
+        this.sptModel = spt;
+    }
+
+    @Override
+    public SongPart getSongPart()
+    {
+        return sptModel;
+    }
+
+    @Override
+    public Song getSong()
+    {
+        return songModel;
+    }
 
     @Override
     public void setRpViewer(RpViewer rpViewer)
@@ -198,6 +217,12 @@ public class MeterRpRenderer implements RpViewerRenderer
         }
     }
 
+    public void fireChanged()
+    {
+        ChangeEvent evt = new ChangeEvent(this);
+        listeners.stream().forEach(l -> l.stateChanged(evt));
+    }
+
     // ---------------------------------------------------------------
     // Private functions
     // ---------------------------------------------------------------    
@@ -216,9 +241,5 @@ public class MeterRpRenderer implements RpViewerRenderer
     // ---------------------------------------------------------------
     // Private methods
     // ---------------------------------------------------------------  
-    public void fireChanged()
-    {
-        ChangeEvent evt = new ChangeEvent(this);
-        listeners.stream().forEach(l -> l.stateChanged(evt));
-    }
+
 }

@@ -50,6 +50,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmParameter;
+import org.jjazz.song.api.Song;
 import org.jjazz.ui.colorsetmanager.api.ColorSetManager;
 import org.jjazz.ui.sptviewer.api.SptViewer;
 import org.jjazz.ui.sptviewer.api.SptViewerMouseListener;
@@ -77,6 +78,7 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
      * Our model.
      */
     private SptViewerMouseListener controller;
+    private Song songModel;
     private SongPart sptModel;
     /**
      * Selected state.
@@ -97,12 +99,13 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
     private DefaultRpViewerRendererFactory defaultRpRendererFactory;
     private static final Logger LOGGER = Logger.getLogger(SptViewerImpl.class.getSimpleName());
 
-    public SptViewerImpl(SongPart spt, SptViewerSettings settings, DefaultRpViewerRendererFactory factory)
+    public SptViewerImpl(Song song, SongPart spt, SptViewerSettings settings, DefaultRpViewerRendererFactory factory)
     {
         if (spt == null || settings == null || factory == null)
         {
             throw new IllegalArgumentException("spt=" + spt + " settings=" + settings + " factory=" + factory);   //NOI18N
         }
+        songModel = song;
         sptModel = spt;
         sptModel.addPropertyChangeListener(this);
         sptModel.getParentSection().addPropertyChangeListener(this);
@@ -332,7 +335,7 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
                     // Use default
                     factory = defaultRpRendererFactory;
                 }
-                RpViewerRenderer renderer = factory.getRpViewerRenderer(rp, settings.getRpViewerSettings());
+                RpViewerRenderer renderer = factory.getRpViewerRenderer(songModel, sptModel, rp, settings.getRpViewerSettings());
                 RpViewer rpv = new RpViewer(sptModel, rp, settings.getRpViewerSettings(), renderer);
                 rpv.setController(controller);
                 renderer.setRpViewer(rpv);

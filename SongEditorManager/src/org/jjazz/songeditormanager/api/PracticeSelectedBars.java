@@ -20,12 +20,14 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.ui.cl_editor.actions;
+package org.jjazz.songeditormanager.api;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import org.jjazz.ui.cl_editor.api.CL_ContextActionListener;
 import org.jjazz.ui.cl_editor.api.CL_ContextActionSupport;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
@@ -37,6 +39,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
+import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_TempoFactor;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
 import org.jjazz.songstructure.api.SongPart;
@@ -48,6 +51,7 @@ import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.jjazz.ui.cl_editor.api.CL_SelectionUtilities;
 import org.jjazz.ui.cl_editor.api.SelectedBar;
+import org.jjazz.util.api.IntRange;
 import org.jjazz.util.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -61,32 +65,32 @@ import org.openide.util.Utilities;
  * Create a practice song from the selected bars.
  * <p>
  */
-@ActionRegistration(displayName = "#CTL_CreatePracticeSong", lazy = false)
-@ActionID(category = "JJazz", id = "org.jjazz.ui.cl_editor.actions.createpracticesong")
+@ActionRegistration(displayName = "#CTL_PracticeSelectedBars", lazy = false)
+@ActionID(category = "JJazz", id = "org.jjazz.ui.actions.practiceselectedbars")
 @ActionReferences(
         {
-            @ActionReference(path = "Actions/Bar", position = 205),
+            @ActionReference(path = "Actions/Bar", position = 832, separatorAfter = 850),
         })
-public final class CreatePracticeSong extends AbstractAction implements ContextAwareAction, CL_ContextActionListener
+public final class PracticeSelectedBars extends AbstractAction implements ContextAwareAction, CL_ContextActionListener
 {
 
     public static String SONG_NAME_SUFFIX = "-Practice-";
     private static int SUFFIX_ID = 0;
     private Lookup context;
     private CL_ContextActionSupport cap;
-    private static final Logger LOGGER = Logger.getLogger(CreatePracticeSong.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(PracticeSelectedBars.class.getSimpleName());
 
-    public CreatePracticeSong()
+    public PracticeSelectedBars()
     {
         this(Utilities.actionsGlobalContext());
     }
 
-    private CreatePracticeSong(Lookup context)
+    private PracticeSelectedBars(Lookup context)
     {
         this.context = context;
         cap = CL_ContextActionSupport.getInstance(this.context);
         cap.addListener(this);
-        putValue(NAME, ResUtil.getString(getClass(), "CTL_CreatePracticeSong"));
+        putValue(NAME, ResUtil.getString(getClass(), "CTL_PracticeSelectedBars"));
         selectionChange(cap.getSelection());
     }
 
@@ -100,49 +104,18 @@ public final class CreatePracticeSong extends AbstractAction implements ContextA
         SongStructure sgs = song.getSongStructure();
         var selectedBars = selection.getSelectedBarsWithinCls();
         assert !selectedBars.isEmpty() : "selection=" + selection;
-        int startBar = selectedBars.get(0).getModelBarIndex();
-        int lastBar = startBar + selectedBars.size() - 1;
+        IntRange selRange = new IntRange(selectedBars.get(0).getModelBarIndex(), selectedBars.get(selectedBars.size() - 1).getModelBarIndex());
 
 
         // Create a new ChordLeadSheet from selected bars only
         var newCls = createCls(cls, selectedBars);
 
 
-        // Create the song and update the song structure
-        Song newSong = null;
+        // Create the song with new Cls and the corresponding SongStructure
+        Song newSong;
         try
         {
-            newSong = SongFactory.getInstance().createSong(getPracticeSongName(song.getName()), newCls);
-
-
-            // Clear the new SongStructure
-            var newSgs = newSong.getSongStructure();            
-            newSgs.removeSongParts(newSgs.getSongParts());
-
-
-            // Get all sections
-            List<CLI_Section> cliSections = new ArrayList<>();
-            cliSections.add(cls.getSection(startBar));  // Section might be before startBar
-            if (startBar < lastBar)
-            {
-                cliSections.addAll(cls.getItems(startBar + 1, lastBar, CLI_Section.class));
-            }
-
-
-            // Duplicate the SongParts
-            List<SongPart> addSpts = new ArrayList<>();
-            for (var cliSection : cliSections)
-            {
-                int sectionBar = Math.max(cliSection.getPosition().getBar(), startBar);     // cliSection might start before startBar if no section defined at startBar
-                SongPart spt = sgs.getSongPart(sectionBar);
-                // Get equivalent section in the new song
-                var newCliSection = newCls.getSection(sectionBar - startBar);
-                int newSptSize = newCls.getBarRange(newCliSection).size();      // Might be < sptSize if 1st selected bar had no section defined
-                SongPart newSpt = spt.clone(null, newCliSection.getPosition().getBar(), newSptSize, newCliSection);
-                addSpts.add(newSpt);
-            }
-            newSgs.addSongParts(addSpts);
-
+            newSong = createSong(song, selRange, newCls);
         } catch (UnsupportedEditException ex)
         {
             LOGGER.warning("actionPerformed() ex=" + ex.getMessage());
@@ -151,17 +124,20 @@ public final class CreatePracticeSong extends AbstractAction implements ContextA
             return;
         }
 
+        // Duplicate song parts to gradually increase tempo
+        updateSongForPractice(newSong, 180, 100, 4);
 
+        
         // Display the new song
-        
-        
+        SongEditorManager.getInstance().showSong(newSong, true);
+
     }
 
 
     @Override
     public Action createContextAwareInstance(Lookup context)
     {
-        return new CreatePracticeSong(context);
+        return new PracticeSelectedBars(context);
     }
 
     // ========================================================================================
@@ -190,6 +166,142 @@ public final class CreatePracticeSong extends AbstractAction implements ContextA
         SUFFIX_ID++;
         String res = sgName + SONG_NAME_SUFFIX + SUFFIX_ID;
         return res;
+    }
+
+    /**
+     * Update a song so that tempo gradually increases from tempoStart to tempoEnd in nbSteps.
+     *
+     * @param song
+     * @param tempoStart BPM tempo
+     * @param tempoEnd   BPM tempo
+     * @param nbSteps    Must be &gt; 1
+     * @throws IllegalArgumentException If tempoStart/tempoEnd ratio is not in the range ]0.5;2[
+     */
+    private void updateSongForPractice(Song song, int tempoStart, int tempoEnd, int nbSteps)
+    {
+        checkArgument(nbSteps > 1, "nbSteps=%s", nbSteps);
+        float r = (float) tempoStart / tempoEnd;
+        float tempoStep = ((float) tempoEnd - tempoStart) / (nbSteps - 1);
+        checkArgument(r >= 0.5 && r <= 2, "tempoStart=%s tempoEnd=%s", tempoStart, tempoEnd);
+
+
+        var sgs = song.getSongStructure();
+        var spts = sgs.getSongParts();
+        int nbSptsOriginal = spts.size();
+        song.setTempo(tempoEnd);
+
+
+        // First duplicate the song parts
+        for (int i = 0; i < nbSteps - 1; i++)
+        {
+            for (int j = spts.size() - 1; j >= 0; j--)
+            {
+                var spt = spts.get(j);
+                var newSpt = spt.clone(null, 0, spt.getNbBars(), spt.getParentSection());
+                try
+                {
+                    sgs.addSongParts(Arrays.asList(newSpt));
+                } catch (UnsupportedEditException ex)
+                {
+                    // Should never happen we dont change rhythm
+                    Exceptions.printStackTrace(ex);
+                }
+            }
+        }
+
+
+        // Update the tempo factor of song parts
+        spts = sgs.getSongParts();
+        int sptIndex = 0;
+        for (int i = 0; i < nbSteps; i++)
+        {
+
+            // Calculate the RP_SYS_TempoFactor value
+            int rpTempoFactorValue;
+            if (i == 0)
+            {
+                rpTempoFactorValue = Math.round(100 * r);
+            } else if (i == nbSteps - 1)
+            {
+                rpTempoFactorValue = Math.round(100);
+            } else
+            {
+                float tempo = tempoStart + tempoStep * i;
+                rpTempoFactorValue = Math.round(100 * tempo / tempoEnd);
+            }
+
+            for (int j = 0; j < nbSptsOriginal; j++)
+            {
+                var spt = spts.get(sptIndex);
+                var rpTempo = RP_SYS_TempoFactor.getTempoFactorRp(spt.getRhythm());
+                sgs.setRhythmParameterValue(spt, rpTempo, rpTempoFactorValue);
+                sptIndex++;
+            }
+
+        }
+
+
+    }
+
+    /**
+     * Create a song with newCls and the corresponding SongStructure.
+     *
+     * @param song
+     * @param selRange
+     * @param newCls
+     * @return
+     * @throws UnsupportedEditException
+     */
+    private Song createSong(Song song, IntRange selRange, ChordLeadSheet newCls) throws UnsupportedEditException
+    {
+        ChordLeadSheet cls = song.getChordLeadSheet();
+        SongStructure sgs = song.getSongStructure();
+
+
+        Song newSong = SongFactory.getInstance().createSong(getPracticeSongName(song.getName()), newCls);
+
+
+        // Clear the new SongStructure
+        var newSgs = newSong.getSongStructure();
+        newSgs.removeSongParts(newSgs.getSongParts());
+
+
+        // Get all sections
+        List<CLI_Section> cliSections = new ArrayList<>();
+        cliSections.add(cls.getSection(selRange.from));  // Section might be before selection range
+        if (selRange.size() > 1)
+        {
+            cliSections.addAll(cls.getItems(selRange.from + 1, selRange.to, CLI_Section.class));
+        }
+
+
+        // Duplicate the SongParts
+        List<SongPart> addSpts = new ArrayList<>();
+        for (var cliSection : cliSections)
+        {
+            int sectionBar = Math.max(cliSection.getPosition().getBar(), selRange.from);     // cliSection might start before selection range if no section defined at bar selRange.from
+            SongPart spt = sgs.getSongParts().stream()
+                    .filter(s -> s.getParentSection() == cliSection)
+                    .findFirst()
+                    .orElse(null);
+            assert spt != null : "cliSection=" + cliSection;
+
+            // Get the equivalent section in the new song
+            var newCliSection = newCls.getSection(sectionBar - selRange.from);
+            int newSptSize = newCls.getBarRange(newCliSection).size();      // Might be < sptSize if 1st selected bar had no section defined
+            SongPart newSpt = spt.clone(null, newCliSection.getPosition().getBar(), newSptSize, newCliSection);
+            if (RP_SYS_TempoFactor.getTempoFactorRp(newSpt.getRhythm()) == null)
+            {
+                throw new UnsupportedEditException("Rhythm " + newSpt.getRhythm().getName() + " does not use the Tempo Factor rhythm parameter");
+            }
+            addSpts.add(newSpt);
+        }
+
+        // Add the song parts
+        newSgs.addSongParts(addSpts);
+
+        return newSong;
+
     }
 
     private ChordLeadSheet createCls(ChordLeadSheet cls, List<SelectedBar> selectedBars)

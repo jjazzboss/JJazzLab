@@ -25,14 +25,17 @@ package org.jjazz.ui.rpviewer.api;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import javax.swing.event.ChangeListener;
+import org.jjazz.song.api.Song;
+import org.jjazz.songstructure.api.SongPart;
 
 /**
  * A renderer for a RpViewer.
- * 
+ * <p>
  * <p>
  */
 public interface RpViewerRenderer
-{       
+{
+
     /**
      * Set the target RpViewer for which we perform the rendering.
      *
@@ -46,6 +49,20 @@ public interface RpViewerRenderer
      * @return
      */
     RpViewer getRpViewer();
+
+    /**
+     * The SongPart context.
+     *
+     * @return Might be null.
+     */
+    SongPart getSongPart();
+
+    /**
+     * The Song context.
+     *
+     * @return Might be null.
+     */
+    Song getSong();
 
     /**
      * The preferred size of this Renderer.

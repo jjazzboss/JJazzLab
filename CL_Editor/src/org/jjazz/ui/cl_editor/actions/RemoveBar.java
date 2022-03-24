@@ -48,7 +48,7 @@ import org.openide.util.Utilities;
 @ActionRegistration(displayName = "not_used", lazy = false)
 @ActionReferences(
         {
-            @ActionReference(path = "Actions/Bar", position = 400, separatorAfter = 450),
+            @ActionReference(path = "Actions/Bar", position = 400),
         })
 public class RemoveBar extends AbstractAction implements ContextAwareAction, CL_ContextActionListener
 {

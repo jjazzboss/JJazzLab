@@ -20,7 +20,7 @@
  *
  *  Contributor(s):
  */
-package org.jjazz.ui.rpviewer;
+package org.jjazz.ui.rpviewer.api;
 
 import java.awt.Dimension;
 import java.awt.FontMetrics;
@@ -37,9 +37,9 @@ import java.util.logging.Logger;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.jjazz.rhythm.api.RhythmParameter;
-import org.jjazz.ui.rpviewer.api.RpViewer;
+import org.jjazz.song.api.Song;
+import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.rpviewer.spi.StringRpRendererSettings;
-import org.jjazz.ui.rpviewer.api.RpViewerRenderer;
 
 /**
  * A simple editor: just display RP value as a string.
@@ -56,10 +56,12 @@ public class StringRpRenderer implements RpViewerRenderer, PropertyChangeListene
     private final StringRpRendererSettings settings;
     private final Function<Object, String> formatter;
     private RpViewer rpViewer;
-    private Set<ChangeListener> listeners = new HashSet<>();
+    private final Set<ChangeListener> listeners = new HashSet<>();
+    private final Song songModel;
+    private final SongPart sptModel;
     private static final Logger LOGGER = Logger.getLogger(StringRpRenderer.class.getSimpleName());
 
-    public StringRpRenderer(Function<Object, String> formatter, StringRpRendererSettings settings)
+    public StringRpRenderer(Song song, SongPart spt, Function<Object, String> formatter, StringRpRendererSettings settings)
     {
         if (formatter == null || settings == null)
         {
@@ -68,6 +70,20 @@ public class StringRpRenderer implements RpViewerRenderer, PropertyChangeListene
         this.settings = settings;
         this.settings.addPropertyChangeListener(this);
         this.formatter = formatter;
+        this.songModel = song;
+        this.sptModel = spt;
+    }
+
+    @Override
+    public SongPart getSongPart()
+    {
+        return sptModel;
+    }
+
+    @Override
+    public Song getSong()
+    {
+        return songModel;
     }
 
     @Override
@@ -150,6 +166,12 @@ public class StringRpRenderer implements RpViewerRenderer, PropertyChangeListene
         listeners.remove(l);
     }
 
+    public void fireChanged()
+    {
+        ChangeEvent evt = new ChangeEvent(this);
+        listeners.stream().forEach(l -> l.stateChanged(evt));
+    }
+
     // ---------------------------------------------------------------
     // Implements the PropertyChangeListener interface
     // ---------------------------------------------------------------    
@@ -165,11 +187,6 @@ public class StringRpRenderer implements RpViewerRenderer, PropertyChangeListene
     // ---------------------------------------------------------------
     // Private methods
     // ---------------------------------------------------------------  
-    private void fireChanged()
-    {
-        ChangeEvent evt = new ChangeEvent(this);
-        listeners.stream().forEach(l -> l.stateChanged(evt));
-    }
 
     private String getStringValue()
     {
