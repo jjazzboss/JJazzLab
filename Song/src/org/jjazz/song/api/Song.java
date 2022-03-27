@@ -234,10 +234,10 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
 
         // Make phrase no longer than the song
         FloatRange beatRange = getSongStructure().getBeatRange(null);
-        p = p.getSlice(beatRange, false, 1, 0f);
+        p = p.getSlice(beatRange, false, 1, 0f);        // Create a new phrase
 
 
-        final Phrase oldPhrase = mapUserPhrases.get(name) == null ? null : mapUserPhrases.get(name).clone();
+        final Phrase oldPhrase = getUserPhrase(name);
         final Phrase newPhrase = p;
 
 
@@ -415,14 +415,15 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
     }
 
     /**
-     * Get the user phrase associated to specified name.
+     * Get a user phrase copy associated to specified name.
      *
      * @param name
      * @return Null if no phrase associated to name. The Phrase channel should be ignored.
      */
     public Phrase getUserPhrase(String name)
     {
-        return mapUserPhrases.get(name);
+        Phrase p = mapUserPhrases.get(name);
+        return p == null ? null : p.clone();
     }
 
 

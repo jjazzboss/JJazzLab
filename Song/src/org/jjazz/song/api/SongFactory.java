@@ -368,19 +368,8 @@ public class SongFactory implements PropertyChangeListener
         s.setComments(song.getComments());
         s.setTempo(song.getTempo());
         s.setTags(song.getTags());
-        for (String name : song.getUserPhraseNames())
-        {
-            try
-            {
-                s.setUserPhrase(name, song.getUserPhrase(name));
-            } catch (PropertyVetoException ex)
-            {
-                // Should never happen as it was OK for song
-                Exceptions.printStackTrace(ex);
-            }
-        }
-
-
+     
+        
         // Clean the default songStructure
         SongStructure newSgs = s.getSongStructure();
         try
@@ -401,6 +390,7 @@ public class SongFactory implements PropertyChangeListener
             SongPart sptCopy = spt.clone(spt.getRhythm(), spt.getStartBarIndex(), spt.getNbBars(), newParentSection);
             newSpts.add(sptCopy);
         }
+        
         // Add new song parts in one shot to avoid issue if an AdaptedRhythm is used
         try
         {
@@ -411,6 +401,20 @@ public class SongFactory implements PropertyChangeListener
             throw new IllegalArgumentException("getCopy() failed. Song's name=" + song.getName() + " newSgs=" + newSgs + " newSpts=" + newSpts, ex);   //NOI18N
         }
 
+        
+        // Copy the user phrases, need to be done once the song if fully copied, so that the song size is correct
+        // (user phrases are trimmed to the song size)
+           for (String name : song.getUserPhraseNames())
+        {
+            try
+            {
+                s.setUserPhrase(name, song.getUserPhrase(name));
+            } catch (PropertyVetoException ex)
+            {
+                // Should never happen as it was OK for song
+                Exceptions.printStackTrace(ex);
+            }
+        }
 
         s.resetNeedSave();
         if (register)

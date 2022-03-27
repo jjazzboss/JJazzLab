@@ -55,6 +55,12 @@ public class UserRhythmVoice extends RhythmVoice
         super(CONTAINER, Type.PHRASE1, name, StdSynth.getInstance().getGM1Bank().getDefaultInstrument(Family.Piano), new InstrumentSettings(), DEFAULT_USER_PHRASE_CHANNEL);
     }
 
+    @Override
+    public String toString()
+    {
+        return "RvUser[" + getName() + "]";
+    }
+
     static private class UserDummyRhythm implements Rhythm
     {
 
