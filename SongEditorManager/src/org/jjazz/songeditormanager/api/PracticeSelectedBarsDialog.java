@@ -25,22 +25,30 @@ package org.jjazz.songeditormanager.api;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import java.awt.Color;
-import java.awt.Component;
-import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.GradientPaint;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.LayoutManager;
+import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.RenderingHints;
+import java.awt.event.InputEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
+import java.awt.geom.Ellipse2D;
+import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import org.jjazz.rhythm.api.TempoRange;
+import static org.jjazz.ui.flatcomponents.api.FlatIntegerHorizontalSlider.PROP_COLOR_LEFT;
+import static org.jjazz.ui.flatcomponents.api.FlatIntegerHorizontalSlider.PROP_COLOR_RIGHT;
+import org.jjazz.ui.utilities.api.StringMetrics;
 import org.jjazz.ui.utilities.api.Utilities;
 import org.openide.windows.WindowManager;
 
@@ -50,10 +58,9 @@ import org.openide.windows.WindowManager;
 public class PracticeSelectedBarsDialog extends javax.swing.JDialog
 {
 
-    private final static Color COLUMN_COLOR = Color.MAGENTA;
-    private final static Color START_END_TEMPO_LABEL_COLOR = Color.WHITE;
+
     private Config result;
-    private Config model;
+    private final Config model;
     private final ConfigPanel configPanel;
     private static final Logger LOGGER = Logger.getLogger(PracticeSelectedBarsDialog.class.getSimpleName());
 
@@ -74,8 +81,10 @@ public class PracticeSelectedBarsDialog extends javax.swing.JDialog
 
 
         model = new Config(defaultValue.tempoStart, defaultValue.tempoEnd, defaultValue.nbSteps);
-        configPanel = new ConfigPanel(model);
+        configPanel = new ConfigPanel();
+        configPanel.setModel(model);
         configPanelContainer.add(configPanel);
+        configPanel.setToolTipText(configPanelContainer.getToolTipText());
 
         lbl_nbSteps.setText(String.valueOf(model.nbSteps));
         slider_nbSteps.setValue(model.nbSteps);
@@ -111,8 +120,9 @@ public class PracticeSelectedBarsDialog extends javax.swing.JDialog
         lbl_help = new javax.swing.JLabel();
         configPanelContainer = new javax.swing.JPanel();
         jPanel1 = new javax.swing.JPanel();
-        lbl_nbSteps = new javax.swing.JLabel();
         slider_nbSteps = new javax.swing.JSlider();
+        filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(3, 0), new java.awt.Dimension(3, 0), new java.awt.Dimension(3, 32767));
+        lbl_nbSteps = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle(org.openide.util.NbBundle.getMessage(PracticeSelectedBarsDialog.class, "PracticeSelectedBarsDialog.title")); // NOI18N
@@ -138,17 +148,15 @@ public class PracticeSelectedBarsDialog extends javax.swing.JDialog
         org.openide.awt.Mnemonics.setLocalizedText(lbl_help, org.openide.util.NbBundle.getMessage(PracticeSelectedBarsDialog.class, "PracticeSelectedBarsDialog.lbl_help.text")); // NOI18N
 
         configPanelContainer.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+        configPanelContainer.setToolTipText(org.openide.util.NbBundle.getMessage(PracticeSelectedBarsDialog.class, "PracticeSelectedBarsDialog.configPanelContainer.toolTipText")); // NOI18N
         configPanelContainer.setOpaque(false);
         configPanelContainer.setLayout(new java.awt.CardLayout());
 
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_nbSteps, org.openide.util.NbBundle.getMessage(PracticeSelectedBarsDialog.class, "PracticeSelectedBarsDialog.lbl_nbSteps.text")); // NOI18N
-        lbl_nbSteps.setToolTipText(slider_nbSteps.getToolTipText());
-        jPanel1.add(lbl_nbSteps);
+        jPanel1.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 0, 0));
 
         slider_nbSteps.setMajorTickSpacing(1);
         slider_nbSteps.setMaximum(20);
         slider_nbSteps.setMinimum(2);
-        slider_nbSteps.setPaintTicks(true);
         slider_nbSteps.setSnapToTicks(true);
         slider_nbSteps.setToolTipText(org.openide.util.NbBundle.getMessage(PracticeSelectedBarsDialog.class, "PracticeSelectedBarsDialog.slider_nbSteps.toolTipText")); // NOI18N
         slider_nbSteps.setValue(6);
@@ -159,7 +167,19 @@ public class PracticeSelectedBarsDialog extends javax.swing.JDialog
                 slider_nbStepsStateChanged(evt);
             }
         });
+        slider_nbSteps.addMouseWheelListener(new java.awt.event.MouseWheelListener()
+        {
+            public void mouseWheelMoved(java.awt.event.MouseWheelEvent evt)
+            {
+                slider_nbStepsMouseWheelMoved(evt);
+            }
+        });
         jPanel1.add(slider_nbSteps);
+        jPanel1.add(filler1);
+
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_nbSteps, org.openide.util.NbBundle.getMessage(PracticeSelectedBarsDialog.class, "PracticeSelectedBarsDialog.lbl_nbSteps.text")); // NOI18N
+        lbl_nbSteps.setToolTipText(slider_nbSteps.getToolTipText());
+        jPanel1.add(lbl_nbSteps);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -171,13 +191,13 @@ public class PracticeSelectedBarsDialog extends javax.swing.JDialog
                     .addComponent(configPanelContainer, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGap(18, 18, Short.MAX_VALUE)
                         .addComponent(btn_Create)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btn_Cancel))
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(lbl_help)
-                        .addGap(0, 121, Short.MAX_VALUE)))
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -193,7 +213,7 @@ public class PracticeSelectedBarsDialog extends javax.swing.JDialog
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(lbl_help)
                         .addGap(18, 18, 18)
-                        .addComponent(configPanelContainer, javax.swing.GroupLayout.DEFAULT_SIZE, 203, Short.MAX_VALUE)
+                        .addComponent(configPanelContainer, javax.swing.GroupLayout.DEFAULT_SIZE, 231, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap())
@@ -224,15 +244,28 @@ public class PracticeSelectedBarsDialog extends javax.swing.JDialog
         }
         model.nbSteps = slider_nbSteps.getValue();
         lbl_nbSteps.setText(String.valueOf(model.nbSteps));
-        configPanel.revalidate();
-        configPanel.repaint();
+        configPanel.setModel(new Config(model.tempoStart, model.tempoEnd, model.nbSteps));
+
     }//GEN-LAST:event_slider_nbStepsStateChanged
+
+    private void slider_nbStepsMouseWheelMoved(java.awt.event.MouseWheelEvent evt)//GEN-FIRST:event_slider_nbStepsMouseWheelMoved
+    {//GEN-HEADEREND:event_slider_nbStepsMouseWheelMoved
+        int value = slider_nbSteps.getValue();
+        if (evt.getWheelRotation() < 0 && value < slider_nbSteps.getMaximum())
+        {
+            slider_nbSteps.setValue(value + 1);
+        } else if (evt.getWheelRotation() > 0 && value > slider_nbSteps.getMinimum())
+        {
+            slider_nbSteps.setValue(value - 1);
+        }
+    }//GEN-LAST:event_slider_nbStepsMouseWheelMoved
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_Cancel;
     private javax.swing.JButton btn_Create;
     private javax.swing.JPanel configPanelContainer;
+    private javax.swing.Box.Filler filler1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JLabel lbl_help;
     private javax.swing.JLabel lbl_nbSteps;
@@ -257,12 +290,6 @@ public class PracticeSelectedBarsDialog extends javax.swing.JDialog
             this.nbSteps = nbSteps;
         }
 
-        @Override
-        public Config clone()
-        {
-            return new Config(tempoStart, tempoEnd, nbSteps);
-        }
-
         /**
          * Calculate the tempo for stepIndex.
          * <p>
@@ -285,6 +312,12 @@ public class PracticeSelectedBarsDialog extends javax.swing.JDialog
             return Math.round(tempoStart + stepIndex * tempoStep);
         }
 
+        @Override
+        public String toString()
+        {
+            return "[" + tempoStart + "," + tempoEnd + "," + nbSteps + "]";
+        }
+
     }
 
     /**
@@ -294,211 +327,260 @@ public class PracticeSelectedBarsDialog extends javax.swing.JDialog
     static private class ConfigPanel extends JPanel
     {
 
-
+        private final static Color COLUMN_COLOR_BOTTOM = new Color(3, 133, 255);
+        private final static Color COLUMN_COLOR_TOP = new Color(116, 73, 255);
+        private final static Color TEMPO_COLOR = Color.WHITE;
+        private final static Color HANDLE_COLOR = COLUMN_COLOR_BOTTOM.darker();
         private final static int H_GAP = 10;
         private final static int V_GAP = 3;
-        private final Config model;
-        JLabel labelStart = new JLabel();
-        JLabel labelEnd = new JLabel();
-        MyMouseListener mouseListener = new MyMouseListener();
+        private final static int HANDLE_RADIUS = 6;
+        private Config model;
+        private final List<Rectangle2D.Float> columns;
+        private final Ellipse2D.Float handleStart;
+        private final Ellipse2D.Float handleEnd;
+        private final MyMouseListener mouseListener;
 
 
-        public ConfigPanel(Config config)
+        public ConfigPanel()
         {
-            checkNotNull(config);
-            model = config;
 
-            setLayout(new MyLayoutManager());
+            columns = new ArrayList<>();
+            handleStart = new Ellipse2D.Float();
+            handleEnd = new Ellipse2D.Float();
 
-            // prepare the tempo labels
-            labelStart.setForeground(START_END_TEMPO_LABEL_COLOR);
-            labelEnd.setForeground(START_END_TEMPO_LABEL_COLOR);
-            labelStart.setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
-            labelEnd.setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
-            add(labelStart);
-            add(labelEnd);
+            mouseListener = new MyMouseListener();
+            addMouseListener(mouseListener);
+            addMouseMotionListener(mouseListener);
+            addMouseWheelListener(mouseListener);
+        }
 
-            labelStart.addMouseMotionListener(mouseListener);
-            labelStart.addMouseWheelListener(mouseListener);
-            labelEnd.addMouseMotionListener(mouseListener);
-            labelEnd.addMouseWheelListener(mouseListener);
+        public void setModel(Config config)
+        {
+            if (Objects.equals(model, config))
+            {
+                return;
+            }
+            model = new Config(config.tempoStart, config.tempoEnd, config.nbSteps);
+            repaint();
+        }
 
+        @Override
+        public Dimension getPreferredSize()
+        {
+            return new Dimension(400, 400);
         }
 
         @Override
         public void paintComponent(Graphics g)
         {
             super.paintComponent(g);
+
+
+            updateShapes(model);
+
+
             Graphics2D g2 = (Graphics2D) g;
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+            Font font = g2.getFont();
+            font = font.deriveFont(font.getSize2D() - 2f);
+            g2.setFont(font);
+            StringMetrics sm = new StringMetrics(g2, font);
 
-            Rectangle r = Utilities.getUsableArea(this);
-            int colWidth = computeColWidth(r.width);
-            int maxColHeight = computeMaxColHeight(r);
-            float tempo2HeightRatio = (float) maxColHeight / computeMaxTempo();
 
-
-            // Draw a column for each step
-            g2.setColor(COLUMN_COLOR);
-            int x = r.x + H_GAP;
-            int y;
-            for (int i = 0; i < model.nbSteps; i++)
+            // Draw columns
+            for (int i = 0; i < columns.size(); i++)
             {
-                int colTempo = model.getTempo(i);
-                int colHeight = Math.round(tempo2HeightRatio * colTempo);
+                var colShape = columns.get(i);
+                GradientPaint gp = new GradientPaint(colShape.x, colShape.y, COLUMN_COLOR_TOP, colShape.x, colShape.y + colShape.height - 1, COLUMN_COLOR_BOTTOM);
+                g2.setPaint(gp);
+
+                if (i == 0 || i == columns.size() - 1)
+                {
+                    g2.fill(colShape);
+                } else
+                {
+                    g2.draw(colShape);
+                }
+
+
+                // Draw tempo
+                String txt = String.valueOf(model.getTempo(i));
+                var txtBounds = sm.getLogicalBoundsNoLeading(txt);
+                float x = colShape.x + colShape.width / 2 - (float) txtBounds.getWidth() / 2;
+                float y = colShape.y + HANDLE_RADIUS + 2 + (float) txtBounds.getHeight();
+                g2.setColor(TEMPO_COLOR);
+                g2.drawString(txt, x, y);
+            }
+
+            // Draw handles
+//            g2.setColor(HANDLE_COLOR);
+//            g2.fill(handleStart);
+//            g2.fill(handleEnd);
+        }
+
+        /**
+         * Recompute the shapes for the specified config and current object size.
+         *
+         * @param config
+         */
+        private void updateShapes(Config config)
+        {
+            // LOGGER.severe("updateShapes() -- config=" + config);
+            Rectangle r = Utilities.getUsableArea(this);
+            float colWidth = (r.width - 2 * H_GAP - (config.nbSteps - 1) * H_GAP) / (float) config.nbSteps;
+            int maxColHeight = r.height - 2 * V_GAP;
+            int maxTempo = Math.round(Math.max(config.tempoEnd, config.tempoStart) * 1.1f);
+            float tempo2HeightRatio = (float) maxColHeight / maxTempo;
+            float x = r.x + H_GAP;
+            float y;
+
+
+            // Add/remove column shapes if required   
+            int delta = config.nbSteps - columns.size();
+            if (delta < 0)
+            {
+                columns.subList(0, -delta).clear();
+            } else if (delta > 0)
+            {
+                while (delta > 0)
+                {
+                    columns.add(new Rectangle2D.Float());
+                    delta--;
+                }
+            }
+
+            // Update shapes
+            for (int i = 0; i < config.nbSteps; i++)
+            {
+                // Columns
+                int colTempo = config.getTempo(i);
+                float colHeight = tempo2HeightRatio * colTempo;
                 y = r.y + V_GAP + maxColHeight - colHeight;
-                g2.fillRect(x, y, colWidth, colHeight);
+                columns.get(i).setRect(x, y, colWidth, colHeight);
+
+                // Handles
+                if (i == 0 || i == config.nbSteps - 1)
+                {
+                    var handle = (i == 0) ? handleStart : handleEnd;
+                    handle.setFrame(x + colWidth / 2 - HANDLE_RADIUS, y - HANDLE_RADIUS, 2 * HANDLE_RADIUS, 2 * HANDLE_RADIUS);
+                }
 
                 x += colWidth + H_GAP;
             }
-
-        }
-
-        private int computeMaxColHeight(Rectangle r)
-        {
-            int maxColHeight = r.height - 2 * V_GAP;
-            return maxColHeight;
-        }
-
-        private int computeColWidth(int availableWidth)
-        {
-            int colWidth = (availableWidth - 2 * H_GAP - (model.nbSteps - 1) * H_GAP) / model.nbSteps;
-            return colWidth;
-        }
-
-        private int computeMaxTempo()
-        {
-            return Math.round(Math.max(model.tempoEnd, model.tempoStart) * 1.1f);
-        }
-
-        private void setLabelTempo(JLabel lbl, int tempo)
-        {
-            lbl.setText(" " + tempo + " ");
         }
 
         private class MyMouseListener extends MouseAdapter
         {
 
             private boolean dragging = false;
-            private int saveStartDragY;
+            private int saveStartDragY = -1;
+            private int saveStartTempo = -1;
+            private int saveEndTempo = -1;
+
+            @Override
+            public void mouseMoved(MouseEvent e)
+            {
+                boolean b = isInsideFirstCol(e) || isInsideLastCol(e);
+                setCursor(Cursor.getPredefinedCursor(b ? Cursor.HAND_CURSOR : Cursor.DEFAULT_CURSOR));
+            }
 
             @Override
             public void mouseWheelMoved(MouseWheelEvent e)
             {
-                if (e.getSource() == labelStart)
+                int newTempoStart = model.tempoStart;
+                int newTempoEnd = model.tempoEnd;
+                boolean ctrl = (e.getModifiersEx() & InputEvent.CTRL_DOWN_MASK) == InputEvent.CTRL_DOWN_MASK;
+                int step = ctrl ? 4 : 1;
+
+                if (e.getX() < getSize().width / 2)
                 {
                     if (e.getWheelRotation() > 0)
                     {
-                        model.tempoStart = Math.max(TempoRange.TEMPO_MIN, model.tempoStart - 1);
+                        newTempoStart = Math.max(TempoRange.TEMPO_MIN, model.tempoStart - step);
                     } else
                     {
-                        model.tempoStart = Math.min(TempoRange.TEMPO_MAX, model.tempoStart + 1);
+                        newTempoStart = Math.min(TempoRange.TEMPO_MAX, model.tempoStart + step);
                     }
+                } else if (e.getWheelRotation() > 0)
+                {
+                    newTempoEnd = Math.max(TempoRange.TEMPO_MIN, model.tempoEnd - step);
                 } else
                 {
-                    if (e.getWheelRotation() > 0)
-                    {
-                        model.tempoEnd = Math.max(TempoRange.TEMPO_MIN, model.tempoEnd - 1);
-                    } else
-                    {
-                        model.tempoEnd = Math.min(TempoRange.TEMPO_MAX, model.tempoEnd + 1);
-                    }
+                    newTempoEnd = Math.min(TempoRange.TEMPO_MAX, model.tempoEnd + step);
                 }
-                ConfigPanel.this.revalidate();
-                ConfigPanel.this.repaint();
+
+                setModel(new Config(newTempoStart, newTempoEnd, model.nbSteps));
             }
 
             @Override
             public void mousePressed(MouseEvent e)
             {
-                saveStartDragY = e.getYOnScreen();
+                if (isInsideFirstCol(e))
+                {
+                    saveStartDragY = e.getY();
+                    saveStartTempo = model.tempoStart;
+                    saveEndTempo = -1;
+                } else if (isInsideLastCol(e))
+                {
+                    saveStartDragY = e.getY();
+                    saveEndTempo = model.tempoEnd;
+                    saveStartTempo = -1;
+                } else
+                {
+                    saveStartTempo = -1;
+                    saveStartDragY = -1;
+                    saveEndTempo = -1;
+                }
             }
 
             @Override
             public void mouseDragged(MouseEvent e)
             {
-                if (e.getSource() == labelStart)
+                if (saveStartDragY == -1)
                 {
-                    int y = e.getYOnScreen();
-                    int delta = y - saveStartDragY;
-                    Rectangle r = Utilities.getUsableArea(ConfigPanel.this);
-                    int colWidth = computeColWidth(r.width);
-                    int maxColHeight = computeMaxColHeight(r);
-                    float tempo2HeightRatio = (float) maxColHeight / computeMaxTempo();
-
+                    return;
                 }
-            }
 
+                int newTempoStart = model.tempoStart;
+                int newTempoEnd = model.tempoEnd;
+
+                int yDelta = e.getY() - saveStartDragY;
+                if (saveStartTempo > 0)
+                {
+                    newTempoStart = saveStartTempo - yDelta / 3;
+                    newTempoStart = Math.min(newTempoStart, TempoRange.TEMPO_MAX);
+                    newTempoStart = Math.max(newTempoStart, TempoRange.TEMPO_MIN);
+                } else if (saveEndTempo > 0)
+                {
+                    newTempoEnd = saveEndTempo - yDelta / 3;
+                    newTempoEnd = Math.min(newTempoEnd, TempoRange.TEMPO_MAX);
+                    newTempoEnd = Math.max(newTempoEnd, TempoRange.TEMPO_MIN);
+                }
+
+                setModel(new Config(newTempoStart, newTempoEnd, model.nbSteps));
+
+            }
 
             @Override
             public void mouseReleased(MouseEvent e)
             {
+                saveStartTempo = -1;
+                saveStartDragY = -1;
+                saveEndTempo = -1;
+            }
+
+            private boolean isInsideFirstCol(MouseEvent e)
+            {
+                return columns.get(0).contains(e.getPoint());
+            }
+
+            private boolean isInsideLastCol(MouseEvent e)
+            {
+                return columns.get(columns.size() - 1).contains(e.getPoint());
             }
         }
 
-
-        /**
-         * Layout places the 2 labels.
-         */
-        private class MyLayoutManager implements LayoutManager
-        {
-
-            @Override
-            public void layoutContainer(Container parent)
-            {
-                Rectangle r = Utilities.getUsableArea((JComponent) parent);
-                int colWidth = computeColWidth(r.width);
-                int maxColHeight = computeMaxColHeight(r);
-                float tempo2HeightRatio = (float) maxColHeight / computeMaxTempo();
-
-
-                // Label start
-                setLabelTempo(labelStart, model.tempoStart);
-                Dimension lSize = labelStart.getPreferredSize();
-                labelStart.setSize(lSize);
-                int colTempo = model.getTempo(0);
-                int colHeight = Math.round(tempo2HeightRatio * colTempo);
-                int x = r.x + H_GAP + colWidth / 2 - lSize.width / 2;
-                int y = r.y + V_GAP + maxColHeight - colHeight + 3;
-                labelStart.setLocation(x, y);
-
-
-                // Label end
-                setLabelTempo(labelEnd, model.tempoEnd);
-                lSize = labelEnd.getPreferredSize();
-                labelEnd.setSize(lSize);
-                colTempo = model.getTempo(model.nbSteps - 1);
-                colHeight = Math.round(tempo2HeightRatio * colTempo);
-                x = r.x + +H_GAP + (colWidth + H_GAP) * (model.nbSteps - 1) + colWidth / 2 - lSize.width / 2;
-                y = r.y + V_GAP + maxColHeight - colHeight + 1;
-                labelEnd.setLocation(x, y);
-            }
-
-
-            @Override
-            public Dimension preferredLayoutSize(Container parent)
-            {
-                return new Dimension(400, 300);
-            }
-
-            @Override
-            public void addLayoutComponent(String string, Component cmpnt)
-            {
-                // Nothing 
-            }
-
-            @Override
-            public void removeLayoutComponent(Component comp)
-            {
-                // Nothing 
-            }
-
-
-            @Override
-            public Dimension minimumLayoutSize(Container parent)
-            {
-                return new Dimension(100, 70);
-            }
-        }
 
     }
 
