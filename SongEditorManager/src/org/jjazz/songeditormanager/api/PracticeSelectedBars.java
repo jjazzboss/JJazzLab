@@ -39,9 +39,11 @@ import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
+import org.jjazz.rhythm.api.TempoRange;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_TempoFactor;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
+import org.jjazz.songeditormanager.api.PracticeSelectedBarsDialog.Config;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.ui.cl_editor.api.CL_EditorTopComponent;
@@ -76,8 +78,10 @@ public final class PracticeSelectedBars extends AbstractAction implements Contex
 
     public static String SONG_NAME_SUFFIX = "-Practice-";
     private static int SUFFIX_ID = 0;
+    private static PracticeSelectedBarsDialog.Config LAST_CONFIG;
     private Lookup context;
     private CL_ContextActionSupport cap;
+
     private static final Logger LOGGER = Logger.getLogger(PracticeSelectedBars.class.getSimpleName());
 
     public PracticeSelectedBars()
@@ -124,11 +128,36 @@ public final class PracticeSelectedBars extends AbstractAction implements Contex
             return;
         }
 
-        // Duplicate song parts to gradually increase tempo
-        updateSongForPractice(newSong, 180, 100, 4);
 
-        
-        // Display the new song
+        // Show the config dialog
+        int tempoEnd = song.getTempo();
+        int tempoStart = Math.max(TempoRange.TEMPO_MIN, tempoEnd - 30);
+        Config config = new Config(tempoStart, tempoEnd, 6);
+        if (LAST_CONFIG != null)
+        {
+            if (tempoEnd == LAST_CONFIG.tempoEnd)
+            {
+                config = LAST_CONFIG;
+            } else
+            {
+                config.nbSteps = LAST_CONFIG.nbSteps;
+                float r = (float) LAST_CONFIG.tempoStart / LAST_CONFIG.tempoEnd;
+                config.tempoStart = Math.round(r * tempoEnd);
+            }
+        }
+        var dlg = new PracticeSelectedBarsDialog(config);
+        dlg.setVisible(true);
+        PracticeSelectedBarsDialog.Config res = dlg.getResult();
+        if (res == null)
+        {
+            return;
+        }
+
+        LAST_CONFIG = res;
+
+
+        // Update and display newSong      
+        updateSongForPractice(newSong, LAST_CONFIG.tempoStart, LAST_CONFIG.tempoEnd, LAST_CONFIG.nbSteps);
         SongEditorManager.getInstance().showSong(newSong, true);
 
     }
