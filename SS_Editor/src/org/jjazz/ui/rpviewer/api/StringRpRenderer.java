@@ -33,6 +33,7 @@ import java.beans.PropertyChangeListener;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.logging.Logger;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -54,22 +55,22 @@ public class StringRpRenderer implements RpViewerRenderer, PropertyChangeListene
     private static final int TOP_BORDER = 2;
     // UI variables
     private final StringRpRendererSettings settings;
-    private final Function<Object, String> formatter;
+    private final Supplier<String> stringSupplier;
     private RpViewer rpViewer;
     private final Set<ChangeListener> listeners = new HashSet<>();
     private final Song songModel;
     private final SongPart sptModel;
     private static final Logger LOGGER = Logger.getLogger(StringRpRenderer.class.getSimpleName());
 
-    public StringRpRenderer(Song song, SongPart spt, Function<Object, String> formatter, StringRpRendererSettings settings)
+    public StringRpRenderer(Song song, SongPart spt, Supplier<String> stringSupplier, StringRpRendererSettings settings)
     {
-        if (formatter == null || settings == null)
+        if (stringSupplier == null || settings == null)
         {
-            throw new IllegalArgumentException("formatter=" + formatter + " settings=" + settings);   //NOI18N
+            throw new IllegalArgumentException("stringSupplier=" + stringSupplier + " settings=" + settings);   //NOI18N
         }
         this.settings = settings;
         this.settings.addPropertyChangeListener(this);
-        this.formatter = formatter;
+        this.stringSupplier = stringSupplier;
         this.songModel = song;
         this.sptModel = spt;
     }
@@ -108,7 +109,7 @@ public class StringRpRenderer implements RpViewerRenderer, PropertyChangeListene
     {
         // Calculate preferred size from string bounds
         Insets ins = rpViewer.getInsets();
-        String strValue = getStringValue();
+        String strValue = stringSupplier.get(); 
         FontMetrics fontMetrics = rpViewer.getFontMetrics(settings.getFont());
         int strWidth = fontMetrics.stringWidth(strValue);
         int strHeight = fontMetrics.getMaxAscent() + fontMetrics.getMaxDescent();
@@ -140,7 +141,7 @@ public class StringRpRenderer implements RpViewerRenderer, PropertyChangeListene
         g2.setColor(settings.getFontColor());
 
         Insets ins = rpViewer.getInsets();
-        String strValue = getStringValue();
+        String strValue = stringSupplier.get();                
         FontMetrics fontMetrics = rpViewer.getFontMetrics(settings.getFont());
         int strWidth = fontMetrics.stringWidth(strValue);
         int strHeight = fontMetrics.getMaxAscent() + fontMetrics.getMaxDescent();
@@ -188,11 +189,5 @@ public class StringRpRenderer implements RpViewerRenderer, PropertyChangeListene
     // Private methods
     // ---------------------------------------------------------------  
 
-    private String getStringValue()
-    {
-        RhythmParameter rp = rpViewer.getRpModel();
-        Object value = rpViewer.getSptModel().getRPValue(rp);
-        String str = rp.getDisplayValue(value);
-        return formatter.apply(str);
-    }
+  
 }

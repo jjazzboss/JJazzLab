@@ -22,6 +22,7 @@
  */
 package org.jjazz.ui.rpviewer;
 
+import java.util.function.Supplier;
 import org.jjazz.ui.rpviewer.api.StringRpRenderer;
 import org.jjazz.ui.rpviewer.api.MeterRpRenderer;
 import java.util.logging.Logger;
@@ -58,7 +59,7 @@ public class DefaultRpRendererFactoryImpl implements DefaultRpViewerRendererFact
     }
 
     @Override
-    public RpViewerRenderer getRpViewerRenderer(Song song, SongPart spt, Type type, RpViewerSettings settings)
+    public RpViewerRenderer getRpViewerRenderer(Song song, SongPart spt, RhythmParameter<?> rp, Type type, RpViewerSettings settings)
     {
         RpViewerRenderer renderer = null;
         switch (type)
@@ -67,7 +68,7 @@ public class DefaultRpRendererFactoryImpl implements DefaultRpViewerRendererFact
                 renderer = new MeterRpRenderer(song, spt);
                 break;
             case STRING:
-                renderer = new StringRpRenderer(song, spt, rpStrValue -> rpStrValue.toString(), settings.getStringRpRendererSettings());
+                renderer = new StringRpRenderer(song, spt, () -> spt.getRPValue(rp).toString(), settings.getStringRpRendererSettings());
                 break;
             default:
                 throw new AssertionError(type.name());
@@ -83,7 +84,18 @@ public class DefaultRpRendererFactoryImpl implements DefaultRpViewerRendererFact
 
         if (rp instanceof RP_SYS_TempoFactor)
         {
-            rpr = new StringRpRenderer(song, spt, rpStrValue -> song.getTempo() + " / " + rpStrValue, settings.getStringRpRendererSettings());
+            Supplier<String> stringSupplier = () ->
+            {
+                RP_SYS_TempoFactor rpTempoFactor = (RP_SYS_TempoFactor) rp;
+                int rpValue = spt.getRPValue(rpTempoFactor);
+                float rpValueFloat = rpValue / 100f;
+                int tempo = (int) (Math.round(song.getTempo() * rpValueFloat));
+                return rpValue + "% (" + tempo + ")";
+            };
+
+            rpr = new StringRpRenderer(song, spt, stringSupplier, settings.getStringRpRendererSettings());
+
+            // Keep it updated when tempo changes
             song.addPropertyChangeListener(evt ->
             {
                 if (evt.getPropertyName().equals(Song.PROP_TEMPO))
@@ -94,13 +106,13 @@ public class DefaultRpRendererFactoryImpl implements DefaultRpViewerRendererFact
             );
         } else if (rp instanceof RP_Integer)
         {
-            rpr = getRpViewerRenderer(song, spt, Type.METER, settings);
+            rpr = getRpViewerRenderer(song, spt, rp, Type.METER, settings);
         } else if (rp instanceof RP_StringSet)
         {
-            rpr = getRpViewerRenderer(song, spt, Type.STRING, settings);
+            rpr = getRpViewerRenderer(song, spt, rp, Type.STRING, settings);
         } else
         {
-            rpr = getRpViewerRenderer(song, spt, Type.STRING, settings);
+            rpr = getRpViewerRenderer(song, spt, rp, Type.STRING, settings);
         }
         return rpr;
     }
