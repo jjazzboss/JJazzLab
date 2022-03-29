@@ -33,7 +33,6 @@ import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import static javax.swing.Action.NAME;
-import javax.swing.SwingUtilities;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheetFactory;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
@@ -212,13 +211,20 @@ public final class CreatePracticeSong extends AbstractAction implements ContextA
         checkArgument(nbSteps > 1, "nbSteps=%s", nbSteps);
         float r = (float) tempoStart / tempoEnd;
         float tempoStep = ((float) tempoEnd - tempoStart) / (nbSteps - 1);
-        checkArgument(r >= 0.5 && r <= 2, "tempoStart=%s tempoEnd=%s", tempoStart, tempoEnd);
+        checkArgument(r >= 0.25 && r <= 4, "tempoStart=%s tempoEnd=%s", tempoStart, tempoEnd);
 
 
         var sgs = song.getSongStructure();
         var spts = sgs.getSongParts();
         int nbSptsOriginal = spts.size();
-        song.setTempo(tempoEnd);
+
+        int songTempo = tempoEnd;       // By default
+        if (r < 0.5 || r > 2)
+        {
+            // tempoEnd can not be the song's tempo
+            songTempo = Math.round(Math.max(tempoEnd, tempoStart) / 2f);
+        }
+        song.setTempo(songTempo);
 
 
         // First duplicate the song parts
@@ -248,17 +254,9 @@ public final class CreatePracticeSong extends AbstractAction implements ContextA
 
             // Calculate the RP_SYS_TempoFactor value
             int rpTempoFactorValue;
-            if (i == 0)
-            {
-                rpTempoFactorValue = Math.round(100 * r);
-            } else if (i == nbSteps - 1)
-            {
-                rpTempoFactorValue = Math.round(100);
-            } else
-            {
-                float tempo = tempoStart + tempoStep * i;
-                rpTempoFactorValue = Math.round(100 * tempo / tempoEnd);
-            }
+            float tempo = tempoStart + tempoStep * i;
+            rpTempoFactorValue = Math.round(100 * tempo / songTempo);
+
 
             for (int j = 0; j < nbSptsOriginal; j++)
             {

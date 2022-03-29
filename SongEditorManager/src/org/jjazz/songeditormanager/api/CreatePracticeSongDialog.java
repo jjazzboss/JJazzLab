@@ -499,20 +499,20 @@ public class CreatePracticeSongDialog extends javax.swing.JDialog
                     if (e.getWheelRotation() > 0)
                     {
                         newTempoStart = Math.max(TempoRange.TEMPO_MIN, model.tempoStart - step);
-                        newTempoStart = Math.max(newTempoEnd / 2 + 1, newTempoStart);
+                        newTempoStart = Math.max(newTempoEnd / 3 + 4, newTempoStart);
                     } else
                     {
                         newTempoStart = Math.min(TempoRange.TEMPO_MAX, model.tempoStart + step);
-                        newTempoStart = Math.min(newTempoEnd * 2 - 1, newTempoStart);
+                        newTempoStart = Math.min(newTempoEnd * 3 - 4, newTempoStart);
                     }
                 } else if (e.getWheelRotation() > 0)
                 {
                     newTempoEnd = Math.max(TempoRange.TEMPO_MIN, model.tempoEnd - step);
-                    newTempoEnd = Math.max(newTempoStart / 2 + 1, newTempoEnd);
+                    newTempoEnd = Math.max(newTempoStart / 3 + 4, newTempoEnd);
                 } else
                 {
                     newTempoEnd = Math.min(TempoRange.TEMPO_MAX, model.tempoEnd + step);
-                    newTempoEnd = Math.min(newTempoStart * 2 - 1, newTempoEnd);
+                    newTempoEnd = Math.min(newTempoStart * 3 - 4, newTempoEnd);
                 }
 
                 setModel(new Config(newTempoStart, newTempoEnd, model.nbSteps));
@@ -556,15 +556,15 @@ public class CreatePracticeSongDialog extends javax.swing.JDialog
                     newTempoStart = saveStartTempo - yDelta / 3;
                     newTempoStart = Math.min(newTempoStart, TempoRange.TEMPO_MAX);
                     newTempoStart = Math.max(newTempoStart, TempoRange.TEMPO_MIN);
-                    newTempoStart = Math.min(newTempoEnd * 2 - 1, newTempoStart);
-                    newTempoStart = Math.max(newTempoEnd / 2 + 1, newTempoStart);
+                    newTempoStart = Math.min(newTempoEnd * 3 - 4, newTempoStart);
+                    newTempoStart = Math.max(newTempoEnd / 3 + 4, newTempoStart);
                 } else if (saveEndTempo > 0)
                 {
                     newTempoEnd = saveEndTempo - yDelta / 3;
                     newTempoEnd = Math.min(newTempoEnd, TempoRange.TEMPO_MAX);
                     newTempoEnd = Math.max(newTempoEnd, TempoRange.TEMPO_MIN);
-                    newTempoEnd = Math.min(newTempoStart * 2 - 1, newTempoEnd);
-                    newTempoEnd = Math.max(newTempoStart / 2 + 1, newTempoEnd);
+                    newTempoEnd = Math.min(newTempoStart * 3 - 4, newTempoEnd);
+                    newTempoEnd = Math.max(newTempoStart / 3 + 4, newTempoEnd);
                 }
 
                 setModel(new Config(newTempoStart, newTempoEnd, model.nbSteps));
