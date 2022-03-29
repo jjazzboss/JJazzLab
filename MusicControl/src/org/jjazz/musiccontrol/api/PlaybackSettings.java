@@ -281,7 +281,7 @@ public class PlaybackSettings
      * The parameters are only used if precount mode is set to AUTO.<br>
      * Example in AUTO mode: a very fast tempo song will use 2 bars, a 4/4 will use 1 bar up to mid-range tempo etc.
      *
-     * @param ts Ignored if precount mode is not AUTO.
+     * @param ts    Ignored if precount mode is not AUTO.
      * @param tempo Ignored if precount mode is not AUTO.
      * @return Can be 1 or 2 bars.
      */
@@ -497,7 +497,6 @@ public class PlaybackSettings
      * - Meta time signature<br>
      * - Meta tempo<br>
      * - Meta copyright<br>
-     * - All Controller events
      * <p>
      *
      *
@@ -533,7 +532,6 @@ public class PlaybackSettings
                 if (tick == 0)
                 {
                     // Special handling for initial events
-                    boolean special = false;
                     if (mm instanceof MetaMessage)
                     {
                         int type = ((MetaMessage) mm).getType();
@@ -542,21 +540,10 @@ public class PlaybackSettings
                                 || type == MidiConst.META_TEMPO
                                 || type == MidiConst.META_COPYRIGHT)
                         {
-                            special = true;
+                            tick0SpecialEvents.add(me);
+                            track.remove(me);
+                            continue;
                         }
-                    } else if (mm instanceof ShortMessage)
-                    {
-                        ShortMessage sm = (ShortMessage) mm;
-                        if (sm.getCommand() == ShortMessage.CONTROL_CHANGE)
-                        {
-                            special = true;
-                        }
-                    }
-                    if (special)
-                    {
-                        tick0SpecialEvents.add(me);
-                        track.remove(me);
-                        continue;
                     }
                 }
 

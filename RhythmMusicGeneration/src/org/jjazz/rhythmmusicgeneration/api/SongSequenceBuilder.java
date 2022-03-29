@@ -1053,6 +1053,7 @@ public class SongSequenceBuilder
      * Add tempo factor change JJazz Midi controller messages in the specified track.
      * <p>
      *
+     * @param context
      * @param track
      */
     private void addTempoFactorChanges(SongContext context, Track track)
@@ -1080,6 +1081,7 @@ public class SongSequenceBuilder
             lastTempoPercentChange = tempoPercentChange;
         }
 
+        
         // Add an extra tempo factor change event at the end if first and last songparts don't have the same TempoFactor
         // Needed in order to avoid playback look delays
         if (firstTempoPercentChange != lastTempoPercentChange)
