@@ -4,7 +4,7 @@
   <Properties>
     <Property name="defaultCloseOperation" type="int" value="2"/>
     <Property name="title" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-      <ResourceString bundle="org/jjazz/songeditormanager/api/Bundle.properties" key="PracticeSelectedBarsDialog.title" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+      <ResourceString bundle="org/jjazz/songeditormanager/api/Bundle.properties" key="CreatePracticeSongDialog.title" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
     </Property>
   </Properties>
   <SyntheticProperties>
@@ -75,7 +75,7 @@
     <Component class="javax.swing.JButton" name="btn_Create">
       <Properties>
         <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/jjazz/songeditormanager/api/Bundle.properties" key="PracticeSelectedBarsDialog.btn_Create.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+          <ResourceString bundle="org/jjazz/songeditormanager/api/Bundle.properties" key="CreatePracticeSongDialog.btn_Create.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
         </Property>
       </Properties>
       <Events>
@@ -85,7 +85,7 @@
     <Component class="javax.swing.JButton" name="btn_Cancel">
       <Properties>
         <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/jjazz/songeditormanager/api/Bundle.properties" key="PracticeSelectedBarsDialog.btn_Cancel.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+          <ResourceString bundle="org/jjazz/songeditormanager/api/Bundle.properties" key="CreatePracticeSongDialog.btn_Cancel.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
         </Property>
       </Properties>
       <Events>
@@ -95,7 +95,7 @@
     <Component class="javax.swing.JLabel" name="lbl_help">
       <Properties>
         <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/jjazz/songeditormanager/api/Bundle.properties" key="PracticeSelectedBarsDialog.lbl_help.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+          <ResourceString bundle="org/jjazz/songeditormanager/api/Bundle.properties" key="CreatePracticeSongDialog.lbl_help.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
         </Property>
       </Properties>
     </Component>
@@ -107,7 +107,7 @@
           </Border>
         </Property>
         <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/jjazz/songeditormanager/api/Bundle.properties" key="PracticeSelectedBarsDialog.configPanelContainer.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+          <ResourceString bundle="org/jjazz/songeditormanager/api/Bundle.properties" key="CreatePracticeSongDialog.configPanelContainer.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
         </Property>
         <Property name="opaque" type="boolean" value="false"/>
       </Properties>
@@ -128,7 +128,7 @@
             <Property name="minimum" type="int" value="2"/>
             <Property name="snapToTicks" type="boolean" value="true"/>
             <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-              <ResourceString bundle="org/jjazz/songeditormanager/api/Bundle.properties" key="PracticeSelectedBarsDialog.slider_nbSteps.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+              <ResourceString bundle="org/jjazz/songeditormanager/api/Bundle.properties" key="CreatePracticeSongDialog.slider_nbSteps.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
             </Property>
             <Property name="value" type="int" value="6"/>
           </Properties>
@@ -156,7 +156,7 @@
         <Component class="javax.swing.JLabel" name="lbl_nbSteps">
           <Properties>
             <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-              <ResourceString bundle="org/jjazz/songeditormanager/api/Bundle.properties" key="PracticeSelectedBarsDialog.lbl_nbSteps.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+              <ResourceString bundle="org/jjazz/songeditormanager/api/Bundle.properties" key="CreatePracticeSongDialog.lbl_nbSteps.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
             </Property>
             <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
               <Connection component="slider_nbSteps" name="getToolTipText" type="method"/>

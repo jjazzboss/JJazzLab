@@ -131,8 +131,9 @@ public class SongEditorManager implements PropertyChangeListener
      *
      * @param song
      * @param makeActive If true try to make the song musically active, see ActiveSongManager.
+     * @param savable    If true, song will appear as modified/savable (save button enabled).
      */
-    public void showSong(final Song song, boolean makeActive)
+    public void showSong(final Song song, boolean makeActive, boolean savable)
     {
         if (song == null)
         {
@@ -204,10 +205,12 @@ public class SongEditorManager implements PropertyChangeListener
             }
 
 
-            // Upon initialization the song editors might update the song by calling Song.putClientProperty() to store some UI settings
-            // like quantization of zoom factors. We don't want this to make the song appear as "modified/savable" as we show
-            // it for the first time
-            SwingUtilities.invokeLater(() -> song.resetNeedSave());
+            // Upon initialization the song editors will update the song by calling Song.putClientProperty() to store some UI settings
+            // like quantization of zoom factors. This makes the song appear as "modified/savable" by default.
+            if (!savable)
+            {
+                SwingUtilities.invokeLater(() -> song.resetNeedSave());
+            }
 
         };
 
@@ -292,7 +295,7 @@ public class SongEditorManager implements PropertyChangeListener
 
 
         // Show the song
-        showSong(song, makeActive);
+        showSong(song, makeActive, false);
 
 
         return song;

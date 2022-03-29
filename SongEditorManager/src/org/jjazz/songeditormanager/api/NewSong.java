@@ -58,7 +58,7 @@ public final class NewSong implements ActionListener
     public void actionPerformed(ActionEvent e)
     {
         Song song = createSongFromTemplate();
-        SongEditorManager.getInstance().showSong(song, true);
+        SongEditorManager.getInstance().showSong(song, true, false);
     }
 
     /**

@@ -238,7 +238,7 @@ public final class ImportSongAction implements ActionListener
                 SongFactory.getInstance().registerSong(song);
 
                 boolean last = (f == songFiles.get(songFiles.size() - 1));
-                SongEditorManager.getInstance().showSong(song, last);
+                SongEditorManager.getInstance().showSong(song, last, true);
             }
         }
     }

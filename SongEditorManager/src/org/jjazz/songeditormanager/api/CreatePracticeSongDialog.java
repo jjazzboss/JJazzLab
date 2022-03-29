@@ -31,7 +31,6 @@ import java.awt.Font;
 import java.awt.GradientPaint;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.event.InputEvent;
@@ -46,8 +45,6 @@ import java.util.Objects;
 import java.util.logging.Logger;
 import javax.swing.JPanel;
 import org.jjazz.rhythm.api.TempoRange;
-import static org.jjazz.ui.flatcomponents.api.FlatIntegerHorizontalSlider.PROP_COLOR_LEFT;
-import static org.jjazz.ui.flatcomponents.api.FlatIntegerHorizontalSlider.PROP_COLOR_RIGHT;
 import org.jjazz.ui.utilities.api.StringMetrics;
 import org.jjazz.ui.utilities.api.Utilities;
 import org.openide.windows.WindowManager;
@@ -55,21 +52,20 @@ import org.openide.windows.WindowManager;
 /**
  * Dialog to adjust the parameters of the practice song.
  */
-public class PracticeSelectedBarsDialog extends javax.swing.JDialog
+public class CreatePracticeSongDialog extends javax.swing.JDialog
 {
 
 
     private Config result;
-    private final Config model;
     private final ConfigPanel configPanel;
-    private static final Logger LOGGER = Logger.getLogger(PracticeSelectedBarsDialog.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(CreatePracticeSongDialog.class.getSimpleName());
 
     /**
      * Creates new form PracticeSelectedBarsDialog.
      *
      * @param defaultValue Can't be null
      */
-    public PracticeSelectedBarsDialog(Config defaultValue)
+    public CreatePracticeSongDialog(Config defaultValue)
     {
         super(WindowManager.getDefault().getMainWindow(), true);
         checkNotNull(defaultValue);
@@ -80,14 +76,13 @@ public class PracticeSelectedBarsDialog extends javax.swing.JDialog
         Utilities.installEscapeKeyAction(this, () -> btn_CancelActionPerformed(null));
 
 
-        model = new Config(defaultValue.tempoStart, defaultValue.tempoEnd, defaultValue.nbSteps);
         configPanel = new ConfigPanel();
-        configPanel.setModel(model);
+        configPanel.setModel(defaultValue);
         configPanelContainer.add(configPanel);
         configPanel.setToolTipText(configPanelContainer.getToolTipText());
 
-        lbl_nbSteps.setText(String.valueOf(model.nbSteps));
-        slider_nbSteps.setValue(model.nbSteps);
+        lbl_nbSteps.setText(String.valueOf(defaultValue.nbSteps));
+        slider_nbSteps.setValue(defaultValue.nbSteps);
 
         pack();
     }
@@ -125,9 +120,9 @@ public class PracticeSelectedBarsDialog extends javax.swing.JDialog
         lbl_nbSteps = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        setTitle(org.openide.util.NbBundle.getMessage(PracticeSelectedBarsDialog.class, "PracticeSelectedBarsDialog.title")); // NOI18N
+        setTitle(org.openide.util.NbBundle.getMessage(CreatePracticeSongDialog.class, "CreatePracticeSongDialog.title")); // NOI18N
 
-        org.openide.awt.Mnemonics.setLocalizedText(btn_Create, org.openide.util.NbBundle.getMessage(PracticeSelectedBarsDialog.class, "PracticeSelectedBarsDialog.btn_Create.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(btn_Create, org.openide.util.NbBundle.getMessage(CreatePracticeSongDialog.class, "CreatePracticeSongDialog.btn_Create.text")); // NOI18N
         btn_Create.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -136,7 +131,7 @@ public class PracticeSelectedBarsDialog extends javax.swing.JDialog
             }
         });
 
-        org.openide.awt.Mnemonics.setLocalizedText(btn_Cancel, org.openide.util.NbBundle.getMessage(PracticeSelectedBarsDialog.class, "PracticeSelectedBarsDialog.btn_Cancel.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(btn_Cancel, org.openide.util.NbBundle.getMessage(CreatePracticeSongDialog.class, "CreatePracticeSongDialog.btn_Cancel.text")); // NOI18N
         btn_Cancel.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -145,10 +140,10 @@ public class PracticeSelectedBarsDialog extends javax.swing.JDialog
             }
         });
 
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_help, org.openide.util.NbBundle.getMessage(PracticeSelectedBarsDialog.class, "PracticeSelectedBarsDialog.lbl_help.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_help, org.openide.util.NbBundle.getMessage(CreatePracticeSongDialog.class, "CreatePracticeSongDialog.lbl_help.text")); // NOI18N
 
         configPanelContainer.setBorder(javax.swing.BorderFactory.createEtchedBorder());
-        configPanelContainer.setToolTipText(org.openide.util.NbBundle.getMessage(PracticeSelectedBarsDialog.class, "PracticeSelectedBarsDialog.configPanelContainer.toolTipText")); // NOI18N
+        configPanelContainer.setToolTipText(org.openide.util.NbBundle.getMessage(CreatePracticeSongDialog.class, "CreatePracticeSongDialog.configPanelContainer.toolTipText")); // NOI18N
         configPanelContainer.setOpaque(false);
         configPanelContainer.setLayout(new java.awt.CardLayout());
 
@@ -158,7 +153,7 @@ public class PracticeSelectedBarsDialog extends javax.swing.JDialog
         slider_nbSteps.setMaximum(20);
         slider_nbSteps.setMinimum(2);
         slider_nbSteps.setSnapToTicks(true);
-        slider_nbSteps.setToolTipText(org.openide.util.NbBundle.getMessage(PracticeSelectedBarsDialog.class, "PracticeSelectedBarsDialog.slider_nbSteps.toolTipText")); // NOI18N
+        slider_nbSteps.setToolTipText(org.openide.util.NbBundle.getMessage(CreatePracticeSongDialog.class, "CreatePracticeSongDialog.slider_nbSteps.toolTipText")); // NOI18N
         slider_nbSteps.setValue(6);
         slider_nbSteps.addChangeListener(new javax.swing.event.ChangeListener()
         {
@@ -177,7 +172,7 @@ public class PracticeSelectedBarsDialog extends javax.swing.JDialog
         jPanel1.add(slider_nbSteps);
         jPanel1.add(filler1);
 
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_nbSteps, org.openide.util.NbBundle.getMessage(PracticeSelectedBarsDialog.class, "PracticeSelectedBarsDialog.lbl_nbSteps.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_nbSteps, org.openide.util.NbBundle.getMessage(CreatePracticeSongDialog.class, "CreatePracticeSongDialog.lbl_nbSteps.text")); // NOI18N
         lbl_nbSteps.setToolTipText(slider_nbSteps.getToolTipText());
         jPanel1.add(lbl_nbSteps);
 
@@ -224,7 +219,7 @@ public class PracticeSelectedBarsDialog extends javax.swing.JDialog
 
     private void btn_CreateActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_CreateActionPerformed
     {//GEN-HEADEREND:event_btn_CreateActionPerformed
-        result = model;
+        result = configPanel.getModel();
         setVisible(false);
         dispose();
     }//GEN-LAST:event_btn_CreateActionPerformed
@@ -242,9 +237,10 @@ public class PracticeSelectedBarsDialog extends javax.swing.JDialog
         {
             return;
         }
-        model.nbSteps = slider_nbSteps.getValue();
-        lbl_nbSteps.setText(String.valueOf(model.nbSteps));
-        configPanel.setModel(new Config(model.tempoStart, model.tempoEnd, model.nbSteps));
+        int nbSteps = slider_nbSteps.getValue();
+        lbl_nbSteps.setText(String.valueOf(nbSteps));
+        Config panelModel = configPanel.getModel();
+        configPanel.setModel(new Config(panelModel.tempoStart, panelModel.tempoEnd, nbSteps));
 
     }//GEN-LAST:event_slider_nbStepsStateChanged
 
@@ -352,6 +348,11 @@ public class PracticeSelectedBarsDialog extends javax.swing.JDialog
             addMouseListener(mouseListener);
             addMouseMotionListener(mouseListener);
             addMouseWheelListener(mouseListener);
+        }
+
+        public Config getModel()
+        {
+            return model;
         }
 
         public void setModel(Config config)
@@ -498,16 +499,20 @@ public class PracticeSelectedBarsDialog extends javax.swing.JDialog
                     if (e.getWheelRotation() > 0)
                     {
                         newTempoStart = Math.max(TempoRange.TEMPO_MIN, model.tempoStart - step);
+                        newTempoStart = Math.max(newTempoEnd / 2 + 1, newTempoStart);
                     } else
                     {
                         newTempoStart = Math.min(TempoRange.TEMPO_MAX, model.tempoStart + step);
+                        newTempoStart = Math.min(newTempoEnd * 2 - 1, newTempoStart);
                     }
                 } else if (e.getWheelRotation() > 0)
                 {
                     newTempoEnd = Math.max(TempoRange.TEMPO_MIN, model.tempoEnd - step);
+                    newTempoEnd = Math.max(newTempoStart / 2 + 1, newTempoEnd);
                 } else
                 {
                     newTempoEnd = Math.min(TempoRange.TEMPO_MAX, model.tempoEnd + step);
+                    newTempoEnd = Math.min(newTempoStart * 2 - 1, newTempoEnd);
                 }
 
                 setModel(new Config(newTempoStart, newTempoEnd, model.nbSteps));
@@ -551,11 +556,15 @@ public class PracticeSelectedBarsDialog extends javax.swing.JDialog
                     newTempoStart = saveStartTempo - yDelta / 3;
                     newTempoStart = Math.min(newTempoStart, TempoRange.TEMPO_MAX);
                     newTempoStart = Math.max(newTempoStart, TempoRange.TEMPO_MIN);
+                    newTempoStart = Math.min(newTempoEnd * 2 - 1, newTempoStart);
+                    newTempoStart = Math.max(newTempoEnd / 2 + 1, newTempoStart);
                 } else if (saveEndTempo > 0)
                 {
                     newTempoEnd = saveEndTempo - yDelta / 3;
                     newTempoEnd = Math.min(newTempoEnd, TempoRange.TEMPO_MAX);
                     newTempoEnd = Math.max(newTempoEnd, TempoRange.TEMPO_MIN);
+                    newTempoEnd = Math.min(newTempoStart * 2 - 1, newTempoEnd);
+                    newTempoEnd = Math.max(newTempoStart / 2 + 1, newTempoEnd);
                 }
 
                 setModel(new Config(newTempoStart, newTempoEnd, model.nbSteps));

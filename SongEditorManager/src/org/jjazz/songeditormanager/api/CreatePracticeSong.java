@@ -33,6 +33,7 @@ import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import static javax.swing.Action.NAME;
+import javax.swing.SwingUtilities;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheetFactory;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
@@ -43,7 +44,7 @@ import org.jjazz.rhythm.api.TempoRange;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_TempoFactor;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
-import org.jjazz.songeditormanager.api.PracticeSelectedBarsDialog.Config;
+import org.jjazz.songeditormanager.api.CreatePracticeSongDialog.Config;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.ui.cl_editor.api.CL_EditorTopComponent;
@@ -67,34 +68,34 @@ import org.openide.util.Utilities;
  * Create a practice song from the selected bars.
  * <p>
  */
-@ActionRegistration(displayName = "#CTL_PracticeSelectedBars", lazy = false)
-@ActionID(category = "JJazz", id = "org.jjazz.ui.actions.practiceselectedbars")
+@ActionRegistration(displayName = "#CTL_CreatePracticeSong", lazy = false)
+@ActionID(category = "JJazz", id = "org.jjazz.ui.actions.createpracticesong")
 @ActionReferences(
         {
             @ActionReference(path = "Actions/Bar", position = 832, separatorAfter = 850),
         })
-public final class PracticeSelectedBars extends AbstractAction implements ContextAwareAction, CL_ContextActionListener
+public final class CreatePracticeSong extends AbstractAction implements ContextAwareAction, CL_ContextActionListener
 {
 
     public static String SONG_NAME_SUFFIX = "-Practice-";
     private static int SUFFIX_ID = 0;
-    private static PracticeSelectedBarsDialog.Config LAST_CONFIG;
+    private static CreatePracticeSongDialog.Config LAST_CONFIG;
     private Lookup context;
     private CL_ContextActionSupport cap;
 
-    private static final Logger LOGGER = Logger.getLogger(PracticeSelectedBars.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(CreatePracticeSong.class.getSimpleName());
 
-    public PracticeSelectedBars()
+    public CreatePracticeSong()
     {
         this(Utilities.actionsGlobalContext());
     }
 
-    private PracticeSelectedBars(Lookup context)
+    private CreatePracticeSong(Lookup context)
     {
         this.context = context;
         cap = CL_ContextActionSupport.getInstance(this.context);
         cap.addListener(this);
-        putValue(NAME, ResUtil.getString(getClass(), "CTL_PracticeSelectedBars"));
+        putValue(NAME, ResUtil.getString(getClass(), "CTL_CreatePracticeSong"));
         selectionChange(cap.getSelection());
     }
 
@@ -105,7 +106,6 @@ public final class PracticeSelectedBars extends AbstractAction implements Contex
         assert song != null;
         CL_SelectionUtilities selection = cap.getSelection();
         ChordLeadSheet cls = selection.getChordLeadSheet();
-        SongStructure sgs = song.getSongStructure();
         var selectedBars = selection.getSelectedBarsWithinCls();
         assert !selectedBars.isEmpty() : "selection=" + selection;
         IntRange selRange = new IntRange(selectedBars.get(0).getModelBarIndex(), selectedBars.get(selectedBars.size() - 1).getModelBarIndex());
@@ -115,7 +115,7 @@ public final class PracticeSelectedBars extends AbstractAction implements Contex
         var newCls = createCls(cls, selectedBars);
 
 
-        // Create the song with new Cls and the corresponding SongStructure
+        // Create the song with newCls and create the corresponding SongStructure
         Song newSong;
         try
         {
@@ -129,7 +129,7 @@ public final class PracticeSelectedBars extends AbstractAction implements Contex
         }
 
 
-        // Show the config dialog
+        // Prepare and show the config dialog
         int tempoEnd = song.getTempo();
         int tempoStart = Math.max(TempoRange.TEMPO_MIN, tempoEnd - 30);
         Config config = new Config(tempoStart, tempoEnd, 6);
@@ -145,9 +145,9 @@ public final class PracticeSelectedBars extends AbstractAction implements Contex
                 config.tempoStart = Math.round(r * tempoEnd);
             }
         }
-        var dlg = new PracticeSelectedBarsDialog(config);
+        var dlg = new CreatePracticeSongDialog(config);
         dlg.setVisible(true);
-        PracticeSelectedBarsDialog.Config res = dlg.getResult();
+        CreatePracticeSongDialog.Config res = dlg.getResult();
         if (res == null)
         {
             return;
@@ -158,7 +158,8 @@ public final class PracticeSelectedBars extends AbstractAction implements Contex
 
         // Update and display newSong      
         updateSongForPractice(newSong, LAST_CONFIG.tempoStart, LAST_CONFIG.tempoEnd, LAST_CONFIG.nbSteps);
-        SongEditorManager.getInstance().showSong(newSong, true);
+        SongEditorManager.getInstance().showSong(newSong, true, true);      // Make song appear as modified/savable
+
 
     }
 
@@ -166,7 +167,7 @@ public final class PracticeSelectedBars extends AbstractAction implements Contex
     @Override
     public Action createContextAwareInstance(Lookup context)
     {
-        return new PracticeSelectedBars(context);
+        return new CreatePracticeSong(context);
     }
 
     // ========================================================================================
