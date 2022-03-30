@@ -103,7 +103,7 @@ public class SongStructureImpl implements SongStructure, Serializable
 
     /**
      *
-     * @param cls         The parent chordleadsheet
+     * @param cls The parent chordleadsheet
      * @param keepUpdated If true listen to cls changes to remain uptodate
      */
     public SongStructureImpl(ChordLeadSheet cls, boolean keepUpdated)
@@ -304,15 +304,18 @@ public class SongStructureImpl implements SongStructure, Serializable
     @Override
     public Rhythm getRecommendedRhythm(TimeSignature ts, int sptBarIndex)
     {
-        if (ts == null || sptBarIndex < 0)
+        if (ts == null || sptBarIndex < 0 || sptBarIndex > getSizeInBars())
         {
-            throw new IllegalArgumentException("ts=" + ts + " sptBarIndex=" + sptBarIndex);   //NOI18N
+            throw new IllegalArgumentException("ts=" + ts + " sptBarIndex=" + sptBarIndex + " getSizeInBars()=" + getSizeInBars());   //NOI18N
         }
 
         RhythmDatabase rdb = RhythmDatabase.getDefault();
 
 
-        LOGGER.fine("getRecommendedRhythm() ts=" + ts + " sptBarIndex=" + sptBarIndex);   //NOI18N
+        LOGGER.log(Level.FINE, "getRecommendedRhythm() ts={0} sptBarIndex={1} sizeInBars={2}", new Object[]
+        {
+            ts, sptBarIndex, getSizeInBars()
+        });   //NOI18N
 
 
         // Try to use the last used rhythm for this new time signature
@@ -322,7 +325,8 @@ public class SongStructureImpl implements SongStructure, Serializable
         // Try to use an AdaptedRhythm from the current rhythm
         if (r == null)
         {
-            Rhythm curRhythm = getSongPart(sptBarIndex).getRhythm();
+            // sptBarIndex is either on an existing rhythm part, or is right after the last song part
+            Rhythm curRhythm = getSongPart(sptBarIndex > 0 ? sptBarIndex - 1 : sptBarIndex).getRhythm();
             if (curRhythm instanceof AdaptedRhythm)
             {
                 curRhythm = ((AdaptedRhythm) curRhythm).getSourceRhythm();
@@ -912,7 +916,7 @@ public class SongStructureImpl implements SongStructure, Serializable
 
     /**
      *
-     * @param doFire   If false do nothing.
+     * @param doFire If false do nothing.
      * @param actionId
      * @param complete
      */
@@ -1114,7 +1118,7 @@ public class SongStructureImpl implements SongStructure, Serializable
 
     }
 
- 
+
     private int getSptLastBarIndex(int sptIndex)
     {
         if (sptIndex < 0 || sptIndex >= songParts.size())

@@ -298,6 +298,7 @@ public class SgsUpdater implements ClsChangeListener
         {
             // Time Signature has changed
 
+            
             // Need to replace all impacted SongParts based on this section
             List<SongPart> oldSpts = getSongParts(cliSection);
             if (!oldSpts.isEmpty())
@@ -305,7 +306,7 @@ public class SgsUpdater implements ClsChangeListener
 
                 // Get the new rhythm to use
                 Rhythm newRhythm = sgs.getRecommendedRhythm(newTs, oldSpts.get(0).getStartBarIndex());
-                
+
 
                 ArrayList<SongPart> newSpts = new ArrayList<>();
                 for (SongPart oldSpt : oldSpts)
@@ -460,7 +461,7 @@ public class SgsUpdater implements ClsChangeListener
         }
 
         // Choose rhythm
-        Rhythm r= sgs.getRecommendedRhythm(newSection.getData().getTimeSignature(), sptBarIndex);
+        Rhythm r = sgs.getRecommendedRhythm(newSection.getData().getTimeSignature(), sptBarIndex);
 
         // Create the song part       
         SongPart spt = sgs.createSongPart(

@@ -73,11 +73,15 @@ public class CompactViewModeController implements PropertyChangeListener, SgsCha
         this.editor = editor;
         this.song = editor.getSongModel();
 
+        // Precalculate default VisibleRP in compact mode values for each rhythm
+        // To be done BEFORE listening to song changes, as this will trigger song client property changes and cause Issue #304
+        writeVisibleRPsInCompactModeIfRequired(song.getSongStructure().getUniqueRhythms(false, true));
+
         // Register song to listen for closing and adding new rhythms events
         song.addPropertyChangeListener(this);
         song.getSongStructure().addSgsChangeListener(this);
-        
-        writeVisibleRPsInCompactModeIfRequired(song.getSongStructure().getUniqueRhythms(false, true));
+
+
         updateEditor(editor);
 
     }
@@ -152,13 +156,13 @@ public class CompactViewModeController implements PropertyChangeListener, SgsCha
                 }
 
                 writeVisibleRPsInCompactModeIfRequired(rhythms);
-                
+
             }
         };
         Utilities.invokeLaterIfNeeded(run);
     }
 
-
+    
     /**
      * Get the list of visible RPs in compact view mode for the specified rhythm.
      * <p>
@@ -351,6 +355,10 @@ public class CompactViewModeController implements PropertyChangeListener, SgsCha
         for (var r : allRhythms)
         {
             List<RhythmParameter<?>> rps = b ? readCompactViewModeVisibleRPs(editor.getSongModel(), r) : r.getRhythmParameters();
+            if (rps.isEmpty())
+            {
+                // Might happen e.g. when duplicating a song with multiple time signatures
+            }
             editor.setVisibleRps(r, rps);
         }
     }
