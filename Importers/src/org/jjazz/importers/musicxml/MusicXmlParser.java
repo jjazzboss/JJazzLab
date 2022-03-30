@@ -68,7 +68,7 @@ public final class MusicXmlParser
     private Document xomDoc;
 
     private byte divisionsPerBeat;
-    public TimeSignature timeSignature;
+    public TimeSignature timeSignature; 
     private int curBarIndex;
     private int curDivisionInBar;
 

@@ -370,7 +370,8 @@ public interface SongStructure
      * - otherwise return the RhythmDatabase default rhythm for the time signature.<br>
      *
      * @param ts The TimeSignature of the rhythm
-     * @param sptStartBarIndex The start bar index of the new song part.
+     * @param sptStartBarIndex The start bar index of the new song part, can be on an existing song part, or right after the last
+     * song part.
      * @return Can't be null
      */
     public Rhythm getRecommendedRhythm(TimeSignature ts, int sptStartBarIndex);
