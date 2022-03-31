@@ -32,11 +32,12 @@ import org.jjazz.midisynthmanager.api.MidiSynthManager;
  * The builtin OutputSynth for the JJazzLabSoundFont in GS mode.
  */
 public class OS_JJazzLabSoundFont_GS extends OutputSynth
-{    
+{
+
     private static OS_JJazzLabSoundFont_GS INSTANCE;
     private final MidiSynth midiSynth;
     private static final Logger LOGGER = Logger.getLogger(OS_JJazzLabSoundFont_GS.class.getSimpleName());
-    
+
     public static OS_JJazzLabSoundFont_GS getInstance()
     {
         synchronized (OS_JJazzLabSoundFont_GS.class)
@@ -48,20 +49,34 @@ public class OS_JJazzLabSoundFont_GS extends OutputSynth
         }
         return INSTANCE;
     }
-    
+
     private OS_JJazzLabSoundFont_GS()
     {
         midiSynth = MidiSynthManager.getDefault().getMidiSynth(MidiSynthManager.JJAZZLAB_SOUNDFONT_GS_SYNTH_NAME);
-                
+
         // Adjust settings
         addCustomSynth(midiSynth);
         removeCompatibleStdBank(StdSynth.getInstance().getGM1Bank());
         setSendModeOnUponPlay(OutputSynth.SendModeOnUponStartup.GS);
     }
-    
+
+    /**
+     * Check if the specified OutputSynth is compatible with this synth, ie it shares its main features.
+     *
+     * @param os
+     * @return
+     */
+    public boolean isCompatibleWith(OutputSynth os)
+    {
+        return !(!os.getCustomSynths().contains(midiSynth)
+                || os.getCompatibleStdBanks().contains(StdSynth.getInstance().getGM1Bank())
+                || !os.getSendModeOnUponPlay().equals(OutputSynth.SendModeOnUponStartup.GS));
+    }
+
     /**
      * Overridden : forbidden method on this preset object.
-     * @param f 
+     *
+     * @param f
      */
     @Override
     public void setFile(File f)
@@ -75,8 +90,8 @@ public class OS_JJazzLabSoundFont_GS extends OutputSynth
      * @return
      */
     public MidiSynth getJJazzLabSoundFontSynth()
-    {        
+    {
         return midiSynth;
     }
-    
+
 }

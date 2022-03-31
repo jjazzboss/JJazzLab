@@ -110,7 +110,7 @@ public class MidiWizardPanel_SfWin_1 implements WizardDescriptor.Panel<WizardDes
     {
         // We store the property here instead of in storeSettings() because property only depends on external context and we need
         // the info to update the panel display
-        MidiDevice md = getVirtualMidiSynthDevice();
+        MidiDevice md = JJazzMidiSystem.getInstance().getVirtualMidiSynthDevice();
         wiz.putProperty(MidiWizardAction.PROP_MIDI_OUT_DEVICE, md);     
         getComponent().setVmsDevice(md);
     }
@@ -121,32 +121,4 @@ public class MidiWizardPanel_SfWin_1 implements WizardDescriptor.Panel<WizardDes
         // see readSettings()
     }
 
-  private MidiDevice getVirtualMidiSynthDevice()
-    {
-        assert Utilities.isWindows();   //NOI18N
-        JJazzMidiSystem jms = JJazzMidiSystem.getInstance();
-        MidiDevice res = null;
-        MidiDevice md = jms.getDefaultOutDevice();
-        if (isVirtualMidiSynthDevice(md))
-        {
-            res = md;
-        } else
-        {
-            // Search the available MidiDevices
-            for (MidiDevice mdi : jms.getOutDeviceList())
-            {
-                if (isVirtualMidiSynthDevice(mdi))
-                {
-                    res = mdi;
-                    break;
-                }
-            }
-        }
-        return res;
-    }
-
-    private boolean isVirtualMidiSynthDevice(MidiDevice md)
-    {
-        return md != null && md.getDeviceInfo().getName().toLowerCase().contains("virtualmidisynt");
-    }
 }

@@ -172,7 +172,7 @@ public class CreatePracticeSongDialog extends javax.swing.JDialog
         jPanel1.add(slider_nbSteps);
         jPanel1.add(filler1);
 
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_nbSteps, org.openide.util.NbBundle.getMessage(CreatePracticeSongDialog.class, "CreatePracticeSongDialog.lbl_nbSteps.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_nbSteps, "3"); // NOI18N
         lbl_nbSteps.setToolTipText(slider_nbSteps.getToolTipText());
         jPanel1.add(lbl_nbSteps);
 

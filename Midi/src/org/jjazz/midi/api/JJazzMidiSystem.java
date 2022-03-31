@@ -30,6 +30,8 @@ import java.io.IOException;
 import org.jjazz.midi.api.device.MidiFilter;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
@@ -52,6 +54,7 @@ import org.jjazz.upgrade.api.UpgradeTask;
 import org.jjazz.util.api.ResUtil;
 import org.netbeans.api.progress.BaseProgressUtils;
 import org.openide.util.NbPreferences;
+import org.openide.util.Utilities;
 import org.openide.util.lookup.ServiceProvider;
 
 /**
@@ -932,6 +935,41 @@ public final class JJazzMidiSystem
         {
             LOGGER.warning("sendMidiMessagesOnJJazzMidiOut() receiverJJazzOut=null: no midi message sent.");   //NOI18N
         }
+    }
+
+
+    /**
+     * Get the VirtualMidiSynth MidiDevice, if present on the system.
+     *
+     * @return Can be null.
+     */
+    public MidiDevice getVirtualMidiSynthDevice()
+    {
+        if (!Utilities.isWindows())
+        {
+            return null;
+        }
+        
+        Predicate<MidiDevice> isVirtualMidiSynth = md -> md != null && md.getDeviceInfo().getName().toLowerCase().contains("virtualmidisynt");
+
+        MidiDevice res = null;
+        MidiDevice md = getDefaultOutDevice();
+        if (isVirtualMidiSynth.test(md))
+        {
+            res = md;
+        } else
+        {
+            // Search the available MidiDevices for VMS
+            for (MidiDevice mdi : getOutDeviceList())
+            {
+                if (isVirtualMidiSynth.test(mdi))
+                {
+                    res = mdi;
+                    break;
+                }
+            }
+        }
+        return res;
     }
 
     public void addPropertyChangeListener(PropertyChangeListener l)
