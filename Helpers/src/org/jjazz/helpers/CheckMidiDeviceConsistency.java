@@ -123,7 +123,7 @@ public class CheckMidiDeviceConsistency implements VetoableChangeListener, Runna
                 {
                     // User needs to install VirtualMidiSynth
                     String msg = ResUtil.getString(getClass(), "ERR_VMS_MidiDeviceExpectedButNotFound");
-                    LOGGER.warning("vetoableChange() " + msg);   //NOI18N
+                    LOGGER.info("vetoableChange() " + msg);   //NOI18N
                     NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
                     DialogDisplayer.getDefault().notify(nd);
                 }
@@ -137,7 +137,7 @@ public class CheckMidiDeviceConsistency implements VetoableChangeListener, Runna
             {
                 // vmsDevice is present but not used, fix it if user is OK 
                 String msg = ResUtil.getString(getClass(), "ERR_VMS_MidiDeviceShouldBeUsed");
-                LOGGER.warning("vetoableChange() " + msg);   //NOI18N
+                LOGGER.info("vetoableChange() " + msg);   //NOI18N
                 NotifyDescriptor nd = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.YES_NO_OPTION);
                 Object result = DialogDisplayer.getDefault().notify(nd);
 
@@ -167,7 +167,7 @@ public class CheckMidiDeviceConsistency implements VetoableChangeListener, Runna
             {
                 // Ask user to apply the VirtualMidiSynth preset               
                 String msg = ResUtil.getString(getClass(), "ERR_VMSOutputSynthShouldBeUsed");
-                LOGGER.warning("vetoableChange() " + msg);   //NOI18N
+                LOGGER.info("vetoableChange() " + msg);   //NOI18N
                 NotifyDescriptor nd = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.YES_NO_OPTION);
                 Object result = DialogDisplayer.getDefault().notify(nd);
 
