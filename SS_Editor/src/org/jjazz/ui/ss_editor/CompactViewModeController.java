@@ -34,11 +34,8 @@ import java.util.stream.Collectors;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmParameter;
-import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Marker;
-import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_TempoFactor;
 import org.jjazz.song.api.Song;
 import org.jjazz.songstructure.api.SgsChangeListener;
-import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.event.SgsChangeEvent;
 import org.jjazz.songstructure.api.event.SptAddedEvent;
@@ -162,7 +159,7 @@ public class CompactViewModeController implements PropertyChangeListener, SgsCha
         Utilities.invokeLaterIfNeeded(run);
     }
 
-    
+
     /**
      * Get the list of visible RPs in compact view mode for the specified rhythm.
      * <p>
@@ -253,7 +250,7 @@ public class CompactViewModeController implements PropertyChangeListener, SgsCha
     /**
      * Get the RhythmParameters visible by default in compact mode for the specified new rhythm.
      * <p>
-     * Use the primary Rhythm Parameters, and possibly Marker and Tempo RPs if actually used in the song.
+     * Use the primary Rhythm Parameters, and others only if there are actually used in the song.
      *
      * @param song
      * @param r
@@ -263,45 +260,27 @@ public class CompactViewModeController implements PropertyChangeListener, SgsCha
     {
 
         SongStructure sgs = song.getSongStructure();
-
+        var spts = sgs.getSongParts();
+        var rps = r.getRhythmParameters();
         var tmp = new ArrayList<RhythmParameter<?>>();
 
 
-        // Add only primary RPs
-        r.getRhythmParameters().stream()
+        // Add primary RPs by default
+        rps.stream()
                 .filter(rp -> rp.isPrimary())
                 .forEach(tmp::add);
 
 
-        // Add marker only if supported by the rhythm and actually used by some SongParts 
-        RP_SYS_Marker rMarker = RP_SYS_Marker.getMarkerRp(r);
-        if (rMarker != null && !tmp.contains(rMarker))
-        {
-            for (SongPart spt : sgs.getSongParts())
-            {
-                RP_SYS_Marker rpm = RP_SYS_Marker.getMarkerRp(spt.getRhythm());
-                if (rpm != null && !spt.getRPValue(rpm).equals(rpm.getDefaultValue()))
+        // Add non-primary only if used in the song
+        rps.stream()
+                .filter(rp -> !rp.isPrimary())
+                .filter(rp ->
                 {
-                    tmp.add(rMarker);
-                    break;
-                }
-            }
-        }
-
-        // Add tempo only if supported by the rhythm and actually used by some SongParts 
-        RP_SYS_TempoFactor rTempo = RP_SYS_TempoFactor.getTempoFactorRp(r);
-        if (rTempo != null && !tmp.contains(rTempo))
-        {
-            for (SongPart spt : sgs.getSongParts())
-            {
-                RP_SYS_TempoFactor rpm = RP_SYS_TempoFactor.getTempoFactorRp(spt.getRhythm());
-                if (rpm != null && !spt.getRPValue(rpm).equals(rpm.getDefaultValue()))
-                {
-                    tmp.add(rTempo);
-                    break;
-                }
-            }
-        }
+                    return spts.stream()
+                            .filter(spt -> spt.getRhythm() == r)
+                            .anyMatch(spt -> !rp.getDefaultValue().equals(spt.getRPValue(rp)));
+                })
+                .forEach(tmp::add);
 
 
         // Reorder

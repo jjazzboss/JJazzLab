@@ -4,6 +4,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import java.text.ParseException;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -34,6 +35,38 @@ public class RP_SYS_DrumsTransformValue
                 "rv=%s", rv);
         rhythmVoice = rv;
         transformChain = new PhraseTransformChain(Arrays.asList(new DrumsMixTransform()));
+    }
+
+    @Override
+    public int hashCode()
+    {
+        int hash = 7;
+        hash = 53 * hash + Objects.hashCode(this.rhythmVoice);
+        hash = 53 * hash + Objects.hashCode(this.transformChain);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+        if (this == obj)
+        {
+            return true;
+        }
+        if (obj == null)
+        {
+            return false;
+        }
+        if (getClass() != obj.getClass())
+        {
+            return false;
+        }
+        final RP_SYS_DrumsTransformValue other = (RP_SYS_DrumsTransformValue) obj;
+        if (!Objects.equals(this.rhythmVoice, other.rhythmVoice))
+        {
+            return false;
+        }
+        return Objects.equals(this.transformChain, other.transformChain);
     }
 
     /**

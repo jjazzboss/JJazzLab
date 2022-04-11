@@ -25,6 +25,7 @@ public class RP_SYS_DrumsTransform implements RhythmParameter<RP_SYS_DrumsTransf
     /**
      *
      * @param rv Must have a Rhythm container defined and type==RhythmVoice.Type.DRUMS
+     * @param primary
      */
     public RP_SYS_DrumsTransform(RhythmVoice rv, boolean primary)
     {
