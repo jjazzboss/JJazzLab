@@ -5,6 +5,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.text.ParseException;
 import java.util.Arrays;
 import java.util.StringJoiner;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.phrasetransform.api.DrumsMixTransform;
 import org.jjazz.phrasetransform.api.PhraseTransformChain;
@@ -89,7 +90,12 @@ public class RP_SYS_DrumsTransformValue
 
     public DrumsMixTransform getDrumsMixTransform()
     {
-        return (DrumsMixTransform) transformChain.get(transformChain.size() - 1);
+        var pt = transformChain.get(transformChain.size() - 1);
+        if (!(pt instanceof DrumsMixTransform))
+        {
+            throw new IllegalStateException("Missing DrumsMixTransform at last position. transformChain=" + transformChain);
+        }
+        return (DrumsMixTransform) pt;
     }
 
 
@@ -140,11 +146,30 @@ public class RP_SYS_DrumsTransformValue
 
         try
         {
-            res.transformChain = PhraseTransformChain.loadFromString(s);
+            res.transformChain = PhraseTransformChain.loadFromString(s);            // Throws ParseException
+
+
+            // Check consistency of loaded data => fix regression Issue #309 introduced in 3.2 by changing the position of the DrumsMixInstance (first then last)            
+            var lastPt = !res.transformChain.isEmpty() ? res.transformChain.get(res.transformChain.size() - 1) : null;
+            if (!(lastPt instanceof DrumsMixTransform))
+            {
+                // If DrumsMix is at first position then fix it
+                var firstPt = !res.transformChain.isEmpty() ? res.transformChain.get(0) : null;
+                if (firstPt instanceof DrumsMixTransform)
+                {
+                    res.transformChain.remove(0);
+                    res.transformChain.add(firstPt);
+                } else
+                {
+                    throw new ParseException("loadFromString() Missing final DrumsMixTransform, can't build RP_SYS_DrumsTransformValue instance for rv=" + rv.getName() + " from s=" + s, 0);
+                }
+            }
         } catch (ParseException ex)
         {
+            LOGGER.log(Level.WARNING, "loadFromString() {0}", ex.getMessage());
             res = null;
         }
+
 
         return res;
     }
