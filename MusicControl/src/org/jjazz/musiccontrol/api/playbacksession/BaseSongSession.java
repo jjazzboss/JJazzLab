@@ -576,7 +576,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     }
 
     /**
-     * Get a context copy with a new song but same MidiMix and bar range.
+     * Get a context copy with a new song and a new MidiMix.
      * <p>
      *
      * @param context
@@ -601,7 +601,9 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
                 clsCopy.addItem(newCli);
             }
         }
-        SongContext res = new SongContext(songCopy, context.getMidiMix(), context.getBarRange());
+        
+        MidiMix mm = context.getMidiMix().getDeepCopy();
+        SongContext res = new SongContext(songCopy, mm, context.getBarRange());
         return res;
     }
 

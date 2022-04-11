@@ -690,6 +690,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
         LOGGER.log(Level.FINE, "generateUpdate() --  nanoTime()={0}", System.nanoTime());
         if (!getState().equals(State.GENERATED))
         {
+            LOGGER.log(Level.FINE, "generateUpdate() aborted because getState()=" + getState());
             return;
         }
 

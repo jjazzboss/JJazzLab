@@ -67,7 +67,7 @@ public class InstrumentMix implements Serializable
     /**
      * Create a copy of specified InstrumentMix.
      * <p>
-     * Instrument is directly reused. Use a copy of the original InstrumentSettings.
+     * Instrument is directly reused. InstrumentSettings are deeply copied.
      *
      * @param im
      */

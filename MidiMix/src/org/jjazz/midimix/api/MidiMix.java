@@ -183,6 +183,44 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
         setSong(s);
     }
 
+
+    /**
+     * Get a deep copy of this MidiMix.
+     * <p>
+     * Mutable internal objects are deeply copied, e.g. InstrumentMixes.<br>
+     * Not copied: undoableListeners, needSave.
+     *
+     * @return
+     */
+    public MidiMix getDeepCopy()
+    {
+        MidiMix mm = new MidiMix();
+        mm.song = song;
+        mm.file = file;
+
+
+        System.arraycopy(rvKeys, 0, mm.rvKeys, 0, rvKeys.length);
+        System.arraycopy(saveMuteConfiguration, 0, mm.saveMuteConfiguration, 0, saveMuteConfiguration.length);
+
+        for (int i = 0; i < instrumentMixes.length; i++)
+        {
+            var insMix = instrumentMixes[i];
+            mm.instrumentMixes[i] = insMix == null ? null : new InstrumentMix(insMix);
+            if (soloedInsMixes.contains(insMix))
+            {
+                mm.soloedInsMixes.add(mm.instrumentMixes[i]);
+            }
+        }
+
+        for (int channel : drumsReroutedChannels.keySet())
+        {
+            assert mm.instrumentMixes[channel] != null : "this=" + this;
+            mm.drumsReroutedChannels.put(channel, mm.instrumentMixes[channel]);
+        }
+
+        return mm;
+    }
+
     /**
      * Associate a song to this MidiMix : listen to song changes to keep this MidiMix consistent.
      * <p>
@@ -555,7 +593,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
     }
 
     /**
-     * Enable or disable the rerouting of specified channel to the GM Drums channel.
+     * Enable or disable the rerouting of specified channel to GM Drums channel.
      * <p>
      * If enabled, the related InstrumentMix/Settings will be disabled, and vice versa.
      *
@@ -569,16 +607,22 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
         {
             throw new IllegalArgumentException("b=" + b + " channel=" + channel + " instrumentMixes=" + getInstrumentMixesPerChannel());   //NOI18N
         }
+
+
         if (b == drumsReroutedChannels.keySet().contains(channel) || channel == MidiConst.CHANNEL_DRUMS)
         {
             return;
         }
+
+
         InstrumentMix insMix = instrumentMixes[channel];
         if (b)
         {
             // Save state
             InstrumentMix saveMixData = new InstrumentMix(insMix);
             drumsReroutedChannels.put(channel, saveMixData);
+
+
             // Disable all parameters since it's rerouted
             insMix.setInstrumentEnabled(false);
             insMix.getSettings().setChorusEnabled(false);
@@ -590,6 +634,8 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
             InstrumentMix saveMixData = drumsReroutedChannels.get(channel);
             assert saveMixData != null : "b=" + b + " channel=" + channel + " this=" + this;   //NOI18N
             drumsReroutedChannels.remove(channel);
+
+
             // Restore parameters enabled state
             insMix.setInstrumentEnabled(saveMixData.isInstrumentEnabled());
             insMix.getSettings().setChorusEnabled(saveMixData.getSettings().isChorusEnabled());
@@ -872,8 +918,8 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      * This will fire a PROP_MODIFIED_OR_SAVED change event (true=&gt;false).
      *
      * @param f
-     * @param isCopy Indicate that we save a copy, ie perform the file save but nothing else (eg no
-     *               PROP_MODIFIED_OR_SAVED state change)
+     * @param isCopy Indicate that we save a copy, ie perform the file save but nothing else (eg no PROP_MODIFIED_OR_SAVED state
+     *               change)
      * @throws java.io.IOException
      */
     public void saveToFile(File f, boolean isCopy) throws IOException

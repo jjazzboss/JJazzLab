@@ -966,8 +966,9 @@ public class SongSequenceBuilder
     }
 
     /**
-     * Substitute phrases of rerouted channels with new phrases for the GM Drums channel.
+     * Move rerouted channels phrase content into the GM Drums chanel phrase content.
      *
+     * @param context
      * @param rvPhrases
      */
     private void processDrumsRerouting(SongContext context, Map<RhythmVoice, Phrase> rvPhrases)
@@ -975,13 +976,33 @@ public class SongSequenceBuilder
         LOGGER.fine("processDrumsRerouting() -- ");   //NOI18N
 
         MidiMix midiMix = context.getMidiMix();
+        var reroutedChannels = midiMix.getDrumsReroutedChannels();
+
+        
+        // Get the target Drums RhythmVoice
+        var rvDrums = midiMix.getRhythmVoice(MidiConst.CHANNEL_DRUMS);
+        if (rvDrums == null || !rvDrums.isDrums())
+        {
+            // Search for another RhythmVoice, maybe it's not on standard channel
+            rvDrums = midiMix.getRhythmVoices().stream()
+                    .filter(rv -> rv.isDrums() && !reroutedChannels.contains(midiMix.getChannel(rv)))
+                    .findAny()
+                    .orElse(null);
+            if (rvDrums == null)
+            {
+                LOGGER.warning("processDrumsRerouting() No available target drums channel found in MidiMix=" + midiMix);
+                return;
+            }
+        }
+
+        
+        Phrase pDrums = rvPhrases.get(rvDrums);
         for (int channel : midiMix.getDrumsReroutedChannels())
         {
             RhythmVoice rv = midiMix.getRhythmVoice(channel);
-            Phrase oldPhrase = rvPhrases.get(rv);
-            Phrase reroutedPhrase = new Phrase(MidiConst.CHANNEL_DRUMS);
-            reroutedPhrase.add(oldPhrase);
-            rvPhrases.put(rv, reroutedPhrase);
+            Phrase reroutedPhrase = rvPhrases.get(rv);
+            pDrums.add(reroutedPhrase);
+            reroutedPhrase.clear();
         }
 
     }
@@ -1081,7 +1102,7 @@ public class SongSequenceBuilder
             lastTempoPercentChange = tempoPercentChange;
         }
 
-        
+
         // Add an extra tempo factor change event at the end if first and last songparts don't have the same TempoFactor
         // Needed in order to avoid playback look delays
         if (firstTempoPercentChange != lastTempoPercentChange)
