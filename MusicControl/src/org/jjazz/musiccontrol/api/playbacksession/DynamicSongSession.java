@@ -339,8 +339,9 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
             {
                 case MidiMix.PROP_CHANNEL_INSTRUMENT_MIX:
                     // An instrument mix was added or removed (it can be the user channel)
-                    // In both cases we don't care: if it's the user channel there is no impact, and if it's an added/removed rhythm 
-                    // we'll get the change directly via our SgsChangeListener
+                    // If it's the user channel there is no impact, and if it's an added/removed rhythm we'll get the change directly via our SgsChangeListener.
+                    // But if it's user who directly changed track channels, we should disable updates by security.
+                    doDisableUpdates = true;
                     break;
 
                 case MidiMix.PROP_CHANNEL_DRUMS_REROUTED:
