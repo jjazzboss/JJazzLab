@@ -161,7 +161,7 @@ public class RP_SYS_DrumsTransformValue
                     res.transformChain.add(firstPt);
                 } else
                 {
-                    throw new ParseException("loadFromString() Missing final DrumsMixTransform, can't build RP_SYS_DrumsTransformValue instance for rv=" + rv.getName() + " from s=" + s, 0);
+                    throw new ParseException("loadFromString() Missing first or final DrumsMixTransform, can't build RP_SYS_DrumsTransformValue instance for rv=" + rv.getName() + " from s=" + s, 0);
                 }
             }
         } catch (ParseException ex)
