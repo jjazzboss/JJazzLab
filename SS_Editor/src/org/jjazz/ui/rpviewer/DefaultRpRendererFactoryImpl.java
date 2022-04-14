@@ -68,7 +68,7 @@ public class DefaultRpRendererFactoryImpl implements DefaultRpViewerRendererFact
                 renderer = new MeterRpRenderer(song, spt);
                 break;
             case STRING:
-                renderer = new StringRpRenderer(song, spt, () -> spt.getRPValue(rp).toString(), settings.getStringRpRendererSettings());
+                renderer = new StringRpRenderer(song, spt, () -> ((RhythmParameter) rp).getDisplayValue(spt.getRPValue(rp)), settings.getStringRpRendererSettings());
                 break;
             default:
                 throw new AssertionError(type.name());
