@@ -40,6 +40,7 @@ import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.song.api.Song;
 import org.jjazz.songcontext.api.SongContext;
+import org.jjazz.ui.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.ui.flatcomponents.api.FlatToggleButton;
 import org.jjazz.util.api.ResUtil;
 import org.openide.DialogDisplayer;
@@ -60,19 +61,20 @@ import static org.openide.util.actions.BooleanStateAction.PROP_BOOLEAN_STATE;
 
 /**
  * Toggle the active state of the song.
+ * <p>
+ * Also update the MusicController PlaybackSession when active song changes.
  */
 @ActionID(category = "MusicControls", id = "org.jjazz.ui.musiccontrolactions.setactive")
 @ActionRegistration(displayName = "#CTL_SetActive", lazy = false)
 @ActionReferences(
         {
-            @ActionReference(path = "Actions/CL_EditorTopComponent", position = 100),
-            @ActionReference(path = "Actions/RL_EditorTopComponent", position = 100),
+            // @ActionReference(path = "Actions/CL_EditorTopComponent", position = 100),  # Moved to action SetActivePopupAction to fix Issue #311
             @ActionReference(path = "Shortcuts", name = "O")
         })
 public class SetActive extends BooleanStateAction implements PropertyChangeListener, LookupListener
 {
 
-    private Lookup.Result<Song> lookupResult;
+    private final Lookup.Result<Song> lookupResult;
     private Song currentSong;
     private MidiMix currentMidiMix;
     private static final Logger LOGGER = Logger.getLogger(SetActive.class.getSimpleName());
@@ -129,6 +131,8 @@ public class SetActive extends BooleanStateAction implements PropertyChangeListe
         {
             // Do nothing : setactive is still using the last valid song
         }
+
+        // LOGGER.severe("resultChanged() currentSong=" + currentSong);
     }
 
     @Override
