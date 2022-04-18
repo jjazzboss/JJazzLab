@@ -167,8 +167,11 @@ public class GSInstrument extends Instrument implements Serializable
     // --------------------------------------------------------------------- 
     // Serialization
     // --------------------------------------------------------------------- 
+
+
     private Object writeReplace()
     {
+        // SHOULD BE: return new Instrument.SerializationProxy(this); !! So no use of our own SerializationProxy
         return new SerializationProxy(this);
     }
 
@@ -179,7 +182,11 @@ public class GSInstrument extends Instrument implements Serializable
     }
 
     /**
-     * Rely on Instrument serialization mechanism.
+     * Our own serialization proxy.
+     * <p>
+     * ==> BAD! writeReplace() should juste use "return new Instrument.SerializationProxy(this);", no need for our own
+     * SerializationProxy !!! But too late to change because user .mix files now contain GSInstrument.SerializationProxy
+     * instances. If we change, the .mix will not be readable again.
      */
     private static class SerializationProxy implements Serializable
     {

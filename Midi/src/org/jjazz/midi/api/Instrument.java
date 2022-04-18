@@ -355,7 +355,7 @@ public class Instrument implements Serializable
      * <p>
      * Do not directly serialize Instrument instances because we need to reuse instances provided by the local InstrumentBanks.
      */
-    private static class SerializationProxy implements Serializable
+    public static class SerializationProxy implements Serializable
     {
 
         private static final long serialVersionUID = 2792087126L;
@@ -363,7 +363,7 @@ public class Instrument implements Serializable
         private String spSaveString;
         private String spPatchname;
 
-        protected SerializationProxy(Instrument ins)
+        public SerializationProxy(Instrument ins)
         {
             if (ins.getBank() == null || ins.getBank().getMidiSynth() == null)
             {
