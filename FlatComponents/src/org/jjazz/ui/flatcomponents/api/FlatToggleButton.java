@@ -87,6 +87,12 @@ public class FlatToggleButton extends FlatButton
         super(bsa, enablePressedBorder, enableEnteredBorder, enableDrag);
         selectedForeground = Color.RED;
         isSelected = false;
+
+        if (bsa != null)
+        {
+            setSelectedIcon((Icon) bsa.getValue(Action.LARGE_ICON_KEY));
+            setSelected(bsa.getBooleanState());
+        }
     }
 
     public boolean isSelected()
@@ -157,7 +163,7 @@ public class FlatToggleButton extends FlatButton
         setSelectedIcon((Icon) bsa.getValue(Action.LARGE_ICON_KEY));
         setSelected(bsa.getBooleanState());
     }
-    
+
     public void setUnselectedIcon(Icon icon)
     {
         this.unselectedIcon = icon;

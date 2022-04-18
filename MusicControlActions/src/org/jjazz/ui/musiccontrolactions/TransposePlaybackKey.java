@@ -34,6 +34,8 @@ import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.util.api.ResUtil;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.openide.awt.ActionID;
+import org.openide.awt.ActionReference;
+import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.windows.WindowManager;
 
@@ -42,6 +44,10 @@ import org.openide.windows.WindowManager;
  */
 @ActionID(category = "MusicControls", id = "org.jjazz.ui.musiccontrolactions.transposeplaybackkey")
 @ActionRegistration(displayName = "#CTL_TransposePlaybackKey", lazy = false)
+@ActionReferences(
+        {
+            @ActionReference(path = "Actions/ExtendedToolbar", position = 10)    
+        })
 public class TransposePlaybackKey extends AbstractAction implements PropertyChangeListener
 {
 

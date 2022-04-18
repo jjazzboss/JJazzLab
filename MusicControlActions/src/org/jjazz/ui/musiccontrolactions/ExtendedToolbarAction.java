@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.outputsynth.ui;
+package org.jjazz.ui.musiccontrolactions;
 
 import java.awt.Component;
 import java.awt.event.ActionEvent;
@@ -32,34 +32,36 @@ import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.util.actions.Presenter;
 
-@ActionID(category = "JJazz", id = "org.jjazz.outputsynth.ui.outputsynthtoolbaraction")
-@ActionRegistration(displayName = "not_used", lazy = false)   // Need to be false because we implement Presenter.Toolbar
+/**
+ * Insert ExtendedToolbarPanel as a toolbar.
+ * <p>
+ */
+@ActionID(category = "JJazz", id = "org.jjazz.ui.musiccontrolactions.extendedtoolbaraction")
+@ActionRegistration(displayName = "not used", lazy = false)   // Need to be false because we implement Presenter.Toolbar
 @ActionReferences(
         {
-            @ActionReference(path = "Toolbars/OutputSynth", position = 450)     // This will insert our toolbar
+            @ActionReference(path = "Toolbars/ExtendedToolBar", position = 1000)     // This will insert our toolbar
         })
-public class OutputSynthlToolbarAction extends AbstractAction implements Presenter.Toolbar
+public class ExtendedToolbarAction extends AbstractAction implements Presenter.Toolbar
 {
+    private final ExtendedToolbarPanel panel;
+    private static final Logger LOGGER = Logger.getLogger(ExtendedToolbarAction.class.getSimpleName());
 
-    private OutputSynthToolbarPanel panel;
-    private static final Logger LOGGER = Logger.getLogger(OutputSynthlToolbarAction.class.getSimpleName());
-
-    public OutputSynthlToolbarAction()
+    public ExtendedToolbarAction()
     {
         // Build the component
-        panel = new OutputSynthToolbarPanel();
-
+        panel = new ExtendedToolbarPanel();
     }
 
     @Override
     public void actionPerformed(ActionEvent e)
-    {       
+    {
         // Not used because of Presenter.Toolbar implementation
     }
 
     @Override
     public Component getToolbarPresenter()
-    {        
+    {
         return panel;
     }
 }

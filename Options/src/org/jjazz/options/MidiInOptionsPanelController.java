@@ -12,7 +12,7 @@
  *
  *  JJazzLabX is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
  *  GNU Lesser General Public License for more details.
  * 
  *  You should have received a copy of the GNU Lesser General Public License
@@ -24,8 +24,6 @@ package org.jjazz.options;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
 import org.netbeans.spi.options.OptionsPanelController;
@@ -33,25 +31,22 @@ import org.openide.util.HelpCtx;
 import org.openide.util.Lookup;
 
 @OptionsPanelController.TopLevelRegistration(
-        categoryName = "#OptionsCategory_Name_Midi",
-        iconBase = "org/jjazz/options/resources/MidiOutIcon32x32.png",
-        keywords = "#OptionsCategory_Keywords_Midi",
-        keywordsCategory = "Midi",
-        position = 100,
-        id = "MidiPanelId"
+        categoryName = "#OptionsCategory_Name_MidiIn",
+        iconBase = "org/jjazz/options/resources/MidiInIcon32x32.png",
+        keywords = "#OptionsCategory_Keywords_MidiIn",
+        keywordsCategory = "MidiIn",
+        position = 110
 )
-public final class MidiOptionsPanelController extends OptionsPanelController
+public final class MidiInOptionsPanelController extends OptionsPanelController
 {
 
-    private MidiPanel panel;
+    private MidiInPanel panel;
     private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private boolean changed;
-    private static final Logger LOGGER = Logger.getLogger(MidiOptionsPanelController.class.getSimpleName());
 
     @Override
     public void update()
     {
-        LOGGER.log(Level.FINE, "update()");   //NOI18N
         getPanel().load();
         changed = false;
     }
@@ -59,7 +54,6 @@ public final class MidiOptionsPanelController extends OptionsPanelController
     @Override
     public void applyChanges()
     {
-        LOGGER.log(Level.FINE, "applyChanges()");   //NOI18N
         SwingUtilities.invokeLater(new Runnable()
         {
             @Override
@@ -75,8 +69,7 @@ public final class MidiOptionsPanelController extends OptionsPanelController
     public void cancel()
     {
         // need not do anything special, if no changes have been persisted yet
-        getPanel().cancel();
-        LOGGER.log(Level.FINE, "cancel()");   //NOI18N
+        getPanel().cancel();        
     }
 
     @Override
@@ -115,11 +108,11 @@ public final class MidiOptionsPanelController extends OptionsPanelController
         pcs.removePropertyChangeListener(l);
     }
 
-    private MidiPanel getPanel()
+    private MidiInPanel getPanel()
     {
         if (panel == null)
         {
-            panel = new MidiPanel(this);
+            panel = new MidiInPanel(this);
         }
         return panel;
     }

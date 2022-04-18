@@ -39,6 +39,7 @@ import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession;
 import org.jjazz.ui.flatcomponents.api.FlatToggleButton;
 import org.jjazz.util.api.ResUtil;
 import org.openide.awt.ActionID;
+import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.util.HelpCtx;
@@ -52,7 +53,7 @@ import org.openide.util.actions.BooleanStateAction;
 @ActionRegistration(displayName = "NOT USED", lazy = false)
 @ActionReferences(
         {
-            // 
+            @ActionReference(path = "Actions/ExtendedToolbar", position = 20)    
         })
 public class AutoUpdate extends BooleanStateAction implements PropertyChangeListener
 {
@@ -62,6 +63,8 @@ public class AutoUpdate extends BooleanStateAction implements PropertyChangeList
 
     public AutoUpdate()
     {
+        LOGGER.fine("AutoUpdate() -- ");
+        
         setBooleanState(PlaybackSettings.getInstance().isAutoUpdateEnabled());
 
         putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/AutoUpdate-OFF-24x24.png")));     //NOI18N
@@ -70,8 +73,9 @@ public class AutoUpdate extends BooleanStateAction implements PropertyChangeList
         putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(), "CTL_AutoUpdateTooltip"));   //NOI18N
         putValue("hideActionText", true);       //NOI18N
 
-
         MusicController.getInstance().addPropertyChangeListener(this);
+        
+
 
     }
 
