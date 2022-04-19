@@ -193,29 +193,5 @@ public class AutoUpdate extends BooleanStateAction implements PropertyChangeList
     // Private methods
     // ======================================================================   
 
-    private void updateEnabled()
-    {
-        boolean b = false;
-
-        if (ActiveSongManager.getInstance().getActiveSong() != null)
-        {
-            switch (MusicController.getInstance().getState())
-            {
-                case DISABLED:
-                    break;
-                case STOPPED:
-                    b = true;
-                    break;
-                case PAUSED:
-                    break;
-                case PLAYING:
-                    PlaybackSession session = MusicController.getInstance().getPlaybackSession();
-                    break;
-                default:        // DISABLED
-                // Nothing                
-            }
-        }
-        setEnabled(b);
-    }
 
 }
