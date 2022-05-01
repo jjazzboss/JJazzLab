@@ -99,6 +99,7 @@ public class OutputSynthManager implements PropertyChangeListener
             File f = new File(getOutputSynthFilesDir(), fileName);
             outputSynth = loadOutputSynth(f, false);
         }
+        
         if (outputSynth == null)
         {
             // Try reading the default config file if not already done

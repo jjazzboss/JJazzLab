@@ -101,6 +101,7 @@ public class OutputSynth implements Serializable
 
     /**
      * Construct a default OutputSynth compatible with the GM1 Bank, no custom MidiSynth, sendModeOnUponPlay=GM.
+     * <p>
      */
     public OutputSynth()
     {
@@ -384,6 +385,28 @@ public class OutputSynth implements Serializable
     }
 
     /**
+     * Check if the specified OutputSynth is compatible with this synth, ie it shares its main features.
+     * <p>
+     *
+     * @param outSynth
+     * @return True if this synth custom synths and compatible banks are also present in outSynth, and they share the same
+     *         SendModeOnUponPlay.
+     */
+    public boolean isCompatibleWith(OutputSynth outSynth)
+    {
+
+        if (!outSynth.getCustomSynths().containsAll(customSynths))
+        {
+            return false;
+        }
+        if (!outSynth.getCompatibleStdBanks().containsAll(compatibleStdBanks))
+        {
+            return false;
+        }
+        return outSynth.getSendModeOnUponPlay().equals(sendModeOnUponPlay);
+    }
+
+    /**
      * Get 'Send XX Mode ON upon play' feature.
      *
      * @return
@@ -482,12 +505,12 @@ public class OutputSynth implements Serializable
      * @return Can't be null. It may be the VoidInstrument for drums/percussion.
      */
     public Instrument findInstrument(RhythmVoice rv)
-    {        
+    {
         if (rv instanceof UserRhythmVoice)
         {
             return getUserInstrument();
         }
-                
+
         Instrument rvIns = rv.getPreferredInstrument();
         assert rvIns != null : "rv=" + rv;   //NOI18N
         InstrumentBank<?> rvInsBank = rvIns.getBank();
@@ -811,7 +834,7 @@ public class OutputSynth implements Serializable
         File prevFile = getFile();
         setFile(f);
 
-        try (FileOutputStream fos = new FileOutputStream(f))
+        try ( FileOutputStream fos = new FileOutputStream(f))
         {
             XStream xstream = new XStream();
             xstream.alias("OutputSynth", OutputSynth.class);
@@ -903,10 +926,10 @@ public class OutputSynth implements Serializable
         private final int spVERSION = 1;
         private final List<String> spCompatibleStdBankNames = new ArrayList<>();
         private final List<String> spCustomSynthsStrings = new ArrayList<>();
-        private GMRemapTable spRemapTable;
-        private Instrument spUserInstrument;
-        private SendModeOnUponStartup spSendModeOnUponPlay;
-        private int spAudioLatency;
+        private final GMRemapTable spRemapTable;
+        private final Instrument spUserInstrument;
+        private final SendModeOnUponStartup spSendModeOnUponPlay;
+        private final int spAudioLatency;
 
         protected SerializationProxy(OutputSynth outSynth)
         {
@@ -937,6 +960,7 @@ public class OutputSynth implements Serializable
 
         private Object readResolve() throws ObjectStreamException
         {
+
             OutputSynth outSynth = new OutputSynth();
             for (String strBank : spCompatibleStdBankNames)
             {

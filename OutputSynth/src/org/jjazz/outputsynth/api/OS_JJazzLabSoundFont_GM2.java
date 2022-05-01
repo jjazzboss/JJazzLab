@@ -32,12 +32,12 @@ import org.jjazz.midisynthmanager.api.MidiSynthManager;
  * The builtin OutputSynth for the JJazzLabSoundFont in GS mode.
  */
 public class OS_JJazzLabSoundFont_GM2 extends OutputSynth
-{    
-    
+{
+
     private static OS_JJazzLabSoundFont_GM2 INSTANCE;
     private final MidiSynth midiSynth;
     private static final Logger LOGGER = Logger.getLogger(OS_JJazzLabSoundFont_GM2.class.getSimpleName());
-    
+
     public static OS_JJazzLabSoundFont_GM2 getInstance()
     {
         synchronized (OS_JJazzLabSoundFont_GM2.class)
@@ -49,20 +49,21 @@ public class OS_JJazzLabSoundFont_GM2 extends OutputSynth
         }
         return INSTANCE;
     }
-    
+
     private OS_JJazzLabSoundFont_GM2()
     {
-       midiSynth = MidiSynthManager.getDefault().getMidiSynth(MidiSynthManager.JJAZZLAB_SOUNDFONT_GM2_SYNTH_NAME);
+        midiSynth = MidiSynthManager.getDefault().getMidiSynth(MidiSynthManager.JJAZZLAB_SOUNDFONT_GM2_SYNTH_NAME);
 
         // Adjust settings
         addCustomSynth(midiSynth);
         removeCompatibleStdBank(StdSynth.getInstance().getGM1Bank());
         setSendModeOnUponPlay(OutputSynth.SendModeOnUponStartup.GM2);
     }
-    
+
     /**
      * Overridden : forbidden method on this preset object.
-     * @param f 
+     *
+     * @param f
      */
     @Override
     public void setFile(File f)
@@ -76,8 +77,8 @@ public class OS_JJazzLabSoundFont_GM2 extends OutputSynth
      * @return
      */
     public MidiSynth getJJazzLabSoundFontSynth()
-    {        
+    {
         return midiSynth;
     }
-    
+
 }

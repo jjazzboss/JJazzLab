@@ -23,14 +23,10 @@
 package org.jjazz.outputsynth.api;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
 import java.util.logging.Logger;
 import org.jjazz.midi.api.Instrument;
 import org.jjazz.midi.api.MidiAddress;
 import org.jjazz.midi.api.MidiSynth;
-import org.jjazz.midi.spi.MidiSynthFileReader;
 import org.jjazz.midi.api.synths.StdSynth;
 import org.jjazz.midisynthmanager.api.MidiSynthManager;
 

@@ -36,6 +36,7 @@ public class OS_JJazzLabSoundFont_GS extends OutputSynth
 
     private static OS_JJazzLabSoundFont_GS INSTANCE;
     private final MidiSynth midiSynth;
+    
     private static final Logger LOGGER = Logger.getLogger(OS_JJazzLabSoundFont_GS.class.getSimpleName());
 
     public static OS_JJazzLabSoundFont_GS getInstance()

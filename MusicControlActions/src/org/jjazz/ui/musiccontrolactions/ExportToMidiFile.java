@@ -20,30 +20,16 @@
  *
  *  Contributor(s):
  */
-package org.jjazz.ui.mixconsole.actions;
+package org.jjazz.ui.musiccontrolactions;
 
 import java.awt.event.ActionEvent;
 import java.io.File;
-import java.io.IOException;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.sound.midi.MidiSystem;
-import javax.sound.midi.MidiUnavailableException;
-import javax.sound.midi.Sequence;
 import javax.swing.AbstractAction;
 import javax.swing.JFileChooser;
-import org.jjazz.analytics.api.Analytics;
 import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
-import org.jjazz.midi.api.InstrumentMix;
-import org.jjazz.midi.api.MidiUtilities;
-import org.jjazz.midimix.api.MidiMix;
-import org.jjazz.midimix.api.MidiMixManager;
-import org.jjazz.musiccontrol.api.PlaybackSettings;
-import org.jjazz.musiccontrol.api.MusicController;
-import org.jjazz.rhythmmusicgeneration.api.SongSequenceBuilder;
-import org.jjazz.songcontext.api.SongContext;
-import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.song.api.Song;
+import org.jjazz.ui.musiccontrolactions.api.SongExportSupport;
 import org.jjazz.ui.utilities.api.Utilities;
 import org.jjazz.util.api.ResUtil;
 import org.openide.DialogDisplayer;
@@ -52,13 +38,12 @@ import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.awt.StatusDisplayer;
 import org.openide.windows.WindowManager;
 
 /**
  * Export song to a midi file.
  */
-@ActionID(category = "MusicControls", id = "org.jjazz.ui.mixconsole.actions.exporttomidifile")
+@ActionID(category = "MusicControls", id = "org.jjazz.ui.musiccontrolactions.exporttomidifile")
 @ActionRegistration(displayName = "#CTL_ExportToMidiFile", lazy = true)
 @ActionReferences(
         {
@@ -67,7 +52,7 @@ import org.openide.windows.WindowManager;
 public class ExportToMidiFile extends AbstractAction
 {
 
-    private Song song;
+    private final Song song;
     private static File saveExportDir = null;
 
     private static final Logger LOGGER = Logger.getLogger(ExportToMidiFile.class.getSimpleName());
@@ -129,7 +114,7 @@ public class ExportToMidiFile extends AbstractAction
         }
 
 
-        generateAndWriteMidiFile(song, midiFile);
+        SongExportSupport.songToMidiFile(song, midiFile);
 
     }
 
@@ -171,116 +156,5 @@ public class ExportToMidiFile extends AbstractAction
         return f;
     }
 
-    /**
-     * Generate the sequence for specified song and write to a midi File.
-     * <p>
-     * Notify user if problem occured.
-     *
-     * @param sg
-     * @param midiFile
-     * @return True if write was successful.
-     */
-    private boolean generateAndWriteMidiFile(Song sg, File midiFile)
-    {
-
-        // Playback must be stopped, otherwise seems to have side effects on the generated Midi file (missing tracks...?)
-        MusicController.getInstance().stop();
-
-
-        // Log event
-        Analytics.logEvent("Export Midi");
-
-
-        MidiMix midiMix = null;
-        try
-        {
-            midiMix = MidiMixManager.getInstance().findMix(sg);
-        } catch (MidiUnavailableException ex)
-        {
-            LOGGER.log(Level.WARNING, ex.getMessage(), ex);   //NOI18N
-            NotifyDescriptor nd = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
-            DialogDisplayer.getDefault().notify(nd);
-            return false;
-        }
-
-
-        // Check there is at least one unmuted track
-        boolean allMuted = true;
-        for (InstrumentMix insMix : midiMix.getInstrumentMixes())
-        {
-            if (!insMix.isMute())
-            {
-                allMuted = false;
-                break;
-            }
-        }
-        if (allMuted)
-        {
-            String msg = ResUtil.getString(ExportToMidiFile.class, "ERR_AllChannelsMuted");
-            LOGGER.warning(msg);   //NOI18N
-            NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
-            DialogDisplayer.getDefault().notify(nd);
-            return false;
-        }
-
-
-        // Build the sequence
-        SongContext sgContext = new SongContext(sg, midiMix);
-        SongSequenceBuilder seqBuilder = new SongSequenceBuilder(sgContext);
-        SongSequenceBuilder.SongSequence songSequence = null;
-        try
-        {
-            songSequence = seqBuilder.buildExportableSequence(false, false);
-        } catch (MusicGenerationException ex)
-        {
-            LOGGER.warning("generateAndWriteMidiFile() ex=" + ex.getMessage());   //NOI18N
-            if (ex.getLocalizedMessage() != null)
-            {
-                NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
-                DialogDisplayer.getDefault().notify(d);
-            }
-            return false;
-        }
-
-
-        assert songSequence != null;   //NOI18N
-        Sequence sequence = songSequence.sequence;
-
-
-        // Add click & precount tracks if required
-        var ps = PlaybackSettings.getInstance();
-        if (ps.isPlaybackClickEnabled())
-        {
-            ps.addClickTrack(sequence, sgContext);
-        }
-        if (ps.isClickPrecountEnabled())
-        {
-            ps.addPrecountClickTrack(sequence, sgContext);      // Must be done last, shift all events
-        }
-
-
-        // Dump sequence in debug mode
-        if (MusicController.getInstance().isDebugPlayedSequence())
-        {
-            LOGGER.info("generateAndWriteMidiFile() sg=" + sg.getName() + " - sequence :");   //NOI18N
-            LOGGER.info(MidiUtilities.toString(sequence));   //NOI18N
-        }
-
-
-        // Write to file
-        LOGGER.info("generateAndWriteMidiFile() writing sequence to Midi file: " + midiFile.getAbsolutePath());   //NOI18N
-        try
-        {
-            MidiSystem.write(sequence, 1, midiFile);
-            StatusDisplayer.getDefault().setStatusText(ResUtil.getString(ExportToMidiFile.class, "CTL_MidiSequenceWritten", midiFile.getAbsolutePath()));
-        } catch (IOException ex)
-        {
-            LOGGER.log(Level.WARNING, ex.getMessage(), ex);   //NOI18N
-            NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
-            DialogDisplayer.getDefault().notify(d);
-            return false;
-        }
-
-        return true;
-    }
+  
 }
