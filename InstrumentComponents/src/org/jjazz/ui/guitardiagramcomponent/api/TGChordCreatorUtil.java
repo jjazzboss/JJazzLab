@@ -1494,7 +1494,7 @@ public class TGChordCreatorUtil
                 {
                     // 7sus4
                     res = 11;
-                } else if (ct.getExtension().equals(""))
+                } else 
                 {
                     // sus4
                     res = 9;
