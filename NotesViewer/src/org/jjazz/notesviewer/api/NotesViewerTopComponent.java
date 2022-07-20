@@ -83,9 +83,9 @@ public final class NotesViewerTopComponent extends TopComponent implements Prope
     {
         viewer.opened();
 
-        var asm = ActiveSongManager.getInstance();
-        Song song = asm.getActiveSong();
+        var asm = ActiveSongManager.getInstance();        
         asm.addPropertyListener(this);
+        Song song = asm.getActiveSong();        
         updateTabName(song);        
         viewer.setModel(song, asm.getActiveMidiMix());
     }
@@ -94,8 +94,9 @@ public final class NotesViewerTopComponent extends TopComponent implements Prope
     public void componentClosed()
     {
         viewer.closing();
-
-
+        
+        var asm = ActiveSongManager.getInstance();        
+        asm.removePropertyListener(this);                
     }
 
     /**
@@ -104,7 +105,7 @@ public final class NotesViewerTopComponent extends TopComponent implements Prope
      */
     static public NotesViewerTopComponent getInstance()
     {
-        return (NotesViewerTopComponent) WindowManager.getDefault().findTopComponent("RtViewerTopComponent");
+        return (NotesViewerTopComponent) WindowManager.getDefault().findTopComponent("NotesViewerTopComponent");
     }
 
 
