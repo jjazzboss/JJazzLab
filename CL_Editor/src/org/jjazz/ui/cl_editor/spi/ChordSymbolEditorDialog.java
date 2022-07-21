@@ -84,7 +84,7 @@ public abstract class ChordSymbolEditorDialog extends JDialog
     abstract public ExtChordSymbol getData();
 
     /**
-     * Cleanup refrerences to preset data and dialog results.
+     * Cleanup references to preset data and dialog results, caller must call this method after dialog has exited.
      */
     abstract public void cleanup();
 }

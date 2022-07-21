@@ -97,11 +97,9 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
         }
 
         initComponents();
-
-        updateScaleInfo(null);
-
-        // Listen to changes to update the rest of UI in real time
+        
         tf_ChordSymbolName.getDocument().addDocumentListener(new ChordSymbolDocumentListener());
+        updateScaleInfo(null);        
     }
 
     @Override
@@ -158,10 +156,9 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
 
         updateOptionalText();
 
-        // Update chord UI
+        // Update chord UI        
         tf_ChordSymbolName.requestFocus();
-        if (key
-                == 0)
+        if (key == 0)
         {
             tf_ChordSymbolName.setText(ecs.getOriginalName());
             tf_ChordSymbolName.selectAll();
@@ -172,8 +169,7 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
         }
 
         // Update alternate UI
-        tabbedPane.setEnabledAt(
-                2, enableAlternate);
+        tabbedPane.setEnabledAt(2, enableAlternate);
         if (enableAlternate)
         {
             AltDataFilter altFilter;
@@ -246,12 +242,12 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
         }
 
         pack();
+     
     }
 
     @Override
     public void cleanup()
     {
-        // Nothing
     }
 
     @Override
@@ -356,7 +352,7 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
     private void updateOptionalText()
     {
         lbl_optionalText.setText(getOptionalText(new ChordRenderingInfo(getFeatures(), getScaleInstance())));
-        pack();
+        // pack();     Fix Issue #317 Freeze when entering hebrew char in chord edit dialog then exit dialog
     }
 
     private AltExtChordSymbol getAltChordSymbol()
