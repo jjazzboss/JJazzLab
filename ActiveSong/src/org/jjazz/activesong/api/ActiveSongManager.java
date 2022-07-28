@@ -268,7 +268,7 @@ public class ActiveSongManager implements PropertyChangeListener, VetoableChange
         if (evt.getSource() == activeMidiMix)
         {
             MidiMix mm = (MidiMix) evt.getSource();
-            if (evt.getPropertyName() == MidiMix.PROP_CHANNEL_INSTRUMENT_MIX)
+            if (evt.getPropertyName().equals(MidiMix.PROP_CHANNEL_INSTRUMENT_MIX))
             {
                 // New , replaced or removed InstrumentMix
                 int channel = (int) evt.getNewValue();
@@ -299,22 +299,22 @@ public class ActiveSongManager implements PropertyChangeListener, VetoableChange
             return;
         } else if (evt.getSource() == activeSong)
         {
-            if (evt.getPropertyName() == Song.PROP_CLOSED)
+            if (evt.getPropertyName().equals(Song.PROP_CLOSED))
             {
                 setActive(null, null);
             }
         } else if (evt.getSource() == JJazzMidiSystem.getInstance())
         {
-            if (evt.getPropertyName() == JJazzMidiSystem.PROP_MIDI_OUT)
+            if (evt.getPropertyName().equals(JJazzMidiSystem.PROP_MIDI_OUT))
             {
                 // Midi Out has changed, resend init messages on the new Midi device        
                 sendActivationMessages();
                 sendAllMidiMixMessages();
-            } else if (evt.getPropertyName() == JJazzMidiSystem.PROP_MASTER_VOL_FACTOR)
+            } else if (evt.getPropertyName().equals(JJazzMidiSystem.PROP_MASTER_VOL_FACTOR))
             {
                 // Master volume has changed, resend volume messages
                 sendAllMidiVolumeMessages();
-            } else if (evt.getPropertyName() == JJazzMidiSystem.PROP_MIDI_OUT_FILTERING)
+            } else if (evt.getPropertyName().equals(JJazzMidiSystem.PROP_MIDI_OUT_FILTERING))
             {
                 // If Midi filtering switched back to OFF, make sure to resend the settings
                 // in case the user has modified volume etc. during filtering was ON.

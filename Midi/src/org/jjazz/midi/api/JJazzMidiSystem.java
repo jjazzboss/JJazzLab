@@ -30,7 +30,6 @@ import java.io.IOException;
 import org.jjazz.midi.api.device.MidiFilter;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
