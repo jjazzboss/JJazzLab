@@ -36,21 +36,21 @@ import org.openide.util.actions.Presenter;
  * Insert ExtendedToolbarPanel as a toolbar.
  * <p>
  */
-@ActionID(category = "JJazz", id = "org.jjazz.ui.musiccontrolactions.extendedtoolbaraction")
+@ActionID(category = "JJazz", id = "org.jjazz.ui.musiccontrolactions.autopreviewtoolbaraction")
 @ActionRegistration(displayName = "not used", lazy = false)   // Need to be false because we implement Presenter.Toolbar
 @ActionReferences(
         {
-            @ActionReference(path = "Toolbars/ExtendedToolBar", position = 1000)     // This will insert our toolbar
+            @ActionReference(path = "Toolbars/AutoPreviewToolBar", position = 1000)     // This will insert our toolbar
         })
-public class ExtendedToolbarAction extends AbstractAction implements Presenter.Toolbar
+public class AutoPreviewToolbarAction extends AbstractAction implements Presenter.Toolbar
 {
-    private final ExtendedToolbarPanel panel;
-    private static final Logger LOGGER = Logger.getLogger(ExtendedToolbarAction.class.getSimpleName());
+    private final AutoPreviewToolbarPanel panel;
+    private static final Logger LOGGER = Logger.getLogger(AutoPreviewToolbarAction.class.getSimpleName());
 
-    public ExtendedToolbarAction()
+    public AutoPreviewToolbarAction()
     {
         // Build the component
-        panel = new ExtendedToolbarPanel();
+        panel = new AutoPreviewToolbarPanel();
     }
 
     @Override

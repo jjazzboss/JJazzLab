@@ -40,14 +40,14 @@ import org.openide.util.actions.BooleanStateAction;
 /**
  * The panel used to show the auto-preview button.
  */
-public class AutoPreviewToolBarPanel extends javax.swing.JPanel implements PropertyChangeListener, LookupListener
+public class AutoPreviewToolbarPanel extends javax.swing.JPanel implements PropertyChangeListener, LookupListener
 {
 
     private final Lookup.Result<Song> lookupResult;
     private Song currentSong;
-    private static final Logger LOGGER = Logger.getLogger(AutoPreviewToolBarPanel.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(AutoPreviewToolbarPanel.class.getSimpleName());
 
-    public AutoPreviewToolBarPanel()
+    public AutoPreviewToolbarPanel()
     {
         initComponents();
 
@@ -101,22 +101,22 @@ public class AutoPreviewToolBarPanel extends javax.swing.JPanel implements Prope
         MusicController mc = MusicController.getInstance();
         if (evt.getSource() == mc)
         {
-            if (evt.getPropertyName() == MusicController.PROP_STATE)
+            if (evt.getPropertyName().equals(MusicController.PROP_STATE))
             {
                 playbackStateChanged();
             }
         } else if (evt.getSource() == ActiveSongManager.getInstance())
         {
-            if (evt.getPropertyName() == ActiveSongManager.PROP_ACTIVE_SONG)
+            if (evt.getPropertyName().equals(ActiveSongManager.PROP_ACTIVE_SONG))
             {
                 activeSongChanged();
             }
         } else if (evt.getSource() == currentSong)
         {
-            if (evt.getPropertyName() == Song.PROP_TEMPO)
+            if (evt.getPropertyName().equals(Song.PROP_TEMPO))
             {
                 
-            } else if (evt.getPropertyName() == Song.PROP_CLOSED)
+            } else if (evt.getPropertyName().equals(Song.PROP_CLOSED))
             {
                 currentSongClosed();
             }

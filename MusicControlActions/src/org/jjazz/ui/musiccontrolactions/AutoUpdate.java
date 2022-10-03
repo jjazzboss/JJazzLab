@@ -29,7 +29,6 @@ import java.beans.PropertyChangeListener;
 import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
-import org.jjazz.activesong.api.ActiveSongManager;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.MusicController.State;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
