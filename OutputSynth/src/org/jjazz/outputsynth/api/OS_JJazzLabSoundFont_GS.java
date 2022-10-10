@@ -67,6 +67,7 @@ public class OS_JJazzLabSoundFont_GS extends OutputSynth
      * @param os
      * @return
      */
+    @Override
     public boolean isCompatibleWith(OutputSynth os)
     {
         return !(!os.getCustomSynths().contains(midiSynth)

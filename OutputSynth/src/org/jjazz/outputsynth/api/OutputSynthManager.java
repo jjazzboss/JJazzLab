@@ -56,7 +56,7 @@ import org.openide.util.lookup.ServiceProvider;
 import org.openide.windows.WindowManager;
 
 /**
- * Management of the OutputSynth.
+ * Management of the OutputSynth instances.
  */
 public class OutputSynthManager implements PropertyChangeListener
 {
@@ -74,7 +74,7 @@ public class OutputSynthManager implements PropertyChangeListener
     private static OutputSynthManager INSTANCE;
     private static JFileChooser CHOOSER_INSTANCE;
     private OutputSynth outputSynth;
-    private static Preferences prefs = NbPreferences.forModule(OutputSynthManager.class);
+    private static final Preferences prefs = NbPreferences.forModule(OutputSynthManager.class);
     private final transient PropertyChangeSupport pcs = new java.beans.PropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(OutputSynthManager.class.getSimpleName());
 
@@ -99,7 +99,7 @@ public class OutputSynthManager implements PropertyChangeListener
             File f = new File(getOutputSynthFilesDir(), fileName);
             outputSynth = loadOutputSynth(f, false);
         }
-        
+
         if (outputSynth == null)
         {
             // Try reading the default config file if not already done
@@ -149,15 +149,15 @@ public class OutputSynthManager implements PropertyChangeListener
         }
         outputSynth = outSynth;
         outputSynth.addPropertyChangeListener(this);        // Listen to file and audio latency changes
-        
+
 
         if (outputSynth.getFile() != null)
         {
             prefs.put(PROP_DEFAULT_OUTPUTSYNTH, outputSynth.getFile().getName());
         }
         pcs.firePropertyChange(PROP_DEFAULT_OUTPUTSYNTH, old, outputSynth);
-        
-        
+
+
         if (outputSynth.getAudioLatency() != oldLatency)
         {
             pcs.firePropertyChange(PROP_AUDIO_LATENCY, oldLatency, outputSynth.getAudioLatency());
@@ -171,7 +171,7 @@ public class OutputSynthManager implements PropertyChangeListener
      *
      * @param save If true show a save dialog, if false an open dialog.
      * @return The selected file. Null if user cancelled or no valid selection. File is guaranteed to have appropriate location
-     * and extension.
+     *         and extension.
      */
     public File showSelectOutputSynthFileDialog(boolean save)
     {
@@ -206,7 +206,6 @@ public class OutputSynthManager implements PropertyChangeListener
     /**
      * Load an OutputSynth from a file.
      * <p>
-     * Notify user if problem occured while reading file.
      *
      * @param f
      * @param notifyUser If true notify user if error occured while reading the file.
@@ -221,7 +220,7 @@ public class OutputSynthManager implements PropertyChangeListener
         OutputSynth synth = null;
         XStream xstream = Utilities.getSecuredXStreamInstance();
 
-        try (var fis = new FileInputStream(f))
+        try ( var fis = new FileInputStream(f))
         {
             Reader r = new BufferedReader(new InputStreamReader(fis, "UTF-8"));        // Needed to support special/accented chars
             synth = (OutputSynth) xstream.fromXML(r);
@@ -268,7 +267,7 @@ public class OutputSynthManager implements PropertyChangeListener
                 }
             } else if (evt.getPropertyName().equals(OutputSynth.PROP_AUDIO_LATENCY_MS))
             {
-                pcs.firePropertyChange(OutputSynthManager.PROP_AUDIO_LATENCY, (int)evt.getOldValue(), (int)evt.getNewValue());
+                pcs.firePropertyChange(OutputSynthManager.PROP_AUDIO_LATENCY, (int) evt.getOldValue(), (int) evt.getNewValue());
             }
         }
     }
@@ -313,6 +312,11 @@ public class OutputSynthManager implements PropertyChangeListener
     // =====================================================================================
     // Upgrade Task
     // =====================================================================================
+
+    /**
+     * We need to copy the current OutputSynth configuration file (if any) to the new config. directory.
+     * <p>
+     */
     @ServiceProvider(service = UpgradeTask.class)
     static public class RestoreSettingsTask implements UpgradeTask
     {
