@@ -203,8 +203,6 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
         btn_test = new javax.swing.JButton();
         jPanel1 = new javax.swing.JPanel();
         cb_usejjSynth = new javax.swing.JCheckBox();
-        jScrollPane4 = new javax.swing.JScrollPane();
-        helpTextArea2 = new org.jjazz.ui.utilities.api.HelpTextArea();
 
         jScrollPane1.setViewportView(midiInDeviceList1);
 
@@ -296,7 +294,7 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
                             .addComponent(btn_outputSynthEditor)
                             .addComponent(lbl_synths))
                         .addGap(18, 18, 18)
-                        .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
+                        .addComponent(jScrollPane2))
                     .addGroup(pnl_outputSynthLayout.createSequentialGroup()
                         .addGroup(pnl_outputSynthLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(lbl_stdBanks)
@@ -377,7 +375,7 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
             pnl_outDeviceLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pnl_outDeviceLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane3)
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 101, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(pnl_outDeviceLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(btn_refresh, javax.swing.GroupLayout.Alignment.TRAILING)
@@ -386,15 +384,7 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
         );
 
         org.openide.awt.Mnemonics.setLocalizedText(cb_usejjSynth, org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.cb_usejjSynth.text")); // NOI18N
-
-        jScrollPane4.setBackground(null);
-        jScrollPane4.setBorder(null);
-
-        helpTextArea2.setBackground(null);
-        helpTextArea2.setColumns(20);
-        helpTextArea2.setRows(5);
-        helpTextArea2.setText(org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.helpTextArea2.text")); // NOI18N
-        jScrollPane4.setViewportView(helpTextArea2);
+        cb_usejjSynth.setToolTipText(org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.cb_usejjSynth.toolTipText")); // NOI18N
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -403,20 +393,14 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(cb_usejjSynth)
-                .addGap(18, 18, 18)
-                .addComponent(jScrollPane4))
+                .addContainerGap(338, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(cb_usejjSynth)
-                        .addGap(58, 58, 58))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(jScrollPane4)
-                        .addContainerGap())))
+                .addGap(18, 18, 18)
+                .addComponent(cb_usejjSynth)
+                .addContainerGap(34, Short.MAX_VALUE))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
@@ -548,12 +532,10 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
     private javax.swing.JButton btn_test;
     private javax.swing.JCheckBox cb_usejjSynth;
     private org.jjazz.ui.utilities.api.HelpTextArea helpTextArea1;
-    private org.jjazz.ui.utilities.api.HelpTextArea helpTextArea2;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
-    private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JLabel lbl_audioLatency;
     private javax.swing.JLabel lbl_audioLatencyValue;
     private javax.swing.JLabel lbl_stdBanks;
