@@ -1,0 +1,93 @@
+/*
+ *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+ * 
+ *  Copyright @2019 Jerome Lelasseux. All rights reserved.
+ *
+ *  This file is part of the JJazzLabX software.
+ *   
+ *  JJazzLabX is free software: you can redistribute it and/or modify
+ *  it under the terms of the Lesser GNU General Public License (LGPLv3) 
+ *  as published by the Free Software Foundation, either version 3 of the License, 
+ *  or (at your option) any later version.
+ *
+ *  JJazzLabX is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ *  GNU Lesser General Public License for more details.
+ * 
+ *  You should have received a copy of the GNU Lesser General Public License
+ *  along with JJazzLabX.  If not, see <https://www.gnu.org/licenses/>
+ * 
+ *  Contributor(s): 
+ */
+package org.jjazz.embeddedsynth.api;
+
+import java.io.File;
+import javax.sound.midi.MidiDevice;
+import org.jjazz.embeddedsynth.spi.Mp3EncoderProvider;
+
+/**
+ * Interface for a JJazzLab embedded synth.
+ */
+public interface EmbeddedSynth
+{
+
+    /**
+     * Initialize the synth (load resources...).
+     *
+     * @throws org.jjazz.embeddedsynth.api.EmbeddedSynthException
+     */
+    void open() throws EmbeddedSynthException;
+
+    /**
+     * Release the resources of the synth.
+     */
+    void close();
+
+    String getName();
+
+    String getVersion();
+
+    /**
+     * Get the OUT MidiDevice name connected to this embedded synth.
+     *
+     * @return
+     */
+    MidiDevice getOutMidiDeviceName();
+
+    /**
+     * Display a dialog to alter embedded synth settings.
+     * <p>
+     * Settings might be serialized by the embedded synth instance.
+     */
+    void showSettings();
+
+    /**
+     * Generate a .wav file from the specified midiFile.
+     * <p>
+     *
+     * @param midiFile
+     * @param wavFile
+     * @throws org.jjazz.embeddedsynth.api.EmbeddedSynthException
+     */
+    void generateWavFile(File midiFile, File wavFile) throws EmbeddedSynthException;
+
+    /**
+     * Convert a wav file into a mp3 file.
+     *
+     * @param wavFile
+     * @param mp3File
+     * @param lowQuality If true use low-quality mp3 encoding.
+     * @throws EmbeddedSynthException
+     */
+    default void wavToMp3(File wavFile, File mp3File, boolean lowQuality) throws EmbeddedSynthException
+    {
+        Mp3Encoder mp3Encoder = Mp3EncoderProvider.getDefault();
+        if (mp3Encoder == null)
+        {
+            throw new EmbeddedSynthException("Missing MP3 encoder instance");
+        }
+
+
+    }
+}
