@@ -29,8 +29,7 @@ import org.openide.util.lookup.ServiceProvider;
 @ServiceProvider(service = Mp3EncoderProvider.class)
 public class JavaLameMp3EncoderProvider implements Mp3EncoderProvider
 {
-
-    private static JavaLameMp3Encoder encoder = new JavaLameMp3Encoder();
+    private static final JavaLameMp3Encoder encoder = new JavaLameMp3Encoder();
 
     @Override
     public Mp3Encoder getMp3Encoder()

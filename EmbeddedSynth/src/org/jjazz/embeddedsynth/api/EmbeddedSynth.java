@@ -53,7 +53,7 @@ public interface EmbeddedSynth
      *
      * @return
      */
-    MidiDevice getOutMidiDeviceName();
+    String getOutMidiDeviceName();
 
     /**
      * Display a dialog to alter embedded synth settings.
@@ -72,22 +72,4 @@ public interface EmbeddedSynth
      */
     void generateWavFile(File midiFile, File wavFile) throws EmbeddedSynthException;
 
-    /**
-     * Convert a wav file into a mp3 file.
-     *
-     * @param wavFile
-     * @param mp3File
-     * @param lowQuality If true use low-quality mp3 encoding.
-     * @throws EmbeddedSynthException
-     */
-    default void wavToMp3(File wavFile, File mp3File, boolean lowQuality) throws EmbeddedSynthException
-    {
-        Mp3Encoder mp3Encoder = Mp3EncoderProvider.getDefault();
-        if (mp3Encoder == null)
-        {
-            throw new EmbeddedSynthException("Missing MP3 encoder instance");
-        }
-
-
-    }
 }

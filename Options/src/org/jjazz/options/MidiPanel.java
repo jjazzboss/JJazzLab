@@ -203,6 +203,8 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
         btn_test = new javax.swing.JButton();
         jPanel1 = new javax.swing.JPanel();
         cb_usejjSynth = new javax.swing.JCheckBox();
+        jScrollPane4 = new javax.swing.JScrollPane();
+        helpTextArea2 = new org.jjazz.ui.utilities.api.HelpTextArea();
 
         jScrollPane1.setViewportView(midiInDeviceList1);
 
@@ -375,7 +377,7 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
             pnl_outDeviceLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pnl_outDeviceLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 101, Short.MAX_VALUE)
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 98, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(pnl_outDeviceLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(btn_refresh, javax.swing.GroupLayout.Alignment.TRAILING)
@@ -385,6 +387,18 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
 
         org.openide.awt.Mnemonics.setLocalizedText(cb_usejjSynth, org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.cb_usejjSynth.text")); // NOI18N
         cb_usejjSynth.setToolTipText(org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.cb_usejjSynth.toolTipText")); // NOI18N
+        cb_usejjSynth.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                cb_usejjSynthActionPerformed(evt);
+            }
+        });
+
+        helpTextArea2.setColumns(20);
+        helpTextArea2.setRows(5);
+        helpTextArea2.setText(org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.helpTextArea2.text")); // NOI18N
+        jScrollPane4.setViewportView(helpTextArea2);
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -393,14 +407,20 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(cb_usejjSynth)
-                .addContainerGap(338, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 323, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addGap(18, 18, 18)
                 .addComponent(cb_usejjSynth)
-                .addContainerGap(34, Short.MAX_VALUE))
+                .addContainerGap(37, Short.MAX_VALUE))
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                .addContainerGap())
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
@@ -523,6 +543,11 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
         updateOutputSynthLabels();
     }//GEN-LAST:event_btn_outputSynthEditorActionPerformed
 
+    private void cb_usejjSynthActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cb_usejjSynthActionPerformed
+    {//GEN-HEADEREND:event_cb_usejjSynthActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_cb_usejjSynthActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_changeSoundbankFile;
@@ -532,10 +557,12 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
     private javax.swing.JButton btn_test;
     private javax.swing.JCheckBox cb_usejjSynth;
     private org.jjazz.ui.utilities.api.HelpTextArea helpTextArea1;
+    private org.jjazz.ui.utilities.api.HelpTextArea helpTextArea2;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
+    private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JLabel lbl_audioLatency;
     private javax.swing.JLabel lbl_audioLatencyValue;
     private javax.swing.JLabel lbl_stdBanks;
