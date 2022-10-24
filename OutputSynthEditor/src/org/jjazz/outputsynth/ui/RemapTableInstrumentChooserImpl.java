@@ -286,7 +286,7 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
             {
                 res.addAll(bank.getDrumsInstruments());
             }
-            for (MidiSynth synth : outSynth.getCustomSynths())
+            for (MidiSynth synth : outSynth.getMidiSynths())
             {
                 res.addAll(synth.getDrumsInstruments());
             }
@@ -294,7 +294,7 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
             {
                 res.addAll(bank.getNonDrumsInstruments());
             }
-            for (MidiSynth synth : outSynth.getCustomSynths())
+            for (MidiSynth synth : outSynth.getMidiSynths())
             {
                 res.addAll(synth.getNonDrumsInstruments());
             }
@@ -304,7 +304,7 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
             {
                 res.addAll(bank.getInstruments());
             }
-            for (MidiSynth synth : outSynth.getCustomSynths())
+            for (MidiSynth synth : outSynth.getMidiSynths())
             {
                 res.addAll(synth.getInstruments());
             }

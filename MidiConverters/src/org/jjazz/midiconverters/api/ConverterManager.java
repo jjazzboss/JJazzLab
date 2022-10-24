@@ -86,8 +86,8 @@ public class ConverterManager
     /**
      * Try to convert an Instrument into an instrument of destSynth.
      * <p>
-     * Manage the trivial cases (srcIns already belongs to destSynth). Then the method asks each InstrumentConverter found in the
-     * global lookup to do the conversion, until a conversion succeeds.
+     * Fist manage the trivial case where srcIns belongs to destSynth. If it's not the case then the method asks each
+     * InstrumentConverter found in the global lookup to do the conversion, until a conversion succeeds.
      *
      * @param srcIns
      * @param destSynth
@@ -100,6 +100,9 @@ public class ConverterManager
         {
             throw new IllegalArgumentException("ins=" + srcIns + " destSynth=" + destSynth);   //NOI18N
         }
+
+
+        // If banks are specified, check they belong to destSynth
         if (banks != null)
         {
             for (InstrumentBank<?> bank : banks)
@@ -110,12 +113,15 @@ public class ConverterManager
                 }
             }
         }
+
+
         // Special easy case: check if srcSynth is an instrument from destSynth and its bank is searched
         InstrumentBank<?> srcBank = srcIns.getBank();
         if (srcBank != null && destSynth.getBanks().contains(srcBank) && (banks == null || banks.contains(srcBank)))
         {
             return srcIns;
         }
+
 
         // Ask all InstrumentConverters from the Lookup
         Instrument res = null;
@@ -127,6 +133,7 @@ public class ConverterManager
                 break;
             }
         }
+
         return res;
     }
 

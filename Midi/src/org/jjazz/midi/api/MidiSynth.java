@@ -22,15 +22,18 @@
  */
 package org.jjazz.midi.api;
 
+import com.google.common.base.Preconditions;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
+import org.jjazz.midi.api.MidiAddress.BankSelectMethod;
 import org.openide.util.Lookup;
 
 /**
  * A MidiSynth is a collection of InstrumentBanks.
  * <p>
+ * You can optionnaly specify if this MidiSynth is GM/GM2/XG/GS compatible, and indicate the base MidiAddress of the GM bank.
  */
 public class MidiSynth
 {
@@ -41,32 +44,28 @@ public class MidiSynth
     public interface Finder
     {
 
-        static public class Utilities
+        /**
+         * Find the first Finder implementation in the global lookup.
+         *
+         * @return
+         */
+        static public Finder getDefault()
         {
-
-            /**
-             * Find the first Finder implementation in the global lookup.
-             *
-             * @return
-             */
-            static public Finder getDefault()
+            Finder finder = Lookup.getDefault().lookup(Finder.class);
+            if (finder == null)
             {
-                Finder finder = Lookup.getDefault().lookup(Finder.class);
-                if (finder == null)
-                {
-                    throw new IllegalStateException("Can't find a MidiSynth.Finder instance in the global lookup");   //NOI18N
-                }
-                return finder;
+                throw new IllegalStateException("Can't find a MidiSynth.Finder instance in the global lookup");   //NOI18N
             }
-
+            return finder;
         }
+
 
         /**
          * Search for a MidiSynth instance from the specified name and file name.
          *
          * @param synthName The MidiSynth name containing the bank. Can't be null.
-         * @param synthFile The file associated to synthName. Can be null if no file. If synthFile has no parent directory, search the
-         *                  default directory for output synth config files.
+         * @param synthFile The file associated to synthName. Can be null if no file. If synthFile has no parent directory, search
+         *                  the default directory for output synth config files.
          * @return Null if no MidiSynth found
          */
         MidiSynth getMidiSynth(String synthName, File synthFile);
@@ -77,10 +76,14 @@ public class MidiSynth
     ArrayList<InstrumentBank<?>> banks = new ArrayList<>();
     private String name;
     private String manufacturer;
+    private boolean isGMcompatible, isGM2compatible, isXGcompatible, isGScompatible;
+    private MidiAddress gmBankBaseMidiAddress;
     private static final Logger LOGGER = Logger.getLogger(MidiSynth.class.getSimpleName());
 
     /**
      * Create an empty MidiSynth.
+     * <p>
+     * Created MidiSynth is not set to be compatible with GM/GM2/XG/GS standard.
      *
      * @param name         If name contains comas (',') they are removed.
      * @param manufacturer
@@ -93,6 +96,98 @@ public class MidiSynth
         }
         this.name = name.replaceAll(",", "");
         this.manufacturer = manufacturer;
+        this.gmBankBaseMidiAddress = new MidiAddress(0, 0, 0, MidiAddress.BankSelectMethod.MSB_LSB);
+    }
+
+    /**
+     * Set the compatibility of this MidiSynth with the Midi standards.
+     * <p>
+     * Note that no check is performed on the actual Instruments of this MidiSynth to control the validity of this compatibility.
+     *
+     * @param isGMcompatible  If null parameter is ignored.
+     * @param isGM2compatible If null parameter is ignored.
+     * @param isXGcompatible  If null parameter is ignored.
+     * @param isGScompatible  If null parameter is ignored.
+     */
+    public void setCompatibility(Boolean isGMcompatible, Boolean isGM2compatible, Boolean isXGcompatible, Boolean isGScompatible)
+    {
+        if (isGMcompatible != null)
+        {
+            this.isGMcompatible = isGMcompatible;
+        }
+        if (isGM2compatible != null)
+        {
+            this.isGM2compatible = isGM2compatible;
+        }
+        if (isXGcompatible != null)
+        {
+            this.isXGcompatible = isXGcompatible;
+        }
+        if (isGScompatible != null)
+        {
+            this.isGScompatible = isGScompatible;
+        }
+    }
+
+    /**
+     * Set the base MidiAddress to be used to directly access the first instrument (Program Change=0) of the GM bank of this
+     * MidiSynth.
+     * <p>
+     * NOTE: return value is meaningful ONLY if this MidiSynth is GM compatible.
+     * <p>
+     * GM standard does not define a GM bank select messages. The "old" way to access the GM sounds is to first send a Sysex
+     * message "Set GM Mode ON" then a Program Change message. But as most synths now have many banks, it's usually possible to
+     * directly access the GM sounds using bank select messages. This method lets you specify the GM bank select mechanism used by
+     * this synth.
+     * <p>
+     * Examples:<br>
+     * - On most Yamaha synths the GM bank can be directly accessed using LSB=0 and MSB=0.<br>
+     * - On Roland JV-1080 the base GM bank address is MSB=81, LSB=3.<br>
+     *
+     *
+     * @param ma Must have Program Change==0.
+     * @see #getGM1BankBaseMidiAddress()
+     * @see #setCompatibility(java.lang.Boolean, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean)
+     */
+    public void setGM1BankBaseMidiAddress(MidiAddress ma)
+    {
+        Preconditions.checkArgument(ma != null && ma.getProgramChange() == 0);
+        gmBankBaseMidiAddress = ma;
+    }
+
+    /**
+     * Get the MidiAddress to be used to directly access the first instrument (piano) of the GM bank of this MidiSynth (so without
+     * using SysEx message "set GM Mode ON").
+     *
+     *
+     * @return Can't be null. If not explicitly set, return by default new MidiAddress(0, 0, 0,
+     *         MidiAddress.BankSelectMethod.MSB_LSB).
+     * @see #setGM1BaseMidiAddress(MidiAddress)
+     */
+    public MidiAddress getGM1BankBaseMidiAddress()
+    {
+        return gmBankBaseMidiAddress;
+    }
+
+
+    public boolean isGMcompatible()
+    {
+        return isGMcompatible;
+    }
+
+    public boolean isGM2compatible()
+    {
+        return isGM2compatible;
+    }
+
+    public boolean isXGcompatible()
+    {
+        return isXGcompatible;
+    }
+
+    public boolean isGScompatible()
+    {
+        return isGScompatible;
     }
 
     /**
@@ -216,15 +311,32 @@ public class MidiSynth
 
     /**
      * Find an instrument with the specified address.
+     * <p>
+     * The search takes into account getGM1BankBaseMidiAddress() if it is defined AND this MidiSynth is GM-compatible AND if the
+     * addr parameter is a GM address.
      *
-     * @param address
+     *
+     * @param addr
      * @return Null if instrument not found in the MidiSynth banks.
      */
-    public Instrument getInstrument(MidiAddress address)
+    public Instrument getInstrument(MidiAddress addr)
     {
+        var bsm = addr.getBankSelectMethod();
+
+
+        if (isGMcompatible
+                && (bsm.equals(BankSelectMethod.PC_ONLY)
+                || (bsm.equals(BankSelectMethod.MSB_LSB) && addr.getBankMSB() == 0 && addr.getBankLSB() == 0)))
+        {
+            // Translate the MidiAddress to get the instrument on the right bank (which may not be MSB=0 LSB=0, e.g. for the Roland JV-1080)
+            var baseAddr = getGM1BankBaseMidiAddress();
+            addr = new MidiAddress(addr.getProgramChange(), baseAddr.getBankMSB(), baseAddr.getBankLSB(), BankSelectMethod.MSB_LSB);
+        }
+
+
         for (InstrumentBank<?> bank : getBanks())
         {
-            Instrument ins = bank.getInstrument(address);
+            Instrument ins = bank.getInstrument(addr);
             if (ins != null)
             {
                 return ins;
@@ -356,7 +468,7 @@ public class MidiSynth
         String synthName = strs[0].trim();
         String filePath = strs[1].trim();
         File f = filePath.equals("NOT_SET") ? null : new File(filePath);
-        MidiSynth synth = Finder.Utilities.getDefault().getMidiSynth(synthName, f);
+        MidiSynth synth = Finder.getDefault().getMidiSynth(synthName, f);
         return synth;
     }
 

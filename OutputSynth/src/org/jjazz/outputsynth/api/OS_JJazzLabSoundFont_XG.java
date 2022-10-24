@@ -34,7 +34,7 @@ import org.jjazz.midisynthmanager.api.MidiSynthManager;
 public class OS_JJazzLabSoundFont_XG extends OutputSynth
 {
 
-
+    public final static String NAME = "XG synth with JJazzLab soundfont";
     private static OS_JJazzLabSoundFont_XG INSTANCE;
     private final MidiSynth midiSynth;
     private static final Logger LOGGER = Logger.getLogger(OS_JJazzLabSoundFont_XG.class.getSimpleName());
@@ -53,6 +53,7 @@ public class OS_JJazzLabSoundFont_XG extends OutputSynth
 
     private OS_JJazzLabSoundFont_XG()
     {
+        super(NAME);
         midiSynth = MidiSynthManager.getDefault().getMidiSynth(MidiSynthManager.JJAZZLAB_SOUNDFONT_XG_SYNTH_NAME);
 
         // Adjust settings

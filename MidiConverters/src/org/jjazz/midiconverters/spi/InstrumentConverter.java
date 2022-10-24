@@ -39,7 +39,7 @@ public interface InstrumentConverter
     /**
      * Try to find in destSynth an instrument corresponding to srcIns.
      *
-     * @param srcIns    srcIns's MidiSynth is different from destSynth
+     * @param srcIns    srcIns's
      * @param destSynth
      * @param banks     Limit search to these banks. They must belong to destSynth. If null search all the destSynth banks.
      * @return Can be null if no matching instrument found.

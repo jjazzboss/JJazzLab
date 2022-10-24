@@ -48,17 +48,16 @@ public interface MidiSynthManager
     }
 
     /**
-     * The list of JJazzLab builtin synths.
+     * The list of all JJazzLab builtin synths.
      * <p>
-     * JJazzLabSoundFont, YamahaRef, etc.
+     * GM, GM2, XG, GS, JJazzLabSoundFont-based synths, YamahaRef, etc.
      *
      * @return
      */
     List<MidiSynth> getBuiltinSynths();
 
     /**
-     * Search the standard synths, the builtin synths and then through our active MidiSynth references to find a synth with
-     * synthName.
+     * Search the builtin synths and the synths loaded via loadSynths() to find a synth whose name is synthName.
      *
      * @param synthName
      * @return Can be null.

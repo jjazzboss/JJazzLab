@@ -38,9 +38,12 @@ import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.midi.api.MidiSynth;
+import org.jjazz.midi.api.synths.GM2Synth;
+import org.jjazz.midi.api.synths.GMSynth;
 import org.jjazz.midi.spi.MidiSynthFileReader;
 import org.jjazz.midi.api.synths.GSSynth;
 import org.jjazz.midi.api.synths.StdSynth;
+import org.jjazz.midi.api.synths.XGSynth;
 import org.jjazz.startup.spi.StartupTask;
 import org.jjazz.upgrade.api.UpgradeManager;
 import org.jjazz.util.api.ResUtil;
@@ -86,6 +89,10 @@ public class MidiSynthManagerImpl implements MidiSynthManager
     {
         // LOGGER.severe("MidiSynthManagerImpl() --");
         // Read the builtin synths        
+        builtinSynths.add(GMSynth.getInstance());
+        builtinSynths.add(GM2Synth.getInstance());
+        builtinSynths.add(XGSynth.getInstance());
+        builtinSynths.add(GSSynth.getInstance());
         builtinSynths.add(readOneResourceSynth(JJAZZLAB_SOUNDFONT_GS_SYNTH_PATH));
         builtinSynths.add(readOneResourceSynth(JJAZZLAB_SOUNDFONT_GM2_SYNTH_PATH));
         builtinSynths.add(readOneResourceSynth(JJAZZLAB_SOUNDFONT_XG_SYNTH_PATH));
@@ -167,7 +174,7 @@ public class MidiSynthManagerImpl implements MidiSynthManager
 
         // Process file
         String ext = org.jjazz.util.api.Utilities.getExtension(synthFile.getName());
-        MidiSynthFileReader reader = MidiSynthFileReader.Util.getReader(ext.toLowerCase());
+        MidiSynthFileReader reader = MidiSynthFileReader.getReader(ext.toLowerCase());
         if (reader == null)
         {
             // Extension not managed by any MidiSynthFileReader
@@ -310,7 +317,7 @@ public class MidiSynthManagerImpl implements MidiSynthManager
     {
         InputStream is = getClass().getResourceAsStream(insResourcePath);
         assert is != null : "insResourcePath=" + insResourcePath;   //NOI18N
-        MidiSynthFileReader r = MidiSynthFileReader.Util.getReader("ins");
+        MidiSynthFileReader r = MidiSynthFileReader.getReader("ins");
         assert r != null;   //NOI18N
         try
         {

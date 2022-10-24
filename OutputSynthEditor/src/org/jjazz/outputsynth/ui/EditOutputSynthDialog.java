@@ -357,7 +357,7 @@ public class EditOutputSynthDialog extends javax.swing.JDialog implements Proper
 
         
         Analytics.setProperties(Analytics.buildMap("OutputSynth Std Banks", Analytics.toStrList(outputSynth.getCompatibleStdBanks()),
-                "OutputSynth Custom Synths", Analytics.toStrList(outputSynth.getCustomSynths())));
+                "OutputSynth Custom Synths", Analytics.toStrList(outputSynth.getMidiSynths())));
         Analytics.setProperties(Analytics.buildMap("OutputSynth Send Mode On", outputSynth.getSendModeOnUponPlay().toString()));
         int nbRemapped = outputSynth.getGMRemapTable().getInstrumentMap().size() + outputSynth.getGMRemapTable().getFamilyInstrumentMap().size();
         Analytics.setProperties(Analytics.buildMap("OutputSynth Nb Remapped Ins", nbRemapped));                

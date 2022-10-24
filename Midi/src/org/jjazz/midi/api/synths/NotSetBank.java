@@ -27,7 +27,7 @@ import org.jjazz.midi.api.InstrumentBank;
 import org.jjazz.midi.api.Instrument;
 
 /**
- * Utility bank to store the Void instrument.
+ * Utility bank used only to store the Void instrument.
  *
  * @param <T>
  */

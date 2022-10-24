@@ -1,9 +1,10 @@
 ; -----------------------------------------------------------------------------
-; Modified by J. Lelasseux to keep only data specific to Tyros 5 (not XG/GM2).
+; Modified by J. Lelasseux for JJazzLab.
 ;
 ; Added JJazzLab extensions:
 ; - For drums instruments: 0=Live!DrumsStandardKit1 {{DrumKit=STANDARD, XG}}. param1 must be a DrumKit.Type value, param2 must be a value corresponding to a DrumKit.KeyMap.getName().
 ; - For voice instruments: 12=New Marimba {{SubGM1=12}}. Value is the GM1 program change.
+; - For banks: {{ GM_BANK }} {{ GM2_BANK }} {{ XG_BANK }} 
 ;
 ; -----------------------------
 ; --
@@ -47,6 +48,815 @@
 ;
 ; -----------------------------------------------------------------------------
 .Patch Names
+
+
+; -------------------------- XG Voices -----------------------------------
+
+[GM1 & XG Bank 0]
+0=Aco Grand Piano 
+1=Bright Aco Piano 
+2=E. Grand Piano 
+3=Honkytonk Piano 
+4=E. Piano 1 
+5=E. Piano 2 
+6=Harpsichord            
+7=Clavi                  
+8=Celesta                
+9=Glockenspiel           
+10=Music Box             
+11=Vibraphone            
+12=Marimba               
+13=Xylophone             
+14=Tubular Bells         
+15=Dulcimer              
+16=Drawbar Organ 
+17=Perc. Organ 
+18=Rock Organ 
+19=Church Organ 
+20=Reed Organ 
+21=Accordion 
+22=Harmonica             
+23=Tango Accordion 
+24=Nylon Guitar 
+25=Steel Guitar 
+26=Jazz Guitar 
+27=Clean Guitar 
+28=Muted Guitar 
+29=Overdriven Guitar 
+30=Distortion Guitar 
+31=Guitar Harmonics 
+32=Aco Bass 
+33=Finger Bass 
+34=Pick Bass 
+35=Fretless Bass 
+36=Slap Bass 1 
+37=Slap Bass 2 
+38=Synth Bass 1 
+39=Synth Bass 2 
+40=Violin                
+41=Viola                 
+42=Cello                 
+43=Contrabass            
+44=Tremolo Strings  
+45=Pizzicato Strings  
+46=Orchestral Harp       
+47=Timpani               
+48=Strings Ens. 1 
+49=Strings Ens. 2 
+50=Synth Strings 1 
+51=Synth Strings 2 
+52=Choir Aahs  
+53=Voice Oohs            
+54=Synth Voice           
+55=Orchestra Hit         
+56=Trumpet               
+57=Trombone              
+58=Tuba                  
+59=Muted Trumpet         
+60=French Horn           
+61=Brass Section 
+62=Synth Brass 1 
+63=Synth Brass 2 
+64=Soprano Sax 
+65=Alto Sax 
+66=Tenor Sax 
+67=Baritone Sax 
+68=Oboe                  
+69=English Horn          
+70=Bassoon               
+71=Clarinet              
+72=Piccolo               
+73=Flute                 
+74=Recorder              
+75=Pan Flute             
+76=Blown Bottle          
+77=Shakuhachi            
+78=Whistle               
+79=Ocarina               
+80=Square Lead           
+81=Sawtooth Lead         
+82=Calliope Lead         
+83=Chiff Lead            
+84=Charang Lead          
+85=Voice Lead            
+86=Fifths Lead           
+87=Bass & Lead 
+88=New Age Pad 
+89=Warm Pad 
+90=Polysynth Pad 
+91=Choir Pad 
+92=Bowed Pad 
+93=Metallic Pad 
+94=Halo Pad 
+95=Sweep Pad 
+96=Rain                  
+97=Sound Track           
+98=Crystal               
+99=Atmosphere            
+100=Brightness           
+101=Goblins              
+102=Echoes               
+103=Sci-Fi               
+104=Sitar                
+105=Banjo                
+106=Shamisen             
+107=Koto                 
+108=Kalimba              
+109=Bagpipe              
+110=Fiddle               
+111=Shanai               
+112=Tinkle Bell          
+113=Agogo                
+114=Steel Drums          
+115=Woodblock            
+116=Taiko Drum           
+117=Melodic Tom          
+118=Synth Drum           
+119=Reverse Cymbal       
+120=Fret Noise           
+121=Breath Noise         
+122=Seashore             
+123=Bird Tweet           
+124=Telephone Ring       
+125=Helicopter           
+126=Applause             
+127=Gunshot              
+
+[XG Bank 1 ]
+0=Grand Piano KSP 
+1=Bright Aco Piano KSP 
+2=E. Grand Piano KSP 
+3=Honkytonk Piano KSP 
+4=E. Piano 1 KSP 
+5=E. Piano 2 KSP 
+6=Harpsichord KSP        
+7=Clavi KSP              
+11=Vibraphone KSP        
+12=Marimba KSP           
+
+[XG Bank 100]
+112=Rama Cymbal          
+
+[XG Bank 101]
+112=Asian Bells          
+
+[XG Bank 12 ]
+39=Sequenced Bass 
+62=Quack Brass 
+98=Synth Drum Comp       
+
+[XG Bank 14 ]
+98=Popcorn               
+102=Echo Pan             
+
+[XG Bank 16 ]
+24=Nylon Guitar 2 
+25=Steel Guitar 2 
+52=Choir Aahs 2 
+56=Trumpet 2             
+58=Tuba 2                
+87=Big & Low             
+89=Thick Pad 
+
+[XG Bank 17]
+56=Bright Trumpet        
+89=Soft Pad 
+
+[XG Bank 18 ]
+0=Mellow Grand Piano 
+4=Mellow E. Piano 1 
+26=Mellow Guitar 
+33=Finger Dark           
+38=Synth Bass 1 Dark 
+39=Click Synth Bass      
+57=Trombone 2            
+63=Soft Brass 
+80=Hollow                
+81=Dynamic Sawtooth      
+89=Sine Pad 
+98=Tiny Bells            
+99=Warm Atmosphere       
+
+[XG Bank 19]
+39=Synth Bass 2 Dark 
+80=Shroud                
+81=Digital Sawtooth      
+99=Hollow Release        
+
+[XG Bank 20 ]
+38=Fast Resonant Bass 
+62=Resonant Synth Brass 
+81=Big Lead              
+95=Shwimmer              
+
+[XG Bank 24 ]
+17=70's Perc. Organ 1 
+38=Acid Bass 
+48=Arco Strings 
+62=Poly Brass 
+81=Heavy Synth 
+85=Synth Aahs            
+
+[XG Bank 25 ]
+6=Harpsichord 2          
+24=Nylon Guitar 3 
+81=Waspy Synth 
+
+[XG Bank 27 ]
+7=Clavi Wah              
+33=Flange Bass 
+36=Resonant Slap         
+50=Resonant Strings      
+62=Synth Brass 3 
+95=Converge              
+97=Prologue              
+
+[XG Bank 28 ]
+34=Muted Pick Bass 
+105=Muted Banjo          
+
+[XG Bank 3 ]
+48=Stereo Strings 
+49=Stereo Slow Strings 
+52=Stereo Choir 
+
+[XG Bank 32 ]
+2=Det. CP80              
+4=Chorus E. Piano 1 
+5=Chorus E. Piano 2 
+16=Det. Drawbar Organ 
+17=Det. Perc. Organ 
+19=Church Organ 3 
+21=Accordion It 
+22=Harmonica 2           
+26=Jazz Amp              
+27=Chorus Guitar 
+35=Fretless Bass 2 
+36=Punch Thumb Bass 
+39=Smooth Synth Bass 
+52=Mellow Choir 
+56=Warm Trumpet          
+60=French Horn 2         
+62=Jump Brass 
+104=Det. Sitar           
+
+[XG Bank 33 ]
+5=DX E. Piano Hard 
+16=60's Drawbar Organ 1 
+17=Light Organ 
+35=Fretless Bass 3 
+
+[XG Bank 34 ]
+5=DX Legend              
+16=60's Drawbar Organ 2 
+35=Fretless Bass 4 
+
+[XG Bank 35 ]
+6=Harpsichord 3          
+15=Dulcimer 2            
+16=70's Drawbar Organ 1 
+19=Church Organ 2 
+25=12-String Guitar 
+38=Clavi Bass 
+48=60's Strings 
+55=Orchestra Hit 2       
+61=Trumpet&Tromb. Sect.  
+86=Big Five              
+98=Round Glockenspiel    
+104=Sitar 2              
+
+[XG Bank 36 ]
+16=Drawbar Organ 2 
+
+[XG Bank 37 ]
+16=60's Drawbar Organ 3 
+17=Perc. Organ 2 
+60=Horn Orchestra        
+
+[XG Bank 38 ]
+16=Even Bar Organ 
+
+[XG Bank 40 ]
+0=Piano Strings 
+2=E. Grand Piano 1 Lay.  
+4=E. Piano Hard 
+5=DX Phase E. Piano 
+16=Organ "16+2""2/3" 
+19=Notre Dame            
+20=Puff Organ 
+25=Nylon & Steel Guitar 
+28=Funk Guitar 1 
+30=Feedback Guitar 
+32=Jazz Rhythm           
+33=Bass & Dist.E.Guitar 
+38=Techno Synth Bass 
+39=Modular Synth Bass 
+44=Suspense Strings 
+46=Yang Chin             
+48=Orchestra             
+49=Warm Strings 
+52=Choir Strings 
+54=Synth Voice 2         
+61=Brass Section 2 
+63=Synth Brass 4 
+65=Sax Section 
+66=Breathy Tenor Sax 
+81=Pulse Sawtooth        
+98=Glockenspiel Chimes   
+99=Nylon E. Piano 
+
+[XG Bank 41]
+0=Dream 
+2=Lay. E. Grand 2        
+5=DX+Analog E. Piano 
+25=Steel Guitar Body 
+28=Muted Steel Guitar 
+30=Feedback Guitar 2 
+39=DX Bass 
+48=Orchestra 2           
+49=Kingdom               
+54=Choral                
+61=High Brass 
+63=Choir Brass 
+66=Soft Tenor Sax 
+81=Dr. Lead              
+98=Clear Bells           
+
+[XG Bank 42]
+5=DX Koto E. Piano 
+48=Tremolo Orchestra     
+61=Mellow Brass 
+98=Chorus Bells          
+
+[XG Bank 43 ]
+24=Velo Guitar Harmonics 
+28=Funk Guitar 2 
+29=Guitar Pinch 
+33=Finger Slap Bass 
+37=Velocity Switch Slap  
+65=Hyper Alto Sax 
+
+[XG Bank 45 ]
+4=Velo Xfade E. Piano 1
+5=Velo Xfade E. Piano 2
+11=Hard Vibraphone       
+28=Jazz Man              
+32=Velo Xfade Upr. Bass
+33=Finger Bass 2 
+48=Velocity Strings 
+62=Analog Velocity Brass 1
+63=Analog Velocity Brass 2
+81=Velocity Lead         
+96=Clavi Pad 
+
+[XG Bank 6 ]
+39=Mellow Synth Bass 
+61=French Horn Solo      
+80=Square Lead 2         
+81=Sawtooth Lead 2       
+
+[XG Bank 64 ]
+4=60's E. Piano 1 
+7=Pulse Clavi            
+10=Orgel                 
+12=Sine Marimba          
+16=Organ Bass 
+18=Rotary Organ 
+19=Organ Flute 
+23=Tango Accordion 2 
+38=Orbiter               
+39=X Wire Bass 
+49=70's Strings 
+50=Synth Strings 4 
+54=Analog Voice          
+55=Impact                
+62=Analog Brass 1 
+63=Analog Brass 2 
+66=Tenor Sax 2 
+80=Mellow                
+83=Rubby                 
+84=Distorted Lead        
+85=Vox Lead              
+87=Fat & Perky           
+88=Fantasy 2             
+89=Horn Pad 
+90=Poly Pad 80 
+91=Heaven 2              
+92=Glacier               
+93=Tine Pad 
+95=Polar Pad 
+96=Harmo Rain            
+97=Ancestral             
+98=Synth Mallet 
+99=Nylon Harp            
+100=Fantasy Bells        
+101=Goblins Synth        
+102=Echo Bells           
+103=Starz                
+111=Shanai 2             
+117=Melodic Tom 2        
+118=Analog Tom           
+
+[XG Bank 65]
+7=Pierce Clavi           
+16=70's Drawbar Organ 2 
+18=Slow Rotary           
+19=Tremolo Organ Flute 
+31=Guitar Feedback 
+33=Modulated Bass 
+38=Square Bass 
+49=String Ens. 3         
+50=Synth Strings 5 
+80=Solo Sine             
+82=Pure Lead             
+84=Wire Lead             
+87=Soft Whirl            
+89=Rotary Strings 
+90=Click Pad 
+92=Glass Pad 
+93=Pan Pad 
+96=African Wind          
+98=Soft Crystal          
+99=Harp Vox              
+101=Creeper              
+102=Big Pan              
+117=Real Tom             
+118=Electronic Perc      
+
+[XG Bank 66]
+16=Cheezy Organ 
+18=Fast Rotary           
+31=Guitar Harmonics 2 
+38=Rubber Bass 
+80=Sine Lead             
+90=Analog Pad 
+91=Itopia                
+95=Celestial             
+96=Carib                 
+98=Loud Glockenspiel     
+99=Atmosphere Pad 
+101=Ring Pad 
+102=Synth Piano 
+117=Rock Tom             
+
+
+[XG Bank 67]
+16=Drawbar Organ 3 
+90=Square Pad            
+91=CC Pad                
+98=Christmas Bells       
+99=Planet                
+101=Ritual               
+102=Creation             
+
+[XG Bank 68]
+98=Vibraphone Bells      
+101=To Heaven            
+102=Star Dust            
+
+[XG Bank 69]
+98=Digital Bells         
+102=Resonant & Panning   
+
+[XG Bank 70]
+98=Air Bells             
+101=Night                
+
+[XG Bank 71]
+98=Bell Harp             
+101=Glisten              
+
+[XG Bank 72]
+98=Gamelimba             
+
+[XG Bank 8 ]
+40=Slow Violin           
+44=Slow Tremolo          
+48=Slow Strings 
+49=Legato Strings 
+80=LM Square             
+81=Thick Sawtooth        
+102=Echoes 2             
+
+[XG Bank 96]
+14=Church Bells          
+15=Cimbalom              
+24=Ukulele               
+25=Mandolin              
+35=Synth Fretless        
+38=Hammer                
+81=Sequenced Analog      
+100=Smokey               
+101=Bell Choir           
+104=Tambra               
+105=Rabab                
+107=Taisho Koto          
+111=Pungi                
+112=Bonang               
+115=Castanets            
+116=Gran Cassa           
+
+[XG Bank 97]
+12=Balimba               
+14=Carillon              
+15=Santur                
+35=Smooth Fretless       
+104=Tamboura             
+105=Gopichant            
+107=Kanoon               
+111=Hichiriki            
+112=Altair               
+114=Glass Percussion     
+
+[XG Bank 98]
+12=Log Drums             
+105=Oud                  
+112=Gamelan Gongs        
+114=Thai Bells           
+
+[XG Bank 99]
+112=St.Gamelan Gongs     
+
+
+; -------------------------- GM2 Voices -----------------------------------
+
+[GM2 Bank 0]
+0=Aco Grand Piano 
+1=Bright Aco Piano 
+2=E. Grand Piano 
+3=Honkytonk Piano 
+4=E. Piano Rhodes 
+5=Chorused E. Piano 
+6=Harpsichord           
+7=Clavinet              
+8=Celesta               
+9=Glockenspiel          
+10=Music Box            
+11=Vibraphone           
+12=Marimba              
+13=Xylophone            
+14=Tubular Bells        
+15=Dulcimer             
+16=Hammond Organ 
+17=Perc. Organ 
+18=Rock Organ 
+19=Church Organ 
+20=Reed Organ 
+21=Accordion 
+22=Harmonica            
+23=Tango Accordion 
+24=Nylon Guitar 
+25=Steel Guitar 
+26=Jazz Guitar 
+27=Clean Guitar 
+28=Muted Guitar 
+29=Overdriven Guitar 
+30=Distortion Guitar 
+31=Guitar Harmonics 
+32=Aco Bass 
+33=Finger Bass 
+34=Pick Bass 
+35=Fretless Bass 
+36=Slap Bass 1 
+37=Slap Bass 2 
+38=Synth Bass 1 
+39=Synth Bass 2 
+40=Violin               
+41=Viola                
+42=Cello                
+43=Contrabass           
+44=Tremolo Strings      
+45=Pizzicato Strings    
+46=Orchestral Harp      
+47=Timpani              
+48=String Ens. 1        
+49=String Ens. 2        
+50=Synth Strings 1      
+51=Synth Strings 2      
+52=Choir Aahs 
+53=Voice Oohs           
+54=Synth Voice          
+55=Orchestra Hit        
+56=Trumpet              
+57=Trombone             
+58=Tuba                 
+59=Muted Trumpet        
+60=French Horn          
+61=Brass Section 
+62=Synth Brass 1 
+63=Synth Brass 2 
+64=Soprano Sax          
+65=Alto Sax             
+66=Tenor Sax            
+67=Baritone Sax         
+68=Oboe                 
+69=English Horn         
+70=Bassoon              
+71=Clarinet             
+72=Piccolo              
+73=Flute                
+74=Recorder             
+75=Pan Flute            
+76=Bottle Blow          
+77=Shakuhachi           
+78=Whistle              
+79=Ocarina              
+80=Square Lead          
+81=Sawtooth Lead        
+82=Calliope Lead        
+83=Chiff Lead           
+84=Charang Lead         
+85=Voice Lead           
+86=Fifths Lead          
+87=Bass & Lead          
+88=New Age Pad 
+89=Warm Pad 
+90=Polysynth Pad 
+91=Choir Pad 
+92=Bowed Pad 
+93=Metallic Pad 
+94=Halo Pad 
+95=Sweep Pad 
+96=Rain                 
+97=Soundtrack           
+98=Crystal              
+99=Atmosphere           
+100=Brightness          
+101=Goblins             
+102=Echo Drops          
+103=Sci-Fi              
+104=Sitar               
+105=Banjo               
+106=Shamisen            
+107=Koto                
+108=Kalimba             
+109=Bagpipe             
+110=Fiddle              
+111=Shanai              
+112=Tinkle Bell         
+113=Agogo               
+114=Steel Drums         
+115=Woodblock           
+116=Taiko Drum          
+117=Melodic Tom         
+118=Synth Drum          
+119=Reverse Cymbal      
+120=Guitar Fret Noise   
+121=Breath Noise        
+122=Seashore            
+123=Bird Tweet          
+124=Telephone 1         
+125=Helicopter          
+126=Applause            
+127=Gunshot             
+
+[GM2 Bank 1]
+0=Aco Piano w 
+1=Bright Aco Piano d 
+2=E. Grand Piano w 
+3=Honkytonk Piano w 
+4=Det. E. Piano 1 
+5=Det. E. Piano 2 
+6=Harpsi. oct-mix       
+7=Pulse Clavi           
+11=Vibraphone w         
+12=Marimba w            
+14=Church Bell          
+16=Det. Drawbar Organ
+17=Det. Perc. Organ 
+19=Church Organ Oct. 
+20=Puff Organ 
+21=Accordion 2 
+24=Ukulele              
+25=12-String Guitar 
+26=Pedal Steel Guitar 
+27=Det. Clean Guitar 
+28=Funky Guitar 
+29=Guitar Pinch 
+30=Feedback Guitar 
+31=Guitar Feedback 
+33=Finger Slap Bass 
+38=Warm Synth Bass 
+39=Synth Bass 4 
+40=Slow Violin          
+46=Yang Chin            
+48=Strings & Brass 
+50=Synth Strings 3 
+52=Choir Aahs 2 
+53=Humming              
+54=Analog Voice         
+55=Bass Hit Plus        
+56=Soft Trumpet         
+57=Trombone 2           
+59=Muted Trumpet 2      
+60=Warm French Horn     
+61=Brass Section 2 
+62=Synth Brass 3 
+63=Synth Brass 4 
+80=Simple Square        
+81=Simple Sawtooth      
+84=Wire Lead            
+87=Soft Wurl Piano 
+89=Sine Pad 
+91=Itopia               
+98=Synth Mallet 
+102=Echo Bell           
+104=Sitar 2             
+107=Taisho Koto         
+115=Castanets           
+116=Concert Bass Drum   
+117=Melodic Tom 2       
+118=Analog Tom          
+120=Gtr.Cutting Noise   
+121=Flute Key Click     
+122=Rain                
+123=Dog                 
+124=Telephone Ring 2    
+125=Car Engine          
+126=Laughing            
+127=Machine Gun         
+
+[GM2 Bank 2]
+0=Aco Piano d 
+4=E. Piano 1 v 
+5=E. Piano 2 v 
+6=Harpsichord w         
+14=Church Bell          
+16=Italian 60's Organ 
+17=Perc. Organ2 
+19=Det. Church Organ 
+24=Nylon Guitar ket-off 
+25=Mandolin             
+27=Mid Tone Guitar 
+28=Muted Guitar v 
+30=Distortion Rhythm    
+38=Synth Bass 3 
+39=Rubber Bass 
+48=60's Strings 
+55=6th Hit              
+57=Bright Trombone      
+62=Analog Brass 1 
+63=Analog Brass 2 
+80=Simple Sine          
+81=Sawtooth + Pulse     
+102=Echo Pan            
+118=E. Drum             
+120=Bass String Slap    
+122=Thunder             
+123=Horse Gallop        
+124=Door Creaking       
+125=Car Stop            
+126=Screaming           
+127=Lasergun            
+
+[GM2 Bank 3]
+4=60's E. Piano 
+5=E. Piano Legend 
+6=Harpsi. Key-off       
+16=Drawbar Organ 2 
+24=Nylon Guitar 2 
+25=Steel Guitar Body 
+28=Jazz Man             
+38=Clavi Bass 
+39=Attack Pulse         
+55=Euro Hit             
+62=Jump Brass 
+81=Double Sawtooth      
+122=Wind                
+123=Bird Tweet 2        
+124=Door Slamming       
+125=Car Pass            
+126=Punch               
+127=Explosion           
+
+[GM2 Bank 4]
+5=E. Piano Phase 
+38=Hammer               
+81=Sequenced Analog     
+122=Stream              
+124=Scratch             
+125=Car Crash           
+126=Heart Beat          
+
+[GM2 Bank 5]
+122=Bouble              
+124=Wind Chime          
+125=Siren               
+126=Footsteps           
+
+[GM2 Bank 6]
+125=Train               
+
+[GM2 Bank 7]
+125=Jetplane            
+
+[GM2 Bank 8]
+125=Starship            
+
+[GM2 Bank 9]
+125=Burst Noise         
+
+
 ; -------------------------- Tyros 5 Voices -----------------------------------
 ; Don't need to define {{SubGM1=xx}} because these voices use the GM1 program changes.
 
@@ -2995,6 +3805,49 @@ BasedOn=Standard Kit 1
 Control=Tyros Controllers
 RPN=Standard RPN
 NRPN=NRPN Tyros
+Patch[0]=GM1 & XG Bank 0   {{ GM_BANK }} 
+Patch[1]=XG Bank 1 (KSP)   {{ XG_BANK }}
+Patch[3]=XG Bank 3 (Stereo)
+Patch[6]=XG Bank 6 (Single)
+Patch[8]=XG Bank 8 (Slow)
+Patch[12]=XG Bank 12 (Fast Decay)
+Patch[14]=XG Bank 14 (Double Attack)
+Patch[16]=XG Bank 16 (Bright)
+Patch[17]=XG Bank 17
+Patch[18]=XG Bank 18 (Dark)
+Patch[19]=XG Bank 19
+Patch[20]=XG Bank 20 (Resonant)
+Patch[24]=XG Bank 24 (Attack)
+Patch[25]=XG Bank 25 (Release)
+Patch[27]=XG Bank 27 (Rezo Sweep)
+Patch[28]=XG Bank 28 (Muted)
+Patch[32]=XG Bank 32 (Detune 1)
+Patch[33]=XG Bank 33 (Detune 2)
+Patch[34]=XG Bank 34 (Detune 3)
+Patch[35]=XG Bank 35 (Octave 1)
+Patch[36]=XG Bank 36 (Octave 2)
+Patch[37]=XG Bank 37 (5th 1)
+Patch[38]=XG Bank 38 (5th 2)
+Patch[40]=XG Bank 40 (Tutti)
+Patch[41]=XG Bank 41
+Patch[42]=XG Bank 42
+Patch[43]=XG Bank 43 (Velo-Switch)
+Patch[45]=XG Bank 45 (Velo-Xfade)
+Patch[64]=XG Bank 64 (Other Wave)
+Patch[65]=XG Bank 65
+Patch[66]=XG Bank 66
+Patch[67]=XG Bank 67
+Patch[68]=XG Bank 68
+Patch[69]=XG Bank 69
+Patch[70]=XG Bank 70
+Patch[71]=XG Bank 71
+Patch[72]=XG Bank 72
+Patch[96]=XG Bank 96
+Patch[97]=XG Bank 97
+Patch[98]=XG Bank 98
+Patch[99]=XG Bank 99
+Patch[100]=XG Bank 100
+Patch[101]=XG Bank 101
 Patch[13312]=Tyros5 Bank 0
 Patch[13313]=Tyros5 Bank 1
 Patch[13314]=Tyros5 Bank 2
@@ -3129,6 +3982,16 @@ Patch[14068]=Tyros5 Ensemble.2 Bank 116
 Patch[14069]=Tyros5 Ensemble.2 Bank 117
 Patch[14070]=Tyros5 Ensemble.2 Bank 118
 Patch[14071]=Tyros5 Ensemble.2 Bank 119
+Patch[15488]=GM2 Bank 0   {{ GM2_BANK }}
+Patch[15489]=GM2 Bank 1
+Patch[15490]=GM2 Bank 2
+Patch[15491]=GM2 Bank 3
+Patch[15492]=GM2 Bank 4
+Patch[15493]=GM2 Bank 5
+Patch[15494]=GM2 Bank 6
+Patch[15495]=GM2 Bank 7
+Patch[15496]=GM2 Bank 8
+Patch[15497]=GM2 Bank 9
 Patch[1280]=Tyros5 Organ World Bank 0
 Patch[1281]=Tyros5 Organ World Bank 1
 Patch[1282]=Tyros5 Organ World Bank 2

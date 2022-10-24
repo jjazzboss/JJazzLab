@@ -23,6 +23,7 @@
 package org.jjazz.midi.api.ui;
 
 import java.util.ArrayList;
+import java.util.function.Predicate;
 import javax.sound.midi.MidiDevice;
 import javax.sound.midi.Synthesizer;
 import javax.swing.JList;
@@ -30,13 +31,29 @@ import javax.swing.ListSelectionModel;
 import org.jjazz.midi.api.JJazzMidiSystem;
 
 /**
- * A specialized JList to display system's OUT MidiDevices.
+ * A specialized JList to display system's OUT MidiDevices, including the Java internal synth.
  */
 public class MidiOutDeviceList extends JList<MidiDevice>
 {
 
+    Predicate<MidiDevice> tester;
+
+    /**
+     * List contains all the MidiSystem MidiOutDevice instances.
+     */
     public MidiOutDeviceList()
     {
+        this(md -> true);
+    }
+
+    /**
+     * List contains all the MidiSystem MidiOutDevice instances which satisfy tester.
+     *
+     * @param tester 
+     */
+    public MidiOutDeviceList(Predicate<MidiDevice> tester)
+    {
+        this.tester = tester;
         setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         MidiDeviceRenderer mdr = new MidiDeviceRenderer();
         setCellRenderer(mdr);
@@ -53,11 +70,14 @@ public class MidiOutDeviceList extends JList<MidiDevice>
         ArrayList<MidiDevice> outDevices = new ArrayList<>();
         JJazzMidiSystem jms = JJazzMidiSystem.getInstance();
         Synthesizer synth = jms.getDefaultJavaSynth();
-        if (synth != null)
+        if (synth != null && tester.test(synth))
         {
             outDevices.add(synth);
         }
-        outDevices.addAll(jms.getOutDeviceList());
-        setListData(outDevices.toArray(new MidiDevice[0]));
+        jms.getOutDeviceList().stream()
+                .filter(tester)
+                .forEach(md -> outDevices.add(md));
+              
+        setListData(outDevices.toArray(MidiDevice[]::new));
     }
 }

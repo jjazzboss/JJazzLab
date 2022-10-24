@@ -37,32 +37,29 @@ import org.openide.util.Lookup;
 public interface MidiSynthFileReader
 {
 
-    static public class Util
+    /**
+     * Get the first reader which can read the specified file extension.
+     *
+     * @param fileExtension For example "ins"
+     * @return
+     */
+    static public MidiSynthFileReader getReader(String fileExtension)
     {
-
-        /**
-         * Get the first reader which can read the specified file extension.
-         *
-         * @param fileExtension For example "ins"
-         * @return
-         */
-        static public MidiSynthFileReader getReader(String fileExtension)
+        MidiSynthFileReader res = null;
+        for (MidiSynthFileReader reader : Lookup.getDefault().lookupAll(MidiSynthFileReader.class))
         {
-            MidiSynthFileReader res = null;
-            for (MidiSynthFileReader reader : Lookup.getDefault().lookupAll(MidiSynthFileReader.class))
+            for (FileNameExtensionFilter f : reader.getSupportedFileTypes())
             {
-                for (FileNameExtensionFilter f : reader.getSupportedFileTypes())
+                if (Arrays.asList(f.getExtensions()).contains(fileExtension))
                 {
-                    if (Arrays.asList(f.getExtensions()).contains(fileExtension))
-                    {
-                        res = reader;
-                        break;
-                    }
+                    res = reader;
+                    break;
                 }
             }
-            return res;
         }
+        return res;
     }
+
 
     /**
      * Must be unique amongst MidiSynthProviders.

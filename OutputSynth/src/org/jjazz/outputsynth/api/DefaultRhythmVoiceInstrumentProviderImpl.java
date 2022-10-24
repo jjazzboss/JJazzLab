@@ -24,6 +24,7 @@
 package org.jjazz.outputsynth.api;
 
 import org.jjazz.midi.api.Instrument;
+import org.jjazz.midimix.api.UserRhythmVoice;
 import org.jjazz.midimix.spi.RhythmVoiceInstrumentProvider;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.openide.util.lookup.ServiceProvider;
@@ -34,6 +35,7 @@ import org.openide.util.lookup.ServiceProvider;
 @ServiceProvider(service = RhythmVoiceInstrumentProvider.class)
 public class DefaultRhythmVoiceInstrumentProviderImpl implements RhythmVoiceInstrumentProvider
 {
+
     @Override
     public String getId()
     {
@@ -43,7 +45,16 @@ public class DefaultRhythmVoiceInstrumentProviderImpl implements RhythmVoiceInst
     @Override
     public Instrument findInstrument(RhythmVoice rv)
     {
-        return OutputSynthManager.getInstance().getOutputSynth().findInstrument(rv);
+        Instrument ins;
+        if (!(rv instanceof UserRhythmVoice))
+        {
+            ins = OutputSynthManager.getInstance().getOutputSynth().findInstrument(rv);
+
+        } else
+        {
+            ins = outSynth.getUserInstrument();
+        }
+        return ins;
     }
 
 }

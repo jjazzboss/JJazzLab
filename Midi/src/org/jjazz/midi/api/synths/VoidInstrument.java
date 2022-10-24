@@ -32,7 +32,7 @@ import org.jjazz.midi.api.InstrumentBank;
 /**
  * A special "void" instrument: no bank change or program change is associated to this instrument.
  * <p>
- * When used the system should not send any Midi bank select or program change messages for this instrument.
+ * When used, the system should not send any Midi bank select or program change messages for this instrument.
  */
 public class VoidInstrument extends GM1Instrument implements Serializable
 {
@@ -41,7 +41,7 @@ public class VoidInstrument extends GM1Instrument implements Serializable
     private InstrumentBank<?> myBank;
 
     /**
-     * Should be only called by JazzSynth: this way the bank/synth are correctly set.
+     * Should be only called via a MidiSynth: this way the bank/synth are correctly set.
      *
      * @return
      */
@@ -122,7 +122,7 @@ public class VoidInstrument extends GM1Instrument implements Serializable
 
         private Object readResolve() throws ObjectStreamException
         {
-            return StdSynth.getInstance().getVoidInstrument();
+            return NotSetBank.getInstance().getVoidInstrument();
         }
     }
 

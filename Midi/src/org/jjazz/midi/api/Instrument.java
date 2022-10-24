@@ -32,8 +32,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiMessage;
 import org.jjazz.midi.api.synths.GM2Bank;
+import org.jjazz.midi.api.synths.GMSynth;
 import org.jjazz.midi.api.synths.GSBank;
-import org.jjazz.midi.api.synths.StdSynth;
 import org.jjazz.midi.api.synths.XGBank;
 
 /**
@@ -378,7 +378,7 @@ public class Instrument implements Serializable
             Instrument ins = Instrument.loadFromString(spSaveString);
             if (ins == null)
             {
-                GM1Bank gm1Bank = StdSynth.getInstance().getGM1Bank();
+                GM1Bank gm1Bank = GMSynth.getInstance().getGM1Bank();
                 ins = gm1Bank.guessInstrument(spPatchname.trim());
                 if (ins == null)
                 {

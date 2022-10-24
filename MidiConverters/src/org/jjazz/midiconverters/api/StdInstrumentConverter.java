@@ -24,6 +24,7 @@
 package org.jjazz.midiconverters.api;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -37,14 +38,16 @@ import org.jjazz.midi.api.keymap.KeyMapXG_PopLatin;
 import org.jjazz.midi.api.keymap.KeyMapXG;
 import org.jjazz.midi.api.synths.GM1Bank;
 import org.jjazz.midi.api.synths.GM2Bank;
+import org.jjazz.midi.api.synths.GM2Synth;
+import org.jjazz.midi.api.synths.GMSynth;
 import org.jjazz.midi.api.synths.GSBank;
 import org.jjazz.midi.api.synths.GSSynth;
-import org.jjazz.midi.api.synths.StdSynth;
 import org.jjazz.midi.api.synths.XGBank;
+import org.jjazz.midi.api.synths.XGSynth;
 import org.jjazz.midiconverters.spi.InstrumentConverter;
 
 /**
- * Conversion between GM/GS/GM2/XG sounds.
+ * A converter between GM/GS/GM2/XG sounds only.
  */
 public class StdInstrumentConverter implements InstrumentConverter
 {
@@ -80,10 +83,10 @@ public class StdInstrumentConverter implements InstrumentConverter
     /**
      * Try to convert an instrument from a standard bank to an instrument of another standard bank.
      *
-     * @param srcIns    Must be a sound from a standard bank
+     * @param srcIns
      * @param destSynth Can be null.
-     * @param destBanks Must be banks from StdSynth and the GSBank from GSSynth. If null use all these banks.
-     * @return 
+     * @param destBanks Must be standard banks (GM, GM2, XG, GS). If null use all these banks.
+     * @return
      */
     @Override
     public Instrument convertInstrument(Instrument srcIns, MidiSynth destSynth, List<InstrumentBank<?>> destBanks)
@@ -92,18 +95,21 @@ public class StdInstrumentConverter implements InstrumentConverter
         {
             throw new IllegalArgumentException("srcIns=" + srcIns + " destSynth=" + destSynth + " destBanks=" + destBanks);   //NOI18N
         }
+
+
         InstrumentBank<?> srcBank = srcIns.getBank();
-        if (!isValidBank(srcBank))
+        MidiSynth srcSynth = srcBank != null ? srcBank.getMidiSynth() : null;
+        if (!isStdBank(srcBank))
         {
             return null;
         }
+
+
         if (destBanks == null)
         {
             if (destSynth == null)
             {
-                destBanks = new ArrayList<>();
-                destBanks.addAll(StdSynth.getInstance().getBanks());
-                destBanks.add(GSSynth.getInstance().getGSBank());
+                destBanks = getStdBanks();
             } else
             {
                 destBanks = destSynth.getBanks();
@@ -115,15 +121,15 @@ public class StdInstrumentConverter implements InstrumentConverter
         }
         for (InstrumentBank<?> destBank : destBanks)
         {
-            if (!isValidBank(destBank))
+            if (!isStdBank(destBank))
             {
                 throw new IllegalArgumentException("srcIns=" + srcIns.toLongString() + " destSynth=" + destSynth + " destBanks=" + destBanks);   //NOI18N
             }
         }
 
-        GM1Bank gm1Bank = StdSynth.getInstance().getGM1Bank();
-        GM2Bank gm2Bank = StdSynth.getInstance().getGM2Bank();
-        XGBank xgBank = StdSynth.getInstance().getXGBank();
+        GM1Bank gm1Bank = GMSynth.getInstance().getGM1Bank();
+        GM2Bank gm2Bank = GM2Synth.getInstance().getGM2Bank();
+        XGBank xgBank = XGSynth.getInstance().getXGBank();
         GSBank gsBank = GSSynth.getInstance().getGSBank();
 
         Instrument ins = null;
@@ -223,7 +229,7 @@ public class StdInstrumentConverter implements InstrumentConverter
         }
         for (InstrumentBank<?> destBank : destBanks)
         {
-            if (!isValidBank(destBank))
+            if (!isStdBank(destBank))
             {
                 throw new IllegalArgumentException("srcKit=" + srcKit + " destBanks=" + destBanks);   //NOI18N
             }
@@ -276,12 +282,14 @@ public class StdInstrumentConverter implements InstrumentConverter
     // =====================================================================================
     // Private methods
     // =====================================================================================     
-    private boolean isValidBank(InstrumentBank<?> bank)
+    private boolean isStdBank(InstrumentBank<?> bank)
     {
-        return bank == StdSynth.getInstance().getGM1Bank()
-                || bank == StdSynth.getInstance().getGM2Bank()
-                || bank == StdSynth.getInstance().getXGBank()
-                || bank == GSSynth.getInstance().getGSBank();
+        return bank == GMSynth.getInstance().getGM1Bank() || bank == GM2Synth.getInstance().getGM2Bank() || bank == XGSynth.getInstance().getXGBank() || bank == GSSynth.getInstance().getGSBank();
+    }
+
+    private List<InstrumentBank<?>> getStdBanks()
+    {
+        return Arrays.asList(GMSynth.getInstance().getGM1Bank(), GM2Synth.getInstance().getGM2Bank(), XGSynth.getInstance().getXGBank(), GSSynth.getInstance().getGSBank());
     }
 
     private Instrument getDrumsInstrument(InstrumentBank<Instrument> bank, DrumKit kit, boolean tryHarder)

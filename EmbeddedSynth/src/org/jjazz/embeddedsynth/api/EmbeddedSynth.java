@@ -25,6 +25,7 @@ package org.jjazz.embeddedsynth.api;
 import java.io.File;
 import javax.sound.midi.MidiDevice;
 import org.jjazz.embeddedsynth.spi.Mp3EncoderProvider;
+import org.jjazz.outputsynth.api.OutputSynth;
 
 /**
  * Interface for a JJazzLab embedded synth.
@@ -49,11 +50,17 @@ public interface EmbeddedSynth
     String getVersion();
 
     /**
-     * Get the OUT MidiDevice name connected to this embedded synth.
+     * Get the OUT MidiDevice connected to this embedded synth.
      *
      * @return
      */
-    String getOutMidiDeviceName();
+    MidiDevice getOutMidiDevice();
+    
+    /**
+     * Get the OutputSynth corresponding to this embedded synth.
+     * @return 
+     */
+    OutputSynth getOutputSynth();
 
     /**
      * Display a dialog to alter embedded synth settings.

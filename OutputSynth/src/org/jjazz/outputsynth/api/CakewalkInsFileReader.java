@@ -55,21 +55,30 @@ import org.jjazz.util.api.ResUtil;
 /**
  * A MidiSynth provider reading Cakewalk .ins instrument definition files.
  * <p>
- * Accept extensions to the .ins format for patch names to adjust the created Instrument with DrumKit or substitute GM1
- * instrument:<br>
- * - For drums instruments: 0=Live!DrumsStandardKit1 {{DrumKit=STANDARD, XG}}. Param1 is a DrumKit.Type value, param2 must be a
+ * Several JJazzLab-specific extensions marked with {{ ... }} to the .ins format are supported, as described below.
+ * <p>
+ * Patch name extensions to adjust the created Instrument with DrumKit, or to define a substitute GM1 instrument:<br>
+ * - For drums instruments: "0=Live!DrumsStandardKit1 {{DrumKit=STANDARD, XG}}". Param1 is a DrumKit.Type value, param2 must be a
  * value corresponding to a DrumKit.KeyMap.getName(). <br>
- * instance (which send SysEx messages to switch to channel to drum mode) <br>
- * - For voice instruments: 12=New Marimba {{SubGM1=12}}<br>
- * - For bank : {{ UseGsInstruments }} or {{ UseGsDrumsInstruments }} : use the special GSInstrument/GSDrumsInstrument
+ * - For voice instruments: "12=New Marimba {{SubGM1=0}}" defines GM instrument 0 (piano) as the GM substitute for the New Marimba
+ * patch.<p>
+ * Bank name extensions :<br>
+ * - "Patch[10371]=Roland JV-1080 GM {{ GM_BANK }}" : this tells JJazzLab that the "current synth is GM compatible", and it indicates the
+ * location of the GM bank. You can similarly use GM2_BANK or XG_BANK or GS_BANK extension on any bank to tell JJazzLab that the
+ * synth is GM2/XG/GS compatible.
+ * <br>
+ * - "Patch[128]=Bank 1 {{ UseGsInstruments }}" : force the use of GSInstrument.java instances for this bank, to enable
+ * drums/melodic - "Patch[*]=Drums {{ UseGsDrumsInstruments }}" : force the use of GSDumrsInstrument.java instances for this bank,
+ * to enable drums/melodic GS voice switch<br>
  */
+
 @ServiceProvider(service = MidiSynthFileReader.class)
 public class CakewalkInsFileReader implements MidiSynthFileReader
 {
 
     public static final String NAME = "InsFileSynthProvider";
     private static final Logger LOGGER = Logger.getLogger(CakewalkInsFileReader.class.getSimpleName());
-    private final FileNameExtensionFilter FILTER = new FileNameExtensionFilter(ResUtil.getString(getClass(),"CTL_CakewalkInstFiles"), "ins");
+    private final FileNameExtensionFilter FILTER = new FileNameExtensionFilter(ResUtil.getString(getClass(), "CTL_CakewalkInstFiles"), "ins");
 
     public CakewalkInsFileReader()
     {
@@ -100,7 +109,7 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
         MidiSynth currentSynth = null;
         BankSelectMethod currentBsm = BankSelectMethod.MSB_LSB;
         HashMap<String, List<Instrument>> mapBankNameInstruments = new HashMap<>();
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(in)))
+        try ( BufferedReader reader = new BufferedReader(new InputStreamReader(in)))
         {
             int lineCount = 0;
             String line;
@@ -113,6 +122,7 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
             Pattern pPatch2 = Pattern.compile("^\\s*Patch\\[(\\d+)\\]=(.*)");  // Patch[1232]=PRE 1
             Pattern pPatch2Gs = Pattern.compile("\\{\\{\\s*UseGsInstruments\\s*\\}\\}");   // {{UseGsInstruments}}            
             Pattern pPatch2GsDrums = Pattern.compile("\\{\\{\\s*UseGsDrumsInstruments\\s*\\}\\}");   // {{UseGsDrumsInstruments}}            
+            Pattern pPatch2XxBank0 = Pattern.compile("\\{\\{\\s*(GM|GM2|XG|GS)_BANK\\s*\\}\\}");   // {{ GM_BANK }}   or GM2_BANK, XG_BANK, GS_BANK
             Pattern p2Patch2 = Pattern.compile("^\\s*Patch\\[\\*\\]=([^.]*)\\s*");  // Patch[*]=PRE 1, but not Patch[*]=1...128                                        
 
             // 
@@ -191,7 +201,7 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
                         {
                             // Got the patchName right, now check the Meta info {{ }}
                             patchName = patchName.trim();
-                            
+
                             // Check if a DrumKit is defined
                             Matcher mPatchDrumKit = pPatchDrums.matcher(patchName);
                             if (mPatchDrumKit.find())
@@ -233,7 +243,7 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
                                 }
                                 if (pcGM1 < 0 || pcGM1 > 127)
                                 {
-                                    LOGGER.warning("readSynthsFromStream() Invalid SubGM1 program change " + pcGM1str + " for instrument" + patchName   //NOI18N
+                                    LOGGER.warning("readSynthsFromStream() Invalid SubGM1 program change " + pcGM1str + " for instrument" + patchName //NOI18N
                                             + " in file " + fileName + " at line " + lineCount + ". Using value SubGM1 PC=0 instead.");
                                     pcGM1 = 0;
                                 }
@@ -318,6 +328,7 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
                         boolean useGsIns = mGsInstrument.find();
                         boolean useGsDrumsIns = mGsDrumsInstrument.find();
 
+
                         // Remove possible meta info
                         int index = bankName.indexOf("{{");
                         if (index != -1)
@@ -392,8 +403,11 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
                         // Check if there is a Meta info {{ }}
                         Matcher mGsInstrument = pPatch2Gs.matcher(bankName);
                         Matcher mGsDrumsInstrument = pPatch2GsDrums.matcher(bankName);
+                        Matcher mXxBank0 = pPatch2XxBank0.matcher(bankName);
                         boolean useGsIns = mGsInstrument.find();
                         boolean useGsDrumsIns = mGsDrumsInstrument.find();
+                        boolean useXxBank0 = mXxBank0.find();   // GM_BANK or GM2_BANK or XG_BANK or GS_BANK
+
 
                         // Remove possible meta info
                         int index = bankName.indexOf("{{");
@@ -409,11 +423,43 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
                         } else if (bankInstruments.isEmpty())
                         {
                             LOGGER.warning("readSynthsFromStream() Empty bank " + bankName + " in file " + fileName + " at line " + lineCount);   //NOI18N
+
                         } else
                         {
                             // Create the actual bank with current parameters
                             InstrumentBank<Instrument> bank = new InstrumentBank<>(bankName, msb, lsb, currentBsm);
                             currentSynth.addBank(bank);
+
+
+                            // Update the synth if a GM_BANK or equivalent was used
+                            if (useXxBank0)
+                            {
+                                String bankType = mXxBank0.group(1);        // GM, GM2, XG, GS
+                                switch (bankType)
+                                {
+                                    case "GM":
+                                        currentSynth.setCompatibility(true, null, null, null);
+                                        currentSynth.setGM1BankBaseMidiAddress(new MidiAddress(0, msb, lsb, currentBsm));
+                                        LOGGER.fine("readSynthsFromStream() marking " + currentSynth.getName() + " as GM compatible, GM1 bank base address=" + currentSynth.getGM1BankBaseMidiAddress());
+                                        break;
+                                    case "GM2":
+                                        currentSynth.setCompatibility(null, true, null, null);
+                                        LOGGER.fine("readSynthsFromStream() marking currentSynth=" + currentSynth.getName() + " as GM2 compatible");
+                                        break;
+                                    case "XG":
+                                        currentSynth.setCompatibility(null, null, true, null);
+                                        LOGGER.fine("readSynthsFromStream() marking currentSynth=" + currentSynth.getName() + " as XG compatible");
+                                        break;
+                                    case "GS":
+                                        currentSynth.setCompatibility(null, null, null, true);
+                                        LOGGER.fine("readSynthsFromStream() marking currentSynth=" + currentSynth.getName() + " as GS compatible");
+                                        break;
+                                    default:
+                                        LOGGER.warning("readSynthsFromStream() unexpected bankType value" + bankType + " in file " + fileName + " at line " + lineCount);   //NOI18N
+                                }
+                            }
+
+
                             // Add the instruments
                             for (Instrument ins : bankInstruments)
                             {

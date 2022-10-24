@@ -344,7 +344,7 @@ public class GSBank extends InstrumentBank<Instrument>
      */
     private Instrument createInstrument(int pc, int msb, String name)
     {
-        GM1Instrument gmIns = StdSynth.getInstance().getGM1Bank().getInstrument(pc); // GS's PC is directly compatible with GM1
+        GM1Instrument gmIns = GMSynth.getInstance().getGM1Bank().getInstrument(pc); // GS's PC is directly compatible with GM1
         Instrument ins = new GSInstrument(name, null, new MidiAddress(pc, msb, -1, DEFAULT_BANK_SELECT_METHOD), null, gmIns);
         return ins;
     }

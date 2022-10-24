@@ -26,45 +26,49 @@ import java.util.logging.Logger;
 import org.jjazz.midi.api.MidiSynth;
 
 /**
- * A synth which only contains the GS banks.
+ * A synth which only contains the GM bank.
  * <p>
- * NOTE: GS banks are NOT compatible with GM2/XG in general, some identical MidiAddresses result in completly different patches.
  */
-public class GSSynth extends MidiSynth
+public class GMSynth extends MidiSynth
 {
-    public static String NAME = "GS Synth";
-    public static String MANUFACTURER = "JJazz";
-    private static GSSynth INSTANCE;
-    private static final Logger LOGGER = Logger.getLogger(GSSynth.class.getSimpleName());
 
-    public static GSSynth getInstance()
+    public static String NAME = "GM Synth";
+    public static String MANUFACTURER = "JJazz";
+    private static GMSynth INSTANCE;
+    private static final Logger LOGGER = Logger.getLogger(GMSynth.class.getSimpleName());
+
+    public static GMSynth getInstance()
     {
-        synchronized (GSSynth.class)
+        synchronized (GMSynth.class)
         {
             if (INSTANCE == null)
             {
-                INSTANCE = new GSSynth();
+                INSTANCE = new GMSynth();
             }
         }
         return INSTANCE;
     }
 
-    private GSSynth()
+    private GMSynth()
     {
         super(NAME, MANUFACTURER);
-        addBank(getGSBank());
-        // addBank(getGS_SC88Pro_Bank());
-        setCompatibility(true, false, false, true);
+        addBank(getGM1Bank());
+        setCompatibility(true, false, false, false);
     }
 
-    public final GSBank getGSBank()
+    public final GM1Bank getGM1Bank()
     {
-        return GSBank.getInstance();
+        return GM1Bank.getInstance();
     }
 
-//    public final GSBank_SC88Pro getGS_SC88Pro_Bank()
-//    {
-//        return GSBank_SC88Pro.getInstance();
-//    }
- 
+    /**
+     * A special "empty" GM1Instrument: when used, no Midi messages are sent (no bank select/program change).
+     *
+     * @return
+     */
+    public final VoidInstrument getVoidInstrument()
+    {
+        return NotSetBank.getInstance().getVoidInstrument();
+    }
+
 }

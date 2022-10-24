@@ -34,9 +34,10 @@ import org.jjazz.midisynthmanager.api.MidiSynthManager;
 public class OS_JJazzLabSoundFont_GS extends OutputSynth
 {
 
+    public final static String NAME = "GS synth with JJazzLab soundfont";
     private static OS_JJazzLabSoundFont_GS INSTANCE;
     private final MidiSynth midiSynth;
-    
+
     private static final Logger LOGGER = Logger.getLogger(OS_JJazzLabSoundFont_GS.class.getSimpleName());
 
     public static OS_JJazzLabSoundFont_GS getInstance()
@@ -53,6 +54,8 @@ public class OS_JJazzLabSoundFont_GS extends OutputSynth
 
     private OS_JJazzLabSoundFont_GS()
     {
+        super(NAME);
+        
         midiSynth = MidiSynthManager.getDefault().getMidiSynth(MidiSynthManager.JJAZZLAB_SOUNDFONT_GS_SYNTH_NAME);
 
         // Adjust settings
@@ -70,7 +73,7 @@ public class OS_JJazzLabSoundFont_GS extends OutputSynth
     @Override
     public boolean isCompatibleWith(OutputSynth os)
     {
-        return !(!os.getCustomSynths().contains(midiSynth)
+        return !(!os.getMidiSynths().contains(midiSynth)
                 || os.getCompatibleStdBanks().contains(StdSynth.getInstance().getGM1Bank())
                 || !os.getSendModeOnUponPlay().equals(OutputSynth.SendModeOnUponStartup.GS));
     }

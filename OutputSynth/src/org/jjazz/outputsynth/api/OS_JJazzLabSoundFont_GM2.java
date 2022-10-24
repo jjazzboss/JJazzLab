@@ -34,6 +34,7 @@ import org.jjazz.midisynthmanager.api.MidiSynthManager;
 public class OS_JJazzLabSoundFont_GM2 extends OutputSynth
 {
 
+    public final static String NAME = "GM2 synth with JJazzLab soundfont";
     private static OS_JJazzLabSoundFont_GM2 INSTANCE;
     private final MidiSynth midiSynth;
     private static final Logger LOGGER = Logger.getLogger(OS_JJazzLabSoundFont_GM2.class.getSimpleName());
@@ -52,8 +53,10 @@ public class OS_JJazzLabSoundFont_GM2 extends OutputSynth
 
     private OS_JJazzLabSoundFont_GM2()
     {
+        super(NAME);
+        
         midiSynth = MidiSynthManager.getDefault().getMidiSynth(MidiSynthManager.JJAZZLAB_SOUNDFONT_GM2_SYNTH_NAME);
-
+        
         // Adjust settings
         addCustomSynth(midiSynth);
         removeCompatibleStdBank(StdSynth.getInstance().getGM1Bank());

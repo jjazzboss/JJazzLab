@@ -26,45 +26,39 @@ import java.util.logging.Logger;
 import org.jjazz.midi.api.MidiSynth;
 
 /**
- * A synth which only contains the GS banks.
+ * A synth which only contains the XG bank.
  * <p>
- * NOTE: GS banks are NOT compatible with GM2/XG in general, some identical MidiAddresses result in completly different patches.
  */
-public class GSSynth extends MidiSynth
+public class XGSynth extends MidiSynth
 {
-    public static String NAME = "GS Synth";
-    public static String MANUFACTURER = "JJazz";
-    private static GSSynth INSTANCE;
-    private static final Logger LOGGER = Logger.getLogger(GSSynth.class.getSimpleName());
 
-    public static GSSynth getInstance()
+    public static String NAME = "XG Synth";
+    public static String MANUFACTURER = "JJazz";
+    private static XGSynth INSTANCE;
+    private static final Logger LOGGER = Logger.getLogger(XGSynth.class.getSimpleName());
+
+    public static XGSynth getInstance()
     {
-        synchronized (GSSynth.class)
+        synchronized (XGSynth.class)
         {
             if (INSTANCE == null)
             {
-                INSTANCE = new GSSynth();
+                INSTANCE = new XGSynth();
             }
         }
         return INSTANCE;
     }
 
-    private GSSynth()
+    private XGSynth()
     {
         super(NAME, MANUFACTURER);
-        addBank(getGSBank());
-        // addBank(getGS_SC88Pro_Bank());
-        setCompatibility(true, false, false, true);
+        addBank(getXGBank());
+        setCompatibility(true, false, true, false);
     }
 
-    public final GSBank getGSBank()
+    public final XGBank getXGBank()
     {
-        return GSBank.getInstance();
+        return XGBank.getInstance();
     }
 
-//    public final GSBank_SC88Pro getGS_SC88Pro_Bank()
-//    {
-//        return GSBank_SC88Pro.getInstance();
-//    }
- 
 }

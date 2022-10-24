@@ -27,7 +27,6 @@ import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiMessage;
 import javax.sound.midi.ShortMessage;
 import javax.sound.midi.SysexMessage;
-import org.jjazz.midi.api.InstrumentBank;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.midi.api.Instrument;
 import org.jjazz.midi.api.InstrumentBank;
@@ -878,7 +877,7 @@ public class GSBank_SC88Pro extends InstrumentBank<Instrument>
      */
     private Instrument createInstrument(int pc, int msb, String name)
     {
-        GM1Instrument gmIns = StdSynth.getInstance().getGM1Bank().getInstrument(pc); // GS's PC is directly compatible with GM1
+        GM1Instrument gmIns = GMSynth.getInstance().getGM1Bank().getInstrument(pc); // GS's PC is directly compatible with GM1
         Instrument ins = new Instrument(name, null, new MidiAddress(pc, msb, 0, DEFAULT_BANK_SELECT_METHOD), null, gmIns);
         return ins;
     }

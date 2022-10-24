@@ -36,43 +36,39 @@ public interface RhythmVoiceInstrumentProvider
      * Name reserved for the default implementation, see getProvider().
      */
     static public String DEFAULT_ID = "DefaultId";
-    
-    static public class Util
-    {
 
-        /**
-         * Return a provider.
-         * <p>
-         * Search for implementations in the global lookup: return the first one with Id different from DEFAULT_ID, otherwise
-         * return the one with DEFAULT_ID.
-         *
-         * @return Can't be null
-         * @throws IllegalStateException If no provider found.
-         */
-        static public RhythmVoiceInstrumentProvider getProvider()
+    /**
+     * Return a provider.
+     * <p>
+     * Search for implementations in the global lookup: return the first one with Id different from DEFAULT_ID, otherwise return
+     * the one with DEFAULT_ID.
+     *
+     * @return Can't be null
+     * @throws IllegalStateException If no provider found.
+     */
+    static public RhythmVoiceInstrumentProvider getProvider()
+    {
+        RhythmVoiceInstrumentProvider defaultProvider = null;
+        RhythmVoiceInstrumentProvider otherProvider = null;
+        for (RhythmVoiceInstrumentProvider p : Lookup.getDefault().lookupAll(RhythmVoiceInstrumentProvider.class))
         {
-            RhythmVoiceInstrumentProvider defaultProvider = null;
-            RhythmVoiceInstrumentProvider otherProvider = null;
-            for (RhythmVoiceInstrumentProvider p : Lookup.getDefault().lookupAll(RhythmVoiceInstrumentProvider.class))
+            if (p.getId().equals(DEFAULT_ID))
             {
-                if (p.getId().equals(DEFAULT_ID))
-                {
-                    defaultProvider = p;
-                } else                
-                {
-                    otherProvider = p;
-                }
-            }
-            if (otherProvider != null)
+                defaultProvider = p;
+            } else
             {
-                return otherProvider;
+                otherProvider = p;
             }
-            if (defaultProvider != null)
-            {
-                return defaultProvider;
-            }
-            throw new IllegalStateException("No provider found");   //NOI18N
         }
+        if (otherProvider != null)
+        {
+            return otherProvider;
+        }
+        if (defaultProvider != null)
+        {
+            return defaultProvider;
+        }
+        throw new IllegalStateException("No provider found");   //NOI18N
     }
 
     /**

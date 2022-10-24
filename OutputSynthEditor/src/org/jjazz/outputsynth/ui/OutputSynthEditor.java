@@ -266,7 +266,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
     {
         List<MidiSynth> synths = new ArrayList<>();
         synths.add(editorStdSynth);
-        synths.addAll(outputSynth.getCustomSynths());
+        synths.addAll(outputSynth.getMidiSynths());
         list_MidiSynths.setListData(synths.toArray(new MidiSynth[0]));
         if (!synths.isEmpty())
         {
