@@ -23,6 +23,8 @@
 package org.jjazz.midi.api.synths;
 
 import java.util.logging.Logger;
+import org.jjazz.midi.api.Instrument;
+import org.jjazz.midi.api.MidiAddress;
 import org.jjazz.midi.api.MidiSynth;
 
 /**
@@ -69,6 +71,56 @@ public class GMSynth extends MidiSynth
     public final VoidInstrument getVoidInstrument()
     {
         return NotSetBank.getInstance().getVoidInstrument();
+    }
+
+    /**
+     * Check if ins'MidiAddress matches an instrument from this MidiSynth.
+     * <p>
+     * Take into account ins' MidiSynth getGM1BankBaseMidiAddress(), if it is defined.
+     * <p>
+     * Note that if ins' MidiSynth is defined but not marked as GM-compatible, method returns false.
+     *
+     * @param ins
+     * @return
+     */
+    public boolean match(Instrument ins)
+    {
+        var insBank = ins.getBank();
+
+        if (insBank != null)
+        {
+            var insSynth = insBank.getMidiSynth();
+            if (insSynth != null)
+            {
+                if (!insSynth.isGMcompatible())
+                {
+                    return false;
+                }
+
+                MidiAddress gmBankBaseAddr = insSynth.getGM1BankBaseMidiAddress();
+
+                // Return true if ins' MSB/LSB match its MidiSynth' GM bank
+                return ins.getMidiAddress().getBankMSB() == gmBankBaseAddr.getBankMSB()
+                        && ins.getMidiAddress().getBankMSB() == gmBankBaseAddr.getBankLSB();
+            }
+        }
+
+        return getGM1Bank().getInstrument(ins.getMidiAddress()) != null;
+    }
+    
+     /**
+     * Return an Instrument from this GMSynth which matches the specified instrument.
+     * <p>
+     * Take into account ins' MidiSynth getGM1BankBaseMidiAddress(), if it is defined.
+     * <p>
+     * Note that if ins' MidiSynth is defined but not marked as GM-compatible, method returns null.
+     *
+     * @param ins
+     * @return Null if no match
+     */
+    Instrument getMatchingInstrument(Instrument ins)
+    {
+        
     }
 
 }

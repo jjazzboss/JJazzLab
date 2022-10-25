@@ -41,8 +41,7 @@ public interface InstrumentConverter
      *
      * @param srcIns    srcIns's
      * @param destSynth
-     * @param banks     Limit search to these banks. They must belong to destSynth. If null search all the destSynth banks.
      * @return Can be null if no matching instrument found.
      */
-    Instrument convertInstrument(Instrument srcIns, MidiSynth destSynth, List<InstrumentBank<?>> banks);
+    Instrument convertInstrument(Instrument srcIns, MidiSynth destSynth);
 }

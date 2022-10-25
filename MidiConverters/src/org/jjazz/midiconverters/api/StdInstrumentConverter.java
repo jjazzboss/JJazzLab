@@ -23,7 +23,6 @@
  */
 package org.jjazz.midiconverters.api;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
@@ -82,29 +81,31 @@ public class StdInstrumentConverter implements InstrumentConverter
 
     /**
      * Try to convert an instrument from a standard bank to an instrument of another standard bank.
-     *
-     * @param srcIns
-     * @param destSynth Can be null.
-     * @param destBanks Must be standard banks (GM, GM2, XG, GS). If null use all these banks.
+     * 
+     * Return null if srcIns is not from a standard bank.
+     * @param srcIns 
+     * @param destSynth 
      * @return
      */
     @Override
-    public Instrument convertInstrument(Instrument srcIns, MidiSynth destSynth, List<InstrumentBank<?>> destBanks)
+    public Instrument convertInstrument(Instrument srcIns, MidiSynth destSynth)
     {
-        if (srcIns == null)
+        if (srcIns == null || destSynth==null)
         {
-            throw new IllegalArgumentException("srcIns=" + srcIns + " destSynth=" + destSynth + " destBanks=" + destBanks);   //NOI18N
+            throw new IllegalArgumentException("srcIns=" + srcIns + " destSynth=" + destSynth);
         }
 
 
         InstrumentBank<?> srcBank = srcIns.getBank();
-        MidiSynth srcSynth = srcBank != null ? srcBank.getMidiSynth() : null;
         if (!isStdBank(srcBank))
         {
             return null;
         }
 
 
+                MidiSynth srcSynth = srcBank != null ? srcBank.getMidiSynth() : null;
+                
+                
         if (destBanks == null)
         {
             if (destSynth == null)

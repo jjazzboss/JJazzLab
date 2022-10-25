@@ -23,6 +23,7 @@
 package org.jjazz.midi.api.synths;
 
 import java.util.logging.Logger;
+import org.jjazz.midi.api.Instrument;
 import org.jjazz.midi.api.MidiSynth;
 
 /**
@@ -61,4 +62,28 @@ public class GM2Synth extends MidiSynth
         return GM2Bank.getInstance();
     }
 
+    
+     /**
+     * Check if ins'MidiAddress matches an instrument from this MidiSynth.
+     * <p>
+     * Note that if ins' MidiSynth is defined but not marked as GM2-compatible, method returns false.
+     *
+     * @param ins
+     * @return
+     */
+    public boolean match(Instrument ins)
+    {
+        var insBank = ins.getBank();
+
+        if (insBank != null)
+        {
+            var insSynth = insBank.getMidiSynth();
+            if (insSynth != null)
+            {
+                return insSynth.isGM2compatible() && getGM2Bank().getInstrument(ins.getMidiAddress()) != null;
+            }
+        }
+
+        return getGM2Bank().getInstrument(ins.getMidiAddress()) != null;
+    }
 }

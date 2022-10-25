@@ -23,6 +23,7 @@
 package org.jjazz.midi.api.synths;
 
 import java.util.logging.Logger;
+import org.jjazz.midi.api.Instrument;
 import org.jjazz.midi.api.MidiSynth;
 
 /**
@@ -32,6 +33,7 @@ import org.jjazz.midi.api.MidiSynth;
  */
 public class GSSynth extends MidiSynth
 {
+
     public static String NAME = "GS Synth";
     public static String MANUFACTURER = "JJazz";
     private static GSSynth INSTANCE;
@@ -62,9 +64,34 @@ public class GSSynth extends MidiSynth
         return GSBank.getInstance();
     }
 
+
+    /**
+     * Check if ins'MidiAddress matches an instrument from this MidiSynth.
+     * <p>
+     * Note that if ins' MidiSynth is defined but not marked as GS-compatible, method returns false.
+     *
+     * @param ins
+     * @return
+     */
+    public boolean match(Instrument ins)
+    {
+        var insBank = ins.getBank();
+
+        if (insBank != null)
+        {
+            var insSynth = insBank.getMidiSynth();
+            if (insSynth != null)
+            {
+                return insSynth.isGScompatible() && getGSBank().getInstrument(ins.getMidiAddress()) != null;
+            }
+        }
+
+        return getGSBank().getInstrument(ins.getMidiAddress()) != null;
+    }
+
 //    public final GSBank_SC88Pro getGS_SC88Pro_Bank()
 //    {
 //        return GSBank_SC88Pro.getInstance();
 //    }
- 
+
 }

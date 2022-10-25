@@ -54,8 +54,6 @@ import org.jjazz.midi.api.MidiSynth.Finder;
 import org.jjazz.midi.api.synths.GM1Instrument;
 import org.jjazz.midi.api.synths.GM2Synth;
 import org.jjazz.midi.api.synths.GMSynth;
-import org.jjazz.midi.api.synths.NotSetBank;
-import org.jjazz.midi.api.synths.StdSynth;
 import org.jjazz.midi.api.synths.XGSynth;
 import org.jjazz.midi.spi.MidiSynthFileReader;
 import org.jjazz.midiconverters.api.ConverterManager;
@@ -206,13 +204,13 @@ public class OutputSynth implements Serializable
             throw new IllegalArgumentException("rv=" + rv);
         }
 
-        
+
         // rvIns can be a YamahaRefSynth instrument (with GM1 substitute defined), or  a GM/GM2/XG instrument, or a VoidInstrument
         Instrument rvIns = rv.getPreferredInstrument();
         assert rvIns != null : "rv=" + rv;   //NOI18N
         LOGGER.log(Level.FINE, "findInstrument() -- rv={0}", rv.toString());   //NOI18N
-        
-        
+
+
         // Handle special VoidInstrument case
         if (rvIns == GMSynth.getInstance().getVoidInstrument())
         {
@@ -226,13 +224,21 @@ public class OutputSynth implements Serializable
         InstrumentBank<?> rvInsBank = rvIns.getBank();
         MidiSynth rvInsSynth = (rvInsBank != null) ? rvInsBank.getMidiSynth() : null;
 
-        
-        
-        if (isStdBank(rvInsBank))
+
+        for (MidiSynth synth : midiSynths)
         {
-            // ins is GM/GM2/XG    
-            if 
+            if ((synth.isGMcompatible() && rvInsBank == GMSynth.getInstance().getGM1Bank())
+                    || (synth.isXGcompatible() && rvInsBank == XGSynth.getInstance().getXGBank())
+                    || (synth.isGM2compatible() && rvInsBank == GM2Synth.getInstance().getGM2Bank())
+                    || (synth.isGScompatible() && rvInsBank == GSSynth.getInstance().getGSBank())
+                    )
+            {
+                ins = synth.getInstrument(rvIns.getMidiAddress());  // This works even if synth's GM-bank base address is not MSB=0,LSB=0.
+                break;
+            }
         }
+        
+        
 
 
         if (isStdBank(rvInsBank))

@@ -65,7 +65,7 @@ public class MidiSynth
          *
          * @param synthName The MidiSynth name containing the bank. Can't be null.
          * @param synthFile The file associated to synthName. Can be null if no file. If synthFile has no parent directory, search
-         *                  the default directory for output synth config files.
+         * the default directory for output synth config files.
          * @return Null if no MidiSynth found
          */
         MidiSynth getMidiSynth(String synthName, File synthFile);
@@ -85,7 +85,7 @@ public class MidiSynth
      * <p>
      * Created MidiSynth is not set to be compatible with GM/GM2/XG/GS standard.
      *
-     * @param name         If name contains comas (',') they are removed.
+     * @param name If name contains comas (',') they are removed.
      * @param manufacturer
      */
     public MidiSynth(String name, String manufacturer)
@@ -104,10 +104,10 @@ public class MidiSynth
      * <p>
      * Note that no check is performed on the actual Instruments of this MidiSynth to control the validity of this compatibility.
      *
-     * @param isGMcompatible  If null parameter is ignored.
+     * @param isGMcompatible If null parameter is ignored.
      * @param isGM2compatible If null parameter is ignored.
-     * @param isXGcompatible  If null parameter is ignored.
-     * @param isGScompatible  If null parameter is ignored.
+     * @param isXGcompatible If null parameter is ignored.
+     * @param isGScompatible If null parameter is ignored.
      */
     public void setCompatibility(Boolean isGMcompatible, Boolean isGM2compatible, Boolean isXGcompatible, Boolean isGScompatible)
     {
@@ -161,7 +161,7 @@ public class MidiSynth
      *
      *
      * @return Can't be null. If not explicitly set, return by default new MidiAddress(0, 0, 0,
-     *         MidiAddress.BankSelectMethod.MSB_LSB).
+     * MidiAddress.BankSelectMethod.MSB_LSB).
      * @see #setGM1BaseMidiAddress(MidiAddress)
      */
     public MidiAddress getGM1BankBaseMidiAddress()
@@ -312,8 +312,8 @@ public class MidiSynth
     /**
      * Find an instrument with the specified address.
      * <p>
-     * The search takes into account getGM1BankBaseMidiAddress() if it is defined AND this MidiSynth is GM-compatible AND if the
-     * addr parameter is a GM address.
+     * The search takes into account getGM1BankBaseMidiAddress() if it is defined AND if this MidiSynth is GM-compatible AND if
+     * the addr parameter is a GM address.
      *
      *
      * @param addr
