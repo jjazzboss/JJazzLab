@@ -23,6 +23,7 @@
 package org.jjazz.midi.api.synths;
 
 import java.util.logging.Logger;
+import org.jjazz.midi.api.Instrument;
 import org.jjazz.midi.api.MidiSynth;
 
 /**
@@ -61,4 +62,6 @@ public class XGSynth extends MidiSynth
         return XGBank.getInstance();
     }
 
+        @Override
+    public Instrument getMatchingInstrument(Instrument ins)
 }

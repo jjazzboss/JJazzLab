@@ -65,29 +65,8 @@ public class GSSynth extends MidiSynth
     }
 
 
-    /**
-     * Check if ins'MidiAddress matches an instrument from this MidiSynth.
-     * <p>
-     * Note that if ins' MidiSynth is defined but not marked as GS-compatible, method returns false.
-     *
-     * @param ins
-     * @return
-     */
-    public boolean match(Instrument ins)
-    {
-        var insBank = ins.getBank();
-
-        if (insBank != null)
-        {
-            var insSynth = insBank.getMidiSynth();
-            if (insSynth != null)
-            {
-                return insSynth.isGScompatible() && getGSBank().getInstrument(ins.getMidiAddress()) != null;
-            }
-        }
-
-        return getGSBank().getInstrument(ins.getMidiAddress()) != null;
-    }
+      @Override
+    public Instrument getMatchingInstrument(Instrument ins)
 
 //    public final GSBank_SC88Pro getGS_SC88Pro_Bank()
 //    {

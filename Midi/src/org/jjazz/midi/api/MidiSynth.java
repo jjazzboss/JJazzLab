@@ -28,6 +28,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 import org.jjazz.midi.api.MidiAddress.BankSelectMethod;
+import org.jjazz.midi.api.synths.GM2Synth;
+import org.jjazz.midi.api.synths.GMSynth;
+import org.jjazz.midi.api.synths.XGSynth;
 import org.openide.util.Lookup;
 
 /**
@@ -65,7 +68,7 @@ public class MidiSynth
          *
          * @param synthName The MidiSynth name containing the bank. Can't be null.
          * @param synthFile The file associated to synthName. Can be null if no file. If synthFile has no parent directory, search
-         * the default directory for output synth config files.
+         *                  the default directory for output synth config files.
          * @return Null if no MidiSynth found
          */
         MidiSynth getMidiSynth(String synthName, File synthFile);
@@ -85,7 +88,7 @@ public class MidiSynth
      * <p>
      * Created MidiSynth is not set to be compatible with GM/GM2/XG/GS standard.
      *
-     * @param name If name contains comas (',') they are removed.
+     * @param name         If name contains comas (',') they are removed.
      * @param manufacturer
      */
     public MidiSynth(String name, String manufacturer)
@@ -104,10 +107,10 @@ public class MidiSynth
      * <p>
      * Note that no check is performed on the actual Instruments of this MidiSynth to control the validity of this compatibility.
      *
-     * @param isGMcompatible If null parameter is ignored.
+     * @param isGMcompatible  If null parameter is ignored.
      * @param isGM2compatible If null parameter is ignored.
-     * @param isXGcompatible If null parameter is ignored.
-     * @param isGScompatible If null parameter is ignored.
+     * @param isXGcompatible  If null parameter is ignored.
+     * @param isGScompatible  If null parameter is ignored.
      */
     public void setCompatibility(Boolean isGMcompatible, Boolean isGM2compatible, Boolean isXGcompatible, Boolean isGScompatible)
     {
@@ -161,7 +164,7 @@ public class MidiSynth
      *
      *
      * @return Can't be null. If not explicitly set, return by default new MidiAddress(0, 0, 0,
-     * MidiAddress.BankSelectMethod.MSB_LSB).
+     *         MidiAddress.BankSelectMethod.MSB_LSB).
      * @see #setGM1BaseMidiAddress(MidiAddress)
      */
     public MidiAddress getGM1BankBaseMidiAddress()
@@ -310,30 +313,14 @@ public class MidiSynth
     }
 
     /**
-     * Find an instrument with the specified address.
+     * Find the instrument with the specified address.
      * <p>
-     * The search takes into account getGM1BankBaseMidiAddress() if it is defined AND if this MidiSynth is GM-compatible AND if
-     * the addr parameter is a GM address.
-     *
      *
      * @param addr
      * @return Null if instrument not found in the MidiSynth banks.
      */
     public Instrument getInstrument(MidiAddress addr)
     {
-        var bsm = addr.getBankSelectMethod();
-
-
-        if (isGMcompatible
-                && (bsm.equals(BankSelectMethod.PC_ONLY)
-                || (bsm.equals(BankSelectMethod.MSB_LSB) && addr.getBankMSB() == 0 && addr.getBankLSB() == 0)))
-        {
-            // Translate the MidiAddress to get the instrument on the right bank (which may not be MSB=0 LSB=0, e.g. for the Roland JV-1080)
-            var baseAddr = getGM1BankBaseMidiAddress();
-            addr = new MidiAddress(addr.getProgramChange(), baseAddr.getBankMSB(), baseAddr.getBankLSB(), BankSelectMethod.MSB_LSB);
-        }
-
-
         for (InstrumentBank<?> bank : getBanks())
         {
             Instrument ins = bank.getInstrument(addr);
@@ -345,13 +332,84 @@ public class MidiSynth
         return null;
     }
 
+
     /**
-     * Get the percentage of MidiAddresses from the specified bank which match an instrument in this MidiSynth.
+     * Find the Instrument from this MidiSynth which best matches the specified instrument.
+     * <p>
+     * If ins'synth is defined, use its GM/GM2/XG/GS compatibility status + GM Bank base address to find the matching
+     * instrument.<p>
      *
-     * @param bank
-     * @return A value between 0 and 1.
+     * @param ins
+     * @return Null if no match
      */
-    public float getMidiAddressMatchingCoverage(InstrumentBank<?> bank)
+    public Instrument getMatchingInstrument(Instrument ins)
+    {
+        var insAddr = ins.getMidiAddress();
+        var insBsm = insAddr.getBankSelectMethod();
+        var insBank = ins.getBank();
+        var insSynth = insBank != null ? insBank.getMidiSynth() : null;
+
+
+        if (insSynth == null)
+        {
+            // Can't do much without compatibility information
+            var addr = insAddr;
+
+
+            // We assume that if insAddr is PC_ONLY or MSB_LSB with MSB=LSB=0, then insAddr represents a GM bank instrument address
+            if (isGMcompatible
+                    && (insBsm.equals(BankSelectMethod.PC_ONLY)
+                    || (insBsm.equals(BankSelectMethod.MSB_LSB) && insAddr.getBankMSB() == 0 && insAddr.getBankLSB() == 0)))
+            {
+                // Translate the MidiAddress to get the instrument on the right bank (which may not be MSB=0 LSB=0, e.g. for the Roland JV-1080)
+                var gmBaseAddr = getGM1BankBaseMidiAddress();
+                addr = new MidiAddress(insAddr.getProgramChange(), gmBaseAddr.getBankMSB(), gmBaseAddr.getBankLSB(), gmBaseAddr.getBankSelectMethod());
+            }
+
+            return getInstrument(addr);
+        }
+
+        // insSynth is defined
+
+        var gmIns = GMSynth.getInstance().getMatchingInstrument(ins);
+        if (gmIns != null)
+        {
+            // ins is a GM bank sound (not necessarily from GMSynth)        
+            if (!isGMcompatible)
+            {
+                return null;
+            }
+            // Use this MidiSynth' GM bank base address
+            var addr = new MidiAddress(ins.getMidiAddress().getProgramChange(), gmBankBaseMidiAddress.getBankMSB(), gmBankBaseMidiAddress.getBankLSB(), gmBankBaseMidiAddress.getBankSelectMethod());
+            return getInstrument(addr);
+        }
+
+        var xgIns = XGSynth.getInstance().getMatchingInstrument(ins);
+        if (xgIns != null && isXGcompatible)
+        {
+            // ins is a XG bank sound (not necessarily from XGSynth)        
+            return getInstrument(insAddr);
+        }
+
+
+        var gm2Ins = GM2Synth.getInstance().getMatchingInstrument(ins);
+        if (gm2Ins != null && isGM2compatible)
+        {
+            // ins is a GM2 bank sound (not necessarily from GM2Synth)        
+            return getInstrument(insAddr);
+        }
+
+        return getInstrument(ins.getMidiAddress());
+    }
+}
+
+/**
+ * Get the percentage of MidiAddresses from the specified bank which match an instrument in this MidiSynth.
+ *
+ * @param bank
+ * @return A value between 0 and 1.
+ */
+public float getMidiAddressMatchingCoverage(InstrumentBank<?> bank)
     {
         if (bank == null)
         {
@@ -411,8 +469,9 @@ public class MidiSynth
         return manufacturer;
     }
 
+
     @Override
-    public String toString()
+public String toString()
     {
         return getName();
     }
