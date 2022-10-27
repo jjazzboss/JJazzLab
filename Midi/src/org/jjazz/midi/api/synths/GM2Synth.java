@@ -62,60 +62,6 @@ public class GM2Synth extends MidiSynth
         return GM2Bank.getInstance();
     }
 
-
-    /**
-     * Check if ins'MidiAddress matches an instrument from this MidiSynth.
-     * <p>
-     * Note that if ins' MidiSynth is defined but not marked as GM2-compatible, method returns false.
-     *
-     * @param ins
-     * @return
-     */
-    public boolean match(Instrument ins)
-    {
-        var insBank = ins.getBank();
-
-        if (insBank != null)
-        {
-            var insSynth = insBank.getMidiSynth();
-            if (insSynth != null)
-            {
-                return insSynth.isGM2compatible() && getGM2Bank().getInstrument(ins.getMidiAddress()) != null;
-            }
-        }
-
-        return getGM2Bank().getInstrument(ins.getMidiAddress()) != null;
-    }
-
-    /**
-     * Get the Instrument from this MidiSynth which best matches the specified instrument.
-     * <p>
-     *
-     * @param ins
-     * @return Null if no match
-     */
-    @Override
-    public Instrument getMatchingInstrument(Instrument ins)
-    {
-        var insAddr = ins.getMidiAddress();
-        var insBank = ins.getBank();
-        var insSynth = insBank != null ? insBank.getMidiSynth() : null;
-
-        if (insSynth==null)
-        {
-            return getGM2Bank().getInstrument(ins.getMidiAddress());
-        }
-sdf
-        if (insSynth.isGM2compatible())
-        {
-            return getGM2Bank().getInstrument(ins.getMidiAddress());
-        }
-        if (insSynth.isXGcompatible())
-        {
-            // Convert
-        }
-        
-        return null;
-    }
+  
 
 }

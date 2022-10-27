@@ -65,9 +65,6 @@ public class GSSynth extends MidiSynth
     }
 
 
-      @Override
-    public Instrument getMatchingInstrument(Instrument ins)
-
 //    public final GSBank_SC88Pro getGS_SC88Pro_Bank()
 //    {
 //        return GSBank_SC88Pro.getInstance();

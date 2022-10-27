@@ -27,10 +27,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
-import org.jjazz.midi.api.MidiAddress.BankSelectMethod;
-import org.jjazz.midi.api.synths.GM2Synth;
-import org.jjazz.midi.api.synths.GMSynth;
-import org.jjazz.midi.api.synths.XGSynth;
 import org.openide.util.Lookup;
 
 /**
@@ -75,6 +71,7 @@ public class MidiSynth
 
     }
 
+    private final static MidiAddress DEFAULT_GM_BANK_ADDRESS = new MidiAddress(0, 0, 0, MidiAddress.BankSelectMethod.MSB_LSB);
     private File file;
     ArrayList<InstrumentBank<?>> banks = new ArrayList<>();
     private String name;
@@ -99,13 +96,17 @@ public class MidiSynth
         }
         this.name = name.replaceAll(",", "");
         this.manufacturer = manufacturer;
-        this.gmBankBaseMidiAddress = new MidiAddress(0, 0, 0, MidiAddress.BankSelectMethod.MSB_LSB);
+        this.gmBankBaseMidiAddress = DEFAULT_GM_BANK_ADDRESS;
     }
 
     /**
      * Set the compatibility of this MidiSynth with the Midi standards.
      * <p>
-     * Note that no check is performed on the actual Instruments of this MidiSynth to control the validity of this compatibility.
+     * No check is performed on the actual Instruments of this MidiSynth to control the validity of this compatibility.
+     * <p>
+     * The following are automatically enforced: <br>
+     * - If a synth is GM2/XG/GS compatible, then it is also GM compatible and GM bank base adress is set to MSB=LSB=0<br>
+     * - If a synth is GS compatible, then it can't be GM2 nor XG compatible
      *
      * @param isGMcompatible  If null parameter is ignored.
      * @param isGM2compatible If null parameter is ignored.
@@ -130,46 +131,19 @@ public class MidiSynth
         {
             this.isGScompatible = isGScompatible;
         }
-    }
 
-    /**
-     * Set the base MidiAddress to be used to directly access the first instrument (Program Change=0) of the GM bank of this
-     * MidiSynth.
-     * <p>
-     * NOTE: return value is meaningful ONLY if this MidiSynth is GM compatible.
-     * <p>
-     * GM standard does not define a GM bank select messages. The "old" way to access the GM sounds is to first send a Sysex
-     * message "Set GM Mode ON" then a Program Change message. But as most synths now have many banks, it's usually possible to
-     * directly access the GM sounds using bank select messages. This method lets you specify the GM bank select mechanism used by
-     * this synth.
-     * <p>
-     * Examples:<br>
-     * - On most Yamaha synths the GM bank can be directly accessed using LSB=0 and MSB=0.<br>
-     * - On Roland JV-1080 the base GM bank address is MSB=81, LSB=3.<br>
-     *
-     *
-     * @param ma Must have Program Change==0.
-     * @see #getGM1BankBaseMidiAddress()
-     * @see #setCompatibility(java.lang.Boolean, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean)
-     */
-    public void setGM1BankBaseMidiAddress(MidiAddress ma)
-    {
-        Preconditions.checkArgument(ma != null && ma.getProgramChange() == 0);
-        gmBankBaseMidiAddress = ma;
-    }
+        // Consistency checks
+        if (this.isGScompatible)
+        {
+            this.isGM2compatible = false;
+            this.isXGcompatible = false;
+        }
+        if (this.isGM2compatible || this.isXGcompatible || this.isGScompatible)
+        {
+            this.isGMcompatible = true;
+            this.gmBankBaseMidiAddress = DEFAULT_GM_BANK_ADDRESS;
+        }
 
-    /**
-     * Get the MidiAddress to be used to directly access the first instrument (piano) of the GM bank of this MidiSynth (so without
-     * using SysEx message "set GM Mode ON").
-     *
-     *
-     * @return Can't be null. If not explicitly set, return by default new MidiAddress(0, 0, 0,
-     *         MidiAddress.BankSelectMethod.MSB_LSB).
-     * @see #setGM1BaseMidiAddress(MidiAddress)
-     */
-    public MidiAddress getGM1BankBaseMidiAddress()
-    {
-        return gmBankBaseMidiAddress;
     }
 
 
@@ -319,7 +293,7 @@ public class MidiSynth
      * @param addr
      * @return Null if instrument not found in the MidiSynth banks.
      */
-    public Instrument getInstrument(MidiAddress addr)
+    public final Instrument getInstrument(MidiAddress addr)
     {
         for (InstrumentBank<?> bank : getBanks())
         {
@@ -332,84 +306,89 @@ public class MidiSynth
         return null;
     }
 
+    /**
+     * Set the base MidiAddress used to directly access the first instrument (Program Change=0) of the GM bank of this MidiSynth.
+     * <p>
+     * <p>
+     * GM standard does not define a GM bank select messages. The "old" way to access the GM sounds is to first send a Sysex
+     * message "Set GM Mode ON" then a Program Change message. But as most synths now have many banks, it's usually possible to
+     * directly access the GM sounds using bank select messages. This method lets you specify the GM bank select mechanism used by
+     * this synth.
+     * <p>
+     * Examples:<br>
+     * - On most Yamaha synths the GM bank can be directly accessed using LSB=0 and MSB=0.<br>
+     * - On Roland JV-1080 the base GM bank address is MSB=81, LSB=3.<br>
+     * <p>
+     * Note that GM2/XG/GS compatible instruments are also GM-compatible and expect the GM bank to be at MSB=0 LSB=0.
+     *
+     * @param ma Must have Program Change==0.
+     * @see #getGM1BankBaseMidiAddress()
+     * @see #setCompatibility(java.lang.Boolean, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean)
+     */
+    public void setGM1BankBaseMidiAddress(MidiAddress ma)
+    {
+        Preconditions.checkArgument(ma != null && ma.getProgramChange() == 0);
+        gmBankBaseMidiAddress = ma;
+
+        // Check consistency
+        if ((isGM2compatible || isXGcompatible || isGScompatible) && (ma.getBankMSB() > 0 || ma.getBankLSB() > 0))
+        {
+            throw new IllegalStateException("Can't have a GM2/XG/GS compatible MidiSynth with a GM bank base address which is not MSB=LSB=0, this=" + this + " ma=" + ma);
+        }
+    }
 
     /**
-     * Find the Instrument from this MidiSynth which best matches the specified instrument.
+     * Get the MidiAddress to be used to directly access the first instrument (piano) of the GM bank of this MidiSynth. 
      * <p>
-     * If ins'synth is defined, use its GM/GM2/XG/GS compatibility status + GM Bank base address to find the matching
-     * instrument.<p>
+     * IMPORTANT: value is meaningless if this MidiSynth is not GM-compatible.
+     * <p>
+     * This method is required because synths can have a GM bank anywhere, eg the JV-1080 synth has its GM Bank Midi address at MSB=83, LSB=3.
+     
      *
-     * @param ins
-     * @return Null if no match
+     * @return Can't be null. If not explicitly set, return by default new MidiAddress(0, 0, 0,
+     *         MidiAddress.BankSelectMethod.MSB_LSB).
+     * @see #setGM1BankBaseMidiAddress(MidiAddress)
      */
-    public Instrument getMatchingInstrument(Instrument ins)
+    public MidiAddress getGM1BankBaseMidiAddress()
     {
-        var insAddr = ins.getMidiAddress();
-        var insBsm = insAddr.getBankSelectMethod();
-        var insBank = ins.getBank();
-        var insSynth = insBank != null ? insBank.getMidiSynth() : null;
-
-
-        if (insSynth == null)
-        {
-            // Can't do much without compatibility information
-            var addr = insAddr;
-
-
-            // We assume that if insAddr is PC_ONLY or MSB_LSB with MSB=LSB=0, then insAddr represents a GM bank instrument address
-            if (isGMcompatible
-                    && (insBsm.equals(BankSelectMethod.PC_ONLY)
-                    || (insBsm.equals(BankSelectMethod.MSB_LSB) && insAddr.getBankMSB() == 0 && insAddr.getBankLSB() == 0)))
-            {
-                // Translate the MidiAddress to get the instrument on the right bank (which may not be MSB=0 LSB=0, e.g. for the Roland JV-1080)
-                var gmBaseAddr = getGM1BankBaseMidiAddress();
-                addr = new MidiAddress(insAddr.getProgramChange(), gmBaseAddr.getBankMSB(), gmBaseAddr.getBankLSB(), gmBaseAddr.getBankSelectMethod());
-            }
-
-            return getInstrument(addr);
-        }
-
-        // insSynth is defined
-
-        var gmIns = GMSynth.getInstance().getMatchingInstrument(ins);
-        if (gmIns != null)
-        {
-            // ins is a GM bank sound (not necessarily from GMSynth)        
-            if (!isGMcompatible)
-            {
-                return null;
-            }
-            // Use this MidiSynth' GM bank base address
-            var addr = new MidiAddress(ins.getMidiAddress().getProgramChange(), gmBankBaseMidiAddress.getBankMSB(), gmBankBaseMidiAddress.getBankLSB(), gmBankBaseMidiAddress.getBankSelectMethod());
-            return getInstrument(addr);
-        }
-
-        var xgIns = XGSynth.getInstance().getMatchingInstrument(ins);
-        if (xgIns != null && isXGcompatible)
-        {
-            // ins is a XG bank sound (not necessarily from XGSynth)        
-            return getInstrument(insAddr);
-        }
-
-
-        var gm2Ins = GM2Synth.getInstance().getMatchingInstrument(ins);
-        if (gm2Ins != null && isGM2compatible)
-        {
-            // ins is a GM2 bank sound (not necessarily from GM2Synth)        
-            return getInstrument(insAddr);
-        }
-
-        return getInstrument(ins.getMidiAddress());
+        return gmBankBaseMidiAddress;
     }
-}
 
-/**
- * Get the percentage of MidiAddresses from the specified bank which match an instrument in this MidiSynth.
- *
- * @param bank
- * @return A value between 0 and 1.
- */
-public float getMidiAddressMatchingCoverage(InstrumentBank<?> bank)
+
+    /**
+     * Get the MidiAddress of a GM bank instrument.
+     *
+     * @param programChange Program change of the instrument
+     * @return Null if this MidiSynth is not GM-compatible
+     */
+    public MidiAddress getGM1BankMidiAddress(int programChange)
+    {
+        return isGMcompatible ? new MidiAddress(programChange, gmBankBaseMidiAddress.getBankMSB(), gmBankBaseMidiAddress.getBankLSB(), gmBankBaseMidiAddress.getBankSelectMethod())
+                : null;
+    }
+
+    /**
+     * Return true if this MidiSynth is GM-compatible and the specified MidiAddress is part of the this synth'GM bank.
+     *
+     * @param addr
+     * @return
+     */
+    public boolean isGM1BankMidiAddress(MidiAddress addr)
+    {
+        return isGMcompatible
+                && addr.getBankMSB() == gmBankBaseMidiAddress.getBankMSB()
+                && addr.getBankLSB() == gmBankBaseMidiAddress.getBankLSB()
+                && addr.getBankSelectMethod().equals(gmBankBaseMidiAddress.getBankSelectMethod());
+    }
+
+   
+    /**
+     * Get the percentage of MidiAddresses from the specified bank which match an instrument in this MidiSynth.
+     *
+     * @param bank
+     * @return A value between 0 and 1.
+     */
+    public float getMidiAddressMatchingCoverage(InstrumentBank<?> bank)
     {
         if (bank == null)
         {
@@ -471,7 +450,7 @@ public float getMidiAddressMatchingCoverage(InstrumentBank<?> bank)
 
 
     @Override
-public String toString()
+    public String toString()
     {
         return getName();
     }

@@ -54,6 +54,7 @@ import org.jjazz.midi.api.MidiSynth.Finder;
 import org.jjazz.midi.api.synths.GM1Instrument;
 import org.jjazz.midi.api.synths.GM2Synth;
 import org.jjazz.midi.api.synths.GMSynth;
+import org.jjazz.midi.api.synths.StandardInstrumentConverter;
 import org.jjazz.midi.api.synths.XGSynth;
 import org.jjazz.midi.spi.MidiSynthFileReader;
 import org.jjazz.midiconverters.api.ConverterManager;
@@ -64,12 +65,11 @@ import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.util.api.Utilities;
 
 /**
- * An OutputSynth is made of one or more MidiSynth instances describing the available instruments.
+ * An OutputSynth has a name, one or more MidiSynth instances describing the available instruments, and some UserSettings.
  * <p>
  */
 public class OutputSynth implements Serializable
 {
-
     private final String name;
     private final List<MidiSynth> midiSynths = new ArrayList<>();
     private File file;
@@ -117,7 +117,8 @@ public class OutputSynth implements Serializable
         {
             throw new IOException("No MidiSynthFileReader instance found to read file=" + file.getAbsolutePath());
         }
-        // Rread the file and add the non-empty synths
+        
+        // Read the file and add the non-empty synths
         FileInputStream fis = new FileInputStream(file);
         var synths = reader.readSynthsFromStream(fis, file);    // Can raise exception
         synths.stream()
@@ -187,7 +188,6 @@ public class OutputSynth implements Serializable
      * <p>
      * <p>
      * Search a matching instrument :<br>
-     * - Using custom converters<br>
      * - then search for the instrument in the MidiSynths<br>
      * - then search using the GM1 substitute, remap table, and substitute family<p>
      * <p>
@@ -197,7 +197,6 @@ public class OutputSynth implements Serializable
      */
     public Instrument findInstrument(RhythmVoice rv)
     {
-        Instrument ins = null;
 
         if (rv == null || rv instanceof UserRhythmVoice)
         {
@@ -215,7 +214,7 @@ public class OutputSynth implements Serializable
         if (rvIns == GMSynth.getInstance().getVoidInstrument())
         {
             // No conversion possible, use void for drums or the default at instrument
-            ins = rv.isDrums() ? GMSynth.getInstance().getVoidInstrument() : rv.getType().getDefaultInstrument();
+            var ins = rv.isDrums() ? GMSynth.getInstance().getVoidInstrument() : rv.getType().getDefaultInstrument();
             LOGGER.log(Level.FINE, "findInstrument() rv preferred instrument=VoidInstrument, return ins=" + ins);   //NOI18N
             return ins;
         }
@@ -225,54 +224,18 @@ public class OutputSynth implements Serializable
         MidiSynth rvInsSynth = (rvInsBank != null) ? rvInsBank.getMidiSynth() : null;
 
 
+        // Try to use the StandardInstrumentConverter
         for (MidiSynth synth : midiSynths)
         {
-            if ((synth.isGMcompatible() && rvInsBank == GMSynth.getInstance().getGM1Bank())
-                    || (synth.isXGcompatible() && rvInsBank == XGSynth.getInstance().getXGBank())
-                    || (synth.isGM2compatible() && rvInsBank == GM2Synth.getInstance().getGM2Bank())
-                    || (synth.isGScompatible() && rvInsBank == GSSynth.getInstance().getGSBank())
-                    )
-            {
-                ins = synth.getInstrument(rvIns.getMidiAddress());  // This works even if synth's GM-bank base address is not MSB=0,LSB=0.
-                break;
-            }
-        }
-        
-        
-
-
-        if (isStdBank(rvInsBank))
-        {
-            ins = StdInstrumentConverter.getInstance().convertInstrument(rvIns, null, compatibleStdBanks);
+            var ins = StandardInstrumentConverter.convertInstrument(rvIns, synth);
             if (ins != null)
             {
-                LOGGER.log(Level.FINE, "findInstrument()    found in compatibleStdBanks, ins={0}", ins.toLongString());   //NOI18N
+                LOGGER.log(Level.FINE, "findInstrument()    found by StandardInstrumentConverter, ins={0}", ins.toLongString());   //NOI18N                
                 return ins;
             }
         }
 
 
-        // If 
-        // Try first with custom converters for our midiSynths
-        ConverterManager cm = ConverterManager.getInstance();
-        for (MidiSynth synth : midiSynths)
-        {
-            ins = cm.convertInstrument(rvIns, synth, null);
-            if (ins != null)
-            {
-                LOGGER.log(Level.FINE, "findInstrument()    Found in custom synth using custom conversion {0}, ins={1}", new Object[]   //NOI18N
-                {
-                    synth.getName(), ins.toLongString()
-                });
-                return ins;
-            }
-        }
-
-
-        //
-        // If we're here we need to do a conversion
-        //
-        // If rvIns is a standard instrument (but not from compatibleStdBanks), use the special standard converter
         if (!rv.isDrums())
         {
             // Melodic voice

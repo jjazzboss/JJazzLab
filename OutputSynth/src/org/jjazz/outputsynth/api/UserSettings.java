@@ -31,7 +31,7 @@ import org.jjazz.midi.api.MidiUtilities;
 /**
  * The user-dependent settings associated to an OutputSynth: GM remap table, latency, user track default voice, etc.
  */
-public class OutputSynthUserSettings
+public class UserSettings
 {
 
     public static final String PROP_USERINSTRUMENT = "userInstrument";
@@ -57,7 +57,7 @@ public class OutputSynthUserSettings
      *
      * @param outputSynth
      */
-    public OutputSynthUserSettings(OutputSynth outputSynth)
+    public UserSettings(OutputSynth outputSynth)
     {
         Preconditions.checkNotNull(outputSynth);
         this.remapTable = new GMRemapTable();
