@@ -58,10 +58,9 @@ import org.jjazz.midi.api.synths.GM1Instrument;
 import org.jjazz.midi.api.synths.StdSynth;
 import org.jjazz.midi.api.ui.InstrumentTable;
 import org.jjazz.midimix.api.UserRhythmVoice;
-import org.jjazz.midisynthmanager.api.MidiSynthManager;
 import org.jjazz.musiccontrol.api.TestPlayer;
 import org.jjazz.outputsynth.api.GMRemapTable;
-import org.jjazz.outputsynth.api.GMRemapTable.ArgumentsException;
+import org.jjazz.outputsynth.api.GMRemapTable.InvalidMappingException;
 import org.jjazz.outputsynth.api.OutputSynth;
 import org.jjazz.outputsynth.api.OutputSynth.SendModeOnUponStartup;
 import org.jjazz.outputsynth.ui.spi.RemapTableInstrumentChooser;
@@ -71,6 +70,7 @@ import org.jjazz.util.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.util.Exceptions;
+import org.jjazz.midisynthmanager.api.MidiSynthListManager;
 
 /**
  * An editor for an OutputSynth.
@@ -965,7 +965,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
 
     private void btn_AddSynthActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_AddSynthActionPerformed
     {//GEN-HEADEREND:event_btn_AddSynthActionPerformed
-        MidiSynthManager msm = MidiSynthManager.getDefault();
+        MidiSynthListManager msm = MidiSynthListManager.getDefault();
         File f = msm.showSelectSynthFileDialog();
         if (f != null)
         {
@@ -1053,7 +1053,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
                 try
                 {
                     rTable.setInstrument(mappedIns, ins, chooser.useAsFamilyDefault());
-                } catch (ArgumentsException ex)
+                } catch (InvalidMappingException ex)
                 {
                     NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
                     DialogDisplayer.getDefault().notify(d);
@@ -1134,7 +1134,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
         try
         {
             table.setInstrument(remappedIns, null, useAsFamilyDefault);
-        } catch (ArgumentsException ex)
+        } catch (InvalidMappingException ex)
         {
             Exceptions.printStackTrace(ex);
         }

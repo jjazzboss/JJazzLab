@@ -53,6 +53,7 @@ public class GMSynth extends MidiSynth
     {
         super(NAME, MANUFACTURER);
         addBank(getGM1Bank());
+        addBank(NotSetBank.getInstance());
         setCompatibility(true, false, false, false);
     }
 
@@ -63,7 +64,8 @@ public class GMSynth extends MidiSynth
 
     /**
      * A special "empty" GM1Instrument: when used, no Midi messages are sent (no bank select/program change).
-     *
+     * 
+     * This special instrument is part of the special InstrumentBank NotSetBank.
      * @return
      */
     public final VoidInstrument getVoidInstrument()

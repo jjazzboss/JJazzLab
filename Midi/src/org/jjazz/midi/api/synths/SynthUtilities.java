@@ -12,7 +12,7 @@
  *
  *  JJazzLabX is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
  *  GNU Lesser General Public License for more details.
  * 
  *  You should have received a copy of the GNU Lesser General Public License
@@ -22,45 +22,38 @@
  */
 package org.jjazz.midi.api.synths;
 
-import java.util.logging.Logger;
+import java.util.List;
 import org.jjazz.midi.api.MidiSynth;
 
 /**
- * A synth which only contains the GM2 bank.
- * <p>
+ * Convenience methods.
  */
-public class GM2Synth extends MidiSynth
+public class SynthUtilities
 {
 
-    public static String NAME = "GM2 Synth";
-    public static String MANUFACTURER = "JJazz";
-    private static GM2Synth INSTANCE;
-    private static final Logger LOGGER = Logger.getLogger(GM2Synth.class.getSimpleName());
+    private static final List<MidiSynth> STD_SYNTHS = List.of(GMSynth.getInstance(), GM2Synth.getInstance(), XGSynth.getInstance(), GSSynth.getInstance());
 
-    public static GM2Synth getInstance()
+    /**
+     * Get all the "standard" MidiSynth instances: GM, GM2, XG, GS.
+     *
+     * @return
+     */
+    static public List<MidiSynth> getStandardSynths()
     {
-        synchronized (GM2Synth.class)
-        {
-            if (INSTANCE == null)
-            {
-                INSTANCE = new GM2Synth();
-            }
-        }
-        return INSTANCE;
+        return STD_SYNTHS;
     }
 
-    private GM2Synth()
+    /**
+     * Get a "standard" MidiSynth from its name.
+     *
+     * @param name
+     * @return Can be null
+     */
+    static public MidiSynth getStandardSynth(String name)
     {
-        super(NAME, MANUFACTURER);
-        addBank(getGM2Bank());
-        setCompatibility(true, true, false, false);
+        return STD_SYNTHS.stream()
+                .filter(ms -> ms.getName().equals(name))
+                .findAny()
+                .orElse(null);
     }
-
-    public final GM2Bank getGM2Bank()
-    {
-        return GM2Bank.getInstance();
-    }
-
-  
-
 }

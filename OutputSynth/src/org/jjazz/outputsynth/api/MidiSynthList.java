@@ -28,22 +28,32 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.StringJoiner;
+import java.util.logging.Logger;
+import org.jjazz.midi.api.Instrument;
+import org.jjazz.midi.api.InstrumentBank;
 import org.jjazz.midi.api.MidiSynth;
 import org.jjazz.midi.api.synths.GMSynth;
+import org.jjazz.midi.api.synths.SynthUtilities;
 import org.jjazz.midi.spi.MidiSynthFileReader;
+import org.jjazz.midimix.api.MidiMix;
+import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.util.api.Utilities;
 
 /**
  * One or more MidiSynth instances, typically obtained from a .ins definition file.
- * 
+ * <p>
  */
 public class MidiSynthList
 {
+
     private final List<MidiSynth> midiSynths = new ArrayList<>();
     private File file;
-    
-     /**
+    private static final Logger LOGGER = Logger.getLogger(MidiSynthList.class.getSimpleName());
+
+    /**
      * Construct a default MidiSynthList with only the GMSynth instance.
      */
     public MidiSynthList()
@@ -75,7 +85,7 @@ public class MidiSynthList
         {
             throw new IOException("No MidiSynthFileReader instance found to read file=" + file.getAbsolutePath());
         }
-        
+
         // Read the file and add the non-empty synths
         FileInputStream fis = new FileInputStream(file);
         var synths = reader.readSynthsFromStream(fis, file);    // Can raise exception
@@ -90,8 +100,21 @@ public class MidiSynthList
 
         this.file = file;
     }
-    
-     /**
+
+    /**
+     * Get the name of this MidiSynthList.
+     * <p>
+     * If loaded from a file, return the file name. Otherwise return the first MidiSynth's name.
+     *
+     * @return
+     */
+    public String getName()
+    {
+        return (file != null) ? file.getName() : midiSynths.get(0).getName();
+    }
+
+
+    /**
      * Get the associated MidiSynth definition file (.ins).
      *
      * @return Null if this instance was not created using an instrument definition file.
@@ -113,4 +136,156 @@ public class MidiSynthList
         return new ArrayList<>(midiSynths);
     }
 
+    /**
+     * Check whether this output synth contains this instrument.
+     *
+     * @param ins
+     * @return
+     */
+    public boolean contains(Instrument ins)
+    {
+        InstrumentBank<?> bank = ins.getBank();
+        if (bank != null)
+        {
+            MidiSynth synth = bank.getMidiSynth();
+            if (synth != null)
+            {
+                return midiSynths.contains(synth);
+            }
+        }
+        return false;
+    }
+
+
+    /**
+     * Return the first drums instrument found.
+     *
+     * @return Can be the VoidInstrument if no drums instrument found.
+     */
+    public Instrument getDrumsInstrumentSample()
+    {
+        Instrument ins = GMSynth.getInstance().getVoidInstrument();
+        for (MidiSynth synth : midiSynths)
+        {
+            List<Instrument> drumsInstruments = synth.getDrumsInstruments();
+            if (!drumsInstruments.isEmpty())
+            {
+                ins = drumsInstruments.get(0);
+                break;
+            }
+        }
+        return ins;
+    }
+
+    /**
+     * Get the instruments that should be used in the specified MidiMix to be consistent with this OutputSynth.
+     * <p>
+     *
+     * @param mm
+     * @return The channels which need to be fixed and the associated new instrument. Can't be null but returned HashMap can be
+     *         empty.
+     */
+    public HashMap<Integer, Instrument> getNeedFixInstruments(MidiMix mm)
+    {
+        HashMap<Integer, Instrument> res = new HashMap<>();
+        for (int channel : mm.getUsedChannels())
+        {
+            Instrument ins = mm.getInstrumentMixFromChannel(channel).getInstrument(); // Can be the VoidInstrument
+            if (!contains(ins))
+            {
+                RhythmVoice rv = mm.getRhythmVoice(channel);
+                Instrument newIns = findInstrument(rv);     // Can be the VoidInstrument
+                if (newIns != ins)
+                {
+                    res.put(channel, newIns);
+                }
+            }
+        }
+        return res;
+    }
+
+    @Override
+    public String toString()
+    {
+        return "MidiSynthList-" + getName();
+    }
+
+    /**
+     * Save this MidiSynthList as a string so that it can be retrieved by loadFromString().
+     * <p>
+     * Use the file name if this MidiSynthList came from a file. Otherwise use the list of MidiSynth names, which should be
+     * standard synths (eg GMSynth, XGSynth, etc.).
+     *
+     * @return
+     * @see loadFromString(String)
+     */
+    public String saveAsString()
+    {
+        if (file != null)
+        {
+            return "FILE=" + file.getAbsolutePath();
+        }
+
+        StringJoiner joiner = new StringJoiner(";");
+        midiSynths.forEach(ms -> joiner.add(ms.getName()));
+        return joiner.toString();
+    }
+
+    /**
+     * Get the MidiSynthList corresponding to the string produced by saveAsString().
+     * <p>
+     *
+     * @param s
+     * @return
+     * @throws java.io.IOException If the MidiSynthList could not be retrieved from the string
+     * @see saveAsString()
+     *
+     */
+    static public MidiSynthList loadFromString(String s) throws IOException
+    {
+        Preconditions.checkNotNull(s);
+        s = s.trim();
+
+        if (s.startsWith("FILE="))
+        {
+            if (s.length() <= 5)
+            {
+                throw new IOException("Invalid string=" + s);
+            }
+            File f = new File(s.substring(5));
+            return new MidiSynthList(f);
+        }
+
+
+        // This is a list of standard MidiSynth
+        var strs = s.split(";");
+        if (strs.length == 0)
+        {
+            throw new IOException("Invalid string=" + s);
+        }
+
+        List<MidiSynth> synths = new ArrayList<>();
+        for (String synthName : strs)
+        {
+            MidiSynth synth = SynthUtilities.getStandardSynth(synthName);
+            if (synth == null)
+            {
+                LOGGER.warning("loadFromString() non-standard synth name found=" + synthName + ", ignored. s=" + s);
+            } else
+            {
+                synths.add(synth);
+            }
+        }
+
+        if (synths.isEmpty())
+        {
+            throw new IOException("No valid standard MidiSynths found in string=" + s);
+        }
+
+        return new MidiSynthList(synths);
+    }
+
+    // ==============================================================================================
+    // Private methods
+    // ==============================================================================================    
 }

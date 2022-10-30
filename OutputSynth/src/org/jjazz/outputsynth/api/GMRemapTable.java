@@ -23,7 +23,7 @@
  */
 package org.jjazz.outputsynth.api;
 
-import java.beans.PropertyChangeEvent;
+import com.google.common.base.Preconditions;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.InvalidObjectException;
@@ -35,26 +35,25 @@ import java.util.Objects;
 import java.util.logging.Logger;
 import org.jjazz.midi.api.synths.GM1Instrument;
 import org.jjazz.midi.api.Instrument;
-import org.jjazz.midi.api.InstrumentBank;
-import org.jjazz.midi.api.MidiSynth;
 import org.jjazz.midi.api.keymap.KeyMapGM;
 import org.jjazz.midi.api.synths.Family;
 
 /**
- * The table can associate an Instrument to each of the GM1 instruments + the special DRUMS/PERCUSSION static instances.
+ * The table can associate an Instrument from a MidiSynthList to each of the GM1 instruments + the special DRUMS/PERCUSSION static
+ * instances.
  * <p>
  * Association can also be done at the GM1Bank.Family level.
  */
-public class GMRemapTable implements Serializable, PropertyChangeListener
+public class GMRemapTable implements Serializable
 {
 
     /**
      * Specific exception for this object.
      */
-    public class ArgumentsException extends Exception
+    public class InvalidMappingException extends Exception
     {
 
-        public ArgumentsException(String msg)
+        public InvalidMappingException(String msg)
         {
             super(msg);
         }
@@ -76,16 +75,19 @@ public class GMRemapTable implements Serializable, PropertyChangeListener
     public static final String PROP_INSTRUMENT = "Instrument";   //NOI18N 
     private HashMap<Instrument, Instrument> mapInstruments = new HashMap<>();
     private HashMap<Family, Instrument> mapFamilyInstruments = new HashMap<>();
-    private transient OutputSynth container;
+    private final MidiSynthList midiSynthList;
     private final transient PropertyChangeSupport pcs = new java.beans.PropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(GMRemapTable.class.getSimpleName());
 
     /**
-     * Create an empty GM1RemapTable instance.
+     * Create an instance to remap GM instruments to instruments from the specified MidiSynthList.
      * <p>
+     * @param synthList
      */
-    public GMRemapTable()
+    public GMRemapTable(MidiSynthList synthList)
     {
+        Preconditions.checkNotNull(synthList);
+        midiSynthList = synthList;
     }
 
     /**
@@ -97,33 +99,36 @@ public class GMRemapTable implements Serializable, PropertyChangeListener
     {
         mapInstruments = new HashMap<>(rt.mapInstruments);
         mapFamilyInstruments = new HashMap<>(rt.mapFamilyInstruments);
+        midiSynthList = rt.midiSynthList;
     }
 
     /**
-     * Associate an OutputSynth to this object.
-     * <p>
-     * Listen to the container changes (MidiSynth removed) and update our map accordingly.
+     * The associated MidiSynthList.
      *
-     * @param container
+     * @return
      */
-    public void setContainer(OutputSynth container)
+    public MidiSynthList getMidiSynthList()
     {
-        if (this.container != null)
-        {
-            this.container.removePropertyChangeListener(this);
-        }
-        this.container = container;
-        if (container != null)
-        {
-            container.addPropertyChangeListener(this);
-        }
+        return midiSynthList;
     }
 
+
+    /**
+     * The map which associates a GM instrument (+ the special drums instances) to an instrument from the associated
+     * MidiSynthList.
+     *
+     * @return
+     */
     public HashMap<Instrument, Instrument> getInstrumentMap()
     {
         return new HashMap<>(mapInstruments);
     }
 
+    /**
+     * The map which associates a GM family to an instrument from the associated MidiSynthList.
+     *
+     * @return
+     */
     public HashMap<Family, Instrument> getFamilyInstrumentMap()
     {
         return new HashMap<>(mapFamilyInstruments);
@@ -158,7 +163,7 @@ public class GMRemapTable implements Serializable, PropertyChangeListener
      * Get the mapped instrument for remappedIns.
      *
      * @param remappedIns Must be a GM1Instrument or the special DRUMS/PERCUSSION static instances.
-     * @return Null if no mapping defined for remappedIns.
+     * @return Null if no mapping defined for remappedIns. Returned instrument belongs to the associated MidiSynthList.
      */
     public Instrument getInstrument(Instrument remappedIns)
     {
@@ -171,25 +176,30 @@ public class GMRemapTable implements Serializable, PropertyChangeListener
      *
      * @param remappedIns        Must be a GM1Instrument or the special DRUMS/PERCUSSION static instances.
      * @param ins                Can be null. If remappedIns is one of the special DRUMS/PERCUSSION instances, ins must be a
-     *                           Drums/Perc instrument with a GM compatible DrumsKit.KeyMap.
+     *                           Drums/Perc instrument with a GM compatible DrumsKit.KeyMap. ins must belong to the associated
+     *                           MidiSynthList.
      * @param useAsFamilyDefault If true ins will be also the default instrument for the remappedIns's family. Not used if
      *                           remappedIns is one of the special DRUMS/PERCUSSION instances.
-     * @throws ArgumentsException If arguments are invalid. The exception error message can be used for user notification.
+     * @throws InvalidMappingException If arguments are invalid. The exception error message can be used for user notification.
      */
-    public void setInstrument(Instrument remappedIns, Instrument ins, boolean useAsFamilyDefault) throws ArgumentsException
+    public void setInstrument(Instrument remappedIns, Instrument ins, boolean useAsFamilyDefault) throws InvalidMappingException
     {
         checkRemappedInstrument(remappedIns);
         if (ins == remappedIns)
         {
-            throw new ArgumentsException("Invalid instrument: " + ins.getFullName() + " is not different from the mapped instrument.");
+            throw new InvalidMappingException("Invalid instrument: " + ins.getFullName() + " is not different from the mapped instrument.");
         }
         if (ins != null && !ins.isDrumKit() && (remappedIns == DRUMS_INSTRUMENT || remappedIns == PERCUSSION_INSTRUMENT))
         {
-            throw new ArgumentsException("Invalid instrument: " + ins.getFullName() + " is not a Drums/Percussion instrument.");
+            throw new InvalidMappingException("Invalid instrument: " + ins.getFullName() + " is not a Drums/Percussion instrument.");
         }
         if (ins != null && ins.isDrumKit() && !ins.getDrumKit().getKeyMap().isContaining(KeyMapGM.getInstance()))
         {
-            throw new ArgumentsException("Invalid instrument: " + ins.getFullName() + " drum kit keymap (" + ins.getDrumKit().getKeyMap().getName() + ") is not GM-compatible.");
+            throw new InvalidMappingException("Invalid instrument: " + ins.getFullName() + " drum kit keymap (" + ins.getDrumKit().getKeyMap().getName() + ") is not GM-compatible.");
+        }
+        if (ins != null && !midiSynthList.contains(ins))
+        {
+            throw new IllegalArgumentException("Invalid instrument: " + ins.getFullName() + " does not belong to associated midiSynthList=" + midiSynthList);
         }
         setInstrumentNoException(remappedIns, ins, useAsFamilyDefault);
     }
@@ -208,26 +218,17 @@ public class GMRemapTable implements Serializable, PropertyChangeListener
         }
         return mapFamilyInstruments.get(family);
     }
-
-    /**
-     * True if there is at least one mapping which uses a destination instrument from bank OR synth.
-     *
-     * @param synth Can be null
-     * @param bank  Can be null
-     * @return
-     */
-    public boolean isUsed(MidiSynth synth, InstrumentBank<?> bank)
+    
+    public String saveAsString()
     {
-        for (Instrument mappedIns : mapInstruments.keySet().toArray(new Instrument[0]))
-        {
-            Instrument ins = mapInstruments.get(mappedIns);
-            if (ins != null && (ins.getBank().getMidiSynth() == synth || ins.getBank() == bank))
-            {
-                return true;
-            }
-        }
-        return false;
+        
     }
+    
+    public void setFromString(String s)
+    {
+        
+    }
+
 
     public void addPropertyChangeListener(PropertyChangeListener l)
     {
@@ -239,28 +240,6 @@ public class GMRemapTable implements Serializable, PropertyChangeListener
         pcs.removePropertyChangeListener(l);
     }
 
-    // ==============================================================================
-    // PropertyChangeListener interface
-    // ==============================================================================
-    @Override
-    public void propertyChange(PropertyChangeEvent evt)
-    {
-        if (evt.getSource() == container)
-        {
-            if (evt.getPropertyName().equals(OutputSynth.PROP_STD_BANK) && evt.getOldValue().equals(Boolean.FALSE))
-            {
-                // A standard InstrumentBank has been removed
-                InstrumentBank<?> bank = (InstrumentBank) evt.getNewValue();
-                removeObsoleteMappings(null, bank);
-            } else if (evt.getPropertyName().equals(OutputSynth.PROP_CUSTOM_SYNTH) && evt.getOldValue().equals(Boolean.FALSE))
-            {
-                // A MidiSynth has been removed
-                MidiSynth synth = (MidiSynth) evt.getNewValue();
-                removeObsoleteMappings(synth, null);
-
-            }
-        }
-    }
 
     // --------------------------------------------------------------------- 
     // Private methods
@@ -283,30 +262,7 @@ public class GMRemapTable implements Serializable, PropertyChangeListener
         }
     }
 
-    /**
-     * Remove all mappings where destination instrument uses the specified synth OR bank.
-     *
-     * @param synth
-     * @param bank
-     */
-    private void removeObsoleteMappings(MidiSynth synth, InstrumentBank<?> bank)
-    {
-        for (Instrument mappedIns : mapInstruments.keySet().toArray(new Instrument[0]))
-        {
-            Instrument ins = mapInstruments.get(mappedIns);
-            if (ins != null && (ins.getBank().getMidiSynth() == synth || ins.getBank() == bank))
-            {
-                boolean useAsFamilyDefault = false;
-                if (mappedIns instanceof GM1Instrument)
-                {
-                    GM1Instrument gmIns = (GM1Instrument) mappedIns;
-                    useAsFamilyDefault = mapFamilyInstruments.get(gmIns.getFamily()) == ins;
-                }
-                setInstrumentNoException(mappedIns, null, useAsFamilyDefault);
-            }
-        }
-    }
-
+   
     // --------------------------------------------------------------------- 
     // Serialization
     // --------------------------------------------------------------------- 

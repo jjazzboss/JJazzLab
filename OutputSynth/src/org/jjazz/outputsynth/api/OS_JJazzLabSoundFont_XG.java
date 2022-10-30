@@ -26,7 +26,7 @@ import java.io.File;
 import java.util.logging.Logger;
 import org.jjazz.midi.api.MidiSynth;
 import org.jjazz.midi.api.synths.StdSynth;
-import org.jjazz.midisynthmanager.api.MidiSynthManager;
+import org.jjazz.midisynthmanager.api.MidiSynthListManager;
 
 /**
  * The builtin OutputSynth for the JJazzLabSoundFont in XG mode.
@@ -54,7 +54,7 @@ public class OS_JJazzLabSoundFont_XG extends OutputSynth
     private OS_JJazzLabSoundFont_XG()
     {
         super(NAME);
-        midiSynth = MidiSynthManager.getDefault().getMidiSynth(MidiSynthManager.JJAZZLAB_SOUNDFONT_XG_SYNTH_NAME);
+        midiSynth = MidiSynthListManager.getDefault().getMidiSynth(MidiSynthListManager.JJAZZLAB_SOUNDFONT_XG_SYNTH_NAME);
 
         // Adjust settings
         addCustomSynth(midiSynth);

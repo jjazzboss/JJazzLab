@@ -23,7 +23,6 @@
  */
 package org.jjazz.midisynthmanager;
 
-import org.jjazz.midisynthmanager.api.MidiSynthManager;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -42,7 +41,6 @@ import org.jjazz.midi.api.synths.GM2Synth;
 import org.jjazz.midi.api.synths.GMSynth;
 import org.jjazz.midi.spi.MidiSynthFileReader;
 import org.jjazz.midi.api.synths.GSSynth;
-import org.jjazz.midi.api.synths.StdSynth;
 import org.jjazz.midi.api.synths.XGSynth;
 import org.jjazz.startup.spi.StartupTask;
 import org.jjazz.upgrade.api.UpgradeManager;
@@ -53,8 +51,9 @@ import org.openide.*;
 import org.openide.util.Lookup;
 import org.openide.util.lookup.ServiceProvider;
 import org.openide.windows.WindowManager;
+import org.jjazz.midisynthmanager.api.MidiSynthListManager;
 
-public class MidiSynthManagerImpl implements MidiSynthManager
+public class MidiSynthManagerImpl implements MidiSynthListManager
 {
 
     @StaticResource(relative = true)

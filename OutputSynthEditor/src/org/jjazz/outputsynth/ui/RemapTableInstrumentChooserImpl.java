@@ -128,7 +128,7 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
 
         remappedInstrument = remappedIns;
         outputSynth = outSynth;
-        GMRemapTable rTable = outputSynth.getGMRemapTable();
+        GMRemapTable rTable = outputSynth.getUserSettings().getGMRemapTable();
 
         String myTitle = ResUtil.getString(getClass(), "RemapTableInstrumentChooserImpl.CTL_MappedInstrument", remappedInstrument.getPatchName());
         if (remappedInstrument instanceof GM1Instrument)
@@ -149,7 +149,7 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
         cb_UseAsFamilyDefault.setSelected(false);
         btn_Hear.setEnabled(false);
 
-        Instrument targetIns = outputSynth.getGMRemapTable().getInstrument(remappedInstrument);
+        Instrument targetIns = outputSynth.getUserSettings().getGMRemapTable().getInstrument(remappedInstrument);
 
         allInstruments = this.getAllInstruments(outputSynth, remappedInstrumentAsGM1 == null);
         recommendedInstruments = this.getRecommendedInstruments(allInstruments, remappedInstrument);

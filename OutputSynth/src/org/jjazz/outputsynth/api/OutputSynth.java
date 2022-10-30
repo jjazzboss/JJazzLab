@@ -24,24 +24,14 @@
 package org.jjazz.outputsynth.api;
 
 import com.google.common.base.Preconditions;
-import com.thoughtworks.xstream.XStream;
-import com.thoughtworks.xstream.XStreamException;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
-import java.io.OutputStreamWriter;
 import java.io.Serializable;
-import java.io.Writer;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -50,137 +40,57 @@ import org.jjazz.midi.api.synths.GSSynth;
 import org.jjazz.midi.api.Instrument;
 import org.jjazz.midi.api.InstrumentBank;
 import org.jjazz.midi.api.MidiSynth;
-import org.jjazz.midi.api.MidiSynth.Finder;
+import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.midi.api.synths.GM1Instrument;
-import org.jjazz.midi.api.synths.GM2Synth;
 import org.jjazz.midi.api.synths.GMSynth;
 import org.jjazz.midi.api.synths.StandardInstrumentConverter;
-import org.jjazz.midi.api.synths.XGSynth;
-import org.jjazz.midi.spi.MidiSynthFileReader;
-import org.jjazz.midiconverters.api.ConverterManager;
 import org.jjazz.midiconverters.api.StdInstrumentConverter;
-import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.UserRhythmVoice;
 import org.jjazz.rhythm.api.RhythmVoice;
-import org.jjazz.util.api.Utilities;
 
 /**
- * An OutputSynth has a name, one or more MidiSynth instances describing the available instruments, and some UserSettings.
+ * An OutputSynth associates a MidiSynthList with UserSettings.
  * <p>
  */
-public class OutputSynth implements Serializable
+public class OutputSynth
 {
-    private final String name;
-    private final List<MidiSynth> midiSynths = new ArrayList<>();
-    private File file;
+
+    private final MidiSynthList midiSynthList;
+    private final UserSettings userSettings;
 
     private static final Logger LOGGER = Logger.getLogger(OutputSynth.class.getSimpleName());
-    private final transient PropertyChangeSupport pcs = new java.beans.PropertyChangeSupport(this);
 
 
     /**
-     * Construct an OutputSynth named "GM output synth" with the GMSynth instance.
-     */
-    public OutputSynth()
-    {
-        this("GM output synth", Arrays.asList(GMSynth.getInstance()));
-    }
-
-    /**
-     * Construct an OutputSynth with specified name and MidiSynths.
+     * Construct an OutputSynth with the specified midiSynthList and default UserSettings.
      * <p>
-     * @param name
-     * @param synths Can't be empty
+     * @param synthList
      */
-    public OutputSynth(String name, List<MidiSynth> synths)
+    public OutputSynth(MidiSynthList synthList)
     {
-        Preconditions.checkArgument(name != null && !name.isBlank());
-        Preconditions.checkArgument(synths != null && !synths.isEmpty());
-        this.name = name;
-        this.midiSynths.addAll(synths);
+        Preconditions.checkNotNull(synthList);
+        this.midiSynthList = synthList;
+        this.userSettings = new UserSettings();
     }
 
     /**
-     * Construct an OutputSynth from the (non-empty) MidiSynths found in the specified instrument definition file (.ins).
-     * .<p>
-     * @param name
-     * @param file
-     * @throws java.io.IOException
-     */
-    public OutputSynth(String name, File file) throws IOException
-    {
-        Preconditions.checkArgument(name != null && !name.isBlank());
-        this.name = name;
-
-        var reader = MidiSynthFileReader.getReader(Utilities.getExtension(file.getName()));
-        if (reader == null)
-        {
-            throw new IOException("No MidiSynthFileReader instance found to read file=" + file.getAbsolutePath());
-        }
-        
-        // Read the file and add the non-empty synths
-        FileInputStream fis = new FileInputStream(file);
-        var synths = reader.readSynthsFromStream(fis, file);    // Can raise exception
-        synths.stream()
-                .filter(s -> s.getNbInstruments() > 0)
-                .forEach(s -> midiSynths.add(s));
-
-
-        this.file = file;
-    }
-
-    public String getName()
-    {
-        return name;
-    }
-
-    /**
-     * Get the associated MidiSynth definition file (.ins).
+     * Get the MidiSynthList of this OutputSynth.
      *
-     * @return Null if this instance was not created using an instrument definitiion file.
-     * @see #OutputSynth(java.lang.String, java.io.File)
+     * @return
      */
-    public File getFile()
+    public MidiSynthList getMidiSynthList()
     {
-        return file;
+        return midiSynthList;
     }
 
-
     /**
-     * Get the MidiSynths of this OutputSynth.
+     * Get the UserSettings of this OutputSynth.
      *
-     * @return Can be an empty list.
+     * @return
      */
-    public List<MidiSynth> getMidiSynths()
+    public UserSettings getUserSettings()
     {
-        return new ArrayList<>(midiSynths);
-    }
-
-
-    /**
-     * Get the instruments that should be used in the specified MidiMix to be consistent with this OutputSynth.
-     * <p>
-     *
-     * @param mm
-     * @return The channels which need to be fixed and the associated new instrument. HashMap can be empty.
-     */
-    public HashMap<Integer, Instrument> getNeedFixInstruments(MidiMix mm)
-    {
-        HashMap<Integer, Instrument> res = new HashMap<>();
-        for (int channel : mm.getUsedChannels())
-        {
-            Instrument ins = mm.getInstrumentMixFromChannel(channel).getInstrument(); // Can be the VoidInstrument
-            if (!contains(ins))
-            {
-                RhythmVoice rv = mm.getRhythmVoice(channel);
-                Instrument newIns = findInstrument(rv);     // Can be the VoidInstrument
-                if (newIns != ins)
-                {
-                    res.put(channel, newIns);
-                }
-            }
-        }
-        return res;
+        return userSettings;
     }
 
     /**
@@ -225,7 +135,7 @@ public class OutputSynth implements Serializable
 
 
         // Try to use the StandardInstrumentConverter
-        for (MidiSynth synth : midiSynths)
+        for (MidiSynth synth : midiSynthList)
         {
             var ins = StandardInstrumentConverter.convertInstrument(rvIns, synth);
             if (ins != null)
@@ -251,7 +161,7 @@ public class OutputSynth implements Serializable
 
             // Search in the custom synth for instruments whose GMSubstitute match
             assert gmSubstitute != null : "rv=" + rv;   //NOI18N
-            for (MidiSynth synth : midiSynths)
+            for (MidiSynth synth : midiSynthList)
             {
                 for (InstrumentBank<? extends Instrument> bank : synth.getBanks())
                 {
@@ -287,7 +197,7 @@ public class OutputSynth implements Serializable
             }
 
             // Search in the custom synth for instruments whose GMSubstitute's family match
-            for (MidiSynth synth : midiSynths)
+            for (MidiSynth synth : midiSynthList)
             {
                 for (InstrumentBank<? extends Instrument> bank : synth.getBanks())
                 {
@@ -334,7 +244,7 @@ public class OutputSynth implements Serializable
             }
 
             // Search a matching kit in the custom synths
-            for (MidiSynth synth : midiSynths)
+            for (MidiSynth synth : midiSynthList)
             {
                 for (InstrumentBank<? extends Instrument> bank : synth.getBanks())
                 {
@@ -357,7 +267,7 @@ public class OutputSynth implements Serializable
             }
 
             // Same but TRYHARDER
-            for (MidiSynth synth : midiSynths)
+            for (MidiSynth synth : midiSynthList)
             {
                 for (InstrumentBank<? extends Instrument> bank : synth.getBanks())
                 {
@@ -396,100 +306,6 @@ public class OutputSynth implements Serializable
 
 
     /**
-     * Check whether this output synth contains this instrument.
-     *
-     * @param ins
-     * @return
-     */
-    public boolean contains(Instrument ins)
-    {
-        InstrumentBank<?> bank = ins.getBank();
-        if (bank != null)
-        {
-            if (compatibleStdBanks.contains(bank))
-            {
-                return true;
-            }
-            MidiSynth synth = bank.getMidiSynth();
-            if (synth != null)
-            {
-                return midiSynths.contains(synth);
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Return the first drums instrument found.
-     *
-     * @return Can be the VoidInstrument if no drums instrument found.
-     */
-    public Instrument getDrumsInstrumentSample()
-    {
-        Instrument ins = StdSynth.getInstance().getVoidInstrument();
-        for (MidiSynth synth : midiSynths)
-        {
-            List<Instrument> drumsInstruments = synth.getDrumsInstruments();
-            if (!drumsInstruments.isEmpty())
-            {
-                ins = drumsInstruments.get(0);
-                break;
-            }
-        }
-        if (ins == StdSynth.getInstance().getVoidInstrument())
-        {
-            // Try the standard banks
-            for (var bank : compatibleStdBanks)
-            {
-                var drumsInstruments = bank.getDrumsInstruments();
-                if (!drumsInstruments.isEmpty())
-                {
-                    ins = drumsInstruments.get(0);
-                    break;
-                }
-            }
-        }
-        return ins;
-    }
-
-    /**
-     * Save this OutputSynth to a file.
-     * <p>
-     *
-     * @param f
-     * @throws java.io.IOException
-     */
-    public void saveToFile(File f) throws IOException
-    {
-        if (f == null)
-        {
-            throw new IllegalArgumentException("f=" + f);   //NOI18N
-        }
-        LOGGER.fine("saveToFile() f=" + f.getAbsolutePath());   //NOI18N
-
-        File prevFile = getFile();
-        setFile(f);
-
-        try ( FileOutputStream fos = new FileOutputStream(f))
-        {
-            XStream xstream = new XStream();
-            xstream.alias("OutputSynth", OutputSynth.class);
-            Writer w = new BufferedWriter(new OutputStreamWriter(fos, "UTF-8"));        // Needed to support special/accented chars
-            xstream.toXML(this, w);
-        } catch (IOException e)
-        {
-            setFile(prevFile);
-            throw e;
-        } catch (XStreamException e)
-        {
-            setFile(prevFile);
-            LOGGER.warning("saveToFile() exception=" + e.getMessage());   //NOI18N
-            // Translate into an IOException to be handled by the Netbeans framework 
-            throw new IOException("XStream XML marshalling error", e);
-        }
-    }
-
-    /**
      * Save this OutputSynth as a string so that it can be retrieved by loadFromString().
      * <p>
      * If a
@@ -499,60 +315,215 @@ public class OutputSynth implements Serializable
      */
     public String saveAsString()
     {
-        String strFile = getFile() == null ? "NOT_SET" : getFile().getAbsolutePath();
-        return getName() + "#:#" + strFile;
+        return midiSynthList.saveAsString() + "##" + userSettings.saveAsString();
     }
 
     /**
-     * Get the MidiSynth corresponding to the string produced by saveAsString().
+     * Get an OutputSynth corresponding to the string produced by saveAsString().
      * <p>
      *
      * @param s
-     * @return Null if no MidiSynth could be found corresponding to s.
+     * @return
+     * @throws java.io.IOException
      * @see saveAsString()
-     *
      */
-    static public MidiSynth loadFromString(String s)
+    static public OutputSynth loadFromString(String s) throws IOException
     {
-        if (s == null)
-        {
-            throw new NullPointerException("s");   //NOI18N
-        }
-        String[] strs = s.split("#:#");
+        String[] strs = s.split("##");
         if (strs.length != 2)
         {
-            LOGGER.warning("loadFromString() Invalid string format : " + s);   //NOI18N
-            return null;
+            throw new IOException("Invalid string s=" + s);
         }
-        String synthName = strs[0].trim();
-        String filePath = strs[1].trim();
-        File f = filePath.equals("NOT_SET") ? null : new File(filePath);
-        MidiSynth synth = Finder.getDefault().getMidiSynth(synthName, f);
-        return synth;
+        String strMsl = strs[0].trim();
+        String strUs = strs[1].trim();
+
+        MidiSynthList synthList = MidiSynthList.loadFromString(strMsl);
+        OutputSynth res = new OutputSynth(synthList);
+        res.userSettings.restoreFromString(strUs);
+        return res;
     }
 
-    public void addPropertyChangeListener(PropertyChangeListener l)
-    {
-        pcs.addPropertyChangeListener(l);
-    }
-
-    public void removePropertyChangeListener(PropertyChangeListener l)
-    {
-        pcs.removePropertyChangeListener(l);
-    }
 
     // ========================================================================================
     // Private methods
     // ========================================================================================    
-
-    private boolean isStdBank(InstrumentBank<?> bank)
+    // ========================================================================================
+    // Private classes
+    // ========================================================================================    
+    /**
+     * The user-dependent settings associated to the OutputSynth: GM remap table, latency, user track default voice, etc.
+     */
+    public class UserSettings
     {
-        return bank == GMSynth.getInstance().getGM1Bank() || bank == GM2Synth.getInstance().getGM2Bank() || bank == XGSynth.getInstance().getXGBank() || bank == GSSynth.getInstance().getGSBank();
-    }
 
-    private List<InstrumentBank<?>> getStdBanks()
-    {
-        return Arrays.asList(GMSynth.getInstance().getGM1Bank(), GM2Synth.getInstance().getGM2Bank(), XGSynth.getInstance().getXGBank(), GSSynth.getInstance().getGSBank());
+        public static final String PROP_USERINSTRUMENT = "userInstrument";
+        public static final String PROP_AUDIOLATENCY = "AudioLatency";
+        public static final String PROP_SENDMODEONUPONSTARTUP = "sendModeOnUponStartup";
+
+
+        public enum SendModeOnUponStartup
+        {
+            OFF, GM, GM2, XG, GS;
+        }
+
+        private SendModeOnUponStartup sendModeOnUponPlay;
+        protected GMRemapTable remapTable;
+        private int audioLatency;
+        private Instrument userInstrument;
+
+        private transient final PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
+
+        /**
+         * Create an instance with sendModeOnUponPlay=OFF, audioLatency=50, userInstrument = 1st instrument of the synthList,
+         * empty GMremapTable
+         */
+        public UserSettings()
+        {
+            this.remapTable = new GMRemapTable(midiSynthList);
+            this.sendModeOnUponPlay = SendModeOnUponStartup.OFF;
+            this.userInstrument = midiSynthList.getMidiSynths().get(0).getInstruments().get(0);
+            this.audioLatency = 50;
+        }
+
+
+        /**
+         * Get the value of AudioLatency
+         *
+         * @return the value of AudioLatency
+         */
+        public int getAudioLatency()
+        {
+            return audioLatency;
+        }
+
+        /**
+         * Set the value of AudioLatency
+         *
+         * @param audioLatency new value of AudioLatency
+         */
+        public void setAudioLatency(int audioLatency)
+        {
+            int oldAudioLatency = this.audioLatency;
+            this.audioLatency = audioLatency;
+            propertyChangeSupport.firePropertyChange(PROP_AUDIOLATENCY, oldAudioLatency, audioLatency);
+        }
+
+
+        /**
+         * Get the value of userInstrument
+         *
+         * @return Can't be null
+         */
+        public Instrument getUserInstrument()
+        {
+            return userInstrument;
+        }
+
+        /**
+         * Set the value of userInstrument.
+         *
+         * @param ins Must be an instrument contained in the MidiSynthList.
+         */
+        public void setUserInstrument(Instrument ins)
+        {
+            Preconditions.checkNotNull(ins);
+            if (!midiSynthList.contains(ins))
+            {
+                throw new IllegalArgumentException("ins=" + ins.toLongString());   //NOI18N
+            }
+
+            Instrument oldUserInstrument = this.userInstrument;
+            this.userInstrument = ins;
+            propertyChangeSupport.firePropertyChange(PROP_USERINSTRUMENT, oldUserInstrument, ins);
+
+        }
+
+        public GMRemapTable getGMRemapTable()
+        {
+            return remapTable;
+        }
+
+
+        /**
+         * Get the value of sendModeOnUponStartup
+         *
+         * @return the value of sendModeOnUponStartup
+         */
+        public SendModeOnUponStartup getSendModeOnUponPlay()
+        {
+            return sendModeOnUponPlay;
+        }
+
+        /**
+         * Set the value of sendModeOnUponStartup
+         *
+         * @param sendModeOnUponPlay new value of sendModeOnUponStartup
+         */
+        public void setSendModeOnUponPlay(SendModeOnUponStartup sendModeOnUponPlay)
+        {
+            SendModeOnUponStartup oldSendModeOnUponStartup = this.sendModeOnUponPlay;
+            this.sendModeOnUponPlay = sendModeOnUponPlay;
+            propertyChangeSupport.firePropertyChange(PROP_SENDMODEONUPONSTARTUP, oldSendModeOnUponStartup, sendModeOnUponPlay);
+        }
+
+
+        /**
+         * Send the Sysex messages corresponding to getSendModeOnUponPlay().
+         */
+        public void sendModeOnUponPlaySysexMessages()
+        {
+            switch (sendModeOnUponPlay)
+            {
+                case GM:
+                    MidiUtilities.sendSysExMessage(MidiUtilities.getGmModeOnSysExMessage());
+                    break;
+                case GM2:
+                    MidiUtilities.sendSysExMessage(MidiUtilities.getGm2ModeOnSysExMessage());
+                    break;
+                case XG:
+                    MidiUtilities.sendSysExMessage(MidiUtilities.getXgModeOnSysExMessage());
+                    break;
+                case GS:
+                    MidiUtilities.sendSysExMessage(MidiUtilities.getGsModeOnSysExMessage());
+                    break;
+                case OFF:
+                    break;
+                default:
+                    throw new IllegalStateException("sendModeOnUponPlay=" + sendModeOnUponPlay);   //NOI18N
+            }
+        }
+
+        /**
+         * Add PropertyChangeListener.
+         *
+         * @param listener
+         */
+        public void addPropertyChangeListener(PropertyChangeListener listener)
+        {
+            propertyChangeSupport.addPropertyChangeListener(listener);
+        }
+
+        public String saveAsString()
+        {
+            return audioLatency + ";" + sendModeOnUponPlay + ";" + userInstrument.saveAsString() + ";" + remapTable.saveAsString();
+        }
+
+        public void setFromString(String strUs)
+        {
+            
+        }
+
+        /**
+         * Remove PropertyChangeListener.
+         *
+         * @param listener
+         */
+        public void removePropertyChangeListener(PropertyChangeListener listener)
+        {
+            propertyChangeSupport.removePropertyChangeListener(listener);
+        }
+
+
     }
 
     // --------------------------------------------------------------------- 

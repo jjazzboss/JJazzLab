@@ -28,7 +28,7 @@ import org.jjazz.midi.api.Instrument;
 import org.jjazz.midi.api.MidiAddress;
 import org.jjazz.midi.api.MidiSynth;
 import org.jjazz.midi.api.synths.StdSynth;
-import org.jjazz.midisynthmanager.api.MidiSynthManager;
+import org.jjazz.midisynthmanager.api.MidiSynthListManager;
 
 /**
  * The builtin OutputSynth for the Yamaha Tyros/PSR reference synth.
@@ -54,7 +54,7 @@ public class OS_YamahaRef extends OutputSynth
 
     private OS_YamahaRef()
     {
-        midiSynth = MidiSynthManager.getDefault().getMidiSynth(MidiSynthManager.YAMAHA_REF_SYNTH_NAME);
+        midiSynth = MidiSynthListManager.getDefault().getMidiSynth(MidiSynthListManager.YAMAHA_REF_SYNTH_NAME);
 
         // Adjust settings
         addCustomSynth(midiSynth);

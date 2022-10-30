@@ -30,9 +30,9 @@ import org.jjazz.midisynthmanager.MidiSynthManagerImpl;
 
 
 /**
- * A central place to manage MidiSynths.
+ * A central place to manage MidiSynthLists.
  */
-public interface MidiSynthManager
+public interface MidiSynthListManager
 {
 
     // The builtin synth names
@@ -42,7 +42,7 @@ public interface MidiSynthManager
     static String YAMAHA_REF_SYNTH_NAME = "Tyros5 Synth";
 
 
-    public static MidiSynthManager getDefault()
+    public static MidiSynthListManager getDefault()
     {
         return MidiSynthManagerImpl.getInstance();
     }
@@ -54,7 +54,7 @@ public interface MidiSynthManager
      *
      * @return
      */
-    List<MidiSynth> getBuiltinSynths();
+    List<MidiSynthList> getBuiltinSynthLists();
 
     /**
      * Search the builtin synths and the synths loaded via loadSynths() to find a synth whose name is synthName.

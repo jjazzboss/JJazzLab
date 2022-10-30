@@ -23,6 +23,7 @@
  */
 package org.jjazz.outputsynth.api;
 
+import com.google.common.base.Preconditions;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.XStreamException;
 import java.beans.PropertyChangeEvent;
@@ -36,10 +37,12 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.util.HashMap;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
+import javax.sound.midi.MidiDevice;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.filechooser.FileSystemView;
@@ -51,6 +54,7 @@ import org.jjazz.util.api.ResUtil;
 import org.jjazz.util.api.Utilities;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
+import org.openide.util.Exceptions;
 import org.openide.util.NbPreferences;
 import org.openide.util.lookup.ServiceProvider;
 import org.openide.windows.WindowManager;
@@ -62,18 +66,15 @@ public class OutputSynthManager implements PropertyChangeListener
 {
 
     public final static String PROP_DEFAULT_OUTPUTSYNTH = "OutputSynth";
+
     /**
      * Convenience property which replicates the audio latency changes of the current output synth.
      */
     public final static String PROP_AUDIO_LATENCY = "AudioLatency";
-    public final static String DEFAULT_OUTPUT_SYNTH_FILENAME = "Default.cfg";
-
-    public final static String OUTPUT_SYNTH_FILES_DIR = "OutputSynthFiles";
-    public final static String OUTPUT_SYNTH_FILES_EXT = "cfg";
 
     private static OutputSynthManager INSTANCE;
     private static JFileChooser CHOOSER_INSTANCE;
-    private OutputSynth outputSynth;
+    private HashMap<MidiDevice, OutputSynth> mapDeviceSynth = new HashMap<>();
     private static final Preferences prefs = NbPreferences.forModule(OutputSynthManager.class);
     private final transient PropertyChangeSupport pcs = new java.beans.PropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(OutputSynthManager.class.getSimpleName());
@@ -92,49 +93,53 @@ public class OutputSynthManager implements PropertyChangeListener
 
     private OutputSynthManager()
     {
-        // Load the saved output synth file
-        String fileName = prefs.get(PROP_DEFAULT_OUTPUTSYNTH, null);        // Only the filename is stored in the preferences (no path)
-        if (fileName != null)
-        {
-            File f = new File(getOutputSynthFilesDir(), fileName);
-            outputSynth = loadOutputSynth(f, false);
-        }
 
-        if (outputSynth == null)
-        {
-            // Try reading the default config file if not already done
-            File f = new File(getOutputSynthFilesDir(), DEFAULT_OUTPUT_SYNTH_FILENAME);
-            if (!DEFAULT_OUTPUT_SYNTH_FILENAME.equals(fileName) && f.exists())
-            {
-                outputSynth = loadOutputSynth(f, false);
-            }
-            if (outputSynth == null)
-            {
-                outputSynth = new OutputSynth();
-                outputSynth.setFile(f);
-            }
-        }
-
-        // Listen to file changes
-        outputSynth.addPropertyChangeListener(this);
     }
 
     /**
-     * The current OutputSynth.
+     * The OutputSynth associated to the specified output MidiDevice.
      *
+     * @param mdOut
      * @return Can't be null.
      */
-    public OutputSynth getOutputSynth()
+    public OutputSynth getOutputSynth(MidiDevice mdOut)
     {
-        return outputSynth;
+        Preconditions.checkNotNull(mdOut);
+        OutputSynth res = mapDeviceSynth.get(mdOut);
+        if (res != null)
+        {
+            return res;
+        }
+
+        // Try to restore the OutputSynth from preferences
+        String s = prefs.get(mdOut.getDeviceInfo().getName(), null);
+        if (s != null)
+        {
+            try
+            {
+                res = OutputSynth.loadFromString(s);
+            } catch (IOException ex)
+            {
+                LOGGER.warning("getOutputSynth() mdOut=" + mdOut.getDeviceInfo().getName() + " Can't restore OutputSynth from String s=" + s + ". ex=" + ex.getMessage());
+            }
+        }
+
+        if (res == null)
+        {
+            // Create a default OutputSynth
+            res = new OutputSynth(new MidiSynthList());            
+        }
+
+        return res;
     }
 
     /**
      * Set the current OutputSynth.
      *
+     * @param mdOut
      * @param outSynth Can't be null
      */
-    public void setOutputSynth(OutputSynth outSynth)
+    public void setOutputSynth(MidiDevice mdOut, OutputSynth outSynth)
     {
         if (outSynth == null)
         {

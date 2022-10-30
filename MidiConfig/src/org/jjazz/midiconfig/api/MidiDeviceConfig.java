@@ -22,29 +22,43 @@
  */
 package org.jjazz.midiconfig.api;
 
+import com.google.common.base.Preconditions;
 import javax.sound.midi.MidiDevice;
 import org.jjazz.midi.api.JJazzMidiSystem;
 import org.jjazz.outputsynth.api.OutputSynth;
 import org.openide.util.Utilities;
 
 /**
- * An OutputSynth associates one output MidiDevice with an OutputSynth.
+ * An MidiDeviceConfigs associates an output MidiDevice to an OutputSynth.
  */
-public class MidiConfig
+public class MidiDeviceConfig
 {
+
     private final MidiDevice outDevice;
     private final OutputSynth ouputSynth;
 
-    public MidiConfig(MidiDevice outDevice)
+    public MidiDeviceConfig(MidiDevice outDevice)
     {
         this(outDevice, getOutputSynth(outDevice.getDeviceInfo()));
     }
 
 
-    public MidiConfig(MidiDevice outDevice, OutputSynth ouputSynth)
+    public MidiDeviceConfig(MidiDevice outDevice, OutputSynth ouputSynth)
     {
+        Preconditions.checkNotNull(outDevice);
+        Preconditions.checkNotNull(ouputSynth);
         this.outDevice = outDevice;
         this.ouputSynth = ouputSynth;
+    }
+
+    public MidiDevice getOutDevice()
+    {
+        return outDevice;
+    }
+
+    public OutputSynth getOuputSynth()
+    {
+        return ouputSynth;
     }
 
     // =========================================================================
@@ -61,18 +75,17 @@ public class MidiConfig
     {
         OutputSynth res;
         JJazzMidiSystem jms = JJazzMidiSystem.getInstance();
-        
+
         if (Utilities.isWindows() && mdInfo.getName().toLowerCase().contains("virtualmidisynt"))
         {
             res = 
-        }
-        else 
+        } else
         {
             // GM synth by default
             res = 
         }
-      
+
         return res;
-      
+
     }
 }
