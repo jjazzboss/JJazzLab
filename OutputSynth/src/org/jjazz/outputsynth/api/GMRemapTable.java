@@ -32,6 +32,7 @@ import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Objects;
+import java.util.StringJoiner;
 import java.util.logging.Logger;
 import org.jjazz.midi.api.synths.GM1Instrument;
 import org.jjazz.midi.api.Instrument;
@@ -221,7 +222,11 @@ public class GMRemapTable implements Serializable
     
     public String saveAsString()
     {
-        
+        var sj = new StringJoiner(";", "[", "]");
+        for (var insKey : mapInstruments.keySet())
+        {
+            sj.add(insKey.)
+        }
     }
     
     public void setFromString(String s)

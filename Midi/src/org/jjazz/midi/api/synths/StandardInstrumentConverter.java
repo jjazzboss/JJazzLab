@@ -52,10 +52,10 @@ public class StandardInstrumentConverter
      * Try to find the standard Instrument from destSynth which best matches srcIns.
      * <p>
      *
-     * @param srcIns    A standard instrument from a GM/GM2/XG/GS-compatible MidiSynth
+     * @param srcIns A standard instrument from a GM/GM2/XG/GS-compatible MidiSynth
      * @param destSynth Should be GM/GM2/XG/GS-compatible
      * @return A GM/GM2/XG/GS standard instrument from destSynth. Null if destSynth is not GM/GM2/XG/GS-compatible, or if srcIns
-     *         is not a standard instrument.
+     * is not a standard instrument.
      */
     static public Instrument convertInstrument(Instrument srcIns, MidiSynth destSynth)
     {
@@ -172,30 +172,19 @@ public class StandardInstrumentConverter
 
 
     /**
-     * Try to find a GM2/XG/GS/drums percussion instrument which match srcKit.
+     * Try to find a GM2/XG/GS/drums percussion instrument from midiSynth which match, as much as possible, srcKit.
      * <p>
      *
      * @param srcKit
-     * @param destBanks Can't be null. Must be banks from GM/GM2/XG/GS
+     * @param midiSynth Can't be null. Should be GM2/XG/GS compatible.
      * @param tryHarder If initial search did not yield any instrument, try again with a more flexible matching scheme.
      * @return Can be null.
      */
-    public static Instrument findDrumsInstrument(DrumKit srcKit, List<InstrumentBank<?>> destBanks, boolean tryHarder)
+    public static Instrument findDrumsInstrument(DrumKit srcKit, MidiSynth midiSynth, boolean tryHarder)
     {
-        if (srcKit == null || destBanks == null)
+        if (srcKit == null || midiSynth == null)
         {
-            throw new IllegalArgumentException("srcKit=" + srcKit + " destBanks=" + destBanks + " tryHarder=" + tryHarder);   //NOI18N
-        }
-        if (destBanks.isEmpty())
-        {
-            return null;
-        }
-        for (InstrumentBank<?> destBank : destBanks)
-        {
-            if (!isStdBank(destBank))
-            {
-                throw new IllegalArgumentException("srcKit=" + srcKit + " destBanks=" + destBanks);   //NOI18N
-            }
+            throw new IllegalArgumentException("srcKit=" + srcKit + " midiSynth=" + midiSynth + " tryHarder=" + tryHarder);   //NOI18N
         }
 
         Instrument res = null;
@@ -218,9 +207,9 @@ public class StandardInstrumentConverter
         XGBank xgBank = XGSynth.getInstance().getXGBank();
         GM2Bank gm2Bank = GM2Synth.getInstance().getGM2Bank();
         GSBank gsBank = GSSynth.getInstance().getGSBank();
-        boolean isDestXG = destBanks.contains(xgBank);
-        boolean isDestGM2 = destBanks.contains(gm2Bank);
-        boolean isDestGS = destBanks.contains(gsBank);
+        boolean isDestXG = midiSynth.isXGcompatible();
+        boolean isDestGM2 = midiSynth.isGM2compatible();
+        boolean isDestGS = midiSynth.isGScompatible();
 
         if (!isDestXG && !isDestGM2 && !isDestGS)
         {
@@ -239,7 +228,8 @@ public class StandardInstrumentConverter
             res = getDrumsInstrument(gsBank, srcKit, tryHarder);
         }
 
-        return res;
+        // Get the equivalent instrument in midiSynth
+        return res == null ? null : midiSynth.getInstrument(res.getMidiAddress());
     }
 
     // =====================================================================================
@@ -277,7 +267,7 @@ public class StandardInstrumentConverter
 
     static private Instrument getDrumsInstrument(InstrumentBank<Instrument> bank, DrumKit kit, boolean tryHarder)
     {
-        List<Instrument> res = bank.getDrumsInstrument(kit, tryHarder);
+        List<Instrument> res = bank.getDrumsInstruments(kit, tryHarder);
         return res.isEmpty() ? null : res.get(0);
     }
 
@@ -342,7 +332,7 @@ public class StandardInstrumentConverter
          * <p>
          * bankFrom size must be &gt;= bankTo size.
          *
-         * @param id  For debugging message, e.g. "GM2=>GS"
+         * @param id For debugging message, e.g. "GM2=>GS"
          * @param map map[bankFromIndex] = bankToIndex. bankToIndex must not be &gt; (bankFrom.size()-1);
          */
         public ConversionTable(String id, int[] map)

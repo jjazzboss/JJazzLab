@@ -27,7 +27,9 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
+import org.jjazz.midi.api.synths.GM1Instrument;
 import org.openide.util.Lookup;
+import java.util.function.Predicate;
 
 /**
  * A MidiSynth is a collection of InstrumentBanks.
@@ -64,7 +66,7 @@ public class MidiSynth
          *
          * @param synthName The MidiSynth name containing the bank. Can't be null.
          * @param synthFile The file associated to synthName. Can be null if no file. If synthFile has no parent directory, search
-         *                  the default directory for output synth config files.
+         * the default directory for output synth config files.
          * @return Null if no MidiSynth found
          */
         MidiSynth getMidiSynth(String synthName, File synthFile);
@@ -85,7 +87,7 @@ public class MidiSynth
      * <p>
      * Created MidiSynth is not set to be compatible with GM/GM2/XG/GS standard.
      *
-     * @param name         If name contains comas (',') they are removed.
+     * @param name If name contains comas (',') they are removed.
      * @param manufacturer
      */
     public MidiSynth(String name, String manufacturer)
@@ -108,10 +110,10 @@ public class MidiSynth
      * - If a synth is GM2/XG/GS compatible, then it is also GM compatible and GM bank base adress is set to MSB=LSB=0<br>
      * - If a synth is GS compatible, then it can't be GM2 nor XG compatible
      *
-     * @param isGMcompatible  If null parameter is ignored.
+     * @param isGMcompatible If null parameter is ignored.
      * @param isGM2compatible If null parameter is ignored.
-     * @param isXGcompatible  If null parameter is ignored.
-     * @param isGScompatible  If null parameter is ignored.
+     * @param isXGcompatible If null parameter is ignored.
+     * @param isGScompatible If null parameter is ignored.
      */
     public void setCompatibility(Boolean isGMcompatible, Boolean isGM2compatible, Boolean isXGcompatible, Boolean isGScompatible)
     {
@@ -237,10 +239,29 @@ public class MidiSynth
     }
 
     /**
+     * Get all the drums/percussion instruments which match the specified DrumKit.
+     *
+     * @param kit
+     * @param tryHarder If true and no instrument matched the specified kit, then try again but with a more flexible matching
+     * algorithm. Default implementation starts a second search using kit.Type.STANDARD.
+     * @return Can be empty.
+     */
+    public List<Instrument> getDrumsInstruments(DrumKit kit, boolean tryHarder)
+    {
+        List<Instrument> res = new ArrayList<>();
+        for (InstrumentBank<?> bank : banks)
+        {
+            res.addAll(bank.getDrumsInstruments(kit, tryHarder));
+        }
+        return res;
+    }
+
+    /**
      * Get all the non Drums/Percussion instruments from this MidiSynth.
      *
      * @return Returned instruments have isDrumKit() set to false.
      */
+
     public List<Instrument> getNonDrumsInstruments()
     {
         ArrayList<Instrument> res = new ArrayList<>();
@@ -338,15 +359,16 @@ public class MidiSynth
     }
 
     /**
-     * Get the MidiAddress to be used to directly access the first instrument (piano) of the GM bank of this MidiSynth. 
+     * Get the MidiAddress to be used to directly access the first instrument (piano) of the GM bank of this MidiSynth.
      * <p>
      * IMPORTANT: value is meaningless if this MidiSynth is not GM-compatible.
      * <p>
-     * This method is required because synths can have a GM bank anywhere, eg the JV-1080 synth has its GM Bank Midi address at MSB=83, LSB=3.
-     
+     * This method is required because synths can have a GM bank anywhere, eg the JV-1080 synth has its GM Bank Midi address at
+     * MSB=83, LSB=3.
+     *
      *
      * @return Can't be null. If not explicitly set, return by default new MidiAddress(0, 0, 0,
-     *         MidiAddress.BankSelectMethod.MSB_LSB).
+     * MidiAddress.BankSelectMethod.MSB_LSB).
      * @see #setGM1BankBaseMidiAddress(MidiAddress)
      */
     public MidiAddress getGM1BankBaseMidiAddress()
@@ -381,7 +403,7 @@ public class MidiSynth
                 && addr.getBankSelectMethod().equals(gmBankBaseMidiAddress.getBankSelectMethod());
     }
 
-   
+
     /**
      * Get the percentage of MidiAddresses from the specified bank which match an instrument in this MidiSynth.
      *
@@ -405,6 +427,38 @@ public class MidiSynth
             nbInstruments++;
         }
         return (nbInstruments == 0) ? 0 : count / nbInstruments;
+    }
+
+    /**
+     * Get all the instruments which match the specified predicate.
+     *
+     * @param tester
+     * @return
+     */
+    public List<Instrument> getInstruments(Predicate<Instrument> tester)
+    {
+        List<Instrument> res = new ArrayList<>();
+        for (var bank : banks)
+        {
+            res.addAll(bank.getInstruments(tester));
+        }
+        return res;
+    }
+
+    /**
+     * Get all the instruments whose substitute is sub.
+     *
+     * @param sub Can be null
+     * @return
+     */
+    public List<Instrument> getInstrumentsFromSubstitute(GM1Instrument sub)
+    {
+        List<Instrument> res = new ArrayList<>();
+        for (var bank : banks)
+        {
+            res.addAll(bank.getInstrumentsFromSubstitute(sub));
+        }
+        return res;
     }
 
     /**

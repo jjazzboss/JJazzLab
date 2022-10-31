@@ -45,6 +45,7 @@ import org.jjazz.util.api.Utilities;
 /**
  * One or more MidiSynth instances, typically obtained from a .ins definition file.
  * <p>
+ * This an immutable class.
  */
 public class MidiSynthList
 {
@@ -137,7 +138,7 @@ public class MidiSynthList
     }
 
     /**
-     * Check whether this output synth contains this instrument.
+     * Check whether this MidiSynthList contains this instrument.
      *
      * @param ins
      * @return
@@ -160,7 +161,7 @@ public class MidiSynthList
     /**
      * Return the first drums instrument found.
      *
-     * @return Can be the VoidInstrument if no drums instrument found.
+     * @return The VoidInstrument if no drums instrument found.
      */
     public Instrument getDrumsInstrumentSample()
     {
@@ -177,32 +178,7 @@ public class MidiSynthList
         return ins;
     }
 
-    /**
-     * Get the instruments that should be used in the specified MidiMix to be consistent with this OutputSynth.
-     * <p>
-     *
-     * @param mm
-     * @return The channels which need to be fixed and the associated new instrument. Can't be null but returned HashMap can be
-     *         empty.
-     */
-    public HashMap<Integer, Instrument> getNeedFixInstruments(MidiMix mm)
-    {
-        HashMap<Integer, Instrument> res = new HashMap<>();
-        for (int channel : mm.getUsedChannels())
-        {
-            Instrument ins = mm.getInstrumentMixFromChannel(channel).getInstrument(); // Can be the VoidInstrument
-            if (!contains(ins))
-            {
-                RhythmVoice rv = mm.getRhythmVoice(channel);
-                Instrument newIns = findInstrument(rv);     // Can be the VoidInstrument
-                if (newIns != ins)
-                {
-                    res.put(channel, newIns);
-                }
-            }
-        }
-        return res;
-    }
+   
 
     @Override
     public String toString()

@@ -32,6 +32,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -45,12 +46,14 @@ import org.jjazz.midi.api.synths.GM1Instrument;
 import org.jjazz.midi.api.synths.GMSynth;
 import org.jjazz.midi.api.synths.StandardInstrumentConverter;
 import org.jjazz.midiconverters.api.StdInstrumentConverter;
+import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.UserRhythmVoice;
 import org.jjazz.rhythm.api.RhythmVoice;
 
 /**
- * An OutputSynth associates a MidiSynthList with UserSettings.
+ * An OutputSynth describes the capabilities of the synth connected to an output Midi device.
  * <p>
+ * It is made of a MidiSynthList and UserSettings.
  */
 public class OutputSynth
 {
@@ -94,10 +97,10 @@ public class OutputSynth
     }
 
     /**
-     * Find an instrument from this OutputSynth matching, as much as possible, the specified rhythm voice's preferred instrument.
-     * <p>
+     * Find an instrument from this OutputSynth matching (as much as possible) the specified rhythm voice's preferred instrument.
      * <p>
      * Search a matching instrument :<br>
+     * - standard instrument conversion<br>
      * - then search for the instrument in the MidiSynths<br>
      * - then search using the GM1 substitute, remap table, and substitute family<p>
      * <p>
@@ -134,176 +137,178 @@ public class OutputSynth
         MidiSynth rvInsSynth = (rvInsBank != null) ? rvInsBank.getMidiSynth() : null;
 
 
-        // Try to use the StandardInstrumentConverter
-        for (MidiSynth synth : midiSynthList)
-        {
-            var ins = StandardInstrumentConverter.convertInstrument(rvIns, synth);
-            if (ins != null)
-            {
-                LOGGER.log(Level.FINE, "findInstrument()    found by StandardInstrumentConverter, ins={0}", ins.toLongString());   //NOI18N                
-                return ins;
-            }
-        }
-
-
         if (!rv.isDrums())
         {
             // Melodic voice
-            GM1Instrument gmSubstitute = rvIns.getSubstitute();
 
-            // Try the GM1Instrument remap
-            ins = remapTable.getInstrument(gmSubstitute);
+
+            // Try using the remapped instrument if rvIns is a GM instrument
+            var remapTable = userSettings.getGMRemapTable();
+            var gmIns = GMSynth.getGM1Instrument(rvIns);
+            if (gmIns != null)
+            {
+                var ins = remapTable.getInstrument(gmIns);
+                if (ins != null)
+                {
+                    LOGGER.log(Level.FINE, "findInstrument()    using mapped instrument. ins={0}", ins.toLongString());   //NOI18N
+                    return ins;
+                }
+                ins = remapTable.getInstrument(gmIns.getFamily());
+                if (ins != null)
+                {
+                    LOGGER.log(Level.FINE, "findInstrument()    using mapped family. ins={0}", ins.toLongString());   //NOI18N
+                    return ins;
+                }
+            }
+
+
+            // Try the StandardInstrumentConverter: work only if rvIns is a standard instrument, and midiSynthList has at least one standard-compatible MidiSynth
+            for (MidiSynth synth : midiSynthList.getMidiSynths())
+            {
+                var ins = StandardInstrumentConverter.convertInstrument(rvIns, synth);
+                if (ins != null)
+                {
+                    LOGGER.log(Level.FINE, "findInstrument()    found by StandardInstrumentConverter, ins={0}", ins.toLongString());   //NOI18N                
+                    return ins;
+                }
+            }
+
+
+            // Try using the remapped instrument or family of the GM substitute 
+            GM1Instrument gmSubstitute = rvIns.getSubstitute();
+            var ins = remapTable.getInstrument(gmSubstitute);
             if (ins != null)
             {
                 LOGGER.log(Level.FINE, "findInstrument()    using mapped instrument for substitute. ins={0}", ins.toLongString());   //NOI18N
                 return ins;
             }
-
-            // Search in the custom synth for instruments whose GMSubstitute match
-            assert gmSubstitute != null : "rv=" + rv;   //NOI18N
-            for (MidiSynth synth : midiSynthList)
-            {
-                for (InstrumentBank<? extends Instrument> bank : synth.getBanks())
-                {
-                    List<? extends Instrument> inss = bank.getInstrumentsFromSubstitute(gmSubstitute);
-                    if (!inss.isEmpty())
-                    {
-                        ins = inss.get(0);
-                        LOGGER.log(Level.FINE, "findInstrument()    found in custom synth using substitute. ins={0}", ins.toLongString());   //NOI18N
-                        return ins;
-                    }
-                }
-            }
-
-            // Try the family remap
             ins = remapTable.getInstrument(gmSubstitute.getFamily());
             if (ins != null)
             {
-                LOGGER.log(Level.FINE, "findInstrument()    using mapped instrument for substitute family. ins={0}", ins.toLongString());   //NOI18N
+                LOGGER.log(Level.FINE, "findInstrument()    using mapped family for substitute. ins={0}", ins.toLongString());   //NOI18N
                 return ins;
             }
 
-            // Search in the std banks for instruments whose GMSubstitute match
+
+            // Search in MidiSynthList for instruments whose GMSubstitute match
             assert gmSubstitute != null : "rv=" + rv;   //NOI18N
-            for (var bank : compatibleStdBanks)
+            for (MidiSynth synth : midiSynthList.getMidiSynths())
             {
-                List<? extends Instrument> inss = bank.getInstrumentsFromSubstitute(gmSubstitute);
-                if (!inss.isEmpty())
+                var insList = synth.getInstrumentsFromSubstitute(gmSubstitute);
+                if (!insList.isEmpty())
                 {
-                    ins = inss.get(0);
-                    LOGGER.log(Level.FINE, "findInstrument()    found in std bank using substitute. ins={0}", ins.toLongString());   //NOI18N
+                    ins = insList.get(0);
+                    LOGGER.log(Level.FINE, "findInstrument()    found an instrument with the same substitute. ins={0}", ins.toLongString());   //NOI18N
                     return ins;
                 }
             }
 
-            // Search in the custom synth for instruments whose GMSubstitute's family match
-            for (MidiSynth synth : midiSynthList)
-            {
-                for (InstrumentBank<? extends Instrument> bank : synth.getBanks())
-                {
-                    List<? extends Instrument> inss = bank.getInstrumentsFromFamily(gmSubstitute.getFamily());
-                    if (!inss.isEmpty())
-                    {
-                        ins = inss.get(0);
-                        LOGGER.log(Level.FINE, "findInstrument()    found in custom synth using substitute's family. ins={0}", ins.toLongString());   //NOI18N
-                        return ins;
-                    }
-                }
-            }
 
-            // Search in the compatible banks for instruments whose GMSubstitute's family match
-            for (InstrumentBank<? extends Instrument> bank : compatibleStdBanks)
-            {
-                List<? extends Instrument> inss = bank.getInstrumentsFromFamily(gmSubstitute.getFamily());
-                if (!inss.isEmpty())
-                {
-                    ins = inss.get(0);
-                    LOGGER.log(Level.FINE, "findInstrument()    found in std bank using substitute's family. ins={0}", ins.toLongString());   //NOI18N
-                    return ins;
-                }
-            }
-
-            // No possible conversion found
-            ins = rvIns.getSubstitute();
-            LOGGER.log(Level.FINE, "findInstrument()    no conversion found. Using rv substitute. ins={0}", ins.toLongString());   //NOI18N
+            // No possible conversion found, use the first instrument available
+            ins = midiSynthList.getMidiSynths().get(0).getInstruments().get(0);
+            LOGGER.log(Level.FINE, "findInstrument()    no conversion found. Using first synth instrument. ins={0}", ins.toLongString());   //NOI18N
             return ins;
+
 
         } else
         {
             // Drums voices: use the DrumKit information
+
+
             DrumKit kit = rvIns.getDrumKit();
             assert kit != null : "rv=" + rv;   //NOI18N
 
-            // Use the user-defined default instrument for drums/perc if DrumKit matches
+            // Try using the remapped instrument for drums/perc if DrumKit matches
+            var remapTable = userSettings.getGMRemapTable();
             Instrument defaultIns = remapTable.getInstrument(rv.getType().equals(RhythmVoice.Type.DRUMS) ? GMRemapTable.DRUMS_INSTRUMENT : GMRemapTable.PERCUSSION_INSTRUMENT);
             if (defaultIns != null && kit.equals(defaultIns.getDrumKit()))
             {
-                ins = defaultIns;
+                var ins = defaultIns;
                 LOGGER.log(Level.FINE, "findInstrument()    using the remap table (good DrumKit match) ins={0}", ins.toLongString());   //NOI18N
                 return defaultIns;
             }
 
-            // Search a matching kit in the custom synths
-            for (MidiSynth synth : midiSynthList)
+
+            // Search a matching kit in midiSynthList
+            for (MidiSynth synth : midiSynthList.getMidiSynths())
             {
-                for (InstrumentBank<? extends Instrument> bank : synth.getBanks())
+                List<? extends Instrument> insList = synth.getDrumsInstruments(kit, false);
+                if (!insList.isEmpty())
                 {
-                    List<? extends Instrument> inss = bank.getDrumsInstrument(kit, false);
-                    if (!inss.isEmpty())
-                    {
-                        ins = inss.get(0);
-                        LOGGER.log(Level.FINE, "findInstrument()    found in custom synth using drumkit. ins={0}", ins.toLongString());   //NOI18N
-                        return ins;
-                    }
+                    var ins = insList.get(0);
+                    LOGGER.log(Level.FINE, "findInstrument()    found in midiSynthList using drumkit. ins={0}", ins.toLongString());   //NOI18N
+                    return ins;
                 }
             }
 
-            // Search a matching kit in the compatible banks
-            ins = StdInstrumentConverter.getInstance().findStandardDrumsInstrument(rvIns.getDrumKit(), compatibleStdBanks, false);
-            if (ins != null)
-            {
-                LOGGER.log(Level.FINE, "findInstrument()    found in std bank using drumkit. ins={0}", ins.toLongString());   //NOI18N
-                return ins;
-            }
 
-            // Same but TRYHARDER
-            for (MidiSynth synth : midiSynthList)
+            // Same but use TRYHARDER=true
+            for (MidiSynth synth : midiSynthList.getMidiSynths())
             {
-                for (InstrumentBank<? extends Instrument> bank : synth.getBanks())
+                List<? extends Instrument> insList = synth.getDrumsInstruments(kit, true);
+                if (!insList.isEmpty())
                 {
-                    List<? extends Instrument> inss = bank.getDrumsInstrument(kit, true);
-                    if (!inss.isEmpty())
-                    {
-                        ins = inss.get(0);
-                        LOGGER.log(Level.FINE, "findInstrument()    found in custom synth using drumkit. ins={0}", ins.toLongString());   //NOI18N
-                        return ins;
-                    }
+                    var ins = insList.get(0);
+                    LOGGER.log(Level.FINE, "findInstrument()    found in midiSynthList using drumkit. ins={0}", ins.toLongString());   //NOI18N
+                    return ins;
                 }
             }
 
-            // Same but TRYHARDER
-            ins = StdInstrumentConverter.getInstance().findStandardDrumsInstrument(rvIns.getDrumKit(), compatibleStdBanks, true);
-            if (ins != null)
+
+            // Use the StandardInstrumentConverter
+            for (MidiSynth synth : midiSynthList.getMidiSynths())
             {
-                LOGGER.log(Level.FINE, "findInstrument()    found in std bank using drumkit. ins={0}", ins.toLongString());   //NOI18N
-                return ins;
+                var ins = StandardInstrumentConverter.findDrumsInstrument(rvIns.getDrumKit(), synth, true);
+                if (ins != null)
+                {
+                    LOGGER.log(Level.FINE, "findInstrument()    found in std bank using drumkit. ins={0}", ins.toLongString());   //NOI18N
+                    return ins;
+                }
             }
 
+            
             // Use the default Drums if defined
             if (defaultIns != null)
             {
-                ins = defaultIns;
-                LOGGER.log(Level.FINE, "findInstrument()    using the remap table for drums/perc. ins={0}", ins.toLongString());   //NOI18N
+                var ins = defaultIns;
+                LOGGER.log(Level.FINE, "findInstrument()    using the remapped ins for drums/perc. ins={0}", ins.toLongString());   //NOI18N
                 return ins;
             }
+            
 
             // NOTHING correct found...
-            ins = StdSynth.getInstance().getVoidInstrument();
+            var ins = GMSynth.getInstance().getVoidInstrument();
             LOGGER.log(Level.FINE, "findInstrument()    using VoidInstrument drums/perc. ins={0}", ins.toLongString());   //NOI18N
             return ins;
         }
     }
 
+    /**
+     * Get the instruments that should be used in the specified MidiMix to be consistent with this OutputSynth.
+     * <p>
+     *
+     * @param mm
+     * @return The channels which need to be fixed and the associated new instrument. Can't be null but returned HashMap can be
+     * empty.
+     */
+    public HashMap<Integer, Instrument> getNeedFixInstruments(MidiMix mm)
+    {
+        HashMap<Integer, Instrument> res = new HashMap<>();
+        for (int channel : mm.getUsedChannels())
+        {
+            Instrument ins = mm.getInstrumentMixFromChannel(channel).getInstrument(); // Can be the VoidInstrument
+            if (!midiSynthList.contains(ins))
+            {
+                RhythmVoice rv = mm.getRhythmVoice(channel);
+                Instrument newIns = findInstrument(rv);     // Can be the VoidInstrument
+                if (newIns != ins)
+                {
+                    res.put(channel, newIns);
+                }
+            }
+        }
+        return res;
+    }
 
     /**
      * Save this OutputSynth as a string so that it can be retrieved by loadFromString().
@@ -339,8 +344,9 @@ public class OutputSynth
 
         MidiSynthList synthList = MidiSynthList.loadFromString(strMsl);
         OutputSynth res = new OutputSynth(synthList);
-        res.userSettings.restoreFromString(strUs);
+        res.userSettings.setFromString(strUs);
         return res;
+
     }
 
 
@@ -357,6 +363,10 @@ public class OutputSynth
     {
 
         public static final String PROP_USERINSTRUMENT = "userInstrument";
+        /**
+         * This property change event if fired each time GMremapTable is changed.
+         */
+        public static final String PROP_GM_REMAP_TABLE = "GMremapTable";
         public static final String PROP_AUDIOLATENCY = "AudioLatency";
         public static final String PROP_SENDMODEONUPONSTARTUP = "sendModeOnUponStartup";
 
@@ -371,7 +381,7 @@ public class OutputSynth
         private int audioLatency;
         private Instrument userInstrument;
 
-        private transient final PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
+        private transient final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
         /**
          * Create an instance with sendModeOnUponPlay=OFF, audioLatency=50, userInstrument = 1st instrument of the synthList,
@@ -380,6 +390,7 @@ public class OutputSynth
         public UserSettings()
         {
             this.remapTable = new GMRemapTable(midiSynthList);
+            this.remapTable.addPropertyChangeListener(e -> pcs.firePropertyChange(PROP_GM_REMAP_TABLE, false, true));
             this.sendModeOnUponPlay = SendModeOnUponStartup.OFF;
             this.userInstrument = midiSynthList.getMidiSynths().get(0).getInstruments().get(0);
             this.audioLatency = 50;
@@ -405,7 +416,7 @@ public class OutputSynth
         {
             int oldAudioLatency = this.audioLatency;
             this.audioLatency = audioLatency;
-            propertyChangeSupport.firePropertyChange(PROP_AUDIOLATENCY, oldAudioLatency, audioLatency);
+            pcs.firePropertyChange(PROP_AUDIOLATENCY, oldAudioLatency, audioLatency);
         }
 
 
@@ -434,7 +445,7 @@ public class OutputSynth
 
             Instrument oldUserInstrument = this.userInstrument;
             this.userInstrument = ins;
-            propertyChangeSupport.firePropertyChange(PROP_USERINSTRUMENT, oldUserInstrument, ins);
+            pcs.firePropertyChange(PROP_USERINSTRUMENT, oldUserInstrument, ins);
 
         }
 
@@ -463,7 +474,7 @@ public class OutputSynth
         {
             SendModeOnUponStartup oldSendModeOnUponStartup = this.sendModeOnUponPlay;
             this.sendModeOnUponPlay = sendModeOnUponPlay;
-            propertyChangeSupport.firePropertyChange(PROP_SENDMODEONUPONSTARTUP, oldSendModeOnUponStartup, sendModeOnUponPlay);
+            pcs.firePropertyChange(PROP_SENDMODEONUPONSTARTUP, oldSendModeOnUponStartup, sendModeOnUponPlay);
         }
 
 
@@ -500,7 +511,7 @@ public class OutputSynth
          */
         public void addPropertyChangeListener(PropertyChangeListener listener)
         {
-            propertyChangeSupport.addPropertyChangeListener(listener);
+            pcs.addPropertyChangeListener(listener);
         }
 
         public String saveAsString()
@@ -510,7 +521,7 @@ public class OutputSynth
 
         public void setFromString(String strUs)
         {
-            
+
         }
 
         /**
@@ -520,15 +531,15 @@ public class OutputSynth
          */
         public void removePropertyChangeListener(PropertyChangeListener listener)
         {
-            propertyChangeSupport.removePropertyChangeListener(listener);
+            pcs.removePropertyChangeListener(listener);
         }
 
 
     }
 
-    // --------------------------------------------------------------------- 
-    // Serialization
-    // --------------------------------------------------------------------- 
+// --------------------------------------------------------------------- 
+// Serialization
+// --------------------------------------------------------------------- 
     private Object writeReplace()
     {
         return new SerializationProxy(this);
@@ -622,6 +633,7 @@ public class OutputSynth
             if (spUserInstrument == null)
             {
                 LOGGER.warning("readResolve() spUserInstrument=" + spUserInstrument + ". Using default user instrument");   //NOI18N
+
             } else
             {
                 outSynth.setUserInstrument(spUserInstrument);

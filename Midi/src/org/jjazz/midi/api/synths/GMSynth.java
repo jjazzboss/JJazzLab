@@ -22,7 +22,9 @@
  */
 package org.jjazz.midi.api.synths;
 
+import com.google.common.base.Preconditions;
 import java.util.logging.Logger;
+import org.jjazz.midi.api.Instrument;
 import org.jjazz.midi.api.MidiSynth;
 
 /**
@@ -64,8 +66,9 @@ public class GMSynth extends MidiSynth
 
     /**
      * A special "empty" GM1Instrument: when used, no Midi messages are sent (no bank select/program change).
-     * 
+     * <p>
      * This special instrument is part of the special InstrumentBank NotSetBank.
+     *
      * @return
      */
     public final VoidInstrument getVoidInstrument()
@@ -73,6 +76,37 @@ public class GMSynth extends MidiSynth
         return NotSetBank.getInstance().getVoidInstrument();
     }
 
+    /**
+     * Convenience method to directly get the GM1Instrument with specified Program Change.
+     *
+     * @param progChange
+     * @return
+     */
+    static public GM1Instrument getGM1Instrument(int progChange)
+    {
+        return getInstance().getGM1Bank().getInstrument(progChange);
+    }
 
+    /**
+     * Convenience method to get the GM1Instrument from this synth corresponding to an instrument from a synth's GM bank.
+     *
+     * @param ins Should be an ins from the GM-bank of its synth
+     * @return Null if ins is not an instrument of its synth's GM bank
+     */
+    static public GM1Instrument getGM1Instrument(Instrument ins)
+    {
+        Preconditions.checkNotNull(ins);
+        if (ins.getBank() == null)
+        {
+            return null;
+        }
+        var insSynth = ins.getBank().getMidiSynth();
+        var insAddr = ins.getMidiAddress();
+        if (insSynth == null || !insSynth.isGMcompatible() || !insSynth.isGM1BankMidiAddress(insAddr))
+        {
+            return null;
+        }
+        return getGM1Instrument(insAddr.getProgramChange());
+    }
 
 }

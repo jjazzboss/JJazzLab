@@ -25,7 +25,9 @@ package org.jjazz.midi.api;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import org.jjazz.midi.api.MidiAddress.BankSelectMethod;
 import org.jjazz.midi.api.synths.Family;
 import org.jjazz.midi.api.synths.GM1Instrument;
@@ -39,7 +41,7 @@ import org.jjazz.midi.api.synths.GM1Instrument;
  */
 public class InstrumentBank<T extends Instrument>
 {
-    
+
     protected HashMap<MidiAddress, T> mapAddressInstrument = new HashMap<>();
     protected ArrayList<T> instruments = new ArrayList<>();
     protected int defaultLsb, defaultMsb;
@@ -64,9 +66,9 @@ public class InstrumentBank<T extends Instrument>
      * Create an InstrumentBank.
      *
      * @param name
-     * @param msb  The default Most Significant Byte or "Control 0".
-     * @param lsb  The default Least Significant Byte or "Control 32"
-     * @param m    The default bank select method. Can't be null.
+     * @param msb The default Most Significant Byte or "Control 0".
+     * @param lsb The default Least Significant Byte or "Control 32"
+     * @param m The default bank select method. Can't be null.
      */
     public InstrumentBank(String name, int msb, int lsb, BankSelectMethod m)
     {
@@ -90,7 +92,7 @@ public class InstrumentBank<T extends Instrument>
      * @param synth A non null value, the MidiSynth this InstrumentBank belongs to
      */
     public void setMidiSynth(MidiSynth synth)
-    {        
+    {
         if (this.synth != null)
         {
             throw new IllegalStateException("synth already set! this.synth=" + this.synth + " synth=" + synth);   //NOI18N
@@ -363,23 +365,6 @@ public class InstrumentBank<T extends Instrument>
         return instruments.get(index);
     }
 
-    /**
-     * Get all the Drums/Percussion instruments.
-     *
-     * @return Returned instruments have isDrumKit() set to true.
-     */
-    public List<T> getDrumsInstruments()
-    {
-        ArrayList<T> res = new ArrayList<>();
-        for (T ins : instruments)
-        {
-            if (ins.isDrumKit())
-            {
-                res.add(ins);
-            }
-        }
-        return res;
-    }
 
     /**
      * Get the non Drums/Percussion instruments.
@@ -400,14 +385,32 @@ public class InstrumentBank<T extends Instrument>
     }
 
     /**
+     * Get all the Drums/Percussion instruments.
+     *
+     * @return Returned instruments have isDrumKit() set to true.
+     */
+    public List<T> getDrumsInstruments()
+    {
+        ArrayList<T> res = new ArrayList<>();
+        for (T ins : instruments)
+        {
+            if (ins.isDrumKit())
+            {
+                res.add(ins);
+            }
+        }
+        return res;
+    }
+
+    /**
      * Get all the drums/percussion instruments which match the specified DrumKit.
      *
      * @param kit
      * @param tryHarder If true and no instrument matched the specified kit, then try again but with a more flexible matching
-     *                  algorithm. Default implementation starts a second search using kit.Type.STANDARD.
+     * algorithm. Default implementation starts a second search using kit.Type.STANDARD.
      * @return Can be empty.
      */
-    public List<T> getDrumsInstrument(DrumKit kit, boolean tryHarder)
+    public List<T> getDrumsInstruments(DrumKit kit, boolean tryHarder)
     {
         if (kit == null)
         {
@@ -456,6 +459,19 @@ public class InstrumentBank<T extends Instrument>
     }
 
     /**
+     * Get all the instruments which match the specified predicate.
+     *
+     * @param tester
+     * @return
+     */
+    public List<Instrument> getInstruments(Predicate<Instrument> tester)
+    {
+        return instruments.stream()
+                .filter(i -> tester.test(i))
+                .collect(Collectors.toList());
+    }
+
+    /**
      * Get the instruments whose substitute's family is f.
      *
      * @param f Can't be null
@@ -500,7 +516,7 @@ public class InstrumentBank<T extends Instrument>
         }
         return res;
     }
-    
+
     @Override
     public String toString()
     {

@@ -520,7 +520,7 @@ public final class JJazzMidiSystem
      *
      * @param f
      * @param silentRun If false wait until completion of the task and show progress bar. If true nothing is shown and method
-     *                  immediatly returns true.
+     * immediatly returns true.
      * @return true If success. If silentRun=true always return true.
      */
     public boolean loadSoundbankFileOnSynth(final File f, boolean silentRun)
@@ -948,7 +948,7 @@ public final class JJazzMidiSystem
         {
             return null;
         }
-        
+
         Predicate<MidiDevice> isVirtualMidiSynth = md -> md != null && md.getDeviceInfo().getName().toLowerCase().contains("virtualmidisynt");
 
         MidiDevice res = null;
@@ -979,6 +979,16 @@ public final class JJazzMidiSystem
     public void removePropertyChangeListener(PropertyChangeListener l)
     {
         pcs.removePropertyChangeListener(l);
+    }
+
+    public void addPropertyChangeListener(String propName, PropertyChangeListener l)
+    {
+        pcs.addPropertyChangeListener(propName, l);
+    }
+
+    public void removePropertyChangeListener(String propName, PropertyChangeListener l)
+    {
+        pcs.removePropertyChangeListener(propName, l);
     }
 
     /**
