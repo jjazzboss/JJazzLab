@@ -26,9 +26,7 @@ package org.jjazz.outputsynth.api;
 import com.google.common.base.Preconditions;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.io.InvalidObjectException;
-import java.io.ObjectInputStream;
-import java.io.ObjectStreamException;
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Objects;
@@ -93,14 +91,28 @@ public class GMRemapTable implements Serializable
 
     /**
      * Create a table which copies the value from rt.
+     * <p>
+     * Listeners are not copied.
      *
      * @param rt
      */
-    public GMRemapTable(GMRemapTable rt)
+//    public GMRemapTable(GMRemapTable rt)
+//    {
+//        mapInstruments = new HashMap<>(rt.mapInstruments);
+//        mapFamilyInstruments = new HashMap<>(rt.mapFamilyInstruments);
+//        midiSynthList = rt.midiSynthList;
+//    }
+
+    /**
+     * Set the mappings from another GMRemapTable which must share the same MidiSynthList.
+     *
+     * @param rt
+     */
+    public void set(GMRemapTable rt)
     {
+        Preconditions.checkArgument(rt.midiSynthList == midiSynthList);
         mapInstruments = new HashMap<>(rt.mapInstruments);
         mapFamilyInstruments = new HashMap<>(rt.mapFamilyInstruments);
-        midiSynthList = rt.midiSynthList;
     }
 
     /**
@@ -175,12 +187,11 @@ public class GMRemapTable implements Serializable
     /**
      * Set the mapped instrument for remappedIns.
      *
-     * @param remappedIns        Must be a GM1Instrument or the special DRUMS/PERCUSSION static instances.
-     * @param ins                Can be null. If remappedIns is one of the special DRUMS/PERCUSSION instances, ins must be a
-     *                           Drums/Perc instrument with a GM compatible DrumsKit.KeyMap. ins must belong to the associated
-     *                           MidiSynthList.
+     * @param remappedIns Must be a GM1Instrument or the special DRUMS/PERCUSSION static instances.
+     * @param ins Can be null. If remappedIns is one of the special DRUMS/PERCUSSION instances, ins must be a Drums/Perc
+     * instrument with a GM compatible DrumsKit.KeyMap. ins must belong to the associated MidiSynthList.
      * @param useAsFamilyDefault If true ins will be also the default instrument for the remappedIns's family. Not used if
-     *                           remappedIns is one of the special DRUMS/PERCUSSION instances.
+     * remappedIns is one of the special DRUMS/PERCUSSION instances.
      * @throws InvalidMappingException If arguments are invalid. The exception error message can be used for user notification.
      */
     public void setInstrument(Instrument remappedIns, Instrument ins, boolean useAsFamilyDefault) throws InvalidMappingException
@@ -189,6 +200,10 @@ public class GMRemapTable implements Serializable
         if (ins == remappedIns)
         {
             throw new InvalidMappingException("Invalid instrument: " + ins.getFullName() + " is not different from the mapped instrument.");
+        }
+        if (remappedIns != DRUMS_INSTRUMENT && remappedIns != PERCUSSION_INSTRUMENT && !(remappedIns instanceof GM1Instrument))
+        {
+            throw new InvalidMappingException("Invalid remapped instrument: " + remappedIns.getFullName() + " is not GM1Instrument.");
         }
         if (ins != null && !ins.isDrumKit() && (remappedIns == DRUMS_INSTRUMENT || remappedIns == PERCUSSION_INSTRUMENT))
         {
@@ -219,19 +234,139 @@ public class GMRemapTable implements Serializable
         }
         return mapFamilyInstruments.get(family);
     }
-    
+
     public String saveAsString()
     {
-        var sj = new StringJoiner(";", "[", "]");
+        var joiner = new StringJoiner("&_&", "[", "]");
+
         for (var insKey : mapInstruments.keySet())
         {
-            sj.add(insKey.)
+            var ins = mapInstruments.get(insKey);
+            String prefix;
+            if (insKey == DRUMS_INSTRUMENT)
+            {
+                // Mapped instrument is our special Drums instrument
+                prefix = "@DRUMS@";
+            } else if (insKey == PERCUSSION_INSTRUMENT)
+            {
+                // Mapped instrument is our special Percussion instrument
+                prefix = "@PERC@";
+            } else
+            {
+                // Mapped instrument is a standard GM instrument
+                prefix = insKey.saveAsString();
+                if ((insKey instanceof GM1Instrument insKeyGM) && mapFamilyInstruments.get(insKeyGM.getFamily()) == ins)
+                {
+                    // This instrument is also the default for the family
+                    prefix = "@F" + prefix;
+                }
+            }
+            joiner.add(prefix + "!!!" + ins.saveAsString());
         }
+
+        return joiner.toString();
     }
-    
-    public void setFromString(String s)
+
+    static public GMRemapTable loadFromString(MidiSynthList synthList, String s) throws IOException
     {
-        
+        GMRemapTable res = new GMRemapTable(synthList);
+        String msg = null;
+
+
+        s = s.trim();
+        if (!s.startsWith("[") || !s.endsWith("]"))
+        {
+            msg = "Invalid string s=" + s;
+        }
+
+
+        if (msg != null)
+        {
+            s = s.substring(1, s.length() - 1);
+            String[] strs = s.split("&_&");
+
+            try
+            {
+                for (String str : strs)
+                {
+                    str = str.trim();
+                    if (str.startsWith("@DRUMS@!!!"))
+                    {
+                        // Mapped instrument is special drums instrument
+                        String strIns = str.substring(10).trim();
+                        var ins = Instrument.loadFromString(strIns);         // throws InvalidMappingException
+                        if (ins == null)
+                        {
+                            msg = "Instrument string value not found=" + strIns;
+                            break;
+                        }
+                        res.setInstrument(DRUMS_INSTRUMENT, ins, false);    // throws InvalidMappingException
+
+                    } else if (str.startsWith("@PERC@!!!"))
+                    {
+                        // Mapped instrument is special percussion instrument                        
+                        String strIns = str.substring(9).trim();
+                        var ins = Instrument.loadFromString(strIns);
+                        if (ins == null)
+                        {
+                            msg = "Instrument string value not found=" + strIns;
+                            break;
+                        }
+                        res.setInstrument(PERCUSSION_INSTRUMENT, ins, false);        // throws InvalidMappingException
+
+                    } else
+                    {
+                        // GM Program Change                        
+                        boolean isFamilyDefault = false;
+                        if (str.startsWith("@F"))
+                        {
+                            isFamilyDefault = true;
+                            str = str.substring(2);
+                        }
+
+                        String[] strs2 = str.split("!!!");
+                        if (strs2.length != 2)
+                        {
+                            msg = "Invalid map-instrument string value=" + str;
+                            break;
+                        }
+
+
+                        String strMappedIns = strs2[0];
+                        var mappedIns = Instrument.loadFromString(strMappedIns);
+                        if (mappedIns == null)
+                        {
+                            msg = "Instrument string value not found=" + strMappedIns;
+                            break;
+                        }
+
+
+                        String strIns = strs2[1];
+                        var ins = Instrument.loadFromString(strIns);
+                        if (ins == null)
+                        {
+                            msg = "Instrument string value not found=" + strIns;
+                            break;
+                        }
+
+
+                        res.setInstrument(mappedIns, ins, isFamilyDefault);    // throws InvalidMappingException
+                    }
+                }
+            } catch (InvalidMappingException ex)
+            {
+                msg = ex.getMessage();
+            }
+        }
+
+        if (msg != null)
+        {
+            LOGGER.warning("loadFromString() " + msg + ". s=" + s);
+            throw new IOException(msg);
+        }
+
+
+        return res;
     }
 
 
@@ -267,115 +402,5 @@ public class GMRemapTable implements Serializable
         }
     }
 
-   
-    // --------------------------------------------------------------------- 
-    // Serialization
-    // --------------------------------------------------------------------- 
-    private Object writeReplace()
-    {
-        return new SerializationProxy(this);
-    }
 
-    private void readObject(ObjectInputStream stream)
-            throws InvalidObjectException
-    {
-        throw new InvalidObjectException("Serialization proxy required");
-    }
-
-    /**
-     * Our serialization proxy.
-     * <p>
-     * Take into account the special DRUMS/PERCUSSION instances. Take into account the fact that some Instruments's MidiSynths
-     * might not be present on the system when reading file.
-     */
-    protected static class SerializationProxy implements Serializable
-    {
-
-        private static final String STR_FAMILY_DEFAULT = "__FAMILY_DEFAULT__";      //NOI18N
-        private static final long serialVersionUID = 1122298372L;
-        private final int spVERSION = 1;
-        private HashMap<GM1Instrument, String> spMapInstruments = new HashMap<>();
-        private String spDrumsInstrumentStr = "NOT_SET";
-        private String spPercInstrumentStr = "NOT_SET";
-
-        protected SerializationProxy(GMRemapTable table)
-        {
-            if (table == null)
-            {
-                throw new IllegalStateException("table=" + table);   //NOI18N
-            }
-            // Can't copy the map because DRUMS/PERCUSSION_INSTRUMENT are not serializable
-            HashMap<Instrument, Instrument> mapOrig = table.getInstrumentMap();
-            for (Instrument ins : mapOrig.keySet())
-            {
-                if (!(ins == DRUMS_INSTRUMENT || ins == PERCUSSION_INSTRUMENT))
-                {
-                    GM1Instrument gmIns = (GM1Instrument) ins;
-                    Instrument destIns = mapOrig.get(gmIns);
-                    if (destIns != null)
-                    {
-                        String str = mapOrig.get(gmIns).saveAsString();
-                        if (destIns == table.getInstrument(gmIns.getFamily()))
-                        {
-                            str += STR_FAMILY_DEFAULT;
-                        }
-                        spMapInstruments.put(gmIns, str);
-                    }
-                }
-            }
-            if (table.getInstrument(DRUMS_INSTRUMENT) != null)
-            {
-                spDrumsInstrumentStr = table.getInstrument(DRUMS_INSTRUMENT).saveAsString();
-            }
-            if (table.getInstrument(PERCUSSION_INSTRUMENT) != null)
-            {
-                spPercInstrumentStr = table.getInstrument(PERCUSSION_INSTRUMENT).saveAsString();
-            }
-        }
-
-        private Object readResolve() throws ObjectStreamException
-        {
-            GMRemapTable table = new GMRemapTable();
-            for (GM1Instrument gmIns : spMapInstruments.keySet())
-            {
-                String strIns = spMapInstruments.get(gmIns);
-                boolean useAsFamilyDefault = false;
-                if (strIns.contains(STR_FAMILY_DEFAULT))
-                {
-                    useAsFamilyDefault = true;
-                    strIns = strIns.replace(STR_FAMILY_DEFAULT, "");
-                }
-                Instrument destIns = Instrument.loadFromString(strIns);
-                if (destIns == null)
-                {
-                    LOGGER.warning("readResolve() Can't find instrument for saved string: " + strIns + ". Instrument mapping could not be set for GM instrument " + gmIns.getPatchName());   //NOI18N
-                    continue;
-                }
-                table.setInstrumentNoException(gmIns, destIns, useAsFamilyDefault);
-            }
-            if (!spPercInstrumentStr.equals("NOT_SET"))
-            {
-                Instrument ins = Instrument.loadFromString(spPercInstrumentStr);
-                if (ins == null)
-                {
-                    LOGGER.warning("readResolve() Can't find instrument for saved string: " + spPercInstrumentStr + ". Instrument mapping could not be set for the PERCUSSION instrument.");   //NOI18N
-                } else
-                {
-                    table.setInstrumentNoException(PERCUSSION_INSTRUMENT, ins, false);
-                }
-            }
-            if (!spDrumsInstrumentStr.equals("NOT_SET"))
-            {
-                Instrument ins = Instrument.loadFromString(spDrumsInstrumentStr);
-                if (ins == null)
-                {
-                    LOGGER.warning("readResolve() Can't find instrument for saved string: " + spDrumsInstrumentStr + ". Instrument mapping could not be set for the DRUMS instrument.");   //NOI18N
-                } else
-                {
-                    table.setInstrumentNoException(DRUMS_INSTRUMENT, ins, false);
-                }
-            }
-            return table;
-        }
-    }
 }

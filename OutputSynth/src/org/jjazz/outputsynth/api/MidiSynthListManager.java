@@ -25,7 +25,6 @@ package org.jjazz.outputsynth.api;
 
 import java.io.File;
 import java.util.List;
-import org.jjazz.midi.api.MidiSynth;
 import org.jjazz.midisynthmanager.MidiSynthManagerImpl;
 
 
@@ -48,12 +47,26 @@ public interface MidiSynthListManager
     }
 
     /**
+     * Add the specified MidiSynthList as a "loaded MidiSynthList".
+     * <p>
+     * @param synthList
+     */
+    void addLoadedMidiSynthList(MidiSynthList synthList);
+
+    /**
+     * Remove the specified MidiSynthList as a "loaded MidiSynthList".
+     * <p>
+     * @param synthList
+     */
+    void removeLoadedMidiSynthList(MidiSynthList synthList);
+
+    /**
      * The list of builtin and/or loaded MidiSynthLists.
-     * 
-     * Builtin MidiSynthLists are GM, GM2, etc. 
+     * <p>
+     * Builtin MidiSynthLists are GM, GM2, etc.
      *
      * @param builtin If true include the builtin MidiSynthLists
-     * @param loaded  If true include the loaded MidiSynthLists (after the builtin ones).
+     * @param loaded If true include the loaded MidiSynthLists (after the builtin ones).
      * @return Can be empty.
      */
     List<MidiSynthList> getMidiSynthLists(boolean builtin, boolean loaded);
@@ -67,15 +80,6 @@ public interface MidiSynthListManager
      */
     MidiSynthList getMidiSynthList(String name);
 
-    /**
-     * Read the specified file to load a MidiSynthList.
-     * <p>
-     * Errors are notified to user. A WeakReference of the loaded MidiSynths is kept.
-     *
-     * @param file
-     * @return 
-     */
-    MidiSynthList loadMidiSynthList(File file);
 
     /**
      * Show a dialog to select a MidiSynthList definition file.

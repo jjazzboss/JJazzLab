@@ -28,7 +28,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.StringJoiner;
 import java.util.logging.Logger;
@@ -38,8 +37,6 @@ import org.jjazz.midi.api.MidiSynth;
 import org.jjazz.midi.api.synths.GMSynth;
 import org.jjazz.midi.api.synths.SynthUtilities;
 import org.jjazz.midi.spi.MidiSynthFileReader;
-import org.jjazz.midimix.api.MidiMix;
-import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.util.api.Utilities;
 
 /**

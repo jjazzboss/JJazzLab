@@ -24,7 +24,6 @@
 package org.jjazz.midi.api.synths;
 
 import com.google.common.base.Preconditions;
-import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 import org.jjazz.midi.api.DrumKit;
@@ -254,16 +253,6 @@ public class StandardInstrumentConverter
         return CONVERSION_TABLE_XG_TO_GM2;
     }
 
-
-    static private boolean isStdBank(InstrumentBank<?> bank)
-    {
-        return bank == GMSynth.getInstance().getGM1Bank() || bank == GM2Synth.getInstance().getGM2Bank() || bank == XGSynth.getInstance().getXGBank() || bank == GSSynth.getInstance().getGSBank();
-    }
-
-    static private List<InstrumentBank<?>> getStdBanks()
-    {
-        return Arrays.asList(GMSynth.getInstance().getGM1Bank(), GM2Synth.getInstance().getGM2Bank(), XGSynth.getInstance().getXGBank(), GSSynth.getInstance().getGSBank());
-    }
 
     static private Instrument getDrumsInstrument(InstrumentBank<Instrument> bank, DrumKit kit, boolean tryHarder)
     {

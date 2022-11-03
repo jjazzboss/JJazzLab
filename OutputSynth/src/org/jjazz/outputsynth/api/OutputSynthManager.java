@@ -24,39 +24,24 @@
 package org.jjazz.outputsynth.api;
 
 import com.google.common.base.Preconditions;
-import com.thoughtworks.xstream.XStream;
-import com.thoughtworks.xstream.XStreamException;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.Properties;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import javax.sound.midi.MidiDevice;
 import javax.swing.JFileChooser;
-import javax.swing.filechooser.FileNameExtensionFilter;
-import javax.swing.filechooser.FileSystemView;
 import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.midi.api.JJazzMidiSystem;
-import org.jjazz.ui.utilities.api.SingleRootFileSystemView;
 import org.jjazz.upgrade.api.UpgradeManager;
 import org.jjazz.upgrade.api.UpgradeTask;
-import org.jjazz.util.api.ResUtil;
-import org.jjazz.util.api.Utilities;
-import org.openide.DialogDisplayer;
-import org.openide.NotifyDescriptor;
 import org.openide.util.NbPreferences;
 import org.openide.util.lookup.ServiceProvider;
-import org.openide.windows.WindowManager;
 
 /**
  * Management of the OutputSynth instances.
@@ -195,82 +180,7 @@ public class OutputSynthManager
 
     }
 
-    /**
-     * Show a dialog to select an OutputSynth file.
-     * <p>
-     *
-     * @param save If true show a save dialog, if false an open dialog.
-     * @return The selected file. Null if user cancelled or no valid selection. File is guaranteed to have appropriate location
-     * and extension.
-     */
-    public File showSelectOutputSynthFileDialog(boolean save)
-    {
-        JFileChooser chooser = getFileChooserInstance();
-        chooser.setDialogTitle(save ? ResUtil.getString(getClass(), "CTL_SaveOuputSynthConfigFile") : ResUtil.getString(getClass(), "CTL_LoadOutputSynthConfigFile"));
-        Object res;
-        if (save)
-        {
-            res = chooser.showSaveDialog(WindowManager.getDefault().getMainWindow());
-        } else
-        {
-            res = chooser.showOpenDialog(WindowManager.getDefault().getMainWindow());
-        }
-        File f = null;
-        if (res.equals(JFileChooser.APPROVE_OPTION))
-        {
-            f = chooser.getSelectedFile();
-            if (!f.getParentFile().equals(getOutputSynthFilesDir()))
-            {
-                String msg = "Invalid directory. Output synth configuration file must be in the default directory";
-                NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
-                DialogDisplayer.getDefault().notify(d);
-                chooser.setCurrentDirectory(getOutputSynthFilesDir());
-                return null;
-            }
-            // Make sure we have the right extension
-            f = new File(f.getParentFile(), Utilities.replaceExtension(f.getName(), OutputSynthManager.OUTPUT_SYNTH_FILES_EXT));
-        }
-        return f;
-    }
-
-    /**
-     * Load an OutputSynth from a file.
-     * <p>
-     *
-     * @param f
-     * @param notifyUser If true notify user if error occured while reading the file.
-     * @return Null if problem.
-     */
-    public OutputSynth loadOutputSynth(File f, boolean notifyUser)
-    {
-        if (f == null)
-        {
-            throw new NullPointerException("f");   //NOI18N
-        }
-        OutputSynth synth = null;
-        XStream xstream = Utilities.getSecuredXStreamInstance();
-
-        try ( var fis = new FileInputStream(f))
-        {
-            Reader r = new BufferedReader(new InputStreamReader(fis, "UTF-8"));        // Needed to support special/accented chars
-            synth = (OutputSynth) xstream.fromXML(r);
-        } catch (XStreamException | IOException ex)
-        {
-            String msg = ResUtil.getString(getClass(), "ERR_ProbReadingFile", f.getAbsolutePath());
-            msg += ": " + ex.getLocalizedMessage();
-            LOGGER.log(Level.WARNING, "loadOutputSynth() - {0}", msg);   //NOI18N
-            if (notifyUser)
-            {
-                NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
-                DialogDisplayer.getDefault().notify(d);
-            }
-            return null;
-        }
-        synth.setFile(f);
-        return synth;
-    }
-
-    public void addPropertyChangeListener(PropertyChangeListener l)
+     public void addPropertyChangeListener(PropertyChangeListener l)
     {
         pcs.addPropertyChangeListener(l);
     }
@@ -291,40 +201,7 @@ public class OutputSynthManager
         pcs.firePropertyChange(PROP_DEFAULT_OUTPUTSYNTH, oldSynth, newSynth);   // newSynth might be null !
     }
 
-    /**
-     * A fixed user directory.
-     *
-     * @return Can be null if error
-     */
-    private File getOutputSynthFilesDir()
-    {
-        File rDir = FileDirectoryManager.getInstance().getAppConfigDirectory(OUTPUT_SYNTH_FILES_DIR);
-        if (rDir == null)
-        {
-            String msg = ResUtil.getString(getClass(), "ERR_NoAppConfigDir", OUTPUT_SYNTH_FILES_DIR);
-            NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
-            DialogDisplayer.getDefault().notify(d);
-        }
-        return rDir;
-    }
-
-    private JFileChooser getFileChooserInstance()
-    {
-        if (CHOOSER_INSTANCE == null)
-        {
-            FileSystemView fsv = new SingleRootFileSystemView(getOutputSynthFilesDir());
-            CHOOSER_INSTANCE = new JFileChooser(fsv);
-            CHOOSER_INSTANCE.resetChoosableFileFilters();
-            FileNameExtensionFilter filter = new FileNameExtensionFilter(ResUtil.getString(getClass(), "CTL_OutputSynthConfigFiles") + " (." + OUTPUT_SYNTH_FILES_EXT + ")", OUTPUT_SYNTH_FILES_EXT);
-            CHOOSER_INSTANCE.addChoosableFileFilter(filter);
-            CHOOSER_INSTANCE.setAcceptAllFileFilterUsed(false);
-            CHOOSER_INSTANCE.setMultiSelectionEnabled(false);
-            CHOOSER_INSTANCE.setFileSelectionMode(JFileChooser.FILES_ONLY);
-            CHOOSER_INSTANCE.setCurrentDirectory(getOutputSynthFilesDir());
-        }
-        return CHOOSER_INSTANCE;
-    }
-
+   
 
     // =====================================================================================
     // Upgrade Task

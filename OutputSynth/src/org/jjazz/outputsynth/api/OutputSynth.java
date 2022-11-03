@@ -31,6 +31,7 @@ import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -45,7 +46,6 @@ import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.midi.api.synths.GM1Instrument;
 import org.jjazz.midi.api.synths.GMSynth;
 import org.jjazz.midi.api.synths.StandardInstrumentConverter;
-import org.jjazz.midiconverters.api.StdInstrumentConverter;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.UserRhythmVoice;
 import org.jjazz.rhythm.api.RhythmVoice;
@@ -98,11 +98,6 @@ public class OutputSynth
 
     /**
      * Find an instrument from this OutputSynth matching (as much as possible) the specified rhythm voice's preferred instrument.
-     * <p>
-     * Search a matching instrument :<br>
-     * - standard instrument conversion<br>
-     * - then search for the instrument in the MidiSynths<br>
-     * - then search using the GM1 substitute, remap table, and substitute family<p>
      * <p>
      *
      * @param rv Must be a standard RhythmVoice (not a UserRhythmVoice)
@@ -218,14 +213,15 @@ public class OutputSynth
             DrumKit kit = rvIns.getDrumKit();
             assert kit != null : "rv=" + rv;   //NOI18N
 
+
             // Try using the remapped instrument for drums/perc if DrumKit matches
             var remapTable = userSettings.getGMRemapTable();
-            Instrument defaultIns = remapTable.getInstrument(rv.getType().equals(RhythmVoice.Type.DRUMS) ? GMRemapTable.DRUMS_INSTRUMENT : GMRemapTable.PERCUSSION_INSTRUMENT);
-            if (defaultIns != null && kit.equals(defaultIns.getDrumKit()))
+            Instrument defaultRemapDrumsIns = remapTable.getInstrument(rv.getType().equals(RhythmVoice.Type.DRUMS) ? GMRemapTable.DRUMS_INSTRUMENT : GMRemapTable.PERCUSSION_INSTRUMENT);
+            if (defaultRemapDrumsIns != null && kit.equals(defaultRemapDrumsIns.getDrumKit()))
             {
-                var ins = defaultIns;
+                var ins = defaultRemapDrumsIns;
                 LOGGER.log(Level.FINE, "findInstrument()    using the remap table (good DrumKit match) ins={0}", ins.toLongString());   //NOI18N
-                return defaultIns;
+                return defaultRemapDrumsIns;
             }
 
 
@@ -266,15 +262,15 @@ public class OutputSynth
                 }
             }
 
-            
-            // Use the default Drums if defined
-            if (defaultIns != null)
+
+            // Use the default Drums if it was defined
+            if (defaultRemapDrumsIns != null)
             {
-                var ins = defaultIns;
+                var ins = defaultRemapDrumsIns;
                 LOGGER.log(Level.FINE, "findInstrument()    using the remapped ins for drums/perc. ins={0}", ins.toLongString());   //NOI18N
                 return ins;
             }
-            
+
 
             // NOTHING correct found...
             var ins = GMSynth.getInstance().getVoidInstrument();
@@ -320,7 +316,7 @@ public class OutputSynth
      */
     public String saveAsString()
     {
-        return midiSynthList.saveAsString() + "##" + userSettings.saveAsString();
+        return midiSynthList.saveAsString() + "#!#" + userSettings.saveAsString();
     }
 
     /**
@@ -334,17 +330,18 @@ public class OutputSynth
      */
     static public OutputSynth loadFromString(String s) throws IOException
     {
-        String[] strs = s.split("##");
+        String[] strs = s.split("#!#");
         if (strs.length != 2)
         {
             throw new IOException("Invalid string s=" + s);
         }
-        String strMsl = strs[0].trim();
-        String strUs = strs[1].trim();
+        String strSynthList = strs[0].trim();
+        String strSettings = strs[1].trim();
 
-        MidiSynthList synthList = MidiSynthList.loadFromString(strMsl);
+        MidiSynthList synthList = MidiSynthList.loadFromString(strSynthList);
         OutputSynth res = new OutputSynth(synthList);
-        res.userSettings.setFromString(strUs);
+        res.userSettings.setFromString(strSettings);
+
         return res;
 
     }
@@ -371,12 +368,12 @@ public class OutputSynth
         public static final String PROP_SENDMODEONUPONSTARTUP = "sendModeOnUponStartup";
 
 
-        public enum SendModeOnUponStartup
+        public enum SendModeOnUponPlay
         {
             OFF, GM, GM2, XG, GS;
         }
 
-        private SendModeOnUponStartup sendModeOnUponPlay;
+        private SendModeOnUponPlay sendModeOnUponPlay;
         protected GMRemapTable remapTable;
         private int audioLatency;
         private Instrument userInstrument;
@@ -391,7 +388,7 @@ public class OutputSynth
         {
             this.remapTable = new GMRemapTable(midiSynthList);
             this.remapTable.addPropertyChangeListener(e -> pcs.firePropertyChange(PROP_GM_REMAP_TABLE, false, true));
-            this.sendModeOnUponPlay = SendModeOnUponStartup.OFF;
+            this.sendModeOnUponPlay = SendModeOnUponPlay.OFF;
             this.userInstrument = midiSynthList.getMidiSynths().get(0).getInstruments().get(0);
             this.audioLatency = 50;
         }
@@ -454,13 +451,102 @@ public class OutputSynth
             return remapTable;
         }
 
+        /**
+         * Save this UserSettings as a string.
+         *
+         * @return
+         * @see #setFromString(java.lang.String)
+         */
+        public String saveAsString()
+        {
+            return audioLatency + ";" + sendModeOnUponPlay + ";" + userInstrument.saveAsString() + ";" + remapTable.saveAsString();
+        }
+
+        /**
+         * Update this UserSettings from the specified string.
+         *
+         * @param s
+         * @throws IOException
+         */
+        public void setFromString(String s) throws IOException
+        {
+            String msg = null;
+
+            String strs[] = s.split(";");
+            if (strs.length != 4)
+            {
+                msg = "Invalid string s=" + s;
+            }
+
+            int latency = 0;
+            String sLatency = strs[0].trim();
+            if (msg == null)
+            {
+                try
+                {
+                    latency = Integer.parseInt(sLatency);
+                } catch (NumberFormatException ex)
+                {
+                    msg = "Invalid audio latency string value. sLatency=" + sLatency;
+                }
+            }
+
+            SendModeOnUponPlay mode = SendModeOnUponPlay.OFF;
+            String sMode = strs[1].trim();
+            if (msg == null)
+            {
+                try
+                {
+                    mode = SendModeOnUponPlay.valueOf(sMode);
+                } catch (IllegalArgumentException ex)
+                {
+                    msg = "Invalid SendModeOnUponPlay string value. sMode=" + sMode;
+                }
+            }
+
+
+            String sUserIns = strs[2].trim();
+            Instrument userIns = Instrument.loadFromString(sUserIns);
+            if (msg == null && userIns == null)
+            {
+                msg = "Invalid instrument string value. sUserIns=" + sUserIns;
+            }
+
+
+            GMRemapTable remap = null;
+            String sRemap = strs[3].trim();
+            if (msg == null)
+            {
+                try
+                {
+                    remap = GMRemapTable.loadFromString(midiSynthList, sRemap);
+                } catch (IOException ex)
+                {
+                    msg = "Invalid RemapTable string value ex=" + ex.getMessage() + ". sRemap=" + sRemap;
+                }
+            }
+
+
+            if (msg != null)
+            {
+                LOGGER.warning("setFromString() " + msg + ". s=" + s);
+                throw new IOException(msg);
+            }
+
+            audioLatency = latency;
+            sendModeOnUponPlay = mode;
+            userInstrument = userIns;
+            remapTable.set(remap);
+            pcs.firePropertyChange(PROP_GM_REMAP_TABLE, false, true);
+
+        }
 
         /**
          * Get the value of sendModeOnUponStartup
          *
          * @return the value of sendModeOnUponStartup
          */
-        public SendModeOnUponStartup getSendModeOnUponPlay()
+        public SendModeOnUponPlay getSendModeOnUponPlay()
         {
             return sendModeOnUponPlay;
         }
@@ -470,9 +556,9 @@ public class OutputSynth
          *
          * @param sendModeOnUponPlay new value of sendModeOnUponStartup
          */
-        public void setSendModeOnUponPlay(SendModeOnUponStartup sendModeOnUponPlay)
+        public void setSendModeOnUponPlay(SendModeOnUponPlay sendModeOnUponPlay)
         {
-            SendModeOnUponStartup oldSendModeOnUponStartup = this.sendModeOnUponPlay;
+            SendModeOnUponPlay oldSendModeOnUponStartup = this.sendModeOnUponPlay;
             this.sendModeOnUponPlay = sendModeOnUponPlay;
             pcs.firePropertyChange(PROP_SENDMODEONUPONSTARTUP, oldSendModeOnUponStartup, sendModeOnUponPlay);
         }
@@ -485,21 +571,18 @@ public class OutputSynth
         {
             switch (sendModeOnUponPlay)
             {
-                case GM:
+                case GM ->
                     MidiUtilities.sendSysExMessage(MidiUtilities.getGmModeOnSysExMessage());
-                    break;
-                case GM2:
+                case GM2 ->
                     MidiUtilities.sendSysExMessage(MidiUtilities.getGm2ModeOnSysExMessage());
-                    break;
-                case XG:
+                case XG ->
                     MidiUtilities.sendSysExMessage(MidiUtilities.getXgModeOnSysExMessage());
-                    break;
-                case GS:
+                case GS ->
                     MidiUtilities.sendSysExMessage(MidiUtilities.getGsModeOnSysExMessage());
-                    break;
-                case OFF:
-                    break;
-                default:
+                case OFF ->
+                {
+                }
+                default ->
                     throw new IllegalStateException("sendModeOnUponPlay=" + sendModeOnUponPlay);   //NOI18N
             }
         }
@@ -514,16 +597,6 @@ public class OutputSynth
             pcs.addPropertyChangeListener(listener);
         }
 
-        public String saveAsString()
-        {
-            return audioLatency + ";" + sendModeOnUponPlay + ";" + userInstrument.saveAsString() + ";" + remapTable.saveAsString();
-        }
-
-        public void setFromString(String strUs)
-        {
-
-        }
-
         /**
          * Remove PropertyChangeListener.
          *
@@ -535,113 +608,6 @@ public class OutputSynth
         }
 
 
-    }
-
-// --------------------------------------------------------------------- 
-// Serialization
-// --------------------------------------------------------------------- 
-    private Object writeReplace()
-    {
-        return new SerializationProxy(this);
-    }
-
-    private void readObject(ObjectInputStream stream)
-            throws InvalidObjectException
-    {
-        throw new InvalidObjectException("Serialization proxy required");
-
-    }
-
-    /**
-     *
-     * <p>
-     * <p>
-     */
-    protected static class SerializationProxy implements Serializable
-    {
-
-        private static final long serialVersionUID = -29672611210L;
-        private final int spVERSION = 1;
-        private final List<String> spCustomSynthsStrings = new ArrayList<>();
-
-        protected SerializationProxy(OutputSynth outSynth)
-        {
-            for (InstrumentBank<?> bank : outSynth.getCompatibleStdBanks())
-            {
-                String str = "GM";
-                if (bank == StdSynth.getInstance().getGM2Bank())
-                {
-                    str = "GM2";
-                } else if (bank == StdSynth.getInstance().getXGBank())
-                {
-                    str = "XG";
-                } else if (bank == GSSynth.getInstance().getGSBank())
-                {
-                    str = "GS";
-                }
-                spCompatibleStdBankNames.add(str);
-            }
-            for (MidiSynth synth : outSynth.getMidiSynths())
-            {
-                spCustomSynthsStrings.add(synth.saveAsString());
-            }
-            spRemapTable = new GMRemapTable(outSynth.getGMRemapTable());
-            spUserInstrument = outSynth.getUserInstrument();
-            spSendModeOnUponPlay = outSynth.getSendModeOnUponPlay();
-            spAudioLatency = outSynth.getAudioLatency();
-        }
-
-        private Object readResolve() throws ObjectStreamException
-        {
-
-            OutputSynth outSynth = new OutputSynth();
-            for (String strBank : spCompatibleStdBankNames)
-            {
-                switch (strBank)
-                {
-                    case "GM2":
-                        outSynth.addCompatibleStdBank(StdSynth.getInstance().getGM2Bank());
-                        break;
-                    case "XG":
-                        outSynth.addCompatibleStdBank(StdSynth.getInstance().getXGBank());
-                        break;
-                    case "GS":
-                        outSynth.addCompatibleStdBank(GSSynth.getInstance().getGSBank());
-                        break;
-                    default:
-                    // Nothing
-                }
-            }
-            for (String strSynth : spCustomSynthsStrings)
-            {
-                MidiSynth synth = MidiSynth.loadFromString(strSynth);
-                if (synth == null)
-                {
-                    LOGGER.warning("readResolve() Can't restore MidiSynth from save string: " + strSynth);   //NOI18N
-                } else
-                {
-                    outSynth.addCustomSynth(synth);
-                }
-            }
-            if (!spCompatibleStdBankNames.contains("GM"))
-            {
-                boolean b = outSynth.removeCompatibleStdBank(StdSynth.getInstance().getGM1Bank());  // Remove must be done last
-                assert b = true : "spCompatibleStdBankNames=" + spCompatibleStdBankNames + " spCustomSynthsStrings=" + spCustomSynthsStrings;   //NOI18N
-            }
-            outSynth.remapTable = spRemapTable;
-            outSynth.remapTable.setContainer(outSynth);
-            if (spUserInstrument == null)
-            {
-                LOGGER.warning("readResolve() spUserInstrument=" + spUserInstrument + ". Using default user instrument");   //NOI18N
-
-            } else
-            {
-                outSynth.setUserInstrument(spUserInstrument);
-            }
-            outSynth.setSendModeOnUponPlay(spSendModeOnUponPlay);
-            outSynth.setAudioLatency(spAudioLatency);
-            return outSynth;
-        }
     }
 
 }
