@@ -56,8 +56,10 @@ public class OutputSynthManager
     public final static String PROP_MDOUT_OUTPUTSYNTH = "MdOut-OutputSynth";
     /**
      * Property change event fired each time a new OutputSynth is associated to the default JJazzLab MidiDevice OUT: oldValue=old
-     * OutputSynth, newValue=new OutputSynth. The change event is also fired when default JJazzLab MidiDevice OUT changes. Note
-     * that newValue might be null if no default JJazzLab OUT MidiDevice is set. 
+     * OutputSynth, newValue=new OutputSynth.
+     * <p>
+     * The change event is also fired when default JJazzLab MidiDevice OUT changes. Note that newValue might be null if no default
+     * JJazzLab OUT MidiDevice is set.
      */
     public final static String PROP_DEFAULT_OUTPUTSYNTH = "Default-OutputSynth";
 
@@ -180,7 +182,7 @@ public class OutputSynthManager
 
     }
 
-     public void addPropertyChangeListener(PropertyChangeListener l)
+    public void addPropertyChangeListener(PropertyChangeListener l)
     {
         pcs.addPropertyChangeListener(l);
     }
@@ -190,6 +192,15 @@ public class OutputSynthManager
         pcs.removePropertyChangeListener(l);
     }
 
+    public void addPropertyChangeListener(String propName, PropertyChangeListener l)
+    {
+        pcs.addPropertyChangeListener(propName, l);
+    }
+
+    public void removePropertyChangeListener(String propName, PropertyChangeListener l)
+    {
+        pcs.removePropertyChangeListener(propName, l);
+    }
 
     // ===============================================================================
     // Private methods
@@ -201,7 +212,6 @@ public class OutputSynthManager
         pcs.firePropertyChange(PROP_DEFAULT_OUTPUTSYNTH, oldSynth, newSynth);   // newSynth might be null !
     }
 
-   
 
     // =====================================================================================
     // Upgrade Task

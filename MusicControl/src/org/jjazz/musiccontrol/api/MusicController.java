@@ -62,6 +62,7 @@ import org.jjazz.util.api.ResUtil;
 import org.jjazz.util.api.Utilities;
 import org.openide.util.Exceptions;
 import org.jjazz.musiccontrol.api.playbacksession.ControlTrackProvider;
+import org.jjazz.outputsynth.api.OutputSynth;
 import org.jjazz.rhythm.api.UserErrorGenerationException;
 import org.jjazz.song.api.Song;
 import org.openide.awt.StatusDisplayer;
@@ -196,11 +197,15 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         }
 
 
-        // Listen to latency changes
+        // Listen to default OutputSynth changes, in order to listen to its AudioLatency changes
         var osm = OutputSynthManager.getInstance();
-        osm.addPropertyChangeListener(this);
-        audioLatency = osm.getOutputSynth().getAudioLatency();
-
+        osm.addPropertyChangeListener(OutputSynthManager.PROP_DEFAULT_OUTPUTSYNTH, this);
+        var outSynth = osm.getDefaultOutputSynth();
+        if (outSynth != null)
+        {
+            audioLatency = outSynth.getUserSettings().getAudioLatency();
+            outSynth.getUserSettings().addPropertyChangeListener(this);
+        }
 
     }
 
@@ -833,8 +838,28 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         // Always enabled changes
         if (e.getSource() == OutputSynthManager.getInstance())
         {
-            if (e.getPropertyName().equals(OutputSynthManager.PROP_AUDIO_LATENCY))
+            if (e.getPropertyName().equals(OutputSynthManager.PROP_DEFAULT_OUTPUTSYNTH))
             {
+                OutputSynth oldSynth = (OutputSynth) e.getOldValue();
+                OutputSynth newSynth = (OutputSynth) e.getNewValue();
+                if (oldSynth != null)
+                {
+                    oldSynth.getUserSettings().removePropertyChangeListener(this);
+                }
+                if (newSynth != null)
+                {
+                    newSynth.getUserSettings().addPropertyChangeListener(this);
+                    audioLatency = newSynth.getUserSettings().getAudioLatency();
+                } else
+                {
+                    audioLatency = 0;
+                }
+            }
+        } else if (e.getSource() instanceof OutputSynth.UserSettings)
+        {
+            if (e.getPropertyName().equals(OutputSynth.UserSettings.PROP_AUDIOLATENCY))
+            {
+                // latency of the default OutputSynth has changed
                 audioLatency = (int) e.getNewValue();
             }
         }
@@ -925,6 +950,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         sequencer.removeMetaEventListener(this);
         sequencer.removeControllerEventListener(this, listenedControllers);
     }
+
 
     private void setPosition(int fromBar)
     {
@@ -1208,7 +1234,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      * Update the tempo factor of the sequencer.
      * <p>
      * Depends on songPartTempoFactor and songTempoFactor. Sequencer tempo must always be MidiConst.SEQUENCER_REF_TEMPO.
-     *
+     * <p>
      */
     private void updateTempoFactor()
     {
@@ -1259,7 +1285,10 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                 sequencer.setTrackMute(trackId, b);
                 if (sequencer.getTrackMute(trackId) != b)
                 {
-                    LOGGER.log(Level.FINE, "updateTracksMuteStatus() setTrackMute({0},{1}) failed", new Object[]{trackId, b});
+                    LOGGER.log(Level.FINE, "updateTracksMuteStatus() setTrackMute({0},{1}) failed", new Object[]
+                    {
+                        trackId, b
+                    });
                     LOGGER.log(Level.FINE, "                          sequencer{0}", sequencer.isRunning());
                 }
             }
