@@ -62,7 +62,7 @@ import org.jjazz.midi.api.InstrumentMix;
 import org.jjazz.midi.api.InstrumentSettings;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.synths.Family;
-import org.jjazz.midi.api.synths.StdSynth;
+import org.jjazz.midi.api.synths.GMSynth;
 import org.jjazz.midimix.spi.RhythmVoiceInstrumentProvider;
 import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.Rhythm;
@@ -674,7 +674,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
             if (channel != MidiConst.CHANNEL_DRUMS
                     && rv.isDrums()
                     && !getDrumsReroutedChannels().contains(channel)
-                    && ins == StdSynth.getInstance().getVoidInstrument())
+                    && ins == GMSynth.getInstance().getVoidInstrument())
             {
                 res.add(channel);
             }
@@ -1647,7 +1647,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
             }
             InstrumentMix mmInsMix = mm.instrumentMixes[mmChannel];
             GM1Instrument mmInsGM1 = mmInsMix.getInstrument().getSubstitute();  // Can be null          
-            if (mmInsGM1 == null || mmInsGM1 == StdSynth.getInstance().getVoidInstrument())
+            if (mmInsGM1 == null || mmInsGM1 == GMSynth.getInstance().getVoidInstrument())
             {
                 continue;
             }
@@ -1706,7 +1706,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
 
         // Use a RhythmVoiceInstrumentProvider to get the instrument
         var urv = new UserRhythmVoice(userPhraseName);
-        RhythmVoiceInstrumentProvider p = RhythmVoiceInstrumentProvider.Util.getProvider();
+        RhythmVoiceInstrumentProvider p = RhythmVoiceInstrumentProvider.getProvider();
         Instrument ins = p.findInstrument(urv);
         var insMix = new InstrumentMix(ins, new InstrumentSettings());
         setInstrumentMix(channel, urv, insMix);

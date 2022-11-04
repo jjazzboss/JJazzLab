@@ -31,7 +31,7 @@ import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.synths.Family;
 import org.jjazz.midi.api.synths.GM1Bank;
 import org.jjazz.midi.api.synths.GM1Instrument;
-import org.jjazz.midi.api.synths.StdSynth;
+import org.jjazz.midi.api.synths.GMSynth;
 
 /**
  * Describe a voice for which a Rhythm will generate music.
@@ -59,7 +59,7 @@ public class RhythmVoice
          */
         public GM1Instrument getDefaultInstrument()
         {
-            GM1Bank gmBank = StdSynth.getInstance().getGM1Bank();
+            GM1Bank gmBank = GMSynth.getInstance().getGM1Bank();
             switch (this)
             {
                 case DRUMS:

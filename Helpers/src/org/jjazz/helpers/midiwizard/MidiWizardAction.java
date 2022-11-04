@@ -24,33 +24,16 @@ package org.jjazz.helpers.midiwizard;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
-import java.io.IOException;
-import java.text.MessageFormat;
 import java.util.logging.Logger;
-import javax.sound.midi.MidiDevice;
-import javax.sound.midi.MidiUnavailableException;
 import javax.swing.Action;
-import org.jjazz.midi.api.JJazzMidiSystem;
-import org.jjazz.midi.api.synths.GSSynth;
-import org.jjazz.midi.api.synths.StdSynth;
-import org.jjazz.outputsynth.api.OS_JJazzLabSoundFont_GM2;
-import org.jjazz.outputsynth.api.OS_JJazzLabSoundFont_GS;
-import org.jjazz.outputsynth.api.OS_JJazzLabSoundFont_XG;
-import org.jjazz.outputsynth.api.OutputSynth;
-import org.jjazz.outputsynth.api.OutputSynthManager;
 import org.jjazz.startup.spi.StartupTask;
 import org.jjazz.upgrade.api.UpgradeManager;
 import org.jjazz.util.api.ResUtil;
-import org.openide.DialogDisplayer;
-import org.openide.NotifyDescriptor;
 import org.openide.WizardDescriptor;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionRegistration;
 import org.openide.awt.Actions;
-import org.openide.awt.StatusDisplayer;
-import org.openide.util.Utilities;
 import org.openide.util.lookup.ServiceProvider;
 
 /**
@@ -80,103 +63,106 @@ public final class MidiWizardAction implements ActionListener
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        MidiWizardIterator iterator = new MidiWizardIterator();
-        WizardDescriptor wiz = new WizardDescriptor(iterator);
-        iterator.setWizardDescriptor(wiz);
-        // {0} will be replaced by WizardDescriptor.Panel.getComponent().getName()
-        // {1} will be replaced by WizardDescriptor.Iterator.name()
-        wiz.setTitleFormat(new MessageFormat("{0} ({1})"));
-        wiz.setTitle(ResUtil.getString(getClass(), "MidiWizardAction.CTL_MidiConfigWizard"));
-        if (DialogDisplayer.getDefault().notify(wiz) == WizardDescriptor.FINISH_OPTION)
-        {
-            // Retrieve configuration then apply it
-            JJazzMidiSystem jms = JJazzMidiSystem.getInstance();
-            boolean useJJazzLabSoundFont = MidiWizardAction.getBooleanProp(wiz, MidiWizardAction.PROP_USE_JJAZZLAB_SOUNDFONT);
-            MidiDevice md = (MidiDevice) wiz.getProperty(MidiWizardAction.PROP_MIDI_OUT_DEVICE);
-            boolean gm2Support = MidiWizardAction.getBooleanProp(wiz, MidiWizardAction.PROP_GM2_SUPPORT);
-            boolean xgSupport = MidiWizardAction.getBooleanProp(wiz, MidiWizardAction.PROP_XG_SUPPORT);
-            boolean gsSupport = MidiWizardAction.getBooleanProp(wiz, MidiWizardAction.PROP_GS_SUPPORT);
-            File soundFontFile = (File) wiz.getProperty(MidiWizardAction.PROP_JJAZZLAB_SOUNDFONT_FILE);
-
-            // Midi device OUT
-            if (md != null)
-            {
-
-                try
-                {
-                    jms.setDefaultOutDevice(md);
-                } catch (MidiUnavailableException ex)
-                {
-                    LOGGER.warning("actionPerformed() Can't set default Midi out device to " + JJazzMidiSystem.getInstance().getDeviceFriendlyName(md) + ". ex=" + ex.getMessage());   //NOI18N
-                    NotifyDescriptor nd = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
-                    DialogDisplayer.getDefault().notify(nd);
-                }
-            }
-
-            OutputSynthManager osm = OutputSynthManager.getInstance();
-            OutputSynth os = osm.getOutputSynth();
-            File f = os.getFile();
-            if (useJJazzLabSoundFont)
-            {
-                // Use the preset output synth
-                if (Utilities.isMac())
-                {
-                    os = new OutputSynth(OS_JJazzLabSoundFont_GM2.getInstance());
-                    if (jms.getDefaultOutDevice() == jms.getDefaultJavaSynth() && soundFontFile != null)
-                    {
-                        // Load the soundfont file
-                        jms.loadSoundbankFileOnSynth(soundFontFile, false);
-                    }
-                } else if (Utilities.isUnix())
-                {
-                    os = new OutputSynth(OS_JJazzLabSoundFont_XG.getInstance());
-                } else
-                {
-                    // Win
-                    os = new OutputSynth(OS_JJazzLabSoundFont_GS.getInstance());
-                }
-                if (f != null)
-                {
-                    os.setFile(f);
-                }
-                osm.setOutputSynth(os);
-            } else
-            {
-                // Update the std banks compatibility                
-                os.reset();
-                if (gm2Support)
-                {
-                    os.setSendModeOnUponPlay(OutputSynth.SendModeOnUponStartup.GM2);
-                    os.addCompatibleStdBank(StdSynth.getInstance().getGM2Bank());
-                }
-                if (xgSupport)
-                {
-                    os.setSendModeOnUponPlay(OutputSynth.SendModeOnUponStartup.XG);
-                    os.removeCompatibleStdBank(GSSynth.getInstance().getGSBank());
-                    os.addCompatibleStdBank(StdSynth.getInstance().getXGBank());
-                }
-                if (gsSupport && !xgSupport)
-                {
-                    os.setSendModeOnUponPlay(OutputSynth.SendModeOnUponStartup.GS);
-                    os.removeCompatibleStdBank(StdSynth.getInstance().getXGBank());
-                    os.addCompatibleStdBank(GSSynth.getInstance().getGSBank());
-                }
-            }
-            if (f != null)
-            {
-                try
-                {
-                    os.saveToFile(f);
-                    StatusDisplayer.getDefault().setStatusText(ResUtil.getString(getClass(), "MidiWizardAction.CTL_Saved", f.getAbsolutePath()));
-                } catch (IOException ex)
-                {
-                    String msg = ResUtil.getString(getClass(), "MidiWizardAction.CTL_ErrSavingOutputFile", f.getName()) + " : " + ex.getLocalizedMessage();
-                    LOGGER.warning("actionPerformed() " + msg);   //NOI18N
-                    NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
-                    DialogDisplayer.getDefault().notify(nd);
-                }
-            }
-        }
+        LOGGER.severe("actionPerformed() COMMENTED OUT!!");
+//        
+//        
+//        MidiWizardIterator iterator = new MidiWizardIterator();
+//        WizardDescriptor wiz = new WizardDescriptor(iterator);
+//        iterator.setWizardDescriptor(wiz);
+//        // {0} will be replaced by WizardDescriptor.Panel.getComponent().getName()
+//        // {1} will be replaced by WizardDescriptor.Iterator.name()
+//        wiz.setTitleFormat(new MessageFormat("{0} ({1})"));
+//        wiz.setTitle(ResUtil.getString(getClass(), "MidiWizardAction.CTL_MidiConfigWizard"));
+//        if (DialogDisplayer.getDefault().notify(wiz) == WizardDescriptor.FINISH_OPTION)
+//        {
+//            // Retrieve configuration then apply it
+//            JJazzMidiSystem jms = JJazzMidiSystem.getInstance();
+//            boolean useJJazzLabSoundFont = MidiWizardAction.getBooleanProp(wiz, MidiWizardAction.PROP_USE_JJAZZLAB_SOUNDFONT);
+//            MidiDevice md = (MidiDevice) wiz.getProperty(MidiWizardAction.PROP_MIDI_OUT_DEVICE);
+//            boolean gm2Support = MidiWizardAction.getBooleanProp(wiz, MidiWizardAction.PROP_GM2_SUPPORT);
+//            boolean xgSupport = MidiWizardAction.getBooleanProp(wiz, MidiWizardAction.PROP_XG_SUPPORT);
+//            boolean gsSupport = MidiWizardAction.getBooleanProp(wiz, MidiWizardAction.PROP_GS_SUPPORT);
+//            File soundFontFile = (File) wiz.getProperty(MidiWizardAction.PROP_JJAZZLAB_SOUNDFONT_FILE);
+//
+//            // Midi device OUT
+//            if (md != null)
+//            {
+//
+//                try
+//                {
+//                    jms.setDefaultOutDevice(md);
+//                } catch (MidiUnavailableException ex)
+//                {
+//                    LOGGER.warning("actionPerformed() Can't set default Midi out device to " + JJazzMidiSystem.getInstance().getDeviceFriendlyName(md) + ". ex=" + ex.getMessage());   //NOI18N
+//                    NotifyDescriptor nd = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
+//                    DialogDisplayer.getDefault().notify(nd);
+//                }
+//            }
+//
+//            OutputSynthManager osm = OutputSynthManager.getInstance();
+//            OutputSynth os = osm.getDefaultOutputSynth();
+//            File f = os.getFile();
+//            if (useJJazzLabSoundFont)
+//            {
+//                // Use the preset output synth
+//                if (Utilities.isMac())
+//                {
+//                    os = new OutputSynth(OS_JJazzLabSoundFont_GM2.getInstance());
+//                    if (jms.getDefaultOutDevice() == jms.getJavaInternalSynth() && soundFontFile != null)
+//                    {
+//                        // Load the soundfont file
+//                        jms.loadSoundbankFileOnSynth(soundFontFile, false);
+//                    }
+//                } else if (Utilities.isUnix())
+//                {
+//                    os = new OutputSynth(OS_JJazzLabSoundFont_XG.getInstance());
+//                } else
+//                {
+//                    // Win
+//                    os = new OutputSynth(OS_JJazzLabSoundFont_GS.getInstance());
+//                }
+//                if (f != null)
+//                {
+//                    os.setFile(f);
+//                }
+//                osm.setOutputSynth(os);
+//            } else
+//            {
+//                // Update the std banks compatibility                
+//                os.reset();
+//                if (gm2Support)
+//                {
+//                    os.setSendModeOnUponPlay(OutputSynth.SendModeOnUponStartup.GM2);
+//                    os.addCompatibleStdBank(StdSynth.getInstance().getGM2Bank());
+//                }
+//                if (xgSupport)
+//                {
+//                    os.setSendModeOnUponPlay(OutputSynth.SendModeOnUponStartup.XG);
+//                    os.removeCompatibleStdBank(GSSynth.getInstance().getGSBank());
+//                    os.addCompatibleStdBank(StdSynth.getInstance().getXGBank());
+//                }
+//                if (gsSupport && !xgSupport)
+//                {
+//                    os.setSendModeOnUponPlay(OutputSynth.SendModeOnUponStartup.GS);
+//                    os.removeCompatibleStdBank(StdSynth.getInstance().getXGBank());
+//                    os.addCompatibleStdBank(GSSynth.getInstance().getGSBank());
+//                }
+//            }
+//            if (f != null)
+//            {
+//                try
+//                {
+//                    os.saveToFile(f);
+//                    StatusDisplayer.getDefault().setStatusText(ResUtil.getString(getClass(), "MidiWizardAction.CTL_Saved", f.getAbsolutePath()));
+//                } catch (IOException ex)
+//                {
+//                    String msg = ResUtil.getString(getClass(), "MidiWizardAction.CTL_ErrSavingOutputFile", f.getName()) + " : " + ex.getLocalizedMessage();
+//                    LOGGER.warning("actionPerformed() " + msg);   //NOI18N
+//                    NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
+//                    DialogDisplayer.getDefault().notify(nd);
+//                }
+//            }
+//        }
     }
 
     public static boolean getBooleanProp(WizardDescriptor wiz, String prop)

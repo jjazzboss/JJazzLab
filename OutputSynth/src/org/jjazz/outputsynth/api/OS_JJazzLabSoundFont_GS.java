@@ -22,11 +22,7 @@
  */
 package org.jjazz.outputsynth.api;
 
-import java.io.File;
-import java.util.logging.Logger;
 import org.jjazz.midi.api.MidiSynth;
-import org.jjazz.midi.api.synths.StdSynth;
-import org.jjazz.midisynthmanager.api.MidiSynthListManager;
 
 /**
  * The builtin OutputSynth for the JJazzLabSoundFont in GS mode.
@@ -34,11 +30,7 @@ import org.jjazz.midisynthmanager.api.MidiSynthListManager;
 public class OS_JJazzLabSoundFont_GS extends OutputSynth
 {
 
-    public final static String NAME = "GS synth with JJazzLab soundfont";
     private static OS_JJazzLabSoundFont_GS INSTANCE;
-    private final MidiSynth midiSynth;
-
-    private static final Logger LOGGER = Logger.getLogger(OS_JJazzLabSoundFont_GS.class.getSimpleName());
 
     public static OS_JJazzLabSoundFont_GS getInstance()
     {
@@ -54,49 +46,18 @@ public class OS_JJazzLabSoundFont_GS extends OutputSynth
 
     private OS_JJazzLabSoundFont_GS()
     {
-        super(NAME);
-        
-        midiSynth = MidiSynthListManager.getDefault().getMidiSynth(MidiSynthListManager.JJAZZLAB_SOUNDFONT_GS_SYNTH_NAME);
-
-        // Adjust settings
-        addCustomSynth(midiSynth);
-        removeCompatibleStdBank(StdSynth.getInstance().getGM1Bank());
-        setSendModeOnUponPlay(OutputSynth.SendModeOnUponStartup.GS);
+        super(new MultiSynth(MultiSynthManager.getInstance().getMidiSynth(MultiSynthManager.JJAZZLAB_SOUNDFONT_GS_SYNTH_NAME)));
+        getUserSettings().setSendModeOnUponPlay(UserSettings.SendModeOnUponPlay.GS);
     }
 
-    /**
-     * Check if the specified OutputSynth is compatible with this synth, ie it shares its main features.
-     *
-     * @param os
-     * @return
-     */
-    @Override
-    public boolean isCompatibleWith(OutputSynth os)
-    {
-        return !(!os.getMidiSynths().contains(midiSynth)
-                || os.getCompatibleStdBanks().contains(StdSynth.getInstance().getGM1Bank())
-                || !os.getSendModeOnUponPlay().equals(OutputSynth.SendModeOnUponStartup.GS));
-    }
-
-    /**
-     * Overridden : forbidden method on this preset object.
-     *
-     * @param f
-     */
-    @Override
-    public void setFile(File f)
-    {
-        throw new UnsupportedOperationException();
-    }
 
     /**
      * The synth associated to the JJazzLab soundfont.
      *
      * @return
      */
-    public MidiSynth getJJazzLabSoundFontSynth()
+    public final MidiSynth getJJazzLabSoundFontSynth()
     {
-        return midiSynth;
+        return MultiSynthManager.getInstance().getMidiSynth(MultiSynthManager.JJAZZLAB_SOUNDFONT_GS_SYNTH_NAME);
     }
-
 }

@@ -38,7 +38,7 @@ import org.jjazz.midi.api.keymap.KeyMapGM;
 import org.jjazz.midi.api.synths.Family;
 
 /**
- * The table can associate an Instrument from a MidiSynthList to each of the GM1 instruments + the special DRUMS/PERCUSSION static
+ * The table can associate an Instrument from a MultiSynth to each of the GM1 instruments + the special DRUMS/PERCUSSION static
  * instances.
  * <p>
  * Association can also be done at the GM1Bank.Family level.
@@ -74,19 +74,19 @@ public class GMRemapTable implements Serializable
     public static final String PROP_INSTRUMENT = "Instrument";   //NOI18N 
     private HashMap<Instrument, Instrument> mapInstruments = new HashMap<>();
     private HashMap<Family, Instrument> mapFamilyInstruments = new HashMap<>();
-    private final MidiSynthList midiSynthList;
+    private final MultiSynth multiSynth;
     private final transient PropertyChangeSupport pcs = new java.beans.PropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(GMRemapTable.class.getSimpleName());
 
     /**
-     * Create an instance to remap GM instruments to instruments from the specified MidiSynthList.
+     * Create an instance to remap GM instruments to instruments from the specified MultiSynth.
      * <p>
-     * @param synthList
+     * @param multiSynth
      */
-    public GMRemapTable(MidiSynthList synthList)
+    public GMRemapTable(MultiSynth multiSynth)
     {
-        Preconditions.checkNotNull(synthList);
-        midiSynthList = synthList;
+        Preconditions.checkNotNull(multiSynth);
+        this.multiSynth = multiSynth;
     }
 
     /**
@@ -100,35 +100,35 @@ public class GMRemapTable implements Serializable
 //    {
 //        mapInstruments = new HashMap<>(rt.mapInstruments);
 //        mapFamilyInstruments = new HashMap<>(rt.mapFamilyInstruments);
-//        midiSynthList = rt.midiSynthList;
+//        multiSynth = rt.multiSynth;
 //    }
 
     /**
-     * Set the mappings from another GMRemapTable which must share the same MidiSynthList.
+     * Set the mappings from another GMRemapTable which must share the same MultiSynth.
      *
      * @param rt
      */
     public void set(GMRemapTable rt)
     {
-        Preconditions.checkArgument(rt.midiSynthList == midiSynthList);
+        Preconditions.checkArgument(rt.multiSynth == multiSynth);
         mapInstruments = new HashMap<>(rt.mapInstruments);
         mapFamilyInstruments = new HashMap<>(rt.mapFamilyInstruments);
     }
 
     /**
-     * The associated MidiSynthList.
+     * The associated MultiSynth.
      *
      * @return
      */
-    public MidiSynthList getMidiSynthList()
+    public MultiSynth getMultiSynth()
     {
-        return midiSynthList;
+        return multiSynth;
     }
 
 
     /**
      * The map which associates a GM instrument (+ the special drums instances) to an instrument from the associated
-     * MidiSynthList.
+     * MultiSynth.
      *
      * @return
      */
@@ -138,7 +138,7 @@ public class GMRemapTable implements Serializable
     }
 
     /**
-     * The map which associates a GM family to an instrument from the associated MidiSynthList.
+     * The map which associates a GM family to an instrument from the associated MultiSynth.
      *
      * @return
      */
@@ -176,7 +176,7 @@ public class GMRemapTable implements Serializable
      * Get the mapped instrument for remappedIns.
      *
      * @param remappedIns Must be a GM1Instrument or the special DRUMS/PERCUSSION static instances.
-     * @return Null if no mapping defined for remappedIns. Returned instrument belongs to the associated MidiSynthList.
+     * @return Null if no mapping defined for remappedIns. Returned instrument belongs to the associated MultiSynth.
      */
     public Instrument getInstrument(Instrument remappedIns)
     {
@@ -189,7 +189,7 @@ public class GMRemapTable implements Serializable
      *
      * @param remappedIns Must be a GM1Instrument or the special DRUMS/PERCUSSION static instances.
      * @param ins Can be null. If remappedIns is one of the special DRUMS/PERCUSSION instances, ins must be a Drums/Perc
-     * instrument with a GM compatible DrumsKit.KeyMap. ins must belong to the associated MidiSynthList.
+     * instrument with a GM compatible DrumsKit.KeyMap. ins must belong to the associated MultiSynth.
      * @param useAsFamilyDefault If true ins will be also the default instrument for the remappedIns's family. Not used if
      * remappedIns is one of the special DRUMS/PERCUSSION instances.
      * @throws InvalidMappingException If arguments are invalid. The exception error message can be used for user notification.
@@ -213,9 +213,9 @@ public class GMRemapTable implements Serializable
         {
             throw new InvalidMappingException("Invalid instrument: " + ins.getFullName() + " drum kit keymap (" + ins.getDrumKit().getKeyMap().getName() + ") is not GM-compatible.");
         }
-        if (ins != null && !midiSynthList.contains(ins))
+        if (ins != null && !multiSynth.contains(ins))
         {
-            throw new IllegalArgumentException("Invalid instrument: " + ins.getFullName() + " does not belong to associated midiSynthList=" + midiSynthList);
+            throw new IllegalArgumentException("Invalid instrument: " + ins.getFullName() + " does not belong to associated multiSynth=" + multiSynth);
         }
         setInstrumentNoException(remappedIns, ins, useAsFamilyDefault);
     }
@@ -267,9 +267,9 @@ public class GMRemapTable implements Serializable
         return joiner.toString();
     }
 
-    static public GMRemapTable loadFromString(MidiSynthList synthList, String s) throws IOException
+    static public GMRemapTable loadFromString(MultiSynth multiSynth, String s) throws IOException
     {
-        GMRemapTable res = new GMRemapTable(synthList);
+        GMRemapTable res = new GMRemapTable(multiSynth);
         String msg = null;
 
 

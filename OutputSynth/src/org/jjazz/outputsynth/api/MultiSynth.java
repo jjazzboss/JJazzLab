@@ -30,58 +30,73 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.StringJoiner;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jjazz.midi.api.DrumKit;
 import org.jjazz.midi.api.Instrument;
 import org.jjazz.midi.api.InstrumentBank;
 import org.jjazz.midi.api.MidiSynth;
 import org.jjazz.midi.api.synths.GMSynth;
 import org.jjazz.midi.api.synths.SynthUtilities;
 import org.jjazz.midi.spi.MidiSynthFileReader;
+import org.jjazz.util.api.ResUtil;
 import org.jjazz.util.api.Utilities;
 
 /**
- * One or more MidiSynth instances, typically obtained from a .ins definition file.
+ * A MultiSynth is made of one or more MidiSynth instances, typically obtained from a .ins definition file.
  * <p>
  * This an immutable class.
  */
-public class MidiSynthList
+public class MultiSynth
 {
 
     private final List<MidiSynth> midiSynths = new ArrayList<>();
     private File file;
-    private static final Logger LOGGER = Logger.getLogger(MidiSynthList.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(MultiSynth.class.getSimpleName());
 
     /**
-     * Construct a default MidiSynthList with only the GMSynth instance.
+     * Construct a default MultiSynth with only the GMSynth instance.
      */
-    public MidiSynthList()
+    public MultiSynth()
     {
         this(Arrays.asList(GMSynth.getInstance()));
     }
 
     /**
-     * Construct a MidiSynthList from the specified MidiSynths.
+     * Construct a MultiSynth from the specified MidiSynths.
      * <p>
      * @param synths Can't be empty
      */
-    public MidiSynthList(List<MidiSynth> synths)
+    public MultiSynth(List<MidiSynth> synths)
     {
         Preconditions.checkArgument(synths != null && !synths.isEmpty());
         this.midiSynths.addAll(synths);
     }
 
     /**
-     * Construct a MidiSynthList from the MidiSynths found in the specified instrument definition file (.ins).
+     * Construct a MultiSynth from the specified MidiSynths.
+     * <p>
+     * @param synths
+     */
+    public MultiSynth(MidiSynth... synths)
+    {
+        this(Arrays.asList(synths));
+    }
+
+    /**
+     * Construct a MultiSynth from the MidiSynths found in the specified instrument definition file (.ins).
      * .<p>
      * @param file
      * @throws java.io.IOException If file access, or if no valid (non-empty) MidiSynth found in the file.
      */
-    public MidiSynthList(File file) throws IOException
+    public MultiSynth(File file) throws IOException
     {
         var reader = MidiSynthFileReader.getReader(Utilities.getExtension(file.getName()));
         if (reader == null)
         {
-            throw new IOException("No MidiSynthFileReader instance found to read file=" + file.getAbsolutePath());
+            String msg = ResUtil.getString(getClass(), "ERR_NoSynthReaderForFile", file.getAbsolutePath());
+            LOGGER.log(Level.WARNING, "MultiSynth(file) " + msg);   //NOI18N
+            throw new IOException(msg);
         }
 
         // Read the file and add the non-empty synths
@@ -91,16 +106,19 @@ public class MidiSynthList
                 .filter(s -> s.getNbInstruments() > 0)
                 .forEach(s -> midiSynths.add(s));
 
+
         if (midiSynths.isEmpty())
         {
-            throw new IOException("No valid (non-empty) MidiSynth found in file=" + file.getAbsolutePath());
+            String msg = ResUtil.getString(getClass(), "ERR_NoSynthFoundInFile", file.getAbsolutePath());
+            LOGGER.log(Level.WARNING, "MultiSynth(file) " + msg);   //NOI18N
+            throw new IOException(msg);
         }
 
         this.file = file;
     }
 
     /**
-     * Get the name of this MidiSynthList.
+     * Get the name of this MultiSynth.
      * <p>
      * If loaded from a file, return the file name. Otherwise return the first MidiSynth's name.
      *
@@ -116,7 +134,7 @@ public class MidiSynthList
      * Get the associated MidiSynth definition file (.ins).
      *
      * @return Null if this instance was not created using an instrument definition file.
-     * @see #MidiSynthList(java.io.File)
+     * @see #MultiSynth(java.io.File)
      */
     public File getFile()
     {
@@ -135,7 +153,21 @@ public class MidiSynthList
     }
 
     /**
-     * Check whether this MidiSynthList contains this instrument.
+     * Get the MidiSynth with the specified name.
+     *
+     * @param name
+     * @return Null if not found in this MultiSynth
+     */
+    public MidiSynth getMidiSynth(String name)
+    {
+        return midiSynths.stream()
+                .filter(ms -> ms.getName().equals(name))
+                .findAny()
+                .orElse(null);
+    }
+
+    /**
+     * Check whether this MultiSynth contains this instrument.
      *
      * @param ins
      * @return
@@ -154,6 +186,54 @@ public class MidiSynthList
         return false;
     }
 
+    /**
+     * Get all the Drums/Percussion instruments from this MultiSynth.
+     *
+     * @return Returned instruments have isDrumKit() set to true.
+     */
+    public List<Instrument> getDrumsInstruments()
+    {
+        List<Instrument> res = new ArrayList<>();
+        for (var synth : midiSynths)
+        {
+            res.addAll(synth.getDrumsInstruments());
+        }
+        return res;
+    }
+
+    /**
+     * Get all the drums/percussion instruments which match the specified DrumKit.
+     *
+     * @param kit
+     * @param tryHarder If true and no instrument matched the specified kit, then try again but with a more flexible matching
+     *                  algorithm. Default implementation starts a second search using kit.Type.STANDARD.
+     * @return Can be empty.
+     */
+    public List<Instrument> getDrumsInstruments(DrumKit kit, boolean tryHarder)
+    {
+        List<Instrument> res = new ArrayList<>();
+        for (var synth : midiSynths)
+        {
+            res.addAll(synth.getDrumsInstruments(kit, tryHarder));
+        }
+        return res;
+    }
+
+    /**
+     * Get all the non Drums/Percussion instruments from this MultiSynth.
+     *
+     * @return Returned instruments have isDrumKit() set to false.
+     */
+
+    public List<Instrument> getNonDrumsInstruments()
+    {
+        List<Instrument> res = new ArrayList<>();
+        for (var synth : midiSynths)
+        {
+            res.addAll(synth.getNonDrumsInstruments());
+        }
+        return res;
+    }
 
     /**
      * Return the first drums instrument found.
@@ -175,19 +255,18 @@ public class MidiSynthList
         return ins;
     }
 
-   
 
     @Override
     public String toString()
     {
-        return "MidiSynthList-" + getName();
+        return "MultiSynth-" + getName();
     }
 
     /**
-     * Save this MidiSynthList as a string so that it can be retrieved by loadFromString().
+     * Save this MultiSynth as a string so that it can be retrieved by loadFromString().
      * <p>
-     * Use the file name if this MidiSynthList came from a file. Otherwise use the list of MidiSynth names, which should be
-     * standard synths (eg GMSynth, XGSynth, etc.).
+     * Use the file name if this MultiSynth came from a file. Otherwise use the list of MidiSynth names, which should be standard
+     * synths (eg GMSynth, XGSynth, etc.).
      *
      * @return
      * @see loadFromString(String)
@@ -205,16 +284,19 @@ public class MidiSynthList
     }
 
     /**
-     * Get the MidiSynthList corresponding to the string produced by saveAsString().
+     * Get the MultiSynth corresponding to the string produced by saveAsString().
      * <p>
+     * <p>
+     * The loaded MultiSynth will be marked as "loaded" in the MultiSynthManager.
      *
      * @param s
      * @return
-     * @throws java.io.IOException If the MidiSynthList could not be retrieved from the string
+     * @throws java.io.IOException If the MultiSynth could not be retrieved from the string
      * @see saveAsString()
+     * @see MultiSynthManager#addLoadedMultiSynth(org.jjazz.outputsynth.api.MultiSynth)
      *
      */
-    static public MidiSynthList loadFromString(String s) throws IOException
+    static public MultiSynth loadFromString(String s) throws IOException
     {
         Preconditions.checkNotNull(s);
         s = s.trim();
@@ -226,7 +308,7 @@ public class MidiSynthList
                 throw new IOException("Invalid string=" + s);
             }
             File f = new File(s.substring(5));
-            return new MidiSynthList(f);
+            return new MultiSynth(f);
         }
 
 
@@ -255,7 +337,10 @@ public class MidiSynthList
             throw new IOException("No valid standard MidiSynths found in string=" + s);
         }
 
-        return new MidiSynthList(synths);
+        var res = new MultiSynth(synths);
+        MultiSynthManager.getInstance().addLoadedMultiSynth(res);
+
+        return res;
     }
 
     // ==============================================================================================

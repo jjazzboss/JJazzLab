@@ -45,6 +45,8 @@ import org.openide.util.lookup.ServiceProvider;
 
 /**
  * Management of the OutputSynth instances.
+ * <p>
+ * Keep an OutputSynth instance for each available MidiOut device.
  */
 public class OutputSynthManager
 {
@@ -62,7 +64,7 @@ public class OutputSynthManager
      * JJazzLab OUT MidiDevice is set.
      */
     public final static String PROP_DEFAULT_OUTPUTSYNTH = "Default-OutputSynth";
-
+    
     private static OutputSynthManager INSTANCE;
     private static JFileChooser CHOOSER_INSTANCE;
     private final HashMap<String, OutputSynth> mapDeviceNameSynth = new HashMap<>();
@@ -70,6 +72,13 @@ public class OutputSynthManager
     private final transient PropertyChangeSupport pcs = new java.beans.PropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(OutputSynthManager.class.getSimpleName());
 
+    /**
+     * Get the OutputSynthManager instance.
+     * <p>
+     * Upon creation the OutputSynthManager preloads all the OutputSynthManager
+     *
+     * @return
+     */
     public static OutputSynthManager getInstance()
     {
         synchronized (OutputSynthManager.class)
@@ -81,11 +90,29 @@ public class OutputSynthManager
         }
         return INSTANCE;
     }
-
+    
     private OutputSynthManager()
     {
-        JJazzMidiSystem.getInstance().addPropertyChangeListener(JJazzMidiSystem.PROP_MIDI_OUT,
+        var jms = JJazzMidiSystem.getInstance();
+        jms.addPropertyChangeListener(JJazzMidiSystem.PROP_MIDI_OUT,
                 e -> midiOutChanged((MidiDevice) e.getOldValue(), (MidiDevice) e.getNewValue()));
+        
+        refresh();
+    }
+
+    /**
+     * Scan all the OUT MidiDevices and make sure each MidiDevice is associated to an OutputSynth.
+     * <p>
+     * Should be called if the list of available OUT MidiDevices has changed.
+     */
+    public final void refresh()
+    {
+        LOGGER.fine("refresh() -- ");
+        for (var mdOut : JJazzMidiSystem.getInstance().getOutDeviceList())
+        {
+            var outSynth = getOutputSynth(mdOut.getDeviceInfo().getName());
+            LOGGER.fine("refresh() mdOut=" + mdOut.getDeviceInfo().getName() + " outSynth" + outSynth);
+        }
     }
 
     /**
@@ -95,7 +122,7 @@ public class OutputSynthManager
      */
     public OutputSynth getNewGMOuputSynth()
     {
-        return new OutputSynth(new MidiSynthList());
+        return new OutputSynth(new MultiSynth());
     }
 
     /**
@@ -144,7 +171,7 @@ public class OutputSynthManager
                 LOGGER.warning("getOutputSynth() mdOutName=" + mdOutName + " Can't restore OutputSynth from String s=" + s + ". ex=" + ex.getMessage());
             }
         }
-
+        
         if (outSynth == null)
         {
             // Create a default OutputSynth
@@ -153,7 +180,7 @@ public class OutputSynthManager
 
         // Associate the created OutputSynth to mdOut
         setOutputSynth(mdOutName, outSynth);
-
+        
         return outSynth;
     }
 
@@ -168,35 +195,35 @@ public class OutputSynthManager
         Preconditions.checkNotNull(mdOutName);
         Preconditions.checkArgument(!mdOutName.isBlank());
         Preconditions.checkNotNull(outSynth);
-
+        
         var oldSynth = mapDeviceNameSynth.get(mdOutName);
         mapDeviceNameSynth.put(mdOutName, outSynth);
         prefs.get(mdOutName, outSynth.saveAsString());
-
+        
         pcs.firePropertyChange(PROP_MDOUT_OUTPUTSYNTH, mdOutName, outSynth);
         var mdOut = JJazzMidiSystem.getInstance().getDefaultOutDevice();
         if (mdOut != null && mdOutName.equals(mdOut.getDeviceInfo().getName()))
         {
             pcs.firePropertyChange(PROP_DEFAULT_OUTPUTSYNTH, oldSynth, outSynth);
         }
-
+        
     }
-
+    
     public void addPropertyChangeListener(PropertyChangeListener l)
     {
         pcs.addPropertyChangeListener(l);
     }
-
+    
     public void removePropertyChangeListener(PropertyChangeListener l)
     {
         pcs.removePropertyChangeListener(l);
     }
-
+    
     public void addPropertyChangeListener(String propName, PropertyChangeListener l)
     {
         pcs.addPropertyChangeListener(propName, l);
     }
-
+    
     public void removePropertyChangeListener(String propName, PropertyChangeListener l)
     {
         pcs.removePropertyChangeListener(propName, l);
@@ -223,59 +250,60 @@ public class OutputSynthManager
     @ServiceProvider(service = UpgradeTask.class)
     static public class RestoreSettingsTask implements UpgradeTask
     {
-
+        
         @Override
         public void upgrade(String oldVersion)
         {
-
+            
             if (oldVersion == null)
             {
                 return;
             }
-
+            
             var um = UpgradeManager.getInstance();
             var fdm = FileDirectoryManager.getInstance();
-
-            // Get the old output synth config file name
-            Properties oldProp = um.getPropertiesFromPrefs(prefs);
-            if (oldProp == null)
-            {
-                LOGGER.warning("upgrade() no old properties found for prefs=" + prefs.absolutePath());   //NOI18N
-                return;
-            }
-            String oldCfgFileName = oldProp.getProperty(PROP_DEFAULT_OUTPUTSYNTH);
-
-            if (oldCfgFileName == null)
-            {
-                LOGGER.warning("upgrade() oldVersion=" + oldVersion + ", undefined Output Synth config file property" + PROP_DEFAULT_OUTPUTSYNTH);   //NOI18N
-                return;
-            }
-
-            // Try to get the old file
-            File prevAppConfigDir = fdm.getOldAppConfigDirectory(oldVersion, OUTPUT_SYNTH_FILES_DIR);
-            if (prevAppConfigDir == null)
-            {
-                LOGGER.warning("upgrade() can't find prevAppConfigDir=" + prevAppConfigDir);   //NOI18N
-                return;
-            }
-
-            File oldCfgFile = new File(prevAppConfigDir, oldCfgFileName);
-            if (!oldCfgFile.exists())
-            {
-                LOGGER.warning("upgrade() can't find oldCfgFile=" + oldCfgFile.getAbsolutePath());   //NOI18N
-                return;
-            }
-
-            File appConfigDir = fdm.getAppConfigDirectory(OUTPUT_SYNTH_FILES_DIR);
-            File newCfgFile = new File(appConfigDir, oldCfgFileName);
-            try
-            {
-                Files.copy(oldCfgFile.toPath(), newCfgFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                prefs.put(PROP_DEFAULT_OUTPUTSYNTH, oldCfgFileName);
-            } catch (IOException ex)
-            {
-                LOGGER.warning("upgrade() error copying output synth config file=" + oldCfgFile.getAbsolutePath() + ". ex=" + ex.getMessage());   //NOI18N
-            }
+            
+            LOGGER.severe("upgrade() COMMENTED OUT! TO RESTORE");
+//            // Get the old output synth config file name
+//            Properties oldProp = um.getPropertiesFromPrefs(prefs);
+//            if (oldProp == null)
+//            {
+//                LOGGER.warning("upgrade() no old properties found for prefs=" + prefs.absolutePath());   //NOI18N
+//                return;
+//            }
+//            String oldCfgFileName = oldProp.getProperty(PROP_DEFAULT_OUTPUTSYNTH);
+//
+//            if (oldCfgFileName == null)
+//            {
+//                LOGGER.warning("upgrade() oldVersion=" + oldVersion + ", undefined Output Synth config file property" + PROP_DEFAULT_OUTPUTSYNTH);   //NOI18N
+//                return;
+//            }
+//
+//            // Try to get the old file
+//            File prevAppConfigDir = fdm.getOldAppConfigDirectory(oldVersion, OUTPUT_SYNTH_FILES_DIR);
+//            if (prevAppConfigDir == null)
+//            {
+//                LOGGER.warning("upgrade() can't find prevAppConfigDir=" + prevAppConfigDir);   //NOI18N
+//                return;
+//            }
+//
+//            File oldCfgFile = new File(prevAppConfigDir, oldCfgFileName);
+//            if (!oldCfgFile.exists())
+//            {
+//                LOGGER.warning("upgrade() can't find oldCfgFile=" + oldCfgFile.getAbsolutePath());   //NOI18N
+//                return;
+//            }
+//
+//            File appConfigDir = fdm.getAppConfigDirectory(OUTPUT_SYNTH_FILES_DIR);
+//            File newCfgFile = new File(appConfigDir, oldCfgFileName);
+//            try
+//            {
+//                Files.copy(oldCfgFile.toPath(), newCfgFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+//                prefs.put(PROP_DEFAULT_OUTPUTSYNTH, oldCfgFileName);
+//            } catch (IOException ex)
+//            {
+//                LOGGER.warning("upgrade() error copying output synth config file=" + oldCfgFile.getAbsolutePath() + ". ex=" + ex.getMessage());   //NOI18N
+//            }
         }
     }
 }

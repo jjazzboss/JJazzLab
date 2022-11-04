@@ -41,7 +41,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.midi.api.Instrument;
 import org.jjazz.midi.api.InstrumentMix;
 import org.jjazz.midi.api.MidiUtilities;
-import org.jjazz.midi.api.synths.StdSynth;
+import org.jjazz.midi.api.synths.GMSynth;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.MidiMixManager;
 import org.jjazz.musiccontrol.api.MusicController;
@@ -233,7 +233,7 @@ public class RhythmPreviewProviderImpl implements RhythmSelectionDialog.RhythmPr
     {
 
         // Fix instruments Vs output synth
-        OutputSynth outputSynth = OutputSynthManager.getInstance().getOutputSynth();
+        OutputSynth outputSynth = OutputSynthManager.getInstance().getDefaultOutputSynth();
         HashMap<Integer, Instrument> mapNewInstruments = outputSynth.getNeedFixInstruments(mm);
 
         LOGGER.fine("fixMidiMix()    mapNewInstruments=" + mapNewInstruments);   //NOI18N
@@ -243,7 +243,7 @@ public class RhythmPreviewProviderImpl implements RhythmSelectionDialog.RhythmPr
             Instrument newIns = mapNewInstruments.get(channel);
             InstrumentMix insMix = mm.getInstrumentMixFromChannel(channel);
             insMix.setInstrument(newIns);
-            if (newIns != StdSynth.getInstance().getVoidInstrument())
+            if (newIns != GMSynth.getInstance().getVoidInstrument())
             {
                 // If we set a (non void) instrument it should not be rerouted anymore if it was the case before
                 mm.setDrumsReroutedChannel(false, channel);

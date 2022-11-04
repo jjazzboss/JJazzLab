@@ -119,7 +119,7 @@ public class MidiWizardPanel_SfMac_1 implements WizardDescriptor.Panel<WizardDes
     public void storeSettings(WizardDescriptor wiz)
     {
         wiz.putProperty(MidiWizardAction.PROP_JJAZZLAB_SOUNDFONT_FILE, getComponent().getSoundFile());
-        MidiDevice md = JJazzMidiSystem.getInstance().getDefaultJavaSynth();
+        MidiDevice md = JJazzMidiSystem.getInstance().getJavaInternalSynth();
         if (md == null)
         {
             String msg = ResUtil.getString(getClass(), "MidiWizardPanel_SfMac_1.NoJavaSynth");

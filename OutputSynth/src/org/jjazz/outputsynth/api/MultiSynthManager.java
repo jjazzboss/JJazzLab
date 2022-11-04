@@ -21,40 +21,60 @@
  * Contributor(s): 
  *
  */
-package org.jjazz.midisynthmanager;
+package org.jjazz.outputsynth.api;
 
+import com.google.common.base.Preconditions;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.midi.api.MidiSynth;
 import org.jjazz.midi.api.synths.GM2Synth;
 import org.jjazz.midi.api.synths.GMSynth;
-import org.jjazz.midi.spi.MidiSynthFileReader;
 import org.jjazz.midi.api.synths.GSSynth;
 import org.jjazz.midi.api.synths.XGSynth;
+import org.jjazz.midi.spi.MidiSynthFileReader;
 import org.jjazz.startup.spi.StartupTask;
 import org.jjazz.upgrade.api.UpgradeManager;
 import org.jjazz.util.api.ResUtil;
 import org.jjazz.util.api.Utilities;
 import org.netbeans.api.annotations.common.StaticResource;
-import org.openide.*;
+import org.openide.DialogDisplayer;
+import org.openide.NotifyDescriptor;
 import org.openide.util.Lookup;
 import org.openide.util.lookup.ServiceProvider;
 import org.openide.windows.WindowManager;
-import org.jjazz.midisynthmanager.api.MidiSynthListManager;
 
-public class MidiSynthManagerImpl implements MidiSynthListManager
+
+/**
+ * A central place to manage MultiSynths.
+ */
+public class MultiSynthManager
 {
+
+    /**
+     * Property change event fired when a MultiSynth is added or removed from the loaded MultiSynth.
+     * <p>
+     * If added: oldValue=null, newValue=added MultiSynth<br>
+     * If removed: oldValue=removed MultiSynth, newValue=null<br>
+     */
+    public static String PROP_LOADED_MULTISYNTH_LIST = "PropLoadedSynthList";
+
+    // The builtin synth names
+    public static String JJAZZLAB_SOUNDFONT_GM2_SYNTH_NAME = "JJazzLab SoundFont (GM2)";
+    public static String JJAZZLAB_SOUNDFONT_GS_SYNTH_NAME = "JJazzLab SoundFont (GS)";
+    public static String JJAZZLAB_SOUNDFONT_XG_SYNTH_NAME = "JJazzLab SoundFont (XG)";
+    public static String YAMAHA_REF_SYNTH_NAME = "Tyros5 Synth";
+
 
     @StaticResource(relative = true)
     private final static String JJAZZLAB_SOUNDFONT_GM2_SYNTH_PATH = "resources/JJazzLabSoundFontSynth_GM2.ins";
@@ -65,149 +85,131 @@ public class MidiSynthManagerImpl implements MidiSynthListManager
     @StaticResource(relative = true)
     private final static String YAMAHA_REF_SYNTH_PATH = "resources/YamahaRefSynth.ins";
     private static final String MIDISYNTH_FILES_DEST_DIRNAME = "MidiSynthFiles";
-    private static MidiSynthManagerImpl INSTANCE;
+    private static MultiSynthManager INSTANCE;
 
     private File lastSynthDir;
-    private final List<MidiSynth> builtinSynths = new ArrayList<>();
-    private final List<WeakReference<MidiSynth>> midiSynthRefs = new ArrayList<>();
-    private static final Logger LOGGER = Logger.getLogger(MidiSynthManagerImpl.class.getSimpleName());
+    private final List<MultiSynth> builtinMultiSynths = new ArrayList<>();
+    private final List<MultiSynth> loadedMultiSynths = new ArrayList<>();
+    private static final Logger LOGGER = Logger.getLogger(MultiSynthManager.class.getSimpleName());
+    private transient final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
-    public static MidiSynthManagerImpl getInstance()
+    public static MultiSynthManager getInstance()
     {
-        synchronized (UpgradeManager.class)
+        synchronized (MultiSynthManager.class)
         {
             if (INSTANCE == null)
             {
-                INSTANCE = new MidiSynthManagerImpl();
+                INSTANCE = new MultiSynthManager();
             }
         }
         return INSTANCE;
     }
 
-    private MidiSynthManagerImpl()
+    private MultiSynthManager()
     {
-        // LOGGER.severe("MidiSynthManagerImpl() --");
-        // Read the builtin synths        
-        builtinSynths.add(GMSynth.getInstance());
-        builtinSynths.add(GM2Synth.getInstance());
-        builtinSynths.add(XGSynth.getInstance());
-        builtinSynths.add(GSSynth.getInstance());
-        builtinSynths.add(readOneResourceSynth(JJAZZLAB_SOUNDFONT_GS_SYNTH_PATH));
-        builtinSynths.add(readOneResourceSynth(JJAZZLAB_SOUNDFONT_GM2_SYNTH_PATH));
-        builtinSynths.add(readOneResourceSynth(JJAZZLAB_SOUNDFONT_XG_SYNTH_PATH));
-        builtinSynths.add(readOneResourceSynth(YAMAHA_REF_SYNTH_PATH));
+        // LOGGER.severe("MultiSynthManager() --");
+        builtinMultiSynths.add(new MultiSynth(GMSynth.getInstance()));
+        builtinMultiSynths.add(new MultiSynth(GM2Synth.getInstance()));
+        builtinMultiSynths.add(new MultiSynth(XGSynth.getInstance()));
+        builtinMultiSynths.add(new MultiSynth(GSSynth.getInstance()));
+        builtinMultiSynths.add(new MultiSynth(readOneResourceSynth(JJAZZLAB_SOUNDFONT_GS_SYNTH_PATH)));
+        builtinMultiSynths.add(new MultiSynth(readOneResourceSynth(JJAZZLAB_SOUNDFONT_GM2_SYNTH_PATH)));
+        builtinMultiSynths.add(new MultiSynth(readOneResourceSynth(JJAZZLAB_SOUNDFONT_XG_SYNTH_PATH)));
+        builtinMultiSynths.add(new MultiSynth(readOneResourceSynth(YAMAHA_REF_SYNTH_PATH)));
     }
 
     /**
-     * The list of JJazzLab builtin synths.
+     * Add the specified MultiSynth to the "loaded MultiSynths".
      * <p>
-     * JJazzLabSoundFont, YamahaRef, etc.
-     *
+     * @param multiSynth
+     */
+
+    public void addLoadedMultiSynth(MultiSynth multiSynth)
+    {
+        if (!loadedMultiSynths.contains(multiSynth))
+        {
+            loadedMultiSynths.add(multiSynth);
+            pcs.firePropertyChange(PROP_LOADED_MULTISYNTH_LIST, null, multiSynth);
+        }
+    }
+
+    /**
+     * Remove the specified MultiSynth from the "loaded MultiSynths".
+     * <p>
+     * @param multiSynth
      * @return
      */
-    @Override
-    public List<MidiSynth> getBuiltinSynths()
+    public boolean removeLoadedMultiSynth(MultiSynth multiSynth)
     {
-        return new ArrayList<>(builtinSynths);
-    }
-
-    /**
-     * Search the standard synths, the builtin synths and then through our active MidiSynth references to find a synth with
-     * synthName.
-     *
-     * @param synthName
-     * @return Can be null.
-     */
-    @Override
-    public MidiSynth getMidiSynth(String synthName)
-    {
-        if (synthName == null)
+        boolean res = loadedMultiSynths.remove(multiSynth);
+        if (res)
         {
-            throw new IllegalArgumentException("synthName=" + synthName);   //NOI18N
-        }
-        if (StdSynth.getInstance().getName().equals(synthName))
-        {
-            return StdSynth.getInstance();
-        }
-        if (GSSynth.getInstance().getName().equals(synthName))
-        {
-            return GSSynth.getInstance();
-        }
-        for (MidiSynth synth : getBuiltinSynths())
-        {
-            if (synth.getName().equals(synthName))
-            {
-                return synth;
-            }
-        }
-        for (WeakReference<MidiSynth> ref : midiSynthRefs)
-        {
-            MidiSynth synth = ref.get();
-            if (synth != null)
-            {
-                if (synth.getName().equals(synthName))
-                {
-                    return synth;
-                }
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Read the specified file to load one or more MidiSynths.
-     * <p>
-     * Errors are notified to user. A WeakReference of the loaded MidiSynths is kept.
-     *
-     * @param synthFile
-     * @return A list of loaded MidiSynths. Can be empty. MidiSynths have their getFile() property set to synthFile.
-     */
-    @Override
-    public List<MidiSynth> loadSynths(File synthFile)
-    {
-        if (synthFile == null)
-        {
-            throw new NullPointerException("synthFile");   //NOI18N
-        }
-        ArrayList<MidiSynth> res = new ArrayList<>();
-
-        // Process file
-        String ext = org.jjazz.util.api.Utilities.getExtension(synthFile.getName());
-        MidiSynthFileReader reader = MidiSynthFileReader.getReader(ext.toLowerCase());
-        if (reader == null)
-        {
-            // Extension not managed by any MidiSynthFileReader
-            String msg = ResUtil.getString(getClass(), "FileExtensionNotSupported", synthFile.getAbsolutePath());
-            LOGGER.log(Level.WARNING, msg);   //NOI18N
-            NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
-            DialogDisplayer.getDefault().notify(nd);
-        } else
-        {
-            // Ask provider to read the file and add the non-empty synths
-            List<MidiSynth> synths = null;
-            try (FileInputStream fis = new FileInputStream(synthFile))
-            {
-                synths = reader.readSynthsFromStream(fis, synthFile); // Can raise exception
-                for (MidiSynth synth : synths)
-                {
-                    if (synth.getNbInstruments() > 0)
-                    {
-                        res.add(synth);
-                        midiSynthRefs.add(new WeakReference<>(synth));
-                    }
-                }
-            } catch (IOException ex)
-            {
-
-                String msg = ResUtil.getString(getClass(), "ProblemReadingFile") + ": " + ex.getLocalizedMessage();
-                LOGGER.log(Level.WARNING, msg);   //NOI18N
-                NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
-                DialogDisplayer.getDefault().notify(nd);
-            }
+            pcs.firePropertyChange(PROP_LOADED_MULTISYNTH_LIST, multiSynth, null);
         }
         return res;
     }
 
+    /**
+     * The list of builtin and/or loaded MultiSynths.
+     * <p>
+     * Builtin MultiSynths are GM, GM2, etc.
+     *
+     * @param builtin If true include the builtin MultiSynths
+     * @param loaded  If true include the loaded MultiSynths (after the builtin ones).
+     * @return Can be empty.
+     */
+    public List<MultiSynth> getMultiSynths(boolean builtin, boolean loaded)
+    {
+        List<MultiSynth> res = new ArrayList<>();
+        if (builtin)
+        {
+            res.addAll(builtinMultiSynths);
+        }
+        if (loaded)
+        {
+            res.addAll(loadedMultiSynths);
+        }
+        return res;
+    }
+
+    /**
+     * Search a MultiSynth with the specified name in the builtin and loaded MultiSynths.
+     *
+     * @param name
+     * @return Can be null.
+     */
+    public MultiSynth getMultiSynth(String name)
+    {
+        return Stream.of(builtinMultiSynths, loadedMultiSynths)
+                .flatMap(l -> l.stream())
+                .filter(msl -> msl.getName().equals(name))
+                .findAny()
+                .orElse(null);
+    }
+
+    /**
+     * Search a MidiSynth with the specified name in the builtin and loaded MultiSynths.
+     *
+     * @param synthName
+     * @return Can be null.
+     */
+    public MidiSynth getMidiSynth(String synthName)
+    {
+        return Stream.of(builtinMultiSynths, loadedMultiSynths)
+                .flatMap(l -> l.stream())
+                .map(msl -> msl.getMidiSynth(synthName))
+                .findAny()
+                .orElse(null);
+    }
+
+
+    /**
+     * Show a dialog to select a MultiSynth definition file.
+     * <p>
+     * Use the file extensions managed by the MidiSynthFileReaders found in the global lookup.
+     *
+     * @return The selected file. Null if user cancelled or no selection.
+     */
     /**
      * Show a dialog to select a MidiSynth definition file.
      * <p>
@@ -215,7 +217,6 @@ public class MidiSynthManagerImpl implements MidiSynthListManager
      *
      * @return The selected file. Null if user cancelled or no selection.
      */
-    @Override
     public File showSelectSynthFileDialog()
     {
         // Collect all file extensions managed by the MidiSynthFileReaders
@@ -244,7 +245,7 @@ public class MidiSynthManagerImpl implements MidiSynthListManager
         chooser.setAcceptAllFileFilterUsed(false);
         chooser.setMultiSelectionEnabled(false);
         chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        chooser.setDialogTitle(ResUtil.getString(getClass(), "DialogTitle"));
+        chooser.setDialogTitle(ResUtil.getString(getClass(), "MultiSynthManagerImpl.DialogTitle"));
         chooser.setCurrentDirectory(getMidiSynthFilesDir());
 
         // Show dialog
@@ -259,54 +260,24 @@ public class MidiSynthManagerImpl implements MidiSynthListManager
         return synthFile;
     }
 
-    // ===============================================================================
-    // Internal classes
-    // ===============================================================================
-    @ServiceProvider(service = MidiSynth.Finder.class)
-    static public class SynthFinder implements MidiSynth.Finder
+    /**
+     * Add PropertyChangeListener.
+     *
+     * @param listener
+     */
+    public void addPropertyChangeListener(PropertyChangeListener listener)
     {
+        pcs.addPropertyChangeListener(listener);
+    }
 
-        /**
-         * Search the MidiSynthManager instance.
-         *
-         * @param synthName
-         * @param synthFile If null, search the builtin synths. If no parent directory, search the MidiSynthManager default
-         * directory for output synth config files.
-         * @return
-         */
-        @Override
-        public MidiSynth getMidiSynth(String synthName, File synthFile)
-        {
-            if (synthName == null)
-            {
-                throw new IllegalArgumentException("synthName=" + synthName + " synthFile=" + synthFile);   //NOI18N
-            }
-            var msm = MidiSynthManagerImpl.getInstance();
-
-            // First search via the name in registered instances
-            MidiSynth res = msm.getMidiSynth(synthName);
-
-            // Try to read the file if not null
-            if (res == null && synthFile != null)
-            {
-                if (synthFile.getParentFile() == null)
-                {
-                    // If no parent file search the default dir
-                    File dir = FileDirectoryManager.getInstance().getAppConfigDirectory(MIDISYNTH_FILES_DEST_DIRNAME);
-                    synthFile = new File(dir, synthFile.getName());
-                }
-                List<MidiSynth> synths = msm.loadSynths(synthFile);
-                for (MidiSynth synth : synths)
-                {
-                    if (synth.getName().equals(synthName))
-                    {
-                        res = synth;
-                        break;
-                    }
-                }
-            }
-            return res;
-        }
+    /**
+     * Remove PropertyChangeListener.
+     *
+     * @param listener
+     */
+    public void removePropertyChangeListener(PropertyChangeListener listener)
+    {
+        pcs.removePropertyChangeListener(listener);
     }
 
     // ===============================================================================
@@ -351,9 +322,33 @@ public class MidiSynthManagerImpl implements MidiSynthListManager
         return rDir;
     }
 
+    // ===============================================================================
+    // Inner classes
+    // ===============================================================================
+
+    @ServiceProvider(service = MidiSynth.Finder.class)
+    static public class SynthFinder implements MidiSynth.Finder
+    {
+
+        /**
+         * Search the MultiSynthManager instance (synthFile parameter is ignored).
+         *
+         * @param synthName
+         * @param synthFile
+         * @return
+         */
+        @Override
+        public MidiSynth getMidiSynth(String synthName, File synthFile)
+        {
+            Preconditions.checkNotNull(synthName);
+            MidiSynth res = MultiSynthManager.getInstance().getMidiSynth(synthName);
+            return res;
+        }
+    }
     // =====================================================================================
     // Startup Task
     // =====================================================================================
+
     /**
      * Copy the default Midi files in the app config directory.
      * <p>
@@ -429,14 +424,15 @@ public class MidiSynthManagerImpl implements MidiSynthListManager
                 LOGGER.warning("CopyMidiSynthsTask.copyFilesOrNot() Can't check if dir. is empty. ex=" + ex.getMessage());   //NOI18N
                 return;
             }
+
             if (!isEmpty)
             {
-                String msg = ResUtil.getString(getClass(), "MidiSynthFilesOverwriteConfirmation", dir.getAbsolutePath());
+                String msg = ResUtil.getString(getClass(), "MultiSynthManagerImpl.MidiSynthFilesOverwriteConfirmation", dir.getAbsolutePath());
                 String[] options = new String[]
                 {
-                    "OK", ResUtil.getString(getClass(), "Skip")
+                    "OK", ResUtil.getString(getClass(), "MultiSynthManagerImpl.Skip")
                 };
-                NotifyDescriptor d = new NotifyDescriptor(msg, ResUtil.getString(getClass(), "FirstTimeInit"), 0, NotifyDescriptor.QUESTION_MESSAGE, options, "OK");
+                NotifyDescriptor d = new NotifyDescriptor(msg, ResUtil.getString(getClass(), "MultiSynthManagerImpl.FirstTimeInit"), 0, NotifyDescriptor.QUESTION_MESSAGE, options, "OK");
                 Object result = DialogDisplayer.getDefault().notify(d);
 
                 if (!result.equals("OK"))
@@ -452,5 +448,4 @@ public class MidiSynthManagerImpl implements MidiSynthListManager
         }
 
     }
-
 }

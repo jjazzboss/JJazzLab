@@ -33,9 +33,9 @@ import javax.swing.Icon;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.TransferHandler;
-import org.jjazz.midi.api.synths.StdSynth;
 import org.jjazz.midi.api.Instrument;
 import org.jjazz.midi.api.MidiConst;
+import org.jjazz.midi.api.synths.GMSynth;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.PlaybackListener;
 import org.jjazz.musiccontrol.api.PlaybackListenerAdapter;
@@ -854,7 +854,7 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         @Override
         public Instrument getInstrument()
         {
-            return StdSynth.getInstance().getGM1Bank().getInstruments().get(0);
+            return GMSynth.getInstance().getGM1Bank().getInstruments().get(0);
         }
 
         @Override

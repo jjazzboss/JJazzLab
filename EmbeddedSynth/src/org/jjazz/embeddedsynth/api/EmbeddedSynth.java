@@ -24,7 +24,6 @@ package org.jjazz.embeddedsynth.api;
 
 import java.io.File;
 import javax.sound.midi.MidiDevice;
-import org.jjazz.embeddedsynth.spi.Mp3EncoderProvider;
 import org.jjazz.outputsynth.api.OutputSynth;
 
 /**

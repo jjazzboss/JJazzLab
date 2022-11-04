@@ -114,7 +114,7 @@ public final class JJazzMidiSystem
     /**
      * The default system synth
      */
-    private Synthesizer defaultSynth;
+    private Synthesizer javaInternalSynth;
     private EnumSet<MidiFilter.Config> saveFilterConfig;
 
     /**
@@ -197,15 +197,15 @@ public final class JJazzMidiSystem
         }
 
 
-        // Get the default synth         
+        // Get the Java internal synth         
         try
         {
-            defaultSynth = MidiSystem.getSynthesizer();
-            defaultSynth.open();
+            javaInternalSynth = MidiSystem.getSynthesizer();
+            javaInternalSynth.open();
         } catch (MidiUnavailableException ex)
         {
-            LOGGER.log(Level.WARNING, "JJazzMidiSystem() problem getting Java default synthesizer: {0}", ex.getMessage());   //NOI18N
-            defaultSynth = null;
+            LOGGER.log(Level.WARNING, "JJazzMidiSystem() problem getting Java internal synthesizer: {0}", ex.getMessage());   //NOI18N
+            javaInternalSynth = null;
         }
 
 
@@ -220,7 +220,7 @@ public final class JJazzMidiSystem
             if (mdName.equals(NOT_SET) || mdName.equals(JAVA_INTERNAL_SYNTH_NAME))
             {
                 // By default use the default Java synth
-                md = defaultSynth;
+                md = javaInternalSynth;
             } else
             {
                 md = getMidiDevice(outDevices, mdName);
@@ -382,13 +382,13 @@ public final class JJazzMidiSystem
     }
 
     /**
-     * The default Java synth.
+     * The internal Java synth.
      *
      * @return Can be null if no java synth.
      */
-    public Synthesizer getDefaultJavaSynth()
+    public Synthesizer getJavaInternalSynth()
     {
-        return defaultSynth;
+        return javaInternalSynth;
     }
 
     /**
@@ -408,13 +408,13 @@ public final class JJazzMidiSystem
     }
 
     /**
-     * This unloads all previously loaded instruments in the Default Java Synth.
+     * This unloads all previously loaded instruments in the internal Java Synth.
      * <p>
      * Note that the builtin GM instruments remain.
      */
-    public void resetSynth()
+    public void resetJavaInternalSynth()
     {
-        Synthesizer synth = getDefaultJavaSynth();
+        Synthesizer synth = getJavaInternalSynth();
         if (lastLoadedSoundbank == null || synth == null)
         {
             return;
@@ -520,7 +520,7 @@ public final class JJazzMidiSystem
      *
      * @param f
      * @param silentRun If false wait until completion of the task and show progress bar. If true nothing is shown and method
-     * immediatly returns true.
+     *                  immediatly returns true.
      * @return true If success. If silentRun=true always return true.
      */
     public boolean loadSoundbankFileOnSynth(final File f, boolean silentRun)
@@ -545,7 +545,7 @@ public final class JJazzMidiSystem
             try
             {
                 newSb = MidiSystem.getSoundbank(f);      // throw InvalidMidiDataException + IOException
-                synth = getDefaultJavaSynth();
+                synth = getJavaInternalSynth();
                 if (synth == null)
                 {
                     return;
@@ -658,7 +658,7 @@ public final class JJazzMidiSystem
         String s = NOT_SET;
         if (defaultOutDevice != null)
         {
-            if (defaultOutDevice == getDefaultJavaSynth())
+            if (defaultOutDevice == getJavaInternalSynth())
             {
                 s = JAVA_INTERNAL_SYNTH_NAME;
             } else
@@ -696,7 +696,7 @@ public final class JJazzMidiSystem
         transmitterJJazzOut2PhysicalOut.close();            // Close the connection between jjazzMidiOut and defaultOutDevice
 
         // We don't want to close the unique internal synth, otherwise we discard the loaded soundbank
-        if (defaultOutDevice != getDefaultJavaSynth())
+        if (defaultOutDevice != getJavaInternalSynth())
         {
             // Close everything except the internal Java Synth
             defaultOutDevice.close();
@@ -1007,7 +1007,7 @@ public final class JJazzMidiSystem
             throw new NullPointerException("md");   //NOI18N
         }
         String name = md.getDeviceInfo().getName();
-        if (md == getDefaultJavaSynth())
+        if (md == getJavaInternalSynth())
         {
             name = JAVA_INTERNAL_SYNTH_NAME;
         }

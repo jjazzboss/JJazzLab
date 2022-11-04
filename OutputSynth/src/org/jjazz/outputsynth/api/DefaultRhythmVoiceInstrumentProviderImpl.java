@@ -48,11 +48,11 @@ public class DefaultRhythmVoiceInstrumentProviderImpl implements RhythmVoiceInst
         Instrument ins;
         if (!(rv instanceof UserRhythmVoice))
         {
-            ins = OutputSynthManager.getInstance().getOutputSynth().findInstrument(rv);
+            ins = OutputSynthManager.getInstance().getDefaultOutputSynth().findInstrument(rv);
 
         } else
         {
-            ins = outSynth.getUserInstrument();
+            ins = OutputSynthManager.getInstance().getDefaultOutputSynth().getUserSettings().getUserInstrument();
         }
         return ins;
     }

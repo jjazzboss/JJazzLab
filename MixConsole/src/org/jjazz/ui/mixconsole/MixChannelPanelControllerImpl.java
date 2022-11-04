@@ -29,8 +29,8 @@ import org.jjazz.midi.api.Instrument;
 import org.jjazz.midi.api.InstrumentBank;
 import org.jjazz.midi.api.InstrumentMix;
 import org.jjazz.midi.api.MidiConst;
+import org.jjazz.midi.api.keymap.StandardKeyMapConverter;
 import org.jjazz.midi.api.synths.Family;
-import org.jjazz.midiconverters.api.ConverterManager;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.UserRhythmVoice;
@@ -52,7 +52,7 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
     private static final Logger LOGGER = Logger.getLogger(MixChannelPanelControllerImpl.class.getSimpleName());
 
     /**
-     * @param mMix The MidiMix containing all data of our model.
+     * @param mMix    The MidiMix containing all data of our model.
      * @param channel Used to retrieve the InstrumentMix from mMix.
      */
     public MixChannelPanelControllerImpl(MidiMix mMix, int channel)
@@ -149,7 +149,7 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
         InstrumentMix insMix = midiMix.getInstrumentMixFromChannel(channelId);
         RhythmVoice rv = midiMix.getRhythmVoice(channelId);
         InstrumentChooserDialog dlg = InstrumentChooserDialog.getDefault();
-        dlg.preset(OutputSynthManager.getInstance().getOutputSynth(), rv, insMix.getInstrument(), insMix.getSettings().getTransposition(), channelId);
+        dlg.preset(OutputSynthManager.getInstance().getDefaultOutputSynth(), rv, insMix.getInstrument(), insMix.getSettings().getTransposition(), channelId);
         dlg.setVisible(true);
         Instrument ins = dlg.getSelectedInstrument();
         if (ins != null)
@@ -162,7 +162,7 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
                 if (destKeyMap.isContaining(srcKeyMap))
                 {
                     // No problem, do nothing
-                } else if (ConverterManager.getInstance().getKeyMapConverter(srcKeyMap, destKeyMap) == null)
+                } else if (!StandardKeyMapConverter.accept(srcKeyMap, destKeyMap))
                 {
                     // No conversion possible
 
@@ -204,7 +204,7 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
         Instrument ins = bank.getPreviousInstrument(insMix.getInstrument());
         insMix.setInstrument(ins);
     }
-    
+
     private String buildTitle()
     {
         StringBuilder title = new StringBuilder(ResUtil.getString(getClass(), "MixChannelPanelControllerImpl.DialogTitle", channelId + 1));

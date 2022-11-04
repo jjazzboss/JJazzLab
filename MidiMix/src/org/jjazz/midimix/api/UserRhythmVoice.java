@@ -26,9 +26,9 @@ import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.util.List;
 import org.jjazz.harmony.api.TimeSignature;
-import org.jjazz.midi.api.synths.StdSynth;
 import org.jjazz.midi.api.InstrumentSettings;
 import org.jjazz.midi.api.synths.Family;
+import org.jjazz.midi.api.synths.GMSynth;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmFeatures;
@@ -52,7 +52,7 @@ public class UserRhythmVoice extends RhythmVoice
      */
     public UserRhythmVoice(String name)
     {
-        super(CONTAINER, Type.PHRASE1, name, StdSynth.getInstance().getGM1Bank().getDefaultInstrument(Family.Piano), new InstrumentSettings(), DEFAULT_USER_PHRASE_CHANNEL);
+        super(CONTAINER, Type.PHRASE1, name, GMSynth.getInstance().getGM1Bank().getDefaultInstrument(Family.Piano), new InstrumentSettings(), DEFAULT_USER_PHRASE_CHANNEL);
     }
 
     @Override

@@ -41,7 +41,6 @@ import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongCreationException;
 import org.jjazz.util.api.ResUtil;
 import org.openide.awt.StatusDisplayer;
-import org.openide.util.Exceptions;
 
 /**
  * Global instance to obtain MidiMixes for songs and rhythms.
@@ -226,7 +225,7 @@ public class MidiMixManager implements PropertyChangeListener
             for (RhythmVoice rv : r.getRhythmVoices())
             {
 
-                RhythmVoiceInstrumentProvider p = RhythmVoiceInstrumentProvider.Util.getProvider();
+                RhythmVoiceInstrumentProvider p = RhythmVoiceInstrumentProvider.getProvider();
                 Instrument ins = p.findInstrument(rv);
                 assert ins != null : "rv=" + rv;   //NOI18N
                 int channel = rv.getPreferredChannel();

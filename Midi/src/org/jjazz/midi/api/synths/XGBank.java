@@ -617,9 +617,9 @@ public class XGBank extends InstrumentBank<Instrument>
      * @return
      */
     @Override
-    public List<Instrument> getDrumsInstrument(DrumKit kit, boolean tryHarder)
+    public List<Instrument> getDrumsInstruments(DrumKit kit, boolean tryHarder)
     {
-        List<Instrument> res = super.getDrumsInstrument(kit, tryHarder);
+        List<Instrument> res = super.getDrumsInstruments(kit, tryHarder);
         if (res.isEmpty() && tryHarder
                 && (kit.getKeyMap().equals(KeyMapGM.getInstance()) || kit.getKeyMap().equals(KeyMapGSGM2.getInstance())))
         {

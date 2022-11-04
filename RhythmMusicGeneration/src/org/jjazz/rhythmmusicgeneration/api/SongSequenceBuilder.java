@@ -351,9 +351,9 @@ public class SongSequenceBuilder
 
 
         // Add XX mode ON initialization message
-        OutputSynth os = OutputSynthManager.getInstance().getOutputSynth();
+        OutputSynth os = OutputSynthManager.getInstance().getDefaultOutputSynth();
         SysexMessage sxm = null;
-        switch (os.getSendModeOnUponPlay())
+        switch (os.getUserSettings().getSendModeOnUponPlay())
         {
             case GM:
                 sxm = MidiUtilities.getGmModeOnSysExMessage();

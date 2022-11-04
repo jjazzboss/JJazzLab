@@ -22,13 +22,10 @@
  */
 package org.jjazz.outputsynth.api;
 
-import java.io.File;
-import java.util.logging.Logger;
 import org.jjazz.midi.api.Instrument;
 import org.jjazz.midi.api.MidiAddress;
 import org.jjazz.midi.api.MidiSynth;
-import org.jjazz.midi.api.synths.StdSynth;
-import org.jjazz.midisynthmanager.api.MidiSynthListManager;
+
 
 /**
  * The builtin OutputSynth for the Yamaha Tyros/PSR reference synth.
@@ -37,8 +34,6 @@ public class OS_YamahaRef extends OutputSynth
 {
 
     private static OS_YamahaRef INSTANCE;
-    private final MidiSynth midiSynth;
-    private static final Logger LOGGER = Logger.getLogger(OS_YamahaRef.class.getSimpleName());
 
     public static OS_YamahaRef getInstance()
     {
@@ -54,22 +49,17 @@ public class OS_YamahaRef extends OutputSynth
 
     private OS_YamahaRef()
     {
-        midiSynth = MidiSynthListManager.getDefault().getMidiSynth(MidiSynthListManager.YAMAHA_REF_SYNTH_NAME);
-
-        // Adjust settings
-        addCustomSynth(midiSynth);
-        addCompatibleStdBank(StdSynth.getInstance().getGM2Bank());
-        addCompatibleStdBank(StdSynth.getInstance().getXGBank());
+        super(new MultiSynth(MultiSynthManager.getInstance().getMidiSynth(MultiSynthManager.YAMAHA_REF_SYNTH_NAME)));
     }
 
-    /**
+     /**
      * The YamahaRef synth.
      *
      * @return
      */
     public MidiSynth getYamahaRefSynth()
     {
-        return midiSynth;
+        return MultiSynthManager.getInstance().getMidiSynth(MultiSynthManager.YAMAHA_REF_SYNTH_NAME);
     }
 
     /**
@@ -80,17 +70,8 @@ public class OS_YamahaRef extends OutputSynth
     public Instrument getDefaultDrumsInstrument()
     {
         // This is the standard kit
-        return midiSynth.getInstrument(new MidiAddress(0, 127, 0, MidiAddress.BankSelectMethod.MSB_LSB));
+        return getYamahaRefSynth().getInstrument(new MidiAddress(0, 127, 0, MidiAddress.BankSelectMethod.MSB_LSB));
     }
 
-    /**
-     * Overridden : forbidden method on this preset object.
-     *
-     * @param f
-     */
-    @Override
-    public void setFile(File f)
-    {
-        throw new UnsupportedOperationException();
-    }
+
 }

@@ -28,7 +28,6 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyVetoException;
 import java.beans.VetoableChangeListener;
 import java.util.EnumSet;
-import java.util.ResourceBundle;
 import java.util.logging.Logger;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.midi.api.InstrumentMix;
@@ -251,7 +250,7 @@ public class ActiveSongManager implements PropertyChangeListener, VetoableChange
             {
                 if (sendMidiMessagePolicy.contains(SendMidiMessagePolicy.PLAY))
                 {
-                    OutputSynthManager.getInstance().getOutputSynth().sendModeOnUponPlaySysexMessages();
+                    OutputSynthManager.getInstance().getDefaultOutputSynth().getUserSettings().sendModeOnUponPlaySysexMessages();
                     sendAllMidiMixMessages();
                 }
             }

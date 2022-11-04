@@ -25,7 +25,7 @@ package org.jjazz.instrumentchooser;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent; 
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -49,7 +49,7 @@ import org.jjazz.midi.api.JJazzMidiSystem;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.MidiSynth;
 import org.jjazz.midi.api.synths.GM1Instrument;
-import org.jjazz.midi.api.synths.StdSynth;
+import org.jjazz.midi.api.synths.GMSynth;
 import org.jjazz.midi.api.ui.InstrumentTable;
 import org.jjazz.musiccontrol.api.TestPlayer;
 import org.jjazz.outputsynth.api.GMRemapTable;
@@ -143,7 +143,7 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
         this.lbl_preferredInstrument.setToolTipText(tt);
 
         // OutputSynth label
-        String outSynthTxt = outputSynth.getFile() == null ? null : ResUtil.getString(getClass(), "InstrumentChooserDialogImpl.OutputSynthConfig", outputSynth.getFile().getName());
+        String outSynthTxt = ResUtil.getString(getClass(), "InstrumentChooserDialogImpl.OutputSynth", outputSynth.getMultiSynth().getName());
         this.lbl_outputSynthConfig.setText(outSynthTxt);
 
         // Reset text filter
@@ -155,7 +155,7 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
         recommendedInstruments = this.getRecommendedInstruments(allInstruments, preferredInstrument);
 
         if (!recommendedInstruments.isEmpty()
-                && (preselectedIns == null || preselectedIns == StdSynth.getInstance().getVoidInstrument() || recommendedInstruments.contains(preselectedIns)))
+                && (preselectedIns == null || preselectedIns == GMSynth.getInstance().getVoidInstrument() || recommendedInstruments.contains(preselectedIns)))
         {
             rbtn_showRecommended.setSelected(true);
             rbtn_showRecommendedActionPerformed(null);
@@ -260,44 +260,14 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
      */
     private List<Instrument> getAllInstruments(OutputSynth outSynth, boolean drumsMode)
     {
-        ArrayList<Instrument> res = new ArrayList<>();
-        if (drumsMode)
-        {
-            for (InstrumentBank<?> bank : outSynth.getCompatibleStdBanks())
-            {
-                res.addAll(bank.getDrumsInstruments());
-            }
-            for (MidiSynth synth : outSynth.getMidiSynths())
-            {
-                res.addAll(synth.getDrumsInstruments());
-            }
-            for (InstrumentBank<?> bank : outSynth.getCompatibleStdBanks())
-            {
-                res.addAll(bank.getNonDrumsInstruments());
-            }
-            for (MidiSynth synth : outSynth.getMidiSynths())
-            {
-                res.addAll(synth.getNonDrumsInstruments());
-            }
-        } else
-        {
-            for (InstrumentBank<?> bank : outSynth.getCompatibleStdBanks())
-            {
-                res.addAll(bank.getInstruments());
-            }
-            for (MidiSynth synth : outSynth.getMidiSynths())
-            {
-                res.addAll(synth.getInstruments());
-            }
-        }
-        return res;
+        return drumsMode ? outSynth.getMultiSynth().getDrumsInstruments() : outSynth.getMultiSynth().getNonDrumsInstruments();
     }
 
     /**
      * Get only the recommended instruments for prefIns.
      *
      * @param allInsts
-     * @param prefIns The preferredInstrument for the RhythmVoice
+     * @param prefIns  The preferredInstrument for the RhythmVoice
      * @return
      */
     private List<Instrument> getRecommendedInstruments(List<Instrument> allInsts, Instrument prefIns)
@@ -333,10 +303,10 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
             }
 
             // Is there a mapped instrument ? If yes add it first
-            Instrument mappedIns = outputSynth.getGMRemapTable().getInstrument(gm1PrefIns);
+            Instrument mappedIns = outputSynth.getUserSettings().getGMRemapTable().getInstrument(gm1PrefIns);
             if (mappedIns == null)
             {
-                mappedIns = outputSynth.getGMRemapTable().getInstrument(gm1PrefIns.getFamily());
+                mappedIns = outputSynth.getUserSettings().getGMRemapTable().getInstrument(gm1PrefIns.getFamily());
             }
             if (mappedIns != null)
             {
@@ -375,8 +345,8 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
             res.addAll(third);
 
             // If mapped drums/perc instruments are defined, put them first
-            Instrument mappedDrumsIns = outputSynth.getGMRemapTable().getInstrument(GMRemapTable.DRUMS_INSTRUMENT);
-            Instrument mappedPercIns = outputSynth.getGMRemapTable().getInstrument(GMRemapTable.PERCUSSION_INSTRUMENT);
+            Instrument mappedDrumsIns = outputSynth.getUserSettings().getGMRemapTable().getInstrument(GMRemapTable.DRUMS_INSTRUMENT);
+            Instrument mappedPercIns = outputSynth.getUserSettings().getGMRemapTable().getInstrument(GMRemapTable.PERCUSSION_INSTRUMENT);
             if (mappedPercIns != null)
             {
                 res.remove(mappedPercIns);

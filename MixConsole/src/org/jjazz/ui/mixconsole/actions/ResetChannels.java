@@ -25,7 +25,6 @@ package org.jjazz.ui.mixconsole.actions;
 import org.jjazz.midimix.api.MidiMix;
 import java.awt.event.ActionEvent;
 import java.util.logging.Logger;
-import javax.sound.midi.MidiUnavailableException;
 import javax.swing.AbstractAction;
 import static javax.swing.Action.NAME;
 import org.jjazz.midi.api.Instrument;
@@ -46,7 +45,6 @@ import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.awt.StatusDisplayer;
-import org.openide.util.Exceptions;
 
 @ActionID(category = "MixConsole", id = "org.jjazz.ui.mixconsole.actions.resetchannels")
 @ActionRegistration(displayName = "#CTL_ResetChannels", lazy = true)
@@ -115,14 +113,14 @@ public class ResetChannels extends AbstractAction
     static public void resetInstrument(InstrumentMix insMix, RhythmVoice rv)
     {
         Instrument ins;
-        OutputSynth outSynth = OutputSynthManager.getInstance().getOutputSynth();
+        OutputSynth outSynth = OutputSynthManager.getInstance().getDefaultOutputSynth();
         if (!(rv instanceof UserRhythmVoice))
         {
             ins = outSynth.findInstrument(rv);
 
         } else
         {
-            ins = outSynth.getUserInstrument();
+            ins = outSynth.getUserSettings().getUserInstrument();
         }
         insMix.setInstrument(ins);
         insMix.setInstrumentEnabled(true);

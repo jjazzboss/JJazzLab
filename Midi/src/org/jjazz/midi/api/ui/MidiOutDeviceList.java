@@ -69,10 +69,10 @@ public class MidiOutDeviceList extends JList<MidiDevice>
     {
         ArrayList<MidiDevice> outDevices = new ArrayList<>();
         JJazzMidiSystem jms = JJazzMidiSystem.getInstance();
-        Synthesizer synth = jms.getDefaultJavaSynth();
-        if (synth != null && tester.test(synth))
+        Synthesizer javaSynth = jms.getJavaInternalSynth();
+        if (javaSynth != null && tester.test(javaSynth))
         {
-            outDevices.add(synth);
+            outDevices.add(javaSynth);
         }
         jms.getOutDeviceList().stream()
                 .filter(tester)

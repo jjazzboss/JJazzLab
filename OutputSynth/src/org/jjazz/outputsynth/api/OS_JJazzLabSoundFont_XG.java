@@ -22,11 +22,7 @@
  */
 package org.jjazz.outputsynth.api;
 
-import java.io.File;
-import java.util.logging.Logger;
 import org.jjazz.midi.api.MidiSynth;
-import org.jjazz.midi.api.synths.StdSynth;
-import org.jjazz.midisynthmanager.api.MidiSynthListManager;
 
 /**
  * The builtin OutputSynth for the JJazzLabSoundFont in XG mode.
@@ -34,10 +30,7 @@ import org.jjazz.midisynthmanager.api.MidiSynthListManager;
 public class OS_JJazzLabSoundFont_XG extends OutputSynth
 {
 
-    public final static String NAME = "XG synth with JJazzLab soundfont";
     private static OS_JJazzLabSoundFont_XG INSTANCE;
-    private final MidiSynth midiSynth;
-    private static final Logger LOGGER = Logger.getLogger(OS_JJazzLabSoundFont_XG.class.getSimpleName());
 
     public static OS_JJazzLabSoundFont_XG getInstance()
     {
@@ -53,34 +46,20 @@ public class OS_JJazzLabSoundFont_XG extends OutputSynth
 
     private OS_JJazzLabSoundFont_XG()
     {
-        super(NAME);
-        midiSynth = MidiSynthListManager.getDefault().getMidiSynth(MidiSynthListManager.JJAZZLAB_SOUNDFONT_XG_SYNTH_NAME);
-
-        // Adjust settings
-        addCustomSynth(midiSynth);
-        removeCompatibleStdBank(StdSynth.getInstance().getGM1Bank());
-        setSendModeOnUponPlay(OutputSynth.SendModeOnUponStartup.XG);
+        super(new MultiSynth(MultiSynthManager.getInstance().getMidiSynth(MultiSynthManager.JJAZZLAB_SOUNDFONT_XG_SYNTH_NAME)));
+        getUserSettings().setSendModeOnUponPlay(UserSettings.SendModeOnUponPlay.XG);
     }
 
-    /**
-     * Overridden : forbidden method on this preset object.
-     *
-     * @param f
-     */
-    @Override
-    public void setFile(File f)
-    {
-        throw new UnsupportedOperationException();
-    }
 
     /**
      * The synth associated to the JJazzLab soundfont.
      *
      * @return
      */
-    public MidiSynth getJJazzLabSoundFontSynth()
+    public final MidiSynth getJJazzLabSoundFontSynth()
     {
-        return midiSynth;
+        return MultiSynthManager.getInstance().getMidiSynth(MultiSynthManager.JJAZZLAB_SOUNDFONT_XG_SYNTH_NAME);
     }
+
 
 }

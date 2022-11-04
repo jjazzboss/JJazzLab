@@ -32,9 +32,9 @@ import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.midi.api.DrumKit.Type;
 import org.jjazz.midi.api.synths.GM1Bank;
-import org.jjazz.midi.api.synths.StdSynth;
 import org.jjazz.midi.api.keymap.KeyMapGM;
 import org.jjazz.midi.api.synths.Family;
+import org.jjazz.midi.api.synths.GMSynth;
 import org.jjazz.rhythm.api.RP_Integer;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmFeatures;
@@ -79,9 +79,9 @@ public class STUBRhythm implements Rhythm
         this.timeSignature = ts;
 
         // Rhythm voices
-        GM1Bank gmb = StdSynth.getInstance().getGM1Bank();
-        rhythmVoices.add(new RhythmVoice(new DrumKit(Type.STANDARD, KeyMapGM.getInstance()), this, RhythmVoice.Type.PERCUSSION, "Perc.", StdSynth.getInstance().getVoidInstrument(), 8));
-        rhythmVoices.add(new RhythmVoice(new DrumKit(Type.STANDARD, KeyMapGM.getInstance()), this, RhythmVoice.Type.DRUMS, "Drums", StdSynth.getInstance().getVoidInstrument(), 9));
+        GM1Bank gmb = GMSynth.getInstance().getGM1Bank();
+        rhythmVoices.add(new RhythmVoice(new DrumKit(Type.STANDARD, KeyMapGM.getInstance()), this, RhythmVoice.Type.PERCUSSION, "Perc.", GMSynth.getInstance().getVoidInstrument(), 8));
+        rhythmVoices.add(new RhythmVoice(new DrumKit(Type.STANDARD, KeyMapGM.getInstance()), this, RhythmVoice.Type.DRUMS, "Drums", GMSynth.getInstance().getVoidInstrument(), 9));
         rhythmVoices.add(new RhythmVoice(this, RhythmVoice.Type.BASS, "Bass", gmb.getDefaultInstrument(Family.Bass), 10));
         rhythmVoices.add(new RhythmVoice(this, RhythmVoice.Type.CHORD1, "Chord1", gmb.getDefaultInstrument(Family.Guitar), 11));
         rhythmVoices.add(new RhythmVoice(this, RhythmVoice.Type.CHORD2, "Chord2", gmb.getDefaultInstrument(Family.Piano), 12));

@@ -32,7 +32,7 @@ import java.util.logging.Logger;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.midi.api.synths.Family;
 import org.jjazz.midi.api.synths.GM1Bank;
-import org.jjazz.midi.api.synths.StdSynth;
+import org.jjazz.midi.api.synths.GMSynth;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmFeatures;
@@ -80,7 +80,7 @@ public class DummyRhythm implements Rhythm
         rhythmParameters.add(new RP_STD_Variation(true));
 
         // Rhythm voices
-        GM1Bank gmb = StdSynth.getInstance().getGM1Bank();
+        GM1Bank gmb = GMSynth.getInstance().getGM1Bank();
         rhythmVoices.add(new RhythmVoice(this, Type.BASS, "Bass", gmb.getDefaultInstrument(Family.Bass), 11));
 
         features = new RhythmFeatures();

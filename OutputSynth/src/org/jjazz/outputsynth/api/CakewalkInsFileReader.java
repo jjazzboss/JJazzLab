@@ -43,8 +43,8 @@ import org.jjazz.midi.api.Instrument;
 import org.jjazz.midi.api.MidiAddress;
 import org.jjazz.midi.api.MidiAddress.BankSelectMethod;
 import org.jjazz.midi.api.MidiSynth;
-import org.jjazz.midi.api.synths.StdSynth;
 import org.jjazz.midi.api.keymap.KeyMapGM;
+import org.jjazz.midi.api.synths.GMSynth;
 import org.jjazz.midi.spi.KeyMapProvider;
 import org.openide.util.lookup.ServiceProvider;
 import org.jjazz.midi.spi.MidiSynthFileReader;
@@ -247,7 +247,7 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
                                             + " in file " + fileName + " at line " + lineCount + ". Using value SubGM1 PC=0 instead.");
                                     pcGM1 = 0;
                                 }
-                                gmSubstitute = StdSynth.getInstance().getGM1Bank().getInstrument(pcGM1);
+                                gmSubstitute = GMSynth.getInstance().getGM1Bank().getInstrument(pcGM1);
                             }
 
                             // Get rid of the extensions if meta info was provided
@@ -258,7 +258,7 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
                             }
 
                             // No DrumKit meta info found, try to guess if it's a drums from patchName
-                            if (kit == null && gmSubstitute == null && StdSynth.getInstance().getGM1Bank().guessIsDrums(patchName))
+                            if (kit == null && gmSubstitute == null && GMSynth.getInstance().getGM1Bank().guessIsDrums(patchName))
                             {
                                 kit = new DrumKit(DrumKit.Type.STANDARD, KeyMapGM.getInstance());
                             }
@@ -266,7 +266,7 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
                             // No meta info found but it's probably not a drums, try to guess the substitute
                             if (kit == null && gmSubstitute == null)
                             {
-                                gmSubstitute = StdSynth.getInstance().getGM1Bank().guessInstrument(patchName);
+                                gmSubstitute = GMSynth.getInstance().getGM1Bank().guessInstrument(patchName);
                             }
                         }
 

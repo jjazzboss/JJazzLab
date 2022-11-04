@@ -1,61 +1,29 @@
-package org.jjazz.midiconverters.api;
+package org.jjazz.midi.api.keymap;
 
 import java.util.logging.Logger;
-import org.jjazz.midi.api.keymap.KeyMapGSGM2;
-import org.jjazz.midi.api.keymap.KeyMapXG;
-import org.jjazz.midi.api.keymap.KeyMapGM;
-import org.jjazz.midiconverters.spi.KeyMapConverter;
 import org.jjazz.midi.api.DrumKit;
-import org.jjazz.midi.api.keymap.KeyMapXG_PopLatin;
 
 /**
- * Note mapping between GSGM2/XG/GM DrumMaps.
+ * Note mapping methods between GS/GM2/XG/GM DrumMaps.
  */
-public class StdKeyMapConverter implements KeyMapConverter
+public class StandardKeyMapConverter
 {
 
-    private static StdKeyMapConverter INSTANCE;
-    private static final Logger LOGGER = Logger.getLogger(StdKeyMapConverter.class.getSimpleName());
-    private final KeyMapGM gmMap;
-    private final KeyMapGSGM2 gm2Map;
-    private final KeyMapXG xgMap;
-    private final KeyMapXG_PopLatin xgLatinMap;
+    private static final Logger LOGGER = Logger.getLogger(StandardKeyMapConverter.class.getSimpleName());
+    private static final KeyMapGM gmMap = KeyMapGM.getInstance();
+    private static final KeyMapGSGM2 gm2Map = KeyMapGSGM2.getInstance();
+    private static final KeyMapXG xgMap = KeyMapXG.getInstance();
+    private static final KeyMapXG_PopLatin xgLatinMap = KeyMapXG_PopLatin.getInstance();
 
-    public static StdKeyMapConverter getInstance()
-    {
-        synchronized (StdKeyMapConverter.class)
-        {
-            if (INSTANCE == null)
-            {
-                INSTANCE = new StdKeyMapConverter();
-            }
-        }
-        return INSTANCE;
-    }
 
-    private StdKeyMapConverter()
-    {
-        gmMap = KeyMapGM.getInstance();
-        gm2Map = KeyMapGSGM2.getInstance();
-        xgMap = KeyMapXG.getInstance();
-        xgLatinMap = KeyMapXG_PopLatin.getInstance();
-
-    }
-
-    @Override
-    public String getConverterId()
-    {
-        return "StdMapper";
-    }
-
-    @Override
-    public String toString()
-    {
-        return getConverterId();
-    }
-
-    @Override
-    public boolean accept(DrumKit.KeyMap srcMap, DrumKit.KeyMap destMap)
+    /**
+     * Check if this converter can convert notes between the specified KeyMaps.
+     *
+     * @param srcMap
+     * @param destMap
+     * @return
+     */
+    static public boolean accept(DrumKit.KeyMap srcMap, DrumKit.KeyMap destMap)
     {
         if (srcMap.equals(destMap))
         {
@@ -78,14 +46,13 @@ public class StdKeyMapConverter implements KeyMapConverter
         return b;
     }
 
-    @Override
-    public int convertKey(DrumKit.KeyMap srcMap, int srcPitch, DrumKit.KeyMap destMap)
+    static public int convertKey(DrumKit.KeyMap srcMap, int srcPitch, DrumKit.KeyMap destMap)
     {
         if (srcPitch < 0 || srcPitch > 127)
         {
             throw new IllegalArgumentException("srcMap=" + srcMap + " srcPitch=" + srcPitch + " destMap=" + destMap);   //NOI18N
         }
-        
+
         if (srcMap.getKeyName(srcPitch) == null)
         {
             return -1;
@@ -145,7 +112,7 @@ public class StdKeyMapConverter implements KeyMapConverter
         return destPitch;
     }
 
-    public boolean isStandardKeyMap(DrumKit.KeyMap map)
+    static public boolean isStandardKeyMap(DrumKit.KeyMap map)
     {
         if (map == null)
         {
@@ -157,7 +124,7 @@ public class StdKeyMapConverter implements KeyMapConverter
     // =========================================================================
     // Private methods
     // =========================================================================
-    private int convertPitch(int srcPitch, DrumKit.KeyMap srcKeyMap, int[] mapSrcDest)
+    static private int convertPitch(int srcPitch, DrumKit.KeyMap srcKeyMap, int[] mapSrcDest)
     {
         int p = srcPitch - srcKeyMap.getRange().lowNote;
         if (p < 0 || p >= mapSrcDest.length)
@@ -168,7 +135,7 @@ public class StdKeyMapConverter implements KeyMapConverter
         return mapSrcDest[p];
     }
 
-    final private int[] MAP_XG_TO_GM =
+    static final private int[] MAP_XG_TO_GM =
     {
         63,
         62,
@@ -244,7 +211,7 @@ public class StdKeyMapConverter implements KeyMapConverter
         59
     };
 
-    final private int[] MAP_XG_TO_GM2 =
+    static final private int[] MAP_XG_TO_GM2 =
     {
         86,
         87,
@@ -320,7 +287,7 @@ public class StdKeyMapConverter implements KeyMapConverter
         84
     };
 
-    final private int[] MAP_XGLATIN_TO_GM2 =
+    static final private int[] MAP_XGLATIN_TO_GM2 =
     {
         87,
         86,
@@ -396,7 +363,7 @@ public class StdKeyMapConverter implements KeyMapConverter
         84
     };
 
-    final private int[] MAP_XGLATIN_TO_GM =
+    static final private int[] MAP_XGLATIN_TO_GM =
     {
         35,
         38,
@@ -472,7 +439,7 @@ public class StdKeyMapConverter implements KeyMapConverter
         51
     };
 
-    final private int[] MAP_GM2_TO_GM =
+    static final private int[] MAP_GM2_TO_GM =
     {
         75,
         75,
@@ -542,7 +509,7 @@ public class StdKeyMapConverter implements KeyMapConverter
         45
     };
 
-    final private int[] MAP_XGLATIN_TO_XG =
+    static final private int[] MAP_XGLATIN_TO_XG =
     {
         14,
         13,
@@ -618,7 +585,7 @@ public class StdKeyMapConverter implements KeyMapConverter
         84
     };
 
-    private static final int[] MAP_GM2_TO_XG =
+    static private final int[] MAP_GM2_TO_XG =
     {
         21,
         22,
