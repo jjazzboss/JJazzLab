@@ -71,7 +71,7 @@ public interface SongStructure
         ArrayList<Rhythm> res = new ArrayList<>();
         var allRhythms = getSongParts().stream()
                 .map(spt -> spt.getRhythm())
-                .collect(Collectors.toList());
+                .toList();
 
 
         for (SongPart spt : getSongParts())

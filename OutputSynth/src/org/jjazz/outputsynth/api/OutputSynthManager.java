@@ -24,22 +24,19 @@
 package org.jjazz.outputsynth.api;
 
 import com.google.common.base.Preconditions;
+import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
-import java.util.Properties;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import javax.sound.midi.MidiDevice;
-import javax.swing.JFileChooser;
 import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.midi.api.JJazzMidiSystem;
 import org.jjazz.upgrade.api.UpgradeManager;
 import org.jjazz.upgrade.api.UpgradeTask;
+import org.jjazz.util.api.Utilities;
 import org.openide.util.NbPreferences;
 import org.openide.util.lookup.ServiceProvider;
 
@@ -48,7 +45,7 @@ import org.openide.util.lookup.ServiceProvider;
  * <p>
  * Keep an OutputSynth instance for each available MidiOut device.
  */
-public class OutputSynthManager
+public class OutputSynthManager implements PropertyChangeListener
 {
 
     /**
@@ -63,10 +60,9 @@ public class OutputSynthManager
      * The change event is also fired when default JJazzLab MidiDevice OUT changes. Note that newValue might be null if no default
      * JJazzLab OUT MidiDevice is set.
      */
-    public final static String PROP_DEFAULT_OUTPUTSYNTH = "Default-OutputSynth";
-    
+    public final static String PROP_DEFAULT_OUTPUTSYNTH = "PropDefaultOutputSynth";
+
     private static OutputSynthManager INSTANCE;
-    private static JFileChooser CHOOSER_INSTANCE;
     private final HashMap<String, OutputSynth> mapDeviceNameSynth = new HashMap<>();
     private static final Preferences prefs = NbPreferences.forModule(OutputSynthManager.class);
     private final transient PropertyChangeSupport pcs = new java.beans.PropertyChangeSupport(this);
@@ -90,13 +86,13 @@ public class OutputSynthManager
         }
         return INSTANCE;
     }
-    
+
     private OutputSynthManager()
     {
         var jms = JJazzMidiSystem.getInstance();
         jms.addPropertyChangeListener(JJazzMidiSystem.PROP_MIDI_OUT,
                 e -> midiOutChanged((MidiDevice) e.getOldValue(), (MidiDevice) e.getNewValue()));
-        
+
         refresh();
     }
 
@@ -122,7 +118,70 @@ public class OutputSynthManager
      */
     public OutputSynth getNewGMOuputSynth()
     {
-        return new OutputSynth(new MultiSynth());
+        var res = new OutputSynth(MultiSynthManager.getInstance().getGMMultiSynth());
+        res.getUserSettings().setSendModeOnUponPlay(OutputSynth.UserSettings.SendModeOnUponPlay.GM);
+        return res;
+    }
+
+    /**
+     * Get a new instance of a default OutputSynth which just uses the GM2Synth.
+     *
+     * @return
+     */
+    public OutputSynth getNewGM2OuputSynth()
+    {
+        var res = new OutputSynth(MultiSynthManager.getInstance().getGM2MultiSynth());
+        res.getUserSettings().setSendModeOnUponPlay(OutputSynth.UserSettings.SendModeOnUponPlay.GM2);
+        return res;
+    }
+
+
+    /**
+     * Get a new instance of a default OutputSynth which just uses the XGSynth.
+     *
+     * @return
+     */
+    public OutputSynth getNewXGOuputSynth()
+    {
+        var res = new OutputSynth(MultiSynthManager.getInstance().getXGMultiSynth());
+        res.getUserSettings().setSendModeOnUponPlay(OutputSynth.UserSettings.SendModeOnUponPlay.XG);
+        return res;
+    }
+
+    /**
+     * Get a new instance of a default OutputSynth which just uses the GSSynth.
+     *
+     * @return
+     */
+    public OutputSynth getNewGSOuputSynth()
+    {
+        var res = new OutputSynth(MultiSynthManager.getInstance().getGSMultiSynth());
+        res.getUserSettings().setSendModeOnUponPlay(OutputSynth.UserSettings.SendModeOnUponPlay.GS);
+        return res;
+    }
+
+    /**
+     * Get a new instance of a default OutputSynth which just uses the JJazzLab soundfont in XG mode (compatible with FluidSynth).
+     *
+     * @return
+     */
+    public OutputSynth getNewJazzLabSoundFontXGOuputSynth()
+    {
+        var res = new OutputSynth(MultiSynthManager.getInstance().getJLSoundFontXG());
+        res.getUserSettings().setSendModeOnUponPlay(OutputSynth.UserSettings.SendModeOnUponPlay.XG);
+        return res;
+    }
+
+    /**
+     * Get a new instance of a default OutputSynth which just uses the Tyros 5 synth.
+     *
+     * @return
+     */
+    public OutputSynth getNewYamahaRefOuputSynth()
+    {
+        var res = new OutputSynth(MultiSynthManager.getInstance().getYamahaRef());
+        res.getUserSettings().setSendModeOnUponPlay(OutputSynth.UserSettings.SendModeOnUponPlay.OFF);
+        return res;
     }
 
     /**
@@ -171,7 +230,7 @@ public class OutputSynthManager
                 LOGGER.warning("getOutputSynth() mdOutName=" + mdOutName + " Can't restore OutputSynth from String s=" + s + ". ex=" + ex.getMessage());
             }
         }
-        
+
         if (outSynth == null)
         {
             // Create a default OutputSynth
@@ -180,53 +239,86 @@ public class OutputSynthManager
 
         // Associate the created OutputSynth to mdOut
         setOutputSynth(mdOutName, outSynth);
-        
+
         return outSynth;
     }
 
     /**
      * Associate outSynth to the specified midi OUT device name.
      *
-     * @param mdOutName
-     * @param outSynth
+     * @param mdOutName Can't be null
+     * @param outSynth  Can't be null
      */
     public void setOutputSynth(String mdOutName, OutputSynth outSynth)
     {
         Preconditions.checkNotNull(mdOutName);
         Preconditions.checkArgument(!mdOutName.isBlank());
         Preconditions.checkNotNull(outSynth);
-        
+
+
         var oldSynth = mapDeviceNameSynth.get(mdOutName);
+        if (oldSynth != null)
+        {
+            oldSynth.getUserSettings().removePropertyChangeListener(this);
+        }
+
+
+        // Change state
         mapDeviceNameSynth.put(mdOutName, outSynth);
-        prefs.get(mdOutName, outSynth.saveAsString());
-        
+        store(mdOutName, outSynth);
+        outSynth.getUserSettings().addPropertyChangeListener(this);  // Listen to user settings changes to keep the saved preference updated
+
+
+        // Notify listeners
         pcs.firePropertyChange(PROP_MDOUT_OUTPUTSYNTH, mdOutName, outSynth);
         var mdOut = JJazzMidiSystem.getInstance().getDefaultOutDevice();
         if (mdOut != null && mdOutName.equals(mdOut.getDeviceInfo().getName()))
         {
             pcs.firePropertyChange(PROP_DEFAULT_OUTPUTSYNTH, oldSynth, outSynth);
         }
-        
+
     }
-    
+
+
     public void addPropertyChangeListener(PropertyChangeListener l)
     {
         pcs.addPropertyChangeListener(l);
     }
-    
-    public void removePropertyChangeListener(PropertyChangeListener l)
-    {
-        pcs.removePropertyChangeListener(l);
-    }
-    
+
     public void addPropertyChangeListener(String propName, PropertyChangeListener l)
     {
         pcs.addPropertyChangeListener(propName, l);
     }
-    
+
+    public void removePropertyChangeListener(PropertyChangeListener l)
+    {
+        pcs.removePropertyChangeListener(l);
+    }
+
     public void removePropertyChangeListener(String propName, PropertyChangeListener l)
     {
         pcs.removePropertyChangeListener(propName, l);
+    }
+
+    // ===============================================================================
+    // PropertyChangeListener interface
+    // ===============================================================================    
+    @Override
+    public void propertyChange(PropertyChangeEvent evt)
+    {
+        if (evt.getSource() instanceof OutputSynth.UserSettings us)
+        {
+            // An OutputSynth has changed, save it
+            var outSynth = us.getOutputSynth();
+            String mdName = (String) Utilities.reverseGet(mapDeviceNameSynth, outSynth);
+            if (mdName != null)
+            {
+                store(mdName, outSynth);
+            } else
+            {
+                LOGGER.warning("propertyChange() Unexpected null mdName! outSynth=" + outSynth + ", mapDeviceNameSynth=" + mapDeviceNameSynth);
+            }
+        }
     }
 
     // ===============================================================================
@@ -239,6 +331,10 @@ public class OutputSynthManager
         pcs.firePropertyChange(PROP_DEFAULT_OUTPUTSYNTH, oldSynth, newSynth);   // newSynth might be null !
     }
 
+    private void store(String mdOutName, OutputSynth outSynth)
+    {
+        prefs.put(mdOutName, outSynth.saveAsString());
+    }
 
     // =====================================================================================
     // Upgrade Task
@@ -250,19 +346,19 @@ public class OutputSynthManager
     @ServiceProvider(service = UpgradeTask.class)
     static public class RestoreSettingsTask implements UpgradeTask
     {
-        
+
         @Override
         public void upgrade(String oldVersion)
         {
-            
+
             if (oldVersion == null)
             {
                 return;
             }
-            
+
             var um = UpgradeManager.getInstance();
             var fdm = FileDirectoryManager.getInstance();
-            
+
             LOGGER.severe("upgrade() COMMENTED OUT! TO RESTORE");
 //            // Get the old output synth config file name
 //            Properties oldProp = um.getPropertiesFromPrefs(prefs);

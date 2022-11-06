@@ -96,7 +96,7 @@ public interface PhraseTransformManager
     {
         return getPhraseTransforms().stream()
                 .filter(pt -> pt.getInfo().getCategory().equals(category))
-                .collect(Collectors.toList());
+                .toList();
     }
 
     /**

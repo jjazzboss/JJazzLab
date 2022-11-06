@@ -1187,7 +1187,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         List<RhythmParameter<?>> res = r.getRhythmParameters()
                 .stream()
                 .filter(rp -> rps.contains(rp))
-                .collect(Collectors.toList());
+                .toList();
         return res;
     }
 

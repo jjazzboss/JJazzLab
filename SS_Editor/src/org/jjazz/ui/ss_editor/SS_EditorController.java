@@ -347,7 +347,7 @@ public class SS_EditorController implements SS_EditorMouseListener
 
             // Reconstruct popupmenu when required
             List<? extends Action> actions = Utilities.actionsForPath("Actions/SongPart");
-            actions = actions.stream().filter(a -> !(a instanceof HideIfDisabledAction) || a.isEnabled()).collect(Collectors.toList());
+            actions = actions.stream().filter(a -> !(a instanceof HideIfDisabledAction) || a.isEnabled()).toList();
             int nbNonNullActions = (int) actions.stream().filter(a -> a != null).count();
             if (popupSptMenu == null || popupSptMenu.getSubElements().length != nbNonNullActions)
             {

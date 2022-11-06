@@ -66,7 +66,7 @@ public class MidiSynth
          *
          * @param synthName The MidiSynth name containing the bank. Can't be null.
          * @param synthFile The file associated to synthName. Can be null if no file. If synthFile has no parent directory, search
-         * the default directory for output synth config files.
+         *                  the default directory for output synth config files.
          * @return Null if no MidiSynth found
          */
         MidiSynth getMidiSynth(String synthName, File synthFile);
@@ -87,7 +87,7 @@ public class MidiSynth
      * <p>
      * Created MidiSynth is not set to be compatible with GM/GM2/XG/GS standard.
      *
-     * @param name If name contains comas (',') they are removed.
+     * @param name         If name contains comas (',') they are removed.
      * @param manufacturer
      */
     public MidiSynth(String name, String manufacturer)
@@ -110,10 +110,10 @@ public class MidiSynth
      * - If a synth is GM2/XG/GS compatible, then it is also GM compatible and GM bank base adress is set to MSB=LSB=0<br>
      * - If a synth is GS compatible, then it can't be GM2 nor XG compatible
      *
-     * @param isGMcompatible If null parameter is ignored.
+     * @param isGMcompatible  If null parameter is ignored.
      * @param isGM2compatible If null parameter is ignored.
-     * @param isXGcompatible If null parameter is ignored.
-     * @param isGScompatible If null parameter is ignored.
+     * @param isXGcompatible  If null parameter is ignored.
+     * @param isGScompatible  If null parameter is ignored.
      */
     public void setCompatibility(Boolean isGMcompatible, Boolean isGM2compatible, Boolean isXGcompatible, Boolean isGScompatible)
     {
@@ -243,7 +243,7 @@ public class MidiSynth
      *
      * @param kit
      * @param tryHarder If true and no instrument matched the specified kit, then try again but with a more flexible matching
-     * algorithm. Default implementation starts a second search using kit.Type.STANDARD.
+     *                  algorithm. Default implementation starts a second search using kit.Type.STANDARD.
      * @return Can be empty.
      */
     public List<Instrument> getDrumsInstruments(DrumKit kit, boolean tryHarder)
@@ -368,7 +368,7 @@ public class MidiSynth
      *
      *
      * @return Can't be null. If not explicitly set, return by default new MidiAddress(0, 0, 0,
-     * MidiAddress.BankSelectMethod.MSB_LSB).
+     *         MidiAddress.BankSelectMethod.MSB_LSB).
      * @see #setGM1BankBaseMidiAddress(MidiAddress)
      */
     public MidiAddress getGM1BankBaseMidiAddress()
@@ -525,6 +525,7 @@ public class MidiSynth
     /**
      * Save this MidiSynth as a string so that it can be retrieved by loadFromString().
      * <p>
+     * Note: Since MultiSynth introduction the file reference in the save string is no more used
      *
      * @return A string "Name, FilePath". FilePath can be "NOT_SET" if no file associated. If
      * @see loadFromString(String)
@@ -539,6 +540,8 @@ public class MidiSynth
     /**
      * Get the MidiSynth corresponding to the string produced by saveAsString().
      * <p>
+     * <p>
+     * Note: Since MultiSynth introduction the file reference in the save string is no more used.
      *
      * @param s
      * @return Null if no MidiSynth could be found corresponding to s.

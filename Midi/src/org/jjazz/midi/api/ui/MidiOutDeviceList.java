@@ -23,6 +23,7 @@
 package org.jjazz.midi.api.ui;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Predicate;
 import javax.sound.midi.MidiDevice;
 import javax.sound.midi.Synthesizer;
@@ -36,7 +37,9 @@ import org.jjazz.midi.api.JJazzMidiSystem;
 public class MidiOutDeviceList extends JList<MidiDevice>
 {
 
-    Predicate<MidiDevice> tester;
+    private final Predicate<MidiDevice> tester;
+    private List<MidiDevice> outDevices = new ArrayList<>();
+
 
     /**
      * List contains all the MidiSystem MidiOutDevice instances.
@@ -49,7 +52,7 @@ public class MidiOutDeviceList extends JList<MidiDevice>
     /**
      * List contains all the MidiSystem MidiOutDevice instances which satisfy tester.
      *
-     * @param tester 
+     * @param tester
      */
     public MidiOutDeviceList(Predicate<MidiDevice> tester)
     {
@@ -60,6 +63,11 @@ public class MidiOutDeviceList extends JList<MidiDevice>
         rescanMidiDevices();
     }
 
+    public List<MidiDevice> getOutDevices()
+    {
+        return outDevices;
+    }
+
     /**
      * Rescan the available OUT MidiDevices on the system and update the list accordingly.
      * <p>
@@ -67,7 +75,7 @@ public class MidiOutDeviceList extends JList<MidiDevice>
      */
     public final void rescanMidiDevices()
     {
-        ArrayList<MidiDevice> outDevices = new ArrayList<>();
+        outDevices.clear();
         JJazzMidiSystem jms = JJazzMidiSystem.getInstance();
         Synthesizer javaSynth = jms.getJavaInternalSynth();
         if (javaSynth != null && tester.test(javaSynth))
@@ -77,7 +85,7 @@ public class MidiOutDeviceList extends JList<MidiDevice>
         jms.getOutDeviceList().stream()
                 .filter(tester)
                 .forEach(md -> outDevices.add(md));
-              
+
         setListData(outDevices.toArray(MidiDevice[]::new));
     }
 }

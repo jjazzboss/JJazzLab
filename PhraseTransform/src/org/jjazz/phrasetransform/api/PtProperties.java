@@ -89,7 +89,7 @@ public class PtProperties extends Properties
     {
         return stringPropertyNames().stream()
                 .filter(key -> !defaults.get(key).equals(getProperty(key)))
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public Integer getPropertyAsInteger(String key)

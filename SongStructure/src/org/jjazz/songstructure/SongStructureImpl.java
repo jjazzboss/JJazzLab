@@ -372,7 +372,7 @@ public class SongStructureImpl implements SongStructure, Serializable
     @Override
     public List<SongPart> getSongParts(Predicate<SongPart> tester)
     {
-        return songParts.stream().filter(tester).collect(Collectors.toList());
+        return songParts.stream().filter(tester).toList();
     }
 
     @Override

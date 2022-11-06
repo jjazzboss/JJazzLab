@@ -35,6 +35,8 @@ import java.util.Map;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.swing.JPanel;
+import org.jjazz.ui.keyboardcomponent.api.KeyboardRange;
+import org.jjazz.ui.keyboardcomponent.api.PianoKey;
 
 /**
  * A JPanel representing a Piano keyboard with selectable keys.
@@ -175,7 +177,7 @@ public class KeyboardComponent extends JPanel
     
     public List<PianoKey> getBlackKeys()
     {
-        return pianoKeys.stream().filter(pk -> !pk.isWhiteKey()).collect(Collectors.toList());
+        return pianoKeys.stream().filter(pk -> !pk.isWhiteKey()).toList();
     }
     
     public List<PianoKey> getWhiteKeys()

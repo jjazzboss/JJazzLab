@@ -528,7 +528,7 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
             // We customized at least 1 phrase
             List<String> strs = impactedRvs.stream()
                     .map(rv -> rv.getName())
-                    .collect(Collectors.toList());
+                    .toList();
             String strRvs = Joiner.on(",").join(strs);
             String msg = ResUtil.getString(getClass(), "RP_SYS_CustomPhraseComp.CustomizedRvs", strRvs);
             StatusDisplayer.getDefault().setStatusText(msg);

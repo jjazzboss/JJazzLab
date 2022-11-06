@@ -860,7 +860,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
      */
     private void doAnalytics()
     {
-        var ecss = chordLeadSheet.getItems(CLI_ChordSymbol.class).stream().map(cli -> cli.getData()).collect(Collectors.toList());
+        var ecss = chordLeadSheet.getItems(CLI_ChordSymbol.class).stream().map(cli -> cli.getData()).toList();
         var cris = ecss.stream().map(ecs -> ecs.getRenderingInfo()).collect(Collectors.toList());
 
         HashMap<String, Object> map = new HashMap<>();

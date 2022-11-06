@@ -365,7 +365,7 @@ public class Phrases
         }
         List<Integer> res = Stream.of(degrees)
                 .map(d -> Note.getNormalizedRelPitch(rootPitch + d.getPitch()))
-                .collect(Collectors.toList());
+                .toList();
         return res;
     }
 

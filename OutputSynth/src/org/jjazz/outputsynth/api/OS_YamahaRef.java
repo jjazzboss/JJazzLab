@@ -49,7 +49,7 @@ public class OS_YamahaRef extends OutputSynth
 
     private OS_YamahaRef()
     {
-        super(new MultiSynth(MultiSynthManager.getInstance().getMidiSynth(MultiSynthManager.YAMAHA_REF_SYNTH_NAME)));
+        super(MultiSynthManager.getInstance().getYamahaRef());
     }
 
      /**
@@ -59,7 +59,7 @@ public class OS_YamahaRef extends OutputSynth
      */
     public MidiSynth getYamahaRefSynth()
     {
-        return MultiSynthManager.getInstance().getMidiSynth(MultiSynthManager.YAMAHA_REF_SYNTH_NAME);
+        return MultiSynthManager.getInstance().getYamahaRef().getMidiSynth(MultiSynthManager.YAMAHA_REF_SYNTH_NAME);
     }
 
     /**

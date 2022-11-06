@@ -522,7 +522,7 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
         List<RhythmInfo> rhythms = rdb.getRhythms(rp)
                 .stream()
                 .filter(r -> r.getTimeSignature().equals(selectedTimeSignature))
-                .collect(Collectors.toList());
+                .toList();
 
         // Update the table
         LOGGER.fine("updateRhythmTable() rp=" + rp.getInfo().getName() + " rhythms.size()=" + rhythms.size());   //NOI18N

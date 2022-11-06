@@ -96,7 +96,7 @@ public class SongContext
         }
         songParts = song.getSongStructure().getSongParts().stream()
                 .filter(spt -> contains(spt))
-                .collect(Collectors.toList());
+                .toList();
         beatRange = song.getSongStructure().getBeatRange(barRange);
         tickRange = new LongRange((long) (beatRange.from * MidiConst.PPQ_RESOLUTION), (long) (beatRange.to * MidiConst.PPQ_RESOLUTION));
 

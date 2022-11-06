@@ -116,7 +116,7 @@ public class SgsUpdater implements ClsChangeListener
         var cliSections = evt.getItems().stream()
                 .filter(cli -> cli instanceof CLI_Section)
                 .map(cli -> (CLI_Section) cli)
-                .collect(Collectors.toList());
+                .toList();
 
 
         if (evt instanceof SizeChangedEvent)
@@ -342,7 +342,7 @@ public class SgsUpdater implements ClsChangeListener
             // Section name has changed : rename songparts which have not been renamed by user
             List<SongPart> spts = getSongParts(cliSection).stream()
                     .filter(spt -> spt.getName().equalsIgnoreCase(oldName))
-                    .collect(Collectors.toList());
+                    .toList();
             sgs.setSongPartsName(spts, newName);
         }
     }

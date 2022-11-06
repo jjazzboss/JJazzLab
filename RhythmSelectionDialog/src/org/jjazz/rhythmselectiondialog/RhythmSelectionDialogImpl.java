@@ -441,7 +441,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         rhythms = rhythms
                 .stream()
                 .filter(r -> r.getTimeSignature().equals(timeSignature))
-                .collect(Collectors.toList());
+                .toList();
 
 
         // Update the table

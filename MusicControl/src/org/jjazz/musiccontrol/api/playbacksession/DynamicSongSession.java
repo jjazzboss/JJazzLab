@@ -380,7 +380,8 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
                         // Auto-Update switched to ON: try to update to be up-to-date again
                         doUpdate = true;
                     }
-
+                    break;
+                    
                 default:   // PROP_VETO_PRE_PLAYBACK, PROP_LOOPCOUNT, PROP_PLAYBACK_CLICK_ENABLED
                     // Do nothing
                     break;
@@ -506,7 +507,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
 
             var contextItems = event.getItems().stream()
                     .filter(cli -> isClsBarIndexPartOfContext(cli.getPosition().getBar()))
-                    .collect(Collectors.toList());
+                    .toList();
             disableUpdates = contextItems.stream().anyMatch(cli -> !(cli instanceof CLI_ChordSymbol));
             assert currentClsChange != null : "event=" + event;
             currentClsChange.doUpdate = contextItems.stream().allMatch(cli -> cli instanceof CLI_ChordSymbol);

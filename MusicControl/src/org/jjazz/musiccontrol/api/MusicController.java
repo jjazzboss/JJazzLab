@@ -857,7 +857,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             }
         } else if (e.getSource() instanceof OutputSynth.UserSettings)
         {
-            if (e.getPropertyName().equals(OutputSynth.UserSettings.PROP_AUDIOLATENCY))
+            if (e.getPropertyName().equals(OutputSynth.UserSettings.PROP_AUDIO_LATENCY))
             {
                 // latency of the default OutputSynth has changed
                 audioLatency = (int) e.getNewValue();

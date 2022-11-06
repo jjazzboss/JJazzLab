@@ -422,7 +422,7 @@ public class AdjustRpValues extends AbstractAction implements ContextAwareAction
                 {
                     doubleValue0 = ((RpEnumerable) rp0).calculatePercentage(spt0.getRPValue(rp0));
                     doubleValue1 = ((RpEnumerable) rp1).calculatePercentage(spt1.getRPValue(rp1));
-                    enumerableSptps = sptps.stream().filter(sptp -> sptp.isEnumerableRp()).collect(Collectors.toList());
+                    enumerableSptps = sptps.stream().filter(sptp -> sptp.isEnumerableRp()).toList();
                     b = enumerableSptps.size() > 2;
                 }
             }

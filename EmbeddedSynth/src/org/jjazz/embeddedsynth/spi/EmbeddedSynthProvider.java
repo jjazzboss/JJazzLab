@@ -41,7 +41,7 @@ public interface EmbeddedSynthProvider
     static EmbeddedSynth getDefault()
     {
         EmbeddedSynthProvider provider = Lookup.getDefault().lookup(EmbeddedSynthProvider.class);
-        return provider == null ? null : provider.getEmbeddedSynth();
+        return (provider == null) ? null : provider.getEmbeddedSynth();
     }
 
     EmbeddedSynth getEmbeddedSynth();

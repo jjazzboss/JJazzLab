@@ -22,9 +22,15 @@
  */
 package org.jjazz.options;
 
+import java.awt.Component;
+import java.awt.Font;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 import java.util.logging.Level;
@@ -32,7 +38,10 @@ import java.util.logging.Logger;
 import javax.sound.midi.MidiDevice;
 import javax.sound.midi.MidiUnavailableException;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.border.TitledBorder;
 import org.jjazz.analytics.api.Analytics;
 import org.jjazz.embeddedsynth.api.EmbeddedSynth;
@@ -51,13 +60,13 @@ import org.jjazz.ui.utilities.api.Utilities;
 import org.jjazz.uisettings.api.GeneralUISettings;
 import org.jjazz.util.api.ResUtil;
 import org.openide.*;
+import org.openide.util.Exceptions;
 
 final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListener
 {
 
     private final ComboMultiSynthModel comboModel;
     private final MidiOptionsPanelController controller;
-    private boolean loadInProgress;
     private OutputSynth editedOutputSynth;
     private MidiDevice saveOutDeviceForCancel;
     private OutputSynth saveOutputSynthForCancel;
@@ -107,8 +116,6 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
         // or:
         // someTextField.setText(SomeSystemOption.getDefault().getSomeStringProperty());
 
-        loadInProgress = true; // To avoid calling controller.changed() via OutDevices change event handlers.           
-
         JJazzMidiSystem jms = JJazzMidiSystem.getInstance();
 
         // Select default devices (can be null)
@@ -117,109 +124,12 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
 
 
         LOGGER.log(Level.FINE, "load() saveOutDevice=" + saveOutDeviceForCancel + " .info=" + ((saveOutDeviceForCancel == null) ? "null" : saveOutDeviceForCancel.getDeviceInfo()));   //NOI18N
-        list_OutDevices.setSelectedValue(saveOutDeviceForCancel, true);
+        list_OutDevices.setSelectedValue(saveOutDeviceForCancel, true); // Will trigger event
 
         btn_test.setEnabled(saveOutDeviceForCancel != null);
 
-        loadInProgress = false;
-
     }
 
-    public void cancel()
-    {
-        openOutDevice(saveOutDeviceForCancel);
-    }
-
-    @Override
-    public void propertyChange(PropertyChangeEvent evt)
-    {
-
-        if (evt.getSource() == MultiSynthManager.getInstance())
-        {
-            if (evt.getPropertyName().equals(MultiSynthManager.PROP_LOADED_MULTISYNTH_LIST))
-            {
-                if (evt.getNewValue() != null)
-                {
-                    // A new MultiSynth was added
-                    assert evt.getOldValue() == null;
-                    comboModel.addMultiSynth((MultiSynth) evt.getNewValue());
-                    updateMapDeviceSynth();
-
-                } else if (evt.getOldValue() != null)
-                {
-                    // A MultiSynth was removed
-                    assert evt.getNewValue() == null;
-                    comboModel.removeMultiSynth((MultiSynth) evt.getOldValue());
-                }
-            }
-        } else if (editedOutputSynth != null && evt.getSource() == editedOutputSynth.getUserSettings())
-        {
-            if (evt.getPropertyName().equals(UserSettings.PROP_AUDIOLATENCY))
-            {
-                spn_audioLatency.setValue(evt.getNewValue());
-            } else if (evt.getPropertyName().equals(UserSettings.PROP_SENDMODEONUPONSTARTUP))
-            {
-                combo_sendMessageUponPlay.setSelectedItem(evt.getNewValue());
-            }
-        }
-    }
-
-    // ===================================================================================================================
-    // Private methods
-    // ===================================================================================================================
-    /**
-     * Set the currently edited OutputSynth.
-     *
-     * @param outSynth
-     */
-    private void setEditedOutputSynth(OutputSynth outSynth)
-    {
-        if (editedOutputSynth != null)
-        {
-            editedOutputSynth.getUserSettings().removePropertyChangeListener(this);
-        }
-
-        editedOutputSynth = outSynth;
-
-        Utilities.setRecursiveEnabled(pnl_outputSynth != null, pnl_outputSynth);
-
-        if (editedOutputSynth != null)
-        {
-            editedOutputSynth.getUserSettings().addPropertyChangeListener(this);        // Register for changes
-
-            // Update UI
-            MultiSynth mSynth = editedOutputSynth.getMultiSynth();
-            comboModel.setSelectedItem(mSynth);
-            spn_audioLatency.setValue(editedOutputSynth.getUserSettings().getAudioLatency());
-            combo_sendMessageUponPlay.setSelectedItem(editedOutputSynth.getUserSettings().getSendModeOnUponPlay());
-        }
-    }
-
-    /**
-     * Update mapDeviceSynth to reflect the available OUT MidiDevices and the available MultiSynths.
-     */
-    private void updateMapDeviceSynth()
-    {
-        // Make sure there is an OutputSynth for all current OUT MidiDevices, and that MultiSynthManager is up-to-date
-        var osm = OutputSynthManager.getInstance();
-        osm.refresh();
-
-        var jms = JJazzMidiSystem.getInstance();
-        var mdOuts = jms.getOutDeviceList();
-        var msm = MultiSynthManager.getInstance();
-
-        // Create an OutputSynth for each MidiDeviceOUT-MutiSynth pair
-        for (var mdOut : mdOuts)
-        {
-            var mdOutSynth = osm.getOutputSynth(mdOut.getDeviceInfo().getName());   // The default OutputSynth for mdOut
-            for (var mSynth : msm.getMultiSynths(true, true))
-            {
-                var mdsKey = new MidiDeviceSynth(mdOut.getDeviceInfo().getName(), mSynth);
-                var outSynth = (mSynth == mdOutSynth.getMultiSynth()) ? mdOutSynth : new OutputSynth(mSynth);
-                mapDeviceSynth.putIfAbsent(mdsKey, outSynth);
-            }
-        }
-    }
 
     void store()
     {
@@ -238,6 +148,149 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
         {
             Analytics.setProperties(Analytics.buildMap("Midi Out", outDevice.getDeviceInfo().getName()));
         }
+    }
+
+
+    public void cancel()
+    {
+        openOutDevice(saveOutDeviceForCancel);
+    }
+
+    @Override
+    public void propertyChange(PropertyChangeEvent evt)
+    {
+
+        if (evt.getSource() == MultiSynthManager.getInstance())
+        {
+            if (evt.getPropertyName().equals(MultiSynthManager.PROP_FILE_BASED_MULTISYNTH_LIST))
+            {
+                if (evt.getNewValue() != null)
+                {
+                    // A new MultiSynth was added
+                    assert evt.getOldValue() == null;
+                    comboModel.addMultiSynth((MultiSynth) evt.getNewValue());
+                    updateMapDeviceSynth();
+
+                } else if (evt.getOldValue() != null)
+                {
+                    // A MultiSynth was removed
+                    assert evt.getNewValue() == null;
+                    comboModel.removeMultiSynth((MultiSynth) evt.getOldValue());
+                }
+            }
+        } else if (editedOutputSynth != null && evt.getSource() == editedOutputSynth.getUserSettings())
+        {
+            if (evt.getPropertyName().equals(UserSettings.PROP_AUDIO_LATENCY))
+            {
+                spn_audioLatency.setValue(evt.getNewValue());
+            } else if (evt.getPropertyName().equals(UserSettings.PROP_SEND_MODE_ON_UPON_PLAY))
+            {
+                combo_sendMessageUponPlay.setSelectedItem(evt.getNewValue());
+            }
+        }
+    }
+
+    // ===================================================================================================================
+    // Private methods
+    // ===================================================================================================================
+    /**
+     * Set the currently edited OutputSynth.
+     *
+     * @param outSynth
+     */
+    private void setEditedOutputSynth(OutputSynth outSynth)
+    {
+        if (editedOutputSynth == outSynth)
+        {
+            return;
+        }
+
+        if (editedOutputSynth != null)
+        {
+            editedOutputSynth.getUserSettings().removePropertyChangeListener(this);
+        }
+
+        editedOutputSynth = outSynth;
+
+
+        Utilities.setRecursiveEnabled(editedOutputSynth != null, pnl_outputSynth);
+
+
+        if (editedOutputSynth != null)
+        {
+            editedOutputSynth.getUserSettings().addPropertyChangeListener(this);        // Register for changes
+
+            // Update UI
+            MultiSynth mSynth = editedOutputSynth.getMultiSynth();
+            if (combo_multiSynth.getSelectedItem() != mSynth)
+            {
+                combo_multiSynth.setSelectedItem(mSynth);
+            }
+            spn_audioLatency.setValue(editedOutputSynth.getUserSettings().getAudioLatency());
+            combo_sendMessageUponPlay.setSelectedItem(editedOutputSynth.getUserSettings().getSendModeOnUponPlay());
+        }
+    }
+
+    /**
+     * Update mapDeviceSynth to reflect the available OUT MidiDevices and the available MultiSynths.
+     */
+    private void updateMapDeviceSynth()
+    {
+        // Make sure there is an OutputSynth for all current OUT MidiDevices, and that MultiSynthManager is up-to-date
+        var osm = OutputSynthManager.getInstance();
+        osm.refresh();
+
+
+        // Get the updated list of MidiDevices
+        var mdOuts = list_OutDevices.getOutDevices();
+
+
+        // Make sure there is an OutputSynth for each MidiDeviceOUT-MutiSynth pair
+        var msm = MultiSynthManager.getInstance();
+        for (var mdOut : mdOuts)
+        {
+            var mdDefaultOutSynth = osm.getOutputSynth(mdOut.getDeviceInfo().getName());       // The current default OutputSynth for mdOut
+
+
+            List<OutputSynth> outSynthList = getNewBuiltinOutputSynths();
+            for (var outSynth : outSynthList)
+            {
+                // Add each new OutputSynth if not already done 
+                // Note that 2 MultiSynths are equal if they have the same list of MidiSynths.
+                var multiSynth = outSynth.getMultiSynth();
+                var mdsKey = new MidiDeviceSynth(mdOut.getDeviceInfo().getName(), multiSynth);
+                var outSynth2 = (multiSynth == mdDefaultOutSynth.getMultiSynth()) ? mdDefaultOutSynth : outSynth;
+                mapDeviceSynth.putIfAbsent(mdsKey, outSynth2);
+            }
+
+
+            for (var multiSynth : msm.getMultiSynths(false, true))
+            {
+                // Add each new OutputSynth if not already done 
+                // Note that 2 MultiSynths are equal if they have the same list of MidiSynths.                
+                var mdsKey = new MidiDeviceSynth(mdOut.getDeviceInfo().getName(), multiSynth);
+                var outSynth = (multiSynth == mdDefaultOutSynth.getMultiSynth()) ? mdDefaultOutSynth : new OutputSynth(multiSynth);
+                mapDeviceSynth.putIfAbsent(mdsKey, outSynth);
+            }
+        }
+    }
+
+    /**
+     * Get a list of builtin OutputSynths to show for each OUT MidiDevice.
+     *
+     * @return
+     */
+    private List<OutputSynth> getNewBuiltinOutputSynths()
+    {
+        // Create OutputSynths for the builtin synths
+        var osm = OutputSynthManager.getInstance();
+        var outSynthList = Arrays.asList(osm.getNewGMOuputSynth(),
+                osm.getNewGM2OuputSynth(),
+                osm.getNewXGOuputSynth(),
+                osm.getNewGSOuputSynth(),
+                osm.getNewYamahaRefOuputSynth(),
+                osm.getNewJazzLabSoundFontXGOuputSynth());
+        return outSynthList;
     }
 
     boolean valid()
@@ -279,6 +332,39 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
         EmbeddedSynth embeddedSynth = EmbeddedSynthProvider.getDefault();
         Predicate<MidiDevice> tester = (embeddedSynth == null) ? md -> true : md -> !md.getDeviceInfo().getName().equals(embeddedSynth.getOutMidiDevice().getDeviceInfo().getName());
         return new MidiOutDeviceList(tester);
+    }
+
+    /**
+     * Propose user to load a custom Instrument definition file (.ins).
+     */
+    private void addCustomMultiSynth()
+    {
+        File f = MultiSynthManager.getInstance().showSelectSynthFileDialog();
+        if (f == null)
+        {
+            return;
+        }
+
+        // Create the new OutputSynth from the file
+        MultiSynth multiSynth;
+        try
+        {
+            multiSynth = new MultiSynth(f);
+        } catch (IOException ex)
+        {
+            NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
+            DialogDisplayer.getDefault().notify(d);
+            return;
+        }
+
+        // Register the new loaded MultiSynth
+        // This will notify our listener to update the comboBox and call updateMapDeviceSynth() to create the related OutputSynth
+        MultiSynthManager.getInstance().addFileBasedMultiSynth(multiSynth);
+        
+        
+        // Select the new multisynth
+        combo_multiSynth.setSelectedItem(multiSynth);
+
     }
 
     /**
@@ -358,7 +444,7 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
         pnl_outputSynth = new javax.swing.JPanel();
         jScrollPane2 = new javax.swing.JScrollPane();
         helpTextArea1 = new org.jjazz.ui.utilities.api.HelpTextArea();
-        cb_multiSynth = new JComboBox(comboModel);
+        combo_multiSynth = new JComboBox(comboModel);
         combo_sendMessageUponPlay = new JComboBox<>(UserSettings.SendModeOnUponPlay.values());
         spn_audioLatency = new org.jjazz.ui.utilities.api.WheelSpinner();
         jLabel2 = new javax.swing.JLabel();
@@ -385,11 +471,12 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
         helpTextArea1.setText(org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.helpTextArea1.text")); // NOI18N
         jScrollPane2.setViewportView(helpTextArea1);
 
-        cb_multiSynth.addActionListener(new java.awt.event.ActionListener()
+        combo_multiSynth.setRenderer(new MultiSynthComboBoxRenderer());
+        combo_multiSynth.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
             {
-                cb_multiSynthActionPerformed(evt);
+                combo_multiSynthActionPerformed(evt);
             }
         });
 
@@ -424,7 +511,7 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
                 .addContainerGap()
                 .addGroup(pnl_outputSynthLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(pnl_outputSynthLayout.createSequentialGroup()
-                        .addComponent(cb_multiSynth, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(combo_multiSynth, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btn_defaultInstruments))
                     .addGroup(pnl_outputSynthLayout.createSequentialGroup()
@@ -446,7 +533,7 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
             .addGroup(pnl_outputSynthLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(pnl_outputSynthLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(cb_multiSynth, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(combo_multiSynth, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btn_defaultInstruments))
                 .addGap(24, 24, 24)
                 .addGroup(pnl_outputSynthLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -612,15 +699,17 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
 
     private void list_OutDevicesValueChanged(javax.swing.event.ListSelectionEvent evt)//GEN-FIRST:event_list_OutDevicesValueChanged
     {//GEN-HEADEREND:event_list_OutDevicesValueChanged
-        if (loadInProgress || evt.getValueIsAdjusting())
+        if (evt.getValueIsAdjusting())
         {
             return;
         }
         MidiDevice md = list_OutDevices.getSelectedValue();
 
         btn_test.setEnabled(md != null);
-        String mdName = md == null ? "" : md.getDeviceInfo().getName();
-        ((TitledBorder) pnl_outputSynth.getBorder()).setTitle(ResUtil.getString(getClass(), "MidiPanel.OutputSynthFor", mdName));
+        String mdName = (md == null) ? "" : md.getDeviceInfo().getName();
+        String friendlyMdName = (md == null) ? "" : JJazzMidiSystem.getInstance().getDeviceFriendlyName(md);
+        ((TitledBorder) pnl_outputSynth.getBorder()).setTitle(ResUtil.getString(getClass(), "MidiPanel.OutputSynthFor", friendlyMdName));
+        pnl_outputSynth.repaint();  // Needed for the title renaming to be visible immediatly
 
         setEditedOutputSynth(md != null ? OutputSynthManager.getInstance().getOutputSynth(mdName) : null);
 
@@ -647,26 +736,34 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
         editedOutputSynth.getUserSettings().setAudioLatency((int) spn_audioLatency.getValue());
     }//GEN-LAST:event_spn_audioLatencyStateChanged
 
-    private void cb_multiSynthActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cb_multiSynthActionPerformed
-    {//GEN-HEADEREND:event_cb_multiSynthActionPerformed
+    private void combo_multiSynthActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_combo_multiSynthActionPerformed
+    {//GEN-HEADEREND:event_combo_multiSynthActionPerformed
         var mdOut = list_OutDevices.getSelectedValue();
         if (mdOut == null)
         {
             // Should not be there as the OutputSynth should be disabled...
             return;
         }
-        MultiSynth mSynth = (MultiSynth) cb_multiSynth.getSelectedItem();
+        MultiSynth mSynth = (MultiSynth) combo_multiSynth.getSelectedItem();
+        if (mSynth == ComboMultiSynthModel.FAKE_MULTISYNTH)
+        {
+            // Special case
+            addCustomMultiSynth();
+            return;
+        }
+
         OutputSynth outSynth = mapDeviceSynth.get(new MidiDeviceSynth(mdOut.getDeviceInfo().getName(), mSynth));
+        OutputSynthManager.getInstance().setOutputSynth(mdOut.getDeviceInfo().getName(), outSynth);
         setEditedOutputSynth(outSynth);
-    }//GEN-LAST:event_cb_multiSynthActionPerformed
+    }//GEN-LAST:event_combo_multiSynthActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_defaultInstruments;
     private javax.swing.JButton btn_refresh;
     private javax.swing.JButton btn_test;
-    private javax.swing.JComboBox<MultiSynth> cb_multiSynth;
     private javax.swing.JCheckBox cb_usejjSynth;
+    private javax.swing.JComboBox<MultiSynth> combo_multiSynth;
     private javax.swing.JComboBox<UserSettings.SendModeOnUponPlay> combo_sendMessageUponPlay;
     private org.jjazz.ui.utilities.api.HelpTextArea helpTextArea1;
     private org.jjazz.ui.utilities.api.HelpTextArea helpTextArea2;
@@ -691,7 +788,7 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
     /**
      * The model for the JComboBox: use all the available MultiSynths + an extra "Add synth from file..."
      */
-    private static class ComboMultiSynthModel extends DefaultComboBoxModel<MultiSynth>
+    private class ComboMultiSynthModel extends DefaultComboBoxModel<MultiSynth>
     {
 
         // A dummy MultiSynth used only to create the extra "Add synth from file..." at the end
@@ -707,7 +804,10 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
         public ComboMultiSynthModel()
         {
             OutputSynthManager.getInstance().refresh();
-            addAll(MultiSynthManager.getInstance().getMultiSynths(true, true));
+            addAll(getNewBuiltinOutputSynths().stream()
+                    .map(outSynth -> outSynth.getMultiSynth())
+                    .toList());
+            addAll(MultiSynthManager.getInstance().getMultiSynths(false, true));
             addElement(FAKE_MULTISYNTH);
         }
 
@@ -722,7 +822,23 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
             assert index > -1;
             removeElementAt(index);
         }
-
-
     }
+
+    class MultiSynthComboBoxRenderer extends DefaultListCellRenderer
+    {
+
+        @Override
+        public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus)
+        {
+            JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+            if (value instanceof MultiSynth multiSynth)
+            {
+                label.setText(multiSynth.getName());
+                int style = (value == ComboMultiSynthModel.FAKE_MULTISYNTH) ? Font.BOLD : Font.PLAIN;
+                label.setFont(label.getFont().deriveFont(style));
+            }
+            return this;
+        }
+    }
+
 }

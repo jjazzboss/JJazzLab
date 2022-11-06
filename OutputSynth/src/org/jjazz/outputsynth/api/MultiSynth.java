@@ -29,7 +29,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.StringJoiner;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.midi.api.DrumKit;
@@ -37,7 +37,6 @@ import org.jjazz.midi.api.Instrument;
 import org.jjazz.midi.api.InstrumentBank;
 import org.jjazz.midi.api.MidiSynth;
 import org.jjazz.midi.api.synths.GMSynth;
-import org.jjazz.midi.api.synths.SynthUtilities;
 import org.jjazz.midi.spi.MidiSynthFileReader;
 import org.jjazz.util.api.ResUtil;
 import org.jjazz.util.api.Utilities;
@@ -120,7 +119,7 @@ public class MultiSynth
     /**
      * Get the name of this MultiSynth.
      * <p>
-     * If loaded from a file, return the file name. Otherwise return the first MidiSynth's name.
+     * If loaded from a file, return file.getName(). Otherwise return the first MidiSynth's name.
      *
      * @return
      */
@@ -255,6 +254,34 @@ public class MultiSynth
         return ins;
     }
 
+    @Override
+    public int hashCode()
+    {
+        int hash = 3;
+        hash = 67 * hash + Objects.hashCode(this.midiSynths);
+        hash = 67 * hash + Objects.hashCode(this.file);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+        if (this == obj)
+        {
+            return true;
+        }
+        if (obj == null)
+        {
+            return false;
+        }
+        if (getClass() != obj.getClass())
+        {
+            return false;
+        }
+        final MultiSynth other = (MultiSynth) obj;
+        return Objects.equals(this.midiSynths, other.midiSynths);
+    }
+
 
     @Override
     public String toString()
@@ -265,35 +292,27 @@ public class MultiSynth
     /**
      * Save this MultiSynth as a string so that it can be retrieved by loadFromString().
      * <p>
-     * Use the file name if this MultiSynth came from a file. Otherwise use the list of MidiSynth names, which should be standard
-     * synths (eg GMSynth, XGSynth, etc.).
+     * Use the "FILE=file_name if this MultiSynth came from a file, otherwise just use its name.
      *
      * @return
      * @see loadFromString(String)
      */
     public String saveAsString()
     {
-        if (file != null)
-        {
-            return "FILE=" + file.getAbsolutePath();
-        }
-
-        StringJoiner joiner = new StringJoiner(";");
-        midiSynths.forEach(ms -> joiner.add(ms.getName()));
-        return joiner.toString();
+        return (file != null) ? "FILE=" + file.getAbsolutePath() : getName();
     }
 
     /**
      * Get the MultiSynth corresponding to the string produced by saveAsString().
      * <p>
      * <p>
-     * The loaded MultiSynth will be marked as "loaded" in the MultiSynthManager.
+     * If MultiSynth comes from a file, it will be added as file-based in the MultiSynthManager.
      *
      * @param s
-     * @return
+     * @return Can't be null
      * @throws java.io.IOException If the MultiSynth could not be retrieved from the string
      * @see saveAsString()
-     * @see MultiSynthManager#addLoadedMultiSynth(org.jjazz.outputsynth.api.MultiSynth)
+     * @see MultiSynthManager#addFileBasedMultiSynth(org.jjazz.outputsynth.api.MultiSynth)
      *
      */
     static public MultiSynth loadFromString(String s) throws IOException
@@ -301,44 +320,37 @@ public class MultiSynth
         Preconditions.checkNotNull(s);
         s = s.trim();
 
+        var msm = MultiSynthManager.getInstance();
+        MultiSynth res;
+
         if (s.startsWith("FILE="))
         {
             if (s.length() <= 5)
             {
                 throw new IOException("Invalid string=" + s);
             }
-            File f = new File(s.substring(5));
-            return new MultiSynth(f);
-        }
+            File f = new File(s.substring(5).trim());
 
 
-        // This is a list of standard MidiSynth
-        var strs = s.split(";");
-        if (strs.length == 0)
-        {
-            throw new IOException("Invalid string=" + s);
-        }
-
-        List<MidiSynth> synths = new ArrayList<>();
-        for (String synthName : strs)
-        {
-            MidiSynth synth = SynthUtilities.getStandardSynth(synthName);
-            if (synth == null)
+            // Create the MultiSynth unless it was already loaded before
+            res = msm.getMultiSynth(f.getName());
+            if (res == null)
             {
-                LOGGER.warning("loadFromString() non-standard synth name found=" + synthName + ", ignored. s=" + s);
-            } else
-            {
-                synths.add(synth);
+                res = new MultiSynth(f);            // throw IOException
+                MultiSynthManager.getInstance().addFileBasedMultiSynth(res);
             }
-        }
 
-        if (synths.isEmpty())
+            
+        } else
         {
-            throw new IOException("No valid standard MidiSynths found in string=" + s);
+            res = MultiSynthManager.getInstance().getMultiSynth(s);
         }
 
-        var res = new MultiSynth(synths);
-        MultiSynthManager.getInstance().addLoadedMultiSynth(res);
+        if (res == null)
+        {
+            throw new IOException("Can't retrieve MultiSynth from string s=" + s);
+        }
+
 
         return res;
     }

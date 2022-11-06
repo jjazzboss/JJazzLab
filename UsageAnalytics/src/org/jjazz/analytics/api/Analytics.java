@@ -301,7 +301,7 @@ public class Analytics
      */
     static public List<String> toStrList(Collection<?> c)
     {
-        return c.stream().map(o -> o.toString()).collect(Collectors.toList());
+        return c.stream().map(o -> o.toString()).toList();
     }
 
     /**

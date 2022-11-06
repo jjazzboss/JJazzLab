@@ -441,7 +441,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         List<RhythmInfo> rhythms = getRhythms(ts)
                 .stream()
                 .filter(ri -> !ri.isAdaptedRhythm())
-                .collect(Collectors.toList());
+                .toList();
 
         assert rhythms.size() > 0 : " mapRpRhythms=" + this.mapRpRhythms;   //NOI18N
 

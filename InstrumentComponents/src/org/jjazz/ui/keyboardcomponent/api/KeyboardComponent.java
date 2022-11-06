@@ -169,12 +169,12 @@ public class KeyboardComponent extends JPanel
 
     public List<PianoKey> getBlackKeys()
     {
-        return pianoKeys.stream().filter(pk -> !pk.isWhiteKey()).collect(Collectors.toList());
+        return pianoKeys.stream().filter(pk -> !pk.isWhiteKey()).toList();
     }
 
     public List<PianoKey> getWhiteKeys()
     {
-        return pianoKeys.stream().filter(pk -> pk.isWhiteKey()).collect(Collectors.toList());
+        return pianoKeys.stream().filter(pk -> pk.isWhiteKey()).toList();
     }
 
     /**

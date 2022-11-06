@@ -141,7 +141,7 @@ public class SongChordSequence extends ChordSequence
     {
         return song.getSongStructure().getSongParts().stream()
                 .filter(spt -> !getSptBarRange(spt).equals(IntRange.EMPTY_RANGE))
-                .collect(Collectors.toList());
+                .toList();
     }
 
     /**

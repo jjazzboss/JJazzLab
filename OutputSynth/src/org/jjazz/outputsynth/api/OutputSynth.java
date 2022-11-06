@@ -339,7 +339,12 @@ public class OutputSynth
 
     }
 
-       
+
+    @Override
+    public String toString()
+    {
+        return "OutputSynth-" + multiSynth.getName();
+    }
 
     // ========================================================================================
     // Private methods
@@ -358,8 +363,8 @@ public class OutputSynth
          * This property change event if fired each time GMremapTable is changed.
          */
         public static final String PROP_GM_REMAP_TABLE = "GMremapTable";
-        public static final String PROP_AUDIOLATENCY = "AudioLatency";
-        public static final String PROP_SENDMODEONUPONSTARTUP = "sendModeOnUponStartup";
+        public static final String PROP_AUDIO_LATENCY = "AudioLatency";
+        public static final String PROP_SEND_MODE_ON_UPON_PLAY = "sendModeOnUponPlay";
 
 
         public enum SendModeOnUponPlay
@@ -384,7 +389,17 @@ public class OutputSynth
             this.remapTable.addPropertyChangeListener(e -> pcs.firePropertyChange(PROP_GM_REMAP_TABLE, false, true));
             this.sendModeOnUponPlay = SendModeOnUponPlay.OFF;
             this.userInstrument = multiSynth.getMidiSynths().get(0).getInstruments().get(0);
-            this.audioLatency = 50;
+            this.audioLatency = 20;
+        }
+
+        /**
+         * The enclosing OutputSynth.
+         *
+         * @return
+         */
+        public OutputSynth getOutputSynth()
+        {
+            return OutputSynth.this;
         }
 
 
@@ -407,7 +422,7 @@ public class OutputSynth
         {
             int oldAudioLatency = this.audioLatency;
             this.audioLatency = audioLatency;
-            pcs.firePropertyChange(PROP_AUDIOLATENCY, oldAudioLatency, audioLatency);
+            pcs.firePropertyChange(PROP_AUDIO_LATENCY, oldAudioLatency, audioLatency);
         }
 
 
@@ -527,9 +542,9 @@ public class OutputSynth
                 throw new IOException(msg);
             }
 
-            audioLatency = latency;
-            sendModeOnUponPlay = mode;
-            userInstrument = userIns;
+            setAudioLatency(latency);
+            setSendModeOnUponPlay(mode);
+            setUserInstrument(userIns);
             remapTable.set(remap);
             pcs.firePropertyChange(PROP_GM_REMAP_TABLE, false, true);
 
@@ -554,7 +569,7 @@ public class OutputSynth
         {
             SendModeOnUponPlay oldSendModeOnUponStartup = this.sendModeOnUponPlay;
             this.sendModeOnUponPlay = sendModeOnUponPlay;
-            pcs.firePropertyChange(PROP_SENDMODEONUPONSTARTUP, oldSendModeOnUponStartup, sendModeOnUponPlay);
+            pcs.firePropertyChange(PROP_SEND_MODE_ON_UPON_PLAY, oldSendModeOnUponStartup, sendModeOnUponPlay);
         }
 
 
@@ -579,6 +594,12 @@ public class OutputSynth
                 default ->
                     throw new IllegalStateException("sendModeOnUponPlay=" + sendModeOnUponPlay);   //NOI18N
             }
+        }
+
+        @Override
+        public String toString()
+        {
+            return "UserSettings=" + saveAsString();
         }
 
         /**

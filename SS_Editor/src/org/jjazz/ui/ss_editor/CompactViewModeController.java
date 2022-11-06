@@ -142,14 +142,14 @@ public class CompactViewModeController implements PropertyChangeListener, SgsCha
                 {
                     rhythms.addAll(e.getSongParts().stream()
                             .map(spt -> spt.getRhythm())
-                            .collect(Collectors.toList()));
+                            .toList());
 
                 } else if (e instanceof SptReplacedEvent)
                 {
                     SptReplacedEvent re = (SptReplacedEvent) e;
                     rhythms.addAll(re.getNewSpts().stream()
                             .map(spt -> spt.getRhythm())
-                            .collect(Collectors.toList()));
+                            .toList());
                 }
 
                 writeVisibleRPsInCompactModeIfRequired(rhythms);

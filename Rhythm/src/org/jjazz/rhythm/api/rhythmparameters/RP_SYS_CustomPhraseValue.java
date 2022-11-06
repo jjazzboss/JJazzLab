@@ -12,7 +12,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
@@ -133,7 +132,7 @@ public class RP_SYS_CustomPhraseValue
         List<String> strs = mapRvSizedPhrase.keySet().stream()
                 .sorted(Comparator.comparingInt(RhythmVoice::getPreferredChannel))
                 .map(rv -> rv.getName())
-                .collect(Collectors.toList());
+                .toList();
         return Joiner.on(", ").join(strs);
     }
 

@@ -202,7 +202,7 @@ public class PasteRpValue extends AbstractAction implements ContextAwareAction, 
             res = selection.getSelectedSongPartParameters().stream()
                     .filter(spp -> spp.getRp().isCompatibleWith(rp))
                     .map(spp -> spp.getSpt())
-                    .collect(Collectors.toList());
+                    .toList();
         } else
         {
             res = new ArrayList<>();
