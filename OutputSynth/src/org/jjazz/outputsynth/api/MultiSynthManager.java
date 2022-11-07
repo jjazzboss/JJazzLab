@@ -169,16 +169,23 @@ public class MultiSynthManager
     /**
      * Add the specified MultiSynth as a file-based MultiSynth.
      * <p>
-     * @param multiSynth
+     *
+     * @param multiSynth Must have getFile() returns non-null.
+     * @return True if multiSynth was successfully added, false if multiSynth was already referenced by the MultiSynthManager.
      */
 
-    public void addFileBasedMultiSynth(MultiSynth multiSynth)
+    public boolean addFileBasedMultiSynth(MultiSynth multiSynth)
     {
-        if (!fileBasedMultiSynths.contains(multiSynth))
+        Preconditions.checkArgument(multiSynth.getFile() != null);
+
+        if (getMultiSynth(multiSynth.getName()) == null)
         {
             fileBasedMultiSynths.add(multiSynth);
             pcs.firePropertyChange(PROP_FILE_BASED_MULTISYNTH_LIST, null, multiSynth);
+            return true;
         }
+        
+        return false;
     }
 
     /**

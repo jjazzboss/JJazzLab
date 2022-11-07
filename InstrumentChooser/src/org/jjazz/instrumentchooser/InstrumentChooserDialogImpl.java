@@ -44,18 +44,17 @@ import javax.swing.table.TableRowSorter;
 import org.jjazz.instrumentchooser.spi.InstrumentChooserDialog;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.midi.api.Instrument;
-import org.jjazz.midi.api.InstrumentBank;
 import org.jjazz.midi.api.JJazzMidiSystem;
 import org.jjazz.midi.api.MidiConst;
-import org.jjazz.midi.api.MidiSynth;
 import org.jjazz.midi.api.synths.GM1Instrument;
 import org.jjazz.midi.api.synths.GMSynth;
 import org.jjazz.midi.api.ui.InstrumentTable;
-import org.jjazz.musiccontrol.api.TestPlayer;
+import org.jjazz.musiccontrol.TestPlayerImpl;
 import org.jjazz.outputsynth.api.GMRemapTable;
 import org.jjazz.outputsynth.api.OutputSynth;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.MusicGenerationException;
+import org.jjazz.testplayerservice.spi.TestPlayer;
 import org.jjazz.uisettings.api.GeneralUISettings;
 import org.jjazz.util.api.ResUtil;
 import org.jjazz.util.api.Utilities;
@@ -506,7 +505,7 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
             }
         });
 
-        lbl_Filtered.setForeground(new java.awt.Color(153, 0, 0));
+        lbl_Filtered.setForeground(new java.awt.Color(255, 51, 51));
         org.openide.awt.Mnemonics.setLocalizedText(lbl_Filtered, "(FILTERED)"); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(lbl_recIns, org.openide.util.NbBundle.getMessage(InstrumentChooserDialogImpl.class, "InstrumentChooserDialogImpl.lbl_recIns.text")); // NOI18N
@@ -663,7 +662,7 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
             }
         };
         // Send MIDI messages for the selected instrument             
-        TestPlayer tp = TestPlayer.getInstance();
+        TestPlayer tp = TestPlayer.getDefault();
         try
         {
             final int TRANSPOSE = ins.isDrumKit() ? -24 : 0;

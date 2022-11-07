@@ -26,8 +26,8 @@ import javax.sound.midi.MidiDevice;
 import javax.sound.midi.MidiUnavailableException;
 import javax.swing.JPanel;
 import org.jjazz.midi.api.JJazzMidiSystem;
-import org.jjazz.musiccontrol.api.TestPlayer;
 import org.jjazz.rhythm.api.MusicGenerationException;
+import org.jjazz.testplayerservice.spi.TestPlayer;
 import org.jjazz.util.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -97,7 +97,7 @@ public final class MidiWizardVisualPanel4 extends JPanel
             }
         };
 
-        TestPlayer tp = TestPlayer.getInstance();
+        TestPlayer tp = TestPlayer.getDefault();
         try
         {
             tp.playTestNotes(channel, -1, 0, endAction);

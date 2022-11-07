@@ -130,7 +130,7 @@ public class MultiSynth
 
 
     /**
-     * Get the associated MidiSynth definition file (.ins).
+     * Get the MidiSynth definition file (.ins) which was used to create this MultiSynth instance.
      *
      * @return Null if this instance was not created using an instrument definition file.
      * @see #MultiSynth(java.io.File)
@@ -218,6 +218,8 @@ public class MultiSynth
         return res;
     }
 
+    
+   
     /**
      * Get all the non Drums/Percussion instruments from this MultiSynth.
      *
@@ -233,7 +235,21 @@ public class MultiSynth
         }
         return res;
     }
+    /**
+     * Get all the instruments from this MultiSynth.
+     *
+     * @return 
+     */
 
+    public List<Instrument> getInstruments()
+    {
+        List<Instrument> res = new ArrayList<>();
+        for (var synth : midiSynths)
+        {
+            res.addAll(synth.getInstruments());
+        }
+        return res;
+    }
     /**
      * Return the first drums instrument found.
      *

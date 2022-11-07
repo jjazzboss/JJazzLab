@@ -63,7 +63,23 @@
                     </run-dependency>
                 </dependency>
                 <dependency>
+                    <code-name-base>org.jjazz.testplayerservice.spi</code-name-base>
+                    <build-prerequisite/>
+                    <compile-dependency/>
+                    <run-dependency>
+                        <specification-version>1.0</specification-version>
+                    </run-dependency>
+                </dependency>
+                <dependency>
                     <code-name-base>org.jjazz.ui.utilities</code-name-base>
+                    <build-prerequisite/>
+                    <compile-dependency/>
+                    <run-dependency>
+                        <specification-version>1.0</specification-version>
+                    </run-dependency>
+                </dependency>
+                <dependency>
+                    <code-name-base>org.jjazz.uisettings</code-name-base>
                     <build-prerequisite/>
                     <compile-dependency/>
                     <run-dependency>
@@ -110,6 +126,14 @@
                     <run-dependency>
                         <release-version>1</release-version>
                         <specification-version>1.52</specification-version>
+                    </run-dependency>
+                </dependency>
+                <dependency>
+                    <code-name-base>org.openide.awt</code-name-base>
+                    <build-prerequisite/>
+                    <compile-dependency/>
+                    <run-dependency>
+                        <specification-version>7.85</specification-version>
                     </run-dependency>
                 </dependency>
                 <dependency>
@@ -164,6 +188,7 @@
             </test-dependencies>
             <public-packages>
                 <package>org.jjazz.outputsynth.api</package>
+                <package>org.jjazz.outputsynth.api.ui</package>
             </public-packages>
         </data>
     </configuration>

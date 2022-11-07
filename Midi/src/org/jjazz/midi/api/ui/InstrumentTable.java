@@ -45,8 +45,8 @@ import org.jjazz.midi.api.synths.GM1Instrument;
 public class InstrumentTable extends JTable
 {
 
-    private Model tblModel = new Model();
-    private List<Integer> hiddenColumnIndexes = new ArrayList<Integer>();
+    private final Model tblModel = new Model();
+    private List<Integer> hiddenColumnIndexes = new ArrayList<>();
     private static final Logger LOGGER = Logger.getLogger(InstrumentTable.class.getSimpleName());
 
     /**
@@ -146,7 +146,7 @@ public class InstrumentTable extends JTable
             }
             this.instruments = instruments;
             fireTableDataChanged();
-            // adjustWidths();
+            adjustWidths();            
         }
 
         List<? extends Instrument> getInstruments()

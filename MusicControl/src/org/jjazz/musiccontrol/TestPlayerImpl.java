@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.musiccontrol.api;
+package org.jjazz.musiccontrol;
 
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeListener;
@@ -30,38 +30,25 @@ import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.Sequence;
 import javax.sound.midi.Track;
 import org.jjazz.midi.api.MidiConst;
+import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.playbacksession.EndOfPlaybackActionProvider;
 import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
+import org.jjazz.testplayerservice.spi.TestPlayer;
 import org.jjazz.util.api.IntRange;
+import org.openide.util.lookup.ServiceProvider;
 
 /**
- * Play test notes.
+ * Implementation of the TestPlayer service.
  */
-public class TestPlayer
+@ServiceProvider(service = TestPlayer.class)
+public class TestPlayerImpl implements TestPlayer
 {
 
-    private static TestPlayer INSTANCE;
-    private static final Logger LOGGER = Logger.getLogger(TestPlayer.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(TestPlayerImpl.class.getSimpleName());
 
-    public static TestPlayer getInstance()
-    {
-        synchronized (TestPlayer.class)
-        {
-            if (INSTANCE == null)
-            {
-                INSTANCE = new TestPlayer();
-            }
-        }
-        return INSTANCE;
-    }
-
-    private TestPlayer()
-    {
-
-    }
 
     /**
      * Send a short sequence of Midi notes on specified channel.
@@ -70,11 +57,12 @@ public class TestPlayer
      * series of notes with same pitch=fixPitch.
      *
      * @param channel
-     * @param fixPitch -1 means not used.
+     * @param fixPitch  -1 means not used.
      * @param transpose Transposition value in semi-tons to be added to test notes. Ignored if fixPitch&gt;=0.
      * @param endAction Called when playback is over. Can be null.
      * @throws org.jjazz.rhythm.api.MusicGenerationException If a problem occurred.
      */
+    @Override
     public void playTestNotes(int channel, int fixPitch, int transpose, final Runnable endAction) throws MusicGenerationException
     {
         Phrase p = new Phrase(channel);
@@ -96,6 +84,7 @@ public class TestPlayer
      * @param endAction Called when sequence is over. Can be null.
      * @throws org.jjazz.rhythm.api.MusicGenerationException If a problem occurred.
      */
+    @Override
     public void playTestNotes(Phrase phrase, final Runnable endAction) throws MusicGenerationException
     {
         if (phrase == null)

@@ -27,12 +27,13 @@ import javax.swing.JComboBox;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.musiccontrol.api.PlaybackSettings.PrecountMode;
-import org.jjazz.musiccontrol.api.TestPlayer;
+import org.jjazz.musiccontrol.TestPlayerImpl;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.jjazz.phrase.api.Phrase;
+import org.jjazz.testplayerservice.spi.TestPlayer;
 
 final class ClickPanel extends javax.swing.JPanel
 {
@@ -312,7 +313,7 @@ final class ClickPanel extends javax.swing.JPanel
            p.addOrdered(new NoteEvent(pitch, 0.25f, vel, i * 0.5f));
        }
 
-       TestPlayer tp = TestPlayer.getInstance();
+       TestPlayer tp = TestPlayer.getDefault();
        try
        {
            tp.playTestNotes(p, endAction);

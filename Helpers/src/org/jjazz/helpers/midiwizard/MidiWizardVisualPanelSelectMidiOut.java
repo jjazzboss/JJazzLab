@@ -30,7 +30,8 @@ import org.jjazz.rhythm.api.MusicGenerationException;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.jjazz.midi.api.ui.MidiOutDeviceList;
-import org.jjazz.musiccontrol.api.TestPlayer;
+import org.jjazz.musiccontrol.TestPlayerImpl;
+import org.jjazz.testplayerservice.spi.TestPlayer;
 import org.jjazz.util.api.ResUtil;
 
 public final class MidiWizardVisualPanelSelectMidiOut extends JPanel
@@ -126,7 +127,7 @@ public final class MidiWizardVisualPanelSelectMidiOut extends JPanel
             }
         };
 
-        TestPlayer tp = TestPlayer.getInstance();
+        TestPlayer tp = TestPlayer.getDefault();
         try
         {
             tp.playTestNotes(0, -1, 0, endAction);

@@ -1,0 +1,6 @@
+Manifest-Version: 1.0
+AutoUpdate-Show-In-Client: true
+OpenIDE-Module: org.jjazz.testplayerservice.spi
+OpenIDE-Module-Localizing-Bundle: org/jjazz/testplayerservice/spi/Bundle.properties
+OpenIDE-Module-Specification-Version: 1.0
+

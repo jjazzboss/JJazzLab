@@ -33,8 +33,9 @@ import org.jjazz.midi.api.synths.GM2Synth;
 import org.jjazz.midi.api.synths.GMSynth;
 import org.jjazz.midi.api.synths.GSSynth;
 import org.jjazz.midi.api.synths.XGSynth;
-import org.jjazz.musiccontrol.api.TestPlayer;
+import org.jjazz.musiccontrol.TestPlayerImpl;
 import org.jjazz.rhythm.api.MusicGenerationException;
+import org.jjazz.testplayerservice.spi.TestPlayer;
 import org.jjazz.util.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -198,7 +199,7 @@ public final class MidiWizardVisualPanel5 extends JPanel
             }
         };
 
-        TestPlayer tp = TestPlayer.getInstance();
+        TestPlayer tp = TestPlayer.getDefault();
         try
         {
             tp.playTestNotes(channel, -1, transpose, endAction);
