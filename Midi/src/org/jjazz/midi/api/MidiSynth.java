@@ -24,15 +24,24 @@ package org.jjazz.midi.api;
 
 import com.google.common.base.Preconditions;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
 import org.jjazz.midi.api.synths.GM1Instrument;
 import org.openide.util.Lookup;
 import java.util.function.Predicate;
+import java.util.logging.Level;
+import org.jjazz.midi.spi.MidiSynthFileReader;
+import org.jjazz.util.api.ResUtil;
+import org.jjazz.util.api.Utilities;
 
 /**
  * A MidiSynth is a collection of InstrumentBanks.
+ * <p>
+ * A MidiSynth contains at least one InstrumentBank with one instrument.
  * <p>
  * You can optionnaly specify if this MidiSynth is GM/GM2/XG/GS compatible, and indicate the base MidiAddress of the GM bank.
  */
@@ -62,11 +71,11 @@ public class MidiSynth
 
 
         /**
-         * Search for a MidiSynth instance from the specified name and file name.
+         * Search for a MidiSynth instance from the specified parameters.
          *
          * @param synthName The MidiSynth name containing the bank. Can't be null.
          * @param synthFile The file associated to synthName. Can be null if no file. If synthFile has no parent directory, search
-         *                  the default directory for output synth config files.
+         *                  the default directory for MidiSynth definition files (e.g. .ins files).
          * @return Null if no MidiSynth found
          */
         MidiSynth getMidiSynth(String synthName, File synthFile);
@@ -75,7 +84,7 @@ public class MidiSynth
 
     private final static MidiAddress DEFAULT_GM_BANK_ADDRESS = new MidiAddress(0, 0, 0, MidiAddress.BankSelectMethod.MSB_LSB);
     private File file;
-    ArrayList<InstrumentBank<?>> banks = new ArrayList<>();
+    private final ArrayList<InstrumentBank<?>> banks = new ArrayList<>();
     private String name;
     private String manufacturer;
     private boolean isGMcompatible, isGM2compatible, isXGcompatible, isGScompatible;
@@ -83,9 +92,8 @@ public class MidiSynth
     private static final Logger LOGGER = Logger.getLogger(MidiSynth.class.getSimpleName());
 
     /**
-     * Create an empty MidiSynth.
+     * Create an empty MidiSynth with no Midi standard compatibility, and no associated file.
      * <p>
-     * Created MidiSynth is not set to be compatible with GM/GM2/XG/GS standard.
      *
      * @param name         If name contains comas (',') they are removed.
      * @param manufacturer
@@ -99,6 +107,96 @@ public class MidiSynth
         this.name = name.replaceAll(",", "");
         this.manufacturer = manufacturer;
         this.gmBankBaseMidiAddress = DEFAULT_GM_BANK_ADDRESS;
+        this.file = null;
+    }
+
+    /**
+     * The method relies only on the name and file fields.
+     *
+     * @return
+     */
+    @Override
+    public int hashCode()
+    {
+        int hash = 7;
+        hash = 47 * hash + Objects.hashCode(this.file);
+        hash = 47 * hash + Objects.hashCode(this.name);
+        return hash;
+    }
+
+    /**
+     * The method relies only on the name and file fields.
+     *
+     * @return
+     */
+    @Override
+    public boolean equals(Object obj)
+    {
+        if (this == obj)
+        {
+            return true;
+        }
+        if (obj == null)
+        {
+            return false;
+        }
+        if (getClass() != obj.getClass())
+        {
+            return false;
+        }
+        final MidiSynth other = (MidiSynth) obj;
+        if (!Objects.equals(this.name, other.name))
+        {
+            return false;
+        }
+        return Objects.equals(this.file, other.file);
+    }
+
+
+    /**
+     * Return the first non-empty MidiSynth found in the specified instrument definition file (.ins).
+     * <p>
+     *
+     * @param file
+     * @return A MidiSynth associated to the input file
+     * @throws java.io.IOException If file access, or if no valid (non-empty) MidiSynth found in the file.
+     * @see #getFile()
+     */
+    static public MidiSynth loadFromFile(File file) throws IOException
+    {
+        Preconditions.checkNotNull(file);
+
+
+        var reader = MidiSynthFileReader.getReader(Utilities.getExtension(file.getName()));
+        if (reader == null)
+        {
+            String msg = ResUtil.getString(MidiSynth.class, "ERR_NoSynthReaderForFile", file.getAbsolutePath());
+            LOGGER.log(Level.WARNING, "loadFromFile(file) " + msg);   //NOI18N
+            throw new IOException(msg);
+        }
+
+        // Read the file
+        FileInputStream fis = new FileInputStream(file);
+        var synths = reader.readSynthsFromStream(fis, file);    // Can raise exception
+
+
+        // Find the 1st non empty synth
+        MidiSynth res = synths.stream()
+                .filter(s -> s.getNbInstruments() > 0)
+                .findAny()
+                .orElse(null);
+
+
+        if (res == null)
+        {
+            String msg = ResUtil.getString(MidiSynth.class, "ERR_NoSynthFoundInFile", file.getAbsolutePath());
+            LOGGER.log(Level.WARNING, "loadFromFile(file) " + msg);   //NOI18N
+            throw new IOException(msg);
+        }
+
+        res.file = file;
+        
+        return res;
     }
 
     /**
@@ -172,7 +270,7 @@ public class MidiSynth
     /**
      * Add a bank to this MidiSynth.
      * <p>
-     * Set the MidiSynth of bank to this object.
+     * This also assigns the bank's MidiSynth to this object.
      *
      * @param bank
      */
@@ -289,6 +387,18 @@ public class MidiSynth
     }
 
     /**
+     * Check whether this MidiSynth contains this instrument.
+     *
+     * @param ins
+     * @return
+     */
+    public boolean contains(Instrument ins)
+    {
+        InstrumentBank<?> bank = ins.getBank();
+        return bank != null && bank.getMidiSynth() == this;
+    }
+
+    /**
      * Find an instrument with the specified patchName.
      *
      * @param patchName
@@ -378,9 +488,9 @@ public class MidiSynth
 
 
     /**
-     * Get the MidiAddress of a GM bank instrument.
+     * Get the MidiAddress of the specified GM bank instrument.
      *
-     * @param programChange Program change of the instrument
+     * @param programChange Program change of the GM instrument
      * @return Null if this MidiSynth is not GM-compatible
      */
     public MidiAddress getGM1BankMidiAddress(int programChange)
@@ -476,11 +586,12 @@ public class MidiSynth
         return size;
     }
 
-    public void setFile(File f)
-    {
-        file = f;
-    }
-
+    /**
+     * The file used to create this MidiSynth.
+     *
+     * @return Can be null if instance was not created using the loadFromFile() method.
+     * @see #loadFromFile(java.io.File)
+     */
     public File getFile()
     {
         return file;
@@ -525,14 +636,16 @@ public class MidiSynth
     /**
      * Save this MidiSynth as a string so that it can be retrieved by loadFromString().
      * <p>
-     * Note: Since MultiSynth introduction the file reference in the save string is no more used
      *
      * @return A string "Name, FilePath". FilePath can be "NOT_SET" if no file associated. If
      * @see loadFromString(String)
      */
     public String saveAsString()
     {
-        LOGGER.fine("saveAsString() MidiSynth=" + getName() + ", getFile()=" + getFile());   //NOI18N
+        LOGGER.log(Level.FINE, "saveAsString() MidiSynth={0}, getFile()={1}", new Object[]
+        {
+            getName(), getFile()
+        });   //NOI18N
         String strFile = getFile() == null ? "NOT_SET" : getFile().getAbsolutePath();
         return getName() + "#:#" + strFile;
     }
@@ -540,8 +653,6 @@ public class MidiSynth
     /**
      * Get the MidiSynth corresponding to the string produced by saveAsString().
      * <p>
-     * <p>
-     * Note: Since MultiSynth introduction the file reference in the save string is no more used.
      *
      * @param s
      * @return Null if no MidiSynth could be found corresponding to s.

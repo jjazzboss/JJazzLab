@@ -63,9 +63,9 @@ import org.jjazz.util.api.ResUtil;
  * - For voice instruments: "12=New Marimba {{SubGM1=0}}" defines GM instrument 0 (piano) as the GM substitute for the New Marimba
  * patch.<p>
  * Bank name extensions :<br>
- * - "Patch[10371]=Roland JV-1080 GM {{ GM_BANK }}" : this tells JJazzLab that the "current synth is GM compatible", and it indicates the
- * location of the GM bank. You can similarly use GM2_BANK or XG_BANK or GS_BANK extension on any bank to tell JJazzLab that the
- * synth is GM2/XG/GS compatible.
+ * - "Patch[10371]=Roland JV-1080 GM {{ GM_BANK }}" : this tells JJazzLab that the "current synth is GM compatible", and it
+ * indicates the location of the GM bank. You can similarly use GM2_BANK or XG_BANK or GS_BANK extension on any bank to tell
+ * JJazzLab that the synth is GM2/XG/GS compatible.
  * <br>
  * - "Patch[128]=Bank 1 {{ UseGsInstruments }}" : force the use of GSInstrument.java instances for this bank, to enable
  * drums/melodic - "Patch[*]=Drums {{ UseGsDrumsInstruments }}" : force the use of GSDumrsInstrument.java instances for this bank,
@@ -501,17 +501,8 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
         // [MOXF]
         // Patch[239]=PRE 1
         // etc.
-        // Set the file for the others
-        for (MidiSynth synth : synths.toArray(new MidiSynth[0]))
-        {
-            if (synth.getNbInstruments() == 0)
-            {
-                synths.remove(synth);
-            } else
-            {
-                synth.setFile(f);
-            }
-        }
+        synths.removeIf(ms -> ms.getNbInstruments() == 0);
+
         LOGGER.fine("readSynthsFromStream() EXIT synths.size()=" + synths.size());   //NOI18N
         if (synths.isEmpty())
         {

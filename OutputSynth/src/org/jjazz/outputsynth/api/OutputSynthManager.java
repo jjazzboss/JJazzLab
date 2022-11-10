@@ -28,12 +28,18 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import javax.sound.midi.MidiDevice;
 import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.midi.api.JJazzMidiSystem;
+import org.jjazz.midi.api.synths.GM2Synth;
+import org.jjazz.midi.api.synths.GMSynth;
+import org.jjazz.midi.api.synths.GSSynth;
+import org.jjazz.midi.api.synths.XGSynth;
 import org.jjazz.upgrade.api.UpgradeManager;
 import org.jjazz.upgrade.api.UpgradeTask;
 import org.jjazz.util.api.Utilities;
@@ -71,7 +77,7 @@ public class OutputSynthManager implements PropertyChangeListener
     /**
      * Get the OutputSynthManager instance.
      * <p>
-     * Upon creation the OutputSynthManager preloads all the OutputSynthManager
+     * Upon creation the OutputSynthManager preloads all the OutputSynth associated to each available OUT MidiDevice.
      *
      * @return
      */
@@ -89,9 +95,12 @@ public class OutputSynthManager implements PropertyChangeListener
 
     private OutputSynthManager()
     {
+
+        // Listen to Midi out changes
         var jms = JJazzMidiSystem.getInstance();
         jms.addPropertyChangeListener(JJazzMidiSystem.PROP_MIDI_OUT,
                 e -> midiOutChanged((MidiDevice) e.getOldValue(), (MidiDevice) e.getNewValue()));
+
 
         refresh();
     }
@@ -107,7 +116,10 @@ public class OutputSynthManager implements PropertyChangeListener
         for (var mdOut : JJazzMidiSystem.getInstance().getOutDeviceList())
         {
             var outSynth = getOutputSynth(mdOut.getDeviceInfo().getName());
-            LOGGER.fine("refresh() mdOut=" + mdOut.getDeviceInfo().getName() + " outSynth" + outSynth);
+            LOGGER.log(Level.FINE, "refresh() mdOut={0} outSynth{1}", new Object[]
+            {
+                mdOut.getDeviceInfo().getName(), outSynth
+            });
         }
     }
 
@@ -118,7 +130,7 @@ public class OutputSynthManager implements PropertyChangeListener
      */
     public OutputSynth getNewGMOuputSynth()
     {
-        var res = new OutputSynth(MultiSynthManager.getInstance().getGMMultiSynth());
+        var res = new OutputSynth(GMSynth.getInstance());
         res.getUserSettings().setSendModeOnUponPlay(OutputSynth.UserSettings.SendModeOnUponPlay.GM);
         return res;
     }
@@ -130,7 +142,7 @@ public class OutputSynthManager implements PropertyChangeListener
      */
     public OutputSynth getNewGM2OuputSynth()
     {
-        var res = new OutputSynth(MultiSynthManager.getInstance().getGM2MultiSynth());
+        var res = new OutputSynth(GM2Synth.getInstance());
         res.getUserSettings().setSendModeOnUponPlay(OutputSynth.UserSettings.SendModeOnUponPlay.GM2);
         return res;
     }
@@ -143,7 +155,7 @@ public class OutputSynthManager implements PropertyChangeListener
      */
     public OutputSynth getNewXGOuputSynth()
     {
-        var res = new OutputSynth(MultiSynthManager.getInstance().getXGMultiSynth());
+        var res = new OutputSynth(XGSynth.getInstance());
         res.getUserSettings().setSendModeOnUponPlay(OutputSynth.UserSettings.SendModeOnUponPlay.XG);
         return res;
     }
@@ -155,7 +167,7 @@ public class OutputSynthManager implements PropertyChangeListener
      */
     public OutputSynth getNewGSOuputSynth()
     {
-        var res = new OutputSynth(MultiSynthManager.getInstance().getGSMultiSynth());
+        var res = new OutputSynth(GSSynth.getInstance());
         res.getUserSettings().setSendModeOnUponPlay(OutputSynth.UserSettings.SendModeOnUponPlay.GS);
         return res;
     }
@@ -167,7 +179,7 @@ public class OutputSynthManager implements PropertyChangeListener
      */
     public OutputSynth getNewJazzLabSoundFontXGOuputSynth()
     {
-        var res = new OutputSynth(MultiSynthManager.getInstance().getJLSoundFontXG());
+        var res = new OutputSynth(MidiSynthManager.getInstance().getMidiSynth(MidiSynthManager.JJAZZLAB_SOUNDFONT_XG_SYNTH_NAME));
         res.getUserSettings().setSendModeOnUponPlay(OutputSynth.UserSettings.SendModeOnUponPlay.XG);
         return res;
     }
@@ -179,7 +191,7 @@ public class OutputSynthManager implements PropertyChangeListener
      */
     public OutputSynth getNewYamahaRefOuputSynth()
     {
-        var res = new OutputSynth(MultiSynthManager.getInstance().getYamahaRef());
+        var res = new OutputSynth(MidiSynthManager.getInstance().getMidiSynth(MidiSynthManager.YAMAHA_REF_SYNTH_NAME));
         res.getUserSettings().setSendModeOnUponPlay(OutputSynth.UserSettings.SendModeOnUponPlay.OFF);
         return res;
     }
@@ -335,6 +347,7 @@ public class OutputSynthManager implements PropertyChangeListener
     {
         prefs.put(mdOutName, outSynth.saveAsString());
     }
+
 
     // =====================================================================================
     // Upgrade Task

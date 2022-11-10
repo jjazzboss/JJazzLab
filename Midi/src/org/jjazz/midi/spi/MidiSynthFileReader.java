@@ -81,7 +81,7 @@ public interface MidiSynthFileReader
      * Returned synths must have at least one InstrumentBank. InstrumentBanks can't be empty.
      *
      * @param in
-     * @param f  If f is non null, the created synths will be associated to this file.
+     * @param f  Needed for error messages and logging. Can be null.
      *
      * @return Can be an empty list if no synth could be created.
      * @throws java.io.IOException
