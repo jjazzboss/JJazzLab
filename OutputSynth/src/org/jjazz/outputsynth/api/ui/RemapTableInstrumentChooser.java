@@ -22,6 +22,7 @@
  */
 package org.jjazz.outputsynth.api.ui;
 
+import com.google.common.base.Preconditions;
 import org.jjazz.midi.api.synths.FavoriteMidiSynth;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
@@ -55,7 +56,6 @@ import org.jjazz.midi.api.keymap.KeyMapXG;
 import org.jjazz.midi.api.synths.GM1Instrument;
 import org.jjazz.midi.api.ui.InstrumentTable;
 import org.jjazz.outputsynth.api.GMRemapTable;
-import org.jjazz.outputsynth.api.OutputSynth;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.testplayerservice.spi.TestPlayer;
 import org.jjazz.uisettings.api.GeneralUISettings;
@@ -68,8 +68,9 @@ public class RemapTableInstrumentChooser extends JDialog implements ChangeListen
 {
 
     private static RemapTableInstrumentChooser INSTANCE;
-    private OutputSynth outputSynth;
+    private boolean exitOk;
     private Instrument selectedInstrument;
+    private GMRemapTable remapTable;
     private final FavoriteMidiSynth favoriteSynth;
     private Instrument remappedInstrument;
     private GM1Instrument remappedInstrumentAsGM1;
@@ -115,17 +116,15 @@ public class RemapTableInstrumentChooser extends JDialog implements ChangeListen
         org.jjazz.ui.utilities.api.Utilities.installSelectAllWhenFocused(tf_Filter);
     }
 
-    public void preset(OutputSynth outSynth, Instrument remappedIns)
+    public void preset(GMRemapTable remapTable, Instrument remappedIns)
     {
+        Preconditions.checkNotNull(remapTable);
         GMRemapTable.checkRemappedInstrument(remappedIns);
-        if (outSynth == null)
-        {
-            throw new IllegalArgumentException("outSynth=" + outSynth + " remappedIns=" + remappedIns);   //NOI18N
-        }
+
+        exitOk = false;
 
         remappedInstrument = remappedIns;
-        outputSynth = outSynth;
-        GMRemapTable rTable = outputSynth.getUserSettings().getGMRemapTable();
+        this.remapTable = remapTable;
 
         String myTitle = ResUtil.getString(getClass(), "RemapTableInstrumentChooser.CTL_MappedInstrument", remappedInstrument.getPatchName());
         if (remappedInstrument instanceof GM1Instrument)
@@ -146,10 +145,10 @@ public class RemapTableInstrumentChooser extends JDialog implements ChangeListen
         cb_UseAsFamilyDefault.setSelected(false);
         btn_Hear.setEnabled(false);
 
-        Instrument targetIns = outputSynth.getUserSettings().getGMRemapTable().getInstrument(remappedInstrument);
+        Instrument targetIns = this.remapTable.getInstrument(remappedInstrument);
 
-        allInstruments = this.getAllInstruments(outputSynth, remappedInstrumentAsGM1 == null);
-        recommendedInstruments = this.getRecommendedInstruments(allInstruments, remappedInstrument);
+        allInstruments = getAllInstruments(remappedInstrumentAsGM1 == null);
+        recommendedInstruments = getRecommendedInstruments(allInstruments, remappedInstrument);
         if (!recommendedInstruments.isEmpty() && (targetIns == null || recommendedInstruments.contains(targetIns)))
         {
             rbtn_showRecommended.setSelected(true);
@@ -164,12 +163,22 @@ public class RemapTableInstrumentChooser extends JDialog implements ChangeListen
         if (targetIns != null)
         {
             tbl_Instruments.setSelectedInstrument(targetIns);
-            if (remappedInstrumentAsGM1 != null && rTable.getInstrument(remappedInstrumentAsGM1.getFamily()) == targetIns)
+            if (remappedInstrumentAsGM1 != null && this.remapTable.getInstrument(remappedInstrumentAsGM1.getFamily()) == targetIns)
             {
                 cb_UseAsFamilyDefault.setSelected(true);
             }
         }
 
+    }
+
+    /**
+     * Return true if user quit the dialog using the OK button.
+     *
+     * @return
+     */
+    public boolean isExitOK()
+    {
+        return exitOk;
     }
 
     public Instrument getSelectedInstrument()
@@ -266,15 +275,23 @@ public class RemapTableInstrumentChooser extends JDialog implements ChangeListen
     // Private methods
     // ----------------------------------------------------------------------------
     /**
-     * Get all the instruments for melodic voices or drums voices.
+     * Get all the instruments.
      *
-     * @param outSynth
-     * @param drumsMode If true return drums instruments first
+     * @param drumsInstrumentsFirst
      * @return
      */
-    private List<Instrument> getAllInstruments(OutputSynth outSynth, boolean drumsMode)
+    private List<Instrument> getAllInstruments(boolean drumsInstrumentsFirst)
     {
-        return drumsMode ? outSynth.getMultiSynth().getDrumsInstruments() : outSynth.getMultiSynth().getNonDrumsInstruments();
+        List<Instrument> res = new ArrayList<>();
+        if (drumsInstrumentsFirst)
+        {
+            res.addAll(remapTable.getMidiSynth().getDrumsInstruments());
+            res.addAll(remapTable.getMidiSynth().getNonDrumsInstruments());
+        } else
+        {
+            res.addAll(remapTable.getMidiSynth().getInstruments());
+        }
+        return res;
     }
 
     /**
@@ -489,7 +506,7 @@ public class RemapTableInstrumentChooser extends JDialog implements ChangeListen
             }
         });
 
-        lbl_Filtered.setForeground(new java.awt.Color(153, 0, 0));
+        lbl_Filtered.setForeground(new java.awt.Color(255, 51, 51));
         org.openide.awt.Mnemonics.setLocalizedText(lbl_Filtered, "(FILTERED)"); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(cb_UseAsFamilyDefault, org.openide.util.NbBundle.getMessage(RemapTableInstrumentChooser.class, "RemapTableInstrumentChooser.cb_UseAsFamilyDefault.text")); // NOI18N
@@ -582,12 +599,14 @@ public class RemapTableInstrumentChooser extends JDialog implements ChangeListen
 
     private void btn_CancelActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_CancelActionPerformed
     {//GEN-HEADEREND:event_btn_CancelActionPerformed
+        exitOk = false;
         selectedInstrument = null;
         setVisible(false);
     }//GEN-LAST:event_btn_CancelActionPerformed
 
     private void btn_OkActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_OkActionPerformed
     {//GEN-HEADEREND:event_btn_OkActionPerformed
+        exitOk = true;
         setVisible(false);
     }//GEN-LAST:event_btn_OkActionPerformed
 
@@ -663,6 +682,7 @@ public class RemapTableInstrumentChooser extends JDialog implements ChangeListen
         sorter.setRowFilter(null);
         btn_TxtFilter.setEnabled(true);
         btn_TxtClear.setEnabled(false);
+        tf_Filter.setText("");
         tf_Filter.setEnabled(true);
         lbl_Filtered.setText(" ");   // Not ""
     }//GEN-LAST:event_btn_TxtClearActionPerformed

@@ -27,7 +27,6 @@ import javax.swing.JComboBox;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.musiccontrol.api.PlaybackSettings.PrecountMode;
-import org.jjazz.musiccontrol.TestPlayerImpl;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.openide.DialogDisplayer;

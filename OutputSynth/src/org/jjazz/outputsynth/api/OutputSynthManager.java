@@ -185,6 +185,19 @@ public class OutputSynthManager implements PropertyChangeListener
     }
 
     /**
+     * Get a new instance of a default OutputSynth which just uses the JJazzLab soundfont in GS mode (compatible with
+     * VirtualMidiSynth).
+     *
+     * @return
+     */
+    public OutputSynth getNewJazzLabSoundFontGSOuputSynth()
+    {
+        var res = new OutputSynth(MidiSynthManager.getInstance().getMidiSynth(MidiSynthManager.JJAZZLAB_SOUNDFONT_GS_SYNTH_NAME));
+        res.getUserSettings().setSendModeOnUponPlay(OutputSynth.UserSettings.SendModeOnUponPlay.GS);
+        return res;
+    }
+
+    /**
      * Get a new instance of a default OutputSynth which just uses the Tyros 5 synth.
      *
      * @return

@@ -22,13 +22,16 @@
  */
 package org.jjazz.midi.api.ui;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Rectangle;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.JLabel;
 import javax.swing.JTable;
+import javax.swing.UIManager;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
@@ -62,7 +65,10 @@ public class InstrumentTable extends JTable
         setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         getTableHeader().setReorderingAllowed(false);               // Prevent column dragging
         PatchNameRenderer renderer = new PatchNameRenderer();
-        getColumnModel().getColumn(Model.COL_PATCHNAME).setCellRenderer(renderer);
+        for (var col : Collections.list(getColumnModel().getColumns()))
+        {
+            col.setCellRenderer(renderer);
+        }
     }
 
     /**
@@ -122,7 +128,7 @@ public class InstrumentTable extends JTable
                 Rectangle cellRect = getCellRect(vIndex, 1, true);
                 scrollRectToVisible(cellRect);
             }
-        }         
+        }
     }
 
     public class Model extends AbstractTableModel
@@ -146,7 +152,7 @@ public class InstrumentTable extends JTable
             }
             this.instruments = instruments;
             fireTableDataChanged();
-            adjustWidths();            
+            adjustWidths();
         }
 
         List<? extends Instrument> getInstruments()
@@ -322,17 +328,25 @@ public class InstrumentTable extends JTable
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int col)
         {
-            JLabel c = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col);
+            JLabel label = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col);
+
+            // Default JDK TableCellRenderer ignores the enabled/disabled state!            
+            Color c = table.isEnabled() ? UIManager.getColor("Table.foreground") : UIManager.getColor("Label.disabledForeground");
+            label.setForeground(c);
+
+
             // Same component is reused for several cells : need to reset some default settings
-            c.setToolTipText(null);
+            label.setToolTipText(null);
             if (value == null)
             {
-                return c;
+                return label;
             }
             Instrument ins = tblModel.getInstruments().get(table.convertRowIndexToModel(row));
             String tt = buildToolTipText(ins);
-            c.setToolTipText(tt);
-            return c;
+            label.setToolTipText(tt);
+
+
+            return label;
         }
 
         private String buildToolTipText(Instrument ins)

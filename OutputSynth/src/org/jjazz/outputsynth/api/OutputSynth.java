@@ -70,6 +70,21 @@ public class OutputSynth
     }
 
     /**
+     * Get a copy.
+     * <p>
+     * Copy will use to the same MidiSynth instance, but UserSettings will be duplicated.
+     *
+     * @return
+     */
+    @Override
+    public OutputSynth clone()
+    {
+        OutputSynth res = new OutputSynth(midiSynth);
+        res.userSettings.set(res.userSettings);
+        return res;
+    }
+
+    /**
      * Get the MidiSynth of this OutputSynth.
      *
      * @return
@@ -317,6 +332,11 @@ public class OutputSynth
         String strSettings = strs[1].trim();
 
         MidiSynth midiSynth = MidiSynth.loadFromString(strSynthList);
+        if (midiSynth == null)
+        {
+            throw new IOException("Can't create OutputSynth from s=" + s);
+
+        }
         OutputSynth res = new OutputSynth(midiSynth);
         res.userSettings.setFromString(strSettings);
 
@@ -388,6 +408,15 @@ public class OutputSynth
         }
 
 
+        public void set(UserSettings userSettings)
+        {
+            setAudioLatency(userSettings.audioLatency);
+            setSendModeOnUponPlay(userSettings.sendModeOnUponPlay);
+            setUserInstrument(userSettings.userInstrument);
+            setRemapTableValues(userSettings.getGMRemapTable());
+        }
+
+
         /**
          * Get the value of AudioLatency
          *
@@ -431,13 +460,24 @@ public class OutputSynth
             Preconditions.checkNotNull(ins);
             if (!midiSynth.contains(ins))
             {
-                throw new IllegalArgumentException("ins=" + ins.toLongString());   //NOI18N
+                throw new IllegalArgumentException("midiSynth=" + midiSynth + " ins=" + ins.toLongString());   //NOI18N
             }
 
             Instrument oldUserInstrument = this.userInstrument;
             this.userInstrument = ins;
             pcs.firePropertyChange(PROP_USERINSTRUMENT, oldUserInstrument, ins);
 
+        }
+
+        /**
+         * Copy the RemapTable values from the specified GMRemapTable.
+         *
+         * @param tbl
+         */
+        public void setRemapTableValues(GMRemapTable tbl)
+        {
+            remapTable.set(tbl);
+            pcs.firePropertyChange(PROP_GM_REMAP_TABLE, false, true);
         }
 
         public GMRemapTable getGMRemapTable()
@@ -530,10 +570,9 @@ public class OutputSynth
             setAudioLatency(latency);
             setSendModeOnUponPlay(mode);
             setUserInstrument(userIns);
-            remapTable.set(remap);
-            pcs.firePropertyChange(PROP_GM_REMAP_TABLE, false, true);
-
+            setRemapTableValues(remap);
         }
+
 
         /**
          * Get the value of sendModeOnUponStartup

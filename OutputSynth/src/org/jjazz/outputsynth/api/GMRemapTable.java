@@ -94,7 +94,7 @@ public class GMRemapTable implements Serializable
     /**
      * Set the mappings from another GMRemapTable which must share the same MidiSynth.
      *
-     * @param rt
+     * @param rt Must share the same MidiSynth that this instance.
      */
     public void set(GMRemapTable rt)
     {
@@ -230,6 +230,11 @@ public class GMRemapTable implements Serializable
         for (var insKey : mapInstruments.keySet())
         {
             var ins = mapInstruments.get(insKey);
+            if (ins == null)
+            {
+                continue;       // No need to save
+            }
+            
             String prefix;
             if (insKey == DRUMS_INSTRUMENT)
             {
@@ -268,7 +273,7 @@ public class GMRemapTable implements Serializable
         }
 
 
-        if (msg != null)
+        if (msg == null)
         {
             s = s.substring(1, s.length() - 1);
             String[] strs = s.split("&_&");
@@ -278,7 +283,11 @@ public class GMRemapTable implements Serializable
                 for (String str : strs)
                 {
                     str = str.trim();
-                    if (str.startsWith("@DRUMS@!!!"))
+                    if (str.isBlank())
+                    {                        
+                        continue;  // Empty table "[]"
+                    }
+                    else if (str.startsWith("@DRUMS@!!!"))
                     {
                         // Mapped instrument is special drums instrument
                         String strIns = str.substring(10).trim();

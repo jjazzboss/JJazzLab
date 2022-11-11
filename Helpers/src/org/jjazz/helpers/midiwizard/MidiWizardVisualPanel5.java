@@ -33,7 +33,6 @@ import org.jjazz.midi.api.synths.GM2Synth;
 import org.jjazz.midi.api.synths.GMSynth;
 import org.jjazz.midi.api.synths.GSSynth;
 import org.jjazz.midi.api.synths.XGSynth;
-import org.jjazz.musiccontrol.TestPlayerImpl;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.testplayerservice.spi.TestPlayer;
 import org.jjazz.util.api.ResUtil;

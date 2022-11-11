@@ -49,7 +49,6 @@ import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.synths.GM1Instrument;
 import org.jjazz.midi.api.synths.GMSynth;
 import org.jjazz.midi.api.ui.InstrumentTable;
-import org.jjazz.musiccontrol.TestPlayerImpl;
 import org.jjazz.outputsynth.api.GMRemapTable;
 import org.jjazz.outputsynth.api.OutputSynth;
 import org.jjazz.rhythm.api.RhythmVoice;
@@ -142,7 +141,7 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
         this.lbl_preferredInstrument.setToolTipText(tt);
 
         // OutputSynth label
-        String outSynthTxt = ResUtil.getString(getClass(), "InstrumentChooserDialogImpl.OutputSynth", outputSynth.getMultiSynth().getName());
+        String outSynthTxt = ResUtil.getString(getClass(), "InstrumentChooserDialogImpl.OutputSynth", outputSynth.getMidiSynth().getName());
         this.lbl_outputSynthConfig.setText(outSynthTxt);
 
         // Reset text filter
@@ -259,7 +258,7 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
      */
     private List<Instrument> getAllInstruments(OutputSynth outSynth, boolean drumsMode)
     {
-        return drumsMode ? outSynth.getMultiSynth().getDrumsInstruments() : outSynth.getMultiSynth().getNonDrumsInstruments();
+        return drumsMode ? outSynth.getMidiSynth().getDrumsInstruments() : outSynth.getMidiSynth().getNonDrumsInstruments();
     }
 
     /**

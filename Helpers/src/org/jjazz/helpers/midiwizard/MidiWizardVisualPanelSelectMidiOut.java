@@ -30,7 +30,6 @@ import org.jjazz.rhythm.api.MusicGenerationException;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.jjazz.midi.api.ui.MidiOutDeviceList;
-import org.jjazz.musiccontrol.TestPlayerImpl;
 import org.jjazz.testplayerservice.spi.TestPlayer;
 import org.jjazz.util.api.ResUtil;
 

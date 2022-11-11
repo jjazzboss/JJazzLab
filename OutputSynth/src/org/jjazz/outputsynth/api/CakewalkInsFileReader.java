@@ -390,7 +390,7 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
                         int value = 0;
                         try
                         {
-                            value = Integer.valueOf(s);
+                            value = Integer.parseInt(s);
                         } catch (NumberFormatException e)
                         {
                             // Leave i=0

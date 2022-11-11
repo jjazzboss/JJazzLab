@@ -50,7 +50,7 @@
       <Group type="103" groupAlignment="0" attributes="0">
           <Group type="102" alignment="1" attributes="0">
               <EmptySpace max="-2" attributes="0"/>
-              <Component id="jScrollPane2" pref="88" max="32767" attributes="0"/>
+              <Component id="jScrollPane2" pref="84" max="32767" attributes="0"/>
               <EmptySpace type="separate" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
                   <Component id="btn_HearRemap" alignment="3" min="-2" max="-2" attributes="0"/>
@@ -83,9 +83,6 @@
     </Container>
     <Container class="javax.swing.JScrollPane" name="jScrollPane2">
       <Properties>
-        <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-          <Color type="null"/>
-        </Property>
         <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
           <Border info="null"/>
         </Property>
@@ -98,9 +95,6 @@
       <SubComponents>
         <Component class="org.jjazz.ui.utilities.api.HelpTextArea" name="helpTextArea1">
           <Properties>
-            <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-              <Color type="null"/>
-            </Property>
             <Property name="columns" type="int" value="20"/>
             <Property name="rows" type="int" value="5"/>
             <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
@@ -112,6 +106,9 @@
     </Container>
     <Component class="javax.swing.JButton" name="btn_HearRemap">
       <Properties>
+        <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
+          <Image iconType="3" name="/org/jjazz/options/resources/SpeakerRed-20x20.png"/>
+        </Property>
         <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
           <ResourceString bundle="org/jjazz/options/Bundle.properties" key="DefaultInstrumentsDialog.btn_HearRemap.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
         </Property>
@@ -119,6 +116,9 @@
           <ResourceString bundle="org/jjazz/options/Bundle.properties" key="DefaultInstrumentsDialog.btn_HearRemap.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
         </Property>
       </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btn_HearRemapActionPerformed"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JButton" name="btn_changeRemappedIns">
       <Properties>
@@ -129,6 +129,9 @@
           <ResourceString bundle="org/jjazz/options/Bundle.properties" key="DefaultInstrumentsDialog.btn_changeRemappedIns.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
         </Property>
       </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btn_changeRemappedInsActionPerformed"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JButton" name="btn_ResetInstrument">
       <Properties>
@@ -139,6 +142,9 @@
           <ResourceString bundle="org/jjazz/options/Bundle.properties" key="DefaultInstrumentsDialog.btn_ResetInstrument.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
         </Property>
       </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btn_ResetInstrumentActionPerformed"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JButton" name="btn_Cancel">
       <Properties>
@@ -146,6 +152,9 @@
           <ResourceString bundle="org/jjazz/options/Bundle.properties" key="DefaultInstrumentsDialog.btn_Cancel.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
         </Property>
       </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btn_CancelActionPerformed"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JButton" name="btn_Ok">
       <Properties>
@@ -153,6 +162,9 @@
           <ResourceString bundle="org/jjazz/options/Bundle.properties" key="DefaultInstrumentsDialog.btn_Ok.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
         </Property>
       </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btn_OkActionPerformed"/>
+      </Events>
     </Component>
   </SubComponents>
 </Form>

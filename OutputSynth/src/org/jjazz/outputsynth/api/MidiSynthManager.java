@@ -49,6 +49,7 @@ import org.jjazz.util.api.Utilities;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
+import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 import org.openide.util.lookup.ServiceProvider;
 import org.openide.windows.WindowManager;
@@ -66,7 +67,7 @@ public class MidiSynthManager
      * If added: oldValue=null, newValue=added MidiSynth<br>
      * If removed: oldValue=removed MidiSynth, newValue=null<br>
      */
-    public static String PROP_FILE_BASED_MULTISYNTH_LIST = "PropFileBasedSynthList";
+    public static String PROP_FILE_BASED_MIDISYNTH_LIST = "PropFileBasedSynthList";
 
 
     // Some builtin MidiSynth names retrieved from a .ins file
@@ -142,7 +143,7 @@ public class MidiSynthManager
         if (!fileBasedMidiSynths.contains(midiSynth))
         {
             fileBasedMidiSynths.add(midiSynth);
-            pcs.firePropertyChange(PROP_FILE_BASED_MULTISYNTH_LIST, null, midiSynth);
+            pcs.firePropertyChange(PROP_FILE_BASED_MIDISYNTH_LIST, null, midiSynth);
             return true;
         }
 
@@ -160,7 +161,7 @@ public class MidiSynthManager
         boolean res = fileBasedMidiSynths.remove(midiSynth);
         if (res)
         {
-            pcs.firePropertyChange(PROP_FILE_BASED_MULTISYNTH_LIST, midiSynth, null);
+            pcs.firePropertyChange(PROP_FILE_BASED_MIDISYNTH_LIST, midiSynth, null);
         }
         return res;
     }
@@ -326,7 +327,23 @@ public class MidiSynthManager
         public MidiSynth getMidiSynth(String synthName, File synthFile)
         {
             Preconditions.checkNotNull(synthName);
-            MidiSynth res = MidiSynthManager.getInstance().getMidiSynth(synthName);
+
+            var msm = MidiSynthManager.getInstance();
+            MidiSynth res = msm.getMidiSynth(synthName);
+
+            if (res == null && synthFile != null)
+            {
+                try
+                {
+                    // Not created yet, load it and add it to the database
+                    res = MidiSynth.loadFromFile(synthFile);    // thrpws IOException
+                    msm.addFileBasedMidiSynth(res);
+                } catch (IOException ex)
+                {
+                    LOGGER.warning("getMidiSynth() can't load MidiSynth ex=" + ex.getMessage());
+                }
+            }
+
             return res;
         }
     }
