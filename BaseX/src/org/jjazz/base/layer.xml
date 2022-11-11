@@ -65,6 +65,9 @@
         <file name="General.instance_hidden"/>
         <file name="Keymaps.instance_hidden"/>
     </folder>
+    <!-- the  OptionsExport folder makes Import/Export buttons in the Options Dialog disappear (since there is no more setting candidates for import/export).
+    See org.netbeans.modules.options.OptionsDialogDisplayerImpl.java for details -->
+    <file name="OptionsExport_hidden"/>
     <folder name="Services">
         <folder name="AutoupdateType">
             <file name="org_jjazz_base_update_center.instance">
