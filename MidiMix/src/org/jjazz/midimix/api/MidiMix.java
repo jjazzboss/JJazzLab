@@ -655,7 +655,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      * 2/ rv.isDrums() == true and rerouting is not already enabled <br>
      * 3/ instrument (or new instrument if one is provided in the mapChannelNewIns parameter) is the VoidInstrument<br>
      *
-     * @param mapChannelNewIns Optional new instruments to use for some channels. Ignored if null. See
+     * @param mapChannelNewIns Optional channel instruments to be used for the exercise. Ignored if null. See
      *                         OutputSynth.getNeedFixInstruments().
      * @return Can be empty
      */
@@ -668,7 +668,10 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
             InstrumentMix insMix = getInstrumentMixFromKey(rv);
             Instrument newIns = mapChannelNewIns == null ? null : mapChannelNewIns.get(channel);
             Instrument ins = (newIns != null) ? newIns : insMix.getInstrument();
-            LOGGER.fine("getChannelsNeedingDrumsRerouting() rv=" + rv + " channel=" + channel + " ins=" + ins);   //NOI18N
+            LOGGER.log(Level.FINE, "getChannelsNeedingDrumsRerouting() rv={0} channel={1} ins={2}", new Object[]
+            {
+                rv, channel, ins
+            });
 
 
             if (channel != MidiConst.CHANNEL_DRUMS
@@ -680,7 +683,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
             }
 
         }
-        LOGGER.fine("getChannelsNeedingDrumsRerouting() res=" + res);   //NOI18N
+        LOGGER.log(Level.FINE, "getChannelsNeedingDrumsRerouting() res={0}", res);
         return res;
     }
 
@@ -1797,7 +1800,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
 
 
     /**
-     * RhythmVoices depend on a system dependent rhythm, therefore it must be stored in a special way: just save rhythm serial id
+     * A RhythmVoice depends on system dependent rhythm, therefore it must be stored in a special way: just save rhythm serial id
      * + RhythmVoice name, and it will be reconstructed at deserialization.
      * <p>
      * MidiMix is saved with Drums rerouting disabled and all solo status OFF, but all Mute status are saved.
@@ -1868,6 +1871,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
                 InstrumentMix insMix = spInsMixes[channel];
 
 
+
                 if (insMix == null && rvs == null)
                 {
                     // Normal case: no instrument
@@ -1890,11 +1894,19 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
                     throw new XStreamException(msg.toString());
                 }
 
-
-                // Update the created MidiMix with the deserialized data
                 // Need a copy of insMix because setInstrumentMix() will make modifications on the object (e.g. setMute(false))
                 // and we can not modify spInsMixes during the deserialization process.
                 InstrumentMix insMixNew = new InstrumentMix(insMix);
+
+                
+                // Make sure we don't have a melodic instrument on a rhythm channel (can happen if we could not retrieve the MidiSynth for example)
+                Instrument ins=insMixNew.getInstrument();                
+                if (rv.isDrums() && ins != GMSynth.getInstance().getVoidInstrument() && !ins.isDrumKit())
+                {
+                    insMixNew.setInstrument(GMSynth.getInstance().getVoidInstrument());
+                }
+
+                // Update the created MidiMix with the deserialized data
                 mm.setInstrumentMix(channel, rv, insMixNew);
             }
 
