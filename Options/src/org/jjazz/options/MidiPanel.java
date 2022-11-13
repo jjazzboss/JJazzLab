@@ -22,6 +22,7 @@
  */
 package org.jjazz.options;
 
+import org.jjazz.outputsynth.api.ui.DefaultInstrumentsDialog;
 import java.awt.Component;
 import java.awt.Font;
 import java.beans.PropertyChangeEvent;
@@ -62,6 +63,7 @@ import org.jjazz.testplayerservice.spi.TestPlayer;
 import org.jjazz.ui.utilities.api.Utilities;
 import org.jjazz.uisettings.api.GeneralUISettings;
 import org.jjazz.util.api.ResUtil;
+import org.netbeans.api.progress.BaseProgressUtils;
 import org.openide.*;
 import org.openide.windows.WindowManager;
 
@@ -72,8 +74,8 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
     private final MidiOptionsPanelController controller;
     private OutputSynth editedOutputSynth;
     private String saveOutDeviceNameForCancel;
-    private MidiDevice saveOutDeviceForEmbeddedSynth;
-    private OutputSynth saveOutputSynthForEmbeddedSynth;
+    private int saveOutDeviceIndexBeforeJJSynth = 0;
+    private final EmbeddedSynth embeddedSynth;
 
 
     /**
@@ -109,19 +111,6 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
         ));
 
 
-        // Listen to selected instrument changes
-//        tbl_instruments.getSelectionModel().addListSelectionListener(evt ->
-//        {
-//            int viewRow = tbl_instruments.getSelectedRow();
-//            if (evt.getValueIsAdjusting() || viewRow < 0)
-//            {
-//                return;
-//            }
-//            sendTestNotes(tbl_instruments.getSelectedInstrument());
-//        }
-//        );
-
-
         updateMapDeviceSynth();
 
 
@@ -129,6 +118,15 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
         var msm = MidiSynthManager.getInstance();
         msm.addPropertyChangeListener(this);
 
+
+        // Prepare for the embedded synth if present
+        embeddedSynth = EmbeddedSynthProvider.getDefault();
+        if (embeddedSynth == null)
+        {
+            // Disable UI for EmbeddedSynth
+            cb_usejjSynth.setSelected(false);
+            Utilities.setRecursiveEnabled(false, pnl_jjSynth);
+        }
     }
 
     void load()
@@ -142,14 +140,24 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
         // or:
         // someTextField.setText(SomeSystemOption.getDefault().getSomeStringProperty());
 
+        // Save current Midi OUT for cancel
         JJazzMidiSystem jms = JJazzMidiSystem.getInstance();
-        var md = jms.getDefaultOutDevice();
-        saveOutDeviceNameForCancel = md == null ? null : md.getDeviceInfo().getName();
+        var mdOut = jms.getDefaultOutDevice();
+        saveOutDeviceNameForCancel = mdOut == null ? null : mdOut.getDeviceInfo().getName();
         LOGGER.log(Level.FINE, "load() saveOutDeviceNameForCancel=" + saveOutDeviceNameForCancel);
 
-        // Restore UI
-        list_OutDevices.setSelectedValue(getOutDevice(saveOutDeviceNameForCancel), true); // trigger event for our listeners
-        btn_test.setEnabled(saveOutDeviceNameForCancel != null);
+        // Restore UI        
+        boolean isEmbeddedSynthUsed = embeddedSynth != null && jms.getDefaultOutDevice() == embeddedSynth.getOutMidiDevice();
+        if (embeddedSynth != null)
+        {
+            updateUseEmbeddedSynthUI(isEmbeddedSynthUsed);
+        }
+        if (embeddedSynth == null || !isEmbeddedSynthUsed)
+        {
+            list_OutDevices.setSelectedValue(getOutDevice(saveOutDeviceNameForCancel), true); // trigger event for our listeners
+            btn_test.setEnabled(saveOutDeviceNameForCancel != null);
+        }
+
 
     }
 
@@ -164,14 +172,16 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
         // NbPreferences.forModule(MidiPanel.class).putBoolean("someFlag", someCheckBox.isSelected());
         // or:
         // SomeSystemOption.getDefault().setSomeStringProperty(someTextField.getText());
-        MidiDevice outDevice = list_OutDevices.getSelectedValue();
-        openOutDevice(outDevice);
 
 
+        // Nothing is stored: changes are performed directly
+        MidiDevice outDevice = cb_usejjSynth.isSelected() ? embeddedSynth.getOutMidiDevice() : list_OutDevices.getSelectedValue();
         if (outDevice != null && !outDevice.getDeviceInfo().getName().equals(saveOutDeviceNameForCancel))
         {
             Analytics.setProperties(Analytics.buildMap("Midi Out", outDevice.getDeviceInfo().getName()));
         }
+
+
     }
 
     public void cancel()
@@ -267,10 +277,17 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
         var mdOuts = list_OutDevices.getOutDevices();
 
 
-        // Make sure there is an OutputSynth for each MidiDeviceOUT-MutiSynth pair
+        // Make sure there is an OutputSynth for each MidiDeviceOUT-MidiSynth pair
         var msm = MidiSynthManager.getInstance();
         for (var mdOut : mdOuts)
         {
+
+            if (embeddedSynth != null && embeddedSynth.getOutMidiDevice() == mdOut)
+            {
+                // Don't need an entry for the embeddedSynth' MidiDevice
+                continue;
+            }
+
             var mdDefaultOutSynth = osm.getOutputSynth(mdOut.getDeviceInfo().getName());       // The current default OutputSynth for mdOut
 
 
@@ -346,21 +363,47 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
      */
     protected boolean openOutDevice(MidiDevice mdOut)
     {
-        try
+        class MyRunnable implements Runnable
         {
-            JJazzMidiSystem.getInstance().setDefaultOutDevice(mdOut);
-        } catch (MidiUnavailableException ex)
+
+            private Exception exception = null;
+
+            @Override
+            public void run()
+            {
+                try
+                {
+                    JJazzMidiSystem.getInstance().setDefaultOutDevice(mdOut);
+                } catch (MidiUnavailableException ex)
+                {
+                    exception = ex;
+                }
+            }
+        };
+        MyRunnable r = new MyRunnable();
+
+        
+        if (embeddedSynth != null && embeddedSynth.getOutMidiDevice() == mdOut)
+        {
+            // It's the embedded synth, this can take a few seconds
+            BaseProgressUtils.showProgressDialogAndRun(r, ResUtil.getString(getClass(), "MidiPanel.LoadingJJSynth"));
+        } else
+        {
+            r.run();
+        }
+
+        if (r.exception != null)
         {
             String msg = ResUtil.getString(getClass(), "ERR_DeviceProblem", mdOut.getDeviceInfo().getName());
-            msg += "\n\n" + ex.getLocalizedMessage();
+            msg += "\n\n" + r.exception.getLocalizedMessage();
             LOGGER.log(Level.WARNING, msg);   //NOI18N
             NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(nd);
             return false;
         }
+
         return true;
     }
-
 
     /**
      * Create a MidiDeviceOutList which does not contain the EmbeddedSynth (if present).
@@ -414,36 +457,14 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
 
     }
 
-    /**
-     * Update the panel if EmbeddedSynth is available or not.
-     *
-     * @param enabled
-     */
-    private void setEmbeddedSynthAvailable(boolean enabled)
-    {
-
-    }
-
-    private void useEmbeddedSynth(boolean use)
+    private void updateUseEmbeddedSynthUI(boolean use)
     {
         cb_usejjSynth.setSelected(use);
-
-
-        var jms = JJazzMidiSystem.getInstance();
-        var osm = OutputSynthManager.getInstance();
-        var embeddedSynth = EmbeddedSynthProvider.getDefault();
-        var curMdOut = jms.getDefaultOutDevice();
-
-
-        // Do nothing if state is already OK
-        if ((use && curMdOut == embeddedSynth.getOutMidiDevice())
-                || (!use && curMdOut != embeddedSynth.getOutMidiDevice()))
-        {
-            return;
-        }
-
-
+        btn_jjSynthSettings.setEnabled(use);
+        Utilities.setRecursiveEnabled(!use, pnl_outDevice);
+        Utilities.setRecursiveEnabled(!use, pnl_outputSynth);
     }
+
 
     /**
      * Send a few notes to the current Midi OUT device and OutputSynth.
@@ -502,8 +523,6 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
         jScrollPane6 = new javax.swing.JScrollPane();
         instrumentTable2 = new org.jjazz.midi.api.ui.InstrumentTable();
         pnl_outputSynth = new javax.swing.JPanel();
-        jScrollPane2 = new javax.swing.JScrollPane();
-        hlp_latency = new org.jjazz.ui.utilities.api.HelpTextArea();
         combo_midiSynths = new JComboBox(comboModel);
         combo_sendMessageUponPlay = new JComboBox<>(UserSettings.SendModeOnUponPlay.values());
         spn_audioLatency = new org.jjazz.ui.utilities.api.WheelSpinner();
@@ -517,10 +536,9 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
         jScrollPane3 = new javax.swing.JScrollPane();
         list_OutDevices = buildMidiOutDeviceList();
         btn_test = new javax.swing.JButton();
-        jPanel1 = new javax.swing.JPanel();
+        pnl_jjSynth = new javax.swing.JPanel();
         cb_usejjSynth = new javax.swing.JCheckBox();
-        jScrollPane4 = new javax.swing.JScrollPane();
-        helpTextArea2 = new org.jjazz.ui.utilities.api.HelpTextArea();
+        btn_jjSynthSettings = new javax.swing.JButton();
         jLabel1 = new javax.swing.JLabel();
 
         jScrollPane1.setViewportView(midiInDeviceList1);
@@ -530,13 +548,6 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
         jScrollPane6.setViewportView(instrumentTable2);
 
         pnl_outputSynth.setBorder(javax.swing.BorderFactory.createTitledBorder(org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.pnl_outputSynth.border.title"))); // NOI18N
-
-        jScrollPane2.setBorder(null);
-
-        hlp_latency.setColumns(20);
-        hlp_latency.setRows(2);
-        hlp_latency.setText(org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.hlp_latency.text")); // NOI18N
-        jScrollPane2.setViewportView(hlp_latency);
 
         combo_midiSynths.setRenderer(new MidiSynthComboBoxRenderer());
         combo_midiSynths.addActionListener(new java.awt.event.ActionListener()
@@ -556,6 +567,7 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
         });
 
         spn_audioLatency.setModel(new javax.swing.SpinnerNumberModel(5, 0, 1000, 5));
+        spn_audioLatency.setToolTipText(org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.spn_audioLatency.toolTipText")); // NOI18N
         spn_audioLatency.addChangeListener(new javax.swing.event.ChangeListener()
         {
             public void stateChanged(javax.swing.event.ChangeEvent evt)
@@ -567,8 +579,10 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
         org.openide.awt.Mnemonics.setLocalizedText(jLabel2, org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.jLabel2.text")); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel3, org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.jLabel3.text")); // NOI18N
+        jLabel3.setToolTipText(spn_audioLatency.getToolTipText());
 
         org.openide.awt.Mnemonics.setLocalizedText(btn_defaultInstruments, org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.btn_defaultInstruments.text")); // NOI18N
+        btn_defaultInstruments.setToolTipText(org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.btn_defaultInstruments.toolTipText")); // NOI18N
         btn_defaultInstruments.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -586,11 +600,8 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
             .addGroup(pnl_outputSynthLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(pnl_outputSynthLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane2)
-                    .addGroup(pnl_outputSynthLayout.createSequentialGroup()
-                        .addComponent(combo_midiSynths, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btn_defaultInstruments))
+                    .addComponent(combo_midiSynths, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jScrollPane7, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
                     .addGroup(pnl_outputSynthLayout.createSequentialGroup()
                         .addGroup(pnl_outputSynthLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(pnl_outputSynthLayout.createSequentialGroup()
@@ -601,18 +612,18 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
                                 .addComponent(spn_audioLatency, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jLabel3)))
-                        .addGap(0, 26, Short.MAX_VALUE))
-                    .addComponent(jScrollPane7, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnl_outputSynthLayout.createSequentialGroup()
+                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addComponent(btn_defaultInstruments)))
                 .addContainerGap())
         );
         pnl_outputSynthLayout.setVerticalGroup(
             pnl_outputSynthLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pnl_outputSynthLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(pnl_outputSynthLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(combo_midiSynths, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btn_defaultInstruments))
-                .addGap(24, 24, 24)
+                .addComponent(combo_midiSynths, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
                 .addGroup(pnl_outputSynthLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(combo_sendMessageUponPlay, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel2))
@@ -620,10 +631,10 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
                 .addGroup(pnl_outputSynthLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(spn_audioLatency, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel3))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(39, 39, 39)
-                .addComponent(jScrollPane7, javax.swing.GroupLayout.DEFAULT_SIZE, 123, Short.MAX_VALUE)
+                .addGap(36, 36, 36)
+                .addComponent(jScrollPane7, javax.swing.GroupLayout.DEFAULT_SIZE, 100, Short.MAX_VALUE)
+                .addGap(18, 18, 18)
+                .addComponent(btn_defaultInstruments)
                 .addContainerGap())
         );
 
@@ -680,7 +691,7 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
             pnl_outDeviceLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pnl_outDeviceLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 272, Short.MAX_VALUE)
+                .addComponent(jScrollPane3)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(pnl_outDeviceLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(btn_refresh, javax.swing.GroupLayout.Alignment.TRAILING)
@@ -688,6 +699,10 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
                 .addContainerGap())
         );
 
+        pnl_jjSynth.setBorder(javax.swing.BorderFactory.createTitledBorder(org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.pnl_jjSynth.border.title"))); // NOI18N
+        pnl_jjSynth.setToolTipText(cb_usejjSynth.getToolTipText());
+
+        cb_usejjSynth.setFont(cb_usejjSynth.getFont().deriveFont(cb_usejjSynth.getFont().getStyle() | java.awt.Font.BOLD));
         org.openide.awt.Mnemonics.setLocalizedText(cb_usejjSynth, org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.cb_usejjSynth.text")); // NOI18N
         cb_usejjSynth.setToolTipText(org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.cb_usejjSynth.toolTipText")); // NOI18N
         cb_usejjSynth.addActionListener(new java.awt.event.ActionListener()
@@ -698,34 +713,35 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
             }
         });
 
-        jScrollPane4.setBorder(null);
+        org.openide.awt.Mnemonics.setLocalizedText(btn_jjSynthSettings, org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.btn_jjSynthSettings.text")); // NOI18N
+        btn_jjSynthSettings.setToolTipText(org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.btn_jjSynthSettings.toolTipText")); // NOI18N
+        btn_jjSynthSettings.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                btn_jjSynthSettingsActionPerformed(evt);
+            }
+        });
 
-        helpTextArea2.setColumns(20);
-        helpTextArea2.setRows(5);
-        helpTextArea2.setText(org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.helpTextArea2.text")); // NOI18N
-        jScrollPane4.setViewportView(helpTextArea2);
-
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(16, 16, 16)
+        javax.swing.GroupLayout pnl_jjSynthLayout = new javax.swing.GroupLayout(pnl_jjSynth);
+        pnl_jjSynth.setLayout(pnl_jjSynthLayout);
+        pnl_jjSynthLayout.setHorizontalGroup(
+            pnl_jjSynthLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pnl_jjSynthLayout.createSequentialGroup()
+                .addContainerGap()
                 .addComponent(cb_usejjSynth)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 285, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(btn_jjSynthSettings)
                 .addContainerGap())
         );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(cb_usejjSynth)
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 54, Short.MAX_VALUE))
-                .addContainerGap())
+        pnl_jjSynthLayout.setVerticalGroup(
+            pnl_jjSynthLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pnl_jjSynthLayout.createSequentialGroup()
+                .addGap(18, 18, 18)
+                .addGroup(pnl_jjSynthLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(cb_usejjSynth, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btn_jjSynthSettings))
+                .addContainerGap(22, Short.MAX_VALUE))
         );
 
         jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/options/resources/ArrowRightBig.png"))); // NOI18N
@@ -738,7 +754,7 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(pnl_jjSynth, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(pnl_outDevice, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -750,10 +766,10 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(pnl_jjSynth, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGap(21, 21, 21)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(pnl_outDevice, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(pnl_outputSynth, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
@@ -766,7 +782,24 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
 
     private void cb_usejjSynthActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cb_usejjSynthActionPerformed
     {//GEN-HEADEREND:event_cb_usejjSynthActionPerformed
-        // setEmbeddedSynthEnabled(cb_usejjSynth.isSelected());
+        boolean b = cb_usejjSynth.isSelected();
+        if (b)
+        {
+            saveOutDeviceIndexBeforeJJSynth = Math.max(0, list_OutDevices.getSelectedIndex());  // Use 0=Java Internal Synth if no selection
+            openOutDevice(embeddedSynth.getOutMidiDevice());
+        } else
+        {
+            assert list_OutDevices.getModel().getSize() > 0;
+            if (saveOutDeviceIndexBeforeJJSynth >= list_OutDevices.getModel().getSize())
+            {
+                // Some MidiDevices have disappeared after a refresh
+                saveOutDeviceIndexBeforeJJSynth = 0;
+            }
+            list_OutDevices.setSelectedValue(null, true);   // Make sure next selection will notify our listener
+            list_OutDevices.setSelectedIndex(saveOutDeviceIndexBeforeJJSynth);
+        }
+
+        updateUseEmbeddedSynthUI(b);
     }//GEN-LAST:event_cb_usejjSynthActionPerformed
 
     private void btn_testActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_testActionPerformed
@@ -782,8 +815,10 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
         if (save != null)
         {
             list_OutDevices.setSelectedValue(save, true);
+        } else
+        {
+            list_OutDevices.setSelectedIndex(0);        // Java Internal Synth
         }
-
         updateMapDeviceSynth();
     }//GEN-LAST:event_btn_refreshActionPerformed
 
@@ -795,16 +830,18 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
         }
         MidiDevice md = list_OutDevices.getSelectedValue();
 
+        // Update UI
         btn_test.setEnabled(md != null);
         String mdName = (md == null) ? "" : md.getDeviceInfo().getName();
         String friendlyMdName = (md == null) ? "" : JJazzMidiSystem.getInstance().getDeviceFriendlyName(md);
         ((TitledBorder) pnl_outputSynth.getBorder()).setTitle(ResUtil.getString(getClass(), "MidiPanel.OutputSynthFor", friendlyMdName));
         pnl_outputSynth.repaint();  // Needed for the title renaming to be visible immediatly
 
-        setEditedOutputSynth(md != null ? OutputSynthManager.getInstance().getOutputSynth(mdName) : null);
 
-        controller.applyChanges();
-        controller.changed();
+        // Update state
+        setEditedOutputSynth(md != null ? OutputSynthManager.getInstance().getOutputSynth(mdName) : null);
+        openOutDevice(md);
+
     }//GEN-LAST:event_list_OutDevicesValueChanged
 
     private void combo_sendMessageUponPlayActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_combo_sendMessageUponPlayActionPerformed
@@ -849,37 +886,42 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
 
     private void btn_defaultInstrumentsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_defaultInstrumentsActionPerformed
     {//GEN-HEADEREND:event_btn_defaultInstrumentsActionPerformed
-        
+
         var dialog = new DefaultInstrumentsDialog(editedOutputSynth.getUserSettings().getGMRemapTable());
         dialog.setLocationRelativeTo(WindowManager.getDefault().getMainWindow());
         dialog.setVisible(true);
     }//GEN-LAST:event_btn_defaultInstrumentsActionPerformed
 
+    private void btn_jjSynthSettingsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_jjSynthSettingsActionPerformed
+    {//GEN-HEADEREND:event_btn_jjSynthSettingsActionPerformed
+        if (embeddedSynth != null)
+        {
+            embeddedSynth.showSettings();
+        }
+    }//GEN-LAST:event_btn_jjSynthSettingsActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_defaultInstruments;
+    private javax.swing.JButton btn_jjSynthSettings;
     private javax.swing.JButton btn_refresh;
     private javax.swing.JButton btn_test;
     private javax.swing.JCheckBox cb_usejjSynth;
     private javax.swing.JComboBox<MidiSynth> combo_midiSynths;
     private javax.swing.JComboBox<UserSettings.SendModeOnUponPlay> combo_sendMessageUponPlay;
-    private org.jjazz.ui.utilities.api.HelpTextArea helpTextArea2;
-    private org.jjazz.ui.utilities.api.HelpTextArea hlp_latency;
     private org.jjazz.midi.api.ui.InstrumentTable instrumentTable1;
     private org.jjazz.midi.api.ui.InstrumentTable instrumentTable2;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
-    private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
-    private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JScrollPane jScrollPane5;
     private javax.swing.JScrollPane jScrollPane6;
     private javax.swing.JScrollPane jScrollPane7;
     private org.jjazz.midi.api.ui.MidiOutDeviceList list_OutDevices;
     private org.jjazz.midi.api.ui.MidiInDeviceList midiInDeviceList1;
+    private javax.swing.JPanel pnl_jjSynth;
     private javax.swing.JPanel pnl_outDevice;
     private javax.swing.JPanel pnl_outputSynth;
     private org.jjazz.ui.utilities.api.WheelSpinner spn_audioLatency;

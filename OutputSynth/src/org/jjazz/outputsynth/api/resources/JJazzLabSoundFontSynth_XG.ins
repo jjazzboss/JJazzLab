@@ -240,7 +240,7 @@
 .Instrument Definitions
 
 [JJazzLab SoundFont (XG)]
-BankSelMethod=0			; Use Bank Select MSB + LSB
+BankSelMethod=0			; Use Bank Select MSB + LSB. For voices MSB=0 and LSB is used for variations. For Drums MSB=126 or 127.
 Patch[0]=GM Bank           {{ GM_BANK }}  
 Patch[1]=Bank 1          
 Patch[2]=Bank 2
@@ -257,4 +257,4 @@ Patch[20]=Bank 20
 Patch[24]=Bank 24  
 Patch[35]=Bank 35  
 Patch[46]=Bank 46  
-Patch[16256]=Drums      ; MSB=127     (MSB=126 for SFX kits ?)
+Patch[16256]=Drums      ; MSB=127 LSB=0    (MSB=126 for SFX kits ?)

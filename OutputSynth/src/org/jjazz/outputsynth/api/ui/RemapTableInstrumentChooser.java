@@ -102,7 +102,8 @@ public class RemapTableInstrumentChooser extends JDialog implements ChangeListen
         tbl_Instruments.setHiddenColumns(Arrays.asList(InstrumentTable.Model.COL_LSB,
                 InstrumentTable.Model.COL_MSB,
                 InstrumentTable.Model.COL_PC,
-                InstrumentTable.Model.COL_DRUMKIT
+                InstrumentTable.Model.COL_DRUMKIT,
+                InstrumentTable.Model.COL_SYNTH
         ));
         tbl_Instruments.getSelectionModel().addListSelectionListener(this);
         tbl_Instruments.addMouseListener(new MouseAdapter()

@@ -49,7 +49,6 @@ import org.jjazz.util.api.Utilities;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
-import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 import org.openide.util.lookup.ServiceProvider;
 import org.openide.windows.WindowManager;
@@ -120,10 +119,10 @@ public class MidiSynthManager
         builtinMidiSynths.add(GM2Synth.getInstance());
         builtinMidiSynths.add(XGSynth.getInstance());
         builtinMidiSynths.add(GSSynth.getInstance());
-        builtinMidiSynths.add(readOneResourceSynth(JJAZZLAB_SOUNDFONT_GM2_SYNTH_PATH));
-        builtinMidiSynths.add(readOneResourceSynth(JJAZZLAB_SOUNDFONT_XG_SYNTH_PATH));
-        builtinMidiSynths.add(readOneResourceSynth(JJAZZLAB_SOUNDFONT_GS_SYNTH_PATH));
-        builtinMidiSynths.add(readOneResourceSynth(YAMAHA_REF_SYNTH_PATH));
+        builtinMidiSynths.add(loadFromResource(getClass(), JJAZZLAB_SOUNDFONT_GM2_SYNTH_PATH));
+        builtinMidiSynths.add(loadFromResource(getClass(), JJAZZLAB_SOUNDFONT_XG_SYNTH_PATH));
+        builtinMidiSynths.add(loadFromResource(getClass(), JJAZZLAB_SOUNDFONT_GS_SYNTH_PATH));
+        builtinMidiSynths.add(loadFromResource(getClass(), YAMAHA_REF_SYNTH_PATH));
     }
 
 
@@ -247,6 +246,31 @@ public class MidiSynthManager
     }
 
     /**
+     * Read one MidiSynth from an JJazzLab internal .ins resource file.
+     *
+     * @param clazz
+     * @param insResourcePath Resource path relative to clazz. Must contain only 1 MidiSynth
+     * @return Can't be null
+     * @throws IllegalStateException If resource could not be read
+     */
+    public static MidiSynth loadFromResource(Class clazz, String insResourcePath)
+    {
+        InputStream is = clazz.getResourceAsStream(insResourcePath);
+        assert is != null : "insResourcePath=" + insResourcePath;   //NOI18N
+        MidiSynthFileReader r = MidiSynthFileReader.getReader("ins");
+        assert r != null;   //NOI18N
+        try
+        {
+            List<MidiSynth> synths = r.readSynthsFromStream(is, null);
+            assert synths.size() == 1;   //NOI18N
+            return synths.get(0);
+        } catch (IOException ex)
+        {
+            throw new IllegalStateException("Unexpected error", ex);   //NOI18N
+        }
+    }
+
+    /**
      * Add PropertyChangeListener.
      *
      * @param listener
@@ -269,22 +293,6 @@ public class MidiSynthManager
     // ===============================================================================
     // Private methods
     // ===============================================================================
-    private MidiSynth readOneResourceSynth(String insResourcePath)
-    {
-        InputStream is = getClass().getResourceAsStream(insResourcePath);
-        assert is != null : "insResourcePath=" + insResourcePath;   //NOI18N
-        MidiSynthFileReader r = MidiSynthFileReader.getReader("ins");
-        assert r != null;   //NOI18N
-        try
-        {
-            List<MidiSynth> synths = r.readSynthsFromStream(is, null);
-            assert synths.size() == 1;   //NOI18N
-            return synths.get(0);
-        } catch (IOException ex)
-        {
-            throw new IllegalStateException("Unexpected error", ex);   //NOI18N
-        }
-    }
 
     /**
      * The last used directory, or if not set the standard directory for MidiSynth.
@@ -336,11 +344,11 @@ public class MidiSynthManager
                 try
                 {
                     // Not created yet, load it and add it to the database
-                    res = MidiSynth.loadFromFile(synthFile);    // thrpws IOException
+                    res = MidiSynth.loadFromFile(synthFile);    // throws IOException
                     msm.addFileBasedMidiSynth(res);
                 } catch (IOException ex)
                 {
-                    LOGGER.warning("getMidiSynth() can't load MidiSynth ex=" + ex.getMessage());
+                    LOGGER.warning("SynthFinder.getMidiSynth() can't load MidiSynth ex=" + ex.getMessage());
                 }
             }
 

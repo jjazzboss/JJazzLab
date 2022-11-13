@@ -34,6 +34,7 @@ import javax.swing.JTable;
 import javax.swing.UIManager;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 import org.jjazz.midi.api.DrumKit;
@@ -69,6 +70,7 @@ public class InstrumentTable extends JTable
         {
             col.setCellRenderer(renderer);
         }
+        getTableHeader().setDefaultRenderer(new HeaderRenderer(this));
     }
 
     /**
@@ -349,6 +351,7 @@ public class InstrumentTable extends JTable
             return label;
         }
 
+
         private String buildToolTipText(Instrument ins)
         {
             StringBuilder sb = new StringBuilder();
@@ -370,4 +373,28 @@ public class InstrumentTable extends JTable
             return sb.length() == 0 ? null : sb.toString();
         }
     }
+
+    /**
+     * Needed because default renderer also ignores the enabled/disabled state (like the default TableCellRenderer).
+     */
+    private static class HeaderRenderer implements TableCellRenderer
+    {
+
+        DefaultTableCellRenderer renderer;
+
+        public HeaderRenderer(JTable table)
+        {
+            renderer = (DefaultTableCellRenderer) table.getTableHeader().getDefaultRenderer();
+        }
+
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int col)
+        {
+            JLabel label = (JLabel) renderer.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col);
+            Color c = table.isEnabled() ? UIManager.getColor("Table.foreground") : UIManager.getColor("Label.disabledForeground");
+            label.setForeground(c);
+            return label;
+        }
+    }
+
 }

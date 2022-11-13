@@ -213,7 +213,8 @@ public class RhythmPreviewProviderImpl implements RhythmSelectionDialog.RhythmPr
             Song song = buildPreviewSong(originalSong, originalSpt, r, rpValues);
             song.setTempo(useRhythmTempo ? r.getPreferredTempo() : originalSong.getTempo());
             MidiMix mm = MidiMixManager.getInstance().findMix(song);        // Possible exception here
-            fixMidiMix(mm);
+            OutputSynth outputSynth = OutputSynthManager.getInstance().getDefaultOutputSynth();
+            outputSynth.fixInstruments(mm, true);
             sgContext = new SongContext(song, mm);
         } catch (UnsupportedEditException | MidiUnavailableException ex)
         {
@@ -224,41 +225,7 @@ public class RhythmPreviewProviderImpl implements RhythmSelectionDialog.RhythmPr
         return sgContext;
     }
 
-    /**
-     * Fix MidiMix : reroute drums channels if needed and change instruments to fit current output synth.
-     *
-     * @param mm
-     */
-    private void fixMidiMix(MidiMix mm)
-    {
-
-        // Fix instruments Vs output synth
-        OutputSynth outputSynth = OutputSynthManager.getInstance().getDefaultOutputSynth();
-        HashMap<Integer, Instrument> mapNewInstruments = outputSynth.getNeedFixInstruments(mm);
-
-        LOGGER.fine("fixMidiMix()    mapNewInstruments=" + mapNewInstruments);   //NOI18N
-
-        for (int channel : mapNewInstruments.keySet())
-        {
-            Instrument newIns = mapNewInstruments.get(channel);
-            InstrumentMix insMix = mm.getInstrumentMixFromChannel(channel);
-            insMix.setInstrument(newIns);
-            if (newIns != GMSynth.getInstance().getVoidInstrument())
-            {
-                // If we set a (non void) instrument it should not be rerouted anymore if it was the case before
-                mm.setDrumsReroutedChannel(false, channel);
-            }
-        }
-
-        // Reroute drums channels
-        List<Integer> reroutableChannels = mm.getChannelsNeedingDrumsRerouting(mapNewInstruments);
-        LOGGER.fine("fixMidiMix()    reroutableChannels=" + reroutableChannels);   //NOI18N
-        for (int ch : reroutableChannels)
-        {
-            mm.setDrumsReroutedChannel(true, ch);
-        }
-
-    }
+    
 
     /**
      * Build the song used for preview of the specified rhythm.

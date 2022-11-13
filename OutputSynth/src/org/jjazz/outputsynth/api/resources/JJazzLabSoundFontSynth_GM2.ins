@@ -241,7 +241,7 @@
 .Instrument Definitions
 
 [JJazzLab SoundFont (GM2)]
-BankSelMethod=0			; Use Bank Select MSB + LSB
+BankSelMethod=0			; Use Bank Select MSB + LSB.  For melodic voices, MSB=121 and LSB varies between 0 and x (variations)
 Patch[15488]=GM Bank           {{ GM_BANK }}
 Patch[15489]=Bank 1          
 Patch[15490]=Bank 2
@@ -258,4 +258,4 @@ Patch[15508]=Bank 20
 Patch[15512]=Bank 24  
 Patch[15523]=Bank 35  
 Patch[15534]=Bank 46  
-Patch[15360]=Drums
+Patch[15360]=Drums              ; MSB=120, LSB=0

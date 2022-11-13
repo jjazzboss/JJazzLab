@@ -71,7 +71,7 @@ public class MidiOutDeviceList extends JList<MidiDevice>
     /**
      * Rescan the available OUT MidiDevices on the system and update the list accordingly.
      * <p>
-     * If the Java default synth is present, make it the first on the list.
+     * Any selection is cleared. If the Java default synth is present, make it the first on the list.
      */
     public final void rescanMidiDevices()
     {

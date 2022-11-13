@@ -938,7 +938,7 @@ public final class JJazzMidiSystem
 
 
     /**
-     * Get the VirtualMidiSynth MidiDevice, if present on the system.
+     * Get the VirtualMidiSynth MidiDevice, if present on a Windows system.
      *
      * @return Can be null.
      */

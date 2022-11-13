@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.options;
+package org.jjazz.outputsynth.api.ui;
 
 import java.awt.event.InputEvent;
 import java.awt.event.MouseAdapter;
@@ -38,7 +38,6 @@ import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.synths.GM1Instrument;
 import org.jjazz.outputsynth.api.GMRemapTable;
 import org.jjazz.outputsynth.api.GMRemapTable.InvalidMappingException;
-import org.jjazz.outputsynth.api.ui.RemapTableInstrumentChooser;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.testplayerservice.spi.TestPlayer;
 import org.openide.DialogDisplayer;
@@ -157,6 +156,7 @@ public class DefaultInstrumentsDialog extends javax.swing.JDialog implements Pro
         btn_Ok = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setTitle(org.openide.util.NbBundle.getMessage(DefaultInstrumentsDialog.class, "DefaultInstrumentsDialog.title")); // NOI18N
 
         jScrollPane1.setViewportView(tbl_Remap);
 
@@ -167,9 +167,10 @@ public class DefaultInstrumentsDialog extends javax.swing.JDialog implements Pro
         helpTextArea1.setText(org.openide.util.NbBundle.getMessage(DefaultInstrumentsDialog.class, "DefaultInstrumentsDialog.helpTextArea1.text")); // NOI18N
         jScrollPane2.setViewportView(helpTextArea1);
 
-        btn_HearRemap.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/options/resources/SpeakerRed-20x20.png"))); // NOI18N
-        org.openide.awt.Mnemonics.setLocalizedText(btn_HearRemap, org.openide.util.NbBundle.getMessage(DefaultInstrumentsDialog.class, "DefaultInstrumentsDialog.btn_HearRemap.text")); // NOI18N
+        btn_HearRemap.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/outputsynth/api/ui/resources/SpeakerRed-20x20.png"))); // NOI18N
         btn_HearRemap.setToolTipText(org.openide.util.NbBundle.getMessage(DefaultInstrumentsDialog.class, "DefaultInstrumentsDialog.btn_HearRemap.toolTipText")); // NOI18N
+        btn_HearRemap.setInheritsPopupMenu(true);
+        btn_HearRemap.setMargin(new java.awt.Insets(2, 2, 2, 2));
         btn_HearRemap.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -223,7 +224,7 @@ public class DefaultInstrumentsDialog extends javax.swing.JDialog implements Pro
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 621, Short.MAX_VALUE)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 715, Short.MAX_VALUE)
                     .addComponent(jScrollPane2)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
@@ -245,8 +246,8 @@ public class DefaultInstrumentsDialog extends javax.swing.JDialog implements Pro
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 84, Short.MAX_VALUE)
-                .addGap(18, 18, 18)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btn_HearRemap)
                     .addComponent(btn_changeRemappedIns)

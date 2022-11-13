@@ -92,7 +92,8 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
         tbl_Instruments.setHiddenColumns(Arrays.asList(InstrumentTable.Model.COL_LSB,
                 InstrumentTable.Model.COL_MSB,
                 InstrumentTable.Model.COL_PC,
-                InstrumentTable.Model.COL_DRUMKIT
+                InstrumentTable.Model.COL_DRUMKIT,
+                InstrumentTable.Model.COL_SYNTH
         ));
         tbl_Instruments.getSelectionModel().addListSelectionListener(this);
         tbl_Instruments.addMouseListener(new MouseAdapter()
@@ -520,7 +521,7 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
         org.openide.awt.Mnemonics.setLocalizedText(lbl_preferredInstrument, "jLabel3"); // NOI18N
         lbl_preferredInstrument.setToolTipText(org.openide.util.NbBundle.getMessage(InstrumentChooserDialogImpl.class, "InstrumentChooserDialogImpl.lbl_preferredInstrument.toolTipText")); // NOI18N
 
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_outputSynthConfig, "Output synth config: Default.cfg"); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_outputSynthConfig, "Output synth: GM Synth"); // NOI18N
         lbl_outputSynthConfig.setToolTipText(org.openide.util.NbBundle.getMessage(InstrumentChooserDialogImpl.class, "InstrumentChooserDialogImpl.lbl_outputSynthConfig.toolTipText")); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());

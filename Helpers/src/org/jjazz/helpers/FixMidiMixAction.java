@@ -47,7 +47,6 @@ import org.openide.windows.OnShowing;
 @OnShowing              // Used only to get the automatic object creation upon startup
 public class FixMidiMixAction implements VetoableChangeListener, Runnable
 {
-
     private static FixMidiMixDialog DIALOG;
     private static final Logger LOGGER = Logger.getLogger(FixMidiMixAction.class.getSimpleName());
     FixChoice savedChoice = FixChoice.CANCEL;
@@ -109,7 +108,7 @@ public class FixMidiMixAction implements VetoableChangeListener, Runnable
                         case CANCEL:
                             throw new PropertyVetoException(null, evt); // null msg to prevent user notifications by exception handlers
                         case FIX:
-                            performFix(mapNewInstruments, reroutableChannels, midiMix);
+                            outputSynth.fixInstruments(midiMix, true);
                             break;
                         case DONT_FIX:
                             // Do nothing, leave toBeFixedChannels empty
@@ -123,7 +122,7 @@ public class FixMidiMixAction implements VetoableChangeListener, Runnable
                     }
                     break;
                 case FIX:
-                    performFix(mapNewInstruments, reroutableChannels, midiMix);
+                    outputSynth.fixInstruments(midiMix, true);
                     break;
                 case DONT_FIX:
                     // Do nothing, leave toBeFixedChannels empty
@@ -141,25 +140,6 @@ public class FixMidiMixAction implements VetoableChangeListener, Runnable
             DIALOG = new FixMidiMixDialog();
         }
         return DIALOG;
-    }
-
-    private void performFix(HashMap<Integer, Instrument> mapChanIns, List<Integer> reroutedChannels, MidiMix midiMix)
-    {
-        for (int ch : mapChanIns.keySet())
-        {
-            Instrument newIns = mapChanIns.get(ch);
-            InstrumentMix insMix = midiMix.getInstrumentMixFromChannel(ch);
-            insMix.setInstrument(newIns);
-            if (newIns != GMSynth.getInstance().getVoidInstrument())
-            {
-                // If we set a (non void) instrument it should not be rerouted anymore if it was the case before
-                midiMix.setDrumsReroutedChannel(false, ch);
-            }
-        }
-        for (int ch : reroutedChannels)
-        {
-            midiMix.setDrumsReroutedChannel(true, ch);
-        }
     }
 
 }

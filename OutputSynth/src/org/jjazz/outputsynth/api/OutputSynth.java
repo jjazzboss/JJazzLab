@@ -34,6 +34,7 @@ import java.util.logging.Logger;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.midi.api.Instrument;
 import org.jjazz.midi.api.InstrumentBank;
+import org.jjazz.midi.api.InstrumentMix;
 import org.jjazz.midi.api.MidiSynth;
 import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.midi.api.synths.GM1Instrument;
@@ -107,18 +108,18 @@ public class OutputSynth
     /**
      * Find an instrument from this OutputSynth matching (as much as possible) the specified rhythm voice's preferred instrument.
      * <p>
-     *
-     * @param rv Must be a standard RhythmVoice (not a UserRhythmVoice)
+     * 
+     * @param rv 
      * @return Can't be null. It may be the VoidInstrument for drums/percussion.
      */
     public Instrument findInstrument(RhythmVoice rv)
     {
-
-        if (rv == null || rv instanceof UserRhythmVoice)
+        Preconditions.checkNotNull(rv);
+        
+        if (rv instanceof UserRhythmVoice)
         {
-            throw new IllegalArgumentException("rv=" + rv);
+            return userSettings.getUserInstrument();
         }
-
 
         // rvIns can be a YamahaRefSynth instrument (with GM1 substitute defined), or  a GM/GM2/XG instrument, or a VoidInstrument
         Instrument rvIns = rv.getPreferredInstrument();
@@ -273,12 +274,13 @@ public class OutputSynth
     }
 
     /**
-     * Get the instruments that should be used in the specified MidiMix to be consistent with this OutputSynth.
+     * Get the instruments that should be used in the specified MidiMix to make it consistent with this OutputSynth.
      * <p>
      *
      * @param mm
      * @return The channels which need to be fixed and the associated new instrument. Can't be null but returned HashMap can be
      *         empty.
+     * @see #fixInstruments(org.jjazz.midimix.api.MidiMix)
      */
     public HashMap<Integer, Instrument> getNeedFixInstruments(MidiMix mm)
     {
@@ -297,6 +299,43 @@ public class OutputSynth
             }
         }
         return res;
+    }
+
+    /**
+     * Fix the specified MidiMix so that it uses instruments from this OutputSynth.
+     *
+     * @param mm
+     * @param fixDrumsRerouting If true also try to fix the drums rerouting status of each channel
+     * @see #getNeedFixInstruments(org.jjazz.midimix.api.MidiMix)
+     */
+    public void fixInstruments(MidiMix mm, boolean fixDrumsRerouting)
+    {
+        HashMap<Integer, Instrument> mapNewInstruments = getNeedFixInstruments(mm);
+
+        LOGGER.log(Level.FINE, "fixInstruments()    mapNewInstruments={0}", mapNewInstruments);   //NOI18N
+
+        for (int channel : mapNewInstruments.keySet())
+        {
+            Instrument newIns = mapNewInstruments.get(channel);
+            InstrumentMix insMix = mm.getInstrumentMixFromChannel(channel);
+            insMix.setInstrument(newIns);
+            if (newIns != GMSynth.getInstance().getVoidInstrument())
+            {
+                // If we set a (non void) instrument it should not be rerouted anymore if it was the case before
+                mm.setDrumsReroutedChannel(false, channel);
+            }
+        }
+
+        // Reroute drums channels
+        if (fixDrumsRerouting)
+        {
+            List<Integer> reroutableChannels = mm.getChannelsNeedingDrumsRerouting(mapNewInstruments);
+            LOGGER.log(Level.FINE, "fixInstruments()    reroutableChannels={0}", reroutableChannels);   //NOI18N
+            for (int ch : reroutableChannels)
+            {
+                mm.setDrumsReroutedChannel(true, ch);
+            }
+        }
     }
 
     /**
@@ -434,6 +473,7 @@ public class OutputSynth
          */
         public void setAudioLatency(int audioLatency)
         {
+            Preconditions.checkArgument(audioLatency >= 0 && audioLatency <= 5000);
             int oldAudioLatency = this.audioLatency;
             this.audioLatency = audioLatency;
             pcs.firePropertyChange(PROP_AUDIO_LATENCY, oldAudioLatency, audioLatency);
@@ -504,68 +544,57 @@ public class OutputSynth
          */
         public void setFromString(String s) throws IOException
         {
-            String msg = null;
-
             String strs[] = s.split(";");
             if (strs.length != 4)
             {
-                msg = "Invalid string s=" + s;
+                String msg = "Invalid string s=" + s;
+                throw new IOException(msg);
             }
 
             int latency = 0;
             String sLatency = strs[0].trim();
-            if (msg == null)
+            try
             {
-                try
-                {
-                    latency = Integer.parseInt(sLatency);
-                } catch (NumberFormatException ex)
-                {
-                    msg = "Invalid audio latency string value. sLatency=" + sLatency;
-                }
+                latency = Integer.parseInt(sLatency);
+                latency = Math.max(0, latency);
+                latency = Math.min(5000, latency);
+            } catch (NumberFormatException ex)
+            {
+                String msg = "Invalid audio latency string value. sLatency=" + sLatency;
+                throw new IOException(msg);
             }
 
             SendModeOnUponPlay mode = SendModeOnUponPlay.OFF;
             String sMode = strs[1].trim();
-            if (msg == null)
+            try
             {
-                try
-                {
-                    mode = SendModeOnUponPlay.valueOf(sMode);
-                } catch (IllegalArgumentException ex)
-                {
-                    msg = "Invalid SendModeOnUponPlay string value. sMode=" + sMode;
-                }
+                mode = SendModeOnUponPlay.valueOf(sMode);
+            } catch (IllegalArgumentException ex)
+            {
+                String msg = "Invalid SendModeOnUponPlay string value. sMode=" + sMode;
+                throw new IOException(msg);
             }
-
 
             String sUserIns = strs[2].trim();
             Instrument userIns = Instrument.loadFromString(sUserIns);
-            if (msg == null && userIns == null)
+            if (userIns == null)
             {
-                msg = "Invalid instrument string value. sUserIns=" + sUserIns;
+                String msg = "Invalid instrument string value. sUserIns=" + sUserIns;
+                throw new IOException(msg);
             }
 
 
             GMRemapTable remap = null;
             String sRemap = strs[3].trim();
-            if (msg == null)
+            try
             {
-                try
-                {
-                    remap = GMRemapTable.loadFromString(midiSynth, sRemap);
-                } catch (IOException ex)
-                {
-                    msg = "Invalid RemapTable string value ex=" + ex.getMessage() + ". sRemap=" + sRemap;
-                }
-            }
-
-
-            if (msg != null)
+                remap = GMRemapTable.loadFromString(midiSynth, sRemap);
+            } catch (IOException ex)
             {
-                LOGGER.warning("setFromString() " + msg + ". s=" + s);
+                String msg = "Invalid RemapTable string value ex=" + ex.getMessage() + ". sRemap=" + sRemap;
                 throw new IOException(msg);
             }
+
 
             setAudioLatency(latency);
             setSendModeOnUponPlay(mode);

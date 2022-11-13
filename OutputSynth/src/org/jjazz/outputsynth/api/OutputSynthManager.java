@@ -28,13 +28,11 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import javax.sound.midi.MidiDevice;
-import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.midi.api.JJazzMidiSystem;
 import org.jjazz.midi.api.synths.GM2Synth;
 import org.jjazz.midi.api.synths.GMSynth;
@@ -365,10 +363,6 @@ public class OutputSynthManager implements PropertyChangeListener
     // =====================================================================================
     // Upgrade Task
     // =====================================================================================
-    /**
-     * We need to copy the current OutputSynth configuration file (if any) to the new config. directory.
-     * <p>
-     */
     @ServiceProvider(service = UpgradeTask.class)
     static public class RestoreSettingsTask implements UpgradeTask
     {
@@ -376,56 +370,10 @@ public class OutputSynthManager implements PropertyChangeListener
         @Override
         public void upgrade(String oldVersion)
         {
-
-            if (oldVersion == null)
-            {
-                return;
-            }
-
-            var um = UpgradeManager.getInstance();
-            var fdm = FileDirectoryManager.getInstance();
-
-            LOGGER.severe("upgrade() COMMENTED OUT! TO RESTORE");
-//            // Get the old output synth config file name
-//            Properties oldProp = um.getPropertiesFromPrefs(prefs);
-//            if (oldProp == null)
-//            {
-//                LOGGER.warning("upgrade() no old properties found for prefs=" + prefs.absolutePath());   //NOI18N
-//                return;
-//            }
-//            String oldCfgFileName = oldProp.getProperty(PROP_DEFAULT_OUTPUTSYNTH);
-//
-//            if (oldCfgFileName == null)
-//            {
-//                LOGGER.warning("upgrade() oldVersion=" + oldVersion + ", undefined Output Synth config file property" + PROP_DEFAULT_OUTPUTSYNTH);   //NOI18N
-//                return;
-//            }
-//
-//            // Try to get the old file
-//            File prevAppConfigDir = fdm.getOldAppConfigDirectory(oldVersion, OUTPUT_SYNTH_FILES_DIR);
-//            if (prevAppConfigDir == null)
-//            {
-//                LOGGER.warning("upgrade() can't find prevAppConfigDir=" + prevAppConfigDir);   //NOI18N
-//                return;
-//            }
-//
-//            File oldCfgFile = new File(prevAppConfigDir, oldCfgFileName);
-//            if (!oldCfgFile.exists())
-//            {
-//                LOGGER.warning("upgrade() can't find oldCfgFile=" + oldCfgFile.getAbsolutePath());   //NOI18N
-//                return;
-//            }
-//
-//            File appConfigDir = fdm.getAppConfigDirectory(OUTPUT_SYNTH_FILES_DIR);
-//            File newCfgFile = new File(appConfigDir, oldCfgFileName);
-//            try
-//            {
-//                Files.copy(oldCfgFile.toPath(), newCfgFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-//                prefs.put(PROP_DEFAULT_OUTPUTSYNTH, oldCfgFileName);
-//            } catch (IOException ex)
-//            {
-//                LOGGER.warning("upgrade() error copying output synth config file=" + oldCfgFile.getAbsolutePath() + ". ex=" + ex.getMessage());   //NOI18N
-//            }
+            UpgradeManager um = UpgradeManager.getInstance();
+            um.duplicateOldPreferences(prefs);
         }
+
     }
+
 }

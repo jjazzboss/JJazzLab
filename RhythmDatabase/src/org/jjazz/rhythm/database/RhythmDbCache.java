@@ -42,7 +42,7 @@ public class RhythmDbCache implements Serializable
     private static final long serialVersionUID = 2922229276100L;
     private static final String DB_CACHE_FILE = "RhythmDbCache.dat";
 
-    private HashMap<String, List<RhythmInfo>> data = new HashMap<>();
+    private final HashMap<String, List<RhythmInfo>> data = new HashMap<>();
     private static final Logger LOGGER = Logger.getLogger(RhythmDbCache.class.getSimpleName());
 
     /**
@@ -57,10 +57,10 @@ public class RhythmDbCache implements Serializable
         // Copy data : just change RhythmProvider by its id
         for (RhythmProvider rp : map.keySet())
         {
-            var rhythms = new ArrayList<RhythmInfo>();
-            map.get(rp).stream()
+            var rhythms =  map.get(rp)
+                    .stream()
                     .filter(ri -> !ri.getFile().getName().equals("") && !ri.isAdaptedRhythm())
-                    .forEach(ri -> rhythms.add(ri));
+                    .toList();          
             if (!rhythms.isEmpty())
             {
                 data.put(rp.getInfo().getUniqueId(), rhythms);

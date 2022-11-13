@@ -358,7 +358,7 @@ public class GMRemapTable implements Serializable
 
         if (msg != null)
         {
-            LOGGER.warning("loadFromString() " + msg + ". s=" + s);
+            // LOGGER.warning("loadFromString() " + msg + ". s=" + s);
             throw new IOException(msg);
         }
 
