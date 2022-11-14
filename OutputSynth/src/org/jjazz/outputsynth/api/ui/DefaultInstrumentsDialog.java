@@ -50,7 +50,7 @@ import org.openide.windows.WindowManager;
  */
 public class DefaultInstrumentsDialog extends javax.swing.JDialog implements PropertyChangeListener
 {
-
+    
     private final GMRemapTable saveRemapTable;
     private final GMRemapTable remapTable;
     private static final Logger LOGGER = Logger.getLogger(DefaultInstrumentsDialog.class.getSimpleName());
@@ -62,12 +62,12 @@ public class DefaultInstrumentsDialog extends javax.swing.JDialog implements Pro
     {
         super(WindowManager.getDefault().getMainWindow(), true);
         initComponents();
-
+        
         this.remapTable = remapTable;
         this.saveRemapTable = new GMRemapTable(remapTable.getMidiSynth());
         this.saveRemapTable.set(remapTable);
         this.remapTable.addPropertyChangeListener(this);
-
+        
         tbl_Remap.setPrimaryModel(this.remapTable);
         tbl_Remap.getSelectionModel().addListSelectionListener(e -> enableDisableButtons());
         tbl_Remap.addMouseListener(new MouseAdapter()
@@ -78,17 +78,23 @@ public class DefaultInstrumentsDialog extends javax.swing.JDialog implements Pro
                 handleTableMouseClicked(e);
             }
         });
-
+        
         addWindowListener(new WindowAdapter()
         {
+            @Override
+            public void windowClosing(WindowEvent e)
+            {
+                btn_CancelActionPerformed(null);
+            }
+
             @Override
             public void windowClosed(WindowEvent e)
             {
                 remapTable.removePropertyChangeListener(DefaultInstrumentsDialog.this);
             }
         });
-
-
+        
+        
         enableDisableButtons();
     }
 
@@ -116,7 +122,7 @@ public class DefaultInstrumentsDialog extends javax.swing.JDialog implements Pro
         btn_HearRemap.setEnabled(mappingExist);
         btn_ResetInstrument.setEnabled(mappingExist);
     }
-
+    
     private void handleTableMouseClicked(MouseEvent evt)
     {
         boolean ctrl = (evt.getModifiersEx() & InputEvent.CTRL_DOWN_MASK) == InputEvent.CTRL_DOWN_MASK;
@@ -271,7 +277,7 @@ public class DefaultInstrumentsDialog extends javax.swing.JDialog implements Pro
         {
             RemapTableInstrumentChooser chooser = RemapTableInstrumentChooser.getInstance();
             chooser.preset(remapTable, mappedIns);
-            chooser.setVisible(true);           
+            chooser.setVisible(true);            
             Instrument ins = chooser.getSelectedInstrument();
             if (chooser.isExitOK() && ins != null)
             {
@@ -283,7 +289,7 @@ public class DefaultInstrumentsDialog extends javax.swing.JDialog implements Pro
                     NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
                     DialogDisplayer.getDefault().notify(d);
                 }
-
+                
                 Analytics.logEvent("Change Default Instrument");
             }
         }
@@ -306,7 +312,7 @@ public class DefaultInstrumentsDialog extends javax.swing.JDialog implements Pro
         tbl_Remap.setEnabled(false);
         btn_HearRemap.setEnabled(false);
         btn_changeRemappedIns.setEnabled(false);
-
+        
         Runnable endAction = new Runnable()
         {
             @Override
@@ -325,7 +331,7 @@ public class DefaultInstrumentsDialog extends javax.swing.JDialog implements Pro
             final int TRANSPOSE = ins.isDrumKit() ? -24 : 0;
             JJazzMidiSystem.getInstance().sendMidiMessagesOnJJazzMidiOut(ins.getMidiMessages(CHANNEL));
             tp.playTestNotes(CHANNEL, -1, TRANSPOSE, endAction);
-
+            
         } catch (MusicGenerationException ex)
         {
             endAction.run();

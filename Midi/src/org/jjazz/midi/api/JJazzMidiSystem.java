@@ -72,7 +72,7 @@ public final class JJazzMidiSystem
 
     private static JJazzMidiSystem INSTANCE = null;
     public final static String NOT_SET = "NotSet";
-    public final static String JAVA_INTERNAL_SYNTH_NAME = "Java Internal Synth";
+    public final static String JAVA_INTERNAL_SYNTH_NAME = "Java Synth (Gervill)";
     // Properties are also used as Preferences key
     public final static String PROP_MIDI_IN = "MidiInProp";
     public final static String PROP_MIDI_OUT = "MidiOutProp";
