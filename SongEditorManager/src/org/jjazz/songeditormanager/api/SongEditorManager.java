@@ -37,6 +37,7 @@ import org.jjazz.activesong.api.ActiveSongManager;
 import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.MidiMixManager;
+import org.jjazz.outputsynth.api.OutputSynthManager;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongCreationException;
 import org.jjazz.song.api.SongFactory;
@@ -244,7 +245,7 @@ public class SongEditorManager implements PropertyChangeListener
     /**
      * Load a song from a file and show it.
      * <p>
-     * Load the song from file and call showSong(song, makeActive).
+     * Load the song from file, fix the MidiMix if required, and call showSong(song, makeActive).
      *
      * @param f
      * @param makeActive
@@ -285,9 +286,24 @@ public class SongEditorManager implements PropertyChangeListener
 
         // File is NOT opened yet
 
+        
         // Read song from file
         SongFactory sf = SongFactory.getInstance();
         Song song = sf.createFromFile(f);       // Possible SongCreationException here
+
+
+        // Fix the MidiMix if needed
+        try
+        {
+            var mm = MidiMixManager.getInstance().findMix(song);
+            OutputSynthManager.getInstance().getDefaultOutputSynth().fixInstruments(mm, true);
+        } catch (MidiUnavailableException ex)
+        {
+            Exceptions.printStackTrace(ex);
+        }
+
+
+        // Update last song directory
         if (updateLastSongDirectory)
         {
             FileDirectoryManager.getInstance().setLastSongDirectory(f.getAbsoluteFile().getParentFile());

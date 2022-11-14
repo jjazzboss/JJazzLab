@@ -30,7 +30,6 @@ import javax.sound.midi.MidiUnavailableException;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
-import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.MidiMixManager;
 import org.jjazz.outputsynth.api.OutputSynthManager;
 import org.jjazz.song.api.Song;
@@ -104,23 +103,13 @@ public final class OpenSong implements ActionListener
         {
             // Show the song in the editors
             Song song = SongEditorManager.getInstance().showSong(songFile, makeActive, updateLastSongDir);
-
             
-            // Fix the MidiMix if needed
-            var mm = MidiMixManager.getInstance().findMix(song);
-            OutputSynthManager.getInstance().getDefaultOutputSynth().fixInstruments(mm, true);
-
         } catch (SongCreationException ex)
         {
             String msg = ResUtil.getString(OpenSong.class, "ERR_CantOpenSongFile", songFile.getAbsolutePath(), ex.getLocalizedMessage());
             LOGGER.warning("openSong() " + msg);   //NOI18N
             NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(nd);
-            b = false;
-        } catch (MidiUnavailableException ex)
-        {
-            // Should never be there
-            Exceptions.printStackTrace(ex);
             b = false;
         }
         return b;
