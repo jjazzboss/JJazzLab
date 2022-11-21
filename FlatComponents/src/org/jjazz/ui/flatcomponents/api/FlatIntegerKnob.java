@@ -80,6 +80,8 @@ public class FlatIntegerKnob extends JPanel implements MouseMotionListener, Mous
     private int startDragValue;
     private Color saveForeground;
     private Color saveColorLine;
+    private boolean useValueTooltip = true;
+
 
     private static final Logger LOGGER = Logger.getLogger(FlatIntegerKnob.class.getSimpleName());
 
@@ -97,7 +99,7 @@ public class FlatIntegerKnob extends JPanel implements MouseMotionListener, Mous
         GeneralUISettings.getInstance().installChangeValueWithMouseWheelSupport(this, this);
 
         updateToolTipText();
-        
+
     }
 
     @Override
@@ -336,11 +338,41 @@ public class FlatIntegerKnob extends JPanel implements MouseMotionListener, Mous
         return tooltipLabel;
     }
 
+    /**
+     * If not null and isUseValueTooltip==true, use tooltipLabel to automatically form the tooltip.
+     *
+     * @param tooltipLabel
+     * @see #setUseValueTooltip(boolean)
+     */
     public void setTooltipLabel(String tooltipLabel)
     {
         this.tooltipLabel = tooltipLabel;
         updateToolTipText();
     }
+
+    /**
+     * True if the tooltip is automatically set from the value and tooltipLabel.
+     *
+     * @return True by default.
+     * @see #setUseValueTooltip(boolean)
+     */
+    public boolean isUseValueTooltip()
+    {
+        return useValueTooltip;
+    }
+
+    /**
+     * If true the tooltip is automatically set using the tooltip label (if not null) and the knob value.
+     *
+     * @param useValueTooltip
+     * @see #setTooltipLabel(java.lang.String)
+     */
+    public void setUseValueTooltip(boolean useValueTooltip)
+    {
+        this.useValueTooltip = useValueTooltip;
+        updateToolTipText();
+    }
+
 
     public void setValue(int v)
     {
@@ -669,7 +701,10 @@ public class FlatIntegerKnob extends JPanel implements MouseMotionListener, Mous
 
     private void updateToolTipText()
     {
-        setToolTipText(prepareToolTipText());
+        if (useValueTooltip)
+        {
+            setToolTipText(prepareToolTipText());
+        }
     }
 
 }

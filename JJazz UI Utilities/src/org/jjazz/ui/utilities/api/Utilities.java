@@ -122,11 +122,11 @@ public class Utilities
     /**
      * Positions a dialog at a position relative to an anchor component.
      *
-     * @param dialog the dialog to be positioned.
-     * @param anchorComponent the anchor component
-     * @param padding The maximum space between dialog and anchor component.
+     * @param dialog            the dialog to be positioned.
+     * @param anchorComponent   the anchor component
+     * @param padding           The maximum space between dialog and anchor component.
      * @param horizontalPercent 0 means left of anchor component, 1 is right, 0.5 is center
-     * @param verticalPercent 0 means above of anchor component, 1 is below, 0.5 is center
+     * @param verticalPercent   0 means above of anchor component, 1 is below, 0.5 is center
      */
     public static void setDialogLocationRelativeTo(final Dialog dialog,
             final Component anchorComponent,
@@ -176,7 +176,7 @@ public class Utilities
      * Install an action on a dialog when the ESCAPE key is pressed.
      *
      * @param dialog
-     * @param r Call r.run() when ESCAPE is pressed. If r is null pressing ESCAPE closes the dialog.
+     * @param r      Call r.run() when ESCAPE is pressed. If r is null pressing ESCAPE closes the dialog.
      */
     public static void installEscapeKeyAction(JDialog dialog, Runnable r)
     {
@@ -205,7 +205,7 @@ public class Utilities
      * Install an action on a dialog when the ENTER key is pressed.
      *
      * @param dialog
-     * @param r Call r.run() when ENTER is pressed. If r is null pressing ENTER closes the dialog.
+     * @param r      Call r.run() when ENTER is pressed. If r is null pressing ENTER closes the dialog.
      */
     public static void installEnterKeyAction(JDialog dialog, Runnable r)
     {
@@ -328,11 +328,16 @@ public class Utilities
     /**
      * Recursively enable/disable a JComponent and its JComponent children.
      *
-     * @param b boolean
+     * @param b  boolean
      * @param jc JComponent
      */
     public static void setRecursiveEnabled(boolean b, JComponent jc)
     {
+        if ((b && jc.isEnabled()) || (!b && !jc.isEnabled()))
+        {
+            return;
+        }
+        
         for (Component c : jc.getComponents())
         {
             if (c instanceof JComponent)
@@ -508,7 +513,7 @@ public class Utilities
      * Show the JFileChooser to select a directory.
      *
      * @param dirPath Initialize chooser with this directory.
-     * @param title Title of the dialog.
+     * @param title   Title of the dialog.
      * @return The selected dir or null.
      */
     static public File showDirChooser(String dirPath, String title)
@@ -542,7 +547,7 @@ public class Utilities
      * <p>
      * If string contains '\n', string will be displayed on several lines.
      *
-     * @param g2 Used to draw the string with the default font and foreground.
+     * @param g2   Used to draw the string with the default font and foreground.
      * @param jc
      * @param text
      */
@@ -586,7 +591,8 @@ public class Utilities
     /**
      * Convenience static method to disable all components of a given Container, including nested Containers.
      * <p>
-     * The method saves the enabled state of children, in order to reenable them (or not) as required when calling enableContainer().
+     * The method saves the enabled state of children, in order to reenable them (or not) as required when calling
+     * enableContainer().
      *
      * @param container the Container containing Components to be disabled
      * @see #enableContainer(java.awt.Container)
@@ -637,9 +643,9 @@ public class Utilities
      * Invoking this method with a class parameter of JComponent.class will return all nested components.
      *
      * @param <T>
-     * @param clazz the class of components whose instances are to be found.
+     * @param clazz     the class of components whose instances are to be found.
      * @param container the container at which to begin the search
-     * @param nested true to list components nested within another listed component, false otherwise
+     * @param nested    true to list components nested within another listed component, false otherwise
      * @return the List of components
      */
     public static <T extends JComponent> List<T> getDescendantsOfType(Class<T> clazz, Container container, boolean nested)
@@ -669,9 +675,9 @@ public class Utilities
      * <p>
      * From Stackoverflow: https://stackoverflow.com/questions/3953208/value-change-listener-to-jtextfield
      *
-     * @param text any text component, such as a {@link JTextField} or {@link JTextArea}
+     * @param text           any text component, such as a {@link JTextField} or {@link JTextArea}
      * @param changeListener a listener to receieve {@link ChangeEvent}s when the text is changed; the source object for the
-     * events will be the text component
+     *                       events will be the text component
      * @throws NullPointerException if either parameter is null
      */
     public static void addChangeListener(JTextComponent text, ChangeListener changeListener)

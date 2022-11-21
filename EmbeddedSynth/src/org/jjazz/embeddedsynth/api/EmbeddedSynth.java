@@ -22,6 +22,7 @@
  */
 package org.jjazz.embeddedsynth.api;
 
+import java.awt.Component;
 import java.io.File;
 import javax.sound.midi.MidiDevice;
 import org.jjazz.outputsynth.api.OutputSynth;
@@ -54,10 +55,11 @@ public interface EmbeddedSynth
      * @return
      */
     MidiDevice getOutMidiDevice();
-    
+
     /**
      * Get the OutputSynth corresponding to this embedded synth.
-     * @return 
+     *
+     * @return
      */
     OutputSynth getOutputSynth();
 
@@ -65,8 +67,10 @@ public interface EmbeddedSynth
      * Display a dialog to alter embedded synth settings.
      * <p>
      * Settings might be serialized by the embedded synth instance.
+     *
+     * @param c The related component to locate the dialog.
      */
-    void showSettings();
+    void showSettings(Component c);
 
     /**
      * Generate a .wav file from the specified midiFile.

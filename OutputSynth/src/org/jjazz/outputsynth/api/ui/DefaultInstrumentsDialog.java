@@ -50,24 +50,30 @@ import org.openide.windows.WindowManager;
  */
 public class DefaultInstrumentsDialog extends javax.swing.JDialog implements PropertyChangeListener
 {
-    
+
     private final GMRemapTable saveRemapTable;
     private final GMRemapTable remapTable;
     private static final Logger LOGGER = Logger.getLogger(DefaultInstrumentsDialog.class.getSimpleName());
 
     /**
      * Creates new form DefaultInstrumentsDialog
+     *
+     * @param dlgTitle
+     * @param remapTable
      */
-    public DefaultInstrumentsDialog(GMRemapTable remapTable)
+    public DefaultInstrumentsDialog(String dlgTitle, GMRemapTable remapTable)
     {
         super(WindowManager.getDefault().getMainWindow(), true);
+
+        setTitle(dlgTitle);
+
         initComponents();
         
         this.remapTable = remapTable;
         this.saveRemapTable = new GMRemapTable(remapTable.getMidiSynth());
         this.saveRemapTable.set(remapTable);
         this.remapTable.addPropertyChangeListener(this);
-        
+
         tbl_Remap.setPrimaryModel(this.remapTable);
         tbl_Remap.getSelectionModel().addListSelectionListener(e -> enableDisableButtons());
         tbl_Remap.addMouseListener(new MouseAdapter()
@@ -78,7 +84,7 @@ public class DefaultInstrumentsDialog extends javax.swing.JDialog implements Pro
                 handleTableMouseClicked(e);
             }
         });
-        
+
         addWindowListener(new WindowAdapter()
         {
             @Override
@@ -93,11 +99,16 @@ public class DefaultInstrumentsDialog extends javax.swing.JDialog implements Pro
                 remapTable.removePropertyChangeListener(DefaultInstrumentsDialog.this);
             }
         });
-        
-        
+
+
         enableDisableButtons();
+        setLocationByPlatform(true);        
     }
 
+    public String getHelpText()
+    {
+        return hlp_area.getText();
+    }
 
     // ==============================================================================
     // PropertyChangeListener interface
@@ -122,7 +133,7 @@ public class DefaultInstrumentsDialog extends javax.swing.JDialog implements Pro
         btn_HearRemap.setEnabled(mappingExist);
         btn_ResetInstrument.setEnabled(mappingExist);
     }
-    
+
     private void handleTableMouseClicked(MouseEvent evt)
     {
         boolean ctrl = (evt.getModifiersEx() & InputEvent.CTRL_DOWN_MASK) == InputEvent.CTRL_DOWN_MASK;
@@ -154,7 +165,7 @@ public class DefaultInstrumentsDialog extends javax.swing.JDialog implements Pro
         jScrollPane1 = new javax.swing.JScrollPane();
         tbl_Remap = new org.jjazz.outputsynth.api.ui.RemapTableUI();
         jScrollPane2 = new javax.swing.JScrollPane();
-        helpTextArea1 = new org.jjazz.ui.utilities.api.HelpTextArea();
+        hlp_area = new org.jjazz.ui.utilities.api.HelpTextArea();
         btn_HearRemap = new javax.swing.JButton();
         btn_changeRemappedIns = new javax.swing.JButton();
         btn_ResetInstrument = new javax.swing.JButton();
@@ -162,16 +173,15 @@ public class DefaultInstrumentsDialog extends javax.swing.JDialog implements Pro
         btn_Ok = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        setTitle(org.openide.util.NbBundle.getMessage(DefaultInstrumentsDialog.class, "DefaultInstrumentsDialog.title")); // NOI18N
 
         jScrollPane1.setViewportView(tbl_Remap);
 
         jScrollPane2.setBorder(null);
 
-        helpTextArea1.setColumns(20);
-        helpTextArea1.setRows(5);
-        helpTextArea1.setText(org.openide.util.NbBundle.getMessage(DefaultInstrumentsDialog.class, "DefaultInstrumentsDialog.helpTextArea1.text")); // NOI18N
-        jScrollPane2.setViewportView(helpTextArea1);
+        hlp_area.setColumns(20);
+        hlp_area.setRows(5);
+        hlp_area.setText(org.openide.util.NbBundle.getMessage(DefaultInstrumentsDialog.class, "DefaultInstrumentsDialog.hlp_area.text")); // NOI18N
+        jScrollPane2.setViewportView(hlp_area);
 
         btn_HearRemap.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/outputsynth/api/ui/resources/SpeakerRed-20x20.png"))); // NOI18N
         btn_HearRemap.setToolTipText(org.openide.util.NbBundle.getMessage(DefaultInstrumentsDialog.class, "DefaultInstrumentsDialog.btn_HearRemap.toolTipText")); // NOI18N
@@ -277,7 +287,7 @@ public class DefaultInstrumentsDialog extends javax.swing.JDialog implements Pro
         {
             RemapTableInstrumentChooser chooser = RemapTableInstrumentChooser.getInstance();
             chooser.preset(remapTable, mappedIns);
-            chooser.setVisible(true);            
+            chooser.setVisible(true);
             Instrument ins = chooser.getSelectedInstrument();
             if (chooser.isExitOK() && ins != null)
             {
@@ -289,7 +299,7 @@ public class DefaultInstrumentsDialog extends javax.swing.JDialog implements Pro
                     NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
                     DialogDisplayer.getDefault().notify(d);
                 }
-                
+
                 Analytics.logEvent("Change Default Instrument");
             }
         }
@@ -312,7 +322,7 @@ public class DefaultInstrumentsDialog extends javax.swing.JDialog implements Pro
         tbl_Remap.setEnabled(false);
         btn_HearRemap.setEnabled(false);
         btn_changeRemappedIns.setEnabled(false);
-        
+
         Runnable endAction = new Runnable()
         {
             @Override
@@ -331,7 +341,7 @@ public class DefaultInstrumentsDialog extends javax.swing.JDialog implements Pro
             final int TRANSPOSE = ins.isDrumKit() ? -24 : 0;
             JJazzMidiSystem.getInstance().sendMidiMessagesOnJJazzMidiOut(ins.getMidiMessages(CHANNEL));
             tp.playTestNotes(CHANNEL, -1, TRANSPOSE, endAction);
-            
+
         } catch (MusicGenerationException ex)
         {
             endAction.run();
@@ -389,7 +399,7 @@ public class DefaultInstrumentsDialog extends javax.swing.JDialog implements Pro
     private javax.swing.JButton btn_Ok;
     private javax.swing.JButton btn_ResetInstrument;
     private javax.swing.JButton btn_changeRemappedIns;
-    private org.jjazz.ui.utilities.api.HelpTextArea helpTextArea1;
+    private org.jjazz.ui.utilities.api.HelpTextArea hlp_area;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private org.jjazz.outputsynth.api.ui.RemapTableUI tbl_Remap;

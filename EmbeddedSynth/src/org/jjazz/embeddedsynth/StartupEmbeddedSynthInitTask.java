@@ -26,6 +26,7 @@ import java.util.logging.Logger;
 import javax.sound.midi.MidiUnavailableException;
 import org.jjazz.embeddedsynth.spi.EmbeddedSynthProvider;
 import org.jjazz.midi.api.JJazzMidiSystem;
+import org.jjazz.outputsynth.api.MidiSynthManager;
 import org.jjazz.outputsynth.api.OutputSynthManager;
 import org.jjazz.upgrade.api.UpgradeManager;
 import org.openide.modules.OnStart;
@@ -50,6 +51,9 @@ public class StartupEmbeddedSynthInitTask implements Runnable
             return;
         }
 
+        // Register the embedded MidiSynth
+        MidiSynthManager.getInstance().addMidiSynth(eSynth.getOutputSynth().getMidiSynth());
+        
 
         // Register the MidiDevice with the OutputSynth
         OutputSynthManager.getInstance().setOutputSynth(eSynth.getOutMidiDevice().getDeviceInfo().getName(), eSynth.getOutputSynth());

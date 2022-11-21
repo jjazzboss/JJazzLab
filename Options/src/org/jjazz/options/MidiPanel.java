@@ -43,7 +43,6 @@ import javax.swing.DefaultListCellRenderer;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
-import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
 import org.jjazz.analytics.api.Analytics;
 import org.jjazz.embeddedsynth.api.EmbeddedSynth;
@@ -64,7 +63,6 @@ import org.jjazz.uisettings.api.GeneralUISettings;
 import org.jjazz.util.api.ResUtil;
 import org.netbeans.api.progress.BaseProgressUtils;
 import org.openide.*;
-import org.openide.windows.WindowManager;
 
 final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListener
 {
@@ -73,7 +71,7 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
     private final MidiOptionsPanelController controller;
     private OutputSynth editedOutputSynth;
     private String saveOutDeviceNameForCancel;
-    private int saveOutDeviceIndexBeforeJJSynth = 0;
+    private String saveOutDeviceNameBeforeJJSynth;
     private final EmbeddedSynth embeddedSynth;
 
 
@@ -102,6 +100,7 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
         comboModel = new ComboMidiSynthModel();
         initComponents();       // Use comboModel                     
 
+
         updateMapDeviceSynth();
 
 
@@ -110,19 +109,19 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
         msm.addPropertyChangeListener(this);
 
 
-        // Prepare for the embedded synth if present
         embeddedSynth = EmbeddedSynthProvider.getDefault();
+        saveOutDeviceNameBeforeJJSynth = JJazzMidiSystem.getInstance().getJavaInternalSynth().getDeviceInfo().getName();
+        editedOutputSynth = OutputSynthManager.getInstance().getDefaultOutputSynth();
 
-        if (embeddedSynth == null)
-        {
-            // Disable UI for EmbeddedSynth
-            cb_usejjSynth.setSelected(false);
-            Utilities.setRecursiveEnabled(false, pnl_jjSynth);
-        }
+
+        // Adapt tooltip if embedded synth is not present
         String tooltip = embeddedSynth != null ? ResUtil.getString(getClass(), "MidiPanel.jjSynthPanelToolTip")
                 : ResUtil.getString(getClass(), "MidiPanel.jjSynthPanelToolTipDisabled");
         pnl_jjSynth.setToolTipText(tooltip);
         cb_usejjSynth.setToolTipText(tooltip);
+
+
+        updateUIComponents();
     }
 
     void load()
@@ -136,23 +135,22 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
         // or:
         // someTextField.setText(SomeSystemOption.getDefault().getSomeStringProperty());
 
+
+        OutputSynthManager.getInstance().addPropertyChangeListener(this);
+
+
         // Save current Midi OUT for cancel
         JJazzMidiSystem jms = JJazzMidiSystem.getInstance();
         var mdOut = jms.getDefaultOutDevice();
         saveOutDeviceNameForCancel = mdOut == null ? null : mdOut.getDeviceInfo().getName();
         LOGGER.log(Level.FINE, "load() saveOutDeviceNameForCancel=" + saveOutDeviceNameForCancel);
 
-        // Restore UI        
-        boolean isEmbeddedSynthUsed = embeddedSynth != null && jms.getDefaultOutDevice() == embeddedSynth.getOutMidiDevice();
-        if (embeddedSynth != null)
-        {
-            updateUseEmbeddedSynthUI(isEmbeddedSynthUsed);
-        }
-        if (embeddedSynth == null || !isEmbeddedSynthUsed)
-        {
-            list_OutDevices.setSelectedValue(getOutDevice(saveOutDeviceNameForCancel), true); // trigger event for our listeners
-            btn_test.setEnabled(saveOutDeviceNameForCancel != null);
-        }
+
+        // Update state
+        editedOutputSynth = OutputSynthManager.getInstance().getDefaultOutputSynth();
+
+        // Update UI
+        updateUIComponents();
 
 
     }
@@ -177,22 +175,33 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
             Analytics.setProperties(Analytics.buildMap("Midi Out", outDevice.getDeviceInfo().getName()));
         }
 
-
+        OutputSynthManager.getInstance().removePropertyChangeListener(this);
     }
 
     public void cancel()
     {
+
         var mdOut = getOutDevice(saveOutDeviceNameForCancel);
         openOutDevice(mdOut);
+
+        OutputSynthManager.getInstance().removePropertyChangeListener(this);
     }
 
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
 
-        if (evt.getSource() == MidiSynthManager.getInstance())
+        if (evt.getSource() == OutputSynthManager.getInstance())
         {
-            if (evt.getPropertyName().equals(MidiSynthManager.PROP_FILE_BASED_MIDISYNTH_LIST))
+            if (evt.getPropertyName().equals(OutputSynthManager.PROP_DEFAULT_OUTPUTSYNTH))
+            {
+                // The default OutputSynth has changed, update UI
+                setEditedOutputSynth((OutputSynth) evt.getNewValue());
+                updateUIComponents();
+            }
+        } else if (evt.getSource() == MidiSynthManager.getInstance())
+        {
+            if (evt.getPropertyName().equals(MidiSynthManager.PROP_MIDISYNTH_LIST))
             {
                 if (evt.getNewValue() != null)
                 {
@@ -210,13 +219,7 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
             }
         } else if (editedOutputSynth != null && evt.getSource() == editedOutputSynth.getUserSettings())
         {
-            if (evt.getPropertyName().equals(UserSettings.PROP_AUDIO_LATENCY))
-            {
-                spn_audioLatency.setValue(evt.getNewValue());
-            } else if (evt.getPropertyName().equals(UserSettings.PROP_SEND_MODE_ON_UPON_PLAY))
-            {
-                combo_sendMessageUponPlay.setSelectedItem(evt.getNewValue());
-            }
+            updateUIComponents();
         }
     }
 
@@ -242,21 +245,55 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
 
         editedOutputSynth = outSynth;
 
-
-        Utilities.setRecursiveEnabled(editedOutputSynth != null, pnl_outputSynth);
-
-
         if (editedOutputSynth != null)
         {
-            editedOutputSynth.getUserSettings().addPropertyChangeListener(this);        // Register for changes
-
-            // Update UI
-            MidiSynth mSynth = editedOutputSynth.getMidiSynth();
-            combo_midiSynths.setSelectedItem(mSynth);
-            spn_audioLatency.setValue(editedOutputSynth.getUserSettings().getAudioLatency());
-            combo_sendMessageUponPlay.setSelectedItem(editedOutputSynth.getUserSettings().getSendModeOnUponPlay());
-            // tbl_instruments.getModel().setInstruments(mSynth.getInstruments());
+            editedOutputSynth.getUserSettings().addPropertyChangeListener(this);        // Register for changes        
         }
+    }
+
+    /**
+     * Update the UI.
+     * <p>
+     * Default Midi OUT device and editedOutputSynth must be consistent before calling this method.
+     */
+    private void updateUIComponents()
+    {
+        var jms = JJazzMidiSystem.getInstance();
+        var mdOut = jms.getDefaultOutDevice();
+        assert (mdOut != null && editedOutputSynth != null) || (mdOut == null && editedOutputSynth == null) : "mdOut=" + mdOut + " editedOutputSynth=" + editedOutputSynth;
+        boolean isEmbeddedSynthUsed = embeddedSynth != null && mdOut == embeddedSynth.getOutMidiDevice();
+
+
+        // Enable/disable
+        cb_usejjSynth.setSelected(isEmbeddedSynthUsed);
+        Utilities.setRecursiveEnabled(isEmbeddedSynthUsed, pnl_jjSynth);
+        cb_usejjSynth.setEnabled(embeddedSynth != null);
+        Utilities.setRecursiveEnabled(!isEmbeddedSynthUsed, pnl_outDevice);
+        Utilities.setRecursiveEnabled(!isEmbeddedSynthUsed && editedOutputSynth != null, pnl_outputSynth);
+        btn_test.setEnabled(mdOut != null);
+
+
+        // Update components
+        list_OutDevices.setSelectedValue(mdOut, true);      // no change event fired if no change
+        if (editedOutputSynth != null)
+        {
+            MidiSynth mSynth = editedOutputSynth.getMidiSynth();
+            combo_midiSynths.setSelectedItem(mSynth);   // always fire an action event
+            spn_audioLatency.setValue(editedOutputSynth.getUserSettings().getAudioLatency());
+            combo_sendMessageUponPlay.setSelectedItem(editedOutputSynth.getUserSettings().getSendModeOnUponPlay()); // always fire an action event            
+        }
+
+
+        // Update titled border
+        String friendlyMdName = (mdOut == null) ? "" : JJazzMidiSystem.getInstance().getDeviceFriendlyName(mdOut);
+        String title = ResUtil.getString(getClass(), "MidiPanel.OutputSynthFor", friendlyMdName);
+        var tb = (TitledBorder) pnl_outputSynth.getBorder();
+        if (!tb.getTitle().equals(title))
+        {
+            tb.setTitle(title);
+            pnl_outputSynth.repaint();  // Needed for the title renaming to be visible immediatly
+        }
+
     }
 
     /**
@@ -299,9 +336,9 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
             }
 
 
-            for (var midiSynth : msm.getMidiSynths(false, true))
+            for (var midiSynth : getUserLoadedMidiSynths())
             {
-                // Add each new OutputSynth if not already done 
+                // Add each new user-loaded OutputSynth if not already done 
                 // Note that 2 MidiSynths are equal if they have the same list of MidiSynths.                
                 var mdsKey = new MidiDeviceSynth(mdOut.getDeviceInfo().getName(), midiSynth);
                 var outSynth = (midiSynth == mdDefaultOutSynth.getMidiSynth()) ? mdDefaultOutSynth : new OutputSynth(midiSynth);
@@ -349,6 +386,7 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
         // LOGGER.log(Level.INFO, "valid()");
         // TODO check whether form is consistent and complete
         return true;
+
     }
 
     /**
@@ -404,23 +442,25 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
     /**
      * Create a MidiDeviceOutList which does not contain the EmbeddedSynth (if present).
      */
-    private MidiOutDeviceList buildMidiOutDeviceList()
+    private MidiOutDeviceList getFilteredMidiOutList()
     {
-        EmbeddedSynth embeddedSynth = EmbeddedSynthProvider.getDefault();
-        Predicate<MidiDevice> tester = (embeddedSynth == null) ? md -> true : md -> !md.getDeviceInfo().getName().equals(embeddedSynth.getOutMidiDevice().getDeviceInfo().getName());
+        EmbeddedSynth eSynth = EmbeddedSynthProvider.getDefault();
+        Predicate<MidiDevice> tester = (eSynth == null) ? md -> true : md -> !md.getDeviceInfo().getName().equals(eSynth.getOutMidiDevice().getDeviceInfo().getName());
         return new MidiOutDeviceList(tester);
     }
 
     /**
      * Propose user to load a custom Instrument definition file (.ins).
+     *
+     * @return The new MidiSynth.
      */
-    private void addCustomMidiSynth()
+    private MidiSynth addCustomMidiSynth()
     {
         var msm = MidiSynthManager.getInstance();
         File f = msm.showSelectSynthFileDialog();
         if (f == null)
         {
-            return;
+            return null;
         }
 
         // Retrieve or create the new OutputSynth from the file
@@ -434,33 +474,13 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
             {
                 NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
                 DialogDisplayer.getDefault().notify(d);
-                return;
+                return null;
             }
-
-            // Register the new loaded MidiSynth
-            // This will notify our listener to update the comboBox and call updateMapDeviceSynth() to create the related OutputSynth
-            msm.addFileBasedMidiSynth(midiSynth);
 
         }
 
-
-        // Select the new multisynth
-        // This must be done on the EDT : if we call setSelectedItem() directly, JComboBox action listeners are NOT
-        // notified because we are already running from a ComboBox action listener (the one triggered by "Add custom synth...")
-        // which is not terminated yet.
-        final var ms = midiSynth;
-        SwingUtilities.invokeLater(() -> combo_midiSynths.setSelectedItem(ms));
-
+        return midiSynth;
     }
-
-    private void updateUseEmbeddedSynthUI(boolean use)
-    {
-        cb_usejjSynth.setSelected(use);
-        btn_jjSynthSettings.setEnabled(use);
-        Utilities.setRecursiveEnabled(!use, pnl_outDevice);
-        Utilities.setRecursiveEnabled(!use, pnl_outputSynth);
-    }
-
 
     /**
      * Send a few notes to the current Midi OUT device and OutputSynth.
@@ -504,6 +524,11 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
     }
 
 
+    private List<MidiSynth> getUserLoadedMidiSynths()
+    {
+        return MidiSynthManager.getInstance().getMidiSynths(ms -> ms.getFile() != null);
+    }
+
     /**
      * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of
      * this method is always regenerated by the Form Editor.
@@ -530,11 +555,12 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
         pnl_outDevice = new javax.swing.JPanel();
         btn_refresh = new javax.swing.JButton();
         jScrollPane3 = new javax.swing.JScrollPane();
-        list_OutDevices = buildMidiOutDeviceList();
+        list_OutDevices = getFilteredMidiOutList();
         btn_test = new javax.swing.JButton();
         pnl_jjSynth = new javax.swing.JPanel();
         cb_usejjSynth = new javax.swing.JCheckBox();
         btn_jjSynthSettings = new javax.swing.JButton();
+        btn_jjSynthDefaultInstruments = new javax.swing.JButton();
         jLabel1 = new javax.swing.JLabel();
 
         jScrollPane1.setViewportView(midiInDeviceList1);
@@ -587,10 +613,8 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
             }
         });
 
-        jScrollPane2.setBackground(null);
         jScrollPane2.setBorder(null);
 
-        helpTextArea1.setBackground(null);
         helpTextArea1.setColumns(20);
         helpTextArea1.setRows(3);
         helpTextArea1.setText(org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.helpTextArea1.text")); // NOI18N
@@ -615,7 +639,7 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jLabel3))
                             .addComponent(btn_defaultInstruments))
-                        .addGap(0, 99, Short.MAX_VALUE))
+                        .addGap(0, 0, Short.MAX_VALUE))
                     .addComponent(jScrollPane2))
                 .addContainerGap())
         );
@@ -634,7 +658,7 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
                     .addComponent(jLabel3))
                 .addGap(18, 18, 18)
                 .addComponent(btn_defaultInstruments)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 73, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 11, Short.MAX_VALUE)
                 .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
@@ -712,13 +736,24 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
             }
         });
 
-        org.openide.awt.Mnemonics.setLocalizedText(btn_jjSynthSettings, org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.btn_jjSynthSettings.text")); // NOI18N
+        btn_jjSynthSettings.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/options/resources/jjSynthSettingsSmall.png"))); // NOI18N
         btn_jjSynthSettings.setToolTipText(org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.btn_jjSynthSettings.toolTipText")); // NOI18N
+        btn_jjSynthSettings.setMargin(new java.awt.Insets(2, 4, 2, 4));
         btn_jjSynthSettings.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
             {
                 btn_jjSynthSettingsActionPerformed(evt);
+            }
+        });
+
+        org.openide.awt.Mnemonics.setLocalizedText(btn_jjSynthDefaultInstruments, btn_defaultInstruments.getText());
+        btn_jjSynthDefaultInstruments.setToolTipText(btn_defaultInstruments.getToolTipText());
+        btn_jjSynthDefaultInstruments.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                btn_jjSynthDefaultInstrumentsActionPerformed(evt);
             }
         });
 
@@ -729,17 +764,20 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
             .addGroup(pnl_jjSynthLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(cb_usejjSynth)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGap(18, 18, 18)
                 .addComponent(btn_jjSynthSettings)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(btn_jjSynthDefaultInstruments)
                 .addContainerGap())
         );
         pnl_jjSynthLayout.setVerticalGroup(
             pnl_jjSynthLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pnl_jjSynthLayout.createSequentialGroup()
-                .addGap(18, 18, 18)
-                .addGroup(pnl_jjSynthLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(cb_usejjSynth, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btn_jjSynthSettings))
+                .addGap(19, 19, 19)
+                .addGroup(pnl_jjSynthLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(btn_jjSynthDefaultInstruments)
+                    .addComponent(btn_jjSynthSettings)
+                    .addComponent(cb_usejjSynth, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(22, Short.MAX_VALUE))
         );
 
@@ -781,24 +819,35 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
 
     private void cb_usejjSynthActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cb_usejjSynthActionPerformed
     {//GEN-HEADEREND:event_cb_usejjSynthActionPerformed
+        var jms = JJazzMidiSystem.getInstance();
+
         boolean b = cb_usejjSynth.isSelected();
+
+        MidiDevice mdOut;
+
         if (b)
         {
-            saveOutDeviceIndexBeforeJJSynth = Math.max(0, list_OutDevices.getSelectedIndex());  // Use 0=Java Internal Synth if no selection
-            openOutDevice(embeddedSynth.getOutMidiDevice());
+            var curMdOut = jms.getDefaultOutDevice();
+            saveOutDeviceNameBeforeJJSynth = curMdOut == null ? jms.getJavaInternalSynth().getDeviceInfo().getName() : curMdOut.getDeviceInfo().getName();
+
+            mdOut = embeddedSynth.getOutMidiDevice();
+
+
         } else
         {
-            assert list_OutDevices.getModel().getSize() > 0;
-            if (saveOutDeviceIndexBeforeJJSynth >= list_OutDevices.getModel().getSize())
+            assert saveOutDeviceNameBeforeJJSynth != null;
+            mdOut = getOutDevice(saveOutDeviceNameBeforeJJSynth);
+            if (mdOut == null)
             {
-                // Some MidiDevices have disappeared after a refresh
-                saveOutDeviceIndexBeforeJJSynth = 0;
+                // Saved device may have disappeared (eg USB soundcard unplugged)
+                mdOut = jms.getJavaInternalSynth();
             }
-            list_OutDevices.setSelectedValue(null, true);   // Make sure next selection will notify our listener
-            list_OutDevices.setSelectedIndex(saveOutDeviceIndexBeforeJJSynth);
         }
 
-        updateUseEmbeddedSynthUI(b);
+
+        // Update state
+        openOutDevice(mdOut);
+
     }//GEN-LAST:event_cb_usejjSynthActionPerformed
 
     private void btn_testActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_testActionPerformed
@@ -828,28 +877,24 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
         {
             return;
         }
-        MidiDevice md = list_OutDevices.getSelectedValue();
-
-        // Update UI
-        btn_test.setEnabled(md != null);
-        String mdName = (md == null) ? "" : md.getDeviceInfo().getName();
-        String friendlyMdName = (md == null) ? "" : JJazzMidiSystem.getInstance().getDeviceFriendlyName(md);
-        ((TitledBorder) pnl_outputSynth.getBorder()).setTitle(ResUtil.getString(getClass(), "MidiPanel.OutputSynthFor", friendlyMdName));
-        pnl_outputSynth.repaint();  // Needed for the title renaming to be visible immediatly
-
 
         // Update state
-        setEditedOutputSynth(md != null ? OutputSynthManager.getInstance().getOutputSynth(mdName) : null);
+        MidiDevice md = list_OutDevices.getSelectedValue();
         openOutDevice(md);
 
     }//GEN-LAST:event_list_OutDevicesValueChanged
 
     private void combo_sendMessageUponPlayActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_combo_sendMessageUponPlayActionPerformed
     {//GEN-HEADEREND:event_combo_sendMessageUponPlayActionPerformed
-        if (editedOutputSynth == null)
+        assert editedOutputSynth != null;
+        var mode = (UserSettings.SendModeOnUponPlay) combo_sendMessageUponPlay.getSelectedItem();
+        if (editedOutputSynth.getUserSettings().getSendModeOnUponPlay().equals(mode))
         {
+            // Check is performed because JComboBox.setSelected() triggers an action event even if no change
             return;
         }
+
+        // Update state
         editedOutputSynth.getUserSettings().setSendModeOnUponPlay((UserSettings.SendModeOnUponPlay) combo_sendMessageUponPlay.getSelectedItem());
 
     }//GEN-LAST:event_combo_sendMessageUponPlayActionPerformed
@@ -860,35 +905,54 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
         {
             return;
         }
+
+        // Update state
         editedOutputSynth.getUserSettings().setAudioLatency((int) spn_audioLatency.getValue());
     }//GEN-LAST:event_spn_audioLatencyStateChanged
 
     private void combo_midiSynthsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_combo_midiSynthsActionPerformed
     {//GEN-HEADEREND:event_combo_midiSynthsActionPerformed
-        var mdOut = list_OutDevices.getSelectedValue();
-        if (mdOut == null)
-        {
-            // Should not be there as the OutputSynth should be disabled...
-            return;
-        }
+
         MidiSynth mSynth = (MidiSynth) combo_midiSynths.getSelectedItem();
-        if (mSynth == ComboMidiSynthModel.FAKE_MULTISYNTH)
+        if (mSynth == editedOutputSynth.getMidiSynth())
         {
-            // Special case
-            addCustomMidiSynth();
+            // Check is performed because setSelected triggers an action event even if no change
             return;
         }
 
+        var mdOut = list_OutDevices.getSelectedValue();
+        assert mdOut != null;
+
+
+        if (mSynth == ComboMidiSynthModel.FAKE_MULTISYNTH)
+        {
+            // Special case : ask user to add a new MidiSynth from a file
+            mSynth = addCustomMidiSynth();
+            if (mSynth == null)
+            {
+                // Restore previous selection
+                combo_midiSynths.setSelectedItem(editedOutputSynth.getMidiSynth());
+                return;
+            }
+
+            // Register the new loaded MidiSynth
+            // This will notify our listener to update the comboBox and call updateMapDeviceSynth() to create the related OutputSynth
+            MidiSynthManager.getInstance().addMidiSynth(mSynth);
+
+        }
+
+
+        // Update state
         OutputSynth outSynth = mapDeviceSynth.get(new MidiDeviceSynth(mdOut.getDeviceInfo().getName(), mSynth));
         OutputSynthManager.getInstance().setOutputSynth(mdOut.getDeviceInfo().getName(), outSynth);
-        setEditedOutputSynth(outSynth);
+
     }//GEN-LAST:event_combo_midiSynthsActionPerformed
 
     private void btn_defaultInstrumentsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_defaultInstrumentsActionPerformed
     {//GEN-HEADEREND:event_btn_defaultInstrumentsActionPerformed
-
-        var dialog = new DefaultInstrumentsDialog(editedOutputSynth.getUserSettings().getGMRemapTable());
-        dialog.setLocationRelativeTo(WindowManager.getDefault().getMainWindow());
+        var title = ResUtil.getString(getClass(), "MidiPanel.SetDefaultInstsFor", editedOutputSynth.getMidiSynth().getName());
+        var dialog = new DefaultInstrumentsDialog(title, editedOutputSynth.getUserSettings().getGMRemapTable());
+        dialog.setLocationRelativeTo(btn_defaultInstruments);
         dialog.setVisible(true);
     }//GEN-LAST:event_btn_defaultInstrumentsActionPerformed
 
@@ -896,13 +960,22 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
     {//GEN-HEADEREND:event_btn_jjSynthSettingsActionPerformed
         if (embeddedSynth != null)
         {
-            embeddedSynth.showSettings();
+            embeddedSynth.showSettings(btn_jjSynthSettings);
         }
     }//GEN-LAST:event_btn_jjSynthSettingsActionPerformed
+
+    private void btn_jjSynthDefaultInstrumentsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_jjSynthDefaultInstrumentsActionPerformed
+    {//GEN-HEADEREND:event_btn_jjSynthDefaultInstrumentsActionPerformed
+        var title = ResUtil.getString(getClass(), "MidiPanel.SetDefaultInstsFor", editedOutputSynth.getMidiSynth().getName());
+        var dialog = new DefaultInstrumentsDialog(title, editedOutputSynth.getUserSettings().getGMRemapTable());
+        dialog.setLocationRelativeTo(btn_jjSynthDefaultInstruments);
+        dialog.setVisible(true);
+    }//GEN-LAST:event_btn_jjSynthDefaultInstrumentsActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_defaultInstruments;
+    private javax.swing.JButton btn_jjSynthDefaultInstruments;
     private javax.swing.JButton btn_jjSynthSettings;
     private javax.swing.JButton btn_refresh;
     private javax.swing.JButton btn_test;
@@ -947,7 +1020,7 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
             addAll(getNewBuiltinOutputSynths().stream()
                     .map(outSynth -> outSynth.getMidiSynth())
                     .toList());
-            addAll(MidiSynthManager.getInstance().getMidiSynths(false, true));
+            addAll(getUserLoadedMidiSynths());
             addElement(FAKE_MULTISYNTH);
         }
 

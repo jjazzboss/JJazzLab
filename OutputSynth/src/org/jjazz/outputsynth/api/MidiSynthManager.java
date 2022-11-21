@@ -31,8 +31,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.logging.Logger;
-import java.util.stream.Stream;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
@@ -61,12 +61,12 @@ public class MidiSynthManager
 {
 
     /**
-     * Property change event fired when a MidiSynth is added or removed from the file-based MidiSynth.
+     * Property change event fired when a MidiSynth is added or removed.
      * <p>
      * If added: oldValue=null, newValue=added MidiSynth<br>
      * If removed: oldValue=removed MidiSynth, newValue=null<br>
      */
-    public static String PROP_FILE_BASED_MIDISYNTH_LIST = "PropFileBasedSynthList";
+    public static String PROP_MIDISYNTH_LIST = "PropSynthList";
 
 
     // Some builtin MidiSynth names retrieved from a .ins file
@@ -88,8 +88,7 @@ public class MidiSynthManager
     private static MidiSynthManager INSTANCE;
 
     private File lastSynthDir;
-    private final List<MidiSynth> builtinMidiSynths = new ArrayList<>();
-    private final List<MidiSynth> fileBasedMidiSynths = new ArrayList<>();
+    private final List<MidiSynth> midiSynths = new ArrayList<>();
     private static final Logger LOGGER = Logger.getLogger(MidiSynthManager.class.getSimpleName());
     private transient final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
@@ -115,34 +114,32 @@ public class MidiSynthManager
 
     private MidiSynthManager()
     {
-        builtinMidiSynths.add(GMSynth.getInstance());
-        builtinMidiSynths.add(GM2Synth.getInstance());
-        builtinMidiSynths.add(XGSynth.getInstance());
-        builtinMidiSynths.add(GSSynth.getInstance());
-        builtinMidiSynths.add(loadFromResource(getClass(), JJAZZLAB_SOUNDFONT_GM2_SYNTH_PATH));
-        builtinMidiSynths.add(loadFromResource(getClass(), JJAZZLAB_SOUNDFONT_XG_SYNTH_PATH));
-        builtinMidiSynths.add(loadFromResource(getClass(), JJAZZLAB_SOUNDFONT_GS_SYNTH_PATH));
-        builtinMidiSynths.add(loadFromResource(getClass(), YAMAHA_REF_SYNTH_PATH));
+        midiSynths.add(GMSynth.getInstance());
+        midiSynths.add(GM2Synth.getInstance());
+        midiSynths.add(XGSynth.getInstance());
+        midiSynths.add(GSSynth.getInstance());
+        midiSynths.add(loadFromResource(getClass(), JJAZZLAB_SOUNDFONT_GM2_SYNTH_PATH));
+        midiSynths.add(loadFromResource(getClass(), JJAZZLAB_SOUNDFONT_XG_SYNTH_PATH));
+        midiSynths.add(loadFromResource(getClass(), JJAZZLAB_SOUNDFONT_GS_SYNTH_PATH));
+        midiSynths.add(loadFromResource(getClass(), YAMAHA_REF_SYNTH_PATH));
     }
 
 
     /**
-     * Add the specified MidiSynth as a file-based MidiSynth.
+     * Add the specified MidiSynth.
      * <p>
      *
-     * @param midiSynth Must have getFile() returns non-null.
+     * @param midiSynth
      * @return True if midiSynth was successfully added, false if midiSynth was already referenced by the MidiSynthManager.
      */
-    public boolean addFileBasedMidiSynth(MidiSynth midiSynth)
+    public boolean addMidiSynth(MidiSynth midiSynth)
     {
         Preconditions.checkNotNull(midiSynth);
-        Preconditions.checkArgument(midiSynth.getFile() != null);
-        Preconditions.checkArgument(!builtinMidiSynths.contains(midiSynth));
 
-        if (!fileBasedMidiSynths.contains(midiSynth))
+        if (!midiSynths.contains(midiSynth))
         {
-            fileBasedMidiSynths.add(midiSynth);
-            pcs.firePropertyChange(PROP_FILE_BASED_MIDISYNTH_LIST, null, midiSynth);
+            midiSynths.add(midiSynth);
+            pcs.firePropertyChange(PROP_MIDISYNTH_LIST, null, midiSynth);
             return true;
         }
 
@@ -150,54 +147,57 @@ public class MidiSynthManager
     }
 
     /**
-     * Remove the specified MidiSynth from the file-based MidiSynths.
+     * Remove the specified MidiSynth.
      * <p>
      * @param midiSynth
      * @return
      */
-    public boolean removeFileBasedMidiSynth(MidiSynth midiSynth)
+    public boolean removeMidiSynth(MidiSynth midiSynth)
     {
-        boolean res = fileBasedMidiSynths.remove(midiSynth);
+        boolean res = midiSynths.remove(midiSynth);
         if (res)
         {
-            pcs.firePropertyChange(PROP_FILE_BASED_MIDISYNTH_LIST, midiSynth, null);
+            pcs.firePropertyChange(PROP_MIDISYNTH_LIST, midiSynth, null);
         }
         return res;
     }
 
     /**
-     * The list of builtin and/or file-based MidiSynths.
+     * The list of MidiSynths.
      * <p>
-     * Builtin MidiSynths are GM, GM2, etc.
      *
-     * @param builtin   If true include the builtin MidiSynths
-     * @param fileBased If true include the file-based MidiSynths (after the builtin ones).
      * @return Can be empty.
      */
-    public List<MidiSynth> getMidiSynths(boolean builtin, boolean fileBased)
+    public List<MidiSynth> getMidiSynths()
     {
-        List<MidiSynth> res = new ArrayList<>();
-        if (builtin)
-        {
-            res.addAll(builtinMidiSynths);
-        }
-        if (fileBased)
-        {
-            res.addAll(fileBasedMidiSynths);
-        }
-        return res;
+        return new ArrayList<>(midiSynths);
     }
 
     /**
-     * Search a MidiSynth with the specified name in the builtin and file-based MidiSynths.
+     * The list of MidiSynths which match the specified criteria.
+     * <p>
+     *
+     * @param tester
+     * @return An unmodifiable list, which can be empty.
+     */
+    public List<MidiSynth> getMidiSynths(Predicate<MidiSynth> tester)
+    {
+        return midiSynths
+                .stream()
+                .filter(ms -> tester.test(ms))
+                .toList();
+    }
+
+    /**
+     * Search a MidiSynth with the specified name.
      *
      * @param name
      * @return Can be null.
      */
     public MidiSynth getMidiSynth(String name)
     {
-        return Stream.of(builtinMidiSynths, fileBasedMidiSynths)
-                .flatMap(l -> l.stream())
+        return midiSynths
+                .stream()
                 .filter(midiSynth -> midiSynth.getName().equals(name))
                 .findAny()
                 .orElse(null);
@@ -255,6 +255,7 @@ public class MidiSynthManager
      */
     public static MidiSynth loadFromResource(Class clazz, String insResourcePath)
     {
+        MidiSynth res;
         InputStream is = clazz.getResourceAsStream(insResourcePath);
         assert is != null : "insResourcePath=" + insResourcePath;   //NOI18N
         MidiSynthFileReader r = MidiSynthFileReader.getReader("ins");
@@ -263,11 +264,12 @@ public class MidiSynthManager
         {
             List<MidiSynth> synths = r.readSynthsFromStream(is, null);
             assert synths.size() == 1;   //NOI18N
-            return synths.get(0);
+            res = synths.get(0);
         } catch (IOException ex)
         {
             throw new IllegalStateException("Unexpected error", ex);   //NOI18N
         }
+        return res;
     }
 
     /**
@@ -345,7 +347,7 @@ public class MidiSynthManager
                 {
                     // Not created yet, load it and add it to the database
                     res = MidiSynth.loadFromFile(synthFile);    // throws IOException
-                    msm.addFileBasedMidiSynth(res);
+                    msm.addMidiSynth(res);
                 } catch (IOException ex)
                 {
                     LOGGER.warning("SynthFinder.getMidiSynth() can't load MidiSynth ex=" + ex.getMessage());

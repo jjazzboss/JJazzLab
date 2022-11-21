@@ -614,7 +614,7 @@ public final class JJazzMidiSystem
      * Fire a PROP_MIDI_OUT property chane event.property change event if device is modified.
      *
      * @param md Can be null.
-     * @throws javax.sound.midi.MidiUnavailableException If exception occurs, the default IN device is unchanged.
+     * @throws javax.sound.midi.MidiUnavailableException If exception occurs, the default OUT device is unchanged.
      */
     public void setDefaultOutDevice(MidiDevice md) throws MidiUnavailableException
     {
@@ -994,8 +994,8 @@ public final class JJazzMidiSystem
     /**
      * Get a friendly name for a MidiDevice.
      * <p>
-     * For now only used to rename the Java default synth (sometimes "Gervill") to JAVA_INTERNAL_SYNTH_NAME. Use DeviceInfo.name
-     * otherwise.
+     * Remove any trailing "_MD" from the MidiDevice name. Also give a better name to "Gervill" Java internal synth. the Java default synth
+     * (sometimes "Gervill") to JAVA_INTERNAL_SYNTH_NAME. Use DeviceInfo.name otherwise.
      *
      * @param md
      * @return
@@ -1010,6 +1010,10 @@ public final class JJazzMidiSystem
         if (md == getJavaInternalSynth())
         {
             name = JAVA_INTERNAL_SYNTH_NAME;
+        }
+        if (name.endsWith("_MD"))
+        {
+            name = name.substring(0, name.length() - 3);
         }
         return name;
     }

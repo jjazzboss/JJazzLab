@@ -280,7 +280,10 @@ public class OutputSynthManager implements PropertyChangeListener
 
 
         var oldSynth = mapDeviceNameSynth.get(mdOutName);
-        if (oldSynth != null)
+        if (oldSynth == outSynth)
+        {
+            return;
+        } else if (oldSynth != null)
         {
             oldSynth.getUserSettings().removePropertyChangeListener(this);
         }

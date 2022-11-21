@@ -90,8 +90,12 @@ public class ActiveSongManager implements PropertyChangeListener, VetoableChange
 
     private ActiveSongManager()
     {
-        // Listen to Midi out and master volume changes
+        // Listen to master volume changes
         JJazzMidiSystem.getInstance().addPropertyChangeListener(this);
+
+        // Listen to OutputSynth changes
+        OutputSynthManager.getInstance().addPropertyChangeListener(this);
+
         // Listen to pre-playback events
         PlaybackSettings.getInstance().addPlaybackStartVetoableListener(this);
 
@@ -304,12 +308,7 @@ public class ActiveSongManager implements PropertyChangeListener, VetoableChange
             }
         } else if (evt.getSource() == JJazzMidiSystem.getInstance())
         {
-            if (evt.getPropertyName().equals(JJazzMidiSystem.PROP_MIDI_OUT))
-            {
-                // Midi Out has changed, resend init messages on the new Midi device        
-                sendActivationMessages();
-                sendAllMidiMixMessages();
-            } else if (evt.getPropertyName().equals(JJazzMidiSystem.PROP_MASTER_VOL_FACTOR))
+            if (evt.getPropertyName().equals(JJazzMidiSystem.PROP_MASTER_VOL_FACTOR))
             {
                 // Master volume has changed, resend volume messages
                 sendAllMidiVolumeMessages();
@@ -323,7 +322,16 @@ public class ActiveSongManager implements PropertyChangeListener, VetoableChange
                     sendAllMidiMixMessages();
                 }
             }
+        } else if (evt.getSource() == OutputSynthManager.getInstance())
+        {
+            if (evt.getPropertyName().equals(OutputSynthManager.PROP_DEFAULT_OUTPUTSYNTH))
+            {
+                // OutputSynth has changed, resend init messages on the new Midi device        
+                sendActivationMessages();
+                sendAllMidiMixMessages();
+            }
         }
+
 
         if (!sendMidiMessagePolicy.contains(SendMidiMessagePolicy.MIX_CHANGE))
         {
