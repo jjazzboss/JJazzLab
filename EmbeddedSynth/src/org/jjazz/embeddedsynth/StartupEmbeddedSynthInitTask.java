@@ -56,7 +56,7 @@ public class StartupEmbeddedSynthInitTask implements Runnable
         {
             try
             {
-                JJazzMidiSystem.getInstance().setDefaultOutDevice(eSynth.getOutMidiDevice());
+                JJazzMidiSystem.getInstance().setDefaultOutDevice(eSynth.getOutMidiDevice());       // Wil try to open the MidiDevice
             } catch (MidiUnavailableException ex)
             {                
                 LOGGER.severe("run() " + ex);                

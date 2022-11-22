@@ -61,13 +61,13 @@ public class OutputSynthManager implements PropertyChangeListener
      * Property change event fired each time a new OutputSynth is associated to the default JJazzLab MidiDevice OUT: oldValue=old
      * OutputSynth, newValue=new OutputSynth.
      * <p>
-     * The change event is also fired when default JJazzLab MidiDevice OUT changes. Note that newValue might be null if no default
-     * JJazzLab OUT MidiDevice is set.
+     * The change event is also fired when default JJazzLab MidiDevice OUT changes.
      */
     public final static String PROP_DEFAULT_OUTPUTSYNTH = "PropDefaultOutputSynth";
 
     private static OutputSynthManager INSTANCE;
     private final HashMap<String, OutputSynth> mapDeviceNameSynth = new HashMap<>();
+    private final OutputSynth defaultGMoutputSynth;
     private static final Preferences prefs = NbPreferences.forModule(OutputSynthManager.class);
     private final transient PropertyChangeSupport pcs = new java.beans.PropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(OutputSynthManager.class.getSimpleName());
@@ -93,6 +93,10 @@ public class OutputSynthManager implements PropertyChangeListener
 
     private OutputSynthManager()
     {
+
+        defaultGMoutputSynth = new OutputSynth(GMSynth.getInstance());
+        defaultGMoutputSynth.getUserSettings().setSendModeOnUponPlay(OutputSynth.UserSettings.SendModeOnUponPlay.GM);
+
 
         // Listen to Midi out changes
         var jms = JJazzMidiSystem.getInstance();
@@ -209,12 +213,14 @@ public class OutputSynthManager implements PropertyChangeListener
 
     /**
      * Get the current OuputSynth associated to the default JJazzLab Midi Device OUT.
+     * <p>
+     * If no Midi Device OUT defined, then return a shared instance of a GM Output Synth.
      *
-     * @return Can be null if no default JJazzLab Midi OUT device is set.
+     * @return Can't be null
      */
     public OutputSynth getDefaultOutputSynth()
     {
-        OutputSynth res = null;
+        OutputSynth res = defaultGMoutputSynth;
         var mdOut = JJazzMidiSystem.getInstance().getDefaultOutDevice();
         if (mdOut != null)
         {

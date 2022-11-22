@@ -46,13 +46,15 @@ public class DefaultRhythmVoiceInstrumentProviderImpl implements RhythmVoiceInst
     public Instrument findInstrument(RhythmVoice rv)
     {
         Instrument ins;
+        var outSynth = OutputSynthManager.getInstance().getDefaultOutputSynth();
+    
         if (!(rv instanceof UserRhythmVoice))
         {
-            ins = OutputSynthManager.getInstance().getDefaultOutputSynth().findInstrument(rv);
+            ins = outSynth.findInstrument(rv);
 
         } else
         {
-            ins = OutputSynthManager.getInstance().getDefaultOutputSynth().getUserSettings().getUserInstrument();
+            ins = outSynth.getUserSettings().getUserInstrument();
         }
         return ins;
     }

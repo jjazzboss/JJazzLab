@@ -72,7 +72,7 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
     private OutputSynth editedOutputSynth;
     private String saveOutDeviceNameForCancel;
     private String saveOutDeviceNameBeforeJJSynth;
-    private final EmbeddedSynth embeddedSynth;
+    private EmbeddedSynth embeddedSynth;
 
 
     /**
@@ -111,14 +111,7 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
 
         embeddedSynth = EmbeddedSynthProvider.getDefaultSynth();
         saveOutDeviceNameBeforeJJSynth = JJazzMidiSystem.getInstance().getJavaInternalSynth().getDeviceInfo().getName();
-        editedOutputSynth = OutputSynthManager.getInstance().getDefaultOutputSynth();
-
-
-        // Adapt tooltip if embedded synth is not present
-        String tooltip = embeddedSynth != null ? ResUtil.getString(getClass(), "MidiPanel.jjSynthPanelToolTip")
-                : ResUtil.getString(getClass(), "MidiPanel.jjSynthPanelToolTipDisabled");
-        pnl_jjSynth.setToolTipText(tooltip);
-        cb_usejjSynth.setToolTipText(tooltip);
+        editedOutputSynth = OutputSynthManager.getInstance().getDefaultOutputSynth();       // Can't be null
 
 
         updateUIComponents();
@@ -148,6 +141,7 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
 
         // Update state
         editedOutputSynth = OutputSynthManager.getInstance().getDefaultOutputSynth();
+
 
         // Update UI
         updateUIComponents();
@@ -254,45 +248,54 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
     /**
      * Update the UI.
      * <p>
-     * Default Midi OUT device and editedOutputSynth must be consistent before calling this method.
      */
     private void updateUIComponents()
     {
         var jms = JJazzMidiSystem.getInstance();
-        var mdOut = jms.getDefaultOutDevice();
-        assert (mdOut != null && editedOutputSynth != null) || (mdOut == null && editedOutputSynth == null) : "mdOut=" + mdOut + " editedOutputSynth=" + editedOutputSynth;
+        var mdOut = jms.getDefaultOutDevice();      // can be null
         boolean isEmbeddedSynthUsed = embeddedSynth != null && mdOut == embeddedSynth.getOutMidiDevice();
+        boolean isNormalSynthUsed = !isEmbeddedSynthUsed && mdOut != null;
 
 
-        // Enable/disable
+        // Adapt tooltip if embedded synth is not present
+        String tooltip = embeddedSynth != null ? ResUtil.getString(getClass(), "MidiPanel.jjSynthPanelToolTip")
+                : ResUtil.getString(getClass(), "MidiPanel.jjSynthPanelToolTipDisabled");
+        pnl_jjSynth.setToolTipText(tooltip);
+        cb_usejjSynth.setToolTipText(tooltip);
+
+
+        // Enable/disable                
         cb_usejjSynth.setSelected(isEmbeddedSynthUsed);
         Utilities.setRecursiveEnabled(isEmbeddedSynthUsed, pnl_jjSynth);
         cb_usejjSynth.setEnabled(embeddedSynth != null);
         Utilities.setRecursiveEnabled(!isEmbeddedSynthUsed, pnl_outDevice);
-        Utilities.setRecursiveEnabled(!isEmbeddedSynthUsed && editedOutputSynth != null, pnl_outputSynth);
-        btn_test.setEnabled(mdOut != null);
+        Utilities.setRecursiveEnabled(isNormalSynthUsed, pnl_outputSynth);
+        btn_test.setEnabled(isNormalSynthUsed);
 
 
-        // Update components
-        list_OutDevices.setSelectedValue(mdOut, true);      // no change event fired if no change
-        if (editedOutputSynth != null)
+        if (!isEmbeddedSynthUsed)
+        {
+            list_OutDevices.setSelectedValue(mdOut, true);      // no change event fired if no change                        
+
+            // Update titled border            
+            String friendlyMdName = (mdOut == null) ? "" : JJazzMidiSystem.getInstance().getDeviceFriendlyName(mdOut);
+            String title = ResUtil.getString(getClass(), "MidiPanel.OutputSynthFor", friendlyMdName);
+            var tb = (TitledBorder) pnl_outputSynth.getBorder();
+            if (!tb.getTitle().equals(title))
+            {
+                tb.setTitle(title);
+                pnl_outputSynth.repaint();  // Needed for the title renaming to be visible immediatly
+            }
+        }
+
+        if (isNormalSynthUsed)
         {
             MidiSynth mSynth = editedOutputSynth.getMidiSynth();
             combo_midiSynths.setSelectedItem(mSynth);   // always fire an action event
             spn_audioLatency.setValue(editedOutputSynth.getUserSettings().getAudioLatency());
-            combo_sendMessageUponPlay.setSelectedItem(editedOutputSynth.getUserSettings().getSendModeOnUponPlay()); // always fire an action event            
+            combo_sendMessageUponPlay.setSelectedItem(editedOutputSynth.getUserSettings().getSendModeOnUponPlay()); // always fire an action event                    
         }
 
-
-        // Update titled border
-        String friendlyMdName = (mdOut == null) ? "" : JJazzMidiSystem.getInstance().getDeviceFriendlyName(mdOut);
-        String title = ResUtil.getString(getClass(), "MidiPanel.OutputSynthFor", friendlyMdName);
-        var tb = (TitledBorder) pnl_outputSynth.getBorder();
-        if (!tb.getTitle().equals(title))
-        {
-            tb.setTitle(title);
-            pnl_outputSynth.repaint();  // Needed for the title renaming to be visible immediatly
-        }
 
     }
 
@@ -391,11 +394,13 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
 
     /**
      * Set the default out device to mdOut.
+     * <p>
+     * If problem occurs with the EmbeddedSynth disable it.
      *
      * @param mdOut Can be null.
      * @return False if there was an error.
      */
-    protected boolean openOutDevice(MidiDevice mdOut)
+    private boolean openOutDevice(MidiDevice mdOut)
     {
         class MyRunnable implements Runnable
         {
@@ -430,9 +435,19 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
         {
             String msg = ResUtil.getString(getClass(), "ERR_DeviceProblem", mdOut.getDeviceInfo().getName());
             msg += "\n\n" + r.exception.getLocalizedMessage();
-            LOGGER.log(Level.WARNING, msg);   //NOI18N
+            LOGGER.warning("openOutDevice() " + msg);
             NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(nd);
+
+
+            if (embeddedSynth != null && embeddedSynth.getOutMidiDevice() == mdOut)
+            {
+                // Disable the embeddedSynth
+                EmbeddedSynthProvider.getDefaultProvider().disable();
+                embeddedSynth = null;
+                updateUIComponents();                
+            }
+
             return false;
         }
 

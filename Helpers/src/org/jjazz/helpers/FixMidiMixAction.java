@@ -47,6 +47,7 @@ import org.openide.windows.OnShowing;
 @OnShowing              // Used only to get the automatic object creation upon startup
 public class FixMidiMixAction implements VetoableChangeListener, Runnable
 {
+
     private static FixMidiMixDialog DIALOG;
     private static final Logger LOGGER = Logger.getLogger(FixMidiMixAction.class.getSimpleName());
     FixChoice savedChoice = FixChoice.CANCEL;
@@ -91,6 +92,10 @@ public class FixMidiMixAction implements VetoableChangeListener, Runnable
 
         MidiMix midiMix = context.getMidiMix();
         OutputSynth outputSynth = OutputSynthManager.getInstance().getDefaultOutputSynth();
+        if (outputSynth == null)
+        {
+            return;
+        }
         HashMap<Integer, Instrument> mapNewInstruments = outputSynth.getNeedFixInstruments(midiMix);
         List<Integer> reroutableChannels = midiMix.getChannelsNeedingDrumsRerouting(mapNewInstruments);
 

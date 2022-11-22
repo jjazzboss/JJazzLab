@@ -125,6 +125,22 @@ public class Utilities
         }
     }
 
+
+    public static boolean isWindows()
+    {
+        return OSType.DETECTED.equals(OSType.Windows);
+    }
+
+    public static boolean isMac()
+    {
+        return OSType.DETECTED.equals(OSType.MacOS);
+    }
+
+    public static boolean isLinux()
+    {
+        return OSType.DETECTED.equals(OSType.Linux);
+    }
+
     /**
      * @return Complete absolute path from where the application was initialized.
      */
@@ -147,7 +163,7 @@ public class Utilities
     {
         if (Files.isDirectory(dirPath))
         {
-            try (Stream<Path> entries = Files.list(dirPath))
+            try ( Stream<Path> entries = Files.list(dirPath))
             {
                 return !entries.findFirst().isPresent();
             }
@@ -250,7 +266,7 @@ public class Utilities
      * If filename has no path extension just add ext.
      *
      * @param filename
-     * @param ext A string without spaces in it. If ext does not start with "." it will be added. If "" extension is removed.
+     * @param ext      A string without spaces in it. If ext does not start with "." it will be added. If "" extension is removed.
      * @return The new filename with extension replaced.
      */
     public static String replaceExtension(String filename, String ext)
@@ -291,7 +307,7 @@ public class Utilities
      * Get the string of all the collection elements in brackets [], but limited to maxLength.
      *
      * @param collection
-     * @param maxLength Must be &gt;= 5
+     * @param maxLength  Must be &gt;= 5
      * @return A string like [one,two,th...] if maxLength is 15
      */
     public static String truncateWithDots(Collection<?> collection, int maxLength)
@@ -358,8 +374,8 @@ public class Utilities
      *
      * @param <T>
      * @param smallArray Size must be &lt;= 9, otherwise use too much memory (result size grow like N!).
-     * @param n Nb of elements to be considered
-     * @param result The list of all smallArray permutations.
+     * @param n          Nb of elements to be considered
+     * @param result     The list of all smallArray permutations.
      */
     public static <T> void heapPermutation(T smallArray[], int n, List<T[]> result)
     {
@@ -491,7 +507,7 @@ public class Utilities
     /**
      * Get the index of an object reference in a List. The search uses direct equality '==', NOT the 'equals' function.
      *
-     * @param o The Object to search.
+     * @param o     The Object to search.
      * @param array The List of Objects to be searched.
      * @return The index of object o, -1 if not found.
      */
@@ -511,7 +527,7 @@ public class Utilities
      * Return the index of the first object whose toString() function match str (ignoring case).
      *
      * @param list A list of object.
-     * @param str The string to search (ignoring case)
+     * @param str  The string to search (ignoring case)
      * @return The index of matching string, -1 if not found.
      */
     public static int indexOfStringIgnoreCase(List<? extends Object> list, String str)
@@ -533,10 +549,10 @@ public class Utilities
      * <p>
      *
      * @param <T>
-     * @param myClass The class used to find the zipResource.
+     * @param myClass     The class used to find the zipResource.
      * @param zipResource Must end with ".zip".
-     * @param destDir The path of the destination directory, which must exist.
-     * @param overwrite If true overwrite files in the destination directory
+     * @param destDir     The path of the destination directory, which must exist.
+     * @param overwrite   If true overwrite files in the destination directory
      * @return The list of created files in the destination directory.
      */
     public static <T> List<File> extractZipResource(Class<T> myClass, String zipResource, Path destDir, boolean overwrite)
@@ -548,7 +564,7 @@ public class Utilities
 
         LOGGER.fine("extractZipResource() -- myClass=" + myClass + " zipResource=" + zipResource + " destDir=" + destDir);   //NOI18N
         ArrayList<File> res = new ArrayList<>();
-        try (InputStream is = myClass.getResourceAsStream(zipResource); BufferedInputStream bis = new BufferedInputStream(is); ZipInputStream zis = new ZipInputStream(bis))
+        try ( InputStream is = myClass.getResourceAsStream(zipResource);  BufferedInputStream bis = new BufferedInputStream(is);  ZipInputStream zis = new ZipInputStream(bis))
         {
             ZipEntry entry;
             byte[] buffer = new byte[2048];
@@ -574,7 +590,7 @@ public class Utilities
                 {
                     continue;
                 }
-                try (FileOutputStream fos = new FileOutputStream(destFile); BufferedOutputStream bos = new BufferedOutputStream(fos, buffer.length))
+                try ( FileOutputStream fos = new FileOutputStream(destFile);  BufferedOutputStream bos = new BufferedOutputStream(fos, buffer.length))
                 {
                     int len;
                     while ((len = zis.read(buffer)) > 0)
@@ -609,7 +625,7 @@ public class Utilities
             throw new IllegalArgumentException("c=" + c + " resourceFilePath=" + resourceFilePath + " targetFile=" + targetFile);   //NOI18N
         }
         boolean b = false;
-        try (InputStream in = c.getResourceAsStream(resourceFilePath))
+        try ( InputStream in = c.getResourceAsStream(resourceFilePath))
         {
             if (in != null)
             {
@@ -841,7 +857,7 @@ public class Utilities
     {
         StringWriter result = new StringWriter();
         int curChar;
-        try (InputStream is = fo.getInputStream(); BufferedReader in = new BufferedReader(new InputStreamReader(is)))
+        try ( InputStream is = fo.getInputStream();  BufferedReader in = new BufferedReader(new InputStreamReader(is)))
         {
             while ((curChar = in.read()) != -1)
             {
@@ -896,7 +912,7 @@ public class Utilities
      * Hidden subdirectories are not searched.
      *
      * @param dirTree
-     * @param fnFilter If null accept all files.
+     * @param fnFilter        If null accept all files.
      * @param ignoreDirPrefix Subdirs starting with this prefix are not traversed. If null accept all subdirectories.
      * @param maxDepth
      * @return
@@ -1090,7 +1106,7 @@ public class Utilities
      *
      * @param pool
      * @param waitTerminationTimeMs Time in milliseconds to wait for pool tasks to terminate themselves
-     * @param waitCancelTimeMs Time in milliseconds to wait for pool tasks to handle the cancel requests
+     * @param waitCancelTimeMs      Time in milliseconds to wait for pool tasks to handle the cancel requests
      */
     static public void shutdownAndAwaitTermination(ExecutorService pool, long waitTerminationTimeMs, long waitCancelTimeMs)
     {
@@ -1157,6 +1173,33 @@ public class Utilities
             return s;
         }
         return s.substring(index + 1);
+    }
+
+    /**
+     * Get the OS type.
+     */
+    private enum OSType
+    {
+        Windows, MacOS, Linux, Other;
+        public static final OSType DETECTED;
+
+        static
+        {
+            String OS = System.getProperty("os.name", "generic").toLowerCase(Locale.ENGLISH);
+            if ((OS.contains("mac")) || (OS.contains("darwin")))
+            {
+                DETECTED = OSType.MacOS;
+            } else if (OS.contains("win"))
+            {
+                DETECTED = OSType.Windows;
+            } else if (OS.contains("nux"))
+            {
+                DETECTED = OSType.Linux;
+            } else
+            {
+                DETECTED = OSType.Other;
+            }
+        }
     }
 
 }
