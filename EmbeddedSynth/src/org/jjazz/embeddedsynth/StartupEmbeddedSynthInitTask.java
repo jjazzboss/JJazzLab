@@ -44,32 +44,36 @@ public class StartupEmbeddedSynthInitTask implements Runnable
     public void run()
     {
 
-        var eSynth = EmbeddedSynthProvider.getDefault();
+        var eSynth = EmbeddedSynthProvider.getDefaultSynth();
         if (eSynth == null)
         {
             // No embedded synth
             return;
         }
-
-        // Register the embedded MidiSynth
-        MidiSynthManager.getInstance().addMidiSynth(eSynth.getOutputSynth().getMidiSynth());
         
-
-        // Register the MidiDevice with the OutputSynth
-        OutputSynthManager.getInstance().setOutputSynth(eSynth.getOutMidiDevice().getDeviceInfo().getName(), eSynth.getOutputSynth());
-        
-
-        // If fresh start make it the default OUT MidiDevice
+            // If fresh start, make it the default OUT MidiDevice
         if (UpgradeManager.getInstance().isFreshStart())
         {
             try
             {
                 JJazzMidiSystem.getInstance().setDefaultOutDevice(eSynth.getOutMidiDevice());
             } catch (MidiUnavailableException ex)
-            {
-                LOGGER.severe("run() " + ex);
+            {                
+                LOGGER.severe("run() " + ex);                
+                EmbeddedSynthProvider.getDefaultProvider().disable();
+                return;                
             }
         }
+
+        // Register the embedded MidiSynth
+        var msm = MidiSynthManager.getInstance();
+       msm.addMidiSynth(eSynth.getOutputSynth().getMidiSynth());
+        
+
+        // Register the MidiDevice with the OutputSynth
+        OutputSynthManager.getInstance().setOutputSynth(eSynth.getOutMidiDevice().getDeviceInfo().getName(), eSynth.getOutputSynth());
+        
+    
     }
 
 }

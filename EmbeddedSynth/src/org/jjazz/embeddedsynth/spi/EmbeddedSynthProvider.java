@@ -32,17 +32,39 @@ public interface EmbeddedSynthProvider
 {
 
     /**
-     * Get the default EmbeddedSynth (if any).
+     * Get the first EmbeddedSynthProvider instance found in the global lookup.
+     *
+     * @return
+     */
+    static EmbeddedSynthProvider getDefaultProvider()
+    {
+        return Lookup.getDefault().lookup(EmbeddedSynthProvider.class);
+    }
+
+    /**
+     * Get the default EmbeddedSynth instance.
      * <p>
-     * Rely on the first EmbeddedSynthProvider found in the global lookup.
+     * Rely on getDefaultProvider().
      *
      * @return Can be null.
      */
-    static EmbeddedSynth getDefault()
+    static EmbeddedSynth getDefaultSynth()
     {
-        EmbeddedSynthProvider provider = Lookup.getDefault().lookup(EmbeddedSynthProvider.class);
+        EmbeddedSynthProvider provider = getDefaultProvider();
         return (provider == null) ? null : provider.getEmbeddedSynth();
     }
 
+
+    /**
+     * Get the EmbeddedSynth instance.
+     *
+     * @return Null if the provider was disabled.
+     */
     EmbeddedSynth getEmbeddedSynth();
+
+    /**
+     * Disable this provider.
+     */
+    void disable();
+
 }

@@ -109,7 +109,7 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
         msm.addPropertyChangeListener(this);
 
 
-        embeddedSynth = EmbeddedSynthProvider.getDefault();
+        embeddedSynth = EmbeddedSynthProvider.getDefaultSynth();
         saveOutDeviceNameBeforeJJSynth = JJazzMidiSystem.getInstance().getJavaInternalSynth().getDeviceInfo().getName();
         editedOutputSynth = OutputSynthManager.getInstance().getDefaultOutputSynth();
 
@@ -133,7 +133,7 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
         // or for org.openide.util with API spec. version >= 7.4:
         // someCheckBox.setSelected(NbPreferences.forModule(MidiPanel.class).getBoolean("someFlag", false));
         // or:
-        // someTextField.setText(SomeSystemOption.getDefault().getSomeStringProperty());
+        // someTextField.setText(SomeSystemOption.getDefaultSynth().getSomeStringProperty());
 
 
         OutputSynthManager.getInstance().addPropertyChangeListener(this);
@@ -165,7 +165,7 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
         // or for org.openide.util with API spec. version >= 7.4:
         // NbPreferences.forModule(MidiPanel.class).putBoolean("someFlag", someCheckBox.isSelected());
         // or:
-        // SomeSystemOption.getDefault().setSomeStringProperty(someTextField.getText());
+        // SomeSystemOption.getDefaultSynth().setSomeStringProperty(someTextField.getText());
 
 
         // Nothing is stored: changes are performed directly
@@ -444,7 +444,7 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
      */
     private MidiOutDeviceList getFilteredMidiOutList()
     {
-        EmbeddedSynth eSynth = EmbeddedSynthProvider.getDefault();
+        EmbeddedSynth eSynth = EmbeddedSynthProvider.getDefaultSynth();
         Predicate<MidiDevice> tester = (eSynth == null) ? md -> true : md -> !md.getDeviceInfo().getName().equals(eSynth.getOutMidiDevice().getDeviceInfo().getName());
         return new MidiOutDeviceList(tester);
     }
