@@ -22,14 +22,20 @@
  */
 package org.jjazz.embeddedsynth.spi;
 
+import java.beans.PropertyChangeListener;
+import javax.sound.midi.MidiDevice;
 import org.jjazz.embeddedsynth.api.EmbeddedSynth;
+import org.jjazz.embeddedsynth.api.EmbeddedSynthException;
 import org.openide.util.Lookup;
 
 /**
- * Provide an EmbeddedSynth instance.
+ * Provide an EmbeddedSynth instance and its related methods.
  */
 public interface EmbeddedSynthProvider
 {
+
+    public static final String PROP_PROVIDER_ENABLED = "PropProviderEnabled";
+    public static final String PROP_EMBEDDED_SYNTH_ACTIVE = "PropEmbeddedSynthActive";
 
     /**
      * Get the first EmbeddedSynthProvider instance found in the global lookup.
@@ -54,17 +60,49 @@ public interface EmbeddedSynthProvider
         return (provider == null) ? null : provider.getEmbeddedSynth();
     }
 
-
     /**
      * Get the EmbeddedSynth instance.
      *
-     * @return Null if the provider was disabled.
+     * @return Might be null if provider is disabled.
      */
     EmbeddedSynth getEmbeddedSynth();
 
     /**
-     * Disable this provider.
+     * Get the OUT MidiDevice associated to the embedded synth.
+     *
+     * @return Might be null if provider is disabled.
      */
-    void disable();
+    MidiDevice getOutMidiDevice();
+
+    /**
+     * If b is true do what's necessary so that the EmbeddedSynth becomes the current JJazzLab output synth.
+     * <p>
+     * If state is changed a PROP_EMBEDDED_SYNTH_ACTIVE change event is fired.
+     *
+     * @param b
+     * @throws org.jjazz.embeddedsynth.api.EmbeddedSynthException
+     */
+    void setEmbeddedSynthActive(boolean b) throws EmbeddedSynthException;
+
+    /**
+     * Check if the EmbeddedSynth is active.
+     *
+     * @return
+     */
+    boolean isEmbeddedSynthActive();
+
+    /**
+     * Check if this EmbeddedSynthProvider is enabled.
+     *
+     * By default an EmbeddedSynthProvider is enabled, but it might get itself disabled if it encounters initialization
+     * errors, typically when calling setEmbeddedSynthActive(). When it becomes disabled a PROP_PROVIDER_ENABLED change event is fired.
+     *
+     * @return
+     */
+    boolean isEnabled();
+
+    void addPropertyChangeListener(PropertyChangeListener l);
+
+    void removePropertyChangeListener(PropertyChangeListener l);
 
 }

@@ -39,5 +39,4 @@ public class EmbeddedSynthException extends Exception
         super(message, cause);
     }
 
-
 }

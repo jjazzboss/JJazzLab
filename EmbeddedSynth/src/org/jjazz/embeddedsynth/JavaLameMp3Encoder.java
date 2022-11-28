@@ -41,10 +41,12 @@ import org.jjazz.util.api.Utilities;
 import org.netbeans.api.progress.BaseProgressUtils;
 
 /**
- * A mp3 encoder which relies on net.sourceforge.lame-3.98.4.jar found here https://github.com/nwaldispuehl/java-lame
+ * A mp3 encoder which relies on net.sourceforge.lame-3.98.4.jar found here
+ * https://github.com/nwaldispuehl/java-lame
  */
 public class JavaLameMp3Encoder implements Mp3Encoder
 {
+
     private static final int MP3_GOOD_QUALITY_BITRATE = 320;
     private static final int MP3_LOW_QUALITY_BITRATE = 128;
 
@@ -56,9 +58,9 @@ public class JavaLameMp3Encoder implements Mp3Encoder
             throw new EmbeddedSynthException("File format not supported: " + inFile.getName());
         }
 
-
         class ProcessTask implements Runnable
         {
+
             private EmbeddedSynthException exception = null;
 
             @Override
@@ -84,7 +86,6 @@ public class JavaLameMp3Encoder implements Mp3Encoder
 
     }
 
-
     // ============================================================================================================
     // Private methods
     // ============================================================================================================
@@ -93,7 +94,7 @@ public class JavaLameMp3Encoder implements Mp3Encoder
      *
      * @param wavFile
      * @param mp3File
-     * @param bitRate             E.g 128 for medium quality, 320 for high quality
+     * @param bitRate E.g 128 for medium quality, 320 for high quality
      * @param useVariableEncoding
      * @throws IOException
      * @throws UnsupportedAudioFileException

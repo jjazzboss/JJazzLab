@@ -24,7 +24,6 @@ package org.jjazz.embeddedsynth.api;
 
 import java.awt.Component;
 import java.io.File;
-import javax.sound.midi.MidiDevice;
 import org.jjazz.outputsynth.api.OutputSynth;
 
 /**
@@ -48,13 +47,6 @@ public interface EmbeddedSynth
     String getName();
 
     String getVersion();
-
-    /**
-     * Get the OUT MidiDevice connected to this embedded synth.
-     *
-     * @return
-     */
-    MidiDevice getOutMidiDevice();
 
     /**
      * Get the OutputSynth corresponding to this embedded synth.

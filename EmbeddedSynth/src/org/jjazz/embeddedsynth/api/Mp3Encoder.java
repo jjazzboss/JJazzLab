@@ -30,7 +30,8 @@ public interface Mp3Encoder
     /**
      * Encode an audio file to a mp3 file.
      *
-     * @param audioFile     If audio file format is not supported an exception is thrown. Must support at least .wav file.
+     * @param audioFile If audio file format is not supported an exception is
+     * thrown. Must support at least .wav file.
      * @param mp3File
      * @param lowQuality If true encode with low-quality settings.
      * @param useVariableEncoding If false use fix-rate encoding

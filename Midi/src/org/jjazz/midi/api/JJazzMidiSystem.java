@@ -154,7 +154,6 @@ public final class JJazzMidiSystem
         // The IN/OUT virtual devices to be used by the application
         jjazzMidiIn = new MidiFilter("[JJazz Midi IN device]");
 
-
         // Discard some messages we should never need
         jjazzMidiIn.setFilterConfig(EnumSet.of(Config.FILTER_ACTIVE_SENSING,
                 Config.FILTER_CHANNEL_PRESSURE,
@@ -164,22 +163,18 @@ public final class JJazzMidiSystem
                 Config.FILTER_TUNE_REQUEST
         ));
 
-
         jjazzMidiOut = new MidiFilter("[JJazz Midi OUT device]");
         transmitterJJazzOut2PhysicalOut = jjazzMidiOut.getTransmitter();
         receiverJJazzOut = jjazzMidiOut.getReceiver();
         receiverPhysicalIn2JJazzIn = jjazzMidiIn.getReceiver();
-
 
         // Connect MidiIn to MidiOut to manage MidiThru
         thruFilter = new MidiFilter("[Midi Thru filter]");
         jjazzMidiIn.getTransmitter().setReceiver(thruFilter.getReceiver());
         thruFilter.getTransmitter().setReceiver(jjazzMidiOut.getReceiver());
 
-
         // Restore thru mode
         thruFilter.setFilterConfig(isThruMode() ? EnumSet.noneOf(MidiFilter.Config.class) : EnumSet.of(MidiFilter.Config.FILTER_EVERYTHING));
-
 
         // Get the sequencer : should get our implementation=JJazzLabSequencer (see JJazzLabSequencerProvider)        
         try
@@ -196,7 +191,6 @@ public final class JJazzMidiSystem
             defaultSequencer = null;
         }
 
-
         // Get the Java internal synth         
         try
         {
@@ -207,7 +201,6 @@ public final class JJazzMidiSystem
             LOGGER.log(Level.WARNING, "JJazzMidiSystem() problem getting Java internal synthesizer: {0}", ex.getMessage());   //NOI18N
             javaInternalSynth = null;
         }
-
 
         // Try to restore default Midi OUT
         List<MidiDevice> outDevices = getOutDeviceList();
@@ -235,7 +228,6 @@ public final class JJazzMidiSystem
             });
         }
 
-
         // Try to restore default Midi IN
         List<MidiDevice> inDevices = getInDeviceList();
         defaultInDevice = null;
@@ -254,7 +246,6 @@ public final class JJazzMidiSystem
                 });
             }
         }
-
 
         // Load Java synth soundfont file if any
         lastLoadedSoundbank = null;
@@ -472,7 +463,6 @@ public final class JJazzMidiSystem
             throw new IOException(msg);
         }
 
-
         // Start command
         LOGGER.info("editMidiFileWithExternalEditor() starting external editor with: " + editorFile.getAbsolutePath() + " " + midiFile.getAbsolutePath());
         ProcessBuilder builder = new ProcessBuilder(editorFile.getAbsolutePath(), midiFile.getAbsolutePath());
@@ -520,7 +510,7 @@ public final class JJazzMidiSystem
      *
      * @param f
      * @param silentRun If false wait until completion of the task and show progress bar. If true nothing is shown and method
-     *                  immediatly returns true.
+     * immediatly returns true.
      * @return true If success. If silentRun=true always return true.
      */
     public boolean loadSoundbankFileOnSynth(final File f, boolean silentRun)
@@ -675,7 +665,9 @@ public final class JJazzMidiSystem
     }
 
     /**
-     * Close the default out device. Special handling of the Java Internal Synth.
+     * Close the default out device.
+     *
+     * Special handling of the Java Internal Synth.
      */
     public void closeDefaultOutDevice()
     {
@@ -936,6 +928,21 @@ public final class JJazzMidiSystem
         }
     }
 
+    /**
+     * Find the MidiDevice whose Device.Info.name() is equals to mdName in the devices list.
+     *
+     * @param midiDevices
+     * @param mdName Can be null
+     * @return Null if not found.
+     */
+    public MidiDevice getMidiDevice(List<MidiDevice> midiDevices, String mdName)
+    {
+        Preconditions.checkNotNull(midiDevices);
+        return midiDevices.stream()
+                .filter(md -> md.getDeviceInfo().getName().equals(mdName))
+                .findAny()
+                .orElse(null);
+    }
 
     /**
      * Get the VirtualMidiSynth MidiDevice, if present on a Windows system.
@@ -994,8 +1001,8 @@ public final class JJazzMidiSystem
     /**
      * Get a friendly name for a MidiDevice.
      * <p>
-     * Remove any trailing "_MD" from the MidiDevice name. Also give a better name to "Gervill" Java internal synth. the Java default synth
-     * (sometimes "Gervill") to JAVA_INTERNAL_SYNTH_NAME. Use DeviceInfo.name otherwise.
+     * Remove any trailing "_MD" from the MidiDevice name. Also give a better name to "Gervill" Java internal synth. the Java
+     * default synth (sometimes "Gervill") to JAVA_INTERNAL_SYNTH_NAME. Use DeviceInfo.name otherwise.
      *
      * @param md
      * @return
@@ -1028,27 +1035,6 @@ public final class JJazzMidiSystem
         {
             String s = "{name=" + md.getDeviceInfo() + ",maxReceivers=" + md.getMaxReceivers() + ",maxTransmitters=" + md.getMaxTransmitters() + "}";
             res.add(s);
-        }
-        return res;
-    }
-
-    /**
-     * Find the MidiDevice whose Device.Info.name() is equals to mdName in the devices list.
-     *
-     * @param midiDevices
-     * @param mdName
-     * @return Null if not found.
-     */
-    private MidiDevice getMidiDevice(List<MidiDevice> midiDevices, String mdName)
-    {
-        MidiDevice res = null;
-        for (MidiDevice md : midiDevices)
-        {
-            if (md.getDeviceInfo().getName().equals(mdName))
-            {
-                res = md;
-                break;
-            }
         }
         return res;
     }

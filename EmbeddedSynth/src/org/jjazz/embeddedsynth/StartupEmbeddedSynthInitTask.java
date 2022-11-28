@@ -23,57 +23,51 @@
 package org.jjazz.embeddedsynth;
 
 import java.util.logging.Logger;
-import javax.sound.midi.MidiUnavailableException;
+import java.util.prefs.Preferences;
+import org.jjazz.embeddedsynth.api.EmbeddedSynthException;
 import org.jjazz.embeddedsynth.spi.EmbeddedSynthProvider;
 import org.jjazz.midi.api.JJazzMidiSystem;
-import org.jjazz.outputsynth.api.MidiSynthManager;
-import org.jjazz.outputsynth.api.OutputSynthManager;
 import org.jjazz.upgrade.api.UpgradeManager;
 import org.openide.modules.OnStart;
+import org.openide.util.*;
 
 /**
- * If EmbeddedSynth is present, connect it to the JJazzLab application.
+ * Manage the fresh startup case and restore EmbeddedSynth active state upon application restarts.
  */
 @OnStart
 public class StartupEmbeddedSynthInitTask implements Runnable
 {
 
+    private static final String PREF_EMBEDDED_SYNTH_ACTIVATED = "PrefEmbeddedSynthActivated";
+    private static final Preferences prefs = NbPreferences.forModule(JJazzMidiSystem.class);
     private static final Logger LOGGER = Logger.getLogger(StartupEmbeddedSynthInitTask.class.getSimpleName());
 
     @Override
     public void run()
     {
 
-        var eSynth = EmbeddedSynthProvider.getDefaultSynth();
-        if (eSynth == null)
+        var provider = EmbeddedSynthProvider.getDefaultProvider();
+        if (provider == null)
         {
-            // No embedded synth
             return;
+        } else
+        {
+            // Save the EmbeddedSynth active status
+            provider.addPropertyChangeListener(e -> prefs.putBoolean(PREF_EMBEDDED_SYNTH_ACTIVATED, (Boolean) e.getNewValue()));
         }
-        
-            // If fresh start, make it the default OUT MidiDevice
-        if (UpgradeManager.getInstance().isFreshStart())
+
+        boolean activate = UpgradeManager.getInstance().isFreshStart() || prefs.getBoolean(PREF_EMBEDDED_SYNTH_ACTIVATED, false);
+
+        if (activate)
         {
             try
             {
-                JJazzMidiSystem.getInstance().setDefaultOutDevice(eSynth.getOutMidiDevice());       // Wil try to open the MidiDevice
-            } catch (MidiUnavailableException ex)
-            {                
-                LOGGER.severe("run() " + ex);                
-                EmbeddedSynthProvider.getDefaultProvider().disable();
-                return;                
+                provider.setEmbeddedSynthActive(true);
+            } catch (EmbeddedSynthException ex)
+            {
+                LOGGER.warning("run() Can't activate embedded synth: " + ex.getMessage());
             }
         }
-
-        // Register the embedded MidiSynth
-        var msm = MidiSynthManager.getInstance();
-       msm.addMidiSynth(eSynth.getOutputSynth().getMidiSynth());
-        
-
-        // Register the MidiDevice with the OutputSynth
-        OutputSynthManager.getInstance().setOutputSynth(eSynth.getOutMidiDevice().getDeviceInfo().getName(), eSynth.getOutputSynth());
-        
-    
     }
 
 }
