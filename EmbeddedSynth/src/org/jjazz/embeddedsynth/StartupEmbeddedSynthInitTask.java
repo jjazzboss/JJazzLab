@@ -47,7 +47,7 @@ public class StartupEmbeddedSynthInitTask implements Runnable
     {
 
         var provider = EmbeddedSynthProvider.getDefaultProvider();
-        if (provider == null)
+        if (provider == null || !provider.isEnabled())
         {
             return;
         } else
