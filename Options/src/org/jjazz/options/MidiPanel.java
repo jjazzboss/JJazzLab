@@ -186,14 +186,19 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
             }
         } else
         {
-            try
+            if (isEmbeddedSynthAvailable())
             {
-                embeddedSynthProvider.setEmbeddedSynthActive(false);
-            } catch (EmbeddedSynthException ex)
-            {
-                // It was working before, should still work
-                Exceptions.printStackTrace(ex);
+                try
+                {
+                    embeddedSynthProvider.setEmbeddedSynthActive(false);
+
+                } catch (EmbeddedSynthException ex)
+                {
+                    // It was working before, should still work
+                    Exceptions.printStackTrace(ex);
+                }
             }
+            
             var mdOut = getOutDevice(saveOutDeviceNameForCancel);
             openOutDevice(mdOut);
         }
@@ -403,11 +408,11 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
         var osm = OutputSynthManager.getInstance();
         var outSynthList = Arrays.asList(osm.getNewGMOuputSynth(),
                 osm.getNewGM2OuputSynth(),
-                osm.getNewXGOuputSynth(),
-                osm.getNewGSOuputSynth(),
-                osm.getNewYamahaRefOuputSynth(),
-                osm.getNewJazzLabSoundFontXGOuputSynth(),
-                osm.getNewJazzLabSoundFontGSOuputSynth());
+                osm.getNewXGOuputSynth());
+//                osm.getNewGSOuputSynth(),
+//                osm.getNewYamahaRefOuputSynth(),
+//                osm.getNewJazzLabSoundFontXGOuputSynth(),
+//                osm.getNewJazzLabSoundFontGSOuputSynth());
         return outSynthList;
     }
 

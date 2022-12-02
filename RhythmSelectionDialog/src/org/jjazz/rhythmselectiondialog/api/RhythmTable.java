@@ -59,8 +59,8 @@ import org.jjazz.util.api.ResUtil;
 public class RhythmTable extends JTable implements PropertyChangeListener
 {
 
-    private Model model = new Model();
-    private List<Integer> hiddenColumnIndexes = new ArrayList<Integer>();
+    private final Model model = new Model();
+    private List<Integer> hiddenColumnIndexes = new ArrayList<>();
     private static final Logger LOGGER = Logger.getLogger(RhythmTable.class.getSimpleName());
 
     public RhythmTable()
@@ -303,38 +303,52 @@ public class RhythmTable extends JTable implements PropertyChangeListener
             {
                 case COL_TEMPO:
                     return ri.getPreferredTempo();
+                    
                 case COL_DIR:
+                    
                     // Show the file path relative to the user rhythm directory
-                    FileDirectoryManager fdm = FileDirectoryManager.getInstance();
                     if (ri.getFile() == null || "".equals(ri.getFile().getPath()))
                     {
+                        // Not file based
                         return " - ";
-                    } else if (ri.getFile().getAbsolutePath().contains(FileDirectoryManager.APP_CONFIG_PREFIX_DIR))
+                    } 
+                    
+                    
+                    Path pUserRhythmDir = FileDirectoryManager.getInstance().getUserRhythmDirectory().toPath();                    
+                    Path pFile = ri.getFile().toPath();
+                    if (!pFile.startsWith(pUserRhythmDir))
                     {
-                        // Don't show path of the builtin files
+                        // File-based but builtin rhythm: don't show path
                         return ResUtil.getString(getClass(), "DefaultRhythmsPath");
                     }
-                    Path pDir = fdm.getUserRhythmDirectory().toPath();
-                    Path pFile = ri.getFile().getParentFile().toPath();
+                                  
+                    
+                    // User-defined file-based, show path relative to user rhythm directory
+                    Path pParentFile = ri.getFile().getParentFile().toPath();
                     String s = null;
                     try
                     {
-                        Path relPath = pDir.relativize(pFile);
+                        Path relPath = pUserRhythmDir.relativize(pParentFile);
                         s = "./" + relPath.toString();
                     } catch (IllegalArgumentException ex)
                     {
-                        LOGGER.warning("getValueAt() Can't relativize pFile=" + pFile + " to pDir=" + pDir);   //NOI18N
-                        s = pFile.toString();
+                        LOGGER.warning("getValueAt() Can't relativize pFile=" + pParentFile + " to pDir=" + pUserRhythmDir);   //NOI18N
+                        s = pParentFile.toString();
                     }
                     return s;
+                    
                 case COL_NB_VOICES:
                     return ri.getRhythmVoiceInfos().size();
+                    
                 case COL_NAME:
                     return ri.getName();
+                    
                 case COL_FEEL:
                     return ri.getFeatures().getFeel().toString();
+                    
                 case COL_ID:
                     return row + 1;
+                    
                 default:
                     throw new IllegalStateException("col=" + col);   //NOI18N
             }
@@ -504,18 +518,23 @@ public class RhythmTable extends JTable implements PropertyChangeListener
             {
                 return lbl;
             }
+            
+            
             int modelRow = table.convertRowIndexToModel(row);
             RhythmInfo ri = model.getRhythms().get(modelRow);
             File f = ri.getFile();
+            
             switch (col)
             {
                 case Model.COL_NB_VOICES:
                     lbl.setToolTipText(RhythmTable.this.getInstrumentsString(ri));
                     break;
+                    
                 case Model.COL_NAME:
                     String s = f == null ? "" : ", " + ResUtil.getString(getClass(), "COL_NameToolTip", f.getName());
                     lbl.setToolTipText(ResUtil.getString(getClass(), "COL_DescToolTip", ri.getDescription() + s));
                     break;
+                    
                 case Model.COL_DIR:
                     lbl.setToolTipText(ResUtil.getString(getClass(), "COL_DirTooltip"));
 //                    // Left dots and the right part of the string visible in the cell
