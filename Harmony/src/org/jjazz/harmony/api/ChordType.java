@@ -22,7 +22,6 @@
  */
 package org.jjazz.harmony.api;
 
-import com.google.common.base.Preconditions;
 import static com.google.common.base.Preconditions.checkArgument;
 import java.util.ArrayList;
 import java.util.List;
