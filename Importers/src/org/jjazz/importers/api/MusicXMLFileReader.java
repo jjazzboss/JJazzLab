@@ -283,7 +283,7 @@ public class MusicXMLFileReader
             ExtChordSymbol ecs;
             try
             {
-                ecs = new ExtChordSymbol(strChord);
+                ecs = ExtChordSymbol.get(strChord);
             } catch (ParseException ex)
             {
                 LOGGER.warning("onChordSymbolParsed() Invalid chord string=" + strChord + "(" + ex.getMessage() + "), can't insert chord at pos=" + pos);   //NOI18N

@@ -22,6 +22,7 @@
  */
 package org.jjazz.songcontext.api;
 
+import com.google.common.base.Preconditions;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -112,7 +113,7 @@ public class SongContext
     {
         this(sgContext.getSong(), sgContext.getMidiMix(), newRange);
     }
-    
+
     @Override
     public SongContext clone()
     {
@@ -305,6 +306,7 @@ public class SongContext
         return res;
     }
 
+   
     /**
      * Convert a tick position relative to this context into a ChordLeadSheet Position.
      *

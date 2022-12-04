@@ -90,37 +90,37 @@ public class ChordLeadSheetFactoryImpl implements ChordLeadSheetFactory
         CLI_Factory clif = CLI_Factory.getDefault();
         try
         {
-            cls.addItem(clif.createChordSymbol(cls, new ExtChordSymbol("Dm7"), new Position(0, 0)));
-            cls.addItem(clif.createChordSymbol(cls, new ExtChordSymbol("C-7"), new Position(0, 2f)));
-            cls.addItem(clif.createChordSymbol(cls, new ExtChordSymbol("F#7"),
+            cls.addItem(clif.createChordSymbol(cls, ExtChordSymbol.get("Dm7"), new Position(0, 0)));
+            cls.addItem(clif.createChordSymbol(cls, ExtChordSymbol.get("C-7"), new Position(0, 2f)));
+            cls.addItem(clif.createChordSymbol(cls, ExtChordSymbol.get("F#7"),
                     new Position(1, 0)));
-            cls.addItem(clif.createChordSymbol(cls, new ExtChordSymbol("Bbmaj7#5"),
+            cls.addItem(clif.createChordSymbol(cls, ExtChordSymbol.get("Bbmaj7#5"),
                     new Position(1, 2)));
-            cls.addItem(clif.createChordSymbol(cls, new ExtChordSymbol("A"),
+            cls.addItem(clif.createChordSymbol(cls, ExtChordSymbol.get("A"),
                     new Position(1, 3f)));
             cls.addSection(clif.createSection(cls, "Chorus", TimeSignature.THREE_FOUR, 2));
-            cls.addItem(clif.createChordSymbol(cls, new ExtChordSymbol("D7b9b5"),
+            cls.addItem(clif.createChordSymbol(cls, ExtChordSymbol.get("D7b9b5"),
                     new Position(2, 1f)));
-            cls.addItem(clif.createChordSymbol(cls, new ExtChordSymbol("FM7#11"),
+            cls.addItem(clif.createChordSymbol(cls, ExtChordSymbol.get("FM7#11"),
                     new Position(4, 3f)));
             cls.addSection(clif.createSection(cls, "Bridge", TimeSignature.FOUR_FOUR, 5));
-            cls.addItem(clif.createChordSymbol(cls, new ExtChordSymbol("Eb7b9#5"),
+            cls.addItem(clif.createChordSymbol(cls, ExtChordSymbol.get("Eb7b9#5"),
                     new Position(5, 0.75f)));
-            cls.addItem(clif.createChordSymbol(cls, new ExtChordSymbol("Ab7#11"),
+            cls.addItem(clif.createChordSymbol(cls, ExtChordSymbol.get("Ab7#11"),
                     new Position(6, 0)));
-            cls.addItem(clif.createChordSymbol(cls, new ExtChordSymbol("A#"),
+            cls.addItem(clif.createChordSymbol(cls, ExtChordSymbol.get("A#"),
                     new Position(6, 4f)));
-            cls.addItem(clif.createChordSymbol(cls, new ExtChordSymbol("F7alt"),
+            cls.addItem(clif.createChordSymbol(cls, ExtChordSymbol.get("F7alt"),
                     new Position(6, 1.5f)));
-            cls.addItem(clif.createChordSymbol(cls, new ExtChordSymbol("G7#9#5"),
+            cls.addItem(clif.createChordSymbol(cls, ExtChordSymbol.get("G7#9#5"),
                     new Position(7, 2f)));
-            cls.addItem(clif.createChordSymbol(cls, new ExtChordSymbol("G#7dim"),
+            cls.addItem(clif.createChordSymbol(cls, ExtChordSymbol.get("G#7dim"),
                     new Position(8, 0f)));
-            cls.addItem(clif.createChordSymbol(cls, new ExtChordSymbol("Dbmaj7"),
+            cls.addItem(clif.createChordSymbol(cls, ExtChordSymbol.get("Dbmaj7"),
                     new Position(8, 2)));
-            cls.addItem(clif.createChordSymbol(cls, new ExtChordSymbol("Gbmaj7"),
+            cls.addItem(clif.createChordSymbol(cls, ExtChordSymbol.get("Gbmaj7"),
                     new Position(9, 0)));
-            cls.addItem(clif.createChordSymbol(cls, new ExtChordSymbol("G#maj7"),
+            cls.addItem(clif.createChordSymbol(cls, ExtChordSymbol.get("G#maj7"),
                     new Position(11, 3f)));
         } catch (ParseException | UnsupportedEditException ex)
         {

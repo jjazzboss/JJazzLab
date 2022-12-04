@@ -22,6 +22,7 @@
  */
 package org.jjazz.leadsheet.chordleadsheet.api.item;
 
+import com.google.common.base.Preconditions;
 import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
@@ -30,44 +31,48 @@ import java.text.ParseException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.harmony.api.ChordSymbol;
-import org.jjazz.harmony.api.ChordType;
-import org.jjazz.harmony.api.ChordTypeDatabase;
 import org.jjazz.harmony.api.Note;
+import org.openide.util.Exceptions;
 
 /**
- * Used as the alternate content of a ExtChordSymbol.
+ * Used as the alternate content of an ExtChordSymbol.
  * <p>
- * Same as ExtChordSymbol except it can't have itself an alternate content.
+ * Same as ExtChordSymbol except it can't have itself an alternate content.<p>
+ * This is an immutable class.
  */
 public class AltExtChordSymbol extends ExtChordSymbol
 {
 
     private static final Logger LOGGER = Logger.getLogger(AltExtChordSymbol.class.getSimpleName());
 
-    /**
-     * A void alternate chord symbol.
-     */
+
     private AltExtChordSymbol()
     {
 
     }
 
-    public AltExtChordSymbol(Note rootDg, Note bassDg, ChordType ct, ChordRenderingInfo cri)
+    public AltExtChordSymbol(ChordSymbol cs, ChordRenderingInfo cri)
     {
-        super(rootDg, bassDg, ct, cri, null, null);
+        super(cs, cri, null, null);
     }
 
-    public AltExtChordSymbol(String s, ChordRenderingInfo cri) throws ParseException
+
+    static public AltExtChordSymbol get(String s, ChordRenderingInfo rInfo) throws ParseException
     {
-        super(s, cri, null, null);
+        Preconditions.checkNotNull(s);
+        Preconditions.checkNotNull(rInfo);
+        var cs = new ChordSymbol(s);            // throws ParseException
+        var res = new AltExtChordSymbol(cs, rInfo);
+        return res;
     }
+
 
     @Override
     public AltExtChordSymbol getTransposedChordSymbol(int t, Note.Alteration alt)
     {
         ChordSymbol cs = super.getTransposedChordSymbol(t, alt);
         ChordRenderingInfo cri = getRenderingInfo().getTransposed(t);
-        AltExtChordSymbol aecs = new AltExtChordSymbol(cs.getRootNote(), cs.getBassNote(), cs.getChordType(), cri);
+        AltExtChordSymbol aecs = new AltExtChordSymbol(cs, cri);
         return aecs;
     }
 
@@ -100,17 +105,23 @@ public class AltExtChordSymbol extends ExtChordSymbol
 
         private Object readResolve() throws ObjectStreamException
         {
-            ChordSymbol cs = null;
+            AltExtChordSymbol res = null;
             try
             {
-                cs = new AltExtChordSymbol(spName, spRenderingInfo);
+                res = get(spName, spRenderingInfo);
             } catch (ParseException e)
             {
                 LOGGER.log(Level.WARNING, spName + ": Invalid chord symbol. Using 'C' ChordSymbol instead.");   //NOI18N
-                ChordTypeDatabase ctdb = ChordTypeDatabase.getInstance();
-                cs = new AltExtChordSymbol(new Note(0), new Note(0), ctdb.getChordType(""), spRenderingInfo);
+                try
+                {
+                    res = get("C", spRenderingInfo);
+                } catch (ParseException ex)
+                {
+                    // Should never be here
+                    Exceptions.printStackTrace(ex);
+                }
             }
-            return cs;
+            return res;
         }
     }
 }

@@ -182,7 +182,7 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
                     // It's a Void alternate chord symbol
                     cb_useVoidAlt.setSelected(true);
                     // If user unselects the Void value, propose a value consistent with the current chord symbol
-                    altChordSymbol = new AltExtChordSymbol(ecs.getRootNote(), ecs.getBassNote(), ecs.getChordType(), ecs.getRenderingInfo());
+                    altChordSymbol = new AltExtChordSymbol(ecs, ecs.getRenderingInfo());
                 } else
                 {
                     cb_useVoidAlt.setSelected(false);
@@ -193,7 +193,7 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
             {
                 // No alternate define, just set consistent values if ever user enables the alternate chord symbol
                 cb_enableAlternate.setSelected(false);
-                altChordSymbol = new AltExtChordSymbol(ecs.getRootNote(), ecs.getBassNote(), ecs.getChordType(), ecs.getRenderingInfo());
+                altChordSymbol = new AltExtChordSymbol(ecs, ecs.getRenderingInfo());
                 altFilter = new AltDataFilter(AltDataFilter.Random.RANDOM);
                 cb_useVoidAlt.setSelected(false);
             }
@@ -268,7 +268,7 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
         ExtChordSymbol ecs = null;
         try
         {
-            ecs = new ExtChordSymbol(text, cri, getAltChordSymbol(), getAltFilter());
+            ecs = ExtChordSymbol.get(text, cri, getAltChordSymbol(), getAltFilter());
         } catch (ParseException ex)
         {
             throw new IllegalStateException("text=" + text + " :" + ex.getMessage());   //NOI18N
@@ -396,7 +396,7 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
         {
             if (!text.isEmpty())
             {
-                ecs = new ExtChordSymbol(text);
+                ecs = ExtChordSymbol.get(text);
                 checkOk = true;
             }
         } catch (ParseException ex)
@@ -1149,7 +1149,7 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
         if (ALT_INSTANCE.exitedOk())
         {
             ExtChordSymbol ecs = ALT_INSTANCE.getData();
-            altChordSymbol = new AltExtChordSymbol(ecs.getRootNote(), ecs.getBassNote(), ecs.getChordType(), ecs.getRenderingInfo());
+            altChordSymbol = new AltExtChordSymbol(ecs, ecs.getRenderingInfo());
             lbl_altChordSymbol.setText(altChordSymbol.toString());
             lbl_optionalAltText.setText(getAltOptionalText(getAltChordSymbol(), getAltFilter()));
         }

@@ -103,7 +103,7 @@ public final class AccentStronger extends AbstractAction implements ContextAware
             if (cri.hasOneFeature(Feature.ACCENT, Feature.ACCENT_STRONGER))
             {
                 ChordRenderingInfo newCri = next(cri);
-                ExtChordSymbol newCs = new ExtChordSymbol(ecs, newCri, ecs.getAlternateChordSymbol(), ecs.getAlternateFilter());
+                ExtChordSymbol newCs = ecs.getCopy(null, newCri, ecs.getAlternateChordSymbol(), ecs.getAlternateFilter());
                 item.getContainer().changeItem(item, newCs);
             }
         }
@@ -214,7 +214,7 @@ public final class AccentStronger extends AbstractAction implements ContextAware
                 features.remove(Feature.ACCENT);
                 features.add(Feature.ACCENT_STRONGER);
                 ChordRenderingInfo newCri = new ChordRenderingInfo(features, cri.getScaleInstance());
-                ExtChordSymbol newCs = new ExtChordSymbol(ecs, newCri, ecs.getAlternateChordSymbol(), ecs.getAlternateFilter());
+                ExtChordSymbol newCs = ecs.getCopy(null, newCri, ecs.getAlternateChordSymbol(), ecs.getAlternateFilter());
                 item.getContainer().changeItem(item, newCs);
 
             } else if (!stronger && features.contains(Feature.ACCENT_STRONGER))
@@ -222,7 +222,7 @@ public final class AccentStronger extends AbstractAction implements ContextAware
                 features.remove(Feature.ACCENT_STRONGER);
                 features.add(Feature.ACCENT);
                 ChordRenderingInfo newCri = new ChordRenderingInfo(features, cri.getScaleInstance());
-                ExtChordSymbol newCs = new ExtChordSymbol(ecs, newCri, ecs.getAlternateChordSymbol(), ecs.getAlternateFilter());
+                ExtChordSymbol newCs = ecs.getCopy(null, newCri, ecs.getAlternateChordSymbol(), ecs.getAlternateFilter());
                 item.getContainer().changeItem(item, newCs);
 
             }

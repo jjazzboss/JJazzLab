@@ -103,7 +103,7 @@ public final class AccentCrash extends AbstractAction implements ContextAwareAct
             if (cri.hasOneFeature(Feature.ACCENT, Feature.ACCENT_STRONGER))
             {
                 ChordRenderingInfo newCri = next(cri);
-                ExtChordSymbol newCs = new ExtChordSymbol(ecs, newCri, ecs.getAlternateChordSymbol(), ecs.getAlternateFilter());
+                ExtChordSymbol newCs = ecs.getCopy(null, newCri, ecs.getAlternateChordSymbol(), ecs.getAlternateFilter());
                 item.getContainer().changeItem(item, newCs);
             }
         }
@@ -219,12 +219,16 @@ public final class AccentCrash extends AbstractAction implements ContextAwareAct
 
         public MyMenuItem()
         {
-            cbm_crash = new JCheckBoxMenuItem(ResUtil.getString(getClass(),"CrashAlways", new Object[] {}));
+            cbm_crash = new JCheckBoxMenuItem(ResUtil.getString(getClass(), "CrashAlways", new Object[]
+            {
+            }));
             cbm_crash.setAccelerator(KeyStroke.getKeyStroke('H'));
             cbm_crash.addItemListener(evt -> setCrash(evt.getStateChange() == ItemEvent.SELECTED));
             cbm_crash.putClientProperty("CheckBoxMenuItem.doNotCloseOnMouseClick", true);
 
-            cbm_noCrash = new JCheckBoxMenuItem(ResUtil.getString(getClass(),"CrashNever", new Object[] {}));
+            cbm_noCrash = new JCheckBoxMenuItem(ResUtil.getString(getClass(), "CrashNever", new Object[]
+            {
+            }));
             cbm_noCrash.setAccelerator(KeyStroke.getKeyStroke('H'));
             cbm_noCrash.addItemListener(evt -> setNoCrash(evt.getStateChange() == ItemEvent.SELECTED));
             cbm_noCrash.putClientProperty("CheckBoxMenuItem.doNotCloseOnMouseClick", true);
@@ -302,7 +306,7 @@ public final class AccentCrash extends AbstractAction implements ContextAwareAct
                     features.remove(Feature.CRASH);
                     features.remove(Feature.NO_CRASH);
                     ChordRenderingInfo newCri = new ChordRenderingInfo(features, cri.getScaleInstance());
-                    ExtChordSymbol newCs = new ExtChordSymbol(ecs, newCri, ecs.getAlternateChordSymbol(), ecs.getAlternateFilter());
+                    ExtChordSymbol newCs = ecs.getCopy(null, newCri, ecs.getAlternateChordSymbol(), ecs.getAlternateFilter());
                     item.getContainer().changeItem(item, newCs);
 
                 } else if (state == 1 && !features.contains(Feature.CRASH))
@@ -310,7 +314,7 @@ public final class AccentCrash extends AbstractAction implements ContextAwareAct
                     features.remove(Feature.NO_CRASH);
                     features.add(Feature.CRASH);
                     ChordRenderingInfo newCri = new ChordRenderingInfo(features, cri.getScaleInstance());
-                    ExtChordSymbol newCs = new ExtChordSymbol(ecs, newCri, ecs.getAlternateChordSymbol(), ecs.getAlternateFilter());
+                    ExtChordSymbol newCs = ecs.getCopy(null, newCri, ecs.getAlternateChordSymbol(), ecs.getAlternateFilter());
                     item.getContainer().changeItem(item, newCs);
 
                 } else if (state == 2 && !features.contains(Feature.NO_CRASH))
@@ -318,7 +322,7 @@ public final class AccentCrash extends AbstractAction implements ContextAwareAct
                     features.remove(Feature.CRASH);
                     features.add(Feature.NO_CRASH);
                     ChordRenderingInfo newCri = new ChordRenderingInfo(features, cri.getScaleInstance());
-                    ExtChordSymbol newCs = new ExtChordSymbol(ecs, newCri, ecs.getAlternateChordSymbol(), ecs.getAlternateFilter());
+                    ExtChordSymbol newCs = ecs.getCopy(null, newCri, ecs.getAlternateChordSymbol(), ecs.getAlternateFilter());
                     item.getContainer().changeItem(item, newCs);
 
                 }

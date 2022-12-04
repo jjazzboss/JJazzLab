@@ -32,6 +32,8 @@ import java.util.Objects;
 
 /**
  * A filter used to decide whether the alternate data of a CLI_ChordSymbol should be used.
+ * <p>
+ * This is an immutable class.
  */
 public class AltDataFilter implements Serializable
 {

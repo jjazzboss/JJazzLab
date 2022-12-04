@@ -215,7 +215,7 @@ public class Arranger implements SgsChangeListener, PropertyChangeListener
 
         // Prepare the new CLI_ChordSymbol
         var firstEcs = firstChordSymbol.getData();
-        var newEcs = new ExtChordSymbol(newCs, firstEcs.getRenderingInfo(), firstEcs.getAlternateChordSymbol(), firstEcs.getAlternateFilter());
+        var newEcs = firstEcs.getCopy(newCs, null, null, null);
         CLI_ChordSymbol newCliCs = CLI_Factory.getDefault().createChordSymbol(cls, newEcs, firstChordSymbol.getPosition());
 
 
@@ -418,7 +418,7 @@ public class Arranger implements SgsChangeListener, PropertyChangeListener
         if (clis.isEmpty())
         {
             // Add a "C" chord symbol at the start of the section
-            ExtChordSymbol ecs = new ExtChordSymbol(new Note(0), ChordTypeDatabase.getInstance().getChordType(0));
+            ExtChordSymbol ecs = new ExtChordSymbol(new Note(0), new Note(0), ChordTypeDatabase.getInstance().getChordType(0));
             CLI_ChordSymbol cliCs = CLI_Factory.getDefault().createChordSymbol(clsWork, ecs, cliSection.getPosition());
             clsWork.addItem(cliCs);
 

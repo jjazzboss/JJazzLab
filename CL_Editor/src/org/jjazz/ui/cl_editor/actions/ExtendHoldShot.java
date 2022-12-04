@@ -103,7 +103,7 @@ public final class ExtendHoldShot extends AbstractAction implements ContextAware
             if (cri.hasOneFeature(Feature.HOLD, Feature.SHOT))
             {
                 ChordRenderingInfo newCri = next(cri);
-                ExtChordSymbol newCs = new ExtChordSymbol(ecs, newCri, ecs.getAlternateChordSymbol(), ecs.getAlternateFilter());
+                ExtChordSymbol newCs = ecs.getCopy(null, newCri, ecs.getAlternateChordSymbol(), ecs.getAlternateFilter());
                 item.getContainer().changeItem(item, newCs);
             }
         }
@@ -235,14 +235,14 @@ public final class ExtendHoldShot extends AbstractAction implements ContextAware
             {
                 features.add(Feature.EXTENDED_HOLD_SHOT);
                 ChordRenderingInfo newCri = new ChordRenderingInfo(features, cri.getScaleInstance());
-                ExtChordSymbol newCs = new ExtChordSymbol(ecs, newCri, ecs.getAlternateChordSymbol(), ecs.getAlternateFilter());
+                ExtChordSymbol newCs = ecs.getCopy(null, newCri, ecs.getAlternateChordSymbol(), ecs.getAlternateFilter());
                 item.getContainer().changeItem(item, newCs);
 
             } else if (!extended && features.contains(Feature.EXTENDED_HOLD_SHOT))
             {
                 features.remove(Feature.EXTENDED_HOLD_SHOT);
                 ChordRenderingInfo newCri = new ChordRenderingInfo(features, cri.getScaleInstance());
-                ExtChordSymbol newCs = new ExtChordSymbol(ecs, newCri, ecs.getAlternateChordSymbol(), ecs.getAlternateFilter());
+                ExtChordSymbol newCs = ecs.getCopy(null, newCri, ecs.getAlternateChordSymbol(), ecs.getAlternateFilter());
                 item.getContainer().changeItem(item, newCs);
 
             }

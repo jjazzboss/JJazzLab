@@ -71,6 +71,7 @@ public class ChordTypeDatabase
         ChordType.Family DIM = ChordType.Family.DIMINISHED;
         ChordType.Family SUS = ChordType.Family.SUS;
 
+
         // MAJOR
         addBuiltin("", "", MAJ, ":M:maj:MAJ:Maj:bass:Bass:BASS:1+8:1+5:5:", NP, 0, NP, 0, NP, NP);
         addBuiltin("2", "", MAJ, ":add9:1+2+5:sus2:add2:", 0, NP, NP, 0, NP, NP);
@@ -125,7 +126,7 @@ public class ChordTypeDatabase
         addBuiltin("m7", "#5", MIN, ":mi7#5:min7#5:-7#5:", NP, -1, NP, 1, NP, -1);
         addBuiltin("m9", "", MIN, ":mi9:min9:min(9):min7(9):-9:", 0, -1, NP, 0, NP, -1);
         addBuiltin("m9", "11", MIN, ":m9(11):mi911:min911:-9(11):-911:", 0, -1, 0, 0, NP, -1);
-        addBuiltin("m11", "", MIN, ":m711:mi711:min711:-11:-711:min7(11):m7add11:m7add4:madd4:", NP, -1, 0, 0, NP, -1);        
+        addBuiltin("m11", "", MIN, ":m711:mi711:min711:-11:-711:min7(11):m7add11:m7add4:madd4:", NP, -1, 0, 0, NP, -1);
         addBuiltin("m13", "", MIN, ":mi13:min13:-13:m913:m9add13:", 0, -1, NP, 0, 0, -1);
         addBuiltin("m", "7M", MIN, ":-maj7:min7M:minMaj7:-7M:mM7:mMaj7:", NP, -1, NP, 0, NP, 0);
         addBuiltin("m9", "7M", MIN, ":mi9M:min9M:minMaj7(9):-9M:mM9:", 0, -1, NP, 0, NP, 0);
@@ -136,8 +137,8 @@ public class ChordTypeDatabase
         addBuiltin("", "dim7", DIM, ":°7:o7:7dim:h7:", NP, -1, NP, -1, 0, NP);
         addBuiltin("", "dim7M", DIM, ":°7M:o7M:oM7:7dim7M:dimM7:", NP, -1, NP, -1, NP, 0);
         addBuiltin("m7", "b5", DIM, ":m7-5:mi7b5:mi7-5:min7b5:min7-5:-7b5:", NP, -1, NP, -1, NP, -1);
-        addBuiltin("m9", "b5", DIM, ":m9-5:mi9b5:mi9-5:min9b5:min9-5:-9b5:", 0, -1, NP, -1, NP, -1);     
-        addBuiltin("m11", "b5", DIM, ":m11(b5):min11(b5):-11b5:-11(b5):", NP, -1, 0, -1, NP, -1);        
+        addBuiltin("m9", "b5", DIM, ":m9-5:mi9b5:mi9-5:min9b5:min9-5:-9b5:", 0, -1, NP, -1, NP, -1);
+        addBuiltin("m11", "b5", DIM, ":m11(b5):min11(b5):-11b5:-11(b5):", NP, -1, 0, -1, NP, -1);
 
         // SUS4
         addBuiltin("", "sus", SUS, ":sus4:4:", NP, NP, 0, 0, NP, NP);
@@ -146,7 +147,8 @@ public class ChordTypeDatabase
         addBuiltin("13", "sus", SUS, ":713sus:sus713:sus13:13sus4:134:", 0, NP, 0, 0, 0, -1);
         addBuiltin("7", "susb9", SUS, ":7sus-9:7sus4b9:sus7b9:sus7-9:7b9sus:7b9sus4:", -1, NP, 0, 0, NP, -1);
         addBuiltin("13", "susb9", SUS, ":13sus-9:sus13b9:sus13-9:", -1, NP, 0, 0, 0, -1);
-        
+
+
         buildAliasMap();
         // LOGGER.severe("DEBUG DUMP AliasMap=============");
         // mapAliasCt.keySet().stream().forEach(s -> LOGGER.severe(s + " -> " + mapAliasCt.get(s)));
@@ -222,7 +224,7 @@ public class ChordTypeDatabase
      * @param ct
      * @param alias e.g. "-7" for the "m7" chord type
      * @throws IllegalArgumentException If ct is not part of this database
-     * @throws InvalidAliasException If alias is invalid, e.g. it's already used by a different chord type.
+     * @throws InvalidAliasException    If alias is invalid, e.g. it's already used by a different chord type.
      */
     public void addAlias(ChordType ct, String alias) throws InvalidAliasException
     {

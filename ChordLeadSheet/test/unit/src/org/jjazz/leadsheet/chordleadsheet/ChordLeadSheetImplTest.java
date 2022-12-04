@@ -76,37 +76,37 @@ public class ChordLeadSheetImplTest
         {
             // Test leadsheet init
             cls1.setSizeInBars(8);
-            cls1.addItem(new CLI_ChordSymbolImpl(new ExtChordSymbol("Dm7"), new Position(0, 0)));
-            cls1.addItem(new CLI_ChordSymbolImpl(new ExtChordSymbol("F#7"), new Position(1, 0)));
-            cls1.addItem(new CLI_ChordSymbolImpl(new ExtChordSymbol("Bbmaj7#5"), new Position(1, 3)));
+            cls1.addItem(new CLI_ChordSymbolImpl(ExtChordSymbol.get("Dm7"), new Position(0, 0)));
+            cls1.addItem(new CLI_ChordSymbolImpl(ExtChordSymbol.get("F#7"), new Position(1, 0)));
+            cls1.addItem(new CLI_ChordSymbolImpl(ExtChordSymbol.get("Bbmaj7#5"), new Position(1, 3)));
             cls1.addSection(new CLI_SectionImpl("Section2", TimeSignature.THREE_FOUR, 2));
-            cls1.addItem(new CLI_ChordSymbolImpl(new ExtChordSymbol("D7b9b5"), new Position(2, 0)));
-            cls1.addItem(new CLI_ChordSymbolImpl(new ExtChordSymbol("FM7#11"), new Position(4, 1)));
+            cls1.addItem(new CLI_ChordSymbolImpl(ExtChordSymbol.get("D7b9b5"), new Position(2, 0)));
+            cls1.addItem(new CLI_ChordSymbolImpl(ExtChordSymbol.get("FM7#11"), new Position(4, 1)));
             cls1.addSection(new CLI_SectionImpl("Section3", TimeSignature.FOUR_FOUR, 5));
-            cls1.addItem(new CLI_ChordSymbolImpl(new ExtChordSymbol("Eb7b9#5"), new Position(5, 0.75f)));
-            cls1.addItem(new CLI_ChordSymbolImpl(new ExtChordSymbol("Db"), new Position(7, 3f)));
+            cls1.addItem(new CLI_ChordSymbolImpl(ExtChordSymbol.get("Eb7b9#5"), new Position(5, 0.75f)));
+            cls1.addItem(new CLI_ChordSymbolImpl(ExtChordSymbol.get("Db"), new Position(7, 3f)));
 
             cls1.addUndoableEditListener(undoManager);
 
             // COPY
             cls2.setSizeInBars(8);
-            cls2.addItem(new CLI_ChordSymbolImpl(new ExtChordSymbol("Dm7"), new Position(0, 0)));
-            cls2.addItem(new CLI_ChordSymbolImpl(new ExtChordSymbol("F#7"), new Position(1, 0)));
-            cls2.addItem(new CLI_ChordSymbolImpl(new ExtChordSymbol("Bbmaj7#5"), new Position(1, 3)));
+            cls2.addItem(new CLI_ChordSymbolImpl(ExtChordSymbol.get("Dm7"), new Position(0, 0)));
+            cls2.addItem(new CLI_ChordSymbolImpl(ExtChordSymbol.get("F#7"), new Position(1, 0)));
+            cls2.addItem(new CLI_ChordSymbolImpl(ExtChordSymbol.get("Bbmaj7#5"), new Position(1, 3)));
             cls2.addSection(new CLI_SectionImpl("Section2", TimeSignature.THREE_FOUR, 2));
-            cls2.addItem(new CLI_ChordSymbolImpl(new ExtChordSymbol("D7b9b5"), new Position(2, 0)));
-            cls2.addItem(new CLI_ChordSymbolImpl(new ExtChordSymbol("FM7#11"), new Position(4, 1)));
+            cls2.addItem(new CLI_ChordSymbolImpl(ExtChordSymbol.get("D7b9b5"), new Position(2, 0)));
+            cls2.addItem(new CLI_ChordSymbolImpl(ExtChordSymbol.get("FM7#11"), new Position(4, 1)));
             cls2.addSection(new CLI_SectionImpl("Section3", TimeSignature.FOUR_FOUR, 5));
-            cls2.addItem(new CLI_ChordSymbolImpl(new ExtChordSymbol("Eb7b9#5"), new Position(5, 0.75f)));
-            cls2.addItem(new CLI_ChordSymbolImpl(new ExtChordSymbol("Db"), new Position(7, 3f)));
+            cls2.addItem(new CLI_ChordSymbolImpl(ExtChordSymbol.get("Eb7b9#5"), new Position(5, 0.75f)));
+            cls2.addItem(new CLI_ChordSymbolImpl(ExtChordSymbol.get("Db"), new Position(7, 3f)));
 
             // Items to play with
             cliSection34_b3 = new CLI_SectionImpl("NewSection34", TimeSignature.THREE_FOUR, 3);
             cliSection44_b4 = new CLI_SectionImpl("NewSection44", TimeSignature.FOUR_FOUR, 4);
             cliSection54_b5 = new CLI_SectionImpl("NewSection54", TimeSignature.FIVE_FOUR, 5);
-            cliChordSymbolF_b3_3 = new CLI_ChordSymbolImpl(new ExtChordSymbol("F-"), new Position(3, 3));
-            cliChordSymbolG_b6_0 = new CLI_ChordSymbolImpl(new ExtChordSymbol("G-"), new Position(6, 0));
-            cliChordSymbolA_b12_2 = new CLI_ChordSymbolImpl(new ExtChordSymbol("A-"), new Position(12, 2));
+            cliChordSymbolF_b3_3 = new CLI_ChordSymbolImpl(ExtChordSymbol.get("F-"), new Position(3, 3));
+            cliChordSymbolG_b6_0 = new CLI_ChordSymbolImpl(ExtChordSymbol.get("G-"), new Position(6, 0));
+            cliChordSymbolA_b12_2 = new CLI_ChordSymbolImpl(ExtChordSymbol.get("A-"), new Position(12, 2));
 
             // Start one edit
             undoManager.startCEdit("UT-edit");

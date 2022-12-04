@@ -48,14 +48,12 @@ import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
+import org.jjazz.leadsheet.chordleadsheet.api.item.NCExtChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
-import org.jjazz.midi.api.DrumKit;
-import org.jjazz.midi.api.Instrument;
 import org.jjazz.midi.api.InstrumentMix;
 import org.jjazz.midi.api.InstrumentSettings;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.MidiUtilities;
-import org.jjazz.midi.api.keymap.KeyMapGM;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.UserRhythmVoice;
 import org.jjazz.outputsynth.api.OutputSynth;
@@ -173,6 +171,7 @@ public class SongSequenceBuilder
      * - Apply the RP_SYS_CustomPhrase changes<br>
      * - Apply the RP_SYS_PhraseTransform changes<br>
      * - Apply drums rerouting if needed <br>
+     * - Handle the NC chord symbols<br>
      * <p>
      * Phrases for RhythmVoiceDelegates are merged into the phrases of the source RhythmVoices.
      *
@@ -474,6 +473,9 @@ public class SongSequenceBuilder
         // Handle muted instruments via the SongPart's RP_SYS_Mute parameter
         processMutedInstruments(songContext, res);
 
+        // Handle the NC chord symbols 
+        processNoChords(songContext, res);
+
 
         // Merge the phrases from delegate RhythmVoices to the source phrase, then remove the delegate phrases        
         for (var rv : res.keySet().toArray(new RhythmVoice[0]))
@@ -761,6 +763,37 @@ public class SongSequenceBuilder
     }
 
     /**
+     * Remove notes for NC chord symbols, ie NCExtChordSymbol instances.
+     *
+     * @param context
+     * @param rvPhrases Keys can include RhythmVoiceDelegates
+     */
+    private void processNoChords(SongContext context, Map<RhythmVoice, Phrase> rvPhrases)
+    {
+        var songChordSequence = new SongChordSequence(context.getSong(), context.getBarRange());
+        SongStructure ss = context.getSong().getSongStructure();
+
+        for (int i = 0; i < songChordSequence.size(); i++)
+        {
+            var cliCs = songChordSequence.get(i);
+            var pos = cliCs.getPosition();
+            if (cliCs.getData() instanceof NCExtChordSymbol ncecs)
+            {
+                float posInBeats = ss.getPositionInNaturalBeats(pos.getBar()) + pos.getBeat();
+                TimeSignature ts = ss.getSongPart(pos.getBar()).getRhythm().getTimeSignature();
+                float chordDuration = songChordSequence.getChordDuration(i, ts);
+                FloatRange beatRange = new FloatRange(posInBeats, posInBeats + chordDuration - 0.1f);
+
+                for (Phrase p : rvPhrases.values())
+                {
+                    p.silence(beatRange, true, false, 0.01f);
+                }
+            }
+        }
+
+    }
+
+    /**
      * Replace phrases by custom phrases depending on the RP_SYS_CustomPhrase value.
      *
      * @param context
@@ -978,7 +1011,7 @@ public class SongSequenceBuilder
         MidiMix midiMix = context.getMidiMix();
         var reroutedChannels = midiMix.getDrumsReroutedChannels();
 
-        
+
         // Get the target Drums RhythmVoice
         var rvDrums = midiMix.getRhythmVoice(MidiConst.CHANNEL_DRUMS);
         if (rvDrums == null || !rvDrums.isDrums())
@@ -995,7 +1028,7 @@ public class SongSequenceBuilder
             }
         }
 
-        
+
         Phrase pDrums = rvPhrases.get(rvDrums);
         for (int channel : midiMix.getDrumsReroutedChannels())
         {

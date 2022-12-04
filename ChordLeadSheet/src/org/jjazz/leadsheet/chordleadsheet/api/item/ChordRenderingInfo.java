@@ -108,7 +108,7 @@ public class ChordRenderingInfo implements Serializable
         NO_ANTICIPATION;
 
         /**
-         * For example PEDAL_BASS will return "Bass Pedal"
+         * For example PEDAL_BASS will return "Pedal Bass"
          *
          * @return
          */

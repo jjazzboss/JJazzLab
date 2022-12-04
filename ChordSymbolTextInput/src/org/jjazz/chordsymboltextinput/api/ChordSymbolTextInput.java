@@ -105,7 +105,7 @@ public class ChordSymbolTextInput
 
         // Chord Symbol
         String csStr = s.substring(0, openIndex);
-        ExtChordSymbol ecs = new ExtChordSymbol(csStr);
+        ExtChordSymbol ecs = ExtChordSymbol.get(csStr);
 
 
         // Build the CLI_ChordSymbol

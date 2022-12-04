@@ -26,8 +26,11 @@ import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
+import java.text.ParseException;
+import org.jjazz.harmony.api.ChordSymbol;
 import org.jjazz.harmony.api.ChordTypeDatabase;
 import org.jjazz.harmony.api.Note;
+import org.openide.util.Exceptions;
 
 /**
  * A special instance used as the "void" alternate chord symbol.
@@ -45,15 +48,22 @@ public class VoidAltExtChordSymbol extends AltExtChordSymbol implements Serializ
         {
             if (INSTANCE == null)
             {
-                INSTANCE = new VoidAltExtChordSymbol();
+                try
+                {
+                    INSTANCE = new VoidAltExtChordSymbol();
+                } catch (ParseException ex)
+                {
+                    // Should never happen
+                    Exceptions.printStackTrace(ex);
+                }
             }
         }
         return INSTANCE;
     }
 
-    private VoidAltExtChordSymbol()
+    private VoidAltExtChordSymbol() throws ParseException
     {
-        super(new Note(11), new Note(10), ChordTypeDatabase.getInstance().getChordType(1), new ChordRenderingInfo());
+        super(new ChordSymbol("C"), new ChordRenderingInfo());
     }
 
     @Override

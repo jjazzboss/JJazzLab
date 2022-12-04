@@ -338,7 +338,7 @@ public class ChordSequence extends ArrayList<CLI_ChordSymbol> implements Compara
         ExtChordSymbol ecs = cliCs.getData();
         Position newPos = new Position(barRange.from, 0);
         ChordRenderingInfo newCri = new ChordRenderingInfo((EnumSet<Feature>) null, ecs.getRenderingInfo().getScaleInstance());
-        ExtChordSymbol newEcs = new ExtChordSymbol(ecs, newCri, null, null);
+        ExtChordSymbol newEcs = ecs.getCopy(null, newCri, null, null);
         CLI_ChordSymbol res = CLI_Factory.getDefault().createChordSymbol(cliCs.getContainer(), newEcs, newPos);
         return res;
     }

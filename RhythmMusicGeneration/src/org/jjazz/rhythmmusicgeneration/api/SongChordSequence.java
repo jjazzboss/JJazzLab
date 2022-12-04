@@ -27,7 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
+import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
@@ -67,7 +67,7 @@ public class SongChordSequence extends ChordSequence
      * @param song
      * @param barRange If null, use the whole song.
      * @throws IllegalArgumentException If no chord found to be the 1st chord of the ChordSequence, or if barRange is not
-     * contained in the song.
+     *                                  contained in the song.
      */
     public SongChordSequence(Song song, IntRange barRange)
     {
@@ -166,6 +166,36 @@ public class SongChordSequence extends ChordSequence
     }
 
     /**
+     * Return the duration in natural beats of the chord at specified index.
+     * <p>
+     * This is the duration until next chord or the end of the SongChordSequence.
+     *
+     * @param chordIndex
+     * @param ts         The TimeSignature of the section where chordIndex belongs to (a chord symbol can not span on 2 sections).
+     * @return
+     */
+    public float getChordDuration(int chordIndex, TimeSignature ts)
+    {
+        if (chordIndex < 0 || chordIndex >= size() || ts == null)
+        {
+            throw new IllegalArgumentException("chordIndex=" + chordIndex + " ts=" + ts);
+        }
+        Position pos = get(chordIndex).getPosition();
+        Position nextPos;
+        if (chordIndex == size() - 1)
+        {
+            // Duration until end of the sequence
+            nextPos = new Position(getBarRange().to + 1, 0);
+        } else
+        {
+            // Duration until next chord
+            nextPos = get(chordIndex + 1).getPosition();
+        }
+        float duration = pos.getDuration(nextPos, ts);
+        return duration;
+    }
+
+    /**
      * Split this SongChordSequence in different SimpleChordSequences for each song contiguous Rhythm's SongParts which have the
      * same specified RhythmParameter value.
      * <p>
@@ -179,7 +209,7 @@ public class SongChordSequence extends ChordSequence
      *
      * @param <T> The type of the RhythmParameter value
      * @param r
-     * @param rp The Rhythm's RhythmParameter for which we will check the value
+     * @param rp  The Rhythm's RhythmParameter for which we will check the value
      * @return The list of ChordSequences with their respective common rpValue, sorted by startBar.
      */
     public <T> List<SplitResult<T>> split(Rhythm r, RhythmParameter<T> rp)

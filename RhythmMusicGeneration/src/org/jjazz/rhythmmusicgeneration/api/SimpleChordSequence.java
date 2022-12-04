@@ -24,7 +24,6 @@ package org.jjazz.rhythmmusicgeneration.api;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.lang.Math.round;
-import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.util.Objects;
 import org.jjazz.harmony.api.TimeSignature;

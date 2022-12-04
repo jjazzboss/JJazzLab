@@ -57,7 +57,7 @@ public class CLI_FactoryImpl extends CLI_Factory
         SECTION_SAMPLE = new CLI_SectionImpl("SAMPLE-SECTION", TimeSignature.FOUR_FOUR, 0);
         try
         {
-            CHORD_SYMBOL_SAMPLE = new CLI_ChordSymbolImpl(new ExtChordSymbol("C#M7#11"), new Position(0, 0));
+            CHORD_SYMBOL_SAMPLE = new CLI_ChordSymbolImpl(ExtChordSymbol.get("C#M7#11"), new Position(0, 0));
         } catch (ParseException ex)
         {
             Logger.getLogger(CLI_FactoryImpl.class.getName()).log(Level.SEVERE, null, ex);

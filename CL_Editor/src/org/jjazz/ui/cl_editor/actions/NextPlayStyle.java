@@ -88,7 +88,7 @@ public final class NextPlayStyle extends AbstractAction implements ContextAwareA
         {
             ExtChordSymbol ecs = item.getData();
             ChordRenderingInfo newCri = next(ecs.getRenderingInfo());
-            ExtChordSymbol newCs = new ExtChordSymbol(ecs, newCri, ecs.getAlternateChordSymbol(), ecs.getAlternateFilter());
+            ExtChordSymbol newCs = ecs.getCopy(null, newCri, ecs.getAlternateChordSymbol(), ecs.getAlternateFilter());
             item.getContainer().changeItem(item, newCs);
         }
 

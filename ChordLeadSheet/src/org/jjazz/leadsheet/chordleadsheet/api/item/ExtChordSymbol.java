@@ -22,6 +22,7 @@
  */
 package org.jjazz.leadsheet.chordleadsheet.api.item;
 
+import com.google.common.base.Preconditions;
 import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
@@ -38,7 +39,6 @@ import org.jjazz.harmony.api.Degree;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.harmony.api.SymbolicDuration;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo.Feature;
-import org.openide.util.Exceptions;
 
 /**
  * An extended chord symbol with additionnal features:
@@ -58,20 +58,15 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
     private static final Logger LOGGER = Logger.getLogger(ExtChordSymbol.class.getSimpleName());
 
     /**
-     * Create a 'C' chord symbol with an empty rendering info and no alternate chord symbol.
+     * Create a 'C' chord symbol with a standard rendering info and no alternate chord symbol.
      */
     public ExtChordSymbol()
     {
-        this(new Note(0), ChordTypeDatabase.getInstance().getChordType(""));
-    }
-
-    public ExtChordSymbol(Note rootDg, ChordType ct)
-    {
-        this(rootDg, rootDg, ct);
+        this(new Note(0), new Note(0), ChordTypeDatabase.getInstance().getChordType(""));
     }
 
     /**
-     * Create a ChordSymbol with an empty RenderingInfo and no alternate chord symbol.
+     * Create an ExtChordSymbol with a standard RenderingInfo and no alternate chord symbol.
      *
      * @param rootDg
      * @param bassDg
@@ -79,71 +74,129 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
      */
     public ExtChordSymbol(Note rootDg, Note bassDg, ChordType ct)
     {
-        this(rootDg, bassDg, ct, null, null, null);
-    }
-
-    public ExtChordSymbol(ChordSymbol cs, ChordRenderingInfo rInfo, AltExtChordSymbol altChordSymbol, AltDataFilter altFilter)
-    {
-        this(cs.getRootNote(), cs.getBassNote(), cs.getChordType(), rInfo, altChordSymbol, altFilter);
+        this(rootDg, bassDg, ct, new ChordRenderingInfo(), null, null);
     }
 
     /**
-     * The full-parameter constructor.
+     * Create an ExtChordSymbol from the specified ChordSymbol with the specified parameters.
      *
-     * @param rootDg
-     * @param bassDg
-     * @param ct
-     * @param rInfo If null create an empty ChordRenderingInfo.
-     * @param altChordSymbol Optional alternate chord symbol. If not null altFilter must be also non-null.
-     * @param altFilter Optional filter to enable the use of the alternate chord symbol. If not null altChordSymbol must be also
-     * non-null.
+     * @param cs
+     * @param rInfo
+     * @param altChordSymbol
+     * @param altFilter
      */
-    public ExtChordSymbol(Note rootDg, Note bassDg, ChordType ct, ChordRenderingInfo rInfo, AltExtChordSymbol altChordSymbol, AltDataFilter altFilter)
+    public ExtChordSymbol(ChordSymbol cs, ChordRenderingInfo rInfo, AltExtChordSymbol altChordSymbol, AltDataFilter altFilter)
     {
-        super(rootDg, bassDg, ct);
-        renderingInfo = (rInfo == null) ? new ChordRenderingInfo() : rInfo;
-        if ((altChordSymbol == null && altFilter != null) || (altChordSymbol != null && altFilter == null))
+        super(cs.getRootNote(), cs.getBassNote(), cs.getChordType(), cs.getOriginalName());
+
+        if (rInfo == null || (altChordSymbol == null && altFilter != null) || (altChordSymbol != null && altFilter == null))
         {
-            throw new IllegalArgumentException("rootDg=" + rootDg + " bassDg=" + bassDg + " ct=" + ct + " rInfo=" + rInfo + " altChordSymbol=" + altChordSymbol + " altFilter=" + altFilter);   //NOI18N
+            throw new IllegalArgumentException("cs=" + cs + " rInfo=" + rInfo + " altChordSymbol=" + altChordSymbol + " altFilter=" + altFilter);   //NOI18N
         }
+        renderingInfo = rInfo;
         this.altChordSymbol = altChordSymbol;
         this.altFilter = altFilter;
     }
 
     /**
-     * Create a ChordSymbol from a chord string specification, with an empty RenderingInfo and no alternate chord symbol.
+     * Create an ExtChordSymbol from the specified parameters.
+     *
+     * @param rootDg
+     * @param bassDg
+     * @param ct
+     * @param rInfo
+     * @param altChordSymbol Optional alternate chord symbol. If not null altFilter must be also non-null.
+     * @param altFilter      Optional filter to enable the use of the alternate chord symbol. If not null altChordSymbol must be
+     *                       also non-null.
+     */
+    public ExtChordSymbol(Note rootDg, Note bassDg, ChordType ct, ChordRenderingInfo rInfo, AltExtChordSymbol altChordSymbol, AltDataFilter altFilter)
+    {
+        super(rootDg, bassDg, ct);
+
+        if (rInfo == null || (altChordSymbol == null && altFilter != null) || (altChordSymbol != null && altFilter == null))
+        {
+            throw new IllegalArgumentException("rootDg=" + rootDg + " bassDg=" + bassDg + " ct=" + ct + " rInfo=" + rInfo + " altChordSymbol=" + altChordSymbol + " altFilter=" + altFilter);   //NOI18N
+        }
+        renderingInfo = rInfo;
+        this.altChordSymbol = altChordSymbol;
+        this.altFilter = altFilter;
+    }
+
+
+    /**
+     * Create a ChordSymbol from a chord string specification, with a standard RenderingInfo and no alternate chord symbol.
      * <p>
-     * If string contains a '/', use ChordRenderingInfo.BassLineModifier.PEDAL_BASS as bassLineModifier.
+     * If string contains a '/', use ChordRenderingInfo.BassLineModifier.PEDAL_BASS as bassLineModifier. If string is "NC" return
+     * the special NCExtChordSymbol instance.
      *
      * @param s Eg 'C7'
+     * @return
      * @throws ParseException
      */
-    public ExtChordSymbol(String s) throws ParseException
+    static public ExtChordSymbol get(String s) throws ParseException
     {
-        this(s, s.contains("/") ? DEFAULT_CRI_FOR_SLASH_CHORD : null, null, null);
+        return get(s, s.contains("/") ? DEFAULT_CRI_FOR_SLASH_CHORD : new ChordRenderingInfo(), null, null);
     }
 
     /**
      * Create a ChordSymbol from a chord string specification, with the specified RenderingInfo and alternate chord symbol.
      *
-     * @param s Eg 'C7'
-     * @param rInfo If null create an empty ChordRenderingInfo.
+     * @param s              Eg 'C7'
+     * @param rInfo          Can't be null
      * @param altChordSymbol Optional alternate chord symbol. If not null altFilter must be also non-null.
-     * @param altFilter Optional filter to enable the use of the alternate chord symbol. If not null altChordSymbol must be also
-     * non-null.
+     * @param altFilter      Optional filter to enable the use of the alternate chord symbol. If not null altChordSymbol must be
+     *                       also non-null.
+     * @return
      *
      * @throws ParseException
      */
-    public ExtChordSymbol(String s, ChordRenderingInfo rInfo, AltExtChordSymbol altChordSymbol, AltDataFilter altFilter) throws ParseException
+    static public ExtChordSymbol get(String s, ChordRenderingInfo rInfo, AltExtChordSymbol altChordSymbol, AltDataFilter altFilter) throws ParseException
     {
-        super(s);
-        renderingInfo = (rInfo == null) ? new ChordRenderingInfo() : rInfo;
+        Preconditions.checkNotNull(s);
+        Preconditions.checkNotNull(rInfo);
+
+        ExtChordSymbol res;
+
+        if (NCExtChordSymbol.NAME.equals(s))
+        {
+            res = new NCExtChordSymbol(rInfo, altChordSymbol, altFilter);
+        } else
+        {
+            var cs = new ChordSymbol(s);            // throws ParseException
+            res = new ExtChordSymbol(cs, rInfo, altChordSymbol, altFilter);
+        }
+        return res;
+    }
+
+    /**
+     * Get a copy of this ExtChordSymbol, possibly modified with the specified parameters.
+     *
+     * @param cs             If not null return value will use this parameter.
+     * @param rInfo          If not null return value will use this parameter.
+     * @param altChordSymbol If not null return value will use this parameter. If not null altFilter must be also non-null.
+     * @param altFilter      If not null return value will use this parameter. If not null altChordSymbol must be also non-null.
+     * @return
+     */
+    public ExtChordSymbol getCopy(ChordSymbol cs, ChordRenderingInfo rInfo, AltExtChordSymbol altChordSymbol, AltDataFilter altFilter)
+    {
         if ((altChordSymbol == null && altFilter != null) || (altChordSymbol != null && altFilter == null))
         {
-            throw new IllegalArgumentException("s=" + s + " rInfo=" + rInfo + " altChordSymbol=" + altChordSymbol + " altFilter=" + altFilter);   //NOI18N
+            throw new IllegalArgumentException("rInfo=" + rInfo + " altChordSymbol=" + altChordSymbol + " altFilter=" + altFilter);
         }
-        this.altChordSymbol = altChordSymbol;
-        this.altFilter = altFilter;
+        cs = cs != null ? cs : this;
+        rInfo = rInfo != null ? rInfo : getRenderingInfo();
+        altChordSymbol = altChordSymbol != null ? altChordSymbol : getAlternateChordSymbol();
+        altFilter = altFilter != null ? altFilter : getAlternateFilter();
+        return new ExtChordSymbol(cs, rInfo, altChordSymbol, altFilter);
+    }
+
+    @Override
+    public int hashCode()
+    {
+        int hash = super.hashCode();
+        hash = 17 * hash + Objects.hashCode(this.renderingInfo);
+        hash = 17 * hash + Objects.hashCode(this.altChordSymbol);
+        return hash;
     }
 
     @Override
@@ -161,10 +214,6 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
         {
             return false;
         }
-        if (super.equals(obj) == false)
-        {
-            return false;
-        }
         final ExtChordSymbol other = (ExtChordSymbol) obj;
         if (!Objects.equals(this.renderingInfo, other.renderingInfo))
         {
@@ -174,22 +223,9 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
         {
             return false;
         }
-        if (!Objects.equals(this.altFilter, other.altFilter))
-        {
-            return false;
-        }
-        return true;
+        return super.equals(obj);
     }
 
-    @Override
-    public int hashCode()
-    {
-        int hash = 7;
-        hash = 97 * hash + Objects.hashCode(this.renderingInfo);
-        hash = 97 * hash + Objects.hashCode(this.altChordSymbol);
-        hash = 97 * hash + Objects.hashCode(this.altFilter);
-        return hash;
-    }
 
     /**
      * Get this object or the alternate chord symbol, depending on the specified string.
@@ -275,7 +311,7 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
     /**
      * Get a transposed ExtChordSymbol.
      *
-     * @param t The amount of transposition in semi-tons.
+     * @param t   The amount of transposition in semi-tons.
      * @param alt If not null alteration is unchanged, otherwise use alt
      * @return A new transposed ExtChordSymbol.
      */
@@ -285,15 +321,7 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
         ChordSymbol cs = super.getTransposedChordSymbol(t, alt);
         ChordRenderingInfo cri = getRenderingInfo().getTransposed(t);
         AltExtChordSymbol altCs = (altChordSymbol == null) ? null : altChordSymbol.getTransposedChordSymbol(t, alt);
-        ExtChordSymbol ecs = null;
-        try
-        {
-            ecs = new ExtChordSymbol(cs.getOriginalName(), cri, altCs, altFilter);  
-        } catch (ParseException ex)
-        {
-            // Should never happen
-            Exceptions.printStackTrace(ex);
-        }
+        ExtChordSymbol ecs = new ExtChordSymbol(cs, cri, altCs, altFilter);
         return ecs;
     }
 
@@ -354,9 +382,9 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
         private final ChordRenderingInfo spRenderingInfo;
         private final AltExtChordSymbol spAltChordSymbol;
         private final AltDataFilter spAltFilter;
-               
+
         // Kept for legacy purpose: before JJazzLab 2.2, we did not use UFT-8 encoding with Xstream hence this workaround for "°" char
-        private static final String DOT_REPLACEMENT = "_UpperDot_";     
+        private static final String DOT_REPLACEMENT = "_UpperDot_";
 
         private SerializationProxy(ExtChordSymbol cs)
         {
@@ -372,36 +400,36 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
 
             // First try with originalName (or spName if originalName not saved due to V1 .sng file)
             String s = spOriginalName == null ? spName.replace(DOT_REPLACEMENT, "°") : spOriginalName.replace(DOT_REPLACEMENT, "°");
-            ChordSymbol cs = null;
+            ExtChordSymbol ecs = null;
 
             try
             {
-                cs = new ExtChordSymbol(s, spRenderingInfo, spAltChordSymbol, spAltFilter);
+                ecs = get(s, spRenderingInfo, spAltChordSymbol, spAltFilter);
             } catch (ParseException e)
             {
                 // Nothing
             }
 
-            if (cs == null && spOriginalName != null)
+            if (ecs == null && spOriginalName != null)
             {
                 // If spOriginalName used, the error may be due to a missing user alias on current system
                 // Retry with standard name
                 try
                 {
-                    cs = new ExtChordSymbol(spName, spRenderingInfo, spAltChordSymbol, spAltFilter);
+                    ecs = get(spName, spRenderingInfo, spAltChordSymbol, spAltFilter);
                     LOGGER.log(Level.WARNING, spOriginalName + ": Invalid chord symbol. Using '" + spName + "' instead.");   //NOI18N
                 } catch (ParseException e)
                 {
                     // Nothing
                 }
             }
-            if (cs == null)
+            if (ecs == null)
             {
                 LOGGER.log(Level.WARNING, spName + ": Invalid chord symbol. Using 'C' ChordSymbol instead.");   //NOI18N
-                cs = new ExtChordSymbol();
+                ecs = new ExtChordSymbol();
             }
 
-            return cs;
+            return ecs;
         }
     }
 }

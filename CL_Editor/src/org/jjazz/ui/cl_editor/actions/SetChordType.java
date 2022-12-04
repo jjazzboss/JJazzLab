@@ -27,6 +27,7 @@ import java.awt.event.ActionListener;
 import javax.swing.AbstractAction;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
+import org.jjazz.harmony.api.ChordSymbol;
 import org.jjazz.harmony.api.ChordType;
 import org.jjazz.harmony.api.ChordTypeDatabase;
 import org.jjazz.harmony.api.StandardScaleInstance;
@@ -44,7 +45,6 @@ import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.NbBundle.Messages;
 import org.openide.util.actions.Presenter;
 
 /**
@@ -55,10 +55,6 @@ import org.openide.util.actions.Presenter;
 @ActionReferences(
         {
             @ActionReference(path = "Actions/ChordSymbol", position = 200)
-        })
-@Messages(
-        {
-
         })
 public final class SetChordType extends AbstractAction implements Presenter.Menu, Presenter.Popup
 {
@@ -152,11 +148,11 @@ public final class SetChordType extends AbstractAction implements Presenter.Menu
             for (ChordLeadSheetItem<?> item : selection.getSelectedItems())
             {
                 CLI_ChordSymbol cliCs = (CLI_ChordSymbol) item;
-                ExtChordSymbol oldCs = cliCs.getData();
-                ChordRenderingInfo cri = oldCs.getRenderingInfo();
-                ChordRenderingInfo newCri = new ChordRenderingInfo(cri, (StandardScaleInstance) null); // Discard scale             
-                ExtChordSymbol newCs = new ExtChordSymbol(oldCs.getRootNote(), oldCs.getBassNote(), ct, newCri, oldCs.getAlternateChordSymbol(), oldCs.getAlternateFilter());
-                editor.getModel().changeItem(cliCs, newCs);
+                ExtChordSymbol oldEcs = cliCs.getData();
+                ChordSymbol newCs = new ChordSymbol(oldEcs.getRootNote(), oldEcs.getBassNote(), ct);
+                ChordRenderingInfo newCri = new ChordRenderingInfo(oldEcs.getRenderingInfo(), (StandardScaleInstance) null); // Discard scale             
+                ExtChordSymbol newEcs = oldEcs.getCopy(newCs, newCri, null, null);
+                editor.getModel().changeItem(cliCs, newEcs);
             }
         }
     }

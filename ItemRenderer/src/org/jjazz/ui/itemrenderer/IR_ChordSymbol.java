@@ -41,6 +41,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo.Feature;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
+import org.jjazz.leadsheet.chordleadsheet.api.item.NCExtChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.VoidAltExtChordSymbol;
 import org.jjazz.ui.itemrenderer.api.IR_ChordSymbolSettings;
 import org.jjazz.ui.itemrenderer.api.IR_Copiable;
@@ -111,7 +112,11 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
 
 
         // Get the strings making up the chord symbol : base extension [/bass]
-        if (ecs.getName().equals(chordSymbolString))
+        if (ecs instanceof NCExtChordSymbol)
+        {
+            chordSymbolBase = ecs.getName();
+            chordSymbolExtension = "";
+        } else if (ecs.getName().equals(chordSymbolString))
         {
             // Easy
             chordSymbolBase = ecs.getRootNote().toRelativeNoteString() + ecs.getChordType().getBase();
@@ -251,7 +256,13 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
 
     private void updateToolTipText()
     {
-        if (ecs != null)
+        String tt = null;
+
+        if (ecs instanceof NCExtChordSymbol)
+        {
+            tt = NCExtChordSymbol.DESCRIPTION;
+
+        } else if (ecs != null)
         {
             // Chord Symbol
             ChordRenderingInfo cri = ecs.getRenderingInfo();
@@ -288,11 +299,11 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
                 assert altFilter != null;   //NOI18N
                 sb.append(altFilter.isRandom() ? ResUtil.getString(getClass(), "IR_ChordSymbol.random") : altFilter.getValues());
             }
-            setToolTipText(sb.toString());
-        } else
-        {
-            setToolTipText(null);
+            tt = sb.toString();
         }
+
+        
+        setToolTipText(tt);
     }
 
     /**
