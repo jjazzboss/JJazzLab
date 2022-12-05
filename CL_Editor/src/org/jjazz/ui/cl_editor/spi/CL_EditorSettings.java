@@ -20,35 +20,36 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.ui.ss_editor.spi;
+package org.jjazz.ui.cl_editor.spi;
 
 import java.awt.Color;
 import java.beans.PropertyChangeListener;
+import org.jjazz.ui.cl_editor.barbox.api.BarBoxSettings;
 import org.openide.util.Lookup;
 
-public interface SS_EditorSettings
+public interface CL_EditorSettings
 {
 
     public static String PROP_BACKGROUND_COLOR = "BackgroundColor";
-    public static String PROP_TOP_BACKGROUND_COLOR = "TopBackgroundColor";
 
-    public static SS_EditorSettings getDefault()
+    public static CL_EditorSettings getDefault()
     {
-        SS_EditorSettings result = Lookup.getDefault().lookup(SS_EditorSettings.class);
+        CL_EditorSettings result = Lookup.getDefault().lookup(CL_EditorSettings.class);
         if (result == null)
         {
             throw new NullPointerException("result=" + result);   //NOI18N
         }
         return result;
     }
+    
+    default BarBoxSettings getBarBoxSettings()
+    {
+        return BarBoxSettings.getDefault();
+    }
 
     Color getBackgroundColor();
 
     void setBackgroundColor(Color color);
-
-    Color getTopBackgroundColor();
-
-    void setTopBackgroundColor(Color color);
 
     void addPropertyChangeListener(PropertyChangeListener listener);
 

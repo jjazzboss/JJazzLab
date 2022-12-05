@@ -151,9 +151,11 @@ public abstract class SS_Editor extends JPanel implements Lookup.Provider
     abstract public void showPlaybackPoint(boolean b, Position pos);
 
     /**
-     * Return the SongPart/RhythmParameter corresponding to a graphical point. If we're not on a RhythmParameter, only the x
-     * coordinate is evaluated to find the right SongPart. If we're on the right of the last SongPart we return the last SongPart
-     * (with sptLeft false). If there is no SongPart, return null values for both spt and rp.
+     * Return the SongPart/RhythmParameter corresponding to a graphical point.
+     * <p>
+     * If we're not on a RhythmParameter, only the x coordinate is evaluated to find the right SongPart. If we're on the right of
+     * the last SongPart we return the last SongPart (with sptLeft false). If there is no SongPart, return null values for both
+     * spt and rp.
      *
      * @param editorPoint
      * @param sptLeft     Used to return an indicator if point was on the left or right side of the songpart

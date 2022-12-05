@@ -543,7 +543,7 @@ public class SongSequenceBuilder
         // Shift phrases to start at position 0
         for (Phrase p : res.values())
         {
-            p.shiftEvents(-songContext.getBeatRange().from);
+            p.shiftAllEvents(-songContext.getBeatRange().from);
         }
 
         return res;
@@ -859,7 +859,7 @@ public class SongSequenceBuilder
 
 
                 // Shift to fit the current song part position
-                spCustom.shiftEvents(sptBeatRange.from);
+                spCustom.shiftAllEvents(sptBeatRange.from);
 
                 // Update the current phrase
                 p.add(spCustom);

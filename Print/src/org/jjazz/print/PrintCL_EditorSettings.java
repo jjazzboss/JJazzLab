@@ -28,7 +28,7 @@ import java.beans.PropertyChangeListener;
 import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo;
-import org.jjazz.ui.cl_editor.api.CL_EditorSettings;
+import org.jjazz.ui.cl_editor.spi.CL_EditorSettings;
 import org.jjazz.ui.cl_editor.barbox.api.BarBoxSettings;
 import org.jjazz.ui.cl_editor.barrenderer.api.BarRendererSettings;
 import org.jjazz.ui.itemrenderer.api.IR_ChordSymbolSettings;

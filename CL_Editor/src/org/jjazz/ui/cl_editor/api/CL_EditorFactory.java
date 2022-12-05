@@ -22,6 +22,7 @@
  */
 package org.jjazz.ui.cl_editor.api;
 
+import org.jjazz.ui.cl_editor.spi.CL_EditorSettings;
 import org.jjazz.song.api.Song;
 import org.jjazz.ui.cl_editor.CL_EditorFactoryImpl;
 import org.jjazz.ui.cl_editor.barrenderer.api.BarRendererFactory;

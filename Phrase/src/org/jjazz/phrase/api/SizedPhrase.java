@@ -97,6 +97,17 @@ public class SizedPhrase extends Phrase
      * @param ne
      */
     @Override
+    public void push(NoteEvent ne)
+    {
+        addFirst(ne);
+    }
+
+    /**
+     * Overridden to check NoteEvent position.
+     * <p>
+     * @param ne
+     */
+    @Override
     public void addLast(NoteEvent ne)
     {
         checkNoteEvent(ne);
@@ -116,21 +127,21 @@ public class SizedPhrase extends Phrase
         super.add(index, ne);
     }
 
+
     /**
      * Overridden to check NoteEvent positions.
      *
-     * @param index
      * @param nes
      * @return
      */
     @Override
-    public boolean addAll(int index, Collection<? extends NoteEvent> nes)
+    public boolean addAll(Collection<? extends NoteEvent> nes)
     {
         for (var ne : nes)
         {
             checkNoteEvent(ne);
         }
-        return super.addAll(index, nes);
+        return super.addAll(nes);
     }
 
     @Override

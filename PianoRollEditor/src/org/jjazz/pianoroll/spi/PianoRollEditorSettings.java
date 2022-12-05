@@ -20,36 +20,34 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.ui.cl_editor.api;
+package org.jjazz.pianoroll.spi;
 
 import java.awt.Color;
 import java.beans.PropertyChangeListener;
-import org.jjazz.ui.cl_editor.barbox.api.BarBoxSettings;
 import org.openide.util.Lookup;
 
-public interface CL_EditorSettings
+public interface PianoRollEditorSettings
 {
-
     public static String PROP_BACKGROUND_COLOR = "BackgroundColor";
+    public static String PROP_TOP_BACKGROUND_COLOR = "TopBackgroundColor";
 
-    public static CL_EditorSettings getDefault()
+    public static PianoRollEditorSettings getDefault()
     {
-        CL_EditorSettings result = Lookup.getDefault().lookup(CL_EditorSettings.class);
+        PianoRollEditorSettings result = Lookup.getDefault().lookup(PianoRollEditorSettings.class);
         if (result == null)
         {
             throw new NullPointerException("result=" + result);   //NOI18N
         }
         return result;
     }
-    
-    default BarBoxSettings getBarBoxSettings()
-    {
-        return BarBoxSettings.getDefault();
-    }
 
     Color getBackgroundColor();
 
     void setBackgroundColor(Color color);
+
+    Color getTopBackgroundColor();
+
+    void setTopBackgroundColor(Color color);
 
     void addPropertyChangeListener(PropertyChangeListener listener);
 

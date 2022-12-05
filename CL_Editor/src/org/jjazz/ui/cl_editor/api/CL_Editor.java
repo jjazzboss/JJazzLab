@@ -22,6 +22,7 @@
  */
 package org.jjazz.ui.cl_editor.api;
 
+import org.jjazz.ui.cl_editor.spi.CL_EditorSettings;
 import org.jjazz.quantizer.api.Quantization;
 import java.awt.Point;
 import java.awt.Rectangle;

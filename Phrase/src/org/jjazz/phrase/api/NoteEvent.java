@@ -23,11 +23,15 @@
 package org.jjazz.phrase.api;
 
 import com.google.common.base.Preconditions;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiEvent;
@@ -47,6 +51,7 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
 
     private float position;
     protected Map<String, Object> clientProperties;
+    private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(NoteEvent.class.getSimpleName());
 
     public NoteEvent(int pitch, float duration, int velocity, float posInBeats)
@@ -137,20 +142,12 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
 
 
     /**
-     * Reset all current properties and copy all properties from ne.
-     *
-     * @param ne
-     */
-    public final void setClientProperties(NoteEvent ne)
-    {
-        clientProperties = (ne.clientProperties == null) ? null : new HashMap<>(ne.clientProperties);
-    }
-
-    /**
      * Put a client property.
+     * <p>
+     * Fire a propertyName change event.
      *
      * @param propertyName
-     * @param value If null, the property is removed.
+     * @param value        If null, the property is removed.
      */
     public void putClientProperty(String propertyName, Object value)
     {
@@ -158,7 +155,11 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
         {
             if (clientProperties != null)
             {
-                clientProperties.remove(propertyName);
+                Object old = clientProperties.remove(propertyName);
+                if (old != null)
+                {
+                    pcs.firePropertyChange(propertyName, old, null);
+                }
             }
         } else
         {
@@ -166,7 +167,9 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
             {
                 clientProperties = new HashMap<>();
             }
+            Object old = clientProperties.get(propertyName);
             clientProperties.put(propertyName, value);
+            pcs.firePropertyChange(propertyName, old, value);
         }
     }
 
@@ -179,6 +182,44 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
     public Object getClientProperty(String propertyName)
     {
         return clientProperties != null ? clientProperties.get(propertyName) : null;
+    }
+
+    /**
+     * Replace the current properties by the properties from ne.
+     * <p>
+     * Fire 0, 1 or more client property change events as required.
+     *
+     * @param ne
+     */
+    public final void setClientProperties(NoteEvent ne)
+    {
+        if (clientProperties == null && ne.clientProperties == null)
+        {
+            // Easy
+            return;
+        }
+
+        // Could be simplier but we want to minimize the number of property change events
+        Set<String> processedProps = new HashSet<>();
+        if (clientProperties != null)
+        {
+            for (var prop : clientProperties.keySet())
+            {
+                Object v = ne.clientProperties == null ? null : ne.clientProperties.get(prop);
+                putClientProperty(prop, v);
+                processedProps.add(prop);
+            }
+        }
+        if (ne.clientProperties != null)
+        {
+            for (var prop : ne.clientProperties.keySet())
+            {
+                if (!processedProps.contains(prop))
+                {
+                    putClientProperty(prop, ne.clientProperties.get(prop));
+                }
+            }
+        }
     }
 
     /**
@@ -358,6 +399,16 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
     {
         // return String.format("[%s, p=%.3f, d=%.3f, v=%d]", toPianoOctaveString(), position, getDurationInBeats(), getVelocity());
         return String.format("[%s, p=%f, d=%f, v=%d]", toPianoOctaveString(), position, getDurationInBeats(), getVelocity());
+    }
+
+    public void addClientPropertyChangeListener(PropertyChangeListener l)
+    {
+        pcs.addPropertyChangeListener(l);
+    }
+
+    public void removeClientPropertyChangeListener(PropertyChangeListener l)
+    {
+        pcs.removePropertyChangeListener(l);
     }
 
     /**

@@ -70,7 +70,7 @@ public class TestPlayerImpl implements TestPlayer
         for (int i = 60; i <= 72; i += 3)
         {
             int pitch = fixPitch >= 0 ? fixPitch : i + transpose;
-            p.addOrdered(new NoteEvent(pitch, 0.5f, 64, beat));
+            p.add(new NoteEvent(pitch, 0.5f, 64, beat));
             beat += 0.5f;
         }
         playTestNotes(p, endAction);

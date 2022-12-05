@@ -64,7 +64,7 @@ import org.jjazz.ui.cl_editor.barrenderer.api.BarRenderer;
 import org.jjazz.ui.cl_editor.barrenderer.api.BarRendererFactory;
 import org.jjazz.ui.cl_editor.api.CL_Editor;
 import org.jjazz.ui.cl_editor.api.CL_EditorMouseListener;
-import org.jjazz.ui.cl_editor.api.CL_EditorSettings;
+import org.jjazz.ui.cl_editor.spi.CL_EditorSettings;
 import org.jjazz.ui.cl_editor.api.CL_SelectionUtilities;
 import org.jjazz.ui.itemrenderer.api.IR_Type;
 import org.jjazz.ui.itemrenderer.api.ItemRenderer;
