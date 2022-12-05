@@ -143,7 +143,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
     @Override
     public E getRpValue()
     {
-        return editor.getEditedRpValue();
+        return tbtn_compare.isSelected() ? saveRpValue : editor.getEditedRpValue();
     }
 
     /**
@@ -244,7 +244,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
     // Private methods
     // ======================================================================================
     private void exit(boolean ok)
-    {      
+    {
         MusicController mc = MusicController.getInstance();
         boolean wasPlaying = mc.getState().equals(State.PLAYING);
         mc.stop();
@@ -588,7 +588,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
                     tbtn_hear.setSelected(true);
                     tbtn_hearActionPerformed(null);     // This will start playing the preview
 
-                    
+
                     // Commented out to disable the feature (auto-restart playback when exiting)
                     // previousPlaybackSession = prevSession.getFreshCopy();
                 }

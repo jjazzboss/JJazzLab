@@ -135,6 +135,7 @@ public class RP_SYS_DrumsTransformComp extends RealTimeRpEditorComponent<RP_SYS_
         super.setEnabled(b);
         list_transformChain.setEnabled(b);
         lbl_transformList.setEnabled(b);
+        lbl_allTransforms.setEnabled(b);
         lbl_arrows.setEnabled(b);
         list_transformChainSelectionChanged();
         Utilities.setRecursiveEnabled(b, pnl_mix);
