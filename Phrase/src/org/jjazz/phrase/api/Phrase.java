@@ -61,7 +61,7 @@ import org.jjazz.util.api.FloatRange;
 import org.jjazz.util.api.LongRange;
 
 /**
- * A list of NoteEvents that are kept sorted by start position.
+ * A list of NoteEvents that are kept sorted by start position, which fire events when modified.
  * <p>
  * LinkedList implementation to speed up item insertion/remove rather than random access.<p>
  */
@@ -121,6 +121,13 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
     {
         throw new UnsupportedOperationException("Can't be used: using ListIterator.set() can break the order by position.");
     }
+
+    @Override
+    public ListIterator<NoteEvent> descendingIterator()
+    {
+        throw new UnsupportedOperationException("Can't be used: using ListIterator.set() can break the order by position.");
+    }
+
 
     /**
      * Overridden to preserve order by position.
@@ -236,7 +243,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
     @Override
     public NoteEvent poll()
     {
-        return pollFirst();
+        return removeFirst();
     }
 
     /**
@@ -247,12 +254,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
     @Override
     public NoteEvent pollFirst()
     {
-        NoteEvent ne = super.pollFirst();
-        if (ne != null)
-        {
-            pcs.firePropertyChange(PROP_NOTE_REMOVED, 0, ne);
-        }
-        return ne;
+        return removeFirst();
     }
 
     /**
@@ -263,12 +265,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
     @Override
     public NoteEvent pollLast()
     {
-        NoteEvent ne = super.pollLast();
-        if (ne != null)
-        {
-            pcs.firePropertyChange(PROP_NOTE_REMOVED, size(), ne);
-        }
-        return ne;
+        return removeLast();
     }
 
 
@@ -277,8 +274,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
         int index = indexOf(ne);
         if (index != -1)
         {
-            super.remove(ne);
-            pcs.firePropertyChange(PROP_NOTE_REMOVED, index, ne);
+            remove(index);
         }
         return index != -1;
     }
@@ -293,8 +289,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
         int index = lastIndexOf(ne);
         if (index != -1)
         {
-            super.removeLastOccurrence(ne);
-            pcs.firePropertyChange(PROP_NOTE_REMOVED, index, ne);
+            remove(index);
         }
         return index != -1;
     }
@@ -310,17 +305,13 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
     @Override
     public NoteEvent removeFirst()
     {
-        var ne = super.removeFirst();
-        pcs.firePropertyChange(PROP_NOTE_REMOVED, 0, ne);
-        return ne;
+        return isEmpty() ? null : remove(0);
     }
 
     @Override
     public NoteEvent removeLast()
     {
-        var ne = super.removeLast();
-        pcs.firePropertyChange(PROP_NOTE_REMOVED, size(), ne);
-        return ne;
+        return isEmpty() ? null : remove(size() - 1);
     }
 
 
@@ -330,7 +321,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
      * Fire a PROP_NOTE_SET change event.
      *
      * @param index
-     * @param ne    Must have the same position that the existing NoteEvent
+     * @param ne Must have the same position that the existing NoteEvent
      */
     @Override
     public NoteEvent set(int index, NoteEvent ne)
@@ -350,7 +341,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
      * <p>
      * Fire a PROP_MOVED_EVENT change event.
      *
-     * @param ne          Must belong to this Phrase.
+     * @param ne Must belong to this Phrase.
      * @param newPosition
      * @return The created event at newPosition
      */
@@ -366,7 +357,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
             return ne.clone();
         }
 
-        NoteEvent movedNe = new NoteEvent(ne, ne.getDurationInBeats(), newPosition);
+        NoteEvent movedNe = ne.getCopyPos(newPosition);
         super.remove(ne);       // Don't fire a change event
         addOrdered(movedNe, false);     // Dont't fire a change event
         pcs.firePropertyChange(PROP_NOTE_MOVED, ne, movedNe);
@@ -378,10 +369,10 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
      * <p>
      * NOTE_ON events without a corresponding NOTE_OFF event are ignored.
      *
-     * @param midiEvents       MidiEvents which are not ShortMessage.Note_ON/OFF are ignored. Must be ordered by tick position,
-     *                         resolution must be MidiConst.PPQ_RESOLUTION.
+     * @param midiEvents MidiEvents which are not ShortMessage.Note_ON/OFF are ignored. Must be ordered by tick position,
+     * resolution must be MidiConst.PPQ_RESOLUTION.
      * @param posInBeatsOffset The position in natural beats of the first tick of the track.
-     * @param ignoreChannel    If true, add also NoteEvents for MidiEvents which do not match this phrase channel.
+     * @param ignoreChannel If true, add also NoteEvents for MidiEvents which do not match this phrase channel.
      * @see MidiUtilities#getMidiEvents(javax.sound.midi.Track, java.util.function.Predicate, LongRange)
      * @see MidiConst#PPQ_RESOLUTION
      */
@@ -601,7 +592,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
         return getFilteredAndMappedPhrase(ne -> true, ne ->
         {
             int v = MidiUtilities.limit(f.apply(ne.getVelocity()));
-            NoteEvent newNe = new NoteEvent(ne, ne.getPitch(), ne.getDurationInBeats(), v);
+            NoteEvent newNe = ne.getCopyVel(v);
             return newNe;
         });
     }
@@ -618,7 +609,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
         processNote(ne -> true, ne ->
         {
             int v = MidiUtilities.limit(f.apply(ne.getVelocity()));
-            NoteEvent newNe = new NoteEvent(ne, ne.getPitch(), ne.getDurationInBeats(), v);
+            NoteEvent newNe = ne.getCopyVel(v);
             return newNe;
         });
     }
@@ -639,7 +630,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
         return getFilteredAndMappedPhrase(ne -> true, ne ->
         {
             int p = MidiUtilities.limit(f.apply(ne.getPitch()));
-            NoteEvent newNe = new NoteEvent(ne, p, ne.getDurationInBeats(), ne.getVelocity());
+            NoteEvent newNe = ne.getCopyPitch(p);
             return newNe;
         });
     }
@@ -656,7 +647,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
         processNote(ne -> true, ne ->
         {
             int p = MidiUtilities.limit(f.apply(ne.getPitch()));
-            NoteEvent newNe = new NoteEvent(ne, p, ne.getDurationInBeats(), ne.getVelocity());
+            NoteEvent newNe = ne.getCopyPitch(p);
             return newNe;
         });
     }
@@ -688,7 +679,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
             {
                 // Shorten notes before posInBeats but ending after posInBeats
                 float newDuration = posInBeats - pos;
-                NoteEvent ne2 = new NoteEvent(ne, newDuration);
+                NoteEvent ne2 = ne.getCopyDur(newDuration);
                 it.set(ne2);      // Iterator.set() has direct access to LinkedList internal data, it will NOT use Phrase.set(), so careful when using it!
                 pcs.firePropertyChange(PROP_NOTE_SET, ne, ne2);
             }
@@ -746,13 +737,13 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
                     if (frLeft.contains(neBr, false))
                     {
                         // Note is fully contained in the beatWindow! Probably a drums/perc note, move it
-                        NoteEvent newNe = new NoteEvent(ne, ne.getDurationInBeats(), range.from);
+                        NoteEvent newNe = ne.getCopyPos(range.from);
                         res.addOrdered(newNe, false);
                     } else
                     {
                         // Note crosses range.from, make it start at range.from
                         float newDur = Math.max(neBr.to - range.from, 0.05f);
-                        NoteEvent newNe = new NoteEvent(ne, newDur, range.from);
+                        NoteEvent newNe = ne.getCopy(newDur, range.from);
                         res.addOrdered(newNe, false);
                     }
                     beatWindowProcessedNotes.add(ne);
@@ -809,7 +800,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
                         }
                     }
                     float newDur = nePosTo - range.from;
-                    NoteEvent newNe = new NoteEvent(ne, newDur, range.from);
+                    NoteEvent newNe = ne.getCopy(newDur, range.from);
                     res.addOrdered(newNe, false);
                 }
             } else if (nePosFrom < range.to)
@@ -831,7 +822,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
                         case 1:
                             // Add it but make it shorter
                             float newDur = range.to - nePosFrom;
-                            NoteEvent newNe = new NoteEvent(ne, newDur);
+                            NoteEvent newNe = ne.getCopyDur(newDur);
                             res.addOrdered(newNe, false);
                             break;
                         case 2:
@@ -909,7 +900,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
 
                         // Replace
                         float newDur = range.from - nePosFrom;
-                        NoteEvent newNe = new NoteEvent(ne, newDur, nePosFrom);
+                        NoteEvent newNe = ne.getCopyDur(newDur);
                         it.set(newNe);
                         pcs.firePropertyChange(PROP_NOTE_SET, ne, newNe);
 
@@ -918,7 +909,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
                         if (keepRight && nePosTo > range.to)
                         {
                             newDur = nePosTo - range.to;
-                            newNe = new NoteEvent(ne, newDur, range.to);
+                            newNe = ne.getCopy(newDur, range.to);
                             toBeAdded.add(newNe);
                         }
                     } else
@@ -941,7 +932,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
                 if (nePosTo > range.to && (keepRight || frRight.contains(nePosFrom, true)))
                 {
                     float newDur = nePosTo - range.to;
-                    NoteEvent newNe = new NoteEvent(ne, newDur, range.to);
+                    NoteEvent newNe = ne.getCopy(newDur, range.to);
                     toBeAdded.add(newNe);
                 }
             } else
@@ -990,7 +981,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
      * <p>
      *
      * @param posInBeats
-     * @param strict     If true, notes starting or ending at posInBeats are excluded.
+     * @param strict If true, notes starting or ending at posInBeats are excluded.
      * @return The list of notes whose startPos is before (or equals) posInBeats and range.to eafter (or equals) posInBeats
      */
     public List<NoteEvent> getCrossingNotes(float posInBeats, boolean strict)
@@ -1072,7 +1063,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
                 {
                     throw new IllegalArgumentException("ne=" + ne + " shiftInBeats=" + shiftInBeats);   //NOI18N
                 }
-                NoteEvent shiftedNe = new NoteEvent(ne, ne.getDurationInBeats(), newPosInBeats);
+                NoteEvent shiftedNe = ne.getCopyPos(newPosInBeats);
                 it.set(shiftedNe);
                 pcs.firePropertyChange(PROP_NOTE_MOVED, ne, shiftedNe);
             }
@@ -1083,7 +1074,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
             {
                 NoteEvent ne = it.previous();
                 float newPosInBeats = ne.getPositionInBeats() + shiftInBeats;
-                NoteEvent shiftedNe = new NoteEvent(ne, ne.getDurationInBeats(), newPosInBeats);
+                NoteEvent shiftedNe = ne.getCopyPos(newPosInBeats);
                 it.set(shiftedNe);
                 pcs.firePropertyChange(PROP_NOTE_MOVED, ne, shiftedNe);
             }
@@ -1214,9 +1205,8 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
     /**
      * Change the octave of notes whose pitch is above highLimit or below lowLimit.
      * <p>
-     * Fixed new notes's PARENT_NOTE client property is preserved.
      *
-     * @param lowLimit  There must be at least 1 octave between lowLimit and highLimit
+     * @param lowLimit There must be at least 1 octave between lowLimit and highLimit
      * @param highLimit There must be at least 1 octave between lowLimit and highLimit
      */
     public void limitPitch(int lowLimit, int highLimit)
@@ -1225,10 +1215,10 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
         {
             throw new IllegalArgumentException("lowLimit=" + lowLimit + " highLimit=" + highLimit);   //NOI18N
         }
-        var it = listIteratorNotSafe();
-        while (it.hasNext())
+
+        Predicate<NoteEvent> tester = ne -> ne.getPitch() < lowLimit || ne.getPitch() > highLimit;
+        Function<NoteEvent, NoteEvent> mapper = ne ->
         {
-            NoteEvent ne = it.next();
             int pitch = ne.getPitch();
             while (pitch < lowLimit)
             {
@@ -1238,10 +1228,11 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
             {
                 pitch -= 12;
             }
-            NoteEvent newNe = new NoteEvent(ne, pitch);
-            it.set(newNe);
-            pcs.firePropertyChange(PROP_NOTE_SET, ne, newNe);
-        }
+            return ne.getCopyPitch(pitch);
+        };
+
+        processNote(tester, mapper);
+
     }
 
     /**
@@ -1332,154 +1323,6 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
     }
 
 
-    /**
-     * Build a Phrase with 12 notes C-D-E-F-G-A-B-C that fit into nbBeats.
-     *
-     * @param channel
-     * @param startPos Position of the 1st note 'C'
-     * @param nbBeats
-     * @return
-     */
-    static public Phrase getCscalePhrase(int channel, float startPos, float nbBeats)
-    {
-        Phrase p = new Phrase(channel);
-        float noteDur = nbBeats / 8f;
-        float pos = startPos;
-        for (Note n : ScaleManager.MAJOR.getNotes())
-        {
-            NoteEvent ne = new NoteEvent(n.getPitch() + 60, noteDur, n.getVelocity(), pos);
-            pos += noteDur;
-            p.addOrdered(ne, false);
-        }
-        // Add octave note at this end
-        NoteEvent ne = new NoteEvent(72, noteDur, Note.VELOCITY_STD, pos);
-        p.addOrdered(ne, false);
-        return p;
-    }
-
-    /**
-     * Get a phrase with random notes at random positions.
-     *
-     * @param channel
-     * @param nbBars  Number of 4/4 bars.
-     * @param nbNotes Number of random notes to generate.
-     * @return
-     */
-    static public Phrase getRandomPhrase(int channel, int nbBars, int nbNotes)
-    {
-        Phrase p = new Phrase(channel);
-
-        for (int i = 0; i < nbNotes; i++)
-        {
-            int pitch = (int) (40 + Math.round(20 * Math.random()));
-            int vel = (int) (50 + Math.round(20 * Math.random()));
-            float pos = Math.max(0, Math.round(nbBars * 4 * Math.random()) - 2);
-            float dur = Math.random() > 0.5d ? 0.5f : 1f;
-            p.addOrdered(new NoteEvent(pitch, dur, vel, pos), false);
-        }
-
-        return p;
-    }
-
-    /**
-     * Get a basic drums phrase.
-     *
-     * @param startPosInBeats
-     * @param nbBars
-     * @param ts
-     * @param channel         The channel of the returned phrase
-     * @return
-     */
-    static public Phrase getBasicDrumPhrase(float startPosInBeats, int nbBars, TimeSignature ts, int channel)
-    {
-        if (ts == null || !MidiConst.checkMidiChannel(channel))
-        {
-            throw new IllegalArgumentException("nbBars=" + nbBars + " ts=" + ts + " channel=" + channel);   //NOI18N
-        }
-        Phrase p = new Phrase(channel);
-        float duration = 0.25f;
-        for (int bar = 0; bar < nbBars; bar++)
-        {
-            for (int beat = 0; beat < ts.getNbNaturalBeats(); beat++)
-            {
-                // 2 Hi Hat per beat
-                NoteEvent ne = new NoteEvent(MidiConst.CLOSED_HI_HAT, duration, 80, startPosInBeats);
-                p.addOrdered(ne, false);
-                ne = new NoteEvent(MidiConst.CLOSED_HI_HAT, duration, 80, startPosInBeats + 0.5f);
-                p.addOrdered(ne, false);
-
-                // Bass drums or Snare
-                int pitch;
-                int velocity = 70;
-                switch (beat)
-                {
-                    case 0:
-                        pitch = MidiConst.ACOUSTIC_BASS_DRUM;
-                        velocity = 120;
-                        break;
-                    case 1:
-                    case 3:
-                    case 5:
-                    case 7:
-                        pitch = MidiConst.ACOUSTIC_SNARE;
-                        break;
-                    default:
-                        pitch = MidiConst.ACOUSTIC_BASS_DRUM;
-                }
-                ne = new NoteEvent(pitch, duration, velocity, startPosInBeats);
-                p.addOrdered(ne, false);
-
-                // Next beat
-                startPosInBeats++;
-            }
-        }
-        return p;
-    }
-
-
-    /**
-     * Parse all tracks to build one phrase per used channel.
-     * <p>
-     * A track can use notes from different channels. Notes from a given channel can be on several tracks.
-     *
-     * @param tracksPPQ The Midi PPQ resolution (pulses per quarter) used in the tracks.
-     * @param tracks
-     * @param channels  Get phrases only for the specified channels. If empty, get phrases for all channels.
-     * @return
-     */
-    static public List<Phrase> getPhrases(int tracksPPQ, Track[] tracks, Integer... channels)
-    {
-        Map<Integer, Phrase> mapRes = new HashMap<>();
-        var selectedChannels = channels.length > 0 ? Arrays.asList(channels) : Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15);
-
-        for (Track track : tracks)
-        {
-            // Get all the events at the appropriate resolution
-            var trackEvents = MidiUtilities.getMidiEvents(track,
-                    ShortMessage.class,
-                    sm -> sm.getCommand() == ShortMessage.NOTE_OFF || sm.getCommand() == ShortMessage.NOTE_ON,
-                    null);
-            trackEvents = MidiUtilities.getMidiEventsAtPPQ(trackEvents, tracksPPQ, MidiConst.PPQ_RESOLUTION);
-
-
-            for (int channel : MidiUtilities.getUsedChannels(track))
-            {
-                if (selectedChannels.contains(channel))
-                {
-                    Phrase p = mapRes.get(channel);
-                    if (p == null)
-                    {
-                        p = new Phrase(channel);
-                        mapRes.put(channel, p);
-                    }
-                    p.add(trackEvents, 0, false);
-                }
-            }
-        }
-
-        return new ArrayList<>(mapRes.values());
-    }
-
     public void addPropertyChangeListener(PropertyChangeListener l)
     {
         pcs.addPropertyChangeListener(l);
@@ -1500,7 +1343,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
      *
      * @return
      */
-    private ListIterator<NoteEvent> listIteratorNotSafe()
+    protected ListIterator<NoteEvent> listIteratorNotSafe()
     {
         return super.listIterator();
     }
@@ -1513,7 +1356,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
      * @param index
      * @return
      */
-    private ListIterator<NoteEvent> listIteratorNotSafe(int index)
+    protected ListIterator<NoteEvent> listIteratorNotSafe(int index)
     {
         return super.listIterator(index);
     }
@@ -1525,7 +1368,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
      * @param fireAddEvent If true fire a PROP_NOTE_ADD change event.
      * @see NoteEvent#compareTo(org.jjazz.phrase.api.NoteEvent)
      */
-    private void addOrdered(NoteEvent mne, boolean fireAddEvent)
+    protected void addOrdered(NoteEvent mne, boolean fireAddEvent)
     {
         int res = Collections.binarySearch(this, mne);
 

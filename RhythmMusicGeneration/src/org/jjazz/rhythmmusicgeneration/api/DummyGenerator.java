@@ -32,6 +32,7 @@ import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.synths.Family;
+import org.jjazz.phrase.api.PhraseUtilities;
 import org.jjazz.rhythm.api.*;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.util.api.IntRange;
@@ -92,7 +93,7 @@ public class DummyGenerator implements MusicGenerator
                 if (rv.isDrums())
                 {
                     LOGGER.fine("generateMusic() generate dummy drums track for RhythmVoice: " + rv.getName());   //NOI18N
-                    Phrase p = Phrase.getBasicDrumPhrase(sptPosInBeats, sptRange.size(), ts, destChannel);
+                    Phrase p = PhraseUtilities.getBasicDrumPhrase(sptPosInBeats, sptRange.size(), ts, destChannel);
                     pRes.add(p);
                 } else
                 {
@@ -134,7 +135,7 @@ public class DummyGenerator implements MusicGenerator
             float duration = cSeq.getChordDuration(i);
             float posInBeats = cSeq.toPositionInBeats(cli.getPosition(), startPosInBeats);
             NoteEvent ne = new NoteEvent(bassPitch, duration, 80, posInBeats);
-            p.addOrdered(ne);
+            p.add(ne);
         }
         return p;
     }

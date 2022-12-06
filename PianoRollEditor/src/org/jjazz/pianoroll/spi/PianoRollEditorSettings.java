@@ -28,8 +28,13 @@ import org.openide.util.Lookup;
 
 public interface PianoRollEditorSettings
 {
-    public static String PROP_BACKGROUND_COLOR = "BackgroundColor";
-    public static String PROP_TOP_BACKGROUND_COLOR = "TopBackgroundColor";
+
+    public static String PROP_BAR_LINE_COLOR = "BarLineColor";
+    public static String PROP_BACKGROUND_COLOR1 = "BackgroundColor1";
+    public static String PROP_BACKGROUND_COLOR2 = "BackgroundColor2";
+    public static String PROP_NOTE_COLOR = "NoteColor";
+    public static String PROP_SELECTED_NOTE_COLOR = "SelectedNoteColor";
+    public static String PROP_NOTE_CONTOUR_COLOR = "NoteContourColor";
 
     public static PianoRollEditorSettings getDefault()
     {
@@ -41,13 +46,29 @@ public interface PianoRollEditorSettings
         return result;
     }
 
-    Color getBackgroundColor();
+    Color getBarLineColor();
 
-    void setBackgroundColor(Color color);
+    void setBarLineColor(Color color);
 
-    Color getTopBackgroundColor();
+    Color getBackgroundColor1();
 
-    void setTopBackgroundColor(Color color);
+    void setBackgroundColor1(Color color);
+
+    Color getBackgroundColor2();
+
+    void setBackgroundColor2(Color color);
+
+    Color getNoteColor();
+
+    void setNoteColor(Color color);
+
+    Color getNoteContourColor();
+
+    void setNoteContourColor(Color color);
+
+    Color getSelectedNoteColor();
+
+    void setSelectedNoteColor(Color color);
 
     void addPropertyChangeListener(PropertyChangeListener listener);
 

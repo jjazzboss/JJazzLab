@@ -85,8 +85,8 @@ public class OpenHiHatTransform implements PhraseTransform
             {
                 pitch = destPitch;
             }
-            var newNe = new NoteEvent(ne, pitch);
-            res.addOrdered(newNe);
+            var newNe = ne.getCopyPitch(pitch);
+            res.add(newNe);
         }
 
         return res;

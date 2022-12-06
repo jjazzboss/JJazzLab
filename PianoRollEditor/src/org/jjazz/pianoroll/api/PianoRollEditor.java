@@ -47,7 +47,7 @@ public abstract class PianoRollEditor extends JPanel implements Lookup.Provider
 
     public static PianoRollEditor getDefault(SizedPhrase sp, DrumKit.KeyMap keymap)
     {
-        return new PianoRollEditorImpl(sp, keymap);
+        return new PianoRollEditorImpl(sp, keymap, new PianoRollEditorSettingsImpl());
     }
 
     abstract public SizedPhrase getModel();

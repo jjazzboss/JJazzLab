@@ -845,7 +845,7 @@ public class SongSequenceBuilder
                             {
                                 break;
                             }
-                            toAdd.add(new NoteEvent(ne, ne.getDurationInBeats(), newPosInBeats));
+                            toAdd.add(ne.getCopyPos(newPosInBeats));
                         }
                         offset += sizeInBeats;
                     }

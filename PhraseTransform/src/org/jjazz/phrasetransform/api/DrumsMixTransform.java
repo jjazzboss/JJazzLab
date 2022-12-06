@@ -62,7 +62,7 @@ public class DrumsMixTransform implements PhraseTransform
      */
     public DrumsMixTransform()
     {
-        info = new PhraseTransform.Info("DrumsMixId"+PhraseTransform.HIDDEN_ID_TOKEN,
+        info = new PhraseTransform.Info("DrumsMixId" + PhraseTransform.HIDDEN_ID_TOKEN,
                 "Drums Mix",
                 "Change the velocity of individual drums sounds",
                 PhraseTransformCategory.DRUMS,
@@ -179,7 +179,7 @@ public class DrumsMixTransform implements PhraseTransform
                 if (offset != 0)
                 {
                     int velocity = MidiUtilities.limit(ne.getVelocity() + offset);
-                    nne = new NoteEvent(ne, ne.getPitch(), ne.getDurationInBeats(), velocity);
+                    nne = ne.getCopyVel(velocity);
                 }
             }
 

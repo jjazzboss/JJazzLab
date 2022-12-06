@@ -228,7 +228,7 @@ public class SizedPhrase extends Phrase
                     for (int i = 4; i < strs.length; i++)
                     {
                         NoteEvent ne = NoteEvent.loadAsString(strs[i]);
-                        sp.addOrdered(ne);
+                        sp.addOrdered(ne, false);
                     }
                 } catch (IllegalArgumentException | ParseException ex)
                 {

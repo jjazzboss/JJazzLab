@@ -51,7 +51,6 @@ public class Phrases
 
     private static final Logger LOGGER = Logger.getLogger(Phrases.class.getSimpleName());
 
- 
 
     /**
      * Adapt the notes from a melody-oriented source phrase to a destination chord symbol.
@@ -91,7 +90,7 @@ public class Phrases
             {
                 int destRelPitch = ecsSrc.getRelativePitch(srcNote.getRelativePitch(), ecsDest);
                 int destPitch = new Note(srcNote.getPitch() + rootPitchDelta).getClosestPitch(destRelPitch);
-                NoteEvent destNote = new NoteEvent(srcNote, destPitch);
+                NoteEvent destNote = srcNote.getCopyPitch(destPitch);
                 destNote.putClientProperty(PARENT_NOTE, srcNote);
                 pDest.add(destNote);  // Don't need addOrdered here
             }
@@ -114,7 +113,7 @@ public class Phrases
             assert destDegree != null : "srcDegree=" + srcDegree + " srcNote=" + srcNote + " pSrc=" + pSrc + " ecsDest=" + ecsDest + " chordMode=" + chordMode;   //NOI18N
             int destRelPitch = ecsDest.getRelativePitch(destDegree);
             int destPitch = new Note(srcNote.getPitch() + rootPitchDelta).getClosestPitch(destRelPitch);
-            NoteEvent destNote = new NoteEvent(srcNote, destPitch);
+            NoteEvent destNote = srcNote.getCopyPitch(destPitch);
             destNote.putClientProperty(PARENT_NOTE, srcNote);
             pDest.add(destNote);        // Don't need addOrdered here
         }
@@ -176,7 +175,7 @@ public class Phrases
                 }
 
                 int destPitch = new Note(srcNote.getPitch() + rootPitchDelta).getClosestPitch(destRelPitch);
-                NoteEvent destNote = new NoteEvent(srcNote, destPitch);
+                NoteEvent destNote = srcNote.getCopyPitch(destPitch);
                 destNote.putClientProperty(PARENT_NOTE, srcNote);
                 pDest.add(destNote);         // Don't need addOrdered here
             }
@@ -207,7 +206,7 @@ public class Phrases
             }
 
             int destPitch = new Note(srcNote.getPitch() + rootPitchDelta).getClosestPitch(destRelPitch);
-            NoteEvent destNote = new NoteEvent(srcNote, destPitch);
+            NoteEvent destNote = srcNote.getCopyPitch(destPitch);
             destNote.putClientProperty(PARENT_NOTE, srcNote);
             pDest.add(destNote);         // Don't need addOrdered here
         }
@@ -335,9 +334,9 @@ public class Phrases
             int srcIndex = pSrcChord.indexOfPitch(srcPitch);
             assert srcIndex != -1 : "srcPitch=" + srcPitch + " pSrcChord=" + pSrcChord + " pSrcWork=" + pSrcWork;   //NOI18N
             if (srcIndex < bestDestChord.size())            // Because of computeParallelChord(), bestDestChord size might be smaller
-            {                
+            {
                 int destPitch = bestDestChord.getNote(srcIndex).getPitch();
-                NoteEvent destNote = new NoteEvent(srcNote, destPitch);
+                NoteEvent destNote = srcNote.getCopyPitch(destPitch);
                 destNote.putClientProperty(PARENT_NOTE, srcNote);
                 pDest.add(destNote);     // Don't need addOrdered here
             }

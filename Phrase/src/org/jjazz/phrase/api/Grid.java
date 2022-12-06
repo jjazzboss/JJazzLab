@@ -332,7 +332,7 @@ public class Grid implements Cloneable
             {
                 float newDur = ne.getDurationInBeats() + (cellOff - rg.to) * cellDuration;
                 newDur = Math.max(cellDuration, newDur);
-                NoteEvent newNe = new NoteEvent(ne, newDur);       // This clone also the clientProperties
+                NoteEvent newNe = ne.getCopyDur(newDur);       // This clone also the clientProperties
                 phrase.set(phrase.indexOf(ne), newNe);
                 usedPitches.add(newNe.getPitch());
 
@@ -366,7 +366,7 @@ public class Grid implements Cloneable
         for (NoteEvent ne : nes)
         {
             int newVelocity = MidiUtilities.limit(f.apply(ne.getVelocity()));
-            NoteEvent tNe = new NoteEvent(ne, ne.getPitch(), ne.getDurationInBeats(), newVelocity);       // This clone also the clientProperties
+            NoteEvent tNe = ne.getCopyVel(newVelocity);       // This clone also the clientProperties
             phrase.set(phrase.indexOf(ne), tNe);
         }
         if (!nes.isEmpty())
@@ -569,7 +569,7 @@ public class Grid implements Cloneable
         }
         float posInBeats = getStartPos(cell) + relPosInCell;
         NoteEvent ne = new NoteEvent(n.getPitch(), n.getDurationInBeats(), n.getVelocity(), posInBeats);
-        phrase.addOrdered(ne);
+        phrase.add(ne);
         refresh();
         return ne;
     }
@@ -628,9 +628,9 @@ public class Grid implements Cloneable
                     // Extend the duration
                     durationInBeats = ne.getPositionInBeats() + ne.getDurationInBeats() - newPosInBeats;
                 }
-                NoteEvent movedNe = new NoteEvent(ne, durationInBeats, newPosInBeats);
+                NoteEvent movedNe = ne.getCopy(durationInBeats, newPosInBeats);
                 phrase.remove(ne);
-                phrase.addOrdered(movedNe);
+                phrase.add(movedNe);
             }
             refresh();
         }
@@ -665,9 +665,9 @@ public class Grid implements Cloneable
                 // Extend the duration
                 durationInBeats = ne.getPositionInBeats() + ne.getDurationInBeats() - newPosInBeats;
             }
-            NoteEvent movedNe = new NoteEvent(ne, durationInBeats, newPosInBeats);
+            NoteEvent movedNe = ne.getCopy(durationInBeats, newPosInBeats);
             phrase.remove(ne);
-            phrase.addOrdered(movedNe);
+            phrase.add(movedNe);
             refresh();
         }
         return ne != null;
@@ -691,7 +691,7 @@ public class Grid implements Cloneable
         for (NoteEvent ne : nes)
         {
             float newDuration = pos - ne.getPositionInBeats();
-            NoteEvent newNe = new NoteEvent(ne, newDuration);
+            NoteEvent newNe = ne.getCopyDur(newDuration);
             phrase.set(phrase.indexOf(ne), newNe);
         }
         refresh();

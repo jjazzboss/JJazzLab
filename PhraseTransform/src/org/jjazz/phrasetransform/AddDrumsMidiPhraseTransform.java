@@ -127,7 +127,7 @@ public class AddDrumsMidiPhraseTransform implements PhraseTransform
                     notesToAdd.add(ne);
                 }
             }
-            notesToAdd.forEach(ne -> res.addOrdered(ne));
+            notesToAdd.forEach(ne -> res.add(ne));
         }
 
         return res;
@@ -256,8 +256,8 @@ public class AddDrumsMidiPhraseTransform implements PhraseTransform
                     }
 
                     // Create the note at the right position
-                    var nne = new NoteEvent(ne, destDur, destPos);
-                    res.addOrdered(nne);
+                    var nne = ne.getCopy(destDur, destPos);
+                    res.add(nne);
                 }
             }
 
