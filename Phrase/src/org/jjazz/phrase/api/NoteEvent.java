@@ -48,8 +48,6 @@ import org.openide.util.Exceptions;
  */
 public class NoteEvent extends Note implements Cloneable, Comparable<Note>
 {
-
-
     private float position;
     protected Map<String, Object> clientProperties;
     private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
@@ -73,20 +71,26 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
         position = posInBeats;
     }
 
+    /**
+     * Create a new NoteEvent from a Note at specified position.
+     *
+     * @param n
+     * @param posInBeats
+     */
     public NoteEvent(Note n, float posInBeats)
     {
         this(n.getPitch(), n.getDurationInBeats(), n.getPitch(), posInBeats);
     }
 
     /**
-     * Create a new NoteEvent from an existing NoteEvent.
+     * Create a new NoteEvent from another NoteEvent.
      * <p>
      * Client properties are also copied.
      *
      * @param ne
-     * @param pitch if &lt; 0 reuse ne's pitch, otherwise use this value
-     * @param duration if &lt; 0 reuse ne's duration, otherwise use this value
-     * @param velocity if &lt; 0 reuse ne's velocity, otherwise use this value
+     * @param pitch      if &lt; 0 reuse ne's pitch, otherwise use this value
+     * @param duration   if &lt; 0 reuse ne's duration, otherwise use this value
+     * @param velocity   if &lt; 0 reuse ne's velocity, otherwise use this value
      * @param posInBeats if &lt; 0 reuse ne's position, otherwise use this value
      */
     public NoteEvent(NoteEvent ne, int pitch, float duration, int velocity, float posInBeats)
@@ -194,7 +198,7 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
      * Fire a propertyName change event.
      *
      * @param propertyName
-     * @param value If null, the property is removed.
+     * @param value        If null, the property is removed.
      */
     public void putClientProperty(String propertyName, Object value)
     {

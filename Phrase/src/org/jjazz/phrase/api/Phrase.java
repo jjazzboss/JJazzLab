@@ -32,7 +32,6 @@ import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -52,18 +51,21 @@ import javax.sound.midi.MidiEvent;
 import javax.sound.midi.ShortMessage;
 import javax.sound.midi.Track;
 import org.jjazz.harmony.api.Chord;
-import org.jjazz.harmony.api.Note;
-import org.jjazz.harmony.api.ScaleManager;
-import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.util.api.FloatRange;
 import org.jjazz.util.api.LongRange;
 
 /**
- * A list of NoteEvents that are kept sorted by start position, which fire events when modified.
+ * A list of NoteEvents that are kept sorted by start position.
  * <p>
- * LinkedList implementation to speed up item insertion/remove rather than random access.<p>
+ * LinkedList implementation to speed up item insertion/remove rather than random access. Fire change events when modified (note
+ * added/removed/moved/replaced).
+ * <p>
+ * WARNING: Direct add/remove/set methods have been secured to preserve the start position order. However when using an iterator
+ * such as the one obtained via listIterator(), one could insert a wrongly placed NoteEvent using Iterator.set. So if you use such
+ * method make sure you do not break the position order.
+ * <p>
  */
 public class Phrase extends LinkedList<NoteEvent> implements Serializable
 {
@@ -108,24 +110,6 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
             throw new IllegalArgumentException("channel=" + channel);   //NOI18N
         }
         this.channel = channel;
-    }
-
-    @Override
-    public ListIterator<NoteEvent> listIterator(int index)
-    {
-        throw new UnsupportedOperationException("Can't be used: using ListIterator.set() can break the order by position.");
-    }
-
-    @Override
-    public ListIterator<NoteEvent> listIterator()
-    {
-        throw new UnsupportedOperationException("Can't be used: using ListIterator.set() can break the order by position.");
-    }
-
-    @Override
-    public ListIterator<NoteEvent> descendingIterator()
-    {
-        throw new UnsupportedOperationException("Can't be used: using ListIterator.set() can break the order by position.");
     }
 
 
@@ -321,7 +305,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
      * Fire a PROP_NOTE_SET change event.
      *
      * @param index
-     * @param ne Must have the same position that the existing NoteEvent
+     * @param ne    Must have the same position that the existing NoteEvent
      */
     @Override
     public NoteEvent set(int index, NoteEvent ne)
@@ -341,7 +325,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
      * <p>
      * Fire a PROP_MOVED_EVENT change event.
      *
-     * @param ne Must belong to this Phrase.
+     * @param ne          Must belong to this Phrase.
      * @param newPosition
      * @return The created event at newPosition
      */
@@ -369,10 +353,10 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
      * <p>
      * NOTE_ON events without a corresponding NOTE_OFF event are ignored.
      *
-     * @param midiEvents MidiEvents which are not ShortMessage.Note_ON/OFF are ignored. Must be ordered by tick position,
-     * resolution must be MidiConst.PPQ_RESOLUTION.
+     * @param midiEvents       MidiEvents which are not ShortMessage.Note_ON/OFF are ignored. Must be ordered by tick position,
+     *                         resolution must be MidiConst.PPQ_RESOLUTION.
      * @param posInBeatsOffset The position in natural beats of the first tick of the track.
-     * @param ignoreChannel If true, add also NoteEvents for MidiEvents which do not match this phrase channel.
+     * @param ignoreChannel    If true, add also NoteEvents for MidiEvents which do not match this phrase channel.
      * @see MidiUtilities#getMidiEvents(javax.sound.midi.Track, java.util.function.Predicate, LongRange)
      * @see MidiConst#PPQ_RESOLUTION
      */
@@ -562,7 +546,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
      */
     public void processNote(Predicate<NoteEvent> tester, Function<NoteEvent, NoteEvent> mapper)
     {
-        for (var it = listIteratorNotSafe(); it.hasNext();)
+        for (var it = listIterator(); it.hasNext();)
         {
             NoteEvent ne = it.next();
             if (tester.test(ne))
@@ -664,7 +648,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
     public void silenceAfter(float posInBeats)
     {
         // Use an iterator to avoid using get(i) which is O(n) for a linkedlist
-        ListIterator<NoteEvent> it = listIteratorNotSafe(size());
+        ListIterator<NoteEvent> it = listIterator(size());
         int index = size() - 1;
         while (it.hasPrevious())
         {
@@ -727,7 +711,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
             FloatRange frLeft = range.from - beatWindow > 0 ? new FloatRange(range.from - beatWindow, range.from) : null;
             FloatRange frRight = new FloatRange(range.to - beatWindow, range.to);
 
-            ListIterator<NoteEvent> it = listIteratorNotSafe();
+            ListIterator<NoteEvent> it = listIterator();
             while (it.hasNext())
             {
                 var ne = it.next();
@@ -759,7 +743,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
 
 
         // 
-        ListIterator<NoteEvent> it = listIteratorNotSafe();
+        ListIterator<NoteEvent> it = listIterator();
         while (it.hasNext())
         {
             NoteEvent ne = it.next();
@@ -878,7 +862,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
         }
 
 
-        ListIterator<NoteEvent> it = listIteratorNotSafe();
+        ListIterator<NoteEvent> it = listIterator();
         int index = 0;
         while (it.hasNext())
         {
@@ -981,13 +965,13 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
      * <p>
      *
      * @param posInBeats
-     * @param strict If true, notes starting or ending at posInBeats are excluded.
+     * @param strict     If true, notes starting or ending at posInBeats are excluded.
      * @return The list of notes whose startPos is before (or equals) posInBeats and range.to eafter (or equals) posInBeats
      */
     public List<NoteEvent> getCrossingNotes(float posInBeats, boolean strict)
     {
         ArrayList<NoteEvent> res = new ArrayList<>();
-        var it = listIteratorNotSafe();
+        var it = listIterator();
         while (it.hasNext())
         {
             NoteEvent ne = it.next();
@@ -1054,7 +1038,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
         // Select head or tail processing to preserve position order
         if (shiftInBeats < 0)
         {
-            var it = listIteratorNotSafe();
+            var it = listIterator();
             while (it.hasNext())
             {
                 NoteEvent ne = it.next();
@@ -1069,7 +1053,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
             }
         } else
         {
-            var it = listIteratorNotSafe(size());
+            var it = listIterator(size());
             while (it.hasPrevious())
             {
                 NoteEvent ne = it.previous();
@@ -1206,7 +1190,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
      * Change the octave of notes whose pitch is above highLimit or below lowLimit.
      * <p>
      *
-     * @param lowLimit There must be at least 1 octave between lowLimit and highLimit
+     * @param lowLimit  There must be at least 1 octave between lowLimit and highLimit
      * @param highLimit There must be at least 1 octave between lowLimit and highLimit
      */
     public void limitPitch(int lowLimit, int highLimit)
@@ -1336,30 +1320,6 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
     // Private methods
     // ---------------------------------------------------------------------
 
-    /**
-     * Reserved access to the super method, which lets user replace a NoteEvent using set possibly at the wrong position.
-     * <p>
-     * Caller must make sure to not break the order.
-     *
-     * @return
-     */
-    protected ListIterator<NoteEvent> listIteratorNotSafe()
-    {
-        return super.listIterator();
-    }
-
-    /**
-     * Reserved access to the super method, which lets user replace a NoteEvent using set possibly at the wrong position.
-     * <p>
-     * Caller must make sure to not break the order.
-     *
-     * @param index
-     * @return
-     */
-    protected ListIterator<NoteEvent> listIteratorNotSafe(int index)
-    {
-        return super.listIterator(index);
-    }
 
     /**
      * Add a NoteEvent at the correct index using NoteEvent natural ordering.

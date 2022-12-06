@@ -34,6 +34,7 @@ public interface PianoRollEditorSettings
     public static String PROP_BACKGROUND_COLOR2 = "BackgroundColor2";
     public static String PROP_NOTE_COLOR = "NoteColor";
     public static String PROP_SELECTED_NOTE_COLOR = "SelectedNoteColor";
+    public static String PROP_FOCUSED_NOTE_CONTOUR_COLOR = "FocusedNoteContourColor";
     public static String PROP_NOTE_CONTOUR_COLOR = "NoteContourColor";
 
     public static PianoRollEditorSettings getDefault()
@@ -65,6 +66,10 @@ public interface PianoRollEditorSettings
     Color getNoteContourColor();
 
     void setNoteContourColor(Color color);
+
+    Color getFocusedNoteContourColor();
+
+    void setFocusedNoteContourColor(Color color);
 
     Color getSelectedNoteColor();
 

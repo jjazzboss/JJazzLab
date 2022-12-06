@@ -26,11 +26,9 @@ import com.google.common.base.Preconditions;
 import java.awt.Point;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.ArrayList;
-import java.util.List;
-import javax.swing.JPanel;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.phrase.api.NoteEvent;
+import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.pianoroll.api.EditTool;
 import org.jjazz.pianoroll.api.PianoRollEditor;
@@ -49,8 +47,7 @@ import org.openide.util.lookup.ProxyLookup;
  */
 public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChangeListener
 {
-
-    private final SizedPhrase sizedPhrase;
+    private final SizedPhrase spModel;
     private final DrumKit.KeyMap keymap;
     private final PianoRollEditorSettings settings;
     /**
@@ -87,7 +84,7 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
     {
         Preconditions.checkNotNull(sp);
         Preconditions.checkNotNull(settings);
-        this.sizedPhrase = sp;
+        this.spModel = sp;
         this.keymap = kmap;
         this.settings = settings;
 
@@ -106,15 +103,15 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
 
         // Our implementation is made "Zoomable" by controllers
         // Initialize with actionmap, our Zoomable object   
-        zoomable = new SS_EditorZoomable();
-        generalLookupContent.add(zoomable);
+        // zoomable = new SS_EditorZoomable();
+        // generalLookupContent.add(zoomable);
         generalLookupContent.add(getActionMap());
-
-        // Normal zoom
-        zoomValue = new ZoomValue();
 
         // Global lookup = sum of both
         lookup = new ProxyLookup(selectionLookup, generalLookup);
+
+        // Normal zoom
+        zoomValue = new ZoomValue();
 
 
         initComponents();
@@ -124,7 +121,7 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
     @Override
     public SizedPhrase getModel()
     {
-        return sizedPhrase;
+        return spModel;
     }
 
     @Override
@@ -256,19 +253,12 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
 
         if (evt.getSource() == settings)
         {
-            updateUIComponents();
-        } else if (evt.getSource() == songModel)
+            // 
+        } else if (evt.getSource() == spModel)
         {
-            if (evt.getPropertyName().equals(Song.PROP_MODIFIED_OR_SAVED_OR_RESET))
+            if (evt.getPropertyName().equals(Phrase.PROP_NOTE_ADDED))
             {
-                boolean b = (boolean) evt.getNewValue();
-                if (b)
-                {
-                    setSongModified();
-                } else
-                {
-                    resetSongModified();
-                }
+                NoteEvent ne = (NoteEvent) evt.getNewValue();
             }
         }
 
@@ -291,20 +281,79 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
     private void initComponents()
     {
 
+        pnl_top = new javax.swing.JPanel();
+        pnl_main = new javax.swing.JPanel();
+        splitPane = new javax.swing.JSplitPane();
+        pnl_notes = new javax.swing.JPanel();
+        pnl_velocity = new javax.swing.JPanel();
+
+        javax.swing.GroupLayout pnl_topLayout = new javax.swing.GroupLayout(pnl_top);
+        pnl_top.setLayout(pnl_topLayout);
+        pnl_topLayout.setHorizontalGroup(
+            pnl_topLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 0, Short.MAX_VALUE)
+        );
+        pnl_topLayout.setVerticalGroup(
+            pnl_topLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 51, Short.MAX_VALUE)
+        );
+
+        pnl_main.setLayout(new javax.swing.BoxLayout(pnl_main, javax.swing.BoxLayout.LINE_AXIS));
+
+        splitPane.setDividerSize(3);
+        splitPane.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
+
+        javax.swing.GroupLayout pnl_notesLayout = new javax.swing.GroupLayout(pnl_notes);
+        pnl_notes.setLayout(pnl_notesLayout);
+        pnl_notesLayout.setHorizontalGroup(
+            pnl_notesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 562, Short.MAX_VALUE)
+        );
+        pnl_notesLayout.setVerticalGroup(
+            pnl_notesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 100, Short.MAX_VALUE)
+        );
+
+        splitPane.setTopComponent(pnl_notes);
+
+        javax.swing.GroupLayout pnl_velocityLayout = new javax.swing.GroupLayout(pnl_velocity);
+        pnl_velocity.setLayout(pnl_velocityLayout);
+        pnl_velocityLayout.setHorizontalGroup(
+            pnl_velocityLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 562, Short.MAX_VALUE)
+        );
+        pnl_velocityLayout.setVerticalGroup(
+            pnl_velocityLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 220, Short.MAX_VALUE)
+        );
+
+        splitPane.setRightComponent(pnl_velocity);
+
+        pnl_main.add(splitPane);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
+            .addComponent(pnl_top, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(pnl_main, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 300, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(pnl_top, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, 0)
+                .addComponent(pnl_main, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JPanel pnl_main;
+    private javax.swing.JPanel pnl_notes;
+    private javax.swing.JPanel pnl_top;
+    private javax.swing.JPanel pnl_velocity;
+    private javax.swing.JSplitPane splitPane;
     // End of variables declaration//GEN-END:variables
 }

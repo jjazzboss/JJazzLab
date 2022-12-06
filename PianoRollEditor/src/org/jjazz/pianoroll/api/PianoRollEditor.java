@@ -45,9 +45,9 @@ import org.openide.util.Lookup;
 public abstract class PianoRollEditor extends JPanel implements Lookup.Provider
 {
 
-    public static PianoRollEditor getDefault(SizedPhrase sp, DrumKit.KeyMap keymap)
+    public static PianoRollEditor getDefault(SizedPhrase sp, DrumKit.KeyMap keymap, PianoRollEditorSettings settings)
     {
-        return new PianoRollEditorImpl(sp, keymap, new PianoRollEditorSettingsImpl());
+        return new PianoRollEditorImpl(sp, keymap, settings);
     }
 
     abstract public SizedPhrase getModel();
