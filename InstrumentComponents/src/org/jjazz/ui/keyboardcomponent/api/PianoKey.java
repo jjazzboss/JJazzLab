@@ -22,6 +22,7 @@
  */
 package org.jjazz.ui.keyboardcomponent.api;
 
+import com.google.common.base.Preconditions;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -32,12 +33,11 @@ import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.geom.Rectangle2D;
-import java.beans.PropertyChangeListener;
 import java.util.Objects;
 import java.util.logging.Logger;
 import javax.swing.JComponent;
-import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.harmony.api.Note;
+import org.jjazz.ui.keyboardcomponent.api.KeyboardComponent.Orientation;
 
 /**
  * A piano keyboard key.
@@ -46,6 +46,7 @@ import org.jjazz.harmony.api.Note;
  */
 public class PianoKey extends JComponent
 {
+
 
     /**
      * Property change fired when setSelected() is called.
@@ -109,7 +110,7 @@ public class PianoKey extends JComponent
     private Color pressedWhiteKeyColor;
     private boolean showVelocityColor;
     private Color markColor;
-
+    private final KeyboardComponent.Orientation orientation;
     private boolean isSelected;
 
     /**
@@ -124,11 +125,16 @@ public class PianoKey extends JComponent
 
     private static final Logger LOGGER = Logger.getLogger(PianoKey.class.getSimpleName());
 
-    private transient SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    // private transient SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
 
+    /**
+     * Create a standard Pianokey with Orientation.DOWN.
+     *
+     * @param p
+     */
     public PianoKey(int p)
     {
-        this(p, false, false);
+        this(p, false, false, Orientation.DOWN);
     }
 
     /**
@@ -137,8 +143,9 @@ public class PianoKey extends JComponent
      * @param p The pitch of the key.
      * @param leftMost If true this the leftmost key of the keyboard (different shape)
      * @param rightMost If true this the rightmost key of the keyboard (different shape)
+     * @param orientation
      */
-    public PianoKey(int p, boolean leftMost, boolean rightMost)
+    public PianoKey(int p, boolean leftMost, boolean rightMost, Orientation orientation)
     {
         if (!Note.checkPitch(p) || (leftMost == true && rightMost == true))
         {
@@ -148,6 +155,7 @@ public class PianoKey extends JComponent
         pitch = p;
         this.leftMost = leftMost;
         this.rightMost = rightMost;
+        this.orientation = orientation;
 
         // Default color favlues
         putClientProperty(COLOR_WKEY, Color.WHITE);
@@ -216,7 +224,7 @@ public class PianoKey extends JComponent
         {
             int old = velocity;
             velocity = 0;
-            pcs.firePropertyChange(PROP_PRESSED, old, velocity);
+            firePropertyChange(PROP_PRESSED, old, velocity);
             repaint();
         }
     }
@@ -269,7 +277,7 @@ public class PianoKey extends JComponent
         {
             int old = velocity;
             velocity = v;
-            pcs.firePropertyChange(PROP_PRESSED, old, velocity);
+            firePropertyChange(PROP_PRESSED, old, velocity);
             return;
         }
 
@@ -281,7 +289,7 @@ public class PianoKey extends JComponent
         }
         int old = velocity;
         velocity = v;
-        pcs.firePropertyChange(PROP_PRESSED, old, velocity);
+        firePropertyChange(PROP_PRESSED, old, velocity);
         repaint();
 
 
@@ -292,7 +300,7 @@ public class PianoKey extends JComponent
         if (b != isSelected)
         {
             isSelected = b;
-            pcs.firePropertyChange(PROP_SELECTED, !isSelected, isSelected);
+            firePropertyChange(PROP_SELECTED, !isSelected, isSelected);
             repaint();
         }
     }
@@ -351,20 +359,35 @@ public class PianoKey extends JComponent
     @Override
     public void paint(Graphics g)
     {
-        Graphics2D g2 = (Graphics2D) g;
+        Graphics2D g2 = (Graphics2D) g.create();
 
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        switch (orientation)
+        {
+            case DOWN:
+                // Nothing
+                break;
+            case UP:
+                break;
+            case LEFT:
+                g2.translate(WW, WW);aze
+                break;
+            case RIGHT:
+                break;
+            default:
+                throw new AssertionError(orientation.name());
+
+        }
 
         final int CONTOUR_WIDTH = 2;
         if (isEnabled())
         {
             if (velocity > 0)
             {
-                // Show pressed color adjusted to velocity
-                float f = showVelocityColor ? ((Note.VELOCITY_MAX - (float) velocity) / (Note.VELOCITY_MAX - Note.VELOCITY_MIN)) : 0;
-                int alpha = 255 - Math.round(220 * f);
                 Color keyPressedColor = isWhiteKey() ? getPressedWhiteKeyColor() : getPressedBlackKeyColor();
-                g2.setColor(new Color(keyPressedColor.getRed(), keyPressedColor.getGreen(), keyPressedColor.getBlue(), alpha));
+                Color c = showVelocityColor ? getAdaptedColor(keyPressedColor, velocity) : keyPressedColor;
+                g2.setColor(c);
 
 //                int boundedLuminance = Math.min(luminance, getLuminanceNoEvent());
 //                boundedLuminance = Math.max(boundedLuminance, getLuminanceMaxEvents());
@@ -410,12 +433,29 @@ public class PianoKey extends JComponent
     }
 
     /**
+     * Change the color c according to midiValue.
+     *
+     * @param c
+     * @param midiValue A value 0-127.
+     * @return
+     */
+    static public Color getAdaptedColor(Color c, int midiValue)
+    {
+        Preconditions.checkNotNull(c);
+        Preconditions.checkArgument(midiValue >= 0 && midiValue < 128);
+        float f = (127f - midiValue) / 127f;
+        int alpha = 255 - Math.round(220 * f);
+        Color res = new Color(c.getRed(), c.getGreen(), c.getBlue(), alpha);
+        return res;
+    }
+
+    /**
      * Change the size of the key from a reference rectangular white key size.
      *
      * @param wwRef The base width of a reference white key.
      * @param whRef The height of a reference white key.
      */
-    public void setRelativeSize(int wwRef, int whRef)
+    public void setSizeRelativeToWhiteKey(int wwRef, int whRef)
     {
         // Sizes from my piano keyboard
         int bh = (int) (whRef * .66666f);
@@ -684,16 +724,6 @@ public class PianoKey extends JComponent
             repaint();
         }
 
-    }
-
-    public void addChangeListener(PropertyChangeListener l)
-    {
-        pcs.addPropertyChangeListener(l);
-    }
-
-    public void removeChangeListener(PropertyChangeListener l)
-    {
-        pcs.removePropertyChangeListener(l);
     }
 
     @Override

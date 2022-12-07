@@ -36,7 +36,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import javax.swing.JPanel;
 
 /**
@@ -46,31 +45,48 @@ import javax.swing.JPanel;
 public class KeyboardComponent extends JPanel
 {
 
+    /**
+     * Piano keyboard orientation.
+     */
+    public enum Orientation
+    {
+        DOWN, UP, LEFT, RIGHT
+    }
     private final static int OUT_OF_RANGE_INDICATOR_SPACE = 6;
     private boolean outOfRangeIndicatorLeft;
     private boolean outOfRangeIndicatorRight;
+    private final Orientation orientation;
     private KeyboardRange keyboardRange;
 
     private final List<PianoKey> pianoKeys = new ArrayList<>();
     private static final Logger LOGGER = Logger.getLogger(KeyboardComponent.class.getSimpleName());
 
     /**
-     * Create a component with 88 notes.
+     * Create an horizontal component with 88 notes and Orientation.DOWN.
      * <p>
      */
     public KeyboardComponent()
     {
-        this(KeyboardRange._88_KEYS);
+        this(KeyboardRange._88_KEYS, Orientation.DOWN);
     }
 
     /**
+     * Create a keyboard with the specified parameters.
      *
-     * @param kbdSize KbdSize
+     * @param kbdSize
+     * @param orientation
      */
-    public KeyboardComponent(KeyboardRange kbdSize)
+    public KeyboardComponent(KeyboardRange kbdSize, Orientation orientation)
     {
         setKeyboardRange(kbdSize);
+        this.orientation = orientation;
     }
+
+    public Orientation getOrientation()
+    {
+        return orientation;
+    }
+
 
     @Override
     public String toString()
@@ -145,13 +161,37 @@ public class KeyboardComponent extends JPanel
             key.setMarked(markedColors.get(i));
         }
 
+
         // Set preferred size
         Insets in = getInsets();
         int w = (PianoKey.WH * keyboardRange.getNbWhiteKeys()) + in.left + in.right + 1 + 2 * OUT_OF_RANGE_INDICATOR_SPACE;
-        setPreferredSize(new Dimension(w, PianoKey.WH));
+        int h = PianoKey.WH;
+        switch (orientation)
+        {
+            case LEFT, RIGHT ->
+            {
+                int tmp = w;
+                w = h;
+                h = tmp;
+            }
+        }
+        setPreferredSize(new Dimension(w, h));
+
 
         // Set minimum size
-        setMinimumSize(new Dimension(getRange().getNbWhiteKeys() * PianoKey.WW_MIN, PianoKey.WH_MIN));
+        int wMin = getRange().getNbWhiteKeys() * PianoKey.WW_MIN;
+        int hMin = PianoKey.WH_MIN;
+        switch (orientation)
+        {
+            case LEFT, RIGHT ->
+            {
+                int tmp = wMin;
+                wMin = h;
+                hMin = tmp;
+            }
+        }
+        setMinimumSize(new Dimension(wMin, hMin));
+
 
         revalidate();
         repaint();
@@ -316,6 +356,24 @@ public class KeyboardComponent extends JPanel
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2.setColor(Color.LIGHT_GRAY);
 
+        switch (orientation)
+        {
+            case DOWN ->
+            {
+            }
+            case UP ->
+            {
+            }
+            case LEFT ->
+            {
+            }
+            case RIGHT ->
+            {
+            }
+            default ->
+                throw new AssertionError(orientation.name());
+        }
+
         final int length = 5;
         final int semiHeight = 2;
         Insets in = getInsets();
@@ -355,6 +413,7 @@ public class KeyboardComponent extends JPanel
     @Override
     public void doLayout()
     {
+        super.doLayout();
         Insets in = getInsets();
         Rectangle r = new Rectangle(in.left + OUT_OF_RANGE_INDICATOR_SPACE, in.top, getWidth() - in.left - in.right - 2 * OUT_OF_RANGE_INDICATOR_SPACE, getHeight() - in.top - in.bottom);
 
@@ -378,7 +437,7 @@ public class KeyboardComponent extends JPanel
         for (PianoKey key : pianoKeys)
         {
             // adjust size
-            key.setRelativeSize(wKeyWidth, wKeyHeight);
+            key.setSizeRelativeToWhiteKey(wKeyWidth, wKeyHeight);
 
             // translate it to put it after the last key
             key.setLocation(x_pos, y_pos);
