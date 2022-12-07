@@ -30,8 +30,8 @@ import java.awt.GradientPaint;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
-import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.util.Objects;
 import java.util.logging.Logger;
@@ -46,7 +46,6 @@ import org.jjazz.ui.keyboardcomponent.api.KeyboardComponent.Orientation;
  */
 public class PianoKey extends JComponent
 {
-
 
     /**
      * Property change fired when setSelected() is called.
@@ -68,22 +67,22 @@ public class PianoKey extends JComponent
     private static final String COLOR_DISABLED_KEY = "WKeyDisabledColor";
 
     /**
-     * Standard White Key Width.
+     * Standard White Key Width in DOWN orientation.
      */
     public static final int WW = 12;
 
     /**
-     * Standard White Key Height.
+     * Standard White Key Height in DOWN orientation.
      */
     public static final int WH = WW * 5;
 
     /**
-     * Minimum White Key Width.
+     * Minimum White Key Width in DOWN orientation..
      */
     public static final int WW_MIN = 4;
 
     /**
-     * Minimum White Key Height.
+     * Minimum White Key Height in DOWN orientation..
      */
     public static final int WH_MIN = WW_MIN * 5;
 
@@ -91,10 +90,10 @@ public class PianoKey extends JComponent
     /**
      * The polygon to store the shape of the key
      */
-    private final Polygon shape = new Polygon();
+    private Polygon polygon;
 
     /**
-     * The x position of the next key (because black and white keys overlap).
+     * The x position of the next key (because black and white keys overlap) in DOWN orientation..
      */
     private int xPosNextKey;
 
@@ -140,22 +139,23 @@ public class PianoKey extends JComponent
     /**
      * Construct a piano key for a specified pitch.
      *
-     * @param p The pitch of the key.
-     * @param leftMost If true this the leftmost key of the keyboard (different shape)
-     * @param rightMost If true this the rightmost key of the keyboard (different shape)
+     * @param p           The pitch of the key.
+     * @param leftMost    If true this the leftmost key of the keyboard (different shape)
+     * @param rightMost   If true this the rightmost key of the keyboard (different shape)
      * @param orientation
      */
     public PianoKey(int p, boolean leftMost, boolean rightMost, Orientation orientation)
     {
-        if (!Note.checkPitch(p) || (leftMost == true && rightMost == true))
+        if (!Note.checkPitch(p) || (leftMost == true && rightMost == true) || orientation == null)
         {
-            throw new IllegalArgumentException("p=" + p + " leftMost=" + leftMost + " rightMost=" + rightMost);
+            throw new IllegalArgumentException("p=" + p + " leftMost=" + leftMost + " rightMost=" + rightMost + " orientation=" + orientation);
         }
 
         pitch = p;
         this.leftMost = leftMost;
         this.rightMost = rightMost;
         this.orientation = orientation;
+        this.polygon = new Polygon();
 
         // Default color favlues
         putClientProperty(COLOR_WKEY, Color.WHITE);
@@ -169,7 +169,8 @@ public class PianoKey extends JComponent
         pressedWhiteKeyColor = new Color(0, 128, 192);
 
         // Preferred size
-        setPreferredSize(new Dimension(WW, WH));
+        var pd = orientation.equals(Orientation.DOWN) || orientation.equals(Orientation.UP) ? new Dimension(WW, WH) : new Dimension(WH, WW);
+        setPreferredSize(pd);
 
         // Tooltip
         Note n = new Note(pitch);
@@ -237,7 +238,7 @@ public class PianoKey extends JComponent
      *
      * @param v
      * @param pressedKeyColor Set the pressed color for white key (pressed color for a black key is calculated from this color as
-     * well). If null use default color.
+     *                        well). If null use default color.
      */
     public synchronized void setPressed(int v, Color pressedKeyColor)
     {
@@ -344,9 +345,11 @@ public class PianoKey extends JComponent
     }
 
     /**
-     * Return the relative X position of the next key.
+     * Return the relative X position of the next key, in DOWN orientation.
+     *
+     * @return
      */
-    public int getNextKeyPos()
+    public int getNextKeyPosX()
     {
         return xPosNextKey;
     }
@@ -359,26 +362,9 @@ public class PianoKey extends JComponent
     @Override
     public void paint(Graphics g)
     {
-        Graphics2D g2 = (Graphics2D) g.create();
+        Graphics2D g2 = (Graphics2D) g;
 
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-        switch (orientation)
-        {
-            case DOWN:
-                // Nothing
-                break;
-            case UP:
-                break;
-            case LEFT:
-                g2.translate(WW, WW);aze
-                break;
-            case RIGHT:
-                break;
-            default:
-                throw new AssertionError(orientation.name());
-
-        }
 
         final int CONTOUR_WIDTH = 2;
         if (isEnabled())
@@ -398,8 +384,36 @@ public class PianoKey extends JComponent
                 // Easy 
                 if (!isWhiteKey())
                 {
-                    GradientPaint paint = new GradientPaint(0, CONTOUR_WIDTH, getColorProperty(COLOR_BKEY_LIGHTEST),
-                            0, getHeight(), getColorProperty(COLOR_BKEY_DARKEST));
+                    // Slight gradient on black keys
+                    float x1, y1, x2, y2;
+                    Color c1, c2;
+                    switch (orientation)
+                    {
+                        case DOWN:
+                            x1 = 0;
+                            y1 = CONTOUR_WIDTH;
+                            x2 = 0;
+                            y2 = getHeight();
+                            c1 = getColorProperty(COLOR_BKEY_LIGHTEST);
+                            c2 = getColorProperty(COLOR_BKEY_DARKEST);
+                            break;
+                        case UP:
+                            throw new UnsupportedOperationException("UP");
+                        case LEFT:
+                            throw new UnsupportedOperationException("LEFT");
+                        case RIGHT:
+                            x1 = CONTOUR_WIDTH;
+                            y1 = 0;
+                            x2 = getWidth();
+                            y2 = 0;
+                            c1 = getColorProperty(COLOR_BKEY_LIGHTEST);
+                            c2 = getColorProperty(COLOR_BKEY_DARKEST);
+                            break;
+                        default:
+                            throw new AssertionError(orientation.name());
+
+                    }
+                    GradientPaint paint = new GradientPaint(x1, y1, c1, x2, y2, c2);
                     g2.setPaint(paint);
                 } else
                 {
@@ -412,10 +426,15 @@ public class PianoKey extends JComponent
         }
 
 
-        g2.fill(shape);
+        g2.fill(polygon);
         g2.setColor(isSelected ? getColorProperty(COLOR_KEY_CONTOUR_SELECTED) : getColorProperty(COLOR_KEY_CONTOUR));
         g2.setStroke(isSelected ? new BasicStroke(CONTOUR_WIDTH) : new BasicStroke());
-        g2.draw(shape);
+        g2.draw(polygon);
+
+
+        // For all other graphics painted directly over the polygon shape: rotate the graphics context as required
+        Graphics2D g3 = (Graphics2D) g2.create();
+        g3.transform(orientation.getTransform(getBounds()));
 
 
         // Add the optional mark
@@ -427,9 +446,10 @@ public class PianoKey extends JComponent
             double x = w / 2 - side / 2;
             double y = h - 5 - side;
             Rectangle2D.Double rect = new Rectangle2D.Double(x, y, side, side);
-            g2.setColor(markColor);
-            g2.fill(rect);
+            g3.setColor(markColor);
+            g3.fill(rect);
         }
+        g3.dispose();
     }
 
     /**
@@ -452,8 +472,8 @@ public class PianoKey extends JComponent
     /**
      * Change the size of the key from a reference rectangular white key size.
      *
-     * @param wwRef The base width of a reference white key.
-     * @param whRef The height of a reference white key.
+     * @param wwRef The base width of a reference white key in DOWN orientation.
+     * @param whRef The height of a reference white key in DOWN orientation.
      */
     public void setSizeRelativeToWhiteKey(int wwRef, int whRef)
     {
@@ -475,7 +495,7 @@ public class PianoKey extends JComponent
         int bw_1_2b = bw - bw_1_2a;
 
         // The shape of the key
-        int[] keySize = null;
+        double[] points = null;
 
         // The little angle for white keys
         final int r = 1;
@@ -487,7 +507,7 @@ public class PianoKey extends JComponent
             case 0:
                 if (!rightMost)
                 {
-                    keySize = new int[]
+                    points = new double[]
                     {
                         0, 0, ww - bw_2_3, 0, ww - bw_2_3, bh, ww, bh, ww, wh - r,
                         ww - r, wh, r, wh, 0, wh - r
@@ -495,7 +515,7 @@ public class PianoKey extends JComponent
                     xPosNextKey = ww - bw_2_3;
                 } else
                 {
-                    keySize = new int[]
+                    points = new double[]
                     {
                         0, 0, ww, 0, ww, wh - r, ww - r, wh, r, wh, 0, wh - r
                     };
@@ -505,7 +525,7 @@ public class PianoKey extends JComponent
                 break;
             // C# key
             case 1:
-                keySize = new int[]
+                points = new double[]
                 {
                     0, 0, bw, 0, bw, bh, 0, bh
                 };
@@ -514,7 +534,7 @@ public class PianoKey extends JComponent
                 break;
             // D key
             case 2:
-                keySize = new int[]
+                points = new double[]
                 {
                     bw_1_3, 0, ww - bw_1_3, 0, ww - bw_1_3, bh, ww, bh, ww,
                     wh - r, ww - r, wh, r, wh, 0, wh - r, 0, bh, bw_1_3, bh
@@ -523,7 +543,7 @@ public class PianoKey extends JComponent
                 break;
             // D# key
             case 3:
-                keySize = new int[]
+                points = new double[]
                 {
                     0, 0, bw, 0, bw, bh, 0, bh
                 };
@@ -534,7 +554,7 @@ public class PianoKey extends JComponent
             case 4:
                 if (!leftMost)
                 {
-                    keySize = new int[]
+                    points = new double[]
                     {
                         bw_2_3, 0, ww, 0, ww, wh - r, ww - r, wh, r, wh, 0, wh - r,
                         0, bh, bw_2_3, bh
@@ -542,7 +562,7 @@ public class PianoKey extends JComponent
                     xPosNextKey = ww;
                 } else
                 {
-                    keySize = new int[]
+                    points = new double[]
                     {
                         0, 0, ww, 0, ww, wh - r, ww - r, wh, r, wh, 0, wh - r
                     };
@@ -552,7 +572,7 @@ public class PianoKey extends JComponent
 
             // F key
             case 5:
-                keySize = new int[]
+                points = new double[]
                 {
                     0, 0, ww - bw_4_5, 0, ww - bw_4_5, bh, ww, bh, ww, wh - r,
                     ww - r, wh, r, wh, 0, wh - r
@@ -562,7 +582,7 @@ public class PianoKey extends JComponent
 
             // F# key
             case 6:
-                keySize = new int[]
+                points = new double[]
                 {
                     0, 0, bw, 0, bw, bh, 0, bh
                 };
@@ -573,7 +593,7 @@ public class PianoKey extends JComponent
             case 7:
                 if (!rightMost)
                 {
-                    keySize = new int[]
+                    points = new double[]
                     {
                         bw_1_5, 0, ww - bw_1_2a, 0, ww - bw_1_2a, bh, ww, bh, ww,
                         wh - r, ww - r, wh, r, wh, 0, wh - r, 0, bh, bw_1_5, bh
@@ -581,7 +601,7 @@ public class PianoKey extends JComponent
                     xPosNextKey = ww - bw_1_2a;
                 } else
                 {
-                    keySize = new int[]
+                    points = new double[]
                     {
                         bw_1_5, 0, ww, 0, ww, wh - r, ww - r, wh, r, wh, 0, wh - r, 0, bh, bw_1_5, bh
                     };
@@ -590,7 +610,7 @@ public class PianoKey extends JComponent
                 break;
             // G# key
             case 8:
-                keySize = new int[]
+                points = new double[]
                 {
                     0, 0, bw, 0, bw, bh, 0, bh
                 };
@@ -600,7 +620,7 @@ public class PianoKey extends JComponent
             case 9:
                 if (!leftMost)
                 {
-                    keySize = new int[]
+                    points = new double[]
                     {
                         bw_1_2b, 0, ww - bw_1_5, 0, ww - bw_1_5, bh, ww, bh, ww,
                         wh - r, ww - r, wh, r, wh, 0, wh - r, 0, bh, bw_1_2b, bh
@@ -608,7 +628,7 @@ public class PianoKey extends JComponent
                     xPosNextKey = ww - bw_1_5;
                 } else
                 {
-                    keySize = new int[]
+                    points = new double[]
                     {
                         0, 0, ww - bw_1_5, 0, ww - bw_1_5, bh, ww, bh, ww,
                         wh - r, ww - r, wh, r, wh, 0, wh - r
@@ -619,7 +639,7 @@ public class PianoKey extends JComponent
                 break;
             // A# key
             case 10:
-                keySize = new int[]
+                points = new double[]
                 {
                     0, 0, bw, 0, bw, bh, 0, bh
                 };
@@ -627,7 +647,7 @@ public class PianoKey extends JComponent
                 break;
             // B key
             case 11:
-                keySize = new int[]
+                points = new double[]
                 {
                     bw_4_5, 0, ww, 0, ww, wh - r, ww - r, wh, r, wh, 0, wh - r,
                     0, bh, bw_4_5, bh
@@ -636,20 +656,24 @@ public class PianoKey extends JComponent
                 break;
         }
 
-        // Zero polygon data
-        shape.reset();
+        // By default DOWN orientation
+        polygon = createPolygon(points);
+        var bounds = polygon.getBounds();
 
-        // Compute factors for piano keys
-        for (int i = 0; i < keySize.length; i += 2)
+
+        if (!orientation.equals(Orientation.DOWN))
         {
-            int x = keySize[i];
-            int y = keySize[i + 1];
-            shape.addPoint(x, y);
+            // Other orientation: apply transforms
+            double[] newPoints = new double[points.length];
+            AffineTransform transform = orientation.getTransform(bounds);
+            transform.transform(points, 0, newPoints, 0, points.length / 2);
+            polygon = createPolygon(newPoints);
+            bounds = polygon.getBounds();
         }
 
+
         // Set the component size bounding box size
-        Rectangle rec = shape.getBounds();
-        setSize(rec.width + 1, rec.height + 1);
+        setSize(bounds.width, bounds.height);
     }
 
     /**
@@ -661,7 +685,7 @@ public class PianoKey extends JComponent
     @Override
     public boolean contains(int x, int y)
     {
-        return shape.contains(x, y);
+        return polygon.contains(x, y);
     }
 
     /**
@@ -732,9 +756,9 @@ public class PianoKey extends JComponent
         StringBuilder sb = new StringBuilder("PianoKey pitch=" + pitch + " [ ");
         int rp = pitch % 12;
 
-        for (int i = 0; i < shape.npoints; i++)
+        for (int i = 0; i < polygon.npoints; i++)
         {
-            sb.append("(" + shape.xpoints[i] + "," + shape.ypoints[i] + ") ");
+            sb.append("(" + polygon.xpoints[i] + "," + polygon.ypoints[i] + ") ");
         }
         sb.append("]");
         return sb.toString();
@@ -743,4 +767,16 @@ public class PianoKey extends JComponent
     // =================================================================================
     // Private methods
     // =================================================================================
+
+    private Polygon createPolygon(double[] points)
+    {
+        Polygon res = new Polygon();
+        for (int i = 0; i < points.length; i += 2)
+        {
+            int x = (int) Math.round(points[i]);
+            int y = (int) Math.round(points[i + 1]);
+            res.addPoint(x, y);
+        }
+        return res;
+    }
 }

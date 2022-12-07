@@ -22,6 +22,7 @@
  */
 package org.jjazz.ui.utilities.api;
 
+import com.google.common.base.Preconditions;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
@@ -32,6 +33,7 @@ import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
 import java.awt.Insets;
 import java.awt.Point;
+import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -40,11 +42,14 @@ import java.awt.event.FocusEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -337,7 +342,7 @@ public class Utilities
         {
             return;
         }
-        
+
         for (Component c : jc.getComponents())
         {
             if (c instanceof JComponent)
@@ -741,6 +746,7 @@ public class Utilities
         }
     }
 
+   
     // =================================================================================================
     // Static classes
     // =================================================================================================

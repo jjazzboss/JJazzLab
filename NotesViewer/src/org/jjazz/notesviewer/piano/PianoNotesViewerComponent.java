@@ -30,8 +30,8 @@ import org.jjazz.ui.keyboardcomponent.api.KeyboardRange;
 public class PianoNotesViewerComponent extends javax.swing.JPanel
 {
 
-    private KeyboardComponent keyboard;
-    private PianoNotesViewer notesViewer;
+    private final KeyboardComponent keyboard;
+    private final PianoNotesViewer notesViewer;
 
     /**
      * Creates new form PianoViewerComponent
@@ -42,7 +42,7 @@ public class PianoNotesViewerComponent extends javax.swing.JPanel
 
         initComponents();
 
-        keyboard = new KeyboardComponent(KeyboardRange._49_KEYS);
+        keyboard = new KeyboardComponent(KeyboardRange._49_KEYS, KeyboardComponent.Orientation.RIGHT);
         pnl_keyboard.remove(pnl_toBeRemoved);
         pnl_keyboard.add(keyboard, 0);
     }

@@ -22,6 +22,7 @@
  */
 package org.jjazz.ui.keyboardcomponent.api;
 
+import com.google.common.base.Preconditions;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -31,6 +32,7 @@ import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Path2D;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -50,8 +52,41 @@ public class KeyboardComponent extends JPanel
      */
     public enum Orientation
     {
-        DOWN, UP, LEFT, RIGHT
+        DOWN, UP, LEFT, RIGHT;
+
+        /**
+         * Return the transform associated to the orientation, provided that DOWN is associated to the identity transform.
+         *
+         * @param bounds
+         * @return
+         */
+        public AffineTransform getTransform(Rectangle bounds)
+        {
+            AffineTransform res;
+            switch (this)
+            {
+                case DOWN:
+                    res = new AffineTransform();
+                    break;
+                case UP:
+                    res = AffineTransform.getQuadrantRotateInstance(2);
+                    res.concatenate(AffineTransform.getTranslateInstance(0, bounds.height));
+                    break;
+                case LEFT:
+                    res = AffineTransform.getQuadrantRotateInstance(-1);
+                    res.concatenate(AffineTransform.getTranslateInstance(bounds.height, 0));
+                    break;
+                case RIGHT:
+                    res = AffineTransform.getQuadrantRotateInstance(1);
+                    res.concatenate(AffineTransform.getTranslateInstance(0, bounds.width));
+                    break;
+                default:
+                    throw new IllegalStateException("this=" + this);
+            }
+            return res;
+        }
     }
+
     private final static int OUT_OF_RANGE_INDICATOR_SPACE = 6;
     private boolean outOfRangeIndicatorLeft;
     private boolean outOfRangeIndicatorRight;
@@ -67,7 +102,17 @@ public class KeyboardComponent extends JPanel
      */
     public KeyboardComponent()
     {
-        this(KeyboardRange._88_KEYS, Orientation.DOWN);
+        this(KeyboardRange._88_KEYS);
+    }
+
+    /**
+     * Create an horizontal component with the specified size and Orientation.DOWN.
+     * <p>
+     * @param kbdSize
+     */
+    public KeyboardComponent(KeyboardRange kbdSize)
+    {
+        this(kbdSize, Orientation.DOWN);
     }
 
     /**
@@ -78,8 +123,11 @@ public class KeyboardComponent extends JPanel
      */
     public KeyboardComponent(KeyboardRange kbdSize, Orientation orientation)
     {
-        setKeyboardRange(kbdSize);
+        Preconditions.checkNotNull(kbdSize);
+        Preconditions.checkNotNull(orientation);
+
         this.orientation = orientation;
+        setKeyboardRange(kbdSize);
     }
 
     public Orientation getOrientation()
@@ -148,7 +196,7 @@ public class KeyboardComponent extends JPanel
         {
             boolean leftmost = (i == keyboardRange.getLowestPitch());
             boolean rightmost = (i == keyboardRange.getHighestPitch());
-            PianoKey key = new PianoKey(i, leftmost, rightmost);
+            PianoKey key = new PianoKey(i, leftmost, rightmost, orientation);
             pianoKeys.add(key);
             add(key);
 
@@ -164,31 +212,25 @@ public class KeyboardComponent extends JPanel
 
         // Set preferred size
         Insets in = getInsets();
-        int w = (PianoKey.WH * keyboardRange.getNbWhiteKeys()) + in.left + in.right + 1 + 2 * OUT_OF_RANGE_INDICATOR_SPACE;
+        int w = (PianoKey.WW * getRange().getNbWhiteKeys()) + in.left + in.right + 1 + 2 * OUT_OF_RANGE_INDICATOR_SPACE;
         int h = PianoKey.WH;
-        switch (orientation)
+        if (isVertical())
         {
-            case LEFT, RIGHT ->
-            {
-                int tmp = w;
-                w = h;
-                h = tmp;
-            }
+            int tmp = w;
+            w = h;
+            h = tmp;
         }
         setPreferredSize(new Dimension(w, h));
 
 
         // Set minimum size
-        int wMin = getRange().getNbWhiteKeys() * PianoKey.WW_MIN;
+        int wMin = PianoKey.WW_MIN * getRange().getNbWhiteKeys();
         int hMin = PianoKey.WH_MIN;
-        switch (orientation)
+        if (isVertical())
         {
-            case LEFT, RIGHT ->
-            {
-                int tmp = wMin;
-                wMin = h;
-                hMin = tmp;
-            }
+            int tmp = wMin;
+            wMin = hMin;
+            hMin = tmp;
         }
         setMinimumSize(new Dimension(wMin, hMin));
 
@@ -277,7 +319,7 @@ public class KeyboardComponent extends JPanel
      * If pitch is outside the KeyboardRange, show an indicator on the leftmost/rightmost note.
      *
      * @param pitch
-     * @param velocity If 0 equivalent to calling setReleased()
+     * @param velocity        If 0 equivalent to calling setReleased()
      * @param pressedKeyColor The pressed key color to be used. If null use default color.
      */
     public void setPressed(int pitch, int velocity, Color pressedKeyColor)
@@ -355,24 +397,7 @@ public class KeyboardComponent extends JPanel
         Graphics2D g2 = (Graphics2D) g.create();
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2.setColor(Color.LIGHT_GRAY);
-
-        switch (orientation)
-        {
-            case DOWN ->
-            {
-            }
-            case UP ->
-            {
-            }
-            case LEFT ->
-            {
-            }
-            case RIGHT ->
-            {
-            }
-            default ->
-                throw new AssertionError(orientation.name());
-        }
+        g2.transform(orientation.getTransform(getBounds()));
 
         final int length = 5;
         final int semiHeight = 2;
@@ -402,6 +427,8 @@ public class KeyboardComponent extends JPanel
             g2.fill(s);
         }
 
+        g2.dispose();
+
     }
 
     /**
@@ -413,26 +440,33 @@ public class KeyboardComponent extends JPanel
     @Override
     public void doLayout()
     {
-        super.doLayout();
+        // super.doLayout();
         Insets in = getInsets();
         Rectangle r = new Rectangle(in.left + OUT_OF_RANGE_INDICATOR_SPACE, in.top, getWidth() - in.left - in.right - 2 * OUT_OF_RANGE_INDICATOR_SPACE, getHeight() - in.top - in.bottom);
+        if (isVertical())
+        {
+            r = new Rectangle(in.left, in.top + OUT_OF_RANGE_INDICATOR_SPACE, getWidth() - in.left - in.right, getHeight() - in.top - in.bottom - 2 * OUT_OF_RANGE_INDICATOR_SPACE);
+        }
 
-        // Keyboard takes all the horizontal space
+        // Keyboard takes all the horizontal space (in DOWN orientation)
         int wKeyHeight = computeKeyboardHeightFromWidth(r.width);
-        wKeyHeight = Math.max(wKeyHeight, getMinimumSize().height);  // Can't be smaller than minimal height
-        wKeyHeight = Math.min(wKeyHeight, r.height);      // Can't be taller than available height
+        int minNoteHeight = isVertical() ? getMinimumSize().width : getMinimumSize().height;
+        int availableNoteHeight = isVertical() ? r.width : r.height;
+        wKeyHeight = Math.max(wKeyHeight, minNoteHeight);  // Can't be smaller than minimal height
+        wKeyHeight = Math.min(wKeyHeight, availableNoteHeight);      // Can't be taller than available height
 
         // Size of a white key
-        int wKeyWidth = (r.width - 1) / keyboardRange.getNbWhiteKeys();
+        int wKeyWidth = (isVertical() ? r.height - 1 : r.width - 1) / keyboardRange.getNbWhiteKeys();
+
 
         // Calculate X so the keyboard will be centered (because of integer rounding we may have differences
         // between the object size and the real keyboard size)
         int realSize = wKeyWidth * keyboardRange.getNbWhiteKeys();
-        int x_pos = ((r.width - realSize) / 2) + r.x;
+        int x_pos = isVertical() ? r.x : r.x + ((r.width - realSize) / 2);
 
         // Y centered
         // int y_pos = r.y + (r.height - wKeyHeight) / 2;
-        int y_pos = r.y;
+        int y_pos = isVertical() ? r.y + ((r.height - realSize) / 2) : r.y;
 
         for (PianoKey key : pianoKeys)
         {
@@ -442,8 +476,15 @@ public class KeyboardComponent extends JPanel
             // translate it to put it after the last key
             key.setLocation(x_pos, y_pos);
 
-            // adjust with top x size of the key
-            x_pos += key.getNextKeyPos();
+            // offset to next key
+            if (isVertical())
+            {
+                y_pos += key.getNextKeyPosX();
+            } else
+            {
+                x_pos += key.getNextKeyPosX();
+            }
+
         }
     }
 
@@ -451,7 +492,8 @@ public class KeyboardComponent extends JPanel
     // Private methods
     //--------------------------------------------------------------------
     /**
-     * Calculate the keyboard height from specified keyboard width in order to maintain the optimal aspect ratio.
+     * Calculate the keyboard height (in DOWN orientation) from specified keyboard width in order to maintain the optimal aspect
+     * ratio.
      *
      * @param w The target keyboard width.
      * @return The keyboard height.
@@ -464,9 +506,14 @@ public class KeyboardComponent extends JPanel
         return h;
     }
 
+    private boolean isVertical()
+    {
+        return orientation.equals(Orientation.LEFT) || orientation.equals(Orientation.RIGHT);
+    }
+
     /**
      *
-     * @param left false means right
+     * @param left     false means right
      * @param showHide show if true, hide if false
      */
     private void showOutOfRangeNoteIndicator(boolean left, boolean showHide)
