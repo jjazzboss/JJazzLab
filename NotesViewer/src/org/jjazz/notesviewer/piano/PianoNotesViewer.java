@@ -155,7 +155,7 @@ public class PianoNotesViewer implements NotesViewer
     {
         KeyboardComponent keyboard = getKeyboard();
         var scaleRelPitches = ssi.getRelativePitches();
-        for (PianoKey key : keyboard.getPianoKeys())
+        for (PianoKey key : keyboard.getAllKeys())
         {
             if (scaleRelPitches.contains(key.getPitch() % 12))
             {

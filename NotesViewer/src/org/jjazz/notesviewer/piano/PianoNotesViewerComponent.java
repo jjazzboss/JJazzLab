@@ -42,7 +42,7 @@ public class PianoNotesViewerComponent extends javax.swing.JPanel
 
         initComponents();
 
-        keyboard = new KeyboardComponent(KeyboardRange._49_KEYS, KeyboardComponent.Orientation.RIGHT);
+        keyboard = new KeyboardComponent(KeyboardRange._49_KEYS, KeyboardComponent.Orientation.DOWN, true);
         pnl_keyboard.remove(pnl_toBeRemoved);
         pnl_keyboard.add(keyboard, 0);
     }

@@ -282,50 +282,38 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
     {
 
         pnl_top = new javax.swing.JPanel();
+        jButton1 = new javax.swing.JButton();
         pnl_main = new javax.swing.JPanel();
         splitPane = new javax.swing.JSplitPane();
-        pnl_notes = new javax.swing.JPanel();
+        pnl_scrollPane = new javax.swing.JPanel();
+        scrollpane_piano_notes = new javax.swing.JScrollPane();
+        pianoRollPanel1 = new org.jjazz.pianoroll.PianoRollPanel();
         pnl_velocity = new javax.swing.JPanel();
+        jButton2 = new javax.swing.JButton();
 
-        javax.swing.GroupLayout pnl_topLayout = new javax.swing.GroupLayout(pnl_top);
-        pnl_top.setLayout(pnl_topLayout);
-        pnl_topLayout.setHorizontalGroup(
-            pnl_topLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 0, Short.MAX_VALUE)
-        );
-        pnl_topLayout.setVerticalGroup(
-            pnl_topLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 51, Short.MAX_VALUE)
-        );
+        pnl_top.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
+
+        org.openide.awt.Mnemonics.setLocalizedText(jButton1, org.openide.util.NbBundle.getMessage(PianoRollEditorImpl.class, "PianoRollEditorImpl.jButton1.text")); // NOI18N
+        pnl_top.add(jButton1);
 
         pnl_main.setLayout(new javax.swing.BoxLayout(pnl_main, javax.swing.BoxLayout.LINE_AXIS));
 
         splitPane.setDividerSize(3);
         splitPane.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
 
-        javax.swing.GroupLayout pnl_notesLayout = new javax.swing.GroupLayout(pnl_notes);
-        pnl_notes.setLayout(pnl_notesLayout);
-        pnl_notesLayout.setHorizontalGroup(
-            pnl_notesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 562, Short.MAX_VALUE)
-        );
-        pnl_notesLayout.setVerticalGroup(
-            pnl_notesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 100, Short.MAX_VALUE)
-        );
+        pnl_scrollPane.setPreferredSize(new java.awt.Dimension(625, 500));
+        pnl_scrollPane.setLayout(new javax.swing.BoxLayout(pnl_scrollPane, javax.swing.BoxLayout.LINE_AXIS));
 
-        splitPane.setTopComponent(pnl_notes);
+        scrollpane_piano_notes.setViewportView(pianoRollPanel1);
 
-        javax.swing.GroupLayout pnl_velocityLayout = new javax.swing.GroupLayout(pnl_velocity);
-        pnl_velocity.setLayout(pnl_velocityLayout);
-        pnl_velocityLayout.setHorizontalGroup(
-            pnl_velocityLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 562, Short.MAX_VALUE)
-        );
-        pnl_velocityLayout.setVerticalGroup(
-            pnl_velocityLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 220, Short.MAX_VALUE)
-        );
+        pnl_scrollPane.add(scrollpane_piano_notes);
+
+        splitPane.setLeftComponent(pnl_scrollPane);
+
+        pnl_velocity.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
+
+        org.openide.awt.Mnemonics.setLocalizedText(jButton2, org.openide.util.NbBundle.getMessage(PianoRollEditorImpl.class, "PianoRollEditorImpl.jButton2.text")); // NOI18N
+        pnl_velocity.add(jButton2);
 
         splitPane.setRightComponent(pnl_velocity);
 
@@ -336,24 +324,28 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(pnl_top, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(pnl_main, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(pnl_main, javax.swing.GroupLayout.DEFAULT_SIZE, 850, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addComponent(pnl_top, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, 0)
-                .addComponent(pnl_main, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addComponent(pnl_main, javax.swing.GroupLayout.DEFAULT_SIZE, 361, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton jButton1;
+    private javax.swing.JButton jButton2;
+    private org.jjazz.pianoroll.PianoRollPanel pianoRollPanel1;
     private javax.swing.JPanel pnl_main;
-    private javax.swing.JPanel pnl_notes;
+    private javax.swing.JPanel pnl_scrollPane;
     private javax.swing.JPanel pnl_top;
     private javax.swing.JPanel pnl_velocity;
+    private javax.swing.JScrollPane scrollpane_piano_notes;
     private javax.swing.JSplitPane splitPane;
     // End of variables declaration//GEN-END:variables
 }

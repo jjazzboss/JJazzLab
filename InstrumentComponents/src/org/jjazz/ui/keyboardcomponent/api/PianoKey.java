@@ -91,7 +91,6 @@ public class PianoKey extends JComponent
      * The polygon to store the shape of the key
      */
     private Polygon polygon;
-
     /**
      * The x position of the next key (because black and white keys overlap) in DOWN orientation..
      */
@@ -155,26 +154,22 @@ public class PianoKey extends JComponent
         this.leftMost = leftMost;
         this.rightMost = rightMost;
         this.orientation = orientation;
-        this.polygon = new Polygon();
+        setSizeRelativeToWhiteKeyRef(WW, WH);
 
-        // Default color favlues
+
+        // Default color values
         putClientProperty(COLOR_WKEY, Color.WHITE);
         putClientProperty(COLOR_BKEY_DARKEST, Color.BLACK);
         putClientProperty(COLOR_BKEY_LIGHTEST, new Color(55, 55, 55));
         putClientProperty(COLOR_KEY_CONTOUR, new Color(117, 117, 117));
         putClientProperty(COLOR_KEY_CONTOUR_SELECTED, Color.BLUE.brighter());
         putClientProperty(COLOR_DISABLED_KEY, new Color(70, 70, 70));
-
         showVelocityColor = false;
         pressedWhiteKeyColor = new Color(0, 128, 192);
 
-        // Preferred size
-        var pd = orientation.equals(Orientation.DOWN) || orientation.equals(Orientation.UP) ? new Dimension(WW, WH) : new Dimension(WH, WW);
-        setPreferredSize(pd);
 
         // Tooltip
         Note n = new Note(pitch);
-
         setToolTipText(n.toPianoOctaveString() + " (Midi pitch=" + pitch + ")");
     }
 
@@ -345,7 +340,7 @@ public class PianoKey extends JComponent
     }
 
     /**
-     * Return the relative X position of the next key, in DOWN orientation.
+     * Return the relative X position of the next key, ie from left to right in DOWN orientation.
      *
      * @return
      */
@@ -353,7 +348,7 @@ public class PianoKey extends JComponent
     {
         return xPosNextKey;
     }
-
+    
     /**
      * Draw the key.
      *
@@ -374,10 +369,6 @@ public class PianoKey extends JComponent
                 Color keyPressedColor = isWhiteKey() ? getPressedWhiteKeyColor() : getPressedBlackKeyColor();
                 Color c = showVelocityColor ? getAdaptedColor(keyPressedColor, velocity) : keyPressedColor;
                 g2.setColor(c);
-
-//                int boundedLuminance = Math.min(luminance, getLuminanceNoEvent());
-//                boundedLuminance = Math.max(boundedLuminance, getLuminanceMaxEvents());
-//                g2.setColor(hslFillColor.adjustLuminance(boundedLuminance));
 
             } else
             {
@@ -432,24 +423,35 @@ public class PianoKey extends JComponent
         g2.draw(polygon);
 
 
-        // For all other graphics painted directly over the polygon shape: rotate the graphics context as required
-        Graphics2D g3 = (Graphics2D) g2.create();
-        g3.transform(orientation.getTransform(getBounds()));
-
-
         // Add the optional mark
         if (isEnabled() && markColor != null)
         {
             double w = getWidth();
             double h = getHeight();
-            double side = w * 0.4;
-            double x = w / 2 - side / 2;
-            double y = h - 5 - side;
+            double coef = Note.isWhiteKey(pitch) ? 0.6 : 0.8;
+            double side = isVertical() ? h * coef : w * coef;
+            double x, y;
+            switch (orientation)
+            {
+                case DOWN:
+                    x = w / 2 - side / 2 + 0.5;
+                    y = h - 5 - side;
+                    break;
+                case UP:
+                    throw new UnsupportedOperationException("UP");
+                case LEFT:
+                    throw new UnsupportedOperationException("LEFT");
+                case RIGHT:
+                    x = w - 5 - side;
+                    y = h / 2 - side / 2 + 0.5;
+                    break;
+                default:
+                    throw new AssertionError(orientation.name());
+            }
             Rectangle2D.Double rect = new Rectangle2D.Double(x, y, side, side);
-            g3.setColor(markColor);
-            g3.fill(rect);
+            g2.setColor(markColor);
+            g2.fill(rect);
         }
-        g3.dispose();
     }
 
     /**
@@ -475,33 +477,28 @@ public class PianoKey extends JComponent
      * @param wwRef The base width of a reference white key in DOWN orientation.
      * @param whRef The height of a reference white key in DOWN orientation.
      */
-    public void setSizeRelativeToWhiteKey(int wwRef, int whRef)
+    public final void setSizeRelativeToWhiteKeyRef(int wwRef, int whRef)
     {
-        // Sizes from my piano keyboard
-        int bh = (int) (whRef * .66666f);
-        int bw = (int) ((wwRef * 15f) / 28f);
-
-        // Minus 1 to be used as coordinates (0 to (wh-1) => height=wh)
         int ww = wwRef;
         int wh = whRef;
+        int bh = (int) Math.round(wh * .66666f);
+        int bw = (int) Math.round(ww * 15f / 28f);
+
 
         // Pre-calculate values to avoid integer rounding errors
         // bw_2_3=two third of a black key width
-        int bw_2_3 = (int) ((bw * 2f) / 3f);
+        int bw_2_3 = (int) Math.round(((bw * 2f) / 3f));
         int bw_1_3 = bw - bw_2_3;
-        int bw_4_5 = (int) ((bw * 4f) / 5f);
+        int bw_4_5 = (int) Math.round((bw * 4f) / 5f);
         int bw_1_5 = bw - bw_4_5;
-        int bw_1_2a = (int) (bw / 2f);
+        int bw_1_2a = (int) Math.round(bw / 2f);
         int bw_1_2b = bw - bw_1_2a;
-
-        // The shape of the key
-        double[] points = null;
-
         // The little angle for white keys
         final int r = 1;
-        int rp = pitch % 12;
 
-        switch (rp)
+
+        double[] points = null;
+        switch (pitch % 12)
         {
             // C key
             case 0:
@@ -654,7 +651,10 @@ public class PianoKey extends JComponent
                 };
                 xPosNextKey = ww;
                 break;
+            default:
+                throw new IllegalStateException("pitch=" + pitch);
         }
+
 
         // By default DOWN orientation
         polygon = createPolygon(points);
@@ -767,6 +767,11 @@ public class PianoKey extends JComponent
     // =================================================================================
     // Private methods
     // =================================================================================
+    private boolean isVertical()
+    {
+        return orientation.equals(Orientation.LEFT) || orientation.equals(Orientation.RIGHT);
+    }
+
 
     private Polygon createPolygon(double[] points)
     {

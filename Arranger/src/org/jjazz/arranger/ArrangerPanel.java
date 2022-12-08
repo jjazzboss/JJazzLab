@@ -41,7 +41,6 @@ import javax.sound.midi.Receiver;
 import javax.sound.midi.ShortMessage;
 import javax.sound.midi.Transmitter;
 import javax.swing.SpinnerListModel;
-import org.jjazz.activesong.api.ActiveSongManager;
 import org.jjazz.harmony.api.ChordSymbolFinder;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
@@ -60,6 +59,7 @@ import org.jjazz.songstructure.api.SgsChangeListener;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.event.SgsChangeEvent;
 import org.jjazz.ui.keyboardcomponent.api.KeyboardComponent;
+import org.jjazz.ui.keyboardcomponent.api.KeyboardComponent.Orientation;
 import org.jjazz.ui.keyboardcomponent.api.KeyboardRange;
 import org.jjazz.ui.ss_editor.api.SS_Editor;
 import org.jjazz.ui.ss_editor.api.SS_EditorTopComponent;
@@ -75,6 +75,7 @@ import org.openide.util.Exceptions;
 public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeListener, SgsChangeListener
 {
 
+    private static final Color MARK_COLOR = new Color(187, 187, 187);
     private final Font chordSymbolFont;
     private Transmitter transmitterKbdComponent;
     protected Arranger arranger;        // Protected for test only!!! must be private!
@@ -462,7 +463,7 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
     private void updateSplitNoteUI(int splitNote)
     {
         kbdComponent.reset();
-        kbdComponent.setMarked(splitNote, Color.LIGHT_GRAY);
+        kbdComponent.setMarked(splitNote, MARK_COLOR);
         spn_splitNote.setValue(new Note(splitNote).toPianoOctaveString());
     }
 
@@ -484,7 +485,7 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
     private void initComponents()
     {
 
-        kbdComponent = new KeyboardComponent(KeyboardRange._88_KEYS);
+        kbdComponent = new KeyboardComponent(KeyboardRange._88_KEYS,Orientation.DOWN, false);
         lbl_chordSymbol = new javax.swing.JLabel();
         lbl_songPart = new javax.swing.JLabel();
         lbl_rhythm = new javax.swing.JLabel();

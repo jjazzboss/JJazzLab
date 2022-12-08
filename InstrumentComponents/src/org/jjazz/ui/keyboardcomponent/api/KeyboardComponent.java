@@ -49,6 +49,8 @@ public class KeyboardComponent extends JPanel
 
     /**
      * Piano keyboard orientation.
+     * <p>
+     * DOWN means the only-white-keys-side is on the down/bottom side, the black-keys-side is up/top.
      */
     public enum Orientation
     {
@@ -60,6 +62,7 @@ public class KeyboardComponent extends JPanel
          * @param bounds
          * @return
          */
+
         public AffineTransform getTransform(Rectangle bounds)
         {
             AffineTransform res;
@@ -69,16 +72,16 @@ public class KeyboardComponent extends JPanel
                     res = new AffineTransform();
                     break;
                 case UP:
-                    res = AffineTransform.getQuadrantRotateInstance(2);
-                    res.concatenate(AffineTransform.getTranslateInstance(0, bounds.height));
+                    res = AffineTransform.getQuadrantRotateInstance(-2);
+                    res.preConcatenate(AffineTransform.getTranslateInstance(0, bounds.height));
                     break;
                 case LEFT:
-                    res = AffineTransform.getQuadrantRotateInstance(-1);
-                    res.concatenate(AffineTransform.getTranslateInstance(bounds.height, 0));
+                    res = AffineTransform.getQuadrantRotateInstance(1);
+                    res.preConcatenate(AffineTransform.getTranslateInstance(bounds.height, 0));
                     break;
                 case RIGHT:
-                    res = AffineTransform.getQuadrantRotateInstance(1);
-                    res.concatenate(AffineTransform.getTranslateInstance(0, bounds.width));
+                    res = AffineTransform.getQuadrantRotateInstance(-1);
+                    res.preConcatenate(AffineTransform.getTranslateInstance(0, bounds.width));
                     break;
                 default:
                     throw new IllegalStateException("this=" + this);
@@ -87,7 +90,9 @@ public class KeyboardComponent extends JPanel
         }
     }
 
-    private final static int OUT_OF_RANGE_INDICATOR_SPACE = 6;
+    private final static int OUT_OF_RANGE_INDICATOR_DEFAULT_SPACE = 6;
+    private final int OUT_OF_RANGE_INDICATOR_SPACE;
+    private final boolean useOutOfRangeIndicator;
     private boolean outOfRangeIndicatorLeft;
     private boolean outOfRangeIndicatorRight;
     private final Orientation orientation;
@@ -97,7 +102,7 @@ public class KeyboardComponent extends JPanel
     private static final Logger LOGGER = Logger.getLogger(KeyboardComponent.class.getSimpleName());
 
     /**
-     * Create an horizontal component with 88 notes and Orientation.DOWN.
+     * Create an horizontal component with 88 notes and Orientation.DOWN, and no out of range indicators.
      * <p>
      */
     public KeyboardComponent()
@@ -106,13 +111,13 @@ public class KeyboardComponent extends JPanel
     }
 
     /**
-     * Create an horizontal component with the specified size and Orientation.DOWN.
+     * Create an horizontal component with the specified size, Orientation.DOWN, and no out of range indicators.
      * <p>
      * @param kbdSize
      */
     public KeyboardComponent(KeyboardRange kbdSize)
     {
-        this(kbdSize, Orientation.DOWN);
+        this(kbdSize, Orientation.DOWN, false);
     }
 
     /**
@@ -120,14 +125,28 @@ public class KeyboardComponent extends JPanel
      *
      * @param kbdSize
      * @param orientation
+     * @param useOutOfRangeIndicator Show an indicator on the side if a note is out of the range of the keyboard.
      */
-    public KeyboardComponent(KeyboardRange kbdSize, Orientation orientation)
+    public KeyboardComponent(KeyboardRange kbdSize, Orientation orientation, boolean useOutOfRangeIndicator)
     {
         Preconditions.checkNotNull(kbdSize);
         Preconditions.checkNotNull(orientation);
 
         this.orientation = orientation;
+        this.useOutOfRangeIndicator = useOutOfRangeIndicator;
+        this.OUT_OF_RANGE_INDICATOR_SPACE = useOutOfRangeIndicator ? OUT_OF_RANGE_INDICATOR_DEFAULT_SPACE : 0;
+
+        if (useOutOfRangeIndicator && !orientation.equals(Orientation.DOWN))
+        {
+            throw new UnsupportedOperationException("");
+        }
+
         setKeyboardRange(kbdSize);
+    }
+
+    public boolean useOutOfRangeIndicator()
+    {
+        return useOutOfRangeIndicator;
     }
 
     public Orientation getOrientation()
@@ -244,7 +263,7 @@ public class KeyboardComponent extends JPanel
      *
      * @return
      */
-    public List<PianoKey> getPianoKeys()
+    public List<PianoKey> getAllKeys()
     {
         return new ArrayList<>(pianoKeys);
     }
@@ -266,7 +285,7 @@ public class KeyboardComponent extends JPanel
      * @param pitch
      * @return Can be null if pitch is out of range.
      */
-    public PianoKey getPianoKey(int pitch)
+    public PianoKey getKey(int pitch)
     {
         return keyboardRange.isValid(pitch) ? pianoKeys.get(pitch - keyboardRange.lowPitch) : null;
     }
@@ -304,7 +323,7 @@ public class KeyboardComponent extends JPanel
     {
         if (keyboardRange.isValid(pitch))
         {
-            getPianoKey(pitch).setReleased();
+            getKey(pitch).setReleased();
         } else
         {
             showOutOfRangeNoteIndicator(pitch < keyboardRange.lowPitch, false);
@@ -326,7 +345,7 @@ public class KeyboardComponent extends JPanel
     {
         if (keyboardRange.isValid(pitch))
         {
-            getPianoKey(pitch).setPressed(velocity, pressedKeyColor);
+            getKey(pitch).setPressed(velocity, pressedKeyColor);
         } else
         {
             showOutOfRangeNoteIndicator(pitch < keyboardRange.lowPitch, true);
@@ -346,7 +365,7 @@ public class KeyboardComponent extends JPanel
     {
         if (keyboardRange.isValid(pitch))
         {
-            getPianoKey(pitch).setMarked(markColor);
+            getKey(pitch).setMarked(markColor);
         }
     }
 
@@ -365,7 +384,7 @@ public class KeyboardComponent extends JPanel
         {
             throw new IllegalArgumentException("pitch=" + pitch + " keyboardRange=" + keyboardRange);
         }
-        return getPianoKey(pitch).getVelocity();
+        return getKey(pitch).getVelocity();
     }
 
     /**
@@ -375,7 +394,7 @@ public class KeyboardComponent extends JPanel
      *
      * @return Can be null.
      */
-    public PianoKey getPianokey(Point p)
+    public PianoKey getKey(Point p)
     {
         Component c = this.getComponentAt(p.x, p.y);
         if (c instanceof PianoKey)
@@ -397,12 +416,30 @@ public class KeyboardComponent extends JPanel
         Graphics2D g2 = (Graphics2D) g.create();
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2.setColor(Color.LIGHT_GRAY);
-        g2.transform(orientation.getTransform(getBounds()));
 
+
+        // Prepare out of range indicators
         final int length = 5;
         final int semiHeight = 2;
         Insets in = getInsets();
-        float y = in.top + 20;
+        float yTop = in.top;
+        if (!pianoKeys.isEmpty())
+        {
+            switch (orientation)
+            {
+                case DOWN ->
+                    yTop = pianoKeys.get(0).getY();
+                case UP ->
+                    throw new UnsupportedOperationException("UP");
+                case LEFT ->
+                    throw new UnsupportedOperationException("LEFT");
+                case RIGHT ->
+                    yTop = pianoKeys.get(pianoKeys.size() - 1).getY();
+                default ->
+                    throw new AssertionError(orientation.name());
+            }
+        }
+        float y = yTop + 20;
 
         if (outOfRangeIndicatorLeft)
         {
@@ -440,7 +477,6 @@ public class KeyboardComponent extends JPanel
     @Override
     public void doLayout()
     {
-        // super.doLayout();
         Insets in = getInsets();
         Rectangle r = new Rectangle(in.left + OUT_OF_RANGE_INDICATOR_SPACE, in.top, getWidth() - in.left - in.right - 2 * OUT_OF_RANGE_INDICATOR_SPACE, getHeight() - in.top - in.bottom);
         if (isVertical())
@@ -448,42 +484,78 @@ public class KeyboardComponent extends JPanel
             r = new Rectangle(in.left, in.top + OUT_OF_RANGE_INDICATOR_SPACE, getWidth() - in.left - in.right, getHeight() - in.top - in.bottom - 2 * OUT_OF_RANGE_INDICATOR_SPACE);
         }
 
+
         // Keyboard takes all the horizontal space (in DOWN orientation)
-        int wKeyHeight = computeKeyboardHeightFromWidth(r.width);
+        int wKeyHeight = computeKeyboardHeightFromWidth(isVertical() ? r.height : r.width);
         int minNoteHeight = isVertical() ? getMinimumSize().width : getMinimumSize().height;
         int availableNoteHeight = isVertical() ? r.width : r.height;
         wKeyHeight = Math.max(wKeyHeight, minNoteHeight);  // Can't be smaller than minimal height
         wKeyHeight = Math.min(wKeyHeight, availableNoteHeight);      // Can't be taller than available height
 
-        // Size of a white key
+
+        // Width of a white key
         int wKeyWidth = (isVertical() ? r.height - 1 : r.width - 1) / keyboardRange.getNbWhiteKeys();
 
 
-        // Calculate X so the keyboard will be centered (because of integer rounding we may have differences
+        // Calculate X/Y so the keyboard will be centered (because of integer rounding we may have differences
         // between the object size and the real keyboard size)
         int realSize = wKeyWidth * keyboardRange.getNbWhiteKeys();
-        int x_pos = isVertical() ? r.x : r.x + ((r.width - realSize) / 2);
+        int x_pos;
+        switch (orientation)
+        {
+            case DOWN ->
+                x_pos = r.x + ((r.width - realSize) / 2);
+            case UP ->
+                throw new UnsupportedOperationException("UP");
+            case LEFT ->
+                throw new UnsupportedOperationException("LEFT");
+            case RIGHT ->
+                x_pos = r.x + ((r.width - wKeyHeight) / 2);
+            default ->
+                throw new AssertionError(orientation.name());
+        }
 
-        // Y centered
-        // int y_pos = r.y + (r.height - wKeyHeight) / 2;
-        int y_pos = isVertical() ? r.y + ((r.height - realSize) / 2) : r.y;
+
+        int y_pos;
+        switch (orientation)
+        {
+            case DOWN ->
+                y_pos = r.y + (r.height - wKeyHeight) / 2;          // centered
+            case UP ->
+                throw new UnsupportedOperationException("UP");
+            case LEFT ->
+                throw new UnsupportedOperationException("LEFT");
+            case RIGHT ->
+                y_pos = r.y + r.height - ((r.height - realSize) / 2);          // centered
+            default ->
+                throw new AssertionError(orientation.name());
+        }
 
         for (PianoKey key : pianoKeys)
         {
             // adjust size
-            key.setSizeRelativeToWhiteKey(wKeyWidth, wKeyHeight);
+            key.setSizeRelativeToWhiteKeyRef(wKeyWidth, wKeyHeight);
 
-            // translate it to put it after the last key
-            key.setLocation(x_pos, y_pos);
-
-            // offset to next key
-            if (isVertical())
+            switch (orientation)
             {
-                y_pos += key.getNextKeyPosX();
-            } else
-            {
-                x_pos += key.getNextKeyPosX();
+                case DOWN ->
+                {
+                    key.setLocation(x_pos, y_pos);
+                    x_pos += key.getNextKeyPosX();
+                }
+                case UP ->
+                    throw new UnsupportedOperationException("UP");
+                case LEFT ->
+                    throw new UnsupportedOperationException("LEFT");
+                case RIGHT ->
+                {
+                    key.setLocation(x_pos, y_pos - key.getHeight());
+                    y_pos -= key.getNextKeyPosX();
+                }
+                default ->
+                    throw new AssertionError(orientation.name());
             }
+
 
         }
     }
@@ -518,6 +590,10 @@ public class KeyboardComponent extends JPanel
      */
     private void showOutOfRangeNoteIndicator(boolean left, boolean showHide)
     {
+        if (!useOutOfRangeIndicator)
+        {
+            return;
+        }
         if (left)
         {
             outOfRangeIndicatorLeft = showHide;
