@@ -28,6 +28,8 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.util.NavigableMap;
+import java.util.TreeMap;
 import java.util.logging.Logger;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
 import org.jjazz.ui.keyboardcomponent.api.KeyboardComponent;
@@ -116,43 +118,107 @@ public class NotesPanel extends javax.swing.JPanel
 
     }
 
+
+    // =====================================================================================
+    // Inner classes
+    // =====================================================================================
     /**
-     * Get the Y range corresponding to the specified pitch.
-     *
-     * @param pitch
-     * @return
+     * Conversion methods between keyboard's Y coordinate, pitch and NoteView line's Y coordinate.
      */
-    private IntRange getYRange(int pitch)
+    public class YMapper
     {
-        return getYRange(keyboard.getKey(pitch));
-    }
 
-    private IntRange getYRange(PianoKey key)
-    {
-        int yTop = key.getY();
-        int yBottom = yTop + key.getHeight();
-        return new IntRange(yTop, yBottom);
-    }
+        /**
+         * The keyboard height used for the last YMapper refresh.
+         */
+        private int lastKeyboardHeight = -1;
+        private TreeMap<Integer, Integer> tmapPixelPitch = new TreeMap<>();
 
-    private IntRange getYRangeFitted(PianoKey key)
-    {
-        int yTop, yBottom;
-        if (key.isWhiteKey())
+
+        /**
+         * To be called when associated keyboard size has changed.
+         * <p>
+         * Recompute the internal tmapPixelPitch tree map.
+         *
+         * @param kbdHeight
+         */
+        private void refresh(int kbdHeight)
         {
-            yBottom = key.getY() + key.getHeight();
-            yTop = yBottom - key.getNextKeyPosX() + 1;
-        } else
-        {
-            yTop = key.getY();
-            yBottom = yTop + key.getHeight();
+            if (kbdHeight == lastKeyboardHeight)
+            {
+                return;
+            }
+            lastKeyboardHeight = kbdHeight;
+
+
+            // Compute the large NoteView line height (for C, E, F, B) and the small NoteView line height (for the other notes)
+            var wKeyC0 = keyboard.getKey(0); // first C
+            var yRangeC0 = getKeyboardYRange(wKeyC0);
+            float adjustedLargeHeight = 24f * yRangeC0.size() / 32;
+            var wKeyC1 = keyboard.getKey(12); // 2nd C
+            var yRangeC1 = getKeyboardYRange(wKeyC1);
+            int octaveHeight = yRangeC0.to - yRangeC1.to + 1;
+            float adjustedSmallHeight = (octaveHeight - 4 * adjustedLargeHeight) / 8;       // So we can accomodate 4 small + 4 large
+
+
+            // Fill the tree map
+            float y = yRangeC0.to;
+            tmapPixelPitch.clear();
+            for (int p = 0; p < 127; p++)
+            {
+                tmapPixelPitch.put(Math.round(y), p);
+                int pp = p % 12;
+                float yUp = (pp == 0 || pp == 4 || pp == 5 || pp == 11) ? adjustedLargeHeight : adjustedSmallHeight;
+                y -= yUp;
+            }
         }
-        return new IntRange(yTop, yBottom);
+
+        /**
+         * Get the pitch corresponding to y coordinate.
+         *
+         * @param y
+         * @return
+         */
+        public int getPitch(int y)
+        {
+            return tmapPixelPitch.ceilingEntry(y).getValue();
+        }
+
+        public IntRange getNoteViewChannelYRange(int pitch)
+        {
+            var entry = tmapPixelPitch.ceilingEntry(pitch)
+        }
+
+        /**
+         * Get the Y range of the specified keyboard key.
+         *
+         * @param pitch
+         * @return
+         */
+        public IntRange getKeyboardYRange(int pitch)
+        {
+            return getKeyboardYRange(keyboard.getKey(pitch));
+        }
+
+        /**
+         * Get the Y range of the specified keyboard key.
+         *
+         * @param key
+         * @return
+         */
+        public IntRange getKeyboardYRange(PianoKey key)
+        {
+            int yTop = key.getY();
+            int yBottom = yTop + key.getHeight();
+            return new IntRange(yTop, yBottom);
+        }
+
     }
 
     /**
-     * Compute required general data when keyboard is resized (so us as well).
+     * Conversion methods between NoteView X coordinate and position in beats.
      */
-    private void keyboardResized()
+    public class XMapper
     {
 
     }
