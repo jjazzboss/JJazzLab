@@ -22,6 +22,7 @@
  */
 package org.jjazz.pianoroll;
 
+import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.ui.keyboardcomponent.api.KeyboardComponent;
 import org.jjazz.ui.keyboardcomponent.api.KeyboardComponent.Orientation;
 import org.jjazz.ui.keyboardcomponent.api.KeyboardRange;
@@ -31,21 +32,28 @@ import org.jjazz.ui.keyboardcomponent.api.KeyboardRange;
  */
 public class KeysAndNotesPanel extends javax.swing.JPanel
 {
-    
+
     NotesPanel notesPanel;
+    KeyboardComponent keyboard;
+
+    private final PianoRollEditor editor;
 
     /**
      * Creates new form PianoRollPanel
      */
-    public KeysAndNotesPanel()
+    public KeysAndNotesPanel(PianoRollEditor editor)
     {
+        this.editor = editor;
+        this.keyboard = new KeyboardComponent(KeyboardRange._128_KEYS, Orientation.RIGHT, false);
+        notesPanel = new NotesPanel(editor, keyboard);
+
         initComponents();
-        
-        addNotesText(keyboard);
-        notesPanel = new NotesPanel(keyboard);
+
+
+        addNotesText(kbd);
+
         pnl_notes.add(notesPanel);
-        
-        
+
     }
 
     /**
@@ -53,7 +61,8 @@ public class KeysAndNotesPanel extends javax.swing.JPanel
      */
     public void setZoomY(float factor)
     {
-        keyboard.setScaleFactor(factor);
+        kbd.setScaleFactor(factor, Math.min(1.5f, factor));
+        // kbd.setScaleFactor(factor, factor);
     }
 
     // ==========================================================================================================
@@ -62,7 +71,7 @@ public class KeysAndNotesPanel extends javax.swing.JPanel
     private void addNotesText(KeyboardComponent kbd)
     {
         for (var key : kbd.getWhiteKeys())
-        {            
+        {
             int p = key.getPitch();
             if (p % 12 == 0)
             {
@@ -81,33 +90,24 @@ public class KeysAndNotesPanel extends javax.swing.JPanel
     private void initComponents()
     {
 
-        pnl_ruler = new javax.swing.JPanel();
-        jLabel1 = new javax.swing.JLabel();
-        jScrollPane1 = new javax.swing.JScrollPane();
+        pnl_ruler = new RulerPanel(editor, notesPanel);
+        scrollPane_keysAndNotes = new javax.swing.JScrollPane();
         pnl_keynotes = new javax.swing.JPanel();
         pnl_keyboard = new javax.swing.JPanel();
-        keyboard = new KeyboardComponent(KeyboardRange._128_KEYS, Orientation.RIGHT, false);
+        kbd = keyboard;
         pnl_notes = new javax.swing.JPanel();
 
         setLayout(new java.awt.BorderLayout());
-
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(KeysAndNotesPanel.class, "KeysAndNotesPanel.jLabel1.text")); // NOI18N
 
         javax.swing.GroupLayout pnl_rulerLayout = new javax.swing.GroupLayout(pnl_ruler);
         pnl_ruler.setLayout(pnl_rulerLayout);
         pnl_rulerLayout.setHorizontalGroup(
             pnl_rulerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(pnl_rulerLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jLabel1)
-                .addContainerGap(949, Short.MAX_VALUE))
+            .addGap(0, 998, Short.MAX_VALUE)
         );
         pnl_rulerLayout.setVerticalGroup(
             pnl_rulerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(pnl_rulerLayout.createSequentialGroup()
-                .addGap(14, 14, 14)
-                .addComponent(jLabel1)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addGap(0, 43, Short.MAX_VALUE)
         );
 
         add(pnl_ruler, java.awt.BorderLayout.NORTH);
@@ -115,28 +115,27 @@ public class KeysAndNotesPanel extends javax.swing.JPanel
         pnl_keynotes.setLayout(new java.awt.BorderLayout());
 
         pnl_keyboard.setLayout(new javax.swing.BoxLayout(pnl_keyboard, javax.swing.BoxLayout.LINE_AXIS));
-        pnl_keyboard.add(keyboard);
+        pnl_keyboard.add(kbd);
 
         pnl_keynotes.add(pnl_keyboard, java.awt.BorderLayout.WEST);
 
         pnl_notes.setLayout(new javax.swing.BoxLayout(pnl_notes, javax.swing.BoxLayout.LINE_AXIS));
         pnl_keynotes.add(pnl_notes, java.awt.BorderLayout.CENTER);
 
-        jScrollPane1.setViewportView(pnl_keynotes);
+        scrollPane_keysAndNotes.setViewportView(pnl_keynotes);
 
-        add(jScrollPane1, java.awt.BorderLayout.CENTER);
+        add(scrollPane_keysAndNotes, java.awt.BorderLayout.CENTER);
     }// </editor-fold>//GEN-END:initComponents
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JScrollPane jScrollPane1;
-    private org.jjazz.ui.keyboardcomponent.api.KeyboardComponent keyboard;
+    private org.jjazz.ui.keyboardcomponent.api.KeyboardComponent kbd;
     private javax.swing.JPanel pnl_keyboard;
     private javax.swing.JPanel pnl_keynotes;
     private javax.swing.JPanel pnl_notes;
     private javax.swing.JPanel pnl_ruler;
+    private javax.swing.JScrollPane scrollPane_keysAndNotes;
     // End of variables declaration//GEN-END:variables
 
-    
+
 }

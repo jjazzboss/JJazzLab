@@ -24,6 +24,7 @@ package org.jjazz.pianoroll;
 
 import com.google.common.base.Preconditions;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.event.ComponentAdapter;
@@ -33,16 +34,20 @@ import java.util.Map;
 import java.util.NavigableMap;
 import java.util.TreeMap;
 import java.util.logging.Logger;
+import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
+import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
 import org.jjazz.ui.keyboardcomponent.api.KeyboardComponent;
 import org.jjazz.ui.keyboardcomponent.api.PianoKey;
 import org.jjazz.ui.utilities.api.HSLColor;
+import org.jjazz.util.api.FloatRange;
 import org.jjazz.util.api.IntRange;
 
 /**
  * Show the grid and hold the NoteViews.
  * <p>
- * Work in conjunction with a vertical KeyboardComponent on the left side which must be in the same enclosing panel.
+ * Work in conjunction with a vertical KeyboardComponent on the left side which must be in the same enclosing panel. Provide the
+ * XMapper and YMapper which give the reference positions.
  */
 public class NotesPanel extends javax.swing.JPanel
 {
@@ -51,31 +56,64 @@ public class NotesPanel extends javax.swing.JPanel
     private final YMapper yMapper;
     private final XMapper xMapper;
     private static final Logger LOGGER = Logger.getLogger(NotesPanel.class.getSimpleName());
+    private final PianoRollEditor editor;
+    private float scaleFactorX = 1f;
 
-    /**
-     * Creates new form NotesPanel
-     * <p>
-     */
-    public NotesPanel(KeyboardComponent kbd)
+
+    public NotesPanel(PianoRollEditor editor, KeyboardComponent kbd)
     {
+        this.editor = editor;
         this.keyboard = kbd;
         this.xMapper = new XMapper();
         this.yMapper = new YMapper();
-
-
-        initComponents();
-
 
         this.keyboard.addComponentListener(new ComponentAdapter()
         {
             @Override
             public void componentResized(ComponentEvent e)
             {
+                LOGGER.severe("componentResized() -- keyboard.getHeight()=" + keyboard.getHeight());
                 yMapper.refresh(keyboard.getHeight());
+                revalidate();
                 repaint();
             }
         });
 
+    }
+
+    @Override
+    public Dimension getPreferredSize()
+    {
+        int h = keyboard.getPreferredSize().height;
+        int w = (int) (xMapper.getBeatRange().size() * 50 * scaleFactorX);
+        var res = new Dimension(w, h);
+        LOGGER.severe("getPreferredSize() res=" + res);
+        return new Dimension(w, h);
+    }
+
+    /**
+     * Make the component smaller or larger.
+     *
+     *
+     * @param factorX A value &gt; 0. Impact the keyboard width (in DOWN orientation).
+     * @param factorY A value &gt; 0. Impact the keyboard height (in DOWN orientation).
+     */
+    public void setScaleFactorX(float factorX)
+    {
+        Preconditions.checkArgument(factorX > 0);
+
+        if (scaleFactorX != factorX)
+        {
+            scaleFactorX = factorX;
+            revalidate();
+            repaint();
+        }
+    }
+
+
+    public float getScaleFactorX()
+    {
+        return scaleFactorX;
     }
 
     public YMapper getYMapper()
@@ -95,8 +133,17 @@ public class NotesPanel extends javax.swing.JPanel
         super.paintComponent(g);        // Honor the opaque property
         Graphics2D g2 = (Graphics2D) g;
 
+        LOGGER.severe("paintComponent() -- width=" + getWidth() + " h=" + getHeight() + " yMapper.getLastKeyboardHeight()=" + yMapper.getLastKeyboardHeight());
+
+        if (yMapper.getLastKeyboardHeight() != getHeight())
+        {
+            // yMapper is not consistent, no need to draw anything
+            LOGGER.severe("paintComponent() cancelled : yMapper.getLastKeyboardHeight()=" + yMapper.getLastKeyboardHeight() + " getHeight()=" + getHeight());
+            return;
+        }
 
         drawHorizontalGrid(g2);
+
     }
 
 
@@ -105,10 +152,6 @@ public class NotesPanel extends javax.swing.JPanel
     // ========================================================================================
     private void drawHorizontalGrid(Graphics2D g2)
     {
-        if (yMapper.getLastKeyboardHeight() == -1)
-        {
-            return;
-        }
         var settings = PianoRollEditorSettings.getDefault();
         if (settings == null)
         {
@@ -163,16 +206,18 @@ public class NotesPanel extends javax.swing.JPanel
          * Recompute internal data.
          *
          * @param kbdHeight
+         * @return False is refresh was not needed
          */
-        private void refresh(int kbdHeight)
+        private boolean refresh(int kbdHeight)
         {
-            Preconditions.checkArgument(kbdHeight > 10);
+            Preconditions.checkArgument(kbdHeight > 0);
             if (kbdHeight == lastKeyboardHeight)
             {
-                return;
+                LOGGER.severe("NotesPanel.YMapper.refresh() -- no change");
+                return false;
             }
             lastKeyboardHeight = kbdHeight;
-
+            LOGGER.severe("NotesPanel.YMapper.refresh() updating for kbdHeight=" + kbdHeight);
 
             // Compute the large NoteView line height (for C, E, F, B) and the small NoteView line height (for the other notes)
             var wKeyC0 = keyboard.getKey(0); // first C
@@ -182,6 +227,7 @@ public class NotesPanel extends javax.swing.JPanel
             var wKeyC1 = keyboard.getKey(12); // 2nd C
             var yRangeC1 = getKeyboardYRange(wKeyC1);
             int octaveHeight = yRangeC0.to - yRangeC1.to;
+            assert octaveHeight > 5 : "octaveHeight=" + octaveHeight;
             float adjustedSmallHeight = (octaveHeight - 4 * adjustedLargeHeight) / 8;       // So we can accomodate 4 small + 4 large
 
 
@@ -205,6 +251,8 @@ public class NotesPanel extends javax.swing.JPanel
                 mapPitchChannelYRange.put(p, channelNoteYRange);
                 y -= yUp;
             }
+
+            return true;
         }
 
         /**
@@ -228,14 +276,14 @@ public class NotesPanel extends javax.swing.JPanel
         }
 
         /**
-         * Get the pitch corresponding to y coordinate.
+         * Get the pitch corresponding to the specified yPos in this panel's coordinates.
          *
-         * @param y
+         * @param yPos
          * @return
          */
-        public int getPitch(int y)
+        public int getPitch(int yPos)
         {
-            return tmapPixelPitch.ceilingEntry(y).getValue();
+            return tmapPixelPitch.ceilingEntry(yPos).getValue();
         }
 
         /**
@@ -287,22 +335,134 @@ public class NotesPanel extends javax.swing.JPanel
     public class XMapper
     {
 
+        public FloatRange getBeatRange()
+        {
+            return editor.getModel().getBeatRange();
+        }
+
+        public IntRange getBarRange()
+        {
+            int nbBars = (int) (getBeatRange().size() / editor.getModel().getTimeSignature().getNbNaturalBeats());
+            return new IntRange(editor.getStartBarIndex(), editor.getStartBarIndex() + nbBars - 1);
+        }
+
+
+        /**
+         * Get the X coordinate of each integer beat.
+         *
+         * @return
+         */
+        public NavigableMap<Position, Integer> getAllBeatsXPositions()
+        {
+            NavigableMap<Position, Integer> res = new TreeMap<>();
+            int nbBeatsPerTs = (int) editor.getModel().getTimeSignature().getNbNaturalBeats();
+
+            for (int bar = getBarRange().from; bar <= getBarRange().to; bar++)
+            {
+                for (int beat = 0; beat < nbBeatsPerTs; beat++)
+                {
+                    var pos = new Position(bar, beat);
+                    var x = getX(pos);
+                    res.put(pos, x);
+                }
+            }
+            return res;
+        }
+
+        /**
+         * Get the size in pixels of 1 beat.
+         *
+         * @return
+         */
+        public float getOneBeatPixelSize()
+        {
+            return getWidth() / getBeatRange().size();
+        }
+
+        /**
+         * Get the beat position corresponding to the specified xPos in this panel's coordinates.
+         *
+         * @param yPos
+         * @return A beat position within getBeatRange().
+         */
+        public float getPositionInBeats(int xPos)
+        {
+            int w = getWidth();
+            Preconditions.checkArgument(xPos >= 0 && xPos < w, "xPos=%d w=%d", xPos, w);
+            float relPos = xPos / getOneBeatPixelSize();
+            float absPos = getBeatRange().from + relPos;
+            return absPos;
+        }
+
+        /**
+         * Get the position (bar, beat) corresponding to the specified xPos in this panel's coordinates.
+         *
+         * @param yPos
+         * @return
+         */
+        public Position getPosition(int xPos)
+        {
+            var posInBeats = getPositionInBeats(xPos);
+            return toPosition(posInBeats);
+        }
+
+        /**
+         *
+         * Get the X position (in this panel's coordinates) corresponding to the specified beat position.
+         *
+         * @param posInBeats A beat position within getBeatRange()
+         * @return
+         */
+        public int getX(float posInBeats)
+        {
+            Preconditions.checkArgument(getBeatRange().contains(posInBeats, true), "posInBeats=%s", posInBeats);
+            int w = getWidth();
+            int xPos = Math.round((posInBeats - getBeatRange().from) * getOneBeatPixelSize());
+            xPos = Math.min(w - 1, xPos);
+            return xPos;
+        }
+
+        /**
+         *
+         * Get the X position (in this panel's coordinates) corresponding to the specified position in bar/beat.
+         *
+         * @param posInBeats A beat position within getBeatRange()
+         * @return
+         */
+        public int getX(Position pos)
+        {
+            var xPos = getX(toPositionInBeats(pos));
+            return xPos;
+        }
+
+        /**
+         * Convert a position in beats into a bar/beat position.
+         *
+         * @param posInBeats
+         * @return
+         */
+        public Position toPosition(float posInBeats)
+        {
+            Preconditions.checkArgument(getBeatRange().contains(posInBeats, true), "posInBeats=%s", posInBeats);
+            float nbBeatsPerTs = editor.getModel().getTimeSignature().getNbNaturalBeats();
+            int relBar = (int) ((posInBeats - getBeatRange().from) / nbBeatsPerTs);
+            float beatWithinBar = posInBeats - getBeatRange().from - relBar * nbBeatsPerTs;
+            return new Position(editor.getStartBarIndex() + relBar, beatWithinBar);
+        }
+
+        /**
+         * Convert a position in bar/beat into a position in beats.
+         *
+         * @param pos
+         * @return
+         */
+        public float toPositionInBeats(Position pos)
+        {
+            float posInBeats = getBeatRange().from + pos.getPositionInBeats(editor.getModel().getTimeSignature());
+            Preconditions.checkArgument(getBeatRange().contains(posInBeats, true), "pos=%s getBeatRange()=%d", pos, getBeatRange());
+            return posInBeats;
+        }
     }
 
-    /**
-     * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of
-     * this method is always regenerated by the Form Editor.
-     */
-    @SuppressWarnings("unchecked")
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
-    private void initComponents()
-    {
 
-        setLayout(null);
-    }// </editor-fold>//GEN-END:initComponents
-
-
-
-    // Variables declaration - do not modify//GEN-BEGIN:variables
-    // End of variables declaration//GEN-END:variables
 }

@@ -76,15 +76,17 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
     private JJazzUndoManager undoManager;
     private final InstanceContent generalLookupContent;
     private final ZoomValue zoomValue;
+    private final int startBarIndex;
 
 
     /**
      * Creates new form PianoRollEditorImpl
      */
-    public PianoRollEditorImpl(SizedPhrase sp, DrumKit.KeyMap kmap, PianoRollEditorSettings settings)
+    public PianoRollEditorImpl(int startBarIndex, SizedPhrase sp, DrumKit.KeyMap kmap, PianoRollEditorSettings settings)
     {
         Preconditions.checkNotNull(sp);
         Preconditions.checkNotNull(settings);
+        this.startBarIndex = startBarIndex;
         this.spModel = sp;
         this.keymap = kmap;
         this.settings = settings;
@@ -123,6 +125,12 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
     public SizedPhrase getModel()
     {
         return spModel;
+    }
+
+    @Override
+    public int getStartBarIndex()
+    {
+        return startBarIndex;
     }
 
     @Override
@@ -287,7 +295,7 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
         slider_zoom = new javax.swing.JSlider();
         pnl_main = new javax.swing.JPanel();
         splitPane = new javax.swing.JSplitPane();
-        pianoRollPanel = new org.jjazz.pianoroll.KeysAndNotesPanel();
+        keysAndNotesPanel = new KeysAndNotesPanel(this);
         pnl_velocity = new javax.swing.JPanel();
         jButton2 = new javax.swing.JButton();
 
@@ -314,7 +322,7 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
         splitPane.setDividerSize(3);
         splitPane.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
         splitPane.setResizeWeight(1.0);
-        splitPane.setLeftComponent(pianoRollPanel);
+        splitPane.setLeftComponent(keysAndNotesPanel);
 
         pnl_velocity.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
 
@@ -348,7 +356,7 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
             return;
         }
         float f = (slider_zoom.getValue() + 50) / 100f;
-        pianoRollPanel.setZoomY(f);
+        keysAndNotesPanel.setZoomY(f);
     }//GEN-LAST:event_slider_zoomStateChanged
 
 
@@ -356,7 +364,7 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
-    private org.jjazz.pianoroll.KeysAndNotesPanel pianoRollPanel;
+    private org.jjazz.pianoroll.KeysAndNotesPanel keysAndNotesPanel;
     private javax.swing.JPanel pnl_main;
     private javax.swing.JPanel pnl_toolbar;
     private javax.swing.JPanel pnl_velocity;

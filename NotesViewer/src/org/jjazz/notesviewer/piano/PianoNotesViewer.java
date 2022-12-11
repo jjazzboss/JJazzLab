@@ -209,7 +209,7 @@ public class PianoNotesViewer implements NotesViewer
                 throw new AssertionError(mode.name());
         }
 
-        keyboard.setKeyboardRange(kbdRange);
+        keyboard.setRange(kbdRange);
 
         realTimeNotesEnabled = b;
     }

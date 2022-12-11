@@ -28,7 +28,6 @@ import java.io.*;
 import java.text.ParseException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.jjazz.harmony.api.Note;
 import org.jjazz.harmony.api.TimeSignature;
 import static org.jjazz.leadsheet.chordleadsheet.api.item.Bundle.CTL_InvalidValue;
 import static org.jjazz.leadsheet.chordleadsheet.api.item.Bundle.CTL_MissingEnclosingChars;
@@ -301,6 +300,58 @@ public final class Position implements Comparable<Position>, Serializable
             throw new IllegalArgumentException("barOffset=" + barOffset + " beatOffset=" + beatOffset + " this=" + this);
         }
         return new Position(barNew, beatNew);
+    }
+
+    /**
+     * Get the next integer beat position in the specified TimeSignature context.
+     *
+     * @param ts
+     * @return
+     */
+    public Position getNext(TimeSignature ts)
+    {
+        int nextBar = bar;
+        float nextBeat = (float) (Math.floor(beat) + 1);
+        if (nextBeat >= ts.getNbNaturalBeats())
+        {
+            nextBar++;
+            nextBeat = 0;
+        }
+        return new Position(nextBar, nextBeat);
+    }
+
+    /**
+     * Get the previous integer beat position in the specified TimeSignature context.
+     *
+     * @param ts
+     * @return
+     * @throws IllegalArgumentException If this position is already bar=0 beat=0.
+     */
+    public Position getPrevious(TimeSignature ts)
+    {
+        if (bar == 0 && beat == 0)
+        {
+            throw new IllegalArgumentException("this=" + this + " ts=" + ts);
+        }
+        int previousBar = bar;
+        float previousBeat = (int) (Math.ceil(beat) - 1);
+        if (previousBeat < 0)
+        {
+            previousBar--;
+            previousBeat = ts.getNbNaturalBeats() - 1;
+        }
+        return new Position(previousBar, previousBeat);
+    }
+
+    /**
+     * The position in natural beats in the context of the specified TimeSignature.
+     *
+     * @param ts
+     * @return
+     */
+    public float getPositionInBeats(TimeSignature ts)
+    {
+        return bar * ts.getNbNaturalBeats() + beat;
     }
 
     /**

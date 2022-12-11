@@ -119,7 +119,7 @@ public class PianoNotesViewerComponent extends javax.swing.JPanel
         {
             keyboard.reset();
         }
-        keyboard.setKeyboardRange(keyboard.getRange().next());
+        keyboard.setRange(keyboard.getRange().next());
     }//GEN-LAST:event_fbtn_sizeActionPerformed
 
 

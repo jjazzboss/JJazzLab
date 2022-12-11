@@ -45,10 +45,12 @@ import org.openide.util.Lookup;
 public abstract class PianoRollEditor extends JPanel implements Lookup.Provider
 {
 
-    public static PianoRollEditor getDefault(SizedPhrase sp, DrumKit.KeyMap keymap, PianoRollEditorSettings settings)
+    public static PianoRollEditor getDefault(int startBarIndex, SizedPhrase sp, DrumKit.KeyMap keymap, PianoRollEditorSettings settings)
     {
-        return new PianoRollEditorImpl(sp, keymap, settings);
+        return new PianoRollEditorImpl(startBarIndex, sp, keymap, settings);
     }
+
+    abstract public int getStartBarIndex();
 
     abstract public SizedPhrase getModel();
 

@@ -78,7 +78,7 @@ public final class PhraseEditorTopComponent extends TopComponent
         Phrase p = PhraseUtilities.getCscalePhrase(0, 0, 12);
         SizedPhrase sp = new SizedPhrase(p.getChannel(), new FloatRange(0, 16), TimeSignature.FOUR_FOUR);
         sp.add(p);
-        editorPanel = new PianoRollEditorImpl(sp, null, PianoRollEditorSettings.getDefault());
+        editorPanel = new PianoRollEditorImpl(0, sp, null, PianoRollEditorSettings.getDefault());
         add(editorPanel);
 
     }

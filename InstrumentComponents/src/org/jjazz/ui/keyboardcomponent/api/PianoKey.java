@@ -457,7 +457,7 @@ public class PianoKey extends JComponent
             double w = getWidth();
             double h = getHeight();
 
-            
+
             // Find the optimal font size
             Font f = getFont();
             var textBounds = new StringMetrics(g2, f).getLogicalBoundsNoLeading(text);
@@ -466,7 +466,6 @@ public class PianoKey extends JComponent
             textBounds = new StringMetrics(g2, f).getLogicalBoundsNoLeading(text);
             g2.setFont(f);
 
-            
 
             // Adjust location
             double x, y;
@@ -474,14 +473,14 @@ public class PianoKey extends JComponent
             {
                 case DOWN:
                     x = w / 2 - textBounds.getWidth() / 2 + 0.5;
-                    y = 0.9f * h;           // text baseline position
+                    y = h - 2;           // text baseline position
                     break;
                 case UP:
                     throw new UnsupportedOperationException("UP");
                 case LEFT:
                     throw new UnsupportedOperationException("LEFT");
                 case RIGHT:
-                    x = w * 0.8f - textBounds.getWidth() / 2 + 0.5;
+                    x = w - 2 - textBounds.getWidth() + 0.5;
                     y = h / 2 - textBounds.getWidth() / 2 - textBounds.getY();
                     break;
                 default:
@@ -822,7 +821,7 @@ public class PianoKey extends JComponent
     @Override
     public String toString()
     {
-        StringBuilder sb = new StringBuilder("PianoKey pitch=" + pitch + " [ ");
+        StringBuilder sb = new StringBuilder("PianoKey pitch=" + pitch + " location=" + getLocation());
         int rp = pitch % 12;
 
         for (int i = 0; i < polygon.npoints; i++)
