@@ -53,6 +53,8 @@ public class StringMetrics
 
     /**
      * Return a rectangle in baseline relative coordinates, include the leading (interline spacing).
+     * <p>
+     * If this method is called several times with the same text, the cached result is returned.
      *
      * @param text
      * @return
@@ -74,6 +76,8 @@ public class StringMetrics
 
     /**
      * Return a rectangle in baseline relative coordinates, excluding the leading (interline spacing).
+     * <p>
+     * If this method is called several times with the same text, the cached result is returned.
      *
      * @param text
      * @return

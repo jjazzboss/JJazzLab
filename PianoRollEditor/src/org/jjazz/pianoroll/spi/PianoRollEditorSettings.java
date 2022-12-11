@@ -40,10 +40,6 @@ public interface PianoRollEditorSettings
     public static PianoRollEditorSettings getDefault()
     {
         PianoRollEditorSettings result = Lookup.getDefault().lookup(PianoRollEditorSettings.class);
-        if (result == null)
-        {
-            throw new NullPointerException("result=" + result);   //NOI18N
-        }
         return result;
     }
 

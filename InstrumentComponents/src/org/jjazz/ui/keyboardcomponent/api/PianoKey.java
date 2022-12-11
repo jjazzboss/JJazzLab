@@ -25,7 +25,7 @@ package org.jjazz.ui.keyboardcomponent.api;
 import com.google.common.base.Preconditions;
 import java.awt.BasicStroke;
 import java.awt.Color;
-import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.GradientPaint;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -38,11 +38,13 @@ import java.util.logging.Logger;
 import javax.swing.JComponent;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.ui.keyboardcomponent.api.KeyboardComponent.Orientation;
+import org.jjazz.ui.utilities.api.StringMetrics;
+import org.jjazz.uisettings.api.GeneralUISettings;
 
 /**
  * A piano keyboard key.
  * <p>
- * Can show if key is selected, or if pressed with an indication of the velocity.
+ * Can show if key is selected, or if pressed with an indication of the velocity. A text can also be shown.
  */
 public class PianoKey extends JComponent
 {
@@ -58,13 +60,14 @@ public class PianoKey extends JComponent
 
     // 
     // Client properties
-    // call repaint() after updating these clientProperties
+    // User must call repaint() after updating these clientProperties
     private static final String COLOR_WKEY = "WKeyColor";
     private static final String COLOR_BKEY_DARKEST = "WKeyDarkestColor";
     private static final String COLOR_BKEY_LIGHTEST = "WKeyLightestColor";
     private static final String COLOR_KEY_CONTOUR = "WKeyContourColor";
     private static final String COLOR_KEY_CONTOUR_SELECTED = "WKeyContourSelectedColor";
     private static final String COLOR_DISABLED_KEY = "WKeyDisabledColor";
+    private static final String COLOR_FONT = "fontColor";
 
     /**
      * Standard White Key Width in DOWN orientation.
@@ -110,6 +113,7 @@ public class PianoKey extends JComponent
     private Color markColor;
     private final KeyboardComponent.Orientation orientation;
     private boolean isSelected;
+    private String text;
 
     /**
      * True if this key if the leftmost key of the pianodisplay (special shape).
@@ -164,6 +168,7 @@ public class PianoKey extends JComponent
         putClientProperty(COLOR_KEY_CONTOUR, new Color(117, 117, 117));
         putClientProperty(COLOR_KEY_CONTOUR_SELECTED, Color.BLUE.brighter());
         putClientProperty(COLOR_DISABLED_KEY, new Color(70, 70, 70));
+        putClientProperty(COLOR_FONT, Color.DARK_GRAY);
         showVelocityColor = false;
         pressedWhiteKeyColor = new Color(0, 128, 192);
 
@@ -171,6 +176,10 @@ public class PianoKey extends JComponent
         // Tooltip
         Note n = new Note(pitch);
         setToolTipText(n.toPianoOctaveString() + " (Midi pitch=" + pitch + ")");
+
+
+        Font font = GeneralUISettings.getInstance().getStdCondensedFont();
+        setFont(font);
     }
 
     public Color getColorProperty(String key)
@@ -181,6 +190,22 @@ public class PianoKey extends JComponent
     public void setColorProperty(String key, Color c)
     {
         putClientProperty(key, c);
+        repaint();
+    }
+
+    public String getText()
+    {
+        return text;
+    }
+
+    /**
+     * Show an horizontal text on the note.
+     *
+     * @param text Shorter is better! If null no text is shown.
+     */
+    public void setText(String text)
+    {
+        this.text = text;
         repaint();
     }
 
@@ -348,7 +373,7 @@ public class PianoKey extends JComponent
     {
         return xPosNextKey;
     }
-    
+
     /**
      * Draw the key.
      *
@@ -421,6 +446,50 @@ public class PianoKey extends JComponent
         g2.setColor(isSelected ? getColorProperty(COLOR_KEY_CONTOUR_SELECTED) : getColorProperty(COLOR_KEY_CONTOUR));
         g2.setStroke(isSelected ? new BasicStroke(CONTOUR_WIDTH) : new BasicStroke());
         g2.draw(polygon);
+
+
+        // Add the optional text
+        if (text != null)
+        {
+            g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+            g2.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+
+            double w = getWidth();
+            double h = getHeight();
+
+            
+            // Find the optimal font size
+            Font f = getFont();
+            var textBounds = new StringMetrics(g2, f).getLogicalBoundsNoLeading(text);
+            double targetFontHeight = h * 0.9;
+            f = f.deriveFont((float) (f.getSize2D() * targetFontHeight / textBounds.getHeight()));
+            textBounds = new StringMetrics(g2, f).getLogicalBoundsNoLeading(text);
+            g2.setFont(f);
+
+            
+
+            // Adjust location
+            double x, y;
+            switch (orientation)
+            {
+                case DOWN:
+                    x = w / 2 - textBounds.getWidth() / 2 + 0.5;
+                    y = 0.9f * h;           // text baseline position
+                    break;
+                case UP:
+                    throw new UnsupportedOperationException("UP");
+                case LEFT:
+                    throw new UnsupportedOperationException("LEFT");
+                case RIGHT:
+                    x = w * 0.8f - textBounds.getWidth() / 2 + 0.5;
+                    y = h / 2 - textBounds.getWidth() / 2 - textBounds.getY();
+                    break;
+                default:
+                    throw new AssertionError(orientation.name());
+            }
+            g2.setColor(getColorProperty(COLOR_FONT));
+            g2.drawString(text, (float) x, (float) y);
+        }
 
 
         // Add the optional mark
@@ -784,4 +853,6 @@ public class PianoKey extends JComponent
         }
         return res;
     }
+
+
 }

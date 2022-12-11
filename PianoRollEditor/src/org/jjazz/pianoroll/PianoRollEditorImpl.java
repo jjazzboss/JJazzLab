@@ -47,6 +47,7 @@ import org.openide.util.lookup.ProxyLookup;
  */
 public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChangeListener
 {
+
     private final SizedPhrase spModel;
     private final DrumKit.KeyMap keymap;
     private final PianoRollEditorSettings settings;
@@ -73,8 +74,8 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
      * Our UndoManager.
      */
     private JJazzUndoManager undoManager;
-    private InstanceContent generalLookupContent;
-    private ZoomValue zoomValue;
+    private final InstanceContent generalLookupContent;
+    private final ZoomValue zoomValue;
 
 
     /**
@@ -281,34 +282,39 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
     private void initComponents()
     {
 
-        pnl_top = new javax.swing.JPanel();
+        pnl_toolbar = new javax.swing.JPanel();
         jButton1 = new javax.swing.JButton();
+        slider_zoom = new javax.swing.JSlider();
         pnl_main = new javax.swing.JPanel();
         splitPane = new javax.swing.JSplitPane();
-        pnl_scrollPane = new javax.swing.JPanel();
-        scrollpane_piano_notes = new javax.swing.JScrollPane();
-        pianoRollPanel1 = new org.jjazz.pianoroll.PianoRollPanel();
+        pianoRollPanel = new org.jjazz.pianoroll.KeysAndNotesPanel();
         pnl_velocity = new javax.swing.JPanel();
         jButton2 = new javax.swing.JButton();
 
-        pnl_top.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
+        pnl_toolbar.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
 
         org.openide.awt.Mnemonics.setLocalizedText(jButton1, org.openide.util.NbBundle.getMessage(PianoRollEditorImpl.class, "PianoRollEditorImpl.jButton1.text")); // NOI18N
-        pnl_top.add(jButton1);
+        pnl_toolbar.add(jButton1);
+
+        slider_zoom.setMajorTickSpacing(5);
+        slider_zoom.setMaximum(400);
+        slider_zoom.setMinimum(1);
+        slider_zoom.setPaintTicks(true);
+        slider_zoom.addChangeListener(new javax.swing.event.ChangeListener()
+        {
+            public void stateChanged(javax.swing.event.ChangeEvent evt)
+            {
+                slider_zoomStateChanged(evt);
+            }
+        });
+        pnl_toolbar.add(slider_zoom);
 
         pnl_main.setLayout(new javax.swing.BoxLayout(pnl_main, javax.swing.BoxLayout.LINE_AXIS));
 
         splitPane.setDividerSize(3);
         splitPane.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
-
-        pnl_scrollPane.setPreferredSize(new java.awt.Dimension(625, 500));
-        pnl_scrollPane.setLayout(new javax.swing.BoxLayout(pnl_scrollPane, javax.swing.BoxLayout.LINE_AXIS));
-
-        scrollpane_piano_notes.setViewportView(pianoRollPanel1);
-
-        pnl_scrollPane.add(scrollpane_piano_notes);
-
-        splitPane.setLeftComponent(pnl_scrollPane);
+        splitPane.setResizeWeight(1.0);
+        splitPane.setLeftComponent(pianoRollPanel);
 
         pnl_velocity.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
 
@@ -323,29 +329,38 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(pnl_top, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(pnl_main, javax.swing.GroupLayout.DEFAULT_SIZE, 850, Short.MAX_VALUE)
+            .addComponent(pnl_toolbar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(pnl_main, javax.swing.GroupLayout.DEFAULT_SIZE, 864, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addComponent(pnl_top, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(pnl_toolbar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, 0)
-                .addComponent(pnl_main, javax.swing.GroupLayout.DEFAULT_SIZE, 361, Short.MAX_VALUE))
+                .addComponent(pnl_main, javax.swing.GroupLayout.DEFAULT_SIZE, 383, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
+
+    private void slider_zoomStateChanged(javax.swing.event.ChangeEvent evt)//GEN-FIRST:event_slider_zoomStateChanged
+    {//GEN-HEADEREND:event_slider_zoomStateChanged
+        if (slider_zoom.getValueIsAdjusting())
+        {
+            return;
+        }
+        float f = (slider_zoom.getValue() + 50) / 100f;
+        pianoRollPanel.setZoomY(f);
+    }//GEN-LAST:event_slider_zoomStateChanged
 
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
-    private org.jjazz.pianoroll.PianoRollPanel pianoRollPanel1;
+    private org.jjazz.pianoroll.KeysAndNotesPanel pianoRollPanel;
     private javax.swing.JPanel pnl_main;
-    private javax.swing.JPanel pnl_scrollPane;
-    private javax.swing.JPanel pnl_top;
+    private javax.swing.JPanel pnl_toolbar;
     private javax.swing.JPanel pnl_velocity;
-    private javax.swing.JScrollPane scrollpane_piano_notes;
+    private javax.swing.JSlider slider_zoom;
     private javax.swing.JSplitPane splitPane;
     // End of variables declaration//GEN-END:variables
 }

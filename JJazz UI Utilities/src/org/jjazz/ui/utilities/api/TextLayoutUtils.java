@@ -85,6 +85,9 @@ public final class TextLayoutUtils
      * <p>
      * Take into account bug on MacOSX Retina HiDPI screens.
      *
+     * @param textLayout
+     * @param textLayoutText
+     * @param isItalic
      * @return float Equivalent to an integer value.
      */
     public static float getWidth(TextLayout textLayout, String textLayoutText, boolean isItalic)
@@ -161,12 +164,13 @@ public final class TextLayoutUtils
     }
 
     /**
-     * Get real allocation (possibly not rectangular) of a part of layout.
-     * <br>
+     * Get real allocation (possibly not rectangular) of a part of layout.<br>
      * It's used when rendering the text layout for filling background highlights of the view.
      *
-     * @param length Total number of characters for which the allocation is computed.
-     * @param alloc  Allocation given by a parent view.
+     * @param textLayout
+     * @param textLayoutRect
+     * @param startHit
+     * @param endHit         
      * @return
      */
     public static Shape getRealAlloc(TextLayout textLayout, Rectangle2D textLayoutRect,

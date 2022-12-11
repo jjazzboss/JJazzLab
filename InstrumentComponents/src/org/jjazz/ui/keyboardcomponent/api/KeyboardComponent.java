@@ -97,6 +97,7 @@ public class KeyboardComponent extends JPanel
     private boolean outOfRangeIndicatorRight;
     private final Orientation orientation;
     private KeyboardRange keyboardRange;
+    private float scaleFactor = 1f;
 
     private final List<PianoKey> pianoKeys = new ArrayList<>();
     private static final Logger LOGGER = Logger.getLogger(KeyboardComponent.class.getSimpleName());
@@ -167,6 +168,26 @@ public class KeyboardComponent extends JPanel
     }
 
     /**
+     * Make the component smaller or larger.
+     *
+     * @param factor A value >0.
+     */
+    public void setScaleFactor(float factor)
+    {
+        Preconditions.checkArgument(factor > 0);
+        if (scaleFactor != factor)
+        {
+            scaleFactor = factor;
+            updatePreferredSize();
+        }
+    }
+
+    public float getScaleFactor()
+    {
+        return scaleFactor;
+    }
+
+    /**
      * Set the keyboard size.
      * <p>
      * New PianoKeys are created. Pressed/marked notes are maintained. This updates also the preferred and minimum size. Caller
@@ -228,35 +249,9 @@ public class KeyboardComponent extends JPanel
             key.setMarked(markedColors.get(i));
         }
 
-
-        // Set preferred size
-        Insets in = getInsets();
-        int w = (PianoKey.WW * getRange().getNbWhiteKeys()) + in.left + in.right + 1 + 2 * OUT_OF_RANGE_INDICATOR_SPACE;
-        int h = PianoKey.WH;
-        if (isVertical())
-        {
-            int tmp = w;
-            w = h;
-            h = tmp;
-        }
-        setPreferredSize(new Dimension(w, h));
-
-
-        // Set minimum size
-        int wMin = PianoKey.WW_MIN * getRange().getNbWhiteKeys();
-        int hMin = PianoKey.WH_MIN;
-        if (isVertical())
-        {
-            int tmp = wMin;
-            wMin = hMin;
-            hMin = tmp;
-        }
-        setMinimumSize(new Dimension(wMin, hMin));
-
-
-        revalidate();
-        repaint();
+        updatePreferredSize();
     }
+
 
     /**
      * Get all the PianoKeys.
@@ -601,6 +596,40 @@ public class KeyboardComponent extends JPanel
         {
             outOfRangeIndicatorRight = showHide;
         }
+        repaint();
+    }
+
+
+    private void updatePreferredSize()
+    {
+        Insets in = getInsets();
+
+
+        // Set minimum size
+        int wMin = in.left + in.right + 1 + (int) Math.ceil(scaleFactor * getRange().getNbWhiteKeys() * PianoKey.WW_MIN);
+        int hMin = in.top + (int) Math.ceil(scaleFactor * PianoKey.WH_MIN) + in.bottom;
+        if (isVertical())
+        {
+            int tmp = wMin;
+            wMin = hMin;
+            hMin = tmp;
+        }
+        setMinimumSize(new Dimension(wMin, hMin));
+
+
+        // Set preferred size
+        int w = (int) Math.ceil(scaleFactor * PianoKey.WW * getRange().getNbWhiteKeys()) + in.left + in.right + 1 + 2 * OUT_OF_RANGE_INDICATOR_SPACE;
+        int h = in.top + (int) Math.ceil(scaleFactor * PianoKey.WH) + in.bottom;
+        if (isVertical())
+        {
+            int tmp = w;
+            w = h;
+            h = tmp;
+        }
+        setPreferredSize(new Dimension(w, h));
+
+        
+        revalidate();
         repaint();
     }
 

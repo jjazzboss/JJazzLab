@@ -57,7 +57,7 @@ public class PianoRollEditorSettingsImpl implements PianoRollEditorSettings
     @Override
     public Color getBackgroundColor1()
     {
-        return new Color(prefs.getInt(PROP_BACKGROUND_COLOR1, Color.LIGHT_GRAY.darker().getRGB()));
+        return new Color(prefs.getInt(PROP_BACKGROUND_COLOR1, new Color(182,195,210).getRGB()));
     }
 
     @Override
@@ -78,7 +78,7 @@ public class PianoRollEditorSettingsImpl implements PianoRollEditorSettings
     @Override
     public Color getBackgroundColor2()
     {
-        return new Color(prefs.getInt(PROP_BACKGROUND_COLOR2, Color.LIGHT_GRAY.getRGB()));
+        return new Color(prefs.getInt(PROP_BACKGROUND_COLOR2,  new Color(193,206,220).getRGB()));
     }
 
     @Override
@@ -162,7 +162,7 @@ public class PianoRollEditorSettingsImpl implements PianoRollEditorSettings
     @Override
     public Color getBarLineColor()
     {
-        return new Color(prefs.getInt(PROP_BAR_LINE_COLOR, Color.LIGHT_GRAY.getRGB()));
+        return new Color(prefs.getInt(PROP_BAR_LINE_COLOR, new Color(142,158,174).getRGB()));
     }
 
     @Override
