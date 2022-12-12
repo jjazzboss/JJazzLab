@@ -72,7 +72,7 @@ public class NotesPanel extends javax.swing.JPanel
             @Override
             public void componentResized(ComponentEvent e)
             {
-                LOGGER.severe("componentResized() -- keyboard.getHeight()=" + keyboard.getHeight());
+                // LOGGER.severe("componentResized() -- keyboard.getHeight()=" + keyboard.getHeight());
                 yMapper.refresh(keyboard.getHeight());
                 revalidate();
                 repaint();
@@ -87,8 +87,8 @@ public class NotesPanel extends javax.swing.JPanel
         int h = keyboard.getPreferredSize().height;
         int w = (int) (xMapper.getBeatRange().size() * 50 * scaleFactorX);
         var res = new Dimension(w, h);
-        LOGGER.severe("getPreferredSize() res=" + res);
-        return new Dimension(w, h);
+        // LOGGER.severe("getPreferredSize() res=" + res);
+        return res;
     }
 
     /**
@@ -133,12 +133,11 @@ public class NotesPanel extends javax.swing.JPanel
         super.paintComponent(g);        // Honor the opaque property
         Graphics2D g2 = (Graphics2D) g;
 
-        LOGGER.severe("paintComponent() -- width=" + getWidth() + " h=" + getHeight() + " yMapper.getLastKeyboardHeight()=" + yMapper.getLastKeyboardHeight());
+        // LOGGER.severe("paintComponent() -- width=" + getWidth() + " h=" + getHeight() + " yMapper.getLastKeyboardHeight()=" + yMapper.getLastKeyboardHeight());
 
         if (yMapper.getLastKeyboardHeight() != getHeight())
         {
-            // yMapper is not consistent, no need to draw anything
-            LOGGER.severe("paintComponent() cancelled : yMapper.getLastKeyboardHeight()=" + yMapper.getLastKeyboardHeight() + " getHeight()=" + getHeight());
+            // yMapper is not consistent, don't draw anything
             return;
         }
 
@@ -213,11 +212,11 @@ public class NotesPanel extends javax.swing.JPanel
             Preconditions.checkArgument(kbdHeight > 0);
             if (kbdHeight == lastKeyboardHeight)
             {
-                LOGGER.severe("NotesPanel.YMapper.refresh() -- no change");
+                // LOGGER.severe("NotesPanel.YMapper.refresh() -- no change");
                 return false;
             }
             lastKeyboardHeight = kbdHeight;
-            LOGGER.severe("NotesPanel.YMapper.refresh() updating for kbdHeight=" + kbdHeight);
+            // LOGGER.severe("NotesPanel.YMapper.refresh() updating for kbdHeight=" + kbdHeight);
 
             // Compute the large NoteView line height (for C, E, F, B) and the small NoteView line height (for the other notes)
             var wKeyC0 = keyboard.getKey(0); // first C

@@ -70,14 +70,12 @@ public class RulerPanel extends javax.swing.JPanel
             @Override
             public void componentMoved(ComponentEvent e)
             {
-                LOGGER.severe("RulerPanel.componentMoved()");
                 repaint();
             }
 
             @Override
             public void componentResized(ComponentEvent e)
             {
-                LOGGER.severe("RulerPanel.componentResized()");
                 repaint();
             }
 

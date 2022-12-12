@@ -189,7 +189,7 @@ public class KeyboardComponent extends JPanel
         {
             scaleFactorX = factorX;
             scaleFactorY = factorY;
-            LOGGER.severe("setScaleFactor() factorX=" + factorX + " factorY=" + factorY);
+            // LOGGER.severe("setScaleFactor() factorX=" + factorX + " factorY=" + factorY);
             // We need to update the PianoKeys size & position now, because other components (see PianoRollEditor) might use it
             // once revalidate() is called.
             layoutKeys();
@@ -435,7 +435,7 @@ public class KeyboardComponent extends JPanel
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2.setColor(Color.LIGHT_GRAY);
 
-        LOGGER.severe("paintComponent() -- width=" + getWidth() + " h=" + getHeight());
+        // LOGGER.severe("paintComponent() -- width=" + getWidth() + " h=" + getHeight());
 
         // Prepare out of range indicators
         final int length = 5;
@@ -516,7 +516,7 @@ public class KeyboardComponent extends JPanel
             h = tmp;
         }
         var res = new Dimension(w, h);
-        LOGGER.severe("getPreferredSize() res=" + res);
+        // LOGGER.severe("getPreferredSize() res=" + res);
         return res;
     }
 
@@ -539,7 +539,7 @@ public class KeyboardComponent extends JPanel
     private void layoutKeys()
     {
         Dimension pd = getPreferredSize();
-        LOGGER.severe("layoutKeys() -- pd=" + pd);
+        // LOGGER.severe("layoutKeys() -- pd=" + pd);
         Insets in = getInsets();
         Rectangle r = new Rectangle(in.left + OUT_OF_RANGE_INDICATOR_SPACE, in.top, pd.width - in.left - in.right - 2 * OUT_OF_RANGE_INDICATOR_SPACE, pd.height - in.top - in.bottom);
         if (isVertical())
