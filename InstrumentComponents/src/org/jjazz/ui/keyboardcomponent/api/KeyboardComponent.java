@@ -99,7 +99,6 @@ public class KeyboardComponent extends JPanel
     private KeyboardRange range;
     private float scaleFactorX;
     private float scaleFactorY;
-    private Dimension lastLayoutDimension;
 
     private final List<PianoKey> pianoKeys = new ArrayList<>();
     private static final Logger LOGGER = Logger.getLogger(KeyboardComponent.class.getSimpleName());
@@ -145,7 +144,11 @@ public class KeyboardComponent extends JPanel
         this.scaleFactorX = 1;
         this.scaleFactorY = 1;
 
+        setLayout(null);
+
         setRange(kbdSize);
+
+
     }
 
     public boolean useOutOfRangeIndicator()
@@ -353,7 +356,7 @@ public class KeyboardComponent extends JPanel
      * If pitch is outside the KeyboardRange, show an indicator on the leftmost/rightmost note.
      *
      * @param pitch
-     * @param velocity        If 0 equivalent to calling setReleased()
+     * @param velocity If 0 equivalent to calling setReleased()
      * @param pressedKeyColor The pressed key color to be used. If null use default color.
      */
     public void setPressed(int pitch, int velocity, Color pressedKeyColor)
@@ -412,9 +415,9 @@ public class KeyboardComponent extends JPanel
     public PianoKey getKey(Point p)
     {
         Component c = this.getComponentAt(p.x, p.y);
-        if (c instanceof PianoKey)
+        if (c instanceof PianoKey pianoKey)
         {
-            return (PianoKey) c;
+            return pianoKey;
         }
         return null;
     }
@@ -524,14 +527,16 @@ public class KeyboardComponent extends JPanel
 //        LOGGER.severe("doLayout() -- ");
 //        doLayout(getSize());
 //    }
-
+    //--------------------------------------------------------------------
+    // Private methods
+    //--------------------------------------------------------------------
     /**
      * Layout the keys to fit the size.
      * <p>
      * Because of integer rounding errors, it may not fit exactly the required dimensions. The keyboard is centered inside the
      * box.
      */
-    public void layoutKeys()
+    private void layoutKeys()
     {
         Dimension pd = getPreferredSize();
         LOGGER.severe("layoutKeys() -- pd=" + pd);
@@ -618,9 +623,7 @@ public class KeyboardComponent extends JPanel
         }
     }
 
-    //--------------------------------------------------------------------
-    // Private methods
-    //--------------------------------------------------------------------
+
     /**
      * Calculate the keyboard height (in DOWN orientation) from specified keyboard width in order to maintain the optimal aspect
      * ratio.
@@ -644,7 +647,7 @@ public class KeyboardComponent extends JPanel
 
     /**
      *
-     * @param left     false means right
+     * @param left false means right
      * @param showHide show if true, hide if false
      */
     private void showOutOfRangeNoteIndicator(boolean left, boolean showHide)
