@@ -43,6 +43,10 @@ public interface Zoomable
     int getZoomYFactor();
 
     /**
+     * Set the Y zoom factor.
+     * <p>
+     * If value is changed fire a PROPERTY_ZOOM_Y change event.
+     *
      * @param factor A value between 0 and 100 included.
      */
     void setZoomYFactor(int factor);
@@ -53,12 +57,16 @@ public interface Zoomable
     int getZoomXFactor();
 
     /**
+     * Set the X zoom factor.
+     * <p>
+     * If value is changed fire a PROPERTY_ZOOM_X change event.
+     *
      * @param factor A value between 0 and 100 included.
      */
     void setZoomXFactor(int factor);
 
     /**
-     * Listen to the PROPERTY_ZOOM property.
+     * Listen to the PROPERTY_ZOOM properties.
      *
      * @param l
      */

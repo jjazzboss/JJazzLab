@@ -35,8 +35,8 @@ import java.util.NavigableMap;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
-import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
+import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.ui.keyboardcomponent.api.KeyboardComponent;
 import org.jjazz.ui.keyboardcomponent.api.PianoKey;
 import org.jjazz.ui.utilities.api.HSLColor;
@@ -56,14 +56,14 @@ public class NotesPanel extends javax.swing.JPanel
     private final YMapper yMapper;
     private final XMapper xMapper;
     private static final Logger LOGGER = Logger.getLogger(NotesPanel.class.getSimpleName());
-    private final PianoRollEditor editor;
+    private final PianoRollEditorImpl editor;
     private float scaleFactorX = 1f;
 
 
-    public NotesPanel(PianoRollEditor editor, KeyboardComponent kbd)
+    public NotesPanel(PianoRollEditorImpl editor, KeyboardComponent keyboard)
     {
         this.editor = editor;
-        this.keyboard = kbd;
+        this.keyboard = keyboard;
         this.xMapper = new XMapper();
         this.yMapper = new YMapper();
 
@@ -74,6 +74,9 @@ public class NotesPanel extends javax.swing.JPanel
             {
                 // LOGGER.severe("componentResized() -- keyboard.getHeight()=" + keyboard.getHeight());
                 yMapper.refresh(keyboard.getHeight());
+                
+                // Make sure editor y position does not move with the rescale
+                
                 revalidate();
                 repaint();
             }
@@ -92,13 +95,10 @@ public class NotesPanel extends javax.swing.JPanel
     }
 
     /**
-     * Make the component smaller or larger.
      *
-     *
-     * @param factorX A value &gt; 0. Impact the keyboard width (in DOWN orientation).
-     * @param factorY A value &gt; 0. Impact the keyboard height (in DOWN orientation).
+     * @param factorX A value &gt; 0
      */
-    public void setScaleFactorX(float factorX)
+    public void setZoomX(float factorX)
     {
         Preconditions.checkArgument(factorX > 0);
 
@@ -111,7 +111,7 @@ public class NotesPanel extends javax.swing.JPanel
     }
 
 
-    public float getScaleFactorX()
+    public float getZoomX()
     {
         return scaleFactorX;
     }
@@ -142,6 +142,8 @@ public class NotesPanel extends javax.swing.JPanel
         }
 
         drawHorizontalGrid(g2);
+
+        drawVerticalGrid(g2);
 
     }
 
@@ -181,6 +183,34 @@ public class NotesPanel extends javax.swing.JPanel
 
     }
 
+    private void drawVerticalGrid(Graphics2D g2)
+    {
+        var settings = PianoRollEditorSettings.getDefault();
+        if (settings == null)
+        {
+            return;
+        }
+        Color cl1 = settings.getBarLineColor();
+        Color cl2 = HSLColor.changeLuminance(cl1, 8);      // lighter color
+        Color cl3 = HSLColor.changeLuminance(cl2, 4);      // lighter color
+
+        int y0 = yMapper.getKeyboardYRange(0).to;
+        int y1 = yMapper.getKeyboardYRange(127).from;
+        var mapQPosX = xMapper.getAllQuantizedXPositions();
+
+        for (Position pos : mapQPosX.navigableKeySet())
+        {
+            int x = mapQPosX.get(pos);
+            Color c = cl1;
+            if (!pos.isFirstBarBeat())
+            {
+                c = pos.isOffBeat() ? cl3 : cl2;
+            }
+
+            g2.setColor(c);
+            g2.drawLine(x, y0, x, y1);
+        }
+    }
 
     // =====================================================================================
     // Inner classes
@@ -200,7 +230,7 @@ public class NotesPanel extends javax.swing.JPanel
         private int noteViewHeight;
 
         /**
-         * To be called when associated keyboard size has changed.
+         * To be called when associated keyboard height has changed.
          * <p>
          * Recompute internal data.
          *
@@ -334,10 +364,14 @@ public class NotesPanel extends javax.swing.JPanel
     public class XMapper
     {
 
+        private Quantization quantization = Quantization.ONE_QUARTER_BEAT;
+
+
         public FloatRange getBeatRange()
         {
             return editor.getModel().getBeatRange();
         }
+
 
         public IntRange getBarRange()
         {
@@ -345,6 +379,45 @@ public class NotesPanel extends javax.swing.JPanel
             return new IntRange(editor.getStartBarIndex(), editor.getStartBarIndex() + nbBars - 1);
         }
 
+        public Quantization getQuantization()
+        {
+            return quantization;
+        }
+
+        public void setQuantization(Quantization quantization)
+        {
+            this.quantization = quantization;
+            repaint();
+        }
+
+        /**
+         * Get the X coordinate of each quantized position.
+         *
+         * @return
+         */
+        public NavigableMap<Position, Integer> getAllQuantizedXPositions()
+        {
+            NavigableMap<Position, Integer> res = new TreeMap<>();
+            int nbBeatsPerTs = (int) editor.getModel().getTimeSignature().getNbNaturalBeats();
+
+            for (int bar = getBarRange().from; bar <= getBarRange().to; bar++)
+            {
+                for (int beat = 0; beat < nbBeatsPerTs; beat++)
+                {
+                    for (float qBeat : quantization.getBeats())
+                    {
+                        if (qBeat == 1)
+                        {
+                            continue;
+                        }
+                        var pos = new Position(bar, beat + qBeat);
+                        int xPos = getX(pos);
+                        res.put(pos, xPos);
+                    }
+                }
+            }
+            return res;
+        }
 
         /**
          * Get the X coordinate of each integer beat.
@@ -458,7 +531,7 @@ public class NotesPanel extends javax.swing.JPanel
         public float toPositionInBeats(Position pos)
         {
             float posInBeats = getBeatRange().from + pos.getPositionInBeats(editor.getModel().getTimeSignature());
-            Preconditions.checkArgument(getBeatRange().contains(posInBeats, true), "pos=%s getBeatRange()=%d", pos, getBeatRange());
+            Preconditions.checkArgument(getBeatRange().contains(posInBeats, true), "pos=%s getBeatRange()=%s", pos, getBeatRange());
             return posInBeats;
         }
     }

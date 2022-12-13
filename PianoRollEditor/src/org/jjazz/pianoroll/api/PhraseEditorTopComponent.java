@@ -32,6 +32,7 @@ import org.jjazz.util.api.FloatRange;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
+import org.openide.util.Lookup;
 import org.openide.windows.TopComponent;
 import org.openide.util.NbBundle.Messages;
 
@@ -81,6 +82,12 @@ public final class PhraseEditorTopComponent extends TopComponent
         editorPanel = new PianoRollEditorImpl(0, sp, null, PianoRollEditorSettings.getDefault());
         add(editorPanel);
 
+    }
+    
+    @Override
+    public Lookup getLookup()
+    {
+        return editorPanel.getLookup();
     }
 
     /**

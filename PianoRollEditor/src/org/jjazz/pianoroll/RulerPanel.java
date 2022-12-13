@@ -32,8 +32,8 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.image.BufferedImage;
 import java.util.logging.Logger;
+import javax.swing.JScrollPane;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
-import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.ui.utilities.api.StringMetrics;
 import org.jjazz.uisettings.api.GeneralUISettings;
 
@@ -50,12 +50,20 @@ public class RulerPanel extends javax.swing.JPanel
     private static final Color COLOR_BACKGROUND = new Color(15, 29, 42);
     private final NotesPanel notesPanel;
     private final NotesPanel.XMapper xMapper;
-    private final PianoRollEditor editor;
+    private final PianoRollEditorImpl editor;
+    private final JScrollPane scrollPane;
     private static final Logger LOGGER = Logger.getLogger(RulerPanel.class.getSimpleName());
 
-    public RulerPanel(PianoRollEditor editor, NotesPanel notesPanel)
+    /**
+     *
+     * @param editor
+     * @param notesPanelEnclosingScrollPane 
+     * @param notesPanel
+     */
+    public RulerPanel(PianoRollEditorImpl editor, JScrollPane notesPanelEnclosingScrollPane, NotesPanel notesPanel)
     {
         this.editor = editor;
+        this.scrollPane = notesPanelEnclosingScrollPane;
         this.notesPanel = notesPanel;
         this.xMapper = notesPanel.getXMapper();
 
@@ -65,6 +73,7 @@ public class RulerPanel extends javax.swing.JPanel
         setFont(font);
         setPreferredSize(computePreferredSize(font));
 
+        // Repaint if notesPanel has moved.resized
         notesPanel.addComponentListener(new ComponentAdapter()
         {
             @Override
@@ -79,6 +88,12 @@ public class RulerPanel extends javax.swing.JPanel
                 repaint();
             }
 
+        });
+
+        // Repaint if some scrolling happened
+        scrollPane.getViewport().addChangeListener(e ->
+        {
+            repaint();
         });
     }
 
@@ -102,8 +117,8 @@ public class RulerPanel extends javax.swing.JPanel
 
 
         // Draw limit line on the left of the ruler
-        g2.setColor(COLOR_BAR_TICK);
-        g2.drawLine(xOffset, 0, xOffset, h - 1);
+//        g2.setColor(COLOR_BAR_TICK);
+//        g2.drawLine(xOffset, 0, xOffset, h - 1);
 
 
         // Draw ticks + bar/beat

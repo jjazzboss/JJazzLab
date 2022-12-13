@@ -23,9 +23,12 @@
 package org.jjazz.pianoroll;
 
 import com.google.common.base.Preconditions;
+import java.awt.BorderLayout;
 import java.awt.Point;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.logging.Level;
+import javax.swing.JSplitPane;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
@@ -35,6 +38,8 @@ import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.pianoroll.api.ZoomValue;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
 import org.jjazz.quantizer.api.Quantization;
+import org.jjazz.ui.keyboardcomponent.api.KeyboardComponent;
+import org.jjazz.ui.utilities.api.Zoomable;
 import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.openide.awt.UndoRedo;
 import org.openide.util.Lookup;
@@ -48,9 +53,16 @@ import org.openide.util.lookup.ProxyLookup;
 public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChangeListener
 {
 
+    private ToolbarPanel toolbarPanel;
+    private JSplitPane splitPane;
+    private KeysAndNotesPanel keysAndNotesPanel;
+    private VelocityPanel velocityPanel;
+
+    private ZoomValue zoomValue;
     private final SizedPhrase spModel;
     private final DrumKit.KeyMap keymap;
     private final PianoRollEditorSettings settings;
+
     /**
      * Our global lookup.
      */
@@ -75,7 +87,6 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
      */
     private JJazzUndoManager undoManager;
     private final InstanceContent generalLookupContent;
-    private final ZoomValue zoomValue;
     private final int startBarIndex;
 
 
@@ -102,6 +113,7 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
 
         // The lookup for other stuff
         generalLookupContent = new InstanceContent();
+        generalLookupContent.add(new PianoRollZoomable());
         generalLookup = new AbstractLookup(generalLookupContent);
 
         // Our implementation is made "Zoomable" by controllers
@@ -117,9 +129,14 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
         zoomValue = new ZoomValue();
 
 
-        initComponents();
+        createUI();
     }
 
+    @Override
+    public Lookup getLookup()
+    {
+        return lookup;
+    }
 
     @Override
     public SizedPhrase getModel()
@@ -160,25 +177,35 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
     @Override
     public void setZoom(ZoomValue zoom)
     {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        if (!zoomValue.equals(zoom))
+        {
+            // X factor : between 0.2 and 4.2
+            float xFactor = 0.2f + 4 * zoom.hFactor() / 100f;
+            keysAndNotesPanel.getNotesPanel().setZoomX(xFactor);
+
+            // Y factor : between 0.4 and 4.2
+            float yFactor = 0.4f + 4 * zoom.vFactor() / 100f;
+            keysAndNotesPanel.setZoomY(yFactor);
+            zoomValue = zoom;
+        }
     }
 
     @Override
     public ZoomValue getZoom()
     {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        return zoomValue;
     }
 
     @Override
     public void setQuantization(Quantization q)
     {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        keysAndNotesPanel.getNotesPanel().getXMapper().setQuantization(q);
     }
 
     @Override
     public Quantization getQuantization()
     {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        return keysAndNotesPanel.getNotesPanel().getXMapper().getQuantization();
     }
 
     @Override
@@ -247,10 +274,30 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
-    @Override
-    public Lookup getLookup()
+
+    public ToolbarPanel getToolbarPanel()
     {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        return toolbarPanel;
+    }
+
+    public KeysAndNotesPanel getKeysAndNotesPanel()
+    {
+        return keysAndNotesPanel;
+    }
+
+    public NotesPanel getNotesPanel()
+    {
+        return keysAndNotesPanel.getNotesPanel();
+    }
+
+    public KeyboardComponent getKeyboard()
+    {
+        return keysAndNotesPanel.getKeyboard();
+    }
+
+    public VelocityPanel getVelocityPanel()
+    {
+        return velocityPanel;
     }
     //------------------------------------------------------------------------------
     // PropertyChangeListener interface
@@ -281,94 +328,83 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
         return keymap != null;
     }
 
-    /**
-     * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of
-     * this method is always regenerated by the Form Editor.
-     */
-    @SuppressWarnings("unchecked")
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
-    private void initComponents()
+    private void createUI()
     {
-
-        pnl_toolbar = new javax.swing.JPanel();
-        jButton1 = new javax.swing.JButton();
-        slider_zoom = new javax.swing.JSlider();
-        pnl_main = new javax.swing.JPanel();
-        splitPane = new javax.swing.JSplitPane();
         keysAndNotesPanel = new KeysAndNotesPanel(this);
-        pnl_velocity = new javax.swing.JPanel();
-        jButton2 = new javax.swing.JButton();
+        toolbarPanel = new ToolbarPanel(this);      // Must be after keysAndNotesPanel creation        
+        velocityPanel = new VelocityPanel(this);
 
-        pnl_toolbar.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
-
-        org.openide.awt.Mnemonics.setLocalizedText(jButton1, org.openide.util.NbBundle.getMessage(PianoRollEditorImpl.class, "PianoRollEditorImpl.jButton1.text")); // NOI18N
-        pnl_toolbar.add(jButton1);
-
-        slider_zoom.setMajorTickSpacing(5);
-        slider_zoom.setMaximum(400);
-        slider_zoom.setMinimum(1);
-        slider_zoom.setPaintTicks(true);
-        slider_zoom.addChangeListener(new javax.swing.event.ChangeListener()
-        {
-            public void stateChanged(javax.swing.event.ChangeEvent evt)
-            {
-                slider_zoomStateChanged(evt);
-            }
-        });
-        pnl_toolbar.add(slider_zoom);
-
-        pnl_main.setLayout(new javax.swing.BoxLayout(pnl_main, javax.swing.BoxLayout.LINE_AXIS));
-
+        splitPane = new javax.swing.JSplitPane();
         splitPane.setDividerSize(3);
         splitPane.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
         splitPane.setResizeWeight(1.0);
         splitPane.setLeftComponent(keysAndNotesPanel);
+        splitPane.setRightComponent(velocityPanel);
 
-        pnl_velocity.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
+        setLayout(new BorderLayout());
+        add(toolbarPanel, BorderLayout.NORTH);
+        add(splitPane, BorderLayout.CENTER);
 
-        org.openide.awt.Mnemonics.setLocalizedText(jButton2, org.openide.util.NbBundle.getMessage(PianoRollEditorImpl.class, "PianoRollEditorImpl.jButton2.text")); // NOI18N
-        pnl_velocity.add(jButton2);
+    }
 
-        splitPane.setRightComponent(pnl_velocity);
 
-        pnl_main.add(splitPane);
+    // =======================================================================================================================
+    // Inner classes
+    // =======================================================================================================================
+    /**
+     * Implements the Zoomable functionalities.
+     */
+    private class PianoRollZoomable implements Zoomable
+    {
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
-        this.setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(pnl_toolbar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(pnl_main, javax.swing.GroupLayout.DEFAULT_SIZE, 864, Short.MAX_VALUE)
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(pnl_toolbar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, 0)
-                .addComponent(pnl_main, javax.swing.GroupLayout.DEFAULT_SIZE, 383, Short.MAX_VALUE))
-        );
-    }// </editor-fold>//GEN-END:initComponents
-
-    private void slider_zoomStateChanged(javax.swing.event.ChangeEvent evt)//GEN-FIRST:event_slider_zoomStateChanged
-    {//GEN-HEADEREND:event_slider_zoomStateChanged
-        if (slider_zoom.getValueIsAdjusting())
+        @Override
+        public Zoomable.Capabilities getZoomCapabilities()
         {
-            return;
+            return Zoomable.Capabilities.X_Y;
         }
-        float f = (slider_zoom.getValue() + 50) / 100f;
-        keysAndNotesPanel.setZoomY(f);
-    }//GEN-LAST:event_slider_zoomStateChanged
 
+        @Override
+        public int getZoomYFactor()
+        {
+            return getZoom().vFactor();
+        }
 
+        @Override
+        public void setZoomYFactor(int newFactor)
+        {
+            int old = getZoomYFactor();
+            setZoom(new ZoomValue(getZoomXFactor(), newFactor));
+            firePropertyChange(Zoomable.PROPERTY_ZOOM_Y, old, newFactor);
+        }
 
-    // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
-    private org.jjazz.pianoroll.KeysAndNotesPanel keysAndNotesPanel;
-    private javax.swing.JPanel pnl_main;
-    private javax.swing.JPanel pnl_toolbar;
-    private javax.swing.JPanel pnl_velocity;
-    private javax.swing.JSlider slider_zoom;
-    private javax.swing.JSplitPane splitPane;
-    // End of variables declaration//GEN-END:variables
+        @Override
+        public int getZoomXFactor()
+        {
+            return getZoom().hFactor();
+        }
+
+        @Override
+        public void setZoomXFactor(int newFactor)
+        {
+            int old = getZoomXFactor();
+            setZoom(new ZoomValue(newFactor, getZoomYFactor()));
+            firePropertyChange(Zoomable.PROPERTY_ZOOM_X, old, newFactor);
+
+        }
+
+        @Override
+        public void addPropertyListener(PropertyChangeListener l)
+        {
+            addPropertyChangeListener(Zoomable.PROPERTY_ZOOM_X, l);
+            addPropertyChangeListener(Zoomable.PROPERTY_ZOOM_Y, l);
+        }
+
+        @Override
+        public void removePropertyListener(PropertyChangeListener l)
+        {
+            removePropertyChangeListener(Zoomable.PROPERTY_ZOOM_X, l);
+            removePropertyChangeListener(Zoomable.PROPERTY_ZOOM_Y, l);
+        }
+    };
+
 }

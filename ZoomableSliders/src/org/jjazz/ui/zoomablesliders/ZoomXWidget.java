@@ -112,7 +112,7 @@ public class ZoomXWidget extends javax.swing.JPanel implements StatusLineElement
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
-        if (evt.getPropertyName() == Zoomable.PROPERTY_ZOOM_X)
+        if (evt.getPropertyName().equals(Zoomable.PROPERTY_ZOOM_X))
         {
             int newFactor = (int) evt.getNewValue();
             if (newFactor < 0 || newFactor > 100)

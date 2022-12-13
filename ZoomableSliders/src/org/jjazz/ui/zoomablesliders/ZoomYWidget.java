@@ -108,7 +108,7 @@ public class ZoomYWidget extends javax.swing.JPanel implements StatusLineElement
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
-        if (evt.getPropertyName() == Zoomable.PROPERTY_ZOOM_Y)
+        if (evt.getPropertyName().equals(Zoomable.PROPERTY_ZOOM_Y))
         {
             int newFactor = (int) evt.getNewValue();
             if (newFactor < 0 || newFactor > 100)
@@ -162,7 +162,7 @@ public class ZoomYWidget extends javax.swing.JPanel implements StatusLineElement
        {
            int newValue = slider.getValue();
            currentZoomable.setZoomYFactor(newValue);
-       }       
+       }
    }//GEN-LAST:event_sliderPropertyChange
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
