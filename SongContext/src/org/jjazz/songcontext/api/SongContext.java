@@ -200,7 +200,7 @@ public class SongContext
      */
     public IntRange getSptBarRange(SongPart spt)
     {
-        return spt.getBarRange().getIntersectRange(barRange);
+        return spt.getBarRange().getIntersection(barRange);
     }
 
     /**
@@ -236,7 +236,7 @@ public class SongContext
      */
     public boolean contains(SongPart spt)
     {
-        return barRange.intersects(spt.getBarRange());
+        return barRange.isIntersecting(spt.getBarRange());
     }
 
     /**

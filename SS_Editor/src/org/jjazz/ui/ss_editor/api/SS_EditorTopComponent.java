@@ -285,7 +285,7 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
                         Zoomable zoomable = ssEditor.getLookup().lookup(Zoomable.class);
                         if (zoomable != null)
                         {
-                            zoomable.setZoomXFactor(zfx);    // This will mark songModel as modified via Song.putClientProperty()
+                            zoomable.setZoomXFactor(zfx, false);    // This will mark songModel as modified via Song.putClientProperty()
                         }
                     }
                 } else

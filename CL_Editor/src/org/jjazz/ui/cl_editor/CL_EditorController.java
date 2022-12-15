@@ -195,7 +195,7 @@ public class CL_EditorController implements CL_EditorMouseListener
                 Zoomable zoomable = editor.getLookup().lookup(Zoomable.class);
                 if (zoomable != null)
                 {
-                    zoomable.setZoomXFactor(zfx);
+                    zoomable.setZoomXFactor(zfx, false);
                 }
             }
         }
@@ -219,7 +219,7 @@ public class CL_EditorController implements CL_EditorMouseListener
                 Zoomable zoomable = editor.getLookup().lookup(Zoomable.class);
                 if (zoomable != null)
                 {
-                    zoomable.setZoomYFactor(zfy);
+                    zoomable.setZoomYFactor(zfy, false);
                 }
             }
         }
@@ -537,7 +537,7 @@ public class CL_EditorController implements CL_EditorMouseListener
             factor = Math.max(0, factor - STEP);
         }
         LOGGER.log(Level.FINE, "editorWheelMoved() factor={0}", factor);   //NOI18N
-        zoomable.setZoomXFactor(factor);
+        zoomable.setZoomXFactor(factor, false);
 
 
     }

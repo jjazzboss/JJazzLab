@@ -151,7 +151,7 @@ public class GridChordContext
         } else
         {
             toNextBeatCellRange = new IntRange(chordCell + 1, chordCell + grid.getNbCellsPerBeat() - relCellInBeat - 1);
-            toNextBeatCellRange = afterCellRange.getIntersectRange(toNextBeatCellRange);
+            toNextBeatCellRange = afterCellRange.getIntersection(toNextBeatCellRange);
         }
 
         // Range from start of beat
@@ -161,7 +161,7 @@ public class GridChordContext
         } else
         {
             fromBeatStartCellRange = new IntRange(chordCell - relCellInBeat, chordCell - 1);
-            fromBeatStartCellRange = beforeCellRange.getIntersectRange(fromBeatStartCellRange);
+            fromBeatStartCellRange = beforeCellRange.getIntersection(fromBeatStartCellRange);
         }
 
         // Beat range from the chord symbol location to the end of the zone

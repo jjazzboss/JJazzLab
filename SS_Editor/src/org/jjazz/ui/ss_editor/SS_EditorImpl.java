@@ -1226,7 +1226,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         }
 
         @Override
-        public void setZoomYFactor(int factor)
+        public void setZoomYFactor(int factor, boolean valueIsAdjusting)
         {
             setZoomVFactor(factor);
         }
@@ -1238,7 +1238,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         }
 
         @Override
-        public void setZoomXFactor(int factor)
+        public void setZoomXFactor(int factor, boolean valueIsAdjusting)
         {
             setZoomHFactor(factor);
         }

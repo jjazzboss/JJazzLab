@@ -28,9 +28,9 @@ import java.util.logging.Logger;
 /**
  * Zoom value for an editor.
  * <p>
- * hFactor and vFactor must be in the range [0;100]. One of them can be the special ZOOM_TO_FIT value.
+ * hValue and vValue must be in the range [0;100]. One of them can be the special ZOOM_TO_FIT value.
  */
-public record ZoomValue(int hFactor, int vFactor)
+public record ZoomValue(int hValue, int vValue)
         {
 
     /**
@@ -39,6 +39,9 @@ public record ZoomValue(int hFactor, int vFactor)
     public static final int ZOOM_TO_FIT = 99999;
     private static final Logger LOGGER = Logger.getLogger(ZoomValue.class.getSimpleName());
 
+    /**
+     * Create a zoom value with 50 / 50.
+     */
     public ZoomValue()
     {
         this(50, 50);
@@ -46,14 +49,14 @@ public record ZoomValue(int hFactor, int vFactor)
 
     public ZoomValue 
     {
-        if (!checkValue(hFactor) || !checkValue(vFactor) || (hFactor == ZOOM_TO_FIT && vFactor == ZOOM_TO_FIT))
+        if (!checkValue(hValue) || !checkValue(vValue) || (hValue == ZOOM_TO_FIT && vValue == ZOOM_TO_FIT))
         {
-            throw new IllegalArgumentException("hFactor=" + hFactor + " vFactor=" + vFactor);
+            throw new IllegalArgumentException("hValue=" + hValue + " vValue=" + vValue);
         }
     }
 
     /**
-     * Get a copy of this instance with hFactor changed.
+     * Get a copy of this instance with hValue changed.
      *
      * @param newHFactor
      * @return
@@ -64,11 +67,11 @@ public record ZoomValue(int hFactor, int vFactor)
         {
             throw new IllegalArgumentException("newHFactor=" + newHFactor);
         }
-        return new ZoomValue(newHFactor, vFactor);
+        return new ZoomValue(newHFactor, vValue);
     }
 
     /**
-     * Get a copy of this instance with vFactor changed.
+     * Get a copy of this instance with vValue changed.
      *
      * @param newVFactor
      * @return
@@ -79,7 +82,7 @@ public record ZoomValue(int hFactor, int vFactor)
         {
             throw new IllegalArgumentException("newVFactor=" + newVFactor);
         }
-        return new ZoomValue(hFactor, newVFactor);
+        return new ZoomValue(hValue, newVFactor);
     }
 
     /**
@@ -90,7 +93,7 @@ public record ZoomValue(int hFactor, int vFactor)
      */
     public String saveAsString()
     {
-        return Integer.toString(hFactor) + ";" + Integer.toString(vFactor);
+        return Integer.toString(hValue) + ";" + Integer.toString(vValue);
     }
 
     /**

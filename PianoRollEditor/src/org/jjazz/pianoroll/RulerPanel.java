@@ -27,18 +27,19 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.image.BufferedImage;
+import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.JScrollPane;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.ui.utilities.api.StringMetrics;
 import org.jjazz.uisettings.api.GeneralUISettings;
 
 /**
- * The ruler panel that shows the beat position marks over a NotesPanel.
+ * The ruler panel that shows the beat position marks over the NotesPanel.
  */
 public class RulerPanel extends javax.swing.JPanel
 {
@@ -51,19 +52,16 @@ public class RulerPanel extends javax.swing.JPanel
     private final NotesPanel notesPanel;
     private final NotesPanel.XMapper xMapper;
     private final PianoRollEditorImpl editor;
-    private final JScrollPane scrollPane;
     private static final Logger LOGGER = Logger.getLogger(RulerPanel.class.getSimpleName());
 
     /**
      *
      * @param editor
-     * @param notesPanelEnclosingScrollPane 
      * @param notesPanel
      */
-    public RulerPanel(PianoRollEditorImpl editor, JScrollPane notesPanelEnclosingScrollPane, NotesPanel notesPanel)
+    public RulerPanel(PianoRollEditorImpl editor, NotesPanel notesPanel)
     {
         this.editor = editor;
-        this.scrollPane = notesPanelEnclosingScrollPane;
         this.notesPanel = notesPanel;
         this.xMapper = notesPanel.getXMapper();
 
@@ -71,32 +69,29 @@ public class RulerPanel extends javax.swing.JPanel
 
         Font font = GeneralUISettings.getInstance().getStdFont().deriveFont(12f);
         setFont(font);
-        setPreferredSize(computePreferredSize(font));
 
-        // Repaint if notesPanel has moved.resized
-        notesPanel.addComponentListener(new ComponentAdapter()
+        this.notesPanel.addComponentListener(new ComponentAdapter()
         {
-            @Override
-            public void componentMoved(ComponentEvent e)
-            {
-                repaint();
-            }
-
             @Override
             public void componentResized(ComponentEvent e)
             {
+                LOGGER.log(Level.FINE, "RulerPanel.componentResized() -- notesPanel.getWidth()={0}", notesPanel.getWidth());
+                revalidate();
                 repaint();
             }
-
         });
 
-        // Repaint if some scrolling happened
-        scrollPane.getViewport().addChangeListener(e ->
-        {
-            repaint();
-        });
     }
 
+    @Override
+    public Dimension getPreferredSize()
+    {
+        BufferedImage img = new BufferedImage(10, 10, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2 = img.createGraphics();
+        var bounds = new StringMetrics(g2, getFont()).getLogicalBoundsNoLeading("999");
+        var pd = new Dimension(notesPanel.getWidth(), (int) (bounds.getHeight() + 3 + BAR_TICK_LENGTH));
+        return pd;
+    }
 
     @Override
     public void paintComponent(Graphics g)
@@ -108,25 +103,33 @@ public class RulerPanel extends javax.swing.JPanel
         g2.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
 
 
+        // Don't draw outside the current clip
+        Rectangle rClip = g2.getClipBounds();
+        if (rClip != null)
+        {
+            int more = 20;
+            rClip.x -= more;  // Make it a little larger on the left, so that e.g. the right part of a bar number can be seen
+            rClip.width += more;
+        }
+
+
         // Compute data
         int h = getHeight();
         int barTickLength = BAR_TICK_LENGTH;
         int beatTickLength = BAR_TICK_LENGTH / 2;
         int subBeatTickLength = beatTickLength - 2;
-        int xOffset = notesPanel.getLocationOnScreen().x - getLocationOnScreen().x;
-
-
-        // Draw limit line on the left of the ruler
-//        g2.setColor(COLOR_BAR_TICK);
-//        g2.drawLine(xOffset, 0, xOffset, h - 1);
 
 
         // Draw ticks + bar/beat
-        var tmapPosX = xMapper.getAllBeatsXPositions();
+        var tmapPosX = xMapper.getAllBeatsXPositions(editor.getVisibleBarRange());
         for (Position pos : tmapPosX.navigableKeySet())
         {
-            int x = xOffset + tmapPosX.get(pos);
+            int x = tmapPosX.get(pos);
 
+            if (rClip != null && !rClip.contains(x, rClip.y))
+            {
+                continue;
+            }
 
             // Draw tick
             Color c = pos.isFirstBarBeat() ? COLOR_BAR_TICK : COLOR_BEAT_TICK;
@@ -150,18 +153,4 @@ public class RulerPanel extends javax.swing.JPanel
     // Private methods
     // ==========================================================================================================    
 
-    /**
-     * Calculate the preferred size based on the font height.
-     *
-     * @param font
-     * @return
-     */
-    private Dimension computePreferredSize(Font font)
-    {
-        BufferedImage img = new BufferedImage(10, 10, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g2 = img.createGraphics();
-        var bounds = new StringMetrics(g2, font).getLogicalBoundsNoLeading("999");
-        var pd = new Dimension(100, (int) (bounds.getHeight() + 3 + BAR_TICK_LENGTH));      // Normally width should be ignored by the container
-        return pd;
-    }
 }

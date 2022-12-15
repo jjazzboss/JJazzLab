@@ -33,7 +33,6 @@ import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
 import java.awt.Insets;
 import java.awt.Point;
-import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -42,14 +41,11 @@ import java.awt.event.FocusEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -64,9 +60,11 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JRootPane;
 import javax.swing.JSeparator;
+import javax.swing.JSlider;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -671,6 +669,39 @@ public class Utilities
     }
 
     /**
+     * Build a JSlider with an adjusted preferred length.
+     *
+     * @param orientation The orientation of the JSlider, SwingConstants.VERTICAL or SwingConstants.HORIZONTAL.
+     * @param ratio       The ratio to be applied on the preferred length (width or height, depending on orientation).
+     * @return
+     */
+    public static JSlider buildSlider(int orientation, float ratio)
+    {
+        Preconditions.checkArgument(orientation == SwingConstants.VERTICAL || orientation == SwingConstants.HORIZONTAL);
+        Preconditions.checkArgument(ratio > 0);
+        JSlider res = new JSlider(orientation)
+        {
+            @Override
+            public Dimension getPreferredSize()
+            {
+                int w, h;
+                var ps = super.getPreferredSize();
+                if (getOrientation() == SwingConstants.VERTICAL)
+                {
+                    w = ps.width;
+                    h = (int) (ps.height * ratio);
+                } else
+                {
+                    w = (int) (ps.width * ratio);
+                    h = ps.height;
+                }
+                return new Dimension(w, h);
+            }
+        };
+        return res;
+    }
+
+    /**
      * Installs a listener to receive notification when the text of any {@code JTextComponent} is changed.
      * <p>
      * Internally, it installs a {@link DocumentListener} on the text component's {@link Document}, and a
@@ -746,7 +777,7 @@ public class Utilities
         }
     }
 
-   
+
     // =================================================================================================
     // Static classes
     // =================================================================================================

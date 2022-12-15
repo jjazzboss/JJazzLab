@@ -1773,7 +1773,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         }
 
         @Override
-        public void setZoomYFactor(int newFactor)
+        public void setZoomYFactor(int newFactor, boolean valueIsAdjusting)
         {
             int oldFactor = getZoomYFactor();
             setZoomVFactor(newFactor);
@@ -1789,7 +1789,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         }
 
         @Override
-        public void setZoomXFactor(int factor)
+        public void setZoomXFactor(int factor, boolean valueIsAdjusting)
         {
             int nbCols = computeXFactorToNbColumns(factor);
             LOGGER.log(Level.FINER, "setZoomFactor() factor=" + factor + "> nbCols=" + nbCols);   //NOI18N

@@ -75,15 +75,15 @@ public final class PhraseEditorTopComponent extends TopComponent
 
         initComponents();
 
-        
-        Phrase p = PhraseUtilities.getCscalePhrase(0, 0, 12);
-        SizedPhrase sp = new SizedPhrase(p.getChannel(), new FloatRange(0, 16), TimeSignature.FOUR_FOUR);
+        int nbBeats = 48;
+        Phrase p = PhraseUtilities.getCscalePhrase(0, 0, nbBeats);
+        SizedPhrase sp = new SizedPhrase(p.getChannel(), new FloatRange(0, nbBeats), TimeSignature.FOUR_FOUR);
         sp.add(p);
         editorPanel = new PianoRollEditorImpl(0, sp, null, PianoRollEditorSettings.getDefault());
         add(editorPanel);
 
     }
-    
+
     @Override
     public Lookup getLookup()
     {

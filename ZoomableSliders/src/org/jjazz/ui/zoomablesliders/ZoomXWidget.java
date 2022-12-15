@@ -28,10 +28,8 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.logging.Logger;
 import javax.swing.Action;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
-import org.jjazz.ui.flatcomponents.api.FlatIntegerHorizontalSlider;
-import static org.jjazz.ui.flatcomponents.api.FlatIntegerHorizontalSlider.PROP_HIDE_VALUE;
-import static org.jjazz.ui.flatcomponents.api.FlatIntegerHorizontalSlider.PROP_NB_GRADUATION_MARKS;
 import org.jjazz.ui.utilities.api.Zoomable;
 import org.openide.awt.Actions;
 import org.openide.awt.StatusLineElementProvider;
@@ -45,10 +43,10 @@ import org.openide.util.lookup.ServiceProvider;
 public class ZoomXWidget extends javax.swing.JPanel implements StatusLineElementProvider, PropertyChangeListener
 {
 
-    private Lookup context;
+    private final Lookup context;
     private Zoomable currentZoomable;
-    private Lookup.Result<Zoomable> lkpResult;
-    private LookupListener lkpListener;
+    private final Lookup.Result<Zoomable> lkpResult;
+    private final LookupListener lkpListener;
     private static final Logger LOGGER = Logger.getLogger(ZoomXWidget.class.getSimpleName());
 
     public ZoomXWidget()
@@ -73,6 +71,8 @@ public class ZoomXWidget extends javax.swing.JPanel implements StatusLineElement
 
         setEnabled(false);
     }
+
+  
 
     @Override
     public void setEnabled(boolean b)
@@ -121,7 +121,6 @@ public class ZoomXWidget extends javax.swing.JPanel implements StatusLineElement
             }
             slider.setValue(newFactor);
             slider.setToolTipText(String.valueOf(newFactor));
-
         }
     }
 
@@ -136,12 +135,10 @@ public class ZoomXWidget extends javax.swing.JPanel implements StatusLineElement
     {
 
         label = new javax.swing.JLabel();
-        slider = new org.jjazz.ui.flatcomponents.api.FlatIntegerHorizontalSlider();
-        slider.putClientProperty(PROP_NB_GRADUATION_MARKS, 0);
-        slider.putClientProperty(PROP_HIDE_VALUE, 1);
-        filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(18, 0), new java.awt.Dimension(18, 0), new java.awt.Dimension(18, 32767));
+        slider = org.jjazz.ui.utilities.api.Utilities.buildSlider(SwingConstants.HORIZONTAL, 0.7f);
+        filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(15, 0), new java.awt.Dimension(15, 0), new java.awt.Dimension(15, 32767));
 
-        setLayout(new java.awt.FlowLayout(1, 0, 0));
+        setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 0, 0));
 
         label.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/zoomablesliders/resources/zoomXarrow.png"))); // NOI18N
         label.setToolTipText(org.openide.util.NbBundle.getMessage(ZoomXWidget.class, "ZoomXWidget.label.toolTipText")); // NOI18N
@@ -154,36 +151,23 @@ public class ZoomXWidget extends javax.swing.JPanel implements StatusLineElement
         });
         add(label);
 
-        slider.setFaderHeight(4);
-        slider.setKnobDiameter(10);
-        slider.setMaxValue(100);
-        slider.setValue(50);
-        slider.addMouseListener(new java.awt.event.MouseAdapter()
+        slider.addChangeListener(new javax.swing.event.ChangeListener()
         {
-            public void mouseClicked(java.awt.event.MouseEvent evt)
+            public void stateChanged(javax.swing.event.ChangeEvent evt)
             {
-                sliderMouseClicked(evt);
+                sliderStateChanged(evt);
             }
         });
-        slider.addPropertyChangeListener(new java.beans.PropertyChangeListener()
+        slider.addMouseWheelListener(new java.awt.event.MouseWheelListener()
         {
-            public void propertyChange(java.beans.PropertyChangeEvent evt)
+            public void mouseWheelMoved(java.awt.event.MouseWheelEvent evt)
             {
-                sliderPropertyChange(evt);
+                sliderMouseWheelMoved(evt);
             }
         });
         add(slider);
         add(filler1);
     }// </editor-fold>//GEN-END:initComponents
-
-   private void sliderPropertyChange(java.beans.PropertyChangeEvent evt)//GEN-FIRST:event_sliderPropertyChange
-   {//GEN-HEADEREND:event_sliderPropertyChange
-       if (currentZoomable != null && evt.getPropertyName().equals(FlatIntegerHorizontalSlider.PROP_VALUE))
-       {
-           int newValue = slider.getValue();
-           currentZoomable.setZoomXFactor(newValue);
-       }
-   }//GEN-LAST:event_sliderPropertyChange
 
     private void labelMouseClicked(java.awt.event.MouseEvent evt)//GEN-FIRST:event_labelMouseClicked
     {//GEN-HEADEREND:event_labelMouseClicked
@@ -205,14 +189,49 @@ public class ZoomXWidget extends javax.swing.JPanel implements StatusLineElement
 
     }//GEN-LAST:event_labelMouseClicked
 
-    private void sliderMouseClicked(java.awt.event.MouseEvent evt)//GEN-FIRST:event_sliderMouseClicked
-    {//GEN-HEADEREND:event_sliderMouseClicked
-        labelMouseClicked(evt);
-    }//GEN-LAST:event_sliderMouseClicked
+    private void sliderStateChanged(javax.swing.event.ChangeEvent evt)//GEN-FIRST:event_sliderStateChanged
+    {//GEN-HEADEREND:event_sliderStateChanged
+        if (currentZoomable != null)
+        {
+            int newValue = slider.getValue();
+            currentZoomable.setZoomXFactor(newValue, slider.getValueIsAdjusting());
+        }
+    }//GEN-LAST:event_sliderStateChanged
+
+    private void sliderMouseWheelMoved(java.awt.event.MouseWheelEvent evt)//GEN-FIRST:event_sliderMouseWheelMoved
+    {//GEN-HEADEREND:event_sliderMouseWheelMoved
+        if (!isEnabled())
+        {
+            return;
+        }
+        int value = slider.getValue();
+        boolean ctrl = (evt.getModifiersEx() & InputEvent.CTRL_DOWN_MASK) == InputEvent.CTRL_DOWN_MASK;
+        int step = ctrl ? 5 : 1;
+        if (evt.getWheelRotation() < 0)
+        {
+            if (value + step <= slider.getMaximum())
+            {
+                slider.setValue(value + step);
+            } else
+            {
+                slider.setValue(slider.getMaximum());
+            }
+
+        } else if (evt.getWheelRotation() > 0)
+        {
+            if (value - step >= slider.getMinimum())
+            {
+                slider.setValue(value - step);
+            } else
+            {
+                slider.setValue(slider.getMinimum());
+            }
+        }
+    }//GEN-LAST:event_sliderMouseWheelMoved
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.Box.Filler filler1;
     private javax.swing.JLabel label;
-    private org.jjazz.ui.flatcomponents.api.FlatIntegerHorizontalSlider slider;
+    private javax.swing.JSlider slider;
     // End of variables declaration//GEN-END:variables
 }

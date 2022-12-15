@@ -161,7 +161,7 @@ public abstract class PianoRollEditor extends JPanel implements Lookup.Provider
      * Return the position in beats that correspond to a graphical point in the editor.
      * <p>
      *
-     * @param editorPoint A point in the editor's coordinates.
+     * @param editorPoint A point in the editor's coordinates. -1 if point is not valid.
      * @return
      *
      */
@@ -170,7 +170,7 @@ public abstract class PianoRollEditor extends JPanel implements Lookup.Provider
     /**
      * Return the pitch that correspond to a graphical point in the editor.
      *
-     * @param editorPoint A point in the editor's coordinates.
+     * @param editorPoint A point in the editor's coordinates. -1 if point is not valid.
      * @return
      */
     abstract public int getPitchFromPoint(Point editorPoint);

@@ -25,10 +25,15 @@ package org.jjazz.pianoroll;
 import com.google.common.base.Preconditions;
 import java.awt.BorderLayout;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.SwingUtilities;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
@@ -39,8 +44,11 @@ import org.jjazz.pianoroll.api.ZoomValue;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
 import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.ui.keyboardcomponent.api.KeyboardComponent;
+import org.jjazz.ui.keyboardcomponent.api.KeyboardRange;
 import org.jjazz.ui.utilities.api.Zoomable;
 import org.jjazz.undomanager.api.JJazzUndoManager;
+import org.jjazz.util.api.FloatRange;
+import org.jjazz.util.api.IntRange;
 import org.openide.awt.UndoRedo;
 import org.openide.util.Lookup;
 import org.openide.util.lookup.AbstractLookup;
@@ -53,10 +61,15 @@ import org.openide.util.lookup.ProxyLookup;
 public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChangeListener
 {
 
+    private static final float MAX_WIDTH_FACTOR = 1.5f;
+
     private ToolbarPanel toolbarPanel;
     private JSplitPane splitPane;
-    private KeysAndNotesPanel keysAndNotesPanel;
     private VelocityPanel velocityPanel;
+    private NotesPanel notesPanel;
+    private KeyboardComponent keyboard;
+    private JPanel pnl_ruler;
+    private JScrollPane scrollpane;
 
     private ZoomValue zoomValue;
     private final SizedPhrase spModel;
@@ -88,7 +101,7 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
     private JJazzUndoManager undoManager;
     private final InstanceContent generalLookupContent;
     private final int startBarIndex;
-
+    private static final Logger LOGGER = Logger.getLogger(PianoRollEditorImpl.class.getSimpleName());
 
     /**
      * Creates new form PianoRollEditorImpl
@@ -125,12 +138,17 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
         // Global lookup = sum of both
         lookup = new ProxyLookup(selectionLookup, generalLookup);
 
-        // Normal zoom
-        zoomValue = new ZoomValue();
-
-
         createUI();
+
+
+        // Normal zoom
+        zoomValue = new ZoomValue(20, 20);
+        notesPanel.setScaleFactorX(toScaleFactorX(zoomValue.hValue()));
+        float yFactor = toScaleFactorY(zoomValue.vValue());
+        keyboard.setScaleFactor(yFactor, Math.min(MAX_WIDTH_FACTOR, yFactor));
+
     }
+
 
     @Override
     public Lookup getLookup()
@@ -177,17 +195,28 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
     @Override
     public void setZoom(ZoomValue zoom)
     {
-        if (!zoomValue.equals(zoom))
-        {
-            // X factor : between 0.2 and 4.2
-            float xFactor = 0.2f + 4 * zoom.hFactor() / 100f;
-            keysAndNotesPanel.getNotesPanel().setZoomX(xFactor);
+        Preconditions.checkNotNull(zoom);
+        LOGGER.log(Level.FINE, "setZoom() -- zoom={0}", zoom);
 
-            // Y factor : between 0.4 and 4.2
-            float yFactor = 0.4f + 4 * zoom.vFactor() / 100f;
-            keysAndNotesPanel.setZoomY(yFactor);
-            zoomValue = zoom;
+        if (zoomValue == null || zoomValue.hValue() != zoom.hValue())
+        {
+            notesPanel.setScaleFactorX(toScaleFactorX(zoom.hValue()));
         }
+
+        if (zoomValue == null || zoomValue.vValue() != zoom.vValue())
+        {
+            // Y factor : between 0.4 and 4.2
+            int saveCenterPitch = (int) getVisiblePitchRange().getCenter();
+
+            float factor = toScaleFactorY(zoom.vValue());
+            // Becasue keyboard is in RIGHT orientation factorX impacts keyboard height!
+            // We limit factorY because we don't want the keyboard to get wide
+            keyboard.setScaleFactor(factor, Math.min(MAX_WIDTH_FACTOR, factor));
+
+            SwingUtilities.invokeLater(() -> scrollToCenter(saveCenterPitch));
+        }
+
+        zoomValue = zoom;
     }
 
     @Override
@@ -199,19 +228,19 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
     @Override
     public void setQuantization(Quantization q)
     {
-        keysAndNotesPanel.getNotesPanel().getXMapper().setQuantization(q);
+        notesPanel.getXMapper().setQuantization(q);
     }
 
     @Override
     public Quantization getQuantization()
     {
-        return keysAndNotesPanel.getNotesPanel().getXMapper().getQuantization();
+        return notesPanel.getXMapper().getQuantization();
     }
 
     @Override
     public void setSnapEnabled(boolean b)
     {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        // 
     }
 
     @Override
@@ -274,35 +303,93 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
-
-    public ToolbarPanel getToolbarPanel()
+    public KeyboardComponent getKeyboardComponent()
     {
-        return toolbarPanel;
-    }
-
-    public KeysAndNotesPanel getKeysAndNotesPanel()
-    {
-        return keysAndNotesPanel;
+        return keyboard;
     }
 
     public NotesPanel getNotesPanel()
     {
-        return keysAndNotesPanel.getNotesPanel();
+        return notesPanel;
     }
 
-    public KeyboardComponent getKeyboard()
+    /**
+     * Scroll so that specified pitch is shown in the center of the editor, if possible.
+     *
+     * @param pitch
+     */
+    public void scrollToCenter(int pitch)
     {
-        return keysAndNotesPanel.getKeyboard();
+        Preconditions.checkArgument(pitch >= 0 && pitch < 128);
+
+        var vpRect = scrollpane.getViewport().getViewRect();
+        float vpCenterY = vpRect.y + vpRect.height / 2f;
+        IntRange pitchYRange = notesPanel.getYMapper().getKeyboardYRange(pitch);
+        float pitchCenterY = (int) pitchYRange.getCenter();
+        int dy = Math.round(vpCenterY - pitchCenterY);
+        var r = new Rectangle(vpRect.x, dy > 0 ? vpRect.y - dy : vpRect.y + vpRect.height - 1 - dy, 1, 1);
+        notesPanel.scrollRectToVisible(r);
+
+        // LOGGER.severe("scrollToCenter() pitch=" + pitch + " vpRect=" + vpRect + " vpCenterY=" + vpCenterY + " pitchCenterY=" + pitchCenterY + " r=" + r);
+
     }
 
-    public VelocityPanel getVelocityPanel()
+    /**
+     * Scroll so that specified position is shown in the center of the editor, if possible.
+     *
+     * @param posInBeats
+     */
+    public void scrollToCenter(float posInBeats)
     {
-        return velocityPanel;
+        Preconditions.checkArgument(notesPanel.getXMapper().getBeatRange().contains(posInBeats, true));
     }
+
+    /**
+     * Get the min/max notes which are currently visible.
+     *
+     * @return
+     */
+    public IntRange getVisiblePitchRange()
+    {
+        IntRange vpYRange = getYRange(scrollpane.getViewport().getViewRect());
+        IntRange keysYRange = getYRange(keyboard.getKeysBounds());
+        IntRange ir = keysYRange.getIntersection(vpYRange);
+        var pitchBottom = notesPanel.getYMapper().getPitch(ir.to);
+        var pitchTop = notesPanel.getYMapper().getPitch(ir.from);
+        return new IntRange(pitchBottom, pitchTop);
+    }
+
+    /**
+     * Get the min/max beat positions which are visible.
+     *
+     * @return
+     */
+    public FloatRange getVisibleBeatRange()
+    {
+        var vRect = scrollpane.getViewport().getViewRect();
+        var posLeft = notesPanel.getXMapper().getPositionInBeats(vRect.x);
+        var posRight = notesPanel.getXMapper().getPositionInBeats(vRect.x + vRect.width - 1);
+        return new FloatRange(posLeft, posRight);
+    }
+
+    /**
+     * Get the min/max bar indexes which are visible.
+     *
+     * @return
+     */
+    public IntRange getVisibleBarRange()
+    {
+        float nbBeatsPerBar = getModel().getTimeSignature().getNbNaturalBeats();
+        var beatRange = getVisibleBeatRange();
+        int relBarFrom = (int) ((beatRange.from - spModel.getBeatRange().from) / nbBeatsPerBar);
+        int relBarTo = (int) ((beatRange.to - spModel.getBeatRange().from) / nbBeatsPerBar);
+        var res = new IntRange(startBarIndex + relBarFrom, startBarIndex + relBarTo);
+        return res;
+    }
+
     //------------------------------------------------------------------------------
     // PropertyChangeListener interface
     //------------------------------------------------------------------------------
-
     @Override
     public void propertyChange(final PropertyChangeEvent evt)
     {
@@ -328,25 +415,68 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
         return keymap != null;
     }
 
+    private float toScaleFactorX(int zoomHValue)
+    {
+        float xFactor = 0.2f + 4 * zoomHValue / 100f;
+        return xFactor;
+    }
+
+    private float toScaleFactorY(int zoomVValue)
+    {
+        float yFactor = 0.4f + 4 * zoomVValue / 100f;
+        return yFactor;
+    }
+
     private void createUI()
     {
-        keysAndNotesPanel = new KeysAndNotesPanel(this);
-        toolbarPanel = new ToolbarPanel(this);      // Must be after keysAndNotesPanel creation        
-        velocityPanel = new VelocityPanel(this);
+        // The keyboard 
+        keyboard = new KeyboardComponent(KeyboardRange._128_KEYS, KeyboardComponent.Orientation.RIGHT, false);
+        keyboard.getWhiteKeys().stream()
+                .filter(k -> k.getPitch() % 12 == 0)
+                .forEach(k -> k.setText("C" + (k.getPitch() / 12 - 1)));
 
+
+        // The scrollpane
+        notesPanel = new NotesPanel(this, keyboard);
+        pnl_ruler = new RulerPanel(this, notesPanel);
+        scrollpane = new JScrollPane();
+        scrollpane.setViewportView(notesPanel);
+        scrollpane.setRowHeaderView(keyboard);
+        scrollpane.setColumnHeaderView(pnl_ruler);
+
+
+        // The splitpane
+        velocityPanel = new VelocityPanel(this, notesPanel);
         splitPane = new javax.swing.JSplitPane();
         splitPane.setDividerSize(3);
         splitPane.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
         splitPane.setResizeWeight(1.0);
-        splitPane.setLeftComponent(keysAndNotesPanel);
+        splitPane.setLeftComponent(scrollpane);
         splitPane.setRightComponent(velocityPanel);
 
+
+        // Final layout
+        toolbarPanel = new ToolbarPanel(this);
         setLayout(new BorderLayout());
         add(toolbarPanel, BorderLayout.NORTH);
         add(splitPane, BorderLayout.CENTER);
 
+
     }
 
+    private IntRange getYRange(Rectangle r)
+    {
+        assert r.height > 0;
+        IntRange res = new IntRange(r.y, r.y + r.height - 1);
+        return res;
+    }
+
+    private IntRange getXRange(Rectangle r)
+    {
+        assert r.width > 0;
+        IntRange res = new IntRange(r.x, r.x + r.width - 1);
+        return res;
+    }
 
     // =======================================================================================================================
     // Inner classes
@@ -366,12 +496,16 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
         @Override
         public int getZoomYFactor()
         {
-            return getZoom().vFactor();
+            return getZoom().vValue();
         }
 
         @Override
-        public void setZoomYFactor(int newFactor)
+        public void setZoomYFactor(int newFactor, boolean valueIsAdjusting)
         {
+            if (valueIsAdjusting)
+            {
+                return;
+            }
             int old = getZoomYFactor();
             setZoom(new ZoomValue(getZoomXFactor(), newFactor));
             firePropertyChange(Zoomable.PROPERTY_ZOOM_Y, old, newFactor);
@@ -380,11 +514,11 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
         @Override
         public int getZoomXFactor()
         {
-            return getZoom().hFactor();
+            return getZoom().hValue();
         }
 
         @Override
-        public void setZoomXFactor(int newFactor)
+        public void setZoomXFactor(int newFactor, boolean valueIsAdjusting)
         {
             int old = getZoomXFactor();
             setZoom(new ZoomValue(newFactor, getZoomYFactor()));

@@ -162,7 +162,7 @@ public class SongChordSequence extends ChordSequence
      */
     public IntRange getSptBarRange(SongPart spt)
     {
-        return spt.getBarRange().getIntersectRange(getBarRange());
+        return spt.getBarRange().getIntersection(getBarRange());
     }
 
     /**

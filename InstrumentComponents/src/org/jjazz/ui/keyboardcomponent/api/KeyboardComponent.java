@@ -39,10 +39,22 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.JPanel;
+import org.jjazz.util.api.IntRange;
 
 /**
  * A JPanel representing a Piano keyboard with selectable keys.
  * <p>
+ * The keyboard respects a fixed width/length ratio and is painted centered.
+ * <p>
+ * Features:<br>
+ * - 4 possible orientations<br>
+ * - optional "out of range" graphic indicators<br>
+ * - optional text on notes<br>
+ * - show pressed notes with color depending on velocity<br>
+ * - different keyboard sizes<br>
+ * - scalable<br>
+ *
+ * @see PianoKey
  */
 public class KeyboardComponent extends JPanel
 {
@@ -176,9 +188,8 @@ public class KeyboardComponent extends JPanel
     /**
      * Make the component smaller or larger.
      *
-     *
-     * @param factorX A value &gt; 0. Impact the keyboard width (in DOWN orientation).
-     * @param factorY A value &gt; 0. Impact the keyboard height (in DOWN orientation).
+     * @param factorX A value &gt; 0. Impact the keyboard width in DOWN/UP orientation (height in LEFT/RIGHT orientation).
+     * @param factorY A value &gt; 0. Impact the keyboard height in DOWN/UP orientation (width in LEFT/RIGHT orientation).
      */
     public void setScaleFactor(float factorX, float factorY)
     {
@@ -275,6 +286,19 @@ public class KeyboardComponent extends JPanel
         repaint();
     }
 
+    /**
+     * Get the rectangle enclosing all the keys.
+     *
+     * @return The Rectangle position is relative to this KeyboardComponent.
+     */
+    public Rectangle getKeysBounds()
+    {
+        var firstKey = pianoKeys.get(0);
+        var lastKey = pianoKeys.get(pianoKeys.size() - 1);
+        var r = firstKey.getBounds().union(lastKey.getBounds());
+        return r;
+    }
+
 
     /**
      * Get all the PianoKeys.
@@ -356,7 +380,7 @@ public class KeyboardComponent extends JPanel
      * If pitch is outside the KeyboardRange, show an indicator on the leftmost/rightmost note.
      *
      * @param pitch
-     * @param velocity If 0 equivalent to calling setReleased()
+     * @param velocity        If 0 equivalent to calling setReleased()
      * @param pressedKeyColor The pressed key color to be used. If null use default color.
      */
     public void setPressed(int pitch, int velocity, Color pressedKeyColor)
@@ -647,7 +671,7 @@ public class KeyboardComponent extends JPanel
 
     /**
      *
-     * @param left false means right
+     * @param left     false means right
      * @param showHide show if true, hide if false
      */
     private void showOutOfRangeNoteIndicator(boolean left, boolean showHide)

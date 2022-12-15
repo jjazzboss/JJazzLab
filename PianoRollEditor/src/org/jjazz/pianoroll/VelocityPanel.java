@@ -33,10 +33,10 @@ public class VelocityPanel extends JPanel
     private final PianoRollEditorImpl editor;
     private final NotesPanel notesPanel;
     
-    public VelocityPanel(PianoRollEditorImpl editor)
+    public VelocityPanel(PianoRollEditorImpl editor, NotesPanel notesPanel)
     {
         this.editor = editor;
-        this.notesPanel = editor.getNotesPanel();        
+        this.notesPanel = notesPanel;        
         add(new JButton("test"));
     }
     

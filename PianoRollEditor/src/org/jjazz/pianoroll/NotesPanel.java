@@ -27,12 +27,14 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.TreeMap;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
@@ -46,8 +48,8 @@ import org.jjazz.util.api.IntRange;
 /**
  * Show the grid and hold the NoteViews.
  * <p>
- * Work in conjunction with a vertical KeyboardComponent on the left side which must be in the same enclosing panel. Provide the
- * XMapper and YMapper which give the reference positions.
+ * Y metrics are taken from the associated vertical keyboard which should be Y-aligned. The XMapper and YMapper objects provide
+ * the methods to position notes.
  */
 public class NotesPanel extends javax.swing.JPanel
 {
@@ -55,9 +57,9 @@ public class NotesPanel extends javax.swing.JPanel
     private final KeyboardComponent keyboard;
     private final YMapper yMapper;
     private final XMapper xMapper;
-    private static final Logger LOGGER = Logger.getLogger(NotesPanel.class.getSimpleName());
     private final PianoRollEditorImpl editor;
     private float scaleFactorX = 1f;
+    private static final Logger LOGGER = Logger.getLogger(NotesPanel.class.getSimpleName());
 
 
     public NotesPanel(PianoRollEditorImpl editor, KeyboardComponent keyboard)
@@ -72,13 +74,8 @@ public class NotesPanel extends javax.swing.JPanel
             @Override
             public void componentResized(ComponentEvent e)
             {
-                // LOGGER.severe("componentResized() -- keyboard.getHeight()=" + keyboard.getHeight());
-                yMapper.refresh(keyboard.getHeight());
-                
-                // Make sure editor y position does not move with the rescale
-                
-                revalidate();
-                repaint();
+                LOGGER.log(Level.FINE, "componentResized() -- keyboard.getHeight()={0}", keyboard.getHeight());
+                yMapper.refresh(keyboard.getHeight());    // This will also call revalidate() and repaint() if needed
             }
         });
 
@@ -90,7 +87,7 @@ public class NotesPanel extends javax.swing.JPanel
         int h = keyboard.getPreferredSize().height;
         int w = (int) (xMapper.getBeatRange().size() * 50 * scaleFactorX);
         var res = new Dimension(w, h);
-        // LOGGER.severe("getPreferredSize() res=" + res);
+        LOGGER.log(Level.FINE, "getPreferredSize() res={0}", res);
         return res;
     }
 
@@ -98,7 +95,7 @@ public class NotesPanel extends javax.swing.JPanel
      *
      * @param factorX A value &gt; 0
      */
-    public void setZoomX(float factorX)
+    public void setScaleFactorX(float factorX)
     {
         Preconditions.checkArgument(factorX > 0);
 
@@ -111,7 +108,7 @@ public class NotesPanel extends javax.swing.JPanel
     }
 
 
-    public float getZoomX()
+    public float getScaleFactorX()
     {
         return scaleFactorX;
     }
@@ -133,16 +130,19 @@ public class NotesPanel extends javax.swing.JPanel
         super.paintComponent(g);        // Honor the opaque property
         Graphics2D g2 = (Graphics2D) g;
 
-        // LOGGER.severe("paintComponent() -- width=" + getWidth() + " h=" + getHeight() + " yMapper.getLastKeyboardHeight()=" + yMapper.getLastKeyboardHeight());
+        LOGGER.log(Level.FINE, "paintComponent() -- width={0} h={1} yMapper.getLastKeyboardHeight()={2}", new Object[]
+        {
+            getWidth(), getHeight(), yMapper.getLastKeyboardHeight()
+        });
 
         if (yMapper.getLastKeyboardHeight() != getHeight())
         {
             // yMapper is not consistent, don't draw anything
+            LOGGER.fine("paintComponent() do nothing");
             return;
         }
 
         drawHorizontalGrid(g2);
-
         drawVerticalGrid(g2);
 
     }
@@ -162,11 +162,12 @@ public class NotesPanel extends javax.swing.JPanel
         Color cb2 = settings.getBackgroundColor2();
         Color cl1 = settings.getBarLineColor();
         Color cl2 = HSLColor.changeLuminance(cl1, 8);      // lighter color
-        var kbdRange = keyboard.getRange();
-
         int w = getWidth();
 
-        for (int p = kbdRange.getLowestPitch(); p <= kbdRange.getHighestPitch(); p++)
+        // only draw what's visible
+        IntRange pitchRange = editor.getVisiblePitchRange();
+
+        for (int p = pitchRange.from; p <= pitchRange.to; p++)
         {
             int pp = p % 12;
             Color c = (pp == 0 || pp == 2 || pp == 4 || pp == 5 || pp == 7 || pp == 9 || pp == 11) ? cb2 : cb1;
@@ -196,7 +197,7 @@ public class NotesPanel extends javax.swing.JPanel
 
         int y0 = yMapper.getKeyboardYRange(0).to;
         int y1 = yMapper.getKeyboardYRange(127).from;
-        var mapQPosX = xMapper.getAllQuantizedXPositions();
+        var mapQPosX = xMapper.getAllQuantizedXPositions(editor.getVisibleBarRange());              // only draw what's visible        
 
         for (Position pos : mapQPosX.navigableKeySet())
         {
@@ -229,24 +230,25 @@ public class NotesPanel extends javax.swing.JPanel
         private final Map<Integer, IntRange> mapPitchChannelYRange = new HashMap<>();
         private int noteViewHeight;
 
+
         /**
          * To be called when associated keyboard height has changed.
          * <p>
          * Recompute internal data.
          *
          * @param kbdHeight
-         * @return False is refresh was not needed
          */
-        private boolean refresh(int kbdHeight)
+        private void refresh(int kbdHeight)
         {
             Preconditions.checkArgument(kbdHeight > 0);
             if (kbdHeight == lastKeyboardHeight)
             {
-                // LOGGER.severe("NotesPanel.YMapper.refresh() -- no change");
-                return false;
+                LOGGER.fine("NotesPanel.YMapper.refresh() -- no change");
+                return;
             }
             lastKeyboardHeight = kbdHeight;
-            // LOGGER.severe("NotesPanel.YMapper.refresh() updating for kbdHeight=" + kbdHeight);
+            LOGGER.log(Level.FINE, "NotesPanel.YMapper.refresh() -- updating for kbdHeight={0}", kbdHeight);
+
 
             // Compute the large NoteView line height (for C, E, F, B) and the small NoteView line height (for the other notes)
             var wKeyC0 = keyboard.getKey(0); // first C
@@ -275,13 +277,14 @@ public class NotesPanel extends javax.swing.JPanel
                 int yi = Math.round(y);
                 tmapPixelPitch.put(yi, p);
                 int pp = p % 12;
-                float yUp = (pp == 0 || pp == 4 || pp == 5 || pp == 11) ? adjustedLargeHeight : adjustedSmallHeight;
+                float yUp = (pp == 0 || pp == 4 || pp == 5 || pp == 11 || p == kbdRange.getHighestPitch()) ? adjustedLargeHeight : adjustedSmallHeight;
                 IntRange channelNoteYRange = new IntRange(Math.round(y - yUp + 1), yi);
                 mapPitchChannelYRange.put(p, channelNoteYRange);
                 y -= yUp;
             }
 
-            return true;
+            revalidate();
+            repaint();
         }
 
         /**
@@ -312,7 +315,9 @@ public class NotesPanel extends javax.swing.JPanel
          */
         public int getPitch(int yPos)
         {
-            return tmapPixelPitch.ceilingEntry(yPos).getValue();
+            var entry = tmapPixelPitch.ceilingEntry(yPos);
+            assert entry != null : "yPos=" + yPos + " tmapPixelPitch=" + tmapPixelPitch;
+            return entry.getValue();
         }
 
         /**
@@ -324,10 +329,7 @@ public class NotesPanel extends javax.swing.JPanel
         public IntRange getNoteViewChannelYRange(int pitch)
         {
             var res = mapPitchChannelYRange.get(pitch);
-            if (res == null)
-            {
-                throw new IllegalArgumentException("pitch=" + pitch + " mapPitchChannelYRange=" + mapPitchChannelYRange);
-            }
+            assert res != null : "pitch=" + pitch + " mapPitchChannelYRange=" + mapPitchChannelYRange;
             return res;
         }
 
@@ -390,17 +392,24 @@ public class NotesPanel extends javax.swing.JPanel
             repaint();
         }
 
+
         /**
-         * Get the X coordinate of each quantized position.
+         * Get the X coordinate of each quantized position in the specified barRange.
          *
+         * @param barRange If null, use this.getBarRange() instead.
          * @return
          */
-        public NavigableMap<Position, Integer> getAllQuantizedXPositions()
+        public NavigableMap<Position, Integer> getAllQuantizedXPositions(IntRange barRange)
         {
             NavigableMap<Position, Integer> res = new TreeMap<>();
+
+            if (barRange == null)
+            {
+                barRange = getBarRange();
+            }
             int nbBeatsPerTs = (int) editor.getModel().getTimeSignature().getNbNaturalBeats();
 
-            for (int bar = getBarRange().from; bar <= getBarRange().to; bar++)
+            for (int bar = barRange.from; bar <= barRange.to; bar++)
             {
                 for (int beat = 0; beat < nbBeatsPerTs; beat++)
                 {
@@ -420,16 +429,22 @@ public class NotesPanel extends javax.swing.JPanel
         }
 
         /**
-         * Get the X coordinate of each integer beat.
+         * Get the X coordinate of each integer beat in the specified barRange.
          *
+         * @param barRange If null, use this.getBarRange() instead.
          * @return
          */
-        public NavigableMap<Position, Integer> getAllBeatsXPositions()
+        public NavigableMap<Position, Integer> getAllBeatsXPositions(IntRange barRange)
         {
             NavigableMap<Position, Integer> res = new TreeMap<>();
+
+            if (barRange == null)
+            {
+                barRange = getBarRange();
+            }
             int nbBeatsPerTs = (int) editor.getModel().getTimeSignature().getNbNaturalBeats();
 
-            for (int bar = getBarRange().from; bar <= getBarRange().to; bar++)
+            for (int bar = barRange.from; bar <= barRange.to; bar++)
             {
                 for (int beat = 0; beat < nbBeatsPerTs; beat++)
                 {
@@ -531,7 +546,7 @@ public class NotesPanel extends javax.swing.JPanel
         public float toPositionInBeats(Position pos)
         {
             float posInBeats = getBeatRange().from + pos.getPositionInBeats(editor.getModel().getTimeSignature());
-            Preconditions.checkArgument(getBeatRange().contains(posInBeats, true), "pos=%s getBeatRange()=%s", pos, getBeatRange());
+            Preconditions.checkArgument(getBeatRange().contains(posInBeats, true), "pos=%s getBeatRange()=%s posInBeats=%s", pos, getBeatRange(), posInBeats);
             return posInBeats;
         }
     }

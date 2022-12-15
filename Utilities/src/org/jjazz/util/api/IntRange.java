@@ -41,7 +41,7 @@ public class IntRange
      * A range representing [from; to].
      *
      * @param from Must be &gt;= 0
-     * @param to Must be &gt;= from
+     * @param to   Must be &gt;= from
      */
     public IntRange(int from, int to)
     {
@@ -105,7 +105,7 @@ public class IntRange
         {
             return false;
         }
-        if (intersects(r))
+        if (isIntersecting(r))
         {
             return false;
         }
@@ -120,7 +120,7 @@ public class IntRange
      * @param r
      * @return
      */
-    public IntRange getUnionRange(IntRange r)
+    public IntRange getUnion(IntRange r)
     {
         if (r == EMPTY_RANGE || this == EMPTY_RANGE)
         {
@@ -136,9 +136,9 @@ public class IntRange
      * @param r
      * @return Can return the EMPTY_RANGE if no intersection.
      */
-    public IntRange getIntersectRange(IntRange r)
+    public IntRange getIntersection(IntRange r)
     {
-        if (!intersects(r))
+        if (!isIntersecting(r))
         {
             return EMPTY_RANGE;
         }
@@ -155,11 +155,20 @@ public class IntRange
      * @param r
      * @return
      */
-    public boolean intersects(IntRange r)
+    public boolean isIntersecting(IntRange r)
     {
         return !(this == EMPTY_RANGE || r == EMPTY_RANGE || r.from > to || from > r.to);
     }
 
+    /**
+     * The center of the range.
+     *
+     * @return (to-from)/2 + from
+     */
+    public float getCenter()
+    {
+        return (to - from) / 2f + from;
+    }
 
     /**
      * Get a new range with bounds modified.

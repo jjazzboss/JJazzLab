@@ -106,7 +106,7 @@ public class PlayRestScenario
      */
     public void importValues(PlayRestScenario scenario)
     {
-        IntRange br = barRange.getIntersectRange(scenario.getBarRange());
+        IntRange br = barRange.getIntersection(scenario.getBarRange());
         if (!br.isEmpty())
         {
             for (int barIndex = br.from; barIndex < br.size(); barIndex++)

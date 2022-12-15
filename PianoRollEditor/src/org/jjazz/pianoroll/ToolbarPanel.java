@@ -22,7 +22,9 @@
  */
 package org.jjazz.pianoroll;
 
+import java.awt.Color;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.Timer;
 import org.jjazz.quantizer.api.Quantization;
 
 
@@ -58,21 +60,13 @@ public class ToolbarPanel extends javax.swing.JPanel
     {
 
         jLabel1 = new javax.swing.JLabel();
-        slider_zoom = new javax.swing.JSlider();
         cmb_quantization = new javax.swing.JComboBox<>();
         cb_snap = new javax.swing.JCheckBox();
+        btn_test1 = new javax.swing.JButton();
+        btn_test2 = new javax.swing.JButton();
+        btn_test3 = new javax.swing.JButton();
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(ToolbarPanel.class, "ToolbarPanel.jLabel1.text")); // NOI18N
-
-        slider_zoom.setMaximum(400);
-        slider_zoom.setMinimum(1);
-        slider_zoom.addChangeListener(new javax.swing.event.ChangeListener()
-        {
-            public void stateChanged(javax.swing.event.ChangeEvent evt)
-            {
-                slider_zoomStateChanged(evt);
-            }
-        });
 
         cmb_quantization.addActionListener(new java.awt.event.ActionListener()
         {
@@ -91,6 +85,19 @@ public class ToolbarPanel extends javax.swing.JPanel
             }
         });
 
+        org.openide.awt.Mnemonics.setLocalizedText(btn_test1, org.openide.util.NbBundle.getMessage(ToolbarPanel.class, "ToolbarPanel.btn_test1.text")); // NOI18N
+        btn_test1.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                btn_test1ActionPerformed(evt);
+            }
+        });
+
+        org.openide.awt.Mnemonics.setLocalizedText(btn_test2, org.openide.util.NbBundle.getMessage(ToolbarPanel.class, "ToolbarPanel.btn_test2.text")); // NOI18N
+
+        org.openide.awt.Mnemonics.setLocalizedText(btn_test3, org.openide.util.NbBundle.getMessage(ToolbarPanel.class, "ToolbarPanel.btn_test3.text")); // NOI18N
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -99,12 +106,16 @@ public class ToolbarPanel extends javax.swing.JPanel
                 .addContainerGap()
                 .addComponent(jLabel1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(slider_zoom, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
                 .addComponent(cmb_quantization, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(cb_snap)
-                .addContainerGap(139, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btn_test1)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btn_test2)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btn_test3)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -112,22 +123,14 @@ public class ToolbarPanel extends javax.swing.JPanel
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel1)
-                    .addComponent(slider_zoom, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(cmb_quantization, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(cb_snap))
+                    .addComponent(cb_snap)
+                    .addComponent(btn_test1)
+                    .addComponent(btn_test2)
+                    .addComponent(btn_test3))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
-
-    private void slider_zoomStateChanged(javax.swing.event.ChangeEvent evt)//GEN-FIRST:event_slider_zoomStateChanged
-    {//GEN-HEADEREND:event_slider_zoomStateChanged
-        if (slider_zoom.getValueIsAdjusting())
-        {
-            return;
-        }
-        float f = (slider_zoom.getValue() + 50) / 100f;
-        editor.getKeysAndNotesPanel().setZoomY(f);
-    }//GEN-LAST:event_slider_zoomStateChanged
 
     private void cb_snapActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cb_snapActionPerformed
     {//GEN-HEADEREND:event_cb_snapActionPerformed
@@ -139,11 +142,24 @@ public class ToolbarPanel extends javax.swing.JPanel
         editor.setQuantization((Quantization) cmb_quantization.getSelectedItem());
     }//GEN-LAST:event_cmb_quantizationActionPerformed
 
+    private void btn_test1ActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_test1ActionPerformed
+    {//GEN-HEADEREND:event_btn_test1ActionPerformed
+        var yRange = editor.getVisiblePitchRange();
+        int p= (int) yRange.getCenter();
+        var key = editor.getKeyboardComponent().getKey(p);
+        key.setPressed(100, Color.red);
+        Timer timer = new Timer(1000, event -> key.release());
+        timer.setRepeats(false);
+        timer.start();        
+    }//GEN-LAST:event_btn_test1ActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btn_test1;
+    private javax.swing.JButton btn_test2;
+    private javax.swing.JButton btn_test3;
     private javax.swing.JCheckBox cb_snap;
     private javax.swing.JComboBox<Quantization> cmb_quantization;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JSlider slider_zoom;
     // End of variables declaration//GEN-END:variables
 }

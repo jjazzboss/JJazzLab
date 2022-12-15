@@ -48,8 +48,9 @@ public interface Zoomable
      * If value is changed fire a PROPERTY_ZOOM_Y change event.
      *
      * @param factor A value between 0 and 100 included.
+     * @param valueIsAdjusting If true the value is still being adjusted, ie the user move is not finished (eg when moving a slider with the mouse).
      */
-    void setZoomYFactor(int factor);
+    void setZoomYFactor(int factor, boolean valueIsAdjusting);
 
     /**
      * @return A value between 0 and 100 included.
@@ -62,8 +63,9 @@ public interface Zoomable
      * If value is changed fire a PROPERTY_ZOOM_X change event.
      *
      * @param factor A value between 0 and 100 included.
+     * @param valueIsAdjusting If true the value is still being adjusted, ie the user move is not finished (eg when moving a slider with the mouse).
      */
-    void setZoomXFactor(int factor);
+    void setZoomXFactor(int factor, boolean valueIsAdjusting);
 
     /**
      * Listen to the PROPERTY_ZOOM properties.

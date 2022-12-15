@@ -23,12 +23,11 @@
 package org.jjazz.ui.zoomablesliders;
 
 import java.awt.Component;
+import java.awt.event.InputEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.logging.Logger;
-import org.jjazz.ui.flatcomponents.api.FlatIntegerHorizontalSlider;
-import static org.jjazz.ui.flatcomponents.api.FlatIntegerHorizontalSlider.PROP_HIDE_VALUE;
-import static org.jjazz.ui.flatcomponents.api.FlatIntegerHorizontalSlider.PROP_NB_GRADUATION_MARKS;
+import javax.swing.SwingConstants;
 import org.jjazz.ui.utilities.api.Zoomable;
 import org.openide.awt.StatusLineElementProvider;
 import org.openide.util.*;
@@ -41,10 +40,10 @@ import org.openide.util.lookup.ServiceProvider;
 public class ZoomYWidget extends javax.swing.JPanel implements StatusLineElementProvider, PropertyChangeListener
 {
 
-    private Lookup context;
+    private final Lookup context;
     private Zoomable currentZoomable;
-    private Lookup.Result<Zoomable> lkpResult;
-    private LookupListener lkpListener;
+    private final Lookup.Result<Zoomable> lkpResult;
+    private final LookupListener lkpListener;
     private static final Logger LOGGER = Logger.getLogger(ZoomYWidget.class.getSimpleName());
 
     public ZoomYWidget()
@@ -132,41 +131,73 @@ public class ZoomYWidget extends javax.swing.JPanel implements StatusLineElement
     {
 
         label = new javax.swing.JLabel();
-        slider = new org.jjazz.ui.flatcomponents.api.FlatIntegerHorizontalSlider();
-        slider.putClientProperty(PROP_NB_GRADUATION_MARKS, 0);
-        slider.putClientProperty(PROP_HIDE_VALUE, 1);
+        slider = org.jjazz.ui.utilities.api.Utilities.buildSlider(SwingConstants.HORIZONTAL, 0.7f);
 
-        setLayout(new java.awt.FlowLayout(1, 0, 0));
+        setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 0, 0));
 
         label.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/zoomablesliders/resources/zoomYarrow.png"))); // NOI18N
         label.setToolTipText(org.openide.util.NbBundle.getMessage(ZoomYWidget.class, "ZoomYWidget.label.toolTipText")); // NOI18N
         add(label);
 
-        slider.setFaderHeight(4);
-        slider.setKnobDiameter(10);
-        slider.setMaxValue(100);
-        slider.setValue(50);
-        slider.addPropertyChangeListener(new java.beans.PropertyChangeListener()
+        slider.addChangeListener(new javax.swing.event.ChangeListener()
         {
-            public void propertyChange(java.beans.PropertyChangeEvent evt)
+            public void stateChanged(javax.swing.event.ChangeEvent evt)
             {
-                sliderPropertyChange(evt);
+                sliderStateChanged(evt);
+            }
+        });
+        slider.addMouseWheelListener(new java.awt.event.MouseWheelListener()
+        {
+            public void mouseWheelMoved(java.awt.event.MouseWheelEvent evt)
+            {
+                sliderMouseWheelMoved(evt);
             }
         });
         add(slider);
     }// </editor-fold>//GEN-END:initComponents
 
-   private void sliderPropertyChange(java.beans.PropertyChangeEvent evt)//GEN-FIRST:event_sliderPropertyChange
-   {//GEN-HEADEREND:event_sliderPropertyChange
-       if (currentZoomable != null && evt.getPropertyName().equals(FlatIntegerHorizontalSlider.PROP_VALUE))
-       {
-           int newValue = slider.getValue();
-           currentZoomable.setZoomYFactor(newValue);
-       }
-   }//GEN-LAST:event_sliderPropertyChange
+    private void sliderStateChanged(javax.swing.event.ChangeEvent evt)//GEN-FIRST:event_sliderStateChanged
+    {//GEN-HEADEREND:event_sliderStateChanged
+        if (currentZoomable != null)
+        {
+            int newValue = slider.getValue();
+            currentZoomable.setZoomYFactor(newValue, slider.getValueIsAdjusting());
+        }
+    }//GEN-LAST:event_sliderStateChanged
+
+    private void sliderMouseWheelMoved(java.awt.event.MouseWheelEvent evt)//GEN-FIRST:event_sliderMouseWheelMoved
+    {//GEN-HEADEREND:event_sliderMouseWheelMoved
+        if (!isEnabled())
+        {
+            return;
+        }
+        int value = slider.getValue();
+        boolean ctrl = (evt.getModifiersEx() & InputEvent.CTRL_DOWN_MASK) == InputEvent.CTRL_DOWN_MASK;
+        int step = ctrl ? 5 : 1;
+        if (evt.getWheelRotation() < 0)
+        {
+            if (value + step <= slider.getMaximum())
+            {
+                slider.setValue(value + step);
+            } else
+            {
+                slider.setValue(slider.getMaximum());
+            }
+
+        } else if (evt.getWheelRotation() > 0)
+        {
+            if (value - step >= slider.getMinimum())
+            {
+                slider.setValue(value - step);
+            } else
+            {
+                slider.setValue(slider.getMinimum());
+            }
+        }
+    }//GEN-LAST:event_sliderMouseWheelMoved
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel label;
-    private org.jjazz.ui.flatcomponents.api.FlatIntegerHorizontalSlider slider;
+    private javax.swing.JSlider slider;
     // End of variables declaration//GEN-END:variables
 }

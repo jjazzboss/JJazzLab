@@ -164,7 +164,7 @@ public class SongStructureImpl implements SongStructure, Serializable
         for (SongPart spt : songParts)
         {
             TimeSignature ts = spt.getRhythm().getTimeSignature();
-            IntRange ir = rg.getIntersectRange(spt.getBarRange());
+            IntRange ir = rg.getIntersection(spt.getBarRange());
             if (ir.isEmpty())
             {
                 continue;
