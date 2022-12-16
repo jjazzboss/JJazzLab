@@ -44,7 +44,6 @@ import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.ui.keyboardcomponent.api.KeyboardComponent;
 import org.jjazz.ui.keyboardcomponent.api.PianoKey;
 import org.jjazz.ui.utilities.api.HSLColor;
-import org.jjazz.util.api.FloatRange;
 import org.jjazz.util.api.IntRange;
 
 /**
@@ -71,28 +70,39 @@ public class NotesPanel extends javax.swing.JPanel
         this.xMapper = new XMapper();
         this.yMapper = new YMapper();
 
-        
-        this.keyboard.addComponentListener(new ComponentAdapter()
-        {
-            @Override
-            public void componentResized(ComponentEvent e)
-            {
-                LOGGER.log(Level.FINE, "componentResized() -- keyboard.getHeight()={0}", new Object[] {keyboard.getHeight()});
-                yMapper.refresh(keyboard.getPreferredSize().height);    // This will also call revalidate() and repaint() if needed
-            }
-        });
 
-        
         var mouseListener = new MyMouseListener();
         addMouseListener(mouseListener);
         addMouseMotionListener(mouseListener);
+    }
+
+    /**
+     * Early detection of size changes for xMapper update.
+     * <p>
+     * Ovverridden because this method is called (by parent's layoutManager) before component is painted and before the component
+     * resized/moved event is fired. This lets us update xMapper as soon as possible.
+     *
+     * @param x
+     * @param y
+     * @param w
+     * @param h
+     */
+    @Override
+    public void setBounds(int x, int y, int w, int h)
+    {
+        // LOGGER.severe("setBounds() x=" + x + " y=" + y + " w=" + w + " h=" + h);        
+        super.setBounds(x, y, w, h);
+        if (w != xMapper.lastWidth)
+        {
+            xMapper.refresh();
+        }
     }
 
     @Override
     public Dimension getPreferredSize()
     {
         int h = yMapper.lastKeyboardHeight;
-        int w = (int) (xMapper.getBeatRange().size() * 50 * scaleFactorX);
+        int w = (int) (editor.getBeatRange().size() * 50 * scaleFactorX);
         var res = new Dimension(w, h);
         LOGGER.log(Level.FINE, "getPreferredSize() res={0}", res);
         return res;
@@ -137,17 +147,18 @@ public class NotesPanel extends javax.swing.JPanel
         super.paintComponent(g);        // Honor the opaque property
         Graphics2D g2 = (Graphics2D) g;
 
-        LOGGER.log(Level.FINE, "paintComponent() -- width={0} height={1} yMapper.lastKeyboardHeight={2}", new Object[]
-        {
-            getWidth(), getHeight(), yMapper.lastKeyboardHeight
-        });
+//        LOGGER.log(Level.FINE, "paintComponent() -- width={0} height={1} yMapper.lastKeyboardHeight={2}", new Object[]
+//        {
+//            getWidth(), getHeight(), yMapper.lastKeyboardHeight
+//        });
 
-        if (!yMapper.isUptodate())
+        if (!yMapper.isUptodate() || !xMapper.isUptodate())
         {
-            // yMapper is not up to date, don't draw anything         
-            LOGGER.fine("paintComponent() yMapper is not uptodate, abort painting");
+            //  Don't draw anything
+            // LOGGER.severe("paintComponent() xMapper or yMapper is not uptodate, abort painting");
             return;
         }
+
 
         drawHorizontalGrid(g2);
         drawVerticalGrid(g2);
@@ -204,7 +215,7 @@ public class NotesPanel extends javax.swing.JPanel
 
         int y0 = yMapper.getKeyboardYRange(0).to;
         int y1 = yMapper.getKeyboardYRange(127).from;
-        var mapQPosX = xMapper.getAllQuantizedXPositions(editor.getVisibleBarRange());              // only draw what's visible        
+        var mapQPosX = xMapper.getQuantizedXPositions(editor.getVisibleBarRange());              // only draw what's visible        
 
         for (Position pos : mapQPosX.navigableKeySet())
         {
@@ -223,6 +234,233 @@ public class NotesPanel extends javax.swing.JPanel
     // =====================================================================================
     // Inner classes
     // =====================================================================================
+
+    /**
+     * Conversion methods between NoteView X coordinate and position in beats.
+     */
+    public class XMapper
+    {
+
+        private Quantization quantization = Quantization.ONE_QUARTER_BEAT;
+        private int lastWidth = -1;
+        private final NavigableMap<Position, Integer> tmap_allQuantizedXPositions = new TreeMap<>();
+        private final NavigableMap<Position, Integer> tmap_allBeatsXPositions = new TreeMap<>();
+
+
+        public boolean isUptodate()
+        {
+            return lastWidth == getWidth();
+        }
+
+
+        public Quantization getQuantization()
+        {
+            return quantization;
+        }
+
+        public void setQuantization(Quantization quantization)
+        {
+            this.quantization = quantization;
+            repaint();
+        }
+
+        /**
+         * To be called when this panel width has changed.
+         * <p>
+         * Recompute internal data to make this xMapper up-to-date.
+         * <p>
+         */
+        public synchronized void refresh()
+        {
+            LOGGER.log(Level.FINE, "XMapper.refresh() lastWidth={0} getWidth()={1}", new Object[]
+            {
+                lastWidth, getWidth()
+            });
+            if (getWidth() == lastWidth)
+            {
+                return;
+            }
+            lastWidth = getWidth();
+            tmap_allQuantizedXPositions.clear();
+            tmap_allBeatsXPositions.clear();
+            var allBarRange = editor.getBarRange();
+            int nbBeatsPerTs = (int) editor.getModel().getTimeSignature().getNbNaturalBeats();
+
+
+            // Precompute all quantized + beat positions
+            for (int bar = allBarRange.from; bar <= allBarRange.to; bar++)
+            {
+                for (int beat = 0; beat < nbBeatsPerTs; beat++)
+                {
+                    for (float qBeat : quantization.getBeats())
+                    {
+                        if (qBeat == 1)
+                        {
+                            continue;
+                        }
+                        var pos = new Position(bar, beat + qBeat);
+                        int xPos = getX(pos);
+                        tmap_allQuantizedXPositions.put(pos, xPos);
+                        if (qBeat == 0)
+                        {
+                            tmap_allBeatsXPositions.put(pos, xPos);
+                        }
+                    }
+                }
+            }
+        }
+
+
+        /**
+         * Get the X coordinate of each quantized position in the specified barRange.
+         *
+         * @param barRange If null, use this.getBarRange() instead.
+         * @return
+         * @throws IllegalStateException If this yMapper is not up-to-date.
+         */
+        public synchronized NavigableMap<Position, Integer> getQuantizedXPositions(IntRange barRange)
+        {
+//            LOGGER.log(Level.SEVERE, "getAllQuantizedXPositions() -- w={0} barRange={1} tmap_allQuantizedXPositions={2}", new Object[]
+//            {
+//                getWidth(), barRange, tmap_allQuantizedXPositions
+//            });
+            if (!isUptodate())
+            {
+                throw new IllegalStateException("lastWidth=" + lastWidth + " getWidth()=" + getWidth());
+            }
+            if (barRange == null)
+            {
+                barRange = editor.getBarRange();
+            }
+            var res = tmap_allQuantizedXPositions.subMap(new Position(barRange.from, 0), true, new Position(barRange.to + 1, 0), false);
+            return res;
+        }
+
+        /**
+         * Get the X coordinate of each integer beat in the specified barRange.
+         *
+         * @param barRange If null, use this.getBarRange() instead.
+         * @return
+         * @throws IllegalStateException If this yMapper is not up-to-date.
+         */
+        public synchronized NavigableMap<Position, Integer> getBeatsXPositions(IntRange barRange)
+        {
+//            LOGGER.log(Level.SEVERE, "getAllBeatsXPositions() -- w={0} barRange={1} tmap_allBeatsXPositions={2}", new Object[]
+//            {
+//                getWidth(), barRange, tmap_allBeatsXPositions
+//            });
+            if (!isUptodate())
+            {
+                throw new IllegalStateException("lastWidth=" + lastWidth + " getWidth()=" + getWidth());
+            }
+
+            if (barRange == null)
+            {
+                barRange = editor.getBarRange();
+            }
+            var res = tmap_allBeatsXPositions.subMap(new Position(barRange.from, 0), true, new Position(barRange.to + 1, 0), false);
+            return res;
+        }
+
+        /**
+         * Get the size in pixels of 1 beat.
+         *
+         * @return
+         */
+        public float getOneBeatPixelSize()
+        {
+            return getWidth() / editor.getBeatRange().size();
+        }
+
+        /**
+         * Get the beat position corresponding to the specified xPos in this panel's coordinates.
+         *
+         * @param yPos
+         * @return A beat position within getBeatRange().
+         */
+        public float getPositionInBeats(int xPos)
+        {
+            int w = getWidth();
+            Preconditions.checkArgument(xPos >= 0 && xPos < w, "xPos=%d w=%d", xPos, w);
+            float relPos = xPos / getOneBeatPixelSize();
+            float absPos = editor.getBeatRange().from + relPos;
+            return absPos;
+        }
+
+        /**
+         * Get the position (bar, beat) corresponding to the specified xPos in this panel's coordinates.
+         *
+         * @param yPos
+         * @return
+         */
+        public Position getPosition(int xPos)
+        {
+            var posInBeats = getPositionInBeats(xPos);
+            return toPosition(posInBeats);
+        }
+
+        /**
+         *
+         * Get the X position (in this panel's coordinates) corresponding to the specified beat position.
+         *
+         * @param posInBeats A beat position within getBeatRange()
+         * @return
+         */
+        public int getX(float posInBeats)
+        {
+            var br = editor.getBeatRange();
+            Preconditions.checkArgument(br.contains(posInBeats, true), "posInBeats=%s", posInBeats);
+            int w = getWidth();
+            int xPos = Math.round((posInBeats - br.from) * getOneBeatPixelSize());
+            xPos = Math.min(w - 1, xPos);
+            return xPos;
+        }
+
+        /**
+         *
+         * Get the X position (in this panel's coordinates) corresponding to the specified position in bar/beat.
+         *
+         * @param posInBeats A beat position within getBeatRange()
+         * @return
+         */
+        public int getX(Position pos)
+        {
+            var xPos = getX(toPositionInBeats(pos));
+            return xPos;
+        }
+
+        /**
+         * Convert a position in beats into a bar/beat position.
+         *
+         * @param posInBeats
+         * @return
+         */
+        public Position toPosition(float posInBeats)
+        {
+            var br = editor.getBeatRange();
+            Preconditions.checkArgument(br.contains(posInBeats, true), "posInBeats=%s", posInBeats);
+            float nbBeatsPerTs = editor.getModel().getTimeSignature().getNbNaturalBeats();
+            int relBar = (int) ((posInBeats - br.from) / nbBeatsPerTs);
+            float beatWithinBar = posInBeats - br.from - relBar * nbBeatsPerTs;
+            return new Position(editor.getStartBarIndex() + relBar, beatWithinBar);
+        }
+
+        /**
+         * Convert a position in bar/beat into a position in beats.
+         *
+         * @param pos
+         * @return
+         */
+        public float toPositionInBeats(Position pos)
+        {
+            var br = editor.getBeatRange();
+            float posInBeats = br.from + pos.getPositionInBeats(editor.getModel().getTimeSignature());
+            Preconditions.checkArgument(br.contains(posInBeats, true), "pos=%s getBeatRange()=%s posInBeats=%s", pos, br, posInBeats);
+            return posInBeats;
+        }
+    }
+
+
     /**
      * Conversion methods between keyboard's Y coordinate, pitch and NoteView line's Y coordinate.
      */
@@ -237,25 +475,42 @@ public class NotesPanel extends javax.swing.JPanel
         private final Map<Integer, IntRange> mapPitchChannelYRange = new HashMap<>();
         private int noteViewHeight;
 
+        private YMapper()
+        {
+            keyboard.addComponentListener(new ComponentAdapter()
+            {
+                /**
+                 * Note that componentResized() event arrives AFTER keyboard is layouted and repainted.
+                 */
+                @Override
+                public void componentResized(ComponentEvent e)
+                {
+                    LOGGER.log(Level.FINE, "YMapper.componentResized() --");
+                    refresh(keyboard.getPreferredSize().height);    // This will also call repaint() if needed
+                }
+            });
+        }
 
         /**
          * To be called when associated keyboard height has changed.
          * <p>
-         * Recompute internal data and makes this yMapper up-to-date.
+         * Recompute internal data to make this yMapper up-to-date. Call revalidate() and repaint() when done.
          *
-         * @param kbdHeight
+         * @param newKbdHeight
          */
-        public void refresh(int kbdHeight)
+        public synchronized void refresh(int newKbdHeight)
         {
-            Preconditions.checkArgument(kbdHeight > 0);
-            if (kbdHeight == lastKeyboardHeight)
+            Preconditions.checkArgument(newKbdHeight > 0);
+            LOGGER.log(Level.FINE, "NotesPanel.YMapper.refresh() -- newKbdHeight={0}  lastKeyboardHeight={1}", new Object[]
             {
-                LOGGER.fine("NotesPanel.YMapper.refresh() -- no change");
+                newKbdHeight, lastKeyboardHeight
+            });
+
+            if (newKbdHeight == lastKeyboardHeight)
+            {
                 return;
             }
-
-            lastKeyboardHeight = kbdHeight;
-            LOGGER.log(Level.FINE, "NotesPanel.YMapper.refresh() -- updating for kbdHeight={0}", kbdHeight);
+            lastKeyboardHeight = newKbdHeight;
 
 
             // Compute the large NoteView line height (for C, E, F, B) and the small NoteView line height (for the other notes)
@@ -299,7 +554,7 @@ public class NotesPanel extends javax.swing.JPanel
          *
          * @return
          */
-        public boolean isUptodate()
+        public synchronized boolean isUptodate()
         {
             return lastKeyboardHeight == keyboard.getPreferredSize().height;
         }
@@ -310,7 +565,7 @@ public class NotesPanel extends javax.swing.JPanel
          * @return
          * @throws IllegalStateException If this yMapper is not up-to-date.
          */
-        public int getNoteViewHeight()
+        public synchronized int getNoteViewHeight()
         {
             if (!isUptodate())
             {
@@ -326,7 +581,7 @@ public class NotesPanel extends javax.swing.JPanel
          * @return
          * @throws IllegalStateException If this yMapper is not up-to-date.
          */
-        public int getPitch(int yPos)
+        public synchronized int getPitch(int yPos)
         {
             if (!isUptodate())
             {
@@ -347,7 +602,7 @@ public class NotesPanel extends javax.swing.JPanel
          * @return
          * @throws IllegalStateException If this yMapper is not up-to-date.
          */
-        public IntRange getNoteViewChannelYRange(int pitch)
+        public synchronized IntRange getNoteViewChannelYRange(int pitch)
         {
             if (!isUptodate())
             {
@@ -384,198 +639,6 @@ public class NotesPanel extends javax.swing.JPanel
 
 
     }
-
-    /**
-     * Conversion methods between NoteView X coordinate and position in beats.
-     */
-    public class XMapper
-    {
-
-        private Quantization quantization = Quantization.ONE_QUARTER_BEAT;
-
-
-        public FloatRange getBeatRange()
-        {
-            return editor.getModel().getBeatRange();
-        }
-
-
-        public IntRange getBarRange()
-        {
-            int nbBars = (int) (getBeatRange().size() / editor.getModel().getTimeSignature().getNbNaturalBeats());
-            return new IntRange(editor.getStartBarIndex(), editor.getStartBarIndex() + nbBars - 1);
-        }
-
-        public Quantization getQuantization()
-        {
-            return quantization;
-        }
-
-        public void setQuantization(Quantization quantization)
-        {
-            this.quantization = quantization;
-            repaint();
-        }
-
-
-        /**
-         * Get the X coordinate of each quantized position in the specified barRange.
-         *
-         * @param barRange If null, use this.getBarRange() instead.
-         * @return
-         */
-        public NavigableMap<Position, Integer> getAllQuantizedXPositions(IntRange barRange)
-        {
-            NavigableMap<Position, Integer> res = new TreeMap<>();
-
-            if (barRange == null)
-            {
-                barRange = getBarRange();
-            }
-            int nbBeatsPerTs = (int) editor.getModel().getTimeSignature().getNbNaturalBeats();
-
-            for (int bar = barRange.from; bar <= barRange.to; bar++)
-            {
-                for (int beat = 0; beat < nbBeatsPerTs; beat++)
-                {
-                    for (float qBeat : quantization.getBeats())
-                    {
-                        if (qBeat == 1)
-                        {
-                            continue;
-                        }
-                        var pos = new Position(bar, beat + qBeat);
-                        int xPos = getX(pos);
-                        res.put(pos, xPos);
-                    }
-                }
-            }
-            return res;
-        }
-
-        /**
-         * Get the X coordinate of each integer beat in the specified barRange.
-         *
-         * @param barRange If null, use this.getBarRange() instead.
-         * @return
-         */
-        public NavigableMap<Position, Integer> getAllBeatsXPositions(IntRange barRange)
-        {
-            NavigableMap<Position, Integer> res = new TreeMap<>();
-
-            if (barRange == null)
-            {
-                barRange = getBarRange();
-            }
-            int nbBeatsPerTs = (int) editor.getModel().getTimeSignature().getNbNaturalBeats();
-
-            for (int bar = barRange.from; bar <= barRange.to; bar++)
-            {
-                for (int beat = 0; beat < nbBeatsPerTs; beat++)
-                {
-                    var pos = new Position(bar, beat);
-                    var x = getX(pos);
-                    res.put(pos, x);
-                }
-            }
-            return res;
-        }
-
-        /**
-         * Get the size in pixels of 1 beat.
-         *
-         * @return
-         */
-        public float getOneBeatPixelSize()
-        {
-            return getWidth() / getBeatRange().size();
-        }
-
-        /**
-         * Get the beat position corresponding to the specified xPos in this panel's coordinates.
-         *
-         * @param yPos
-         * @return A beat position within getBeatRange().
-         */
-        public float getPositionInBeats(int xPos)
-        {
-            int w = getWidth();
-            Preconditions.checkArgument(xPos >= 0 && xPos < w, "xPos=%d w=%d", xPos, w);
-            float relPos = xPos / getOneBeatPixelSize();
-            float absPos = getBeatRange().from + relPos;
-            return absPos;
-        }
-
-        /**
-         * Get the position (bar, beat) corresponding to the specified xPos in this panel's coordinates.
-         *
-         * @param yPos
-         * @return
-         */
-        public Position getPosition(int xPos)
-        {
-            var posInBeats = getPositionInBeats(xPos);
-            return toPosition(posInBeats);
-        }
-
-        /**
-         *
-         * Get the X position (in this panel's coordinates) corresponding to the specified beat position.
-         *
-         * @param posInBeats A beat position within getBeatRange()
-         * @return
-         */
-        public int getX(float posInBeats)
-        {
-            Preconditions.checkArgument(getBeatRange().contains(posInBeats, true), "posInBeats=%s", posInBeats);
-            int w = getWidth();
-            int xPos = Math.round((posInBeats - getBeatRange().from) * getOneBeatPixelSize());
-            xPos = Math.min(w - 1, xPos);
-            return xPos;
-        }
-
-        /**
-         *
-         * Get the X position (in this panel's coordinates) corresponding to the specified position in bar/beat.
-         *
-         * @param posInBeats A beat position within getBeatRange()
-         * @return
-         */
-        public int getX(Position pos)
-        {
-            var xPos = getX(toPositionInBeats(pos));
-            return xPos;
-        }
-
-        /**
-         * Convert a position in beats into a bar/beat position.
-         *
-         * @param posInBeats
-         * @return
-         */
-        public Position toPosition(float posInBeats)
-        {
-            Preconditions.checkArgument(getBeatRange().contains(posInBeats, true), "posInBeats=%s", posInBeats);
-            float nbBeatsPerTs = editor.getModel().getTimeSignature().getNbNaturalBeats();
-            int relBar = (int) ((posInBeats - getBeatRange().from) / nbBeatsPerTs);
-            float beatWithinBar = posInBeats - getBeatRange().from - relBar * nbBeatsPerTs;
-            return new Position(editor.getStartBarIndex() + relBar, beatWithinBar);
-        }
-
-        /**
-         * Convert a position in bar/beat into a position in beats.
-         *
-         * @param pos
-         * @return
-         */
-        public float toPositionInBeats(Position pos)
-        {
-            float posInBeats = getBeatRange().from + pos.getPositionInBeats(editor.getModel().getTimeSignature());
-            Preconditions.checkArgument(getBeatRange().contains(posInBeats, true), "pos=%s getBeatRange()=%s posInBeats=%s", pos, getBeatRange(), posInBeats);
-            return posInBeats;
-        }
-    }
-
 
     private class MyMouseListener implements MouseMotionListener, MouseListener
     {

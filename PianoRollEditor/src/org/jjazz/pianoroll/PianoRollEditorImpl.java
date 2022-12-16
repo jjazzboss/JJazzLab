@@ -219,7 +219,7 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
             // We limit factorY because we don't want the keyboard to get wide
             keyboard.setScaleFactor(factor, Math.min(MAX_WIDTH_FACTOR, factor));
 
-            
+
             // restore pitch at center
             scrollToCenter(saveCenterPitch);
         }
@@ -321,6 +321,18 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
         return notesPanel;
     }
 
+    public FloatRange getBeatRange()
+    {
+        return getModel().getBeatRange();
+    }
+
+
+    public IntRange getBarRange()
+    {
+        int nbBars = (int) (getBeatRange().size() / getModel().getTimeSignature().getNbNaturalBeats());
+        return new IntRange(getStartBarIndex(), getStartBarIndex() + nbBars - 1);
+    }
+
     /**
      * Scroll so that specified pitch is shown in the center of the editor, if possible.
      *
@@ -349,7 +361,7 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
      */
     public void scrollToCenter(float posInBeats)
     {
-        Preconditions.checkArgument(notesPanel.getXMapper().getBeatRange().contains(posInBeats, true));
+        Preconditions.checkArgument(getBeatRange().contains(posInBeats, true));
     }
 
     /**

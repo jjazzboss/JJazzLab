@@ -121,7 +121,7 @@ public class RulerPanel extends javax.swing.JPanel
 
 
         // Draw ticks + bar/beat
-        var tmapPosX = xMapper.getAllBeatsXPositions(editor.getVisibleBarRange());
+        var tmapPosX = xMapper.getBeatsXPositions(editor.getVisibleBarRange());
         for (Position pos : tmapPosX.navigableKeySet())
         {
             int x = tmapPosX.get(pos);
