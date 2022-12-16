@@ -270,7 +270,7 @@ public class NotesPanel extends javax.swing.JPanel
          * Recompute internal data to make this xMapper up-to-date.
          * <p>
          */
-        public synchronized void refresh()
+        private synchronized void refresh()
         {
             LOGGER.log(Level.FINE, "XMapper.refresh() lastWidth={0} getWidth()={1}", new Object[]
             {
@@ -483,7 +483,7 @@ public class NotesPanel extends javax.swing.JPanel
                  * Note that componentResized() event arrives AFTER keyboard is layouted and repainted.
                  */
                 @Override
-                public void componentResized(ComponentEvent e)
+                public synchronized void componentResized(ComponentEvent e)
                 {
                     LOGGER.log(Level.FINE, "YMapper.componentResized() --");
                     refresh(keyboard.getPreferredSize().height);    // This will also call repaint() if needed
@@ -498,7 +498,7 @@ public class NotesPanel extends javax.swing.JPanel
          *
          * @param newKbdHeight
          */
-        public synchronized void refresh(int newKbdHeight)
+        private synchronized void refresh(int newKbdHeight)
         {
             Preconditions.checkArgument(newKbdHeight > 0);
             LOGGER.log(Level.FINE, "NotesPanel.YMapper.refresh() -- newKbdHeight={0}  lastKeyboardHeight={1}", new Object[]

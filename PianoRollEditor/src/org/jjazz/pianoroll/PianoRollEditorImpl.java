@@ -363,6 +363,7 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
     {
         Preconditions.checkArgument(getBeatRange().contains(posInBeats, true));
     }
+    
 
     /**
      * Get the min/max notes which are currently visible.

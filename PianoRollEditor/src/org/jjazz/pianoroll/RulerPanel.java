@@ -35,6 +35,7 @@ import java.awt.image.BufferedImage;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
+import org.jjazz.ui.utilities.api.HSLColor;
 import org.jjazz.ui.utilities.api.StringMetrics;
 import org.jjazz.uisettings.api.GeneralUISettings;
 
@@ -44,14 +45,17 @@ import org.jjazz.uisettings.api.GeneralUISettings;
 public class RulerPanel extends javax.swing.JPanel
 {
 
-    private static final int BAR_TICK_LENGTH = 8;
+    private static final int BAR_TICK_LENGTH = 10;
     private static final Color COLOR_BAR_TICK = new Color(160, 160, 160);
-    private static final Color COLOR_SUBBEAT_TICK = new Color(120, 120, 120);
     private static final Color COLOR_BEAT_TICK = new Color(90, 90, 90);
+    private static final Color COLOR_BAR_FONT = new Color(176, 199, 220);
+    private static final Color COLOR_BEAT_FONT = new Color(80, 80, 80);
     private static final Color COLOR_BACKGROUND = new Color(15, 29, 42);
     private final NotesPanel notesPanel;
     private final NotesPanel.XMapper xMapper;
     private final PianoRollEditorImpl editor;
+    private final Font fontBar;
+    private final Font fontBeat;
     private static final Logger LOGGER = Logger.getLogger(RulerPanel.class.getSimpleName());
 
     /**
@@ -67,8 +71,8 @@ public class RulerPanel extends javax.swing.JPanel
 
         setBackground(COLOR_BACKGROUND);
 
-        Font font = GeneralUISettings.getInstance().getStdFont().deriveFont(12f);
-        setFont(font);
+        fontBar = GeneralUISettings.getInstance().getStdFont().deriveFont(13f);
+        fontBeat = fontBar.deriveFont(fontBar.getSize() - 3f);
 
         this.notesPanel.addComponentListener(new ComponentAdapter()
         {
@@ -89,7 +93,7 @@ public class RulerPanel extends javax.swing.JPanel
         BufferedImage img = new BufferedImage(10, 10, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2 = img.createGraphics();
         var bounds = new StringMetrics(g2, getFont()).getLogicalBoundsNoLeading("999");
-        var pd = new Dimension(notesPanel.getWidth(), (int) (bounds.getHeight() + 3 + BAR_TICK_LENGTH));
+        var pd = new Dimension(notesPanel.getWidth(), (int) (bounds.getHeight() + BAR_TICK_LENGTH));
         return pd;
     }
 
@@ -97,56 +101,76 @@ public class RulerPanel extends javax.swing.JPanel
     public void paintComponent(Graphics g)
     {
         super.paintComponent(g);        // Honor the opaque property
+
         Graphics2D g2 = (Graphics2D) g.create();
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-        g2.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
 
 
-        // Don't draw outside the current clip
-        Rectangle rClip = g2.getClipBounds();
-        if (rClip != null)
-        {
-            int more = 20;
-            rClip.x -= more;  // Make it a little larger on the left, so that e.g. the right part of a bar number can be seen
-            rClip.width += more;
-        }
-
-
-        // Compute data
+        // Prepare data
         int h = getHeight();
-        int barTickLength = BAR_TICK_LENGTH;
         int beatTickLength = BAR_TICK_LENGTH / 2;
-        int subBeatTickLength = beatTickLength - 2;
+        int subTickLength = beatTickLength - 2;
+        float oneBeatPixelSize = xMapper.getOneBeatPixelSize();
+        float subTickWidth = oneBeatPixelSize / 4;
+        Color subTickColor = HSLColor.changeLuminance(COLOR_BEAT_TICK, -2);
+
+        
+        boolean paintSubTicks = oneBeatPixelSize > 60;
 
 
         // Draw ticks + bar/beat
-        var tmapPosX = xMapper.getBeatsXPositions(editor.getVisibleBarRange());
+        var tmapPosX = xMapper.getBeatsXPositions(null);
         for (Position pos : tmapPosX.navigableKeySet())
         {
             int x = tmapPosX.get(pos);
 
-            if (rClip != null && !rClip.contains(x, rClip.y))
-            {
-                continue;
-            }
-
             // Draw tick
-            Color c = pos.isFirstBarBeat() ? COLOR_BAR_TICK : COLOR_BEAT_TICK;
-            int tickLength = pos.isFirstBarBeat() ? barTickLength : beatTickLength;
+            Color c = pos.isFirstBarBeat() ? COLOR_BAR_TICK : COLOR_BAR_TICK;
+            int tickLength = pos.isFirstBarBeat() ? BAR_TICK_LENGTH : beatTickLength;
             g2.setColor(c);
             g2.drawLine(x, 0, x, tickLength);
 
 
-            // Draw bar number
+            // Draw subticks
+            if (paintSubTicks)
+            {
+                g2.setColor(subTickColor);
+                float xf = x;
+                for (int i = 0; i < 3; i++)
+                {
+                    xf += subTickWidth;
+                    int xfi = Math.round(xf);
+                    g2.drawLine(xfi, 0, xfi, subTickLength);
+                }
+            }
+
+
+            // Draw bar or beat number
+            String str = null;
+            Font f = fontBar;
+            c = COLOR_BAR_FONT;
             if (pos.isFirstBarBeat())
             {
-                String str = String.valueOf(pos.getBar() + 1);
+                str = String.valueOf(pos.getBar() + 1);
+            } else if (paintSubTicks)
+            {
+                str = String.valueOf(pos.getBar() + 1) + "." + String.valueOf((int) pos.getBeat() + 1);
+                f = fontBeat;
+                c = COLOR_BEAT_FONT;
+            }
+            if (str != null)
+            {
                 float xStr = x;
                 float yStr = h - 2;           // text baseline position
+                g2.setColor(c);
+                g2.setFont(f);
                 g2.drawString(str, xStr, yStr);
             }
+
         }
+
+        g2.dispose();
     }
 
     // ==========================================================================================================
