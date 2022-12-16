@@ -27,9 +27,11 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Rectangle;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NavigableMap;
@@ -46,10 +48,10 @@ import org.jjazz.util.api.FloatRange;
 import org.jjazz.util.api.IntRange;
 
 /**
- * Show the grid and hold the NoteViews.
+ * The main editor panel, shows the grid and holds the NoteViews.
  * <p>
- * Y metrics are taken from the associated vertical keyboard which should be Y-aligned. The XMapper and YMapper objects provide
- * the methods to position notes.
+ * Y metrics are taken from the associated vertical keyboard. The XMapper and YMapper objects provide the methods to position
+ * notes.
  */
 public class NotesPanel extends javax.swing.JPanel
 {
@@ -69,22 +71,27 @@ public class NotesPanel extends javax.swing.JPanel
         this.xMapper = new XMapper();
         this.yMapper = new YMapper();
 
+        
         this.keyboard.addComponentListener(new ComponentAdapter()
         {
             @Override
             public void componentResized(ComponentEvent e)
             {
-                LOGGER.log(Level.FINE, "componentResized() -- keyboard.getHeight()={0}", keyboard.getHeight());
-                yMapper.refresh(keyboard.getHeight());    // This will also call revalidate() and repaint() if needed
+                LOGGER.log(Level.FINE, "componentResized() -- keyboard.getHeight()={0}", new Object[] {keyboard.getHeight()});
+                yMapper.refresh(keyboard.getPreferredSize().height);    // This will also call revalidate() and repaint() if needed
             }
         });
 
+        
+        var mouseListener = new MyMouseListener();
+        addMouseListener(mouseListener);
+        addMouseMotionListener(mouseListener);
     }
 
     @Override
     public Dimension getPreferredSize()
     {
-        int h = keyboard.getPreferredSize().height;
+        int h = yMapper.lastKeyboardHeight;
         int w = (int) (xMapper.getBeatRange().size() * 50 * scaleFactorX);
         var res = new Dimension(w, h);
         LOGGER.log(Level.FINE, "getPreferredSize() res={0}", res);
@@ -130,15 +137,15 @@ public class NotesPanel extends javax.swing.JPanel
         super.paintComponent(g);        // Honor the opaque property
         Graphics2D g2 = (Graphics2D) g;
 
-        LOGGER.log(Level.FINE, "paintComponent() -- width={0} h={1} yMapper.getLastKeyboardHeight()={2}", new Object[]
+        LOGGER.log(Level.FINE, "paintComponent() -- width={0} height={1} yMapper.lastKeyboardHeight={2}", new Object[]
         {
-            getWidth(), getHeight(), yMapper.getLastKeyboardHeight()
+            getWidth(), getHeight(), yMapper.lastKeyboardHeight
         });
 
-        if (yMapper.getLastKeyboardHeight() != getHeight())
+        if (!yMapper.isUptodate())
         {
-            // yMapper is not consistent, don't draw anything
-            LOGGER.fine("paintComponent() do nothing");
+            // yMapper is not up to date, don't draw anything         
+            LOGGER.fine("paintComponent() yMapper is not uptodate, abort painting");
             return;
         }
 
@@ -234,11 +241,11 @@ public class NotesPanel extends javax.swing.JPanel
         /**
          * To be called when associated keyboard height has changed.
          * <p>
-         * Recompute internal data.
+         * Recompute internal data and makes this yMapper up-to-date.
          *
          * @param kbdHeight
          */
-        private void refresh(int kbdHeight)
+        public void refresh(int kbdHeight)
         {
             Preconditions.checkArgument(kbdHeight > 0);
             if (kbdHeight == lastKeyboardHeight)
@@ -246,6 +253,7 @@ public class NotesPanel extends javax.swing.JPanel
                 LOGGER.fine("NotesPanel.YMapper.refresh() -- no change");
                 return;
             }
+
             lastKeyboardHeight = kbdHeight;
             LOGGER.log(Level.FINE, "NotesPanel.YMapper.refresh() -- updating for kbdHeight={0}", kbdHeight);
 
@@ -271,7 +279,6 @@ public class NotesPanel extends javax.swing.JPanel
             mapPitchChannelYRange.clear();
             var kbdRange = keyboard.getRange();
 
-
             for (int p = kbdRange.getLowestPitch(); p <= kbdRange.getHighestPitch(); p++)
             {
                 int yi = Math.round(y);
@@ -288,46 +295,64 @@ public class NotesPanel extends javax.swing.JPanel
         }
 
         /**
-         * The last keyboard height used to refresh this object.
+         * Check if yMapper is up to date with the latest keyboard height (ie refresh() was called).
          *
-         * @return -1 if not refreshed yet.
+         * @return
          */
-        public int getLastKeyboardHeight()
+        public boolean isUptodate()
         {
-            return lastKeyboardHeight;
+            return lastKeyboardHeight == keyboard.getPreferredSize().height;
         }
 
         /**
          * The NoteView height to be used to fit the NoteView lines.
          *
          * @return
+         * @throws IllegalStateException If this yMapper is not up-to-date.
          */
         public int getNoteViewHeight()
         {
+            if (!isUptodate())
+            {
+                throw new IllegalStateException();
+            }
             return noteViewHeight;
         }
 
         /**
          * Get the pitch corresponding to the specified yPos in this panel's coordinates.
          *
-         * @param yPos
+         * @param yPos If above/below the first/last pianokey, use the pitch of the first/last pianokey.
          * @return
+         * @throws IllegalStateException If this yMapper is not up-to-date.
          */
         public int getPitch(int yPos)
         {
+            if (!isUptodate())
+            {
+                throw new IllegalStateException();
+            }
+
             var entry = tmapPixelPitch.ceilingEntry(yPos);
-            assert entry != null : "yPos=" + yPos + " tmapPixelPitch=" + tmapPixelPitch;
-            return entry.getValue();
+            // We might be below the (bottom key), can happen if keyboard is unzoomed/small and there is extra space below the keys.        
+            int res = entry != null ? entry.getValue() : tmapPixelPitch.lastEntry().getValue();
+            return res;
         }
 
         /**
          * Get the Y range of the NoteView channel for the specified pitch.
+         * <p>
          *
          * @param pitch
          * @return
+         * @throws IllegalStateException If this yMapper is not up-to-date.
          */
         public IntRange getNoteViewChannelYRange(int pitch)
         {
+            if (!isUptodate())
+            {
+                throw new IllegalStateException();
+            }
             var res = mapPitchChannelYRange.get(pitch);
             assert res != null : "pitch=" + pitch + " mapPitchChannelYRange=" + mapPitchChannelYRange;
             return res;
@@ -551,5 +576,79 @@ public class NotesPanel extends javax.swing.JPanel
         }
     }
 
+
+    private class MyMouseListener implements MouseMotionListener, MouseListener
+    {
+
+        int lastPitch = -1;
+
+        @Override
+        public void mouseMoved(MouseEvent e)
+        {
+            if (!yMapper.isUptodate())
+            {
+                return;
+            }
+
+            int pitch = yMapper.getPitch(e.getY());
+            if (pitch == lastPitch)
+            {
+                // Nothing
+            } else if (pitch == -1)
+            {
+                keyboard.getKey(lastPitch).release();
+            } else
+            {
+                if (lastPitch != -1)
+                {
+                    keyboard.getKey(lastPitch).release();
+                }
+                keyboard.getKey(pitch).setPressed(50, Color.LIGHT_GRAY);
+            }
+            lastPitch = pitch;
+        }
+
+        @Override
+        public void mouseDragged(MouseEvent e)
+        {
+            // 
+        }
+
+
+        @Override
+        public void mouseClicked(MouseEvent e)
+        {
+            // 
+        }
+
+        @Override
+        public void mousePressed(MouseEvent e)
+        {
+            // 
+        }
+
+        @Override
+        public void mouseReleased(MouseEvent e)
+        {
+            // 
+        }
+
+        @Override
+        public void mouseEntered(MouseEvent e)
+        {
+            // 
+        }
+
+        @Override
+        public void mouseExited(MouseEvent e)
+        {
+            if (lastPitch != -1)
+            {
+                keyboard.getKey(lastPitch).release();
+            }
+            lastPitch = -1;
+        }
+
+    }
 
 }

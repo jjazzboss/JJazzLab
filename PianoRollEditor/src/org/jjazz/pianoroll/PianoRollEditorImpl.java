@@ -24,12 +24,16 @@ package org.jjazz.pianoroll;
 
 import com.google.common.base.Preconditions;
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -205,15 +209,19 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
 
         if (zoomValue == null || zoomValue.vValue() != zoom.vValue())
         {
-            // Y factor : between 0.4 and 4.2
+            // Save pitch at center
             int saveCenterPitch = (int) getVisiblePitchRange().getCenter();
 
+
+            // Scale the keyboard
             float factor = toScaleFactorY(zoom.vValue());
-            // Becasue keyboard is in RIGHT orientation factorX impacts keyboard height!
+            // Because keyboard is in RIGHT orientation factorX impacts the keyboard height.
             // We limit factorY because we don't want the keyboard to get wide
             keyboard.setScaleFactor(factor, Math.min(MAX_WIDTH_FACTOR, factor));
 
-            SwingUtilities.invokeLater(() -> scrollToCenter(saveCenterPitch));
+            
+            // restore pitch at center
+            scrollToCenter(saveCenterPitch);
         }
 
         zoomValue = zoom;
@@ -298,9 +306,9 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
     }
 
     @Override
-    public int getPitchFromPoint(Point editorPoint)
+    public int getPitchFromPoint(Point notesPanelPoint)
     {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        return notesPanel.getYMapper().getPitch(notesPanelPoint.y);
     }
 
     public KeyboardComponent getKeyboardComponent()
@@ -430,10 +438,15 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
     private void createUI()
     {
         // The keyboard 
+        // We need an enclosing panel for keyboard, so that keyboard size changes when its scaleFactor changes (zoom in/out). If we put the keyboard directly
+        // in the JScrollpane, keyboard size might not change when JScrollpane is much bigger than the keys bounds.
+        JPanel pnl_keyboard = new JPanel();
+        pnl_keyboard.setLayout(new BorderLayout());
         keyboard = new KeyboardComponent(KeyboardRange._128_KEYS, KeyboardComponent.Orientation.RIGHT, false);
         keyboard.getWhiteKeys().stream()
                 .filter(k -> k.getPitch() % 12 == 0)
                 .forEach(k -> k.setText("C" + (k.getPitch() / 12 - 1)));
+        pnl_keyboard.add(keyboard, BorderLayout.PAGE_START);
 
 
         // The scrollpane
@@ -441,7 +454,7 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
         pnl_ruler = new RulerPanel(this, notesPanel);
         scrollpane = new JScrollPane();
         scrollpane.setViewportView(notesPanel);
-        scrollpane.setRowHeaderView(keyboard);
+        scrollpane.setRowHeaderView(pnl_keyboard);
         scrollpane.setColumnHeaderView(pnl_ruler);
 
 
