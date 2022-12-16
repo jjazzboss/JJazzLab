@@ -261,6 +261,7 @@ public class NotesPanel extends javax.swing.JPanel
         public void setQuantization(Quantization quantization)
         {
             this.quantization = quantization;
+            refresh();
             repaint();
         }
 
@@ -276,10 +277,6 @@ public class NotesPanel extends javax.swing.JPanel
             {
                 lastWidth, getWidth()
             });
-            if (getWidth() == lastWidth)
-            {
-                return;
-            }
             lastWidth = getWidth();
             tmap_allQuantizedXPositions.clear();
             tmap_allBeatsXPositions.clear();
