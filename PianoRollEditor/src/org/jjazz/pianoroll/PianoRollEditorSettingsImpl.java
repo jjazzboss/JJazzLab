@@ -162,7 +162,7 @@ public class PianoRollEditorSettingsImpl implements PianoRollEditorSettings
     @Override
     public Color getSelectedNoteColor()
     {
-        return new Color(prefs.getInt(PROP_SELECTED_NOTE_COLOR, Color.MAGENTA.brighter().getRGB()));
+        return new Color(prefs.getInt(PROP_SELECTED_NOTE_COLOR, new Color(220, 220, 0).getRGB()));
     }
 
     @Override

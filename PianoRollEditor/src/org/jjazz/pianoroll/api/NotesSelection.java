@@ -22,37 +22,47 @@
  */
 package org.jjazz.pianoroll.api;
 
-import java.util.Arrays;
+import com.google.common.base.Preconditions;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import javax.swing.Icon;
-import org.jjazz.pianoroll.edittools.SelectionTool;
-
+import org.jjazz.phrase.api.NoteEvent;
+import org.openide.util.Lookup;
 
 /**
- * An editor tool: selection, pencil, eraser, etc.
+ * Convenience methods to handle the current selection of notes.
  */
-public interface EditTool extends PianoRollEditorMouseListener
+public class NotesSelection
 {
 
-    /**
-     * Get the available EditTools.
-     *
-     * @return
-     */
-    static public List<EditTool> getAvailableTools(PianoRollEditor editor)
+    private final List<NoteEvent> notes;
+
+    public NotesSelection(Lookup lookup)
     {
-        return Arrays.asList(new SelectionTool(editor));
+        Preconditions.checkNotNull(lookup);
+
+        notes = new ArrayList<>(lookup.lookupAll(NoteEvent.class));
+        Collections.sort(notes);
     }
 
     /**
-     * A 20x20 icon.
+     * Get the selected notes sorted by NoteEvent natural order.
      *
-     * @param selected
      * @return
      */
-    Icon getIcon(boolean selected);
+    private List<NoteEvent> getNotes()
+    {
+        return notes;
+    }
 
-    String getName();
-
+    /**
+     * Unselect the current selection in the specified editor.
+     *
+     * @param editor
+     */
+    public void unselectAll(PianoRollEditor editor)
+    {
+        notes.forEach(n -> editor.setSelectedNote(n, false));
+    }
 
 }

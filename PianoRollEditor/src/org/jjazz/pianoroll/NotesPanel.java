@@ -27,14 +27,20 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.TreeMap;
@@ -44,6 +50,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.SizedPhrase;
+import org.jjazz.pianoroll.api.EditTool;
 import org.jjazz.pianoroll.api.NoteView;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
 import org.jjazz.quantizer.api.Quantization;
@@ -52,6 +59,9 @@ import org.jjazz.ui.keyboardcomponent.api.PianoKey;
 import org.jjazz.ui.utilities.api.HSLColor;
 import org.jjazz.util.api.FloatRange;
 import org.jjazz.util.api.IntRange;
+import org.openide.util.Lookup;
+import org.openide.util.lookup.AbstractLookup;
+import org.openide.util.lookup.InstanceContent;
 
 /**
  * The main editor panel, shows the grid and holds the NoteViews.
@@ -69,6 +79,10 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
     private final SizedPhrase spModel;
     private float scaleFactorX = 1f;
     private Map<NoteEvent, NoteView> mapNotesEventView = new HashMap<>();
+    private EditTool activeTool;
+    private final ProxyMouseListener proxyMouseListener;
+    private final Lookup selectionLookup;
+    private final InstanceContent selectionLookupContent;
     private static final Logger LOGGER = Logger.getLogger(NotesPanel.class.getSimpleName());
 
 
@@ -80,23 +94,35 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
         this.xMapper = new XMapper();
         this.yMapper = new YMapper();
 
+
+        selectionLookupContent = new InstanceContent();
+        selectionLookup = new AbstractLookup(selectionLookupContent);
+
+
         editor.getSettings().addPropertyChangeListener(this);
 
-        var mouseListener = new MyMouseListener();
-        addMouseListener(mouseListener);
-        addMouseMotionListener(mouseListener);
+
+        // The mouse listeners
+        var highlightKeyML = new HighlightKeyMouseListener();
+        addMouseListener(highlightKeyML);
+        addMouseMotionListener(highlightKeyML);
+        proxyMouseListener = new ProxyMouseListener();
+        addMouseListener(proxyMouseListener);
+        addMouseMotionListener(proxyMouseListener);
+        addMouseWheelListener(proxyMouseListener);
 
 
         // Create the NoteViews and add them 
         for (NoteEvent ne : spModel)
         {
-            NoteView nv = new NoteView(ne);
-            mapNotesEventView.put(ne, nv);
-            add(nv);
+            addNoteView(ne);
         }
 
         // Be notified of changes, note added, moved, removed, set
         spModel.addPropertyChangeListener(this);
+
+
+        activeTool = EditTool.getAvailableTools(editor).get(0);
     }
 
     /**
@@ -141,6 +167,11 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
             int h = yMapper.getNoteViewHeight();
             nv.setBounds(x, y, w, h);
         }
+    }
+
+    public Lookup getSelectionLookup()
+    {
+        return selectionLookup;
     }
 
     @Override
@@ -209,10 +240,92 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
 
     }
 
+    public void setSelectedNote(NoteEvent ne, boolean b)
+    {
+        NoteView nv = mapNotesEventView.get(ne);
+        Preconditions.checkArgument(nv != null, "ne=%s b=%s", ne, b);
+        boolean state = nv.isSelected();
+        if (b != state)
+        {
+            nv.setSelected(b);
+            if (b)
+            {
+                selectionLookupContent.add(ne);
+            } else
+            {
+                selectionLookupContent.remove(ne);
+            }
+        }
+    }
+
+    public boolean isSelectedNote(NoteEvent ne)
+    {
+        NoteView nv = mapNotesEventView.get(ne);
+        Preconditions.checkArgument(nv != null, "ne=%s", ne);
+        return nv.isSelected();
+    }
+
+    public void setActiveTool(EditTool tool)
+    {
+        Preconditions.checkNotNull(tool);
+        if (activeTool == tool)
+        {
+            return;
+        }
+
+    }
+
+    public List<NoteEvent> getNotes(Rectangle r)
+    {
+        var res = mapNotesEventView.keySet().stream()
+                .filter(ne -> mapNotesEventView.get(ne).getBounds().intersects(r))
+                .toList();
+        return res;
+    }
+
+    public EditTool getActiveTool()
+    {
+        return activeTool;
+    }
+
     public void cleanup()
     {
         spModel.removePropertyChangeListener(this);
         editor.getSettings().removePropertyChangeListener(this);
+    }
+    // ==========================================================================================================
+    // PropertyChangeListener interface
+    // ==========================================================================================================    
+
+    @Override
+    public void propertyChange(PropertyChangeEvent evt)
+    {
+        if (evt.getSource() == editor.getSettings())
+        {
+            settingsChanged();
+        } else if (evt.getSource() == spModel)
+        {
+            if (evt.getPropertyName().equals(Phrase.PROP_NOTE_ADDED))
+            {
+                NoteEvent ne = (NoteEvent) evt.getNewValue();
+                addNoteView(ne);
+                revalidate();
+            } else if (evt.getPropertyName().equals(Phrase.PROP_NOTE_REMOVED))
+            {
+                NoteEvent ne = (NoteEvent) evt.getNewValue();
+                removeNoteView(ne);
+                repaint();
+            } else if (evt.getPropertyName().equals(Phrase.PROP_NOTE_MOVED)
+                    || evt.getPropertyName().equals(Phrase.PROP_NOTE_SET))
+            {
+                NoteEvent newNe = (NoteEvent) evt.getNewValue();
+                NoteEvent oldNe = (NoteEvent) evt.getOldValue();
+                NoteView nv = mapNotesEventView.get(oldNe);
+                nv.setModel(newNe);
+                revalidate();
+                repaint();
+            }
+        }
     }
 
     // ========================================================================================
@@ -284,23 +397,54 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
     {
         repaint();
     }
-    // ==========================================================================================================
-    // PropertyChangeListener interface
-    // ==========================================================================================================    
 
-    @Override
-    public void propertyChange(PropertyChangeEvent evt)
+    /**
+     * Create and add a NoteView for the specified NoteEvent.
+     * <p>
+     * Caller must call revalidate() and/or repaint() after as needed.
+     *
+     * @param ne
+     */
+    private void addNoteView(NoteEvent ne)
     {
-        if (evt.getSource() == editor.getSettings())
-        {
-            settingsChanged();
-        } else if (evt.getSource() == spModel)
-        {
-            if (evt.getPropertyName().equals(Phrase.PROP_NOTE_ADDED))
-            {
-                NoteEvent ne = (NoteEvent) evt.getNewValue();
-            }
-        }
+        Preconditions.checkNotNull(ne);
+        Preconditions.checkArgument(!mapNotesEventView.containsKey(ne), "ne=%s mapNotesEventView=%s", ne, mapNotesEventView);
+        NoteView nv = new NoteView(ne);
+        mapNotesEventView.put(ne, nv);
+        add(nv);
+        registerNoteView(nv);
+    }
+
+    /**
+     * Remove a NoteView for the specified NoteEvent.
+     * <p>
+     * Caller must call revalidate() and/or repaint() after as needed.
+     *
+     * @param ne
+     */
+    private void removeNoteView(NoteEvent ne)
+    {
+        Preconditions.checkNotNull(ne);
+        setSelectedNote(ne, false);
+        NoteView nv = new NoteView(ne);
+        mapNotesEventView.remove(ne);
+        remove(nv);
+        unregisterNoteView(nv);
+        nv.cleanup();
+    }
+
+    private void registerNoteView(NoteView nv)
+    {
+        nv.addMouseListener(proxyMouseListener);
+        nv.addMouseMotionListener(proxyMouseListener);
+        nv.addMouseWheelListener(proxyMouseListener);
+    }
+
+    private void unregisterNoteView(NoteView nv)
+    {
+        nv.removeMouseListener(proxyMouseListener);
+        nv.removeMouseListener(proxyMouseListener);
+        nv.removeMouseWheelListener(proxyMouseListener);
     }
 
     // =====================================================================================
@@ -709,7 +853,10 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
 
     }
 
-    private class MyMouseListener implements MouseMotionListener, MouseListener
+    /**
+     * Show the corresponding key on the keyboard when mouse is moved.
+     */
+    private class HighlightKeyMouseListener extends MouseAdapter
     {
 
         int lastPitch = -1;
@@ -741,37 +888,6 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
         }
 
         @Override
-        public void mouseDragged(MouseEvent e)
-        {
-            // 
-        }
-
-
-        @Override
-        public void mouseClicked(MouseEvent e)
-        {
-            // 
-        }
-
-        @Override
-        public void mousePressed(MouseEvent e)
-        {
-            // 
-        }
-
-        @Override
-        public void mouseReleased(MouseEvent e)
-        {
-            // 
-        }
-
-        @Override
-        public void mouseEntered(MouseEvent e)
-        {
-            // 
-        }
-
-        @Override
         public void mouseExited(MouseEvent e)
         {
             if (lastPitch != -1)
@@ -783,4 +899,83 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
 
     }
 
+    /**
+     * Redirect mouse events to the active EditTool.
+     */
+    private class ProxyMouseListener implements MouseListener, MouseMotionListener, MouseWheelListener
+    {
+
+        @Override
+        public void mouseClicked(MouseEvent e)
+        {
+            if (e.getSource() == NotesPanel.this)
+            {
+                activeTool.editorClicked(e);
+            } else if (e.getSource() instanceof NoteView nv)
+            {
+                activeTool.noteClicked(e, nv.getModel());
+            }
+        }
+
+        @Override
+        public void mousePressed(MouseEvent e)
+        {
+
+        }
+
+        @Override
+        public void mouseReleased(MouseEvent e)
+        {
+            if (e.getSource() == NotesPanel.this)
+            {
+                activeTool.editorReleased(e);
+            } else if (e.getSource() instanceof NoteView nv)
+            {
+                activeTool.noteReleased(e, nv.getModel());
+            }
+        }
+
+        @Override
+        public void mouseEntered(MouseEvent e)
+        {
+            // 
+        }
+
+        @Override
+        public void mouseExited(MouseEvent e)
+        {
+            // 
+        }
+
+        @Override
+        public void mouseDragged(MouseEvent e)
+        {
+            if (e.getSource() == NotesPanel.this)
+            {
+                activeTool.editorDragged(e);
+            } else if (e.getSource() instanceof NoteView nv)
+            {
+                activeTool.noteDragged(e, nv.getModel());
+            }
+        }
+
+        @Override
+        public void mouseMoved(MouseEvent e)
+        {
+            // 
+        }
+
+        @Override
+        public void mouseWheelMoved(MouseWheelEvent e)
+        {
+            if (e.getSource() == NotesPanel.this)
+            {
+                activeTool.editorWheelMoved(e);
+            } else if (e.getSource() instanceof NoteView nv)
+            {
+                activeTool.noteWheelMoved(e, nv.getModel());
+            }
+        }
+
+    }
 }

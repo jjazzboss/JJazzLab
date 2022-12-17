@@ -32,15 +32,19 @@ import org.jjazz.phrase.api.NoteEvent;
 interface PianoRollEditorMouseListener
 {
 
+    void editorClicked(MouseEvent e);
+
     void editorWheelMoved(MouseWheelEvent e);
 
-    void editorClicked(MouseEvent e);
+    void editorDragged(MouseEvent e);
+
+    void editorReleased(MouseEvent e);
 
     void noteClicked(MouseEvent e, NoteEvent ne);
 
     void noteWheelMoved(MouseWheelEvent e, NoteEvent ne);
 
-    void noteDragged(MouseEvent e, int pitch, float pos);
+    void noteDragged(MouseEvent e, NoteEvent ne);
 
-    public void noteReleased(MouseEvent e, int pitch, float pos);
+    public void noteReleased(MouseEvent e, NoteEvent ne);
 }

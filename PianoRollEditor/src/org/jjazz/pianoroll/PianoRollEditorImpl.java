@@ -27,8 +27,11 @@ import java.awt.BorderLayout;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JLayer;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -55,11 +58,11 @@ import org.openide.util.lookup.ProxyLookup;
 /**
  * Implementation of a PianoRollEditor
  */
-public class PianoRollEditorImpl extends PianoRollEditor 
+public class PianoRollEditorImpl extends PianoRollEditor
 {
-
+    
     private static final float MAX_WIDTH_FACTOR = 1.5f;
-
+    
     private ToolbarPanel toolbarPanel;
     private JSplitPane splitPane;
     private VelocityPanel velocityPanel;
@@ -67,7 +70,9 @@ public class PianoRollEditorImpl extends PianoRollEditor
     private KeyboardComponent keyboard;
     private RulerPanel rulerPanel;
     private JScrollPane scrollpane;
-
+    private MouseDragLayerUI mouseDragLayerUI;
+    private JLayer mouseDragLayer;
+    
     private ZoomValue zoomValue;
     private final SizedPhrase spModel;
     private final DrumKit.KeyMap keymap;
@@ -77,14 +82,7 @@ public class PianoRollEditorImpl extends PianoRollEditor
      * Our global lookup.
      */
     private final Lookup lookup;
-    /**
-     * The lookup for the selection.
-     */
-    private final Lookup selectionLookup;
-    /**
-     * Instance content behind the selection lookup.
-     */
-    private final InstanceContent selectionLookupContent;
+
     /**
      * The lookup for non-selection stuff.
      */
@@ -98,7 +96,7 @@ public class PianoRollEditorImpl extends PianoRollEditor
     private JJazzUndoManager undoManager;
     private final InstanceContent generalLookupContent;
     private final int startBarIndex;
-
+    
     private static final Logger LOGGER = Logger.getLogger(PianoRollEditorImpl.class.getSimpleName());
 
     /**
@@ -112,11 +110,10 @@ public class PianoRollEditorImpl extends PianoRollEditor
         this.spModel = sp;
         this.keymap = kmap;
         this.settings = settings;
+        
+        
+        createUI();
 
-
-        // The lookup for selection
-        selectionLookupContent = new InstanceContent();
-        selectionLookup = new AbstractLookup(selectionLookupContent);
 
         // The lookup for other stuff
         generalLookupContent = new InstanceContent();
@@ -129,11 +126,9 @@ public class PianoRollEditorImpl extends PianoRollEditor
         // generalLookupContent.add(zoomable);
         generalLookupContent.add(getActionMap());
 
-        // Global lookup = sum of both
-        lookup = new ProxyLookup(selectionLookup, generalLookup);
 
-        
-        createUI();
+        // Global lookup = sum of both
+        lookup = new ProxyLookup(notesPanel.getSelectionLookup(), generalLookup);
 
 
         // Normal zoom
@@ -141,65 +136,64 @@ public class PianoRollEditorImpl extends PianoRollEditor
         notesPanel.setScaleFactorX(toScaleFactorX(zoomValue.hValue()));
         float yFactor = toScaleFactorY(zoomValue.vValue());
         keyboard.setScaleFactor(yFactor, Math.min(MAX_WIDTH_FACTOR, yFactor));
-
+        
     }
-
-  
-
+    
+    
     @Override
     public Lookup getLookup()
     {
         return lookup;
     }
-
+    
     @Override
     public SizedPhrase getModel()
     {
         return spModel;
     }
-
+    
     @Override
     public int getStartBarIndex()
     {
         return startBarIndex;
     }
-
+    
     @Override
     public DrumKit.KeyMap getDrumKeyMap()
     {
         return keymap;
     }
-
+    
     @Override
     public UndoRedo getUndoManager()
     {
         return undoManager;
     }
-
+    
     @Override
     public PianoRollEditorSettings getSettings()
     {
         return settings;
     }
-
+    
     @Override
     public void cleanup()
     {
         rulerPanel.cleanup();
         notesPanel.cleanup();
     }
-
+    
     @Override
     public void setZoom(ZoomValue zoom)
     {
         Preconditions.checkNotNull(zoom);
         LOGGER.log(Level.FINE, "setZoom() -- zoom={0}", zoom);
-
+        
         if (zoomValue == null || zoomValue.hValue() != zoom.hValue())
         {
             notesPanel.setScaleFactorX(toScaleFactorX(zoom.hValue()));
         }
-
+        
         if (zoomValue == null || zoomValue.vValue() != zoom.vValue())
         {
             // Save pitch at center
@@ -216,110 +210,124 @@ public class PianoRollEditorImpl extends PianoRollEditor
             // restore pitch at center
             scrollToCenter(saveCenterPitch);
         }
-
+        
         zoomValue = zoom;
     }
-
+    
     @Override
     public ZoomValue getZoom()
     {
         return zoomValue;
     }
-
+    
     @Override
     public void setQuantization(Quantization q)
     {
         notesPanel.getXMapper().setQuantization(q);
     }
-
+    
     @Override
     public Quantization getQuantization()
     {
         return notesPanel.getXMapper().getQuantization();
     }
-
+    
     @Override
     public void setSnapEnabled(boolean b)
     {
         // 
     }
-
+    
     @Override
     public boolean isSnapEnabled()
     {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
-
+    
     @Override
-    public void selectNote(NoteEvent ne, boolean b)
+    public void setSelectedNote(NoteEvent ne, boolean b)
+    {
+        notesPanel.setSelectedNote(ne, b);
+    }
+    
+    @Override
+    public boolean isSelectedNote(NoteEvent ne)
+    {
+        return notesPanel.isSelectedNote(ne);
+    }
+    
+    @Override
+    public void setFocusedNote(NoteEvent ne)
     {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
-
-    @Override
-    public void setFocusOnNote(NoteEvent ne)
-    {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
-
-    @Override
-    public void setNoteVisible(NoteEvent ne)
-    {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
-
-    @Override
-    public void setActiveTool(EditTool tool)
-    {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
-
-    @Override
-    public EditTool getActiveTool()
-    {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
-
+    
     @Override
     public NoteEvent getFocusedNote()
     {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
-
+    
+    @Override
+    public void setActiveTool(EditTool tool)
+    {
+        notesPanel.setActiveTool(tool);
+    }
+    
+    @Override
+    public EditTool getActiveTool()
+    {
+        return notesPanel.getActiveTool();
+    }
+    
+    
     @Override
     public void showPlaybackPoint(boolean b, float pos)
     {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
-
+    
     @Override
     public float getPositionFromPoint(Point editorPoint)
     {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
-
+    
     @Override
     public int getPitchFromPoint(Point notesPanelPoint)
     {
         return notesPanel.getYMapper().getPitch(notesPanelPoint.y);
     }
-
+    
+    @Override
+    public void showSelectionRectangle(Rectangle r)
+    {
+        mouseDragLayerUI.showSelectionRectangle(r);
+        mouseDragLayer.repaint();        
+    }
+    
+    @Override
+    public List<NoteEvent> getNotes(Rectangle r)
+    {
+        return notesPanel.getNotes(r);
+    }
+    
     public KeyboardComponent getKeyboardComponent()
     {
         return keyboard;
     }
-
+    
     public NotesPanel getNotesPanel()
     {
         return notesPanel;
     }
-
+    
     public FloatRange getBeatRange()
     {
         return getModel().getBeatRange();
     }
-
-
+    
+    
     public IntRange getBarRange()
     {
         int nbBars = (int) (getBeatRange().size() / getModel().getTimeSignature().getNbNaturalBeats());
@@ -334,7 +342,7 @@ public class PianoRollEditorImpl extends PianoRollEditor
     public void scrollToCenter(int pitch)
     {
         Preconditions.checkArgument(pitch >= 0 && pitch < 128);
-
+        
         var vpRect = scrollpane.getViewport().getViewRect();
         float vpCenterY = vpRect.y + vpRect.height / 2f;
         IntRange pitchYRange = notesPanel.getYMapper().getKeyboardYRange(pitch);
@@ -401,28 +409,27 @@ public class PianoRollEditorImpl extends PianoRollEditor
         return res;
     }
 
- 
+
     // =======================================================================================================================
     // Private methods
     // =======================================================================================================================
-
     private boolean isDrums()
     {
         return keymap != null;
     }
-
+    
     private float toScaleFactorX(int zoomHValue)
     {
         float xFactor = 0.2f + 4 * zoomHValue / 100f;
         return xFactor;
     }
-
+    
     private float toScaleFactorY(int zoomVValue)
     {
         float yFactor = 0.4f + 4 * zoomVValue / 100f;
         return yFactor;
     }
-
+    
     private void createUI()
     {
         // The keyboard 
@@ -438,10 +445,14 @@ public class PianoRollEditorImpl extends PianoRollEditor
 
 
         // The scrollpane
+        mouseDragLayerUI = new MouseDragLayerUI();
         notesPanel = new NotesPanel(this, keyboard);
+        mouseDragLayer = new JLayer(notesPanel, mouseDragLayerUI);
+        
+        
         rulerPanel = new RulerPanel(this, notesPanel);
         scrollpane = new JScrollPane();
-        scrollpane.setViewportView(notesPanel);
+        scrollpane.setViewportView(mouseDragLayer);
         scrollpane.setRowHeaderView(pnl_keyboard);
         scrollpane.setColumnHeaderView(rulerPanel);
 
@@ -461,23 +472,24 @@ public class PianoRollEditorImpl extends PianoRollEditor
         setLayout(new BorderLayout());
         add(toolbarPanel, BorderLayout.NORTH);
         add(splitPane, BorderLayout.CENTER);
-
-
+        
+        
     }
-
+    
     private IntRange getYRange(Rectangle r)
     {
         assert r.height > 0;
         IntRange res = new IntRange(r.y, r.y + r.height - 1);
         return res;
     }
-
+    
     private IntRange getXRange(Rectangle r)
     {
         assert r.width > 0;
         IntRange res = new IntRange(r.x, r.x + r.width - 1);
         return res;
     }
+
 
     // =======================================================================================================================
     // Inner classes
@@ -487,19 +499,19 @@ public class PianoRollEditorImpl extends PianoRollEditor
      */
     private class PianoRollZoomable implements Zoomable
     {
-
+        
         @Override
         public Zoomable.Capabilities getZoomCapabilities()
         {
             return Zoomable.Capabilities.X_Y;
         }
-
+        
         @Override
         public int getZoomYFactor()
         {
             return getZoom().vValue();
         }
-
+        
         @Override
         public void setZoomYFactor(int newFactor, boolean valueIsAdjusting)
         {
@@ -511,29 +523,29 @@ public class PianoRollEditorImpl extends PianoRollEditor
             setZoom(new ZoomValue(getZoomXFactor(), newFactor));
             firePropertyChange(Zoomable.PROPERTY_ZOOM_Y, old, newFactor);
         }
-
+        
         @Override
         public int getZoomXFactor()
         {
             return getZoom().hValue();
         }
-
+        
         @Override
         public void setZoomXFactor(int newFactor, boolean valueIsAdjusting)
         {
             int old = getZoomXFactor();
             setZoom(new ZoomValue(newFactor, getZoomYFactor()));
             firePropertyChange(Zoomable.PROPERTY_ZOOM_X, old, newFactor);
-
+            
         }
-
+        
         @Override
         public void addPropertyListener(PropertyChangeListener l)
         {
             addPropertyChangeListener(Zoomable.PROPERTY_ZOOM_X, l);
             addPropertyChangeListener(Zoomable.PROPERTY_ZOOM_Y, l);
         }
-
+        
         @Override
         public void removePropertyListener(PropertyChangeListener l)
         {
@@ -541,5 +553,5 @@ public class PianoRollEditorImpl extends PianoRollEditor
             removePropertyChangeListener(Zoomable.PROPERTY_ZOOM_Y, l);
         }
     };
-
+    
 }

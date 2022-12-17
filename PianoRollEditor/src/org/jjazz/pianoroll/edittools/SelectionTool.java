@@ -22,12 +22,17 @@
  */
 package org.jjazz.pianoroll.edittools;
 
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.pianoroll.api.EditTool;
+import org.jjazz.pianoroll.api.NotesSelection;
+import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.util.api.ResUtil;
 import org.netbeans.api.annotations.common.StaticResource;
 
@@ -36,59 +41,116 @@ import org.netbeans.api.annotations.common.StaticResource;
  */
 public class SelectionTool implements EditTool
 {
-
+    
     @StaticResource(relative = true)
     private static final String ICON_PATH_OFF = "resources/SelectionToolOFF.png";
     @StaticResource(relative = true)
     private static final String ICON_PATH_ON = "resources/SelectionToolON.png";
-
-
+    private final PianoRollEditor editor;
+    /**
+     * If not null means dragging has started.
+     */
+    private Point startDraggingPoint;    
+    
+    public SelectionTool(PianoRollEditor editor)
+    {
+        this.editor = editor;
+    }
+    
     @Override
     public Icon getIcon(boolean b)
     {
         return b ? new ImageIcon(SelectionTool.class.getResource(ICON_PATH_ON)) : new ImageIcon(SelectionTool.class.getResource(ICON_PATH_OFF));
     }
-
+    
     @Override
     public String getName()
     {
         return ResUtil.getString(getClass(), "SelectionName");
     }
-
+    
     @Override
     public void editorWheelMoved(MouseWheelEvent e)
     {
         //
     }
-
+    
     @Override
     public void editorClicked(MouseEvent e)
     {
-        //
+        unselectAll();
     }
-
+    
     @Override
     public void noteClicked(MouseEvent e, NoteEvent ne)
     {
-        //
+        boolean shift_or_ctrl = (e.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) != 0;
+        boolean b = editor.isSelectedNote(ne);
+        if (!shift_or_ctrl)
+        {
+            unselectAll();
+        }
+        editor.setSelectedNote(ne, !b);
     }
-
+    
     @Override
     public void noteWheelMoved(MouseWheelEvent e, NoteEvent ne)
     {
         //
     }
-
+    
     @Override
-    public void noteDragged(MouseEvent e, int pitch, float pos)
+    public void noteDragged(MouseEvent e, NoteEvent ne)
     {
-        //
+        
+    }
+    
+    @Override
+    public void noteReleased(MouseEvent e, NoteEvent ne)
+    {
+        
+    }
+    
+    @Override
+    public void editorDragged(MouseEvent e)
+    {
+        if (startDraggingPoint == null)
+        {
+            startDraggingPoint = e.getPoint();
+            unselectAll();
+        } else
+        {
+            Rectangle r = new Rectangle(startDraggingPoint);
+            r.add(e.getPoint());
+            editor.showSelectionRectangle(r);
+        }
+    }
+    
+    @Override
+    public void editorReleased(MouseEvent e)
+    {
+        if (startDraggingPoint != null)
+        {
+            Rectangle r = new Rectangle(startDraggingPoint);
+            r.add(e.getPoint());
+            editor.showSelectionRectangle(null);
+            startDraggingPoint = null;
+            
+            unselectAll();
+            for (var ne : editor.getNotes(r))
+            {
+                editor.setSelectedNote(ne, true);
+            }
+        }
     }
 
-    @Override
-    public void noteReleased(MouseEvent e, int pitch, float pos)
-    {
-        //
-    }
 
+    // =============================================================================================
+    // Private methods
+    // =============================================================================================    
+    private void unselectAll()
+    {
+        new NotesSelection(editor.getLookup()).unselectAll(editor);
+    }
+    
 }

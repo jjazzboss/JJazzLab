@@ -23,6 +23,8 @@
 package org.jjazz.pianoroll.api;
 
 import java.awt.Point;
+import java.awt.Rectangle;
+import java.util.List;
 import javax.swing.JPanel;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.phrase.api.NoteEvent;
@@ -53,6 +55,21 @@ public abstract class PianoRollEditor extends JPanel implements Lookup.Provider
     abstract public int getStartBarIndex();
 
     abstract public SizedPhrase getModel();
+
+    /**
+     * Show a selection rectangle.
+     *
+     * @param r If null does not show anything
+     */
+    abstract public void showSelectionRectangle(Rectangle r);
+
+    /**
+     * Get the notes covered by the specified rectangle.
+     *
+     * @param r
+     * @return
+     */
+    abstract public List<NoteEvent> getNotes(Rectangle r);
 
     /**
      * The drum key map used by the edited phrase.
@@ -122,25 +139,22 @@ public abstract class PianoRollEditor extends JPanel implements Lookup.Provider
      * @param ne
      * @param b
      */
-    abstract public void selectNote(NoteEvent ne, boolean b);
+    abstract public void setSelectedNote(NoteEvent ne, boolean b);
+
+    /**
+     * Check if the specified note is selected.
+     *
+     * @param ne
+     * @return
+     */
+    abstract public boolean isSelectedNote(NoteEvent ne);
 
     /**
      * Set the focus on a specific note.
      *
      * @param ne
      */
-    abstract public void setFocusOnNote(NoteEvent ne);
-
-    /**
-     * Make sure the specified note is visible.
-     *
-     * @param ne
-     */
-    abstract public void setNoteVisible(NoteEvent ne);
-
-    abstract public void setActiveTool(EditTool tool);
-
-    abstract public EditTool getActiveTool();
+    abstract public void setFocusedNote(NoteEvent ne);
 
     /**
      * Get the focused note, if any.
@@ -148,6 +162,11 @@ public abstract class PianoRollEditor extends JPanel implements Lookup.Provider
      * @return Can be null.
      */
     abstract public NoteEvent getFocusedNote();
+
+    abstract public void setActiveTool(EditTool tool);
+
+    abstract public EditTool getActiveTool();
+
 
     /**
      * Show a playback point in the editor at specified position.

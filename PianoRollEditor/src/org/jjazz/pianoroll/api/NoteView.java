@@ -31,10 +31,13 @@ import java.awt.LinearGradientPaint;
 import java.awt.RenderingHints;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.phrase.api.NoteEvent;
+import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
 import org.jjazz.ui.utilities.api.HSLColor;
 import org.jjazz.ui.utilities.api.StringMetrics;
 import org.jjazz.ui.utilities.api.Utilities;
@@ -43,13 +46,11 @@ import org.jjazz.uisettings.api.GeneralUISettings;
 /**
  * A JComponent which represents a NoteEvent.
  */
-public class NoteView extends JPanel
+public class NoteView extends JPanel implements PropertyChangeListener
 {
 
     private static Color[] VELOCITY_COLORS;
     private static final Color COLOR_TEXT = Color.WHITE;
-    private static final Color COLOR_SELECTED_BACKGROUND = new Color(232, 232, 0);
-    private static final Color COLOR_SELECTED_INNER_BORDER = HSLColor.changeLuminance(COLOR_SELECTED_BACKGROUND, 12);
     private static final Font FONT;
     private static final int FONT_HEIGHT;
 
@@ -68,13 +69,16 @@ public class NoteView extends JPanel
     private String noteAsString;
     private boolean selected;
     private boolean muted;
+    private PianoRollEditorSettings settings;
 
 
     public NoteView(NoteEvent ne)
     {
         noteEvent = ne;
-        selected = Math.random() > 0.5;
+        settings = PianoRollEditorSettings.getDefault();
         updateGraphics(noteEvent);
+
+        settings.addPropertyChangeListener(this);
     }
 
     public void setModel(NoteEvent ne)
@@ -123,20 +127,14 @@ public class NoteView extends JPanel
 
         var r = Utilities.getUsableArea(this);
 
-        if (selected)
-        {
-            // Paint an inner border
-            g2.setColor(COLOR_SELECTED_INNER_BORDER);
-            g2.drawRect(r.x, r.y, r.width - 1, r.height - 1);
-        }
-
-        if (r.height >= FONT_HEIGHT + 1)
+        if (r.height >= FONT_HEIGHT)
         {
             // Draw note            
             g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
             float xStr = r.x + 1;
             float yStr = r.y + r.height - 2;           // text baseline position
-            g2.setColor(COLOR_TEXT);
+            Color c = selected ? Color.BLACK : COLOR_TEXT;
+            g2.setColor(c);
             g2.setFont(FONT);
             g2.drawString(noteAsString, xStr, yStr);
         }
@@ -145,6 +143,7 @@ public class NoteView extends JPanel
 
     public void cleanup()
     {
+        settings.removePropertyChangeListener(this);
     }
 
     /**
@@ -162,14 +161,27 @@ public class NoteView extends JPanel
         }
         return VELOCITY_COLORS[velocity];
     }
+    // ==========================================================================================================
+    // PropertyChangeListener interface
+    // ==========================================================================================================    
 
+    @Override
+    public void propertyChange(PropertyChangeEvent evt)
+    {
+        if (evt.getSource() instanceof PianoRollEditorSettings)
+        {
+            updateGraphics(noteEvent);
+            repaint();
+        }
+    }
 
     // ==============================================================================================================
     // Private methods
     // ==============================================================================================================
+
     private void updateGraphics(NoteEvent ne)
     {
-        Color bgColor = selected ? COLOR_SELECTED_BACKGROUND : getColor(ne.getVelocity());
+        Color bgColor = selected ? settings.getSelectedNoteColor() : getColor(ne.getVelocity());
         setBackground(bgColor);
         Color borderColor = getBorderColor(getBackground());
         setBorder(BorderFactory.createLineBorder(borderColor, 1));

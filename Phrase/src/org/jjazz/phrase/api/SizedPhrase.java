@@ -265,7 +265,7 @@ public class SizedPhrase extends Phrase
 
     private void checkNoteEvent(NoteEvent ne)
     {
-        if (!beatRange.contains(ne.getBeatRange(), false))
+        if (!beatRange.contains(ne.getBeatRange(), true))
         {
             throw new IllegalArgumentException("ne=" + ne + " beatRange=" + beatRange);
         }
