@@ -32,6 +32,7 @@ public interface PianoRollEditorSettings
     public static String PROP_BAR_LINE_COLOR = "BarLineColor";
     public static String PROP_BACKGROUND_COLOR1 = "BackgroundColor1";
     public static String PROP_BACKGROUND_COLOR2 = "BackgroundColor2";
+    public static String PROP_RULER_BACKGROUND_COLOR = "RulerBackgroundColor";
     public static String PROP_NOTE_COLOR = "NoteColor";
     public static String PROP_SELECTED_NOTE_COLOR = "SelectedNoteColor";
     public static String PROP_FOCUSED_NOTE_CONTOUR_COLOR = "FocusedNoteContourColor";
@@ -54,6 +55,10 @@ public interface PianoRollEditorSettings
     Color getBackgroundColor2();
 
     void setBackgroundColor2(Color color);
+
+    Color getRulerBackgroundColor();
+
+    void setRulerBackgroundColor(Color color);
 
     Color getNoteColor();
 

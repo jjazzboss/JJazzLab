@@ -23,6 +23,7 @@
 package org.jjazz.pianoroll.api;
 
 import org.jjazz.harmony.api.TimeSignature;
+import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.PhraseUtilities;
 import org.jjazz.phrase.api.SizedPhrase;
@@ -76,7 +77,20 @@ public final class PhraseEditorTopComponent extends TopComponent
         initComponents();
 
         int nbBeats = 48;
-        Phrase p = PhraseUtilities.getCscalePhrase(0, 0, nbBeats);
+        int nbNotes = 30;
+        Phrase p = new Phrase(0);
+        for (int i = 0; i < nbNotes; i++)
+        {
+            int pitch = 64 + ((int) (Math.random() * 60) - 30);
+            int vel = 64 + ((int) (Math.random() * 100) - 50);
+            float dur = (float) (0.2f + Math.random() * 4);
+            float deltaPos = (float) (Math.random() * 4);
+            float pos = ((float) nbBeats / (nbNotes + 3)) * i + deltaPos;
+            if (pos + dur < nbBeats)
+            {
+                p.add(new NoteEvent(pitch, dur, vel, pos));
+            }
+        }
         SizedPhrase sp = new SizedPhrase(p.getChannel(), new FloatRange(0, nbBeats), TimeSignature.FOUR_FOUR);
         sp.add(p);
         editorPanel = new PianoRollEditorImpl(0, sp, null, PianoRollEditorSettings.getDefault());

@@ -32,6 +32,8 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NavigableMap;
@@ -39,11 +41,16 @@ import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
+import org.jjazz.phrase.api.NoteEvent;
+import org.jjazz.phrase.api.Phrase;
+import org.jjazz.phrase.api.SizedPhrase;
+import org.jjazz.pianoroll.api.NoteView;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
 import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.ui.keyboardcomponent.api.KeyboardComponent;
 import org.jjazz.ui.keyboardcomponent.api.PianoKey;
 import org.jjazz.ui.utilities.api.HSLColor;
+import org.jjazz.util.api.FloatRange;
 import org.jjazz.util.api.IntRange;
 
 /**
@@ -52,32 +59,48 @@ import org.jjazz.util.api.IntRange;
  * Y metrics are taken from the associated vertical keyboard. The XMapper and YMapper objects provide the methods to position
  * notes.
  */
-public class NotesPanel extends javax.swing.JPanel
+public class NotesPanel extends javax.swing.JPanel implements PropertyChangeListener
 {
 
     private final KeyboardComponent keyboard;
     private final YMapper yMapper;
     private final XMapper xMapper;
     private final PianoRollEditorImpl editor;
+    private final SizedPhrase spModel;
     private float scaleFactorX = 1f;
+    private Map<NoteEvent, NoteView> mapNotesEventView = new HashMap<>();
     private static final Logger LOGGER = Logger.getLogger(NotesPanel.class.getSimpleName());
 
 
     public NotesPanel(PianoRollEditorImpl editor, KeyboardComponent keyboard)
     {
         this.editor = editor;
+        this.spModel = editor.getModel();
         this.keyboard = keyboard;
         this.xMapper = new XMapper();
         this.yMapper = new YMapper();
 
+        editor.getSettings().addPropertyChangeListener(this);
 
         var mouseListener = new MyMouseListener();
         addMouseListener(mouseListener);
         addMouseMotionListener(mouseListener);
+
+
+        // Create the NoteViews and add them 
+        for (NoteEvent ne : spModel)
+        {
+            NoteView nv = new NoteView(ne);
+            mapNotesEventView.put(ne, nv);
+            add(nv);
+        }
+
+        // Be notified of changes, note added, moved, removed, set
+        spModel.addPropertyChangeListener(this);
     }
 
     /**
-     * Early detection of size changes for xMapper update.
+     * Early detection of size changes in order update xMapper as soon as possible.
      * <p>
      * Ovverridden because this method is called (by parent's layoutManager) before component is painted and before the component
      * resized/moved event is fired. This lets us update xMapper as soon as possible.
@@ -95,6 +118,28 @@ public class NotesPanel extends javax.swing.JPanel
         if (w != xMapper.lastWidth)
         {
             xMapper.refresh();
+        }
+    }
+
+    /**
+     * Layout all the NoteEvents.
+     */
+    @Override
+    public void doLayout()
+    {
+        if (!xMapper.isUptodate() || !yMapper.isUptodate())
+        {
+            return;
+        }
+        for (NoteView nv : mapNotesEventView.values())
+        {
+            NoteEvent ne = nv.getModel();
+            FloatRange br = ne.getBeatRange();
+            int x = xMapper.getX(br.from);
+            int y = yMapper.getNoteViewChannelYRange(ne.getPitch()).from;
+            int w = xMapper.getX(br.to - 0.0001f) - x + 1;
+            int h = yMapper.getNoteViewHeight();
+            nv.setBounds(x, y, w, h);
         }
     }
 
@@ -159,12 +204,16 @@ public class NotesPanel extends javax.swing.JPanel
             return;
         }
 
-
         drawHorizontalGrid(g2);
         drawVerticalGrid(g2);
 
     }
 
+    public void cleanup()
+    {
+        spModel.removePropertyChangeListener(this);
+        editor.getSettings().removePropertyChangeListener(this);
+    }
 
     // ========================================================================================
     // Private methods
@@ -228,6 +277,29 @@ public class NotesPanel extends javax.swing.JPanel
 
             g2.setColor(c);
             g2.drawLine(x, y0, x, y1);
+        }
+    }
+
+    private void settingsChanged()
+    {
+        repaint();
+    }
+    // ==========================================================================================================
+    // PropertyChangeListener interface
+    // ==========================================================================================================    
+
+    @Override
+    public void propertyChange(PropertyChangeEvent evt)
+    {
+        if (evt.getSource() == editor.getSettings())
+        {
+            settingsChanged();
+        } else if (evt.getSource() == spModel)
+        {
+            if (evt.getPropertyName().equals(Phrase.PROP_NOTE_ADDED))
+            {
+                NoteEvent ne = (NoteEvent) evt.getNewValue();
+            }
         }
     }
 
@@ -406,7 +478,7 @@ public class NotesPanel extends javax.swing.JPanel
         public int getX(float posInBeats)
         {
             var br = editor.getBeatRange();
-            Preconditions.checkArgument(br.contains(posInBeats, true), "posInBeats=%s", posInBeats);
+            Preconditions.checkArgument(br.contains(posInBeats, true), "br=%s posInBeats=%s", br, posInBeats);
             int w = getWidth();
             int xPos = Math.round((posInBeats - br.from) * getOneBeatPixelSize());
             xPos = Math.min(w - 1, xPos);
@@ -557,7 +629,7 @@ public class NotesPanel extends javax.swing.JPanel
         }
 
         /**
-         * The NoteView height to be used to fit the NoteView lines.
+         * The NoteView height to be used so that it fits all NoteView lines.
          *
          * @return
          * @throws IllegalStateException If this yMapper is not up-to-date.

@@ -24,23 +24,16 @@ package org.jjazz.pianoroll;
 
 import com.google.common.base.Preconditions;
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionListener;
-import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
-import javax.swing.SwingUtilities;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.phrase.api.NoteEvent;
-import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.pianoroll.api.EditTool;
 import org.jjazz.pianoroll.api.PianoRollEditor;
@@ -62,7 +55,7 @@ import org.openide.util.lookup.ProxyLookup;
 /**
  * Implementation of a PianoRollEditor
  */
-public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChangeListener
+public class PianoRollEditorImpl extends PianoRollEditor 
 {
 
     private static final float MAX_WIDTH_FACTOR = 1.5f;
@@ -72,7 +65,7 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
     private VelocityPanel velocityPanel;
     private NotesPanel notesPanel;
     private KeyboardComponent keyboard;
-    private JPanel pnl_ruler;
+    private RulerPanel rulerPanel;
     private JScrollPane scrollpane;
 
     private ZoomValue zoomValue;
@@ -105,6 +98,7 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
     private JJazzUndoManager undoManager;
     private final InstanceContent generalLookupContent;
     private final int startBarIndex;
+
     private static final Logger LOGGER = Logger.getLogger(PianoRollEditorImpl.class.getSimpleName());
 
     /**
@@ -118,10 +112,6 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
         this.spModel = sp;
         this.keymap = kmap;
         this.settings = settings;
-
-
-        // Listen to settings changes
-        this.settings.addPropertyChangeListener(this);
 
 
         // The lookup for selection
@@ -142,6 +132,7 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
         // Global lookup = sum of both
         lookup = new ProxyLookup(selectionLookup, generalLookup);
 
+        
         createUI();
 
 
@@ -153,6 +144,7 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
 
     }
 
+  
 
     @Override
     public Lookup getLookup()
@@ -193,7 +185,8 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
     @Override
     public void cleanup()
     {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        rulerPanel.cleanup();
+        notesPanel.cleanup();
     }
 
     @Override
@@ -363,7 +356,7 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
     {
         Preconditions.checkArgument(getBeatRange().contains(posInBeats, true));
     }
-    
+
 
     /**
      * Get the min/max notes which are currently visible.
@@ -408,25 +401,7 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
         return res;
     }
 
-    //------------------------------------------------------------------------------
-    // PropertyChangeListener interface
-    //------------------------------------------------------------------------------
-    @Override
-    public void propertyChange(final PropertyChangeEvent evt)
-    {
-
-        if (evt.getSource() == settings)
-        {
-            // 
-        } else if (evt.getSource() == spModel)
-        {
-            if (evt.getPropertyName().equals(Phrase.PROP_NOTE_ADDED))
-            {
-                NoteEvent ne = (NoteEvent) evt.getNewValue();
-            }
-        }
-
-    }
+ 
     // =======================================================================================================================
     // Private methods
     // =======================================================================================================================
@@ -464,11 +439,11 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
 
         // The scrollpane
         notesPanel = new NotesPanel(this, keyboard);
-        pnl_ruler = new RulerPanel(this, notesPanel);
+        rulerPanel = new RulerPanel(this, notesPanel);
         scrollpane = new JScrollPane();
         scrollpane.setViewportView(notesPanel);
         scrollpane.setRowHeaderView(pnl_keyboard);
-        scrollpane.setColumnHeaderView(pnl_ruler);
+        scrollpane.setColumnHeaderView(rulerPanel);
 
 
         // The splitpane

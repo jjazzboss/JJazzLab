@@ -23,51 +23,199 @@
 package org.jjazz.pianoroll.api;
 
 import com.google.common.base.Preconditions;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.LinearGradientPaint;
+import java.awt.RenderingHints;
+import java.awt.geom.Point2D;
+import java.awt.image.BufferedImage;
+import javax.swing.BorderFactory;
 import javax.swing.JPanel;
+import org.jjazz.harmony.api.Note;
 import org.jjazz.phrase.api.NoteEvent;
+import org.jjazz.ui.utilities.api.HSLColor;
+import org.jjazz.ui.utilities.api.StringMetrics;
+import org.jjazz.ui.utilities.api.Utilities;
+import org.jjazz.uisettings.api.GeneralUISettings;
 
 /**
  * A JComponent which represents a NoteEvent.
  */
-public class NoteView extends JPanel implements PropertyChangeListener
+public class NoteView extends JPanel
 {
 
+    private static Color[] VELOCITY_COLORS;
+    private static final Color COLOR_TEXT = Color.WHITE;
+    private static final Color COLOR_SELECTED_BACKGROUND = new Color(232, 232, 0);
+    private static final Color COLOR_SELECTED_INNER_BORDER = HSLColor.changeLuminance(COLOR_SELECTED_BACKGROUND, 12);
+    private static final Font FONT;
+    private static final int FONT_HEIGHT;
+
+    static
+    {
+        // Precalculate font height
+        FONT = GeneralUISettings.getInstance().getStdCondensedFont().deriveFont(10f);
+        BufferedImage img = new BufferedImage(10, 10, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2 = img.createGraphics();
+        var bounds = new StringMetrics(g2, FONT).getLogicalBoundsNoLeading("A");
+        FONT_HEIGHT = (int) bounds.getHeight();
+        g2.dispose();
+    }
+
     private NoteEvent noteEvent;
-    
+    private String noteAsString;
+    private boolean selected;
+    private boolean muted;
+
+
     public NoteView(NoteEvent ne)
     {
-        setModel(ne);
+        noteEvent = ne;
+        selected = Math.random() > 0.5;
+        updateGraphics(noteEvent);
     }
 
     public void setModel(NoteEvent ne)
     {
         Preconditions.checkNotNull(ne);
-        if (noteEvent != null)
-        {
-            noteEvent.removeClientPropertyChangeListener(this);
-        }
-        noteEvent.addClientPropertyChangeListener(this);
-    }
-    
-    public void cleanup()
-    {
-         noteEvent.removeClientPropertyChangeListener(this);
+        noteEvent = ne;
+        updateGraphics(ne);
+        repaint();
     }
 
-    // ==============================================================================================================
-    // PropertyChangeListener interface
-    // ==============================================================================================================
+    public NoteEvent getModel()
+    {
+        return noteEvent;
+    }
+
+    public void setSelected(boolean b)
+    {
+        selected = b;
+        updateGraphics(noteEvent);
+        repaint();
+    }
+
+    public boolean isSelected()
+    {
+        return selected;
+    }
+
+    public boolean isMuted()
+    {
+        return muted;
+    }
+
+    public void setMuted(boolean muted)
+    {
+        this.muted = muted;
+        updateGraphics(noteEvent);
+        repaint();
+    }
 
     @Override
-    public void propertyChange(PropertyChangeEvent evt)
+    public void paintComponent(Graphics g)
     {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        super.paintComponent(g);        // Paint background
+        Graphics2D g2 = (Graphics2D) g.create();
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        var r = Utilities.getUsableArea(this);
+
+        if (selected)
+        {
+            // Paint an inner border
+            g2.setColor(COLOR_SELECTED_INNER_BORDER);
+            g2.drawRect(r.x, r.y, r.width - 1, r.height - 1);
+        }
+
+        if (r.height >= FONT_HEIGHT + 1)
+        {
+            // Draw note            
+            g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+            float xStr = r.x + 1;
+            float yStr = r.y + r.height - 2;           // text baseline position
+            g2.setColor(COLOR_TEXT);
+            g2.setFont(FONT);
+            g2.drawString(noteAsString, xStr, yStr);
+        }
+        g2.dispose();
     }
+
+    public void cleanup()
+    {
+    }
+
+    /**
+     * Get a color which changes with velocity, red shade for higher value, blue shade for lower value.
+     *
+     * @param velocity
+     * @return
+     */
+    static public Color getColor(int velocity)
+    {
+        Preconditions.checkArgument(velocity >= 0 && velocity <= 127);
+        if (VELOCITY_COLORS == null)
+        {
+            computeVelocityColors();
+        }
+        return VELOCITY_COLORS[velocity];
+    }
+
 
     // ==============================================================================================================
     // Private methods
     // ==============================================================================================================
+    private void updateGraphics(NoteEvent ne)
+    {
+        Color bgColor = selected ? COLOR_SELECTED_BACKGROUND : getColor(ne.getVelocity());
+        setBackground(bgColor);
+        Color borderColor = getBorderColor(getBackground());
+        setBorder(BorderFactory.createLineBorder(borderColor, 1));
+        noteAsString = new Note(ne.getPitch()).toPianoOctaveString();
+    }
+
+    /**
+     * Pre-calculate all the velocity colors from 0 to 127.
+     */
+    private static void computeVelocityColors()
+    {
+        BufferedImage img = new BufferedImage(128, 1, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2 = img.createGraphics();
+        Point2D start = new Point2D.Float(0, 0);
+        Point2D end = new Point2D.Float(127, 0);
+        float[] dist =
+        {
+            0.0f, 0.5f, 1.0f
+        };
+        Color[] colors =
+        {
+            new Color(2, 0, 252), new Color(128, 0, 126), new Color(255, 0, 0)
+        };
+        LinearGradientPaint p = new LinearGradientPaint(start, end, dist, colors);
+        g2.setPaint(p);
+        g2.fillRect(0, 0, 127, 1);
+        VELOCITY_COLORS = new Color[128];
+        for (int i = 0; i < 128; i++)
+        {
+            int cInt = img.getRGB(i, 0);
+            VELOCITY_COLORS[i] = new Color(cInt);
+        }
+        g2.dispose();
+
+    }
+
+    /**
+     * Compute the border color from the background color.
+     *
+     * @param bgColor
+     * @return
+     */
+    private Color getBorderColor(Color bgColor)
+    {
+        return HSLColor.changeLuminance(bgColor, -12);       // Darker
+    }
+
 
 }

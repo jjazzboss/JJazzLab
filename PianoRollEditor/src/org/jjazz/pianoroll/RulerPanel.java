@@ -27,11 +27,12 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.image.BufferedImage;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
@@ -42,7 +43,7 @@ import org.jjazz.uisettings.api.GeneralUISettings;
 /**
  * The ruler panel that shows the beat position marks over the NotesPanel.
  */
-public class RulerPanel extends javax.swing.JPanel
+public class RulerPanel extends javax.swing.JPanel implements PropertyChangeListener
 {
 
     private static final int BAR_TICK_LENGTH = 10;
@@ -50,12 +51,12 @@ public class RulerPanel extends javax.swing.JPanel
     private static final Color COLOR_BEAT_TICK = new Color(90, 90, 90);
     private static final Color COLOR_BAR_FONT = new Color(176, 199, 220);
     private static final Color COLOR_BEAT_FONT = new Color(80, 80, 80);
-    private static final Color COLOR_BACKGROUND = new Color(15, 29, 42);
     private final NotesPanel notesPanel;
     private final NotesPanel.XMapper xMapper;
     private final PianoRollEditorImpl editor;
     private final Font fontBar;
     private final Font fontBeat;
+    private final int preferredHeight;
     private static final Logger LOGGER = Logger.getLogger(RulerPanel.class.getSimpleName());
 
     /**
@@ -69,7 +70,10 @@ public class RulerPanel extends javax.swing.JPanel
         this.notesPanel = notesPanel;
         this.xMapper = notesPanel.getXMapper();
 
-        setBackground(COLOR_BACKGROUND);
+
+        editor.getSettings().addPropertyChangeListener(this);
+        settingsChanged();
+
 
         fontBar = GeneralUISettings.getInstance().getStdFont().deriveFont(13f);
         fontBeat = fontBar.deriveFont(fontBar.getSize() - 3f);
@@ -85,15 +89,19 @@ public class RulerPanel extends javax.swing.JPanel
             }
         });
 
+
+        // Precalculate preferred height
+        BufferedImage img = new BufferedImage(10, 10, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2 = img.createGraphics();
+        var bounds = new StringMetrics(g2, getFont()).getLogicalBoundsNoLeading("9");
+        preferredHeight = (int) (bounds.getHeight() + BAR_TICK_LENGTH + 1);
+        g2.dispose();
     }
 
     @Override
     public Dimension getPreferredSize()
     {
-        BufferedImage img = new BufferedImage(10, 10, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g2 = img.createGraphics();
-        var bounds = new StringMetrics(g2, getFont()).getLogicalBoundsNoLeading("999");
-        var pd = new Dimension(notesPanel.getWidth(), (int) (bounds.getHeight() + BAR_TICK_LENGTH));
+        var pd = new Dimension(notesPanel.getWidth(), preferredHeight);
         return pd;
     }
 
@@ -115,7 +123,7 @@ public class RulerPanel extends javax.swing.JPanel
         float subTickWidth = oneBeatPixelSize / 4;
         Color subTickColor = HSLColor.changeLuminance(COLOR_BEAT_TICK, -2);
 
-        
+
         boolean paintSubTicks = oneBeatPixelSize > 60;
 
 
@@ -173,8 +181,30 @@ public class RulerPanel extends javax.swing.JPanel
         g2.dispose();
     }
 
+
+    public void cleanup()
+    {
+        editor.getSettings().removePropertyChangeListener(this);
+    }
+
+    // ==========================================================================================================
+    // PropertyChangeListener interface
+    // ==========================================================================================================    
+    @Override
+    public void propertyChange(PropertyChangeEvent evt)
+    {
+        if (evt.getSource() == editor.getSettings())
+        {
+            settingsChanged();
+        }
+    }
+
     // ==========================================================================================================
     // Private methods
     // ==========================================================================================================    
 
+    private void settingsChanged()
+    {
+        setBackground(editor.getSettings().getRulerBackgroundColor());
+    }
 }

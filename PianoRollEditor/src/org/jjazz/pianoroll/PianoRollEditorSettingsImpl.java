@@ -40,7 +40,7 @@ public class PianoRollEditorSettingsImpl implements PianoRollEditorSettings
     /**
      * The Preferences of this object.
      */
-    private static Preferences prefs = NbPreferences.forModule(PianoRollEditorSettingsImpl.class);
+    private static final Preferences prefs = NbPreferences.forModule(PianoRollEditorSettingsImpl.class);
     /**
      * The listeners for changes of this object.
      */
@@ -94,6 +94,27 @@ public class PianoRollEditorSettingsImpl implements PianoRollEditorSettings
             prefs.putInt(PROP_BACKGROUND_COLOR2, color.getRGB());
         }
         pcs.firePropertyChange(PROP_BACKGROUND_COLOR2, old, color);
+    }
+    
+      @Override
+    public Color getRulerBackgroundColor()
+    {
+        return new Color(prefs.getInt(PROP_RULER_BACKGROUND_COLOR, new Color(15,29,42).getRGB()));
+    }
+
+    @Override
+    public void setRulerBackgroundColor(Color color)
+    {
+        Color old = getRulerBackgroundColor();
+        if (color == null)
+        {
+            prefs.remove(PROP_RULER_BACKGROUND_COLOR);
+            color = getBackgroundColor1();
+        } else
+        {
+            prefs.putInt(PROP_RULER_BACKGROUND_COLOR, color.getRGB());
+        }
+        pcs.firePropertyChange(PROP_RULER_BACKGROUND_COLOR, old, color);
     }
 
     @Override
