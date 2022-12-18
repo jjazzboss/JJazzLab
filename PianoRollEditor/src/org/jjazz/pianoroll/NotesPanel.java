@@ -185,7 +185,12 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
     }
 
     /**
-     *
+     * Change the X scale factor.
+     * 
+     * This methods impacts the preferred size then calls revalidate() (and repaint()). Hence the notesPanel size is NOT directly  
+     * updated right after exiting method. Size will be updated once the EDT has finished processing the revalidate.
+     * 
+     * This will 
      * @param factorX A value &gt; 0
      */
     public void setScaleFactorX(float factorX)
@@ -459,6 +464,8 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
 
         private Quantization quantization = Quantization.ONE_QUARTER_BEAT;
         private int lastWidth = -1;
+
+
         private final NavigableMap<Position, Integer> tmap_allQuantizedXPositions = new TreeMap<>();
         private final NavigableMap<Position, Integer> tmap_allBeatsXPositions = new TreeMap<>();
 
@@ -468,6 +475,10 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
             return lastWidth == getWidth();
         }
 
+        protected int getLastWidth()
+        {
+            return lastWidth;
+        }
 
         public Quantization getQuantization()
         {
@@ -594,7 +605,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
         public float getPositionInBeats(int xPos)
         {
             int w = getWidth();
-            Preconditions.checkArgument(xPos >= 0 && xPos < w, "xPos=%d w=%d", xPos, w);
+            Preconditions.checkArgument(xPos >= 0 && xPos < w, "xPos=%s w=%s", xPos, w);
             float relPos = xPos / getOneBeatPixelSize();
             float absPos = editor.getBeatRange().from + relPos;
             return absPos;

@@ -22,17 +22,23 @@
  */
 package org.jjazz.pianoroll.edittools;
 
+import java.awt.Container;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
+import java.util.logging.Level;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.SwingUtilities;
+import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.pianoroll.api.EditTool;
 import org.jjazz.pianoroll.api.NotesSelection;
 import org.jjazz.pianoroll.api.PianoRollEditor;
+import org.jjazz.pianoroll.api.ZoomValue;
+import org.jjazz.ui.utilities.api.Zoomable;
 import org.jjazz.util.api.ResUtil;
 import org.netbeans.api.annotations.common.StaticResource;
 
@@ -41,7 +47,7 @@ import org.netbeans.api.annotations.common.StaticResource;
  */
 public class SelectionTool implements EditTool
 {
-    
+
     @StaticResource(relative = true)
     private static final String ICON_PATH_OFF = "resources/SelectionToolOFF.png";
     @StaticResource(relative = true)
@@ -50,37 +56,31 @@ public class SelectionTool implements EditTool
     /**
      * If not null means dragging has started.
      */
-    private Point startDraggingPoint;    
-    
+    private Point startDraggingPoint;
+
     public SelectionTool(PianoRollEditor editor)
     {
         this.editor = editor;
     }
-    
+
     @Override
     public Icon getIcon(boolean b)
     {
         return b ? new ImageIcon(SelectionTool.class.getResource(ICON_PATH_ON)) : new ImageIcon(SelectionTool.class.getResource(ICON_PATH_OFF));
     }
-    
+
     @Override
     public String getName()
     {
         return ResUtil.getString(getClass(), "SelectionName");
     }
-    
-    @Override
-    public void editorWheelMoved(MouseWheelEvent e)
-    {
-        //
-    }
-    
+
     @Override
     public void editorClicked(MouseEvent e)
     {
         unselectAll();
     }
-    
+
     @Override
     public void noteClicked(MouseEvent e, NoteEvent ne)
     {
@@ -92,25 +92,25 @@ public class SelectionTool implements EditTool
         }
         editor.setSelectedNote(ne, !b);
     }
-    
+
     @Override
     public void noteWheelMoved(MouseWheelEvent e, NoteEvent ne)
     {
         //
     }
-    
+
     @Override
     public void noteDragged(MouseEvent e, NoteEvent ne)
     {
-        
+
     }
-    
+
     @Override
     public void noteReleased(MouseEvent e, NoteEvent ne)
     {
-        
+
     }
-    
+
     @Override
     public void editorDragged(MouseEvent e)
     {
@@ -125,7 +125,7 @@ public class SelectionTool implements EditTool
             editor.showSelectionRectangle(r);
         }
     }
-    
+
     @Override
     public void editorReleased(MouseEvent e)
     {
@@ -135,13 +135,48 @@ public class SelectionTool implements EditTool
             r.add(e.getPoint());
             editor.showSelectionRectangle(null);
             startDraggingPoint = null;
-            
+
             unselectAll();
             for (var ne : editor.getNotes(r))
             {
                 editor.setSelectedNote(ne, true);
             }
         }
+    }
+
+    @Override
+    public void editorWheelMoved(MouseWheelEvent e)
+    {
+        // Manage only ctrl-wheel
+
+        if ((e.getModifiersEx() & InputEvent.CTRL_DOWN_MASK) != InputEvent.CTRL_DOWN_MASK)
+        {
+            // It's not a ctrl-wheel. We don't want to lose the event, need to be processed by the above hierarchy, i.e. enclosing JScrollPane
+            Container source = (Container) e.getSource();
+            Container parent = source.getParent();
+            MouseEvent parentEvent = SwingUtilities.convertMouseEvent(source, e, parent);
+            parent.dispatchEvent(parentEvent);
+            return;
+        }
+
+        // Use the Zoomable to get the Zoomable scrollbars updated
+        Zoomable zoomable = editor.getLookup().lookup(Zoomable.class);
+        if (zoomable == null)
+        {
+            return;
+        }
+
+
+        final int STEP = 5;
+        int hFactor = zoomable.getZoomXFactor();
+        if (e.getWheelRotation() < 0)
+        {
+            hFactor = Math.min(100, hFactor + STEP);
+        } else
+        {
+            hFactor = Math.max(0, hFactor - STEP);
+        }
+        zoomable.setZoomXFactor(hFactor, false);
     }
 
 
@@ -152,5 +187,5 @@ public class SelectionTool implements EditTool
     {
         new NotesSelection(editor.getLookup()).unselectAll(editor);
     }
-    
+
 }

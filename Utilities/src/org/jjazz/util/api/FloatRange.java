@@ -43,7 +43,7 @@ public class FloatRange
      * Use the EMPTY_FLOAT_RANGE instance for empty range.
      *
      * @param from Must be &gt;= 0
-     * @param to Must be &gt; from
+     * @param to   Must be &gt; from
      * @throws IllegalArgumentException If from==to
      */
     public FloatRange(float from, float to)
@@ -69,6 +69,16 @@ public class FloatRange
     public float size()
     {
         return isEmpty() ? 0 : to - from;
+    }
+
+    /**
+     * The center of the range.
+     *
+     * @return (to-from)/2 + from
+     */
+    public float getCenter()
+    {
+        return (to - from) / 2 + from;
     }
 
     /**

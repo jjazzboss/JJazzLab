@@ -58,31 +58,55 @@ public record ZoomValue(int hValue, int vValue)
     /**
      * Get a copy of this instance with hValue changed.
      *
-     * @param newHFactor
+     * @param newHValue
      * @return
      */
-    public ZoomValue getHCopy(int newHFactor)
+    public ZoomValue getHCopy(int newHValue)
     {
-        if (!checkValue(newHFactor))
+        if (!checkValue(newHValue))
         {
-            throw new IllegalArgumentException("newHFactor=" + newHFactor);
+            throw new IllegalArgumentException("newHValue=" + newHValue);
         }
-        return new ZoomValue(newHFactor, vValue);
+        return new ZoomValue(newHValue, vValue);
     }
+
 
     /**
      * Get a copy of this instance with vValue changed.
      *
-     * @param newVFactor
+     * @param newVValue
      * @return
      */
-    public ZoomValue getVCopy(int newVFactor)
+    public ZoomValue getVCopy(int newVValue)
     {
-        if (!checkValue(newVFactor))
+        if (!checkValue(newVValue))
         {
-            throw new IllegalArgumentException("newVFactor=" + newVFactor);
+            throw new IllegalArgumentException("newVValue=" + newVValue);
         }
-        return new ZoomValue(hValue, newVFactor);
+        return new ZoomValue(hValue, newVValue);
+    }
+
+    /**
+     * Get a copy with the specified parameters added to the existing hValue and vValue.
+     *
+     * @param hDelta
+     * @param vDelta
+     * @return
+     * @throws IllegalStateException If this object uses ZOOM_TO_FIT
+     */
+    public ZoomValue getCopy(int hDelta, int vDelta)
+    {
+        if (hValue == ZOOM_TO_FIT || vValue == ZOOM_TO_FIT)
+        {
+            throw new IllegalStateException("hValue=" + hValue + " vValue=" + vValue);
+        }
+        int newh = hValue + hDelta;
+        newh = Math.max(0, newh);
+        newh = Math.min(100, newh);
+        int newv = vValue + vDelta;
+        newv = Math.max(0, newv);
+        newv = Math.min(100, newv);
+        return new ZoomValue(newh, newv);
     }
 
     /**

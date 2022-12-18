@@ -34,8 +34,6 @@ interface PianoRollEditorMouseListener
 
     void editorClicked(MouseEvent e);
 
-    void editorWheelMoved(MouseWheelEvent e);
-
     void editorDragged(MouseEvent e);
 
     void editorReleased(MouseEvent e);
@@ -47,4 +45,6 @@ interface PianoRollEditorMouseListener
     void noteDragged(MouseEvent e, NoteEvent ne);
 
     public void noteReleased(MouseEvent e, NoteEvent ne);
+    
+    public void editorWheelMoved(MouseWheelEvent evt);
 }
