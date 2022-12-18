@@ -59,14 +59,13 @@ public class ToolbarPanel extends javax.swing.JPanel
     private void initComponents()
     {
 
-        jLabel1 = new javax.swing.JLabel();
         cmb_quantization = new javax.swing.JComboBox<>();
         cb_snap = new javax.swing.JCheckBox();
         btn_test1 = new javax.swing.JButton();
-        btn_test2 = new javax.swing.JButton();
-        btn_test3 = new javax.swing.JButton();
-
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(ToolbarPanel.class, "ToolbarPanel.jLabel1.text")); // NOI18N
+        jToolBar1 = new javax.swing.JToolBar();
+        fbtn_select = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
+        fbtn_pencil = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
+        fbtn_eraser = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
 
         cmb_quantization.addActionListener(new java.awt.event.ActionListener()
         {
@@ -94,9 +93,19 @@ public class ToolbarPanel extends javax.swing.JPanel
             }
         });
 
-        org.openide.awt.Mnemonics.setLocalizedText(btn_test2, org.openide.util.NbBundle.getMessage(ToolbarPanel.class, "ToolbarPanel.btn_test2.text")); // NOI18N
+        jToolBar1.setRollover(true);
 
-        org.openide.awt.Mnemonics.setLocalizedText(btn_test3, org.openide.util.NbBundle.getMessage(ToolbarPanel.class, "ToolbarPanel.btn_test3.text")); // NOI18N
+        fbtn_select.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/pianoroll/edittools/resources/SelectionToolOFF.png"))); // NOI18N
+        fbtn_select.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/pianoroll/edittools/resources/SelectionToolON.png"))); // NOI18N
+        jToolBar1.add(fbtn_select);
+
+        fbtn_pencil.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/pianoroll/edittools/resources/PencilOFF.png"))); // NOI18N
+        fbtn_pencil.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/pianoroll/edittools/resources/PencilON.png"))); // NOI18N
+        jToolBar1.add(fbtn_pencil);
+
+        fbtn_eraser.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/pianoroll/edittools/resources/EraserOFF.png"))); // NOI18N
+        fbtn_eraser.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/pianoroll/edittools/resources/EraserON.png"))); // NOI18N
+        jToolBar1.add(fbtn_eraser);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -104,30 +113,25 @@ public class ToolbarPanel extends javax.swing.JPanel
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jLabel1)
+                .addComponent(jToolBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(cmb_quantization, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(cb_snap)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(btn_test1)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(btn_test2)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(btn_test3)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(82, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel1)
-                    .addComponent(cmb_quantization, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(cb_snap)
-                    .addComponent(btn_test1)
-                    .addComponent(btn_test2)
-                    .addComponent(btn_test3))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jToolBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(cmb_quantization, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(cb_snap)
+                        .addComponent(btn_test1)))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
@@ -156,10 +160,11 @@ public class ToolbarPanel extends javax.swing.JPanel
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_test1;
-    private javax.swing.JButton btn_test2;
-    private javax.swing.JButton btn_test3;
     private javax.swing.JCheckBox cb_snap;
     private javax.swing.JComboBox<Quantization> cmb_quantization;
-    private javax.swing.JLabel jLabel1;
+    private org.jjazz.ui.flatcomponents.api.FlatToggleButton fbtn_eraser;
+    private org.jjazz.ui.flatcomponents.api.FlatToggleButton fbtn_pencil;
+    private org.jjazz.ui.flatcomponents.api.FlatToggleButton fbtn_select;
+    private javax.swing.JToolBar jToolBar1;
     // End of variables declaration//GEN-END:variables
 }
