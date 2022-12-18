@@ -24,10 +24,19 @@ package org.jjazz.pianoroll;
 
 import com.google.common.base.Preconditions;
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Container;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.event.InputEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
+import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JLayer;
@@ -37,8 +46,11 @@ import javax.swing.JSplitPane;
 import javax.swing.SwingUtilities;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.phrase.api.NoteEvent;
+import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.pianoroll.api.EditTool;
+import org.jjazz.pianoroll.api.NoteView;
+import org.jjazz.pianoroll.api.NotesSelection;
 import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.pianoroll.api.ZoomValue;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
@@ -58,7 +70,7 @@ import org.openide.util.lookup.ProxyLookup;
 /**
  * Implementation of a PianoRollEditor
  */
-public class PianoRollEditorImpl extends PianoRollEditor
+public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChangeListener
 {
 
     private static final float MAX_WIDTH_FACTOR = 1.5f;
@@ -96,7 +108,8 @@ public class PianoRollEditorImpl extends PianoRollEditor
     private JJazzUndoManager undoManager;
     private final InstanceContent generalLookupContent;
     private final int startBarIndex;
-
+    private EditTool activeTool;
+    private final EditToolProxyMouseListener editToolProxyMouseListener;
     private static final Logger LOGGER = Logger.getLogger(PianoRollEditorImpl.class.getSimpleName());
 
     /**
@@ -111,8 +124,21 @@ public class PianoRollEditorImpl extends PianoRollEditor
         this.keymap = kmap;
         this.settings = settings;
 
+        // Be notified of changes, note added, moved, removed, set
+        spModel.addPropertyChangeListener(this);
+
 
         createUI();
+
+        // NotesPanel mouse listeners
+        var genericML = new GenericMouseListener();
+        notesPanel.addMouseListener(genericML);
+        notesPanel.addMouseMotionListener(genericML);
+        notesPanel.addMouseWheelListener(genericML);
+        editToolProxyMouseListener = new EditToolProxyMouseListener();
+        notesPanel.addMouseListener(editToolProxyMouseListener);
+        notesPanel.addMouseMotionListener(editToolProxyMouseListener);
+        notesPanel.addMouseWheelListener(editToolProxyMouseListener);
 
 
         // The lookup for other stuff
@@ -136,6 +162,17 @@ public class PianoRollEditorImpl extends PianoRollEditor
         notesPanel.setScaleFactorX(toScaleFactorX(zoomValue.hValue()));
         float yFactor = toScaleFactorY(zoomValue.vValue());
         keyboard.setScaleFactor(yFactor, Math.min(MAX_WIDTH_FACTOR, yFactor));
+
+
+        activeTool = EditTool.getAvailableTools(this).get(0);
+
+
+        // Add the notes
+        for (NoteEvent ne : spModel)
+        {
+            addNote(ne);
+        }
+
 
     }
 
@@ -195,7 +232,7 @@ public class PianoRollEditorImpl extends PianoRollEditor
             float saveCenterPosInBeats = getVisibleBeatRange().getCenter();
 
             // This updates notesPanel preferred size and calls revalidate(), which will update the size on the EDT
-            notesPanel.setScaleFactorX(toScaleFactorX(zoom.hValue()));      
+            notesPanel.setScaleFactorX(toScaleFactorX(zoom.hValue()));
 
             // Restore position at center
             // Must be done on the EDT to get the notesPanel resized after previous command
@@ -280,13 +317,18 @@ public class PianoRollEditorImpl extends PianoRollEditor
     @Override
     public void setActiveTool(EditTool tool)
     {
-        notesPanel.setActiveTool(tool);
+        Preconditions.checkNotNull(tool);
+        if (activeTool == tool)
+        {
+            return;
+        }
+        activeTool = tool;
     }
 
     @Override
     public EditTool getActiveTool()
     {
-        return notesPanel.getActiveTool();
+        return activeTool;
     }
 
 
@@ -308,18 +350,6 @@ public class PianoRollEditorImpl extends PianoRollEditor
         return notesPanel.getYMapper().getPitch(notesPanelPoint.y);
     }
 
-    @Override
-    public void showSelectionRectangle(Rectangle r)
-    {
-        mouseDragLayerUI.showSelectionRectangle(r);
-        mouseDragLayer.repaint();
-    }
-
-    @Override
-    public List<NoteEvent> getNotes(Rectangle r)
-    {
-        return notesPanel.getNotes(r);
-    }
 
     public KeyboardComponent getKeyboardComponent()
     {
@@ -425,6 +455,36 @@ public class PianoRollEditorImpl extends PianoRollEditor
         return res;
     }
 
+    // ==========================================================================================================
+    // PropertyChangeListener interface
+    // ==========================================================================================================    
+
+    @Override
+    public void propertyChange(PropertyChangeEvent evt)
+    {
+        if (evt.getSource() == spModel)
+        {
+            if (evt.getPropertyName().equals(Phrase.PROP_NOTE_ADDED))
+            {
+                NoteEvent ne = (NoteEvent) evt.getNewValue();
+                addNote(ne);
+                notesPanel.revalidate();
+            } else if (evt.getPropertyName().equals(Phrase.PROP_NOTE_REMOVED))
+            {
+                NoteEvent ne = (NoteEvent) evt.getNewValue();
+                removeNote(ne);
+                notesPanel.repaint();
+            } else if (evt.getPropertyName().equals(Phrase.PROP_NOTE_MOVED)
+                    || evt.getPropertyName().equals(Phrase.PROP_NOTE_SET))
+            {
+                NoteEvent newNe = (NoteEvent) evt.getNewValue();
+                NoteEvent oldNe = (NoteEvent) evt.getOldValue();
+                notesPanel.replaceNoteViewModel(oldNe, newNe);
+                notesPanel.revalidate();
+                notesPanel.repaint();
+            }
+        }
+    }
 
     // =======================================================================================================================
     // Private methods
@@ -432,6 +492,43 @@ public class PianoRollEditorImpl extends PianoRollEditor
     private boolean isDrums()
     {
         return keymap != null;
+    }
+
+    /**
+     * Caller is responsible to call revalidate() and/or repaint() as required.
+     *
+     * @param ne
+     */
+    private void addNote(NoteEvent ne)
+    {
+        var nv = notesPanel.addNoteView(ne);
+        registerNoteView(nv);
+        revalidate();
+    }
+
+    /**
+     * Caller is responsible to call revalidate() and/or repaint() as required.
+     *
+     * @param ne
+     */
+    private void removeNote(NoteEvent ne)
+    {
+        var nv = notesPanel.removeNoteView(ne);
+        unregisterNoteView(nv);
+    }
+
+    private void registerNoteView(NoteView nv)
+    {
+        nv.addMouseListener(editToolProxyMouseListener);
+        nv.addMouseMotionListener(editToolProxyMouseListener);
+        nv.addMouseWheelListener(editToolProxyMouseListener);
+    }
+
+    private void unregisterNoteView(NoteView nv)
+    {
+        nv.removeMouseListener(editToolProxyMouseListener);
+        nv.removeMouseListener(editToolProxyMouseListener);
+        nv.removeMouseWheelListener(editToolProxyMouseListener);
     }
 
     private float toScaleFactorX(int zoomHValue)
@@ -494,6 +591,12 @@ public class PianoRollEditorImpl extends PianoRollEditor
         add(splitPane, BorderLayout.CENTER);
 
 
+    }
+
+    private void showSelectionRectangle(Rectangle r)
+    {
+        mouseDragLayerUI.showSelectionRectangle(r);
+        mouseDragLayer.repaint();
     }
 
     private IntRange getYRange(Rectangle r)
@@ -579,4 +682,201 @@ public class PianoRollEditorImpl extends PianoRollEditor
         }
     };
 
+    /**
+     * Provide generic services.
+     * <p>
+     * - Handle the selection rectangle when dragging on the editor.<br>
+     * - Show the corresponding key on the keyboard when mouse is moved.<br>
+     * - Handle ctrl-mousewheel for zoom<br>
+     * <p>
+     */
+    private class GenericMouseListener extends MouseAdapter
+    {
+
+        /**
+         * Null if no dragging.
+         */
+        private Point startDraggingPoint;
+        int lastHighlightedPitch = -1;
+
+        @Override
+        public void mouseMoved(MouseEvent e)
+        {
+            if (!notesPanel.getYMapper().isUptodate())
+            {
+                return;
+            }
+
+            int pitch = notesPanel.getYMapper().getPitch(e.getY());
+            if (pitch == lastHighlightedPitch)
+            {
+                // Nothing
+            } else if (pitch == -1)
+            {
+                keyboard.getKey(lastHighlightedPitch).release();
+            } else
+            {
+                if (lastHighlightedPitch != -1)
+                {
+                    keyboard.getKey(lastHighlightedPitch).release();
+                }
+                keyboard.getKey(pitch).setPressed(50, Color.LIGHT_GRAY);
+            }
+            lastHighlightedPitch = pitch;
+        }
+
+        @Override
+        public void mouseExited(MouseEvent e)
+        {
+            if (lastHighlightedPitch != -1)
+            {
+                keyboard.getKey(lastHighlightedPitch).release();
+            }
+            lastHighlightedPitch = -1;
+        }
+
+        @Override
+        public void mouseDragged(MouseEvent e)
+        {
+            if (startDraggingPoint == null)
+            {
+                startDraggingPoint = e.getPoint();
+                unselectAll();
+            } else
+            {
+                Rectangle r = new Rectangle(startDraggingPoint);
+                r.add(e.getPoint());
+                showSelectionRectangle(r);
+            }
+        }
+
+        @Override
+        public void mouseReleased(MouseEvent e)
+        {
+            if (startDraggingPoint != null)
+            {
+                Rectangle r = new Rectangle(startDraggingPoint);
+                r.add(e.getPoint());
+                showSelectionRectangle(null);
+                startDraggingPoint = null;
+
+                var notes = notesPanel.getNotes(r);
+                activeTool.editMultipleNotes(notes);
+            }
+        }
+
+        @Override
+        public void mouseWheelMoved(MouseWheelEvent e)
+        {
+            // Manage only ctrl-wheel
+            if ((e.getModifiersEx() & InputEvent.CTRL_DOWN_MASK) != InputEvent.CTRL_DOWN_MASK)
+            {
+                // It's not a ctrl-wheel. We don't want to lose the event, need to be processed by the above hierarchy, i.e. enclosing JScrollPane
+                Container source = (Container) e.getSource();
+                Container parent = source.getParent();
+                MouseEvent parentEvent = SwingUtilities.convertMouseEvent(source, e, parent);
+                parent.dispatchEvent(parentEvent);
+                return;
+            }
+
+            // Use the Zoomable to get the Zoomable scrollbars updated
+            Zoomable zoomable = getLookup().lookup(Zoomable.class);
+            if (zoomable == null)
+            {
+                return;
+            }
+
+            final int STEP = 5;
+            int hFactor = zoomable.getZoomXFactor();
+            if (e.getWheelRotation() < 0)
+            {
+                hFactor = Math.min(100, hFactor + STEP);
+            } else
+            {
+                hFactor = Math.max(0, hFactor - STEP);
+            }
+            zoomable.setZoomXFactor(hFactor, false);
+        }
+
+    }
+
+    /**
+     * Redirect mouse events to the active EditTool.
+     */
+    private class EditToolProxyMouseListener implements MouseListener, MouseMotionListener, MouseWheelListener
+    {
+
+        @Override
+        public void mouseClicked(MouseEvent e)
+        {
+            if (e.getSource() == notesPanel)
+            {
+                activeTool.editorClicked(e);
+            } else if (e.getSource() instanceof NoteView nv)
+            {
+                activeTool.noteClicked(e, nv.getModel());
+            }
+        }
+
+        @Override
+        public void mousePressed(MouseEvent e)
+        {
+
+        }
+
+        @Override
+        public void mouseReleased(MouseEvent e)
+        {
+            if (e.getSource() == notesPanel)
+            {
+                activeTool.editorReleased(e);
+            } else if (e.getSource() instanceof NoteView nv)
+            {
+                activeTool.noteReleased(e, nv.getModel());
+            }
+        }
+
+        @Override
+        public void mouseEntered(MouseEvent e)
+        {
+            // 
+        }
+
+        @Override
+        public void mouseExited(MouseEvent e)
+        {
+            // 
+        }
+
+        @Override
+        public void mouseDragged(MouseEvent e)
+        {
+            if (e.getSource() == notesPanel)
+            {
+                activeTool.editorDragged(e);
+            } else if (e.getSource() instanceof NoteView nv)
+            {
+                activeTool.noteDragged(e, nv.getModel());
+            }
+        }
+
+        @Override
+        public void mouseMoved(MouseEvent e)
+        {
+            // 
+        }
+
+        @Override
+        public void mouseWheelMoved(MouseWheelEvent e)
+        {
+            if (e.getSource() == notesPanel)
+            {
+                activeTool.editorWheelMoved(e);
+            } else if (e.getSource() instanceof NoteView nv)
+            {
+                activeTool.noteWheelMoved(e, nv.getModel());
+            }
+        }
+
+    }
 }

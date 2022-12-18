@@ -186,6 +186,7 @@ public class NoteView extends JPanel implements PropertyChangeListener
         Color borderColor = getBorderColor(getBackground());
         setBorder(BorderFactory.createLineBorder(borderColor, 1));
         noteAsString = new Note(ne.getPitch()).toPianoOctaveString();
+        String tt = noteAsString + " (" + ne.getPitch() + ") v=" + ne.getVelocity();
     }
 
     /**

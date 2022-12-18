@@ -30,15 +30,8 @@ import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
-import java.awt.event.MouseWheelEvent;
-import java.awt.event.MouseWheelListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,9 +41,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.phrase.api.NoteEvent;
-import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.SizedPhrase;
-import org.jjazz.pianoroll.api.EditTool;
 import org.jjazz.pianoroll.api.NoteView;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
 import org.jjazz.quantizer.api.Quantization;
@@ -71,21 +62,19 @@ import org.openide.util.lookup.InstanceContent;
  */
 public class NotesPanel extends javax.swing.JPanel implements PropertyChangeListener
 {
-
+    
     private final KeyboardComponent keyboard;
     private final YMapper yMapper;
     private final XMapper xMapper;
     private final PianoRollEditorImpl editor;
     private final SizedPhrase spModel;
     private float scaleFactorX = 1f;
-    private Map<NoteEvent, NoteView> mapNotesEventView = new HashMap<>();
-    private EditTool activeTool;
-    private final ProxyMouseListener proxyMouseListener;
+    private final Map<NoteEvent, NoteView> mapNotesEventView = new HashMap<>();
     private final Lookup selectionLookup;
     private final InstanceContent selectionLookupContent;
     private static final Logger LOGGER = Logger.getLogger(NotesPanel.class.getSimpleName());
-
-
+    
+    
     public NotesPanel(PianoRollEditorImpl editor, KeyboardComponent keyboard)
     {
         this.editor = editor;
@@ -93,36 +82,14 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
         this.keyboard = keyboard;
         this.xMapper = new XMapper();
         this.yMapper = new YMapper();
-
-
+        
+        
         selectionLookupContent = new InstanceContent();
         selectionLookup = new AbstractLookup(selectionLookupContent);
-
-
+        
+        
         editor.getSettings().addPropertyChangeListener(this);
-
-
-        // The mouse listeners
-        var highlightKeyML = new HighlightKeyMouseListener();
-        addMouseListener(highlightKeyML);
-        addMouseMotionListener(highlightKeyML);
-        proxyMouseListener = new ProxyMouseListener();
-        addMouseListener(proxyMouseListener);
-        addMouseMotionListener(proxyMouseListener);
-        addMouseWheelListener(proxyMouseListener);
-
-
-        // Create the NoteViews and add them 
-        for (NoteEvent ne : spModel)
-        {
-            addNoteView(ne);
-        }
-
-        // Be notified of changes, note added, moved, removed, set
-        spModel.addPropertyChangeListener(this);
-
-
-        activeTool = EditTool.getAvailableTools(editor).get(0);
+        
     }
 
     /**
@@ -168,12 +135,12 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
             nv.setBounds(x, y, w, h);
         }
     }
-
+    
     public Lookup getSelectionLookup()
     {
         return selectionLookup;
     }
-
+    
     @Override
     public Dimension getPreferredSize()
     {
@@ -186,17 +153,18 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
 
     /**
      * Change the X scale factor.
-     * 
-     * This methods impacts the preferred size then calls revalidate() (and repaint()). Hence the notesPanel size is NOT directly  
+     * <p>
+     * This methods impacts the preferred size then calls revalidate() (and repaint()). Hence the notesPanel size is NOT directly
      * updated right after exiting method. Size will be updated once the EDT has finished processing the revalidate.
-     * 
-     * This will 
+     * <p>
+     * This will
+     *
      * @param factorX A value &gt; 0
      */
     public void setScaleFactorX(float factorX)
     {
         Preconditions.checkArgument(factorX > 0);
-
+        
         if (scaleFactorX != factorX)
         {
             scaleFactorX = factorX;
@@ -204,24 +172,24 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
             repaint();
         }
     }
-
-
+    
+    
     public float getScaleFactorX()
     {
         return scaleFactorX;
     }
-
+    
     public YMapper getYMapper()
     {
         return yMapper;
     }
-
+    
     public XMapper getXMapper()
     {
         return xMapper;
     }
-
-
+    
+    
     @Override
     public void paintComponent(Graphics g)
     {
@@ -239,15 +207,15 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
             // LOGGER.severe("paintComponent() xMapper or yMapper is not uptodate, abort painting");
             return;
         }
-
+        
         drawHorizontalGrid(g2);
         drawVerticalGrid(g2);
-
+        
     }
-
+    
     public void setSelectedNote(NoteEvent ne, boolean b)
     {
-        NoteView nv = mapNotesEventView.get(ne);
+        NoteView nv = getNoteView(ne);
         Preconditions.checkArgument(nv != null, "ne=%s b=%s", ne, b);
         boolean state = nv.isSelected();
         if (b != state)
@@ -263,23 +231,55 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
         }
     }
 
-    public boolean isSelectedNote(NoteEvent ne)
+    /**
+     * Create and add a NoteView for the specified NoteEvent.
+     * <p>
+     * Caller must call revalidate() and/or repaint() after as needed.
+     *
+     * @param ne
+     */
+    public NoteView addNoteView(NoteEvent ne)
     {
-        NoteView nv = mapNotesEventView.get(ne);
-        Preconditions.checkArgument(nv != null, "ne=%s", ne);
-        return nv.isSelected();
+        Preconditions.checkNotNull(ne);
+        Preconditions.checkArgument(!mapNotesEventView.containsKey(ne), "ne=%s mapNotesEventView=%s", ne, mapNotesEventView);
+        NoteView nv = new NoteView(ne);
+        mapNotesEventView.put(ne, nv);
+        add(nv);
+        return nv;
     }
 
-    public void setActiveTool(EditTool tool)
+    /**
+     * Remove a NoteView for the specified NoteEvent.
+     * <p>
+     * NoteView is unselected before being removed. Caller must call revalidate() and/or repaint() after as needed.
+     *
+     * @param ne
+     */
+    public NoteView removeNoteView(NoteEvent ne)
     {
-        Preconditions.checkNotNull(tool);
-        if (activeTool == tool)
-        {
-            return;
-        }
-
+        Preconditions.checkNotNull(ne);
+        setSelectedNote(ne, false);
+        NoteView nv = new NoteView(ne);
+        mapNotesEventView.remove(ne);
+        remove(nv);
+        nv.cleanup();
+        return nv;
     }
 
+    /**
+     * Change the model of a NoteView.
+     *
+     * @param oldNe
+     * @param newNe
+     */
+    public void replaceNoteViewModel(NoteEvent oldNe, NoteEvent newNe)
+    {
+        var nv = getNoteView(oldNe);
+        assert nv != null : " oldNe=" + oldNe + " newNe=" + newNe;
+        nv.setModel(newNe);
+    }
+    
+    
     public List<NoteEvent> getNotes(Rectangle r)
     {
         var res = mapNotesEventView.keySet().stream()
@@ -287,12 +287,15 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
                 .toList();
         return res;
     }
-
-    public EditTool getActiveTool()
+    
+    public boolean isSelectedNote(NoteEvent ne)
     {
-        return activeTool;
+        NoteView nv = getNoteView(ne);
+        Preconditions.checkArgument(nv != null, "ne=%s", ne);
+        return nv.isSelected();
     }
-
+    
+    
     public void cleanup()
     {
         spModel.removePropertyChangeListener(this);
@@ -308,28 +311,6 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
         if (evt.getSource() == editor.getSettings())
         {
             settingsChanged();
-        } else if (evt.getSource() == spModel)
-        {
-            if (evt.getPropertyName().equals(Phrase.PROP_NOTE_ADDED))
-            {
-                NoteEvent ne = (NoteEvent) evt.getNewValue();
-                addNoteView(ne);
-                revalidate();
-            } else if (evt.getPropertyName().equals(Phrase.PROP_NOTE_REMOVED))
-            {
-                NoteEvent ne = (NoteEvent) evt.getNewValue();
-                removeNoteView(ne);
-                repaint();
-            } else if (evt.getPropertyName().equals(Phrase.PROP_NOTE_MOVED)
-                    || evt.getPropertyName().equals(Phrase.PROP_NOTE_SET))
-            {
-                NoteEvent newNe = (NoteEvent) evt.getNewValue();
-                NoteEvent oldNe = (NoteEvent) evt.getOldValue();
-                NoteView nv = mapNotesEventView.get(oldNe);
-                nv.setModel(newNe);
-                revalidate();
-                repaint();
-            }
         }
     }
 
@@ -351,7 +332,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
 
         // only draw what's visible
         IntRange pitchRange = editor.getVisiblePitchRange();
-
+        
         for (int p = pitchRange.from; p <= pitchRange.to; p++)
         {
             int pp = p % 12;
@@ -365,10 +346,10 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
                 g2.drawLine(0, yRange.to, w - 1, yRange.to);
             }
         }
-
-
+        
+        
     }
-
+    
     private void drawVerticalGrid(Graphics2D g2)
     {
         var settings = PianoRollEditorSettings.getDefault();
@@ -392,99 +373,56 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
             {
                 c = pos.isOffBeat() ? cl3 : cl2;
             }
-
+            
             g2.setColor(c);
             g2.drawLine(x, y0, x, y1);
         }
     }
-
+    
+    
     private void settingsChanged()
     {
         repaint();
     }
-
-    /**
-     * Create and add a NoteView for the specified NoteEvent.
-     * <p>
-     * Caller must call revalidate() and/or repaint() after as needed.
-     *
-     * @param ne
-     */
-    private void addNoteView(NoteEvent ne)
+    
+    private NoteView getNoteView(NoteEvent ne)
     {
-        Preconditions.checkNotNull(ne);
-        Preconditions.checkArgument(!mapNotesEventView.containsKey(ne), "ne=%s mapNotesEventView=%s", ne, mapNotesEventView);
-        NoteView nv = new NoteView(ne);
-        mapNotesEventView.put(ne, nv);
-        add(nv);
-        registerNoteView(nv);
+        return mapNotesEventView.get(ne);
     }
 
-    /**
-     * Remove a NoteView for the specified NoteEvent.
-     * <p>
-     * Caller must call revalidate() and/or repaint() after as needed.
-     *
-     * @param ne
-     */
-    private void removeNoteView(NoteEvent ne)
-    {
-        Preconditions.checkNotNull(ne);
-        setSelectedNote(ne, false);
-        NoteView nv = new NoteView(ne);
-        mapNotesEventView.remove(ne);
-        remove(nv);
-        unregisterNoteView(nv);
-        nv.cleanup();
-    }
-
-    private void registerNoteView(NoteView nv)
-    {
-        nv.addMouseListener(proxyMouseListener);
-        nv.addMouseMotionListener(proxyMouseListener);
-        nv.addMouseWheelListener(proxyMouseListener);
-    }
-
-    private void unregisterNoteView(NoteView nv)
-    {
-        nv.removeMouseListener(proxyMouseListener);
-        nv.removeMouseListener(proxyMouseListener);
-        nv.removeMouseWheelListener(proxyMouseListener);
-    }
 
     // =====================================================================================
     // Inner classes
     // =====================================================================================
-
     /**
      * Conversion methods between NoteView X coordinate and position in beats.
      */
     public class XMapper
     {
-
+        
         private Quantization quantization = Quantization.ONE_QUARTER_BEAT;
         private int lastWidth = -1;
-
-
+        
+        
         private final NavigableMap<Position, Integer> tmap_allQuantizedXPositions = new TreeMap<>();
         private final NavigableMap<Position, Integer> tmap_allBeatsXPositions = new TreeMap<>();
-
-
+        
+        
         public boolean isUptodate()
         {
             return lastWidth == getWidth();
         }
-
+        
         protected int getLastWidth()
         {
             return lastWidth;
         }
-
+        
         public Quantization getQuantization()
         {
             return quantization;
         }
-
+        
         public void setQuantization(Quantization quantization)
         {
             this.quantization = quantization;
@@ -577,7 +515,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
             {
                 throw new IllegalStateException("lastWidth=" + lastWidth + " getWidth()=" + getWidth());
             }
-
+            
             if (barRange == null)
             {
                 barRange = editor.getBarRange();
@@ -698,7 +636,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
         private final NavigableMap<Integer, Integer> tmapPixelPitch = new TreeMap<>();
         private final Map<Integer, IntRange> mapPitchChannelYRange = new HashMap<>();
         private int noteViewHeight;
-
+        
         private YMapper()
         {
             keyboard.addComponentListener(new ComponentAdapter()
@@ -729,7 +667,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
             {
                 newKbdHeight, lastKeyboardHeight
             });
-
+            
             if (newKbdHeight == lastKeyboardHeight)
             {
                 return;
@@ -748,7 +686,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
             assert octaveHeight > 5 : "octaveHeight=" + octaveHeight;
             float adjustedSmallHeight = (octaveHeight - 4 * adjustedLargeHeight) / 8;       // So we can accomodate 4 small + 4 large
 
-
+            
             noteViewHeight = (int) Math.floor(adjustedSmallHeight);
 
 
@@ -757,7 +695,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
             tmapPixelPitch.clear();
             mapPitchChannelYRange.clear();
             var kbdRange = keyboard.getRange();
-
+            
             for (int p = kbdRange.getLowestPitch(); p <= kbdRange.getHighestPitch(); p++)
             {
                 int yi = Math.round(y);
@@ -768,7 +706,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
                 mapPitchChannelYRange.put(p, channelNoteYRange);
                 y -= yUp;
             }
-
+            
             revalidate();
             repaint();
         }
@@ -811,7 +749,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
             {
                 throw new IllegalStateException();
             }
-
+            
             var entry = tmapPixelPitch.ceilingEntry(yPos);
             // We might be below the (bottom key), can happen if keyboard is unzoomed/small and there is extra space below the keys.        
             int res = entry != null ? entry.getValue() : tmapPixelPitch.lastEntry().getValue();
@@ -860,133 +798,9 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
             int yBottom = yTop + key.getHeight();
             return new IntRange(yTop, yBottom);
         }
-
-
+        
+        
     }
-
-    /**
-     * Show the corresponding key on the keyboard when mouse is moved.
-     */
-    private class HighlightKeyMouseListener extends MouseAdapter
-    {
-
-        int lastPitch = -1;
-
-        @Override
-        public void mouseMoved(MouseEvent e)
-        {
-            if (!yMapper.isUptodate())
-            {
-                return;
-            }
-
-            int pitch = yMapper.getPitch(e.getY());
-            if (pitch == lastPitch)
-            {
-                // Nothing
-            } else if (pitch == -1)
-            {
-                keyboard.getKey(lastPitch).release();
-            } else
-            {
-                if (lastPitch != -1)
-                {
-                    keyboard.getKey(lastPitch).release();
-                }
-                keyboard.getKey(pitch).setPressed(50, Color.LIGHT_GRAY);
-            }
-            lastPitch = pitch;
-        }
-
-        @Override
-        public void mouseExited(MouseEvent e)
-        {
-            if (lastPitch != -1)
-            {
-                keyboard.getKey(lastPitch).release();
-            }
-            lastPitch = -1;
-        }
-
-    }
-
-    /**
-     * Redirect mouse events to the active EditTool.
-     */
-    private class ProxyMouseListener implements MouseListener, MouseMotionListener, MouseWheelListener
-    {
-
-        @Override
-        public void mouseClicked(MouseEvent e)
-        {
-            if (e.getSource() == NotesPanel.this)
-            {
-                activeTool.editorClicked(e);
-            } else if (e.getSource() instanceof NoteView nv)
-            {
-                activeTool.noteClicked(e, nv.getModel());
-            }
-        }
-
-        @Override
-        public void mousePressed(MouseEvent e)
-        {
-
-        }
-
-        @Override
-        public void mouseReleased(MouseEvent e)
-        {
-            if (e.getSource() == NotesPanel.this)
-            {
-                activeTool.editorReleased(e);
-            } else if (e.getSource() instanceof NoteView nv)
-            {
-                activeTool.noteReleased(e, nv.getModel());
-            }
-        }
-
-        @Override
-        public void mouseEntered(MouseEvent e)
-        {
-            // 
-        }
-
-        @Override
-        public void mouseExited(MouseEvent e)
-        {
-            // 
-        }
-
-        @Override
-        public void mouseDragged(MouseEvent e)
-        {
-            if (e.getSource() == NotesPanel.this)
-            {
-                activeTool.editorDragged(e);
-            } else if (e.getSource() instanceof NoteView nv)
-            {
-                activeTool.noteDragged(e, nv.getModel());
-            }
-        }
-
-        @Override
-        public void mouseMoved(MouseEvent e)
-        {
-            // 
-        }
-
-        @Override
-        public void mouseWheelMoved(MouseWheelEvent e)
-        {
-            if (e.getSource() == NotesPanel.this)
-            {
-                activeTool.editorWheelMoved(e);
-            } else if (e.getSource() instanceof NoteView nv)
-            {
-                activeTool.noteWheelMoved(e, nv.getModel());
-            }
-        }
-
-    }
+    
+    
 }

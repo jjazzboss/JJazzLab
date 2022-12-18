@@ -56,20 +56,6 @@ public abstract class PianoRollEditor extends JPanel implements Lookup.Provider
 
     abstract public SizedPhrase getModel();
 
-    /**
-     * Show a selection rectangle.
-     *
-     * @param r If null does not show anything
-     */
-    abstract public void showSelectionRectangle(Rectangle r);
-
-    /**
-     * Get the notes covered by the specified rectangle.
-     *
-     * @param r
-     * @return
-     */
-    abstract public List<NoteEvent> getNotes(Rectangle r);
 
     /**
      * The drum key map used by the edited phrase.
@@ -194,4 +180,8 @@ public abstract class PianoRollEditor extends JPanel implements Lookup.Provider
      */
     abstract public int getPitchFromPoint(Point editorPoint);
 
+    public void unselectAll()
+    {
+        new NotesSelection(getLookup()).unselectAll(this);
+    }
 }

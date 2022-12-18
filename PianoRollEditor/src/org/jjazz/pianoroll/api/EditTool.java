@@ -25,6 +25,7 @@ package org.jjazz.pianoroll.api;
 import java.util.Arrays;
 import java.util.List;
 import javax.swing.Icon;
+import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.pianoroll.edittools.SelectionTool;
 
 
@@ -37,6 +38,7 @@ public interface EditTool extends PianoRollEditorMouseListener
     /**
      * Get the available EditTools.
      *
+     * @param editor
      * @return
      */
     static public List<EditTool> getAvailableTools(PianoRollEditor editor)
@@ -53,6 +55,15 @@ public interface EditTool extends PianoRollEditorMouseListener
     Icon getIcon(boolean selected);
 
     String getName();
+
+    /**
+     * Perform the edit on multiple notes.
+     * <p>
+     * This method is called e.g. when user has selected one or more notes via the rectangle selection.
+     *
+     * @param noteEvents
+     */
+    void editMultipleNotes(List<NoteEvent> noteEvents);
 
 
 }
