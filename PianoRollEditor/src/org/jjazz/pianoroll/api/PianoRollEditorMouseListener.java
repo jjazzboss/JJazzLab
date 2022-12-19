@@ -6,16 +6,16 @@
  *  This file is part of the JJazzLabX software.
  *   
  *  JJazzLabX is free software: you can redistribute it and/or modify
- *  it under the terms of the Lesser GNU General Public License (LGPLv3) 
+ *  it under the terms of the Lesser GNU Genvral Public License (LGPLv3) 
  *  as published by the Free Software Foundation, either version 3 of the License, 
  *  or (at your option) any later version.
  *
  *  JJazzLabX is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- *  GNU Lesser General Public License for more details.
+ *  GNU Lesser Genvral Public License for more details.
  * 
- *  You should have received a copy of the GNU Lesser General Public License
+ *  You should have received a copy of the GNU Lesser Genvral Public License
  *  along with JJazzLabX.  If not, see <https://www.gnu.org/licenses/>
  * 
  *  Contributor(s): 
@@ -24,7 +24,6 @@ package org.jjazz.pianoroll.api;
 
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
-import org.jjazz.phrase.api.NoteEvent;
 
 /**
  * Listener to mouse events in a PianoRollEditor.
@@ -38,13 +37,20 @@ interface PianoRollEditorMouseListener
 
     void editorReleased(MouseEvent e);
 
-    void noteClicked(MouseEvent e, NoteEvent ne);
-
-    void noteWheelMoved(MouseWheelEvent e, NoteEvent ne);
-
-    void noteDragged(MouseEvent e, NoteEvent ne);
-
-    public void noteReleased(MouseEvent e, NoteEvent ne);
-    
     public void editorWheelMoved(MouseWheelEvent evt);
+
+    void noteClicked(MouseEvent e, NoteView nv);
+
+    void noteWheelMoved(MouseWheelEvent e, NoteView nv);
+
+    void noteMoved(MouseEvent e, NoteView nv);
+
+    void noteEntered(MouseEvent e, NoteView nv);
+
+    void noteExited(MouseEvent e, NoteView nv);
+
+    void noteDragged(MouseEvent e, NoteView nv);
+
+    void noteReleased(MouseEvent e, NoteView nv);
+
 }

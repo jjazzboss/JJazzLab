@@ -22,19 +22,23 @@
  */
 package org.jjazz.pianoroll.edittools;
 
-import java.awt.Container;
-import java.awt.Rectangle;
+import java.awt.Cursor;
+import java.awt.Point;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import org.jjazz.phrase.api.NoteEvent;
+import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.pianoroll.api.EditTool;
+import org.jjazz.pianoroll.api.NoteView;
 import org.jjazz.pianoroll.api.PianoRollEditor;
-import org.jjazz.ui.utilities.api.Zoomable;
 import org.jjazz.util.api.ResUtil;
 import org.netbeans.api.annotations.common.StaticResource;
 
@@ -45,15 +49,30 @@ public class SelectionTool implements EditTool
 {
 
     @StaticResource(relative = true)
-    private static final String ICON_PATH_OFF = "resources/SelectionToolOFF.png";
+    private static final String ICON_PATH_OFF = "resources/SelectionOFF.png";
     @StaticResource(relative = true)
-    private static final String ICON_PATH_ON = "resources/SelectionToolON.png";
-    private final PianoRollEditor editor;
+    private static final String ICON_PATH_ON = "resources/SelectionON.png";
+    private static final int RESIZE_PIXEL_LIMIT = 10;
 
+    private enum State
+    {
+        EDITOR, RESIZE_WEST, RESIZE_EST, MOVE
+    };
+    private State state;
+    private final PianoRollEditor editor;
+    private final SizedPhrase spModel;
+    /**
+     * If null, no dragging.
+     */
+    private Point dragStartPoint;
+    private NoteEvent dragNoteEvent;
+    private static final Logger LOGGER = Logger.getLogger(SelectionTool.class.getSimpleName());
 
     public SelectionTool(PianoRollEditor editor)
     {
         this.editor = editor;
+        spModel = editor.getModel();
+        state = State.EDITOR;
     }
 
     @Override
@@ -75,33 +94,118 @@ public class SelectionTool implements EditTool
     }
 
     @Override
-    public void noteClicked(MouseEvent e, NoteEvent ne)
+    public void noteClicked(MouseEvent e, NoteView nv)
     {
         boolean shift_or_ctrl = (e.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) != 0;
-        boolean b = editor.isSelectedNote(ne);
+
         if (!shift_or_ctrl)
         {
             editor.unselectAll();
         }
-        editor.setSelectedNote(ne, !b);
+        nv.setSelected(!nv.isSelected());
     }
 
     @Override
-    public void noteWheelMoved(MouseWheelEvent e, NoteEvent ne)
+    public void noteWheelMoved(MouseWheelEvent e, NoteView nv)
     {
         //
     }
 
     @Override
-    public void noteDragged(MouseEvent e, NoteEvent ne)
+    public void noteDragged(MouseEvent e, NoteView nv)
     {
+        if (dragStartPoint == null)
+        {
+            // Strart dragging
+            dragStartPoint = e.getPoint();
+            LOGGER.severe("noteDragged() START dragStartPoint=" + dragStartPoint + " ne=" + nv.getModel());
+        } else
+        {
+            var notesPanel = (JPanel) nv.getParent();
+            Point editorPoint = SwingUtilities.convertPoint(nv, e.getPoint(), notesPanel);
 
+            int newPitch = editor.getPitchFromPoint(editorPoint);
+            float newPos = editor.getPositionFromPoint(editorPoint);
+
+            LOGGER.log(Level.SEVERE, "noteDragged() editorPoint()={0} newPitch={1} newPos={2}", new Object[]
+            {
+                editorPoint, newPitch, newPos
+            });
+
+            if (dragNoteEvent == null)
+            {
+                dragNoteEvent = nv.getModel().getCopy(newPitch, newPos);
+                spModel.add(dragNoteEvent);
+            } else
+            {
+                switch (state)
+                {
+                    case EDITOR:
+                        break;
+                    case RESIZE_WEST:
+                        break;
+                    case RESIZE_EST:
+                        break;
+                    case MOVE:
+                         dragNoteEvent = spModel.move(dragNoteEvent, newPos);
+                        int index = spModel.indexOf(dragNoteEvent);
+                        dragNoteEvent = dragNoteEvent.getCopyPitch(newPitch);
+                        spModel.set(index, dragNoteEvent);
+                        break;
+                    default:
+                        throw new AssertionError(state.name());
+                }
+
+            }
+        }
     }
 
     @Override
-    public void noteReleased(MouseEvent e, NoteEvent ne)
+    public void noteReleased(MouseEvent e, NoteView nv)
     {
+        if (dragStartPoint == null)
+        {
+            throw new IllegalStateException("Should not be here e=" + e + " nv=" + nv);
+        } else
+        {
+            switch (state)
+            {
+                case EDITOR:
+                    break;
+                case RESIZE_WEST:
+                    break;
+                case RESIZE_EST:
+                    break;
+                case MOVE:
+                    spModel.remove(nv.getModel());
+                    spModel.add(dragNoteEvent);
+                    dragNoteEvent = null;
+                    dragStartPoint = null;
+                    break;
+                default:
+                    throw new AssertionError(state.name());
 
+            }
+        }
+    }
+
+    @Override
+    public void noteMoved(MouseEvent e, NoteView nv)
+    {
+        updateNoteCursor(e, nv);
+    }
+
+    @Override
+    public void noteEntered(MouseEvent e, NoteView nv)
+    {
+        updateNoteCursor(e, nv);
+    }
+
+    @Override
+    public void noteExited(MouseEvent e, NoteView nv)
+    {
+        nv.setCursor(Cursor.getDefaultCursor());
+        state = State.MOVE;
     }
 
     @Override
@@ -121,16 +225,58 @@ public class SelectionTool implements EditTool
     {
 
     }
-    
+
     @Override
-    public void editMultipleNotes(List<NoteEvent> noteEvents)
+    public void editMultipleNotes(List<NoteView> noteViews)
     {
         editor.unselectAll();
-        noteEvents.forEach(ne -> editor.setSelectedNote(ne, true));
+        noteViews.forEach(nv -> nv.setSelected(true));
     }
 
 
     // =============================================================================================
     // Private methods
-    // =============================================================================================    
+    // =============================================================================================   
+    private void updateNoteCursor(MouseEvent e, NoteView nv)
+    {
+        Cursor c;
+        if (isNearLeftSide(e, nv))
+        {
+            c = Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR);
+            state = State.RESIZE_WEST;
+        } else if (isNearRightSide(e, nv))
+        {
+            c = Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR);
+            state = State.RESIZE_EST;
+        } else
+        {
+            c = Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR);
+            state = State.MOVE;
+        }
+        nv.setCursor(c);
+    }
+
+    private boolean isNearLeftSide(MouseEvent e, NoteView nv)
+    {
+
+        boolean res = false;
+        int w = nv.getWidth();
+        if (w >= RESIZE_PIXEL_LIMIT)
+        {
+            res = e.getX() < RESIZE_PIXEL_LIMIT;
+        }
+        return res;
+    }
+
+    private boolean isNearRightSide(MouseEvent e, NoteView nv)
+    {
+        boolean res = false;
+        int w = nv.getWidth();
+        if (w >= RESIZE_PIXEL_LIMIT)
+        {
+            res = e.getX() > w - RESIZE_PIXEL_LIMIT - 1;
+        }
+        return res;
+    }
+
 }

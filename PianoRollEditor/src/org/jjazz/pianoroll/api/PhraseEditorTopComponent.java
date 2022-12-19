@@ -25,7 +25,6 @@ package org.jjazz.pianoroll.api;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
-import org.jjazz.phrase.api.PhraseUtilities;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.pianoroll.PianoRollEditorImpl;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
@@ -66,7 +65,7 @@ import org.openide.util.NbBundle.Messages;
 public final class PhraseEditorTopComponent extends TopComponent
 {
 
-    private PianoRollEditorImpl editorPanel;
+    private PianoRollEditorImpl editor;
 
     public PhraseEditorTopComponent()
     {
@@ -81,27 +80,27 @@ public final class PhraseEditorTopComponent extends TopComponent
         Phrase p = new Phrase(0);
         for (int i = 0; i < nbNotes; i++)
         {
-            int pitch = 64 + ((int) (Math.random() * 60) - 30);
+            int pitch = 40 + ((int) (Math.random() * 60) - 30);
             int vel = 64 + ((int) (Math.random() * 100) - 50);
             float dur = (float) (0.2f + Math.random() * 4);
             float deltaPos = (float) (Math.random() * 4);
-            float pos = ((float) nbBeats / (nbNotes + 3)) * i + deltaPos;
-            if (pos + dur < nbBeats)
+            float pos = 20 + ((float) nbBeats / (nbNotes + 3)) * i + deltaPos;
+            if (pos + dur < (20 + nbBeats))
             {
                 p.add(new NoteEvent(pitch, dur, vel, pos));
             }
         }
-        SizedPhrase sp = new SizedPhrase(p.getChannel(), new FloatRange(0, nbBeats), TimeSignature.FOUR_FOUR);
+        SizedPhrase sp = new SizedPhrase(p.getChannel(), new FloatRange(0, 20 + nbBeats), TimeSignature.FOUR_FOUR);
         sp.add(p);
-        editorPanel = new PianoRollEditorImpl(0, sp, null, PianoRollEditorSettings.getDefault());
-        add(editorPanel);
+        editor = new PianoRollEditorImpl(0, sp, null, PianoRollEditorSettings.getDefault());
+        add(editor);
 
     }
 
     @Override
     public Lookup getLookup()
     {
-        return editorPanel.getLookup();
+        return editor.getLookup();
     }
 
     /**
@@ -121,9 +120,9 @@ public final class PhraseEditorTopComponent extends TopComponent
     @Override
     public void componentOpened()
     {
-        // TODO add custom code on component opening
-    }
 
+    }
+    
     @Override
     public void componentClosed()
     {

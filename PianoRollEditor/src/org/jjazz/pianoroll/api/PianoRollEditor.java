@@ -23,8 +23,6 @@
 package org.jjazz.pianoroll.api;
 
 import java.awt.Point;
-import java.awt.Rectangle;
-import java.util.List;
 import javax.swing.JPanel;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.phrase.api.NoteEvent;
@@ -42,7 +40,7 @@ import org.openide.util.Lookup;
  * - editor's ActionMap<br>
  * - edited SizedPhrase<br>
  * - edited Song (if there is one) <br>
- * - the selected NoteEvents<br>
+ * - the currently selected NoteViews<br>
  */
 public abstract class PianoRollEditor extends JPanel implements Lookup.Provider
 {
@@ -119,35 +117,7 @@ public abstract class PianoRollEditor extends JPanel implements Lookup.Provider
      */
     abstract public boolean isSnapEnabled();
 
-    /**
-     * Select a note.
-     *
-     * @param ne
-     * @param b
-     */
-    abstract public void setSelectedNote(NoteEvent ne, boolean b);
-
-    /**
-     * Check if the specified note is selected.
-     *
-     * @param ne
-     * @return
-     */
-    abstract public boolean isSelectedNote(NoteEvent ne);
-
-    /**
-     * Set the focus on a specific note.
-     *
-     * @param ne
-     */
-    abstract public void setFocusedNote(NoteEvent ne);
-
-    /**
-     * Get the focused note, if any.
-     *
-     * @return Can be null.
-     */
-    abstract public NoteEvent getFocusedNote();
+    abstract public NoteView getNoteView(NoteEvent ne);
 
     abstract public void setActiveTool(EditTool tool);
 
@@ -157,7 +127,7 @@ public abstract class PianoRollEditor extends JPanel implements Lookup.Provider
     /**
      * Show a playback point in the editor at specified position.
      *
-     * @param b   Show/hide the playback point.
+     * @param b Show/hide the playback point.
      * @param pos The position in beats
      */
     abstract public void showPlaybackPoint(boolean b, float pos);
@@ -182,6 +152,6 @@ public abstract class PianoRollEditor extends JPanel implements Lookup.Provider
 
     public void unselectAll()
     {
-        new NotesSelection(getLookup()).unselectAll(this);
+        new NotesSelection(getLookup()).unselectAll();
     }
 }

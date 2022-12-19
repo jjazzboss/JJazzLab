@@ -50,7 +50,6 @@ import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.pianoroll.api.EditTool;
 import org.jjazz.pianoroll.api.NoteView;
-import org.jjazz.pianoroll.api.NotesSelection;
 import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.pianoroll.api.ZoomValue;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
@@ -68,7 +67,7 @@ import org.openide.util.lookup.InstanceContent;
 import org.openide.util.lookup.ProxyLookup;
 
 /**
- * Implementation of a PianoRollEditor
+ * Implementation of a PianoRollEditor.
  */
 public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChangeListener
 {
@@ -110,6 +109,7 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
     private final int startBarIndex;
     private EditTool activeTool;
     private final EditToolProxyMouseListener editToolProxyMouseListener;
+    private boolean useHack = true;
     private static final Logger LOGGER = Logger.getLogger(PianoRollEditorImpl.class.getSimpleName());
 
     /**
@@ -146,6 +146,7 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
         generalLookupContent.add(new PianoRollZoomable());
         generalLookup = new AbstractLookup(generalLookupContent);
 
+
         // Our implementation is made "Zoomable" by controllers
         // Initialize with actionmap, our Zoomable object   
         // zoomable = new SS_EditorZoomable();
@@ -173,9 +174,30 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
             addNote(ne);
         }
 
-
     }
 
+    /**
+     * HACK to detect the first time the editor is fully validated, so we can call scrollToNotes() effectively.
+     * <p>
+     * Tried without success: <br>
+     * - using AncestoListener.ancestorAdded()/ComponentShown did not work (notified too early, notesPanel has height not set
+     * yet).<br>
+     * - using TopComponent.opened()/showing() with SwingUtilities.invokeLater()<br>
+     *
+     * @param g
+     */
+    @Override
+    public void doLayout()
+    {
+        super.doLayout();
+        if (useHack = true && notesPanel.getWidth() > 0 && notesPanel.getHeight() > 0)
+        {
+            // We consider everything is layout now
+            useHack = false;
+            runOnceUIisValidated();
+
+        }
+    }
 
     @Override
     public Lookup getLookup()
@@ -291,27 +313,9 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
     }
 
     @Override
-    public void setSelectedNote(NoteEvent ne, boolean b)
+    public NoteView getNoteView(NoteEvent ne)
     {
-        notesPanel.setSelectedNote(ne, b);
-    }
-
-    @Override
-    public boolean isSelectedNote(NoteEvent ne)
-    {
-        return notesPanel.isSelectedNote(ne);
-    }
-
-    @Override
-    public void setFocusedNote(NoteEvent ne)
-    {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
-
-    @Override
-    public NoteEvent getFocusedNote()
-    {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        return notesPanel.getNoteView(ne);
     }
 
     @Override
@@ -341,7 +345,7 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
     @Override
     public float getPositionFromPoint(Point editorPoint)
     {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        return notesPanel.getXMapper().getPositionInBeats(editorPoint.x);
     }
 
     @Override
@@ -389,6 +393,10 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
         int dy = Math.round(vpCenterY - pitchCenterY);
         var r = new Rectangle(vpRect.x, dy > 0 ? vpRect.y - dy : vpRect.y + vpRect.height - 1 - dy, 1, 1);
         notesPanel.scrollRectToVisible(r);
+//        LOGGER.log(Level.FINE, "scrollToCenter() pitch={0} vpRect={1} r={2} notesPanel.bounds={3}", new Object[]
+//        {
+//            pitch, vpRect, r, notesPanel.getBounds()
+//        });
 
     }
 
@@ -407,6 +415,10 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
         int dx = vpCenterX - posCenterX;
         var r = new Rectangle(dx > 0 ? vpRect.x - dx : vpRect.x + vpRect.width - 1 - dx, vpRect.y, 1, 1);
         notesPanel.scrollRectToVisible(r);
+//        LOGGER.log(Level.FINE, "scrollToCenter() posInBeats={0} vpRect={1} r={2} notesPanel.bounds={3}", new Object[]
+//        {
+//            posInBeats, vpRect, r, notesPanel.getBounds()
+//        });
     }
 
 
@@ -455,33 +467,41 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
         return res;
     }
 
+
     // ==========================================================================================================
     // PropertyChangeListener interface
     // ==========================================================================================================    
-
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
         if (evt.getSource() == spModel)
         {
-            if (evt.getPropertyName().equals(Phrase.PROP_NOTE_ADDED))
+            switch (evt.getPropertyName())
             {
-                NoteEvent ne = (NoteEvent) evt.getNewValue();
-                addNote(ne);
-                notesPanel.revalidate();
-            } else if (evt.getPropertyName().equals(Phrase.PROP_NOTE_REMOVED))
-            {
-                NoteEvent ne = (NoteEvent) evt.getNewValue();
-                removeNote(ne);
-                notesPanel.repaint();
-            } else if (evt.getPropertyName().equals(Phrase.PROP_NOTE_MOVED)
-                    || evt.getPropertyName().equals(Phrase.PROP_NOTE_SET))
-            {
-                NoteEvent newNe = (NoteEvent) evt.getNewValue();
-                NoteEvent oldNe = (NoteEvent) evt.getOldValue();
-                notesPanel.replaceNoteViewModel(oldNe, newNe);
-                notesPanel.revalidate();
-                notesPanel.repaint();
+                case Phrase.PROP_NOTE_ADDED:
+                {
+                    NoteEvent ne = (NoteEvent) evt.getNewValue();
+                    addNote(ne);
+                    notesPanel.revalidate();
+                    break;
+                }
+                case Phrase.PROP_NOTE_REMOVED:
+                {
+                    NoteEvent ne = (NoteEvent) evt.getNewValue();
+                    removeNote(ne);
+                    notesPanel.repaint();
+                    break;
+                }
+                case Phrase.PROP_NOTE_MOVED:
+                case Phrase.PROP_NOTE_SET:
+                    NoteEvent newNe = (NoteEvent) evt.getNewValue();
+                    NoteEvent oldNe = (NoteEvent) evt.getOldValue();
+                    notesPanel.replaceNoteViewModel(oldNe, newNe);
+                    notesPanel.revalidate();
+                    notesPanel.repaint();
+                    break;
+                default:
+                    break;
             }
         }
     }
@@ -593,6 +613,7 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
 
     }
 
+
     private void showSelectionRectangle(Rectangle r)
     {
         mouseDragLayerUI.showSelectionRectangle(r);
@@ -613,6 +634,32 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
         return res;
     }
 
+    /**
+     * Adjust the scrollbars so that the first note is visible.
+     */
+    private void scrollToNotes()
+    {
+        var nvs = notesPanel.getNoteViews();
+        if (nvs.isEmpty())
+        {
+            return;
+        }
+        var posFirst = nvs.get(0).getModel().getPositionInBeats();
+        var visibleBr = getVisibleBeatRange();
+        posFirst += (visibleBr.size() / 2) * 0.8f;
+        posFirst = Math.min(posFirst, spModel.getBeatRange().to - 1);
+        scrollToCenter(posFirst);
+        int pitch = nvs.get(0).getModel().getPitch();
+        scrollToCenter(pitch);
+    }
+
+    /**
+     * Put here some initialization tasks that need to be executed when UI is validated, ie components layout is over.
+     */
+    private void runOnceUIisValidated()
+    {
+        scrollToNotes();
+    }
 
     // =======================================================================================================================
     // Inner classes
@@ -760,8 +807,8 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
                 showSelectionRectangle(null);
                 startDraggingPoint = null;
 
-                var notes = notesPanel.getNotes(r);
-                activeTool.editMultipleNotes(notes);
+                var nvs = notesPanel.getNoteViews(r);
+                activeTool.editMultipleNotes(nvs);
             }
         }
 
@@ -814,7 +861,7 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
                 activeTool.editorClicked(e);
             } else if (e.getSource() instanceof NoteView nv)
             {
-                activeTool.noteClicked(e, nv.getModel());
+                activeTool.noteClicked(e, nv);
             }
         }
 
@@ -832,20 +879,26 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
                 activeTool.editorReleased(e);
             } else if (e.getSource() instanceof NoteView nv)
             {
-                activeTool.noteReleased(e, nv.getModel());
+                activeTool.noteReleased(e, nv);
             }
         }
 
         @Override
         public void mouseEntered(MouseEvent e)
         {
-            // 
+            if (e.getSource() instanceof NoteView nv)
+            {
+                activeTool.noteEntered(e, nv);
+            }
         }
 
         @Override
         public void mouseExited(MouseEvent e)
         {
-            // 
+            if (e.getSource() instanceof NoteView nv)
+            {
+                activeTool.noteExited(e, nv);
+            }
         }
 
         @Override
@@ -856,14 +909,17 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
                 activeTool.editorDragged(e);
             } else if (e.getSource() instanceof NoteView nv)
             {
-                activeTool.noteDragged(e, nv.getModel());
+                activeTool.noteDragged(e, nv);
             }
         }
 
         @Override
         public void mouseMoved(MouseEvent e)
         {
-            // 
+            if (e.getSource() instanceof NoteView nv)
+            {
+                activeTool.noteMoved(e, nv);
+            }
         }
 
         @Override
@@ -874,7 +930,7 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
                 activeTool.editorWheelMoved(e);
             } else if (e.getSource() instanceof NoteView nv)
             {
-                activeTool.noteWheelMoved(e, nv.getModel());
+                activeTool.noteWheelMoved(e, nv);
             }
         }
 

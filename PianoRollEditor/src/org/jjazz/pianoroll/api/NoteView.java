@@ -33,6 +33,7 @@ import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 import org.jjazz.harmony.api.Note;
@@ -49,6 +50,7 @@ import org.jjazz.uisettings.api.GeneralUISettings;
 public class NoteView extends JPanel implements PropertyChangeListener
 {
 
+    public static final String PROP_SELECTED = "PropSelected";
     private static Color[] VELOCITY_COLORS;
     private static final Color COLOR_TEXT = Color.WHITE;
     private static final Font FONT;
@@ -94,11 +96,22 @@ public class NoteView extends JPanel implements PropertyChangeListener
         return noteEvent;
     }
 
+    /**
+     * Select this NoteView.
+     * <p>
+     * Fire a PROP_SELECTED change event.
+     *
+     * @param b
+     */
     public void setSelected(boolean b)
     {
-        selected = b;
-        updateGraphics(noteEvent);
-        repaint();
+        if (selected != b)
+        {
+            selected = b;
+            updateGraphics(noteEvent);
+            repaint();
+            firePropertyChange(PROP_SELECTED, !b, b);
+        }
     }
 
     public boolean isSelected()
@@ -146,6 +159,7 @@ public class NoteView extends JPanel implements PropertyChangeListener
         settings.removePropertyChangeListener(this);
     }
 
+
     /**
      * Get a color which changes with velocity, red shade for higher value, blue shade for lower value.
      *
@@ -161,10 +175,11 @@ public class NoteView extends JPanel implements PropertyChangeListener
         }
         return VELOCITY_COLORS[velocity];
     }
+
+
     // ==========================================================================================================
     // PropertyChangeListener interface
     // ==========================================================================================================    
-
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {

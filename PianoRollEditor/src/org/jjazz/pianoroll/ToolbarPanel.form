@@ -85,10 +85,10 @@
         <Component class="org.jjazz.ui.flatcomponents.api.FlatToggleButton" name="fbtn_select">
           <Properties>
             <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-              <Image iconType="3" name="/org/jjazz/pianoroll/edittools/resources/SelectionToolOFF.png"/>
+              <Image iconType="3" name="/org/jjazz/pianoroll/edittools/resources/SelectionOFF.png"/>
             </Property>
             <Property name="selectedIcon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-              <Image iconType="3" name="/org/jjazz/pianoroll/edittools/resources/SelectionToolON.png"/>
+              <Image iconType="3" name="/org/jjazz/pianoroll/edittools/resources/SelectionON.png"/>
             </Property>
           </Properties>
         </Component>

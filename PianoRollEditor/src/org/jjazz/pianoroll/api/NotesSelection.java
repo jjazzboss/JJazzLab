@@ -24,7 +24,6 @@ package org.jjazz.pianoroll.api;
 
 import com.google.common.base.Preconditions;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import org.jjazz.phrase.api.NoteEvent;
 import org.openide.util.Lookup;
@@ -35,14 +34,15 @@ import org.openide.util.Lookup;
 public class NotesSelection
 {
 
-    private final List<NoteEvent> notes;
+    private final List<NoteView> noteViews;
+    private List<NoteEvent> noteEvents;
 
     public NotesSelection(Lookup lookup)
     {
         Preconditions.checkNotNull(lookup);
 
-        notes = new ArrayList<>(lookup.lookupAll(NoteEvent.class));
-        Collections.sort(notes);
+        noteViews = new ArrayList<>(lookup.lookupAll(NoteView.class));
+        noteViews.sort((nv1, nv2) -> nv1.getModel().compareTo(nv2.getModel()));
     }
 
     /**
@@ -50,19 +50,33 @@ public class NotesSelection
      *
      * @return
      */
-    private List<NoteEvent> getNotes()
+    public List<NoteEvent> getNotes()
     {
-        return notes;
+        if (noteEvents == null)
+        {
+            noteEvents = noteViews.stream()
+                    .map(nv -> nv.getModel())
+                    .toList();
+        }
+        return noteEvents;
     }
 
     /**
-     * Unselect the current selection in the specified editor.
+     * Get the selected NoteViews sorted by NoteEvent natural order.
      *
-     * @param editor
+     * @return
      */
-    public void unselectAll(PianoRollEditor editor)
+    public List<NoteView> getNoteViews()
     {
-        notes.forEach(n -> editor.setSelectedNote(n, false));
+        return noteViews;
+    }
+
+    /**
+     * Unselect the current selection.
+     */
+    public void unselectAll()
+    {
+        noteViews.forEach(nv -> nv.setSelected(false));
     }
 
 }

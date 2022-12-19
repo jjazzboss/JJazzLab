@@ -25,7 +25,6 @@ package org.jjazz.pianoroll.api;
 import java.util.Arrays;
 import java.util.List;
 import javax.swing.Icon;
-import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.pianoroll.edittools.SelectionTool;
 
 
@@ -61,9 +60,8 @@ public interface EditTool extends PianoRollEditorMouseListener
      * <p>
      * This method is called e.g. when user has selected one or more notes via the rectangle selection.
      *
-     * @param noteEvents
+     * @param noteViews
      */
-    void editMultipleNotes(List<NoteEvent> noteEvents);
-
+    void editMultipleNotes(List<NoteView> noteViews);
 
 }

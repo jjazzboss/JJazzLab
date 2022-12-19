@@ -24,6 +24,7 @@ package org.jjazz.pianoroll;
 
 import java.awt.Color;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import org.jjazz.quantizer.api.Quantization;
 
@@ -95,8 +96,8 @@ public class ToolbarPanel extends javax.swing.JPanel
 
         jToolBar1.setRollover(true);
 
-        fbtn_select.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/pianoroll/edittools/resources/SelectionToolOFF.png"))); // NOI18N
-        fbtn_select.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/pianoroll/edittools/resources/SelectionToolON.png"))); // NOI18N
+        fbtn_select.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/pianoroll/edittools/resources/SelectionOFF.png"))); // NOI18N
+        fbtn_select.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/pianoroll/edittools/resources/SelectionON.png"))); // NOI18N
         jToolBar1.add(fbtn_select);
 
         fbtn_pencil.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/pianoroll/edittools/resources/PencilOFF.png"))); // NOI18N
@@ -148,13 +149,9 @@ public class ToolbarPanel extends javax.swing.JPanel
 
     private void btn_test1ActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_test1ActionPerformed
     {//GEN-HEADEREND:event_btn_test1ActionPerformed
-        var yRange = editor.getVisiblePitchRange();
-        int p= (int) yRange.getCenter();
-        var key = editor.getKeyboardComponent().getKey(p);
-        key.setPressed(100, Color.red);
-        Timer timer = new Timer(1000, event -> key.release());
-        timer.setRepeats(false);
-        timer.start();        
+
+        // editor.scrollToNotes();
+        
     }//GEN-LAST:event_btn_test1ActionPerformed
 
 

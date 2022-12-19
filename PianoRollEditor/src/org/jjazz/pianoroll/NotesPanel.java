@@ -32,6 +32,7 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -62,19 +63,19 @@ import org.openide.util.lookup.InstanceContent;
  */
 public class NotesPanel extends javax.swing.JPanel implements PropertyChangeListener
 {
-    
+
     private final KeyboardComponent keyboard;
     private final YMapper yMapper;
     private final XMapper xMapper;
     private final PianoRollEditorImpl editor;
     private final SizedPhrase spModel;
     private float scaleFactorX = 1f;
-    private final Map<NoteEvent, NoteView> mapNotesEventView = new HashMap<>();
+    private final NavigableMap<NoteEvent, NoteView> tmapNotesEventView = new TreeMap<>();
     private final Lookup selectionLookup;
     private final InstanceContent selectionLookupContent;
     private static final Logger LOGGER = Logger.getLogger(NotesPanel.class.getSimpleName());
-    
-    
+
+
     public NotesPanel(PianoRollEditorImpl editor, KeyboardComponent keyboard)
     {
         this.editor = editor;
@@ -82,14 +83,14 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
         this.keyboard = keyboard;
         this.xMapper = new XMapper();
         this.yMapper = new YMapper();
-        
-        
+
+
         selectionLookupContent = new InstanceContent();
         selectionLookup = new AbstractLookup(selectionLookupContent);
-        
-        
+
+
         editor.getSettings().addPropertyChangeListener(this);
-        
+
     }
 
     /**
@@ -124,7 +125,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
         {
             return;
         }
-        for (NoteView nv : mapNotesEventView.values())
+        for (NoteView nv : tmapNotesEventView.values())
         {
             NoteEvent ne = nv.getModel();
             FloatRange br = ne.getBeatRange();
@@ -135,12 +136,12 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
             nv.setBounds(x, y, w, h);
         }
     }
-    
+
     public Lookup getSelectionLookup()
     {
         return selectionLookup;
     }
-    
+
     @Override
     public Dimension getPreferredSize()
     {
@@ -164,7 +165,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
     public void setScaleFactorX(float factorX)
     {
         Preconditions.checkArgument(factorX > 0);
-        
+
         if (scaleFactorX != factorX)
         {
             scaleFactorX = factorX;
@@ -172,24 +173,24 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
             repaint();
         }
     }
-    
-    
+
+
     public float getScaleFactorX()
     {
         return scaleFactorX;
     }
-    
+
     public YMapper getYMapper()
     {
         return yMapper;
     }
-    
+
     public XMapper getXMapper()
     {
         return xMapper;
     }
-    
-    
+
+
     @Override
     public void paintComponent(Graphics g)
     {
@@ -207,12 +208,12 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
             // LOGGER.severe("paintComponent() xMapper or yMapper is not uptodate, abort painting");
             return;
         }
-        
+
         drawHorizontalGrid(g2);
         drawVerticalGrid(g2);
-        
+
     }
-    
+
     public void setSelectedNote(NoteEvent ne, boolean b)
     {
         NoteView nv = getNoteView(ne);
@@ -221,13 +222,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
         if (b != state)
         {
             nv.setSelected(b);
-            if (b)
-            {
-                selectionLookupContent.add(ne);
-            } else
-            {
-                selectionLookupContent.remove(ne);
-            }
+
         }
     }
 
@@ -241,10 +236,11 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
     public NoteView addNoteView(NoteEvent ne)
     {
         Preconditions.checkNotNull(ne);
-        Preconditions.checkArgument(!mapNotesEventView.containsKey(ne), "ne=%s mapNotesEventView=%s", ne, mapNotesEventView);
+        Preconditions.checkArgument(!tmapNotesEventView.containsKey(ne), "ne=%s mapNotesEventView=%s", ne, tmapNotesEventView);
         NoteView nv = new NoteView(ne);
-        mapNotesEventView.put(ne, nv);
+        tmapNotesEventView.put(ne, nv);
         add(nv);
+        nv.addPropertyChangeListener(NoteView.PROP_SELECTED, this);
         return nv;
     }
 
@@ -260,8 +256,9 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
         Preconditions.checkNotNull(ne);
         setSelectedNote(ne, false);
         NoteView nv = new NoteView(ne);
-        mapNotesEventView.remove(ne);
+        tmapNotesEventView.remove(ne);
         remove(nv);
+        nv.removePropertyChangeListener(NoteView.PROP_SELECTED, this);
         nv.cleanup();
         return nv;
     }
@@ -275,29 +272,51 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
     public void replaceNoteViewModel(NoteEvent oldNe, NoteEvent newNe)
     {
         var nv = getNoteView(oldNe);
-        assert nv != null : " oldNe=" + oldNe + " newNe=" + newNe;
+        assert nv != null : " oldNe=" + oldNe + " newNe=" + newNe + " spModel=" + spModel;
         nv.setModel(newNe);
     }
-    
-    
-    public List<NoteEvent> getNotes(Rectangle r)
+
+    public NoteView getNoteView(NoteEvent ne)
     {
-        var res = mapNotesEventView.keySet().stream()
-                .filter(ne -> mapNotesEventView.get(ne).getBounds().intersects(r))
+        return tmapNotesEventView.get(ne);
+    }
+
+    /**
+     * The NoteViews sorted by NoteEvent natural order.
+     *
+     * @return
+     */
+    public List<NoteView> getNoteViews()
+    {
+        return tmapNotesEventView.navigableKeySet()
+                .stream()
+                .map(ne -> tmapNotesEventView.get(ne))
+                .toList();
+    }
+
+    /**
+     * The NoteViews which belong (whole or partly) to the specified Rectangle, sorted by NoteEvent natural order.
+     *
+     * @param r
+     * @return
+     */
+    public List<NoteView> getNoteViews(Rectangle r)
+    {
+        var res = tmapNotesEventView.navigableKeySet()
+                .stream()
+                .map(ne -> tmapNotesEventView.get(ne))
+                .filter(nv -> nv.getBounds().intersects(r))
                 .toList();
         return res;
     }
-    
-    public boolean isSelectedNote(NoteEvent ne)
-    {
-        NoteView nv = getNoteView(ne);
-        Preconditions.checkArgument(nv != null, "ne=%s", ne);
-        return nv.isSelected();
-    }
-    
-    
+
+
     public void cleanup()
     {
+        for (var ne : tmapNotesEventView.keySet())
+        {
+            removeNoteView(ne);
+        }
         spModel.removePropertyChangeListener(this);
         editor.getSettings().removePropertyChangeListener(this);
     }
@@ -311,6 +330,15 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
         if (evt.getSource() == editor.getSettings())
         {
             settingsChanged();
+        } else if (evt.getSource() instanceof NoteView nv)
+        {
+            if (nv.isSelected())
+            {
+                selectionLookupContent.add(nv);
+            } else
+            {
+                selectionLookupContent.remove(nv);
+            }
         }
     }
 
@@ -332,7 +360,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
 
         // only draw what's visible
         IntRange pitchRange = editor.getVisiblePitchRange();
-        
+
         for (int p = pitchRange.from; p <= pitchRange.to; p++)
         {
             int pp = p % 12;
@@ -346,10 +374,10 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
                 g2.drawLine(0, yRange.to, w - 1, yRange.to);
             }
         }
-        
-        
+
+
     }
-    
+
     private void drawVerticalGrid(Graphics2D g2)
     {
         var settings = PianoRollEditorSettings.getDefault();
@@ -373,21 +401,16 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
             {
                 c = pos.isOffBeat() ? cl3 : cl2;
             }
-            
+
             g2.setColor(c);
             g2.drawLine(x, y0, x, y1);
         }
     }
-    
-    
+
+
     private void settingsChanged()
     {
         repaint();
-    }
-    
-    private NoteView getNoteView(NoteEvent ne)
-    {
-        return mapNotesEventView.get(ne);
     }
 
 
@@ -399,30 +422,30 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
      */
     public class XMapper
     {
-        
+
         private Quantization quantization = Quantization.ONE_QUARTER_BEAT;
         private int lastWidth = -1;
-        
-        
+
+
         private final NavigableMap<Position, Integer> tmap_allQuantizedXPositions = new TreeMap<>();
         private final NavigableMap<Position, Integer> tmap_allBeatsXPositions = new TreeMap<>();
-        
-        
+
+
         public boolean isUptodate()
         {
             return lastWidth == getWidth();
         }
-        
+
         protected int getLastWidth()
         {
             return lastWidth;
         }
-        
+
         public Quantization getQuantization()
         {
             return quantization;
         }
-        
+
         public void setQuantization(Quantization quantization)
         {
             this.quantization = quantization;
@@ -515,7 +538,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
             {
                 throw new IllegalStateException("lastWidth=" + lastWidth + " getWidth()=" + getWidth());
             }
-            
+
             if (barRange == null)
             {
                 barRange = editor.getBarRange();
@@ -636,7 +659,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
         private final NavigableMap<Integer, Integer> tmapPixelPitch = new TreeMap<>();
         private final Map<Integer, IntRange> mapPitchChannelYRange = new HashMap<>();
         private int noteViewHeight;
-        
+
         private YMapper()
         {
             keyboard.addComponentListener(new ComponentAdapter()
@@ -667,7 +690,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
             {
                 newKbdHeight, lastKeyboardHeight
             });
-            
+
             if (newKbdHeight == lastKeyboardHeight)
             {
                 return;
@@ -686,7 +709,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
             assert octaveHeight > 5 : "octaveHeight=" + octaveHeight;
             float adjustedSmallHeight = (octaveHeight - 4 * adjustedLargeHeight) / 8;       // So we can accomodate 4 small + 4 large
 
-            
+
             noteViewHeight = (int) Math.floor(adjustedSmallHeight);
 
 
@@ -695,7 +718,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
             tmapPixelPitch.clear();
             mapPitchChannelYRange.clear();
             var kbdRange = keyboard.getRange();
-            
+
             for (int p = kbdRange.getLowestPitch(); p <= kbdRange.getHighestPitch(); p++)
             {
                 int yi = Math.round(y);
@@ -706,7 +729,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
                 mapPitchChannelYRange.put(p, channelNoteYRange);
                 y -= yUp;
             }
-            
+
             revalidate();
             repaint();
         }
@@ -749,7 +772,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
             {
                 throw new IllegalStateException();
             }
-            
+
             var entry = tmapPixelPitch.ceilingEntry(yPos);
             // We might be below the (bottom key), can happen if keyboard is unzoomed/small and there is extra space below the keys.        
             int res = entry != null ? entry.getValue() : tmapPixelPitch.lastEntry().getValue();
@@ -798,9 +821,9 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
             int yBottom = yTop + key.getHeight();
             return new IntRange(yTop, yBottom);
         }
-        
-        
+
+
     }
-    
-    
+
+
 }
