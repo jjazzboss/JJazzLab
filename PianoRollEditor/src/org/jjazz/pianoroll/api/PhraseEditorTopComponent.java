@@ -75,8 +75,9 @@ public final class PhraseEditorTopComponent extends TopComponent
 
         initComponents();
 
+        
         int nbBeats = 16;
-        int nbNotes = 10;
+        int nbNotes = 3;
         Phrase p = new Phrase(0);
         for (int i = 0; i < nbNotes; i++)
         {

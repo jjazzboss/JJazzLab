@@ -22,7 +22,6 @@
  */
 package org.jjazz.phrase.api;
 
-import com.google.common.base.Preconditions;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import java.beans.PropertyChangeListener;
@@ -306,8 +305,8 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
      * Fire a PROP_NOTE_SET change event.
      *
      * @param index
-     * @param ne Must have the same position that the replaced NoteEvent
-     * @return The replaced NoteEvent 
+     * @param ne    Must have the same position that the replaced NoteEvent
+     * @return The replaced NoteEvent
      */
     @Override
     public NoteEvent set(int index, NoteEvent ne)
@@ -331,9 +330,9 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
      * <p>
      * Fire a PROP_MOVED_EVENT change event.
      *
-     * @param ne Must belong to this Phrase.
+     * @param ne          Must belong to this Phrase.
      * @param newPosition
-     * @return The created event at newPosition
+     * @return The created event at newPosition. Returns ne if position is unchanged.
      */
     public NoteEvent move(NoteEvent ne, float newPosition)
     {
@@ -344,7 +343,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
 
         if (ne.getPositionInBeats() == newPosition)
         {
-            return ne.clone();
+            return ne;
         }
 
         NoteEvent movedNe = ne.getCopyPos(newPosition);
@@ -359,10 +358,10 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
      * <p>
      * NOTE_ON events without a corresponding NOTE_OFF event are ignored.
      *
-     * @param midiEvents MidiEvents which are not ShortMessage.Note_ON/OFF are ignored. Must be ordered by tick position,
-     * resolution must be MidiConst.PPQ_RESOLUTION.
+     * @param midiEvents       MidiEvents which are not ShortMessage.Note_ON/OFF are ignored. Must be ordered by tick position,
+     *                         resolution must be MidiConst.PPQ_RESOLUTION.
      * @param posInBeatsOffset The position in natural beats of the first tick of the track.
-     * @param ignoreChannel If true, add also NoteEvents for MidiEvents which do not match this phrase channel.
+     * @param ignoreChannel    If true, add also NoteEvents for MidiEvents which do not match this phrase channel.
      * @see MidiUtilities#getMidiEvents(javax.sound.midi.Track, java.util.function.Predicate, LongRange)
      * @see MidiConst#PPQ_RESOLUTION
      */
@@ -733,7 +732,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
                     {
                         // Note crosses range.from, make it start at range.from
                         float newDur = Math.max(neBr.to - range.from, 0.05f);
-                        NoteEvent newNe = ne.getCopy(newDur, range.from);
+                        NoteEvent newNe = ne.getCopyDurPos(newDur, range.from);
                         res.addOrdered(newNe, false);
                     }
                     beatWindowProcessedNotes.add(ne);
@@ -790,7 +789,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
                         }
                     }
                     float newDur = nePosTo - range.from;
-                    NoteEvent newNe = ne.getCopy(newDur, range.from);
+                    NoteEvent newNe = ne.getCopyDurPos(newDur, range.from);
                     res.addOrdered(newNe, false);
                 }
             } else if (nePosFrom < range.to)
@@ -899,7 +898,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
                         if (keepRight && nePosTo > range.to)
                         {
                             newDur = nePosTo - range.to;
-                            newNe = ne.getCopy(newDur, range.to);
+                            newNe = ne.getCopyDurPos(newDur, range.to);
                             toBeAdded.add(newNe);
                         }
                     } else
@@ -922,7 +921,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
                 if (nePosTo > range.to && (keepRight || frRight.contains(nePosFrom, true)))
                 {
                     float newDur = nePosTo - range.to;
-                    NoteEvent newNe = ne.getCopy(newDur, range.to);
+                    NoteEvent newNe = ne.getCopyDurPos(newDur, range.to);
                     toBeAdded.add(newNe);
                 }
             } else
@@ -971,7 +970,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
      * <p>
      *
      * @param posInBeats
-     * @param strict If true, notes starting or ending at posInBeats are excluded.
+     * @param strict     If true, notes starting or ending at posInBeats are excluded.
      * @return The list of notes whose startPos is before (or equals) posInBeats and range.to eafter (or equals) posInBeats
      */
     public List<NoteEvent> getCrossingNotes(float posInBeats, boolean strict)
@@ -1196,7 +1195,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
      * Change the octave of notes whose pitch is above highLimit or below lowLimit.
      * <p>
      *
-     * @param lowLimit There must be at least 1 octave between lowLimit and highLimit
+     * @param lowLimit  There must be at least 1 octave between lowLimit and highLimit
      * @param highLimit There must be at least 1 octave between lowLimit and highLimit
      */
     public void limitPitch(int lowLimit, int highLimit)
@@ -1342,7 +1341,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
         if (res >= 0)
         {
             index = res;
-            LOGGER.log(Level.FINE, "addOrdered() Inserting mne={0} but the same NoteEvent already exists at index={2}. this={1}", new Object[]
+            LOGGER.log(Level.WARNING, "addOrdered() Inserting mne={0} but the same NoteEvent already exists at index={2}. this={1}", new Object[]
             {
                 mne, this, index
             });

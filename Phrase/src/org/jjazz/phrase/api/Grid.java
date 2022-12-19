@@ -628,7 +628,7 @@ public class Grid implements Cloneable
                     // Extend the duration
                     durationInBeats = ne.getPositionInBeats() + ne.getDurationInBeats() - newPosInBeats;
                 }
-                NoteEvent movedNe = ne.getCopy(durationInBeats, newPosInBeats);
+                NoteEvent movedNe = ne.getCopyDurPos(durationInBeats, newPosInBeats);
                 phrase.remove(ne);
                 phrase.add(movedNe);
             }
@@ -665,7 +665,7 @@ public class Grid implements Cloneable
                 // Extend the duration
                 durationInBeats = ne.getPositionInBeats() + ne.getDurationInBeats() - newPosInBeats;
             }
-            NoteEvent movedNe = ne.getCopy(durationInBeats, newPosInBeats);
+            NoteEvent movedNe = ne.getCopyDurPos(durationInBeats, newPosInBeats);
             phrase.remove(ne);
             phrase.add(movedNe);
             refresh();

@@ -214,18 +214,6 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
 
     }
 
-    public void setSelectedNote(NoteEvent ne, boolean b)
-    {
-        NoteView nv = getNoteView(ne);
-        Preconditions.checkArgument(nv != null, "ne=%s b=%s", ne, b);
-        boolean state = nv.isSelected();
-        if (b != state)
-        {
-            nv.setSelected(b);
-
-        }
-    }
-
     /**
      * Create and add a NoteView for the specified NoteEvent.
      * <p>
@@ -254,9 +242,10 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
     public NoteView removeNoteView(NoteEvent ne)
     {
         Preconditions.checkNotNull(ne);
-        setSelectedNote(ne, false);
-        NoteView nv = new NoteView(ne);
+        NoteView nv = getNoteView(ne);
+        nv.setSelected(false);
         tmapNotesEventView.remove(ne);
+        LOGGER.severe("removeNoteView() ne=" + ne);
         remove(nv);
         nv.removePropertyChangeListener(NoteView.PROP_SELECTED, this);
         nv.cleanup();
@@ -272,13 +261,17 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
     public void replaceNoteViewModel(NoteEvent oldNe, NoteEvent newNe)
     {
         var nv = getNoteView(oldNe);
-        assert nv != null : " oldNe=" + oldNe + " newNe=" + newNe + " spModel=" + spModel;
         nv.setModel(newNe);
+        tmapNotesEventView.remove(oldNe);
+        LOGGER.severe("replaceNoteViewModel() oldNe=" + oldNe + " newNe=" + newNe);
+        tmapNotesEventView.put(newNe, nv);
     }
 
     public NoteView getNoteView(NoteEvent ne)
     {
-        return tmapNotesEventView.get(ne);
+        var res = tmapNotesEventView.get(ne);
+        assert res != null : "ne=" + ne + " tmapNotesEventView.keySet()=" + tmapNotesEventView.navigableKeySet();
+        return res;
     }
 
     /**

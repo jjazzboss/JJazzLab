@@ -89,9 +89,9 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
      * Client properties are also copied.
      *
      * @param ne
-     * @param pitch if &lt; 0 reuse ne's pitch, otherwise use this value
-     * @param duration if &lt; 0 reuse ne's duration, otherwise use this value
-     * @param velocity if &lt; 0 reuse ne's velocity, otherwise use this value
+     * @param pitch      if &lt; 0 reuse ne's pitch, otherwise use this value
+     * @param duration   if &lt; 0 reuse ne's duration, otherwise use this value
+     * @param velocity   if &lt; 0 reuse ne's velocity, otherwise use this value
      * @param posInBeats if &lt; 0 reuse ne's position, otherwise use this value
      */
     public NoteEvent(NoteEvent ne, int pitch, float duration, int velocity, float posInBeats)
@@ -106,7 +106,7 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
      * Client properties are also copied.
      *
      * @param pitch
-     * @return
+     * @return Return this if pitch is unchanged.
      */
     public NoteEvent getCopyPitch(int pitch)
     {
@@ -169,7 +169,7 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
      * @param posInBeats
      * @return
      */
-    public NoteEvent getCopy(float durationInBeats, float posInBeats)
+    public NoteEvent getCopyDurPos(float durationInBeats, float posInBeats)
     {
         NoteEvent res = new NoteEvent(getPitch(), durationInBeats, getVelocity(), posInBeats);
         res.setClientProperties(this);
@@ -185,7 +185,7 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
      * @param velocity
      * @return
      */
-    public NoteEvent getCopy(int pitch, int velocity)
+    public NoteEvent getCopyPitchVel(int pitch, int velocity)
     {
         NoteEvent res = new NoteEvent(pitch, getDurationInBeats(), velocity, getPositionInBeats());
         res.setClientProperties(this);
@@ -201,7 +201,7 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
      * @param posInBeats
      * @return
      */
-    public NoteEvent getCopy(int pitch, float posInBeats)
+    public NoteEvent getCopyPitchPos(int pitch, float posInBeats)
     {
         NoteEvent res = new NoteEvent(pitch, getDurationInBeats(), getVelocity(), posInBeats);
         res.setClientProperties(this);
@@ -214,7 +214,7 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
      * Fire a propertyName change event.
      *
      * @param propertyName
-     * @param value If null, the property is removed.
+     * @param value        If null, the property is removed.
      */
     public void putClientProperty(String propertyName, Object value)
     {
@@ -410,13 +410,12 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
     public int compareTo​(Note n)
     {
         int res;
-        if (n instanceof NoteEvent)
+        if (n instanceof NoteEvent ne)
         {
-            NoteEvent ne = (NoteEvent) n;
             res = Float.compare(position, ne.position);
             if (res == 0)
             {
-                res = super.compareTo(ne);
+                res = super.compareTo(n);
             }
         } else
         {

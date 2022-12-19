@@ -109,6 +109,7 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
     private final int startBarIndex;
     private EditTool activeTool;
     private final EditToolProxyMouseListener editToolProxyMouseListener;
+    private final GenericMouseListener genericMouseListener;
     private boolean useHack = true;
     private static final Logger LOGGER = Logger.getLogger(PianoRollEditorImpl.class.getSimpleName());
 
@@ -131,10 +132,10 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
         createUI();
 
         // NotesPanel mouse listeners
-        var genericML = new GenericMouseListener();
-        notesPanel.addMouseListener(genericML);
-        notesPanel.addMouseMotionListener(genericML);
-        notesPanel.addMouseWheelListener(genericML);
+        genericMouseListener = new GenericMouseListener();
+        notesPanel.addMouseListener(genericMouseListener);
+        notesPanel.addMouseMotionListener(genericMouseListener);
+        notesPanel.addMouseWheelListener(genericMouseListener);
         editToolProxyMouseListener = new EditToolProxyMouseListener();
         notesPanel.addMouseListener(editToolProxyMouseListener);
         notesPanel.addMouseMotionListener(editToolProxyMouseListener);
@@ -190,12 +191,11 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
     public void doLayout()
     {
         super.doLayout();
-        if (useHack = true && notesPanel.getWidth() > 0 && notesPanel.getHeight() > 0)
+        if (useHack == true && notesPanel.getWidth() > 0 && notesPanel.getHeight() > 0)
         {
             // We consider everything is layout now
             useHack = false;
             runOnceUIisValidated();
-
         }
     }
 
@@ -393,7 +393,7 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
         int dy = Math.round(vpCenterY - pitchCenterY);
         var r = new Rectangle(vpRect.x, dy > 0 ? vpRect.y - dy : vpRect.y + vpRect.height - 1 - dy, 1, 1);
         notesPanel.scrollRectToVisible(r);
-//        LOGGER.log(Level.FINE, "scrollToCenter() pitch={0} vpRect={1} r={2} notesPanel.bounds={3}", new Object[]
+//        LOGGER.log(Level.SEVERE, "scrollToCenter() pitch={0} vpRect={1} r={2} notesPanel.bounds={3}", new Object[]
 //        {
 //            pitch, vpRect, r, notesPanel.getBounds()
 //        });
@@ -415,7 +415,7 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
         int dx = vpCenterX - posCenterX;
         var r = new Rectangle(dx > 0 ? vpRect.x - dx : vpRect.x + vpRect.width - 1 - dx, vpRect.y, 1, 1);
         notesPanel.scrollRectToVisible(r);
-//        LOGGER.log(Level.FINE, "scrollToCenter() posInBeats={0} vpRect={1} r={2} notesPanel.bounds={3}", new Object[]
+//        LOGGER.log(Level.SEVERE, "scrollToCenter() posInBeats={0} vpRect={1} r={2} notesPanel.bounds={3}", new Object[]
 //        {
 //            posInBeats, vpRect, r, notesPanel.getBounds()
 //        });
@@ -476,6 +476,7 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
     {
         if (evt.getSource() == spModel)
         {
+            LOGGER.severe("propertyChange() evt.property=" + evt.getPropertyName() + " oldValue=" + evt.getOldValue() + " newValue=" + evt.getNewValue());
             switch (evt.getPropertyName())
             {
                 case Phrase.PROP_NOTE_ADDED:
@@ -489,6 +490,7 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
                 {
                     NoteEvent ne = (NoteEvent) evt.getNewValue();
                     removeNote(ne);
+                    notesPanel.revalidate();
                     notesPanel.repaint();
                     break;
                 }
@@ -639,6 +641,7 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
      */
     private void scrollToNotes()
     {
+        // LOGGER.severe("scrollToNotes() --");
         var nvs = notesPanel.getNoteViews();
         if (nvs.isEmpty())
         {
@@ -658,7 +661,7 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
      */
     private void runOnceUIisValidated()
     {
-        scrollToNotes();
+        SwingUtilities.invokeLater(() -> scrollToNotes());
     }
 
     // =======================================================================================================================
@@ -919,7 +922,12 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
             if (e.getSource() instanceof NoteView nv)
             {
                 activeTool.noteMoved(e, nv);
+
+                // Event needs also to be processed by the GenericMouseListener
+                MouseEvent e2 = SwingUtilities.convertMouseEvent(nv, e, notesPanel);
+                genericMouseListener.mouseMoved(e2);
             }
+
         }
 
         @Override
