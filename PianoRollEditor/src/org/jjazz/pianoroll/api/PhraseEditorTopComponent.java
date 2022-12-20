@@ -75,23 +75,25 @@ public final class PhraseEditorTopComponent extends TopComponent
 
         initComponents();
 
-        
+
         int nbBeats = 16;
         int nbNotes = 3;
         Phrase p = new Phrase(0);
-        for (int i = 0; i < nbNotes; i++)
-        {
-            int pitch = 40 + ((int) (Math.random() * 60) - 30);
-            int vel = 64 + ((int) (Math.random() * 100) - 50);
-            float dur = (float) (0.2f + Math.random() * 4);
-            float deltaPos = (float) (Math.random() * 4);
-            float pos = 20 + ((float) nbBeats / (nbNotes + 3)) * i + deltaPos;
-            if (pos + dur < (20 + nbBeats))
-            {
-                p.add(new NoteEvent(pitch, dur, vel, pos));
-            }
-        }
-        SizedPhrase sp = new SizedPhrase(p.getChannel(), new FloatRange(0, 20 + nbBeats), TimeSignature.FOUR_FOUR);
+//        for (int i = 0; i < nbNotes; i++)
+//        {
+//            int pitch = 40 + ((int) (Math.random() * 60) - 30);
+//            int vel = 64 + ((int) (Math.random() * 100) - 50);
+//            float dur = (float) (0.2f + Math.random() * 4);
+//            float deltaPos = (float) (Math.random() * 4);
+//            float pos = 20 + ((float) nbBeats / (nbNotes + 3)) * i + deltaPos;
+//            if (pos + dur < (20 + nbBeats))
+//            {
+//                p.add(new NoteEvent(pitch, dur, vel, pos));
+//            }
+//        }   
+//        SizedPhrase sp = new SizedPhrase(p.getChannel(), new FloatRange(0, 20 +nbBeats), TimeSignature.FOUR_FOUR);
+        p.add(new NoteEvent(64, 1, 64, 1.6f));
+        SizedPhrase sp = new SizedPhrase(p.getChannel(), new FloatRange(0, 4), TimeSignature.FOUR_FOUR);
         sp.add(p);
         editor = new PianoRollEditorImpl(0, sp, null, PianoRollEditorSettings.getDefault());
         add(editor);
@@ -123,7 +125,7 @@ public final class PhraseEditorTopComponent extends TopComponent
     {
 
     }
-    
+
     @Override
     public void componentClosed()
     {

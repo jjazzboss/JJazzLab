@@ -55,6 +55,7 @@ import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.util.api.FloatRange;
 import org.jjazz.util.api.LongRange;
+import org.openide.util.Exceptions;
 
 /**
  * A list of NoteEvents that are kept sorted by start position.
@@ -305,7 +306,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
      * Fire a PROP_NOTE_SET change event.
      *
      * @param index
-     * @param ne    Must have the same position that the replaced NoteEvent
+     * @param ne Must have the same position that the replaced NoteEvent
      * @return The replaced NoteEvent
      */
     @Override
@@ -330,7 +331,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
      * <p>
      * Fire a PROP_MOVED_EVENT change event.
      *
-     * @param ne          Must belong to this Phrase.
+     * @param ne Must belong to this Phrase.
      * @param newPosition
      * @return The created event at newPosition. Returns ne if position is unchanged.
      */
@@ -358,10 +359,10 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
      * <p>
      * NOTE_ON events without a corresponding NOTE_OFF event are ignored.
      *
-     * @param midiEvents       MidiEvents which are not ShortMessage.Note_ON/OFF are ignored. Must be ordered by tick position,
-     *                         resolution must be MidiConst.PPQ_RESOLUTION.
+     * @param midiEvents MidiEvents which are not ShortMessage.Note_ON/OFF are ignored. Must be ordered by tick position,
+     * resolution must be MidiConst.PPQ_RESOLUTION.
      * @param posInBeatsOffset The position in natural beats of the first tick of the track.
-     * @param ignoreChannel    If true, add also NoteEvents for MidiEvents which do not match this phrase channel.
+     * @param ignoreChannel If true, add also NoteEvents for MidiEvents which do not match this phrase channel.
      * @see MidiUtilities#getMidiEvents(javax.sound.midi.Track, java.util.function.Predicate, LongRange)
      * @see MidiConst#PPQ_RESOLUTION
      */
@@ -970,7 +971,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
      * <p>
      *
      * @param posInBeats
-     * @param strict     If true, notes starting or ending at posInBeats are excluded.
+     * @param strict If true, notes starting or ending at posInBeats are excluded.
      * @return The list of notes whose startPos is before (or equals) posInBeats and range.to eafter (or equals) posInBeats
      */
     public List<NoteEvent> getCrossingNotes(float posInBeats, boolean strict)
@@ -1195,7 +1196,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
      * Change the octave of notes whose pitch is above highLimit or below lowLimit.
      * <p>
      *
-     * @param lowLimit  There must be at least 1 octave between lowLimit and highLimit
+     * @param lowLimit There must be at least 1 octave between lowLimit and highLimit
      * @param highLimit There must be at least 1 octave between lowLimit and highLimit
      */
     public void limitPitch(int lowLimit, int highLimit)
@@ -1341,9 +1342,10 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
         if (res >= 0)
         {
             index = res;
-            LOGGER.log(Level.WARNING, "addOrdered() Inserting mne={0} but the same NoteEvent already exists at index={2}. this={1}", new Object[]
+            var other = get(index);
+            LOGGER.log(Level.WARNING, "addOrdered() Inserting mne={0} but the same NoteEvent (other) already exists at index={2}. other={1}", new Object[]
             {
-                mne, this, index
+                mne, other, index
             });
         } else
         {

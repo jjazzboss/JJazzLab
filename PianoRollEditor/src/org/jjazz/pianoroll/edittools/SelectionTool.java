@@ -34,8 +34,10 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
+import org.jjazz.harmony.api.Note;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.SizedPhrase;
+import org.jjazz.pianoroll.DragNoteEvent;
 import org.jjazz.pianoroll.api.EditTool;
 import org.jjazz.pianoroll.api.NoteView;
 import org.jjazz.pianoroll.api.PianoRollEditor;
@@ -64,7 +66,7 @@ public class SelectionTool implements EditTool
     /**
      * If null, no dragging.
      */
-    private NoteEvent dragNoteEvent;
+    private DragNoteEvent dragNoteEvent;
     private Point dragOffset;
     private static final Logger LOGGER = Logger.getLogger(SelectionTool.class.getSimpleName());
 
@@ -123,16 +125,17 @@ public class SelectionTool implements EditTool
             editor.unselectAll();
             nv.setSelected(true);
 
-            dragOffset = e.getPoint();  // relative to nv
+
+            dragOffset = e.getPoint();              // relative to nv
             Point nePoint = nv.getLocation();       // relative to notesPanel
             int newPitch = editor.getPitchFromPoint(nePoint);
             float newPos = editor.getPositionFromPoint(nePoint);
-            if (sourceNe.getPitch() == newPitch && sourceNe.getPositionInBeats() == newPos)
-            {
-                newPos += 0.01f;            // Make sure it's always different from sourceNe
-            }
+//            if (sourceNe.getPitch() == newPitch && sourceNe.getPositionInBeats() == newPos)
+//            {
+//                newPos += 0.01f;            // Make sure it's always different from sourceNe
+//            }
 
-            dragNoteEvent = nv.getModel().getCopyPitchPos(newPitch, newPos);
+            dragNoteEvent = new DragNoteEvent(newPitch, sourceNe.getDurationInBeats(), sourceNe.getVelocity(), newPos);
             spModel.add(dragNoteEvent);
 
             LOGGER.severe("noteDragged() ----- START sourceNe=" + sourceNe + "   dragNoteEvent=" + dragNoteEvent);
@@ -144,13 +147,18 @@ public class SelectionTool implements EditTool
             editorPoint.translate(-dragOffset.x, -dragOffset.y);
             int newPitch = editor.getPitchFromPoint(editorPoint);
             float newPos = editor.getPositionFromPoint(editorPoint);
-            if (sourceNe.getPitch() == newPitch && sourceNe.getPositionInBeats() == newPos)
+//            if (sourceNe.getPitch() == newPitch && sourceNe.getPositionInBeats() == newPos)
+//            {
+//                newPos += 0.01f;            // Make sure it's always different from sourceNe
+//            }
+            if (dragNoteEvent.getPitch() == newPitch && dragNoteEvent.getPositionInBeats() == newPos)
             {
-                newPos += 0.01f;            // Make sure it's always different from sourceNe
+                LOGGER.severe("noteDragged()  newPitch and newPos unchanged, skipping");
+                return;
             }
-            LOGGER.log(Level.SEVERE, "noteDragged() editorPoint()={0} newPitch={1} newPos={2}", new Object[]
+            LOGGER.log(Level.SEVERE, "noteDragged() newPitch={1} newPos={2}", new Object[]
             {
-                editorPoint, newPitch, newPos
+                new Note(newPitch).toPianoOctaveString(), newPos
             });
             switch (state)
             {
@@ -161,10 +169,15 @@ public class SelectionTool implements EditTool
                 case RESIZE_EAST:
                     break;
                 case MOVE:
-                    dragNoteEvent = spModel.move(dragNoteEvent, newPos);
-                    int index = spModel.indexOf(dragNoteEvent);
-                    dragNoteEvent = dragNoteEvent.getCopyPitch(newPitch);
-                    spModel.set(index, dragNoteEvent);
+                    // HACK: cast OK because NoteEvent.getCopyPos() is used by Phrase.move() and it is overridden in DragNoteEvent
+                    dragNoteEvent = (DragNoteEvent) spModel.move(dragNoteEvent, newPos);
+                    if (dragNoteEvent.getPitch() != newPitch)
+                    {
+                        int index = spModel.indexOf(dragNoteEvent);
+                        dragNoteEvent = dragNoteEvent.getCopyPitch(newPitch);
+                        spModel.set(index, dragNoteEvent);
+                    }
+                    LOGGER.severe("noteDragged() after edit spModel=" + spModel);
                     break;
                 case COPY:
                     break;
@@ -194,6 +207,7 @@ public class SelectionTool implements EditTool
                 case MOVE:
                     spModel.remove(nv.getModel());
                     editor.getNoteView(dragNoteEvent).setSelected(true);
+                    LOGGER.severe("noteReleased() FIN  spModel=" + spModel);
                     break;
                 default:
                     throw new AssertionError(state.name());
