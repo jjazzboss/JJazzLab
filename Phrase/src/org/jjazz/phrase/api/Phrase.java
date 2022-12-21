@@ -55,14 +55,13 @@ import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.util.api.FloatRange;
 import org.jjazz.util.api.LongRange;
-import org.openide.util.Exceptions;
 
 /**
- * A list of NoteEvents that are kept sorted by start position.
+ * A list of NoteEvents that are kept sorted by start position, with possibly identical NoteEvents.
  * <p>
  * LinkedList implementation to speed up item insertion/remove rather than random access. Fire change events when modified (note
- * added/removed/moved/replaced).
- * <p>
+ * added/removed/moved/replaced)
+ * .<p>
  * WARNING: Direct add/remove/set methods have been secured to preserve the start position order. However when using an iterator
  * such as the one obtained via listIterator(), one could insert a wrongly placed NoteEvent using Iterator.set. So if you use such
  * method make sure you do not break the position order.
@@ -123,8 +122,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
     @Override
     public boolean add(NoteEvent ne)
     {
-        addOrdered(ne, true);
-        return true;
+        return addOrdered(ne, true);
     }
 
     /**
@@ -216,8 +214,15 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
     @Override
     public boolean addAll(Collection<? extends NoteEvent> c)
     {
-        c.forEach(ne -> addOrdered(ne, true));
-        return !c.isEmpty();
+        boolean res = false;
+        for (var ne : c)
+        {
+            if (addOrdered(ne, true))
+            {
+                res = true;
+            }
+        }
+        return res;
     }
 
     /**
@@ -306,7 +311,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
      * Fire a PROP_NOTE_SET change event.
      *
      * @param index
-     * @param ne Must have the same position that the replaced NoteEvent
+     * @param ne    Must have the same position that the replaced NoteEvent
      * @return The replaced NoteEvent
      */
     @Override
@@ -331,7 +336,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
      * <p>
      * Fire a PROP_MOVED_EVENT change event.
      *
-     * @param ne Must belong to this Phrase.
+     * @param ne          Must belong to this Phrase.
      * @param newPosition
      * @return The created event at newPosition. Returns ne if position is unchanged.
      */
@@ -359,10 +364,10 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
      * <p>
      * NOTE_ON events without a corresponding NOTE_OFF event are ignored.
      *
-     * @param midiEvents MidiEvents which are not ShortMessage.Note_ON/OFF are ignored. Must be ordered by tick position,
-     * resolution must be MidiConst.PPQ_RESOLUTION.
+     * @param midiEvents       MidiEvents which are not ShortMessage.Note_ON/OFF are ignored. Must be ordered by tick position,
+     *                         resolution must be MidiConst.PPQ_RESOLUTION.
      * @param posInBeatsOffset The position in natural beats of the first tick of the track.
-     * @param ignoreChannel If true, add also NoteEvents for MidiEvents which do not match this phrase channel.
+     * @param ignoreChannel    If true, add also NoteEvents for MidiEvents which do not match this phrase channel.
      * @see MidiUtilities#getMidiEvents(javax.sound.midi.Track, java.util.function.Predicate, LongRange)
      * @see MidiConst#PPQ_RESOLUTION
      */
@@ -971,7 +976,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
      * <p>
      *
      * @param posInBeats
-     * @param strict If true, notes starting or ending at posInBeats are excluded.
+     * @param strict     If true, notes starting or ending at posInBeats are excluded.
      * @return The list of notes whose startPos is before (or equals) posInBeats and range.to eafter (or equals) posInBeats
      */
     public List<NoteEvent> getCrossingNotes(float posInBeats, boolean strict)
@@ -1196,7 +1201,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
      * Change the octave of notes whose pitch is above highLimit or below lowLimit.
      * <p>
      *
-     * @param lowLimit There must be at least 1 octave between lowLimit and highLimit
+     * @param lowLimit  There must be at least 1 octave between lowLimit and highLimit
      * @param highLimit There must be at least 1 octave between lowLimit and highLimit
      */
     public void limitPitch(int lowLimit, int highLimit)
@@ -1330,34 +1335,37 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
     /**
      * Add a NoteEvent at the correct index using NoteEvent natural ordering.
      * <p>
-     * @param mne
+     *
+     * @param ne
      * @param fireAddEvent If true fire a PROP_NOTE_ADD change event.
+     * @return True
      * @see NoteEvent#compareTo(org.jjazz.phrase.api.NoteEvent)
      */
-    protected void addOrdered(NoteEvent mne, boolean fireAddEvent)
+    protected boolean addOrdered(NoteEvent ne, boolean fireAddEvent)
     {
-        int res = Collections.binarySearch(this, mne);
+        int res = Collections.binarySearch(this, ne);
 
         int index;
         if (res >= 0)
         {
             index = res;
             var other = get(index);
-            LOGGER.log(Level.WARNING, "addOrdered() Inserting mne={0} but the same NoteEvent (other) already exists at index={2}. other={1}", new Object[]
+            LOGGER.log(Level.INFO, "addOrdered() Adding ne={0} (hash={1}) but an identical NoteEvent (other hash={2}) already exists at index={3}. other={4}", new Object[]
             {
-                mne, other, index
+                ne, System.identityHashCode(ne), System.identityHashCode(other), index, other
             });
         } else
         {
             index = -(res + 1);
         }
 
-        super.add(index, mne);
+        super.add(index, ne);
 
         if (fireAddEvent)
         {
-            pcs.firePropertyChange(PROP_NOTE_ADDED, index, mne);
+            pcs.firePropertyChange(PROP_NOTE_ADDED, index, ne);
         }
+        return true;
     }
 
     // --------------------------------------------------------------------- 

@@ -34,10 +34,8 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
-import org.jjazz.harmony.api.Note;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.SizedPhrase;
-import org.jjazz.pianoroll.DragNoteEvent;
 import org.jjazz.pianoroll.api.EditTool;
 import org.jjazz.pianoroll.api.NoteView;
 import org.jjazz.pianoroll.api.PianoRollEditor;
@@ -66,8 +64,8 @@ public class SelectionTool implements EditTool
     /**
      * If null, no dragging.
      */
-    private DragNoteEvent dragNoteEvent;
-    private Point dragOffset;
+    private NoteEvent dragNoteEvent;
+    private Point dragNoteOffset;
     private static final Logger LOGGER = Logger.getLogger(SelectionTool.class.getSimpleName());
 
     public SelectionTool(PianoRollEditor editor)
@@ -116,49 +114,53 @@ public class SelectionTool implements EditTool
     @Override
     public void noteDragged(MouseEvent e, NoteView nv)
     {
-        var sourceNe = nv.getModel();
-
+        var ne = nv.getModel();
 
         if (dragNoteEvent == null)
         {
             // Start dragging
+
+
+            // Select only the dragged note
             editor.unselectAll();
             nv.setSelected(true);
 
 
-            dragOffset = e.getPoint();              // relative to nv
+            // Create the dragNoteEvent
+            dragNoteOffset = e.getPoint();              // relative to nv
             Point nePoint = nv.getLocation();       // relative to notesPanel
             int newPitch = editor.getPitchFromPoint(nePoint);
             float newPos = editor.getPositionFromPoint(nePoint);
-//            if (sourceNe.getPitch() == newPitch && sourceNe.getPositionInBeats() == newPos)
-//            {
-//                newPos += 0.01f;            // Make sure it's always different from sourceNe
-//            }
+            dragNoteEvent = ne.getCopyPitchPos(newPitch, newPos);
 
-            dragNoteEvent = new DragNoteEvent(newPitch, sourceNe.getDurationInBeats(), sourceNe.getVelocity(), newPos);
+            LOGGER.log(Level.FINE, "\n----- noteDragged() ----- START ne={0}   dragNoteEvent={1}", new Object[]
+            {
+                ne, dragNoteEvent
+            });
+
             spModel.add(dragNoteEvent);
 
-            LOGGER.severe("noteDragged() ----- START sourceNe=" + sourceNe + "   dragNoteEvent=" + dragNoteEvent);
         } else
         {
+            // Continue dragging
 
+
+            // Calculate new point
             var notesPanel = (JPanel) nv.getParent();
             Point editorPoint = SwingUtilities.convertPoint(nv, e.getPoint(), notesPanel);
-            editorPoint.translate(-dragOffset.x, -dragOffset.y);
+            editorPoint.translate(-dragNoteOffset.x, -dragNoteOffset.y);
             int newPitch = editor.getPitchFromPoint(editorPoint);
             float newPos = editor.getPositionFromPoint(editorPoint);
-//            if (sourceNe.getPitch() == newPitch && sourceNe.getPositionInBeats() == newPos)
-//            {
-//                newPos += 0.01f;            // Make sure it's always different from sourceNe
-//            }
+
+
             if (dragNoteEvent.getPitch() == newPitch && dragNoteEvent.getPositionInBeats() == newPos)
             {
-                LOGGER.severe("noteDragged()  newPitch and newPos unchanged, skipping");
+                LOGGER.fine("noteDragged()  newPitch and newPos unchanged, skipping");
                 return;
             }
-            LOGGER.log(Level.SEVERE, "noteDragged() newPitch={1} newPos={2}", new Object[]
+            LOGGER.log(Level.FINE, "\nnoteDragged() continue dragging newPitch={0} newPos={1}", new Object[]
             {
-                new Note(newPitch).toPianoOctaveString(), newPos
+                newPitch, newPos
             });
             switch (state)
             {
@@ -169,15 +171,13 @@ public class SelectionTool implements EditTool
                 case RESIZE_EAST:
                     break;
                 case MOVE:
-                    // HACK: cast OK because NoteEvent.getCopyPos() is used by Phrase.move() and it is overridden in DragNoteEvent
-                    dragNoteEvent = (DragNoteEvent) spModel.move(dragNoteEvent, newPos);
+                    dragNoteEvent =  spModel.move(dragNoteEvent, newPos);   // Does nothing if newPos unchanged
                     if (dragNoteEvent.getPitch() != newPitch)
                     {
                         int index = spModel.indexOf(dragNoteEvent);
                         dragNoteEvent = dragNoteEvent.getCopyPitch(newPitch);
                         spModel.set(index, dragNoteEvent);
                     }
-                    LOGGER.severe("noteDragged() after edit spModel=" + spModel);
                     break;
                 case COPY:
                     break;
@@ -190,10 +190,15 @@ public class SelectionTool implements EditTool
     @Override
     public void noteReleased(MouseEvent e, NoteView nv)
     {
-        LOGGER.severe("noteReleased() -- nv.getModel()=" + nv.getModel() + " dragNoteEvent=" + dragNoteEvent);
+        var ne = nv.getModel();
+        LOGGER.log(Level.FINE, "\nnoteReleased() -- state={0} ne={1} dragNoteEvent={2}", new Object[]
+        {
+            state, ne, dragNoteEvent
+        });
+
         if (dragNoteEvent == null)
         {
-            LOGGER.severe("noteReleased() Should not be here nv=" + nv + " state=" + state);
+            LOGGER.fine("noteReleased() Should not be here. Ignored. nv=" + nv + " state=" + state);
         } else
         {
             switch (state)
@@ -205,9 +210,9 @@ public class SelectionTool implements EditTool
                 case RESIZE_EAST:
                     break;
                 case MOVE:
-                    spModel.remove(nv.getModel());
-                    editor.getNoteView(dragNoteEvent).setSelected(true);
-                    LOGGER.severe("noteReleased() FIN  spModel=" + spModel);
+                    assert spModel.remove(ne) : "ne=" + ne + " spModel=" + spModel;
+                    var dnv = editor.getNoteView(dragNoteEvent);
+                    dnv.setSelected(true);
                     break;
                 default:
                     throw new AssertionError(state.name());

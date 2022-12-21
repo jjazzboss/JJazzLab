@@ -474,9 +474,13 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
+        LOGGER.log(Level.FINE, "propertyChange() evt.source.class={0}prop={1} old={2} new={3}", new Object[]
+        {
+            evt.getSource().getClass().getSimpleName(), evt.getPropertyName(), evt.getOldValue(), evt.getNewValue()
+        });
+
         if (evt.getSource() == spModel)
         {
-            LOGGER.severe("propertyChange() evt.property=" + evt.getPropertyName() + " oldValue=" + evt.getOldValue() + " newValue=" + evt.getNewValue());
             switch (evt.getPropertyName())
             {
                 case Phrase.PROP_NOTE_ADDED:
@@ -498,9 +502,8 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
                 case Phrase.PROP_NOTE_SET:
                     NoteEvent newNe = (NoteEvent) evt.getNewValue();
                     NoteEvent oldNe = (NoteEvent) evt.getOldValue();
-                    notesPanel.replaceNoteViewModel(oldNe, newNe);
-                    notesPanel.revalidate();
-                    notesPanel.repaint();
+                    var nv = notesPanel.getNoteView(oldNe);
+                    nv.setModel(newNe);
                     break;
                 default:
                     break;

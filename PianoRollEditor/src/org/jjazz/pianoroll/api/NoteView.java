@@ -33,7 +33,7 @@ import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
+import java.util.logging.Logger;
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 import org.jjazz.harmony.api.Note;
@@ -47,10 +47,11 @@ import org.jjazz.uisettings.api.GeneralUISettings;
 /**
  * A JComponent which represents a NoteEvent.
  */
-public class NoteView extends JPanel implements PropertyChangeListener
+public class NoteView extends JPanel implements PropertyChangeListener, Comparable<NoteEvent>
 {
 
     public static final String PROP_SELECTED = "PropSelected";
+    public static final String PROP_MODEL = "PropModel";
     private static Color[] VELOCITY_COLORS;
     private static final Color COLOR_TEXT = Color.WHITE;
     private static final Font FONT;
@@ -72,7 +73,7 @@ public class NoteView extends JPanel implements PropertyChangeListener
     private boolean selected;
     private boolean muted;
     private PianoRollEditorSettings settings;
-
+    private static final Logger LOGGER = Logger.getLogger(NoteView.class.getSimpleName());
 
     public NoteView(NoteEvent ne)
     {
@@ -86,9 +87,15 @@ public class NoteView extends JPanel implements PropertyChangeListener
     public void setModel(NoteEvent ne)
     {
         Preconditions.checkNotNull(ne);
+        if (noteEvent == ne)
+        {
+            return;
+        }
+        var old = noteEvent;
         noteEvent = ne;
-        updateGraphics(ne);
+        updateGraphics(noteEvent);
         repaint();
+        firePropertyChange(PROP_MODEL, old, noteEvent);
     }
 
     public NoteEvent getModel()
@@ -159,6 +166,11 @@ public class NoteView extends JPanel implements PropertyChangeListener
         settings.removePropertyChangeListener(this);
     }
 
+    @Override
+    public String toString()
+    {
+        return "NoteView[" + noteEvent + "]";
+    }
 
     /**
      * Get a color which changes with velocity, red shade for higher value, blue shade for lower value.
@@ -188,6 +200,29 @@ public class NoteView extends JPanel implements PropertyChangeListener
             updateGraphics(noteEvent);
             repaint();
         }
+    }
+
+    // ==============================================================================================================
+    // Comparable<NoteEvent> interface
+    // ==============================================================================================================
+    /**
+     * Rely on NoteEvent.compareTo() but returns 0 only if noteEvent==ne.
+     *
+     * @param ne
+     * @return
+     */
+    @Override
+    public int compareTo(NoteEvent ne)
+    {
+        int res = noteEvent.compareTo(ne);
+        if (res == 0)
+        {
+            int h = System.identityHashCode(noteEvent);
+            int hNe = System.identityHashCode(ne);
+            res = Integer.compare(h, hNe);
+        }
+        // LOGGER.severe("compareTo() -- ne=" + ne + " this=" + this + " res=" + res);
+        return res;
     }
 
     // ==============================================================================================================
