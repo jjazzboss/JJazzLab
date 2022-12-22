@@ -333,7 +333,7 @@ public class Grid implements Cloneable
                 float newDur = ne.getDurationInBeats() + (cellOff - rg.to) * cellDuration;
                 newDur = Math.max(cellDuration, newDur);
                 NoteEvent newNe = ne.getCopyDur(newDur);       // This clone also the clientProperties
-                phrase.set(phrase.indexOf(ne), newNe);
+                phrase.replace(ne, newNe);
                 usedPitches.add(newNe.getPitch());
 
             }
@@ -367,7 +367,7 @@ public class Grid implements Cloneable
         {
             int newVelocity = MidiUtilities.limit(f.apply(ne.getVelocity()));
             NoteEvent tNe = ne.getCopyVel(newVelocity);       // This clone also the clientProperties
-            phrase.set(phrase.indexOf(ne), tNe);
+            phrase.replace(ne, tNe);
         }
         if (!nes.isEmpty())
         {
@@ -584,12 +584,11 @@ public class Grid implements Cloneable
      */
     public void replaceNote(NoteEvent oldNote, NoteEvent newNote)
     {
-        int index = phrase.indexOf(oldNote);
-        if (oldNote.getPositionInBeats() != newNote.getPositionInBeats() || index == -1)
+        if (oldNote.getPositionInBeats() != newNote.getPositionInBeats())
         {
             throw new IllegalArgumentException("oldNote=" + oldNote + " newNote=" + newNote);   //NOI18N
         }
-        phrase.set(index, newNote);
+        phrase.replace(oldNote, newNote);
         refresh();
     }
 
@@ -687,12 +686,12 @@ public class Grid implements Cloneable
             throw new IllegalArgumentException("cell=" + cell);   //NOI18N
         }
         float pos = getStartPos(cell) - preCellBeatWindow;
-        List<NoteEvent> nes = phrase.getCrossingNotes(pos, true);
+        List<NoteEvent> nes = Phrases.getCrossingNotes(phrase, pos, true);
         for (NoteEvent ne : nes)
         {
             float newDuration = pos - ne.getPositionInBeats();
             NoteEvent newNe = ne.getCopyDur(newDuration);
-            phrase.set(phrase.indexOf(ne), newNe);
+            phrase.replace(ne, newNe);
         }
         refresh();
         return nes.size();

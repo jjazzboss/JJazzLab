@@ -36,6 +36,7 @@ import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
+import org.jjazz.phrase.api.Phrases;
 import org.jjazz.testplayerservice.spi.TestPlayer;
 import org.jjazz.util.api.IntRange;
 import org.openide.util.lookup.ServiceProvider;
@@ -138,7 +139,7 @@ public class TestPlayerImpl implements TestPlayer
                 throw new MusicGenerationException(ex.getMessage());
             }
             Track track = sequence.createTrack();
-            phrase.fillTrack(track);
+            Phrases.fillTrack(phrase, track);
         }
 
         @Override

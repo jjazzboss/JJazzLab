@@ -45,6 +45,7 @@ import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.musiccontrol.api.ControlTrack;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.phrase.api.Phrase;
+import org.jjazz.phrase.api.Phrases;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.songcontext.api.SongContext;
@@ -337,7 +338,7 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
 
             // Update the track
             int trackId = getOriginalRvTrackIdMap().get(rv);
-            updateTrack(trackId, updatedPhrase.toMidiEvents(), precountShift);
+            updateTrack(trackId, Phrases.toMidiEvents(updatedPhrase), precountShift);
 
         }
 
@@ -349,7 +350,7 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
             Phrase emptyPhrase = new Phrase(getSongContext().getMidiMix().getChannel(urv));
             currentMapRvPhrase.put(urv, emptyPhrase);
             int trackId = getOriginalRvTrackIdMap().get(urv);
-            updateTrack(trackId, emptyPhrase.toMidiEvents(), precountShift);
+            updateTrack(trackId, Phrases.toMidiEvents(emptyPhrase), precountShift);
         }
 
 

@@ -33,6 +33,7 @@ import java.util.logging.Logger;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
+import org.jjazz.phrase.api.Phrases;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.phrasetransform.api.PhraseTransform;
 import org.jjazz.phrasetransform.api.PhraseTransforms;
@@ -99,13 +100,14 @@ public class AddDrumsMidiPhraseTransform implements PhraseTransform
 
 
         // Update the velocity of the phrase if needed
-        p = p.getVelocityProcessedPhrase(v -> v + getVelocityOffset());
+        p = p.getProcessedPhraseVelocity(v -> v + getVelocityOffset());
 
 
         if (replace)
         {
             // Remove all notes from same pitches before adding the new notes            
-            var addPhrasePitches = addPhrase.getNotesPerPitch(ne -> true).keySet();
+            // var addPhrasePitches = addPhrase.getNotesByPitch(ne -> true).keySet();
+            var addPhrasePitches =  Phrases.getNotesByPitch(addPhrase, ne -> true).keySet();
             res.removeIf(ne -> addPhrasePitches.contains(ne.getPitch()));
             res.add(p);
 

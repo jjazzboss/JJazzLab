@@ -34,7 +34,8 @@ import javax.sound.midi.Sequence;
 import javax.sound.midi.Track;
 import org.jjazz.midi.api.JJazzMidiSystem;
 import org.jjazz.phrase.api.Phrase;
-import org.jjazz.phrase.api.PhraseUtilities;
+import org.jjazz.phrase.api.PhraseSamples;
+import org.jjazz.phrase.api.Phrases;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythmmusicgeneration.api.SongSequenceBuilder;
@@ -249,7 +250,7 @@ public class UserExtensionPanelController
         
         // Get our phrase
         Track[] tracks = sequence.getTracks();
-        List<Phrase> phrases = PhraseUtilities.getPhrases(sequence.getResolution(), tracks, channel);
+        List<Phrase> phrases = Phrases.getPhrases(sequence.getResolution(), tracks, channel);
         if (phrases.size() == 1)
         {
             res.addAll(phrases.get(0));

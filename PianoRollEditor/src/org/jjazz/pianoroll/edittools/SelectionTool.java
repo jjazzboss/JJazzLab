@@ -174,9 +174,9 @@ public class SelectionTool implements EditTool
                     dragNoteEvent =  spModel.move(dragNoteEvent, newPos);   // Does nothing if newPos unchanged
                     if (dragNoteEvent.getPitch() != newPitch)
                     {
-                        int index = spModel.indexOf(dragNoteEvent);
-                        dragNoteEvent = dragNoteEvent.getCopyPitch(newPitch);
-                        spModel.set(index, dragNoteEvent);
+                        var newNe = dragNoteEvent.getCopyPitch(newPitch);
+                        spModel.replace(dragNoteEvent, newNe);
+                        dragNoteEvent = newNe;
                     }
                     break;
                 case COPY:

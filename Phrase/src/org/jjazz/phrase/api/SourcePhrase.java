@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.rhythmmusicgeneration.api;
+package org.jjazz.phrase.api;
 
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.NoteEvent;
@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 import org.jjazz.harmony.api.ChordType;
@@ -37,6 +38,7 @@ import static org.jjazz.harmony.api.Degree.SIXTH_OR_THIRTEENTH;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.harmony.api.StandardScaleInstance;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
+import static org.jjazz.phrase.api.Phrase.PARENT_NOTE;
 
 /**
  * A source Phrase is Phrase associated to a source chord symbol and possibly with some client properties.
@@ -79,20 +81,6 @@ public class SourcePhrase extends Phrase
         }
         chordSymbol = ecs;
         add(p);
-    }
-
-    /**
-     * Overridden to return a SourcePhrase.
-     *
-     * @param predicate
-     * @return
-     */
-    @Override
-    public SourcePhrase getFilteredPhrase(Predicate<NoteEvent> predicate)
-    {
-        SourcePhrase res = new SourcePhrase(getChannel(), chordSymbol);
-        stream().filter(predicate).forEach(ne -> res.add(ne));
-        return res;
     }
 
     /**
@@ -144,6 +132,33 @@ public class SourcePhrase extends Phrase
     }
 
     /**
+     * Overridden to return a SourcePhrase.
+     *
+     * @param tester
+     * @param mapper
+     * @return
+     */
+    @Override
+    public SourcePhrase getProcessedPhrase(Predicate<NoteEvent> tester, Function<NoteEvent, NoteEvent> mapper)
+    {
+        SourcePhrase res = new SourcePhrase(getChannel(), chordSymbol);
+        for (NoteEvent ne : this)
+        {
+            if (tester.test(ne))
+            {
+                NoteEvent newNe = mapper.apply(ne);
+                newNe.setClientProperties(ne);
+                if (newNe.getClientProperty(PARENT_NOTE) == null)
+                {
+                    newNe.putClientProperty(PARENT_NOTE, ne);         // If no previous PARENT_NOTE client property we can add one
+                }
+                res.add(newNe);
+            }
+        }
+        return res;
+    }
+
+    /**
      * Get all the source chord symbol degrees used in this source phrase.
      *
      * @return An ordered list of Degrees.
@@ -152,7 +167,7 @@ public class SourcePhrase extends Phrase
     {
         ArrayList<Degree> degrees = new ArrayList<>();
         ChordType ct = chordSymbol.getChordType();
-        for (Note note : getChord().getRelativePitchChord().getNotes())
+        for (Note note : Phrases.getChord(this).getRelativePitchChord().getNotes())
         {
             int relPitchToRoot = Note.getNormalizedRelPitch(note.getRelativePitch() - chordSymbol.getRootNote().getRelativePitch());
             Degree d = ct.getDegreeMostProbable(relPitchToRoot);
@@ -177,7 +192,7 @@ public class SourcePhrase extends Phrase
      * If destination chord symbol is less complex than the source chord symbol(eg C7M=&gt;C) then one or more destination degrees
      * are reused.<br>
      *
-     * @param ecsDest The destination chord symbol.
+     * @param ecsDest   The destination chord symbol.
      * @param chordMode
      * @return A map with key="a source chord symbol degree" and value="a destination chord symbol degree".
      */
@@ -281,10 +296,10 @@ public class SourcePhrase extends Phrase
      * result map=[ROOT=>ROOT, FIFTH=>FIFTH]
      * <p>
      *
-     * @param ecsDest The destination chord symbol.
+     * @param ecsDest   The destination chord symbol.
      * @param chordMode Can not be equal to "OFF".
      * @return The source phrase degrees and the corresponding destination degrees. A destination degree may appear more than once
-     * (see case 2/ above).
+     *         (see case 2/ above).
      */
     private HashMap<Degree, Degree> getDestDegreesChordMode(ExtChordSymbol ecsDest, ChordMode chordMode)
     {
@@ -329,7 +344,7 @@ public class SourcePhrase extends Phrase
                     srcDegrees.remove(srcDegree); // should not reuse it
                 }
             }
-            
+
             // Handle the remaining unmapped degrees: find the closest remaining destination degrees
             for (Degree srcDegree : srcDegrees)
             {
@@ -358,7 +373,7 @@ public class SourcePhrase extends Phrase
                 degreeIndexes.remove(closestDegreeIndex);     // should not reuse it            
             }
 
-            
+
         } else
         {
             // Special case : a "complex" source phrase needs to be adapted to a simpler destination chord
@@ -389,7 +404,7 @@ public class SourcePhrase extends Phrase
                     srcPitch = ecsDest.getRootNote().getPitch() + srcDegree.getPitch();
                 }
                 Note srcNote = new Note(srcPitch);
-                
+
                 // Search the destination degreeIndex closest from the remaining source note
                 ChordType.DegreeIndex closestDegreeIndex = null;
                 int smallestPitchDelta = 100000;

@@ -24,7 +24,8 @@ package org.jjazz.phrase.api;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import java.text.ParseException;
-import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.StringJoiner;
 import java.util.logging.Logger;
 import org.jjazz.harmony.api.TimeSignature;
@@ -38,7 +39,7 @@ import org.jjazz.util.api.FloatRange;
 public class SizedPhrase extends Phrase
 {
 
-    private final FloatRange beatRange;
+    private FloatRange beatRange;
     private final TimeSignature timeSignature;
     private static final Logger LOGGER = Logger.getLogger(SizedPhrase.class.getSimpleName());
 
@@ -66,83 +67,22 @@ public class SizedPhrase extends Phrase
         add(sp);
     }
 
-
     /**
-     * Overridden to check NoteEvent position.
+     * Overridden to check NoteEvent is in the beat range.
      * <p>
-     * @param ne
-     */
-    @Override
-    public boolean add(NoteEvent ne)
-    {
-        checkNoteEvent(ne);
-        return super.add(ne);
-    }
-
-    /**
-     * Overridden to check NoteEvent position.
-     * <p>
-     * @param ne
-     */
-    @Override
-    public void addFirst(NoteEvent ne)
-    {
-        checkNoteEvent(ne);
-        super.addFirst(ne);
-    }
-
-    /**
-     * Overridden to check NoteEvent position.
-     * <p>
-     * @param ne
-     */
-    @Override
-    public void push(NoteEvent ne)
-    {
-        addFirst(ne);
-    }
-
-    /**
-     * Overridden to check NoteEvent position.
-     * <p>
-     * @param ne
-     */
-    @Override
-    public void addLast(NoteEvent ne)
-    {
-        checkNoteEvent(ne);
-        super.addLast(ne);
-    }
-
-    /**
-     * Overridden to check NoteEvent position.
-     * <p>
-     * @param index
-     * @param ne
-     */
-    @Override
-    public void add(int index, NoteEvent ne)
-    {
-        checkNoteEvent(ne);
-        super.add(index, ne);
-    }
-
-
-    /**
-     * Overridden to check NoteEvent positions.
      *
-     * @param nes
-     * @return
+     * @param ne
+     * @throws IllegalArgumentException
      */
     @Override
-    public boolean addAll(Collection<? extends NoteEvent> nes)
+    protected void checkAddNote(NoteEvent ne) throws IllegalArgumentException
     {
-        for (var ne : nes)
+        if (!beatRange.contains(ne.getBeatRange(), true))
         {
-            checkNoteEvent(ne);
+            throw new IllegalArgumentException("ne=" + ne + " beatRange=" + beatRange);
         }
-        return super.addAll(nes);
     }
+
 
     @Override
     public SizedPhrase clone()
@@ -179,6 +119,17 @@ public class SizedPhrase extends Phrase
         return Math.round(beatRange.size() / timeSignature.getNbNaturalBeats());
     }
 
+    /**
+     * Shift the associated BeatRange and all events.
+     *
+     * @param shiftInBeats
+     */
+    @Override
+    public void shiftAllEvents(float shiftInBeats)
+    {
+        beatRange = beatRange.getTransformed(shiftInBeats);
+        super.shiftAllEvents(shiftInBeats);
+    }
 
     /**
      * Save the specified SizedPhrase as a string.
@@ -228,7 +179,7 @@ public class SizedPhrase extends Phrase
                     for (int i = 4; i < strs.length; i++)
                     {
                         NoteEvent ne = NoteEvent.loadAsString(strs[i]);
-                        sp.addOrdered(ne, false);
+                        sp.add(ne);
                     }
                 } catch (IllegalArgumentException | ParseException ex)
                 {
@@ -262,14 +213,5 @@ public class SizedPhrase extends Phrase
     // ==============================================================================
     // Private methods
     // ==============================================================================
-
-    private void checkNoteEvent(NoteEvent ne)
-    {
-        if (!beatRange.contains(ne.getBeatRange(), true))
-        {
-            throw new IllegalArgumentException("ne=" + ne + " beatRange=" + beatRange);
-        }
-    }
-
 
 }

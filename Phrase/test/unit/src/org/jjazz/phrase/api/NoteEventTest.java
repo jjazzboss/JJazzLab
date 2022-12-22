@@ -97,8 +97,8 @@ public class NoteEventTest
             // System.out.println("AFTER:  =>  newPos=" + newPos + " newDur=" + newDur);
             List<MidiEvent> midiEvents = ne1.toMidiEvents(0);
             Phrase p = new Phrase(0);
-            p.add(midiEvents, 0, true);
-            NoteEvent ne2 = p.get(0);
+            Phrases.addMidiEvents(p, midiEvents, 0, true);
+            NoteEvent ne2 = p.first();
             if (!ne1.equals(ne2))
             {
                 System.out.println("Difference! ne1=" + ne1 + " ne2=" + ne2);

@@ -315,6 +315,12 @@ public class RP_SYS_DrumsTransformComp extends RealTimeRpEditorComponent<RP_SYS_
     @Override
     public void beatChanged(Position oldPos, Position newPos)
     {
+        if (birdview_outPhrase.getModel() == null)
+        {
+            // If unluckky we might be notified just before model is set
+            return;
+        }
+        
         float pos = -1;
         long tickPos = songPartContext.getRelativeTick(newPos);
         if (tickPos >= 0)
@@ -383,7 +389,7 @@ public class RP_SYS_DrumsTransformComp extends RealTimeRpEditorComponent<RP_SYS_
         dmt.setHiHatOffset(knb_hihat.getValue());
         res.add(dmt);
 
-        
+
         return res;
     }
 

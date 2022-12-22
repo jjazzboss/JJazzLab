@@ -44,7 +44,7 @@ import org.openide.util.Exceptions;
 /**
  * A Note with a position and optional client properties.
  * <p>
- * This is an immutable class except for the client properties.
+ * This is an immutable class except for the client properties. Two different NoteEvent instances can not be equal.
  */
 public class NoteEvent extends Note implements Cloneable, Comparable<Note>
 {
@@ -341,7 +341,38 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
 
 
     /**
-     * Compare the specified NoteEvent with this NoteEvent, but tolerate slight differences in position and duration.
+     * Test if this note is near the specified position.
+     * <p>
+     * A "near" position is in the interval [posInBeats-nearWindow;posInBeats+nearWindow[.
+     *
+     * @param posInBeats
+     * @param nearWindow
+     * @return
+     */
+    public boolean isNear(float posInBeats, float nearWindow)
+    {
+        Preconditions.checkArgument(nearWindow >= 0);
+
+        boolean res;
+        if (nearWindow == 0)
+        {
+            res = getPositionInBeats() == posInBeats;
+        } else if (getPositionInBeats() < posInBeats - nearWindow)
+        {
+            res = false;
+        } else if (getPositionInBeats() >= posInBeats + nearWindow)
+        {
+            res = false;
+        } else
+        {
+            res = true;
+        }
+        return res;
+    }
+
+
+    /**
+     * Check for equality as a Note tolerating slight differences in position and duration.
      * <p>
      * If the positions are equals +/- beatWindow, positions are considered equal. If the durations are equals +/- 2*beatWindow,
      * durations are considered equal.
@@ -349,10 +380,10 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
      * ClientProperties are ignored.
      *
      * @param ne
-     * @param nearWindow
+     * @param nearWindow Must be &gt; 0
      * @return
      */
-    public boolean equalsNearPosition(NoteEvent ne, float nearWindow)
+    public boolean equalsAsNoteNearPosition(NoteEvent ne, float nearWindow)
     {
         Preconditions.checkNotNull(ne);
         if (ne.getPitch() != getPitch())
@@ -375,40 +406,19 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
     }
 
     /**
-     * Test if this note is near the specified position.
+     * Compare this NoteEvent to a Note or NoteEvent.
      * <p>
-     * A "near" position is in the interval [posInBeats-nearWindow;posInBeats+nearWindow[.
-     *
-     * @param posInBeats
-     * @param nearWindow
-     * @return
-     */
-    public boolean isNear(float posInBeats, float nearWindow)
-    {
-        boolean res = true;
-        if (getPositionInBeats() < posInBeats - nearWindow)
-        {
-            res = false;
-        } else if (getPositionInBeats() >= posInBeats + nearWindow)
-        {
-            res = false;
-        }
-        return res;
-    }
-
-    /**
-     * Compare this NoteEvent to a Note.
-     * <p>
-     * If n is not a NoteEvent, delegate to Note.compareTo(Note). If n is a NoteEvent, compare first using position, then using
-     * Note.compareTo(Note).
      *
      * @param n
-     * @return
-     * @see Note#compareTo(org.jjazz.harmony.api.Note)
+     * @return 0 only if this == n.
      */
     @Override
     public int compareTo​(Note n)
     {
+        if (n == this)
+        {
+            return 0;
+        }
         int res;
         if (n instanceof NoteEvent ne)
         {
@@ -421,11 +431,41 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
         {
             res = super.compareTo(n);
         }
+        if (res == 0)
+        {
+            res = Integer.compare(System.identityHashCode(this), System.identityHashCode(n));
+        }
         return res;
     }
 
     /**
-     * Client properties are ignored.
+     * Compare using Note.compareTo().
+     * <p>
+     *
+     * @param n
+     * @return
+     * @see Note#compareTo(org.jjazz.harmony.api.Note)
+     */
+    public int compareToAsNote​(Note n)
+    {
+        return super.compareTo(n);
+    }
+
+    /**
+     * Compare using only position.
+     * <p>
+     *
+     * @param n
+     * @return
+     */
+    public int compareToAsPosition​(NoteEvent n)
+    {
+        int res = Float.compare(position, n.position);
+        return res;
+    }
+
+    /**
+     * Return false unless o is the same object.
      *
      * @param o
      * @return
@@ -433,25 +473,18 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
     @Override
     public boolean equals(Object o)
     {
-        if (o == null || !(o instanceof NoteEvent))
-        {
-            return false;
-        }
-        NoteEvent ne = (NoteEvent) o;
-        return Float.floatToIntBits(this.position) == Float.floatToIntBits(ne.position) && super.equals(o);
+        return this == o;
     }
 
     /**
-     * Client properties are ignored.
+     * Return the identify hash code.
      *
      * @return
      */
     @Override
     public int hashCode()
     {
-        int hash = super.hashCode();
-        hash = 29 * hash + Float.floatToIntBits(this.position);
-        return hash;
+        return System.identityHashCode(this);
     }
 
     /**
@@ -475,7 +508,7 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
     public String toString()
     {
         // return String.format("[%s, p=%.3f, d=%.3f, v=%d]", toPianoOctaveString(), position, getDurationInBeats(), getVelocity());
-        return String.format("[%s, p=%f, d=%f, v=%d]", toPianoOctaveString(), position, getDurationInBeats(), getVelocity());
+        return String.format("[%s, p=%f, d=%f, v=%d, id=%d]", toPianoOctaveString(), position, getDurationInBeats(), getVelocity(), System.identityHashCode(this));
     }
 
     public void addClientPropertyChangeListener(PropertyChangeListener l)

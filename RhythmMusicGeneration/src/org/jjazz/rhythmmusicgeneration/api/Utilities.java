@@ -40,16 +40,18 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo.Feature;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
 import static org.jjazz.phrase.api.Phrase.PARENT_NOTE;
+import org.jjazz.phrase.api.Phrases;
+import org.jjazz.phrase.api.SourcePhrase;
+import org.jjazz.phrase.api.SourcePhrase.ChordMode;
 import static org.jjazz.util.api.Utilities.heapPermutation;
-import org.jjazz.rhythmmusicgeneration.api.SourcePhrase.ChordMode;
 
 /**
  * Phrase manipulation methods.
  */
-public class Phrases
+public class Utilities
 {
 
-    private static final Logger LOGGER = Logger.getLogger(Phrases.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(Utilities.class.getSimpleName());
 
 
     /**
@@ -289,7 +291,7 @@ public class Phrases
 
 
         // Chord made of each unique pitch note of the phrase
-        Chord pSrcChord = pSrcWork.getChord();
+        Chord pSrcChord = Phrases.getChord(pSrcWork);
 
 
         // Calculate matching score for each permutation 

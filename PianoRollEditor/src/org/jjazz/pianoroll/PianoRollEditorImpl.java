@@ -37,6 +37,7 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JLayer;
@@ -191,7 +192,7 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
     public void doLayout()
     {
         super.doLayout();
-        if (useHack == true && notesPanel.getWidth() > 0 && notesPanel.getHeight() > 0)
+        if (useHack == true && notesPanel.getWidth() > 0 && notesPanel.getHeight() > 0 && isShowing())
         {
             // We consider everything is layout now
             useHack = false;
@@ -485,21 +486,22 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
             {
                 case Phrase.PROP_NOTE_ADDED:
                 {
-                    NoteEvent ne = (NoteEvent) evt.getNewValue();
-                    addNote(ne);
+
+                    List<NoteEvent> nes = (List<NoteEvent>) evt.getNewValue();
+                    nes.forEach(ne -> addNote(ne));
                     notesPanel.revalidate();
                     break;
                 }
                 case Phrase.PROP_NOTE_REMOVED:
                 {
-                    NoteEvent ne = (NoteEvent) evt.getNewValue();
-                    removeNote(ne);
+                    List<NoteEvent> nes = (List<NoteEvent>) evt.getNewValue();
+                    nes.forEach(ne -> removeNote(ne));
                     notesPanel.revalidate();
                     notesPanel.repaint();
                     break;
                 }
                 case Phrase.PROP_NOTE_MOVED:
-                case Phrase.PROP_NOTE_SET:
+                case Phrase.PROP_NOTE_REPLACED:
                     NoteEvent newNe = (NoteEvent) evt.getNewValue();
                     NoteEvent oldNe = (NoteEvent) evt.getOldValue();
                     var nv = notesPanel.getNoteView(oldNe);
@@ -646,8 +648,10 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
     {
         // LOGGER.severe("scrollToNotes() --");
         var nvs = notesPanel.getNoteViews();
-        if (nvs.isEmpty())
+        var vpSize = scrollpane.getViewport().getViewSize();
+        if (nvs.isEmpty() || vpSize.width == 0 || vpSize.height == 0)
         {
+            // vpSize might be empty if component hidden by another (?)
             return;
         }
         var posFirst = nvs.get(0).getModel().getPositionInBeats();

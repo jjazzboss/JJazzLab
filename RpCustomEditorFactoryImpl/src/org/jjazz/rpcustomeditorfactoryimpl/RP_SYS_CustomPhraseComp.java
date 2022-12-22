@@ -45,7 +45,8 @@ import org.jjazz.musiccontrol.api.PlaybackListener;
 import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.musiccontrol.api.playbacksession.StaticSongSession;
 import org.jjazz.phrase.api.Phrase;
-import org.jjazz.phrase.api.PhraseUtilities;
+import org.jjazz.phrase.api.PhraseSamples;
+import org.jjazz.phrase.api.Phrases;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.MusicGenerationException;
@@ -471,7 +472,7 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
 
         // Get one phrase per channel
         Track[] tracks = sequence.getTracks();
-        List<Phrase> phrases = PhraseUtilities.getPhrases(sequence.getResolution(), tracks);
+        List<Phrase> phrases = Phrases.getPhrases(sequence.getResolution(), tracks);
 
 
         boolean contentFound = false;

@@ -62,6 +62,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.event.ClsChangeEvent;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo;
 import org.jjazz.phrase.api.Phrase;
+import org.jjazz.phrase.api.Phrases;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.TempoRange;
 import org.jjazz.songstructure.api.SongStructureFactory;
@@ -234,7 +235,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
 
         // Make phrase no longer than the song
         FloatRange beatRange = getSongStructure().getBeatRange(null);
-        p = p.getSlice(beatRange, false, 1, 0f);        // Create a new phrase
+        p = Phrases.getSlice(p, beatRange, false, 1, 0f);        // Create a new phrase
 
 
         final Phrase oldPhrase = getUserPhrase(name);

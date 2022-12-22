@@ -38,7 +38,8 @@ import org.jjazz.midi.api.DrumKit;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.phrase.api.CyclicPositions;
 import org.jjazz.phrase.api.Phrase;
-import org.jjazz.phrase.api.PhraseUtilities;
+import org.jjazz.phrase.api.PhraseSamples;
+import org.jjazz.phrase.api.Phrases;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.phrasetransform.api.DrumsMixTransform;
 import org.openide.util.lookup.ServiceProvider;
@@ -417,7 +418,7 @@ public class DefaultPhraseTransformProvider implements PhraseTransformProvider
 
         // Get our phrase
         Track[] tracks = sequence.getTracks();
-        List<Phrase> phrases = PhraseUtilities.getPhrases(sequence.getResolution(), tracks, MidiConst.CHANNEL_DRUMS);
+        List<Phrase> phrases = Phrases.getPhrases(sequence.getResolution(), tracks, MidiConst.CHANNEL_DRUMS);
         if (phrases.size() == 1)
         {
             res.add(phrases.get(0));

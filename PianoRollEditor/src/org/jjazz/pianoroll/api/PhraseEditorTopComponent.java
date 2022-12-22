@@ -93,7 +93,8 @@ public final class PhraseEditorTopComponent extends TopComponent
 //        }   
 //        SizedPhrase sp = new SizedPhrase(p.getChannel(), new FloatRange(0, 20 +nbBeats), TimeSignature.FOUR_FOUR);
         sp.add(new NoteEvent(64, 1, 64, 1.6f));
-        // sp.add(new NoteEvent(64, 1, 64, 1.6f));
+        sp.add(new NoteEvent(64, 1, 64, 1.6f));
+        sp.add(new NoteEvent(67, 1, 64, 1.6f));
         editor = new PianoRollEditorImpl(0, sp, null, PianoRollEditorSettings.getDefault());
         add(editor);
 

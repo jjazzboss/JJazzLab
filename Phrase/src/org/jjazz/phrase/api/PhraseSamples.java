@@ -22,23 +22,15 @@
  */
 package org.jjazz.phrase.api;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import javax.sound.midi.ShortMessage;
-import javax.sound.midi.Track;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.harmony.api.ScaleManager;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.midi.api.MidiConst;
-import org.jjazz.midi.api.MidiUtilities;
 
 /**
- * Convenience Phrase-based static methods.
+ * Generate basic sample phrases.
  */
-public class PhraseUtilities
+public class PhraseSamples
 {
 
     /**
@@ -70,7 +62,7 @@ public class PhraseUtilities
      * Get a phrase with random notes at random positions.
      *
      * @param channel
-     * @param nbBars Number of 4/4 bars.
+     * @param nbBars  Number of 4/4 bars.
      * @param nbNotes Number of random notes to generate.
      * @return
      */
@@ -96,7 +88,7 @@ public class PhraseUtilities
      * @param startPosInBeats
      * @param nbBars
      * @param ts
-     * @param channel The channel of the returned phrase
+     * @param channel         The channel of the returned phrase
      * @return
      */
     static public Phrase getBasicDrumPhrase(float startPosInBeats, int nbBars, TimeSignature ts, int channel)
@@ -146,46 +138,4 @@ public class PhraseUtilities
     }
 
 
-    /**
-     * Parse all tracks to build one phrase per used channel.
-     * <p>
-     * A track can use notes from different channels. Notes from a given channel can be on several tracks.
-     *
-     * @param tracksPPQ The Midi PPQ resolution (pulses per quarter) used in the tracks.
-     * @param tracks
-     * @param channels Get phrases only for the specified channels. If empty, get phrases for all channels.
-     * @return
-     */
-    static public List<Phrase> getPhrases(int tracksPPQ, Track[] tracks, Integer... channels)
-    {
-        Map<Integer, Phrase> mapRes = new HashMap<>();
-        var selectedChannels = channels.length > 0 ? Arrays.asList(channels) : Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15);
-
-        for (Track track : tracks)
-        {
-            // Get all the events at the appropriate resolution
-            var trackEvents = MidiUtilities.getMidiEvents(track,
-                    ShortMessage.class,
-                    sm -> sm.getCommand() == ShortMessage.NOTE_OFF || sm.getCommand() == ShortMessage.NOTE_ON,
-                    null);
-            trackEvents = MidiUtilities.getMidiEventsAtPPQ(trackEvents, tracksPPQ, MidiConst.PPQ_RESOLUTION);
-
-
-            for (int channel : MidiUtilities.getUsedChannels(track))
-            {
-                if (selectedChannels.contains(channel))
-                {
-                    Phrase p = mapRes.get(channel);
-                    if (p == null)
-                    {
-                        p = new Phrase(channel);
-                        mapRes.put(channel, p);
-                    }
-                    p.add(trackEvents, 0, false);
-                }
-            }
-        }
-
-        return new ArrayList<>(mapRes.values());
-    }
 }

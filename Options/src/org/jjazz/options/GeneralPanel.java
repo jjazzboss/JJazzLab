@@ -45,7 +45,8 @@ import org.jjazz.midi.api.JJazzMidiSystem;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.phrase.api.Phrase;
-import org.jjazz.phrase.api.PhraseUtilities;
+import org.jjazz.phrase.api.PhraseSamples;
+import org.jjazz.phrase.api.Phrases;
 import org.jjazz.songeditormanager.api.StartupShutdownSongManager;
 import org.jjazz.uisettings.api.GeneralUISettings;
 import org.jjazz.ui.utilities.api.Utilities;
@@ -399,14 +400,14 @@ final class GeneralPanel extends javax.swing.JPanel implements PropertyChangeLis
             sequence = new Sequence(Sequence.PPQ, MidiConst.PPQ_RESOLUTION);
 
             Track track = sequence.createTrack();
-            Phrase p = PhraseUtilities.getBasicDrumPhrase(0, 4, TimeSignature.FOUR_FOUR, 9);
-            p.fillTrack(track);
+            Phrase p = PhraseSamples.getBasicDrumPhrase(0, 4, TimeSignature.FOUR_FOUR, 9);
+            Phrases.fillTrack(p, track);
             MidiUtilities.addTrackNameEvent(track, "Drums track");
 
 
             track = sequence.createTrack();
-            p = PhraseUtilities.getCscalePhrase(10, 0, 16);
-            p.fillTrack(track);
+            p = PhraseSamples.getCscalePhrase(10, 0, 16);
+            Phrases.fillTrack(p, track);
             MidiUtilities.addTrackNameEvent(track, "Bass track");
 
 

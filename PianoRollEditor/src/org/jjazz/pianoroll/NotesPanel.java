@@ -71,7 +71,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
     private final PianoRollEditorImpl editor;
     private final SizedPhrase spModel;
     private float scaleFactorX = 1f;
-    private final List<NoteView> sortedNoteViews = new ArrayList<>();   // Can't use Map<NoteEvent,NoteView> because we may have 2 identical NoteEvents.
+    private final TreeMap<NoteEvent, NoteView> mapNoteViews = new TreeMap<>();
     private final Lookup selectionLookup;
     private final InstanceContent selectionLookupContent;
     private static final Logger LOGGER = Logger.getLogger(NotesPanel.class.getSimpleName());
@@ -126,7 +126,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
         {
             return;
         }
-        for (NoteView nv : sortedNoteViews)
+        for (NoteView nv : mapNoteViews.values())
         {
             NoteEvent ne = nv.getModel();
             FloatRange br = ne.getBeatRange();
@@ -226,12 +226,12 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
     {
         Preconditions.checkNotNull(ne);
         NoteView nv = new NoteView(ne);
-        store(nv);
+        mapNoteViews.put(ne, nv);
         add(nv);
         nv.addPropertyChangeListener(this);
-        LOGGER.log(Level.FINE, "addNoteView() ne={0} ==> sortedNoteViews={1}", new Object[]
+        LOGGER.log(Level.FINE, "addNoteView() ne={0} ==> mapNoteViews={1}", new Object[]
         {
-            ne, sortedNoteViews
+            ne, mapNoteViews
         });
         return nv;
     }
@@ -246,16 +246,15 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
     public NoteView removeNoteView(NoteEvent ne)
     {
         Preconditions.checkNotNull(ne);
-        int index = indexOfNoteView(ne, true);
-        NoteView nv = sortedNoteViews.get(index);
+        NoteView nv = getNoteView(ne);
         nv.setSelected(false);
-        sortedNoteViews.remove(index);
+        mapNoteViews.remove(ne);
         remove(nv);
-        nv.removePropertyChangeListener(NoteView.PROP_SELECTED, this);
+        nv.removePropertyChangeListener(this);
         nv.cleanup();
-        LOGGER.log(Level.FINE, "removeNoteView() ne={0} ==> sortedNoteViews={1}", new Object[]
+        LOGGER.log(Level.FINE, "removeNoteView() ne={0} ==> mapNoteViews={1}", new Object[]
         {
-            ne, sortedNoteViews
+            ne, mapNoteViews
         });
         return nv;
     }
@@ -265,12 +264,16 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
      * Get the NoteView corresponding to ne.
      *
      * @param ne Must be a ne added via addNoteView(NoteEvent ne)
-     * @return Can't be null
+     * @return
+     * @throws IllegalArgumentException If no NoteView is associated to ne.
      */
     public NoteView getNoteView(NoteEvent ne)
     {
-        int index = indexOfNoteView(ne, true);
-        var res = sortedNoteViews.get(index);
+        var res = mapNoteViews.get(ne);
+        if (res == null)
+        {
+            throw new IllegalArgumentException("ne=" + ne + " mapNoteViews=" + mapNoteViews);
+        }
         return res;
     }
 
@@ -281,7 +284,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
      */
     public List<NoteView> getNoteViews()
     {
-        return new ArrayList<>(sortedNoteViews);
+        return new ArrayList<>(mapNoteViews.values());
     }
 
     /**
@@ -292,7 +295,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
      */
     public List<NoteView> getNoteViews(Rectangle r)
     {
-        var res = sortedNoteViews
+        var res = mapNoteViews.values()
                 .stream()
                 .filter(nv -> nv.getBounds().intersects(r))
                 .toList();
@@ -302,13 +305,15 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
 
     public void cleanup()
     {
-        for (var nv : sortedNoteViews.toArray(NoteView[]::new))
+        for (var nv : mapNoteViews.values().toArray(NoteView[]::new))
         {
             removeNoteView(nv.getModel());
         }
         spModel.removePropertyChangeListener(this);
         editor.getSettings().removePropertyChangeListener(this);
     }
+    
+    
     // ==========================================================================================================
     // PropertyChangeListener interface
     // ==========================================================================================================    
@@ -324,6 +329,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
         if (evt.getSource() == editor.getSettings())
         {
             settingsChanged();
+            
         } else if (evt.getSource() instanceof NoteView nv)
         {
             if (evt.getPropertyName().equals(NoteView.PROP_SELECTED))
@@ -337,10 +343,10 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
                 }
             } else if (evt.getPropertyName().equals(NoteView.PROP_MODEL))
             {
-                // nv's model was changed
-                // We can't use removeNoteView() because model has changed and sortedNoteViews migh has lost its natural order
-                sortedNoteViews.remove(nv);     // Do not use binarySearch here may not be in natural order
-                store(nv);
+                NoteEvent oldNe = (NoteEvent) evt.getOldValue();
+                // nv's model was changed, remove and readd
+                mapNoteViews.remove(oldNe);     
+                mapNoteViews.put(nv.getModel(), nv);
                 revalidate();
                 repaint();
 
@@ -419,46 +425,6 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
         repaint();
     }
 
-    /**
-     * Search (using binarySearch) the sorted list for the index of a NoteView whose model is == ne (not equals()).
-     *
-     * @param ne
-     * @param failIfNotFound If true assert that return value is &gt;= 0
-     * @return The index as returned by Collections.binarySearch(), ie &lt; 0 if nothing found.
-     * @see Collections#binarySearch(java.util.List, java.lang.Object)
-     */
-    private int indexOfNoteView(NoteEvent ne, boolean failIfNotFound)
-    {
-        int res = Collections.binarySearch(sortedNoteViews, ne);
-        if (failIfNotFound)
-        {
-            assert res >= 0 : "ne=" + ne + " indexOf(ne)=" + sortedNoteViews.stream().filter(nv -> nv.getModel() == ne).findAny().orElse(null) + " sortedNoteViews=" + sortedNoteViews;
-        }
-        return res;
-    }
-
-    /**
-     * Add the NoteView in the list using a binarySearch.
-     *
-     * @param nv
-     */
-    private void store(NoteView nv)
-    {
-        var ne = nv.getModel();
-        int index = indexOfNoteView(ne, false);
-        if (index >= 0)
-        {
-            var other = sortedNoteViews.get(index);
-            throw new IllegalStateException("A NoteView (other) already exists for ne=" + ne + " other=" + other);
-        }
-        index = -(index + 1);
-        sortedNoteViews.add(index, nv);
-
-        LOGGER.log(Level.FINE, "store() nv={0} ==> sortedNoteViews={1}", new Object[]
-        {
-            nv, sortedNoteViews
-        });
-    }
 
 
     // =====================================================================================

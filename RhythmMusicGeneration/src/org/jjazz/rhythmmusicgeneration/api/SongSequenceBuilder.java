@@ -58,6 +58,7 @@ import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.UserRhythmVoice;
 import org.jjazz.outputsynth.api.OutputSynth;
 import org.jjazz.outputsynth.api.OutputSynthManager;
+import org.jjazz.phrase.api.Phrases;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.phrasetransform.api.rps.RP_SYS_DrumsTransform;
 import org.jjazz.phrasetransform.api.rps.RP_SYS_DrumsTransformValue;
@@ -521,7 +522,7 @@ public class SongSequenceBuilder
 
 
             // Adapt the phrase to the current context
-            p = p.getSlice(br, false, 1, 0.1f);
+            p = Phrases.getSlice(p, br, false, 1, 0.1f);
 
             LOGGER.log(Level.FINE, "buildMapRvPhrase() Adding user phrase for name={0} p={1}", new Object[]
             {
@@ -617,7 +618,7 @@ public class SongSequenceBuilder
 
             // Fill the track
             Phrase p = rvPhrases.get(rv);
-            p.fillTrack(track);
+            Phrases.fillTrack(p, track);
 
             // Store the track with the RhythmVoice
             res.mapRvTrackId.put(rv, trackId);
@@ -757,7 +758,7 @@ public class SongSequenceBuilder
                     LOGGER.warning("muteNotes() Unexpected null phase. rv=" + rv + " rvPhrases=" + rvPhrases);   //NOI18N
                     continue;
                 }
-                p.silence(sptRange, true, false, 0.1f);
+                Phrases.silence(p, sptRange, true, false, 0.1f);
             }
         }
     }
@@ -786,7 +787,7 @@ public class SongSequenceBuilder
 
                 for (Phrase p : rvPhrases.values())
                 {
-                    p.silence(beatRange, true, false, 0.01f);
+                    Phrases.silence(p, beatRange, true, false, 0.01f);
                 }
             }
         }
@@ -822,7 +823,7 @@ public class SongSequenceBuilder
 
                 // Remove a slice for the current songpart            
                 Phrase p = rvPhrases.get(rv);
-                p.silence(sptBeatRange, true, false, 0.1f);
+                Phrases.silence(p, sptBeatRange, true, false, 0.1f);
 
 
                 // Get the custom phrase, starts at beat 0
@@ -835,7 +836,7 @@ public class SongSequenceBuilder
                 if (sizeInBeats <= sptBeatRange.size() - ts.getNbNaturalBeats())
                 {
                     float offset = sizeInBeats;
-                    List<NoteEvent> toAdd = new ArrayList<>();
+                    List<NoteEvent> toBeAdded = new ArrayList<>();
                     while (offset < sptBeatRange.size())
                     {
                         for (NoteEvent ne : spCustom)
@@ -845,17 +846,17 @@ public class SongSequenceBuilder
                             {
                                 break;
                             }
-                            toAdd.add(ne.getCopyPos(newPosInBeats));
+                            toBeAdded.add(ne.getCopyPos(newPosInBeats));
                         }
                         offset += sizeInBeats;
                     }
 
-                    toAdd.forEach(ne -> spCustom.add(ne));  // No need for addOrdered() here
+                    toBeAdded.forEach(ne -> spCustom.add(ne));
                 }
 
 
                 // Make sure it's not too long 
-                spCustom.silenceAfter(sptBeatRange.size());
+                Phrases.silenceAfter(spCustom, sptBeatRange.size());
 
 
                 // Shift to fit the current song part position
@@ -902,13 +903,13 @@ public class SongSequenceBuilder
 
                 // Make it a SizedPhrase on the relevant beat range and transform it
                 SizedPhrase inSp = new SizedPhrase(p.getChannel(), sptBeatRange, r.getTimeSignature());
-                inSp.add(p.getSlice(sptBeatRange, false, 1, 0.1f));
+                inSp.add(Phrases.getSlice(p, sptBeatRange, false, 1, 0.1f));
                 var chain = rpValue.getTransformChain(rv);
                 var outSp = chain.transform(inSp, sptContext);
 
 
                 // Replace the old song part phrase by the transformed one
-                p.silence(sptBeatRange, true, false, 0.1f);
+                Phrases.silence(p, sptBeatRange, true, false, 0.1f);
                 p.add(outSp);
             }
         }
@@ -955,13 +956,13 @@ public class SongSequenceBuilder
 
             // Make it a SizedPhrase only on the relevant slice and transform it
             SizedPhrase inSp = new SizedPhrase(p.getChannel(), sptBeatRange, r.getTimeSignature());
-            inSp.add(p.getSlice(sptBeatRange, false, 1, 0.1f));
+            inSp.add(Phrases.getSlice(p, sptBeatRange, false, 1, 0.1f));
             var chain = rpValue.getTransformChain(false);
             var outSp = chain.transform(inSp, sptContext);
 
 
             // Replace the old song part phrase by the transformed one            
-            p.silence(sptBeatRange, true, false, 0.1f);
+            Phrases.silence(p, sptBeatRange, true, false, 0.1f);
             p.add(outSp);
         }
     }

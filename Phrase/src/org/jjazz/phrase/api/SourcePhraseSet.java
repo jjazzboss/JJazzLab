@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.rhythmmusicgeneration.api;
+package org.jjazz.phrase.api;
 
 import java.util.ArrayList;
 import java.util.Collections;
