@@ -33,7 +33,6 @@ import java.awt.event.ComponentEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -312,12 +311,11 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
         spModel.removePropertyChangeListener(this);
         editor.getSettings().removePropertyChangeListener(this);
     }
-    
-    
+
+
     // ==========================================================================================================
     // PropertyChangeListener interface
     // ==========================================================================================================    
-
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
@@ -329,7 +327,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
         if (evt.getSource() == editor.getSettings())
         {
             settingsChanged();
-            
+
         } else if (evt.getSource() instanceof NoteView nv)
         {
             if (evt.getPropertyName().equals(NoteView.PROP_SELECTED))
@@ -345,7 +343,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
             {
                 NoteEvent oldNe = (NoteEvent) evt.getOldValue();
                 // nv's model was changed, remove and readd
-                mapNoteViews.remove(oldNe);     
+                mapNoteViews.remove(oldNe);
                 mapNoteViews.put(nv.getModel(), nv);
                 revalidate();
                 repaint();
@@ -424,7 +422,6 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
     {
         repaint();
     }
-
 
 
     // =====================================================================================
@@ -574,12 +571,14 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
          * Get the beat position corresponding to the specified xPos in this panel's coordinates.
          *
          * @param yPos
-         * @return A beat position within getBeatRange().
+         * @return A beat position within getBeatRange(). -1 if xPos is out of the bounds of this panel.
          */
         public float getPositionInBeats(int xPos)
         {
-            int w = getWidth();
-            Preconditions.checkArgument(xPos >= 0 && xPos < w, "xPos=%s w=%s", xPos, w);
+            if (xPos < 0 && xPos >= getWidth())
+            {
+                return -1;
+            }
             float relPos = xPos / getOneBeatPixelSize();
             float absPos = editor.getBeatRange().from + relPos;
             return absPos;

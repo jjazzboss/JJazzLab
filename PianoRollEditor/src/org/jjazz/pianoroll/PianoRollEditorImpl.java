@@ -801,10 +801,14 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
                 unselectAll();
             } else
             {
+                ((JPanel) e.getSource()).scrollRectToVisible(new Rectangle(e.getX(), e.getY(), 1, 1));
+                
                 Rectangle r = new Rectangle(startDraggingPoint);
                 r.add(e.getPoint());
                 showSelectionRectangle(r);
             }
+
+
         }
 
         @Override
@@ -919,6 +923,7 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
                 activeTool.editorDragged(e);
             } else if (e.getSource() instanceof NoteView nv)
             {
+                ((JPanel) e.getSource()).scrollRectToVisible(new Rectangle(e.getX(), e.getY(), 1, 1));
                 activeTool.noteDragged(e, nv);
             }
         }

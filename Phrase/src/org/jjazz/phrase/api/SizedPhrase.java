@@ -24,8 +24,6 @@ package org.jjazz.phrase.api;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import java.text.ParseException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.StringJoiner;
 import java.util.logging.Logger;
 import org.jjazz.harmony.api.TimeSignature;
@@ -77,7 +75,7 @@ public class SizedPhrase extends Phrase
     @Override
     protected void checkAddNote(NoteEvent ne) throws IllegalArgumentException
     {
-        if (!beatRange.contains(ne.getBeatRange(), true))
+        if (!beatRange.contains(ne.getBeatRange(), false))
         {
             throw new IllegalArgumentException("ne=" + ne + " beatRange=" + beatRange);
         }
