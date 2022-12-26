@@ -310,7 +310,7 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
     @Override
     public boolean isSnapEnabled()
     {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        return true;
     }
 
     @Override

@@ -27,8 +27,6 @@ import java.awt.Point;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
-import java.text.MessageFormat;
-import java.util.ResourceBundle;
 import java.util.logging.Logger;
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
@@ -49,8 +47,9 @@ import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.util.api.ResUtil;
 
 /**
- * Drag n Drop Transfer handler for ItemRenderers within a single ChordLeadSheet. Drag n Drop between different songs is not
- * supported.
+ * Drag n Drop Transfer handler for ItemRenderers within a single ChordLeadSheet.
+ * <p>
+ * Drag n Drop between different songs is not supported.
  */
 public class CL_EditorTransferHandler extends TransferHandler
 {

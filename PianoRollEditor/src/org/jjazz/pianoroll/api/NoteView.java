@@ -72,6 +72,8 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
     private String noteAsString;
     private boolean selected;
     private boolean muted;
+
+
     private PianoRollEditorSettings settings;
     private static final Logger LOGGER = Logger.getLogger(NoteView.class.getSimpleName());
 
@@ -126,6 +128,7 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
         return selected;
     }
 
+
     public boolean isMuted()
     {
         return muted;
@@ -137,6 +140,7 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
         updateGraphics(noteEvent);
         repaint();
     }
+
 
     @Override
     public void paintComponent(Graphics g)
@@ -158,6 +162,7 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
             g2.setFont(FONT);
             g2.drawString(noteAsString, xStr, yStr);
         }
+        
         g2.dispose();
     }
 
@@ -277,7 +282,7 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
      */
     private Color getBorderColor(Color bgColor)
     {
-        return HSLColor.changeLuminance(bgColor, -12);       // Darker
+        return  HSLColor.changeLuminance(bgColor, -12);       // Darker
     }
 
 

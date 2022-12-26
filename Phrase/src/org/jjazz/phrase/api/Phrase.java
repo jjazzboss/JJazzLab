@@ -47,14 +47,18 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.event.UndoableEditEvent;
+import javax.swing.event.UndoableEditListener;
+import javax.swing.undo.UndoableEdit;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.MidiUtilities;
+import org.jjazz.undomanager.api.SimpleEdit;
 import org.jjazz.util.api.FloatRange;
 
 /**
  * A collection of NoteEvents that are kept sorted by start position.
  * <p>
- * Fire change events when modified, see the PROP_* values.
+ * Fire change events when modified, see the PROP_* values. Fire undoable events.
  * <p>
  */
 public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, NavigableSet<NoteEvent>, Serializable
@@ -85,6 +89,10 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
 
     private final int channel;
     private final TreeSet<NoteEvent> noteEvents = new TreeSet<>();
+    /**
+     * The listeners for undoable edits in this LeadSheet.
+     */
+    protected transient List<UndoableEditListener> undoListeners = new ArrayList<>();
     private final PropertyChangeSupport pcs = new java.beans.PropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(Phrase.class.getSimpleName());
 
@@ -111,6 +119,11 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
      */
     public void replace(NoteEvent oldNe, NoteEvent newNe)
     {
+        if (oldNe == newNe)
+        {
+            return;
+        }
+
         if (noteEvents.remove(oldNe))
         {
             checkAddNote(newNe);
@@ -118,7 +131,39 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
             {
                 throw new IllegalArgumentException("newNe=" + newNe + " already belongs to this phrase=" + this);
             }
+
+
+            // Create the undoable event
+            UndoableEdit edit = new SimpleEdit("Replace note " + oldNe + " by " + newNe)
+            {
+                @Override
+                public void undoBody()
+                {
+                    LOGGER.log(Level.FINER, "Replace.undoBody() oldNe={0} newNe={1}", new Object[]
+                    {
+                        newNe, oldNe
+                    });   //NOI18N
+                    noteEvents.remove(newNe);
+                    noteEvents.add(oldNe);
+                    pcs.firePropertyChange(PROP_NOTE_REPLACED, newNe, oldNe);
+                }
+
+                @Override
+                public void redoBody()
+                {
+                    LOGGER.log(Level.FINER, "Replace.redoBody() oldNe={0} newNe={1}", new Object[]
+                    {
+                        oldNe, newNe
+                    });   //NOI18N
+                    noteEvents.remove(oldNe);
+                    noteEvents.add(newNe);
+                    pcs.firePropertyChange(PROP_NOTE_REPLACED, oldNe, newNe);
+                }
+            };
+
+            fireUndoableEditHappened(edit);
             pcs.firePropertyChange(PROP_NOTE_REPLACED, oldNe, newNe);
+
         } else
         {
             throw new IllegalArgumentException("oldNe=" + oldNe + " does not belong to this phrase=" + this);
@@ -130,12 +175,17 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
      * <p>
      * Same as removing the old one + adding copy at new position , except it only fires a PROP_NOTE_MOVED change event.
      *
-     * @param ne     Must belong to this phrase
+     * @param ne Must belong to this phrase
      * @param newPos
-     * @return The new NoteEvent at newPos
+     * @return The new NoteEvent at newPos. Return ne if position unchanged.
      */
     public NoteEvent move(NoteEvent ne, float newPos)
     {
+        if (ne.getPositionInBeats() == newPos)
+        {
+            return ne;
+        }
+
         NoteEvent newNe = ne.getCopyPos(newPos);
 
         if (noteEvents.remove(ne))
@@ -145,12 +195,42 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
             {
                 throw new IllegalArgumentException("newNe=" + newNe + " already belongs to this phrase=" + this);
             }
+
+            // Create the undoable event
+            UndoableEdit edit = new SimpleEdit("Move note " + ne + " to " + newNe)
+            {
+                @Override
+                public void undoBody()
+                {
+                    LOGGER.log(Level.FINER, "Move.undoBody() oldNe={0} ne={1}", new Object[]
+                    {
+                        newNe, ne
+                    });   //NOI18N
+                    noteEvents.remove(newNe);
+                    noteEvents.add(ne);
+                    pcs.firePropertyChange(PROP_NOTE_MOVED, newNe, ne);
+                }
+
+                @Override
+                public void redoBody()
+                {
+                    LOGGER.log(Level.FINER, "Move.redoBody() oldNe={0} newNe={1}", new Object[]
+                    {
+                        ne, newNe
+                    });   //NOI18N
+                    noteEvents.remove(ne);
+                    noteEvents.add(newNe);
+                    pcs.firePropertyChange(PROP_NOTE_MOVED, ne, newNe);
+                }
+            };
+
+            fireUndoableEditHappened(edit);
             pcs.firePropertyChange(PROP_NOTE_MOVED, ne, newNe);
         } else
         {
             throw new IllegalArgumentException("ne=" + ne + " does not belong to this phrase=" + this);
         }
-        
+
         return newNe;
     }
 
@@ -325,7 +405,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
      *
      *
      * @param tester Process the NoteEvent which satisfy this tester.
-     * @param mapper Transform each NoteEvent. Mapper does not have to copy the client properties, it's done by the method.
+     * @param mapper Transform each NoteEvent.
      */
     public void processNotes(Predicate<NoteEvent> tester, Function<NoteEvent, NoteEvent> mapper)
     {
@@ -334,14 +414,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
             if (tester.test(ne))
             {
                 NoteEvent newNe = mapper.apply(ne);
-                if (newNe != ne)
-                {
-                    newNe.setClientProperties(ne);
-                    noteEvents.remove(ne);
-                    checkAddNote(newNe);
-                    noteEvents.add(newNe);
-                    pcs.firePropertyChange(PROP_NOTE_REPLACED, ne, newNe);
-                }
+                replace(ne, newNe);
             }
         }
     }
@@ -461,10 +534,33 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
     public boolean add(NoteEvent ne)
     {
         checkAddNote(ne);
+
         var res = noteEvents.add(ne);
         if (res)
         {
+            // Create the undoable event
+            UndoableEdit edit = new SimpleEdit("Add note " + ne)
+            {
+                @Override
+                public void undoBody()
+                {
+                    LOGGER.log(Level.FINER, "add.undoBody() ne={0}", ne);   //NOI18N
+                    noteEvents.remove(ne);
+                    pcs.firePropertyChange(PROP_NOTE_REMOVED, null, Arrays.asList(ne));
+                }
+
+                @Override
+                public void redoBody()
+                {
+                    LOGGER.log(Level.FINER, "add.redoBody() ne={0}", ne);   //NOI18N
+                    noteEvents.add(ne);
+                    pcs.firePropertyChange(PROP_NOTE_ADDED, null, Arrays.asList(ne));
+                }
+            };
+
+            fireUndoableEditHappened(edit);
             pcs.firePropertyChange(PROP_NOTE_ADDED, null, Arrays.asList(ne));
+
         } else
         {
             LOGGER.log(Level.WARNING, "add() ne={0} already present. Phrase={1}, ignoring", new Object[]
@@ -486,6 +582,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
     public boolean addAll(java.util.Collection<? extends NoteEvent> collection)
     {
         boolean res = false;
+
         List<NoteEvent> addedList = new ArrayList<>();
         for (var ne : collection)
         {
@@ -496,10 +593,33 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
                 addedList.add(ne);
             }
         }
-        if (!addedList.isEmpty())
+
+        if (res)
         {
+            // Create the undoable event
+            UndoableEdit edit = new SimpleEdit("Add notes " + addedList)
+            {
+                @Override
+                public void undoBody()
+                {
+                    LOGGER.log(Level.FINER, "add.undoBody() addedList={0}", addedList);   //NOI18N
+                    noteEvents.removeAll(addedList);
+                    pcs.firePropertyChange(PROP_NOTE_REMOVED, null, addedList);
+                }
+
+                @Override
+                public void redoBody()
+                {
+                    LOGGER.log(Level.FINER, "add.redoBody() addedList={0}", addedList);   //NOI18N
+                    noteEvents.addAll(addedList);
+                    pcs.firePropertyChange(PROP_NOTE_ADDED, null, addedList);
+                }
+            };
+
+            fireUndoableEditHappened(edit);
             pcs.firePropertyChange(PROP_NOTE_ADDED, null, addedList);
         }
+
         return res;
     }
 
@@ -509,6 +629,29 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
     {
         if (o instanceof NoteEvent ne && noteEvents.remove(ne))
         {
+
+            // Create the undoable event
+            UndoableEdit edit = new SimpleEdit("Remove note " + ne)
+            {
+                @Override
+                public void undoBody()
+                {
+                    LOGGER.log(Level.FINER, "remove.undoBody() ne={0}", ne);   //NOI18N
+                    noteEvents.remove(ne);
+                    pcs.firePropertyChange(PROP_NOTE_ADDED, null, Arrays.asList(ne));
+                }
+
+                @Override
+                public void redoBody()
+                {
+                    LOGGER.log(Level.FINER, "remove.redoBody() ne={0}", ne);   //NOI18N
+                    noteEvents.add(ne);
+                    pcs.firePropertyChange(PROP_NOTE_REMOVED, null, Arrays.asList(ne));
+                }
+            };
+
+            fireUndoableEditHappened(edit);
+
             pcs.firePropertyChange(PROP_NOTE_REMOVED, null, Arrays.asList(ne));
             return true;
         }
@@ -518,12 +661,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
     @Override
     public void clear()
     {
-        var save = getNotes();
-        noteEvents.clear();
-        if (!save.isEmpty())
-        {
-            pcs.firePropertyChange(PROP_NOTE_REMOVED, null, save);
-        }
+        removeAll(noteEvents);
     }
 
     @Override
@@ -539,10 +677,34 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
                 removedList.add(ne);
             }
         }
-        if (!removedList.isEmpty())
+
+
+        if (res)
         {
+            // Create the undoable event
+            UndoableEdit edit = new SimpleEdit("Remove notes " + removedList)
+            {
+                @Override
+                public void undoBody()
+                {
+                    LOGGER.log(Level.FINER, "add.undoBody() removedList={0}", removedList);   //NOI18N
+                    noteEvents.addAll(removedList);
+                    pcs.firePropertyChange(PROP_NOTE_ADDED, null, removedList);
+                }
+
+                @Override
+                public void redoBody()
+                {
+                    LOGGER.log(Level.FINER, "add.redoBody() removedList={0}", removedList);   //NOI18N
+                    noteEvents.removeAll(removedList);
+                    pcs.firePropertyChange(PROP_NOTE_REMOVED, null, removedList);
+                }
+            };
+
+            fireUndoableEditHappened(edit);
             pcs.firePropertyChange(PROP_NOTE_REMOVED, null, removedList);
         }
+
         return res;
     }
 
@@ -593,25 +755,13 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
     @Override
     public boolean retainAll(Collection<?> c)
     {
-        boolean res = false;
-        var removed = new ArrayList<NoteEvent>();
-        for (var ne : noteEvents)
-        {
-            if (!c.contains(ne))
-            {
-                res = true;
-                noteEvents.remove(ne);
-                removed.add(ne);
-            }
-        }
-        if (!removed.isEmpty())
-        {
-            pcs.firePropertyChange(PROP_NOTE_REMOVED, null, removed);
-        }
-        return res;
+        var toBeRemoved = noteEvents.stream()
+                .filter(ne -> !c.contains(ne))
+                .toList();
+        return removeAll(toBeRemoved);
     }
-    
-     /**
+
+    /**
      * Shift all events.
      * <p>
      *
@@ -630,7 +780,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
         // Select head or tail processing to facilitate preservation of position order
         if (shiftInBeats < 0)
         {
-           for(var ne: this)
+            for (var ne : this)
             {
                 float newPosInBeats = ne.getPositionInBeats() + shiftInBeats;
                 if (newPosInBeats < 0)
@@ -649,8 +799,8 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
                 toBeMoved.put(ne, newPosInBeats);
             }
         }
-        
-        
+
+
         toBeMoved.keySet().forEach(ne -> move(ne, toBeMoved.get(ne)));
 
     }
@@ -917,6 +1067,38 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
     {
         pcs.removePropertyChangeListener(l);
     }
+
+    private void fireUndoableEditHappened(UndoableEdit edit)
+    {
+        if (edit == null)
+        {
+            throw new IllegalArgumentException("edit=" + edit);   //NOI18N
+        }
+        UndoableEditEvent event = new UndoableEditEvent(this, edit);
+        for (UndoableEditListener l : undoListeners.toArray(UndoableEditListener[]::new))
+        {
+            l.undoableEditHappened(event);
+        }
+    }
+
+    public void addUndoableEditListener(UndoableEditListener l)
+    {
+        if (l == null)
+        {
+            throw new NullPointerException("l=" + l);   //NOI18N
+        }
+        undoListeners.remove(l);
+        undoListeners.add(l);
+    }
+
+    public void removeUndoableEditListener(UndoableEditListener l)
+    {
+        if (l == null)
+        {
+            throw new NullPointerException("l=" + l);   //NOI18N
+        }
+        undoListeners.remove(l);
+    }
     // --------------------------------------------------------------------- 
     // Private methods
     // ---------------------------------------------------------------------
@@ -951,9 +1133,35 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
             public void remove()
             {
                 it.remove();
+
+
                 if (lastNext != null)
                 {
-                    pcs.firePropertyChange(PROP_NOTE_REMOVED, null, lastNext);
+                    NoteEvent ne = lastNext;
+
+                    // Create the undoable event
+                    UndoableEdit edit = new SimpleEdit("IteratorRemove note " + ne)
+                    {
+                        @Override
+                        public void undoBody()
+                        {
+                            LOGGER.log(Level.FINER, "IteratorRemove.undoBody() ne={0}", ne);   //NOI18N
+                            noteEvents.remove(ne);
+                            pcs.firePropertyChange(PROP_NOTE_ADDED, null, Arrays.asList(ne));
+                        }
+
+                        @Override
+                        public void redoBody()
+                        {
+                            LOGGER.log(Level.FINER, "IteratorRemove.redoBody() ne={0}", ne);   //NOI18N
+                            noteEvents.add(ne);
+                            pcs.firePropertyChange(PROP_NOTE_REMOVED, null, Arrays.asList(ne));
+                        }
+                    };
+
+                    fireUndoableEditHappened(edit);
+
+                    pcs.firePropertyChange(PROP_NOTE_REMOVED, null, Arrays.asList(ne));
                 }
             }
         };
