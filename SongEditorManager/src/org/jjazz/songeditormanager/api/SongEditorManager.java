@@ -132,7 +132,7 @@ public class SongEditorManager implements PropertyChangeListener
      *
      * @param song
      * @param makeActive If true try to make the song musically active, see ActiveSongManager.
-     * @param savable    If true, song will appear as modified/savable (save button enabled).
+     * @param savable If true, song will appear as modified/savable (save button enabled).
      */
     public void showSong(final Song song, boolean makeActive, boolean savable)
     {
@@ -155,9 +155,9 @@ public class SongEditorManager implements PropertyChangeListener
         {
             // Create the undo managers
             JJazzUndoManager undoManager = new JJazzUndoManager();
-            JJazzUndoManagerFinder.getDefault().put(undoManager, song);
-            JJazzUndoManagerFinder.getDefault().put(undoManager, song.getChordLeadSheet());
-            JJazzUndoManagerFinder.getDefault().put(undoManager, song.getSongStructure());
+            JJazzUndoManagerFinder.getDefault().put(song, undoManager);
+            JJazzUndoManagerFinder.getDefault().put(song.getChordLeadSheet(), undoManager);
+            JJazzUndoManagerFinder.getDefault().put(song.getSongStructure(), undoManager);
 
 
             // Connect our undoManager to the song (e.g. add/removed UserPhrase)
@@ -250,7 +250,7 @@ public class SongEditorManager implements PropertyChangeListener
      * @param f
      * @param makeActive
      * @param updateLastSongDirectory If true and the file is not already shown, update the LastSongDirectory in
-     *                                FileDirectoryManager.
+     * FileDirectoryManager.
      * @return The created song from file f
      * @throws org.jjazz.song.api.SongCreationException
      */
@@ -286,7 +286,6 @@ public class SongEditorManager implements PropertyChangeListener
 
         // File is NOT opened yet
 
-        
         // Read song from file
         SongFactory sf = SongFactory.getInstance();
         Song song = sf.createFromFile(f);       // Possible SongCreationException here

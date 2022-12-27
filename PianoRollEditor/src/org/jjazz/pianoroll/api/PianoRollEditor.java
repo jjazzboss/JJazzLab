@@ -30,6 +30,7 @@ import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.pianoroll.PianoRollEditorImpl;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
 import org.jjazz.quantizer.api.Quantization;
+import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.openide.awt.UndoRedo;
 import org.openide.util.Lookup;
 
@@ -66,7 +67,7 @@ public abstract class PianoRollEditor extends JPanel implements Lookup.Provider
     /**
      * @return The UndoManager used but this editor.
      */
-    abstract public UndoRedo getUndoManager();
+    abstract public JJazzUndoManager getUndoManager();
 
     abstract public PianoRollEditorSettings getSettings();
 

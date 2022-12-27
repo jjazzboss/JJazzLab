@@ -58,10 +58,15 @@ public class JJazzUndoManagerFinder
      * @param um
      * @param key
      */
-    public void put(JJazzUndoManager um, Object key)
+    public void put(Object key, JJazzUndoManager um)
     {
         assert um != null && key != null;   //NOI18N
         map.putValue(key, um);
+    }
+    
+    public void remove(Object key)
+    {
+        map.remove(key);
     }
 
     /**

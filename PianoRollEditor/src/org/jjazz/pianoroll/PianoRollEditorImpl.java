@@ -59,6 +59,7 @@ import org.jjazz.ui.keyboardcomponent.api.KeyboardComponent;
 import org.jjazz.ui.keyboardcomponent.api.KeyboardRange;
 import org.jjazz.ui.utilities.api.Zoomable;
 import org.jjazz.undomanager.api.JJazzUndoManager;
+import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.util.api.FloatRange;
 import org.jjazz.util.api.IntRange;
 import org.openide.awt.UndoRedo;
@@ -128,7 +129,11 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
 
         // Be notified of changes, note added, moved, removed, set
         spModel.addPropertyChangeListener(this);
+        
 
+        undoManager = new JJazzUndoManager();
+        spModel.addUndoableEditListener(undoManager);
+        
 
         createUI();
 
@@ -225,7 +230,7 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
     }
 
     @Override
-    public UndoRedo getUndoManager()
+    public JJazzUndoManager getUndoManager()
     {
         return undoManager;
     }
@@ -241,6 +246,8 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
     {
         rulerPanel.cleanup();
         notesPanel.cleanup();
+        spModel.removeUndoableEditListener(undoManager);
+        spModel.removePropertyChangeListener(this);
     }
 
     @Override

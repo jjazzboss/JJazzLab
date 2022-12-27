@@ -32,6 +32,7 @@ import org.jjazz.util.api.FloatRange;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
+import org.openide.awt.UndoRedo;
 import org.openide.util.Lookup;
 import org.openide.windows.TopComponent;
 import org.openide.util.NbBundle.Messages;
@@ -78,7 +79,7 @@ public final class PhraseEditorTopComponent extends TopComponent
 
         int nbBeats = 16;
         int nbNotes = 3;
-        SizedPhrase sp = new SizedPhrase(0, new FloatRange(0, 4), TimeSignature.FOUR_FOUR);        
+        SizedPhrase sp = new SizedPhrase(0, new FloatRange(0, 4), TimeSignature.FOUR_FOUR);
 //        for (int i = 0; i < nbNotes; i++)
 //        {
 //            int pitch = 40 + ((int) (Math.random() * 60) - 30);
@@ -93,11 +94,17 @@ public final class PhraseEditorTopComponent extends TopComponent
 //        }   
 //        SizedPhrase sp = new SizedPhrase(p.getChannel(), new FloatRange(0, 20 +nbBeats), TimeSignature.FOUR_FOUR);
         sp.add(new NoteEvent(64, 1, 64, 1.6f));
-        sp.add(new NoteEvent(64, 1, 64, 1.6f));
+//        sp.add(new NoteEvent(64, 1, 64, 1.6f));
         sp.add(new NoteEvent(67, 1, 64, 1.6f));
         editor = new PianoRollEditorImpl(0, sp, null, PianoRollEditorSettings.getDefault());
         add(editor);
 
+    }
+
+    @Override
+    public UndoRedo getUndoRedo()
+    {
+        return editor.getUndoManager();
     }
 
     @Override
