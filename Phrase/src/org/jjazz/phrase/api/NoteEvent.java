@@ -31,6 +31,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Logger;
 import javax.sound.midi.InvalidMidiDataException;
@@ -44,7 +45,8 @@ import org.openide.util.Exceptions;
 /**
  * A Note with a position and optional client properties.
  * <p>
- * This is an immutable class except for the client properties. Two different NoteEvent instances can not be equal.
+ * This is an immutable class except for the client properties. Two different NoteEvent instances can not be equal. If you need
+ * NoteEvent map keys to be considered equal when they share the same attributes, use the AsNoteKey class.
  */
 public class NoteEvent extends Note implements Cloneable, Comparable<Note>
 {
@@ -300,6 +302,7 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
         }
     }
 
+
     /**
      * Convert a note into 2 MidiEvents (NoteON and NoteOFF).
      *
@@ -439,19 +442,6 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
     }
 
     /**
-     * Compare using Note.compareTo().
-     * <p>
-     *
-     * @param n
-     * @return
-     * @see Note#compareTo(org.jjazz.harmony.api.Note)
-     */
-    public int compareToAsNote​(Note n)
-    {
-        return super.compareTo(n);
-    }
-
-    /**
      * Compare using only position.
      * <p>
      *
@@ -462,6 +452,26 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
     {
         int res = Float.compare(position, n.position);
         return res;
+    }
+
+    /**
+     * Get a new Note instance built from this object's pitch, duration, velocity and alteration.
+     *
+     * @return
+     */
+    public Note toNote()
+    {
+        return new Note(getPitch(), getDurationInBeats(), getVelocity(), getAlterationDisplay());
+    }
+
+    /**
+     * Get the "as Note" key for this instance.
+     *
+     * @return
+     */
+    public AsNoteKey getAsNoteKey()
+    {
+        return new AsNoteKey(this);
     }
 
     /**
@@ -486,6 +496,7 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
     {
         return System.identityHashCode(this);
     }
+
 
     /**
      * Also clone the client properties.
@@ -570,4 +581,52 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
         return ne;
     }
 
+
+    /**
+     * A NoteEvent wrapper to be used as hash//map keys when 2 different NoteEvent instances need to be considered as equal when
+     * their attributes are equal (except client properties).
+     */
+    static public class AsNoteKey
+    {
+
+        private final NoteEvent noteEvent;
+
+        public AsNoteKey(NoteEvent noteEvent)
+        {
+            this.noteEvent = noteEvent;
+        }
+
+        public NoteEvent getNoteEvent()
+        {
+            return noteEvent;
+        }
+
+
+        @Override
+        public int hashCode()
+        {
+            int hash = 7;
+            hash = 67 * hash + noteEvent.getPitch();
+            hash = 67 * hash + Float.floatToIntBits(noteEvent.getDurationInBeats());
+            hash = 67 * hash + noteEvent.getVelocity();
+            hash = 67 * hash + Float.floatToIntBits(noteEvent.getPositionInBeats());
+            return hash;
+        }
+
+        @Override
+        public boolean equals(Object obj)
+        {
+            boolean res = false;
+            if (obj instanceof AsNoteKey nk)
+            {
+                res = Float.floatToIntBits(noteEvent.getPositionInBeats()) == Float.floatToIntBits(nk.noteEvent.getPositionInBeats())
+                        && noteEvent.getPitch() == nk.noteEvent.getPitch()
+                        && noteEvent.getVelocity() == nk.noteEvent.getVelocity()
+                        && Float.floatToIntBits(noteEvent.getDurationInBeats()) == Float.floatToIntBits(nk.noteEvent.getDurationInBeats());
+            }
+            return res;
+        }
+
+
+    }
 }

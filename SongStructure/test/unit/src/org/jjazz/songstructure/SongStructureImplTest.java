@@ -79,7 +79,7 @@ public class SongStructureImplTest
             
             sgs = new SongStructureImpl();
             sgs.addUndoableEditListener(undoManager);            
-            JJazzUndoManagerFinder.getDefault().put(undoManager, sgs);
+            JJazzUndoManagerFinder.getDefault().put(sgs, undoManager);
             
             
             r44_1 = rdb.getRhythmInstance(rdb.getRhythms().get(0));

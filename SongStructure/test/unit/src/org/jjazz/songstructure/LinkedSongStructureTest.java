@@ -110,7 +110,7 @@ public class LinkedSongStructureTest
             newSection3 = new CLI_SectionImpl("NewSECTION3", TimeSignature.FIVE_FOUR, 7);
 
             cls1.addUndoableEditListener(undoManager);
-            JJazzUndoManagerFinder.getDefault().put(undoManager, cls1);
+            JJazzUndoManagerFinder.getDefault().put(cls1, undoManager);
 
             SongStructureFactory sgsf = SongStructureFactory.getDefault();
 
@@ -139,7 +139,7 @@ public class LinkedSongStructureTest
         }
 
         sgs.addUndoableEditListener(undoManager);
-        JJazzUndoManagerFinder.getDefault().put(undoManager, sgs);
+        JJazzUndoManagerFinder.getDefault().put(sgs, undoManager);
 
         System.out.println("\n ==== SETUP cls1=" + cls1.toDumpString());
         System.out.println(" ==== SETUP   sgs Before=" + sgs);
