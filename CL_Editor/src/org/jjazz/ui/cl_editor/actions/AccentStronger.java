@@ -68,7 +68,7 @@ public final class AccentStronger extends AbstractAction implements ContextAware
     private final Lookup context;
     private final String undoText = ResUtil.getString(getClass(), "CTL_AccentStronger");
     private ChordLeadSheet currentCls;
-    private JCheckBoxMenuItem checkBox;
+    private JCheckBoxMenuItem cbMenuItem;
     private static final Logger LOGGER = Logger.getLogger(AccentStronger.class.getSimpleName());
 
     public AccentStronger()
@@ -130,14 +130,13 @@ public final class AccentStronger extends AbstractAction implements ContextAware
         }
 
 
-        boolean b = false;
-        if (selection.isItemSelected())
-        {
-            b = selection.getSelectedItems().stream()
-                    .filter(item -> item instanceof CLI_ChordSymbol)
-                    .anyMatch(item -> ((CLI_ChordSymbol) item).getData().getRenderingInfo().hasOneFeature(Feature.ACCENT, Feature.ACCENT_STRONGER));
-        }
+        boolean b = selection.getSelectedItems().stream()
+                .filter(item -> item instanceof CLI_ChordSymbol)
+                .map(item -> (CLI_ChordSymbol) item)
+                .anyMatch(cliCs -> cliCs.getData().getRenderingInfo().hasOneFeature(Feature.ACCENT, Feature.ACCENT_STRONGER));
         setEnabled(b);
+        
+        updateMenuItem();
     }
 
     @Override
@@ -158,22 +157,17 @@ public final class AccentStronger extends AbstractAction implements ContextAware
     @Override
     public JMenuItem getPopupPresenter()
     {
-        if (checkBox == null)
+        if (cbMenuItem == null)
         {
-            checkBox = new JCheckBoxMenuItem(ResUtil.getString(getClass(), "CTL_AccentStronger"));
-            checkBox.setAccelerator(KeyStroke.getKeyStroke('S'));
-            checkBox.addItemListener(evt -> setAccent(evt.getStateChange() == ItemEvent.SELECTED));
-            checkBox.putClientProperty("CheckBoxMenuItem.doNotCloseOnMouseClick", true);
+            cbMenuItem = new JCheckBoxMenuItem(ResUtil.getString(getClass(), "CTL_AccentStronger"));
+            cbMenuItem.setAccelerator(KeyStroke.getKeyStroke('S'));
+            cbMenuItem.addActionListener(evt -> setAccent(cbMenuItem.isSelected()));
+            cbMenuItem.putClientProperty("CheckBoxMenuItem.doNotCloseOnMouseClick", true);
         }
 
-        // Update the checkbox: select it if only all chord symbols have a Stronger Accent
-        CL_SelectionUtilities selection = cap.getSelection();
-        boolean allStronger = selection.getSelectedItems().stream()
-                .filter(item -> item instanceof CLI_ChordSymbol)
-                .allMatch(item -> ((CLI_ChordSymbol) item).getData().getRenderingInfo().hasOneFeature(Feature.ACCENT_STRONGER));
-        checkBox.setSelected(allStronger);
+        updateMenuItem();
 
-        return checkBox;
+        return cbMenuItem;
     }
 
     // ============================================================================================= 
@@ -199,7 +193,6 @@ public final class AccentStronger extends AbstractAction implements ContextAware
     {
         CL_SelectionUtilities selection = cap.getSelection();
         ChordLeadSheet cls = selection.getChordLeadSheet();
-        assert cls != null : "selection=" + selection;   //NOI18N
 
         JJazzUndoManagerFinder.getDefault().get(cls).startCEdit(undoText);
 
@@ -251,4 +244,21 @@ public final class AccentStronger extends AbstractAction implements ContextAware
         return newCri;
     }
 
+    private void updateMenuItem()
+    {
+        if (cbMenuItem == null)
+        {
+            return;
+        }
+
+        // Update the checkbox: select it if only all chord symbols have a Stronger Accent
+        CL_SelectionUtilities selection = cap.getSelection();
+        boolean allStronger = selection.getSelectedItems().stream()
+                .filter(item -> item instanceof CLI_ChordSymbol)
+                .map(item -> (CLI_ChordSymbol)item)
+                .allMatch(cliCs -> cliCs.getData().getRenderingInfo().hasOneFeature(Feature.ACCENT_STRONGER));
+        cbMenuItem.setSelected(allStronger);
+        
+        cbMenuItem.setEnabled(isEnabled());
+    }
 }

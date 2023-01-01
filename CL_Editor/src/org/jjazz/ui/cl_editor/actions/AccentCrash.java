@@ -67,7 +67,7 @@ public final class AccentCrash extends AbstractAction implements ContextAwareAct
 
     private CL_ContextActionSupport cap;
     private final Lookup context;
-    private MyMenuItem menuItem;
+    private MyMenuItem dynMenuItem;
     private ChordLeadSheet currentCls;
     private final String undoText = ResUtil.getString(getClass(), "CTL_AccentCrash");
 
@@ -130,14 +130,15 @@ public final class AccentCrash extends AbstractAction implements ContextAwareAct
         }
 
 
-        boolean b = false;
-        if (selection.isItemSelected())
-        {
-            b = selection.getSelectedItems().stream()
-                    .filter(item -> item instanceof CLI_ChordSymbol)
-                    .anyMatch(item -> ((CLI_ChordSymbol) item).getData().getRenderingInfo().hasOneFeature(Feature.ACCENT, Feature.ACCENT_STRONGER));
-        }
+        boolean b = selection.getSelectedItems().stream()
+                .filter(item -> item instanceof CLI_ChordSymbol)
+                .map(item -> (CLI_ChordSymbol) item)
+                .anyMatch(cliCs -> cliCs.getData().getRenderingInfo().hasOneFeature(Feature.ACCENT, Feature.ACCENT_STRONGER));
         setEnabled(b);
+        if (dynMenuItem != null)
+        {
+            dynMenuItem.update();
+        }
     }
 
     @Override
@@ -177,12 +178,12 @@ public final class AccentCrash extends AbstractAction implements ContextAwareAct
     @Override
     public JMenuItem getPopupPresenter()
     {
-        if (menuItem == null)
+        if (dynMenuItem == null)
         {
-            menuItem = new MyMenuItem();
+            dynMenuItem = new MyMenuItem();
         }
-        menuItem.update();
-        return menuItem;
+        dynMenuItem.update();
+        return dynMenuItem;
     }
 
     private ChordRenderingInfo next(ChordRenderingInfo cri)
@@ -219,18 +220,14 @@ public final class AccentCrash extends AbstractAction implements ContextAwareAct
 
         public MyMenuItem()
         {
-            cbm_crash = new JCheckBoxMenuItem(ResUtil.getString(getClass(), "CrashAlways", new Object[]
-            {
-            }));
+            cbm_crash = new JCheckBoxMenuItem(ResUtil.getString(getClass(), "CrashAlways"));
             cbm_crash.setAccelerator(KeyStroke.getKeyStroke('H'));
-            cbm_crash.addItemListener(evt -> setCrash(evt.getStateChange() == ItemEvent.SELECTED));
+            cbm_crash.addActionListener(evt -> setCrash(cbm_crash.isSelected()));
             cbm_crash.putClientProperty("CheckBoxMenuItem.doNotCloseOnMouseClick", true);
 
-            cbm_noCrash = new JCheckBoxMenuItem(ResUtil.getString(getClass(), "CrashNever", new Object[]
-            {
-            }));
+            cbm_noCrash = new JCheckBoxMenuItem(ResUtil.getString(getClass(), "CrashNever"));
             cbm_noCrash.setAccelerator(KeyStroke.getKeyStroke('H'));
-            cbm_noCrash.addItemListener(evt -> setNoCrash(evt.getStateChange() == ItemEvent.SELECTED));
+            cbm_noCrash.addActionListener(evt -> setNoCrash(cbm_noCrash.isSelected()));
             cbm_noCrash.putClientProperty("CheckBoxMenuItem.doNotCloseOnMouseClick", true);
 
             components[0] = cbm_noCrash;
@@ -246,12 +243,14 @@ public final class AccentCrash extends AbstractAction implements ContextAwareAct
                     .allMatch(item -> ((CLI_ChordSymbol) item).getData().getRenderingInfo().hasOneFeature(Feature.CRASH));
 
             cbm_crash.setSelected(crashAlways);
+            cbm_crash.setEnabled(isEnabled());
 
             boolean crashNever = selection.getSelectedItems().stream()
                     .filter(item -> item instanceof CLI_ChordSymbol)
                     .allMatch(item -> ((CLI_ChordSymbol) item).getData().getRenderingInfo().hasOneFeature(Feature.NO_CRASH));
 
             cbm_noCrash.setSelected(crashNever);
+            cbm_noCrash.setEnabled(isEnabled());
         }
 
         @Override

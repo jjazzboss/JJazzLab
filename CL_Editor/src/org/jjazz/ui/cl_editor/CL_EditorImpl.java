@@ -77,6 +77,7 @@ import org.openide.util.lookup.InstanceContent;
 import org.openide.util.lookup.ProxyLookup;
 import org.jjazz.leadsheet.chordleadsheet.api.ClsChangeListener;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
+import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.savablesong.api.SavableSong;
 import org.jjazz.savablesong.api.SaveAsCapableSong;
 import org.jjazz.song.api.Song;
@@ -259,17 +260,21 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         generalLookupContent.add(clsModel);
         generalLookupContent.add(songModel);
 
+
         if (songModel.needSave())
         {
             setSongModified();
         }
 
+
         // Add or remove barboxes at the end if required
         int newSizeInBars = computeNbBarBoxes(NB_EXTRA_LINES);
         setNbBarBoxes(newSizeInBars);  // This will update our songModel via getDisplayQuantizationValue() then Song.putClientProperty()
 
+
         // Used to zoom in / zoom out
         addMouseWheelListener(this);
+
 
     }
 
@@ -1373,7 +1378,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     /**
      * Insert a new BarBox at specified location.
      *
-     * @param bbIndex A value between [0, getNbBarBoxes()] (the latter will append the BarBox at the end).
+     * @param bbIndex       A value between [0, getNbBarBoxes()] (the latter will append the BarBox at the end).
      * @param modelBarIndex Use a negative value if BarBox does not represent a model's bar.
      * @param config
      * @return The created BarBox
@@ -1466,6 +1471,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         {
             registerBarRenderer(br);
         }
+
     }
 
     /**
@@ -1488,6 +1494,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     {
         br.addMouseListener(this);
         br.addMouseMotionListener(this);
+        br.setInheritsPopupMenu(true);
         for (ItemRenderer ir : br.getItemRenderers())
         {
             registerItemRenderer(ir);
@@ -1654,7 +1661,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
      * Save the quantization value associated to a section.
      *
      * @param sectionData
-     * @param q Can be null: this will remove the entry for the specified section.
+     * @param q           Can be null: this will remove the entry for the specified section.
      */
     private void storeSectionQValue(Section sectionData, Quantization q)
     {

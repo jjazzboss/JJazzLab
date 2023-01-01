@@ -155,7 +155,7 @@ public class BeatBasedLayoutManager implements LayoutManager
     {
         Quantizer qr = Quantizer.getInstance();
         qr.setQuantizationValue(this.displayQuantization);
-        Position newPos = qr.quantize(pos, ts, pos.getBar());
+        Position newPos = qr.getQuantized(pos, ts, pos.getBar());
         return newPos;
     }
 
