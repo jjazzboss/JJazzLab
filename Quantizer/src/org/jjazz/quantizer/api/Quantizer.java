@@ -26,6 +26,12 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
+import static org.jjazz.quantizer.api.Quantization.BEAT;
+import static org.jjazz.quantizer.api.Quantization.HALF_BAR;
+import static org.jjazz.quantizer.api.Quantization.HALF_BEAT;
+import static org.jjazz.quantizer.api.Quantization.OFF;
+import static org.jjazz.quantizer.api.Quantization.ONE_QUARTER_BEAT;
+import static org.jjazz.quantizer.api.Quantization.ONE_THIRD_BEAT;
 
 /**
  * Provide quantize related methods and properties.
@@ -54,28 +60,30 @@ public class Quantizer
     }
 
     /**
-     * Return a quantized position using the Quantizer's quantization value.
+     * Return the closest quantized position using the Quantizer's quantization value.
      *
-     * @param pos The original position.
-     * @param ts The TimeSignature for the original position.
+     * @param pos         The original position.
+     * @param ts          The TimeSignature for the original position.
      * @param maxBarIndex The quantized position can not exceed this maximum bar index.
      * @return
+     * @see #getQuantized(org.jjazz.quantizer.api.Quantization, org.jjazz.leadsheet.chordleadsheet.api.item.Position,
+     * org.jjazz.harmony.api.TimeSignature, int)
      */
-    public Position quantize(Position pos, TimeSignature ts, int maxBarIndex)
+    public Position getQuantized(Position pos, TimeSignature ts, int maxBarIndex)
     {
-        return quantize(qValue, pos, ts, maxBarIndex);
+        return Quantizer.getQuantized(qValue, pos, ts, maxBarIndex);
     }
 
     /**
-     * Return a quantized position using the specified quantization setting.
+     * Return the closest quantized position using the specified quantization setting.
      *
-     * @param q The quantization setting
-     * @param pos The original position.
-     * @param ts The TimeSignature for the original position.
+     * @param q           The quantization setting
+     * @param pos         The original position.
+     * @param ts          The TimeSignature for the original position.
      * @param maxBarIndex The quantized position can not exceed this maximum bar index.
      * @return
      */
-    static public Position quantize(Quantization q, Position pos, TimeSignature ts, int maxBarIndex)
+    static public Position getQuantized(Quantization q, Position pos, TimeSignature ts, int maxBarIndex)
     {
         if (q == null || !ts.checkBeat(pos.getBeat()) || pos.getBar() > maxBarIndex)
         {
@@ -111,7 +119,7 @@ public class Quantizer
      * @param beatPos
      * @return
      */
-    static public float quantize(Quantization q, float beatPos)
+    static public float getQuantized(Quantization q, float beatPos)
     {
         checkNotNull(q);
         checkArgument(beatPos >= 0, "q=%s beatPos=%s", q, beatPos);
@@ -120,13 +128,87 @@ public class Quantizer
         {
             case OFF:
             case HALF_BAR:
-                res = beatPos;
+                res = beatPos;      // We don't know the TimeSignature...
                 break;
             case BEAT:
             case HALF_BEAT:
             case ONE_THIRD_BEAT:
             case ONE_QUARTER_BEAT:
                 res = quantizeStandard(beatPos, q.getBeats());
+                break;
+            default:
+                throw new IllegalStateException("quantization=" + q);   //NOI18N
+        }
+
+        return res;
+    }
+
+    /**
+     * Get the next quantized position after beatPos.
+     * <p>
+     * If beatPos is already a quantized position, return, beatPos.
+     *
+     * @param q
+     * @param beatPos
+     * @return
+     */
+    static public float getQuantizedNext(Quantization q, float beatPos)
+    {
+        checkNotNull(q);
+        checkArgument(beatPos >= 0, "q=%s beatPos=%s", q, beatPos);
+        float res;
+        switch (q)
+        {
+            case OFF:
+            case HALF_BAR:
+                res = beatPos;      // We don't know the TimeSignature...
+                break;
+            case BEAT:
+            case HALF_BEAT:
+            case ONE_THIRD_BEAT:
+            case ONE_QUARTER_BEAT:
+                float beatInt = (float) Math.floor(beatPos);
+                float beatDecimal = beatPos - beatInt;
+                Float nextBeatDecimal = q.getBeatsAsTreeSet().ceiling(beatDecimal);
+                assert nextBeatDecimal != null : "beatPos=" + beatPos + " q=" + q;
+                res = beatInt + nextBeatDecimal;
+                break;
+            default:
+                throw new IllegalStateException("quantization=" + q);   //NOI18N
+        }
+
+        return res;
+    }
+
+    /**
+     * Get the previous quantized position before beatPos.
+     * <p>
+     * If beatPos is already a quantized position, return beatPos.
+     *
+     * @param q
+     * @param beatPos
+     * @return
+     */
+    static public float getQuantizedPrevious(Quantization q, float beatPos)
+    {
+        checkNotNull(q);
+        checkArgument(beatPos >= 0, "q=%s beatPos=%s", q, beatPos);
+        float res;
+        switch (q)
+        {
+            case OFF:
+            case HALF_BAR:
+                res = beatPos;      // We don't know the TimeSignature...
+                break;
+            case BEAT:
+            case HALF_BEAT:
+            case ONE_THIRD_BEAT:
+            case ONE_QUARTER_BEAT:
+                float beatInt = (float) Math.floor(beatPos);
+                float beatDecimal = beatPos - beatInt;
+                Float previousBeatDecimal = q.getBeatsAsTreeSet().floor(beatDecimal);
+                assert previousBeatDecimal != null : "beatPos=" + beatPos + " q=" + q;
+                res = beatInt + previousBeatDecimal;
                 break;
             default:
                 throw new IllegalStateException("quantization=" + q);   //NOI18N
@@ -165,7 +247,7 @@ public class Quantizer
         return q;
     }
 
- 
+
     // ====================================================================================
     // Private methods
     // ====================================================================================    

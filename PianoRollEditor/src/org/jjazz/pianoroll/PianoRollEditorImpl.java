@@ -26,6 +26,7 @@ import com.google.common.base.Preconditions;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Container;
+import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.InputEvent;
@@ -37,11 +38,16 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.BorderFactory;
 import javax.swing.JLayer;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.SwingUtilities;
@@ -53,16 +59,17 @@ import org.jjazz.pianoroll.api.EditTool;
 import org.jjazz.pianoroll.api.NoteView;
 import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.pianoroll.api.ZoomValue;
+import org.jjazz.pianoroll.edittools.EraserTool;
+import org.jjazz.pianoroll.edittools.PencilTool;
+import org.jjazz.pianoroll.edittools.SelectionTool;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
 import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.ui.keyboardcomponent.api.KeyboardComponent;
 import org.jjazz.ui.keyboardcomponent.api.KeyboardRange;
 import org.jjazz.ui.utilities.api.Zoomable;
 import org.jjazz.undomanager.api.JJazzUndoManager;
-import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.util.api.FloatRange;
 import org.jjazz.util.api.IntRange;
-import org.openide.awt.UndoRedo;
 import org.openide.util.Lookup;
 import org.openide.util.lookup.AbstractLookup;
 import org.openide.util.lookup.InstanceContent;
@@ -75,7 +82,7 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
 {
 
     private static final float MAX_WIDTH_FACTOR = 1.5f;
-
+    private final List<EditTool> editTools;
     private ToolbarPanel toolbarPanel;
     private JSplitPane splitPane;
     private VelocityPanel velocityPanel;
@@ -85,11 +92,13 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
     private JScrollPane scrollpane;
     private MouseDragLayerUI mouseDragLayerUI;
     private JLayer mouseDragLayer;
+    private JPopupMenu popupMenu;
 
     private ZoomValue zoomValue;
     private final SizedPhrase spModel;
     private final DrumKit.KeyMap keymap;
     private final PianoRollEditorSettings settings;
+    private Quantization quantization;
 
     /**
      * Our global lookup.
@@ -114,6 +123,8 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
     private final GenericMouseListener genericMouseListener;
     private boolean useHack = true;
     private static final Logger LOGGER = Logger.getLogger(PianoRollEditorImpl.class.getSimpleName());
+    private boolean snapEnabled;
+    private float playbackPointPosition;
 
     /**
      * Creates new form PianoRollEditorImpl
@@ -126,16 +137,35 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
         this.spModel = sp;
         this.keymap = kmap;
         this.settings = settings;
+        this.quantization = Quantization.ONE_QUARTER_BEAT;
+
 
         // Be notified of changes, note added, moved, removed, set
         spModel.addPropertyChangeListener(this);
-        
+
 
         undoManager = new JJazzUndoManager();
         spModel.addUndoableEditListener(undoManager);
-        
+
+
+        // Must be set before createUI()
+        editTools = Arrays.asList(new SelectionTool(this), new PencilTool(this), new EraserTool(this));
+        activeTool = editTools.get(0);
 
         createUI();
+
+
+        // Our popupmenu
+        popupMenu = new JPopupMenu();
+        var menuItem = new JMenuItem();
+        menuItem.setBorder(BorderFactory.createEmptyBorder());
+        EditToolBar editToolBar = new EditToolBar(this, editTools);
+        editToolBar.setClickListener(() -> popupMenu.setVisible(false));
+        menuItem.setPreferredSize(editToolBar.getPreferredSize());
+        menuItem.add(editToolBar);
+        popupMenu.add(menuItem);
+        notesPanel.setComponentPopupMenu(popupMenu);
+
 
         // NotesPanel mouse listeners
         genericMouseListener = new GenericMouseListener();
@@ -172,14 +202,12 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
         keyboard.setScaleFactor(yFactor, Math.min(MAX_WIDTH_FACTOR, yFactor));
 
 
-        activeTool = EditTool.getAvailableTools(this).get(0);
-
-
         // Add the notes
         for (NoteEvent ne : spModel)
         {
             addNote(ne);
         }
+
 
     }
 
@@ -299,25 +327,37 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
     @Override
     public void setQuantization(Quantization q)
     {
-        notesPanel.getXMapper().setQuantization(q);
+        Preconditions.checkArgument(EnumSet.of(Quantization.BEAT, Quantization.HALF_BEAT, Quantization.ONE_THIRD_BEAT, Quantization.ONE_QUARTER_BEAT).contains(q));
+        if (quantization.equals(q))
+        {
+            return;
+        }
+        var old = quantization;
+        quantization = q;
+        firePropertyChange(PROP_QUANTIZATION, old, quantization);
     }
 
     @Override
     public Quantization getQuantization()
     {
-        return notesPanel.getXMapper().getQuantization();
+        return quantization;
     }
 
     @Override
     public void setSnapEnabled(boolean b)
     {
-        // 
+        if (b == snapEnabled)
+        {
+            return;
+        }
+        snapEnabled = b;
+        firePropertyChange(PROP_SNAP_ENABLED, !b, b);
     }
 
     @Override
     public boolean isSnapEnabled()
     {
-        return true;
+        return snapEnabled;
     }
 
     @Override
@@ -334,7 +374,10 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
         {
             return;
         }
+        var old = activeTool;
         activeTool = tool;
+        notesPanel.setCursor(activeTool.getCURSOR());
+        firePropertyChange(PROP_ACTIVE_TOOL, old, activeTool);
     }
 
     @Override
@@ -345,9 +388,21 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
 
 
     @Override
-    public void showPlaybackPoint(boolean b, float pos)
+    public void showPlaybackPoint(float pos)
     {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        if (Float.floatToIntBits(pos) == Float.floatToIntBits(playbackPointPosition))
+        {
+            return;
+        }
+        float old = playbackPointPosition;
+        playbackPointPosition = pos;
+        firePropertyChange(PROP_PLAYBACK_POINT_POSITION, old, playbackPointPosition);
+    }
+
+    @Override
+    public float getPlaybackPointPosition()
+    {
+        return playbackPointPosition;
     }
 
     @Override
@@ -491,31 +546,29 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
         {
             switch (evt.getPropertyName())
             {
-                case Phrase.PROP_NOTE_ADDED:
+                case Phrase.PROP_NOTE_ADDED ->
                 {
-
                     List<NoteEvent> nes = (List<NoteEvent>) evt.getNewValue();
                     nes.forEach(ne -> addNote(ne));
                     notesPanel.revalidate();
-                    break;
                 }
-                case Phrase.PROP_NOTE_REMOVED:
+                case Phrase.PROP_NOTE_REMOVED ->
                 {
                     List<NoteEvent> nes = (List<NoteEvent>) evt.getNewValue();
                     nes.forEach(ne -> removeNote(ne));
                     notesPanel.revalidate();
                     notesPanel.repaint();
-                    break;
                 }
-                case Phrase.PROP_NOTE_MOVED:
-                case Phrase.PROP_NOTE_REPLACED:
+                case Phrase.PROP_NOTE_MOVED, Phrase.PROP_NOTE_REPLACED ->
+                {
                     NoteEvent newNe = (NoteEvent) evt.getNewValue();
                     NoteEvent oldNe = (NoteEvent) evt.getOldValue();
                     var nv = notesPanel.getNoteView(oldNe);
                     nv.setModel(newNe);
-                    break;
-                default:
-                    break;
+                }
+                default ->
+                {
+                }
             }
         }
     }
@@ -555,13 +608,17 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
     {
         nv.addMouseListener(editToolProxyMouseListener);
         nv.addMouseMotionListener(editToolProxyMouseListener);
+        nv.addMouseMotionListener(genericMouseListener);
         nv.addMouseWheelListener(editToolProxyMouseListener);
+        nv.setInheritsPopupMenu(true);
+
     }
 
     private void unregisterNoteView(NoteView nv)
     {
         nv.removeMouseListener(editToolProxyMouseListener);
-        nv.removeMouseListener(editToolProxyMouseListener);
+        nv.removeMouseMotionListener(editToolProxyMouseListener);
+        nv.removeMouseMotionListener(genericMouseListener);
         nv.removeMouseWheelListener(editToolProxyMouseListener);
     }
 
@@ -619,7 +676,7 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
 
 
         // Final layout
-        toolbarPanel = new ToolbarPanel(this);
+        toolbarPanel = new ToolbarPanel(this, editTools);
         setLayout(new BorderLayout());
         add(toolbarPanel, BorderLayout.NORTH);
         add(splitPane, BorderLayout.CENTER);
@@ -766,27 +823,7 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
         @Override
         public void mouseMoved(MouseEvent e)
         {
-            if (!notesPanel.getYMapper().isUptodate())
-            {
-                return;
-            }
-
-            int pitch = notesPanel.getYMapper().getPitch(e.getY());
-            if (pitch == lastHighlightedPitch)
-            {
-                // Nothing
-            } else if (pitch == -1)
-            {
-                keyboard.getKey(lastHighlightedPitch).release();
-            } else
-            {
-                if (lastHighlightedPitch != -1)
-                {
-                    keyboard.getKey(lastHighlightedPitch).release();
-                }
-                keyboard.getKey(pitch).setPressed(50, Color.LIGHT_GRAY);
-            }
-            lastHighlightedPitch = pitch;
+            showMarkOnKeyboard(e);
         }
 
         @Override
@@ -802,26 +839,30 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
         @Override
         public void mouseDragged(MouseEvent e)
         {
-            if (startDraggingPoint == null)
-            {
-                startDraggingPoint = e.getPoint();
-                unselectAll();
-            } else
-            {
-                ((JPanel) e.getSource()).scrollRectToVisible(new Rectangle(e.getX(), e.getY(), 1, 1));
-                
-                Rectangle r = new Rectangle(startDraggingPoint);
-                r.add(e.getPoint());
-                showSelectionRectangle(r);
-            }
+            showMarkOnKeyboard(e);
 
+            if (e.getSource() == notesPanel && activeTool.isEditMultipleNotesSupported())
+            {
+                if (startDraggingPoint == null)
+                {
+                    startDraggingPoint = e.getPoint();
+                    unselectAll();
+                } else
+                {
+                    ((JPanel) e.getSource()).scrollRectToVisible(new Rectangle(e.getX(), e.getY(), 1, 1));
+
+                    Rectangle r = new Rectangle(startDraggingPoint);
+                    r.add(e.getPoint());
+                    showSelectionRectangle(r);
+                }
+            }
 
         }
 
         @Override
         public void mouseReleased(MouseEvent e)
         {
-            if (startDraggingPoint != null)
+            if (startDraggingPoint != null && activeTool.isEditMultipleNotesSupported())
             {
                 Rectangle r = new Rectangle(startDraggingPoint);
                 r.add(e.getPoint());
@@ -864,6 +905,33 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
                 hFactor = Math.max(0, hFactor - STEP);
             }
             zoomable.setZoomXFactor(hFactor, false);
+        }
+
+
+        private void showMarkOnKeyboard(MouseEvent e)
+        {
+            if (!notesPanel.getYMapper().isUptodate())
+            {
+                return;
+            }
+
+            Point p = e.getSource() instanceof NoteView nv ? SwingUtilities.convertPoint(nv, e.getPoint(), notesPanel) : e.getPoint();
+            int pitch = notesPanel.getYMapper().getPitch(p.y);
+            if (pitch == lastHighlightedPitch)
+            {
+                // Nothing
+            } else if (pitch == -1)
+            {
+                keyboard.getKey(lastHighlightedPitch).release();
+            } else
+            {
+                if (lastHighlightedPitch != -1)
+                {
+                    keyboard.getKey(lastHighlightedPitch).release();
+                }
+                keyboard.getKey(pitch).setPressed(50, Color.LIGHT_GRAY);
+            }
+            lastHighlightedPitch = pitch;
         }
 
     }

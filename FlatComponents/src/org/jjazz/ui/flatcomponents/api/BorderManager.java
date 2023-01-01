@@ -34,21 +34,22 @@ import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
+import javax.swing.event.AncestorEvent;
+import javax.swing.event.AncestorListener;
 
 /**
- * Manage the border changes when a mouse is over registered (flat) components,
- * and when component is enabled/disabled.
+ * Manage the border changes when a mouse is over registered (flat) components, and when component is enabled/disabled.
  * <p>
- * This manager allows to disable the border change on mouseEntered for a
- * component if this is actually a mouse drag on another component.
+ * This manager allows to disable the border change on mouseEntered for a component if this is actually a mouse drag on another
+ * component.
  */
-public class BorderManager implements MouseListener, MouseMotionListener, PropertyChangeListener
+public class BorderManager implements MouseListener, MouseMotionListener, PropertyChangeListener, AncestorListener
 {
 
     public static final Border DEFAULT_BORDER_NOTHING = BorderFactory.createEmptyBorder(1, 1, 1, 1);
     public static final Border DEFAULT_BORDER_ENTERED = BorderFactory.createLineBorder(Color.GRAY, 1);
     public static final Border DEFAULT_BORDER_PRESSED = BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1);
-    
+
     private static BorderManager INSTANCE;
     private Border defaultBorderNothing;
     private Border defaultBorderEntered;
@@ -78,8 +79,7 @@ public class BorderManager implements MouseListener, MouseMotionListener, Proper
     }
 
     /**
-     * Register the component with no special handling for mouse pressed or
-     * mouse enter/exit, and can not be dragged.
+     * Register the component with no special handling for mouse pressed or mouse enter/exit, and can not be dragged.
      *
      * @param component
      * @see register(JComponent, boolean, boolean)
@@ -95,7 +95,7 @@ public class BorderManager implements MouseListener, MouseMotionListener, Proper
      * @param component
      * @param enablePressedBorder if true border changes while button is pressed
      * @param enableEnteredBorder if true border changes when mouse enters/exits
-     * @param enableDrag if true this component can be dragged
+     * @param enableDrag          if true this component can be dragged
      */
     public void register(JComponent component, boolean enablePressedBorder, boolean enableEnteredBorder, boolean enableDrag)
     {
@@ -108,6 +108,7 @@ public class BorderManager implements MouseListener, MouseMotionListener, Proper
         {
             component.addMouseListener(this);
             component.addPropertyChangeListener(this);
+            component.addAncestorListener(this);    // Detect if component is no more visible
             if (enableDrag)
             {
                 component.addMouseMotionListener(this);
@@ -134,12 +135,12 @@ public class BorderManager implements MouseListener, MouseMotionListener, Proper
         component.removeMouseListener(this);
         component.removeMouseMotionListener(this);
         component.removePropertyChangeListener(this);
+        component.removeAncestorListener(this);
         mapCompBorders.remove(component);
     }
 
     /**
-     * The border to be used for component c when not in pressed or entered
-     * state.
+     * The border to be used for component c when not in pressed or entered state.
      *
      * @param c
      * @return Can be null
@@ -247,8 +248,7 @@ public class BorderManager implements MouseListener, MouseMotionListener, Proper
     }
 
     /**
-     * The default border "nothing" to be used when no specific per-component
-     * border is set.
+     * The default border "nothing" to be used when no specific per-component border is set.
      *
      * @return the borderDefault
      */
@@ -266,8 +266,7 @@ public class BorderManager implements MouseListener, MouseMotionListener, Proper
     }
 
     /**
-     * The default border "pressed" to be used when no specific per-component
-     * border is set.
+     * The default border "pressed" to be used when no specific per-component border is set.
      *
      * @return the borderDefault
      */
@@ -285,8 +284,7 @@ public class BorderManager implements MouseListener, MouseMotionListener, Proper
     }
 
     /**
-     * The default border "entered" to be used when no specific per-component
-     * border is set.
+     * The default border "entered" to be used when no specific per-component border is set.
      *
      * @return the borderDefault
      */
@@ -304,6 +302,34 @@ public class BorderManager implements MouseListener, MouseMotionListener, Proper
                 .filter(c -> mapCompBorders.get(c).borderEntered == defaultBorderEntered)
                 .forEach(c -> setBorderPressed(c, b));
         this.defaultBorderEntered = b;
+    }
+
+    // ==========================================================================
+    // AncestorListener interface
+    // ==========================================================================
+    @Override
+    public void ancestorAdded(AncestorEvent event)
+    {
+        // Nothing
+    }
+
+    @Override
+    public void ancestorRemoved(AncestorEvent event)
+    {
+        // A registered component is no more visible (eg if shown in a JPopupMenu which was hidden), change its border
+        JComponent jc = event.getComponent();
+
+        if (!jc.isShowing())
+        {
+            var bc = mapCompBorders.get(jc);
+            jc.setBorder(bc.borderNothing);
+        }
+    }
+
+    @Override
+    public void ancestorMoved(AncestorEvent event)
+    {
+        // Nothing
     }
 
     // ==========================================================================
@@ -362,9 +388,8 @@ public class BorderManager implements MouseListener, MouseMotionListener, Proper
 
     /**
      *
-     * @param e Source component is always the original component for which
-     * mouse was initally pressed (event if release point is outside this
-     * component)
+     * @param e Source component is always the original component for which mouse was initally pressed (event if release point is
+     *          outside this component)
      */
     @Override
     public void mouseReleased(MouseEvent e)
@@ -436,6 +461,7 @@ public class BorderManager implements MouseListener, MouseMotionListener, Proper
             c.setBorder(mapCompBorders.get(c).borderNothing);
         }
     }
+
 
     // ===============================================================================
     // Inner classes

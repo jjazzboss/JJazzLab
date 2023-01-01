@@ -46,6 +46,23 @@ import org.openide.util.Lookup;
 public abstract class PianoRollEditor extends JPanel implements Lookup.Provider
 {
 
+    /**
+     * oldValue=old tool, newValue=new tool
+     */
+    public static final String PROP_ACTIVE_TOOL = "ActiveTool";
+    /**
+     * newValue=boolean
+     */
+    public static final String PROP_SNAP_ENABLED = "SnapEnabled";
+    /**
+     * oldValue=old quantization value, newValue=new quantization value
+     */
+    public static final String PROP_QUANTIZATION = "Quantization";
+    /**
+     * newValue=boolean
+     */
+    public static final String PROP_PLAYBACK_POINT_POSITION = "PlaybackPointVisible";
+
     public static PianoRollEditor getDefault(int startBarIndex, SizedPhrase sp, DrumKit.KeyMap keymap, PianoRollEditorSettings settings)
     {
         return new PianoRollEditorImpl(startBarIndex, sp, keymap, settings);
@@ -92,20 +109,24 @@ public abstract class PianoRollEditor extends JPanel implements Lookup.Provider
 
     /**
      * Set the display quantization.
+     * <p>
+     * Fire a PROP_QUANTIZATION change event.
      *
-     * @param q
+     * @param q Accepted values are BEAT, HALF_BEAT, ONE_THIRD_BEAT, ONE_QUARTER_BEAT.
      */
     abstract public void setQuantization(Quantization q);
 
     /**
      * Get the display quantization.
      *
-     * @return
+     * @return Can't be null
      */
     abstract public Quantization getQuantization();
 
     /**
      * Enable or disable the snap to quantization feature.
+     * <p>
+     * Fire a PROP_SNAP_ENABLED change event.
      *
      * @param b
      */
@@ -118,20 +139,46 @@ public abstract class PianoRollEditor extends JPanel implements Lookup.Provider
      */
     abstract public boolean isSnapEnabled();
 
+    /**
+     * Get the NoteView associated to the specified NoteEvent.
+     *
+     * @param ne
+     * @return Can be null
+     */
     abstract public NoteView getNoteView(NoteEvent ne);
 
+    /**
+     * Set the active EditTool.
+     * <p>
+     * Fire a PROP_ACTIVE_TOOL change event.
+     *
+     * @param tool
+     */
     abstract public void setActiveTool(EditTool tool);
 
+    /**
+     * Get the actived EditTool.
+     *
+     * @return Can't be null
+     */
     abstract public EditTool getActiveTool();
 
 
     /**
-     * Show a playback point in the editor at specified position.
+     * Show (or hide) a playback point in the editor at specified position.
+     * <p>
+     * If pos is &lt; 0 or out of the editor bounds, nothing is shown. Fire a PROP_PLAYBACK_POINT_POSITION change event.
      *
-     * @param b Show/hide the playback point.
-     * @param pos The position in beats
+     * @param pos The position in beats.
      */
-    abstract public void showPlaybackPoint(boolean b, float pos);
+    abstract public void showPlaybackPoint(float pos);
+
+    /**
+     * Get the playback point position.
+     *
+     * @return If &lt; 0 no playback point is shown.
+     */
+    abstract public float getPlaybackPointPosition();
 
     /**
      * Return the position in beats that correspond to a graphical point in the editor.
@@ -151,6 +198,9 @@ public abstract class PianoRollEditor extends JPanel implements Lookup.Provider
      */
     abstract public int getPitchFromPoint(Point editorPoint);
 
+    /**
+     * Unselect all notes.
+     */
     public void unselectAll()
     {
         new NotesSelection(getLookup()).unselectAll();

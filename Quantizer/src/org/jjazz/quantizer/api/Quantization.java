@@ -22,6 +22,10 @@
  */
 package org.jjazz.quantizer.api;
 
+import com.google.common.primitives.Floats;
+import java.util.List;
+import java.util.TreeSet;
+
 public enum Quantization
 {
     HALF_BAR(), // For example beat 0-2 for 4/4, 0-1.5 for a waltz
@@ -32,12 +36,26 @@ public enum Quantization
     OFF();    // No quantization
 
     private final float[] beats;
+    private final List<Float> beatsAsList;
+    private final TreeSet<Float> beatsAsTreeSet;
 
     private Quantization(float... beats)
     {
         this.beats = beats;
+        this.beatsAsList = Floats.asList(getBeats());
+        this.beatsAsTreeSet = new TreeSet(beatsAsList);
     }
-    
+
+    /**
+     * Get 0 for off, 1 for BEAT, 0.5f for HALF_BEAT, 1f/3 for ONE_THIRD_BEAT, 0.25f for ONE_QUARTER_BEAT.
+     *
+     * @return
+     */
+    public float getDuration()
+    {
+        return beats[1];
+    }
+
     public boolean isTernary()
     {
         return this.equals(ONE_THIRD_BEAT);
@@ -53,6 +71,26 @@ public enum Quantization
     public float[] getBeats()
     {
         return beats;
+    }
+
+    /**
+     * Same as getBeats() but return a list.
+     *
+     * @return
+     */
+    public List<Float> getBeatsAsList()
+    {
+        return beatsAsList;
+    }
+
+    /**
+     * Same as getBeats() but return a TreeSet.
+     *
+     * @return
+     */
+    public TreeSet<Float> getBeatsAsTreeSet()
+    {
+        return beatsAsTreeSet;
     }
 
     /**

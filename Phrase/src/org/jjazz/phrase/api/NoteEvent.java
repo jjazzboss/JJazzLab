@@ -359,7 +359,7 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
         boolean res;
         if (nearWindow == 0)
         {
-            res = getPositionInBeats() == posInBeats;
+            res = Float.floatToIntBits(getPositionInBeats()) == Float.floatToIntBits(posInBeats);
         } else if (getPositionInBeats() < posInBeats - nearWindow)
         {
             res = false;
@@ -518,8 +518,8 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
     @Override
     public String toString()
     {
-        return String.format("[%s, p=%.3f, d=%.3f, v=%d]", toPianoOctaveString(), position, getDurationInBeats(), getVelocity());
-//        return String.format("[%s, p=%f, d=%f, v=%d, id=%d]", toPianoOctaveString(), position, getDurationInBeats(), getVelocity(), System.identityHashCode(this));
+        // return String.format("[%s, p=%.3f, d=%.3f, v=%d]", toPianoOctaveString(), position, getDurationInBeats(), getVelocity());
+        return String.format("[%s, p=%f, d=%f, v=%d, id=%d]", toPianoOctaveString(), position, getDurationInBeats(), getVelocity(), System.identityHashCode(this));
     }
 
     public void addClientPropertyChangeListener(PropertyChangeListener l)
@@ -583,7 +583,7 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
 
 
     /**
-     * A NoteEvent wrapper to be used as hash//map keys when 2 different NoteEvent instances need to be considered as equal when
+     * A NoteEvent wrapper to be used as hash/map key when 2 different NoteEvent instances need to be considered as equal when
      * their attributes are equal (except client properties).
      */
     static public class AsNoteKey
@@ -627,6 +627,11 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
             return res;
         }
 
+        @Override
+        public String toString()
+        {
+            return "ANK#" + noteEvent.toString();
+        }
 
     }
 }

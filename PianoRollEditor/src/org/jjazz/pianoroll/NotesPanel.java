@@ -33,6 +33,7 @@ import java.awt.event.ComponentEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,6 +45,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.pianoroll.api.NoteView;
+import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
 import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.ui.keyboardcomponent.api.KeyboardComponent;
@@ -263,16 +265,11 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
      * Get the NoteView corresponding to ne.
      *
      * @param ne Must be a ne added via addNoteView(NoteEvent ne)
-     * @return
-     * @throws IllegalArgumentException If no NoteView is associated to ne.
+     * @return Can be null
      */
     public NoteView getNoteView(NoteEvent ne)
     {
         var res = mapNoteViews.get(ne);
-        if (res == null)
-        {
-            throw new IllegalArgumentException("ne=" + ne + " mapNoteViews=" + mapNoteViews);
-        }
         return res;
     }
 
@@ -433,13 +430,19 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
     public class XMapper
     {
 
-        private Quantization quantization = Quantization.ONE_QUARTER_BEAT;
         private int lastWidth = -1;
-
-
         private final NavigableMap<Position, Integer> tmap_allQuantizedXPositions = new TreeMap<>();
         private final NavigableMap<Position, Integer> tmap_allBeatsXPositions = new TreeMap<>();
 
+
+        private XMapper()
+        {
+            editor.addPropertyChangeListener(PianoRollEditor.PROP_QUANTIZATION, e ->
+            {
+                refresh();
+                repaint();
+            });
+        }
 
         public boolean isUptodate()
         {
@@ -451,17 +454,6 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
             return lastWidth;
         }
 
-        public Quantization getQuantization()
-        {
-            return quantization;
-        }
-
-        public void setQuantization(Quantization quantization)
-        {
-            this.quantization = quantization;
-            refresh();
-            repaint();
-        }
 
         /**
          * To be called when this panel width has changed.
@@ -480,14 +472,14 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
             tmap_allBeatsXPositions.clear();
             var allBarRange = editor.getBarRange();
             int nbBeatsPerTs = (int) editor.getModel().getTimeSignature().getNbNaturalBeats();
-
+            float[] qBeats = editor.getQuantization().getBeats();
 
             // Precompute all quantized + beat positions
             for (int bar = allBarRange.from; bar <= allBarRange.to; bar++)
             {
                 for (int beat = 0; beat < nbBeatsPerTs; beat++)
                 {
-                    for (float qBeat : quantization.getBeats())
+                    for (float qBeat : qBeats)
                     {
                         if (qBeat == 1)
                         {

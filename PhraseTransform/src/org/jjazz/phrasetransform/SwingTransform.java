@@ -100,7 +100,7 @@ public class SwingTransform implements PhraseTransform
         for (var ne : inPhrase)
         {
             float newDur = ne.getDurationInBeats();
-            float newPos = Quantizer.quantize(q, ne.getPositionInBeats());
+            float newPos = Quantizer.getQuantized(q, ne.getPositionInBeats());
             if (newPos >= fr.to)
             {
                 continue;

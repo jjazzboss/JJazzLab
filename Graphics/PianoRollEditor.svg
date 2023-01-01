@@ -7,9 +7,9 @@
    viewBox="0 0 6.3499999 6.3500002"
    version="1.1"
    id="svg8"
-   inkscape:version="1.2.2 (732a01da63, 2022-12-09)"
+   inkscape:version="1.1 (c68e22c387, 2021-05-23)"
    sodipodi:docname="PianoRollEditor.svg"
-   inkscape:export-filename="SelectionON.png"
+   inkscape:export-filename="SnapON.png"
    inkscape:export-xdpi="80"
    inkscape:export-ydpi="80"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
@@ -29,22 +29,22 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="5.6568543"
-     inkscape:cx="-40.570251"
-     inkscape:cy="-5.4800775"
+     inkscape:zoom="16"
+     inkscape:cx="16.5625"
+     inkscape:cy="16.65625"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="false"
      showguides="true"
      inkscape:guide-bbox="true"
      inkscape:window-width="1920"
-     inkscape:window-height="1027"
+     inkscape:window-height="1017"
      inkscape:window-x="-8"
      inkscape:window-y="-8"
      inkscape:window-maximized="1"
      units="px"
      inkscape:pagecheckerboard="0"
-     inkscape:snap-nodes="false"
+     inkscape:snap-nodes="true"
      inkscape:snap-global="false"
      inkscape:showpageshadow="2"
      inkscape:deskcolor="#d1d1d1">
@@ -53,6 +53,10 @@
        orientation="1,0"
        id="guide819"
        inkscape:locked="false" />
+    <sodipodi:guide
+       position="-1.2071614,-0.61184896"
+       orientation="0.70710678,-0.70710678"
+       id="guide49061" />
   </sodipodi:namedview>
   <metadata
      id="metadata5">
@@ -72,14 +76,14 @@
      transform="translate(0,-290.64998)">
     <g
        id="g827"
-       transform="matrix(0.22331465,0,0,0.22331465,-5.680062,286.94152)">
+       transform="matrix(0.22331465,0,0,0.22331465,-27.569436,284.97709)">
       <path
          inkscape:connector-curvature="0"
          id="path815"
          d="M 33.555109,65.16445 45.75059,55.586168 v 0"
-         style="fill:none;stroke:#000000;stroke-width:3.30800009;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+         style="fill:none;stroke:#000000;stroke-width:3.308;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
       <path
-         style="fill:none;stroke:#000000;stroke-width:3.30800009;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         style="fill:none;stroke:#000000;stroke-width:3.308;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
          d="m 33.555109,65.207871 12.195481,9.578282 v 0"
          id="path823"
          inkscape:connector-curvature="0" />
@@ -199,7 +203,7 @@
     </g>
     <g
        id="g239"
-       transform="matrix(-0.31474388,-0.52212355,0.52212355,-0.31474388,-157.86212,369.76318)"
+       transform="matrix(-0.31474388,-0.52212355,0.52212355,-0.31474388,-165.71984,359.05235)"
        style="fill:#ff0000;fill-opacity:1">
       <rect
          style="fill:#ff0000;fill-opacity:1;stroke:none;stroke-width:0.713285;-inkscape-stroke:none;stop-color:#000000"
@@ -229,13 +233,13 @@
          d="m -158.25366,-100.54175 -13.69766,7.908349 V -108.4501 Z" />
     </g>
     <path
-       d="m 5.9526655,281.44829 -2.5881407,2.58814 -0.5971678,-0.59717 2.587868,-2.58841 z m 0,-1.19448 -0.3983847,0.39799 0.5974406,0.59744 0.3981121,-0.39839 z m -3.3262094,3.44279 -0.5812256,1.06183 1.0619513,-0.58122 z"
+       d="m 5.4896447,281.01834 -2.5881407,2.58814 -0.5971678,-0.59717 2.587868,-2.58841 z m 0,-1.19448 -0.3983847,0.39799 0.5974406,0.59744 0.3981121,-0.39839 z m -3.3262094,3.44279 -0.5812256,1.06183 1.0619513,-0.58122 z"
        id="path517"
        style="fill:#808080;fill-opacity:1;stroke-width:0.00879807" />
     <g
        style="fill:#808080;fill-opacity:1"
        id="g659"
-       transform="matrix(0.2762746,0,0,0.2762746,11.591098,285.58964)">
+       transform="matrix(0.2762746,0,0,0.2762746,11.194223,283.0761)">
       <path
          d="m 11.1968,2.43913 c 0.5858,-0.58579 1.5355,-0.58579 2.1213,0 l 4.2426,4.24264 c 0.5858,0.58578 0.5858,1.53553 0,2.12132 L 9.36383,17 h 5.13607 c 0.2761,0 0.5,0.2239 0.5,0.5 0,0.2761 -0.2239,0.5 -0.5,0.5 H 7.8195 C 7.40971,18.0215 6.99279,17.8757 6.67978,17.5627 L 2.43714,13.3201 c -0.58578,-0.5858 -0.58578,-1.5355 0,-2.1213 z M 9.78086,15.1688 4.83111,10.219 3.14425,11.9059 c -0.19526,0.1952 -0.19526,0.5118 0,0.7071 l 4.24264,4.2426 c 0.19526,0.1953 0.51184,0.1953 0.70711,0 z"
          fill="#212121"
@@ -272,6 +276,187 @@
          inkscape:transform-center-x="-0.51588007"
          inkscape:transform-center-y="4.2296804e-06"
          d="m -158.25366,-100.54175 -13.69766,7.908349 V -108.4501 Z" />
+    </g>
+    <path
+       id="path9259"
+       style="fill:#ffffff;stroke:#000000;stroke-width:0.358261;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m -13.454054,276.02771 v 4.5521 l 1.284992,-1.03405 0.784445,1.61739 0.359565,-0.23605 0.406126,-0.14357 -0.812253,-1.60316 1.6005793,-0.39707 z"
+       inkscape:export-filename="D:\JeromeDocs\JJazzLab\src\JJazzLab-X\Graphics\PencilCursor.png"
+       inkscape:export-xdpi="88.219307"
+       inkscape:export-ydpi="88.219307" />
+    <path
+       id="path9261"
+       style="fill:#ff0000;fill-opacity:1;stroke:#ff0000;stroke-width:0.337477;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 2.0890646,275.04898 v 4.28803 l 1.2104463,-0.97407 0.7389394,1.52356 0.3387048,-0.22236 0.3825668,-0.13523 -0.7651336,-1.51017 1.5077287,-0.37403 z" />
+    <path
+       id="path13106"
+       style="fill:#808080;fill-opacity:1;stroke:#808080;stroke-width:0.270341;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m -1.8496364,276.28149 v 3.43499 l 0.96964513,-0.78029 0.5919377,1.22047 0.2713243,-0.17812 0.3064605,-0.10834 -0.612921,-1.20973 1.20778727,-0.29963 z" />
+    <g
+       id="g49256"
+       inkscape:export-filename="D:\JeromeDocs\JJazzLab\src\JJazzLab-X\Graphics\PencilCursor-Win2.png"
+       inkscape:export-xdpi="262.64001"
+       inkscape:export-ydpi="262.64001"
+       transform="translate(-11.178548,-5.1917106)">
+      <rect
+         style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:0.12991;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;stop-color:#000000"
+         id="rect18734"
+         width="2.7238786"
+         height="0.70203871"
+         x="-209.47711"
+         y="209.52867"
+         ry="0"
+         transform="matrix(0.70656124,-0.7076519,0.70807223,0.70614001,0,0)"
+         inkscape:export-filename="D:\JeromeDocs\JJazzLab\src\JJazzLab-X\Graphics\PencilCursor-Win.png"
+         inkscape:export-xdpi="128"
+         inkscape:export-ydpi="128" />
+      <rect
+         style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0.131305;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;stop-color:#000000"
+         id="rect18860"
+         width="0.42350736"
+         height="0.70530576"
+         x="-206.75429"
+         y="209.52698"
+         transform="matrix(0.70656124,-0.7076519,0.70807223,0.70614001,0,0)"
+         inkscape:export-filename="D:\JeromeDocs\JJazzLab\src\JJazzLab-X\Graphics\PencilCursor-Win.png"
+         inkscape:export-xdpi="128"
+         inkscape:export-ydpi="128" />
+      <path
+         style="fill:#000000;stroke:#000000;stroke-width:0.139789px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 0.30128805,296.30913 0.42821162,0.42507 -0.56248641,0.11754 z"
+         id="path19556"
+         sodipodi:nodetypes="cccc"
+         inkscape:export-filename="D:\JeromeDocs\JJazzLab\src\JJazzLab-X\Graphics\PencilCursor-Win.png"
+         inkscape:export-xdpi="128"
+         inkscape:export-ydpi="128" />
+    </g>
+    <g
+       id="g20785"
+       transform="translate(-6.6641927,0.11575521)">
+      <g
+         id="g20781"
+         transform="matrix(9.5699131e-4,-0.887233,1.3251195,6.4075298e-4,-395.16716,259.22545)"
+         style="stroke:#000000">
+        <rect
+           style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:0.264583;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;stop-color:#000000"
+           id="rect20777"
+           width="5.285255"
+           height="0.91205722"
+           x="-19.574152"
+           y="282.34793"
+           ry="0" />
+        <rect
+           style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0.264583;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;stop-color:#000000"
+           id="rect20779"
+           width="1.1225319"
+           height="0.91204095"
+           x="-14.288897"
+           y="282.34793" />
+      </g>
+      <path
+         style="fill:#000000;stroke:#000000;stroke-width:0.253863px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m -20.990195,277.00933 1.095738,-0.002 -0.572988,0.87218 z"
+         id="path20783"
+         sodipodi:nodetypes="cccc" />
+    </g>
+    <g
+       id="g48941"
+       transform="translate(-19.550766,19.737855)">
+      <g
+         id="g24228"
+         transform="matrix(0.15670744,0,0,0.15670744,-1.1246247,283.60983)"
+         style="fill:#808080;fill-opacity:1;stroke:#ff0000;stroke-width:3.15296;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1">
+        <path
+           inkscape:connector-curvature="0"
+           id="path24224"
+           d="M 33.555109,65.16445 45.75059,55.586168 v 0"
+           style="fill:#808080;fill-opacity:1;stroke:#ff0000;stroke-width:3.15296;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+        <path
+           style="fill:#808080;fill-opacity:1;stroke:#ff0000;stroke-width:3.15296;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+           d="m 33.555109,65.207871 12.195481,9.578282 v 0"
+           id="path24226"
+           inkscape:connector-curvature="0" />
+      </g>
+      <path
+         style="fill:#ff0000;fill-opacity:1;stroke:#ff8080;stroke-width:0.911596;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 3.1750002,291.24235 v 5.16528"
+         id="path24458" />
+      <g
+         id="g33296"
+         transform="matrix(-0.15670744,0,0,0.15670744,7.4746249,283.60983)"
+         style="fill:#808080;fill-opacity:1;stroke:#ff0000;stroke-width:3.15296;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1">
+        <path
+           inkscape:connector-curvature="0"
+           id="path33292"
+           d="M 33.555109,65.16445 45.75059,55.586168 v 0"
+           style="fill:#808080;fill-opacity:1;stroke:#ff0000;stroke-width:3.15296;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+        <path
+           style="fill:#808080;fill-opacity:1;stroke:#ff0000;stroke-width:3.15296;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+           d="m 33.555109,65.207871 12.195481,9.578282 v 0"
+           id="path33294"
+           inkscape:connector-curvature="0" />
+      </g>
+    </g>
+    <g
+       id="g36060"
+       inkscape:export-filename="D:\JeromeDocs\JJazzLab\src\JJazzLab-X\Graphics\SnapOFF.png"
+       inkscape:export-xdpi="80"
+       inkscape:export-ydpi="80"
+       transform="translate(-18.089136,11.739814)">
+      <g
+         id="g36050"
+         transform="matrix(0.13764311,0,0,0.13764311,-0.56647228,284.85255)"
+         style="fill:#808080;fill-opacity:1;stroke:#808080;stroke-width:3.15296;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1">
+        <path
+           inkscape:connector-curvature="0"
+           id="path36046"
+           d="M 33.555109,65.16445 45.75059,55.586168 v 0"
+           style="fill:#808080;fill-opacity:1;stroke:#808080;stroke-width:3.15296;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+        <path
+           style="fill:#808080;fill-opacity:1;stroke:#808080;stroke-width:3.15296;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+           d="m 33.555109,65.207871 12.195481,9.578282 v 0"
+           id="path36048"
+           inkscape:connector-curvature="0" />
+      </g>
+      <path
+         style="fill:#cccccc;stroke:#cccccc;stroke-width:0.800695;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 3.2100794,291.55653 v 4.5369"
+         id="path36052" />
+      <g
+         id="g36058"
+         transform="matrix(-0.13764311,0,0,0.13764311,6.986631,284.85255)"
+         style="fill:#808080;fill-opacity:1;stroke:#808080;stroke-width:3.15296;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1">
+        <path
+           inkscape:connector-curvature="0"
+           id="path36054"
+           d="M 33.555109,65.16445 45.75059,55.586168 v 0"
+           style="fill:#808080;fill-opacity:1;stroke:#808080;stroke-width:3.15296;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+        <path
+           style="fill:#808080;fill-opacity:1;stroke:#808080;stroke-width:3.15296;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+           d="m 33.555109,65.207871 12.195481,9.578282 v 0"
+           id="path36056"
+           inkscape:connector-curvature="0" />
+      </g>
+    </g>
+    <g
+       id="g51661"
+       transform="matrix(0.81482849,0.81328141,-0.81328141,0.81482849,242.09016,58.905471)"
+       inkscape:export-filename="D:\JeromeDocs\JJazzLab\src\JJazzLab-X\Graphics\ErasorCursor.png"
+       inkscape:export-xdpi="128"
+       inkscape:export-ydpi="128"
+       style="fill:#ffffff">
+      <rect
+         style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:0.116678;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;stop-color:#000000"
+         id="rect51312"
+         width="1.7660967"
+         height="2.9236491"
+         x="-3.5950274"
+         y="291.25525"
+         ry="0.44919434" />
+      <path
+         style="fill:#ffffff;stroke:#000000;stroke-width:0.270669;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m -3.5884114,293.32889 h 1.7528645"
+         id="path51526" />
     </g>
   </g>
   <style

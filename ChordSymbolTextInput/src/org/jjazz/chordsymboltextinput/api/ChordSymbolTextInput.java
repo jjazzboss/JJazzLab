@@ -302,7 +302,7 @@ public class ChordSymbolTextInput
                 for (String rawString : rawStrings)
                 {
                     pos = new Position(barIndex, beat);
-                    pos = Quantizer.quantize(swing ? Quantization.ONE_THIRD_BEAT : Quantization.HALF_BEAT, pos, ts, barIndex);
+                    pos = Quantizer.getQuantized(swing ? Quantization.ONE_THIRD_BEAT : Quantization.HALF_BEAT, pos, ts, barIndex);
                     CLI_ChordSymbol cs = toCLI_ChordSymbol(rawString, pos, cls);
                     errorChordIndex++;
                     newItems.add(cs);

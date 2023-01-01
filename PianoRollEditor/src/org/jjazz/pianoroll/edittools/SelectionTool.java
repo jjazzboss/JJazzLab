@@ -59,7 +59,7 @@ public class SelectionTool implements EditTool
     private static final String ICON_PATH_OFF = "resources/SelectionOFF.png";
     @StaticResource(relative = true)
     private static final String ICON_PATH_ON = "resources/SelectionON.png";
-    private static final int RESIZE_PIXEL_LIMIT = 10;
+    private static final int RESIZE_PIXEL_LIMIT = 8;
 
 
     private enum State
@@ -105,6 +105,12 @@ public class SelectionTool implements EditTool
     }
 
     @Override
+    public Cursor getCURSOR()
+    {
+        return Cursor.getDefaultCursor();
+    }
+
+    @Override
     public Icon getIcon(boolean b)
     {
         return b ? new ImageIcon(SelectionTool.class.getResource(ICON_PATH_ON)) : new ImageIcon(SelectionTool.class.getResource(ICON_PATH_OFF));
@@ -145,7 +151,7 @@ public class SelectionTool implements EditTool
     {
         var ne = nv.getModel();
         var point = e.getPoint();
-        var altPressed = (e.getModifiersEx() & InputEvent.ALT_DOWN_MASK) != 0;
+        boolean overrideSnapSetting = isOverrideSnapSetting(e);
         Point editorPoint = SwingUtilities.convertPoint(nv, e.getPoint(), nv.getParent());
         editorPoint.x = Math.max(0, editorPoint.x);
         editorPoint.x = Math.min(nv.getParent().getWidth() - 1, editorPoint.x);
@@ -204,9 +210,9 @@ public class SelectionTool implements EditTool
                     break;
                 case RESIZE_WEST:
                 {
-                    if (!altPressed)
+                    if ((editor.isSnapEnabled() && !overrideSnapSetting) || (!editor.isSnapEnabled() && overrideSnapSetting))
                     {
-                        editorPointPos = Quantizer.quantize(q, editorPointPos);
+                        editorPointPos = Quantizer.getQuantized(q, editorPointPos);
                     }
                     float dPos = editorPointPos - dragStartPos;
                     float newPos = dragSourceNote.getPositionInBeats() + dPos;
@@ -222,13 +228,13 @@ public class SelectionTool implements EditTool
                 case RESIZE_EAST:
                 {
                     float newPos = editorPointPos;
-                    if (!altPressed)
+                    if ((editor.isSnapEnabled() && !overrideSnapSetting) || (!editor.isSnapEnabled() && overrideSnapSetting))
                     {
-                        newPos = Quantizer.quantize(q, newPos);
+                        newPos = Quantizer.getQuantized(q, newPos);
                     }
                     float dPos = newPos - dragStartPos;
                     float newDur = Math.max(dragSourceNote.getDurationInBeats() + dPos, 0.05f);
-                    if (ne.getDurationInBeats() != newDur && (ne.getPositionInBeats() + newDur) < spModel.getBeatRange().to)
+                    if (Float.floatToIntBits(ne.getDurationInBeats()) != Float.floatToIntBits(newDur) && (ne.getPositionInBeats() + newDur) < spModel.getBeatRange().to)
                     {
                         var newNe = ne.getCopyDur(newDur);
                         spModel.replace(ne, newNe);
@@ -247,16 +253,16 @@ public class SelectionTool implements EditTool
                     int newPitch = editor.getPitchFromPoint(editorPoint);
                     float newPos = editor.getPositionFromPoint(editorPoint);
 
-                    if (!altPressed)
+                    if ((editor.isSnapEnabled() && !overrideSnapSetting) || (!editor.isSnapEnabled() && overrideSnapSetting))
                     {
-                        newPos = Quantizer.quantize(q, newPos);
+                        newPos = Quantizer.getQuantized(q, newPos);
                     }
 
                     if (newPos + ne.getDurationInBeats() > spModel.getBeatRange().to)
                     {
                         newPos = spModel.getBeatRange().to - ne.getDurationInBeats();
                     }
-                    if (dragNote.getPitch() == newPitch && dragNote.getPositionInBeats() == newPos)
+                    if (dragNote.getPitch() == newPitch && Float.floatToIntBits(dragNote.getPositionInBeats()) == Float.floatToIntBits(newPos))
                     {
                         return;
                     }
@@ -421,6 +427,12 @@ public class SelectionTool implements EditTool
     }
 
     @Override
+    public boolean isEditMultipleNotesSupported()
+    {
+        return true;
+    }
+
+    @Override
     public void editMultipleNotes(List<NoteView> noteViews
     )
     {
@@ -445,24 +457,19 @@ public class SelectionTool implements EditTool
 
     private boolean isNearLeftSide(MouseEvent e, NoteView nv)
     {
-
-        boolean res = false;
         int w = nv.getWidth();
-        if (w >= RESIZE_PIXEL_LIMIT)
-        {
-            res = e.getX() < RESIZE_PIXEL_LIMIT;
-        }
+        int limit = Math.min(w / 3, RESIZE_PIXEL_LIMIT);
+        limit = Math.max(1, limit);
+        boolean res = e.getX() < limit;
         return res;
     }
 
     private boolean isNearRightSide(MouseEvent e, NoteView nv)
     {
-        boolean res = false;
         int w = nv.getWidth();
-        if (w >= RESIZE_PIXEL_LIMIT)
-        {
-            res = e.getX() > w - RESIZE_PIXEL_LIMIT - 1;
-        }
+        int limit = Math.min(w / 3, RESIZE_PIXEL_LIMIT);
+        limit = Math.max(1, limit);
+        boolean res = e.getX() >= w - limit - 1;
         return res;
     }
 

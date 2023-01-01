@@ -637,7 +637,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
                 public void undoBody()
                 {
                     LOGGER.log(Level.FINER, "remove.undoBody() ne={0}", ne);   //NOI18N
-                    noteEvents.remove(ne);
+                    noteEvents.add(ne);
                     pcs.firePropertyChange(PROP_NOTE_ADDED, null, Arrays.asList(ne));
                 }
 
@@ -645,7 +645,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
                 public void redoBody()
                 {
                     LOGGER.log(Level.FINER, "remove.redoBody() ne={0}", ne);   //NOI18N
-                    noteEvents.add(ne);
+                    noteEvents.remove(ne);
                     pcs.firePropertyChange(PROP_NOTE_REMOVED, null, Arrays.asList(ne));
                 }
             };
@@ -1146,7 +1146,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
                         public void undoBody()
                         {
                             LOGGER.log(Level.FINER, "IteratorRemove.undoBody() ne={0}", ne);   //NOI18N
-                            noteEvents.remove(ne);
+                            noteEvents.add(ne);
                             pcs.firePropertyChange(PROP_NOTE_ADDED, null, Arrays.asList(ne));
                         }
 
@@ -1154,7 +1154,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
                         public void redoBody()
                         {
                             LOGGER.log(Level.FINER, "IteratorRemove.redoBody() ne={0}", ne);   //NOI18N
-                            noteEvents.add(ne);
+                            noteEvents.remove(ne);
                             pcs.firePropertyChange(PROP_NOTE_REMOVED, null, Arrays.asList(ne));
                         }
                     };

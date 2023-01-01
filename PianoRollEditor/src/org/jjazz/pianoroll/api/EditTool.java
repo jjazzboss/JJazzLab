@@ -22,10 +22,10 @@
  */
 package org.jjazz.pianoroll.api;
 
-import java.util.Arrays;
+import java.awt.Cursor;
+import java.awt.event.MouseEvent;
 import java.util.List;
 import javax.swing.Icon;
-import org.jjazz.pianoroll.edittools.SelectionTool;
 
 
 /**
@@ -35,17 +35,6 @@ public interface EditTool extends PianoRollEditorMouseListener
 {
 
     /**
-     * Get the available EditTools.
-     *
-     * @param editor
-     * @return
-     */
-    static public List<EditTool> getAvailableTools(PianoRollEditor editor)
-    {
-        return Arrays.asList(new SelectionTool(editor));
-    }
-
-    /**
      * A 20x20 icon.
      *
      * @param selected
@@ -53,15 +42,36 @@ public interface EditTool extends PianoRollEditorMouseListener
      */
     Icon getIcon(boolean selected);
 
+    Cursor getCURSOR();
+
     String getName();
 
     /**
-     * Perform the edit on multiple notes.
+     * If true user can draw a rectangle to edit multiple notes.
+     *
+     * @return
+     * @see #editMultipleNotes(java.util.List)
+     */
+    boolean isEditMultipleNotesSupported();
+
+    /**
+     * Perform the edit on multiple notes (if operation is supported, see isEditMultipleNotesSupported()).
      * <p>
-     * This method is called e.g. when user has selected one or more notes via the rectangle selection.
+     * This method is called when user has selected one or more notes via the rectangle selection.
      *
      * @param noteViews
+     * @see #isEditMultipleNotesSupported()
      */
     void editMultipleNotes(List<NoteView> noteViews);
 
+    /**
+     * Check if the specified MouseEvent uses keyboard modifiers (ctrl, etc.) that modify the current snap setting.
+     *
+     * @param e
+     * @return
+     */
+    default boolean isOverrideSnapSetting(MouseEvent e)
+    {
+        return e.isControlDown() || e.isAltDown();
+    }
 }
