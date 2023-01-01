@@ -89,25 +89,18 @@ public class Quantizer
         {
             throw new IllegalArgumentException("q=" + q + " pos=" + pos + " ts=" + ts + " maxBarIndex=" + maxBarIndex);   //NOI18N
         }
-        Position newPos;
-        switch (q)
+        
+        Position newPos = switch (q)
         {
-            case OFF:
-                newPos = new Position(pos);
-                break;
-            case HALF_BAR:
-                newPos = quantizeHalfBar(pos, ts, maxBarIndex, false);      // Half-bar straight
-                break;
-            case BEAT:
-            case HALF_BEAT:
-            case ONE_THIRD_BEAT:
-            case ONE_QUARTER_BEAT:
-                newPos = quantizeStandard(pos, ts, maxBarIndex, q.getBeats());
-                break;
-
-            default:
+            case OFF ->
+                new Position(pos);
+            case HALF_BAR ->
+                quantizeHalfBar(pos, ts, maxBarIndex, false);      // Half-bar straight
+            case BEAT, HALF_BEAT, ONE_THIRD_BEAT, ONE_QUARTER_BEAT, ONE_SIXTH_BEAT ->
+                quantizeStandard(pos, ts, maxBarIndex, q.getBeats());
+            default ->
                 throw new IllegalStateException("quantization=" + q);   //NOI18N
-        }
+        };
 
         return newPos;
     }
@@ -123,22 +116,15 @@ public class Quantizer
     {
         checkNotNull(q);
         checkArgument(beatPos >= 0, "q=%s beatPos=%s", q, beatPos);
-        float res;
-        switch (q)
+        float res = switch (q)
         {
-            case OFF:
-            case HALF_BAR:
-                res = beatPos;      // We don't know the TimeSignature...
-                break;
-            case BEAT:
-            case HALF_BEAT:
-            case ONE_THIRD_BEAT:
-            case ONE_QUARTER_BEAT:
-                res = quantizeStandard(beatPos, q.getBeats());
-                break;
-            default:
+            case OFF, HALF_BAR ->
+                beatPos;      // We don't know the TimeSignature...
+            case BEAT, HALF_BEAT, ONE_THIRD_BEAT, ONE_QUARTER_BEAT, ONE_SIXTH_BEAT ->
+                quantizeStandard(beatPos, q.getBeats());
+            default ->
                 throw new IllegalStateException("quantization=" + q);   //NOI18N
-        }
+        };
 
         return res;
     }
@@ -159,21 +145,17 @@ public class Quantizer
         float res;
         switch (q)
         {
-            case OFF:
-            case HALF_BAR:
+            case OFF, HALF_BAR ->
                 res = beatPos;      // We don't know the TimeSignature...
-                break;
-            case BEAT:
-            case HALF_BEAT:
-            case ONE_THIRD_BEAT:
-            case ONE_QUARTER_BEAT:
+            case BEAT, HALF_BEAT, ONE_THIRD_BEAT, ONE_QUARTER_BEAT, ONE_SIXTH_BEAT ->
+            {
                 float beatInt = (float) Math.floor(beatPos);
                 float beatDecimal = beatPos - beatInt;
                 Float nextBeatDecimal = q.getBeatsAsTreeSet().ceiling(beatDecimal);
                 assert nextBeatDecimal != null : "beatPos=" + beatPos + " q=" + q;
-                res = beatInt + nextBeatDecimal;
-                break;
-            default:
+                return beatInt + nextBeatDecimal;
+            }
+            default ->
                 throw new IllegalStateException("quantization=" + q);   //NOI18N
         }
 
@@ -196,21 +178,17 @@ public class Quantizer
         float res;
         switch (q)
         {
-            case OFF:
-            case HALF_BAR:
+            case OFF, HALF_BAR ->
                 res = beatPos;      // We don't know the TimeSignature...
-                break;
-            case BEAT:
-            case HALF_BEAT:
-            case ONE_THIRD_BEAT:
-            case ONE_QUARTER_BEAT:
+            case BEAT, HALF_BEAT, ONE_THIRD_BEAT, ONE_QUARTER_BEAT, ONE_SIXTH_BEAT ->
+            {
                 float beatInt = (float) Math.floor(beatPos);
                 float beatDecimal = beatPos - beatInt;
                 Float previousBeatDecimal = q.getBeatsAsTreeSet().floor(beatDecimal);
                 assert previousBeatDecimal != null : "beatPos=" + beatPos + " q=" + q;
                 res = beatInt + previousBeatDecimal;
-                break;
-            default:
+            }
+            default ->
                 throw new IllegalStateException("quantization=" + q);   //NOI18N
         }
 

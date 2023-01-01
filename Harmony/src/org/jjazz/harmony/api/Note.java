@@ -94,7 +94,7 @@ public class Note implements Comparable<Note>, Cloneable
      */
     public Note(int p)
     {
-        this(p, SymbolicDuration.QUARTER.getBeatDuration());
+        this(p, SymbolicDuration.QUARTER.getDuration());
     }
 
     /**
@@ -278,7 +278,7 @@ public class Note implements Comparable<Note>, Cloneable
 
         // Build the note
         pitch = octave * 12 + relPitch;
-        beatDuration = SymbolicDuration.QUARTER.getBeatDuration();
+        beatDuration = SymbolicDuration.QUARTER.getDuration();
         symbolicDuration = SymbolicDuration.QUARTER;
         alterationDisplay = alt;
         velocity = VELOCITY_STD;

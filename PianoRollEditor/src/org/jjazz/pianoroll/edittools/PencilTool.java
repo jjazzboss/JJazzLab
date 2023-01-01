@@ -140,7 +140,7 @@ public class PencilTool implements EditTool
             {
                 var q = editor.getQuantization();
                 dur = Quantizer.getQuantized(q, dur);
-                dur = Math.max(q.getDuration(), dur);
+                dur = Math.max(q.getSymbolicDuration().getDuration(), dur);
             }
             dur = Math.min(beatRange.to - dragStartPos, dur);
             var ne = new NoteEvent(dragPitch, dur, getNewNotePitch(), dragStartPos);
@@ -307,7 +307,7 @@ public class PencilTool implements EditTool
             pos = Quantizer.getQuantizedPrevious(q, pos);
         }
         pos = Math.min(pos, beatRange.to - 0.1f);
-        float dur = q.getDuration();
+        float dur = q.getSymbolicDuration().getDuration();
         if (!beatRange.contains(pos + dur, false))
         {
             dur = beatRange.to - pos;

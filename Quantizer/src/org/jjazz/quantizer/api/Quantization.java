@@ -22,38 +22,46 @@
  */
 package org.jjazz.quantizer.api;
 
+import com.google.common.base.Preconditions;
 import com.google.common.primitives.Floats;
 import java.util.List;
 import java.util.TreeSet;
+import org.jjazz.harmony.api.SymbolicDuration;
 
 public enum Quantization
 {
-    HALF_BAR(), // For example beat 0-2 for 4/4, 0-1.5 for a waltz
-    BEAT(0f, 1f), // This is the "natural beat", beat 0-1-2-3 for 4/4, every 3 eighth note in 12/8.
-    HALF_BEAT(0f, 0.5f, 1f),
-    ONE_THIRD_BEAT(0f, 1f / 3, 2f / 3, 1f),
-    ONE_QUARTER_BEAT(0f, .25f, .5f, .75f, 1f),
-    OFF();    // No quantization
+
+    HALF_BAR(null), // For example beat 0-2 for 4/4, 0-1.5 for a waltz
+    BEAT(SymbolicDuration.QUARTER), // This is the "natural beat", beat 0-1-2-3 for 4/4, every 3 eighth note in 12/8.
+    HALF_BEAT(SymbolicDuration.EIGHTH),
+    ONE_THIRD_BEAT(SymbolicDuration.EIGHTH_TRIPLET),
+    ONE_QUARTER_BEAT(SymbolicDuration.SIXTEENTH),
+    ONE_SIXTH_BEAT(SymbolicDuration.SIXTEENTH_TRIPLET),
+    OFF(null);    // No quantization
+
 
     private final float[] beats;
     private final List<Float> beatsAsList;
     private final TreeSet<Float> beatsAsTreeSet;
+    private SymbolicDuration symbolicDuration;
 
-    private Quantization(float... beats)
+    private Quantization(SymbolicDuration sd)
     {
-        this.beats = beats;
-        this.beatsAsList = Floats.asList(getBeats());
+        this.symbolicDuration = sd;
+        this.beats = computeBeats(sd);
+        this.beatsAsList = Floats.asList(beats);
         this.beatsAsTreeSet = new TreeSet(beatsAsList);
     }
 
+
     /**
-     * Get 0 for off, 1 for BEAT, 0.5f for HALF_BEAT, 1f/3 for ONE_THIRD_BEAT, 0.25f for ONE_QUARTER_BEAT.
+     * Get the symbolic duration of on quantized unit.
      *
-     * @return
+     * @return Null for OFF or HALF_BAR.
      */
-    public float getDuration()
+    public SymbolicDuration getSymbolicDuration()
     {
-        return beats[1];
+        return symbolicDuration;
     }
 
     public boolean isTernary()
@@ -108,5 +116,20 @@ public enum Quantization
             }
         }
         return false;
+    }
+
+    private float[] computeBeats(SymbolicDuration sd)
+    {
+        int nbNotes = sd == null ? 0 : Math.round(1f / sd.getDuration()) + 1;
+        float[] res = new float[nbNotes];
+        for (int i = 0; i < nbNotes - 1; i++)
+        {
+            res[i] = i * sd.getDuration();
+        }
+        if (nbNotes > 0)
+        {
+            res[nbNotes - 1] = 1f;
+        }
+        return res;
     }
 }

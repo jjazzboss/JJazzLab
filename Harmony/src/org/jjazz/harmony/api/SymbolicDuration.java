@@ -24,34 +24,48 @@ package org.jjazz.harmony.api;
 
 public enum SymbolicDuration
 {
-    UNKNOWN(0.0F),
-    SIXTEENTH(0.25F),
-    EIGHTH_TRIPLET(0.3333F),
-    EIGHTH(0.5F),
-    QUARTER_TRIPLET(0.6666F),
-    EIGHTH_DOTTED(0.75F),
-    QUARTER(1.0F),
-    HALF_TRIPLET(1.3333F),
-    QUARTER_DOTTED(1.5F),
-    HALF(2.0F),
-    WHOLE_TRIPLET(2.6666F),
-    HALF_DOTTED(3.0F),
-    WHOLE(4.0F),
-    WHOLE_DOTTED(6.0F);
-    private final float beatDuration;
+    UNKNOWN(0.0F, "unknown"),
+    SIXTEENTH_TRIPLET(0.16667F, "1/16 triplet"),
+    SIXTEENTH(0.25F, "1/16"),
+    EIGHTH_TRIPLET(0.33333F, "1/8 triplet"),
+    EIGHTH(0.5F, "1/8"),
+    QUARTER_TRIPLET(0.66667F, "1/4 triplet"),
+    EIGHTH_DOTTED(0.75F, "1/8 dotted"),
+    QUARTER(1.0F, "1/4"),
+    HALF_TRIPLET(1.33333F, "1/2 triplet"),
+    QUARTER_DOTTED(1.5F, "1/4 dotted"),
+    HALF(2.0F, "2"),
+    WHOLE_TRIPLET(2.66667F, "4 triplet"),
+    HALF_DOTTED(3.0F, "2 dotted"),
+    WHOLE(4.0F, "4"),
+    WHOLE_DOTTED(6.0F, "4 dotted");
+    private final float duration;
+    private final String name;
 
-    SymbolicDuration(float d)
+
+    SymbolicDuration(float d, String name)
     {
         if (d < 0)
         {
             throw new IllegalArgumentException("d=" + d);   //NOI18N
         }
-        beatDuration = d;
+        duration = d;
+        this.name = name;
     }
 
-    public float getBeatDuration()
+    /**
+     * Get a human-readable name, e.g "1/4" for QUARTER, "1/8 triplet" for EIGHTH_TRIPLET.
+     *
+     * @return
+     */
+    public String getReadableName()
     {
-        return beatDuration;
+        return name;
+    }
+
+    public float getDuration()
+    {
+        return duration;
     }
 
     public boolean isDotted()
@@ -68,7 +82,7 @@ public enum SymbolicDuration
     {
         for (SymbolicDuration sd : SymbolicDuration.values())
         {
-            if (sd.getBeatDuration() == bd)
+            if (Float.floatToIntBits(sd.getDuration()) == Float.floatToIntBits(bd))
             {
                 return sd;
             }

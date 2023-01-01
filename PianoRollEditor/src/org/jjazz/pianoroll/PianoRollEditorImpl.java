@@ -327,7 +327,11 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
     @Override
     public void setQuantization(Quantization q)
     {
-        Preconditions.checkArgument(EnumSet.of(Quantization.BEAT, Quantization.HALF_BEAT, Quantization.ONE_THIRD_BEAT, Quantization.ONE_QUARTER_BEAT).contains(q));
+        Preconditions.checkArgument(EnumSet.of(Quantization.BEAT, 
+                Quantization.HALF_BEAT,
+                Quantization.ONE_THIRD_BEAT, 
+                Quantization.ONE_QUARTER_BEAT,
+                Quantization.ONE_SIXTH_BEAT).contains(q));
         if (quantization.equals(q))
         {
             return;

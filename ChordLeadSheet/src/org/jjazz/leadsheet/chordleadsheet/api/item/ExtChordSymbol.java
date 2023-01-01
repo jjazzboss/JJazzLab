@@ -347,7 +347,7 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
     {
         int p = Note.OCTAVE_STD * 12 + (int) Math.round(Math.random() * 12f);
         Note.Alteration alt = (Math.random() < .5) ? Note.Alteration.FLAT : Note.Alteration.SHARP;
-        Note n = new Note(p, SymbolicDuration.QUARTER.getBeatDuration(), 64, alt);
+        Note n = new Note(p, SymbolicDuration.QUARTER.getDuration(), 64, alt);
         ChordTypeDatabase ctb = ChordTypeDatabase.getInstance();
         int index = (int) (ctb.getSize() * Math.random());
         ChordType ct = ctb.getChordType(index);

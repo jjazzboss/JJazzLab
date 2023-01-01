@@ -22,16 +22,19 @@
  */
 package org.jjazz.pianoroll;
 
-import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.List;
 import javax.swing.DefaultComboBoxModel;
-import javax.swing.SwingUtilities;
-import javax.swing.Timer;
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.JLabel;
+import javax.swing.JList;
 import org.jjazz.pianoroll.api.EditTool;
 import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.quantizer.api.Quantization;
+import org.jjazz.ui.utilities.api.NoteIcons;
 
 
 /**
@@ -50,11 +53,15 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
         this.editor = editor;
         initComponents();
 
+
         var qModel = new DefaultComboBoxModel(Quantization.values());
         qModel.removeElement(Quantization.HALF_BAR);
-
+        qModel.removeElement(Quantization.OFF);
         cmb_quantization.setModel(qModel);
         cmb_quantization.setSelectedItem(editor.getQuantization());
+        cmb_quantization.setRenderer(new QuantizationRenderer());
+
+
         cb_snap.setSelected(editor.isSnapEnabled());
 
         add(new EditToolBar(editor, tools));
@@ -140,5 +147,27 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
     private org.jjazz.ui.flatcomponents.api.FlatToggleButton flatToggleButton1;
     // End of variables declaration//GEN-END:variables
 
+
+    /**
+     * A renderer for Quantization values
+     */
+    public class QuantizationRenderer extends DefaultListCellRenderer
+    {
+
+        @Override
+        @SuppressWarnings("rawtypes")
+        public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus)
+        {
+            JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+            Quantization q = (Quantization) value;
+            var sd = q.getSymbolicDuration();
+            String tt = sd.getReadableName();
+            label.setToolTipText(tt);
+            label.setText(sd.getReadableName());
+            // label.setIcon(NoteIcons.get20x30(sd));
+            // label.setPreferredSize(new Dimension(label.getIcon().getIconWidth(), label.getIcon().getIconHeight()));
+            return label;
+        }
+    }
 
 }

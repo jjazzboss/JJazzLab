@@ -28,8 +28,10 @@ import javax.swing.AbstractAction;
 import javax.swing.JComponent;
 import javax.swing.JRootPane;
 import javax.swing.KeyStroke;
+import org.jjazz.harmony.api.SymbolicDuration;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.quantizer.api.Quantization;
+import org.jjazz.ui.utilities.api.NoteIcons;
 import org.openide.windows.WindowManager;
 
 /**
@@ -174,7 +176,7 @@ public class ChangeQuantizationDialog extends javax.swing.JDialog
             {
                 btn_CancelActionPerformed(null);
             }
-        });
+        });        
         return contentPane;
     }
 
@@ -255,7 +257,7 @@ public class ChangeQuantizationDialog extends javax.swing.JDialog
         noteBtnGroup.add(rbtn_halfBar);
         pnl_halfBar.add(rbtn_halfBar);
 
-        lbl_halfBar1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/cl_editor/actions/resources/NoteHalf-20x30.png"))); // NOI18N
+        lbl_halfBar1.setIcon(NoteIcons.get20x30(SymbolicDuration.HALF));
         lbl_halfBar1.setAlignmentY(0.7F);
         pnl_halfBar.add(lbl_halfBar1);
 
@@ -271,7 +273,7 @@ public class ChangeQuantizationDialog extends javax.swing.JDialog
         noteBtnGroup.add(rbtn_beat);
         pnl_beat.add(rbtn_beat);
 
-        lbl_beat1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/cl_editor/actions/resources/NoteQuarter-20x30.png"))); // NOI18N
+        lbl_beat1.setIcon(NoteIcons.get20x30(SymbolicDuration.QUARTER));
         lbl_beat1.setAlignmentY(0.7F);
         pnl_beat.add(lbl_beat1);
 
@@ -286,7 +288,7 @@ public class ChangeQuantizationDialog extends javax.swing.JDialog
         noteBtnGroup.add(rbtn_eighth);
         pnl_half.add(rbtn_eighth);
 
-        lbl_half.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/cl_editor/actions/resources/NoteEighth-20x30.png"))); // NOI18N
+        lbl_half.setIcon(NoteIcons.get20x30(SymbolicDuration.EIGHTH));
         lbl_half.setAlignmentY(0.7F);
         pnl_half.add(lbl_half);
 
@@ -298,7 +300,7 @@ public class ChangeQuantizationDialog extends javax.swing.JDialog
         noteBtnGroup.add(rbtn_eighth_triplet);
         pnl_halfTriplet.add(rbtn_eighth_triplet);
 
-        lbl_halfTriplet.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/cl_editor/actions/resources/NoteEighthTriplet-20x30.png"))); // NOI18N
+        lbl_halfTriplet.setIcon(NoteIcons.get20x30(SymbolicDuration.EIGHTH_TRIPLET));
         lbl_halfTriplet.setAlignmentY(0.7F);
         pnl_halfTriplet.add(lbl_halfTriplet);
 
@@ -310,7 +312,7 @@ public class ChangeQuantizationDialog extends javax.swing.JDialog
         noteBtnGroup.add(rbtn_sixteenth);
         pnl_sixteenth.add(rbtn_sixteenth);
 
-        lbl_sixteenth.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/cl_editor/actions/resources/NoteSixteenth-20x30.png"))); // NOI18N
+        lbl_sixteenth.setIcon(NoteIcons.get20x30(SymbolicDuration.SIXTEENTH));
         lbl_sixteenth.setAlignmentY(0.7F);
         pnl_sixteenth.add(lbl_sixteenth);
 

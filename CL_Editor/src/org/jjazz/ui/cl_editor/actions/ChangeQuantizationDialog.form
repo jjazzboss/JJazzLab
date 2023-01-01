@@ -159,8 +159,8 @@
             </Component>
             <Component class="javax.swing.JLabel" name="lbl_halfBar1">
               <Properties>
-                <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                  <Image iconType="3" name="/org/jjazz/ui/cl_editor/actions/resources/NoteHalf-20x30.png"/>
+                <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                  <Connection code="NoteIcons.get20x30(SymbolicDuration.HALF)" type="code"/>
                 </Property>
                 <Property name="alignmentY" type="float" value="0.7"/>
               </Properties>
@@ -193,8 +193,8 @@
             </Component>
             <Component class="javax.swing.JLabel" name="lbl_beat1">
               <Properties>
-                <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                  <Image iconType="3" name="/org/jjazz/ui/cl_editor/actions/resources/NoteQuarter-20x30.png"/>
+                <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                  <Connection code="NoteIcons.get20x30(SymbolicDuration.QUARTER)" type="code"/>
                 </Property>
                 <Property name="alignmentY" type="float" value="0.7"/>
               </Properties>
@@ -224,8 +224,8 @@
             </Component>
             <Component class="javax.swing.JLabel" name="lbl_half">
               <Properties>
-                <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                  <Image iconType="3" name="/org/jjazz/ui/cl_editor/actions/resources/NoteEighth-20x30.png"/>
+                <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                  <Connection code="NoteIcons.get20x30(SymbolicDuration.EIGHTH)" type="code"/>
                 </Property>
                 <Property name="alignmentY" type="float" value="0.7"/>
               </Properties>
@@ -248,8 +248,8 @@
             </Component>
             <Component class="javax.swing.JLabel" name="lbl_halfTriplet">
               <Properties>
-                <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                  <Image iconType="3" name="/org/jjazz/ui/cl_editor/actions/resources/NoteEighthTriplet-20x30.png"/>
+                <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                  <Connection code="NoteIcons.get20x30(SymbolicDuration.EIGHTH_TRIPLET)" type="code"/>
                 </Property>
                 <Property name="alignmentY" type="float" value="0.7"/>
               </Properties>
@@ -272,8 +272,8 @@
             </Component>
             <Component class="javax.swing.JLabel" name="lbl_sixteenth">
               <Properties>
-                <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                  <Image iconType="3" name="/org/jjazz/ui/cl_editor/actions/resources/NoteSixteenth-20x30.png"/>
+                <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                  <Connection code="NoteIcons.get20x30(SymbolicDuration.SIXTEENTH)" type="code"/>
                 </Property>
                 <Property name="alignmentY" type="float" value="0.7"/>
               </Properties>
