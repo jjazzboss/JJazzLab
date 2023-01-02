@@ -27,6 +27,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -1180,7 +1181,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         @Override
         public int getSourceActions(JComponent c)
         {
-            LOGGER.fine("MidiFileDragOutTransferHandler.getSourceActions()  c=" + c);   //NOI18N
+            LOGGER.log(Level.FINE, "MidiFileDragOutTransferHandler.getSourceActions()  c={0}", c);   //NOI18N
 
             int res = TransferHandler.NONE;
 
@@ -1229,7 +1230,10 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         protected void exportDone(JComponent c, Transferable data, int action)
         {
             // Will be called if drag was initiated from this handler
-            LOGGER.fine("MidiFileDragOutTransferHandler.exportDone()  c=" + c + " data=" + data + " action=" + action);   //NOI18N
+            LOGGER.log(Level.FINE, "MidiFileDragOutTransferHandler.exportDone()  c={0} data={1} action={2}", new Object[]
+            {
+                c, data, action
+            });   //NOI18N
         }
 
         /**
@@ -1241,9 +1245,15 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         @Override
         public boolean canImport(TransferHandler.TransferSupport support)
         {
-            // Use copy drop icon
-            support.setDropAction(COPY);
-            return true;
+            boolean res = false;
+
+            if (support.isDataFlavorSupported(DataFlavor.javaFileListFlavor))   // Fix Issue #340
+            {
+                // Use copy drop icon
+                support.setDropAction(COPY);
+                res = true;
+            }
+            return res;
         }
 
         /**
