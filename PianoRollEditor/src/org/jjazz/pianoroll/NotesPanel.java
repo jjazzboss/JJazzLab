@@ -127,15 +127,35 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
         {
             return;
         }
-        for (NoteView nv : mapNoteViews.values())
+        if (!editor.isDrumEdit())
         {
-            NoteEvent ne = nv.getModel();
-            FloatRange br = ne.getBeatRange();
-            int x = xMapper.getX(br.from);
-            int y = yMapper.getNoteViewChannelYRange(ne.getPitch()).from;
-            int w = xMapper.getX(br.to - 0.0001f) - x + 1;
-            int h = yMapper.getNoteViewHeight();
-            nv.setBounds(x, y, w, h);
+            for (NoteView nv : mapNoteViews.values())
+            {
+                NoteEvent ne = nv.getModel();
+                FloatRange br = ne.getBeatRange();
+                int x = xMapper.getX(br.from);
+                int y = yMapper.getNoteViewChannelYRange(ne.getPitch()).from;
+                int w = xMapper.getX(br.to - 0.0001f) - x + 1;
+                int h = yMapper.getNoteViewHeight();
+                nv.setBounds(x, y, w, h);
+            }
+        } else
+        {
+            // Drum notes
+            int side = yMapper.getNoteViewHeight();
+            if (side % 2 == 0)
+            {
+                side++;     // Need an odd value so that NoteView will be perfectly centered
+            }
+            for (NoteView nv : mapNoteViews.values())
+            {
+                NoteEvent ne = nv.getModel();
+                int x = xMapper.getX(ne.getPositionInBeats()) - side / 2;
+                int y = yMapper.getNoteViewChannelYRange(ne.getPitch()).from;
+                int w = side;
+                int h = side;
+                nv.setBounds(x, y, w, h);
+            }
         }
     }
 
@@ -226,7 +246,8 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
     public NoteView addNoteView(NoteEvent ne)
     {
         Preconditions.checkNotNull(ne);
-        NoteView nv = new NoteView(ne);
+        var keymap = editor.getDrumKeyMap();
+        NoteView nv = keymap == null ? new NoteView(ne) : new NoteViewDrum(ne);
         mapNoteViews.put(ne, nv);
         add(nv);
         nv.addPropertyChangeListener(this);

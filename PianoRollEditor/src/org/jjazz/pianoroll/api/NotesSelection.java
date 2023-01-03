@@ -24,7 +24,10 @@ package org.jjazz.pianoroll.api;
 
 import com.google.common.base.Preconditions;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 import org.jjazz.phrase.api.NoteEvent;
 import org.openide.util.Lookup;
 
@@ -48,7 +51,7 @@ public class NotesSelection
     /**
      * Get the selected notes sorted by NoteEvent natural order.
      *
-     * @return
+     * @return An immutable list.
      */
     public List<NoteEvent> getNotes()
     {
@@ -64,11 +67,11 @@ public class NotesSelection
     /**
      * Get the selected NoteViews sorted by NoteEvent natural order.
      *
-     * @return
+     * @return An immutable list.
      */
     public List<NoteView> getNoteViews()
     {
-        return noteViews;
+        return Collections.unmodifiableList(noteViews);
     }
 
     /**

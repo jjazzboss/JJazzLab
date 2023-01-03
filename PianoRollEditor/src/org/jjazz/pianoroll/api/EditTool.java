@@ -42,7 +42,7 @@ public interface EditTool extends PianoRollEditorMouseListener
      */
     Icon getIcon(boolean selected);
 
-    Cursor getCURSOR();
+    Cursor getCursor();
 
     String getName();
 
@@ -65,13 +65,18 @@ public interface EditTool extends PianoRollEditorMouseListener
     void editMultipleNotes(List<NoteView> noteViews);
 
     /**
-     * Check if the specified MouseEvent uses keyboard modifiers (ctrl, etc.) that modify the current snap setting.
+     * Check if the specified MouseEvent uses keyboard modifiers (eg alt) that modify the current snap setting.
      *
      * @param e
      * @return
      */
     default boolean isOverrideSnapSetting(MouseEvent e)
     {
-        return e.isControlDown() || e.isAltDown();
+        return e.isAltDown();
+    }
+    
+    default boolean isConstantPitchModifier(MouseEvent e)
+    {
+        return e.isShiftDown();
     }
 }

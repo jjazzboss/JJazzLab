@@ -26,7 +26,6 @@ import com.google.common.base.Preconditions;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Container;
-import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.InputEvent;
@@ -196,7 +195,7 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
 
 
         // Normal zoom
-        zoomValue = new ZoomValue(20, 20);
+        zoomValue = new ZoomValue(20, keymap == null ? 30 : 60);        // Drum notes need more heigth
         notesPanel.setScaleFactorX(toScaleFactorX(zoomValue.hValue()));
         float yFactor = toScaleFactorY(zoomValue.vValue());
         keyboard.setScaleFactor(yFactor, Math.min(MAX_WIDTH_FACTOR, yFactor));
@@ -327,9 +326,9 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
     @Override
     public void setQuantization(Quantization q)
     {
-        Preconditions.checkArgument(EnumSet.of(Quantization.BEAT, 
+        Preconditions.checkArgument(EnumSet.of(Quantization.BEAT,
                 Quantization.HALF_BEAT,
-                Quantization.ONE_THIRD_BEAT, 
+                Quantization.ONE_THIRD_BEAT,
                 Quantization.ONE_QUARTER_BEAT,
                 Quantization.ONE_SIXTH_BEAT).contains(q));
         if (quantization.equals(q))
@@ -380,7 +379,7 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
         }
         var old = activeTool;
         activeTool = tool;
-        notesPanel.setCursor(activeTool.getCURSOR());
+        notesPanel.setCursor(activeTool.getCursor());
         firePropertyChange(PROP_ACTIVE_TOOL, old, activeTool);
     }
 
@@ -646,9 +645,7 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
         JPanel pnl_keyboard = new JPanel();
         pnl_keyboard.setLayout(new BorderLayout());
         keyboard = new KeyboardComponent(KeyboardRange._128_KEYS, KeyboardComponent.Orientation.RIGHT, false);
-        keyboard.getWhiteKeys().stream()
-                .filter(k -> k.getPitch() % 12 == 0)
-                .forEach(k -> k.setText("C" + (k.getPitch() / 12 - 1)));
+        labelNotes(keyboard, keymap);
         pnl_keyboard.add(keyboard, BorderLayout.PAGE_START);
 
 
@@ -737,6 +734,28 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
     private void runOnceUIisValidated()
     {
         SwingUtilities.invokeLater(() -> scrollToNotes());
+    }
+
+    private void labelNotes(KeyboardComponent keyboard, DrumKit.KeyMap keymap)
+    {
+        if (keymap == null)
+        {
+            keyboard.getWhiteKeys().stream()
+                    .filter(k -> k.getPitch() % 12 == 0)
+                    .forEach(k -> k.setText("C" + (k.getPitch() / 12 - 1)));
+
+        } else
+        {
+            keyboard.getAllKeys().forEach(k ->
+            {
+                String s = keymap.getKeyName(k.getPitch());
+                if (s != null)
+                {
+                    s = s.toLowerCase();
+                }
+                k.setText(s);
+            });
+        }
     }
 
     // =======================================================================================================================
@@ -845,7 +864,7 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
         {
             showMarkOnKeyboard(e);
 
-            if (e.getSource() == notesPanel && activeTool.isEditMultipleNotesSupported())
+            if (e.getSource() == notesPanel && activeTool.isEditMultipleNotesSupported() && SwingUtilities.isLeftMouseButton(e))
             {
                 if (startDraggingPoint == null)
                 {
@@ -997,6 +1016,11 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
         @Override
         public void mouseDragged(MouseEvent e)
         {
+            if (!SwingUtilities.isLeftMouseButton(e))
+            {
+                return;
+            }
+
             if (e.getSource() == notesPanel)
             {
                 activeTool.editorDragged(e);

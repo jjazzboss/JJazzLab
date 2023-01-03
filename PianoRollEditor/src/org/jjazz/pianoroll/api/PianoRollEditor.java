@@ -23,6 +23,7 @@
 package org.jjazz.pianoroll.api;
 
 import java.awt.Point;
+import java.util.List;
 import javax.swing.JPanel;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.phrase.api.NoteEvent;
@@ -79,6 +80,16 @@ public abstract class PianoRollEditor extends JPanel implements Lookup.Provider
      * @return Null if it's a melodic phrase.
      */
     abstract public DrumKit.KeyMap getDrumKeyMap();
+
+    /**
+     * Convenience method which returns true if getDrumKeyMap() is non null.
+     *
+     * @return
+     */
+    public boolean isDrumEdit()
+    {
+        return getDrumKeyMap() != null;
+    }
 
 
     /**
@@ -197,6 +208,27 @@ public abstract class PianoRollEditor extends JPanel implements Lookup.Provider
      * @return
      */
     abstract public int getPitchFromPoint(Point editorPoint);
+
+    /**
+     * Get the currently selected NoteViews.
+     *
+     * @return An immutable list.
+     */
+    public List<NoteView> getSelectedNoteViews()
+    {
+        return new NotesSelection(getLookup()).getNoteViews();
+    }
+
+    /**
+     * Get the currently selected notes.
+     *
+     * @return An immutable list.
+     * @see #getSelectedNoteViews()
+     */
+    public List<NoteEvent> getSelectedNotes()
+    {
+        return new NotesSelection(getLookup()).getNotes();
+    }
 
     /**
      * Unselect all notes.

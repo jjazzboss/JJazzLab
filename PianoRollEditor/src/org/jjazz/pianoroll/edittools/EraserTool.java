@@ -84,7 +84,7 @@ public class EraserTool implements EditTool
     }
 
     @Override
-    public Cursor getCURSOR()
+    public Cursor getCursor()
     {
         return CURSOR;
     }

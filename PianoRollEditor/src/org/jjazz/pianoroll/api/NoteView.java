@@ -76,6 +76,7 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
 
     private PianoRollEditorSettings settings;
     private static final Logger LOGGER = Logger.getLogger(NoteView.class.getSimpleName());
+    private Color borderColor;
 
     public NoteView(NoteEvent ne)
     {
@@ -165,6 +166,11 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
         
         g2.dispose();
     }
+    
+    public Color getBorderColor()
+    {
+        return borderColor;
+    }
 
     public void cleanup()
     {
@@ -238,10 +244,11 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
     {
         Color bgColor = selected ? settings.getSelectedNoteColor() : getColor(ne.getVelocity());
         setBackground(bgColor);
-        Color borderColor = getBorderColor(getBackground());
+        borderColor = getBorderColor(getBackground());
         setBorder(BorderFactory.createLineBorder(borderColor, 1));
         noteAsString = new Note(ne.getPitch()).toPianoOctaveString();
         String tt = noteAsString + " (" + ne.getPitch() + ") v=" + ne.getVelocity();
+        setToolTipText(tt);       
     }
 
     /**

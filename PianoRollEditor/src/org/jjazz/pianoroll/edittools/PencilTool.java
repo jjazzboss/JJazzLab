@@ -35,6 +35,7 @@ import javax.swing.ImageIcon;
 import javax.swing.SwingUtilities;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.SizedPhrase;
+import org.jjazz.pianoroll.NoteViewDrum;
 import org.jjazz.pianoroll.api.EditTool;
 import org.jjazz.pianoroll.api.NoteView;
 import org.jjazz.pianoroll.api.PianoRollEditor;
@@ -88,7 +89,7 @@ public class PencilTool implements EditTool
     }
 
     @Override
-    public Cursor getCURSOR()
+    public Cursor getCursor()
     {
         return CURSOR;
     }
@@ -131,7 +132,7 @@ public class PencilTool implements EditTool
             editor.unselectAll();
             editor.getNoteView(dragNote).setSelected(true);
 
-        } else
+        } else if (!editor.isDrumEdit())
         {
             // Continue dragging
             float dur = pos - dragStartPos;
@@ -181,16 +182,22 @@ public class PencilTool implements EditTool
     {
         String undoText = ResUtil.getString(getClass(), "ReplaceNote");
         editor.getUndoManager().startCEdit(undoText);
-
-
         MouseEvent editorEvent = SwingUtilities.convertMouseEvent(nv, e, nv.getParent());
-        spModel.remove(nv.getModel());
-        var ne = addNote(editorEvent);
-        editor.unselectAll();
-        editor.getNoteView(ne).setSelected(true);
+
+
+        if (!editor.isDrumEdit())
+        {
+            // Replace note in melodic mode
+            spModel.remove(nv.getModel());
+        }
+        NoteEvent ne = addNote(editorEvent);
 
 
         editor.getUndoManager().endCEdit(undoText);
+
+        editor.unselectAll();
+        editor.getNoteView(ne).setSelected(true);
+
 
     }
 
@@ -214,6 +221,17 @@ public class PencilTool implements EditTool
         }
         pos = Math.min(beatRange.to - 0.1f, pos);
 
+
+        if (editor.isDrumEdit())
+        {
+            // Special mode: just add the note then ignore the rest of the dragging
+            if (dragNote == null)
+            {
+                var editorEvent = SwingUtilities.convertMouseEvent(nv, e, nv.getParent());
+                dragNote = addNote(editorEvent);
+            }
+            return;
+        }
 
         if (dragNote == null)
         {
@@ -242,8 +260,9 @@ public class PencilTool implements EditTool
     @Override
     public void noteReleased(MouseEvent e, NoteView nv)
     {
-        if (dragNote == null)
+        if (dragNote == null || editor.isDrumEdit())
         {
+            dragNote = null;
             return;
         }
 
@@ -292,6 +311,12 @@ public class PencilTool implements EditTool
     // Private methods
     // =============================================================================================   
 
+    /**
+     * Add a NoteEvent at the mouse position.
+     *
+     * @param e
+     * @return The created NoteEvent.
+     */
     private NoteEvent addNote(MouseEvent e)
     {
         boolean overrideSnapSetting = isOverrideSnapSetting(e);
@@ -302,12 +327,12 @@ public class PencilTool implements EditTool
 
         float pos = editor.getPositionFromPoint(point);
         int pitch = editor.getPitchFromPoint(point);
-        if (editor.isSnapEnabled() && !overrideSnapSetting)
+        if ((editor.isSnapEnabled() && !overrideSnapSetting) || (!editor.isSnapEnabled() && overrideSnapSetting))
         {
             pos = Quantizer.getQuantizedPrevious(q, pos);
         }
         pos = Math.min(pos, beatRange.to - 0.1f);
-        float dur = q.getSymbolicDuration().getDuration();
+        float dur = editor.isDrumEdit() ? NoteViewDrum.DURATION : q.getSymbolicDuration().getDuration();
         if (!beatRange.contains(pos + dur, false))
         {
             dur = beatRange.to - pos;

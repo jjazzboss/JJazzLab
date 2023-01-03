@@ -39,6 +39,7 @@ import javax.swing.JComponent;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.ui.keyboardcomponent.api.KeyboardComponent.Orientation;
 import org.jjazz.ui.utilities.api.StringMetrics;
+import org.jjazz.ui.utilities.api.Utilities;
 import org.jjazz.uisettings.api.GeneralUISettings;
 
 /**
@@ -462,9 +463,19 @@ public class PianoKey extends JComponent
             Font f = getFont();
             var textBounds = new StringMetrics(g2, f).getLogicalBoundsNoLeading(text);
             double targetFontHeight = h * 0.9;
-            f = f.deriveFont((float) (f.getSize2D() * targetFontHeight / textBounds.getHeight()));
+            float targetFontSize = (float) (f.getSize2D() * targetFontHeight / textBounds.getHeight());
+            targetFontSize = Math.min(12f, targetFontSize);
+            f = f.deriveFont(targetFontSize);
             textBounds = new StringMetrics(g2, f).getLogicalBoundsNoLeading(text);
             g2.setFont(f);
+
+
+            Color c = getColorProperty(COLOR_FONT);
+            if (!isWhiteKey())
+            {
+                c = Color.WHITE;
+            }
+            g2.setColor(c);
 
 
             // Adjust location
@@ -473,21 +484,22 @@ public class PianoKey extends JComponent
             {
                 case DOWN:
                     x = w / 2 - textBounds.getWidth() / 2 + 0.5;
+                    x = Math.max(1, x);
                     y = h - 2;           // text baseline position
+                    g2.drawString(text, (float) x, (float) y);
                     break;
                 case UP:
                     throw new UnsupportedOperationException("UP");
                 case LEFT:
                     throw new UnsupportedOperationException("LEFT");
                 case RIGHT:
-                    x = w - 2 - textBounds.getWidth() + 0.5;
-                    y = h / 2 - textBounds.getWidth() / 2 - textBounds.getY();
+                    Utilities.drawStringCentered(g2, this, text);
                     break;
                 default:
                     throw new AssertionError(orientation.name());
             }
-            g2.setColor(getColorProperty(COLOR_FONT));
-            g2.drawString(text, (float) x, (float) y);
+
+
         }
 
 

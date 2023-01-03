@@ -62,9 +62,9 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
         cmb_quantization.setRenderer(new QuantizationRenderer());
 
 
-        cb_snap.setSelected(editor.isSnapEnabled());
+        tbtn_snap.setSelected(editor.isSnapEnabled());
 
-        add(new EditToolBar(editor, tools));
+        add(new EditToolBar(editor, tools), 1); // After initial horizontal strut
 
         editor.addPropertyChangeListener(this);
     }
@@ -79,7 +79,7 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
         {
             if (evt.getPropertyName().equals(PianoRollEditor.PROP_SNAP_ENABLED))
             {
-                cb_snap.setSelected(editor.isSnapEnabled());
+                tbtn_snap.setSelected(editor.isSnapEnabled());
             } else if (evt.getPropertyName().equals(PianoRollEditor.PROP_QUANTIZATION))
             {
                 cmb_quantization.setSelectedItem(editor.getQuantization());
@@ -100,12 +100,28 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
     private void initComponents()
     {
 
+        filler2 = new javax.swing.Box.Filler(new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 32767));
+        filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(20, 0), new java.awt.Dimension(30, 0), new java.awt.Dimension(30, 32767));
+        tbtn_snap = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
         cmb_quantization = new javax.swing.JComboBox<>();
-        cb_snap = new javax.swing.JCheckBox();
-        flatToggleButton1 = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
 
         setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 5, 2));
+        add(filler2);
+        add(filler1);
 
+        tbtn_snap.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/pianoroll/resources/SnapOFF.png"))); // NOI18N
+        tbtn_snap.setToolTipText(org.openide.util.NbBundle.getMessage(ToolbarPanel.class, "ToolbarPanel.tbtn_snap.toolTipText")); // NOI18N
+        tbtn_snap.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/pianoroll/resources/SnapON.png"))); // NOI18N
+        tbtn_snap.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                tbtn_snapActionPerformed(evt);
+            }
+        });
+        add(tbtn_snap);
+
+        cmb_quantization.setToolTipText(org.openide.util.NbBundle.getMessage(ToolbarPanel.class, "ToolbarPanel.cmb_quantization.toolTipText")); // NOI18N
         cmb_quantization.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -114,20 +130,6 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
             }
         });
         add(cmb_quantization);
-
-        org.openide.awt.Mnemonics.setLocalizedText(cb_snap, org.openide.util.NbBundle.getMessage(ToolbarPanel.class, "ToolbarPanel.cb_snap.text")); // NOI18N
-        cb_snap.addChangeListener(new javax.swing.event.ChangeListener()
-        {
-            public void stateChanged(javax.swing.event.ChangeEvent evt)
-            {
-                cb_snapStateChanged(evt);
-            }
-        });
-        add(cb_snap);
-
-        flatToggleButton1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/pianoroll/resources/SnapOFF.png"))); // NOI18N
-        flatToggleButton1.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/pianoroll/resources/SnapON.png"))); // NOI18N
-        add(flatToggleButton1);
     }// </editor-fold>//GEN-END:initComponents
 
     private void cmb_quantizationActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cmb_quantizationActionPerformed
@@ -135,16 +137,17 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
         editor.setQuantization((Quantization) cmb_quantization.getSelectedItem());
     }//GEN-LAST:event_cmb_quantizationActionPerformed
 
-    private void cb_snapStateChanged(javax.swing.event.ChangeEvent evt)//GEN-FIRST:event_cb_snapStateChanged
-    {//GEN-HEADEREND:event_cb_snapStateChanged
-        editor.setSnapEnabled(cb_snap.isSelected());
-    }//GEN-LAST:event_cb_snapStateChanged
+    private void tbtn_snapActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_tbtn_snapActionPerformed
+    {//GEN-HEADEREND:event_tbtn_snapActionPerformed
+        editor.setSnapEnabled(tbtn_snap.isSelected());
+    }//GEN-LAST:event_tbtn_snapActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JCheckBox cb_snap;
     private javax.swing.JComboBox<Quantization> cmb_quantization;
-    private org.jjazz.ui.flatcomponents.api.FlatToggleButton flatToggleButton1;
+    private javax.swing.Box.Filler filler1;
+    private javax.swing.Box.Filler filler2;
+    private org.jjazz.ui.flatcomponents.api.FlatToggleButton tbtn_snap;
     // End of variables declaration//GEN-END:variables
 
 
@@ -161,8 +164,6 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
             JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
             Quantization q = (Quantization) value;
             var sd = q.getSymbolicDuration();
-            String tt = sd.getReadableName();
-            label.setToolTipText(tt);
             label.setText(sd.getReadableName());
             // label.setIcon(NoteIcons.get20x30(sd));
             // label.setPreferredSize(new Dimension(label.getIcon().getIconWidth(), label.getIcon().getIconHeight()));
