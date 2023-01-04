@@ -23,6 +23,8 @@
 package org.jjazz.undomanager.api;
 
 import java.util.LinkedList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.undo.CannotRedoException;
@@ -40,7 +42,7 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
 {
 
     /**
-     * Listeners liked Netbeans UndoAction/RedoAction linked to undo/redo buttons
+     * Listeners like Netbeans UndoAction/RedoAction linked to undo/redo buttons
      */
     private final ChangeSupport cs = new ChangeSupport(this);
     /**
@@ -60,6 +62,7 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
      * for debug purposes.
      */
     private String name;
+    private static final Logger LOGGER = Logger.getLogger(JJazzUndoManager.class.getSimpleName());
 
     public JJazzUndoManager()
     {
@@ -95,6 +98,7 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
         {
             throw new IllegalStateException("currentCEdit=" + currentCEdit + " n=" + n);   //NOI18N
         }
+        LOGGER.log(Level.SEVERE, "startCEdit() n=" + n + " edits=" + edits);
         currentCEdit = new CEdit(n);
         addEdit(currentCEdit);
     }
@@ -112,6 +116,8 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
             throw new IllegalStateException("currentCEdit=" + currentCEdit + " n=" + n);   //NOI18N
         }
 
+        LOGGER.log(Level.SEVERE, "endCEdit() -- n=" + n + " edits=" + edits + " currentCEdit.edits=" + currentCEdit.dumpEdits());
+
         currentCEdit.end();
 
         boolean res = true;
@@ -127,6 +133,8 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
 
         // Ready for next compoundedit
         currentCEdit = null;
+
+        LOGGER.log(Level.SEVERE, "endCEdit() POST edits=" + edits);
 
         return res;
     }
@@ -151,6 +159,14 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
         }
 
         updateTask();
+
+        if (currentCEdit == null)
+        {
+            LOGGER.log(Level.SEVERE, "undoableEditHappened() but currentCEdit=null");
+        } else
+        {
+            LOGGER.log(Level.SEVERE, "undoableEditHappened() currentCEdit.edits=" + currentCEdit.dumpEdits());
+        }
     }
 
     /**
@@ -159,6 +175,7 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
     @Override
     public void discardAllEdits()
     {
+        LOGGER.severe("discardAllEdits() -- ");
         synchronized (runus)
         {
             runus.add(null);
@@ -204,6 +221,7 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
 //      {
 //         ue.die();
 //      }
+        LOGGER.severe("killNextEditToBeRedone() --");
         this.trimLastEdit();
         fireChange();
     }
@@ -265,10 +283,10 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
 
             if (ue == null)
             {
-                superDiscardAllEdits();
+                super.discardAllEdits();
             } else
             {
-                superUndoableEditHappened(ue);
+                super.undoableEditHappened(ue);
             }
         }
         fireChange();
@@ -317,21 +335,6 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
     // ========================================================================================================
     // Private methods
     // ========================================================================================================
-    /**
-     * Called from undoableEditHappened() inner class
-     */
-    private void superUndoableEditHappened(UndoableEditEvent ue)
-    {
-        super.undoableEditHappened(ue);
-    }
-
-    /**
-     * Called from discardAllEdits() inner class
-     */
-    private void superDiscardAllEdits()
-    {
-        super.discardAllEdits();
-    }
 
     /**
      * Remove the last edit from the UndoManager.
@@ -340,6 +343,7 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
      */
     private void trimLastEdit()
     {
+        LOGGER.severe("trimLastEdit() --");
         trimEdits(edits.size() - 1, edits.size() - 1);
     }
 
@@ -398,6 +402,11 @@ class CEdit extends CompoundEdit
     public boolean isSignificant()
     {
         return true;
+    }
+
+    public String dumpEdits()
+    {
+        return String.valueOf(edits);
     }
 
     @Override
