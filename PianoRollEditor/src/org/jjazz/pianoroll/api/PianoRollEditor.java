@@ -220,17 +220,6 @@ public abstract class PianoRollEditor extends JPanel implements Lookup.Provider
     }
 
     /**
-     * Get the currently selected notes.
-     *
-     * @return An immutable list.
-     * @see #getSelectedNoteViews()
-     */
-    public List<NoteEvent> getSelectedNotes()
-    {
-        return new NotesSelection(getLookup()).getNotes();
-    }
-
-    /**
      * Unselect all notes.
      */
     public void unselectAll()

@@ -108,7 +108,7 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
      * Client properties are also copied.
      *
      * @param pitch
-     * @return Return this if pitch is unchanged.
+     * @return 
      */
     public NoteEvent getCopyPitch(int pitch)
     {

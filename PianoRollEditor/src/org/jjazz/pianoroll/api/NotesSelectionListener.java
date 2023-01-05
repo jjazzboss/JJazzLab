@@ -22,13 +22,11 @@
  */
 package org.jjazz.pianoroll.api;
 
-import java.util.logging.Level;
+import com.google.common.base.Preconditions;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
 import javax.swing.event.ChangeListener;
-import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
-import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
-import org.jjazz.leadsheet.chordleadsheet.api.event.ClsChangeEvent;
-import org.jjazz.leadsheet.chordleadsheet.api.event.SizeChangedEvent;
 import org.jjazz.phrase.api.NoteEvent;
 import org.openide.util.ChangeSupport;
 import org.openide.util.Lookup;
@@ -37,46 +35,48 @@ import org.openide.util.Utilities;
 import org.openide.util.WeakListeners;
 
 /**
- * A helper class to listen to selection changes of the active PianoRollEditorTopComponent.
+ * A helper class to notify registered ChangeListeners when selection changes in a lookup.
  * <p>
  */
-public class PianoRollEditorActionSupport
+public class NotesSelectionListener
 {
 
-    static private PianoRollEditorActionSupport INSTANCE;
     private Lookup context;
-    private Lookup.Result<NoteEvent> selectedNoteLkpResult;
+    private Lookup.Result<NoteEvent> noteLkpResult;
     private LookupListener noteLkpListener;
+    private NotesSelection selection;
+    private static final Map<Lookup, NotesSelectionListener> MAP_INSTANCES = new HashMap<>();
     private final ChangeSupport cs = new ChangeSupport(this);
-    private static final Logger LOGGER = Logger.getLogger(PianoRollEditorActionSupport.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(NotesSelectionListener.class.getSimpleName());
 
     /**
-     * If context == Utilities.actionsGlobalContext() return a shared instance, otherwise return a new specific object.
+     * Create a listener.
+     * <p>
+     * If context == Utilities.actionsGlobalContext() listen to the lookup of the active PianoRollEditorTopComponent.
+     * <p>
+     * Instances are shared for a given context.
      *
      * @param context
      * @return
      */
-    static public PianoRollEditorActionSupport getInstance(Lookup context)
+    static public NotesSelectionListener getInstance(Lookup context)
     {
-        PianoRollEditorActionSupport o;
-        synchronized (PianoRollEditorActionSupport.class)
+        Preconditions.checkNotNull(context);
+        NotesSelectionListener res;
+        synchronized (NotesSelectionListener.class)
         {
-            if (context == Utilities.actionsGlobalContext())
+            res = MAP_INSTANCES.get(context);
+            if (res == null)
             {
-                if (INSTANCE == null)
-                {
-                    INSTANCE = new PianoRollEditorActionSupport(context);
-                }
-                o = INSTANCE;
-            } else
-            {
-                o = new PianoRollEditorActionSupport(context);
+                res = new NotesSelectionListener(context);
+                MAP_INSTANCES.put(context, res);
             }
         }
-        return o;
+        return res;
     }
 
-    public PianoRollEditorActionSupport(Lookup context)
+
+    public NotesSelectionListener(Lookup context)
     {
         if (context == null)
         {
@@ -86,12 +86,11 @@ public class PianoRollEditorActionSupport
 
         // For WeakReferences to work, we need to keep a strong reference on the listeners (see WeakListeners java doc).
         noteLkpListener = le -> notePresenceChanged();
-
-        selectedNoteLkpResult = context.lookupResult(NoteEvent.class);
+        noteLkpResult = context.lookupResult(NoteEvent.class);
         // Need to use WeakListeners so than action can be GC'ed
         // See http://forums.netbeans.org/viewtopic.php?t=35921
-        selectedNoteLkpResult.addLookupListener(WeakListeners.create(LookupListener.class, noteLkpListener, selectedNoteLkpResult));
-  
+        noteLkpResult.addLookupListener(WeakListeners.create(LookupListener.class, noteLkpListener, noteLkpResult));
+
     }
 
     /**
@@ -103,13 +102,18 @@ public class PianoRollEditorActionSupport
     }
 
     /**
-     * @return The latest selection.
+     * @return The last selection.
      */
     public final NotesSelection getSelection()
     {
         return selection;
     }
 
+    /**
+     * Be notified when selection changes in the context.
+     *
+     * @param l
+     */
     public void addListener(ChangeListener l)
     {
         cs.addChangeListener(l);
@@ -125,7 +129,7 @@ public class PianoRollEditorActionSupport
     // Private functions
     //----------------------------------------------------------------------------------------    
     /**
-     * Called when SelectedBar presence changed in the lookup.
+     * Called when NoteEvent instances presence changed in the lookup.
      */
     @SuppressWarnings(
             {
@@ -134,6 +138,7 @@ public class PianoRollEditorActionSupport
             })
     private void notePresenceChanged()
     {
+        selection = new NotesSelection(context);
         cs.fireChange();
     }
 

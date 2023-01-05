@@ -37,6 +37,7 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
@@ -115,6 +116,8 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
      * Our UndoManager.
      */
     private JJazzUndoManager undoManager;
+    private final Lookup selectionLookup;
+    private final InstanceContent selectionLookupContent;
     private final InstanceContent generalLookupContent;
     private final int startBarIndex;
     private EditTool activeTool;
@@ -151,6 +154,21 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
         editTools = Arrays.asList(new SelectionTool(this), new PencilTool(this), new EraserTool(this));
         activeTool = editTools.get(0);
 
+
+        // Selection lookup
+        selectionLookupContent = new InstanceContent();
+        selectionLookup = new AbstractLookup(selectionLookupContent);
+
+        // The lookup for other stuff, before createUI()
+        generalLookupContent = new InstanceContent();
+        generalLookupContent.add(new PianoRollZoomable());
+        generalLookupContent.add(getActionMap());
+        generalLookup = new AbstractLookup(generalLookupContent);
+
+        // Global lookup = sum of both
+        lookup = new ProxyLookup(selectionLookup, generalLookup);
+
+
         createUI();
 
 
@@ -175,23 +193,6 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
         notesPanel.addMouseListener(editToolProxyMouseListener);
         notesPanel.addMouseMotionListener(editToolProxyMouseListener);
         notesPanel.addMouseWheelListener(editToolProxyMouseListener);
-
-
-        // The lookup for other stuff
-        generalLookupContent = new InstanceContent();
-        generalLookupContent.add(new PianoRollZoomable());
-        generalLookup = new AbstractLookup(generalLookupContent);
-
-
-        // Our implementation is made "Zoomable" by controllers
-        // Initialize with actionmap, our Zoomable object   
-        // zoomable = new SS_EditorZoomable();
-        // generalLookupContent.add(zoomable);
-        generalLookupContent.add(getActionMap());
-
-
-        // Global lookup = sum of both
-        lookup = new ProxyLookup(notesPanel.getSelectionLookup(), generalLookup);
 
 
         // Normal zoom
@@ -573,16 +574,24 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
                 {
                 }
             }
+        } else if (evt.getSource() instanceof NoteView nv)
+        {
+            if (evt.getPropertyName().equals(NoteView.PROP_SELECTED))
+            {
+                if (nv.isSelected())
+                {
+                    selectionLookupContent.add(nv);
+                } else
+                {
+                    selectionLookupContent.remove(nv);
+                }
+            }
         }
     }
 
     // =======================================================================================================================
     // Private methods
     // =======================================================================================================================
-    private boolean isDrums()
-    {
-        return keymap != null;
-    }
 
     /**
      * Caller is responsible to call revalidate() and/or repaint() as required.
@@ -613,6 +622,7 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
         nv.addMouseMotionListener(editToolProxyMouseListener);
         nv.addMouseMotionListener(genericMouseListener);
         nv.addMouseWheelListener(editToolProxyMouseListener);
+        nv.addPropertyChangeListener(this);
         nv.setInheritsPopupMenu(true);
 
     }
@@ -623,6 +633,7 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
         nv.removeMouseMotionListener(editToolProxyMouseListener);
         nv.removeMouseMotionListener(genericMouseListener);
         nv.removeMouseWheelListener(editToolProxyMouseListener);
+        nv.removePropertyChangeListener(this);
     }
 
     private float toScaleFactorX(int zoomHValue)

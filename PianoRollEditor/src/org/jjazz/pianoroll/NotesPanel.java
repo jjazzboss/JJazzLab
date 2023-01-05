@@ -33,7 +33,6 @@ import java.awt.event.ComponentEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,15 +46,11 @@ import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.pianoroll.api.NoteView;
 import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
-import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.ui.keyboardcomponent.api.KeyboardComponent;
 import org.jjazz.ui.keyboardcomponent.api.PianoKey;
 import org.jjazz.ui.utilities.api.HSLColor;
 import org.jjazz.util.api.FloatRange;
 import org.jjazz.util.api.IntRange;
-import org.openide.util.Lookup;
-import org.openide.util.lookup.AbstractLookup;
-import org.openide.util.lookup.InstanceContent;
 
 /**
  * The main editor panel, shows the grid and holds the NoteViews.
@@ -73,8 +68,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
     private final SizedPhrase spModel;
     private float scaleFactorX = 1f;
     private final TreeMap<NoteEvent, NoteView> mapNoteViews = new TreeMap<>();
-    private final Lookup selectionLookup;
-    private final InstanceContent selectionLookupContent;
+
     private static final Logger LOGGER = Logger.getLogger(NotesPanel.class.getSimpleName());
 
 
@@ -85,11 +79,6 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
         this.keyboard = keyboard;
         this.xMapper = new XMapper();
         this.yMapper = new YMapper();
-
-
-        selectionLookupContent = new InstanceContent();
-        selectionLookup = new AbstractLookup(selectionLookupContent);
-
 
         editor.getSettings().addPropertyChangeListener(this);
 
@@ -157,11 +146,6 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
                 nv.setBounds(x, y, w, h);
             }
         }
-    }
-
-    public Lookup getSelectionLookup()
-    {
-        return selectionLookup;
     }
 
     @Override
@@ -348,16 +332,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
 
         } else if (evt.getSource() instanceof NoteView nv)
         {
-            if (evt.getPropertyName().equals(NoteView.PROP_SELECTED))
-            {
-                if (nv.isSelected())
-                {
-                    selectionLookupContent.add(nv);
-                } else
-                {
-                    selectionLookupContent.remove(nv);
-                }
-            } else if (evt.getPropertyName().equals(NoteView.PROP_MODEL))
+            if (evt.getPropertyName().equals(NoteView.PROP_MODEL))
             {
                 NoteEvent oldNe = (NoteEvent) evt.getOldValue();
                 // nv's model was changed, remove and readd

@@ -48,22 +48,16 @@ public class NotesSelection
         noteViews.sort((nv1, nv2) -> nv1.getModel().compareTo(nv2.getModel()));
     }
 
-    /**
-     * Get the selected notes sorted by NoteEvent natural order.
-     *
-     * @return An immutable list.
-     */
-    public List<NoteEvent> getNotes()
+    public int size()
     {
-        if (noteEvents == null)
-        {
-            noteEvents = noteViews.stream()
-                    .map(nv -> nv.getModel())
-                    .toList();
-        }
-        return noteEvents;
+        return noteViews.size();
     }
 
+    public boolean isEmpty()
+    {
+        return noteViews.isEmpty();
+    }
+   
     /**
      * Get the selected NoteViews sorted by NoteEvent natural order.
      *

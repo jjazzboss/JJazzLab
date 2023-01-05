@@ -33,6 +33,9 @@ import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
@@ -163,10 +166,10 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
             g2.setFont(FONT);
             g2.drawString(noteAsString, xStr, yStr);
         }
-        
+
         g2.dispose();
     }
-    
+
     public Color getBorderColor()
     {
         return borderColor;
@@ -181,6 +184,20 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
     public String toString()
     {
         return "NoteView[" + noteEvent + "]";
+    }
+
+    /**
+     * Get a list of notes from a collection of NoteViews.
+     *
+     * @param noteViews
+     * @return A mutable list
+     */
+    static public List<NoteEvent> getNotes(Collection<NoteView> noteViews)
+    {
+        Preconditions.checkNotNull(noteViews);
+        List<NoteEvent> res = new ArrayList<>();
+        noteViews.forEach(nv -> res.add(nv.getModel()));
+        return res;
     }
 
     /**
@@ -248,7 +265,7 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
         setBorder(BorderFactory.createLineBorder(borderColor, 1));
         noteAsString = new Note(ne.getPitch()).toPianoOctaveString();
         String tt = noteAsString + " (" + ne.getPitch() + ") v=" + ne.getVelocity();
-        setToolTipText(tt);       
+        setToolTipText(tt);
     }
 
     /**
@@ -289,7 +306,7 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
      */
     private Color getBorderColor(Color bgColor)
     {
-        return  HSLColor.changeLuminance(bgColor, -12);       // Darker
+        return HSLColor.changeLuminance(bgColor, -12);       // Darker
     }
 
 

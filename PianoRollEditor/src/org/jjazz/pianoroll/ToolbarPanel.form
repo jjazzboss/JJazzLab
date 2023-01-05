@@ -117,15 +117,24 @@
             </Property>
           </Properties>
         </Component>
-        <Component class="org.jjazz.ui.utilities.api.WheelSpinner" name="wheelSpinner1">
+        <Component class="org.jjazz.ui.utilities.api.WheelSpinner" name="spn_pitch">
           <Properties>
+            <Property name="model" type="javax.swing.SpinnerModel" editor="org.netbeans.modules.form.editors2.SpinnerModelEditor">
+              <SpinnerModel initial="0" maximum="127" minimum="0" numberType="java.lang.Integer" stepSize="1" type="number"/>
+            </Property>
             <Property name="columns" type="int" value="2"/>
           </Properties>
+          <Events>
+            <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="spn_pitchStateChanged"/>
+          </Events>
         </Component>
-        <Component class="org.jjazz.ui.utilities.api.WheelSpinner" name="wheelSpinner2">
+        <Component class="org.jjazz.ui.utilities.api.WheelSpinner" name="spn_velocity">
           <Properties>
             <Property name="columns" type="int" value="2"/>
           </Properties>
+          <Events>
+            <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="spn_velocityStateChanged"/>
+          </Events>
         </Component>
       </SubComponents>
     </Container>
