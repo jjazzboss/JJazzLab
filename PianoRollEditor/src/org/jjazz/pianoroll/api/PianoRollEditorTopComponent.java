@@ -62,12 +62,12 @@ import org.openide.util.NbBundle.Messages;
             "CTL_PhraseEditorTopComponent=PhraseEditor Window",
             "HINT_PhraseEditorTopComponent=This is a PhraseEditor window"
         })
-public final class PhraseEditorTopComponent extends TopComponent
+public final class PianoRollEditorTopComponent extends TopComponent
 {
 
     private PianoRollEditorImpl editor;
 
-    public PhraseEditorTopComponent()
+    public PianoRollEditorTopComponent()
     {
         setName(Bundle.CTL_PhraseEditorTopComponent());
         setToolTipText(Bundle.HINT_PhraseEditorTopComponent());
