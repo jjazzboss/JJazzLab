@@ -172,11 +172,6 @@ public class SelectionTool implements EditTool
             mapSrcDragNotes.clear();
 
 
-            // Important: we don't want drag events to be recognized by the undoManager, we'll manage  undo at drag release
-            assert editor.getUndoManager().isEnabled();
-            editor.getUndoManager().setEnabled(false);
-
-
             // Adjust selection if required
             var selectedNotes = editor.getSelectedNotes();
             if (!selectedNotes.contains(neSource))
@@ -195,12 +190,21 @@ public class SelectionTool implements EditTool
             switch (state)
             {
                 case EDITOR:
+                    break;
                 case RESIZE_WEST:
                 case RESIZE_EAST:
+                    // Important: we don't want drag events to be recognized by the undoManager, we'll manage  undo at drag release
+                    assert editor.getUndoManager().isEnabled();
+                    editor.getUndoManager().setEnabled(false);
+
                     mapSrcDragNotes.keySet().forEach(ne -> spModel.replace(ne, mapSrcDragNotes.get(ne)));
+
                     break;
                 case MOVE:
                 case COPY:
+                    // Important: we don't want drag events to be recognized by the undoManager, we'll manage  undo at drag release
+                    assert editor.getUndoManager().isEnabled();
+                    editor.getUndoManager().setEnabled(false);
 
                     mapSrcDragNotes.values().forEach(ne -> spModel.add(ne));
                     dragNoteView = editor.getNoteView(mapSrcDragNotes.get(neSource));
@@ -236,6 +240,7 @@ public class SelectionTool implements EditTool
             {
                 case EDITOR:
                     break;
+                    
                 case RESIZE_WEST:
                 {
                     float dPos = editorPointPos - dragStartPos;
@@ -360,6 +365,7 @@ public class SelectionTool implements EditTool
                 }
 
                 // Now we make the undoable changes
+                assert !editor.getUndoManager().isEnabled();
                 editor.getUndoManager().setEnabled(true);
 
 
@@ -387,6 +393,7 @@ public class SelectionTool implements EditTool
 
 
                 // Now we make the undoable changes
+                assert !editor.getUndoManager().isEnabled();
                 editor.getUndoManager().setEnabled(true);
 
 
@@ -414,6 +421,7 @@ public class SelectionTool implements EditTool
 
 
                 // Now we make the undoable changes
+                assert !editor.getUndoManager().isEnabled();
                 editor.getUndoManager().setEnabled(true);
 
                 String undoText = ResUtil.getString(getClass(), "CopyNote");
@@ -436,6 +444,7 @@ public class SelectionTool implements EditTool
                 throw new AssertionError(state.name());
 
         }
+
         isDragging = false;
         dragStartPos = -1;
         mapSrcDragNotes.clear();
