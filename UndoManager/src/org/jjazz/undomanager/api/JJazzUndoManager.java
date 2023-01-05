@@ -31,6 +31,7 @@ import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.CompoundEdit;
 import javax.swing.undo.UndoManager;
+import javax.swing.undo.UndoableEdit;
 import org.openide.*;
 import org.openide.awt.UndoRedo;
 import org.openide.util.ChangeSupport;
@@ -57,6 +58,9 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
      * True is undo/redo in progress.
      */
     private boolean undoRedoInProgress = false;
+
+    private boolean enabled = true;
+
 
     /**
      * for debug purposes.
@@ -98,7 +102,10 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
         {
             throw new IllegalStateException("currentCEdit=" + currentCEdit + " n=" + n);   //NOI18N
         }
-        LOGGER.log(Level.SEVERE, "startCEdit() n=" + n + " edits=" + edits);
+        LOGGER.log(Level.FINE, "startCEdit() n={0} edits={1}", new Object[]
+        {
+            n, edits
+        });
         currentCEdit = new CEdit(n);
         addEdit(currentCEdit);
     }
@@ -116,7 +123,10 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
             throw new IllegalStateException("currentCEdit=" + currentCEdit + " n=" + n);   //NOI18N
         }
 
-        LOGGER.log(Level.SEVERE, "endCEdit() -- n=" + n + " edits=" + edits + " currentCEdit.edits=" + currentCEdit.dumpEdits());
+        LOGGER.log(Level.FINE, "endCEdit() -- n={0} edits={1} currentCEdit.edits={2}", new Object[]
+        {
+            n, edits, currentCEdit.dumpEdits()
+        });
 
         currentCEdit.end();
 
@@ -134,13 +144,53 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
         // Ready for next compoundedit
         currentCEdit = null;
 
-        LOGGER.log(Level.SEVERE, "endCEdit() POST edits=" + edits);
+        LOGGER.log(Level.FINE, "endCEdit() POST edits={0}", edits);
 
         return res;
     }
 
     /**
-     * Consume an undoable edit.
+     * Overridden for enabled state management.
+     */
+    @Override
+    public synchronized boolean addEdit(UndoableEdit anEdit)
+    {
+        return enabled ? super.addEdit(anEdit) : false;
+    }
+
+    /**
+     * Check if this instance is enabled.
+     *
+     * @return True by default
+     * @see #setEnabled(boolean)
+     */
+    public boolean isEnabled()
+    {
+        return enabled;
+    }
+
+    /**
+     * Enable or disable this instance.
+     * <p>
+     * If disabled no new edit can be added (either via addEdit() or undoableEditHappened()).
+     * <p>
+     * NOTE: Model must NOT be changed while the associated JJazzUndoManager is disabled.
+     *
+     * @param enabled
+     * @see #isEnabled()
+     * @throws IllegalStateException If an undo is in progress
+     */
+    public void setEnabled(boolean enabled)
+    {
+        if (isUndoRedoInProgress())
+        {
+            throw new IllegalStateException("An undo/redo is in progress");
+        }
+        this.enabled = enabled;
+    }
+
+    /**
+     * Consume an undoable edit (if the instance is enabled).
      * <p>
      * Delegates to superclass and notifies listeners.
      *
@@ -149,6 +199,11 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
     @Override
     public void undoableEditHappened(final UndoableEditEvent ue)
     {
+        if (!enabled)
+        {
+            return;
+        }
+
         /*
        * Edits are posted to request processor and the deadlock in #8692 between undoredo and document that fires the
        * undoable edit should be avoided this way.
@@ -162,10 +217,10 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
 
         if (currentCEdit == null)
         {
-            LOGGER.log(Level.SEVERE, "undoableEditHappened() but currentCEdit=null");
+            LOGGER.log(Level.FINE, "undoableEditHappened() but currentCEdit=null");
         } else
         {
-            LOGGER.log(Level.SEVERE, "undoableEditHappened() currentCEdit.edits=" + currentCEdit.dumpEdits());
+            LOGGER.log(Level.FINE, "undoableEditHappened() currentCEdit.edits=" + currentCEdit.dumpEdits());
         }
     }
 
@@ -175,7 +230,7 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
     @Override
     public void discardAllEdits()
     {
-        LOGGER.severe("discardAllEdits() -- ");
+        LOGGER.fine("discardAllEdits() -- ");
         synchronized (runus)
         {
             runus.add(null);
@@ -221,7 +276,7 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
 //      {
 //         ue.die();
 //      }
-        LOGGER.severe("killNextEditToBeRedone() --");
+        LOGGER.fine("killNextEditToBeRedone() --");
         this.trimLastEdit();
         fireChange();
     }
@@ -343,7 +398,7 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
      */
     private void trimLastEdit()
     {
-        LOGGER.severe("trimLastEdit() --");
+        LOGGER.fine("trimLastEdit() --");
         trimEdits(edits.size() - 1, edits.size() - 1);
     }
 
