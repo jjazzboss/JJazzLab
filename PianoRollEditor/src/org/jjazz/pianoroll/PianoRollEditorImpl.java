@@ -37,7 +37,6 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
@@ -274,6 +273,7 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
     {
         rulerPanel.cleanup();
         notesPanel.cleanup();
+        toolbarPanel.cleanup();
         spModel.removeUndoableEditListener(undoManager);
         spModel.removePropertyChangeListener(this);
     }

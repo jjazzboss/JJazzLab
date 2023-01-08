@@ -56,6 +56,7 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
     public static final String PROP_SELECTED = "PropSelected";
     public static final String PROP_MODEL = "PropModel";
     private static Color[] VELOCITY_COLORS;
+    private static Color[] SELECTED_VELOCITY_COLORS;
     private static final Color COLOR_TEXT = Color.WHITE;
     private static final Font FONT;
     private static final int FONT_HEIGHT;
@@ -216,6 +217,22 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
         return VELOCITY_COLORS[velocity];
     }
 
+    /**
+     * Get a selected note color which changes with velocity.
+     *
+     * @param velocity
+     * @return
+     */
+    static public Color getSelectedColor(int velocity)
+    {
+        Preconditions.checkArgument(velocity >= 0 && velocity <= 127);
+        if (SELECTED_VELOCITY_COLORS == null)
+        {
+            computeVelocityColors();
+        }
+        return SELECTED_VELOCITY_COLORS[velocity];
+    }
+
 
     // ==========================================================================================================
     // PropertyChangeListener interface
@@ -259,7 +276,7 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
 
     private void updateGraphics(NoteEvent ne)
     {
-        Color bgColor = selected ? settings.getSelectedNoteColor() : getColor(ne.getVelocity());
+        Color bgColor = selected ? getSelectedColor(ne.getVelocity()) : getColor(ne.getVelocity());
         setBackground(bgColor);
         borderColor = getBorderColor(getBackground());
         setBorder(BorderFactory.createLineBorder(borderColor, 1));
@@ -281,6 +298,8 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
         {
             0.0f, 0.5f, 1.0f
         };
+
+
         Color[] colors =
         {
             new Color(2, 0, 252), new Color(128, 0, 126), new Color(255, 0, 0)
@@ -294,6 +313,24 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
             int cInt = img.getRGB(i, 0);
             VELOCITY_COLORS[i] = new Color(cInt);
         }
+
+
+        Color sc = PianoRollEditorSettings.getDefault().getSelectedNoteColor();
+        Color[] selectedcolors =
+        {
+            HSLColor.changeLuminance(sc, -18), HSLColor.changeLuminance(sc, -9), sc
+        };
+        LinearGradientPaint pSelected = new LinearGradientPaint(start, end, dist, selectedcolors);
+        g2.setPaint(pSelected);
+        g2.fillRect(0, 0, 127, 1);
+        SELECTED_VELOCITY_COLORS = new Color[128];
+        for (int i = 0; i < 128; i++)
+        {
+            int cInt = img.getRGB(i, 0);
+            SELECTED_VELOCITY_COLORS[i] = new Color(cInt);
+        }
+
+
         g2.dispose();
 
     }

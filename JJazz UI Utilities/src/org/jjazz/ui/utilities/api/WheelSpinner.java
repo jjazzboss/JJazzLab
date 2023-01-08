@@ -22,14 +22,19 @@
  */
 package org.jjazz.ui.utilities.api;
 
+import java.awt.Component;
 import org.jjazz.uisettings.api.GeneralUISettings;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import java.text.ParseException;
 import java.util.logging.Logger;
+import javax.accessibility.AccessibleAction;
 import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
@@ -37,6 +42,8 @@ import javax.swing.KeyStroke;
 import javax.swing.SpinnerListModel;
 import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
@@ -58,13 +65,19 @@ public class WheelSpinner extends JSpinner implements MouseWheelListener
     private int columns;
     private boolean loopValues;
     private boolean blockKeyEventForwarding;
+    private boolean changeFromManualEdit = true;
+    private JButton btnNextArrow;
+    private JButton btnPrevArrow;
+    private boolean silent;
     private static final Logger LOGGER = Logger.getLogger(WheelSpinner.class.getSimpleName());
+
 
     public WheelSpinner()
     {
 
         // Use mouse wheel only if enabled
         GeneralUISettings.getInstance().installChangeValueWithMouseWheelSupport(this, this);
+
 
         setColumns(3);
         setCtrlWheelStep(3);
@@ -99,6 +112,22 @@ public class WheelSpinner extends JSpinner implements MouseWheelListener
             }
         });
 
+
+        // We need those buttons for mouseWheelMoved()
+        for (Component c : getComponents())
+        {
+            if (c instanceof JButton jbtn)
+            {
+                if (jbtn.getName().equals("Spinner.nextButton"))
+                {
+                    btnNextArrow = jbtn;
+                } else if (jbtn.getName().equals("Spinner.previousButton"))
+                {
+                    btnPrevArrow = jbtn;
+                }
+            }
+        }
+        assert btnNextArrow != null && btnPrevArrow != null;
     }
 
     /**
@@ -184,6 +213,19 @@ public class WheelSpinner extends JSpinner implements MouseWheelListener
     }
 
     /**
+     * Same as setValue(Object) but with possibility of NOT notifying change listeners.
+     *
+     * @param value
+     * @param silent If true don't notify registered ChangeListeners
+     */
+    public void setValue(Object value, boolean silent)
+    {
+        this.silent = silent;
+        super.setValue(value);
+        this.silent = false;
+    }
+
+    /**
      * Indicate if spinner loops to min value when max value is reached using the wheel.
      *
      * @return the loopValues
@@ -255,6 +297,59 @@ public class WheelSpinner extends JSpinner implements MouseWheelListener
         this.ctrlWheelStep = ctrlWheelStep < 1 ? 1 : ctrlWheelStep;
     }
 
+    /**
+     * Check if the last ChangeEvent resulted from a manual edit (user typed value), or an increment/decrement action (e.g. using
+     * the up/down buttons).
+     *
+     * @return
+     */
+    public boolean isChangeFromManualEdit()
+    {
+        return changeFromManualEdit;
+    }
+
+    /**
+     * Overridden only to manage changeFromManualEdit.
+     *
+     * @throws ParseException
+     */
+    @Override
+    public void commitEdit() throws ParseException
+    {
+        changeFromManualEdit = false;
+        super.commitEdit();
+    }
+
+    /**
+     * Overridden to manage changeFromManualEdit and setValue(Object,boolean).
+     * <p>
+     */
+    @Override
+    protected void fireStateChanged()
+    {
+        if (!silent)
+        {
+            super.fireStateChanged();
+
+        } else
+        {
+            // Notify only the internal JSpinner listeners (normally the editor)
+            ChangeListener[] listeners = getChangeListeners();
+            var ce = new ChangeEvent(this);
+            for (var cl : listeners)
+            {
+                if (cl.getClass().getEnclosingClass() == JSpinner.class)
+                {
+                    // LOGGER.severe("fireStateChanged() SILENT but firing cl=" + cl);
+                    cl.stateChanged(ce);
+
+                }
+            }
+        }
+
+        changeFromManualEdit = true;
+    }
+
     // -----------------------------------------------------------------------------
     // MouseWheelListener interface
     // -----------------------------------------------------------------------------   
@@ -273,9 +368,15 @@ public class WheelSpinner extends JSpinner implements MouseWheelListener
         int offMask = 0;
         boolean ctrl = ((e.getModifiersEx() & (onMask | offMask)) == onMask);
         int steps = ctrl ? ctrlWheelStep : wheelStep;
+
+
+        // We need to use the actions so that isChangeFromManualEdit() works when change comes from mouse wheel
+        Action action = getActionMap().get(e.getWheelRotation() < 0 ? AccessibleAction.INCREMENT : AccessibleAction.DECREMENT);
+        var src = e.getWheelRotation() < 0 ? btnNextArrow : btnPrevArrow;
+        ActionEvent ae = new ActionEvent(src, ActionEvent.ACTION_FIRST, src.getActionCommand());
         for (int i = 0; i < steps; i++)
         {
-            setValue(e.getWheelRotation() < 0 ? getNext() : getPrevious());
+            action.actionPerformed(ae);
         }
     }
 

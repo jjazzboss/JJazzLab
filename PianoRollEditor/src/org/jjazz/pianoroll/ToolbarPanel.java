@@ -23,13 +23,20 @@
 package org.jjazz.pianoroll;
 
 import java.awt.Component;
+import java.awt.Font;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.SpinnerNumberModel;
+import org.jjazz.midi.api.MidiUtilities;
+import org.jjazz.phrase.api.NoteEvent;
+import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.pianoroll.api.EditTool;
 import org.jjazz.pianoroll.api.NoteView;
@@ -37,6 +44,7 @@ import org.jjazz.pianoroll.api.NotesSelection;
 import org.jjazz.pianoroll.api.NotesSelectionListener;
 import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.quantizer.api.Quantization;
+import org.jjazz.uisettings.api.GeneralUISettings;
 import org.jjazz.util.api.ResUtil;
 
 
@@ -49,7 +57,8 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
     private final PianoRollEditor editor;
     private final SizedPhrase spModel;
     private final NotesSelectionListener notesSelectionListener;
-    private NotesSelection selection;
+    private int lastSpinnerValue;
+    private static final Logger LOGGER = Logger.getLogger(ToolbarPanel.class.getSimpleName());
 
     /**
      * Creates new form ToolbarPanel
@@ -68,14 +77,28 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
         cmb_quantization.setSelectedItem(editor.getQuantization());
         cmb_quantization.setRenderer(new QuantizationRenderer());
 
+
         tbtn_snap.setSelected(editor.isSnapEnabled());
+
 
         pnl_left.add(new EditToolBar(editor, tools), 1); // After initial horizontal strut
 
+
         editor.addPropertyChangeListener(this);
+        spModel.addPropertyChangeListener(this);
+
 
         notesSelectionListener = new NotesSelectionListener(editor.getLookup());
         notesSelectionListener.addListener(l -> selectionChanged(notesSelectionListener.getSelection()));
+
+
+        lastSpinnerValue = (Integer) spn_velocity.getModel().getValue();
+
+    }
+
+    public void cleanup()
+    {
+        spModel.removePropertyChangeListener(this);
     }
 
     // ====================================================================================
@@ -93,25 +116,81 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
             {
                 cmb_quantization.setSelectedItem(editor.getQuantization());
             }
+
+        } else if (evt.getSource() == spModel)
+        {
+
+            switch (evt.getPropertyName())
+            {
+                case Phrase.PROP_NOTE_REPLACED ->
+                {
+                    var selectedNvs = editor.getSelectedNoteViews();
+                    var selectedNes = NoteView.getNotes(selectedNvs);
+                    var newNe = (NoteEvent) evt.getNewValue();
+                    var oldNe = (NoteEvent) evt.getOldValue();
+                    if (selectedNes.contains(newNe))
+                    {
+                        LOGGER.log(Level.FINE, "propertyChange() NoteReplaced oldNe={0} newNe={1}", new Object[]
+                        {
+                            oldNe, newNe
+                        });
+                        updateVelocitySpinner(selectedNvs);
+                    }
+                }
+                case Phrase.PROP_NOTE_ADDED, Phrase.PROP_NOTE_REMOVED ->
+                {
+                    // Nothing, we are notified via selection changes
+                }
+                case Phrase.PROP_NOTE_MOVED ->
+                {
+                    // Velocity unchanged
+                }
+                default ->
+                {
+                    throw new IllegalStateException("evt.getPropertyName()=" + evt.getPropertyName());
+                }
+            }
+        }
+    }
+    // ====================================================================================
+    // Private methods
+    // ====================================================================================
+
+    private void selectionChanged(NotesSelection selection)
+    {
+        var b = !selection.isEmpty();
+        spn_velocity.setEnabled(b);
+        if (b)
+        {
+            var nvs = selection.getNoteViews();
+            LOGGER.log(Level.FINE, "selectionChanged() -- selection={0}", nvs);
+            updateVelocitySpinner(nvs);
         }
     }
 
 
-    // ====================================================================================
-    // Private methods
-    // ====================================================================================
-    private void selectionChanged(NotesSelection selection)
+    /**
+     * Update the JSpinner when change resulted from an action which is NOT a JSpinner direct change.
+     * <p>
+     * It can be a selection change or a selected note has changed by other means. We must make sure our ChangeListener method is
+     * not called when updating the JSpinner.
+     *
+     * @param selectedNvs
+     */
+    private void updateVelocitySpinner(List<NoteView> selectedNvs)
     {
-        this.selection = selection;
-        var b = !this.selection.isEmpty();
-        spn_pitch.setEnabled(b);
-        spn_velocity.setEnabled(b);
-        if (b)
-        {
-            var ne0 = this.selection.getNoteViews().get(0).getModel();
-            spn_pitch.setValue(ne0.getPitch());
-            spn_velocity.setValue(ne0.getVelocity());
-        }
+        assert !selectedNvs.isEmpty();
+        LOGGER.log(Level.FINE, "updateVelocitySpinner() -- selectedNvs={0}", selectedNvs);
+        int v0 = selectedNvs.get(0).getModel().getVelocity();
+
+        // Important: avoid our ChangeListener to be notified 
+        spn_velocity.setValue(v0, true);
+        lastSpinnerValue = v0;
+
+        boolean multipleValues = selectedNvs.stream()
+                .anyMatch(nv -> nv.getModel().getVelocity() != v0);
+        Font f = spn_velocity.getFont().deriveFont(multipleValues ? Font.ITALIC : Font.PLAIN);
+        spn_velocity.setFont(f);
     }
 
 
@@ -130,8 +209,7 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
         tbtn_snap = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
         cmb_quantization = new javax.swing.JComboBox<>();
         filler3 = new javax.swing.Box.Filler(new java.awt.Dimension(20, 0), new java.awt.Dimension(30, 0), new java.awt.Dimension(30, 32767));
-        lbl_pitch_vel = new javax.swing.JLabel();
-        spn_pitch = new org.jjazz.ui.utilities.api.WheelSpinner();
+        lbl_velocity = new javax.swing.JLabel();
         spn_velocity = new org.jjazz.ui.utilities.api.WheelSpinner();
         pnl_right = new javax.swing.JPanel();
         lbl_title = new javax.swing.JLabel();
@@ -165,22 +243,14 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
         pnl_left.add(cmb_quantization);
         pnl_left.add(filler3);
 
-        lbl_pitch_vel.setFont(lbl_pitch_vel.getFont().deriveFont(lbl_pitch_vel.getFont().getSize()-1f));
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_pitch_vel, org.openide.util.NbBundle.getMessage(ToolbarPanel.class, "ToolbarPanel.lbl_pitch_vel.text")); // NOI18N
-        pnl_left.add(lbl_pitch_vel);
+        lbl_velocity.setFont(lbl_velocity.getFont().deriveFont(lbl_velocity.getFont().getSize()-1f));
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_velocity, org.openide.util.NbBundle.getMessage(ToolbarPanel.class, "ToolbarPanel.lbl_velocity.text")); // NOI18N
+        pnl_left.add(lbl_velocity);
 
-        spn_pitch.setModel(new javax.swing.SpinnerNumberModel(0, 0, 127, 1));
-        spn_pitch.setColumns(2);
-        spn_pitch.addChangeListener(new javax.swing.event.ChangeListener()
-        {
-            public void stateChanged(javax.swing.event.ChangeEvent evt)
-            {
-                spn_pitchStateChanged(evt);
-            }
-        });
-        pnl_left.add(spn_pitch);
-
+        spn_velocity.setModel(new javax.swing.SpinnerNumberModel(0, 0, 127, 1));
         spn_velocity.setColumns(2);
+        spn_velocity.setEnabled(false);
+        spn_velocity.setLoopValues(false);
         spn_velocity.addChangeListener(new javax.swing.event.ChangeListener()
         {
             public void stateChanged(javax.swing.event.ChangeEvent evt)
@@ -210,34 +280,63 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
         editor.setSnapEnabled(tbtn_snap.isSelected());
     }//GEN-LAST:event_tbtn_snapActionPerformed
 
-    private void spn_pitchStateChanged(javax.swing.event.ChangeEvent evt)//GEN-FIRST:event_spn_pitchStateChanged
-    {//GEN-HEADEREND:event_spn_pitchStateChanged
-
-        String undoText = ResUtil.getString(getClass(), "ChangePitch");
-        editor.getUndoManager().startCEdit(undoText);
-
-        int newValue = (Integer) spn_pitch.getValue();
-        selection.getNoteViews().stream()
-                .map(nv -> nv.getModel())
-                .filter(ne -> ne.getPitch() != newValue)
-                .forEach(ne -> spModel.replace(ne, ne.getCopyPitch(newValue)));
-
-
-        editor.getUndoManager().endCEdit(undoText);
-    }//GEN-LAST:event_spn_pitchStateChanged
 
     private void spn_velocityStateChanged(javax.swing.event.ChangeEvent evt)//GEN-FIRST:event_spn_velocityStateChanged
     {//GEN-HEADEREND:event_spn_velocityStateChanged
+        // As we generate an undoable event here, the state change must be triggered only by a direct user action
+        // on the JSpinner, ie change field or increase/decrease value.
+        // Use WheelSpinner.setValue(Object, true) to avoid triggering the ChangeEvent.
+
+
+        int newSpinnerValue = (int) spn_velocity.getValue();
+        boolean isManualEdit;
+
+        if (GeneralUISettings.getInstance().isChangeValueWithMouseWheelEnabled())
+        {
+            isManualEdit = spn_velocity.isChangeFromManualEdit();
+        } else
+        {
+            // Not perfect method to detect manual edit, but no choice
+            int stepSize = (int) ((SpinnerNumberModel) spn_velocity.getModel()).getStepSize();
+            isManualEdit = newSpinnerValue != lastSpinnerValue + stepSize && newSpinnerValue != lastSpinnerValue - stepSize;
+        }
+
+        LOGGER.log(Level.FINE, "spn_velocityStateChanged() -- isManualEdit={0}  newSpinnerValue={1}", new Object[]
+        {
+            isManualEdit, newSpinnerValue
+        });
+
+
+        // Create an undoable event since it was a change made by user to the JSpinner
         String undoText = ResUtil.getString(getClass(), "ChangeVelocity");
         editor.getUndoManager().startCEdit(undoText);
 
-        int newValue = (Integer) spn_velocity.getValue();
-        selection.getNoteViews().stream()
-                .map(nv -> nv.getModel())
-                .filter(ne -> ne.getVelocity() != newValue)
-                .forEach(ne -> spModel.replace(ne, ne.getCopyVel(newValue)));
+
+        var selectedNvs = editor.getSelectedNoteViews();
+
+        if (isManualEdit)
+        {
+            // User typed a new value, apply it to all notes
+            selectedNvs.stream()
+                    .map(nv -> nv.getModel())
+                    .filter(ne -> ne.getVelocity() != newSpinnerValue)
+                    .forEach(ne -> spModel.replace(ne, ne.getCopyVel(newSpinnerValue)));
+        } else
+        {
+            // User increased/decreased, apply the delta to all notes
+            int delta = newSpinnerValue - lastSpinnerValue;
+            selectedNvs.stream()
+                    .map(nv -> nv.getModel())
+                    .forEach(ne ->
+                    {
+                        int newVel = MidiUtilities.limit(ne.getVelocity() + delta);
+                        spModel.replace(ne, ne.getCopyVel(newVel));
+                    });
+        }
 
         editor.getUndoManager().endCEdit(undoText);
+
+        lastSpinnerValue = newSpinnerValue;
     }//GEN-LAST:event_spn_velocityStateChanged
 
 
@@ -246,11 +345,10 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
     private javax.swing.Box.Filler filler1;
     private javax.swing.Box.Filler filler2;
     private javax.swing.Box.Filler filler3;
-    private javax.swing.JLabel lbl_pitch_vel;
     private javax.swing.JLabel lbl_title;
+    private javax.swing.JLabel lbl_velocity;
     private javax.swing.JPanel pnl_left;
     private javax.swing.JPanel pnl_right;
-    private org.jjazz.ui.utilities.api.WheelSpinner spn_pitch;
     private org.jjazz.ui.utilities.api.WheelSpinner spn_velocity;
     private org.jjazz.ui.flatcomponents.api.FlatToggleButton tbtn_snap;
     // End of variables declaration//GEN-END:variables

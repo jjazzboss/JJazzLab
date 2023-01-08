@@ -27,11 +27,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 import javax.swing.event.ChangeListener;
-import org.jjazz.phrase.api.NoteEvent;
 import org.openide.util.ChangeSupport;
 import org.openide.util.Lookup;
 import org.openide.util.LookupListener;
-import org.openide.util.Utilities;
 import org.openide.util.WeakListeners;
 
 /**
@@ -42,8 +40,8 @@ public class NotesSelectionListener
 {
 
     private Lookup context;
-    private Lookup.Result<NoteEvent> noteLkpResult;
-    private LookupListener noteLkpListener;
+    private Lookup.Result<NoteView> noteViewLkpResult;
+    private LookupListener noteViewLkpListener;
     private NotesSelection selection;
     private static final Map<Lookup, NotesSelectionListener> MAP_INSTANCES = new HashMap<>();
     private final ChangeSupport cs = new ChangeSupport(this);
@@ -85,11 +83,11 @@ public class NotesSelectionListener
         this.context = context;
 
         // For WeakReferences to work, we need to keep a strong reference on the listeners (see WeakListeners java doc).
-        noteLkpListener = le -> notePresenceChanged();
-        noteLkpResult = context.lookupResult(NoteEvent.class);
+        noteViewLkpListener = le -> notePresenceChanged();
+        noteViewLkpResult = context.lookupResult(NoteView.class);
         // Need to use WeakListeners so than action can be GC'ed
         // See http://forums.netbeans.org/viewtopic.php?t=35921
-        noteLkpResult.addLookupListener(WeakListeners.create(LookupListener.class, noteLkpListener, noteLkpResult));
+        noteViewLkpResult.addLookupListener(WeakListeners.create(LookupListener.class, noteViewLkpListener, noteViewLkpResult));
 
     }
 

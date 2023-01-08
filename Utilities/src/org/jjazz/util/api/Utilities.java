@@ -27,6 +27,7 @@ import com.thoughtworks.xstream.XStream;
 import java.awt.Desktop;
 import java.awt.Font;
 import java.io.*;
+import java.lang.reflect.Modifier;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -140,6 +141,28 @@ public class Utilities
     public static boolean isLinux()
     {
         return OSType.DETECTED.equals(OSType.Linux);
+    }
+
+    /**
+     * Check if a class is a static class.
+     *
+     * @param clazz
+     * @return
+     */
+    public static boolean isStatic(Class clazz)
+    {
+        return Modifier.isStatic(clazz.getModifiers());
+    }
+
+    /**
+     * Check if a class is an inner class (ie a non-static nested class).
+     *
+     * @param clazz
+     * @return
+     */
+    public static boolean isInnerClass(Class clazz)
+    {
+        return clazz.getDeclaringClass() != null && !isStatic(clazz);
     }
 
     /**

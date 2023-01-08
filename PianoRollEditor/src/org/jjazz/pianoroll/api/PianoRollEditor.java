@@ -32,7 +32,6 @@ import org.jjazz.pianoroll.PianoRollEditorImpl;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
 import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.undomanager.api.JJazzUndoManager;
-import org.openide.awt.UndoRedo;
 import org.openide.util.Lookup;
 
 /**
@@ -210,7 +209,7 @@ public abstract class PianoRollEditor extends JPanel implements Lookup.Provider
     abstract public int getPitchFromPoint(Point editorPoint);
 
     /**
-     * Get the currently selected NoteViews.
+     * Get the currently selected NoteViews sorted by NoteEvent natural order.
      *
      * @return An immutable list.
      */
