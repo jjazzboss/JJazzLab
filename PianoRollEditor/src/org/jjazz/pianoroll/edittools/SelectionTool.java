@@ -146,18 +146,8 @@ public class SelectionTool implements EditTool
     @Override
     public void noteWheelMoved(MouseWheelEvent e, NoteView nv)
     {
-        if (e.isAltDown())
-        {
-            final int STEP = 4;
-            for (var snv : editor.getSelectedNoteViews())
-            {
-                var ne = snv.getModel();
-                int delta = (e.getWheelRotation() < 0) ? STEP : -STEP;
-                int newVel = MidiUtilities.limit(ne.getVelocity() + delta);
-                var newNe = ne.getCopyVel(newVel);
-                spModel.replace(ne, newNe);
-            }
-        }
+        // shift-wheel for selected note transposition
+        editorWheelMoved((MouseWheelEvent) SwingUtilities.convertMouseEvent(nv, e, nv.getParent()));
     }
 
     @Override
@@ -503,16 +493,36 @@ public class SelectionTool implements EditTool
     }
 
     @Override
-    public void editorReleased(MouseEvent e
-    )
+    public void editorReleased(MouseEvent e)
     {
 
     }
 
     @Override
-    public void editorWheelMoved(MouseWheelEvent e
-    )
+    public void editorWheelMoved(MouseWheelEvent e)
     {
+        // alt-wheel to change velocity of selected notes
+
+
+        if (e.isAltDown() && !e.isControlDown())
+        {
+            final int STEP = 4;
+
+            String undoText = ResUtil.getString(getClass(), "ChangeVelocity");
+            editor.getUndoManager().startCEdit(undoText);
+
+
+            for (var snv : editor.getSelectedNoteViews())
+            {
+                var ne = snv.getModel();
+                int delta = (e.getWheelRotation() < 0) ? STEP : -STEP;
+                int newVel = MidiUtilities.limit(ne.getVelocity() + delta);
+                var newNe = ne.getCopyVel(newVel);
+                spModel.replace(ne, newNe);
+            }
+
+            editor.getUndoManager().endCEdit(undoText);
+        }
 
     }
 
@@ -523,8 +533,7 @@ public class SelectionTool implements EditTool
     }
 
     @Override
-    public void editMultipleNotes(List<NoteView> noteViews
-    )
+    public void editMultipleNotes(List<NoteView> noteViews)
     {
         editor.unselectAll();
         noteViews.forEach(nv -> nv.setSelected(true));

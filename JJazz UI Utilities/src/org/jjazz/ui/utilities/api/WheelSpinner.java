@@ -333,14 +333,13 @@ public class WheelSpinner extends JSpinner implements MouseWheelListener
 
         } else
         {
-            // Notify only the internal JSpinner listeners (normally the editor)
+            // Notify only the JSpinner internal editor
             ChangeListener[] listeners = getChangeListeners();
             var ce = new ChangeEvent(this);
             for (var cl : listeners)
             {
-                if (cl.getClass().getEnclosingClass() == JSpinner.class)
+                if (cl == getEditor())
                 {
-                    // LOGGER.severe("fireStateChanged() SILENT but firing cl=" + cl);
                     cl.stateChanged(ce);
 
                 }

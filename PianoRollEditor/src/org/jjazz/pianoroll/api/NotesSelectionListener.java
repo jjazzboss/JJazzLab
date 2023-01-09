@@ -24,7 +24,9 @@ package org.jjazz.pianoroll.api;
 
 import com.google.common.base.Preconditions;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.event.ChangeListener;
 import org.openide.util.ChangeSupport;
@@ -43,6 +45,8 @@ public class NotesSelectionListener
     private Lookup.Result<NoteView> noteViewLkpResult;
     private LookupListener noteViewLkpListener;
     private NotesSelection selection;
+    private List<NoteView> lastSelectedNoteViews;
+    private NoteView lastNoteViewAddedToSelection;
     private static final Map<Lookup, NotesSelectionListener> MAP_INSTANCES = new HashMap<>();
     private final ChangeSupport cs = new ChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(NotesSelectionListener.class.getSimpleName());
@@ -74,12 +78,8 @@ public class NotesSelectionListener
     }
 
 
-    public NotesSelectionListener(Lookup context)
+    private NotesSelectionListener(Lookup context)
     {
-        if (context == null)
-        {
-            throw new IllegalArgumentException("context=" + context);   //NOI18N
-        }
         this.context = context;
 
         // For WeakReferences to work, we need to keep a strong reference on the listeners (see WeakListeners java doc).
@@ -100,11 +100,27 @@ public class NotesSelectionListener
     }
 
     /**
+     * Get the last selection.
+     * <p>
+     * Registered ChangeListeners, once notified, can get the new selection via this method.
+     *
      * @return The last selection.
      */
     public final NotesSelection getSelection()
     {
         return selection;
+    }
+
+    /**
+     * Get the last NoteView added to selection.
+     * <p>
+     * Registered ChangeListeners, once notified, can get the last new selected NoteView via this method.
+     *
+     * @return Null if last change was not to add a single NoteView to the selection.
+     */
+    public final NoteView getLastNoteViewAddedToSelection()
+    {
+        return lastNoteViewAddedToSelection;
     }
 
     /**
@@ -127,17 +143,47 @@ public class NotesSelectionListener
     // Private functions
     //----------------------------------------------------------------------------------------    
     /**
-     * Called when NoteEvent instances presence changed in the lookup.
+     * Called when NoteView instances presence changed in the lookup.
      */
-    @SuppressWarnings(
-            {
-                "rawtypes",
-                "unchecked"
-            })
     private void notePresenceChanged()
     {
+        // update selection global var
         selection = new NotesSelection(context);
+
+
+        // update lastNoteViewAddedToSelection global var
+        var selectedNvs = selection.getNoteViews();
+        lastNoteViewAddedToSelection = null;
+        if (lastSelectedNoteViews == null || lastSelectedNoteViews.isEmpty())
+        {
+            if (selectedNvs.size() == 1)
+            {
+                lastNoteViewAddedToSelection = selectedNvs.get(0);
+            }
+        } else
+        {
+            int size = selectedNvs.size();
+            int lastSize = lastSelectedNoteViews.size();
+            assert size != lastSize : "selectedNvs=" + selectedNvs + "lastSelectedNoteViews=" + lastSelectedNoteViews;
+            if (size == lastSize + 1)
+            {
+                // Search for the new guy
+                lastNoteViewAddedToSelection = selectedNvs.stream()
+                        .filter(nv -> !lastSelectedNoteViews.contains(nv))
+                        .findAny()
+                        .orElse(null);
+            }
+        }
+
+        LOGGER.log(Level.SEVERE, "notePresenceChanged() selectedNvs={0}  lastNoteViewAddedToSelection={1}", new Object[]
+        {
+            selectedNvs, lastNoteViewAddedToSelection
+        });
+
         cs.fireChange();
+
+
+        lastSelectedNoteViews = selectedNvs;
     }
 
 }

@@ -38,6 +38,7 @@ import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.SizedPhrase;
+import org.jjazz.pianoroll.actions.HearSelectedNotes;
 import org.jjazz.pianoroll.api.EditTool;
 import org.jjazz.pianoroll.api.NoteView;
 import org.jjazz.pianoroll.api.NotesSelection;
@@ -56,7 +57,7 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
 
     private final PianoRollEditor editor;
     private final SizedPhrase spModel;
-    private final NotesSelectionListener notesSelectionListener;
+    private final List<EditTool> editTools;
     private int lastSpinnerValue;
     private static final Logger LOGGER = Logger.getLogger(ToolbarPanel.class.getSimpleName());
 
@@ -67,7 +68,15 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
     {
         this.editor = editor;
         this.spModel = editor.getModel();
+        editTools = tools;
+
+
         initComponents();
+        
+        
+        tbtn_hearNotes.setAction(new HearSelectedNotes(editor));
+//        tbtn_hearNotes.setAction(new HearSelectedNotes(editor));
+//        tbtn_hearNotes.setAction(new HearSelectedNotes(editor));
 
 
         var qModel = new DefaultComboBoxModel(Quantization.values());
@@ -81,15 +90,12 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
         tbtn_snap.setSelected(editor.isSnapEnabled());
 
 
-        pnl_left.add(new EditToolBar(editor, tools), 1); // After initial horizontal strut
-
-
         editor.addPropertyChangeListener(this);
         spModel.addPropertyChangeListener(this);
 
 
-        notesSelectionListener = new NotesSelectionListener(editor.getLookup());
-        notesSelectionListener.addListener(l -> selectionChanged(notesSelectionListener.getSelection()));
+        NotesSelectionListener nsl = NotesSelectionListener.getInstance(editor.getLookup());
+        nsl.addListener(l -> selectionChanged(nsl.getSelection()));
 
 
         lastSpinnerValue = (Integer) spn_velocity.getModel().getValue();
@@ -160,6 +166,7 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
     {
         var b = !selection.isEmpty();
         spn_velocity.setEnabled(b);
+        lbl_velocity.setEnabled(b);
         if (b)
         {
             var nvs = selection.getNoteViews();
@@ -193,6 +200,11 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
         spn_velocity.setFont(f);
     }
 
+    private EditToolBar getEditToolBar()
+    {
+        return (EditToolBar) pnl_editTools.getComponent(0);
+    }
+
 
     /**
      * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of
@@ -204,20 +216,29 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
     {
 
         pnl_left = new javax.swing.JPanel();
-        filler2 = new javax.swing.Box.Filler(new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 32767));
-        filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(20, 0), new java.awt.Dimension(30, 0), new java.awt.Dimension(30, 32767));
+        lbl_title = new javax.swing.JLabel();
+        filler2 = new javax.swing.Box.Filler(new java.awt.Dimension(10, 0), new java.awt.Dimension(20, 0), new java.awt.Dimension(20, 32767));
+        pnl_editTools = new EditToolBar(editor, editTools);
+        filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(20, 0), new java.awt.Dimension(20, 0), new java.awt.Dimension(30, 32767));
         tbtn_snap = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
         cmb_quantization = new javax.swing.JComboBox<>();
         filler3 = new javax.swing.Box.Filler(new java.awt.Dimension(20, 0), new java.awt.Dimension(30, 0), new java.awt.Dimension(30, 32767));
         lbl_velocity = new javax.swing.JLabel();
         spn_velocity = new org.jjazz.ui.utilities.api.WheelSpinner();
         pnl_right = new javax.swing.JPanel();
-        lbl_title = new javax.swing.JLabel();
+        pnl_miscButtons = new javax.swing.JPanel();
+        tbtn_hearNotes = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
+        tbtn_solo = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
+        tbtn_playbackPoint = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
 
         setLayout(new java.awt.BorderLayout());
 
         pnl_left.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 5, 2));
+
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_title, org.openide.util.NbBundle.getMessage(ToolbarPanel.class, "ToolbarPanel.lbl_title.text")); // NOI18N
+        pnl_left.add(lbl_title);
         pnl_left.add(filler2);
+        pnl_left.add(pnl_editTools);
         pnl_left.add(filler1);
 
         tbtn_snap.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/pianoroll/resources/SnapOFF.png"))); // NOI18N
@@ -245,9 +266,11 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
 
         lbl_velocity.setFont(lbl_velocity.getFont().deriveFont(lbl_velocity.getFont().getSize()-1f));
         org.openide.awt.Mnemonics.setLocalizedText(lbl_velocity, org.openide.util.NbBundle.getMessage(ToolbarPanel.class, "ToolbarPanel.lbl_velocity.text")); // NOI18N
+        lbl_velocity.setToolTipText(spn_velocity.getToolTipText());
         pnl_left.add(lbl_velocity);
 
         spn_velocity.setModel(new javax.swing.SpinnerNumberModel(0, 0, 127, 1));
+        spn_velocity.setToolTipText(org.openide.util.NbBundle.getMessage(ToolbarPanel.class, "ToolbarPanel.spn_velocity.toolTipText")); // NOI18N
         spn_velocity.setColumns(2);
         spn_velocity.setEnabled(false);
         spn_velocity.setLoopValues(false);
@@ -264,8 +287,23 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
 
         pnl_right.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 5, 2));
 
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_title, org.openide.util.NbBundle.getMessage(ToolbarPanel.class, "ToolbarPanel.lbl_title.text")); // NOI18N
-        pnl_right.add(lbl_title);
+        pnl_miscButtons.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 1, 2));
+
+        tbtn_hearNotes.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/pianoroll/actions/resources/HearNoteOFF.png"))); // NOI18N
+        tbtn_hearNotes.setToolTipText(org.openide.util.NbBundle.getMessage(ToolbarPanel.class, "ToolbarPanel.tbtn_hearNotes.toolTipText")); // NOI18N
+        pnl_miscButtons.add(tbtn_hearNotes);
+
+        tbtn_solo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/pianoroll/resources/SoloOFF.png"))); // NOI18N
+        tbtn_solo.setToolTipText(org.openide.util.NbBundle.getMessage(ToolbarPanel.class, "ToolbarPanel.tbtn_solo.toolTipText")); // NOI18N
+        tbtn_solo.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/pianoroll/resources/SoloON.png"))); // NOI18N
+        pnl_miscButtons.add(tbtn_solo);
+
+        tbtn_playbackPoint.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/pianoroll/resources/PlaybackPointOFF.png"))); // NOI18N
+        tbtn_playbackPoint.setToolTipText(org.openide.util.NbBundle.getMessage(ToolbarPanel.class, "ToolbarPanel.tbtn_playbackPoint.toolTipText")); // NOI18N
+        tbtn_playbackPoint.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/pianoroll/resources/PlaybackPointON.png"))); // NOI18N
+        pnl_miscButtons.add(tbtn_playbackPoint);
+
+        pnl_right.add(pnl_miscButtons);
 
         add(pnl_right, java.awt.BorderLayout.CENTER);
     }// </editor-fold>//GEN-END:initComponents
@@ -347,10 +385,15 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
     private javax.swing.Box.Filler filler3;
     private javax.swing.JLabel lbl_title;
     private javax.swing.JLabel lbl_velocity;
+    private javax.swing.JPanel pnl_editTools;
     private javax.swing.JPanel pnl_left;
+    private javax.swing.JPanel pnl_miscButtons;
     private javax.swing.JPanel pnl_right;
     private org.jjazz.ui.utilities.api.WheelSpinner spn_velocity;
+    private org.jjazz.ui.flatcomponents.api.FlatToggleButton tbtn_hearNotes;
+    private org.jjazz.ui.flatcomponents.api.FlatToggleButton tbtn_playbackPoint;
     private org.jjazz.ui.flatcomponents.api.FlatToggleButton tbtn_snap;
+    private org.jjazz.ui.flatcomponents.api.FlatToggleButton tbtn_solo;
     // End of variables declaration//GEN-END:variables
 
 

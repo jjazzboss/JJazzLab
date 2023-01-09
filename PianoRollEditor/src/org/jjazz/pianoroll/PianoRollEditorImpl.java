@@ -25,6 +25,7 @@ package org.jjazz.pianoroll;
 import com.google.common.base.Preconditions;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Container;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -622,6 +623,7 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
         nv.addMouseMotionListener(editToolProxyMouseListener);
         nv.addMouseMotionListener(genericMouseListener);
         nv.addMouseWheelListener(editToolProxyMouseListener);
+        nv.addMouseWheelListener(genericMouseListener);
         nv.addPropertyChangeListener(this);
         nv.setInheritsPopupMenu(true);
 
@@ -633,6 +635,7 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
         nv.removeMouseMotionListener(editToolProxyMouseListener);
         nv.removeMouseMotionListener(genericMouseListener);
         nv.removeMouseWheelListener(editToolProxyMouseListener);
+        nv.removeMouseWheelListener(genericMouseListener);
         nv.removePropertyChangeListener(this);
     }
 
@@ -911,11 +914,17 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
         @Override
         public void mouseWheelMoved(MouseWheelEvent e)
         {
-            // Manage only ctrl-wheel
-            if ((e.getModifiersEx() & InputEvent.CTRL_DOWN_MASK) != InputEvent.CTRL_DOWN_MASK)
+            // Manage vertical/horizontal zoom accelerators via ctrl (+shift)
+            if (!e.isControlDown())
             {
-                // It's not a ctrl-wheel. We don't want to lose the event, need to be processed by the above hierarchy, i.e. enclosing JScrollPane
-                Container source = (Container) e.getSource();
+                if (e.isAltDown())
+                {
+                    // Used by SelectionTool
+                    return;
+                }
+
+                // We don't want to lose the event because it is processed by the the enclosing JScrollPane to move the scrollbar up/down or left-right if shift pressed
+                Container source = e.getSource() instanceof NoteView ? ((Component) e.getSource()).getParent() : (Container) e.getSource();
                 Container parent = source.getParent();
                 MouseEvent parentEvent = SwingUtilities.convertMouseEvent(source, e, parent);
                 parent.dispatchEvent(parentEvent);
@@ -929,16 +938,33 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
                 return;
             }
 
-            final int STEP = 5;
-            int hFactor = zoomable.getZoomXFactor();
-            if (e.getWheelRotation() < 0)
+            if (!e.isShiftDown())
             {
-                hFactor = Math.min(100, hFactor + STEP);
+                // Horizontal Zoom
+                final int STEP = 5;
+                int hFactor = zoomable.getZoomXFactor();
+                if (e.getWheelRotation() < 0)
+                {
+                    hFactor = Math.min(100, hFactor + STEP);
+                } else
+                {
+                    hFactor = Math.max(0, hFactor - STEP);
+                }
+                zoomable.setZoomXFactor(hFactor, false);
             } else
             {
-                hFactor = Math.max(0, hFactor - STEP);
+                // Vertical Zoom
+                final int STEP = 5;
+                int vFactor = zoomable.getZoomYFactor();
+                if (e.getWheelRotation() < 0)
+                {
+                    vFactor = Math.min(100, vFactor + STEP);
+                } else
+                {
+                    vFactor = Math.max(0, vFactor - STEP);
+                }
+                zoomable.setZoomYFactor(vFactor, false);
             }
-            zoomable.setZoomXFactor(hFactor, false);
         }
 
 

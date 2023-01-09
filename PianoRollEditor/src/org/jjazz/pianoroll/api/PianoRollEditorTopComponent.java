@@ -78,24 +78,24 @@ public final class PianoRollEditorTopComponent extends TopComponent
 
         int nbBeats = 30;
         int nbNotes = 12;
-//        SizedPhrase sp = new SizedPhrase(0, new FloatRange(0, nbBeats), TimeSignature.THREE_FOUR);
-//        for (int i = 0; i < nbNotes; i++)
-//        {
-//            int pitch = 40 + ((int) (Math.random() * 60) - 30);
-//            int vel = 64 + ((int) (Math.random() * 100) - 50);
-//            float dur = (float) (0.2f + Math.random() * 4);
-//            float deltaPos = (float) (Math.random() * 4);
-//            float pos = ((float) nbBeats / (nbNotes + 3)) * i + deltaPos;
-//            if (pos + dur < nbBeats)
-//            {
-//                sp.add(new NoteEvent(pitch, dur, vel, pos));
-//            }
-//        }
+        SizedPhrase sp = new SizedPhrase(0, new FloatRange(0, nbBeats), TimeSignature.THREE_FOUR);
+        for (int i = 0; i < nbNotes; i++)
+        {
+            int pitch = 40 + ((int) (Math.random() * 60) - 30);
+            int vel = 64 + ((int) (Math.random() * 100) - 50);
+            float dur = (float) (0.2f + Math.random() * 4);
+            float deltaPos = (float) (Math.random() * 4);
+            float pos = ((float) nbBeats / (nbNotes + 3)) * i + deltaPos;
+            if (pos + dur < nbBeats)
+            {
+                sp.add(new NoteEvent(pitch, dur, vel, pos));
+            }
+        }
 
-        SizedPhrase sp = new SizedPhrase(0, new FloatRange(0, 12), TimeSignature.FOUR_FOUR);
-        sp.add(new NoteEvent(64, 0.5f, 64, 1f));
-        // sp.add(new NoteEvent(66, 1, 64, 1f));
-        sp.add(new NoteEvent(67, 1.5f, 64, 2f));
+//        SizedPhrase sp = new SizedPhrase(0, new FloatRange(0, 12), TimeSignature.FOUR_FOUR);
+//        sp.add(new NoteEvent(64, 0.5f, 64, 1f));
+//        // sp.add(new NoteEvent(66, 1, 64, 1f));
+//        sp.add(new NoteEvent(67, 1.5f, 64, 2f));
         // editor = new PianoRollEditorImpl(0, sp, KeyMapGM.getInstance(), PianoRollEditorSettings.getDefault());
         editor = new PianoRollEditorImpl(0, sp, null, PianoRollEditorSettings.getDefault());
         add(editor);

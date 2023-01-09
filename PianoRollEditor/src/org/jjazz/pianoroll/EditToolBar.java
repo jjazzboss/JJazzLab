@@ -22,10 +22,11 @@
  */
 package org.jjazz.pianoroll;
 
+import java.awt.FlowLayout;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.swing.JToolBar;
+import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import org.jjazz.pianoroll.api.EditTool;
 import org.jjazz.pianoroll.api.PianoRollEditor;
@@ -34,7 +35,7 @@ import org.jjazz.ui.flatcomponents.api.FlatToggleButton;
 /**
  * The toolbar for EditTools.
  */
-public class EditToolBar extends JToolBar
+public class EditToolBar extends JPanel
 {
 
     private final PianoRollEditor editor;
@@ -43,8 +44,13 @@ public class EditToolBar extends JToolBar
 
     public EditToolBar(PianoRollEditor editor, List<EditTool> tools)
     {
-        setFloatable(false);
         this.editor = editor;
+        
+        FlowLayout layout = (FlowLayout) getLayout();
+        layout.setAlignment(FlowLayout.LEADING);
+        layout.setVgap(0);
+        layout.setHgap(0);
+        
         for (var tool : tools)
         {
             FlatToggleButton btn = new FlatToggleButton();

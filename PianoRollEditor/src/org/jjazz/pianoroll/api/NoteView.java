@@ -46,6 +46,7 @@ import org.jjazz.ui.utilities.api.HSLColor;
 import org.jjazz.ui.utilities.api.StringMetrics;
 import org.jjazz.ui.utilities.api.Utilities;
 import org.jjazz.uisettings.api.GeneralUISettings;
+import org.jjazz.util.api.ResUtil;
 
 /**
  * A JComponent which represents a NoteEvent.
@@ -60,6 +61,7 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
     private static final Color COLOR_TEXT = Color.WHITE;
     private static final Font FONT;
     private static final int FONT_HEIGHT;
+    private static String TOOLTIP_HELP = ResUtil.getString(NoteView.class, "NoteViewToolTipHelp");
 
     static
     {
@@ -81,6 +83,7 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
     private PianoRollEditorSettings settings;
     private static final Logger LOGGER = Logger.getLogger(NoteView.class.getSimpleName());
     private Color borderColor;
+
 
     public NoteView(NoteEvent ne)
     {
@@ -278,10 +281,10 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
     {
         Color bgColor = selected ? getSelectedColor(ne.getVelocity()) : getColor(ne.getVelocity());
         setBackground(bgColor);
-        borderColor = getBorderColor(getBackground());
+        borderColor = getBorderColor(bgColor, selected);
         setBorder(BorderFactory.createLineBorder(borderColor, 1));
         noteAsString = new Note(ne.getPitch()).toPianoOctaveString();
-        String tt = noteAsString + " (" + ne.getPitch() + ") v=" + ne.getVelocity();
+        String tt = noteAsString + " (" + ne.getPitch() + ") v=" + ne.getVelocity() + ". " + TOOLTIP_HELP;
         setToolTipText(tt);
     }
 
@@ -293,7 +296,9 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
         BufferedImage img = new BufferedImage(128, 1, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2 = img.createGraphics();
         Point2D start = new Point2D.Float(0, 0);
-        Point2D end = new Point2D.Float(127, 0);
+
+        // Use 128 instead of 127: 1 pixel more to avoid strange error with LinearGradientPaint with last pixel (x=127) black with the selected color
+        Point2D end = new Point2D.Float(128, 0);
         float[] dist =
         {
             0.0f, 0.5f, 1.0f
@@ -306,7 +311,7 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
         };
         LinearGradientPaint p = new LinearGradientPaint(start, end, dist, colors);
         g2.setPaint(p);
-        g2.fillRect(0, 0, 127, 1);
+        g2.fillRect(0, 0, 128, 1);
         VELOCITY_COLORS = new Color[128];
         for (int i = 0; i < 128; i++)
         {
@@ -322,7 +327,7 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
         };
         LinearGradientPaint pSelected = new LinearGradientPaint(start, end, dist, selectedcolors);
         g2.setPaint(pSelected);
-        g2.fillRect(0, 0, 127, 1);
+        g2.fillRect(0, 0, 128, 1);
         SELECTED_VELOCITY_COLORS = new Color[128];
         for (int i = 0; i < 128; i++)
         {
@@ -336,14 +341,15 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
     }
 
     /**
-     * Compute the border color from the background color.
+     * Compute the border color.
      *
      * @param bgColor
+     * @param sel
      * @return
      */
-    private Color getBorderColor(Color bgColor)
+    private Color getBorderColor(Color bgColor, boolean sel)
     {
-        return HSLColor.changeLuminance(bgColor, -12);       // Darker
+        return !sel ? HSLColor.changeLuminance(bgColor, -12) : Color.BLACK;
     }
 
 
