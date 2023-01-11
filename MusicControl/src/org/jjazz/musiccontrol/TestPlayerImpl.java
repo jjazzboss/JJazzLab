@@ -78,7 +78,7 @@ public class TestPlayerImpl implements TestPlayer
     }
 
     /**
-     * Play the test notes from specified phrase.
+     * Play the test notes from specified phrase at tempo 120.
      * <p>
      *
      * @param phrase
@@ -93,7 +93,7 @@ public class TestPlayerImpl implements TestPlayer
             throw new NullPointerException("p=" + phrase + " endAction=" + endAction);   //NOI18N
         }
 
-        final MusicController mc = MusicController.getInstance();
+        final MusicController mc = MusicController.getInstance();        
         mc.stop();
 
         TestSession session = new TestSession(phrase, endAction);

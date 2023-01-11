@@ -175,7 +175,7 @@ public class NotesSelectionListener
             }
         }
 
-        LOGGER.log(Level.SEVERE, "notePresenceChanged() selectedNvs={0}  lastNoteViewAddedToSelection={1}", new Object[]
+        LOGGER.log(Level.FINE, "notePresenceChanged() selectedNvs={0}  lastNoteViewAddedToSelection={1}", new Object[]
         {
             selectedNvs, lastNoteViewAddedToSelection
         });
