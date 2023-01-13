@@ -100,7 +100,7 @@ public class TextOverlayLayerUI extends LayerUI<JComponent>
 
         // Write text
         g2.setFont(g2.getFont().deriveFont(Font.BOLD));
-        Utilities.drawStringCentered(g2, jc, text);
+        Utilities.drawStringAligned(g2, jc, text, 1);
         g2.dispose();
     }
 

@@ -23,6 +23,7 @@
 package org.jjazz.pianoroll.api;
 
 import org.jjazz.harmony.api.TimeSignature;
+import org.jjazz.midi.api.keymap.KeyMapGM;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.pianoroll.PianoRollEditorImpl;

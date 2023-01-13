@@ -123,6 +123,23 @@ public class Utilities
         return res;
     }
 
+
+    /**
+     * Gets the usable rectangle area within the borders (insets) of the JComponent.
+     *
+     * @param jc
+     * @return
+     */
+    static public Rectangle getUsableArea(JComponent jc)
+    {
+        Insets in = jc.getInsets();
+        int x0 = in.left;
+        int w = jc.getWidth() - in.right - in.left;
+        int y0 = in.top;
+        int h = jc.getHeight() - in.top - in.bottom;
+        return new Rectangle(x0, y0, w, h);
+    }
+
     /**
      * Positions a dialog at a position relative to an anchor component.
      *
@@ -160,12 +177,12 @@ public class Utilities
     }
 
     /**
-     * Create a default action from the specified ActionListener.
+     * Create an AbstractAction from the specified ActionListener.
      *
      * @param al
      * @return
      */
-    static public Action getDefaultAction(ActionListener al)
+    static public Action getAction(ActionListener al)
     {
         return new AbstractAction()
         {
@@ -184,7 +201,7 @@ public class Utilities
      * @param listModel
      * @return
      */
-    public static <T> List<T> getListModelAsList(DefaultListModel<T> listModel)
+    public static <T> List<T> getJListModelAsList(DefaultListModel<T> listModel)
     {
         List<T> pts = new ArrayList<>();
         for (int i = 0; i < listModel.size(); i++)
@@ -331,21 +348,6 @@ public class Utilities
 
     }
 
-    /**
-     * Gets the usable rectangle area within the borders (insets) of the JComponent.
-     *
-     * @param jc
-     * @return
-     */
-    static public Rectangle getUsableArea(JComponent jc)
-    {
-        Insets in = jc.getInsets();
-        int x0 = in.left;
-        int w = jc.getWidth() - in.right - in.left;
-        int y0 = in.top;
-        int h = jc.getHeight() - in.top - in.bottom;
-        return new Rectangle(x0, y0, w, h);
-    }
 
     /**
      * Recursively enable/disable a JComponent and its JComponent children.
@@ -565,26 +567,43 @@ public class Utilities
     }
 
     /**
-     * Draw a string centered on component jc.
+     * Draw a string left-aligned/centered/right-aligned on component jc.
      * <p>
-     * If string contains '\n', string will be displayed on several lines. If component is too small align the text on the left.
+     * If component width is too small for text to be centered, text is aligned on the left.<p>
+     * If string contains '\n', string will be displayed on several lines.
      *
-     * @param g2   Used to draw the string with the default font and foreground.
+     * @param g2     Used to draw the string with the default font and foreground.
      * @param jc
      * @param text
+     * @param hAlign 0=left, 1=centered, 2=right
      */
-    static public void drawStringCentered(Graphics2D g2, JComponent jc, String text)
+    static public void drawStringAligned(Graphics2D g2, JComponent jc, String text, int hAlign)
     {
-        Rectangle r = Utilities.getUsableArea(jc);
+        Preconditions.checkArgument(hAlign >= 0 && hAlign <= 2);
+
+
+        Rectangle r = getUsableArea(jc);
         StringMetrics sm = new StringMetrics(g2);
+
+
         String[] strs = text.split("\\n");
         int nbLines = strs.length;
         if (nbLines == 1)
         {
             // Single line
             var bounds = sm.getLogicalBoundsNoLeading(text);
-            float x = (float) (r.x + (r.width - bounds.getWidth()) / 2);
-            x = Math.max(0, x);
+            float x = switch (hAlign)
+            {
+                case 0 -> // Left
+                    r.x + 1;
+                case 1 -> // Centered
+                    (float) Math.max(0, r.x + (r.width - bounds.getWidth()) / 2);
+                case 2 -> // Right
+                    (float) ((r.x + r.width - 2) - bounds.getWidth());
+                default ->
+                    throw new IllegalArgumentException("alignment=" + hAlign);
+            };
+
             float y = (float) (r.y + (r.height - bounds.getHeight()) / 2 - bounds.getY());  // bounds are in baseline-relative coordinates!
             g2.drawString(text, x, y);
             return;
@@ -604,8 +623,17 @@ public class Utilities
             float y = (float) (r.y + (r.height - h) / 2);
             for (int i = 0; i < nbLines; i++)
             {
-                float x = (float) (r.x + (r.width - bounds[i].getWidth()) / 2);
-                x = Math.max(0, x);
+                float x = switch (hAlign)
+                {
+                    case 0 -> // Left
+                        r.x + 1;
+                    case 1 -> // Centered
+                        (float) Math.max(0, r.x + (r.width - bounds[i].getWidth()) / 2);
+                    case 2 -> // Right
+                        (float) ((r.x + r.width - 2) - bounds[i].getWidth());
+                    default ->
+                        throw new IllegalArgumentException("alignment=" + hAlign);
+                };
                 g2.drawString(strs[i], x, (float) (y - bounds[i].getY()));
                 y += bounds[i].getHeight();
             }

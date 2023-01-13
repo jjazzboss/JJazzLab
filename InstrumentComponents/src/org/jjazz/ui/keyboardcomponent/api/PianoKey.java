@@ -493,7 +493,7 @@ public class PianoKey extends JComponent
                 case LEFT:
                     throw new UnsupportedOperationException("LEFT");
                 case RIGHT:
-                    Utilities.drawStringCentered(g2, this, text);
+                    Utilities.drawStringAligned(g2, this, text, 2);
                     break;
                 default:
                     throw new AssertionError(orientation.name());

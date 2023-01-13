@@ -170,7 +170,7 @@ public class PhraseBirdsEyeViewComponent extends JPanel
         {
             // Write "void" centered
             g2.setFont(FONT);
-            Utilities.drawStringCentered(g2, this, "void");
+            Utilities.drawStringAligned(g2, this, "void", 1);
         }
 
         g2.dispose();

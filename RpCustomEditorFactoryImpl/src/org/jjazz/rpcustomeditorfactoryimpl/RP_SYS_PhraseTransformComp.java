@@ -288,7 +288,7 @@ public class RP_SYS_PhraseTransformComp extends RealTimeRpEditorComponent<RP_SYS
     private void list_transformChainChanged()
     {
         // Update uiValue from list_transformChain model
-        List<PhraseTransform> pts = Utilities.getListModelAsList(list_transformChainModel);
+        List<PhraseTransform> pts = Utilities.getJListModelAsList(list_transformChainModel);
         var chain = new PhraseTransformChain(pts);
         updateUiValue(chain);
     }
@@ -358,7 +358,7 @@ public class RP_SYS_PhraseTransformComp extends RealTimeRpEditorComponent<RP_SYS
 
 
         // Update the list transform chain if required
-        var pts = Utilities.getListModelAsList(list_transformChainModel);
+        var pts = Utilities.getJListModelAsList(list_transformChainModel);
         if (!pts.equals(transformChain))
         {
             // NOTE: we don't want to generate list change events because it's not user-triggered

@@ -375,7 +375,7 @@ public class RP_SYS_DrumsTransformComp extends RealTimeRpEditorComponent<RP_SYS_
     {
         var res = new PhraseTransformChain();
 
-        List<PhraseTransform> pts = Utilities.getListModelAsList(list_transformChainModel);
+        List<PhraseTransform> pts = Utilities.getJListModelAsList(list_transformChainModel);
         res.addAll(pts);
 
         // Add the drums mix transform AFTER the transformation chain: it's more natural for user

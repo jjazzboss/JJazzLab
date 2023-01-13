@@ -71,6 +71,8 @@ public class HearSelectedNotes extends BooleanStateAction
 
         var nsl = getNotesSelectionListener();
         changeListener = evt -> selectionChanged(nsl.getLastNoteViewAddedToSelection());
+        
+        setSelected(false);
     }
 
 
@@ -134,7 +136,7 @@ public class HearSelectedNotes extends BooleanStateAction
      */
     private void hearNote(NoteEvent ne)
     {
-        LOGGER.log(Level.SEVERE, "hearNote() -- ne={0}", ne);
+        LOGGER.log(Level.FINE, "hearNote() -- ne={0}", ne);
         collectAndPlayNotesTask.getQueue().add(ne);
     }
 
@@ -201,10 +203,6 @@ public class HearSelectedNotes extends BooleanStateAction
             state = State.OFF;
         }
 
-        public synchronized State getState()
-        {
-            return state;
-        }
 
         public Queue<NoteEvent> getQueue()
         {
@@ -235,7 +233,7 @@ public class HearSelectedNotes extends BooleanStateAction
         {
             long startTimeMs = 0;
 
-            LOGGER.severe("CollectAndPlayNotesTask.run() -- ");
+            LOGGER.fine("CollectAndPlayNotesTask.run() -- ");
 
             while (!state.equals(State.OFF))
             {
@@ -248,7 +246,7 @@ public class HearSelectedNotes extends BooleanStateAction
                 if (incoming != null)
                 {
 
-                    LOGGER.log(Level.SEVERE, "      state={0} incoming={1}", new Object[]
+                    LOGGER.log(Level.FINE, "      state={0} incoming={1}", new Object[]
                     {
                         state, incoming
                     });
@@ -285,7 +283,12 @@ public class HearSelectedNotes extends BooleanStateAction
                 }
             }
 
-            LOGGER.severe("CollectAndPlayNotesTask.run() stopped ");
+            LOGGER.fine("CollectAndPlayNotesTask.run() stopped ");
+        }
+
+        public synchronized State getState()
+        {
+            return state;
         }
 
         private synchronized void setState(State s)
@@ -294,6 +297,11 @@ public class HearSelectedNotes extends BooleanStateAction
             {
                 return;
             }
+
+            LOGGER.log(Level.FINE, "setState() -- old={0} >> {1}", new Object[]
+            {
+                state, s
+            });
             state = s;
             switch (state)
             {
@@ -306,14 +314,14 @@ public class HearSelectedNotes extends BooleanStateAction
                 case ACCUMULATING:
                     break;
                 case PLAYING:
-                    createPhraseAndPlay();
+                    play();
                     break;
                 default:
                     throw new AssertionError(state.name());
             }
         }
 
-        private void createPhraseAndPlay()
+        private void play()
         {
             assert state.equals(State.PLAYING);
 
@@ -323,7 +331,7 @@ public class HearSelectedNotes extends BooleanStateAction
                 return;
             }
 
-            LOGGER.log(Level.SEVERE, "createPhraseAndPlay() -- noteEvents={0}", noteEvents);
+            LOGGER.log(Level.FINE, "play() -- noteEvents={0}", noteEvents);
 
 
             // Prepare the phrase
@@ -342,7 +350,14 @@ public class HearSelectedNotes extends BooleanStateAction
             // Play it
             try
             {
-                TestPlayer.getDefault().playTestNotes(p, () -> setState(State.WAITING));
+                Runnable endAction = () ->
+                {
+                    if (getState().equals(State.PLAYING))
+                    {
+                        setState(State.WAITING);
+                    }
+                };
+                TestPlayer.getDefault().playTestNotes(p, endAction);
             } catch (MusicGenerationException ex)
             {
                 Exceptions.printStackTrace(ex);
