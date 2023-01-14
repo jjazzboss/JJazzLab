@@ -161,7 +161,7 @@ public class DrumsMixTransform implements PhraseTransform
     @Override
     public SizedPhrase transform(SizedPhrase inPhrase, SongPartContext context)
     {
-        SizedPhrase res = new SizedPhrase(inPhrase.getChannel(), inPhrase.getBeatRange(), inPhrase.getTimeSignature());
+        SizedPhrase res = new SizedPhrase(inPhrase.getChannel(), inPhrase.getBeatRange(), inPhrase.getTimeSignature(), inPhrase.isDrums());
 
 
         DrumKit kit = PhraseTransforms.getDrumKit(inPhrase, context);

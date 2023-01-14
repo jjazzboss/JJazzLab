@@ -25,7 +25,7 @@ package org.jjazz.rhythm.api;
 /**
  * A special RhythmVoice which is a delegate for another source RhythmVoice.
  * <p>
- * Delegates can be used for examples in AdaptedRhythms to enable rhythm music generation while sparing "Midi channel space" in
+ * Delegates are used in AdaptedRhythms to enable rhythm music generation while sparing "Midi channel space" in
  * the MidiMix.
  */
 public class RhythmVoiceDelegate extends RhythmVoice

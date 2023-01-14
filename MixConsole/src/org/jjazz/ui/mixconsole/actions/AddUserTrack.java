@@ -35,6 +35,8 @@ import org.jjazz.ui.mixconsole.api.MixConsoleTopComponent;
 import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.util.api.ResUtil;
+import org.openide.DialogDisplayer;
+import org.openide.NotifyDescriptor;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionRegistration;
 import org.openide.util.Exceptions;
@@ -77,8 +79,26 @@ public class AddUserTrack extends AbstractAction
         String name = basename + index;
 
 
+        // Is it a drums or a melodic user phrase ?
+        Phrase p;
+        String title = ResUtil.getString(getClass(), "UserTrackTypeDialogTitle");
+        String question = ResUtil.getString(getClass(), "UserTrackTypeQuestion");
+        String drums = ResUtil.getString(getClass(), "Drums");
+        String melodic = ResUtil.getString(getClass(), "Melodic");
+        NotifyDescriptor d = new NotifyDescriptor.Confirmation(question, title, NotifyDescriptor.YES_NO_CANCEL_OPTION);
+        d.setOptions(new String[]
+        {
+            drums, melodic
+        });
+        var res = DialogDisplayer.getDefault().notify(d);
+        if (res.equals(-1))
+        {
+            return;
+        }
+        p = new Phrase(0, res == drums);
+
         // Perform the change
-        setUserPhraseAction(song, name, new Phrase(0));
+        setUserPhraseAction(song, name, p);
     }
 
     /**
@@ -105,14 +125,14 @@ public class AddUserTrack extends AbstractAction
             return false;
         } catch (Exception ex)    // Capture other programming exceptions, because method can be called from within a thread
         {
-            String msg = "Impossible to add or update user phrase " + name + ".\n" + ex.getLocalizedMessage();            
-            um.handleUnsupportedEditException(undoText, msg);            
+            String msg = "Impossible to add or update user phrase " + name + ".\n" + ex.getLocalizedMessage();
+            um.handleUnsupportedEditException(undoText, msg);
             Exceptions.printStackTrace(ex);
             return false;
         }
 
         um.endCEdit(undoText);
-        
+
         return true;
 
     }

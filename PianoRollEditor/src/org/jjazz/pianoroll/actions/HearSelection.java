@@ -33,6 +33,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
+import javax.swing.JComponent;
+import javax.swing.KeyStroke;
 import javax.swing.event.ChangeListener;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
@@ -41,55 +43,55 @@ import org.jjazz.pianoroll.api.NotesSelectionListener;
 import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.testplayerservice.spi.TestPlayer;
+import org.jjazz.ui.utilities.api.ToggleAction;
 import org.jjazz.util.api.ResUtil;
 import org.jjazz.util.api.Utilities;
 import org.openide.util.Exceptions;
-import org.openide.util.HelpCtx;
-import org.openide.util.actions.BooleanStateAction;
 
 /**
  * Action to toggle the play of the last selected note.
  */
-public class HearSelectedNotes extends BooleanStateAction
+public class HearSelection extends ToggleAction
 {
 
     private final PianoRollEditor editor;
     private CollectAndPlayNotesTask collectAndPlayNotesTask;
     private final ChangeListener changeListener;
-    private static final Logger LOGGER = Logger.getLogger(HearSelectedNotes.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(HearSelection.class.getSimpleName());
 
-    public HearSelectedNotes(PianoRollEditor editor)
+    public HearSelection(PianoRollEditor editor)
     {
+        super(false);
+        
         this.editor = editor;
 
+        // UI settings for the FlatToggleButton
         putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("resources/HearNoteOFF.png")));
-        putValue(Action.LARGE_ICON_KEY, new ImageIcon(getClass().getResource("resources/HearNoteON.png")));
+        setSelectedIcon(new ImageIcon(getClass().getResource("resources/HearNoteON.png")));
         // putValue("JJazzDisabledIcon", new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PlaybackPointDisabled-24x24.png")));   //NOI18N                                
         putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(), "HearNoteTooltip"));
         putValue("hideActionText", true);
 
 
+        // Keyboard shortcut
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("H"), "ToggleHearNote");   //NOI18N
+        editor.getActionMap().put("ToggleHearNote", this);   //NOI18N
+
+
         var nsl = getNotesSelectionListener();
         changeListener = evt -> selectionChanged(nsl.getLastNoteViewAddedToSelection());
-        
-        setSelected(false);
     }
 
 
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        setSelected(!getBooleanState());
+        setSelected(!isSelected());
     }
 
-    public void setSelected(boolean b)
+    @Override
+    public void selectedStateChanged(boolean b)
     {
-        if (b == getBooleanState())
-        {
-            return;
-        }
-        setBooleanState(b);     // Notify action listeners
-
         if (b)
         {
             getNotesSelectionListener().addListener(changeListener);
@@ -100,17 +102,7 @@ public class HearSelectedNotes extends BooleanStateAction
         }
     }
 
-    @Override
-    public String getName()
-    {
-        return "HearSelectedNotesName";
-    }
-
-    @Override
-    public HelpCtx getHelpCtx()
-    {
-        return null;
-    }
+ 
 
     // ====================================================================================
     // Private methods
@@ -118,7 +110,7 @@ public class HearSelectedNotes extends BooleanStateAction
 
     private void selectionChanged(NoteView lastNoteViewAddedToSelection)
     {
-        if (getBooleanState() == false || lastNoteViewAddedToSelection == null)
+        if (isSelected() == false || lastNoteViewAddedToSelection == null)
         {
             stopTask();
             return;

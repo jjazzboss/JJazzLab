@@ -22,91 +22,78 @@
  */
 package org.jjazz.pianoroll.api;
 
-import org.jjazz.harmony.api.TimeSignature;
-import org.jjazz.midi.api.keymap.KeyMapGM;
-import org.jjazz.phrase.api.NoteEvent;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import javax.swing.Action;
+import org.jjazz.midi.api.DrumKit;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.pianoroll.PianoRollEditorImpl;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
-import org.jjazz.util.api.FloatRange;
-import org.netbeans.api.settings.ConvertAsProperties;
-import org.openide.awt.ActionID;
-import org.openide.awt.ActionReference;
 import org.openide.awt.UndoRedo;
 import org.openide.util.Lookup;
+import org.openide.util.Utilities;
 import org.openide.windows.TopComponent;
-import org.openide.util.NbBundle.Messages;
 
 
 /**
- * Top component which displays something.
+ * The TopComponent for a PianoRollEditor.
+ * <p>
  */
-@ConvertAsProperties(
-        dtd = "-//org.jjazz.pianoroll.api//PhraseEditor//EN",
-        autostore = false
-)
-@TopComponent.Description(
-        preferredID = "PhraseEditorTopComponent",
-        //iconBase="SET/PATH/TO/ICON/HERE",
-        persistenceType = TopComponent.PERSISTENCE_ALWAYS
-)
-@TopComponent.Registration(mode = "editor", openAtStartup = true)
-@ActionID(category = "Window", id = "org.jjazz.pianoroll.api.PhraseEditorTopComponent")
-@ActionReference(path = "Menu/Window" /*, position = 333 */)
-@TopComponent.OpenActionRegistration(
-        displayName = "#CTL_PhraseEditorAction",
-        preferredID = "PhraseEditorTopComponent"
-)
-@Messages(
-        {
-            "CTL_PhraseEditorAction=PhraseEditor",
-            "CTL_PhraseEditorTopComponent=PhraseEditor Window",
-            "HINT_PhraseEditorTopComponent=This is a PhraseEditor window"
-        })
 public final class PianoRollEditorTopComponent extends TopComponent
 {
 
+    public static final String MODE = "editor"; // see Netbeans WindowManager modes
     private PianoRollEditorImpl editor;
 
-    public PianoRollEditorTopComponent()
+    public PianoRollEditorTopComponent(String tabName, SizedPhrase spModel, DrumKit.KeyMap keyMap, int startBarIndex)
     {
-        setName(Bundle.CTL_PhraseEditorTopComponent());
-        setToolTipText(Bundle.HINT_PhraseEditorTopComponent());
-
-
         initComponents();
 
+        putClientProperty(TopComponent.PROP_MAXIMIZATION_DISABLED, Boolean.TRUE);
+        putClientProperty(TopComponent.PROP_CLOSING_DISABLED, Boolean.FALSE);
+        putClientProperty(TopComponent.PROP_DND_COPY_DISABLED, Boolean.TRUE);
+        // putClientProperty(TopComponent.PROP_DRAGGING_DISABLED, Boolean.TRUE);
+        // putClientProperty(TopComponent.PROP_UNDOCKING_DISABLED, Boolean.TRUE);
+        // putClientProperty(TopComponent.PROP_SLIDING_DISABLED, Boolean.TRUE);
+        putClientProperty(TopComponent.PROP_KEEP_PREFERRED_SIZE_WHEN_SLIDED_IN, Boolean.TRUE);        
 
-        int nbBeats = 30;
-        int nbNotes = 12;
-        SizedPhrase sp = new SizedPhrase(0, new FloatRange(0, nbBeats), TimeSignature.THREE_FOUR);
-        for (int i = 0; i < nbNotes; i++)
-        {
-            int pitch = 40 + ((int) (Math.random() * 60) - 30);
-            int vel = 64 + ((int) (Math.random() * 100) - 50);
-            float dur = (float) (0.2f + Math.random() * 4);
-            float deltaPos = (float) (Math.random() * 4);
-            float pos = ((float) nbBeats / (nbNotes + 3)) * i + deltaPos;
-            if (pos + dur < nbBeats)
-            {
-                sp.add(new NoteEvent(pitch, dur, vel, pos));
-            }
-        }
-
-//        SizedPhrase sp = new SizedPhrase(0, new FloatRange(0, 12), TimeSignature.FOUR_FOUR);
-//        sp.add(new NoteEvent(64, 0.5f, 64, 1f));
-//        // sp.add(new NoteEvent(66, 1, 64, 1f));
-//        sp.add(new NoteEvent(67, 1.5f, 64, 2f));
-        // editor = new PianoRollEditorImpl(0, sp, KeyMapGM.getInstance(), PianoRollEditorSettings.getDefault());
-        editor = new PianoRollEditorImpl(0, sp, null, PianoRollEditorSettings.getDefault());
+        editor = new PianoRollEditorImpl(startBarIndex, spModel, keyMap, PianoRollEditorSettings.getDefault());
         add(editor);
 
+        setDisplayName(tabName);
+
     }
+
+    public PianoRollEditorImpl getEditor()
+    {
+        return editor;
+    }
+
 
     @Override
     public UndoRedo getUndoRedo()
     {
         return editor.getUndoManager();
+    }
+
+    /**
+     * Overridden to insert possible new actions from path "Actions/PianoRollEditorTopComponent".
+     *
+     * @return The actions to be shown in the TopComponent popup menu.
+     */
+    @Override
+    public Action[] getActions()
+    {
+        List<? extends Action> newActions = Utilities.actionsForPath("Actions/PianoRollEditorTopComponent");
+        ArrayList<Action> actions = new ArrayList<>();
+        actions.addAll(newActions);
+        if (!newActions.isEmpty())
+        {
+            actions.add(null);   // Separator         
+        }
+        Collections.addAll(actions, super.getActions()); // Get the standard builtin actions Close, Close All, Close Other      
+        return actions.toArray(new Action[0]);
     }
 
     @Override
@@ -115,20 +102,40 @@ public final class PianoRollEditorTopComponent extends TopComponent
         return editor.getLookup();
     }
 
-    /**
-     * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of
-     * this method is always regenerated by the Form Editor.
-     */
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
-    private void initComponents()
+    @Override
+    public int getPersistenceType()
     {
+        return TopComponent.PERSISTENCE_NEVER;
+    }
 
-        setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.LINE_AXIS));
-    }// </editor-fold>//GEN-END:initComponents
+    /**
+     * Return the active (i.e. focused or ancestor of the focused component) PianoRollEditorTopComponent.
+     *
+     * @return Can be null
+     */
+    static public PianoRollEditorTopComponent getActive()
+    {
+        TopComponent tc = TopComponent.getRegistry().getActivated();
+        return (tc instanceof PianoRollEditorTopComponent) ? (PianoRollEditorTopComponent) tc : null;
+    }
 
+    @Override
+    public boolean canClose()
+    {
+//        SavableSong ss = getLookup().lookup(SavableSong.class);
+//        if (ss != null)
+//        {
+//            String msg = songModel.getName() + " : " + ResUtil.getString(getClass(), "CTL_CL_ConfirmClose");
+//            NotifyDescriptor nd = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.OK_CANCEL_OPTION);
+//            Object result = DialogDisplayer.getDefault().notify(nd);
+//            if (result != NotifyDescriptor.OK_OPTION)
+//            {
+//                return false;
+//            }
+//        }
+        return true;
+    }
 
-    // Variables declaration - do not modify//GEN-BEGIN:variables
-    // End of variables declaration//GEN-END:variables
     @Override
     public void componentOpened()
     {
@@ -140,6 +147,10 @@ public final class PianoRollEditorTopComponent extends TopComponent
     {
         // TODO add custom code on component closing
     }
+
+    // ============================================================================================
+    // Private methods
+    // ============================================================================================
 
     void writeProperties(java.util.Properties p)
     {
@@ -154,4 +165,20 @@ public final class PianoRollEditorTopComponent extends TopComponent
         String version = p.getProperty("version");
         // TODO read your settings according to their version
     }
+
+    /**
+     * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of
+     * this method is always regenerated by the Form Editor.
+     */
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    private void initComponents()
+    {
+
+        setToolTipText(org.openide.util.NbBundle.getMessage(PianoRollEditorTopComponent.class, "PianoRollEditorTopComponent.toolTipText")); // NOI18N
+        setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.LINE_AXIS));
+    }// </editor-fold>//GEN-END:initComponents
+
+
+    // Variables declaration - do not modify//GEN-BEGIN:variables
+    // End of variables declaration//GEN-END:variables
 }

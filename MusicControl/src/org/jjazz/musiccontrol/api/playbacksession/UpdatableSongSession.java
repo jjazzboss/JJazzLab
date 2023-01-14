@@ -347,7 +347,7 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
         for (RhythmVoice urv : removedUserPhraseRvs)
         {
             LOGGER.log(Level.FINE, "    Clearing user phrase for urv={0}", urv.getName());
-            Phrase emptyPhrase = new Phrase(getSongContext().getMidiMix().getChannel(urv));
+            Phrase emptyPhrase = new Phrase(getSongContext().getMidiMix().getChannel(urv), urv.isDrums());
             currentMapRvPhrase.put(urv, emptyPhrase);
             int trackId = getOriginalRvTrackIdMap().get(urv);
             updateTrack(trackId, Phrases.toMidiEvents(emptyPhrase), precountShift);

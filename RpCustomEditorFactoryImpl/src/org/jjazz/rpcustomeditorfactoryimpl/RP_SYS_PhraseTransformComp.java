@@ -308,7 +308,7 @@ public class RP_SYS_PhraseTransformComp extends RealTimeRpEditorComponent<RP_SYS
         {
             Phrase p = map.get(rv);     // Phrase always start at bar 0
             int channel = getChannel(rv);
-            SizedPhrase sp = new SizedPhrase(channel, songPartContext.getBeatRange().getTransformed(-songPartContext.getBeatRange().from), timeSignature);
+            SizedPhrase sp = new SizedPhrase(channel, songPartContext.getBeatRange().getTransformed(-songPartContext.getBeatRange().from), timeSignature, p.isDrums());
             sp.add(p);
             mapRvPhrase.put(rv, sp);
         }
@@ -335,7 +335,7 @@ public class RP_SYS_PhraseTransformComp extends RealTimeRpEditorComponent<RP_SYS
         SizedPhrase sp = mapRvPhrase.get(rv);
         if (sp == null)
         {
-            sp = new SizedPhrase(getChannel(rv), songPartContext.getBeatRange().getTransformed(-songPartContext.getBeatRange().from), timeSignature);
+            sp = new SizedPhrase(getChannel(rv), songPartContext.getBeatRange().getTransformed(-songPartContext.getBeatRange().from), timeSignature, sp.isDrums());
         }
         return sp;
     }

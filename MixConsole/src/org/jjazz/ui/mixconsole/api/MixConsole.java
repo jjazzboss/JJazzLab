@@ -650,7 +650,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
                     new UserExtensionPanelController(),
                     settings
             );
-            panel_mixChannels.add(ucep);        // Add always at the last position
+            panel_mixChannels.add(ucep);      
         } else
         {
             // Rhythm channel

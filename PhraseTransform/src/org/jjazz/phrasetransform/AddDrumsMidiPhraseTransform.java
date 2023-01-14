@@ -91,8 +91,7 @@ public class AddDrumsMidiPhraseTransform implements PhraseTransform
     @Override
     public SizedPhrase transform(SizedPhrase inPhrase, SongPartContext context)
     {
-        SizedPhrase res = new SizedPhrase(inPhrase.getChannel(), inPhrase.getBeatRange(), inPhrase.getTimeSignature());
-        res.add(inPhrase);
+        var res = inPhrase.clone();
 
 
         // Prepare the phrase to add so it matches dest phrase size and time signature
@@ -211,7 +210,7 @@ public class AddDrumsMidiPhraseTransform implements PhraseTransform
      */
     private SizedPhrase getAdaptedAddPhrase(SizedPhrase addSp, SizedPhrase destSp)
     {
-        SizedPhrase res = new SizedPhrase(destSp.getChannel(), destSp.getBeatRange(), destSp.getTimeSignature());
+        SizedPhrase res = new SizedPhrase(destSp.getChannel(), destSp.getBeatRange(), destSp.getTimeSignature(), destSp.isDrums());
 
         FloatRange addBr = addSp.getBeatRange();
         TimeSignature addTs = addSp.getTimeSignature();

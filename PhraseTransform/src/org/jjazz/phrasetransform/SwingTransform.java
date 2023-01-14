@@ -26,7 +26,6 @@ package org.jjazz.phrasetransform;
 import java.util.Properties;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
-import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.phrasetransform.api.PhraseTransformCategory;
 import org.jjazz.phrasetransform.api.PhraseTransform;
@@ -86,7 +85,7 @@ public class SwingTransform implements PhraseTransform
     @Override
     public SizedPhrase transform(SizedPhrase inPhrase, SongPartContext context)
     {
-        SizedPhrase res = new SizedPhrase(inPhrase.getChannel(), inPhrase.getBeatRange(), inPhrase.getTimeSignature());
+        SizedPhrase res = new SizedPhrase(inPhrase.getChannel(), inPhrase.getBeatRange(), inPhrase.getTimeSignature(), inPhrase.isDrums());
 
 
         // Prepare data

@@ -157,6 +157,14 @@ public abstract class PianoRollEditor extends JPanel implements Lookup.Provider
      */
     abstract public NoteView getNoteView(NoteEvent ne);
 
+
+    /**
+     * Get all the NoteViews.
+     * <p>
+     * @return
+     */
+    abstract public List<NoteView> getNoteViews();
+
     /**
      * Set the active EditTool.
      * <p>

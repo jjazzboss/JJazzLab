@@ -125,10 +125,11 @@ public class EraserTool implements EditTool
 
         points.stream()
                 .filter(pt -> removeIfNoteViewFound.apply(pt))
-                .findAny();
+                .findAny();     // Stop at first found
 
         editor.getUndoManager().endCEdit(undoText);
     }
+
 
     @Override
     public void editorDragged(MouseEvent e)
@@ -200,10 +201,21 @@ public class EraserTool implements EditTool
     @Override
     public void editMultipleNotes(List<NoteView> noteViews)
     {
-        String undoText = ResUtil.getString(getClass(), "EraseNote");
+        eraseNotes(editor, noteViews);
+    }
+
+    /**
+     * Delete the specified notes as an undoable action.
+     *
+     * @param editor
+     * @param noteViews
+     */
+    static public void eraseNotes(PianoRollEditor editor, List<NoteView> noteViews)
+    {
+        String undoText = ResUtil.getString(EraserTool.class, "EraseNote");
         editor.getUndoManager().startCEdit(undoText);
 
-        noteViews.forEach(nv -> spModel.remove(nv.getModel()));
+        noteViews.forEach(nv -> editor.getModel().remove(nv.getModel()));
 
         editor.getUndoManager().endCEdit(undoText);
     }

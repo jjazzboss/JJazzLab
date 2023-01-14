@@ -154,7 +154,7 @@ public class RhythmVoice
      * Create a RhythmVoice for Drums/Percussion instruments.
      * <p>
      *
-     * @param kit
+     * @param drumKit
      * @param container The Rhythm this RhythmVoice belongs to.
      * @param type Must be DRUMS or PERCUSSION.
      * @param name Name of the RhythmVoice
@@ -162,13 +162,13 @@ public class RhythmVoice
      * @param is The recommended InstrumentSettings.
      * @param preferredChannel The preferred Midi channel for this voice.
      */
-    public RhythmVoice(DrumKit kit, Rhythm container, Type type, String name, Instrument ins, InstrumentSettings is, int preferredChannel)
+    public RhythmVoice(DrumKit drumKit, Rhythm container, Type type, String name, Instrument ins, InstrumentSettings is, int preferredChannel)
     {
-        if (kit == null || container == null || type == null || (!type.equals(Type.DRUMS) && !type.equals(Type.PERCUSSION))
+        if (drumKit == null || container == null || type == null || (!type.equals(Type.DRUMS) && !type.equals(Type.PERCUSSION))
                 || ins == null || name == null || is == null || !MidiConst.checkMidiChannel(preferredChannel))
         {
             throw new IllegalArgumentException(   //NOI18N
-                    "kit=" + kit + " container=" + container + " type=" + type + " name=" + name
+                    "kit=" + drumKit + " container=" + container + " type=" + type + " name=" + name
                     + " is=" + is + " preferredChannel=" + preferredChannel);
         }
         this.container = container;
@@ -177,7 +177,7 @@ public class RhythmVoice
         this.instrument = ins;
         this.instrumentSettings = new InstrumentSettings(is);
         this.preferredChannel = preferredChannel;
-        this.drumKit = kit;
+        this.drumKit = drumKit;
     }
 
     /**

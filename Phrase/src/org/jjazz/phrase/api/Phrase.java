@@ -88,6 +88,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
     public static final String PARENT_NOTE = "PARENT_NOTE";
 
     private final int channel;
+    private final boolean isDrums;
     private final TreeSet<NoteEvent> noteEvents = new TreeSet<>();
     /**
      * The listeners for undoable edits in this LeadSheet.
@@ -97,16 +98,39 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
     private static final Logger LOGGER = Logger.getLogger(Phrase.class.getSimpleName());
 
     /**
+     * Construct a new melodic phrase.
      *
      * @param channel
      */
     public Phrase(int channel)
+    {
+        this(channel, false);
+    }
+
+    /**
+     * Construct a new melodic or drums phrase.
+     *
+     * @param channel
+     * @param isDrums
+     */
+    public Phrase(int channel, boolean isDrums)
     {
         if (!MidiConst.checkMidiChannel(channel))
         {
             throw new IllegalArgumentException("channel=" + channel);   //NOI18N
         }
         this.channel = channel;
+        this.isDrums = isDrums;
+    }
+
+    /**
+     * Check if the phrase is for non-melodic instruments.
+     *
+     * @return
+     */
+    public boolean isDrums()
+    {
+        return isDrums;
     }
 
     /**
@@ -175,7 +199,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
      * <p>
      * Same as removing the old one + adding copy at new position , except it only fires a PROP_NOTE_MOVED change event.
      *
-     * @param ne Must belong to this phrase
+     * @param ne     Must belong to this phrase
      * @param newPos
      * @return The new NoteEvent at newPos. Return ne if position unchanged.
      */
@@ -235,7 +259,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
     }
 
     /**
-     * Add a clone of each NoteEvent from the specified Phrase.
+     * Add a phrase, ie clone and add each NoteEvent from the specified Phrase.
      *
      * @param p
      */
@@ -245,7 +269,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
     }
 
     /**
-     * Add a clone NoteEvent from the specified Phrase.
+     * Add a Phrase from the specified Phrase.
      *
      * @param p
      * @param doNotCloneNotes If true directly add the NoteEvents without cloning them -so client properties might be changed.
@@ -357,14 +381,14 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
     /**
      * Check that the note is valid before adding it to the Phrase.
      * <p>
-     * Default implement does nothing, but subclasses might override to do some sanity checks.
+     * Default implement return true, but subclasses might override to do some sanity checks.
      *
      * @param ne
-     * @throws IllegalArgumentException
+     * @return
      */
-    protected void checkAddNote(NoteEvent ne) throws IllegalArgumentException
+    protected boolean canAddNote(NoteEvent ne)
     {
-
+        return true;
     }
 
     /**
@@ -380,7 +404,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
      */
     public Phrase getProcessedPhrase(Predicate<NoteEvent> tester, Function<NoteEvent, NoteEvent> mapper)
     {
-        Phrase res = new Phrase(channel);
+        Phrase res = new Phrase(channel, isDrums);
         for (NoteEvent ne : this)
         {
             if (tester.test(ne))
@@ -976,7 +1000,8 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
      * Save the specified Phrase as a string.
      * <p>
      * Examples: <br>
-     * - "[8|NoteEventStr0|NoteEventStr1]" means a Phrase for channel 8 with 2 NoteEvents<br>
+     * - "[8|NoteEventStr0|NoteEventStr1]" means a meodic Phrase for channel 8 with 2 NoteEvents<br>
+     * - "[drums_9|NoteEventStr0]" means a drums Phrase for channel 9 with 1 NoteEvent<br>
      * - "[0]" empty phrase on channel 0
      *
      * @param p
@@ -986,7 +1011,8 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
     static public String saveAsString(Phrase p)
     {
         StringJoiner joiner = new StringJoiner("|", "[", "]");
-        joiner.add(String.valueOf(p.getChannel()));
+        String drums = p.isDrums() ? "drums_" : "";
+        joiner.add(drums + String.valueOf(p.getChannel()));
         p.forEach(ne -> joiner.add(NoteEvent.saveAsString(ne)));
         return joiner.toString();
     }
@@ -994,7 +1020,8 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
     /**
      * Create a Phrase from the specified string.
      * <p>
-     * Example "[8|NoteEventStr0|NoteEventStr1]" means a Phrase for channel 8 with 2 NoteEvents.
+     * Example: "[8|NoteEventStr0|NoteEventStr1]" means a meodic Phrase for channel 8 with 2 NoteEvents.<br>
+     * Example: "[drums_8|NoteEventStr0|NoteEventStr1]" means a drums Phrase for channel 8 with 2 NoteEvents.
      *
      * @param s
      * @return
@@ -1010,8 +1037,14 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
             String[] strs = s.substring(1, s.length() - 1).split("\\|");
             try
             {
+                boolean drums = false;
+                if (strs[0].startsWith("drums_"))
+                {
+                    drums = true;
+                    strs[0] = strs[0].substring(6);
+                }
                 int channel = Integer.parseInt(strs[0]);
-                p = new Phrase(channel);
+                p = new Phrase(channel, drums);
                 for (int i = 1; i < strs.length; i++)
                 {
                     NoteEvent ne = NoteEvent.loadAsString(strs[i]);
@@ -1182,6 +1215,14 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
         throw new InvalidObjectException("Serialization proxy required");
 
 
+    }
+
+    private void checkAddNote(NoteEvent ne)
+    {
+        if (!canAddNote(ne))
+        {
+            throw new IllegalArgumentException("ne=" + ne + " this=" + this);
+        }
     }
 
 

@@ -47,10 +47,11 @@ public class SizedPhrase extends Phrase
      * @param channel
      * @param beatRange
      * @param ts
+     * @param isDrums
      */
-    public SizedPhrase(int channel, FloatRange beatRange, TimeSignature ts)
+    public SizedPhrase(int channel, FloatRange beatRange, TimeSignature ts, boolean isDrums)
     {
-        super(channel);
+        super(channel, isDrums);
         checkNotNull(ts);
         checkNotNull(beatRange);
         this.beatRange = beatRange;
@@ -59,7 +60,7 @@ public class SizedPhrase extends Phrase
 
     public SizedPhrase(SizedPhrase sp)
     {
-        super(sp.getChannel());
+        super(sp.getChannel(), sp.isDrums());
         this.beatRange = sp.getBeatRange();
         this.timeSignature = sp.getTimeSignature();
         add(sp);
@@ -70,22 +71,18 @@ public class SizedPhrase extends Phrase
      * <p>
      *
      * @param ne
-     * @throws IllegalArgumentException
      */
     @Override
-    protected void checkAddNote(NoteEvent ne) throws IllegalArgumentException
+    public boolean canAddNote(NoteEvent ne)
     {
-        if (!beatRange.contains(ne.getBeatRange(), false))
-        {
-            throw new IllegalArgumentException("ne=" + ne + " beatRange=" + beatRange);
-        }
+        return beatRange.contains(ne.getBeatRange(), false);
     }
 
 
     @Override
     public SizedPhrase clone()
     {
-        var sp = new SizedPhrase(getChannel(), beatRange, timeSignature);
+        var sp = new SizedPhrase(getChannel(), beatRange, timeSignature, isDrums());
         sp.add(this);
         return sp;
     }
@@ -132,8 +129,9 @@ public class SizedPhrase extends Phrase
     /**
      * Save the specified SizedPhrase as a string.
      * <p>
-     * Example "[8|12.0|16.0|4/4|NoteEventStr0|NoteEventStr1]" means a Phrase for channel 8, beatRange=12-16, in 4/4, with 2
-     * NoteEvents.
+     * Example "[8|12.0|16.0|4/4|NoteEventStr0|NoteEventStr1]" means a melodic Phrase for channel 8, beatRange=12-16, in 4/4, with
+     * 2 NoteEvents.<br>
+     * Example "[drums_9|12.0|16.0|4/4|NoteEventStr0|NoteEventStr1]" means a drums Phrase for channel 9.
      *
      * @param sp
      * @return
@@ -142,7 +140,8 @@ public class SizedPhrase extends Phrase
     static public String saveAsString(SizedPhrase sp)
     {
         StringJoiner joiner = new StringJoiner("|", "[", "]");
-        joiner.add(String.valueOf(sp.getChannel()));
+        String drums = sp.isDrums() ? "drums_" : "";
+        joiner.add(drums + String.valueOf(sp.getChannel()));
         joiner.add(String.valueOf(sp.getBeatRange().from));
         joiner.add(String.valueOf(sp.getBeatRange().to));
         joiner.add(String.valueOf(sp.getTimeSignature()));
@@ -169,11 +168,17 @@ public class SizedPhrase extends Phrase
             {
                 try
                 {
+                    boolean drums = false;
+                    if (strs[0].startsWith("drums_"))
+                    {
+                        drums = true;
+                        strs[0] = strs[0].substring(6);
+                    }
                     int channel = Integer.parseInt(strs[0]);
                     float from = Float.parseFloat(strs[1]);
                     float to = Float.parseFloat(strs[2]);
                     TimeSignature ts = TimeSignature.parse(strs[3]);
-                    sp = new SizedPhrase(channel, new FloatRange(from, to), ts);
+                    sp = new SizedPhrase(channel, new FloatRange(from, to), ts, drums);
                     for (int i = 4; i < strs.length; i++)
                     {
                         NoteEvent ne = NoteEvent.loadAsString(strs[i]);

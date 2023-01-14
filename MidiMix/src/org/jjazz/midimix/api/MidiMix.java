@@ -64,6 +64,7 @@ import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.synths.Family;
 import org.jjazz.midi.api.synths.GMSynth;
 import org.jjazz.midimix.spi.RhythmVoiceInstrumentProvider;
+import org.jjazz.phrase.api.Phrase;
 import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
@@ -938,7 +939,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
             file = f;
         }
 
-        try ( FileOutputStream fos = new FileOutputStream(f))
+        try (FileOutputStream fos = new FileOutputStream(f))
         {
             XStream xstream = new XStream();
             xstream.alias("MidiMix", MidiMix.class);
@@ -1692,7 +1693,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
     }
 
     /**
-     * Add a user phrase channel for the specified name.
+     * Add a user phrase channel for the specified phrase name.
      *
      * @param userPhraseName
      * @throws MidiUnavailableException
@@ -1704,13 +1705,46 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
         {
             String msg = ResUtil.getString(getClass(), "ERR_NotEnoughChannels");
             throw new MidiUnavailableException(msg);
-
         }
 
-        // Use a RhythmVoiceInstrumentProvider to get the instrument
-        var urv = new UserRhythmVoice(userPhraseName);
-        RhythmVoiceInstrumentProvider p = RhythmVoiceInstrumentProvider.getProvider();
-        Instrument ins = p.findInstrument(urv);
+        Phrase p = song.getUserPhrase(userPhraseName);
+        assert p != null : "userPhraseName=" + userPhraseName;
+
+
+        // Update the MidiMix
+        RhythmVoiceInstrumentProvider insProvider = RhythmVoiceInstrumentProvider.getProvider();
+        UserRhythmVoice urv = null;
+        Instrument ins = null;
+
+        if (!p.isDrums())
+        {
+            // Directly use a RhythmVoiceInstrumentProvider to get the melodic instrument
+            urv = new UserRhythmVoice(userPhraseName);
+            ins = insProvider.findInstrument(urv);            
+        }
+        else
+        {
+            // Try to reuse the same drums instrument than in the current song
+            var rvDrums = getRhythmVoice(MidiConst.CHANNEL_DRUMS);
+            if (rvDrums == null)
+            {
+                // Unusual, but there might be another drums channel
+                rvDrums = getRhythmVoices().stream()
+                        .filter(rv -> rv.isDrums())
+                        .findAny()
+                        .orElse(null);
+            }
+            if (rvDrums != null)
+            {
+                ins = getInstrumentMixFromKey(rvDrums).getInstrument();
+                urv = new UserRhythmVoice(userPhraseName, ins.getDrumKit());
+            } else
+            {
+                urv = new UserRhythmVoice(userPhraseName, new DrumKit());
+                ins = insProvider.findInstrument(urv);
+            }
+        }
+
         var insMix = new InstrumentMix(ins, new InstrumentSettings());
         setInstrumentMix(channel, urv, insMix);
     }
@@ -1871,7 +1905,6 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
                 InstrumentMix insMix = spInsMixes[channel];
 
 
-
                 if (insMix == null && rvs == null)
                 {
                     // Normal case: no instrument
@@ -1898,9 +1931,9 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
                 // and we can not modify spInsMixes during the deserialization process.
                 InstrumentMix insMixNew = new InstrumentMix(insMix);
 
-                
+
                 // Make sure we don't have a melodic instrument on a rhythm channel (can happen if we could not retrieve the MidiSynth for example)
-                Instrument ins=insMixNew.getInstrument();                
+                Instrument ins = insMixNew.getInstrument();
                 if (rv.isDrums() && ins != GMSynth.getInstance().getVoidInstrument() && !ins.isDrumKit())
                 {
                     insMixNew.setInstrument(GMSynth.getInstance().getVoidInstrument());

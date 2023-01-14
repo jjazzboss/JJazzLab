@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
+import javax.swing.border.LineBorder;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
@@ -50,6 +51,7 @@ import org.jjazz.util.api.ResUtil;
 
 /**
  * A JComponent which represents a NoteEvent.
+ * 
  */
 public class NoteView extends JPanel implements PropertyChangeListener, Comparable<NoteEvent>
 {
@@ -82,16 +84,16 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
 
     private PianoRollEditorSettings settings;
     private static final Logger LOGGER = Logger.getLogger(NoteView.class.getSimpleName());
-    private Color borderColor;
 
 
     public NoteView(NoteEvent ne)
     {
         noteEvent = ne;
         settings = PianoRollEditorSettings.getDefault();
-        updateGraphics(noteEvent);
+        updateGraphics();
 
         settings.addPropertyChangeListener(this);
+
     }
 
     public void setModel(NoteEvent ne)
@@ -103,7 +105,7 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
         }
         var old = noteEvent;
         noteEvent = ne;
-        updateGraphics(noteEvent);
+        updateGraphics();
         repaint();
         firePropertyChange(PROP_MODEL, old, noteEvent);
     }
@@ -125,7 +127,7 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
         if (selected != b)
         {
             selected = b;
-            updateGraphics(noteEvent);
+            updateGraphics();
             repaint();
             firePropertyChange(PROP_SELECTED, !b, b);
         }
@@ -145,7 +147,7 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
     public void setMuted(boolean muted)
     {
         this.muted = muted;
-        updateGraphics(noteEvent);
+        updateGraphics();
         repaint();
     }
 
@@ -174,9 +176,14 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
         g2.dispose();
     }
 
-    public Color getBorderColor()
+    /**
+     * Convenience method to get the LineBorder used by this NoteView.
+     *
+     * @return
+     */
+    public LineBorder getLineBorder()
     {
-        return borderColor;
+        return (LineBorder) getBorder();
     }
 
     public void cleanup()
@@ -236,6 +243,7 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
         return SELECTED_VELOCITY_COLORS[velocity];
     }
 
+  
 
     // ==========================================================================================================
     // PropertyChangeListener interface
@@ -245,7 +253,7 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
     {
         if (evt.getSource() instanceof PianoRollEditorSettings)
         {
-            updateGraphics(noteEvent);
+            updateGraphics();
             repaint();
         }
     }
@@ -277,14 +285,13 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
     // Private methods
     // ==============================================================================================================
 
-    private void updateGraphics(NoteEvent ne)
+    private void updateGraphics()
     {
-        Color bgColor = selected ? getSelectedColor(ne.getVelocity()) : getColor(ne.getVelocity());
+        Color bgColor = selected ? getSelectedColor(noteEvent.getVelocity()) : getColor(noteEvent.getVelocity());
         setBackground(bgColor);
-        borderColor = getBorderColor(bgColor, selected);
-        setBorder(BorderFactory.createLineBorder(borderColor, 1));
-        noteAsString = new Note(ne.getPitch()).toPianoOctaveString();
-        String tt = noteAsString + " (" + ne.getPitch() + ") v=" + ne.getVelocity() + ". " + TOOLTIP_HELP;
+        setBorder(BorderFactory.createLineBorder(getBorderColor(bgColor, selected), 1));
+        noteAsString = new Note(noteEvent.getPitch()).toPianoOctaveString();
+        String tt = noteAsString + " (" + noteEvent.getPitch() + ") v=" + noteEvent.getVelocity() + ". " + TOOLTIP_HELP;
         setToolTipText(tt);
     }
 
@@ -344,12 +351,12 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
      * Compute the border color.
      *
      * @param bgColor
-     * @param sel
+     * @param selected
      * @return
      */
-    private Color getBorderColor(Color bgColor, boolean sel)
+    private Color getBorderColor(Color bgColor, boolean selected)
     {
-        return !sel ? HSLColor.changeLuminance(bgColor, -12) : Color.BLACK;
+        return !selected ? HSLColor.changeLuminance(bgColor, -12) : Color.BLACK;
     }
 
 

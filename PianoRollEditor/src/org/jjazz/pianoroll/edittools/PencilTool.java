@@ -38,6 +38,7 @@ import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.pianoroll.NoteViewDrum;
 import org.jjazz.pianoroll.api.EditTool;
 import org.jjazz.pianoroll.api.NoteView;
+import org.jjazz.pianoroll.api.NotesSelectionListener;
 import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.quantizer.api.Quantizer;
 import org.jjazz.util.api.FloatRange;
@@ -47,6 +48,8 @@ import org.netbeans.api.annotations.common.StaticResource;
 
 /**
  * Draw notes.
+ * <p>
+ * Use the velocity of the last selected note.
  */
 public class PencilTool implements EditTool
 {
@@ -73,6 +76,7 @@ public class PencilTool implements EditTool
     private NoteEvent dragNote;
     private int dragPitch;
     private float dragStartPos;
+    private int lastSelectedNoteVelocity;
 
     private static final Logger LOGGER = Logger.getLogger(PencilTool.class.getSimpleName());
 
@@ -80,6 +84,18 @@ public class PencilTool implements EditTool
     {
         this.editor = editor;
         spModel = editor.getModel();
+        lastSelectedNoteVelocity = 64;
+
+        // Listen to selection to update lastSelectedNoteVelocity
+        var selListener = NotesSelectionListener.getInstance(editor.getLookup());
+        selListener.addListener(e ->
+        {
+            var nv = selListener.getLastNoteViewAddedToSelection();
+            if (nv != null)
+            {
+                lastSelectedNoteVelocity = nv.getModel().getVelocity();
+            }
+        });
     }
 
     @Override
@@ -144,7 +160,7 @@ public class PencilTool implements EditTool
                 dur = Math.max(q.getSymbolicDuration().getDuration(), dur);
             }
             dur = Math.min(beatRange.to - dragStartPos, dur);
-            var ne = new NoteEvent(dragPitch, dur, getNewNotePitch(), dragStartPos);
+            var ne = new NoteEvent(dragPitch, dur, getNewNoteVelocity(), dragStartPos);
             spModel.replace(dragNote, ne);
             dragNote = ne;
         }
@@ -338,15 +354,15 @@ public class PencilTool implements EditTool
             dur = beatRange.to - pos;
         }
 
-        NoteEvent ne = new NoteEvent(pitch, dur, getNewNotePitch(), pos);
+        NoteEvent ne = new NoteEvent(pitch, dur, getNewNoteVelocity(), pos);
         assert spModel.add(ne) : "ne=" + ne + " spModel=" + spModel;
 
         return ne;
     }
 
-    private int getNewNotePitch()
+    private int getNewNoteVelocity()
     {
-        return 64;
+        return lastSelectedNoteVelocity;
     }
 
 }

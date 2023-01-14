@@ -211,7 +211,7 @@ public class SelectionTool implements EditTool
                     dragNoteView = editor.getNoteView(mapSrcDragNotes.get(neSource));
 
                     // Listen to ctrl key
-                    addControlKeyListener(dragNoteView);
+                    addControlKeyListener(dragNoteView.getParent());
 
                     break;
                 default:
@@ -383,7 +383,7 @@ public class SelectionTool implements EditTool
             }
             case MOVE ->
             {
-                removeControlKeyListener(dragNoteView);
+                removeControlKeyListener(dragNoteView.getParent());
 
                 // Restore original state before doing the undoable edit
                 mapSrcDragNotes.values().forEach(dragNe -> spModel.remove(dragNe));
@@ -408,7 +408,7 @@ public class SelectionTool implements EditTool
 
             case COPY ->
             {
-                removeControlKeyListener(dragNoteView);
+                removeControlKeyListener(dragNoteView.getParent());
 
                 // Restore original state before doing the undoable edit
                 mapSrcDragNotes.values().forEach(dragNe -> spModel.remove(dragNe));
@@ -588,18 +588,18 @@ public class SelectionTool implements EditTool
         }
     }
 
-    private void removeControlKeyListener(NoteView nv)
+    private void removeControlKeyListener(Container container)
     {
         assert ctrlKeyListener != null;
-        nv.removeKeyListener(ctrlKeyListener);
+        container.removeKeyListener(ctrlKeyListener);
         ctrlKeyListener = null;
     }
 
-    private void addControlKeyListener(NoteView nv)
+    private void addControlKeyListener(Container container)
     {
         assert ctrlKeyListener == null;
 
-        nv.requestFocusInWindow();
+        container.requestFocusInWindow();
 
         ctrlKeyListener = new KeyAdapter()
         {
@@ -609,7 +609,7 @@ public class SelectionTool implements EditTool
                 // LOGGER.severe("keyPressed() e=" + e + " icControlDown()=" + e.isControlDown());
                 if (e.isControlDown())
                 {
-                    changeState(State.COPY, nv.getParent());
+                    changeState(State.COPY, container);
                 }
             }
 
@@ -619,12 +619,12 @@ public class SelectionTool implements EditTool
                 // LOGGER.severe("keyReleased() e=" + e + " isControlDown()=" + e.isControlDown());
                 if (!e.isControlDown())
                 {
-                    changeState(State.MOVE, nv.getParent());
+                    changeState(State.MOVE, container);
                 }
             }
         };
 
-        nv.addKeyListener(ctrlKeyListener);
+        container.addKeyListener(ctrlKeyListener);
 
     }
 }

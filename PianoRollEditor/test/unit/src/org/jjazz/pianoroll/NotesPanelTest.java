@@ -72,7 +72,7 @@ public class NotesPanelTest
     {
         keyboard = new KeyboardComponent(KeyboardRange._128_KEYS);
 
-        SizedPhrase sp = new SizedPhrase(0, new FloatRange(0, 4), TimeSignature.FOUR_FOUR);
+        SizedPhrase sp = new SizedPhrase(0, new FloatRange(0, 4), TimeSignature.FOUR_FOUR, false);
         ne1 = new NoteEvent(64, 1, 64, 1.6f);
         ne2 = new NoteEvent(64, 1, 64, 1.6f);
         neHash1 = System.identityHashCode(ne1);

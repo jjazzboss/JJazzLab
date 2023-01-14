@@ -32,10 +32,16 @@ import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.Sequence;
 import javax.sound.midi.Track;
+import javax.swing.SwingUtilities;
+import org.jjazz.harmony.api.TimeSignature;
+import org.jjazz.midi.api.DrumKit;
 import org.jjazz.midi.api.JJazzMidiSystem;
+import org.jjazz.midimix.api.UserRhythmVoice;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.PhraseSamples;
 import org.jjazz.phrase.api.Phrases;
+import org.jjazz.phrase.api.SizedPhrase;
+import org.jjazz.pianoroll.api.PianoRollEditorTopComponent;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythmmusicgeneration.api.SongSequenceBuilder;
@@ -50,6 +56,8 @@ import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.awt.StatusDisplayer;
 import org.openide.util.Exceptions;
+import org.openide.windows.Mode;
+import org.openide.windows.WindowManager;
 
 /**
  * The controller for a UserExtensionPanel.
@@ -81,13 +89,16 @@ public class UserExtensionPanelController
         }
     }
 
-    public void editUserPhrase()
+    public void OLDeditUserPhrase()
     {
         RhythmVoice rv = panel.getUserRhythmVoice();
         int channel = panel.getMidiMix().getChannel(rv);
 
 
-        LOGGER.info("editUserPhrase() rv=" + rv + " channel=" + channel);
+        LOGGER.log(Level.INFO, "editUserPhrase() rv={0} channel={1}", new Object[]
+        {
+            rv, channel
+        });
 
 
         File midiFile;
@@ -134,7 +145,39 @@ public class UserExtensionPanelController
         String msg = ResUtil.getString(getClass(), "UserExtensionPanelController.WaitForEditorQuit", channel + 1);
         var dlg = new PleaseWaitDialog(msg, runEditorTask);
         dlg.setVisible(true);       // Blocks until runEditorTask is complete
+    }
 
+    public void editUserPhrase()
+    {
+        var rv = panel.getUserRhythmVoice();
+        String name = rv.getName();
+        int channel = panel.getMidiMix().getChannel(rv);
+        Song song = panel.getSong();
+        Phrase p = song.getUserPhrase(name);
+
+        LOGGER.log(Level.INFO, "editUserPhrase() rv={0} channel={1}", new Object[]
+        {
+            rv, channel
+        });
+
+
+        // Copy the phrase in a fixed sizedPhrase
+        LOGGER.severe("editUserPhrase() ############ NOT GOOD TO BE COMPLETED ################");
+        SizedPhrase sp = new SizedPhrase(channel, song.getSongStructure().getBeatRange(null), TimeSignature.FOUR_FOUR, rv.isDrums());
+        sp.add(p);
+
+
+        // Create the editor
+        DrumKit drumKit = panel.getMidiMix().getInstrumentMixFromKey(rv).getInstrument().getDrumKit();
+        DrumKit.KeyMap keyMap = drumKit == null ? null : drumKit.getKeyMap();
+        PianoRollEditorTopComponent tc = new PianoRollEditorTopComponent(name, sp, keyMap, 0);
+        Mode mode = WindowManager.getDefault().findMode(PianoRollEditorTopComponent.MODE);
+        SwingUtilities.invokeLater(() ->
+        {
+            mode.dockInto(tc);
+            tc.open();
+            tc.requestActive();
+        });
 
     }
 
@@ -143,12 +186,12 @@ public class UserExtensionPanelController
     {
         Song song = panel.getSong();
         String undoText = "Remove user track";
-        
-        JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(song);      
+
+        JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(song);
         um.startCEdit(undoText);
-        
+
         song.removeUserPhrase(panel.getUserRhythmVoice().getName());
-        
+
         um.endCEdit(undoText);
     }
 
@@ -245,9 +288,9 @@ public class UserExtensionPanelController
         Sequence sequence = MidiSystem.getSequence(midiFile);       // Throws IOException, InvalidMidiDataException
         if (sequence.getDivisionType() != Sequence.PPQ)
         {
-            throw new InvalidMidiDataException("Midi file does not use PPQ division: midifile="+midiFile.getAbsolutePath());
+            throw new InvalidMidiDataException("Midi file does not use PPQ division: midifile=" + midiFile.getAbsolutePath());
         }
-        
+
         // Get our phrase
         Track[] tracks = sequence.getTracks();
         List<Phrase> phrases = Phrases.getPhrases(sequence.getResolution(), tracks, channel);

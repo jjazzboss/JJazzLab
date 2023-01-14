@@ -403,7 +403,7 @@ public class RP_SYS_DrumsTransformComp extends RealTimeRpEditorComponent<RP_SYS_
     private synchronized void setOriginalPhrase(Phrase p)
     {
         LOGGER.log(Level.FINE, "setOriginalPhrase() -- p={0}", p);
-        originalPhrase = new SizedPhrase(getChannel(), songPartContext.getBeatRange().getTransformed(-songPartContext.getBeatRange().from), timeSignature);
+        originalPhrase = new SizedPhrase(getChannel(), songPartContext.getBeatRange().getTransformed(-songPartContext.getBeatRange().from), timeSignature, p.isDrums());
         if (p != null)
         {
             originalPhrase.add(p);
@@ -428,7 +428,7 @@ public class RP_SYS_DrumsTransformComp extends RealTimeRpEditorComponent<RP_SYS_
         SizedPhrase sp = originalPhrase;
         if (sp == null)
         {
-            sp = new SizedPhrase(getChannel(), songPartContext.getBeatRange().getTransformed(-songPartContext.getBeatRange().from), timeSignature);
+            sp = new SizedPhrase(getChannel(), songPartContext.getBeatRange().getTransformed(-songPartContext.getBeatRange().from), timeSignature, sp.isDrums());
         }
         return sp;
     }

@@ -120,7 +120,7 @@ public class ResetChannels extends AbstractAction
 
         } else
         {
-            ins = outSynth.getUserSettings().getUserInstrument();
+            ins = outSynth.getUserSettings().getUserMelodicInstrument();
         }
         insMix.setInstrument(ins);
         insMix.setInstrumentEnabled(true);

@@ -22,10 +22,13 @@
  */
 package org.jjazz.midimix.api;
 
+import com.google.common.base.Preconditions;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.util.List;
 import org.jjazz.harmony.api.TimeSignature;
+import org.jjazz.midi.api.DrumKit;
+import org.jjazz.midi.api.Instrument;
 import org.jjazz.midi.api.InstrumentSettings;
 import org.jjazz.midi.api.synths.Family;
 import org.jjazz.midi.api.synths.GMSynth;
@@ -46,13 +49,24 @@ public class UserRhythmVoice extends RhythmVoice
 
 
     /**
-     * Create a UserChannelRvKey.
+     * Create a melodic UserRhythmVoice.
      *
-     * @param name
+     * @param name Can't be null
      */
     public UserRhythmVoice(String name)
     {
-        super(CONTAINER, Type.PHRASE1, name, GMSynth.getInstance().getGM1Bank().getDefaultInstrument(Family.Piano), new InstrumentSettings(), DEFAULT_USER_PHRASE_CHANNEL);
+        super(CONTAINER, Type.PHRASE1, name, GMSynth.getInstance().getGM1Bank().getDefaultInstrument(Family.Piano), DEFAULT_USER_PHRASE_CHANNEL);
+    }
+
+    /**
+     * Create a drums UserRhythmVoice.
+     *
+     * @param name    Can't be null
+     * @param drumKit Can't be null
+     */
+    public UserRhythmVoice(String name, DrumKit drumKit)
+    {
+        super(drumKit, CONTAINER, Type.DRUMS, name, GMSynth.getInstance().getVoidInstrument(), DEFAULT_USER_PHRASE_CHANNEL);
     }
 
     @Override

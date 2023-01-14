@@ -319,7 +319,9 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
             Phrase p = map.get(rv);     // Phrase always start at bar 0
             SizedPhrase sp = new SizedPhrase(getChannel(rv),
                     songPartContext.getBeatRange().getTransformed(-songPartContext.getBeatRange().from),
-                    songPartContext.getSongPart().getRhythm().getTimeSignature());
+                    songPartContext.getSongPart().getRhythm().getTimeSignature(),
+                    p.isDrums()
+            );
             sp.add(p);
             mapRvPhrase.put(rv, sp);
         }
@@ -500,7 +502,10 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
 //                    LOGGER.info("importMidiFile() setting custom phrase for rv=" + rv);
 //                    LOGGER.info("importMidiFile() pOld=" + pOld);
 //                    LOGGER.info("importMidiFile() pNew=" + pNew);
-                    SizedPhrase sp = new SizedPhrase(pNew.getChannel(), songPartContext.getBeatRange().getTransformed(-songPartContext.getBeatRange().from), r.getTimeSignature());
+                    SizedPhrase sp = new SizedPhrase(pNew.getChannel(),
+                            songPartContext.getBeatRange().getTransformed(-songPartContext.getBeatRange().from),
+                            r.getTimeSignature(),
+                            pNew.isDrums());
                     sp.add(pNew);
                     addCustomizedPhrase(rv, sp);
                     impactedRvs.add(rv);

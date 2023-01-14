@@ -298,7 +298,7 @@ final class ClickPanel extends javax.swing.JPanel
        int pitchLow = Arrays.asList(MidiConst.getGMPercussionMap()).indexOf(combo_soundLow.getSelectedItem());
        int velHigh = (int) spn_velocityHigh.getValue();
        int velLow = (int) spn_velocityLow.getValue();
-       final Phrase p = new Phrase((int) spn_channel.getValue() - 1);
+       final Phrase p = new Phrase((int) spn_channel.getValue() - 1, true);
        int nbClicks = getPrecountMode().equals(PrecountMode.TWO_BARS) ? 8 : 4;
        for (int i = 0; i < nbClicks; i++)
        {

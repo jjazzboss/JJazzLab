@@ -28,7 +28,6 @@ import java.awt.Polygon;
 import java.awt.RenderingHints;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.pianoroll.api.NoteView;
-import org.jjazz.ui.utilities.api.Utilities;
 
 /**
  * A specialization of NoteView for drums notes (no duration).
@@ -66,7 +65,7 @@ public class NoteViewDrum extends NoteView
         
         g2.setColor(getBackground());
         g2.fill(p);
-        g2.setColor(getBorderColor());
+        g2.setColor(getLineBorder().getLineColor());
         g2.draw(p);
 
         g2.dispose();

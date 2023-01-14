@@ -387,7 +387,7 @@ public class DefaultPhraseTransformProvider implements PhraseTransformProvider
                 throw new IOException("Invalid p range: p.getBeatRange().to=" + p.getBeatRange().to + " nbBars=" + nbBars + " ts=" + ts);
             }
 
-            SizedPhrase sp = new SizedPhrase(MidiConst.CHANNEL_DRUMS, new FloatRange(0, nbBars * ts.getNbNaturalBeats()), ts);
+            SizedPhrase sp = new SizedPhrase(MidiConst.CHANNEL_DRUMS, new FloatRange(0, nbBars * ts.getNbNaturalBeats()), ts, true);
             sp.add(p);
             return sp;
 
@@ -407,7 +407,7 @@ public class DefaultPhraseTransformProvider implements PhraseTransformProvider
      */
     private Phrase importDrumsPhrase(InputStream midiStream) throws IOException, InvalidMidiDataException
     {
-        Phrase res = new Phrase(MidiConst.CHANNEL_DRUMS);
+        Phrase res = new Phrase(MidiConst.CHANNEL_DRUMS, true);
 
         // Load file into a sequence
         Sequence sequence = MidiSystem.getSequence(midiStream);       // Throws IOException, InvalidMidiDataException

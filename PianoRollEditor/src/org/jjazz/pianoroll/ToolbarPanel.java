@@ -38,7 +38,7 @@ import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.SizedPhrase;
-import org.jjazz.pianoroll.actions.HearSelectedNotes;
+import org.jjazz.pianoroll.actions.HearSelection;
 import org.jjazz.pianoroll.api.EditTool;
 import org.jjazz.pianoroll.api.NoteView;
 import org.jjazz.pianoroll.api.NotesSelection;
@@ -74,9 +74,7 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
         initComponents();
         
         
-        tbtn_hearNotes.setAction(new HearSelectedNotes(editor));
-//        tbtn_hearNotes.setAction(new HearSelectedNotes(editor));
-//        tbtn_hearNotes.setAction(new HearSelectedNotes(editor));
+        tbtn_hearNotes.setAction(new HearSelection(editor));
 
 
         var qModel = new DefaultComboBoxModel(Quantization.values());

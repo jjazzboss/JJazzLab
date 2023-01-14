@@ -26,9 +26,11 @@ import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.Icon;
+import org.jjazz.ui.utilities.api.ToggleAction;
 import org.openide.util.actions.BooleanStateAction;
 
 /**
@@ -63,16 +65,18 @@ public class FlatToggleButton extends FlatButton
      */
     public FlatToggleButton(boolean enablePressedBorder, boolean enableEnteredBorder, boolean enableDrag)
     {
-        this(null, enablePressedBorder, enableEnteredBorder, enableDrag);
+        this((BooleanStateAction) null, enablePressedBorder, enableEnteredBorder, enableDrag);
     }
 
     /**
      * Equivalent of FlatToggleButton(bsa, true, true, false)
      */
+    @Deprecated
     public FlatToggleButton(BooleanStateAction bsa)
     {
         this(bsa, true, true, false);
     }
+
 
     /**
      * Create a toggle button initialized with the specified action.
@@ -82,6 +86,7 @@ public class FlatToggleButton extends FlatButton
      * @param enableEnteredBorder
      * @param enableDrag
      */
+    @Deprecated
     public FlatToggleButton(BooleanStateAction bsa, boolean enablePressedBorder, boolean enableEnteredBorder, boolean enableDrag)
     {
         super(bsa, enablePressedBorder, enableEnteredBorder, enableDrag);
@@ -92,6 +97,38 @@ public class FlatToggleButton extends FlatButton
         {
             setSelectedIcon((Icon) bsa.getValue(Action.LARGE_ICON_KEY));
             setSelected(bsa.getBooleanState());
+        }
+    }
+
+    /**
+     * Create a toggle button initialized with the specified ToggleAction.
+     *
+     * @param ta
+     */
+    public FlatToggleButton(ToggleAction ta)
+    {
+        this(ta, true, true, false);
+    }
+
+    /**
+     * Create a toggle button initialized with the specified ToggleAction.
+     *
+     * @param ta
+     * @param enablePressedBorder
+     * @param enableEnteredBorder
+     * @param enableDrag
+     */
+    public FlatToggleButton(ToggleAction ta, boolean enablePressedBorder, boolean enableEnteredBorder, boolean enableDrag)
+    {
+        super(ta, enablePressedBorder, enableEnteredBorder, enableDrag);
+
+        selectedForeground = Color.RED;
+        isSelected = false;
+
+        if (ta != null)
+        {
+            setSelectedIcon(ta.getSelectedIcon());
+            setSelected(ta.isSelected());
         }
     }
 
@@ -146,7 +183,7 @@ public class FlatToggleButton extends FlatButton
     }
 
     /**
-     * Overridden to authorize only BooleanStateActions.
+     * Overridden to authorize only some specific types of Action.
      * <p>
      * When this togglebutton is clicked it just calls action.actionPerformed(). Button selected state will follow the
      * BooleanStateAction.PROP_BOOLEAN_STATE action's property changes.
@@ -157,11 +194,28 @@ public class FlatToggleButton extends FlatButton
      *
      * @param bsa A non-null BooleanStateAction.
      */
+    @Deprecated
     public void setAction(BooleanStateAction bsa)
     {
         super.setAction(bsa);
         setSelectedIcon((Icon) bsa.getValue(Action.LARGE_ICON_KEY));
         setSelected(bsa.getBooleanState());
+    }
+
+    /**
+     * Overridden to authorize only some specific types of Action.
+     * <p>
+     * When this togglebutton is clicked it just calls action.actionPerformed(). Button selected state will follow the
+     * Action.SELECTED_KEY action's property changes.
+     * <p>
+     *
+     * @param ta
+     */
+    public void setAction(ToggleAction ta)
+    {
+        super.setAction(ta);
+        setSelectedIcon(ta.getSelectedIcon());
+        setSelected(ta.isSelected());
     }
 
     public void setUnselectedIcon(Icon icon)
@@ -227,13 +281,19 @@ public class FlatToggleButton extends FlatButton
     {
         super.propertyChange(evt);
 
-        LOGGER.fine("propertyChange() this.action=" + (getAction() != null ? getAction().getValue(Action.NAME) : "") + ", evt=" + evt);   //NOI18N
+        LOGGER.log(Level.FINE, "propertyChange() this.action={0}, evt={1}", new Object[]
+        {
+            getAction() != null ? getAction().getValue(Action.NAME) : "", evt
+        });   //NOI18N
+
+
         if (evt.getSource() == getAction())
         {
-            if (evt.getPropertyName() == Action.LARGE_ICON_KEY)
+            if (evt.getPropertyName().equals(Action.LARGE_ICON_KEY))
             {
                 setSelectedIcon((Icon) evt.getNewValue());
-            } else if (evt.getPropertyName() == BooleanStateAction.PROP_BOOLEAN_STATE)
+            } else if (evt.getPropertyName().equals(BooleanStateAction.PROP_BOOLEAN_STATE)
+                    || evt.getPropertyName().equals(Action.SELECTED_KEY))
             {
                 setSelected(evt.getNewValue().equals(Boolean.TRUE));
             }
@@ -243,9 +303,9 @@ public class FlatToggleButton extends FlatButton
     /**
      * Overridden.
      * <p>
-     * If a BooleanStateAction is associated to this button, just call its actionPerformed(): this button listens to the action's
-     * PROP_BOOLEAN_STATE and will update itself if action actually switches its state.<br>
-     * If no action defined directly change the button's state.<br>
+     * If an selectable action is associated to this button, just call its actionPerformed(): this button listens to the action's
+     * selected state and will update itself if action actually switches its state.<br>s If no action defined directly change the
+     * button's state.<br>
      * All ActionListeners are also notified.
      *
      * @param e
@@ -263,4 +323,9 @@ public class FlatToggleButton extends FlatButton
         }
         fireActionPerformed(ae);
     }
+
+    // ======================================================================
+    // Private methods
+    // ======================================================================    
+
 }

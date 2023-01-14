@@ -47,15 +47,16 @@ public class DefaultRhythmVoiceInstrumentProviderImpl implements RhythmVoiceInst
     {
         Instrument ins;
         var outSynth = OutputSynthManager.getInstance().getDefaultOutputSynth();
-    
-        if (!(rv instanceof UserRhythmVoice))
+
+        if ((rv instanceof UserRhythmVoice) && !rv.isDrums())
+        {
+            ins = outSynth.getUserSettings().getUserMelodicInstrument();
+        } else
         {
             ins = outSynth.findInstrument(rv);
 
-        } else
-        {
-            ins = outSynth.getUserSettings().getUserInstrument();
         }
+
         return ins;
     }
 

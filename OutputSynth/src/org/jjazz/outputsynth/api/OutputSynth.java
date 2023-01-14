@@ -108,17 +108,17 @@ public class OutputSynth
     /**
      * Find an instrument from this OutputSynth matching (as much as possible) the specified rhythm voice's preferred instrument.
      * <p>
-     * 
-     * @param rv 
+     *
+     * @param rv
      * @return Can't be null. It may be the VoidInstrument for drums/percussion.
      */
     public Instrument findInstrument(RhythmVoice rv)
     {
         Preconditions.checkNotNull(rv);
-        
+
         if (rv instanceof UserRhythmVoice)
         {
-            return userSettings.getUserInstrument();
+            return userSettings.getUserMelodicInstrument();
         }
 
         // rvIns can be a YamahaRefSynth instrument (with GM1 substitute defined), or  a GM/GM2/XG instrument, or a VoidInstrument
@@ -419,7 +419,7 @@ public class OutputSynth
         private SendModeOnUponPlay sendModeOnUponPlay;
         protected GMRemapTable remapTable;
         private int audioLatency;
-        private Instrument userInstrument;
+        private Instrument userMelodicInstrument;
 
         private transient final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
@@ -432,7 +432,7 @@ public class OutputSynth
             this.remapTable = new GMRemapTable(midiSynth);
             this.remapTable.addPropertyChangeListener(e -> pcs.firePropertyChange(PROP_GM_REMAP_TABLE, false, true));
             this.sendModeOnUponPlay = SendModeOnUponPlay.OFF;
-            this.userInstrument = midiSynth.getInstruments().get(0);
+            this.userMelodicInstrument = midiSynth.getInstruments().get(0);
             this.audioLatency = 20;
         }
 
@@ -451,7 +451,7 @@ public class OutputSynth
         {
             setAudioLatency(userSettings.audioLatency);
             setSendModeOnUponPlay(userSettings.sendModeOnUponPlay);
-            setUserInstrument(userSettings.userInstrument);
+            setUserMelodicInstrument(userSettings.userMelodicInstrument);
             setRemapTableValues(userSettings.getGMRemapTable());
         }
 
@@ -481,13 +481,13 @@ public class OutputSynth
 
 
         /**
-         * Get the value of userInstrument
+         * Get the user melodic instrument.
          *
          * @return Can't be null
          */
-        public Instrument getUserInstrument()
+        public Instrument getUserMelodicInstrument()
         {
-            return userInstrument;
+            return userMelodicInstrument;
         }
 
         /**
@@ -495,7 +495,7 @@ public class OutputSynth
          *
          * @param ins Must be an instrument contained in the MidiSynth.
          */
-        public void setUserInstrument(Instrument ins)
+        public void setUserMelodicInstrument(Instrument ins)
         {
             Preconditions.checkNotNull(ins);
             if (!midiSynth.contains(ins))
@@ -503,8 +503,8 @@ public class OutputSynth
                 throw new IllegalArgumentException("midiSynth=" + midiSynth + " ins=" + ins.toLongString());   //NOI18N
             }
 
-            Instrument oldUserInstrument = this.userInstrument;
-            this.userInstrument = ins;
+            Instrument oldUserInstrument = this.userMelodicInstrument;
+            this.userMelodicInstrument = ins;
             pcs.firePropertyChange(PROP_USERINSTRUMENT, oldUserInstrument, ins);
 
         }
@@ -533,7 +533,7 @@ public class OutputSynth
          */
         public String saveAsString()
         {
-            return audioLatency + ";" + sendModeOnUponPlay + ";" + userInstrument.saveAsString() + ";" + remapTable.saveAsString();
+            return audioLatency + ";" + sendModeOnUponPlay + ";" + userMelodicInstrument.saveAsString() + ";" + remapTable.saveAsString();
         }
 
         /**
@@ -598,7 +598,7 @@ public class OutputSynth
 
             setAudioLatency(latency);
             setSendModeOnUponPlay(mode);
-            setUserInstrument(userIns);
+            setUserMelodicInstrument(userIns);
             setRemapTableValues(remap);
         }
 

@@ -902,7 +902,7 @@ public class SongSequenceBuilder
                 Phrase p = rvPhrases.get(rv);
 
                 // Make it a SizedPhrase on the relevant beat range and transform it
-                SizedPhrase inSp = new SizedPhrase(p.getChannel(), sptBeatRange, r.getTimeSignature());
+                SizedPhrase inSp = new SizedPhrase(p.getChannel(), sptBeatRange, r.getTimeSignature(), p.isDrums());
                 inSp.add(Phrases.getSlice(p, sptBeatRange, false, 1, 0.1f));
                 var chain = rpValue.getTransformChain(rv);
                 var outSp = chain.transform(inSp, sptContext);
@@ -955,7 +955,7 @@ public class SongSequenceBuilder
             Phrase p = rvPhrases.get(rvDrums);
 
             // Make it a SizedPhrase only on the relevant slice and transform it
-            SizedPhrase inSp = new SizedPhrase(p.getChannel(), sptBeatRange, r.getTimeSignature());
+            SizedPhrase inSp = new SizedPhrase(p.getChannel(), sptBeatRange, r.getTimeSignature(), p.isDrums());
             inSp.add(Phrases.getSlice(p, sptBeatRange, false, 1, 0.1f));
             var chain = rpValue.getTransformChain(false);
             var outSp = chain.transform(inSp, sptContext);

@@ -263,7 +263,7 @@ public class Phrases
         checkArgument(cutRight >= 0 && cutRight <= 2, "cutRight=%s", cutRight);
         checkArgument(beatWindow >= 0);
 
-        Phrase res = new Phrase(p.getChannel());
+        Phrase res = new Phrase(p.getChannel(), p.isDrums());
 
 
         // Preprocess to accomodate for live playing / non-quantized notes
@@ -647,7 +647,7 @@ public class Phrases
      *
      * @param tracksPPQ The Midi PPQ resolution (pulses per quarter) used in the tracks.
      * @param tracks
-     * @param channels Get phrases only for the specified channels. If empty, get phrases for all channels.
+     * @param channels  Get phrases only for the specified channels. If empty, get phrases for all channels.
      * @return
      */
     public static List<Phrase> getPhrases(int tracksPPQ, Track[] tracks, Integer... channels)
@@ -666,7 +666,7 @@ public class Phrases
                     Phrase p = mapRes.get(channel);
                     if (p == null)
                     {
-                        p = new Phrase(channel);
+                        p = new Phrase(channel, channel == 9);
                         mapRes.put(channel, p);
                     }
                     Phrases.addMidiEvents(p, trackEvents, 0, false);

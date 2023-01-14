@@ -29,8 +29,6 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.event.InputEvent;
-import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -44,17 +42,26 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.BorderFactory;
+import javax.swing.JComponent;
 import javax.swing.JLayer;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.SizedPhrase;
+import org.jjazz.pianoroll.actions.DeleteSelection;
+import org.jjazz.pianoroll.actions.MoveSelectionLeft;
+import org.jjazz.pianoroll.actions.MoveSelectionRight;
+import org.jjazz.pianoroll.actions.ResizeSelection;
+import org.jjazz.pianoroll.actions.SelectAllNotes;
+import org.jjazz.pianoroll.actions.TransposeSelectionDown;
+import org.jjazz.pianoroll.actions.TransposeSelectionUp;
 import org.jjazz.pianoroll.api.EditTool;
 import org.jjazz.pianoroll.api.NoteView;
 import org.jjazz.pianoroll.api.PianoRollEditor;
@@ -150,11 +157,6 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
         spModel.addUndoableEditListener(undoManager);
 
 
-        // Must be set before createUI()
-        editTools = Arrays.asList(new SelectionTool(this), new PencilTool(this), new EraserTool(this));
-        activeTool = editTools.get(0);
-
-
         // Selection lookup
         selectionLookupContent = new InstanceContent();
         selectionLookup = new AbstractLookup(selectionLookupContent);
@@ -169,6 +171,12 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
         lookup = new ProxyLookup(selectionLookup, generalLookup);
 
 
+        // Must be set before createUI() but after lookup is set
+        editTools = Arrays.asList(new SelectionTool(this), new PencilTool(this), new EraserTool(this));
+        activeTool = editTools.get(0);
+
+
+        // Build the UI
         createUI();
 
 
@@ -193,6 +201,9 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
         notesPanel.addMouseListener(editToolProxyMouseListener);
         notesPanel.addMouseMotionListener(editToolProxyMouseListener);
         notesPanel.addMouseWheelListener(editToolProxyMouseListener);
+
+
+        setKeyboardActions();
 
 
         // Normal zoom
@@ -369,6 +380,12 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
     public NoteView getNoteView(NoteEvent ne)
     {
         return notesPanel.getNoteView(ne);
+    }
+
+    @Override
+    public List<NoteView> getNoteViews()
+    {
+        return notesPanel.getNoteViews();
     }
 
     @Override
@@ -620,6 +637,7 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
     private void registerNoteView(NoteView nv)
     {
         nv.addMouseListener(editToolProxyMouseListener);
+        nv.addMouseListener(genericMouseListener);
         nv.addMouseMotionListener(editToolProxyMouseListener);
         nv.addMouseMotionListener(genericMouseListener);
         nv.addMouseWheelListener(editToolProxyMouseListener);
@@ -632,6 +650,7 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
     private void unregisterNoteView(NoteView nv)
     {
         nv.removeMouseListener(editToolProxyMouseListener);
+        nv.removeMouseListener(genericMouseListener);
         nv.removeMouseMotionListener(editToolProxyMouseListener);
         nv.removeMouseMotionListener(genericMouseListener);
         nv.removeMouseWheelListener(editToolProxyMouseListener);
@@ -772,6 +791,41 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
         }
     }
 
+    private void setKeyboardActions()
+    {
+        // Our delegates for standard Netbeans callback actions
+//        getActionMap().put("cut-to-clipboard", new CutNotes(this));
+//        getActionMap().put("copy-to-clipboard", new CopyNotes(this));
+//        getActionMap().put("paste-from-clipboard", new PasteNotes(this));
+
+        
+
+        // Delegates for our callback actions        
+        // Must be the editor's action map because it will be in the lookup of the TopComponent
+        getActionMap().put("jjazz-delete", new DeleteSelection(this));
+        getActionMap().put("jjazz-selectall", new SelectAllNotes(this));
+
+        
+        
+        // Use the notesPanel lookup to avoid the arrow keys being captured by the enclosing JScrollPane
+        notesPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("LEFT"), "MoveSelectionLeft");   //NOI18N        
+        notesPanel.getActionMap().put("MoveSelectionLeft", new MoveSelectionLeft(this));
+        notesPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("RIGHT"), "MoveSelectionRight");   //NOI18N        
+        notesPanel.getActionMap().put("MoveSelectionRight", new MoveSelectionRight(this));
+
+        notesPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("alt LEFT"), "ResizeSelectionShorter");   //NOI18N
+        notesPanel.getActionMap().put("ResizeSelectionShorter", new ResizeSelection(this, false));
+        notesPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("alt RIGHT"), "ResizeSelectionLonger");   //NOI18N
+        notesPanel.getActionMap().put("ResizeSelectionLonger", new ResizeSelection(this, true));
+
+        notesPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("UP"), "TransposeUp");   //NOI18N
+        notesPanel.getActionMap().put("TransposeUp", new TransposeSelectionUp(this));
+        notesPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("DOWN"), "TransposeDown");   //NOI18N
+        notesPanel.getActionMap().put("TransposeDown", new TransposeSelectionDown(this));
+
+
+    }
+
     // =======================================================================================================================
     // Inner classes
     // =======================================================================================================================
@@ -848,7 +902,7 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
      * - Handle ctrl-mousewheel for zoom<br>
      * <p>
      */
-    private class GenericMouseListener extends MouseAdapter
+    private class GenericMouseListener implements MouseListener, MouseMotionListener, MouseWheelListener
     {
 
         /**
@@ -857,10 +911,30 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
         private Point startDraggingPoint;
         int lastHighlightedPitch = -1;
 
+
+        @Override
+        public void mouseClicked(MouseEvent e)
+        {
+            // Nothing
+        }
+
+        @Override
+        public void mousePressed(MouseEvent e)
+        {
+            notesPanel.requestFocusInWindow();          // Needed for InputMap/ActionMap actions
+        }
+
+
         @Override
         public void mouseMoved(MouseEvent e)
         {
             showMarkOnKeyboard(e);
+        }
+
+        @Override
+        public void mouseEntered(MouseEvent e)
+        {
+            // Nothing
         }
 
         @Override
@@ -907,7 +981,10 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
                 startDraggingPoint = null;
 
                 var nvs = notesPanel.getNoteViews(r);
-                activeTool.editMultipleNotes(nvs);
+                if (!nvs.isEmpty())
+                {
+                    activeTool.editMultipleNotes(nvs);
+                }
             }
         }
 
@@ -994,6 +1071,7 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
             lastHighlightedPitch = pitch;
         }
 
+
     }
 
     /**
@@ -1017,7 +1095,7 @@ public class PianoRollEditorImpl extends PianoRollEditor implements PropertyChan
         @Override
         public void mousePressed(MouseEvent e)
         {
-
+            // Nothing
         }
 
         @Override
