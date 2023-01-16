@@ -31,7 +31,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Logger;
 import javax.sound.midi.InvalidMidiDataException;
@@ -45,8 +44,9 @@ import org.openide.util.Exceptions;
 /**
  * A Note with a position and optional client properties.
  * <p>
- * This is an immutable class except for the client properties. Two different NoteEvent instances can not be equal. If you need
- * NoteEvent map keys to be considered equal when they share the same attributes, use the AsNoteKey class.
+ * This is an immutable class EXCEPT for the client properties.<p>
+ * Two different NoteEvent instances can not be equal. If you need NoteEvent map keys to be considered equal when they share the
+ * same Note attributes, use the AsNoteKey inner class.
  */
 public class NoteEvent extends Note implements Cloneable, Comparable<Note>
 {
@@ -108,7 +108,7 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
      * Client properties are also copied.
      *
      * @param pitch
-     * @return 
+     * @return
      */
     public NoteEvent getCopyPitch(int pitch)
     {

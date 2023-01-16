@@ -228,12 +228,10 @@ public final class CL_EditorTopComponent extends TopComponent implements Propert
     static public CL_EditorTopComponent get(ChordLeadSheet cls)
     {
         Set<TopComponent> tcs = TopComponent.getRegistry().getOpened();
-        for (Iterator<TopComponent> it = tcs.iterator(); it.hasNext();)
+        for (TopComponent tc : tcs)
         {
-            TopComponent tc = it.next();
-            if (tc instanceof CL_EditorTopComponent)
+            if (tc instanceof CL_EditorTopComponent clTc)
             {
-                CL_EditorTopComponent clTc = (CL_EditorTopComponent) tc;
                 if (clTc.getCL_Editor().getModel() == cls)
                 {
                     return clTc;

@@ -67,10 +67,11 @@ public class SizedPhrase extends Phrase
     }
 
     /**
-     * Overridden to check NoteEvent is in the beat range.
+     * Overridden to check NoteEvent is within the beat range (including the upper bound).
      * <p>
      *
      * @param ne
+     * @return 
      */
     @Override
     public boolean canAddNote(NoteEvent ne)

@@ -259,7 +259,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
     }
 
     /**
-     * Add a phrase, ie clone and add each NoteEvent from the specified Phrase.
+     * Clone NoteEvents from the specified Phrase and add them to this Phrase.
      *
      * @param p
      */
@@ -381,7 +381,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
     /**
      * Check that the note is valid before adding it to the Phrase.
      * <p>
-     * Default implement return true, but subclasses might override to do some sanity checks.
+     * Default implements return true, but subclasses might override to do some sanity checks.
      *
      * @param ne
      * @return

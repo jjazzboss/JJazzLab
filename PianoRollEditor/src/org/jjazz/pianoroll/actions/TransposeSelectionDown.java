@@ -28,7 +28,6 @@ import javax.swing.AbstractAction;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.pianoroll.api.NoteView;
 import org.jjazz.pianoroll.api.PianoRollEditor;
-import org.jjazz.util.api.FloatRange;
 import org.jjazz.util.api.ResUtil;
 
 /**

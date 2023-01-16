@@ -26,6 +26,7 @@ import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.pianoroll.api.NoteView;
+import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
 import org.jjazz.ui.keyboardcomponent.api.KeyboardComponent;
 import org.jjazz.ui.keyboardcomponent.api.KeyboardRange;
@@ -34,7 +35,6 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Test;
 import static org.junit.Assert.*;
 import org.junit.jupiter.api.Disabled;
 
@@ -45,7 +45,7 @@ import org.junit.jupiter.api.Disabled;
 public class NotesPanelTest
 {
 
-    PianoRollEditorImpl editor;
+    PianoRollEditor editor;
     KeyboardComponent keyboard;
     NoteEvent ne1, ne2;
     int neHash1, neHash2;
@@ -80,7 +80,7 @@ public class NotesPanelTest
         sp.add(ne1);
         sp.add(ne2);
 
-        editor = new PianoRollEditorImpl(0, sp, null, PianoRollEditorSettings.getDefault());
+        editor = new PianoRollEditor("Title", 0, sp, null, PianoRollEditorSettings.getDefault());
 
         notesPanel = new NotesPanel(editor, keyboard);
         nv1 = notesPanel.addNoteView(ne1);
@@ -91,7 +91,7 @@ public class NotesPanelTest
     public void tearDown()
     {
     }
-    
+
     /**
      * Test of addNoteView method, of class NotesPanel.
      */
@@ -101,11 +101,11 @@ public class NotesPanelTest
         System.out.println("reomveNoteView");
         assertEquals(notesPanel.removeNoteView(ne2), nv2);
         assertEquals(notesPanel.removeNoteView(ne1), nv1);
-        assertTrue(nv1.compareTo(ne1)==0);
-        assertTrue(nv1.compareTo(ne2)!=0);
-        assertTrue(nv2.compareTo(ne1)!=0);
-        assertTrue(nv2.compareTo(ne2)==0);
-        
+        assertTrue(nv1.compareTo(ne1) == 0);
+        assertTrue(nv1.compareTo(ne2) != 0);
+        assertTrue(nv2.compareTo(ne1) != 0);
+        assertTrue(nv2.compareTo(ne2) == 0);
+
     }
 
 
@@ -123,7 +123,6 @@ public class NotesPanelTest
 //        // TODO review the generated test code and remove the default call to fail.
 //        fail("The test case is a prototype.");
     }
-
 
 
 }

@@ -24,20 +24,21 @@ package org.jjazz.pianoroll;
 
 import javax.swing.JButton;
 import javax.swing.JPanel;
+import org.jjazz.pianoroll.api.PianoRollEditor;
 
 /**
  * Show the velocity of notes.
  */
 public class VelocityPanel extends JPanel
 {
-    private final PianoRollEditorImpl editor;
+    private final PianoRollEditor editor;
     private final NotesPanel notesPanel;
     
-    public VelocityPanel(PianoRollEditorImpl editor, NotesPanel notesPanel)
+    public VelocityPanel(PianoRollEditor editor, NotesPanel notesPanel)
     {
         this.editor = editor;
         this.notesPanel = notesPanel;        
-        add(new JButton("test"));
+        // add(new JButton("test"));
     }
     
 

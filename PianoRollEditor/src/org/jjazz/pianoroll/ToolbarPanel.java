@@ -22,6 +22,7 @@
  */
 package org.jjazz.pianoroll;
 
+import com.google.common.base.Preconditions;
 import java.awt.Component;
 import java.awt.Font;
 import java.beans.PropertyChangeEvent;
@@ -56,24 +57,27 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
 {
 
     private final PianoRollEditor editor;
-    private final SizedPhrase spModel;
+    private SizedPhrase spModel;
     private final List<EditTool> editTools;
     private int lastSpinnerValue;
+    private String title;
     private static final Logger LOGGER = Logger.getLogger(ToolbarPanel.class.getSimpleName());
 
     /**
      * Creates new form ToolbarPanel
      */
-    public ToolbarPanel(PianoRollEditor editor, List<EditTool> tools)
+    public ToolbarPanel(PianoRollEditor editor, String title, List<EditTool> tools)
     {
         this.editor = editor;
         this.spModel = editor.getModel();
+        this.title = title;
         editTools = tools;
 
-
         initComponents();
-        
-        
+
+        lbl_title.setText(title);
+
+
         tbtn_hearNotes.setAction(new HearSelection(editor));
 
 
@@ -100,8 +104,40 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
 
     }
 
+
+    public void setModel(SizedPhrase sp)
+    {
+        if (spModel == sp)
+        {
+            return;
+        }
+
+        spModel.removePropertyChangeListener(this);
+
+        spModel = sp;
+
+        spModel.addPropertyChangeListener(this);
+    }
+
+    public SizedPhrase getModel()
+    {
+        return spModel;
+    }
+
+    public String getTitle()
+    {
+        return title;
+    }
+
+    public void setTitle(String title)
+    {
+        this.title = title;
+        lbl_title.setText(title);
+    }
+
     public void cleanup()
     {
+        editor.removePropertyChangeListener(this);
         spModel.removePropertyChangeListener(this);
     }
 
@@ -123,7 +159,6 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
 
         } else if (evt.getSource() == spModel)
         {
-
             switch (evt.getPropertyName())
             {
                 case Phrase.PROP_NOTE_REPLACED ->

@@ -22,7 +22,9 @@
  */
 package org.jjazz.undomanager.api;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.event.ChangeListener;
@@ -43,9 +45,25 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
 {
 
     /**
+     * Listener for JJazzLab user-level undoable actions.
+     */
+    public interface UserActionListener
+    {
+
+        /**
+         * Called when endCEdit(name) is called, or when the CEdit is undone or redone.
+         *
+         * @param src
+         * @param actionName The parameter of endCEdit()
+         */
+        void userAction(JJazzUndoManager src, String actionName);
+    }
+
+    /**
      * Listeners like Netbeans UndoAction/RedoAction linked to undo/redo buttons
      */
     private final ChangeSupport cs = new ChangeSupport(this);
+    private final List<UserActionListener> userEditListeners = new ArrayList<>();
     /**
      * vector of Edits to run
      */
@@ -91,41 +109,56 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
         return undoRedoInProgress;
     }
 
+    public void addUserEditListener(UserActionListener l)
+    {
+        if (!userEditListeners.contains(l))
+        {
+            userEditListeners.add(l);
+        }
+    }
+
+    public void removeUserEditListener(UserActionListener l)
+    {
+        userEditListeners.remove(l);
+    }
+
     /**
-     * Start a high-level compound edit.
+     * Start a JJazzLab high-level compound edit.
      *
-     * @param n Name of the edit
+     * @param actionName Name of the edit
      */
-    public void startCEdit(String n)
+    public void startCEdit(String actionName)
     {
         if (currentCEdit != null)
         {
-            throw new IllegalStateException("currentCEdit=" + currentCEdit + " n=" + n);   //NOI18N
+            throw new IllegalStateException("currentCEdit=" + currentCEdit + " actionName=" + actionName);   //NOI18N
         }
         LOGGER.log(Level.FINE, "startCEdit() n={0} edits={1}", new Object[]
         {
-            n, edits
+            actionName, edits
         });
-        currentCEdit = new CEdit(n);
+        currentCEdit = new CEdit(actionName);
         addEdit(currentCEdit);
     }
 
     /**
      *
-     * End a high-level compound edit.
+     * End a JJazzLab high-level compound edit.
+     * <p>
+     * Notify the UserEditListeners.
      *
      * @return true if the compound edit was non empty.
      */
-    public boolean endCEdit(String n)
+    public boolean endCEdit(String actionName)
     {
-        if (currentCEdit == null || !currentCEdit.getPresentationName().equals(n))
+        if (currentCEdit == null || !currentCEdit.getPresentationName().equals(actionName))
         {
-            throw new IllegalStateException("currentCEdit=" + currentCEdit + " n=" + n);   //NOI18N
+            throw new IllegalStateException("currentCEdit=" + currentCEdit + " actionName=" + actionName);   //NOI18N
         }
 
         LOGGER.log(Level.FINE, "endCEdit() -- n={0} edits={1} currentCEdit.edits={2}", new Object[]
         {
-            n, edits, currentCEdit.dumpEdits()
+            actionName, edits, currentCEdit.dumpEdits()
         });
 
         currentCEdit.end();
@@ -145,6 +178,9 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
         currentCEdit = null;
 
         LOGGER.log(Level.FINE, "endCEdit() POST edits={0}", edits);
+
+        // Notify UserEditListeners
+        fireUserEditListeners(actionName);
 
         return res;
     }
@@ -402,71 +438,104 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
         trimEdits(edits.size() - 1, edits.size() - 1);
     }
 
+    private void fireUserEditListeners(String actionName)
+    {
+        userEditListeners.forEach(l -> l.userAction(this, actionName));
+    }
+
     @Override
     public String toString()
     {
         return name;
     }
-}
 
-/**
- * A CompoundEdit with convenience operations to work with the JazzUndoManager.
- */
-class CEdit extends CompoundEdit
-{
+    //========================================================================================
+    // Inner classes
+    //========================================================================================
 
-    private String name;
-
-    public CEdit(String n)
+    /**
+     * A CompoundEdit with convenience operations to work with the JazzUndoManager.
+     */
+    class CEdit extends CompoundEdit
     {
-        if (n == null)
+
+        private String name;
+
+        public CEdit(String n)
         {
-            throw new IllegalArgumentException("n=" + n);   //NOI18N
+            if (n == null)
+            {
+                throw new IllegalArgumentException("n=" + n);   //NOI18N
+            }
+            name = n;
         }
-        name = n;
-    }
 
-    public boolean isEmpty()
-    {
-        return edits.isEmpty();
-    }
+        public boolean isEmpty()
+        {
+            return edits.isEmpty();
+        }
 
-    @Override
-    public String getPresentationName()
-    {
-        return name;
-    }
+        @Override
+        public String getPresentationName()
+        {
+            return name;
+        }
 
-    // @Override
-    @Override
-    public String getUndoPresentationName()
-    {
-        // return CTL_Undo() + " " + getPresentationName();
-        return getPresentationName();
-    }
+        // @Override
+        @Override
+        public String getUndoPresentationName()
+        {
+            // return CTL_Undo() + " " + getPresentationName();
+            return getPresentationName();
+        }
 
-    // @Override
-    @Override
-    public String getRedoPresentationName()
-    {
-        // return CTL_Redo() + " " + getPresentationName();
-        return getPresentationName();
-    }
+        // @Override
+        @Override
+        public String getRedoPresentationName()
+        {
+            // return CTL_Redo() + " " + getPresentationName();
+            return getPresentationName();
+        }
 
-    @Override
-    public boolean isSignificant()
-    {
-        return true;
-    }
+        @Override
+        public boolean isSignificant()
+        {
+            return true;
+        }
 
-    public String dumpEdits()
-    {
-        return String.valueOf(edits);
-    }
+        /**
+         * Overridden to notify UserEditListeners.
+         *
+         * @throws CannotUndoException
+         */
+        @Override
+        public void undo() throws CannotUndoException
+        {
+            super.undo();
+            fireUserEditListeners(name);
+        }
 
-    @Override
-    public String toString()
-    {
-        return getPresentationName();
+        /**
+         * Overridden to notify UserEditListeners.
+         *
+         * @throws CannotRedoException
+         */
+        @Override
+        public void redo() throws CannotRedoException
+        {
+            super.redo();
+            fireUserEditListeners(name);
+        }
+
+        public String dumpEdits()
+        {
+            return String.valueOf(edits);
+        }
+
+        @Override
+        public String toString()
+        {
+            return getPresentationName();
+        }
     }
 }

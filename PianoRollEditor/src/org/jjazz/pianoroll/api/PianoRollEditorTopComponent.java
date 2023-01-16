@@ -25,10 +25,10 @@ package org.jjazz.pianoroll.api;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import javax.swing.Action;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.phrase.api.SizedPhrase;
-import org.jjazz.pianoroll.PianoRollEditorImpl;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
 import org.openide.awt.UndoRedo;
 import org.openide.util.Lookup;
@@ -44,9 +44,9 @@ public final class PianoRollEditorTopComponent extends TopComponent
 {
 
     public static final String MODE = "editor"; // see Netbeans WindowManager modes
-    private PianoRollEditorImpl editor;
+    private PianoRollEditor editor;
 
-    public PianoRollEditorTopComponent(String tabName, SizedPhrase spModel, DrumKit.KeyMap keyMap, int startBarIndex)
+    public PianoRollEditorTopComponent(String tabName, String title, SizedPhrase spModel, DrumKit.KeyMap keyMap, int startBarIndex)
     {
         initComponents();
 
@@ -56,16 +56,16 @@ public final class PianoRollEditorTopComponent extends TopComponent
         // putClientProperty(TopComponent.PROP_DRAGGING_DISABLED, Boolean.TRUE);
         // putClientProperty(TopComponent.PROP_UNDOCKING_DISABLED, Boolean.TRUE);
         // putClientProperty(TopComponent.PROP_SLIDING_DISABLED, Boolean.TRUE);
-        putClientProperty(TopComponent.PROP_KEEP_PREFERRED_SIZE_WHEN_SLIDED_IN, Boolean.TRUE);        
+        putClientProperty(TopComponent.PROP_KEEP_PREFERRED_SIZE_WHEN_SLIDED_IN, Boolean.TRUE);
 
-        editor = new PianoRollEditorImpl(startBarIndex, spModel, keyMap, PianoRollEditorSettings.getDefault());
+        editor = new PianoRollEditor(title, startBarIndex, spModel, keyMap, PianoRollEditorSettings.getDefault());
         add(editor);
 
         setDisplayName(tabName);
 
     }
 
-    public PianoRollEditorImpl getEditor()
+    public PianoRollEditor getEditor()
     {
         return editor;
     }
@@ -117,6 +117,22 @@ public final class PianoRollEditorTopComponent extends TopComponent
     {
         TopComponent tc = TopComponent.getRegistry().getActivated();
         return (tc instanceof PianoRollEditorTopComponent) ? (PianoRollEditorTopComponent) tc : null;
+    }
+
+    /**
+     * Search for an opened PianoRollEditorTopComponent with specified tabName.
+     *
+     * @param tabName
+     * @return Can be null
+     */
+    static public PianoRollEditorTopComponent get(String tabName)
+    {
+        Set<TopComponent> tcs = TopComponent.getRegistry().getOpened();
+        return tcs.stream()
+                .filter(tc -> tc instanceof PianoRollEditorTopComponent && tc.getDisplayName().equals(tabName))
+                .map(tc -> (PianoRollEditorTopComponent) tc)
+                .findAny()
+                .orElse(null);
     }
 
     @Override

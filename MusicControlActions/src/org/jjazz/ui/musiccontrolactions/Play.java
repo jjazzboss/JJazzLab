@@ -29,6 +29,7 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyVetoException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiUnavailableException;
 import javax.swing.Action;
@@ -124,7 +125,12 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
 
         MusicController mc = MusicController.getInstance();
         MusicController.State playBackState = mc.getState();
-        LOGGER.fine("setSelected() newState=" + newState + " playBackState=" + playBackState);   //NOI18N
+        
+        LOGGER.log(Level.FINE, "setSelected() newState={0} playBackState={1}", new Object[]
+        {
+            newState, playBackState
+        });  
+        
         switch (playBackState)
         {
             case PAUSED:

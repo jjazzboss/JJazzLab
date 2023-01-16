@@ -40,9 +40,9 @@ import java.util.NavigableMap;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.SwingUtilities;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.phrase.api.NoteEvent;
-import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.pianoroll.api.NoteView;
 import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
@@ -64,18 +64,17 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
     private final KeyboardComponent keyboard;
     private final YMapper yMapper;
     private final XMapper xMapper;
-    private final PianoRollEditorImpl editor;
-    private final SizedPhrase spModel;
+    private final PianoRollEditor editor;
     private float scaleFactorX = 1f;
+    private boolean firstLayoutHack = true;
     private final TreeMap<NoteEvent, NoteView> mapNoteViews = new TreeMap<>();
 
     private static final Logger LOGGER = Logger.getLogger(NotesPanel.class.getSimpleName());
 
 
-    public NotesPanel(PianoRollEditorImpl editor, KeyboardComponent keyboard)
+    public NotesPanel(PianoRollEditor editor, KeyboardComponent keyboard)
     {
         this.editor = editor;
-        this.spModel = editor.getModel();
         this.keyboard = keyboard;
         this.xMapper = new XMapper();
         this.yMapper = new YMapper();
@@ -100,7 +99,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
     {
         // LOGGER.severe("setBounds() x=" + x + " y=" + y + " w=" + w + " h=" + h);        
         super.setBounds(x, y, w, h);
-        if (w != xMapper.lastWidth)
+        if (!xMapper.isUptodate())
         {
             xMapper.refresh();
         }
@@ -116,10 +115,17 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
         {
             return;
         }
+
+        NoteView nv0 = null;
+
         if (!editor.isDrumEdit())
         {
             for (NoteView nv : mapNoteViews.values())
             {
+                if (nv0 == null)
+                {
+                    nv0 = nv;
+                }
                 NoteEvent ne = nv.getModel();
                 FloatRange br = ne.getBeatRange();
                 int x = xMapper.getX(br.from);
@@ -138,6 +144,10 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
             }
             for (NoteView nv : mapNoteViews.values())
             {
+                if (nv0 == null)
+                {
+                    nv0 = nv;
+                }
                 NoteEvent ne = nv.getModel();
                 int x = xMapper.getX(ne.getPositionInBeats()) - side / 2;
                 int y = yMapper.getNoteViewChannelYRange(ne.getPitch()).from;
@@ -146,6 +156,31 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
                 nv.setBounds(x, y, w, h);
             }
         }
+
+        if (firstLayoutHack)
+        {
+            firstLayoutHack = false;
+
+            // Adjust the enclosing scrollPane when displayed for the first time
+
+            Rectangle r;
+            final int SIZE = 400;
+            if (nv0 == null)
+            {
+                // Left position, middle pitch
+                r = new Rectangle(0, getHeight() / 2 - SIZE / 2, SIZE, SIZE);
+            } else
+            {
+                // Center around the first note
+                r = nv0.getBounds();
+                r.x = Math.max(0, r.x - SIZE / 2);
+                r.y = Math.max(0, r.y - SIZE / 2);
+                r.height = SIZE;
+                r.width = SIZE;
+            }
+            SwingUtilities.invokeLater(() -> scrollRectToVisible(r));
+        }
+
     }
 
     @Override
@@ -310,7 +345,6 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
         {
             removeNoteView(nv.getModel());
         }
-        spModel.removePropertyChangeListener(this);
         editor.getSettings().removePropertyChangeListener(this);
     }
 
@@ -452,12 +486,12 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
 
 
         /**
-         * To be called when this panel width has changed.
+         * To be called when this panel width or model has changed.
          * <p>
          * Recompute internal data to make this xMapper up-to-date.
          * <p>
          */
-        private synchronized void refresh()
+        public synchronized void refresh()
         {
             LOGGER.log(Level.FINE, "XMapper.refresh() lastWidth={0} getWidth()={1}", new Object[]
             {
@@ -670,7 +704,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
                 @Override
                 public synchronized void componentResized(ComponentEvent e)
                 {
-                    LOGGER.log(Level.FINE, "YMapper.componentResized() --");
+                    LOGGER.log(Level.SEVERE, "YMapper.componentResized() --");
                     refresh(keyboard.getPreferredSize().height);    // This will also call repaint() if needed
                 }
             });
@@ -686,7 +720,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
         private synchronized void refresh(int newKbdHeight)
         {
             Preconditions.checkArgument(newKbdHeight > 0);
-            LOGGER.log(Level.FINE, "NotesPanel.YMapper.refresh() -- newKbdHeight={0}  lastKeyboardHeight={1}", new Object[]
+            LOGGER.log(Level.SEVERE, "NotesPanel.YMapper.refresh() -- newKbdHeight={0}  lastKeyboardHeight={1}", new Object[]
             {
                 newKbdHeight, lastKeyboardHeight
             });
@@ -770,7 +804,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
         {
             if (!isUptodate())
             {
-                throw new IllegalStateException();
+                throw new IllegalStateException("lastKeyboardHeight=" + lastKeyboardHeight + " keyboard.getPreferredSize().height=" + keyboard.getPreferredSize().height);
             }
 
             var entry = tmapPixelPitch.ceilingEntry(yPos);

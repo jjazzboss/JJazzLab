@@ -31,6 +31,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import javax.sound.midi.MidiEvent;
@@ -234,7 +236,7 @@ public class Phrases
 
 
     /**
-     * Get a new phrase which keeps only the notes in the specified beat range, taking into account possible
+     * Get a new phrase with cloned NoteEvents but keeping only the notes in the specified beat range, taking into account possible
      * live-played/non-quantized notes via the beatWindow parameter.
      * <p>
      * First, if beatWindow &gt; 0 then notes starting in the range [range.from-beatWindow; range.from[ are changed in the
@@ -263,20 +265,19 @@ public class Phrases
         checkArgument(cutRight >= 0 && cutRight <= 2, "cutRight=%s", cutRight);
         checkArgument(beatWindow >= 0);
 
+        
         Phrase res = new Phrase(p.getChannel(), p.isDrums());
 
 
         // Preprocess to accomodate for live playing / non-quantized notes
-        List<NoteEvent> beatWindowProcessedNotes = new ArrayList<>();
+        Set<NoteEvent> beatWindowProcessedNotes = new HashSet<>();        
         if (beatWindow > 0)
         {
             FloatRange frLeft = range.from - beatWindow > 0 ? new FloatRange(range.from - beatWindow, range.from) : null;
             FloatRange frRight = new FloatRange(range.to - beatWindow, range.to);
 
-            Iterator<NoteEvent> it = p.iterator();
-            while (it.hasNext())
+            for (var ne : p)
             {
-                var ne = it.next();
                 var neBr = ne.getBeatRange();
                 if (frLeft != null && frLeft.contains(neBr.from, true))
                 {
@@ -304,11 +305,8 @@ public class Phrases
         }
 
 
-        Iterator<NoteEvent> it = p.iterator();
-        while (it.hasNext())
+        for (var ne : p)
         {
-            NoteEvent ne = it.next();
-
 
             if (beatWindowProcessedNotes.contains(ne))
             {
@@ -354,7 +352,7 @@ public class Phrases
                 if (nePosTo <= range.to)
                 {
                     // It ends in the slice zone, easy
-                    res.add(ne);
+                    res.add(ne.clone());
                 } else
                 {
                     // It goes beyond the slice zone
@@ -362,7 +360,7 @@ public class Phrases
                     {
                         case 0:
                             // Add it anyway
-                            res.add(ne);
+                            res.add(ne.clone());
                             break;
                         case 1:
                             // Add it but make it shorter

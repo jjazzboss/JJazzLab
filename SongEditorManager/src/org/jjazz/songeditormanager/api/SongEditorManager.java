@@ -345,7 +345,7 @@ public class SongEditorManager implements PropertyChangeListener
     }
 
     //=============================================================================
-    // PropertyChange interface
+    // PropertyChangeListener interface
     //=============================================================================
     @Override
     public void propertyChange(PropertyChangeEvent evt)

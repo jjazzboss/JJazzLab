@@ -32,21 +32,19 @@ import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.Sequence;
 import javax.sound.midi.Track;
-import javax.swing.SwingUtilities;
-import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.midi.api.JJazzMidiSystem;
-import org.jjazz.midimix.api.UserRhythmVoice;
 import org.jjazz.phrase.api.Phrase;
-import org.jjazz.phrase.api.PhraseSamples;
 import org.jjazz.phrase.api.Phrases;
 import org.jjazz.phrase.api.SizedPhrase;
+import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.pianoroll.api.PianoRollEditorTopComponent;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythmmusicgeneration.api.SongSequenceBuilder;
 import org.jjazz.song.api.Song;
 import org.jjazz.songcontext.api.SongContext;
+import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.ui.mixconsole.actions.AddUserTrack;
 import org.jjazz.ui.utilities.api.PleaseWaitDialog;
 import org.jjazz.undomanager.api.JJazzUndoManager;
@@ -66,6 +64,7 @@ public class UserExtensionPanelController
 {
 
     private UserExtensionPanel panel;
+    private PianoRollEditorTopComponent pianoRollEditorTc;
     private static final Logger LOGGER = Logger.getLogger(UserExtensionPanelController.class.getSimpleName());
 
     public void setUserExtentionPanel(UserExtensionPanel panel)
@@ -149,35 +148,50 @@ public class UserExtensionPanelController
 
     public void editUserPhrase()
     {
-        var rv = panel.getUserRhythmVoice();
-        String name = rv.getName();
-        int channel = panel.getMidiMix().getChannel(rv);
-        Song song = panel.getSong();
-        Phrase p = song.getUserPhrase(name);
+        if (pianoRollEditorTc != null)
+        {
+            pianoRollEditorTc.requestAttention(true);
+            pianoRollEditorTc.requestActive();
+            return;
+        }
 
-        LOGGER.log(Level.INFO, "editUserPhrase() rv={0} channel={1}", new Object[]
+        var rv = panel.getUserRhythmVoice();
+        int channel = panel.getMidiMix().getChannel(rv);
+
+        LOGGER.log(Level.FINE, "editUserPhrase() rv={0} channel={1}", new Object[]
         {
             rv, channel
         });
 
 
-        // Copy the phrase in a fixed sizedPhrase
-        LOGGER.severe("editUserPhrase() ############ NOT GOOD TO BE COMPLETED ################");
-        SizedPhrase sp = new SizedPhrase(channel, song.getSongStructure().getBeatRange(null), TimeSignature.FOUR_FOUR, rv.isDrums());
-        sp.add(p);
-
-
-        // Create the editor
+        // Prepare data for the editor               
+        Song song = panel.getSong();
+        SongStructure ss = song.getSongStructure();
+        
+        
+        var songBeatRange = ss.getBeatRange(null);
         DrumKit drumKit = panel.getMidiMix().getInstrumentMixFromKey(rv).getInstrument().getDrumKit();
         DrumKit.KeyMap keyMap = drumKit == null ? null : drumKit.getKeyMap();
-        PianoRollEditorTopComponent tc = new PianoRollEditorTopComponent(name, sp, keyMap, 0);
+        Phrase p = getUserPhrase();
+        var sp = new SizedPhrase(p.getChannel(), songBeatRange, ss.getSongPart(0).getRhythm().getTimeSignature(), p.isDrums());
+        sp.add(p);
+        
+
+        // Create the editor
+        String tabName = song.getName() + "-" + getUserPhraseName();
+        String title = getUserPhraseName() + "(" + (channel + 1) + ")";
+        pianoRollEditorTc = new PianoRollEditorTopComponent(tabName, title, sp, keyMap, 0);
+
+
+        // Listen to its user actions
+        pianoRollEditorTc.getEditor().getUndoManager().addUserEditListener((um, actionName) -> userEditReceived(um, actionName));
+
+
+        // Show it
         Mode mode = WindowManager.getDefault().findMode(PianoRollEditorTopComponent.MODE);
-        SwingUtilities.invokeLater(() ->
-        {
-            mode.dockInto(tc);
-            tc.open();
-            tc.requestActive();
-        });
+        mode.dockInto(pianoRollEditorTc);
+        pianoRollEditorTc.open();
+        pianoRollEditorTc.requestActive();
 
     }
 
@@ -195,6 +209,10 @@ public class UserExtensionPanelController
         um.endCEdit(undoText);
     }
 
+    protected boolean midiFileDraggedIn(File midiFile)
+    {
+        return addUserPhrase(midiFile);
+    }
 
     // ============================================================================
     // Private methods
@@ -307,10 +325,37 @@ public class UserExtensionPanelController
         return res;
     }
 
-
-    public boolean midiFileDraggedIn(File midiFile)
+    private void userEditReceived(JJazzUndoManager um, String actionName)
     {
-        return addUserPhrase(midiFile);
+        PianoRollEditor editor = pianoRollEditorTc.getEditor();
+        assert um == editor.getUndoManager();
+
+        // Ignore actionName, just update the song
+        SizedPhrase editorSp = editor.getModel();
+        Phrase p = new Phrase(editorSp.getChannel());
+        p.add(editorSp);
+        try
+        {
+            panel.getSong().setUserPhrase(getUserPhraseName(), p);
+        } catch (PropertyVetoException ex)
+        {
+            // Should never be there, we're just replacing an existing phrase
+            Exceptions.printStackTrace(ex);
+        }
     }
 
+    private String getUserPhraseName()
+    {
+        return panel.getUserRhythmVoice().getName();
+    }
+
+    private Phrase getUserPhrase()
+    {
+        return panel.getSong().getUserPhrase(getUserPhraseName());
+    }
+
+
+    // ============================================================================
+    // Inner classes
+    // ============================================================================
 }

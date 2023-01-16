@@ -230,13 +230,6 @@ public class SelectionTool implements EditTool
             // Continue dragging
 
 
-            // Quantize new position if required
-            if ((editor.isSnapEnabled() && !overrideSnapSetting) || (!editor.isSnapEnabled() && overrideSnapSetting))
-            {
-                editorPointPos = Quantizer.getQuantized(q, editorPointPos);
-            }
-
-
             switch (state)
             {
                 case EDITOR:
@@ -244,16 +237,24 @@ public class SelectionTool implements EditTool
 
                 case RESIZE_WEST:
                 {
-                    float dPos = editorPointPos - dragStartPos;
+                    float posDelta = editorPointPos - dragStartPos;
 
                     for (var srcNe : mapSrcDragNotes.keySet())
                     {
-                        float newPos = srcNe.getPositionInBeats() + dPos;
+                        float newPos = srcNe.getPositionInBeats() + posDelta;
+                        newPos = Math.max(0, newPos);
+                        
+                        // Quantize
+                        if ((editor.isSnapEnabled() && !overrideSnapSetting) || (!editor.isSnapEnabled() && overrideSnapSetting))
+                        {
+                            newPos = Quantizer.getQuantized(q, newPos);
+                            posDelta = newPos - srcNe.getPositionInBeats();
+                        }
 
-                        if (newPos >= 0 && dPos < (srcNe.getDurationInBeats() - 0.05f))
+                        if (newPos >= 0 && posDelta < (srcNe.getDurationInBeats() - 0.05f))
                         {
                             var dragNe = mapSrcDragNotes.get(srcNe);
-                            float newDur = srcNe.getDurationInBeats() - dPos;
+                            float newDur = srcNe.getDurationInBeats() - posDelta;
                             var newNe = srcNe.getCopyDurPos(newDur, newPos);
                             spModel.replace(dragNe, newNe);
                             mapSrcDragNotes.put(srcNe, newNe);
@@ -268,6 +269,15 @@ public class SelectionTool implements EditTool
                     for (var srcNe : mapSrcDragNotes.keySet())
                     {
                         float newDur = Math.max(srcNe.getDurationInBeats() + dPos, 0.05f);
+
+                        // Quantize
+                        if ((editor.isSnapEnabled() && !overrideSnapSetting) || (!editor.isSnapEnabled() && overrideSnapSetting))
+                        {
+                            float endPoint = Quantizer.getQuantized(q, srcNe.getPositionInBeats() + newDur);
+                            newDur = Math.max(endPoint - srcNe.getPositionInBeats(), 0.05f);
+                        }
+
+
                         if (Float.floatToIntBits(srcNe.getDurationInBeats()) != Float.floatToIntBits(newDur) && (srcNe.getPositionInBeats() + newDur) < spModel.getBeatRange().to)
                         {
                             var dragNe = mapSrcDragNotes.get(srcNe);
@@ -297,6 +307,14 @@ public class SelectionTool implements EditTool
                         // Calculate pos/pitch changes
                         float newPos = sne.getPositionInBeats() + dPos;
                         newPos = Math.max(0, newPos);
+                        
+                        // Quantize
+                        if ((editor.isSnapEnabled() && !overrideSnapSetting) || (!editor.isSnapEnabled() && overrideSnapSetting))
+                        {
+                            newPos = Quantizer.getQuantized(q, newPos);
+                        }
+
+
                         if (newPos + sne.getDurationInBeats() >= spModel.getBeatRange().to)
                         {
                             newPos = spModel.getBeatRange().to - sne.getDurationInBeats();

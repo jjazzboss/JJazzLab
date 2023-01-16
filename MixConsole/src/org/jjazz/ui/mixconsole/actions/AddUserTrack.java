@@ -88,7 +88,7 @@ public class AddUserTrack extends AbstractAction
         NotifyDescriptor d = new NotifyDescriptor.Confirmation(question, title, NotifyDescriptor.YES_NO_CANCEL_OPTION);
         d.setOptions(new String[]
         {
-            drums, melodic
+            melodic, drums
         });
         var res = DialogDisplayer.getDefault().notify(d);
         if (res.equals(-1))

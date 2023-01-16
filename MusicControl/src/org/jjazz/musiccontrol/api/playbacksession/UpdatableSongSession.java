@@ -52,7 +52,7 @@ import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.util.api.IntRange;
 
 /**
- * A PlaybackSession which is a wrapper for a BaseSongSession to enable on-the-fly updates of the playing sequence using
+ * A PlaybackSession is a BaseSongSession wrapper which enables on-the-fly updates of the playing sequence using
  * {@link updateSequence(Update)}.
  * <p>
  * Authorized udpates are notes+control track changes which do not change the Sequence size. The class uses buffer tracks and
@@ -64,7 +64,7 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
 {
 
     /**
-     * A song update produced by an UpdateProvider and processed by an UpdatableSongSession.
+     * A song update produced by an UpdateProvider and processed by the UpdatableSongSession.
      */
     static public class Update
     {
@@ -114,7 +114,7 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
     }
 
     /**
-     * A SongContextSession capability: can provide an update after sequence was generated (in the GENERATED state).
+     * A SongContextSession capability: can provide an update after sequence was generated (i.e. in the GENERATED state).
      * <p>
      * The session must fire a PROP_UPDATE_AVAILABLE property change event when an update is ready.
      */

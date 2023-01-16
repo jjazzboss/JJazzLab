@@ -39,7 +39,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.ClsChangeListener;
 import org.jjazz.leadsheet.chordleadsheet.api.Section;

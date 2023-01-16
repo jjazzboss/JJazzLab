@@ -36,6 +36,7 @@ import java.beans.PropertyChangeListener;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
+import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.ui.utilities.api.HSLColor;
 import org.jjazz.ui.utilities.api.StringMetrics;
 import org.jjazz.uisettings.api.GeneralUISettings;
@@ -53,7 +54,7 @@ public class RulerPanel extends javax.swing.JPanel implements PropertyChangeList
     private static final Color COLOR_BEAT_FONT = new Color(80, 80, 80);
     private final NotesPanel notesPanel;
     private final NotesPanel.XMapper xMapper;
-    private final PianoRollEditorImpl editor;
+    private final PianoRollEditor editor;
     private final Font fontBar;
     private final Font fontBeat;
     private final int preferredHeight;
@@ -64,7 +65,7 @@ public class RulerPanel extends javax.swing.JPanel implements PropertyChangeList
      * @param editor
      * @param notesPanel
      */
-    public RulerPanel(PianoRollEditorImpl editor, NotesPanel notesPanel)
+    public RulerPanel(PianoRollEditor editor, NotesPanel notesPanel)
     {
         this.editor = editor;
         this.notesPanel = notesPanel;
@@ -78,6 +79,8 @@ public class RulerPanel extends javax.swing.JPanel implements PropertyChangeList
         fontBar = GeneralUISettings.getInstance().getStdFont().deriveFont(13f);
         fontBeat = fontBar.deriveFont(fontBar.getSize() - 3f);
 
+        
+        // Repaint ourself when notesPanel is resized
         this.notesPanel.addComponentListener(new ComponentAdapter()
         {
             @Override
