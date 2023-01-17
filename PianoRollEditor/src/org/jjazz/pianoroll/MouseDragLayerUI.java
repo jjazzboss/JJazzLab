@@ -25,19 +25,23 @@ package org.jjazz.pianoroll;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Polygon;
 import java.awt.Rectangle;
 import javax.swing.JComponent;
 import javax.swing.plaf.LayerUI;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
 
 /**
- * A LayerUI to show the selection rectangle over the notes.
+ * A LayerUI to show the selection rectangle over the notes and the playback point.
  */
 public class MouseDragLayerUI extends LayerUI<JComponent>
 {
+
     private Rectangle rectangle;
+    private int playbackPointX;
     private static final Color COLOR_BORDER_OUT = Color.DARK_GRAY;
     private static final Color COLOR_BORDER_IN = Color.WHITE;
+    private static final Color COLOR_PLAYBACK_LINE = Color.WHITE;
     private final Color COLOR_BACKGROUND;
 
     public MouseDragLayerUI()
@@ -56,24 +60,50 @@ public class MouseDragLayerUI extends LayerUI<JComponent>
         rectangle = r;
     }
 
+    /**
+     * Show the playback point.
+     *
+     * @param xPos If &lt; 0 show nothing
+     */
+    public void showPlaybackPoint(int xPos)
+    {
+        playbackPointX = xPos;
+    }
+
     @Override
     public void paint(Graphics g, JComponent jc)
     {
         super.paint(g, jc);
 
-        if (rectangle == null)
+        Graphics2D g2 = null;
+
+        if (rectangle != null)
         {
-            return;
+            g2 = (Graphics2D) g.create();
+            g2.setColor(COLOR_BORDER_OUT);
+            g2.drawRect(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
+            g2.setColor(COLOR_BORDER_IN);
+            g2.drawRect(rectangle.x + 1, rectangle.y + 1, rectangle.width - 2, rectangle.height - 2);
+            g2.setColor(COLOR_BACKGROUND);
+            g2.fillRect(rectangle.x + 2, rectangle.y + 2, rectangle.width - 4, rectangle.height - 4);
         }
 
-        Graphics2D g2 = (Graphics2D) g.create();
-        g2.setColor(COLOR_BORDER_OUT);
-        g2.drawRect(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
-        g2.setColor(COLOR_BORDER_IN);
-        g2.drawRect(rectangle.x + 1, rectangle.y + 1, rectangle.width - 2, rectangle.height - 2);
-        g2.setColor(COLOR_BACKGROUND);
-        g2.fillRect(rectangle.x + 2, rectangle.y + 2, rectangle.width - 4, rectangle.height - 4);
-        g2.dispose();
+        if (playbackPointX >= 0)
+        {
+            if (g2 == null)
+            {
+                g2 = (Graphics2D) g.create();
+            }
+            g2.setColor(COLOR_PLAYBACK_LINE);
+            g2.drawLine(playbackPointX, 0, playbackPointX, jc.getHeight() - 1);
+            
+        }
+
+        if (g2 != null)
+        {
+            g2.dispose();
+        }
+
     }
 
 }

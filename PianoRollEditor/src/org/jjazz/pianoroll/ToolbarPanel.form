@@ -77,18 +77,15 @@
         <Component class="org.jjazz.ui.flatcomponents.api.FlatToggleButton" name="tbtn_snap">
           <Properties>
             <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-              <Image iconType="3" name="/org/jjazz/pianoroll/resources/SnapOFF.png"/>
+              <Image iconType="3" name="/org/jjazz/pianoroll/actions/resources/SnapOFF.png"/>
             </Property>
             <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
               <ResourceString bundle="org/jjazz/pianoroll/Bundle.properties" key="ToolbarPanel.tbtn_snap.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
             </Property>
             <Property name="selectedIcon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-              <Image iconType="3" name="/org/jjazz/pianoroll/resources/SnapON.png"/>
+              <Image iconType="3" name="/org/jjazz/pianoroll/actions/resources/SnapON.png"/>
             </Property>
           </Properties>
-          <Events>
-            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="tbtn_snapActionPerformed"/>
-          </Events>
         </Component>
         <Component class="javax.swing.JComboBox" name="cmb_quantization">
           <Properties>
@@ -185,26 +182,26 @@
             <Component class="org.jjazz.ui.flatcomponents.api.FlatToggleButton" name="tbtn_solo">
               <Properties>
                 <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                  <Image iconType="3" name="/org/jjazz/pianoroll/resources/SoloOFF.png"/>
+                  <Image iconType="3" name="/org/jjazz/pianoroll/actions/resources/SoloOFF.png"/>
                 </Property>
                 <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
                   <ResourceString bundle="org/jjazz/pianoroll/Bundle.properties" key="ToolbarPanel.tbtn_solo.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
                 </Property>
                 <Property name="selectedIcon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                  <Image iconType="3" name="/org/jjazz/pianoroll/resources/SoloON.png"/>
+                  <Image iconType="3" name="/org/jjazz/pianoroll/actions/resources/SoloON.png"/>
                 </Property>
               </Properties>
             </Component>
             <Component class="org.jjazz.ui.flatcomponents.api.FlatToggleButton" name="tbtn_playbackPoint">
               <Properties>
                 <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                  <Image iconType="3" name="/org/jjazz/pianoroll/resources/PlaybackPointOFF.png"/>
+                  <Image iconType="3" name="/org/jjazz/pianoroll/actions/resources/PlaybackPointOFF.png"/>
                 </Property>
                 <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
                   <ResourceString bundle="org/jjazz/pianoroll/Bundle.properties" key="ToolbarPanel.tbtn_playbackPoint.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
                 </Property>
                 <Property name="selectedIcon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                  <Image iconType="3" name="/org/jjazz/pianoroll/resources/PlaybackPointON.png"/>
+                  <Image iconType="3" name="/org/jjazz/pianoroll/actions/resources/PlaybackPointON.png"/>
                 </Property>
               </Properties>
             </Component>

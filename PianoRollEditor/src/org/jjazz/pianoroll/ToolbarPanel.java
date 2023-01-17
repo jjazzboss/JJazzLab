@@ -22,7 +22,6 @@
  */
 package org.jjazz.pianoroll;
 
-import com.google.common.base.Preconditions;
 import java.awt.Component;
 import java.awt.Font;
 import java.beans.PropertyChangeEvent;
@@ -40,6 +39,9 @@ import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.pianoroll.actions.HearSelection;
+import org.jjazz.pianoroll.actions.ShowPlaybackPoint;
+import org.jjazz.pianoroll.actions.SnapToGrid;
+import org.jjazz.pianoroll.actions.Solo;
 import org.jjazz.pianoroll.api.EditTool;
 import org.jjazz.pianoroll.api.NoteView;
 import org.jjazz.pianoroll.api.NotesSelection;
@@ -79,6 +81,9 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
 
 
         tbtn_hearNotes.setAction(new HearSelection(editor));
+        tbtn_snap.setAction(new SnapToGrid(editor));
+        tbtn_playbackPoint.setAction(new ShowPlaybackPoint(editor));
+        tbtn_solo.setAction(new Solo(editor));
 
 
         var qModel = new DefaultComboBoxModel(Quantization.values());
@@ -274,16 +279,9 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
         pnl_left.add(pnl_editTools);
         pnl_left.add(filler1);
 
-        tbtn_snap.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/pianoroll/resources/SnapOFF.png"))); // NOI18N
+        tbtn_snap.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/pianoroll/actions/resources/SnapOFF.png"))); // NOI18N
         tbtn_snap.setToolTipText(org.openide.util.NbBundle.getMessage(ToolbarPanel.class, "ToolbarPanel.tbtn_snap.toolTipText")); // NOI18N
-        tbtn_snap.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/pianoroll/resources/SnapON.png"))); // NOI18N
-        tbtn_snap.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                tbtn_snapActionPerformed(evt);
-            }
-        });
+        tbtn_snap.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/pianoroll/actions/resources/SnapON.png"))); // NOI18N
         pnl_left.add(tbtn_snap);
 
         cmb_quantization.setToolTipText(org.openide.util.NbBundle.getMessage(ToolbarPanel.class, "ToolbarPanel.cmb_quantization.toolTipText")); // NOI18N
@@ -326,14 +324,14 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
         tbtn_hearNotes.setToolTipText(org.openide.util.NbBundle.getMessage(ToolbarPanel.class, "ToolbarPanel.tbtn_hearNotes.toolTipText")); // NOI18N
         pnl_miscButtons.add(tbtn_hearNotes);
 
-        tbtn_solo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/pianoroll/resources/SoloOFF.png"))); // NOI18N
+        tbtn_solo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/pianoroll/actions/resources/SoloOFF.png"))); // NOI18N
         tbtn_solo.setToolTipText(org.openide.util.NbBundle.getMessage(ToolbarPanel.class, "ToolbarPanel.tbtn_solo.toolTipText")); // NOI18N
-        tbtn_solo.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/pianoroll/resources/SoloON.png"))); // NOI18N
+        tbtn_solo.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/pianoroll/actions/resources/SoloON.png"))); // NOI18N
         pnl_miscButtons.add(tbtn_solo);
 
-        tbtn_playbackPoint.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/pianoroll/resources/PlaybackPointOFF.png"))); // NOI18N
+        tbtn_playbackPoint.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/pianoroll/actions/resources/PlaybackPointOFF.png"))); // NOI18N
         tbtn_playbackPoint.setToolTipText(org.openide.util.NbBundle.getMessage(ToolbarPanel.class, "ToolbarPanel.tbtn_playbackPoint.toolTipText")); // NOI18N
-        tbtn_playbackPoint.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/pianoroll/resources/PlaybackPointON.png"))); // NOI18N
+        tbtn_playbackPoint.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/pianoroll/actions/resources/PlaybackPointON.png"))); // NOI18N
         pnl_miscButtons.add(tbtn_playbackPoint);
 
         pnl_right.add(pnl_miscButtons);
@@ -345,11 +343,6 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
     {//GEN-HEADEREND:event_cmb_quantizationActionPerformed
         editor.setQuantization((Quantization) cmb_quantization.getSelectedItem());
     }//GEN-LAST:event_cmb_quantizationActionPerformed
-
-    private void tbtn_snapActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_tbtn_snapActionPerformed
-    {//GEN-HEADEREND:event_tbtn_snapActionPerformed
-        editor.setSnapEnabled(tbtn_snap.isSelected());
-    }//GEN-LAST:event_tbtn_snapActionPerformed
 
 
     private void spn_velocityStateChanged(javax.swing.event.ChangeEvent evt)//GEN-FIRST:event_spn_velocityStateChanged

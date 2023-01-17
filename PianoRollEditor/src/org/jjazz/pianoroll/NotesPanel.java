@@ -479,7 +479,12 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
             return lastWidth == getWidth();
         }
 
-        protected int getLastWidth()
+        /**
+         * Get the last notesPanel width used to refresh this XMapper.
+         *
+         * @return
+         */
+        public int getLastWidth()
         {
             return lastWidth;
         }
@@ -704,23 +709,23 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
                 @Override
                 public synchronized void componentResized(ComponentEvent e)
                 {
-                    LOGGER.log(Level.SEVERE, "YMapper.componentResized() --");
+                    LOGGER.log(Level.FINE, "YMapper.componentResized() --");
                     refresh(keyboard.getPreferredSize().height);    // This will also call repaint() if needed
                 }
             });
         }
 
         /**
-         * To be called when associated keyboard height has changed.
+         * To be called when associated keyboard height has changed (
          * <p>
          * Recompute internal data to make this yMapper up-to-date. Call revalidate() and repaint() when done.
          *
          * @param newKbdHeight
          */
-        private synchronized void refresh(int newKbdHeight)
+        public synchronized void refresh(int newKbdHeight)
         {
             Preconditions.checkArgument(newKbdHeight > 0);
-            LOGGER.log(Level.SEVERE, "NotesPanel.YMapper.refresh() -- newKbdHeight={0}  lastKeyboardHeight={1}", new Object[]
+            LOGGER.log(Level.FINE, "NotesPanel.YMapper.refresh() -- newKbdHeight={0}  lastKeyboardHeight={1}", new Object[]
             {
                 newKbdHeight, lastKeyboardHeight
             });
@@ -776,6 +781,16 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
         public synchronized boolean isUptodate()
         {
             return lastKeyboardHeight == keyboard.getHeight();
+        }
+
+        /**
+         * Get the last Keyboard height used to refresh this YMapper.
+         *
+         * @return
+         */
+        public int getLastKeyboardHeight()
+        {
+            return lastKeyboardHeight;
         }
 
         /**

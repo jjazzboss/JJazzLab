@@ -149,7 +149,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, L
      * @param title
      * @param startBarIndex The bar index corresponding to the start of the SizedPhrase
      * @param sp
-     * @param kmap If not null set the editor in drums mode
+     * @param kmap          If not null set the editor in drums mode
      * @param settings
      */
     public PianoRollEditor(String title, int startBarIndex, SizedPhrase sp, DrumKit.KeyMap kmap, PianoRollEditorSettings settings)
@@ -398,7 +398,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, L
     public void setZoom(ZoomValue zoom)
     {
         Preconditions.checkNotNull(zoom);
-        LOGGER.log(Level.SEVERE, "setZoom() -- this.zoomvalue={0} zoom={1}", new Object[]
+        LOGGER.log(Level.FINE, "setZoom() -- this.zoomvalue={0} zoom={1}", new Object[]
         {
             this.zoomValue, zoom
         });
@@ -412,7 +412,8 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, L
             notesPanel.setScaleFactorX(toScaleFactorX(zoom.hValue()));
 
             // Restore position at center
-            // Must be done later on the EDT to get the notesPanel resized after previous command
+            // Must be done later on the EDT to get the notesPanel effectively resized after previous command, so that
+            // XMapper() will be refreshed before calling scrollToCenter
             SwingUtilities.invokeLater(() -> scrollToCenter(saveCenterPosInBeats));
 
         }
@@ -422,20 +423,27 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, L
             // Save pitch at center
             int saveCenterPitch = (int) getVisiblePitchRange().getCenter();
 
-            
+
             // Scale the keyboard
             float factor = toScaleFactorY(zoom.vValue());
 
-            
+
             // Because keyboard is in RIGHT orientation factorX impacts the keyboard height.
             // We limit factorY because we don't want the keyboard to get wide
             // This updates keyboard preferred size and calls revalidate(), which will update the size         
             keyboard.setScaleFactor(factor, Math.min(MAX_WIDTH_FACTOR, factor));
 
 
+            // This is to avoid a difficult bug when zooming in/out vertically fast with mouse-wheel: sometimes 2 successive zoom events
+            // occur BEFORE the keyboard component resized event (triggered by setScaleFactor() just above) is fired. In this case 
+            // the refresh of YMapper() is done too late (see component size listener in YMapper), and scrollToCenter() below fails because YMapper is not up to date.
+            // So we force the refresh now.
+            notesPanel.getYMapper().refresh(keyboard.getPreferredSize().height);
+
+
             // restore pitch at center
-            // Must be done later on the EDT to get the keyboard resized after previous command            
-            SwingUtilities.invokeLater(() -> scrollToCenter(saveCenterPitch));
+            // Note that surprisingly using SwingUtilities.invokeLater() on scrollToCenter() did not solve the bug explained above
+            scrollToCenter(saveCenterPitch);
         }
 
         zoomValue = zoom;
@@ -590,12 +598,22 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, L
      */
     public void showPlaybackPoint(float pos)
     {
-        if (Float.floatToIntBits(pos) == Float.floatToIntBits(playbackPointPosition))
+        if ((pos < 0 && playbackPointPosition < 0) || Float.floatToIntBits(pos) == Float.floatToIntBits(playbackPointPosition))
         {
             return;
         }
         float old = playbackPointPosition;
         playbackPointPosition = pos;
+
+        int xPos = -1;
+        if (getBeatRange().contains(playbackPointPosition, false))
+        {
+            xPos = notesPanel.getXMapper().getX(pos);
+        }
+
+        mouseDragLayerUI.showPlaybackPoint(xPos);
+        mouseDragLayer.repaint();
+
         firePropertyChange(PROP_PLAYBACK_POINT_POSITION, old, playbackPointPosition);
     }
 
@@ -610,7 +628,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, L
     }
 
     /**
-     * Return the position in beats that correspond to a graphical point in the editor.
+     * Return the position in beats that corresponds to a graphical point in the editor.
      * <p>
      *
      * @param editorPoint A point in the editor's coordinates. -1 if point is not valid.
@@ -620,6 +638,17 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, L
     public float getPositionFromPoint(Point editorPoint)
     {
         return notesPanel.getXMapper().getPositionInBeats(editorPoint.x);
+    }
+
+    /**
+     * Return the X editor position that corresponds to a beat position of the SizedPhrase model.
+     *
+     * @param pos
+     * @return -1 If pos is outside the SizedPhrase
+     */
+    public int getXFromPosition(float pos)
+    {
+        return getBeatRange().contains(pos, false) ? notesPanel.getXMapper().getX(pos) : -1;
     }
 
     /**
@@ -698,13 +727,12 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, L
      */
     public IntRange getVisiblePitchRange()
     {
+        assert notesPanel.getYMapper().isUptodate() : "YMapper.getLastKeyboardHeight()=" + notesPanel.getYMapper().getLastKeyboardHeight()
+                + " kbd.getHeight()=" + keyboard.getHeight()
+                + " kbd.getPreferredHeight()=" + keyboard.getPreferredSize().getHeight();
         IntRange vpYRange = getYRange(scrollpane.getViewport().getViewRect());
         IntRange keysYRange = getYRange(keyboard.getKeysBounds());
         IntRange ir = keysYRange.getIntersection(vpYRange);
-        LOGGER.log(Level.SEVERE, "getVisiblePitchRange() vpYRange={0} keysYRange={1} ir={2}", new Object[]
-        {
-            vpYRange, keysYRange, ir
-        });
         var pitchBottom = notesPanel.getYMapper().getPitch(ir.to);
         var pitchTop = notesPanel.getYMapper().getPitch(ir.from);
         return new IntRange(pitchBottom, pitchTop);
@@ -717,6 +745,9 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, L
      */
     public FloatRange getVisibleBeatRange()
     {
+        assert notesPanel.getXMapper().isUptodate() : "notesPanel.getWidth()=" + notesPanel.getWidth()
+                + "XMapper.getLastWidth()=" + notesPanel.getXMapper().getLastWidth()
+                + "notesPanel.getPreferredWidth()=" + notesPanel.getPreferredSize().getWidth();
         var vpRect = scrollpane.getViewport().getViewRect();
         var notesPanelBounds = notesPanel.getBounds();
         var vRect = vpRect.intersection(notesPanelBounds);
