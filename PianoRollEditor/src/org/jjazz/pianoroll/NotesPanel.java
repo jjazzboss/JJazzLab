@@ -775,7 +775,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
          */
         public synchronized boolean isUptodate()
         {
-            return lastKeyboardHeight == keyboard.getPreferredSize().height;
+            return lastKeyboardHeight == keyboard.getHeight();
         }
 
         /**
@@ -804,7 +804,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
         {
             if (!isUptodate())
             {
-                throw new IllegalStateException("lastKeyboardHeight=" + lastKeyboardHeight + " keyboard.getPreferredSize().height=" + keyboard.getPreferredSize().height);
+                throw new IllegalStateException("lastKeyboardHeight=" + lastKeyboardHeight + " keyboard.height=" + keyboard.getHeight());
             }
 
             var entry = tmapPixelPitch.ceilingEntry(yPos);

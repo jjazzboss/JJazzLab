@@ -149,7 +149,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, L
      * @param title
      * @param startBarIndex The bar index corresponding to the start of the SizedPhrase
      * @param sp
-     * @param kmap          If not null set the editor in drums mode
+     * @param kmap If not null set the editor in drums mode
      * @param settings
      */
     public PianoRollEditor(String title, int startBarIndex, SizedPhrase sp, DrumKit.KeyMap kmap, PianoRollEditorSettings settings)
@@ -412,28 +412,30 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, L
             notesPanel.setScaleFactorX(toScaleFactorX(zoom.hValue()));
 
             // Restore position at center
-            // Must be done on the EDT to get the notesPanel resized after previous command
+            // Must be done later on the EDT to get the notesPanel resized after previous command
             SwingUtilities.invokeLater(() -> scrollToCenter(saveCenterPosInBeats));
 
         }
 
         if (zoomValue == null || zoomValue.vValue() != zoom.vValue())
         {
-            De temps en temps si scroll rapide, l'event keyboard.resized (du zoom Y précédent) n'a pas encore notifié l'YMapper, pourtant on se retrouve déjà ici (le mouvement de souris a généré un évenement
-                    qui est passé avant'
             // Save pitch at center
             int saveCenterPitch = (int) getVisiblePitchRange().getCenter();
 
-
+            
             // Scale the keyboard
             float factor = toScaleFactorY(zoom.vValue());
+
+            
             // Because keyboard is in RIGHT orientation factorX impacts the keyboard height.
             // We limit factorY because we don't want the keyboard to get wide
+            // This updates keyboard preferred size and calls revalidate(), which will update the size         
             keyboard.setScaleFactor(factor, Math.min(MAX_WIDTH_FACTOR, factor));
 
 
             // restore pitch at center
-            scrollToCenter(saveCenterPitch);
+            // Must be done later on the EDT to get the keyboard resized after previous command            
+            SwingUtilities.invokeLater(() -> scrollToCenter(saveCenterPitch));
         }
 
         zoomValue = zoom;
@@ -1014,8 +1016,11 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, L
                 return;
             }
             int old = getZoomYFactor();
-            setZoom(new ZoomValue(getZoomXFactor(), newFactor));
-            firePropertyChange(Zoomable.PROPERTY_ZOOM_Y, old, newFactor);
+            if (old != newFactor)
+            {
+                setZoom(new ZoomValue(getZoomXFactor(), newFactor));
+                firePropertyChange(Zoomable.PROPERTY_ZOOM_Y, old, newFactor);
+            }
         }
 
 
@@ -1034,8 +1039,11 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, L
 //                return;
 //            }
             int old = getZoomXFactor();
-            setZoom(new ZoomValue(newFactor, getZoomYFactor()));
-            firePropertyChange(Zoomable.PROPERTY_ZOOM_X, old, newFactor);
+            if (old != newFactor)
+            {
+                setZoom(new ZoomValue(newFactor, getZoomYFactor()));
+                firePropertyChange(Zoomable.PROPERTY_ZOOM_X, old, newFactor);
+            }
 
         }
 
