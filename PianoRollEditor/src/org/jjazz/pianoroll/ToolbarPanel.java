@@ -39,7 +39,7 @@ import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.pianoroll.actions.HearSelection;
-import org.jjazz.pianoroll.actions.ShowPlaybackPoint;
+import org.jjazz.pianoroll.actions.PlaybackAutoScroll;
 import org.jjazz.pianoroll.actions.SnapToGrid;
 import org.jjazz.pianoroll.actions.Solo;
 import org.jjazz.pianoroll.api.EditTool;
@@ -82,7 +82,7 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
 
         tbtn_hearNotes.setAction(new HearSelection(editor));
         tbtn_snap.setAction(new SnapToGrid(editor));
-        tbtn_playbackPoint.setAction(new ShowPlaybackPoint(editor));
+        tbtn_playbackAutoScroll.setAction(new PlaybackAutoScroll(editor));
         tbtn_solo.setAction(new Solo(editor));
 
 
@@ -139,6 +139,8 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
         this.title = title;
         lbl_title.setText(title);
     }
+    
+    
 
     public void cleanup()
     {
@@ -267,7 +269,7 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
         pnl_miscButtons = new javax.swing.JPanel();
         tbtn_hearNotes = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
         tbtn_solo = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
-        tbtn_playbackPoint = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
+        tbtn_playbackAutoScroll = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
 
         setLayout(new java.awt.BorderLayout());
 
@@ -329,10 +331,10 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
         tbtn_solo.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/pianoroll/actions/resources/SoloON.png"))); // NOI18N
         pnl_miscButtons.add(tbtn_solo);
 
-        tbtn_playbackPoint.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/pianoroll/actions/resources/PlaybackPointOFF.png"))); // NOI18N
-        tbtn_playbackPoint.setToolTipText(org.openide.util.NbBundle.getMessage(ToolbarPanel.class, "ToolbarPanel.tbtn_playbackPoint.toolTipText")); // NOI18N
-        tbtn_playbackPoint.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/pianoroll/actions/resources/PlaybackPointON.png"))); // NOI18N
-        pnl_miscButtons.add(tbtn_playbackPoint);
+        tbtn_playbackAutoScroll.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/pianoroll/actions/resources/PlaybackAutoScrollOFF.png"))); // NOI18N
+        tbtn_playbackAutoScroll.setToolTipText(org.openide.util.NbBundle.getMessage(ToolbarPanel.class, "ToolbarPanel.tbtn_playbackAutoScroll.toolTipText")); // NOI18N
+        tbtn_playbackAutoScroll.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/pianoroll/actions/resources/PlaybackAutoScrollON.png"))); // NOI18N
+        pnl_miscButtons.add(tbtn_playbackAutoScroll);
 
         pnl_right.add(pnl_miscButtons);
 
@@ -417,7 +419,7 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
     private javax.swing.JPanel pnl_right;
     private org.jjazz.ui.utilities.api.WheelSpinner spn_velocity;
     private org.jjazz.ui.flatcomponents.api.FlatToggleButton tbtn_hearNotes;
-    private org.jjazz.ui.flatcomponents.api.FlatToggleButton tbtn_playbackPoint;
+    private org.jjazz.ui.flatcomponents.api.FlatToggleButton tbtn_playbackAutoScroll;
     private org.jjazz.ui.flatcomponents.api.FlatToggleButton tbtn_snap;
     private org.jjazz.ui.flatcomponents.api.FlatToggleButton tbtn_solo;
     // End of variables declaration//GEN-END:variables

@@ -192,16 +192,16 @@
                 </Property>
               </Properties>
             </Component>
-            <Component class="org.jjazz.ui.flatcomponents.api.FlatToggleButton" name="tbtn_playbackPoint">
+            <Component class="org.jjazz.ui.flatcomponents.api.FlatToggleButton" name="tbtn_playbackAutoScroll">
               <Properties>
                 <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                  <Image iconType="3" name="/org/jjazz/pianoroll/actions/resources/PlaybackPointOFF.png"/>
+                  <Image iconType="3" name="/org/jjazz/pianoroll/actions/resources/PlaybackAutoScrollOFF.png"/>
                 </Property>
                 <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-                  <ResourceString bundle="org/jjazz/pianoroll/Bundle.properties" key="ToolbarPanel.tbtn_playbackPoint.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+                  <ResourceString bundle="org/jjazz/pianoroll/Bundle.properties" key="ToolbarPanel.tbtn_playbackAutoScroll.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
                 </Property>
                 <Property name="selectedIcon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                  <Image iconType="3" name="/org/jjazz/pianoroll/actions/resources/PlaybackPointON.png"/>
+                  <Image iconType="3" name="/org/jjazz/pianoroll/actions/resources/PlaybackAutoScrollON.png"/>
                 </Property>
               </Properties>
             </Component>

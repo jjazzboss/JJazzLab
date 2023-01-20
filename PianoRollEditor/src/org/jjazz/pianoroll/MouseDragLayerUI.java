@@ -25,7 +25,6 @@ package org.jjazz.pianoroll;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Polygon;
 import java.awt.Rectangle;
 import javax.swing.JComponent;
 import javax.swing.plaf.LayerUI;
@@ -41,7 +40,7 @@ public class MouseDragLayerUI extends LayerUI<JComponent>
     private int playbackPointX;
     private static final Color COLOR_BORDER_OUT = Color.DARK_GRAY;
     private static final Color COLOR_BORDER_IN = Color.WHITE;
-    private static final Color COLOR_PLAYBACK_LINE = Color.WHITE;
+    public static final Color COLOR_PLAYBACK_LINE = Color.WHITE;
     private final Color COLOR_BACKGROUND;
 
     public MouseDragLayerUI()

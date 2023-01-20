@@ -27,6 +27,7 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Polygon;
 import java.awt.RenderingHints;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
@@ -59,6 +60,8 @@ public class RulerPanel extends javax.swing.JPanel implements PropertyChangeList
     private final Font fontBeat;
     private final int preferredHeight;
     private static final Logger LOGGER = Logger.getLogger(RulerPanel.class.getSimpleName());
+    private int playbackPointX = -1;
+    private static Polygon playbackPointPolygon;
 
     /**
      *
@@ -79,7 +82,7 @@ public class RulerPanel extends javax.swing.JPanel implements PropertyChangeList
         fontBar = GeneralUISettings.getInstance().getStdFont().deriveFont(13f);
         fontBeat = fontBar.deriveFont(fontBar.getSize() - 3f);
 
-        
+
         // Repaint ourself when notesPanel is resized
         this.notesPanel.addComponentListener(new ComponentAdapter()
         {
@@ -106,6 +109,17 @@ public class RulerPanel extends javax.swing.JPanel implements PropertyChangeList
     {
         var pd = new Dimension(notesPanel.getWidth(), preferredHeight);
         return pd;
+    }
+
+    /**
+     * Show the playback point.
+     *
+     * @param xPos If &lt; 0 show nothing
+     */
+    public void showPlaybackPoint(int xPos)
+    {
+        playbackPointX = xPos;
+        repaint();
     }
 
     @Override
@@ -181,6 +195,18 @@ public class RulerPanel extends javax.swing.JPanel implements PropertyChangeList
 
         }
 
+        if (playbackPointX >= 0)
+        {
+            g2.setColor(MouseDragLayerUI.COLOR_PLAYBACK_LINE);
+            Polygon p = new Polygon();
+            int HALF_SIZE = 4;            
+            int yMax = h - 1;
+            p.addPoint(playbackPointX, yMax);
+            p.addPoint(playbackPointX + HALF_SIZE, yMax - HALF_SIZE);
+            p.addPoint(playbackPointX - HALF_SIZE, yMax - HALF_SIZE);
+            g2.fill(p);
+        }
+
         g2.dispose();
     }
 
@@ -210,4 +236,5 @@ public class RulerPanel extends javax.swing.JPanel implements PropertyChangeList
     {
         setBackground(editor.getSettings().getRulerBackgroundColor());
     }
+
 }

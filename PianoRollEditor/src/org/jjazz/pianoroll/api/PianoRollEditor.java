@@ -96,6 +96,10 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, L
 {
 
     /**
+     * newValue=boolean
+     */
+    public static final String PROP_EDITOR_ENABLED = "EditorEnabled";
+    /**
      * oldValue=old tool, newValue=new tool
      */
     public static final String PROP_ACTIVE_TOOL = "ActiveTool";
@@ -108,9 +112,9 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, L
      */
     public static final String PROP_QUANTIZATION = "Quantization";
     /**
-     * newValue=boolean
+     * newValue=playback point position in beats
      */
-    public static final String PROP_PLAYBACK_POINT_POSITION = "PlaybackPointVisible";
+    public static final String PROP_PLAYBACK_POINT_POSITION = "PlaybackPointPosition";
     private static final float MAX_WIDTH_FACTOR = 1.5f;
     private final List<EditTool> editTools;
     private ToolbarPanel toolbarPanel;
@@ -141,6 +145,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, L
     private static final Logger LOGGER = Logger.getLogger(PianoRollEditor.class.getSimpleName());
     private boolean snapEnabled;
     private float playbackPointPosition;
+    private boolean playbackAutoScrollEnabled;
 
 
     /**
@@ -380,6 +385,8 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, L
 
     /**
      * Clean up everything so component can be garbaged.
+     * <p>
+     * Fire a PROP_EDITOR_ENABLED with value=false.
      */
     public void cleanup()
     {
@@ -388,6 +395,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, L
         toolbarPanel.cleanup();
         spModel.removeUndoableEditListener(undoManager);
         spModel.removePropertyChangeListener(this);
+        firePropertyChange(PROP_EDITOR_ENABLED, true, false);
     }
 
     /**
@@ -589,6 +597,16 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, L
         return activeTool;
     }
 
+    public boolean isPlaybackAutoScrollEnabled()
+    {
+        return playbackAutoScrollEnabled;
+    }
+
+    public void setPlaybackAutoScrollEnabled(boolean playbackAutoScrollEnabled)
+    {
+        this.playbackAutoScrollEnabled = playbackAutoScrollEnabled;
+    }
+
     /**
      * Show (or hide) a playback point in the editor at specified position.
      * <p>
@@ -598,12 +616,13 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, L
      */
     public void showPlaybackPoint(float pos)
     {
-        if ((pos < 0 && playbackPointPosition < 0) || Float.floatToIntBits(pos) == Float.floatToIntBits(playbackPointPosition))
+        if (Float.floatToIntBits(pos) == Float.floatToIntBits(playbackPointPosition))
         {
             return;
         }
         float old = playbackPointPosition;
         playbackPointPosition = pos;
+
 
         int xPos = -1;
         if (getBeatRange().contains(playbackPointPosition, false))
@@ -611,8 +630,18 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, L
             xPos = notesPanel.getXMapper().getX(pos);
         }
 
+        rulerPanel.showPlaybackPoint(xPos);
         mouseDragLayerUI.showPlaybackPoint(xPos);
         mouseDragLayer.repaint();
+
+        
+        // Scroll if required so that playback point is on the left side
+        var visibleBr = getVisibleBeatRange();
+        if (xPos >= 0 && playbackAutoScrollEnabled && !visibleBr.contains(pos, true))
+        {
+            float shiftedPos = Math.min(getBeatRange().to - visibleBr.size()/2, pos + visibleBr.size()/2 - 1f);        
+            scrollToCenter(shiftedPos);
+        }
 
         firePropertyChange(PROP_PLAYBACK_POINT_POSITION, old, playbackPointPosition);
     }

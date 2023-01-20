@@ -31,7 +31,6 @@ import javax.swing.Action;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.KeyStroke;
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.PlaybackListenerAdapter;
@@ -40,32 +39,46 @@ import org.jjazz.ui.utilities.api.ToggleAction;
 import org.jjazz.util.api.ResUtil;
 
 /**
- * Action to toggle the showing of the playback point.
+ * Action to toggle the playback auto-scroll.
+ * <p>
+ * The action also is responsible to move the playback point when playback is ON.
  */
-public class ShowPlaybackPoint extends ToggleAction implements PropertyChangeListener
+public class PlaybackAutoScroll extends ToggleAction implements PropertyChangeListener
 {
 
     private final PianoRollEditor editor;
     private MusicListener musicListener;
-    private static final Logger LOGGER = Logger.getLogger(ShowPlaybackPoint.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(PlaybackAutoScroll.class.getSimpleName());
 
-    public ShowPlaybackPoint(PianoRollEditor editor)
+    public PlaybackAutoScroll(PianoRollEditor editor)
     {
-        super(editor.isSnapEnabled());
+        super(editor.isPlaybackAutoScrollEnabled());
 
         this.editor = editor;
 
         // UI settings for the FlatToggleButton
-        putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("resources/PlaybackPointOFF.png")));
-        setSelectedIcon(new ImageIcon(getClass().getResource("resources/PlaybackPointON.png")));
+        putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("resources/PlaybackAutoScrollOFF.png")));
+        setSelectedIcon(new ImageIcon(getClass().getResource("resources/PlaybackAutoScrollON.png")));
         // putValue("JJazzDisabledIcon", new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PlaybackPointDisabled-24x24.png")));   //NOI18N                                
-        putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(), "PlaybackPointTooltip"));
+        putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(), "PlaybackAutoScrollToolip"));
         putValue("hideActionText", true);
-
-
+        
+        
         // Keyboard shortcut
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("P"), "ShowPlaybackPoint");   //NOI18N
-        editor.getActionMap().put("ShowPlaybackPoint", this);   //NOI18N
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("A"), "PlaybackAutoScroll");   //NOI18N
+        editor.getActionMap().put("PlaybackAutoScroll", this);   //NOI18N
+
+
+        listenToTheMusic();
+
+
+        editor.addPropertyChangeListener(PianoRollEditor.PROP_EDITOR_ENABLED, e ->
+        {
+            if (e.getNewValue().equals(false))
+            {
+                stopListeningToTheMusic();
+            }
+        });
 
     }
 
@@ -79,14 +92,7 @@ public class ShowPlaybackPoint extends ToggleAction implements PropertyChangeLis
     @Override
     public void selectedStateChanged(boolean b)
     {
-        if (b)
-        {
-            listenToTheMusic();
-        } else
-        {
-            stopListeningToTheMusic();
-            editor.showPlaybackPoint(-1f);
-        }
+        editor.setPlaybackAutoScrollEnabled(b);
     }
 
 
@@ -108,11 +114,13 @@ public class ShowPlaybackPoint extends ToggleAction implements PropertyChangeLis
                 {
                     case DISABLED:
                     case STOPPED:
+                        musicListener.enabled = false;
                         editor.showPlaybackPoint(-1f);
                         break;
+                        
                     case PAUSED:
-                        break;
                     case PLAYING:
+                        musicListener.enabled = true;
                         break;
                     default:
                         throw new AssertionError(mc.getState().name());
@@ -127,14 +135,10 @@ public class ShowPlaybackPoint extends ToggleAction implements PropertyChangeLis
     // ====================================================================================
     private void listenToTheMusic()
     {
-        if (musicListener == null)
-        {
-            musicListener = new MusicListener();
-        }
+        musicListener = new MusicListener();
         var mc = MusicController.getInstance();
         mc.addPlaybackListener(musicListener);
         mc.addPropertyChangeListener(this);
-
     }
 
     private void stopListeningToTheMusic()
@@ -151,19 +155,21 @@ public class ShowPlaybackPoint extends ToggleAction implements PropertyChangeLis
     private class MusicListener extends PlaybackListenerAdapter
     {
 
+        boolean enabled;
+
         @Override
         public void beatChanged(Position oldPos, Position newPos)
         {
 
-            if (!editor.getBarRange().contains(newPos.getBar()))
+            if (!enabled || !editor.getBarRange().contains(newPos.getBar()))
             {
                 return;
             }
-            
+
             int relBar = newPos.getBar() - editor.getStartBarIndex();
             float relPos = relBar * editor.getModel().getTimeSignature().getNbNaturalBeats() + newPos.getBeat();
             float pos = editor.getBeatRange().from + relPos;
-            
+
             editor.showPlaybackPoint(pos);
         }
 

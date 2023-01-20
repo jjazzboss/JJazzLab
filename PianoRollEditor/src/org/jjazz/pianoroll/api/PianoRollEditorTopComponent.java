@@ -40,23 +40,29 @@ import org.openide.windows.TopComponent;
  * The TopComponent for a PianoRollEditor.
  * <p>
  */
+// @TopComponent.Registration(mode = "midieditor", openAtStartup = false)
+@TopComponent.Description(
+        preferredID = "PianoRollEditorTopComponentId",
+        //iconBase="SET/PATH/TO/ICON/HERE",
+        persistenceType = TopComponent.PERSISTENCE_NEVER
+)
 public final class PianoRollEditorTopComponent extends TopComponent
 {
 
-    public static final String MODE = "editor"; // see Netbeans WindowManager modes
+    public static final String MODE = "midieditor"; // see Netbeans WindowManager modes
     private PianoRollEditor editor;
 
     public PianoRollEditorTopComponent(String tabName, String title, SizedPhrase spModel, DrumKit.KeyMap keyMap, int startBarIndex)
     {
         initComponents();
-
-        putClientProperty(TopComponent.PROP_MAXIMIZATION_DISABLED, Boolean.TRUE);
-        putClientProperty(TopComponent.PROP_CLOSING_DISABLED, Boolean.FALSE);
+       
+        putClientProperty(TopComponent.PROP_MAXIMIZATION_DISABLED, Boolean.FALSE);
+        putClientProperty(TopComponent.PROP_CLOSING_DISABLED, Boolean.TRUE);
         putClientProperty(TopComponent.PROP_DND_COPY_DISABLED, Boolean.TRUE);
-        // putClientProperty(TopComponent.PROP_DRAGGING_DISABLED, Boolean.TRUE);
-        // putClientProperty(TopComponent.PROP_UNDOCKING_DISABLED, Boolean.TRUE);
-        // putClientProperty(TopComponent.PROP_SLIDING_DISABLED, Boolean.TRUE);
-        putClientProperty(TopComponent.PROP_KEEP_PREFERRED_SIZE_WHEN_SLIDED_IN, Boolean.TRUE);
+        putClientProperty(TopComponent.PROP_DRAGGING_DISABLED, Boolean.TRUE);
+        putClientProperty(TopComponent.PROP_UNDOCKING_DISABLED, Boolean.FALSE);      // If already floating, disable the docking
+        putClientProperty(TopComponent.PROP_SLIDING_DISABLED, Boolean.FALSE);
+        putClientProperty(TopComponent.PROP_KEEP_PREFERRED_SIZE_WHEN_SLIDED_IN, Boolean.FALSE);
 
         editor = new PianoRollEditor(title, startBarIndex, spModel, keyMap, PianoRollEditorSettings.getDefault());
         add(editor);

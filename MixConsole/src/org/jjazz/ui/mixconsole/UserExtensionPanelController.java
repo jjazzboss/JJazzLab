@@ -32,6 +32,7 @@ import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.Sequence;
 import javax.sound.midi.Track;
+import javax.swing.SwingUtilities;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.midi.api.JJazzMidiSystem;
 import org.jjazz.phrase.api.Phrase;
@@ -167,15 +168,15 @@ public class UserExtensionPanelController
         // Prepare data for the editor               
         Song song = panel.getSong();
         SongStructure ss = song.getSongStructure();
-        
-        
+
+
         var songBeatRange = ss.getBeatRange(null);
         DrumKit drumKit = panel.getMidiMix().getInstrumentMixFromKey(rv).getInstrument().getDrumKit();
         DrumKit.KeyMap keyMap = drumKit == null ? null : drumKit.getKeyMap();
         Phrase p = getUserPhrase();
         var sp = new SizedPhrase(p.getChannel(), songBeatRange, ss.getSongPart(0).getRhythm().getTimeSignature(), p.isDrums());
         sp.add(p);
-        
+
 
         // Create the editor
         String tabName = song.getName() + "-" + getUserPhraseName();
@@ -190,9 +191,15 @@ public class UserExtensionPanelController
         // Show it
         Mode mode = WindowManager.getDefault().findMode(PianoRollEditorTopComponent.MODE);
         mode.dockInto(pianoRollEditorTc);
-        pianoRollEditorTc.open();
-        pianoRollEditorTc.requestActive();
-
+        SwingUtilities.invokeLater(() ->
+        {
+            // https://dzone.com/articles/secrets-netbeans-window-system
+            // https://web.archive.org/web/20170314072532/https://blogs.oracle.com/geertjan/entry/creating_a_new_mode_in
+            pianoRollEditorTc.open();
+            pianoRollEditorTc.requestActive();
+            // WindowManager.getDefault().setTopComponentFloating(pianoRollEditorTc, true);            
+        });
+        
     }
 
 

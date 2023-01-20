@@ -60,7 +60,6 @@ import org.jjazz.util.api.IntRange;
  */
 public class NotesPanel extends javax.swing.JPanel implements PropertyChangeListener
 {
-
     private final KeyboardComponent keyboard;
     private final YMapper yMapper;
     private final XMapper xMapper;

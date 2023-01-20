@@ -114,6 +114,8 @@
         <folder name="Modes">
             <folder name="jlnavigator"/>
             <file name="jlnavigator.wsmode" url="modes/jlnavigator.wsmode"/>
+            <folder name="midieditor"/>
+            <file name="midieditor.wsmode" url="modes/midieditor.wsmode"/>
         </folder>
     </folder>    
 </filesystem>
