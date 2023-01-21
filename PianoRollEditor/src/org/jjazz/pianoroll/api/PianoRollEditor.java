@@ -39,6 +39,7 @@ import java.beans.PropertyChangeListener;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.BorderFactory;
@@ -240,6 +241,32 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, L
     }
 
     /**
+     * Optional view-only phrases shown in the background of the editor.
+     * <p>
+     * The specified phrases are shown faded in the background in order to facilite the editing of the SizedPhrase model. E.g. if
+     * the edited phrase is a bass line, you can use this method to make the corresponding drums phrase also visible.
+     *
+     * @param mapNamePhrases A name associated to a SizedPhrase. SizedPhrase must have the same beatRange and TimeSignature than
+     *                       the SizedPhrase model.
+     * @see #setModel(org.jjazz.phrase.api.SizedPhrase)
+     *
+     */
+    public void setBackgroundModels(Map<String, SizedPhrase> mapNamePhrases)
+    {
+
+    }
+
+    /**
+     * Get the optional view-only phrases shown in the background of the editor.
+     *
+     * @return Can be empty
+     */
+    public List<SizedPhrase> getBackgroundModels()
+    {
+
+    }
+
+    /**
      * The SizedPhrase edited by this editor.
      *
      * @return
@@ -251,8 +278,11 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, L
 
     /**
      * Set the edited SizedPhrase.
+     * <p>
+     * The method also resets the background models.
      *
      * @param sp The melodic/drums type of the phrase must remain the same than the one used to create this editor
+     * @see #setBackgroundModels(java.util.Map)
      */
     public void setModel(SizedPhrase sp)
     {
@@ -634,12 +664,12 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, L
         mouseDragLayerUI.showPlaybackPoint(xPos);
         mouseDragLayer.repaint();
 
-        
+
         // Scroll if required so that playback point is on the left side
         var visibleBr = getVisibleBeatRange();
         if (xPos >= 0 && playbackAutoScrollEnabled && !visibleBr.contains(pos, true))
         {
-            float shiftedPos = Math.min(getBeatRange().to - visibleBr.size()/2, pos + visibleBr.size()/2 - 1f);        
+            float shiftedPos = Math.min(getBeatRange().to - visibleBr.size() / 2, pos + visibleBr.size() / 2 - 1f);
             scrollToCenter(shiftedPos);
         }
 

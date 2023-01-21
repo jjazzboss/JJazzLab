@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Logger;
 import javax.swing.Action;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.phrase.api.SizedPhrase;
@@ -40,27 +41,21 @@ import org.openide.windows.TopComponent;
  * The TopComponent for a PianoRollEditor.
  * <p>
  */
-// @TopComponent.Registration(mode = "midieditor", openAtStartup = false)
-@TopComponent.Description(
-        preferredID = "PianoRollEditorTopComponentId",
-        //iconBase="SET/PATH/TO/ICON/HERE",
-        persistenceType = TopComponent.PERSISTENCE_NEVER
-)
 public final class PianoRollEditorTopComponent extends TopComponent
 {
 
-    public static final String MODE = "midieditor"; // see Netbeans WindowManager modes
     private PianoRollEditor editor;
+    private static final Logger LOGGER = Logger.getLogger(PianoRollEditorTopComponent.class.getSimpleName());
 
     public PianoRollEditorTopComponent(String tabName, String title, SizedPhrase spModel, DrumKit.KeyMap keyMap, int startBarIndex)
     {
         initComponents();
-       
+
         putClientProperty(TopComponent.PROP_MAXIMIZATION_DISABLED, Boolean.FALSE);
-        putClientProperty(TopComponent.PROP_CLOSING_DISABLED, Boolean.TRUE);
+        putClientProperty(TopComponent.PROP_CLOSING_DISABLED, Boolean.FALSE);
         putClientProperty(TopComponent.PROP_DND_COPY_DISABLED, Boolean.TRUE);
-        putClientProperty(TopComponent.PROP_DRAGGING_DISABLED, Boolean.TRUE);
-        putClientProperty(TopComponent.PROP_UNDOCKING_DISABLED, Boolean.FALSE);      // If already floating, disable the docking
+        putClientProperty(TopComponent.PROP_DRAGGING_DISABLED, Boolean.FALSE);
+        putClientProperty(TopComponent.PROP_UNDOCKING_DISABLED, Boolean.TRUE);      // If already floating, disable the docking
         putClientProperty(TopComponent.PROP_SLIDING_DISABLED, Boolean.FALSE);
         putClientProperty(TopComponent.PROP_KEEP_PREFERRED_SIZE_WHEN_SLIDED_IN, Boolean.FALSE);
 
@@ -69,6 +64,12 @@ public final class PianoRollEditorTopComponent extends TopComponent
 
         setDisplayName(tabName);
 
+    }
+
+    @Override
+    public String preferredID()
+    {
+        return "PianoRollEditorTopComponent" + getDisplayName();
     }
 
     public PianoRollEditor getEditor()
@@ -167,7 +168,7 @@ public final class PianoRollEditorTopComponent extends TopComponent
     @Override
     public void componentClosed()
     {
-        // TODO add custom code on component closing
+        editor.cleanup();
     }
 
     // ============================================================================================

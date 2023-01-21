@@ -23,13 +23,22 @@
           "-//NetBeans//DTD Mode Properties 2.0//EN"
           "http://www.netbeans.org/dtds/mode-properties2_0.dtd">
 
+
 <mode version="2.0">
     <name unique="midieditor" />
     <kind type="editor" />
     <state type="separated" />
-    <bounds x="300" y="30" width="800" height="600" />
-    <active-tc id="PianoRollEditorTopComponentId" />
-    <frame state="0"/>
+    <relative-bounds x="0" y="0" width="80" height="60" />
+    <empty-behavior permanent="true" />
+</mode>
+<!--
+<mode version="2.0">
+    <name unique="midieditor" />
+    <kind type="view" />
+    <state type="joined" minimized="true" />
+    <slidingSide side="right" />
+    <relative-bounds x="0" y="0" width="80" height="60" />
     <empty-behavior permanent="false" />
 </mode>
+-->
 

@@ -32,7 +32,8 @@ import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.Sequence;
 import javax.sound.midi.Track;
-import javax.swing.SwingUtilities;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.midi.api.JJazzMidiSystem;
 import org.jjazz.phrase.api.Phrase;
@@ -48,6 +49,7 @@ import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.ui.mixconsole.actions.AddUserTrack;
 import org.jjazz.ui.utilities.api.PleaseWaitDialog;
+import org.jjazz.ui.utilities.api.Utilities;
 import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.util.api.ResUtil;
@@ -151,7 +153,10 @@ public class UserExtensionPanelController
     {
         if (pianoRollEditorTc != null)
         {
-            pianoRollEditorTc.requestAttention(true);
+            Mode mode = WindowManager.getDefault().findMode("midieditor");
+            assert mode != null;
+            mode.dockInto(pianoRollEditorTc);
+            pianoRollEditorTc.open();
             pianoRollEditorTc.requestActive();
             return;
         }
@@ -189,17 +194,25 @@ public class UserExtensionPanelController
 
 
         // Show it
-        Mode mode = WindowManager.getDefault().findMode(PianoRollEditorTopComponent.MODE);
-        mode.dockInto(pianoRollEditorTc);
-        SwingUtilities.invokeLater(() ->
-        {
             // https://dzone.com/articles/secrets-netbeans-window-system
-            // https://web.archive.org/web/20170314072532/https://blogs.oracle.com/geertjan/entry/creating_a_new_mode_in
-            pianoRollEditorTc.open();
-            pianoRollEditorTc.requestActive();
-            // WindowManager.getDefault().setTopComponentFloating(pianoRollEditorTc, true);            
-        });
-        
+           // https://web.archive.org/web/20170314072532/https://blogs.oracle.com/geertjan/entry/creating_a_new_mode_in        
+//        Mode mode = WindowManager.getDefault().findMode("midieditor");
+//        assert mode != null;
+//        mode.dockInto(pianoRollEditorTc);
+//        pianoRollEditorTc.open();
+//        pianoRollEditorTc.requestActive();
+
+https://netbeans.apache.org/wiki/DevFaqAddGlobalContext.html
+
+        JDialog dlg = new JDialog(WindowManager.getDefault().getMainWindow());
+        dlg.getContentPane().add(pianoRollEditorTc);
+        dlg.pack();
+        dlg.setLocationByPlatform(true);
+        dlg.setVisible(true);
+        pianoRollEditorTc.open();
+        pianoRollEditorTc.requestActive();
+
+
     }
 
 
