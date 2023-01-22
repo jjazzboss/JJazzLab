@@ -70,6 +70,14 @@
                         <specification-version>9.14</specification-version>
                     </run-dependency>
                 </dependency>
+                <dependency>
+                    <code-name-base>org.openide.windows</code-name-base>
+                    <build-prerequisite/>
+                    <compile-dependency/>
+                    <run-dependency>
+                        <implementation-version/>
+                    </run-dependency>
+                </dependency>
             </module-dependencies>
             <test-dependencies>
                 <test-type>

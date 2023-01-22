@@ -26,6 +26,9 @@ import com.google.common.base.Preconditions;
 import com.thoughtworks.xstream.XStream;
 import java.awt.Desktop;
 import java.awt.Font;
+import java.awt.Window;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.*;
 import java.lang.reflect.Modifier;
 import java.net.MalformedURLException;
@@ -52,6 +55,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import org.openide.*;
 import org.openide.filesystems.FileObject;
+import org.openide.util.Lookup;
 
 /**
  * Various convenience functions.
@@ -127,6 +131,42 @@ public class Utilities
         }
     }
 
+    /**
+     * Install a listener so that the window's lookup is proxied in the Netbeans action global context.
+     * <p>
+     * The context returned by Utilities.actionsGlobalContext() proxies by default the active TopComponent's lookup. This method
+     * lets replicate this behavior also for any window.
+     * <p>
+     * Depends on the availability of GlobalActionContextProxy service provider.
+     *
+     * @param w Must be an instance of Lookup.provider
+     */
+    public void installTopComponentLikeGlobalActionContext(Window w)
+    {
+        Preconditions.checkArgument(w instanceof Lookup.Provider, "w=%s" + w);
+        Lookup.Provider wlp = (Lookup.Provider) w;
+        
+        var p = GlobalActionContextProxy.getInstance();
+        if (p == null)
+        {
+            throw new IllegalStateException("p=" + p);
+        }
+
+        var listener = new WindowAdapter()
+        {
+            @Override
+            public void windowActivated(WindowEvent e)
+            {
+qsdqsd
+            }
+
+            @Override
+            public void windowDeactivated(WindowEvent e)
+            {
+
+            }
+        };
+    }
 
     public static boolean isWindows()
     {
@@ -290,7 +330,7 @@ public class Utilities
      * If filename has no path extension just add ext.
      *
      * @param filename
-     * @param ext      A string without spaces in it. If ext does not start with "." it will be added. If "" extension is removed.
+     * @param ext A string without spaces in it. If ext does not start with "." it will be added. If "" extension is removed.
      * @return The new filename with extension replaced.
      */
     public static String replaceExtension(String filename, String ext)
@@ -331,7 +371,7 @@ public class Utilities
      * Get the string of all the collection elements in brackets [], but limited to maxLength.
      *
      * @param collection
-     * @param maxLength  Must be &gt;= 5
+     * @param maxLength Must be &gt;= 5
      * @return A string like [one,two,th...] if maxLength is 15
      */
     public static String truncateWithDots(Collection<?> collection, int maxLength)
@@ -398,8 +438,8 @@ public class Utilities
      *
      * @param <T>
      * @param smallArray Size must be &lt;= 9, otherwise use too much memory (result size grow like N!).
-     * @param n          Nb of elements to be considered
-     * @param result     The list of all smallArray permutations.
+     * @param n Nb of elements to be considered
+     * @param result The list of all smallArray permutations.
      */
     public static <T> void heapPermutation(T smallArray[], int n, List<T[]> result)
     {
@@ -531,7 +571,7 @@ public class Utilities
     /**
      * Get the index of an object reference in a List. The search uses direct equality '==', NOT the 'equals' function.
      *
-     * @param o     The Object to search.
+     * @param o The Object to search.
      * @param array The List of Objects to be searched.
      * @return The index of object o, -1 if not found.
      */
@@ -551,7 +591,7 @@ public class Utilities
      * Return the index of the first object whose toString() function match str (ignoring case).
      *
      * @param list A list of object.
-     * @param str  The string to search (ignoring case)
+     * @param str The string to search (ignoring case)
      * @return The index of matching string, -1 if not found.
      */
     public static int indexOfStringIgnoreCase(List<? extends Object> list, String str)
@@ -573,10 +613,10 @@ public class Utilities
      * <p>
      *
      * @param <T>
-     * @param myClass     The class used to find the zipResource.
+     * @param myClass The class used to find the zipResource.
      * @param zipResource Must end with ".zip".
-     * @param destDir     The path of the destination directory, which must exist.
-     * @param overwrite   If true overwrite files in the destination directory
+     * @param destDir The path of the destination directory, which must exist.
+     * @param overwrite If true overwrite files in the destination directory
      * @return The list of created files in the destination directory.
      */
     public static <T> List<File> extractZipResource(Class<T> myClass, String zipResource, Path destDir, boolean overwrite)
@@ -917,7 +957,7 @@ public class Utilities
      * Hidden subdirectories are not searched.
      *
      * @param dirTree
-     * @param fnFilter        If null accept all files.
+     * @param fnFilter If null accept all files.
      * @param ignoreDirPrefix Subdirs starting with this prefix are not traversed. If null accept all subdirectories.
      * @param maxDepth
      * @return
@@ -1111,7 +1151,7 @@ public class Utilities
      *
      * @param pool
      * @param waitTerminationTimeMs Time in milliseconds to wait for pool tasks to terminate themselves
-     * @param waitCancelTimeMs      Time in milliseconds to wait for pool tasks to handle the cancel requests
+     * @param waitCancelTimeMs Time in milliseconds to wait for pool tasks to handle the cancel requests
      */
     static public void shutdownAndAwaitTermination(ExecutorService pool, long waitTerminationTimeMs, long waitCancelTimeMs)
     {
