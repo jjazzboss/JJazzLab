@@ -69,6 +69,9 @@ import org.jjazz.songstructure.api.SongStructureFactory;
 import org.jjazz.songstructure.api.event.SgsChangeEvent;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SgsChangeListener;
+import org.jjazz.songstructure.api.event.SptAddedEvent;
+import org.jjazz.songstructure.api.event.SptRemovedEvent;
+import org.jjazz.songstructure.api.event.SptResizedEvent;
 import org.jjazz.undomanager.api.SimpleEdit;
 import org.jjazz.util.api.FloatRange;
 import org.jjazz.util.api.ResUtil;
@@ -89,6 +92,10 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
     public static final String PROP_COMMENTS = "PROP_COMMENTS";   //NOI18N 
     public static final String PROP_TAGS = "PROP_TAGS";   //NOI18N 
     public static final String PROP_TEMPO = "PROP_TEMPO";   //NOI18N 
+    /**
+     * newValue = new size in bars. OldValue=old size in bars
+     */
+    public static final String PROP_SIZE_IN_BARS = "PROP_SIZE_IN_BARS";
     /**
      * If a user phrase is removed: oldValue=name and newValue=null.<br>
      * If a user phrase is added, oldValue=null and newValue=name<br>
@@ -117,6 +124,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
     private final Properties clientProperties = new Properties();
     private transient File file;
     private transient boolean needSave = false;
+    private transient int lastSize;
     /**
      * The listeners for undoable edits in this LeadSheet.
      */
@@ -146,11 +154,11 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
      *
      * @param name
      * @param cls
-     * @param sgs  Must be kept consistent with cls changes (sgs.getParentChordLeadSheet() must be non null)
+     * @param sgs  Must be kept consistent with cls changes (sgs.getParentChordLeadSheet() must return cls)
      */
     protected Song(String name, ChordLeadSheet cls, SongStructure sgs)
     {
-        if (name == null || name.trim().isEmpty() || cls == null || sgs == null || sgs.getParentChordLeadSheet() == null)
+        if (name == null || name.trim().isEmpty() || cls == null || sgs == null || sgs.getParentChordLeadSheet() != cls)
         {
             throw new IllegalArgumentException("name=" + name + " cls=" + cls + " sgs=" + sgs + " sgs.getParentChordLeadSheet()=" + sgs.getParentChordLeadSheet());   //NOI18N
         }
@@ -159,6 +167,8 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
         songStructure = sgs;
         chordLeadSheet.addClsChangeListener(this);
         songStructure.addSgsChangeListener(this);
+
+        lastSize = songStructure.getSizeInBars();
     }
 
     /**
@@ -439,6 +449,16 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
     }
 
     /**
+     * Convenience method which delegates to getSongStructure().getSizeInBars().
+     *
+     * @return
+     */
+    public int getSize()
+    {
+        return songStructure.getSizeInBars();
+    }
+
+    /**
      * Get the preferred tempo for this song.
      *
      * @return
@@ -686,7 +706,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
             file = songFile;
         }
 
-        try ( FileOutputStream fos = new FileOutputStream(songFile))
+        try (FileOutputStream fos = new FileOutputStream(songFile))
         {
             XStream xstream = new XStream();
             xstream.alias("Song", Song.class);
@@ -820,6 +840,15 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
     public void songStructureChanged(SgsChangeEvent e)
     {
         fireIsModified();
+
+        if (e instanceof SptAddedEvent
+                || e instanceof SptRemovedEvent
+                || e instanceof SptResizedEvent)
+        {
+            int newSize = getSize();
+            pcs.firePropertyChange(PROP_SIZE_IN_BARS, lastSize, newSize);
+            lastSize = newSize;
+        }
     }
 
     // ----------------------------------------------------------------------------

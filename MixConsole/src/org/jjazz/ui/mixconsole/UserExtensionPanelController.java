@@ -50,6 +50,7 @@ import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.ui.mixconsole.actions.AddUserTrack;
 import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
+import org.jjazz.util.api.FloatRange;
 import org.jjazz.util.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -111,9 +112,15 @@ public class UserExtensionPanelController
         int channel = panel.getMidiMix().getChannel(getUserRhythmVoice());
         SongStructure ss = getSong().getSongStructure();
         var songBeatRange = ss.getBeatRange(null);
+        var sizeInBars = ss.getSizeInBars();
         DrumKit drumKit = panel.getMidiMix().getInstrumentMixFromKey(getUserRhythmVoice()).getInstrument().getDrumKit();
         DrumKit.KeyMap keyMap = drumKit == null ? null : drumKit.getKeyMap();
+
+        // Make sure that edited phrase is no longer that the song now                     
         Phrase p = getUserPhrase();
+        p = Phrases.getSlice(p, songBeatRange, false, 1, 0f);
+
+        // Create the editor model
         var sp = new SizedPhrase(p.getChannel(), songBeatRange, ss.getSongPart(0).getRhythm().getTimeSignature(), p.isDrums());
         sp.add(p);
         String tabName = getSong().getName() + " - piano roll editor";
@@ -147,24 +154,44 @@ public class UserExtensionPanelController
         PianoRollEditor editor = preTc.getEditor();
         JJazzUndoManager.UserEditListener uel = (um, src, actionName) -> updateUpdateUserPhraseInSong(editor, um, src, actionName);
         editor.getUndoManager().addUserEditListener(uel);
+
+
+        // Listen to size change to update editor's model size
+        // Stop listening when editor is destroyed or its model is changed  
+        final PianoRollEditorTopComponent preTc2 = preTc;
         PropertyChangeListener pcl = new PropertyChangeListener()
         {
             @Override
             public void propertyChange(PropertyChangeEvent evt)
             {
-                switch (evt.getPropertyName())
+                if (evt.getSource() == editor)
                 {
-                    // Stop listening when editor is destroyed or its model is changed
-                    case PianoRollEditor.PROP_MODEL:
-                    case PianoRollEditor.PROP_EDITOR_ALIVE:
-                        editor.removePropertyChangeListener(this);
-                        editor.getUndoManager().removeUserEditListener(uel);
+                    switch (evt.getPropertyName())
+                    {
+                        case PianoRollEditor.PROP_MODEL:
+                        case PianoRollEditor.PROP_EDITOR_ALIVE:
+                            editor.removePropertyChangeListener(this);
+                            editor.getUndoManager().removeUserEditListener(uel);
+                            getSong().removePropertyChangeListener(this);
+                    }
+                } else if (evt.getSource() == getSong())
+                {
+                    if (evt.getPropertyName().equals(Song.PROP_SIZE_IN_BARS))
+                    {
+                        // Adjust the model to the new size
+                        Phrase p = getUserPhrase();
+                        var br = ss.getBeatRange(null);
+                        p = Phrases.getSlice(p, ss.getBeatRange(null), false, 1, 0f);
+                        var sp = new SizedPhrase(p.getChannel(), br, ss.getSongPart(0).getRhythm().getTimeSignature(), p.isDrums());
+                        sp.add(p);
+                        preTc2.setModel(0, sp, keyMap);
+                    }
                 }
             }
         };
         editor.addPropertyChangeListener(pcl);
+        getSong().addPropertyChangeListener(pcl);
 
-        
 
     }
 

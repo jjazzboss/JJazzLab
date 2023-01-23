@@ -41,6 +41,7 @@ import org.jjazz.pianoroll.edittools.PencilTool;
 import org.jjazz.pianoroll.edittools.SelectionTool;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
 import org.jjazz.song.api.Song;
+import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.openide.awt.UndoRedo;
 import org.openide.util.Lookup;
 import org.openide.util.Utilities;
@@ -93,6 +94,7 @@ public final class PianoRollEditorTopComponent extends TopComponent
 
         this.song = song;
         editor = new PianoRollEditor(startBarIndex, spModel, keyMap, settings);
+        editor.setUndoManager(JJazzUndoManagerFinder.getDefault().get(song));
         editTools = Arrays.asList(new SelectionTool(editor), new PencilTool(editor), new EraserTool(editor));
         editor.setActiveTool(editTools.get(0));
         toolbarPanel = new ToolbarPanel(editor, title, editTools);

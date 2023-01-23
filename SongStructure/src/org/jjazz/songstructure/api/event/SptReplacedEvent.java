@@ -28,7 +28,7 @@ import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 
 /**
- * A SongPart has been replaced.
+ * A SongPart has been replaced with another one with same size/startBarIndex.
  */
 public class SptReplacedEvent extends SgsChangeEvent
 {
