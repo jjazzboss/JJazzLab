@@ -285,8 +285,8 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
             removeNote(ne);
         }
 
-        sp.removePropertyChangeListener(this);
-        sp.removeUndoableEditListener(undoManager);
+        spModel.removePropertyChangeListener(this);
+        spModel.removeUndoableEditListener(undoManager);
 
 
         var oldModel = spModel;
