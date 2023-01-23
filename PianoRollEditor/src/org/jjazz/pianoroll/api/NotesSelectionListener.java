@@ -35,52 +35,55 @@ import org.openide.util.LookupListener;
 import org.openide.util.WeakListeners;
 
 /**
- * A helper class to notify registered ChangeListeners when selection changes in a lookup.
+ * A helper class to notify registered ChangeListeners when selection changes in the editor's lookup.
  * <p>
  */
 public class NotesSelectionListener
 {
-
-    private Lookup context;
-    private Lookup.Result<NoteView> noteViewLkpResult;
-    private LookupListener noteViewLkpListener;
+    private final PianoRollEditor editor;
+    private final Lookup context;
+    private final Lookup.Result<NoteView> noteViewLkpResult;
+    private final LookupListener noteViewLkpListener;
     private NotesSelection selection;
     private List<NoteView> lastSelectedNoteViews;
     private NoteView lastNoteViewAddedToSelection;
-    private static final Map<Lookup, NotesSelectionListener> MAP_INSTANCES = new HashMap<>();
+    private static final Map<PianoRollEditor, NotesSelectionListener> MAP_INSTANCES = new HashMap<>();
     private final ChangeSupport cs = new ChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(NotesSelectionListener.class.getSimpleName());
 
     /**
-     * Create a listener.
+     * Create a note selection listener for the specified editor.
      * <p>
-     * If context == Utilities.actionsGlobalContext() listen to the lookup of the active PianoRollEditorTopComponent.
-     * <p>
-     * Instances are shared for a given context.
+     * Instances are shared per editor.
      *
-     * @param context
+     * @param editor
      * @return
      */
-    static public NotesSelectionListener getInstance(Lookup context)
+    static public NotesSelectionListener getInstance(PianoRollEditor editor)
     {
-        Preconditions.checkNotNull(context);
+        Preconditions.checkNotNull(editor);
         NotesSelectionListener res;
+        
         synchronized (NotesSelectionListener.class)
         {
-            res = MAP_INSTANCES.get(context);
+            res = MAP_INSTANCES.get(editor);
             if (res == null)
             {
-                res = new NotesSelectionListener(context);
-                MAP_INSTANCES.put(context, res);
+                res = new NotesSelectionListener(editor);
+                MAP_INSTANCES.put(editor, res);
+
+                // Don't keep a reference if editor is dead
+                editor.addPropertyChangeListener(PianoRollEditor.PROP_EDITOR_ALIVE, e -> MAP_INSTANCES.remove(editor));
             }
         }
         return res;
     }
 
 
-    private NotesSelectionListener(Lookup context)
+    private NotesSelectionListener(PianoRollEditor editor)
     {
-        this.context = context;
+        this.editor = editor;
+        this.context = editor.getLookup();
 
         // For WeakReferences to work, we need to keep a strong reference on the listeners (see WeakListeners java doc).
         noteViewLkpListener = le -> notePresenceChanged();
@@ -91,12 +94,9 @@ public class NotesSelectionListener
 
     }
 
-    /**
-     * @return the Lookup context
-     */
-    public final Lookup getContext()
+    public PianoRollEditor getEditor()
     {
-        return context;
+        return editor;
     }
 
     /**
@@ -112,6 +112,16 @@ public class NotesSelectionListener
     }
 
     /**
+     * Check if the last selection is empty.
+     *
+     * @return
+     */
+    public boolean isEmpty()
+    {
+        return selection == null ? true : selection.isEmpty();
+    }
+
+    /**
      * Get the last NoteView added to selection.
      * <p>
      * Registered ChangeListeners, once notified, can get the last new selected NoteView via this method.
@@ -124,7 +134,7 @@ public class NotesSelectionListener
     }
 
     /**
-     * Be notified when selection changes in the context.
+     * Be notified when selection changes in the editor.
      *
      * @param l
      */

@@ -27,8 +27,8 @@
 <mode version="2.0">
     <name unique="midieditor" />
     <kind type="editor" />
-    <state type="separated" />
-    <relative-bounds x="0" y="0" width="80" height="60" />
+    <state type="joined" minimized="false"/>
+     <relative-bounds x="0" y="0" width="80" height="60" />
     <empty-behavior permanent="true" />
 </mode>
 <!--
@@ -39,6 +39,15 @@
     <slidingSide side="right" />
     <relative-bounds x="0" y="0" width="80" height="60" />
     <empty-behavior permanent="false" />
+</mode>
+-->
+<!--
+<mode version="2.0">
+    <name unique="midieditor" />
+    <kind type="editor" />
+    <state type="separated" />
+    <relative-bounds x="0" y="0" width="80" height="60" />
+    <empty-behavior permanent="true" />
 </mode>
 -->
 

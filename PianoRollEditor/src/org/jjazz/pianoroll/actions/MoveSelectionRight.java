@@ -62,7 +62,7 @@ public class MoveSelectionRight extends AbstractAction
 
 
         String undoText = ResUtil.getString(getClass(), "MoveNoteRight");
-        editor.getUndoManager().startCEdit(undoText);
+        editor.getUndoManager().startCEdit(editor, undoText);
 
         for (var ne : NoteView.getNotes(nvs))
         {

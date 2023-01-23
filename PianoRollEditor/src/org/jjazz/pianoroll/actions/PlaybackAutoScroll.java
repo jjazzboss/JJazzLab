@@ -72,7 +72,7 @@ public class PlaybackAutoScroll extends ToggleAction implements PropertyChangeLi
         listenToTheMusic();
 
 
-        editor.addPropertyChangeListener(PianoRollEditor.PROP_EDITOR_ENABLED, e ->
+        editor.addPropertyChangeListener(PianoRollEditor.PROP_EDITOR_ALIVE, e ->
         {
             if (e.getNewValue().equals(false))
             {

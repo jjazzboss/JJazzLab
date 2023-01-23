@@ -79,12 +79,12 @@ public class UserExtensionPanel extends javax.swing.JPanel implements VetoableCh
         }
         
         this.controller = controller;
-        this.controller.setUserExtentionPanel(this);
-        this.song = song;
+        this.userRhythmVoice = urv;
+        this.song = song;        
         this.song.addVetoableChangeListener(this);
         this.song.getSongStructure().addSgsChangeListener(this);
         this.midiMix = midiMix;
-        userRhythmVoice = urv;
+
         if (urv != null)
         {
             String s = Utilities.truncateWithDots(userRhythmVoice.getName(), 8);
@@ -96,6 +96,10 @@ public class UserExtensionPanel extends javax.swing.JPanel implements VetoableCh
         
 
         phraseUpdated();
+        
+        
+        // To be done last as the controller needs that UserExtensionPanel is ready
+        this.controller.setUserExtentionPanel(this);
     }
 
     public UserRhythmVoice getUserRhythmVoice()

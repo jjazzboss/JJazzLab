@@ -45,25 +45,26 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
 {
 
     /**
-     * Listener for JJazzLab user-level undoable actions.
+     * Listener for JJazzLab user-level undoable edits.
      */
-    public interface UserActionListener
+    public interface UserEditListener
     {
 
         /**
-         * Called when endCEdit(name) is called, or when the CEdit is undone or redone.
+         * Called when endCEdit(source, name) is called, or when the CEdit is undone or redone.
          *
          * @param src
-         * @param actionName The parameter of endCEdit()
+         * @param source   The associated source object. Can be null.
+         * @param editName The parameter of endCEdit(). Can't be null.
          */
-        void userAction(JJazzUndoManager src, String actionName);
+        void userAction(JJazzUndoManager src, Object source, String editName);
     }
 
     /**
      * Listeners like Netbeans UndoAction/RedoAction linked to undo/redo buttons
      */
     private final ChangeSupport cs = new ChangeSupport(this);
-    private final List<UserActionListener> userEditListeners = new ArrayList<>();
+    private final List<UserEditListener> userEditListeners = new ArrayList<>();
     /**
      * vector of Edits to run
      */
@@ -109,7 +110,7 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
         return undoRedoInProgress;
     }
 
-    public void addUserEditListener(UserActionListener l)
+    public void addUserEditListener(UserEditListener l)
     {
         if (!userEditListeners.contains(l))
         {
@@ -117,27 +118,38 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
         }
     }
 
-    public void removeUserEditListener(UserActionListener l)
+    public void removeUserEditListener(UserEditListener l)
     {
         userEditListeners.remove(l);
     }
 
     /**
-     * Start a JJazzLab high-level compound edit.
+     * Start a JJazzLab high-level compound edit with a null source object.
      *
      * @param actionName Name of the edit
      */
     public void startCEdit(String actionName)
     {
+        startCEdit(null, actionName);
+    }
+
+    /**
+     * Start a JJazzLab high-level compound edit.
+     *
+     * @param source   The associated source object. Can be null.
+     * @param editName Name of the edit. Can't be null.
+     */
+    public void startCEdit(Object source, String editName)
+    {
         if (currentCEdit != null)
         {
-            throw new IllegalStateException("currentCEdit=" + currentCEdit + " actionName=" + actionName);   //NOI18N
+            throw new IllegalStateException("currentCEdit=" + currentCEdit + " source=" + source + "  editName=" + editName);   //NOI18N
         }
-        LOGGER.log(Level.FINE, "startCEdit() n={0} edits={1}", new Object[]
+        LOGGER.log(Level.FINE, "startCEdit() source={0} editName={1} edits={2}", new Object[]
         {
-            actionName, edits
+            source, editName, edits
         });
-        currentCEdit = new CEdit(actionName);
+        currentCEdit = new CEdit(source, editName);
         addEdit(currentCEdit);
     }
 
@@ -149,16 +161,16 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
      *
      * @return true if the compound edit was non empty.
      */
-    public boolean endCEdit(String actionName)
+    public boolean endCEdit(String editName)
     {
-        if (currentCEdit == null || !currentCEdit.getPresentationName().equals(actionName))
+        if (currentCEdit == null || !currentCEdit.getPresentationName().equals(editName))
         {
-            throw new IllegalStateException("currentCEdit=" + currentCEdit + " actionName=" + actionName);   //NOI18N
+            throw new IllegalStateException("currentCEdit=" + currentCEdit + " editName=" + editName);   //NOI18N
         }
-
-        LOGGER.log(Level.FINE, "endCEdit() -- n={0} edits={1} currentCEdit.edits={2}", new Object[]
+        Object source = currentCEdit.getSource();
+        LOGGER.log(Level.FINE, "endCEdit() -- source={0} n={1} edits={2} currentCEdit.edits={3}", new Object[]
         {
-            actionName, edits, currentCEdit.dumpEdits()
+            source, editName, edits, currentCEdit.dumpEdits()
         });
 
         currentCEdit.end();
@@ -180,7 +192,7 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
         LOGGER.log(Level.FINE, "endCEdit() POST edits={0}", edits);
 
         // Notify UserEditListeners
-        fireUserEditListeners(actionName);
+        fireUserEditListeners(source, editName);
 
         return res;
     }
@@ -438,9 +450,9 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
         trimEdits(edits.size() - 1, edits.size() - 1);
     }
 
-    private void fireUserEditListeners(String actionName)
+    private void fireUserEditListeners(Object source, String actionName)
     {
-        userEditListeners.forEach(l -> l.userAction(this, actionName));
+        userEditListeners.forEach(l -> l.userAction(this, source, actionName));
     }
 
     @Override
@@ -459,20 +471,32 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
     class CEdit extends CompoundEdit
     {
 
+        private Object source;
         private String name;
 
-        public CEdit(String n)
+        public CEdit(Object src, String n)
         {
             if (n == null)
             {
                 throw new IllegalArgumentException("n=" + n);   //NOI18N
             }
+            source = src;
             name = n;
         }
 
         public boolean isEmpty()
         {
             return edits.isEmpty();
+        }
+
+        /**
+         * The associated source object.
+         *
+         * @return Can be null.
+         */
+        public Object getSource()
+        {
+            return source;
         }
 
         @Override
@@ -512,7 +536,7 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
         public void undo() throws CannotUndoException
         {
             super.undo();
-            fireUserEditListeners(name);
+            fireUserEditListeners(source, name);
         }
 
         /**
@@ -524,7 +548,7 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
         public void redo() throws CannotRedoException
         {
             super.redo();
-            fireUserEditListeners(name);
+            fireUserEditListeners(source, name);
         }
 
         public String dumpEdits()

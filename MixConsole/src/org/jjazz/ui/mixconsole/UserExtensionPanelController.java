@@ -22,6 +22,8 @@
  */
 package org.jjazz.ui.mixconsole;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.beans.PropertyVetoException;
 import java.io.File;
 import java.io.IOException;
@@ -32,24 +34,20 @@ import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.Sequence;
 import javax.sound.midi.Track;
-import javax.swing.JDialog;
-import javax.swing.JFrame;
 import org.jjazz.midi.api.DrumKit;
-import org.jjazz.midi.api.JJazzMidiSystem;
+import org.jjazz.midimix.api.UserRhythmVoice;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.Phrases;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.pianoroll.api.PianoRollEditorTopComponent;
+import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
 import org.jjazz.rhythm.api.MusicGenerationException;
-import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythmmusicgeneration.api.SongSequenceBuilder;
 import org.jjazz.song.api.Song;
 import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.ui.mixconsole.actions.AddUserTrack;
-import org.jjazz.ui.utilities.api.PleaseWaitDialog;
-import org.jjazz.ui.utilities.api.Utilities;
 import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.util.api.ResUtil;
@@ -67,23 +65,31 @@ public class UserExtensionPanelController
 {
 
     private UserExtensionPanel panel;
-    private PianoRollEditorTopComponent pianoRollEditorTc;
+
     private static final Logger LOGGER = Logger.getLogger(UserExtensionPanelController.class.getSimpleName());
 
+    /**
+     * Set the associated UserExtensionPanel.
+     * <p>
+     * This also creates the PianoRollEditor for the user phrase.
+     *
+     * @param panel
+     */
     public void setUserExtentionPanel(UserExtensionPanel panel)
     {
         this.panel = panel;
+
+        editUserPhrase();
     }
 
     public void userChannelNameEdited(String newName)
     {
-        Song song = panel.getSong();
         String oldName = panel.getUserRhythmVoice().getName();
-        Phrase p = song.getUserPhrase(oldName);
-        song.removeUserPhrase(oldName);
+        Phrase p = getSong().getUserPhrase(oldName);
+        getSong().removeUserPhrase(oldName);
         try
         {
-            song.setUserPhrase(newName, p);
+            getSong().setUserPhrase(newName, p);
         } catch (PropertyVetoException ex)
         {
             // Should never happen since we replace an existing phrase
@@ -91,140 +97,86 @@ public class UserExtensionPanelController
         }
     }
 
-    public void OLDeditUserPhrase()
-    {
-        RhythmVoice rv = panel.getUserRhythmVoice();
-        int channel = panel.getMidiMix().getChannel(rv);
-
-
-        LOGGER.log(Level.INFO, "editUserPhrase() rv={0} channel={1}", new Object[]
-        {
-            rv, channel
-        });
-
-
-        File midiFile;
-        try
-        {
-            // Build and store sequence
-            midiFile = exportSequenceToMidiTempFile(new SongContext(panel.getSong(), panel.getMidiMix()));
-        } catch (IOException | MusicGenerationException ex)
-        {
-            NotifyDescriptor d = new NotifyDescriptor.Message(ex.getMessage(), NotifyDescriptor.ERROR_MESSAGE);
-            DialogDisplayer.getDefault().notify(d);
-            LOGGER.warning("editUserPhrase() Can't create Midi file ex=" + ex.getMessage());
-            return;
-        }
-
-
-        Runnable runEditorTask = () ->
-        {
-            try
-            {
-                // Start the midi editor
-                JJazzMidiSystem.getInstance().editMidiFileWithExternalEditor(midiFile);     // Blocks until editor quits
-            } catch (IOException ex)
-            {
-                NotifyDescriptor d = new NotifyDescriptor.Message(ex.getMessage(), NotifyDescriptor.ERROR_MESSAGE);
-                DialogDisplayer.getDefault().notify(d);
-                LOGGER.warning("editUserPhrase() Can't launch external Midi editor. ex=" + ex.getMessage());
-                return;
-            } catch (Exception e)    // Capture other programming exceptions, otherwise thread is just blocked
-            {
-                Exceptions.printStackTrace(e);
-                return;
-            } finally
-            {
-                LOGGER.info("editUserPhrase() resuming from external Midi editing");
-            }
-
-            addUserPhrase(midiFile);
-
-        };
-
-
-        // Prepare the text to be shown while editing
-        String msg = ResUtil.getString(getClass(), "UserExtensionPanelController.WaitForEditorQuit", channel + 1);
-        var dlg = new PleaseWaitDialog(msg, runEditorTask);
-        dlg.setVisible(true);       // Blocks until runEditorTask is complete
-    }
 
     public void editUserPhrase()
     {
-        if (pianoRollEditorTc != null)
-        {
-            Mode mode = WindowManager.getDefault().findMode("midieditor");
-            assert mode != null;
-            mode.dockInto(pianoRollEditorTc);
-            pianoRollEditorTc.open();
-            pianoRollEditorTc.requestActive();
-            return;
-        }
 
-        var rv = panel.getUserRhythmVoice();
-        int channel = panel.getMidiMix().getChannel(rv);
-
-        LOGGER.log(Level.FINE, "editUserPhrase() rv={0} channel={1}", new Object[]
+        LOGGER.log(Level.FINE, "editUserPhrase() userRhythmVoice={0}", new Object[]
         {
-            rv, channel
+            getUserRhythmVoice()
         });
 
 
-        // Prepare data for the editor               
-        Song song = panel.getSong();
-        SongStructure ss = song.getSongStructure();
-
-
+        // Prepare data for the editor      
+        int channel = panel.getMidiMix().getChannel(getUserRhythmVoice());
+        SongStructure ss = getSong().getSongStructure();
         var songBeatRange = ss.getBeatRange(null);
-        DrumKit drumKit = panel.getMidiMix().getInstrumentMixFromKey(rv).getInstrument().getDrumKit();
+        DrumKit drumKit = panel.getMidiMix().getInstrumentMixFromKey(getUserRhythmVoice()).getInstrument().getDrumKit();
         DrumKit.KeyMap keyMap = drumKit == null ? null : drumKit.getKeyMap();
         Phrase p = getUserPhrase();
         var sp = new SizedPhrase(p.getChannel(), songBeatRange, ss.getSongPart(0).getRhythm().getTimeSignature(), p.isDrums());
         sp.add(p);
+        String tabName = getSong().getName() + " - piano roll editor";
+        String title = getUserPhraseName() + " [" + (channel + 1) + "]";
 
 
-        // Create the editor
-        String tabName = song.getName() + "-" + getUserPhraseName();
-        String title = getUserPhraseName() + "(" + (channel + 1) + ")";
-        pianoRollEditorTc = new PianoRollEditorTopComponent(tabName, title, sp, keyMap, 0);
+        var preTc = PianoRollEditorTopComponent.get(getSong());
+        if (preTc == null)
+        {
+            // Create the editor
+            preTc = new PianoRollEditorTopComponent(getSong(), tabName, title, 0, sp, keyMap, PianoRollEditorSettings.getDefault());
 
-
-        // Listen to its user actions
-        pianoRollEditorTc.getEditor().getUndoManager().addUserEditListener((um, actionName) -> userEditReceived(um, actionName));
-
-
-        // Show it
+            // Show it
             // https://dzone.com/articles/secrets-netbeans-window-system
-           // https://web.archive.org/web/20170314072532/https://blogs.oracle.com/geertjan/entry/creating_a_new_mode_in        
-//        Mode mode = WindowManager.getDefault().findMode("midieditor");
-//        assert mode != null;
-//        mode.dockInto(pianoRollEditorTc);
-//        pianoRollEditorTc.open();
-//        pianoRollEditorTc.requestActive();
+            // https://web.archive.org/web/20170314072532/https://blogs.oracle.com/geertjan/entry/creating_a_new_mode_in        
+            Mode mode = WindowManager.getDefault().findMode(PianoRollEditorTopComponent.MODE);
+            assert mode != null;
+            mode.dockInto(preTc);
+            preTc.open();
+            preTc.requestActive();
 
-https://netbeans.apache.org/wiki/DevFaqAddGlobalContext.html
+        } else
+        {
+            preTc.setTitle(title);
+            preTc.setModel(0, sp, keyMap);
+            preTc.requestActive();
+        }
 
-        JDialog dlg = new JDialog(WindowManager.getDefault().getMainWindow());
-        dlg.getContentPane().add(pianoRollEditorTc);
-        dlg.pack();
-        dlg.setLocationByPlatform(true);
-        dlg.setVisible(true);
-        pianoRollEditorTc.open();
-        pianoRollEditorTc.requestActive();
 
+        // Listen to user edits to keep the original song phrase updated
+        PianoRollEditor editor = preTc.getEditor();
+        JJazzUndoManager.UserEditListener uel = (um, src, actionName) -> updateUpdateUserPhraseInSong(editor, um, src, actionName);
+        editor.getUndoManager().addUserEditListener(uel);
+        PropertyChangeListener pcl = new PropertyChangeListener()
+        {
+            @Override
+            public void propertyChange(PropertyChangeEvent evt)
+            {
+                switch (evt.getPropertyName())
+                {
+                    // Stop listening when editor is destroyed or its model is changed
+                    case PianoRollEditor.PROP_MODEL:
+                    case PianoRollEditor.PROP_EDITOR_ALIVE:
+                        editor.removePropertyChangeListener(this);
+                        editor.getUndoManager().removeUserEditListener(uel);
+                }
+            }
+        };
+        editor.addPropertyChangeListener(pcl);
+
+        
 
     }
 
 
     public void closePanel()
     {
-        Song song = panel.getSong();
         String undoText = "Remove user track";
 
-        JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(song);
+        JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(getSong());
         um.startCEdit(undoText);
 
-        song.removeUserPhrase(panel.getUserRhythmVoice().getName());
+        getSong().removeUserPhrase(getUserRhythmVoice().getName());
 
         um.endCEdit(undoText);
     }
@@ -265,11 +217,9 @@ https://netbeans.apache.org/wiki/DevFaqAddGlobalContext.html
 
     private boolean addUserPhrase(File midiFile)
     {
-        Song song = panel.getSong();
-        RhythmVoice rv = panel.getUserRhythmVoice();
-        String name = rv.getName();
+        String name = getUserRhythmVoice().getName();
         Phrase oldPhrase = panel.getSong().getUserPhrase(name);
-        int channel = panel.getMidiMix().getChannel(rv);
+        int channel = panel.getMidiMix().getChannel(getUserRhythmVoice());
 
 
         Phrase newPhrase;
@@ -306,7 +256,7 @@ https://netbeans.apache.org/wiki/DevFaqAddGlobalContext.html
         StatusDisplayer.getDefault().setStatusText(msg);
 
 
-        return AddUserTrack.setUserPhraseAction(song, name, newPhrase);
+        return AddUserTrack.setUserPhraseAction(getSong(), name, newPhrase);
     }
 
     /**
@@ -345,10 +295,24 @@ https://netbeans.apache.org/wiki/DevFaqAddGlobalContext.html
         return res;
     }
 
-    private void userEditReceived(JJazzUndoManager um, String actionName)
+    /**
+     * Update the song user phrase from the edited delegate phrase.
+     *
+     * @param editor
+     * @param um
+     * @param source
+     * @param actionName
+     */
+    private void updateUpdateUserPhraseInSong(PianoRollEditor editor, JJazzUndoManager um, Object source, String actionName)
     {
-        PianoRollEditor editor = pianoRollEditorTc.getEditor();
+        if (source != editor)
+        {
+            // Not our edits, ignore
+            return;
+        }
+
         assert um == editor.getUndoManager();
+
 
         // Ignore actionName, just update the song
         SizedPhrase editorSp = editor.getModel();
@@ -356,7 +320,7 @@ https://netbeans.apache.org/wiki/DevFaqAddGlobalContext.html
         p.add(editorSp);
         try
         {
-            panel.getSong().setUserPhrase(getUserPhraseName(), p);
+            getSong().setUserPhrase(getUserPhraseName(), p);
         } catch (PropertyVetoException ex)
         {
             // Should never be there, we're just replacing an existing phrase
@@ -366,12 +330,22 @@ https://netbeans.apache.org/wiki/DevFaqAddGlobalContext.html
 
     private String getUserPhraseName()
     {
-        return panel.getUserRhythmVoice().getName();
+        return getUserRhythmVoice().getName();
     }
 
     private Phrase getUserPhrase()
     {
-        return panel.getSong().getUserPhrase(getUserPhraseName());
+        return getSong().getUserPhrase(getUserPhraseName());
+    }
+
+    private Song getSong()
+    {
+        return panel.getSong();
+    }
+
+    private UserRhythmVoice getUserRhythmVoice()
+    {
+        return panel.getUserRhythmVoice();
     }
 
 

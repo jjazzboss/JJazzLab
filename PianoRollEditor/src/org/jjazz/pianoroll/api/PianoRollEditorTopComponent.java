@@ -23,14 +23,24 @@
 package org.jjazz.pianoroll.api;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 import javax.swing.Action;
+import javax.swing.BorderFactory;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.phrase.api.SizedPhrase;
+import org.jjazz.pianoroll.EditToolBar;
+import org.jjazz.pianoroll.ToolbarPanel;
+import org.jjazz.pianoroll.edittools.EraserTool;
+import org.jjazz.pianoroll.edittools.PencilTool;
+import org.jjazz.pianoroll.edittools.SelectionTool;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
+import org.jjazz.song.api.Song;
 import org.openide.awt.UndoRedo;
 import org.openide.util.Lookup;
 import org.openide.util.Utilities;
@@ -44,32 +54,112 @@ import org.openide.windows.TopComponent;
 public final class PianoRollEditorTopComponent extends TopComponent
 {
 
-    private PianoRollEditor editor;
-    private static final Logger LOGGER = Logger.getLogger(PianoRollEditorTopComponent.class.getSimpleName());
+    // public static final String MODE = "midieditor";  // WindowManager mode
+    public static final String MODE = "editor";  // WindowManager mode
 
-    public PianoRollEditorTopComponent(String tabName, String title, SizedPhrase spModel, DrumKit.KeyMap keyMap, int startBarIndex)
+
+    private final PianoRollEditor editor;
+    private final List<EditTool> editTools;
+    private final ToolbarPanel toolbarPanel;
+    private final JPopupMenu popupMenu;
+    private static final Logger LOGGER = Logger.getLogger(PianoRollEditorTopComponent.class.getSimpleName());
+    private final Song song;
+
+
+    /**
+     * Create a TopComponent editor for the specified parameters.
+     *
+     * @param song
+     * @param tabName       The TopComponent name
+     * @param title         The title used within the editor
+     * @param startBarIndex
+     * @param spModel
+     * @param keyMap        Can be null
+     * @param settings
+     */
+    public PianoRollEditorTopComponent(Song song, String tabName, String title, int startBarIndex, SizedPhrase spModel, DrumKit.KeyMap keyMap, PianoRollEditorSettings settings)
     {
-        initComponents();
 
         putClientProperty(TopComponent.PROP_MAXIMIZATION_DISABLED, Boolean.FALSE);
         putClientProperty(TopComponent.PROP_CLOSING_DISABLED, Boolean.FALSE);
         putClientProperty(TopComponent.PROP_DND_COPY_DISABLED, Boolean.TRUE);
         putClientProperty(TopComponent.PROP_DRAGGING_DISABLED, Boolean.FALSE);
-        putClientProperty(TopComponent.PROP_UNDOCKING_DISABLED, Boolean.TRUE);      // If already floating, disable the docking
+        putClientProperty(TopComponent.PROP_UNDOCKING_DISABLED, Boolean.FALSE);     
         putClientProperty(TopComponent.PROP_SLIDING_DISABLED, Boolean.FALSE);
         putClientProperty(TopComponent.PROP_KEEP_PREFERRED_SIZE_WHEN_SLIDED_IN, Boolean.FALSE);
 
-        editor = new PianoRollEditor(title, startBarIndex, spModel, keyMap, PianoRollEditorSettings.getDefault());
-        add(editor);
 
         setDisplayName(tabName);
 
+        this.song = song;
+        editor = new PianoRollEditor(startBarIndex, spModel, keyMap, settings);
+        editTools = Arrays.asList(new SelectionTool(editor), new PencilTool(editor), new EraserTool(editor));
+        editor.setActiveTool(editTools.get(0));
+        toolbarPanel = new ToolbarPanel(editor, title, editTools);
+
+
+        initComponents();
+
+
+        // The popupmenu
+        popupMenu = new JPopupMenu();
+        var menuItem = new JMenuItem();
+        menuItem.setBorder(BorderFactory.createEmptyBorder());
+        EditToolBar editToolBar = new EditToolBar(editor, editTools);
+        editToolBar.setClickListener(() -> popupMenu.setVisible(false));
+        menuItem.setPreferredSize(editToolBar.getPreferredSize());
+        menuItem.add(editToolBar);
+        popupMenu.add(menuItem);
+        editor.getNotesPanel().setComponentPopupMenu(popupMenu);
+    }
+
+    /**
+     * The title used within the editor.
+     *
+     * @return
+     */
+    public String getTitle()
+    {
+        return toolbarPanel.getTitle();
+    }
+
+    /**
+     * Set the title used within the editor.
+     *
+     * @param title
+     */
+    public void setTitle(String title)
+    {
+        toolbarPanel.setTitle(title);
+    }
+
+    /**
+     * Update the edited model.
+     *
+     * @param startBarIndex
+     * @param spModel
+     * @param keyMap
+     */
+    public void setModel(int startBarIndex, SizedPhrase spModel, DrumKit.KeyMap keyMap)
+    {
+        editor.setModel(startBarIndex, spModel, keyMap);
+    }
+
+
+    /**
+     * The song associated to this TopComponent.
+     *
+     * @return
+     */
+    public Song getSong()
+    {
+        return song;
     }
 
     @Override
     public String preferredID()
     {
-        return "PianoRollEditorTopComponent" + getDisplayName();
+        return "PianoRollEditorTopComponent" + getSong().getName();
     }
 
     public PianoRollEditor getEditor()
@@ -127,16 +217,16 @@ public final class PianoRollEditorTopComponent extends TopComponent
     }
 
     /**
-     * Search for an opened PianoRollEditorTopComponent with specified tabName.
+     * Search for the PianoRollEditorTopComponent associated to song.
      *
-     * @param tabName
+     * @param song
      * @return Can be null
      */
-    static public PianoRollEditorTopComponent get(String tabName)
+    static public PianoRollEditorTopComponent get(Song song)
     {
         Set<TopComponent> tcs = TopComponent.getRegistry().getOpened();
         return tcs.stream()
-                .filter(tc -> tc instanceof PianoRollEditorTopComponent && tc.getDisplayName().equals(tabName))
+                .filter(tc -> tc instanceof PianoRollEditorTopComponent preTc && preTc.getSong() == song)
                 .map(tc -> (PianoRollEditorTopComponent) tc)
                 .findAny()
                 .orElse(null);
@@ -197,11 +287,18 @@ public final class PianoRollEditorTopComponent extends TopComponent
     private void initComponents()
     {
 
+        pnl_toolbar = toolbarPanel;
+        pnl_editor = editor;
+
         setToolTipText(org.openide.util.NbBundle.getMessage(PianoRollEditorTopComponent.class, "PianoRollEditorTopComponent.toolTipText")); // NOI18N
-        setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.LINE_AXIS));
+        setLayout(new java.awt.BorderLayout());
+        add(pnl_toolbar, java.awt.BorderLayout.NORTH);
+        add(pnl_editor, java.awt.BorderLayout.CENTER);
     }// </editor-fold>//GEN-END:initComponents
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JPanel pnl_editor;
+    private javax.swing.JPanel pnl_toolbar;
     // End of variables declaration//GEN-END:variables
 }

@@ -89,12 +89,10 @@ public class SelectionTool implements EditTool
     };
     private State state;
     private final PianoRollEditor editor;
-    private final SizedPhrase spModel;
 
     private boolean isDragging;
     private final Map<NoteEvent, NoteEvent> mapSrcDragNotes = new HashMap<>();
     private NoteView dragNoteView;
-    private Point dragNoteOffset;
     private float dragStartPos = -1;
     private int dragStartPitch = -1;
     private KeyListener ctrlKeyListener;
@@ -103,7 +101,6 @@ public class SelectionTool implements EditTool
     public SelectionTool(PianoRollEditor editor)
     {
         this.editor = editor;
-        spModel = editor.getModel();
         state = State.EDITOR;
     }
 
@@ -168,7 +165,6 @@ public class SelectionTool implements EditTool
             // Start dragging
             isDragging = true;
             dragStartPos = editorPointPos;
-            dragNoteOffset = point;
             dragStartPitch = neSource.getPitch();
             mapSrcDragNotes.clear();
 
@@ -198,7 +194,7 @@ public class SelectionTool implements EditTool
                     assert editor.getUndoManager().isEnabled();
                     editor.getUndoManager().setEnabled(false);
 
-                    mapSrcDragNotes.keySet().forEach(ne -> spModel.replace(ne, mapSrcDragNotes.get(ne)));
+                    mapSrcDragNotes.keySet().forEach(ne -> editor.getModel().replace(ne, mapSrcDragNotes.get(ne)));
 
                     break;
                 case MOVE:
@@ -207,7 +203,7 @@ public class SelectionTool implements EditTool
                     assert editor.getUndoManager().isEnabled();
                     editor.getUndoManager().setEnabled(false);
 
-                    mapSrcDragNotes.values().forEach(ne -> spModel.add(ne));
+                    mapSrcDragNotes.values().forEach(ne -> editor.getModel().add(ne));
                     dragNoteView = editor.getNoteView(mapSrcDragNotes.get(neSource));
 
                     // Listen to ctrl key
@@ -256,7 +252,7 @@ public class SelectionTool implements EditTool
                             var dragNe = mapSrcDragNotes.get(srcNe);
                             float newDur = srcNe.getDurationInBeats() - posDelta;
                             var newNe = srcNe.getCopyDurPos(newDur, newPos);
-                            spModel.replace(dragNe, newNe);
+                            editor.getModel().replace(dragNe, newNe);
                             mapSrcDragNotes.put(srcNe, newNe);
                         }
                     }
@@ -278,11 +274,11 @@ public class SelectionTool implements EditTool
                         }
 
 
-                        if (Float.floatToIntBits(srcNe.getDurationInBeats()) != Float.floatToIntBits(newDur) && (srcNe.getPositionInBeats() + newDur) < spModel.getBeatRange().to)
+                        if (Float.floatToIntBits(srcNe.getDurationInBeats()) != Float.floatToIntBits(newDur) && (srcNe.getPositionInBeats() + newDur) < editor.getModel().getBeatRange().to)
                         {
                             var dragNe = mapSrcDragNotes.get(srcNe);
                             var newNe = srcNe.getCopyDur(newDur);
-                            spModel.replace(dragNe, newNe);
+                            editor.getModel().replace(dragNe, newNe);
                             mapSrcDragNotes.put(srcNe, newNe);
                         }
                     }
@@ -315,9 +311,9 @@ public class SelectionTool implements EditTool
                         }
 
 
-                        if (newPos + sne.getDurationInBeats() >= spModel.getBeatRange().to)
+                        if (newPos + sne.getDurationInBeats() >= editor.getModel().getBeatRange().to)
                         {
-                            newPos = spModel.getBeatRange().to - sne.getDurationInBeats();
+                            newPos = editor.getModel().getBeatRange().to - sne.getDurationInBeats();
                         }
                         newPitch = isConstantPitchModifier(e) ? sne.getPitch() : MidiUtilities.limit(sne.getPitch() + dPitch);
 
@@ -333,11 +329,11 @@ public class SelectionTool implements EditTool
                         });
 
 
-                        var newNe = spModel.move(dragNe, newPos);   // Does nothing if newPos unchanged                        
+                        var newNe = editor.getModel().move(dragNe, newPos);   // Does nothing if newPos unchanged                        
                         if (newNe.getPitch() != newPitch)
                         {
                             var newNePitch = newNe.getCopyPitch(newPitch);
-                            spModel.replace(newNe, newNePitch);
+                            editor.getModel().replace(newNe, newNePitch);
                             newNe = newNePitch;
                         }
 
@@ -379,7 +375,7 @@ public class SelectionTool implements EditTool
                 for (var srcNe : mapSrcDragNotes.keySet())
                 {
                     var dragNe = mapSrcDragNotes.get(srcNe);
-                    spModel.replace(dragNe, srcNe);
+                    editor.getModel().replace(dragNe, srcNe);
                 }
 
                 // Now we make the undoable changes
@@ -388,12 +384,12 @@ public class SelectionTool implements EditTool
 
 
                 String undoText = ResUtil.getString(getClass(), "ResizeNote");
-                editor.getUndoManager().startCEdit(undoText);
+                editor.getUndoManager().startCEdit(editor, undoText);
 
                 for (var srcNe : mapSrcDragNotes.keySet())
                 {
                     var dragNe = mapSrcDragNotes.get(srcNe);
-                    spModel.replace(srcNe, dragNe);
+                    editor.getModel().replace(srcNe, dragNe);
                     editor.getNoteView(dragNe).setSelected(true);
                 }
 
@@ -404,7 +400,7 @@ public class SelectionTool implements EditTool
                 removeControlKeyListener(dragNoteView.getParent());
 
                 // Restore original state before doing the undoable edit
-                mapSrcDragNotes.values().forEach(dragNe -> spModel.remove(dragNe));
+                mapSrcDragNotes.values().forEach(dragNe -> editor.getModel().remove(dragNe));
 
                 // Now we make the undoable changes
                 assert !editor.getUndoManager().isEnabled();
@@ -412,13 +408,13 @@ public class SelectionTool implements EditTool
 
 
                 String undoText = ResUtil.getString(getClass(), "MoveNote");
-                editor.getUndoManager().startCEdit(undoText);
+                editor.getUndoManager().startCEdit(editor, undoText);
 
 
                 for (var srcNe : mapSrcDragNotes.keySet())
                 {
                     var dragNe = mapSrcDragNotes.get(srcNe);
-                    spModel.replace(srcNe, dragNe);
+                    editor.getModel().replace(srcNe, dragNe);
                     editor.getNoteView(dragNe).setSelected(true);
                 }
                 editor.getUndoManager().endCEdit(undoText);
@@ -429,7 +425,7 @@ public class SelectionTool implements EditTool
                 removeControlKeyListener(dragNoteView.getParent());
 
                 // Restore original state before doing the undoable edit
-                mapSrcDragNotes.values().forEach(dragNe -> spModel.remove(dragNe));
+                mapSrcDragNotes.values().forEach(dragNe -> editor.getModel().remove(dragNe));
 
                 // Now we make the undoable changes
                 assert !editor.getUndoManager().isEnabled();
@@ -437,13 +433,13 @@ public class SelectionTool implements EditTool
 
 
                 String undoText = ResUtil.getString(getClass(), "CopyNote");
-                editor.getUndoManager().startCEdit(undoText);
+                editor.getUndoManager().startCEdit(editor, undoText);
 
 
                 for (var srcNe : mapSrcDragNotes.keySet())
                 {
                     var dragNe = mapSrcDragNotes.get(srcNe);
-                    spModel.add(dragNe);
+                    editor.getModel().add(dragNe);
                     editor.getNoteView(dragNe).setSelected(true);
                     editor.getNoteView(srcNe).setSelected(false);
                 }
@@ -460,7 +456,6 @@ public class SelectionTool implements EditTool
         isDragging = false;
         dragStartPos = -1;
         mapSrcDragNotes.clear();
-        dragNoteOffset = null;
         dragNoteView = null;
 
 
@@ -527,7 +522,7 @@ public class SelectionTool implements EditTool
             final int STEP = 4;
 
             String undoText = ResUtil.getString(getClass(), "ChangeVelocity");
-            editor.getUndoManager().startCEdit(undoText);
+            editor.getUndoManager().startCEdit(editor, undoText);
 
 
             for (var snv : editor.getSelectedNoteViews())
@@ -536,7 +531,7 @@ public class SelectionTool implements EditTool
                 int delta = (e.getWheelRotation() < 0) ? STEP : -STEP;
                 int newVel = MidiUtilities.limit(ne.getVelocity() + delta);
                 var newNe = ne.getCopyVel(newVel);
-                spModel.replace(ne, newNe);
+                editor.getModel().replace(ne, newNe);
             }
 
             editor.getUndoManager().endCEdit(undoText);

@@ -67,14 +67,12 @@ public class EraserTool implements EditTool
 
 
     private final PianoRollEditor editor;
-    private final SizedPhrase spModel;
 
     private static final Logger LOGGER = Logger.getLogger(EraserTool.class.getSimpleName());
 
     public EraserTool(PianoRollEditor editor)
     {
         this.editor = editor;
-        spModel = editor.getModel();
     }
 
     @Override
@@ -105,7 +103,7 @@ public class EraserTool implements EditTool
         Function<Point, Boolean> removeIfNoteViewFound = p ->
         {
             var c = container.getComponentAt(p);
-            return (c instanceof NoteView nv) && spModel.remove(nv.getModel());
+            return (c instanceof NoteView nv) && editor.getModel().remove(nv.getModel());
         };
 
         Point p = e.getPoint();
@@ -121,7 +119,7 @@ public class EraserTool implements EditTool
 
 
         String undoText = ResUtil.getString(getClass(), "EraseNote");
-        editor.getUndoManager().startCEdit(undoText);
+        editor.getUndoManager().startCEdit(editor, undoText);
 
         points.stream()
                 .filter(pt -> removeIfNoteViewFound.apply(pt))
@@ -153,9 +151,9 @@ public class EraserTool implements EditTool
     public void noteClicked(MouseEvent e, NoteView nv)
     {
         String undoText = ResUtil.getString(getClass(), "EraseNote");
-        editor.getUndoManager().startCEdit(undoText);
+        editor.getUndoManager().startCEdit(editor, undoText);
 
-        spModel.remove(nv.getModel());
+        editor.getModel().remove(nv.getModel());
 
         editor.getUndoManager().endCEdit(undoText);
     }
@@ -213,7 +211,7 @@ public class EraserTool implements EditTool
     static public void eraseNotes(PianoRollEditor editor, List<NoteView> noteViews)
     {
         String undoText = ResUtil.getString(EraserTool.class, "EraseNote");
-        editor.getUndoManager().startCEdit(undoText);
+        editor.getUndoManager().startCEdit(editor, undoText);
 
         noteViews.forEach(nv -> editor.getModel().remove(nv.getModel()));
 

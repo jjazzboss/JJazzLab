@@ -60,12 +60,13 @@ import org.jjazz.util.api.IntRange;
  */
 public class NotesPanel extends javax.swing.JPanel implements PropertyChangeListener
 {
+
     private final KeyboardComponent keyboard;
     private final YMapper yMapper;
     private final XMapper xMapper;
     private final PianoRollEditor editor;
     private float scaleFactorX = 1f;
-    private boolean firstLayoutHack = true;
+    private boolean scrollToFirstNoteHack = true;
     private final TreeMap<NoteEvent, NoteView> mapNoteViews = new TreeMap<>();
 
     private static final Logger LOGGER = Logger.getLogger(NotesPanel.class.getSimpleName());
@@ -156,12 +157,13 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
             }
         }
 
-        if (firstLayoutHack)
+        if (scrollToFirstNoteHack)
         {
-            firstLayoutHack = false;
-
-            // Adjust the enclosing scrollPane when displayed for the first time
-
+            // Hack needed because a simple SwingUtilities.invokeLater(scrollToFirstNote()) is not enough, we must make sure that all NoteViews are placed            
+            scrollToFirstNoteHack = false;
+            
+            
+            // Adjust the enclosing scrollPane so that the first note is visible. If no note, show middle pitch.
             Rectangle r;
             final int SIZE = 400;
             if (nv0 == null)
@@ -181,6 +183,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
         }
 
     }
+
 
     @Override
     public Dimension getPreferredSize()
@@ -337,6 +340,17 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
         return res;
     }
 
+
+    /**
+     * Adjust the enclosing scrollPane so that the first note is visible.
+     * <p>
+     * If no note, show middle pitch.
+     */
+    public void scrollToFirstNote()
+    {
+        scrollToFirstNoteHack = true;
+        revalidate();
+    }
 
     public void cleanup()
     {

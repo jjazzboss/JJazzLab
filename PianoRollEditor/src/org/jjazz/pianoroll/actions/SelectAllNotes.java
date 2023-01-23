@@ -25,21 +25,22 @@ package org.jjazz.pianoroll.actions;
 import java.awt.event.ActionEvent;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
+import org.jjazz.pianoroll.api.NotesSelectionListener;
 import org.jjazz.pianoroll.api.PianoRollEditor;
 
 
 public class SelectAllNotes extends AbstractAction
 {
-    
+
     private final PianoRollEditor editor;
     private static final Logger LOGGER = Logger.getLogger(SelectAllNotes.class.getSimpleName());
-    
+
     public SelectAllNotes(PianoRollEditor editor)
     {
-        this.editor = editor;
+        this.editor = editor;      
     }
-    
-    
+
+
     @Override
     public void actionPerformed(ActionEvent e)
     {

@@ -72,7 +72,6 @@ public class PencilTool implements EditTool
 
 
     private final PianoRollEditor editor;
-    private final SizedPhrase spModel;
     private NoteEvent dragNote;
     private int dragPitch;
     private float dragStartPos;
@@ -83,11 +82,11 @@ public class PencilTool implements EditTool
     public PencilTool(PianoRollEditor editor)
     {
         this.editor = editor;
-        spModel = editor.getModel();
         lastSelectedNoteVelocity = 64;
 
+        
         // Listen to selection to update lastSelectedNoteVelocity
-        var selListener = NotesSelectionListener.getInstance(editor.getLookup());
+        var selListener = NotesSelectionListener.getInstance(editor);
         selListener.addListener(e ->
         {
             var nv = selListener.getLastNoteViewAddedToSelection();
@@ -120,7 +119,7 @@ public class PencilTool implements EditTool
     public void editorClicked(MouseEvent e)
     {
         String undoText = ResUtil.getString(getClass(), "AddNote");
-        editor.getUndoManager().startCEdit(undoText);
+        editor.getUndoManager().startCEdit(editor, undoText);
 
         var ne = addNote(e);
 
@@ -135,7 +134,7 @@ public class PencilTool implements EditTool
     {
         Point point = e.getPoint();
         boolean overrideSnapSetting = isOverrideSnapSetting(e);
-        FloatRange beatRange = spModel.getBeatRange();
+        FloatRange beatRange = editor.getModel().getBeatRange();
         float pos = editor.getPositionFromPoint(point);
 
         if (dragNote == null)
@@ -161,7 +160,7 @@ public class PencilTool implements EditTool
             }
             dur = Math.min(beatRange.to - dragStartPos, dur);
             var ne = new NoteEvent(dragPitch, dur, getNewNoteVelocity(), dragStartPos);
-            spModel.replace(dragNote, ne);
+            editor.getModel().replace(dragNote, ne);
             dragNote = ne;
         }
     }
@@ -174,12 +173,12 @@ public class PencilTool implements EditTool
             return;
         }
 
-        spModel.remove(dragNote);
+        editor.getModel().remove(dragNote);
 
         String undoText = ResUtil.getString(getClass(), "AddNote");
-        editor.getUndoManager().startCEdit(undoText);
+        editor.getUndoManager().startCEdit(editor, undoText);
 
-        spModel.add(dragNote);
+        editor.getModel().add(dragNote);
 
         editor.getUndoManager().endCEdit(undoText);
 
@@ -197,14 +196,14 @@ public class PencilTool implements EditTool
     public void noteClicked(MouseEvent e, NoteView nv)
     {
         String undoText = ResUtil.getString(getClass(), "ReplaceNote");
-        editor.getUndoManager().startCEdit(undoText);
+        editor.getUndoManager().startCEdit(editor, undoText);
         MouseEvent editorEvent = SwingUtilities.convertMouseEvent(nv, e, nv.getParent());
 
 
         if (!editor.isDrumEdit())
         {
             // Replace note in melodic mode
-            spModel.remove(nv.getModel());
+            editor.getModel().remove(nv.getModel());
         }
         NoteEvent ne = addNote(editorEvent);
 
@@ -228,7 +227,7 @@ public class PencilTool implements EditTool
     {
         Point editorPoint = SwingUtilities.convertPoint(nv, e.getPoint(), nv.getParent());
         boolean overrideSnapSetting = isOverrideSnapSetting(e);
-        FloatRange beatRange = spModel.getBeatRange();
+        FloatRange beatRange = editor.getModel().getBeatRange();
         float pos = editor.getPositionFromPoint(editorPoint);
         if ((editor.isSnapEnabled() && !overrideSnapSetting) || (!editor.isSnapEnabled() && overrideSnapSetting))
         {
@@ -257,7 +256,7 @@ public class PencilTool implements EditTool
             float dur = pos - dragStartPos;
             dur = Math.max(0.1f, dur);
             dragNote = ne.getCopyDur(dur);
-            spModel.replace(ne, dragNote);
+            editor.getModel().replace(ne, dragNote);
 
             editor.unselectAll();
             editor.getNoteView(dragNote).setSelected(true);
@@ -268,7 +267,7 @@ public class PencilTool implements EditTool
             float dur = pos - dragStartPos;
             dur = Math.max(0.1f, dur);
             var newNe = dragNote.getCopyDur(dur);
-            spModel.replace(dragNote, newNe);
+            editor.getModel().replace(dragNote, newNe);
             dragNote = newNe;
         }
     }
@@ -282,12 +281,12 @@ public class PencilTool implements EditTool
             return;
         }
 
-        spModel.replace(dragNote, nv.getModel());
+        editor.getModel().replace(dragNote, nv.getModel());
 
         String undoText = ResUtil.getString(getClass(), "ResizeNote", dragNote.toPianoOctaveString());
-        editor.getUndoManager().startCEdit(undoText);
+        editor.getUndoManager().startCEdit(editor, undoText);
 
-        spModel.replace(nv.getModel(), dragNote);
+        editor.getModel().replace(nv.getModel(), dragNote);
 
         editor.getUndoManager().endCEdit(undoText);
 
@@ -338,7 +337,7 @@ public class PencilTool implements EditTool
         boolean overrideSnapSetting = isOverrideSnapSetting(e);
         var q = editor.getQuantization();
         var point = e.getPoint();
-        var beatRange = spModel.getBeatRange();
+        var beatRange = editor.getModel().getBeatRange();
 
 
         float pos = editor.getPositionFromPoint(point);
@@ -355,7 +354,7 @@ public class PencilTool implements EditTool
         }
 
         NoteEvent ne = new NoteEvent(pitch, dur, getNewNoteVelocity(), pos);
-        assert spModel.add(ne) : "ne=" + ne + " spModel=" + spModel;
+        assert editor.getModel().add(ne) : "ne=" + ne + " editor.getModel()=" + editor.getModel();
 
         return ne;
     }

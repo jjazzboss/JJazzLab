@@ -36,32 +36,25 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.Arrays;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JLayer;
-import javax.swing.JMenuItem;
 import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.SizedPhrase;
-import org.jjazz.pianoroll.EditToolBar;
 import org.jjazz.pianoroll.MouseDragLayerUI;
 import org.jjazz.pianoroll.NotesPanel;
 import org.jjazz.pianoroll.RulerPanel;
-import org.jjazz.pianoroll.ToolbarPanel;
-import org.jjazz.pianoroll.VelocityPanel;
 import org.jjazz.pianoroll.actions.DeleteSelection;
 import org.jjazz.pianoroll.actions.MoveSelectionLeft;
 import org.jjazz.pianoroll.actions.MoveSelectionRight;
@@ -69,8 +62,6 @@ import org.jjazz.pianoroll.actions.ResizeSelection;
 import org.jjazz.pianoroll.actions.SelectAllNotes;
 import org.jjazz.pianoroll.actions.TransposeSelectionDown;
 import org.jjazz.pianoroll.actions.TransposeSelectionUp;
-import org.jjazz.pianoroll.edittools.EraserTool;
-import org.jjazz.pianoroll.edittools.PencilTool;
 import org.jjazz.pianoroll.edittools.SelectionTool;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
 import org.jjazz.quantizer.api.Quantization;
@@ -93,13 +84,17 @@ import org.openide.util.lookup.ProxyLookup;
  * - editor's Zoomable instance<br>
  * - the selected NoteViews<br>
  */
-public class PianoRollEditor extends JPanel implements PropertyChangeListener, Lookup.Provider
+public class PianoRollEditor extends JPanel implements PropertyChangeListener
 {
 
     /**
-     * newValue=boolean
+     * newValue=false. This property change event is fired ONLY once, when the editor is destroyed (cleanup() is called).
      */
-    public static final String PROP_EDITOR_ENABLED = "EditorEnabled";
+    public static final String PROP_EDITOR_ALIVE = "EditorAlive";
+    /**
+     * oldValue=old SizedPhrase model, newValue=new SizedPhrase model
+     */
+    public static final String PROP_MODEL = "SpPhraseModel";
     /**
      * oldValue=old tool, newValue=new tool
      */
@@ -117,25 +112,22 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, L
      */
     public static final String PROP_PLAYBACK_POINT_POSITION = "PlaybackPointPosition";
     private static final float MAX_WIDTH_FACTOR = 1.5f;
-    private final List<EditTool> editTools;
-    private ToolbarPanel toolbarPanel;
-    private JSplitPane splitPane;
-    private VelocityPanel velocityPanel;
+//    private JSplitPane splitPane;
+//    private VelocityPanel velocityPanel;
     private NotesPanel notesPanel;
     private KeyboardComponent keyboard;
     private RulerPanel rulerPanel;
     private JScrollPane scrollpane;
     private MouseDragLayerUI mouseDragLayerUI;
     private JLayer mouseDragLayer;
-    private JPopupMenu popupMenu;
     private ZoomValue zoomValue;
     private SizedPhrase spModel;
-    private final DrumKit.KeyMap keymap;
+    private DrumKit.KeyMap keymap;
     private final PianoRollEditorSettings settings;
     private Quantization quantization;
     private final Lookup lookup;
     private final Lookup generalLookup;
-    private final JJazzUndoManager undoManager;
+    private JJazzUndoManager undoManager;
     private final Lookup selectionLookup;
     private final InstanceContent selectionLookupContent;
     private final InstanceContent generalLookupContent;
@@ -152,16 +144,17 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, L
     /**
      * Create a piano roll editor for the specified SizedPhrase.
      *
-     * @param title
      * @param startBarIndex The bar index corresponding to the start of the SizedPhrase
-     * @param sp
+     * @param sp            Can't be null
      * @param kmap          If not null set the editor in drums mode
-     * @param settings
+     * @param settings      Can't be null
      */
-    public PianoRollEditor(String title, int startBarIndex, SizedPhrase sp, DrumKit.KeyMap kmap, PianoRollEditorSettings settings)
+    public PianoRollEditor(int startBarIndex, SizedPhrase sp, DrumKit.KeyMap kmap, PianoRollEditorSettings settings)
     {
         Preconditions.checkNotNull(sp);
         Preconditions.checkNotNull(settings);
+        Preconditions.checkArgument(startBarIndex >= 0);
+
         this.startBarIndex = startBarIndex;
         this.spModel = sp;
         this.keymap = kmap;
@@ -173,6 +166,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, L
         spModel.addPropertyChangeListener(this);
 
 
+        // Default undo manager to listen for model changes
         undoManager = new JJazzUndoManager();
         spModel.addUndoableEditListener(undoManager);
 
@@ -181,35 +175,20 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, L
         selectionLookupContent = new InstanceContent();
         selectionLookup = new AbstractLookup(selectionLookupContent);
 
+
         // The lookup for other stuff, before createUI()
         generalLookupContent = new InstanceContent();
         generalLookupContent.add(new PianoRollZoomable());
         generalLookupContent.add(getActionMap());
         generalLookup = new AbstractLookup(generalLookupContent);
 
+
         // Global lookup = sum of both
         lookup = new ProxyLookup(selectionLookup, generalLookup);
 
 
-        // Must be set before createUI() but after lookup is set
-        editTools = Arrays.asList(new SelectionTool(this), new PencilTool(this), new EraserTool(this));
-        activeTool = editTools.get(0);
-
-
         // Build the UI
-        createUI(title);
-
-
-        // Our popupmenu
-        popupMenu = new JPopupMenu();
-        var menuItem = new JMenuItem();
-        menuItem.setBorder(BorderFactory.createEmptyBorder());
-        EditToolBar editToolBar = new EditToolBar(this, editTools);
-        editToolBar.setClickListener(() -> popupMenu.setVisible(false));
-        menuItem.setPreferredSize(editToolBar.getPreferredSize());
-        menuItem.add(editToolBar);
-        popupMenu.add(menuItem);
-        notesPanel.setComponentPopupMenu(popupMenu);
+        createUI();
 
 
         // NotesPanel mouse listeners
@@ -238,7 +217,11 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, L
         {
             addNote(ne);
         }
+
+
+        activeTool = new SelectionTool(this);
     }
+
 
     /**
      * Optional view-only phrases shown in the background of the editor.
@@ -249,7 +232,6 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, L
      * @param mapNamePhrases A name associated to a SizedPhrase. SizedPhrase must have the same beatRange and TimeSignature than
      *                       the SizedPhrase model.
      * @see #setModel(org.jjazz.phrase.api.SizedPhrase)
-     *
      */
     public void setBackgroundModels(Map<String, SizedPhrase> mapNamePhrases)
     {
@@ -263,11 +245,11 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, L
      */
     public List<SizedPhrase> getBackgroundModels()
     {
-
+        return null;
     }
 
     /**
-     * The SizedPhrase edited by this editor.
+     * Get the SizedPhrase edited by this editor.
      *
      * @return
      */
@@ -277,63 +259,69 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, L
     }
 
     /**
-     * Set the edited SizedPhrase.
+     * Update the edited model.
      * <p>
-     * The method also resets the background models.
+     * The method also resets the background models. Fire a PROP_MODEL change event.
      *
-     * @param sp The melodic/drums type of the phrase must remain the same than the one used to create this editor
+     * @param startBar The new
+     * @param sp
+     * @param kMap
      * @see #setBackgroundModels(java.util.Map)
      */
-    public void setModel(SizedPhrase sp)
+    public void setModel(int startBar, SizedPhrase sp, DrumKit.KeyMap kMap)
     {
         Preconditions.checkNotNull(sp);
-        Preconditions.checkArgument(sp.isDrums() == spModel.isDrums());
+        Preconditions.checkArgument(startBar >= 0);
+
 
         if (spModel == sp)
         {
             return;
         }
-        if (spModel != null)
-        {
-            for (var ne : spModel)
-            {
-                removeNote(ne);
-            }
 
-            sp.removePropertyChangeListener(this);
-            sp.removeUndoableEditListener(undoManager);
+
+        for (var ne : spModel)
+        {
+            removeNote(ne);
         }
 
+        sp.removePropertyChangeListener(this);
+        sp.removeUndoableEditListener(undoManager);
+
+
+        var oldModel = spModel;
         spModel = sp;
+        startBarIndex = startBar;
+        keymap = kMap;
+        labelNotes(keyboard, keymap);
 
 
         spModel.addPropertyChangeListener(this);
         spModel.addUndoableEditListener(undoManager);
 
 
-        // Pass the model to other components         
-        toolbarPanel.setModel(spModel);
+        // Reset background models
+        setBackgroundModels(new HashMap<String, SizedPhrase>());
+
+
+        // Update the subcomponents          
         notesPanel.getXMapper().refresh();
         notesPanel.repaint();
         rulerPanel.revalidate();
         rulerPanel.repaint();
 
+
+        // Add the notes
         for (var ne : spModel)
         {
             addNote(ne);        // Will call notesPanel.revalidate()
-        }
+        }        
+       
+        notesPanel.scrollToFirstNote();
 
+        firePropertyChange(PROP_MODEL, oldModel, spModel);
     }
 
-    public String getTitle()
-    {
-        return toolbarPanel.getTitle();
-    }
-
-    public void setTitle(String title)
-    {
-        toolbarPanel.setTitle(title);
-    }
 
     /**
      * Get the bar index of the start of the SizedPhrase model.
@@ -367,7 +355,6 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, L
      *
      * @return
      */
-    @Override
     public Lookup getLookup()
     {
         return lookup;
@@ -395,13 +382,6 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, L
         return keymap;
     }
 
-    /**
-     * @return The UndoManager used by this editor.
-     */
-    public JJazzUndoManager getUndoManager()
-    {
-        return undoManager;
-    }
 
     /**
      * Get the graphical settings of this editor.
@@ -416,16 +396,15 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, L
     /**
      * Clean up everything so component can be garbaged.
      * <p>
-     * Fire a PROP_EDITOR_ENABLED with value=false.
+     * Fire a PROP_EDITOR_ALIVE with value=false.
      */
     public void cleanup()
     {
         rulerPanel.cleanup();
         notesPanel.cleanup();
-        toolbarPanel.cleanup();
         spModel.removeUndoableEditListener(undoManager);
         spModel.removePropertyChangeListener(this);
-        firePropertyChange(PROP_EDITOR_ENABLED, true, false);
+        firePropertyChange(PROP_EDITOR_ALIVE, true, false);
     }
 
     /**
@@ -830,6 +809,25 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, L
         return res;
     }
 
+    /**
+     * @return The UndoManager used by this editor.
+     */
+    public JJazzUndoManager getUndoManager()
+    {
+        return undoManager;
+    }
+
+    /**
+     * Set the UndoManager used by this editor.
+     *
+     * @param um
+     */
+    public final void setUndoManager(JJazzUndoManager um)
+    {
+        spModel.removeUndoableEditListener(undoManager);
+        undoManager = um;
+        spModel.addUndoableEditListener(undoManager);
+    }
 
     // ==========================================================================================================
     // PropertyChangeListener interface
@@ -888,6 +886,11 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, L
     // =======================================================================================================================
     // Private methods
     // =======================================================================================================================
+
+    protected NotesPanel getNotesPanel()
+    {
+        return notesPanel;
+    }
 
     /**
      * Caller is responsible to call revalidate() and/or repaint() as required.
@@ -948,7 +951,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, L
         return yFactor;
     }
 
-    private void createUI(String title)
+    private void createUI()
     {
         // The keyboard 
         // We need an enclosing panel for keyboard, so that keyboard size changes when its scaleFactor changes (zoom in/out). If we put the keyboard directly
@@ -960,12 +963,10 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, L
         pnl_keyboard.add(keyboard, BorderLayout.PAGE_START);
 
 
-        // The scrollpane
+        // The scrollpane and the notesPanel inside
         mouseDragLayerUI = new MouseDragLayerUI();
         notesPanel = new NotesPanel(this, keyboard);
         mouseDragLayer = new JLayer(notesPanel, mouseDragLayerUI);
-
-
         rulerPanel = new RulerPanel(this, notesPanel);
         scrollpane = new JScrollPane();
         scrollpane.setViewportView(mouseDragLayer);
@@ -978,22 +979,17 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, L
 
 
         // The splitpane
-        velocityPanel = new VelocityPanel(this, notesPanel);
-        splitPane = new javax.swing.JSplitPane();
-        splitPane.setDividerSize(3);
-        splitPane.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
-        splitPane.setResizeWeight(1.0);
-        splitPane.setLeftComponent(scrollpane);
-        splitPane.setRightComponent(velocityPanel);
-
-
+//        velocityPanel = new VelocityPanel(this, notesPanel);
+//        splitPane = new javax.swing.JSplitPane();
+//        splitPane.setDividerSize(3);
+//        splitPane.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
+//        splitPane.setResizeWeight(1.0);
+//        splitPane.setLeftComponent(scrollpane);
+//        splitPane.setRightComponent(velocityPanel);
         // Final layout
-        toolbarPanel = new ToolbarPanel(this, title, editTools);
         setLayout(new BorderLayout());
-        add(toolbarPanel, BorderLayout.NORTH);
-        add(splitPane, BorderLayout.CENTER);
-
-
+        // add(splitPane, BorderLayout.CENTER);
+        add(scrollpane, BorderLayout.CENTER);
     }
 
 
@@ -1020,23 +1016,21 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, L
 
     private void labelNotes(KeyboardComponent keyboard, DrumKit.KeyMap keymap)
     {
-        if (keymap == null)
+        for (var key : keyboard.getAllKeys())
         {
-            keyboard.getWhiteKeys().stream()
-                    .filter(k -> k.getPitch() % 12 == 0)
-                    .forEach(k -> k.setText("C" + (k.getPitch() / 12 - 1)));
-
-        } else
-        {
-            keyboard.getAllKeys().forEach(k ->
+            String s;
+            if (keymap == null)
             {
-                String s = keymap.getKeyName(k.getPitch());
+                s = key.getPitch() % 12 == 0 ? "C" + (key.getPitch() / 12 - 1) : null;
+            } else
+            {
+                s = keymap.getKeyName(key.getPitch());
                 if (s != null)
                 {
                     s = s.toLowerCase();
                 }
-                k.setText(s);
-            });
+            }
+            key.setText(s);
         }
     }
 

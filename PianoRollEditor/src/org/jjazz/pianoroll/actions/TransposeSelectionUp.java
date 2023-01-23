@@ -59,7 +59,7 @@ public class TransposeSelectionUp extends AbstractAction
 
 
         String undoText = ResUtil.getString(getClass(), "TransposeNoteUp");
-        editor.getUndoManager().startCEdit(undoText);
+        editor.getUndoManager().startCEdit(editor, undoText);
 
         for (var ne : NoteView.getNotes(nvs))
         {

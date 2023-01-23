@@ -3,8 +3,7 @@ package org.jjazz.util.api;
 import org.netbeans.modules.openide.windows.GlobalActionContextImpl;
 import org.openide.util.ContextGlobalProvider;
 import org.openide.util.Lookup;
-import org.openide.util.lookup.AbstractLookup;
-import org.openide.util.lookup.InstanceContent;
+import org.openide.util.lookup.Lookups;
 import org.openide.util.lookup.ProxyLookup;
 import org.openide.util.lookup.ServiceProvider;
 
@@ -12,51 +11,47 @@ import org.openide.util.lookup.ServiceProvider;
 /**
  * Supersedes the original Netbeans ContextGlobalProvider used by Utilities.actionsGlobalContext().
  * <p>
- * The new actions global context provided merges the Netbeans original context (which proxies the lookup of the active TopComponent)
- * and another lookup in which objects can be directly added or removed.
+ * The context created by this class merges the Netbeans original context (which proxies the lookup of the active TopComponent)
+ * with another user-defined lookup (which can be changed).
  * <p>
- * To use this class you must edit the Windows System API module dependency: change the dependency to an implementation version so
- * that the org.netbeans.modules.openide.windows package is on the classpath.
+ * NOTE: in order to get access GlobalActionContextImpl, change the Windows System API module dependency to an implementation
+ * version so that the org.netbeans.modules.openide.windows package is on the classpath.
  */
 @ServiceProvider(service = ContextGlobalProvider.class, supersedes = "org.netbeans.modules.openide.windows.GlobalActionContextImpl")
-public class GlobalActionContextProxy implements ContextGlobalProvider
+public class GlobalActionContextProxy implements ContextGlobalProvider, Lookup.Provider
 {
 
     private static GlobalActionContextProxy INSTANCE;
-    /**
-     * The native NetBeans global context Lookup provider
-     */
-    private final GlobalActionContextImpl globalContextProvider;
-    /**
-     * The primary lookup managed by the platform
-     */
-    private final Lookup globalContextLookup;
-    /**
-     * The project lookup managed by this class
-     */
-    private Lookup projectLookup;
+
+
     /**
      * The actual Lookup returned by this class
      */
-    private Lookup proxyLookup;
+    private Lookup lookup;
     /**
-     * The additional content for our proxy lookup
+     * The original Netbeans lookup returned by GlobalActionContextImpl
      */
-    private final InstanceContent content;
+    private Lookup originalLookup;
+    /**
+     * Our proxy lookup to the used-defined lookup.
+     */
+    private Lookup proxy2UserLookup;
+    /**
+     * The user lookup. Can be null.
+     */
+    private Lookup userLookup;
+
 
     public GlobalActionContextProxy()
     {
-        this.content = new InstanceContent();
-
-        // Create the default GlobalContextProvider
-        this.globalContextProvider = new GlobalActionContextImpl();
-        this.globalContextLookup = this.globalContextProvider.createGlobalContext();
-        
-        INSTANCE = this;
     }
 
     static public GlobalActionContextProxy getInstance()
     {
+        if (INSTANCE == null)
+        {
+            INSTANCE = Lookup.getDefault().lookup(GlobalActionContextProxy.class);
+        }
         return INSTANCE;
     }
 
@@ -69,32 +64,54 @@ public class GlobalActionContextProxy implements ContextGlobalProvider
     @Override
     public Lookup createGlobalContext()
     {
-        if (this.proxyLookup == null)
+        if (this.lookup == null)
         {
-            // Merge the two lookups that make up the proxy
-            this.projectLookup = new AbstractLookup(content);
-            this.proxyLookup = new ProxyLookup(this.globalContextLookup, this.projectLookup);
+            // Create the default GlobalContextProvider
+            originalLookup = new GlobalActionContextImpl().createGlobalContext();
+
+            // Merge with a proxy lookup
+            proxy2UserLookup = Lookups.proxy(this);
+            this.lookup = new ProxyLookup(originalLookup, proxy2UserLookup);
         }
-        return this.proxyLookup;
+        return this.lookup;
+    }
+
+
+    /**
+     * The current user lookup.
+     *
+     * @return Null if not set.
+     */
+    public synchronized Lookup getUserLookup()
+    {
+        return userLookup;
     }
 
     /**
-     * Adds an Object to the application scope global selection.
+     * Set the user lookup to be merged into the lookup returned by Utilities.actionsGlobalContext().
      *
-     * @param obj
+     * @param userLookup Can be null
      */
-    public void add(Object obj)
+    public synchronized void setUserLookup(Lookup userLookup)
     {
-        this.content.add(obj);
+        this.userLookup = userLookup;
+
+        // Force proxy lookup refresh, see Lookups.proxy() API.
+        proxy2UserLookup.lookup(Object.class);
+
     }
 
+    // =========================================================================================
+    // Lookup.Provider interface
+    // =========================================================================================
     /**
-     * Removes an Object from the application scope global selection.
+     * Return the lookup proxied by proxy2UserLookup.
      *
-     * @param obj
+     * @return
      */
-    public void remove(Object obj)
+    @Override
+    public synchronized Lookup getLookup()
     {
-        this.content.remove(obj);
+        return userLookup != null ? userLookup: Lookup.EMPTY;
     }
 }

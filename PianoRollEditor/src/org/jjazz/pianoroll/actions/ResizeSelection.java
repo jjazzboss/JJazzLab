@@ -76,7 +76,7 @@ public class ResizeSelection extends AbstractAction
 
 
         String undoText = ResUtil.getString(ResizeSelection.class, "ResizeNote");
-        editor.getUndoManager().startCEdit(undoText);
+        editor.getUndoManager().startCEdit(editor, undoText);
 
 
         for (var ne : NoteView.getNotes(nvs))

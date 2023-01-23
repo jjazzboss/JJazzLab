@@ -22,14 +22,11 @@
  */
 package org.jjazz.midimix.api;
 
-import com.google.common.base.Preconditions;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.util.List;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.midi.api.DrumKit;
-import org.jjazz.midi.api.Instrument;
-import org.jjazz.midi.api.InstrumentSettings;
 import org.jjazz.midi.api.synths.Family;
 import org.jjazz.midi.api.synths.GMSynth;
 import org.jjazz.rhythm.api.MusicGenerationException;

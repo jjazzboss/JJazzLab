@@ -59,7 +59,6 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
 {
 
     private final PianoRollEditor editor;
-    private SizedPhrase spModel;
     private final List<EditTool> editTools;
     private int lastSpinnerValue;
     private String title;
@@ -71,11 +70,12 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
     public ToolbarPanel(PianoRollEditor editor, String title, List<EditTool> tools)
     {
         this.editor = editor;
-        this.spModel = editor.getModel();
         this.title = title;
-        editTools = tools;
+        this.editTools = tools;
+
 
         initComponents();
+
 
         lbl_title.setText(title);
 
@@ -98,35 +98,15 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
 
 
         editor.addPropertyChangeListener(this);
-        spModel.addPropertyChangeListener(this);
+        editor.getModel().addPropertyChangeListener(this);
 
 
-        NotesSelectionListener nsl = NotesSelectionListener.getInstance(editor.getLookup());
+        NotesSelectionListener nsl = NotesSelectionListener.getInstance(editor);
         nsl.addListener(l -> selectionChanged(nsl.getSelection()));
 
 
         lastSpinnerValue = (Integer) spn_velocity.getModel().getValue();
 
-    }
-
-
-    public void setModel(SizedPhrase sp)
-    {
-        if (spModel == sp)
-        {
-            return;
-        }
-
-        spModel.removePropertyChangeListener(this);
-
-        spModel = sp;
-
-        spModel.addPropertyChangeListener(this);
-    }
-
-    public SizedPhrase getModel()
-    {
-        return spModel;
     }
 
     public String getTitle()
@@ -139,13 +119,12 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
         this.title = title;
         lbl_title.setText(title);
     }
-    
-    
+
 
     public void cleanup()
     {
         editor.removePropertyChangeListener(this);
-        spModel.removePropertyChangeListener(this);
+        editor.getModel().removePropertyChangeListener(this);
     }
 
     // ====================================================================================
@@ -156,15 +135,25 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
     {
         if (evt.getSource() == editor)
         {
-            if (evt.getPropertyName().equals(PianoRollEditor.PROP_SNAP_ENABLED))
+            switch (evt.getPropertyName())
             {
-                tbtn_snap.setSelected(editor.isSnapEnabled());
-            } else if (evt.getPropertyName().equals(PianoRollEditor.PROP_QUANTIZATION))
-            {
-                cmb_quantization.setSelectedItem(editor.getQuantization());
+                case PianoRollEditor.PROP_SNAP_ENABLED ->
+                    tbtn_snap.setSelected(editor.isSnapEnabled());
+                case PianoRollEditor.PROP_QUANTIZATION ->
+                    cmb_quantization.setSelectedItem(editor.getQuantization());
+                case PianoRollEditor.PROP_MODEL ->
+                {
+                    SizedPhrase oldModel = (SizedPhrase) evt.getOldValue();
+                    SizedPhrase newModel = (SizedPhrase) evt.getNewValue();
+                    oldModel.removePropertyChangeListener(this);
+                    newModel.addPropertyChangeListener(this);
+                }
+                default ->
+                {
+                }
             }
 
-        } else if (evt.getSource() == spModel)
+        } else if (evt.getSource() == editor.getModel())
         {
             switch (evt.getPropertyName())
             {
@@ -375,7 +364,7 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
 
         // Create an undoable event since it was a change made by user to the JSpinner
         String undoText = ResUtil.getString(getClass(), "ChangeVelocity");
-        editor.getUndoManager().startCEdit(undoText);
+        editor.getUndoManager().startCEdit(editor, undoText);
 
 
         var selectedNvs = editor.getSelectedNoteViews();
@@ -386,7 +375,7 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
             selectedNvs.stream()
                     .map(nv -> nv.getModel())
                     .filter(ne -> ne.getVelocity() != newSpinnerValue)
-                    .forEach(ne -> spModel.replace(ne, ne.getCopyVel(newSpinnerValue)));
+                    .forEach(ne -> editor.getModel().replace(ne, ne.getCopyVel(newSpinnerValue)));
         } else
         {
             // User increased/decreased, apply the delta to all notes
@@ -396,7 +385,7 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
                     .forEach(ne ->
                     {
                         int newVel = MidiUtilities.limit(ne.getVelocity() + delta);
-                        spModel.replace(ne, ne.getCopyVel(newVel));
+                        editor.getModel().replace(ne, ne.getCopyVel(newVel));
                     });
         }
 

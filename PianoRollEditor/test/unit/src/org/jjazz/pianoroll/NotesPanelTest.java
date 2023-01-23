@@ -80,7 +80,7 @@ public class NotesPanelTest
         sp.add(ne1);
         sp.add(ne2);
 
-        editor = new PianoRollEditor("Title", 0, sp, null, PianoRollEditorSettings.getDefault());
+        editor = new PianoRollEditor(0, sp, null, PianoRollEditorSettings.getDefault());
 
         notesPanel = new NotesPanel(editor, keyboard);
         nv1 = notesPanel.addNoteView(ne1);

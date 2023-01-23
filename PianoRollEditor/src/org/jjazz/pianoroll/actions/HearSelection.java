@@ -151,7 +151,7 @@ public class HearSelection extends ToggleAction
 
     private NotesSelectionListener getNotesSelectionListener()
     {
-        return NotesSelectionListener.getInstance(editor.getLookup());
+        return NotesSelectionListener.getInstance(editor);
     }
 
 

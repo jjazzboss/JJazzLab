@@ -22,6 +22,7 @@
  */
 package org.jjazz.ui.mixconsole;
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.instrumentchooser.spi.InstrumentChooserDialog;
 import org.jjazz.midi.api.DrumKit;
@@ -151,13 +152,15 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
         InstrumentChooserDialog dlg = InstrumentChooserDialog.getDefault();
         dlg.preset(OutputSynthManager.getInstance().getDefaultOutputSynth(), rv, insMix.getInstrument(), insMix.getSettings().getTransposition(), channelId);
         dlg.setVisible(true);
+        
+                
         Instrument ins = dlg.getSelectedInstrument();
         if (ins != null)
         {
             // Warning if drums keymap is not compatible even via a converter
             if (rv.isDrums() && ins.isDrumKit())
             {
-                DrumKit.KeyMap srcKeyMap = rv.getPreferredInstrument().getDrumKit().getKeyMap();
+                DrumKit.KeyMap srcKeyMap = rv.getDrumKit().getKeyMap();
                 DrumKit.KeyMap destKeyMap = ins.getDrumKit().getKeyMap();
                 if (destKeyMap.isContaining(srcKeyMap))
                 {
@@ -176,7 +179,10 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
                 } else
                 {
                     // Managed via conversion
-                    LOGGER.info("editInstrument() channel=" + channelId + " ins=" + ins.getPatchName() + ": drum keymap conversion will be used " + srcKeyMap + ">" + destKeyMap);   //NOI18N
+                    LOGGER.log(Level.INFO, "editInstrument() channel={0} ins={1}: drum keymap conversion will be used {2}>{3}", new Object[]
+                    {
+                        channelId, ins.getPatchName(), srcKeyMap, destKeyMap
+                    });   
                     String msg = ResUtil.getString(getClass(), "MixChannelPanelControllerImpl.DrumKeyMapConversion",
                             srcKeyMap.getName(), destKeyMap.getName(), ins.getPatchName(), (channelId + 1));
                     StatusDisplayer.getDefault().setStatusText(msg);
