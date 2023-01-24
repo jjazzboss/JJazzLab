@@ -61,7 +61,6 @@ public class RulerPanel extends javax.swing.JPanel implements PropertyChangeList
     private final int preferredHeight;
     private static final Logger LOGGER = Logger.getLogger(RulerPanel.class.getSimpleName());
     private int playbackPointX = -1;
-    private static Polygon playbackPointPolygon;
 
     /**
      *

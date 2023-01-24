@@ -42,7 +42,6 @@ import org.jjazz.pianoroll.actions.HearSelection;
 import org.jjazz.pianoroll.actions.PlaybackAutoScroll;
 import org.jjazz.pianoroll.actions.SnapToGrid;
 import org.jjazz.pianoroll.actions.Solo;
-import org.jjazz.pianoroll.api.EditTool;
 import org.jjazz.pianoroll.api.NoteView;
 import org.jjazz.pianoroll.api.NotesSelection;
 import org.jjazz.pianoroll.api.NotesSelectionListener;
@@ -59,7 +58,6 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
 {
 
     private final PianoRollEditor editor;
-    private final List<EditTool> editTools;
     private int lastSpinnerValue;
     private String title;
     private static final Logger LOGGER = Logger.getLogger(ToolbarPanel.class.getSimpleName());
@@ -67,11 +65,10 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
     /**
      * Creates new form ToolbarPanel
      */
-    public ToolbarPanel(PianoRollEditor editor, String title, List<EditTool> tools)
+    public ToolbarPanel(PianoRollEditor editor, String title)
     {
         this.editor = editor;
         this.title = title;
-        this.editTools = tools;
 
 
         initComponents();
@@ -247,7 +244,7 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
         pnl_left = new javax.swing.JPanel();
         lbl_title = new javax.swing.JLabel();
         filler2 = new javax.swing.Box.Filler(new java.awt.Dimension(10, 0), new java.awt.Dimension(20, 0), new java.awt.Dimension(20, 32767));
-        pnl_editTools = new EditToolBar(editor, editTools);
+        pnl_editTools = new EditToolBar(editor);
         filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(20, 0), new java.awt.Dimension(20, 0), new java.awt.Dimension(30, 32767));
         tbtn_snap = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
         cmb_quantization = new javax.swing.JComboBox<>();

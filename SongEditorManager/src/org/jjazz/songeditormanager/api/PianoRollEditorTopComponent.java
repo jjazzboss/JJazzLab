@@ -20,10 +20,11 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.pianoroll.api;
+package org.jjazz.songeditormanager.api;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -36,9 +37,7 @@ import org.jjazz.midi.api.DrumKit;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.pianoroll.EditToolBar;
 import org.jjazz.pianoroll.ToolbarPanel;
-import org.jjazz.pianoroll.edittools.EraserTool;
-import org.jjazz.pianoroll.edittools.PencilTool;
-import org.jjazz.pianoroll.edittools.SelectionTool;
+import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
 import org.jjazz.song.api.Song;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
@@ -51,8 +50,9 @@ import org.openide.windows.TopComponent;
 /**
  * The TopComponent for a PianoRollEditor.
  * <p>
+ * The TopComponent closes itself when song is closed.
  */
-public final class PianoRollEditorTopComponent extends TopComponent
+public final class PianoRollEditorTopComponent extends TopComponent implements PropertyChangeListener
 {
 
     // public static final String MODE = "midieditor";  // WindowManager mode
@@ -60,7 +60,6 @@ public final class PianoRollEditorTopComponent extends TopComponent
 
 
     private final PianoRollEditor editor;
-    private final List<EditTool> editTools;
     private final ToolbarPanel toolbarPanel;
     private final JPopupMenu popupMenu;
     private static final Logger LOGGER = Logger.getLogger(PianoRollEditorTopComponent.class.getSimpleName());
@@ -71,11 +70,11 @@ public final class PianoRollEditorTopComponent extends TopComponent
      * Create a TopComponent editor for the specified parameters.
      *
      * @param song
-     * @param tabName       The TopComponent name
-     * @param title         The title used within the editor
+     * @param tabName The TopComponent name
+     * @param title The title used within the editor
      * @param startBarIndex
      * @param spModel
-     * @param keyMap        Can be null
+     * @param keyMap Can be null
      * @param settings
      */
     public PianoRollEditorTopComponent(Song song, String tabName, String title, int startBarIndex, SizedPhrase spModel, DrumKit.KeyMap keyMap, PianoRollEditorSettings settings)
@@ -85,7 +84,7 @@ public final class PianoRollEditorTopComponent extends TopComponent
         putClientProperty(TopComponent.PROP_CLOSING_DISABLED, Boolean.FALSE);
         putClientProperty(TopComponent.PROP_DND_COPY_DISABLED, Boolean.TRUE);
         putClientProperty(TopComponent.PROP_DRAGGING_DISABLED, Boolean.FALSE);
-        putClientProperty(TopComponent.PROP_UNDOCKING_DISABLED, Boolean.FALSE);     
+        putClientProperty(TopComponent.PROP_UNDOCKING_DISABLED, Boolean.FALSE);
         putClientProperty(TopComponent.PROP_SLIDING_DISABLED, Boolean.FALSE);
         putClientProperty(TopComponent.PROP_KEEP_PREFERRED_SIZE_WHEN_SLIDED_IN, Boolean.FALSE);
 
@@ -95,24 +94,18 @@ public final class PianoRollEditorTopComponent extends TopComponent
         this.song = song;
         editor = new PianoRollEditor(startBarIndex, spModel, keyMap, settings);
         editor.setUndoManager(JJazzUndoManagerFinder.getDefault().get(song));
-        editTools = Arrays.asList(new SelectionTool(editor), new PencilTool(editor), new EraserTool(editor));
-        editor.setActiveTool(editTools.get(0));
-        toolbarPanel = new ToolbarPanel(editor, title, editTools);
+        
+        toolbarPanel = new ToolbarPanel(editor, title);
 
 
         initComponents();
 
 
-        // The popupmenu
-        popupMenu = new JPopupMenu();
-        var menuItem = new JMenuItem();
-        menuItem.setBorder(BorderFactory.createEmptyBorder());
-        EditToolBar editToolBar = new EditToolBar(editor, editTools);
-        editToolBar.setClickListener(() -> popupMenu.setVisible(false));
-        menuItem.setPreferredSize(editToolBar.getPreferredSize());
-        menuItem.add(editToolBar);
-        popupMenu.add(menuItem);
-        editor.getNotesPanel().setComponentPopupMenu(popupMenu);
+   
+
+
+        // Automatically close when song is closed
+        song.addPropertyChangeListener(this);
     }
 
     /**
@@ -237,17 +230,6 @@ public final class PianoRollEditorTopComponent extends TopComponent
     @Override
     public boolean canClose()
     {
-//        SavableSong ss = getLookup().lookup(SavableSong.class);
-//        if (ss != null)
-//        {
-//            String msg = songModel.getName() + " : " + ResUtil.getString(getClass(), "CTL_CL_ConfirmClose");
-//            NotifyDescriptor nd = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.OK_CANCEL_OPTION);
-//            Object result = DialogDisplayer.getDefault().notify(nd);
-//            if (result != NotifyDescriptor.OK_OPTION)
-//            {
-//                return false;
-//            }
-//        }
         return true;
     }
 
@@ -260,12 +242,34 @@ public final class PianoRollEditorTopComponent extends TopComponent
     @Override
     public void componentClosed()
     {
-        editor.cleanup();
+        cleanup();
+    }
+
+    //=============================================================================
+    // PropertyChangeListener interface
+    //=============================================================================
+    @Override
+    public void propertyChange(PropertyChangeEvent evt)
+    {
+        if (evt.getSource() == song)
+        {
+            if (evt.getPropertyName().equals(Song.PROP_CLOSED))
+            {
+                close();
+            }
+
+        }
     }
 
     // ============================================================================================
     // Private methods
     // ============================================================================================
+
+    private void cleanup()
+    {
+        song.removePropertyChangeListener(this);
+        editor.cleanup();
+    }
 
     void writeProperties(java.util.Properties p)
     {

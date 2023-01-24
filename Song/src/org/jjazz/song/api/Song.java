@@ -154,7 +154,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
      *
      * @param name
      * @param cls
-     * @param sgs  Must be kept consistent with cls changes (sgs.getParentChordLeadSheet() must return cls)
+     * @param sgs Must be kept consistent with cls changes (sgs.getParentChordLeadSheet() must return cls)
      */
     protected Song(String name, ChordLeadSheet cls, SongStructure sgs)
     {
@@ -225,7 +225,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
      * VeotableChange PROP_VETOABLE_USER_PHRASE if no phrase is replaced, otherwise use PROP_VETOABLE_USER_PHRASE_CONTENT.
      * <p>
      * @param name Can't be blank.
-     * @param p    Can't be null. The phrase channel is not used.
+     * @param p Can't be null. The phrase channel is not used.
      * @throws PropertyVetoException If no Midi channel available for the user phrase
      * @see Song#PROP_VETOABLE_USER_PHRASE
      * @see Song#PROP_VETOABLE_USER_PHRASE_CONTENT
@@ -685,8 +685,8 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
      * oldValue=true and newValue=false.
      *
      * @param songFile
-     * @param isCopy   Indicate that the save operation if for a copy, ie just perform the save operation and do nothing else
-     *                 (song name is not set, etc.)
+     * @param isCopy Indicate that the save operation if for a copy, ie just perform the save operation and do nothing else (song
+     * name is not set, etc.)
      * @throws java.io.IOException
      * @see getFile()
      */
@@ -776,6 +776,11 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
     public void addPropertyChangeListener(PropertyChangeListener l)
     {
         pcs.addPropertyChangeListener(l);
+    }
+
+    public void addPropertyChangeListener(String propertyName, PropertyChangeListener l)
+    {
+        pcs.addPropertyChangeListener(propertyName, l);
     }
 
     public void removePropertyChangeListener(PropertyChangeListener l)

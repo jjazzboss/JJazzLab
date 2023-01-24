@@ -77,7 +77,6 @@ import org.openide.util.lookup.InstanceContent;
 import org.openide.util.lookup.ProxyLookup;
 import org.jjazz.leadsheet.chordleadsheet.api.ClsChangeListener;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.savablesong.api.SavableSong;
 import org.jjazz.savablesong.api.SaveAsCapableSong;
 import org.jjazz.song.api.Song;

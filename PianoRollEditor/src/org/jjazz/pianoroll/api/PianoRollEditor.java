@@ -36,15 +36,19 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JLayer;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
@@ -52,6 +56,7 @@ import org.jjazz.midi.api.DrumKit;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.SizedPhrase;
+import org.jjazz.pianoroll.EditToolBar;
 import org.jjazz.pianoroll.MouseDragLayerUI;
 import org.jjazz.pianoroll.NotesPanel;
 import org.jjazz.pianoroll.RulerPanel;
@@ -62,6 +67,8 @@ import org.jjazz.pianoroll.actions.ResizeSelection;
 import org.jjazz.pianoroll.actions.SelectAllNotes;
 import org.jjazz.pianoroll.actions.TransposeSelectionDown;
 import org.jjazz.pianoroll.actions.TransposeSelectionUp;
+import org.jjazz.pianoroll.edittools.EraserTool;
+import org.jjazz.pianoroll.edittools.PencilTool;
 import org.jjazz.pianoroll.edittools.SelectionTool;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
 import org.jjazz.quantizer.api.Quantization;
@@ -139,15 +146,16 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     private boolean snapEnabled;
     private float playbackPointPosition;
     private boolean playbackAutoScrollEnabled;
+    private final List<EditTool> editTools;
 
 
     /**
      * Create a piano roll editor for the specified SizedPhrase.
      *
      * @param startBarIndex The bar index corresponding to the start of the SizedPhrase
-     * @param sp            Can't be null
-     * @param kmap          If not null set the editor in drums mode
-     * @param settings      Can't be null
+     * @param sp Can't be null
+     * @param kmap If not null set the editor in drums mode
+     * @param settings Can't be null
      */
     public PianoRollEditor(int startBarIndex, SizedPhrase sp, DrumKit.KeyMap kmap, PianoRollEditorSettings settings)
     {
@@ -218,8 +226,18 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
             addNote(ne);
         }
 
+        editTools = Arrays.asList(new SelectionTool(this), new PencilTool(this), new EraserTool(this));
+        activeTool = editTools.get(0);
+    }
 
-        activeTool = new SelectionTool(this);
+    /**
+     * The available EditTools.
+     *
+     * @return
+     */
+    public List<EditTool> getEditTools()
+    {
+        return editTools;
     }
 
 
@@ -230,7 +248,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
      * the edited phrase is a bass line, you can use this method to make the corresponding drums phrase also visible.
      *
      * @param mapNamePhrases A name associated to a SizedPhrase. SizedPhrase must have the same beatRange and TimeSignature than
-     *                       the SizedPhrase model.
+     * the SizedPhrase model.
      * @see #setModel(org.jjazz.phrase.api.SizedPhrase)
      */
     public void setBackgroundModels(Map<String, SizedPhrase> mapNamePhrases)
@@ -315,8 +333,8 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         for (var ne : spModel)
         {
             addNote(ne);        // Will call notesPanel.revalidate()
-        }        
-       
+        }
+
         notesPanel.scrollToFirstNote();
 
         firePropertyChange(PROP_MODEL, oldModel, spModel);
@@ -990,6 +1008,19 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         setLayout(new BorderLayout());
         // add(splitPane, BorderLayout.CENTER);
         add(scrollpane, BorderLayout.CENTER);
+        
+        
+        
+        // Create the popupmenu
+        var popupMenu = new JPopupMenu();
+        var menuItem = new JMenuItem();
+        menuItem.setBorder(BorderFactory.createEmptyBorder());
+        EditToolBar editToolBar = new EditToolBar(editor);
+        editToolBar.setClickListener(() -> popupMenu.setVisible(false));
+        menuItem.setPreferredSize(editToolBar.getPreferredSize());
+        menuItem.add(editToolBar);
+        popupMenu.add(menuItem);
+        notesPanel.setComponentPopupMenu(popupMenu);
     }
 
 

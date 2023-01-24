@@ -39,10 +39,10 @@ public class EditToolBar extends JPanel
 {
 
     private final PianoRollEditor editor;
-    private Map<EditTool, FlatToggleButton> mapToolButton = new HashMap<>();
+    private final Map<EditTool, FlatToggleButton> mapToolButton = new HashMap<>();
     private Runnable clickTask;
 
-    public EditToolBar(PianoRollEditor editor, List<EditTool> tools)
+    public EditToolBar(PianoRollEditor editor)
     {
         this.editor = editor;
         
@@ -51,7 +51,7 @@ public class EditToolBar extends JPanel
         layout.setVgap(0);
         layout.setHgap(0);
         
-        for (var tool : tools)
+        for (var tool : editor.getEditTools())
         {
             FlatToggleButton btn = new FlatToggleButton();
             btn.setIcon(tool.getIcon(false));

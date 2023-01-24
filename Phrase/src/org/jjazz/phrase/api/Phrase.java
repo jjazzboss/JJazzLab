@@ -685,7 +685,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
     @Override
     public void clear()
     {
-        removeAll(noteEvents);
+        removeAll(new ArrayList<>(noteEvents));
     }
 
     @Override
