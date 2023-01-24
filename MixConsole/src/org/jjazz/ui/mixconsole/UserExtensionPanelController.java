@@ -25,6 +25,7 @@ package org.jjazz.ui.mixconsole;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyVetoException;
+import java.beans.VetoableChangeListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -40,7 +41,7 @@ import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.Phrases;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.pianoroll.api.PianoRollEditor;
-import org.jjazz.songeditormanager.api.PianoRollEditorTopComponent;
+import org.jjazz.pianoroll.api.PianoRollEditorTopComponent;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythmmusicgeneration.api.SongSequenceBuilder;
@@ -50,14 +51,11 @@ import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.ui.mixconsole.actions.AddUserTrack;
 import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
-import org.jjazz.util.api.FloatRange;
 import org.jjazz.util.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.awt.StatusDisplayer;
 import org.openide.util.Exceptions;
-import org.openide.windows.Mode;
-import org.openide.windows.WindowManager;
 
 /**
  * The controller for a UserExtensionPanel.
@@ -99,6 +97,9 @@ public class UserExtensionPanelController
     }
 
 
+    /**
+     * Create (or reuse existing) a PianoRollEditorTopComponent, manage the synchronization between editor and song's model.
+     */
     public void editUserPhrase()
     {
 
@@ -112,42 +113,23 @@ public class UserExtensionPanelController
         int channel = panel.getMidiMix().getChannel(getUserRhythmVoice());
         SongStructure ss = getSong().getSongStructure();
         var songBeatRange = ss.getBeatRange(null);
-        var sizeInBars = ss.getSizeInBars();
         DrumKit drumKit = panel.getMidiMix().getInstrumentMixFromKey(getUserRhythmVoice()).getInstrument().getDrumKit();
         DrumKit.KeyMap keyMap = drumKit == null ? null : drumKit.getKeyMap();
+
 
         // Make sure that edited phrase is no longer that the song now                     
         Phrase p = getUserPhrase();
         p = Phrases.getSlice(p, songBeatRange, false, 1, 0f);
 
+
         // Create the editor model
         var sp = new SizedPhrase(p.getChannel(), songBeatRange, ss.getSongPart(0).getRhythm().getTimeSignature(), p.isDrums());
         sp.add(p);
-        String tabName = getSong().getName() + " - piano roll editor";
+        String tabName = getSong().getName() + " - piano editor";
         String title = getUserPhraseName() + " [" + (channel + 1) + "]";
 
 
-        var preTc = PianoRollEditorTopComponent.get(getSong());
-        if (preTc == null)
-        {
-            // Create the editor
-            preTc = new PianoRollEditorTopComponent(getSong(), tabName, title, 0, sp, keyMap, PianoRollEditorSettings.getDefault());
-
-            // Show it
-            // https://dzone.com/articles/secrets-netbeans-window-system
-            // https://web.archive.org/web/20170314072532/https://blogs.oracle.com/geertjan/entry/creating_a_new_mode_in        
-            Mode mode = WindowManager.getDefault().findMode(PianoRollEditorTopComponent.MODE);
-            assert mode != null;
-            mode.dockInto(preTc);
-            preTc.open();
-            preTc.requestActive();
-
-        } else
-        {
-            preTc.setTitle(title);
-            preTc.setModel(0, sp, keyMap);
-            preTc.requestActive();
-        }
+        var preTc = PianoRollEditorTopComponent.show(getSong(), tabName, title, 0, sp, keyMap, PianoRollEditorSettings.getDefault());
 
 
         // Listen to user edits to keep the original song phrase updated
@@ -158,7 +140,26 @@ public class UserExtensionPanelController
 
         // Listen to size change to update editor's model size
         // Stop listening when editor is destroyed or its model is changed  
-        final PianoRollEditorTopComponent preTc2 = preTc;
+        // Remove PianoRollEditor if user phrase is removed
+        VetoableChangeListener vcl = new VetoableChangeListener()
+        {
+            @Override
+            public void vetoableChange(PropertyChangeEvent evt)
+            {
+                if (evt.getSource() == getSong())
+                {
+                    if (evt.getPropertyName().equals(Song.PROP_VETOABLE_USER_PHRASE))
+                    {
+                        // Close the editor if phrase is removed
+                        String removedPhraseName = (String) evt.getOldValue();
+                        if (getUserPhraseName().equals(removedPhraseName))
+                        {
+                            preTc.close();
+                        }
+                    }
+                }
+            }
+        };
         PropertyChangeListener pcl = new PropertyChangeListener()
         {
             @Override
@@ -173,6 +174,7 @@ public class UserExtensionPanelController
                             editor.removePropertyChangeListener(this);
                             editor.getUndoManager().removeUserEditListener(uel);
                             getSong().removePropertyChangeListener(this);
+                            getSong().removeVetoableChangeListener(vcl);
                     }
                 } else if (evt.getSource() == getSong())
                 {
@@ -184,13 +186,17 @@ public class UserExtensionPanelController
                         p = Phrases.getSlice(p, ss.getBeatRange(null), false, 1, 0f);
                         var sp = new SizedPhrase(p.getChannel(), br, ss.getSongPart(0).getRhythm().getTimeSignature(), p.isDrums());
                         sp.add(p);
-                        preTc2.setModel(0, sp, keyMap);
-                    }
+                        preTc.setModel(0, sp, keyMap);
+
+                    } 
                 }
             }
         };
+
+
         editor.addPropertyChangeListener(pcl);
         getSong().addPropertyChangeListener(pcl);
+        getSong().addVetoableChangeListener(vcl);
 
 
     }

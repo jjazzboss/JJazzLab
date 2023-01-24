@@ -78,7 +78,7 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
      * The editor's controller.
      */
     private SS_EditorMouseListener ssEditorController;
-    private CompactViewModeController compactViewController;    
+    private CompactViewModeController compactViewController;
     /**
      * The paired TopComponent.
      */
@@ -117,7 +117,7 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
         ssEditorController = new SS_EditorController(ssEditor);
         ssEditor.setController(ssEditorController);
         compactViewController = new CompactViewModeController(ssEditor);
-        
+
 
         // Create the toolbar
         ssToolBar = new SS_EditorToolBar(ssEditor);
@@ -306,7 +306,7 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
         if (pairedTc != null)
         {
             // If CL_Editor is first closed, just let this TopComponent be closed
-            // If CL_Editor is still here, user is closing this TopComponent first, rely on CL_Editor canClose() logic
+            // If CL_Editor is still here, user is closing this TopComponent first, rely on CL_Editor canClose() logic because CL_Editor listens to song changes to add a Savable instance in its lookup
             return pairedTc.isOpened() ? pairedTc.canClose() : true;
         }
 

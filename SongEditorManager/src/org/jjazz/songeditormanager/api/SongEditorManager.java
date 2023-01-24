@@ -35,12 +35,9 @@ import javax.sound.midi.MidiUnavailableException;
 import javax.swing.SwingUtilities;
 import org.jjazz.activesong.api.ActiveSongManager;
 import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
-import org.jjazz.midi.api.DrumKit;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.MidiMixManager;
 import org.jjazz.outputsynth.api.OutputSynthManager;
-import org.jjazz.phrase.api.SizedPhrase;
-import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongCreationException;
 import org.jjazz.song.api.SongFactory;
@@ -319,51 +316,7 @@ public class SongEditorManager implements PropertyChangeListener
         return song;
     }
 
-    /**
-     * Show the PianoRollEditorTopComponent associated to specified song.
-     * <p>
-     * Create the component if not already shown.
-     *
-     * @param song
-     * @param tabName Ignored if component has already been created for this song
-     * @param title
-     * @param startBarIndex
-     * @param spModel
-     * @param keyMap
-     * @param settings Ignored if component has already been created for this song
-     * @return The shown editor.
-     */
-    public PianoRollEditorTopComponent showPianoRollEditor(Song song, String tabName, String title, int startBarIndex, SizedPhrase spModel, DrumKit.KeyMap keyMap, PianoRollEditorSettings settings)
-    {
-        var preTc = PianoRollEditorTopComponent.get(song);
-        if (preTc == null)
-        {
-            preTc = new PianoRollEditorTopComponent(song, tabName, title, startBarIndex, spModel, keyMap, settings);
-            
-            
-            Editors editors = mapSongEditors.get(song);
-            assert editors != null : "song=" + song + " mapSongEditors=" + mapSongEditors;
-            editors.setPianoRollEditorTopComponent(preTc);
-            
-            
-            // Show it
-            // https://dzone.com/articles/secrets-netbeans-window-system
-            // https://web.archive.org/web/20170314072532/https://blogs.oracle.com/geertjan/entry/creating_a_new_mode_in        
-            Mode mode = WindowManager.getDefault().findMode(PianoRollEditorTopComponent.MODE);
-            assert mode != null;
-            mode.dockInto(preTc);
-            preTc.open();
-        } else
-        {
-            preTc.setTitle(title);
-            preTc.setModel(startBarIndex, spModel, keyMap);
-        }
 
-
-        preTc.requestActive();
-
-        return preTc;
-    }
 
     public List<Song> getOpenedSongs()
     {
@@ -472,6 +425,7 @@ public class SongEditorManager implements PropertyChangeListener
                 {
                     return;
                 }
+                FIX : can be PianoRoll
                 CL_EditorTopComponent clTc = (CL_EditorTopComponent) mode.getSelectedTopComponent();
                 if (clTc == null)
                 {
@@ -514,7 +468,6 @@ public class SongEditorManager implements PropertyChangeListener
 
         private final CL_EditorTopComponent tcCle;
         private final SS_EditorTopComponent tcRle;
-        private PianoRollEditorTopComponent tcPre;
 
 
         protected Editors(CL_EditorTopComponent tcCle, SS_EditorTopComponent tcRle)
@@ -532,15 +485,6 @@ public class SongEditorManager implements PropertyChangeListener
         {
             return tcRle;
         }
-
-        public void setPianoRollEditorTopComponent(PianoRollEditorTopComponent tcPre)
-        {
-            this.tcPre = tcPre;
-        }
-
-        public PianoRollEditorTopComponent getTcPre()
-        {
-            return tcPre;
-        }
+     
     }
 }

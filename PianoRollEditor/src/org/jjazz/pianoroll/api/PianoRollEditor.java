@@ -52,6 +52,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
+import org.jjazz.base.api.actions.Savable;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
@@ -72,6 +73,9 @@ import org.jjazz.pianoroll.edittools.PencilTool;
 import org.jjazz.pianoroll.edittools.SelectionTool;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
 import org.jjazz.quantizer.api.Quantization;
+import org.jjazz.savablesong.api.SavableSong;
+import org.jjazz.savablesong.api.SaveAsCapableSong;
+import org.jjazz.song.api.Song;
 import org.jjazz.ui.keyboardcomponent.api.KeyboardComponent;
 import org.jjazz.ui.keyboardcomponent.api.KeyboardRange;
 import org.jjazz.ui.utilities.api.Zoomable;
@@ -90,6 +94,7 @@ import org.openide.util.lookup.ProxyLookup;
  * - editor's ActionMap<br>
  * - editor's Zoomable instance<br>
  * - the selected NoteViews<br>
+ * - A Savable instance if model is modified.<br>
  */
 public class PianoRollEditor extends JPanel implements PropertyChangeListener
 {
@@ -147,15 +152,16 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     private float playbackPointPosition;
     private boolean playbackAutoScrollEnabled;
     private final List<EditTool> editTools;
+    private Song song;
 
 
     /**
      * Create a piano roll editor for the specified SizedPhrase.
      *
      * @param startBarIndex The bar index corresponding to the start of the SizedPhrase
-     * @param sp Can't be null
-     * @param kmap If not null set the editor in drums mode
-     * @param settings Can't be null
+     * @param sp            Can't be null
+     * @param kmap          If not null set the editor in drums mode
+     * @param settings      Can't be null
      */
     public PianoRollEditor(int startBarIndex, SizedPhrase sp, DrumKit.KeyMap kmap, PianoRollEditorSettings settings)
     {
@@ -195,6 +201,10 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         lookup = new ProxyLookup(selectionLookup, generalLookup);
 
 
+        editTools = Arrays.asList(new SelectionTool(this), new PencilTool(this), new EraserTool(this));
+        activeTool = editTools.get(0);
+
+
         // Build the UI
         createUI();
 
@@ -226,8 +236,40 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
             addNote(ne);
         }
 
-        editTools = Arrays.asList(new SelectionTool(this), new PencilTool(this), new EraserTool(this));
-        activeTool = editTools.get(0);
+    }
+
+    /**
+     * Associate an optional song to the editor.
+     * <p>
+     * Put the song and a SaveAsCapable instance in the editor's lookup. Put also a Savable instance when required.<p>
+     * This method can be called only once.
+     *
+     * @param song Can't be null
+     */
+    public void setSong(Song song)
+    {
+        Preconditions.checkNotNull(song);
+        if (this.song != null)
+        {
+            throw new IllegalStateException("this.song is already set: " + this.song);
+        }
+        this.song = song;
+        generalLookupContent.add(song);
+        generalLookupContent.add(new SaveAsCapableSong(song)); // always enabled    
+
+
+        if (song.needSave())
+        {
+            setSongModified();
+        }
+
+        // Listen to song save
+        song.addPropertyChangeListener(this);
+    }
+
+    public Song getSong()
+    {
+        return song;
     }
 
     /**
@@ -248,7 +290,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
      * the edited phrase is a bass line, you can use this method to make the corresponding drums phrase also visible.
      *
      * @param mapNamePhrases A name associated to a SizedPhrase. SizedPhrase must have the same beatRange and TimeSignature than
-     * the SizedPhrase model.
+     *                       the SizedPhrase model.
      * @see #setModel(org.jjazz.phrase.api.SizedPhrase)
      */
     public void setBackgroundModels(Map<String, SizedPhrase> mapNamePhrases)
@@ -422,6 +464,10 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         notesPanel.cleanup();
         spModel.removeUndoableEditListener(undoManager);
         spModel.removePropertyChangeListener(this);
+        if (song != null)
+        {
+            song.removePropertyChangeListener(this);
+        }
         firePropertyChange(PROP_EDITOR_ALIVE, true, false);
     }
 
@@ -886,6 +932,9 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
                 {
                 }
             }
+
+            setSongModified();
+
         } else if (evt.getSource() instanceof NoteView nv)
         {
             if (evt.getPropertyName().equals(NoteView.PROP_SELECTED))
@@ -898,6 +947,15 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
                     selectionLookupContent.remove(nv);
                 }
             }
+        } else if (evt.getSource() == song)
+        {
+            if (evt.getPropertyName().equals(Song.PROP_MODIFIED_OR_SAVED_OR_RESET))
+            {
+                if (evt.getNewValue().equals(Boolean.FALSE))
+                {
+                    resetSongModified();
+                }
+            }
         }
     }
 
@@ -905,10 +963,35 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     // Private methods
     // =======================================================================================================================
 
-    protected NotesPanel getNotesPanel()
+    private void setSongModified()
     {
-        return notesPanel;
+        if (song == null)
+        {
+            return;
+        }
+        SavableSong s = lookup.lookup(SavableSong.class);
+        if (s == null)
+        {
+            s = new SavableSong(song);
+            Savable.ToBeSavedList.add(s);
+            generalLookupContent.add(s);
+        }
     }
+
+    private void resetSongModified()
+    {
+        if (song == null)
+        {
+            return;
+        }
+        SavableSong s = lookup.lookup(SavableSong.class);
+        if (s != null)
+        {
+            Savable.ToBeSavedList.remove(s);
+            generalLookupContent.remove(s);
+        }
+    }
+
 
     /**
      * Caller is responsible to call revalidate() and/or repaint() as required.
@@ -1008,14 +1091,13 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         setLayout(new BorderLayout());
         // add(splitPane, BorderLayout.CENTER);
         add(scrollpane, BorderLayout.CENTER);
-        
-        
-        
+
+
         // Create the popupmenu
         var popupMenu = new JPopupMenu();
         var menuItem = new JMenuItem();
         menuItem.setBorder(BorderFactory.createEmptyBorder());
-        EditToolBar editToolBar = new EditToolBar(editor);
+        EditToolBar editToolBar = new EditToolBar(this);
         editToolBar.setClickListener(() -> popupMenu.setVisible(false));
         menuItem.setPreferredSize(editToolBar.getPreferredSize());
         menuItem.add(editToolBar);

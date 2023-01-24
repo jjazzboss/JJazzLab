@@ -20,8 +20,9 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.songeditormanager.api;
+package org.jjazz.pianoroll.api;
 
+import com.google.common.base.Preconditions;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
@@ -30,21 +31,19 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 import javax.swing.Action;
-import javax.swing.BorderFactory;
-import javax.swing.JMenuItem;
-import javax.swing.JPopupMenu;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.phrase.api.SizedPhrase;
-import org.jjazz.pianoroll.EditToolBar;
 import org.jjazz.pianoroll.ToolbarPanel;
-import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
 import org.jjazz.song.api.Song;
+import org.jjazz.ui.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.openide.awt.UndoRedo;
 import org.openide.util.Lookup;
 import org.openide.util.Utilities;
+import org.openide.windows.Mode;
 import org.openide.windows.TopComponent;
+import org.openide.windows.WindowManager;
 
 
 /**
@@ -61,7 +60,6 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
 
     private final PianoRollEditor editor;
     private final ToolbarPanel toolbarPanel;
-    private final JPopupMenu popupMenu;
     private static final Logger LOGGER = Logger.getLogger(PianoRollEditorTopComponent.class.getSimpleName());
     private final Song song;
 
@@ -70,15 +68,18 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
      * Create a TopComponent editor for the specified parameters.
      *
      * @param song
-     * @param tabName The TopComponent name
-     * @param title The title used within the editor
+     * @param tabName       The TopComponent name
+     * @param title         The title used within the editor
      * @param startBarIndex
      * @param spModel
-     * @param keyMap Can be null
+     * @param keyMap        Can be null
      * @param settings
      */
     public PianoRollEditorTopComponent(Song song, String tabName, String title, int startBarIndex, SizedPhrase spModel, DrumKit.KeyMap keyMap, PianoRollEditorSettings settings)
     {
+        Preconditions.checkNotNull(song);
+        Preconditions.checkNotNull(settings);
+
 
         putClientProperty(TopComponent.PROP_MAXIMIZATION_DISABLED, Boolean.FALSE);
         putClientProperty(TopComponent.PROP_CLOSING_DISABLED, Boolean.FALSE);
@@ -91,17 +92,15 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
 
         setDisplayName(tabName);
 
+
         this.song = song;
         editor = new PianoRollEditor(startBarIndex, spModel, keyMap, settings);
+        editor.setSong(song);
         editor.setUndoManager(JJazzUndoManagerFinder.getDefault().get(song));
-        
         toolbarPanel = new ToolbarPanel(editor, title);
 
 
         initComponents();
-
-
-   
 
 
         // Automatically close when song is closed
@@ -200,6 +199,25 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
         return TopComponent.PERSISTENCE_NEVER;
     }
 
+    @Override
+    public boolean canClose()
+    {
+        return true;
+    }
+
+    @Override
+    public void componentOpened()
+    {
+
+    }
+
+    @Override
+    public void componentClosed()
+    {
+        song.removePropertyChangeListener(this);       
+        editor.cleanup();
+    }
+
     /**
      * Return the active (i.e. focused or ancestor of the focused component) PianoRollEditorTopComponent.
      *
@@ -227,23 +245,51 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
                 .orElse(null);
     }
 
-    @Override
-    public boolean canClose()
+
+    /**
+     * Show the PianoRollEditorTopComponent associated to specified song at the appropriate location within the application.
+     * <p>
+     * Create the PianoRollEditorTopComponent if not already shown.
+     *
+     * @param song
+     * @param tabName       Ignored if component has already been created for this song
+     * @param title
+     * @param startBarIndex
+     * @param spModel
+     * @param keyMap
+     * @param settings      Ignored if component has already been created for this song
+     * @return The shown editor.
+     */
+    static public PianoRollEditorTopComponent show(Song song, String tabName, String title, int startBarIndex, SizedPhrase spModel, DrumKit.KeyMap keyMap, PianoRollEditorSettings settings)
     {
-        return true;
+        var preTc = PianoRollEditorTopComponent.get(song);
+        if (preTc == null)
+        {
+            // Create thed editor
+            preTc = new PianoRollEditorTopComponent(song, tabName, title, startBarIndex, spModel, keyMap, settings);
+
+
+            // Show it
+            // https://dzone.com/articles/secrets-netbeans-window-system
+            // https://web.archive.org/web/20170314072532/https://blogs.oracle.com/geertjan/entry/creating_a_new_mode_in        
+            Mode mode = WindowManager.getDefault().findMode(PianoRollEditorTopComponent.MODE);
+            assert mode != null;
+            mode.dockInto(preTc);
+            preTc.open();
+        } else
+        {
+
+            // Update the editor
+            preTc.setTitle(title);
+            preTc.setModel(startBarIndex, spModel, keyMap);
+        }
+
+
+        preTc.requestActive();
+
+        return preTc;
     }
 
-    @Override
-    public void componentOpened()
-    {
-
-    }
-
-    @Override
-    public void componentClosed()
-    {
-        cleanup();
-    }
 
     //=============================================================================
     // PropertyChangeListener interface
@@ -264,12 +310,6 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
     // ============================================================================================
     // Private methods
     // ============================================================================================
-
-    private void cleanup()
-    {
-        song.removePropertyChangeListener(this);
-        editor.cleanup();
-    }
 
     void writeProperties(java.util.Properties p)
     {
