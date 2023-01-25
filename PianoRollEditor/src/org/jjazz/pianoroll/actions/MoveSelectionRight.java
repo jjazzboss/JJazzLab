@@ -25,6 +25,7 @@ package org.jjazz.pianoroll.actions;
 import java.awt.event.ActionEvent;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
+import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.pianoroll.api.NoteView;
 import org.jjazz.pianoroll.api.PianoRollEditor;
@@ -57,8 +58,8 @@ public class MoveSelectionRight extends AbstractAction
 
 
         float qDur = editor.getQuantization().getSymbolicDuration().getDuration();
-        SizedPhrase spModel = editor.getModel();
-        FloatRange br = spModel.getBeatRange();
+        Phrase model = editor.getModel();
+        FloatRange br = editor.getBeatRange();
 
 
         String undoText = ResUtil.getString(getClass(), "MoveNoteRight");
@@ -69,7 +70,7 @@ public class MoveSelectionRight extends AbstractAction
             float newPos = ne.getPositionInBeats() + qDur;
             if (br.contains(newPos + ne.getDurationInBeats(), false))
             {
-                spModel.move(ne, newPos);
+                model.move(ne, newPos);
             }
         }
 

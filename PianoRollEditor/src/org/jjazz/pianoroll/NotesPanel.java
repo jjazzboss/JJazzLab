@@ -161,8 +161,8 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
         {
             // Hack needed because a simple SwingUtilities.invokeLater(scrollToFirstNote()) is not enough, we must make sure that all NoteViews are placed            
             scrollToFirstNoteHack = false;
-            
-            
+
+
             // Adjust the enclosing scrollPane so that the first note is visible. If no note, show middle pitch.
             Rectangle r;
             final int SIZE = 400;
@@ -267,6 +267,8 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
     public NoteView addNoteView(NoteEvent ne)
     {
         Preconditions.checkNotNull(ne);
+        Preconditions.checkArgument(editor.getBeatRange().contains(ne.getBeatRange(), false));
+
         var keymap = editor.getDrumKeyMap();
         NoteView nv = keymap == null ? new NoteView(ne) : new NoteViewDrum(ne);
         mapNoteViews.put(ne, nv);
@@ -519,7 +521,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
             tmap_allQuantizedXPositions.clear();
             tmap_allBeatsXPositions.clear();
             var allBarRange = editor.getBarRange();
-            int nbBeatsPerTs = (int) editor.getModel().getTimeSignature().getNbNaturalBeats();
+            int nbBeatsPerTs = (int) editor.getTimeSignature().getNbNaturalBeats();
             float[] qBeats = editor.getQuantization().getBeats();
 
             // Precompute all quantized + beat positions
@@ -676,7 +678,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
         {
             var br = editor.getBeatRange();
             Preconditions.checkArgument(br.contains(posInBeats, true), "posInBeats=%s", posInBeats);
-            float nbBeatsPerTs = editor.getModel().getTimeSignature().getNbNaturalBeats();
+            float nbBeatsPerTs = editor.getTimeSignature().getNbNaturalBeats();
             int relBar = (int) ((posInBeats - br.from) / nbBeatsPerTs);
             float beatWithinBar = posInBeats - br.from - relBar * nbBeatsPerTs;
             return new Position(editor.getStartBarIndex() + relBar, beatWithinBar);
@@ -691,7 +693,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
         public float toPositionInBeats(Position pos)
         {
             var br = editor.getBeatRange();
-            float posInBeats = br.from + pos.getPositionInBeats(editor.getModel().getTimeSignature());
+            float posInBeats = br.from + pos.getPositionInBeats(editor.getTimeSignature());
             Preconditions.checkArgument(br.contains(posInBeats, true), "pos=%s getBeatRange()=%s posInBeats=%s", pos, br, posInBeats);
             return posInBeats;
         }

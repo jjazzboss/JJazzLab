@@ -167,7 +167,7 @@ public class PlaybackAutoScroll extends ToggleAction implements PropertyChangeLi
             }
 
             int relBar = newPos.getBar() - editor.getStartBarIndex();
-            float relPos = relBar * editor.getModel().getTimeSignature().getNbNaturalBeats() + newPos.getBeat();
+            float relPos = relBar * editor.getTimeSignature().getNbNaturalBeats() + newPos.getBeat();
             float pos = editor.getBeatRange().from + relPos;
 
             editor.showPlaybackPoint(pos);

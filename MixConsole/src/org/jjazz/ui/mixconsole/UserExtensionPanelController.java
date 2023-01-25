@@ -35,6 +35,7 @@ import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.Sequence;
 import javax.sound.midi.Track;
+import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.midimix.api.UserRhythmVoice;
 import org.jjazz.phrase.api.Phrase;
@@ -111,34 +112,28 @@ public class UserExtensionPanelController
 
         // Prepare data for the editor      
         int channel = panel.getMidiMix().getChannel(getUserRhythmVoice());
-        SongStructure ss = getSong().getSongStructure();
-        var songBeatRange = ss.getBeatRange(null);
+
         DrumKit drumKit = panel.getMidiMix().getInstrumentMixFromKey(getUserRhythmVoice()).getInstrument().getDrumKit();
         DrumKit.KeyMap keyMap = drumKit == null ? null : drumKit.getKeyMap();
+        var p = getUserPhrase();
 
 
-        // Make sure that edited phrase is no longer that the song now                     
-        Phrase p = getUserPhrase();
-        p = Phrases.getSlice(p, songBeatRange, false, 1, 0f);
+        LOGGER.severe("editUserPhrase() !!!!!!!!!!!!!!!!!!!! ");
+        LOGGER.severe("editUserPhrase() !!!!!!!!TODO manage song with multiple signatures !!!!!!!!!!!! ");
+        LOGGER.severe("editUserPhrase() !!!!!!!!!!!!!!!!!!!! ");
+        SongStructure ss = getSong().getSongStructure();
+        var ts = ss.getSongPart(0).getRhythm().getTimeSignature();
+        var br = ss.getBeatRange(null);
 
 
         // Create the editor model
-        var sp = new SizedPhrase(p.getChannel(), songBeatRange, ss.getSongPart(0).getRhythm().getTimeSignature(), p.isDrums());
-        sp.add(p);
         String tabName = getSong().getName() + " - piano editor";
         String title = getUserPhraseName() + " [" + (channel + 1) + "]";
+        var preTc = PianoRollEditorTopComponent.show(getSong(), tabName, title, 0, br, p, ts, keyMap, PianoRollEditorSettings.getDefault());
+        var editor = preTc.getEditor();
 
-
-        var preTc = PianoRollEditorTopComponent.show(getSong(), tabName, title, 0, sp, keyMap, PianoRollEditorSettings.getDefault());
-
-
-        // Listen to user edits to keep the original song phrase updated
-        PianoRollEditor editor = preTc.getEditor();
-        JJazzUndoManager.UserEditListener uel = (um, src, actionName) -> updateUpdateUserPhraseInSong(editor, um, src, actionName);
-        editor.getUndoManager().addUserEditListener(uel);
-
-
-        // Listen to size change to update editor's model size
+        
+        // Listen to song size change to update editor's beat range
         // Stop listening when editor is destroyed or its model is changed  
         // Remove PianoRollEditor if user phrase is removed
         VetoableChangeListener vcl = new VetoableChangeListener()
@@ -172,7 +167,6 @@ public class UserExtensionPanelController
                         case PianoRollEditor.PROP_MODEL:
                         case PianoRollEditor.PROP_EDITOR_ALIVE:
                             editor.removePropertyChangeListener(this);
-                            editor.getUndoManager().removeUserEditListener(uel);
                             getSong().removePropertyChangeListener(this);
                             getSong().removeVetoableChangeListener(vcl);
                     }
@@ -181,14 +175,9 @@ public class UserExtensionPanelController
                     if (evt.getPropertyName().equals(Song.PROP_SIZE_IN_BARS))
                     {
                         // Adjust the model to the new size
-                        Phrase p = getUserPhrase();
                         var br = ss.getBeatRange(null);
-                        p = Phrases.getSlice(p, ss.getBeatRange(null), false, 1, 0f);
-                        var sp = new SizedPhrase(p.getChannel(), br, ss.getSongPart(0).getRhythm().getTimeSignature(), p.isDrums());
-                        sp.add(p);
-                        preTc.setModel(0, sp, keyMap);
-
-                    } 
+                        editor.setModel(0, br, p, ts, keyMap);
+                    }
                 }
             }
         };
@@ -326,39 +315,6 @@ public class UserExtensionPanelController
         });
 
         return res;
-    }
-
-    /**
-     * Update the song user phrase from the edited delegate phrase.
-     *
-     * @param editor
-     * @param um
-     * @param source
-     * @param actionName
-     */
-    private void updateUpdateUserPhraseInSong(PianoRollEditor editor, JJazzUndoManager um, Object source, String actionName)
-    {
-        if (source != editor)
-        {
-            // Not our edits, ignore
-            return;
-        }
-
-        assert um == editor.getUndoManager();
-
-
-        // Ignore actionName, just update the song
-        SizedPhrase editorSp = editor.getModel();
-        Phrase p = new Phrase(editorSp.getChannel());
-        p.add(editorSp);
-        try
-        {
-            getSong().setUserPhrase(getUserPhraseName(), p);
-        } catch (PropertyVetoException ex)
-        {
-            // Should never be there, we're just replacing an existing phrase
-            Exceptions.printStackTrace(ex);
-        }
     }
 
     private String getUserPhraseName()

@@ -32,6 +32,8 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.geom.Line2D;
 import java.awt.geom.Path2D;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.logging.Logger;
 import javax.swing.JPanel;
 import org.jjazz.harmony.api.TimeSignature;
@@ -46,9 +48,8 @@ import org.jjazz.util.api.IntRange;
 /**
  * A component to show a "bird's eye view" of whole or part of a Phrase.
  * <p>
- * Call repaint() to update the component if model has changed.
  */
-public class PhraseBirdsEyeViewComponent extends JPanel
+public class PhraseBirdsEyeViewComponent extends JPanel implements PropertyChangeListener
 {
 
     public static final int MIN_HEIGHT = 10;
@@ -216,7 +217,16 @@ public class PhraseBirdsEyeViewComponent extends JPanel
         checkNotNull(beatRange);
         checkArgument(!beatRange.isEmpty(), "beatRange is empty");
 
+        if (this.phrase != null)
+        {
+            this.phrase.removePropertyChangeListener(this);
+        }
         this.phrase = model;
+        if (this.phrase != null)
+        {
+            this.phrase.addPropertyChangeListener(this);
+        }
+
         this.beatRange = beatRange;
         this.timeSignature = ts;
         repaint();
@@ -262,6 +272,21 @@ public class PhraseBirdsEyeViewComponent extends JPanel
     public int getSizeInBars()
     {
         return (int) Math.ceil(this.beatRange.size() / timeSignature.getNbNaturalBeats());
+    }
+
+    // ----------------------------------------------------------------------------
+    // PropertyChangeListener interface
+    // ----------------------------------------------------------------------------
+    @Override
+    public void propertyChange(PropertyChangeEvent evt)
+    {
+        if (evt.getSource() == phrase)
+        {
+            if (!Phrase.isAdjustingEvent(evt.getPropertyName()))
+            {
+                repaint();
+            }
+        }
     }
 
     // ================================================================================

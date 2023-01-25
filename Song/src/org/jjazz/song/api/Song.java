@@ -26,6 +26,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.XStreamException;
+import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.beans.PropertyVetoException;
@@ -48,6 +49,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.swing.event.UndoableEditEvent;
@@ -62,7 +64,6 @@ import org.jjazz.leadsheet.chordleadsheet.api.event.ClsChangeEvent;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo;
 import org.jjazz.phrase.api.Phrase;
-import org.jjazz.phrase.api.Phrases;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.TempoRange;
 import org.jjazz.songstructure.api.SongStructureFactory;
@@ -73,7 +74,6 @@ import org.jjazz.songstructure.api.event.SptAddedEvent;
 import org.jjazz.songstructure.api.event.SptRemovedEvent;
 import org.jjazz.songstructure.api.event.SptResizedEvent;
 import org.jjazz.undomanager.api.SimpleEdit;
-import org.jjazz.util.api.FloatRange;
 import org.jjazz.util.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -85,7 +85,7 @@ import org.openide.util.Exceptions;
  * Contents are a chord leadsheet, the related song structure, some parameters and some optional properties.<br>
  * Song can be created using the SongFactory methods.
  */
-public class Song implements Serializable, ClsChangeListener, SgsChangeListener
+public class Song implements Serializable, ClsChangeListener, SgsChangeListener, PropertyChangeListener
 {
 
     public static final String PROP_NAME = "PROP_NAME";   //NOI18N 
@@ -102,7 +102,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
      */
     public static final String PROP_VETOABLE_USER_PHRASE = "PROP_VETOABLE_USER_PHRASE";   //NOI18N
     /**
-     * An existing phrase was updated. oldValue=old phrase, newValue=name.
+     * An existing phrase was replaced by another. oldValue=old phrase, newValue=name.
      */
     public static final String PROP_VETOABLE_USER_PHRASE_CONTENT = "PROP_VETOABLE_USER_PHRASE_CONTENT";   //NOI18N 
     /**
@@ -154,7 +154,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
      *
      * @param name
      * @param cls
-     * @param sgs Must be kept consistent with cls changes (sgs.getParentChordLeadSheet() must return cls)
+     * @param sgs  Must be kept consistent with cls changes (sgs.getParentChordLeadSheet() must return cls)
      */
     protected Song(String name, ChordLeadSheet cls, SongStructure sgs)
     {
@@ -219,13 +219,16 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
     }
 
     /**
-     * Set a user phrase for the specified name.
+     * Set the user phrase for the specified name.
      * <p>
-     * If a user phrase was already associated to name, it's replaced. Phrase is shortened if longer than the song. Fire a
-     * VeotableChange PROP_VETOABLE_USER_PHRASE if no phrase is replaced, otherwise use PROP_VETOABLE_USER_PHRASE_CONTENT.
+     * If a user phrase was already associated to name, it's replaced. Fire a VeotableChange PROP_VETOABLE_USER_PHRASE if no
+     * phrase is replaced, otherwise use PROP_VETOABLE_USER_PHRASE_CONTENT.
+     * <p>
+     * The song will fire a PROP_MODIFIED_OR_SAVED_OR_RESET change event when a non-adjusting change is made to the phrase.
      * <p>
      * @param name Can't be blank.
-     * @param p Can't be null. The phrase channel is not used.
+     * @param p    Can't be null. No defensive copy is done, p is directly reused. No control is done on the phrase consistency Vs
+     *             the song.
      * @throws PropertyVetoException If no Midi channel available for the user phrase
      * @see Song#PROP_VETOABLE_USER_PHRASE
      * @see Song#PROP_VETOABLE_USER_PHRASE_CONTENT
@@ -243,11 +246,6 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
         }
 
 
-        // Make phrase no longer than the song
-        FloatRange beatRange = getSongStructure().getBeatRange(null);
-        p = Phrases.getSlice(p, beatRange, false, 1, 0f);        // Create a new phrase
-
-
         final Phrase oldPhrase = getUserPhrase(name);
         final Phrase newPhrase = p;
 
@@ -256,6 +254,10 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
         final var oldMap = new HashMap<>(mapUserPhrases);
         mapUserPhrases.put(name, newPhrase);
         final var newMap = new HashMap<>(mapUserPhrases);
+
+
+        // Listen to the phrase changes in order to update the modified status of the song
+        newPhrase.addPropertyChangeListener(this);
 
 
         // Create the undoable event        
@@ -269,6 +271,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
                 public void undoBody()
                 {
                     mapUserPhrases = oldMap;
+                    newPhrase.removePropertyChangeListener(Song.this);
                     try
                     {
                         vcs.fireVetoableChange(PROP_VETOABLE_USER_PHRASE, name, null);
@@ -281,9 +284,11 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
                 }
 
                 @Override
+
                 public void redoBody()
                 {
                     mapUserPhrases = newMap;
+                    newPhrase.addPropertyChangeListener(Song.this);
                     try
                     {
                         vcs.fireVetoableChange(PROP_VETOABLE_USER_PHRASE, null, name);
@@ -301,13 +306,17 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
 
         } else
         {
-            // User phrase is updated
+            // User phrase is replaced
+            oldPhrase.removePropertyChangeListener(this);
+
             edit = new SimpleEdit("Update user phrase")
             {
                 @Override
                 public void undoBody()
                 {
                     mapUserPhrases = oldMap;
+                    newPhrase.removePropertyChangeListener(Song.this);
+                    oldPhrase.addPropertyChangeListener(Song.this);
                     try
                     {
                         vcs.fireVetoableChange(PROP_VETOABLE_USER_PHRASE_CONTENT, newPhrase, name);
@@ -323,6 +332,8 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
                 public void redoBody()
                 {
                     mapUserPhrases = newMap;
+                    oldPhrase.removePropertyChangeListener(Song.this);
+                    newPhrase.addPropertyChangeListener(Song.this);
                     try
                     {
                         vcs.fireVetoableChange(PROP_VETOABLE_USER_PHRASE_CONTENT, oldPhrase, name);
@@ -341,6 +352,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
         }
 
         fireIsModified();
+
     }
 
     /**
@@ -349,16 +361,20 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
      * Fire a PROP_VETOABLE_USER_PHRASE event with oldValue=name and newValue=null.
      *
      * @param name
+     * @return The removed phrase or null
      */
-    public void removeUserPhrase(String name)
+    public Phrase removeUserPhrase(String name)
     {
         checkNotNull(name);
 
-
-        if (mapUserPhrases.get(name) == null)
+        Phrase p = mapUserPhrases.get(name);
+        if (p == null)
         {
-            return;
+            return null;
         }
+
+
+        p.removePropertyChangeListener(this);
 
 
         // Perform the change
@@ -374,6 +390,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
             public void undoBody()
             {
                 mapUserPhrases = oldMap;
+                p.addPropertyChangeListener(Song.this);
                 try
                 {
                     vcs.fireVetoableChange(PROP_VETOABLE_USER_PHRASE, null, name);
@@ -389,6 +406,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
             public void redoBody()
             {
                 mapUserPhrases = newMap;
+                p.removePropertyChangeListener(Song.this);
                 try
                 {
                     vcs.fireVetoableChange(PROP_VETOABLE_USER_PHRASE, name, null);
@@ -413,6 +431,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
         }
         fireIsModified();
 
+        return p;
     }
 
     /**
@@ -426,15 +445,19 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
     }
 
     /**
-     * Get a user phrase copy associated to specified name.
+     * Get the user phrase associated to specified name.
+     * <p>
+     * Returned phrase might be longer than the song.
+     * <p>
+     * The song listens to the returned phrase so that if a significant change (non-adusting) is made to it, the song will fire a
+     * PROP_MODIFIED_OR_SAVED_OR_RESET change event.
      *
      * @param name
      * @return Null if no phrase associated to name. The Phrase channel should be ignored.
      */
     public Phrase getUserPhrase(String name)
     {
-        Phrase p = mapUserPhrases.get(name);
-        return p == null ? null : p.clone();
+        return mapUserPhrases.get(name);
     }
 
 
@@ -580,6 +603,10 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
                 r.releaseResources();
             }
         }
+        for (var p : mapUserPhrases.values())
+        {
+            p.removePropertyChangeListener(this);
+        }
         pcs.firePropertyChange(PROP_CLOSED, false, true);
     }
 
@@ -685,8 +712,8 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
      * oldValue=true and newValue=false.
      *
      * @param songFile
-     * @param isCopy Indicate that the save operation if for a copy, ie just perform the save operation and do nothing else (song
-     * name is not set, etc.)
+     * @param isCopy   Indicate that the save operation if for a copy, ie just perform the save operation and do nothing else
+     *                 (song name is not set, etc.)
      * @throws java.io.IOException
      * @see getFile()
      */
@@ -709,7 +736,9 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
         try (FileOutputStream fos = new FileOutputStream(songFile))
         {
             XStream xstream = new XStream();
-            xstream.alias("Song", Song.class);
+            xstream
+                    .alias("Song", Song.class
+                    );
             Writer w = new BufferedWriter(new OutputStreamWriter(fos, "UTF-8"));        // Needed to support special/accented chars
             xstream.toXML(this, w);
             if (!isCopy)
@@ -816,6 +845,29 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
             return str.substring(0, indexExt);
         }
     }
+    //-----------------------------------------------------------------------
+    // PropertiesListener interface
+    //-----------------------------------------------------------------------
+
+    @Override
+    public void propertyChange(PropertyChangeEvent e)
+    {
+        LOGGER.log(Level.FINE, "propertyChange() source={0} prop={1} newValue={2}", new Object[]
+        {
+            e.getSource().getClass(), e.getPropertyName(), e.getNewValue()
+        });
+        
+
+        if (e.getSource() instanceof Phrase)
+        {
+            // Listen to User phrases significant changes to mark the song as modified 
+            if (!Phrase.isAdjustingEvent(e.getPropertyName()))
+            {
+                    fireIsModified();
+            }
+        }
+    }
+
 
     // ============================================================================================= 
     // ClsChangeListener implementation
@@ -827,7 +879,8 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
     }
 
     @Override
-    public void chordLeadSheetChanged(ClsChangeEvent event)
+    public void chordLeadSheetChanged(ClsChangeEvent event
+    )
     {
         fireIsModified();
     }
@@ -842,7 +895,8 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
     }
 
     @Override
-    public void songStructureChanged(SgsChangeEvent e)
+    public void songStructureChanged(SgsChangeEvent e
+    )
     {
         fireIsModified();
 
@@ -855,10 +909,10 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
             lastSize = newSize;
         }
     }
-
     // ----------------------------------------------------------------------------
     // Private methods 
     // ----------------------------------------------------------------------------
+
     /**
      * Fire a PROP_MODIFIED_OR_SAVED_OR_RESET property change event with oldValue=false, newValue=true
      */
@@ -887,6 +941,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
         for (UndoableEditListener l : undoListeners.toArray(new UndoableEditListener[undoListeners.size()]))
         {
             l.undoableEditHappened(event);
+
         }
     }
 
@@ -895,7 +950,8 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
      */
     private void doAnalytics()
     {
-        var ecss = chordLeadSheet.getItems(CLI_ChordSymbol.class).stream().map(cli -> cli.getData()).toList();
+        var ecss = chordLeadSheet.getItems(CLI_ChordSymbol.class
+        ).stream().map(cli -> cli.getData()).toList();
         var cris = ecss.stream().map(ecs -> ecs.getRenderingInfo()).collect(Collectors.toList());
 
         HashMap<String, Object> map = new HashMap<>();
@@ -936,6 +992,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
         throw new InvalidObjectException("Serialization proxy required");
 
     }
+
 
     /**
      * RhythmVoices must be stored in a simplified way in order to avoid storing rhythm stuff which depend on InstrumentBanks

@@ -25,7 +25,7 @@ package org.jjazz.pianoroll.actions;
 import java.awt.event.ActionEvent;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
-import org.jjazz.phrase.api.SizedPhrase;
+import org.jjazz.phrase.api.Phrase;
 import org.jjazz.pianoroll.api.NoteView;
 import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.util.api.ResUtil;
@@ -54,7 +54,7 @@ public class TransposeSelectionDown extends AbstractAction
             return;
         }
 
-        SizedPhrase spModel = editor.getModel();
+        Phrase model = editor.getModel();
 
 
         String undoText = ResUtil.getString(getClass(), "TransposeNoteUp");
@@ -66,7 +66,7 @@ public class TransposeSelectionDown extends AbstractAction
             if (newPitch >= 0)
             {
                 var newNe = ne.getCopyPitch(newPitch);
-                spModel.replace(ne, newNe);
+                model.replace(ne, newNe);
             }
         }
 

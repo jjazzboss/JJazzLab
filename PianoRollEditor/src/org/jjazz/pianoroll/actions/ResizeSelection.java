@@ -25,6 +25,7 @@ package org.jjazz.pianoroll.actions;
 import java.awt.event.ActionEvent;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
+import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.pianoroll.api.NoteView;
 import org.jjazz.pianoroll.api.PianoRollEditor;
@@ -71,8 +72,8 @@ public class ResizeSelection extends AbstractAction
         {
             qDur = -qDur;
         }
-        SizedPhrase spModel = editor.getModel();
-        FloatRange br = spModel.getBeatRange();
+        Phrase model = editor.getModel();
+        FloatRange br = editor.getBeatRange();
 
 
         String undoText = ResUtil.getString(ResizeSelection.class, "ResizeNote");
@@ -94,7 +95,7 @@ public class ResizeSelection extends AbstractAction
             if (br.contains(pos + newDur, false))
             {
                 var newNe = ne.getCopyDur(newDur);
-                spModel.replace(ne, newNe);
+                model.replace(ne, newNe);
             }
         }
 

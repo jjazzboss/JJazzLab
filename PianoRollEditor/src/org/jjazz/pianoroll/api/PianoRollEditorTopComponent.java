@@ -31,12 +31,14 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 import javax.swing.Action;
+import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.midi.api.DrumKit;
-import org.jjazz.phrase.api.SizedPhrase;
+import org.jjazz.phrase.api.Phrase;
 import org.jjazz.pianoroll.ToolbarPanel;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
 import org.jjazz.song.api.Song;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
+import org.jjazz.util.api.FloatRange;
 import org.openide.awt.UndoRedo;
 import org.openide.util.Lookup;
 import org.openide.util.Utilities;
@@ -70,14 +72,17 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
      * @param tabName       The TopComponent name
      * @param title         The title used within the editor
      * @param startBarIndex
-     * @param spModel
+     * @param beatRange     The edited phrase beat range
+     * @param p
+     * @param ts            The TimeSignature of the edited beat range
      * @param keyMap        Can be null
      * @param settings
      */
-    public PianoRollEditorTopComponent(Song song, String tabName, String title, int startBarIndex, SizedPhrase spModel, DrumKit.KeyMap keyMap, PianoRollEditorSettings settings)
+    public PianoRollEditorTopComponent(Song song, String tabName, String title, int startBarIndex, FloatRange beatRange, Phrase p, TimeSignature ts, DrumKit.KeyMap keyMap, PianoRollEditorSettings settings)
     {
         Preconditions.checkNotNull(song);
-        Preconditions.checkNotNull(settings);
+        Preconditions.checkNotNull(tabName);
+        Preconditions.checkNotNull(title);
 
 
         putClientProperty(TopComponent.PROP_MAXIMIZATION_DISABLED, Boolean.FALSE);
@@ -93,7 +98,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
 
 
         this.song = song;
-        editor = new PianoRollEditor(startBarIndex, spModel, keyMap, settings);
+        editor = new PianoRollEditor(startBarIndex, beatRange, p, ts, keyMap, settings);
         editor.setSong(song);
         editor.setUndoManager(JJazzUndoManagerFinder.getDefault().get(song));
         toolbarPanel = new ToolbarPanel(editor, title);
@@ -125,19 +130,6 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
     {
         toolbarPanel.setTitle(title);
     }
-
-    /**
-     * Update the edited model.
-     *
-     * @param startBarIndex
-     * @param spModel
-     * @param keyMap
-     */
-    public void setModel(int startBarIndex, SizedPhrase spModel, DrumKit.KeyMap keyMap)
-    {
-        editor.setModel(startBarIndex, spModel, keyMap);
-    }
-
 
     /**
      * The song associated to this TopComponent.
@@ -213,7 +205,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
     @Override
     public void componentClosed()
     {
-        song.removePropertyChangeListener(this);       
+        song.removePropertyChangeListener(this);
         editor.cleanup();
     }
 
@@ -254,18 +246,18 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
      * @param tabName       Ignored if component has already been created for this song
      * @param title
      * @param startBarIndex
-     * @param spModel
+     * @param model
      * @param keyMap
      * @param settings      Ignored if component has already been created for this song
      * @return The shown editor.
      */
-    static public PianoRollEditorTopComponent show(Song song, String tabName, String title, int startBarIndex, SizedPhrase spModel, DrumKit.KeyMap keyMap, PianoRollEditorSettings settings)
+    static public PianoRollEditorTopComponent show(Song song, String tabName, String title, int startBarIndex, FloatRange beatRange, Phrase model, TimeSignature ts, DrumKit.KeyMap keyMap, PianoRollEditorSettings settings)
     {
         var preTc = PianoRollEditorTopComponent.get(song);
         if (preTc == null)
         {
-            // Create thed editor
-            preTc = new PianoRollEditorTopComponent(song, tabName, title, startBarIndex, spModel, keyMap, settings);
+            // Create the editor
+            preTc = new PianoRollEditorTopComponent(song, tabName, title, startBarIndex, beatRange, model, ts, keyMap, settings);
 
 
             // Show it
@@ -280,7 +272,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
 
             // Update the editor
             preTc.setTitle(title);
-            preTc.setModel(startBarIndex, spModel, keyMap);
+            preTc.getEditor().setModel(startBarIndex, beatRange, model, ts, keyMap);
         }
 
 

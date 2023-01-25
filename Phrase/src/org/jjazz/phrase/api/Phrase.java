@@ -234,7 +234,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
      * <p>
      * Same as removing the old one + adding copy at new position , except it only fires a PROP_NOTE_MOVED.
      *
-     * @param ne Must belong to this phrase
+     * @param ne     Must belong to this phrase
      * @param newPos
      * @return The new NoteEvent at newPos. Return ne if position unchanged.
      */
@@ -249,7 +249,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
      * Same as removing the old one + adding copy at new position , except it only fires a PROP_NOTE_MOVED or
      * PROP_NOTE_MOVED_ADJUSTING change event.
      *
-     * @param ne Must belong to this phrase
+     * @param ne          Must belong to this phrase
      * @param newPos
      * @param isAdjusting If true fire a PROP_NOTE_MOVED_ADJUSTING instead of PROP_NOTE_MOVED
      * @return The new NoteEvent at newPos. Return ne if position unchanged.
@@ -598,6 +598,20 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
         }
     }
 
+    /**
+     * Check if propertyName corresponds to one of the adjusting events PROP_NOTE_ADDED_ADJUSTING, PROP_NOTE_REMOVED_ADJUSTING etc.
+     *
+     * @param propertyName
+     * @return
+     */
+    static public boolean isAdjustingEvent(String propertyName)
+    {
+        return propertyName.equals(PROP_NOTE_ADDED_ADJUSTING)
+                || propertyName.equals(PROP_NOTE_REMOVED_ADJUSTING)
+                || propertyName.equals(PROP_NOTE_MOVED_ADJUSTING)
+                || propertyName.equals(PROP_NOTE_REPLACED_ADJUSTING);
+    }
+
     // --------------------------------------------------------------------- 
     // Collection interface
     // ---------------------------------------------------------------------
@@ -724,7 +738,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
 
     /**
      * Remove a NoteEvent.
-     * 
+     * <p>
      * Fire a PROP_NOTE_REMOVED event
      *
      * @param o
@@ -738,7 +752,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
 
     /**
      * Remove a NoteEvent.
-     * 
+     * <p>
      * Fire a PROP_NOTE_REMOVED or PROP_NOTE_REMOVED_ADJUSTING event.
      *
      * @param o

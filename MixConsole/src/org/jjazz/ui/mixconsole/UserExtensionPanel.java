@@ -123,7 +123,7 @@ public class UserExtensionPanel extends javax.swing.JPanel implements VetoableCh
         song.getSongStructure().removeSgsChangeListener(this);
         settings.removePropertyChangeListener(this);
     }
- // ----------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------
     // PropertyChangeListener interface
     // ----------------------------------------------------------------------------
     @Override

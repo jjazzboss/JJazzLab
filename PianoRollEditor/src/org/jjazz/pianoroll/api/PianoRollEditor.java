@@ -53,10 +53,10 @@ import javax.swing.JScrollPane;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import org.jjazz.base.api.actions.Savable;
+import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
-import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.pianoroll.EditToolBar;
 import org.jjazz.pianoroll.MouseDragLayerUI;
 import org.jjazz.pianoroll.NotesPanel;
@@ -88,7 +88,7 @@ import org.openide.util.lookup.InstanceContent;
 import org.openide.util.lookup.ProxyLookup;
 
 /**
- * A piano roll editor of a SizedPhrase.
+ * A piano roll editor of a phrase.
  * <p>
  * Its Lookup must contain :<br>
  * - editor's ActionMap<br>
@@ -104,9 +104,9 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
      */
     public static final String PROP_EDITOR_ALIVE = "EditorAlive";
     /**
-     * oldValue=old SizedPhrase model, newValue=new SizedPhrase model
+     * oldValue=old Phrase model, newValue=new Phrase model
      */
-    public static final String PROP_MODEL = "SpPhraseModel";
+    public static final String PROP_MODEL = "PhraseModel";
     /**
      * oldValue=old tool, newValue=new tool
      */
@@ -133,7 +133,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     private MouseDragLayerUI mouseDragLayerUI;
     private JLayer mouseDragLayer;
     private ZoomValue zoomValue;
-    private SizedPhrase spModel;
+    private Phrase model;
     private DrumKit.KeyMap keymap;
     private final PianoRollEditorSettings settings;
     private Quantization quantization;
@@ -153,36 +153,45 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     private boolean playbackAutoScrollEnabled;
     private final List<EditTool> editTools;
     private Song song;
+    private FloatRange beatRange;
+    private TimeSignature timeSignature;
 
 
     /**
-     * Create a piano roll editor for the specified SizedPhrase.
+     * Create a piano roll editor for the specified Phrase.
      *
-     * @param startBarIndex The bar index corresponding to the start of the SizedPhrase
-     * @param sp            Can't be null
+     * @param startBarIndex The bar index corresponding to the start of the beat range
+     * @param beatRange     The range of the phrase to be edited
+     * @param p             Can't be null
+     * @param ts            The time signature of the edited beat range
      * @param kmap          If not null set the editor in drums mode
      * @param settings      Can't be null
      */
-    public PianoRollEditor(int startBarIndex, SizedPhrase sp, DrumKit.KeyMap kmap, PianoRollEditorSettings settings)
+    public PianoRollEditor(int startBarIndex, FloatRange beatRange, Phrase p, TimeSignature ts, DrumKit.KeyMap kmap, PianoRollEditorSettings settings)
     {
-        Preconditions.checkNotNull(sp);
-        Preconditions.checkNotNull(settings);
         Preconditions.checkArgument(startBarIndex >= 0);
+        Preconditions.checkNotNull(p);
+        Preconditions.checkNotNull(settings);
+        Preconditions.checkNotNull(beatRange);
+        Preconditions.checkNotNull(ts);
+
 
         this.startBarIndex = startBarIndex;
-        this.spModel = sp;
+        this.model = p;
+        this.timeSignature = ts;
+        this.beatRange = beatRange;
         this.keymap = kmap;
         this.settings = settings;
         this.quantization = Quantization.ONE_QUARTER_BEAT;
 
 
         // Be notified of changes, note added, moved, removed, set
-        spModel.addPropertyChangeListener(this);
+        model.addPropertyChangeListener(this);
 
 
         // Default undo manager to listen for model changes
         undoManager = new JJazzUndoManager();
-        spModel.addUndoableEditListener(undoManager);
+        model.addUndoableEditListener(undoManager);
 
 
         // Selection lookup
@@ -231,7 +240,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
 
 
         // Add the notes
-        for (var ne : spModel)
+        for (var ne : model)
         {
             addNote(ne);
         }
@@ -286,14 +295,14 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     /**
      * Optional view-only phrases shown in the background of the editor.
      * <p>
-     * The specified phrases are shown faded in the background in order to facilite the editing of the SizedPhrase model. E.g. if
-     * the edited phrase is a bass line, you can use this method to make the corresponding drums phrase also visible.
+     * The specified phrases are shown faded in the background in order to facilite the editing of the Phrase model. E.g. if the
+     * edited phrase is a bass line, you can use this method to make the corresponding drums phrase also visible.
      *
-     * @param mapNamePhrases A name associated to a SizedPhrase. SizedPhrase must have the same beatRange and TimeSignature than
-     *                       the SizedPhrase model.
-     * @see #setModel(org.jjazz.phrase.api.SizedPhrase)
+     * @param mapNamePhrases A name associated to a Phrase. Phrase must have the same beatRange and TimeSignature than the Phrase
+     *                       model.
+     * @see #setModel(org.jjazz.phrase.api.Phrase)
      */
-    public void setBackgroundModels(Map<String, SizedPhrase> mapNamePhrases)
+    public void setBackgroundModels(Map<String, Phrase> mapNamePhrases)
     {
 
     }
@@ -303,19 +312,19 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
      *
      * @return Can be empty
      */
-    public List<SizedPhrase> getBackgroundModels()
+    public List<Phrase> getBackgroundModels()
     {
         return null;
     }
 
     /**
-     * Get the SizedPhrase edited by this editor.
+     * Get the Phrase edited by this editor.
      *
      * @return
      */
-    public SizedPhrase getModel()
+    public Phrase getModel()
     {
-        return spModel;
+        return model;
     }
 
     /**
@@ -323,41 +332,46 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
      * <p>
      * The method also resets the background models. Fire a PROP_MODEL change event.
      *
-     * @param startBar The new
-     * @param sp
+     * @param startBar  The new
+     * @param beatRange
+     * @param p
+     * @param ts
      * @param kMap
      * @see #setBackgroundModels(java.util.Map)
      */
-    public void setModel(int startBar, SizedPhrase sp, DrumKit.KeyMap kMap)
+    public void setModel(int startBar, FloatRange beatRange, Phrase p, TimeSignature ts, DrumKit.KeyMap kMap)
     {
-        Preconditions.checkNotNull(sp);
+        Preconditions.checkNotNull(p);
         Preconditions.checkArgument(startBar >= 0);
+        Preconditions.checkNotNull(beatRange);
+        Preconditions.checkNotNull(ts);
 
-
-        if (spModel == sp)
+        if (model == p && startBar == startBarIndex && beatRange == this.beatRange && ts.equals(timeSignature) && kMap.equals(this.keymap))
         {
             return;
         }
 
 
-        for (var ne : spModel)
+        for (var ne : model)
         {
             removeNote(ne);
         }
 
-        spModel.removePropertyChangeListener(this);
-        spModel.removeUndoableEditListener(undoManager);
+        model.removePropertyChangeListener(this);
+        model.removeUndoableEditListener(undoManager);
 
 
-        var oldModel = spModel;
-        spModel = sp;
+        var oldModel = model;
+        model = p;
         startBarIndex = startBar;
         keymap = kMap;
+        this.beatRange = beatRange;
+        timeSignature = ts;
         labelNotes(keyboard, keymap);
 
 
-        spModel.addPropertyChangeListener(this);
-        spModel.addUndoableEditListener(undoManager);
+        model.addPropertyChangeListener(this);
+        model.addUndoableEditListener(undoManager);
 
 
         // Reset background models
@@ -372,19 +386,19 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
 
 
         // Add the notes
-        for (var ne : spModel)
+        for (var ne : model)
         {
             addNote(ne);        // Will call notesPanel.revalidate()
         }
 
         notesPanel.scrollToFirstNote();
 
-        firePropertyChange(PROP_MODEL, oldModel, spModel);
+        firePropertyChange(PROP_MODEL, oldModel, model);
     }
 
 
     /**
-     * Get the bar index of the start of the SizedPhrase model.
+     * Get the bar index of the start of the Phrase model.
      *
      * @return
      */
@@ -394,7 +408,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     }
 
     /**
-     * Set the bar index of the start of the SizedPhrase model.
+     * Set the bar index of the start of the Phrase model.
      *
      * @param startBarIndex
      */
@@ -407,6 +421,23 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         this.startBarIndex = startBarIndex;
     }
 
+    public TimeSignature getTimeSignature()
+    {
+        return timeSignature;
+    }
+
+
+    public FloatRange getBeatRange()
+    {
+        return beatRange;
+    }
+
+
+    public IntRange getBarRange()
+    {
+        int nbBars = (int) (getBeatRange().size() / getTimeSignature().getNbNaturalBeats());
+        return new IntRange(getStartBarIndex(), getStartBarIndex() + nbBars - 1);
+    }
 
     /**
      * Get the lookup of this editor.
@@ -462,8 +493,8 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     {
         rulerPanel.cleanup();
         notesPanel.cleanup();
-        spModel.removeUndoableEditListener(undoManager);
-        spModel.removePropertyChangeListener(this);
+        model.removeUndoableEditListener(undoManager);
+        model.removePropertyChangeListener(this);
         if (song != null)
         {
             song.removePropertyChangeListener(this);
@@ -743,10 +774,10 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     }
 
     /**
-     * Return the X editor position that corresponds to a beat position of the SizedPhrase model.
+     * Return the X editor position that corresponds to a beat position of the Phrase model.
      *
      * @param pos
-     * @return -1 If pos is outside the SizedPhrase
+     * @return -1 If pos is outside the Phrase
      */
     public int getXFromPosition(float pos)
     {
@@ -764,18 +795,6 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         return notesPanel.getYMapper().getPitch(notesPanelPoint.y);
     }
 
-
-    public FloatRange getBeatRange()
-    {
-        return getModel().getBeatRange();
-    }
-
-
-    public IntRange getBarRange()
-    {
-        int nbBars = (int) (getBeatRange().size() / getModel().getTimeSignature().getNbNaturalBeats());
-        return new IntRange(getStartBarIndex(), getStartBarIndex() + nbBars - 1);
-    }
 
     /**
      * Scroll so that specified pitch is shown in the center of the editor, if possible.
@@ -865,10 +884,10 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
      */
     public IntRange getVisibleBarRange()
     {
-        float nbBeatsPerBar = getModel().getTimeSignature().getNbNaturalBeats();
+        float nbBeatsPerBar = getTimeSignature().getNbNaturalBeats();
         var visibleBr = getVisibleBeatRange();
-        int relBarFrom = (int) ((visibleBr.from - spModel.getBeatRange().from) / nbBeatsPerBar);
-        int relBarTo = (int) ((visibleBr.to - spModel.getBeatRange().from) / nbBeatsPerBar);
+        int relBarFrom = (int) ((visibleBr.from - getBeatRange().from) / nbBeatsPerBar);
+        int relBarTo = (int) ((visibleBr.to - getBeatRange().from) / nbBeatsPerBar);
         var res = new IntRange(startBarIndex + relBarFrom, startBarIndex + relBarTo);
         return res;
     }
@@ -888,9 +907,9 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
      */
     public final void setUndoManager(JJazzUndoManager um)
     {
-        spModel.removeUndoableEditListener(undoManager);
+        model.removeUndoableEditListener(undoManager);
         undoManager = um;
-        spModel.addUndoableEditListener(undoManager);
+        model.addUndoableEditListener(undoManager);
     }
 
     // ==========================================================================================================
@@ -904,7 +923,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
             evt.getSource().getClass().getSimpleName(), evt.getPropertyName(), evt.getOldValue(), evt.getNewValue()
         });
 
-        if (evt.getSource() == spModel)
+        if (evt.getSource() == model)
         {
             switch (evt.getPropertyName())
             {
@@ -933,7 +952,10 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
                 }
             }
 
-            setSongModified();
+            if (!Phrase.isAdjustingEvent(evt.getPropertyName()))
+            {
+                setSongModified();
+            }
 
         } else if (evt.getSource() instanceof NoteView nv)
         {
@@ -995,14 +1017,19 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
 
     /**
      * Caller is responsible to call revalidate() and/or repaint() as required.
+     * <p>
+     * Don't add if not in the beat range.
      *
      * @param ne
      */
     private void addNote(NoteEvent ne)
     {
-        var nv = notesPanel.addNoteView(ne);
-        registerNoteView(nv);
-        revalidate();
+        if (beatRange.contains(ne.getBeatRange(), false))
+        {
+            var nv = notesPanel.addNoteView(ne);
+            registerNoteView(nv);
+            revalidate();
+        }
     }
 
     /**
@@ -1012,8 +1039,11 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
      */
     private void removeNote(NoteEvent ne)
     {
-        var nv = notesPanel.removeNoteView(ne);
-        unregisterNoteView(nv);
+        if (beatRange.contains(ne.getBeatRange(), false))
+        {
+            var nv = notesPanel.removeNoteView(ne);
+            unregisterNoteView(nv);
+        }
     }
 
     private void registerNoteView(NoteView nv)
@@ -1179,6 +1209,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
 
 
     }
+
 
     // =======================================================================================================================
     // Inner classes
