@@ -361,7 +361,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
 
 
         // Reset background models
-        setBackgroundModels(new HashMap<String, SizedPhrase>());
+        setBackgroundModels(new HashMap<>());
 
 
         // Update the subcomponents          
@@ -908,20 +908,20 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         {
             switch (evt.getPropertyName())
             {
-                case Phrase.PROP_NOTE_ADDED ->
+                case Phrase.PROP_NOTE_ADDED, Phrase.PROP_NOTE_ADDED_ADJUSTING ->
                 {
                     List<NoteEvent> nes = (List<NoteEvent>) evt.getNewValue();
                     nes.forEach(ne -> addNote(ne));
                     notesPanel.revalidate();
                 }
-                case Phrase.PROP_NOTE_REMOVED ->
+                case Phrase.PROP_NOTE_REMOVED, Phrase.PROP_NOTE_REMOVED_ADJUSTING ->
                 {
                     List<NoteEvent> nes = (List<NoteEvent>) evt.getNewValue();
                     nes.forEach(ne -> removeNote(ne));
                     notesPanel.revalidate();
                     notesPanel.repaint();
                 }
-                case Phrase.PROP_NOTE_MOVED, Phrase.PROP_NOTE_REPLACED ->
+                case Phrase.PROP_NOTE_MOVED, Phrase.PROP_NOTE_MOVED_ADJUSTING, Phrase.PROP_NOTE_REPLACED, Phrase.PROP_NOTE_REPLACED_ADJUSTING ->
                 {
                     NoteEvent newNe = (NoteEvent) evt.getNewValue();
                     NoteEvent oldNe = (NoteEvent) evt.getOldValue();

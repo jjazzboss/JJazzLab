@@ -115,20 +115,20 @@ public class ProxySizedPhrase extends SizedPhrase implements PropertyChangeListe
             validChange = true;
             switch (evt.getPropertyName())
             {
-                case Phrase.PROP_NOTE_ADDED ->
+                case Phrase.PROP_NOTE_ADDED, Phrase.PROP_NOTE_ADDED_ADJUSTING ->
                 {
                     NoteEvent ne = (NoteEvent) evt.getNewValue();
                     NoteEvent srcNe = ne.clone();
                     ne.putClientProperty(PROP_SRC_NOTE, srcNe);
                     phrase.add(srcNe);
                 }
-                case Phrase.PROP_NOTE_REMOVED ->
+                case Phrase.PROP_NOTE_REMOVED, Phrase.PROP_NOTE_REMOVED_ADJUSTING ->
                 {
                     NoteEvent ne = (NoteEvent) evt.getNewValue();
                     NoteEvent srcNe = (NoteEvent) ne.getClientProperty(PROP_SRC_NOTE);
                     phrase.remove(srcNe);
                 }
-                case Phrase.PROP_NOTE_MOVED ->
+                case Phrase.PROP_NOTE_MOVED, Phrase.PROP_NOTE_MOVED_ADJUSTING ->
                 {
                     NoteEvent oldNe = (NoteEvent) evt.getOldValue();
                     NoteEvent newNe = (NoteEvent) evt.getNewValue();
@@ -136,7 +136,7 @@ public class ProxySizedPhrase extends SizedPhrase implements PropertyChangeListe
                     NoteEvent newSrcNe = phrase.move(oldSrcNe, newNe.getPositionInBeats());
                     newNe.putClientProperty(PROP_SRC_NOTE, newSrcNe);
                 }
-                case Phrase.PROP_NOTE_REPLACED ->
+                case Phrase.PROP_NOTE_REPLACED, Phrase.PROP_NOTE_REPLACED_ADJUSTING ->
                 {
                     NoteEvent oldNe = (NoteEvent) evt.getOldValue();
                     NoteEvent newNe = (NoteEvent) evt.getNewValue();

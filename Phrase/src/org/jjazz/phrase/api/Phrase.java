@@ -69,19 +69,37 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
      */
     public static final String PROP_NOTE_ADDED = "PropNoteAdd";
     /**
+     * Same as PROP_NOTE_ADDED except this notifies an intermediate operation: a final non-adjusting operation will occur later.
+     */
+    public static final String PROP_NOTE_ADDED_ADJUSTING = "PropNoteAddAdjusting";
+    /**
      * newValue=collection of removed NoteEvents.
      */
     public static final String PROP_NOTE_REMOVED = "PropNoteRemove";
     /**
+     * Same as PROP_NOTE_REMOVED except this notifies an intermediate operation: a final non-adjusting operation will occur later.
+     */
+    public static final String PROP_NOTE_REMOVED_ADJUSTING = "PropNoteRemoveAdjusting";
+    /**
      * oldValue=old NoteEvent at old position, value=new NoteEvent at new position.
      */
     public static final String PROP_NOTE_MOVED = "PropNoteMoved";
+    /**
+     * Same as PROP_NOTE_MOVED except this notifies an intermediate operation: a final non-adjusting operation will occur later.
+     */
+    public static final String PROP_NOTE_MOVED_ADJUSTING = "PropNoteMovedAdjusting";
     /**
      * Fired when a new NoteEvent replaced another one.
      * <p>
      * oldValue=old NoteEvent, newValue=new NoteEvent.
      */
     public static final String PROP_NOTE_REPLACED = "PropNoteReplaced";
+    /**
+     * Same as PROP_NOTE_REPLACED except this notifies an intermediate operation: a final non-adjusting operation will occur
+     * later.
+     */
+    public static final String PROP_NOTE_REPLACED_ADJUSTING = "PropNoteReplacedAdjusting";
+
     /**
      * NoteEvent client property set when new NoteEvents are created from existing ones.
      */
@@ -141,12 +159,29 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
      * @param oldNe
      * @param newNe
      */
+
     public void replace(NoteEvent oldNe, NoteEvent newNe)
+    {
+        replace(oldNe, newNe, false);
+    }
+
+    /**
+     * Replace a NoteEvent by another one.
+     * <p>
+     * Same as removing old + adding new, except it only fires a PROP_NOTE_REPLACED or PROP_NOTE_REPLACED_ADJUSTING change event.
+     *
+     * @param oldNe
+     * @param newNe
+     * @param isAdjusting If true fire a PROP_NOTE_REPLACED_ADJUSTING instead of PROP_NOTE_REPLACED
+     */
+    public void replace(NoteEvent oldNe, NoteEvent newNe, boolean isAdjusting)
     {
         if (oldNe == newNe)
         {
             return;
         }
+
+        String PROP = isAdjusting ? PROP_NOTE_REPLACED_ADJUSTING : PROP_NOTE_REPLACED;
 
         if (noteEvents.remove(oldNe))
         {
@@ -169,7 +204,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
                     });   //NOI18N
                     noteEvents.remove(newNe);
                     noteEvents.add(oldNe);
-                    pcs.firePropertyChange(PROP_NOTE_REPLACED, newNe, oldNe);
+                    pcs.firePropertyChange(PROP, newNe, oldNe);
                 }
 
                 @Override
@@ -181,12 +216,12 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
                     });   //NOI18N
                     noteEvents.remove(oldNe);
                     noteEvents.add(newNe);
-                    pcs.firePropertyChange(PROP_NOTE_REPLACED, oldNe, newNe);
+                    pcs.firePropertyChange(PROP, oldNe, newNe);
                 }
             };
 
             fireUndoableEditHappened(edit);
-            pcs.firePropertyChange(PROP_NOTE_REPLACED, oldNe, newNe);
+            pcs.firePropertyChange(PROP, oldNe, newNe);
 
         } else
         {
@@ -197,18 +232,36 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
     /**
      * Move a NoteEvent.
      * <p>
-     * Same as removing the old one + adding copy at new position , except it only fires a PROP_NOTE_MOVED change event.
+     * Same as removing the old one + adding copy at new position , except it only fires a PROP_NOTE_MOVED.
      *
-     * @param ne     Must belong to this phrase
+     * @param ne Must belong to this phrase
      * @param newPos
      * @return The new NoteEvent at newPos. Return ne if position unchanged.
      */
     public NoteEvent move(NoteEvent ne, float newPos)
     {
+        return move(ne, newPos, false);
+    }
+
+    /**
+     * Move a NoteEvent.
+     * <p>
+     * Same as removing the old one + adding copy at new position , except it only fires a PROP_NOTE_MOVED or
+     * PROP_NOTE_MOVED_ADJUSTING change event.
+     *
+     * @param ne Must belong to this phrase
+     * @param newPos
+     * @param isAdjusting If true fire a PROP_NOTE_MOVED_ADJUSTING instead of PROP_NOTE_MOVED
+     * @return The new NoteEvent at newPos. Return ne if position unchanged.
+     */
+    public NoteEvent move(NoteEvent ne, float newPos, boolean isAdjusting)
+    {
         if (ne.getPositionInBeats() == newPos)
         {
             return ne;
         }
+
+        String PROP = isAdjusting ? PROP_NOTE_MOVED_ADJUSTING : PROP_NOTE_MOVED;
 
         NoteEvent newNe = ne.getCopyPos(newPos);
 
@@ -232,7 +285,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
                     });   //NOI18N
                     noteEvents.remove(newNe);
                     noteEvents.add(ne);
-                    pcs.firePropertyChange(PROP_NOTE_MOVED, newNe, ne);
+                    pcs.firePropertyChange(PROP, newNe, ne);
                 }
 
                 @Override
@@ -244,12 +297,12 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
                     });   //NOI18N
                     noteEvents.remove(ne);
                     noteEvents.add(newNe);
-                    pcs.firePropertyChange(PROP_NOTE_MOVED, ne, newNe);
+                    pcs.firePropertyChange(PROP, ne, newNe);
                 }
             };
 
             fireUndoableEditHappened(edit);
-            pcs.firePropertyChange(PROP_NOTE_MOVED, ne, newNe);
+            pcs.firePropertyChange(PROP, ne, newNe);
         } else
         {
             throw new IllegalArgumentException("ne=" + ne + " does not belong to this phrase=" + this);
@@ -548,8 +601,11 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
     // --------------------------------------------------------------------- 
     // Collection interface
     // ---------------------------------------------------------------------
+
     /**
      * Add a NoteEvent.
+     * <p>
+     * Fire a PROP_NOTE_ADDED event.
      *
      * @param ne
      * @return False if ne was already part of this Phrase.
@@ -557,11 +613,28 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
     @Override
     public boolean add(NoteEvent ne)
     {
+        return add(ne, false);
+    }
+
+    /**
+     * Add a NoteEvent.
+     * <p>
+     * Fire a PROP_NOTE_ADDED or PROP_NOTE_ADDED_ADJUSTING event.
+     *
+     * @param ne
+     * @param isAdjusting
+     * @return
+     */
+    public boolean add(NoteEvent ne, boolean isAdjusting)
+    {
         checkAddNote(ne);
 
         var res = noteEvents.add(ne);
         if (res)
         {
+            String PROP = isAdjusting ? PROP_NOTE_ADDED_ADJUSTING : PROP_NOTE_ADDED;
+            String PROP_UNDO = isAdjusting ? PROP_NOTE_REMOVED_ADJUSTING : PROP_NOTE_REMOVED;
+
             // Create the undoable event
             UndoableEdit edit = new SimpleEdit("Add note " + ne)
             {
@@ -570,7 +643,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
                 {
                     LOGGER.log(Level.FINER, "add.undoBody() ne={0}", ne);   //NOI18N
                     noteEvents.remove(ne);
-                    pcs.firePropertyChange(PROP_NOTE_REMOVED, null, Arrays.asList(ne));
+                    pcs.firePropertyChange(PROP_UNDO, null, Arrays.asList(ne));
                 }
 
                 @Override
@@ -578,12 +651,12 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
                 {
                     LOGGER.log(Level.FINER, "add.redoBody() ne={0}", ne);   //NOI18N
                     noteEvents.add(ne);
-                    pcs.firePropertyChange(PROP_NOTE_ADDED, null, Arrays.asList(ne));
+                    pcs.firePropertyChange(PROP, null, Arrays.asList(ne));
                 }
             };
 
             fireUndoableEditHappened(edit);
-            pcs.firePropertyChange(PROP_NOTE_ADDED, null, Arrays.asList(ne));
+            pcs.firePropertyChange(PROP, null, Arrays.asList(ne));
 
         } else
         {
@@ -598,6 +671,8 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
 
     /**
      * Add several NoteEvents.
+     * <p>
+     * Fire a PROP_NOTE_ADDED event.
      *
      * @param collection
      * @return
@@ -647,12 +722,35 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
         return res;
     }
 
-
+    /**
+     * Remove a NoteEvent.
+     * 
+     * Fire a PROP_NOTE_REMOVED event
+     *
+     * @param o
+     * @return The removed NoteEvent
+     */
     @Override
     public boolean remove(Object o)
     {
+        return remove(o, false);
+    }
+
+    /**
+     * Remove a NoteEvent.
+     * 
+     * Fire a PROP_NOTE_REMOVED or PROP_NOTE_REMOVED_ADJUSTING event.
+     *
+     * @param o
+     * @param isAdjusting
+     * @return
+     */
+    public boolean remove(Object o, boolean isAdjusting)
+    {
         if (o instanceof NoteEvent ne && noteEvents.remove(ne))
         {
+            String PROP = isAdjusting ? PROP_NOTE_REMOVED_ADJUSTING : PROP_NOTE_REMOVED;
+            String PROP_UNDO = isAdjusting ? PROP_NOTE_ADDED_ADJUSTING : PROP_NOTE_ADDED;
 
             // Create the undoable event
             UndoableEdit edit = new SimpleEdit("Remove note " + ne)
@@ -662,7 +760,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
                 {
                     LOGGER.log(Level.FINER, "remove.undoBody() ne={0}", ne);   //NOI18N
                     noteEvents.add(ne);
-                    pcs.firePropertyChange(PROP_NOTE_ADDED, null, Arrays.asList(ne));
+                    pcs.firePropertyChange(PROP_UNDO, null, Arrays.asList(ne));
                 }
 
                 @Override
@@ -670,13 +768,13 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
                 {
                     LOGGER.log(Level.FINER, "remove.redoBody() ne={0}", ne);   //NOI18N
                     noteEvents.remove(ne);
-                    pcs.firePropertyChange(PROP_NOTE_REMOVED, null, Arrays.asList(ne));
+                    pcs.firePropertyChange(PROP, null, Arrays.asList(ne));
                 }
             };
 
             fireUndoableEditHappened(edit);
 
-            pcs.firePropertyChange(PROP_NOTE_REMOVED, null, Arrays.asList(ne));
+            pcs.firePropertyChange(PROP, null, Arrays.asList(ne));
             return true;
         }
         return false;

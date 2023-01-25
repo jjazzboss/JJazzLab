@@ -154,7 +154,7 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
         {
             switch (evt.getPropertyName())
             {
-                case Phrase.PROP_NOTE_REPLACED ->
+                case Phrase.PROP_NOTE_REPLACED, Phrase.PROP_NOTE_REPLACED_ADJUSTING ->
                 {
                     var selectedNvs = editor.getSelectedNoteViews();
                     var selectedNes = NoteView.getNotes(selectedNvs);
@@ -169,17 +169,9 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
                         updateVelocitySpinner(selectedNvs);
                     }
                 }
-                case Phrase.PROP_NOTE_ADDED, Phrase.PROP_NOTE_REMOVED ->
-                {
-                    // Nothing, we are notified via selection changes
-                }
-                case Phrase.PROP_NOTE_MOVED ->
-                {
-                    // Velocity unchanged
-                }
                 default ->
                 {
-                    throw new IllegalStateException("evt.getPropertyName()=" + evt.getPropertyName());
+                    // Moved or added or removed: velocity unchanged do nothing
                 }
             }
         }

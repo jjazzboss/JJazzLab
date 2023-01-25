@@ -36,7 +36,6 @@ import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.pianoroll.ToolbarPanel;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
 import org.jjazz.song.api.Song;
-import org.jjazz.ui.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.openide.awt.UndoRedo;
 import org.openide.util.Lookup;

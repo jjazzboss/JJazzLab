@@ -38,6 +38,7 @@ import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.MidiMixManager;
 import org.jjazz.outputsynth.api.OutputSynthManager;
+import org.jjazz.pianoroll.api.PianoRollEditorTopComponent;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongCreationException;
 import org.jjazz.song.api.SongFactory;
@@ -317,7 +318,6 @@ public class SongEditorManager implements PropertyChangeListener
     }
 
 
-
     public List<Song> getOpenedSongs()
     {
         return new ArrayList<>(mapSongEditors.keySet());
@@ -425,13 +425,18 @@ public class SongEditorManager implements PropertyChangeListener
                 {
                     return;
                 }
-                FIX : can be PianoRoll
-                CL_EditorTopComponent clTc = (CL_EditorTopComponent) mode.getSelectedTopComponent();
-                if (clTc == null)
+
+                var tc = mode.getSelectedTopComponent();
+                if (tc instanceof CL_EditorTopComponent clTc)
+                {
+                    sg = clTc.getSongModel();
+                } else if (tc instanceof PianoRollEditorTopComponent preTc)
+                {
+                    sg = preTc.getSong();
+                } else
                 {
                     return;
                 }
-                sg = clTc.getSongModel();
             }
             activateSong(sg);
         };
@@ -485,6 +490,6 @@ public class SongEditorManager implements PropertyChangeListener
         {
             return tcRle;
         }
-     
+
     }
 }
