@@ -125,8 +125,9 @@ public class AddUserTrack extends AbstractAction
             return false;
         } catch (Exception ex)    // Capture other programming exceptions, because method can be called from within a thread
         {
-            String msg = "Impossible to add or update user phrase " + name + ".\n" + ex.getLocalizedMessage();
+            String msg = "Unexpected exception! Impossible to add or update user phrase " + name + ".\n" + ex.getMessage();
             um.handleUnsupportedEditException(undoText, msg);
+            LOGGER.severe("setUserPhraseAction() "+msg);
             Exceptions.printStackTrace(ex);
             return false;
         }

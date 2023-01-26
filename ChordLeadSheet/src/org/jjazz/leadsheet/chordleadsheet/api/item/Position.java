@@ -344,7 +344,7 @@ public final class Position implements Comparable<Position>, Serializable
     }
 
     /**
-     * The position in natural beats in the context of the specified TimeSignature.
+     * The position in natural beats if all bars use the specified TimeSignature.
      *
      * @param ts
      * @return

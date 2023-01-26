@@ -625,7 +625,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
             addMixChannelPanel(songMidiMix, channel);
         }
 
-        // Add the user channel if needed
+        // Add user channels if needed
         if (getVisibleRhythm() != null)
         {
             for (int channel : songMidiMix.getUserChannels())

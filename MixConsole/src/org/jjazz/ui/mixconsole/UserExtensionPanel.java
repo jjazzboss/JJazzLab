@@ -33,6 +33,7 @@ import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.UserRhythmVoice;
+import org.jjazz.phrase.api.Phrase;
 import org.jjazz.song.api.Song;
 import org.jjazz.songstructure.api.SgsChangeListener;
 import org.jjazz.songstructure.api.event.SgsChangeEvent;
@@ -71,16 +72,16 @@ public class UserExtensionPanel extends javax.swing.JPanel implements VetoableCh
     {
         initComponents();
 
-        this .settings = settings;
-        if (this.settings!=null)
+        this.settings = settings;
+        if (this.settings != null)
         {
             this.settings.addPropertyChangeListener(this);
             this.roundedPanel1.setBackground(settings.getMixChannelBackgroundColor());
         }
-        
+
         this.controller = controller;
         this.userRhythmVoice = urv;
-        this.song = song;        
+        this.song = song;
         this.song.addVetoableChangeListener(this);
         this.song.getSongStructure().addSgsChangeListener(this);
         this.midiMix = midiMix;
@@ -93,11 +94,11 @@ public class UserExtensionPanel extends javax.swing.JPanel implements VetoableCh
 
         // By default enable the drag in transfer handler
         setTransferHandler(new MidiFileDragInTransferHandlerImpl());
-        
+
 
         phraseUpdated();
-        
-        
+
+
         // To be done last as the controller needs that UserExtensionPanel is ready
         this.controller.setUserExtentionPanel(this);
     }
@@ -123,6 +124,7 @@ public class UserExtensionPanel extends javax.swing.JPanel implements VetoableCh
         song.getSongStructure().removeSgsChangeListener(this);
         settings.removePropertyChangeListener(this);
     }
+
     // ----------------------------------------------------------------------------
     // PropertyChangeListener interface
     // ----------------------------------------------------------------------------
@@ -134,6 +136,7 @@ public class UserExtensionPanel extends javax.swing.JPanel implements VetoableCh
             refreshUI();
         }
     }
+
     //-----------------------------------------------------------------------
     // Implementation of the VetoableListener interface
     //-----------------------------------------------------------------------
@@ -170,8 +173,7 @@ public class UserExtensionPanel extends javax.swing.JPanel implements VetoableCh
         if (e instanceof SptResizedEvent
                 || e instanceof SptAddedEvent
                 || e instanceof SptRemovedEvent
-                || e instanceof SptReplacedEvent
-                )
+                || e instanceof SptReplacedEvent)
         {
             // Song size in beats is impacted, so is our birdViewComponent
             phraseUpdated();
@@ -186,7 +188,8 @@ public class UserExtensionPanel extends javax.swing.JPanel implements VetoableCh
         LOGGER.fine("phraseUpdated() --");
         FloatRange beatRange = song.getSongStructure().getBeatRange(null);
         TimeSignature ts = song.getSongStructure().getSongPart(0).getRhythm().getTimeSignature();
-        birdViewComp.setModel(song.getUserPhrase(userRhythmVoice.getName()), ts, beatRange);
+        var p = song.getUserPhrase(userRhythmVoice.getName());
+        birdViewComp.setModel(p, ts, beatRange);
     }
 
     private void refreshUI()
@@ -226,15 +229,12 @@ public class UserExtensionPanel extends javax.swing.JPanel implements VetoableCh
 
         phraseBirdView1 = new org.jjazz.phrase.api.ui.PhraseBirdsEyeViewComponent();
         roundedPanel1 = new org.jjazz.ui.flatcomponents.api.RoundedPanel();
-        fbtn_name = new org.jjazz.ui.flatcomponents.api.FlatButton();
-        jPanel2 = new javax.swing.JPanel();
-        pnl_help = new javax.swing.JPanel();
-        fbtn_help = new org.jjazz.ui.flatcomponents.api.FlatHelpButton();
-        pnl_edit = new javax.swing.JPanel();
-        fbtn_edit = new org.jjazz.ui.flatcomponents.api.FlatButton();
         birdViewComp = new org.jjazz.phrase.api.ui.PhraseBirdsEyeViewComponent();
-        pnl_close = new javax.swing.JPanel();
+        jPanel2 = new javax.swing.JPanel();
+        fbtn_edit = new org.jjazz.ui.flatcomponents.api.FlatButton();
+        pnl_placement = new javax.swing.JPanel();
         fbtn_remove = new org.jjazz.ui.flatcomponents.api.FlatButton();
+        fbtn_name = new org.jjazz.ui.flatcomponents.api.FlatButton();
 
         javax.swing.GroupLayout phraseBirdView1Layout = new javax.swing.GroupLayout(phraseBirdView1);
         phraseBirdView1.setLayout(phraseBirdView1Layout);
@@ -253,6 +253,55 @@ public class UserExtensionPanel extends javax.swing.JPanel implements VetoableCh
         roundedPanel1.setBackground(new java.awt.Color(46, 46, 46));
         roundedPanel1.setArcDiameter(20);
 
+        birdViewComp.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(61, 61, 61)));
+        birdViewComp.setForeground(new java.awt.Color(192, 115, 242));
+        birdViewComp.setToolTipText(org.openide.util.NbBundle.getMessage(UserExtensionPanel.class, "UserExtensionPanel.birdViewComp.toolTipText")); // NOI18N
+        birdViewComp.setOpaque(false);
+
+        javax.swing.GroupLayout birdViewCompLayout = new javax.swing.GroupLayout(birdViewComp);
+        birdViewComp.setLayout(birdViewCompLayout);
+        birdViewCompLayout.setHorizontalGroup(
+            birdViewCompLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 61, Short.MAX_VALUE)
+        );
+        birdViewCompLayout.setVerticalGroup(
+            birdViewCompLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 39, Short.MAX_VALUE)
+        );
+
+        jPanel2.setMinimumSize(new java.awt.Dimension(10, 36));
+        jPanel2.setOpaque(false);
+        jPanel2.setLayout(new java.awt.BorderLayout());
+
+        fbtn_edit.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        fbtn_edit.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/mixconsole/resources/Edit-14x14.png"))); // NOI18N
+        fbtn_edit.setToolTipText(org.openide.util.NbBundle.getMessage(UserExtensionPanel.class, "UserExtensionPanel.fbtn_edit.toolTipText")); // NOI18N
+        fbtn_edit.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                fbtn_editActionPerformed(evt);
+            }
+        });
+        jPanel2.add(fbtn_edit, java.awt.BorderLayout.WEST);
+
+        pnl_placement.setOpaque(false);
+        pnl_placement.setLayout(new javax.swing.BoxLayout(pnl_placement, javax.swing.BoxLayout.X_AXIS));
+
+        fbtn_remove.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        fbtn_remove.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/mixconsole/resources/Close-10x10.png"))); // NOI18N
+        fbtn_remove.setToolTipText(org.openide.util.NbBundle.getMessage(UserExtensionPanel.class, "UserExtensionPanel.fbtn_remove.toolTipText")); // NOI18N
+        fbtn_remove.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                fbtn_removeActionPerformed(evt);
+            }
+        });
+        pnl_placement.add(fbtn_remove);
+
+        jPanel2.add(pnl_placement, java.awt.BorderLayout.EAST);
+
         fbtn_name.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         org.openide.awt.Mnemonics.setLocalizedText(fbtn_name, "Theme"); // NOI18N
         fbtn_name.setToolTipText(org.openide.util.NbBundle.getMessage(UserExtensionPanel.class, "UserExtensionPanel.fbtn_name.toolTipText")); // NOI18N
@@ -265,91 +314,27 @@ public class UserExtensionPanel extends javax.swing.JPanel implements VetoableCh
             }
         });
 
-        jPanel2.setMinimumSize(new java.awt.Dimension(10, 36));
-        jPanel2.setOpaque(false);
-        jPanel2.setLayout(new java.awt.BorderLayout());
-
-        pnl_help.setOpaque(false);
-        pnl_help.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 3, 3));
-
-        fbtn_help.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        fbtn_help.setHelpText(org.openide.util.NbBundle.getMessage(UserExtensionPanel.class, "UserExtensionPanel.fbtn_help.helpText")); // NOI18N
-        pnl_help.add(fbtn_help);
-
-        jPanel2.add(pnl_help, java.awt.BorderLayout.EAST);
-
-        pnl_edit.setOpaque(false);
-        pnl_edit.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 3, 3));
-
-        fbtn_edit.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        fbtn_edit.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/mixconsole/resources/Edit-16x16.png"))); // NOI18N
-        fbtn_edit.setToolTipText(org.openide.util.NbBundle.getMessage(UserExtensionPanel.class, "UserExtensionPanel.fbtn_edit.toolTipText")); // NOI18N
-        fbtn_edit.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                fbtn_editActionPerformed(evt);
-            }
-        });
-        pnl_edit.add(fbtn_edit);
-
-        jPanel2.add(pnl_edit, java.awt.BorderLayout.WEST);
-
-        birdViewComp.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(61, 61, 61)));
-        birdViewComp.setForeground(new java.awt.Color(192, 115, 242));
-        birdViewComp.setToolTipText(org.openide.util.NbBundle.getMessage(UserExtensionPanel.class, "UserExtensionPanel.birdViewComp.toolTipText")); // NOI18N
-        birdViewComp.setOpaque(false);
-
-        javax.swing.GroupLayout birdViewCompLayout = new javax.swing.GroupLayout(birdViewComp);
-        birdViewComp.setLayout(birdViewCompLayout);
-        birdViewCompLayout.setHorizontalGroup(
-            birdViewCompLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 0, Short.MAX_VALUE)
-        );
-        birdViewCompLayout.setVerticalGroup(
-            birdViewCompLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 36, Short.MAX_VALUE)
-        );
-
-        pnl_close.setOpaque(false);
-
-        fbtn_remove.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
-        fbtn_remove.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/mixconsole/resources/Close-10x10.png"))); // NOI18N
-        fbtn_remove.setToolTipText(org.openide.util.NbBundle.getMessage(UserExtensionPanel.class, "UserExtensionPanel.fbtn_remove.toolTipText")); // NOI18N
-        fbtn_remove.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                fbtn_removeActionPerformed(evt);
-            }
-        });
-        pnl_close.add(fbtn_remove);
-
         javax.swing.GroupLayout roundedPanel1Layout = new javax.swing.GroupLayout(roundedPanel1);
         roundedPanel1.setLayout(roundedPanel1Layout);
         roundedPanel1Layout.setHorizontalGroup(
             roundedPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(fbtn_name, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, 64, Short.MAX_VALUE)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, roundedPanel1Layout.createSequentialGroup()
-                .addGap(0, 0, Short.MAX_VALUE)
-                .addComponent(pnl_close, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, roundedPanel1Layout.createSequentialGroup()
                 .addGap(2, 2, 2)
-                .addComponent(birdViewComp, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(roundedPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(birdViewComp, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addGap(2, 2, 2))
         );
         roundedPanel1Layout.setVerticalGroup(
             roundedPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(roundedPanel1Layout.createSequentialGroup()
-                .addComponent(pnl_close, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(1, 1, 1)
-                .addComponent(fbtn_name, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(birdViewComp, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, 18, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(3, 3, 3))
+                .addComponent(fbtn_name, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(birdViewComp, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap())
         );
 
         add(roundedPanel1, "card2");
@@ -385,14 +370,11 @@ public class UserExtensionPanel extends javax.swing.JPanel implements VetoableCh
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private org.jjazz.phrase.api.ui.PhraseBirdsEyeViewComponent birdViewComp;
     private org.jjazz.ui.flatcomponents.api.FlatButton fbtn_edit;
-    private org.jjazz.ui.flatcomponents.api.FlatHelpButton fbtn_help;
     private org.jjazz.ui.flatcomponents.api.FlatButton fbtn_name;
     private org.jjazz.ui.flatcomponents.api.FlatButton fbtn_remove;
     private javax.swing.JPanel jPanel2;
     private org.jjazz.phrase.api.ui.PhraseBirdsEyeViewComponent phraseBirdView1;
-    private javax.swing.JPanel pnl_close;
-    private javax.swing.JPanel pnl_edit;
-    private javax.swing.JPanel pnl_help;
+    private javax.swing.JPanel pnl_placement;
     private org.jjazz.ui.flatcomponents.api.RoundedPanel roundedPanel1;
     // End of variables declaration//GEN-END:variables
 

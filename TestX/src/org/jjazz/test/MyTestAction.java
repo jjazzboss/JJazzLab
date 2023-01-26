@@ -26,11 +26,15 @@ import com.formdev.flatlaf.FlatDarkLaf;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.UIManager;
+import org.jjazz.pianoroll.api.PianoRollEditorTopComponent;
 import org.jjazz.ui.itemrenderer.api.IR_ChordSymbolSettings;
+import org.jjazz.ui.mixconsole.api.MixConsoleTopComponent;
 import org.jjazz.util.api.ResUtil;
+import org.jjazz.util.api.Utilities;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
@@ -60,36 +64,14 @@ public final class MyTestAction implements ActionListener
     @Override
     public void actionPerformed(ActionEvent ae)
     {
-        LOGGER.log(Level.INFO, "MyTestAction()");   //NOI18N
-        FlatDarkLaf.install();
-        UIManager.LookAndFeelInfo plaf[] = UIManager.getInstalledLookAndFeels();
-        try
-        {
-            UIManager.setLookAndFeel(new FlatDarkLaf());
-        } catch (Exception ex)
-        {
-            System.err.println("Failed to initialize LaF");
-        }
+        LOGGER.severe("actionPerformed()");
 
-        for (int i = 0, n = plaf.length; i < n; i++)
+        var tc = MixConsoleTopComponent.getInstance();
+        if (tc != null)
         {
-            LOGGER.severe("Name: " + plaf[i].getName());   //NOI18N
-            LOGGER.severe("  Class name: " + plaf[i].getClassName());   //NOI18N
+            LOGGER.severe(Utilities.toMultilineString(Arrays.asList(tc.getActions())));
+            LOGGER.severe("-- ActionMap keys=");
+            LOGGER.severe(Utilities.toMultilineString(tc.getActionMap().allKeys()));
         }
-        if (true)
-        {
-            return;
-        }
-
-        IR_ChordSymbolSettings settings = IR_ChordSymbolSettings.getDefault();
-        Font f = settings.getFont();
-        float fSize = f.getSize2D();
-        fSize += 8;
-        if (fSize > 60)
-        {
-            fSize = 11;
-        }
-        f = f.deriveFont(fSize);
-        settings.setFont(f);
     }
 }

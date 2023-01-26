@@ -39,6 +39,7 @@ import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
 import org.jjazz.song.api.Song;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.util.api.FloatRange;
+import org.jjazz.util.api.ResUtil;
 import org.openide.awt.UndoRedo;
 import org.openide.util.Lookup;
 import org.openide.util.Utilities;
@@ -144,7 +145,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
     @Override
     public String preferredID()
     {
-        return "PianoRollEditorTopComponent" + getSong().getName();
+        return "PianoRollEditorTopComponent";
     }
 
     public PianoRollEditor getEditor()
@@ -267,6 +268,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
             assert mode != null;
             mode.dockInto(preTc);
             preTc.open();
+
         } else
         {
 
@@ -279,6 +281,17 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
         preTc.requestActive();
 
         return preTc;
+    }
+
+    /**
+     * The default tab name for a song.
+     *
+     * @param song
+     * @return
+     */
+    static public String getDefaultTabName(Song song)
+    {
+        return ResUtil.getString(PianoRollEditorTopComponent.class, "PianoRollEditorTabName", song.getName());
     }
 
 

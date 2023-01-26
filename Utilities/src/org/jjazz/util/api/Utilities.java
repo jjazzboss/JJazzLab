@@ -135,7 +135,6 @@ public class Utilities
         }
     }
 
-  
 
     public static boolean isWindows()
     {
@@ -712,10 +711,10 @@ public class Utilities
         var joiner = new StringJoiner("\n", "[", "]");
         if (map instanceof NavigableMap nMap)
         {
-            nMap.navigableKeySet().forEach(k -> joiner.add(k + " -> " + nMap.get(k)));
+            nMap.navigableKeySet().forEach(k -> joiner.add((k == null ? "null" : k.toString())+ " -> " + nMap.get(k)));
         } else
         {
-            map.keySet().forEach(k -> joiner.add(k + " -> " + map.get(k)));
+            map.keySet().forEach(k -> joiner.add((k == null ? "null" : k.toString()) + " -> " + map.get(k)));
         }
 
         return joiner.toString();
@@ -731,8 +730,19 @@ public class Utilities
     {
         Preconditions.checkNotNull(list);
         var joiner = new StringJoiner("\n", "[", "]");
-        list.forEach(e -> joiner.add(e.toString()));
+        list.forEach(e -> joiner.add(e == null ? "null" : e.toString()));
         return joiner.toString();
+    }
+
+    /**
+     * Get each element toString() called, one per line.
+     *
+     * @param array
+     * @return
+     */
+    public static <T> String toMultilineString(T array[])
+    {
+        return toMultilineString(Arrays.asList(array));
     }
 
     /**
@@ -1219,6 +1229,5 @@ public class Utilities
     // ==============================================================================================
     // Inner classes
     // ==============================================================================================
-
 
 }

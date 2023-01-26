@@ -520,12 +520,12 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
             lastWidth = getWidth();
             tmap_allQuantizedXPositions.clear();
             tmap_allBeatsXPositions.clear();
-            var allBarRange = editor.getBarRange();
+            var barRange = editor.getBarRange();
             int nbBeatsPerTs = (int) editor.getTimeSignature().getNbNaturalBeats();
             float[] qBeats = editor.getQuantization().getBeats();
 
             // Precompute all quantized + beat positions
-            for (int bar = allBarRange.from; bar <= allBarRange.to; bar++)
+            for (int bar = barRange.from; bar <= barRange.to; bar++)
             {
                 for (int beat = 0; beat < nbBeatsPerTs; beat++)
                 {
@@ -692,9 +692,11 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
          */
         public float toPositionInBeats(Position pos)
         {
-            var br = editor.getBeatRange();
-            float posInBeats = br.from + pos.getPositionInBeats(editor.getTimeSignature());
-            Preconditions.checkArgument(br.contains(posInBeats, true), "pos=%s getBeatRange()=%s posInBeats=%s", pos, br, posInBeats);
+            var beatRange = editor.getBeatRange();
+            var barRange = editor.getBarRange();
+            float relPos = (pos.getBar() - barRange.from) * editor.getTimeSignature().getNbNaturalBeats() + pos.getBeat();
+            float posInBeats = beatRange.from + relPos;
+            Preconditions.checkArgument(beatRange.contains(posInBeats, true), "pos=%s br=%s posInBeats=%s", pos, beatRange, posInBeats);
             return posInBeats;
         }
     }

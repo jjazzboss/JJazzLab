@@ -88,10 +88,11 @@ import org.openide.util.Exceptions;
 public class Song implements Serializable, ClsChangeListener, SgsChangeListener, PropertyChangeListener
 {
 
-    public static final String PROP_NAME = "PROP_NAME";   //NOI18N 
-    public static final String PROP_COMMENTS = "PROP_COMMENTS";   //NOI18N 
-    public static final String PROP_TAGS = "PROP_TAGS";   //NOI18N 
-    public static final String PROP_TEMPO = "PROP_TEMPO";   //NOI18N 
+    public static final String PROP_NAME = "PROP_NAME";
+    public static final String PROP_COMMENTS = "PROP_COMMENTS";
+    public static final String PROP_TAGS = "PROP_TAGS";
+    public static final String PROP_TEMPO = "PROP_TEMPO";
+    public static final String PROP_PHRASE_NAME = "PROP_PHRASE_NAME";
     /**
      * newValue = new size in bars. OldValue=old size in bars
      */
@@ -219,12 +220,67 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
     }
 
     /**
+     * Rename a user phrase.
+     * <p>
+     * Fire a PROP_PHRASE_NAME change event.
+     *
+     * @param name    Must be the name of an existing phrase
+     * @param newName
+     */
+    public void renameUserPhrase(String name, String newName)
+    {
+        var p = getUserPhrase(name);
+        if (p == null)
+        {
+            throw new IllegalArgumentException("name=" + name + " mapUserPhrases=" + mapUserPhrases);
+        }
+        if (name.equals(newName))
+        {
+            return;
+        }
+
+        // Perform the change
+        final var oldMap = new HashMap<>(mapUserPhrases);
+        mapUserPhrases.remove(name);
+        mapUserPhrases.put(newName, p);
+        final var newMap = new HashMap<>(mapUserPhrases);
+
+
+        // Create the undoable event        
+        UndoableEdit edit;
+        edit = new SimpleEdit("Rename user phrase")
+        {
+            @Override
+            public void undoBody()
+            {
+                mapUserPhrases = oldMap;
+                pcs.firePropertyChange(PROP_PHRASE_NAME, newName, name);
+                fireIsModified();
+            }
+
+            @Override
+
+            public void redoBody()
+            {
+                mapUserPhrases = newMap;
+                pcs.firePropertyChange(PROP_PHRASE_NAME, name, newName);
+                fireIsModified();
+            }
+        };
+
+        fireUndoableEditHappened(edit);
+        pcs.firePropertyChange(PROP_PHRASE_NAME, name, newName);
+        fireIsModified();
+    }
+
+    /**
      * Set the user phrase for the specified name.
      * <p>
      * If a user phrase was already associated to name, it's replaced. Fire a VeotableChange PROP_VETOABLE_USER_PHRASE if no
      * phrase is replaced, otherwise use PROP_VETOABLE_USER_PHRASE_CONTENT.
      * <p>
-     * The song will fire a PROP_MODIFIED_OR_SAVED_OR_RESET change event when a non-adjusting change is made to the phrase.
+     * This song will listen to p's changes and fire a PROP_MODIFIED_OR_SAVED_OR_RESET change event when a non-adjusting change is
+     * made.
      * <p>
      * @param name Can't be blank.
      * @param p    Can't be null. No defensive copy is done, p is directly reused. No control is done on the phrase consistency Vs
@@ -856,14 +912,14 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
         {
             e.getSource().getClass(), e.getPropertyName(), e.getNewValue()
         });
-        
+
 
         if (e.getSource() instanceof Phrase)
         {
             // Listen to User phrases significant changes to mark the song as modified 
             if (!Phrase.isAdjustingEvent(e.getPropertyName()))
             {
-                    fireIsModified();
+                fireIsModified();
             }
         }
     }

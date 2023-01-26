@@ -35,12 +35,10 @@ import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.Sequence;
 import javax.sound.midi.Track;
-import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.midimix.api.UserRhythmVoice;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.Phrases;
-import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.pianoroll.api.PianoRollEditorTopComponent;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
@@ -48,10 +46,11 @@ import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythmmusicgeneration.api.SongSequenceBuilder;
 import org.jjazz.song.api.Song;
 import org.jjazz.songcontext.api.SongContext;
-import org.jjazz.songstructure.api.SongStructure;
+import org.jjazz.ui.mixconsole.UserTrackEditableRangeDialog.EditableRange;
 import org.jjazz.ui.mixconsole.actions.AddUserTrack;
 import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
+import org.jjazz.util.api.IntRange;
 import org.jjazz.util.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -65,6 +64,7 @@ public class UserExtensionPanelController
 {
 
     private UserExtensionPanel panel;
+
 
     private static final Logger LOGGER = Logger.getLogger(UserExtensionPanelController.class.getSimpleName());
 
@@ -82,19 +82,15 @@ public class UserExtensionPanelController
         editUserPhrase();
     }
 
-    public void userChannelNameEdited(String newName)
+    public void userChannelNameEdited(String oldName, String newName)
     {
-        String oldName = panel.getUserRhythmVoice().getName();
-        Phrase p = getSong().getUserPhrase(oldName);
-        getSong().removeUserPhrase(oldName);
-        try
-        {
-            getSong().setUserPhrase(newName, p);
-        } catch (PropertyVetoException ex)
-        {
-            // Should never happen since we replace an existing phrase
-            Exceptions.printStackTrace(ex);
-        }
+        String undoText = "Rename user track";
+        JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(getSong());
+        um.startCEdit(undoText);
+
+        getSong().renameUserPhrase(oldName, newName);
+
+        um.endCEdit(undoText);
     }
 
 
@@ -118,21 +114,25 @@ public class UserExtensionPanelController
         var p = getUserPhrase();
 
 
-        LOGGER.severe("editUserPhrase() !!!!!!!!!!!!!!!!!!!! ");
-        LOGGER.severe("editUserPhrase() !!!!!!!!TODO manage song with multiple signatures !!!!!!!!!!!! ");
-        LOGGER.severe("editUserPhrase() !!!!!!!!!!!!!!!!!!!! ");
-        SongStructure ss = getSong().getSongStructure();
-        var ts = ss.getSongPart(0).getRhythm().getTimeSignature();
-        var br = ss.getBeatRange(null);
+        // Use the whole song or ask user if multiple time signatures
+        EditableRange er = getEditableRange();
+        if (er.barRange().isEmpty())
+        {
+            return;
+        }
+        var ts = er.timeSignature();
+        var barRange = er.barRange();
+        var beatRange = getSong().getSongStructure().getBeatRange(barRange);
 
 
         // Create the editor model
-        String tabName = getSong().getName() + " - piano editor";
-        String title = getUserPhraseName() + " [" + (channel + 1) + "]";
-        var preTc = PianoRollEditorTopComponent.show(getSong(), tabName, title, 0, br, p, ts, keyMap, PianoRollEditorSettings.getDefault());
+        String tabName = PianoRollEditorTopComponent.getDefaultTabName(getSong());
+        String strBarRange = (barRange.from + 1) + ".." + (barRange.to + 1);
+        String title = ResUtil.getString(getClass(), "PianoEditorUserPhraseTitle", getUserPhraseName(), channel + 1, strBarRange);
+        var preTc = PianoRollEditorTopComponent.show(getSong(), tabName, title, barRange.from, beatRange, p, ts, keyMap, PianoRollEditorSettings.getDefault());
         var editor = preTc.getEditor();
 
-        
+
         // Listen to song size change to update editor's beat range
         // Stop listening when editor is destroyed or its model is changed  
         // Remove PianoRollEditor if user phrase is removed
@@ -175,7 +175,7 @@ public class UserExtensionPanelController
                     if (evt.getPropertyName().equals(Song.PROP_SIZE_IN_BARS))
                     {
                         // Adjust the model to the new size
-                        var br = ss.getBeatRange(null);
+                        var br = getSong().getSongStructure().getBeatRange(null);
                         editor.setModel(0, br, p, ts, keyMap);
                     }
                 }
@@ -319,7 +319,7 @@ public class UserExtensionPanelController
 
     private String getUserPhraseName()
     {
-        return getUserRhythmVoice().getName();
+        return aa;
     }
 
     private Phrase getUserPhrase()
@@ -337,6 +337,38 @@ public class UserExtensionPanelController
         return panel.getUserRhythmVoice();
     }
 
+    /**
+     * If song is multi timesignature, ask user to select which part to edit.
+     *
+     * @return
+     */
+    private EditableRange getEditableRange()
+    {
+        var ss = getSong().getSongStructure();
+        var timeSignatures = ss.getUniqueTimeSignatures();
+
+
+        EditableRange res = null;
+
+        if (timeSignatures.size() == 1)
+        {
+            // Usual case, 1 timesignature used
+            res = new EditableRange(null, ss.getBarRange(), ss.getSongPart(0).getRhythm().getTimeSignature());
+        } else if (timeSignatures.size() > 1)
+        {
+            // More than 1, need to ask user which part to use
+            var dlg = new UserTrackEditableRangeDialog(getSong());
+            dlg.setVisible(true);
+            res = dlg.getEditableRange();
+        }
+
+        if (res == null)
+        {
+            res = new EditableRange(null, IntRange.EMPTY_RANGE, null);
+        }
+
+        return res;
+    }
 
     // ============================================================================
     // Inner classes

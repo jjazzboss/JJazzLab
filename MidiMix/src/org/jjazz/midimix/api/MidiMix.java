@@ -365,7 +365,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      * Fire a PROP_CHANNEL_INSTRUMENT_MIX change event for this channel, and one UndoableEvent.
      *
      * @param channel A valid midi channel number.
-     * @param rvKey   Can be null if insMix is also null. Is a song is set, must be consistent with its rhythms and user phrases.
+     * @param rvKey   Can be null if insMix is also null. If a song is set, must be consistent with its rhythms and user phrases.
      *                Can't be a RhythmVoiceDelegate.
      * @param insMix  Can be null if rvKey is also null.
      * @throws IllegalArgumentException if insMix is already part of this MidiMix for a different channel, or if rvKey is a

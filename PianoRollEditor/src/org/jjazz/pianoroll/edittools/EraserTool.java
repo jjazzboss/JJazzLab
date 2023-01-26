@@ -35,7 +35,6 @@ import java.util.function.Function;
 import java.util.logging.Logger;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
-import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.pianoroll.api.EditTool;
 import org.jjazz.pianoroll.api.NoteView;
 import org.jjazz.pianoroll.api.PianoRollEditor;

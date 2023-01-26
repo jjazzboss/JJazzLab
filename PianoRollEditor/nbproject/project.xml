@@ -229,7 +229,7 @@
                     <build-prerequisite/>
                     <compile-dependency/>
                     <run-dependency>
-                        <specification-version>6.94</specification-version>
+                        <specification-version>6.95</specification-version>
                     </run-dependency>
                 </dependency>
             </module-dependencies>

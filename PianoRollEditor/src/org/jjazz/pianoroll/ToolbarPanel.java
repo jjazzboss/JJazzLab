@@ -37,7 +37,6 @@ import javax.swing.SpinnerNumberModel;
 import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
-import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.pianoroll.actions.HearSelection;
 import org.jjazz.pianoroll.actions.PlaybackAutoScroll;
 import org.jjazz.pianoroll.actions.SnapToGrid;
@@ -140,8 +139,8 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
                     cmb_quantization.setSelectedItem(editor.getQuantization());
                 case PianoRollEditor.PROP_MODEL ->
                 {
-                    SizedPhrase oldModel = (SizedPhrase) evt.getOldValue();
-                    SizedPhrase newModel = (SizedPhrase) evt.getNewValue();
+                    Phrase oldModel = (Phrase) evt.getOldValue();
+                    Phrase newModel = (Phrase) evt.getNewValue();
                     oldModel.removePropertyChangeListener(this);
                     newModel.addPropertyChangeListener(this);
                 }
@@ -234,15 +233,17 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
     {
 
         pnl_left = new javax.swing.JPanel();
-        lbl_title = new javax.swing.JLabel();
-        filler2 = new javax.swing.Box.Filler(new java.awt.Dimension(10, 0), new java.awt.Dimension(20, 0), new java.awt.Dimension(20, 32767));
+        filler2 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(5, 0), new java.awt.Dimension(20, 32767));
         pnl_editTools = new EditToolBar(editor);
         filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(20, 0), new java.awt.Dimension(20, 0), new java.awt.Dimension(30, 32767));
         tbtn_snap = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
         cmb_quantization = new javax.swing.JComboBox<>();
-        filler3 = new javax.swing.Box.Filler(new java.awt.Dimension(20, 0), new java.awt.Dimension(30, 0), new java.awt.Dimension(30, 32767));
+        filler3 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(20, 0), new java.awt.Dimension(30, 32767));
         lbl_velocity = new javax.swing.JLabel();
         spn_velocity = new org.jjazz.ui.utilities.api.WheelSpinner();
+        filler4 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(10, 0), new java.awt.Dimension(20, 32767));
+        pnl_title = new javax.swing.JPanel();
+        lbl_title = new javax.swing.JLabel();
         pnl_right = new javax.swing.JPanel();
         pnl_miscButtons = new javax.swing.JPanel();
         tbtn_hearNotes = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
@@ -252,9 +253,6 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
         setLayout(new java.awt.BorderLayout());
 
         pnl_left.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 5, 2));
-
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_title, org.openide.util.NbBundle.getMessage(ToolbarPanel.class, "ToolbarPanel.lbl_title.text")); // NOI18N
-        pnl_left.add(lbl_title);
         pnl_left.add(filler2);
         pnl_left.add(pnl_editTools);
         pnl_left.add(filler1);
@@ -293,8 +291,19 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
             }
         });
         pnl_left.add(spn_velocity);
+        pnl_left.add(filler4);
 
         add(pnl_left, java.awt.BorderLayout.WEST);
+
+        pnl_title.setLayout(new java.awt.BorderLayout());
+
+        lbl_title.setFont(lbl_title.getFont().deriveFont(lbl_title.getFont().getStyle() | java.awt.Font.BOLD));
+        lbl_title.setForeground(new java.awt.Color(168, 171, 199));
+        lbl_title.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_title, org.openide.util.NbBundle.getMessage(ToolbarPanel.class, "ToolbarPanel.lbl_title.text")); // NOI18N
+        pnl_title.add(lbl_title, java.awt.BorderLayout.CENTER);
+
+        add(pnl_title, java.awt.BorderLayout.CENTER);
 
         pnl_right.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 5, 2));
 
@@ -316,7 +325,7 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
 
         pnl_right.add(pnl_miscButtons);
 
-        add(pnl_right, java.awt.BorderLayout.CENTER);
+        add(pnl_right, java.awt.BorderLayout.EAST);
     }// </editor-fold>//GEN-END:initComponents
 
     private void cmb_quantizationActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cmb_quantizationActionPerformed
@@ -389,12 +398,14 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
     private javax.swing.Box.Filler filler1;
     private javax.swing.Box.Filler filler2;
     private javax.swing.Box.Filler filler3;
+    private javax.swing.Box.Filler filler4;
     private javax.swing.JLabel lbl_title;
     private javax.swing.JLabel lbl_velocity;
     private javax.swing.JPanel pnl_editTools;
     private javax.swing.JPanel pnl_left;
     private javax.swing.JPanel pnl_miscButtons;
     private javax.swing.JPanel pnl_right;
+    private javax.swing.JPanel pnl_title;
     private org.jjazz.ui.utilities.api.WheelSpinner spn_velocity;
     private org.jjazz.ui.flatcomponents.api.FlatToggleButton tbtn_hearNotes;
     private org.jjazz.ui.flatcomponents.api.FlatToggleButton tbtn_playbackAutoScroll;
