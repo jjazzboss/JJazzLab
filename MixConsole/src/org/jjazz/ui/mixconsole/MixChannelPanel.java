@@ -36,6 +36,7 @@ import javax.swing.TransferHandler;
 import org.jjazz.midi.api.Instrument;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.synths.GMSynth;
+import org.jjazz.midimix.api.UserRhythmVoice;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.PlaybackListener;
 import org.jjazz.musiccontrol.api.PlaybackListenerAdapter;
@@ -72,7 +73,7 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         playbackListener = null;
     }
 
-    public MixChannelPanel(final MixChannelPanelModel model, final MixChannelPanelController controller, MixConsoleSettings settings)
+    protected MixChannelPanel(final MixChannelPanelModel model, final MixChannelPanelController controller, MixConsoleSettings settings)
     {
         if (model == null || controller == null || settings == null)
         {
@@ -140,11 +141,6 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         fslider_volume.setValueLineColor(c);
     }
 
-    public Color getChannelColor()
-    {
-        return channelColor;
-    }
-
     public void setIcon(Icon icon)
     {
         this.lbl_Icon.setIcon(icon);
@@ -161,6 +157,7 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
     }
 
     /**
+     * Update the channel name.
      *
      * @param upperName
      * @param lowerName Can be null if not used
@@ -902,9 +899,38 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         @Override
         public RhythmVoice getRhythmVoice()
         {
+            return new UserRhythmVoice("user");
+        }
+
+        @Override
+        public String getChannelName()
+        {
+            return "name";
+        }
+
+        @Override
+        public String getChannelNameTooltip()
+        {
+            return "";
+        }
+
+        @Override
+        public String getIconTooltip()
+        {
+            return "";
+        }
+
+        @Override
+        public Icon getIcon()
+        {
             return null;
         }
 
+        @Override
+        public Color getChannelColor()
+        {
+            return Color.GRAY;
+        }
 
     }
 

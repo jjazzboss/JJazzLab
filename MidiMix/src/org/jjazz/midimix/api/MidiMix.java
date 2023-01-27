@@ -22,6 +22,7 @@
  */
 package org.jjazz.midimix.api;
 
+import com.google.common.base.Preconditions;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.XStreamException;
 import java.beans.PropertyChangeEvent;
@@ -92,7 +93,8 @@ import org.openide.NotifyDescriptor;
  * A set of up to 16 InstrumentMixes, 1 per Midi channel with 1 RhythmVoice associated.
  * <p>
  * The object manages the solo functionality between the InstrumentMixes.<p>
- * A Song can be associated to the MidiMix so that InstrumentMixes are kept up to date with song's songStructure changes.<p>
+ * A Song can be associated to the MidiMix so that InstrumentMixes are kept up to date with song's songStructure and user phrase
+ * changes.<p>
  * If MidiMix is modified the corresponding property change event is fired (e.g. PROP_INSTRUMENT_MUTE) then the
  * PROP_MODIFIED_OR_SAVED_OR_RESET change event is also fired.
  * <p>
@@ -130,6 +132,13 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      * oldValue=InstumentMix, newValue=velocity shift value.
      */
     public static final String PROP_INSTRUMENT_VELOCITY_SHIFT = "InstrumentVelocityShift";   //NOI18N 
+    /**
+     * A RhythhmVoice has replaced another one (for example a UserRhythmVoice with adifferent name).
+     * <p>
+     * oldValue=old RhythmVoice, newValue=new RhythmVoice
+     */
+    public static final String PROP_RHYTHM_VOICE = "RhythmVoice";   //NOI18N 
+
     /**
      * This property changes when the MidiMix is modified (false-&gt;true) or saved (true-&gt;false).
      */
@@ -239,7 +248,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
         if (song != null)
         {
             song.getSongStructure().removeSgsChangeListener(this);
-            song.removeVetoableChangeListener(this);
+            song.removeVetoableChangeListener(this);  // User phrase events
         }
 
         this.song = sg;
@@ -335,9 +344,9 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
         List<UserRhythmVoice> res = new ArrayList<>();
         for (int i = MidiConst.CHANNEL_MIN; i <= MidiConst.CHANNEL_MAX; i++)
         {
-            if (rvKeys[i] instanceof UserRhythmVoice)
+            if (rvKeys[i] instanceof UserRhythmVoice urv)
             {
-                res.add((UserRhythmVoice) rvKeys[i]);
+                res.add(urv);
             }
         }
         return res;
@@ -365,11 +374,11 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      * Fire a PROP_CHANNEL_INSTRUMENT_MIX change event for this channel, and one UndoableEvent.
      *
      * @param channel A valid midi channel number.
-     * @param rvKey   Can be null if insMix is also null. If a song is set, must be consistent with its rhythms and user phrases.
-     *                Can't be a RhythmVoiceDelegate.
-     * @param insMix  Can be null if rvKey is also null.
+     * @param rvKey Can be null if insMix is also null. If a song is set, must be consistent with its rhythms and user phrases.
+     * Can't be a RhythmVoiceDelegate.
+     * @param insMix Can be null if rvKey is also null.
      * @throws IllegalArgumentException if insMix is already part of this MidiMix for a different channel, or if rvKey is a
-     *                                  RhythmVoiceDelegate.
+     * RhythmVoiceDelegate.
      */
     public void setInstrumentMix(int channel, RhythmVoice rvKey, InstrumentMix insMix)
     {
@@ -410,6 +419,62 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
         }
 
         changeInstrumentMix(channel, insMix, rvKey);
+    }
+
+    /**
+     * Replace an existing RhythmVoice by a new one.
+     * <p>
+     * Fire a PROP_RHYTHM_VOICE and an undoable event.
+     *
+     * @param oldRv Must be a RhythmVoice used by this MidiMix.
+     * @param newRv Must not be already used by this MidiMix.
+     */
+    public void replaceRhythmVoice(RhythmVoice oldRv, RhythmVoice newRv)
+    {
+        int channel = getChannel(oldRv);
+        Preconditions.checkArgument(channel != -1, "oldRv=%s", oldRv);
+        Preconditions.checkArgument(getChannel(newRv) == -1, "newRv=%s", newRv);
+
+
+        // Change state
+        rvKeys[channel] = newRv;
+
+
+        // Prepare the undoable edit
+        UndoableEdit edit = new SimpleEdit("Replace RhythmVoice")
+        {
+            @Override
+            public void undoBody()
+            {
+                rvKeys[channel] = oldRv;
+
+                LOGGER.log(Level.FINER, "replaceRhythmVoice().undoBody oldRv={0} newRv={1}", new Object[]
+                {
+                    oldRv, newRv
+                });   //NOI18N
+
+                pcs.firePropertyChange(PROP_RHYTHM_VOICE, newRv, oldRv);
+                fireIsModified();
+            }
+
+            @Override
+            public void redoBody()
+            {
+                rvKeys[channel] = newRv;
+
+                LOGGER.log(Level.FINER, "replaceRhythmVoice().redoBody oldRv={0} newRv={1}", new Object[]
+                {
+                    oldRv, newRv
+                });   //NOI18N
+
+                pcs.firePropertyChange(PROP_RHYTHM_VOICE, oldRv, newRv);
+                fireIsModified();
+            }
+        };
+        fireUndoableEditHappened(edit);
+
+        pcs.firePropertyChange(PROP_RHYTHM_VOICE, oldRv, newRv);
+        fireIsModified();
     }
 
     /**
@@ -657,7 +722,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      * 3/ instrument (or new instrument if one is provided in the mapChannelNewIns parameter) is the VoidInstrument<br>
      *
      * @param mapChannelNewIns Optional channel instruments to be used for the exercise. Ignored if null. See
-     *                         OutputSynth.getNeedFixInstruments().
+     * OutputSynth.getNeedFixInstruments().
      * @return Can be empty
      */
     public List<Integer> getChannelsNeedingDrumsRerouting(HashMap<Integer, Instrument> mapChannelNewIns)
@@ -733,8 +798,8 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      * The operation will fire UndoableEvent edits.
      *
      * @param fromMm
-     * @param r      If non null, copy fromMm instrumentMixes only if they belong to rhythm r (if r is an AdaptedRhythm, use its
-     *               source rhythm).
+     * @param r If non null, copy fromMm instrumentMixes only if they belong to rhythm r (if r is an AdaptedRhythm, use its source
+     * rhythm).
      * @throws MidiUnavailableException If not enough channels available to accommodate mm instruments.
      */
     public final void addInstrumentMixes(MidiMix fromMm, Rhythm r) throws MidiUnavailableException
@@ -923,7 +988,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      *
      * @param f
      * @param isCopy Indicate that we save a copy, ie perform the file save but nothing else (eg no PROP_MODIFIED_OR_SAVED state
-     *               change)
+     * change)
      * @throws java.io.IOException
      */
     public void saveToFile(File f, boolean isCopy) throws IOException
@@ -1246,7 +1311,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
         JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(song);
         if (um != null && um.isUndoRedoInProgress())
         {
-            // IMPORTANT : Song generates his own undoableEdits,
+            // IMPORTANT : Song generates its own undoableEdits,
             // so we must not listen to song changes if undo/redo in progress, otherwise 
             // the "undo/redo" restore operations will be performed twice !
             LOGGER.log(Level.FINE, "vetoableChange() undo is in progress, exiting");   //NOI18N
@@ -1256,30 +1321,48 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
 
         if (e.getSource() == song)
         {
-            if (e.getPropertyName().equals(Song.PROP_VETOABLE_USER_PHRASE))
+            switch (e.getPropertyName())
             {
-                String name = (String) e.getNewValue();
-                if (name != null)
+                case Song.PROP_VETOABLE_USER_PHRASE ->
                 {
-                    try
+                    String name = (String) e.getNewValue();
+                    if (name != null)
                     {
-                        addUserChannel(name);
-                    } catch (MidiUnavailableException ex)
-                    {
-                        throw new PropertyVetoException(ex.getMessage(), e);
-                    }
+                        try
+                        {
+                            addUserChannel(name);
+                        } catch (MidiUnavailableException ex)
+                        {
+                            throw new PropertyVetoException(ex.getMessage(), e);
+                        }
 
-                } else
+                    } else
+                    {
+                        // User phrase was removed
+                        name = (String) e.getOldValue();
+                        removeUserChannel(name);
+
+                    }
+                }
+                case Song.PROP_VETOABLE_USER_PHRASE_CONTENT ->
                 {
-                    // User phrase was removed
-                    name = (String) e.getOldValue();
-                    removeUserChannel(name);
+                    // User phrase was updated, nothing to do at the MidiMix level
+                }
+                case Song.PROP_VETOABLE_PHRASE_NAME ->
+                {
+                    // User phrase was renamed, replace the UserRhythmVoices
+                    String oldName = (String) e.getOldValue();
+                    String newName = (String) e.getNewValue();
+                    UserRhythmVoice oldUrv = getUserRhythmVoice(oldName);
+                    assert oldUrv != null : "oldName=" + oldName;
+                    UserRhythmVoice newUrv = new UserRhythmVoice(newName, oldUrv.getDrumKit());
+                    replaceRhythmVoice(oldUrv, newUrv);
 
                 }
-            } else if (e.getPropertyName().equals(Song.PROP_VETOABLE_USER_PHRASE_CONTENT))
-            {
-                // User phrase was updated
-                // Nothing to do
+                default ->
+                {
+                    // Nothing
+                }
             }
         }
     }
@@ -1720,9 +1803,8 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
         {
             // Directly use a RhythmVoiceInstrumentProvider to get the melodic instrument
             urv = new UserRhythmVoice(userPhraseName);
-            ins = insProvider.findInstrument(urv);            
-        }
-        else
+            ins = insProvider.findInstrument(urv);
+        } else
         {
             // Try to reuse the same drums instrument than in the current song
             var rvDrums = getRhythmVoice(MidiConst.CHANNEL_DRUMS);

@@ -92,7 +92,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
     public static final String PROP_COMMENTS = "PROP_COMMENTS";
     public static final String PROP_TAGS = "PROP_TAGS";
     public static final String PROP_TEMPO = "PROP_TEMPO";
-    public static final String PROP_PHRASE_NAME = "PROP_PHRASE_NAME";
+    public static final String PROP_VETOABLE_PHRASE_NAME = "PROP_PHRASE_NAME";
     /**
      * newValue = new size in bars. OldValue=old size in bars
      */
@@ -155,7 +155,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
      *
      * @param name
      * @param cls
-     * @param sgs  Must be kept consistent with cls changes (sgs.getParentChordLeadSheet() must return cls)
+     * @param sgs Must be kept consistent with cls changes (sgs.getParentChordLeadSheet() must return cls)
      */
     protected Song(String name, ChordLeadSheet cls, SongStructure sgs)
     {
@@ -222,9 +222,10 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
     /**
      * Rename a user phrase.
      * <p>
-     * Fire a PROP_PHRASE_NAME change event.
+     * Fire a PROP_VETOABLE_PHRASE_NAME change event (actually this property change event should never been vetoed, but this allows caller
+     * to use a single vetoable listener for all user phrase events).
      *
-     * @param name    Must be the name of an existing phrase
+     * @param name Must be the name of an existing phrase
      * @param newName
      */
     public void renameUserPhrase(String name, String newName)
@@ -254,7 +255,14 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
             public void undoBody()
             {
                 mapUserPhrases = oldMap;
-                pcs.firePropertyChange(PROP_PHRASE_NAME, newName, name);
+                try
+                {
+                    vcs.fireVetoableChange(PROP_VETOABLE_PHRASE_NAME, newName, name);
+                } catch (PropertyVetoException ex)
+                {
+                    // Should never happen
+                    Exceptions.printStackTrace(ex);
+                }
                 fireIsModified();
             }
 
@@ -263,13 +271,27 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
             public void redoBody()
             {
                 mapUserPhrases = newMap;
-                pcs.firePropertyChange(PROP_PHRASE_NAME, name, newName);
+                try
+                {
+                    vcs.fireVetoableChange(PROP_VETOABLE_PHRASE_NAME, name, newName);
+                } catch (PropertyVetoException ex)
+                {
+                    // Should never happen
+                    Exceptions.printStackTrace(ex);
+                }
                 fireIsModified();
             }
         };
 
         fireUndoableEditHappened(edit);
-        pcs.firePropertyChange(PROP_PHRASE_NAME, name, newName);
+        try
+        {
+            vcs.fireVetoableChange(PROP_VETOABLE_PHRASE_NAME, name, newName);
+        } catch (PropertyVetoException ex)
+        {
+            // Should never happen
+            Exceptions.printStackTrace(ex);
+        }
         fireIsModified();
     }
 
@@ -277,14 +299,16 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
      * Set the user phrase for the specified name.
      * <p>
      * If a user phrase was already associated to name, it's replaced. Fire a VeotableChange PROP_VETOABLE_USER_PHRASE if no
-     * phrase is replaced, otherwise use PROP_VETOABLE_USER_PHRASE_CONTENT.
+     * phrase is replaced, otherwise use PROP_VETOABLE_USER_PHRASE_CONTENT. Actually the possibility of a veto is only when a new
+     * phrase is added (e.g. if MidiMix does not have an available Midi channel). Other user phrase PROP_ events for simplicity
+     * only (one listener required).
      * <p>
      * This song will listen to p's changes and fire a PROP_MODIFIED_OR_SAVED_OR_RESET change event when a non-adjusting change is
      * made.
      * <p>
      * @param name Can't be blank.
-     * @param p    Can't be null. No defensive copy is done, p is directly reused. No control is done on the phrase consistency Vs
-     *             the song.
+     * @param p Can't be null. No defensive copy is done, p is directly reused. No control is done on the phrase consistency Vs
+     * the song.
      * @throws PropertyVetoException If no Midi channel available for the user phrase
      * @see Song#PROP_VETOABLE_USER_PHRASE
      * @see Song#PROP_VETOABLE_USER_PHRASE_CONTENT
@@ -768,8 +792,8 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
      * oldValue=true and newValue=false.
      *
      * @param songFile
-     * @param isCopy   Indicate that the save operation if for a copy, ie just perform the save operation and do nothing else
-     *                 (song name is not set, etc.)
+     * @param isCopy Indicate that the save operation if for a copy, ie just perform the save operation and do nothing else (song
+     * name is not set, etc.)
      * @throws java.io.IOException
      * @see getFile()
      */

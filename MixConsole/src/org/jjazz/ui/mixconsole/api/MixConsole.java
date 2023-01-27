@@ -470,7 +470,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
     @Override
     public void propertyChange(PropertyChangeEvent e)
     {
-        LOGGER.fine("propertyChange() -- e=" + e);   //NOI18N
+        LOGGER.log(Level.FINE, "propertyChange() -- e={0}", e);
         if (e.getSource() == settings)
         {
             if (e.getPropertyName().equals(MixConsoleSettings.PROP_BACKGROUND_COLOR))
@@ -479,58 +479,68 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
             }
         } else if (e.getSource() == songMidiMix)
         {
-            if (e.getPropertyName().equals(MidiMix.PROP_CHANNEL_INSTRUMENT_MIX))
+            switch (e.getPropertyName())
             {
-                int channel = (int) e.getNewValue();
-                RhythmVoice rv = songMidiMix.getRhythmVoice(channel);
-                InstrumentMix oldInsMix = (InstrumentMix) e.getOldValue();
-                InstrumentMix insMix = songMidiMix.getInstrumentMixFromChannel(channel);
-                updateVisibleRhythmUI();
-
-                if (insMix == null)
+                case MidiMix.PROP_CHANNEL_INSTRUMENT_MIX ->
                 {
-                    // InstrumentMix was removed
-                    LOGGER.fine("propertyChange() InstrumentMix removed");   //NOI18N
-                    MixChannelPanel mcp = getMixChannelPanel(channel); // can be null if not visible
-                    if (mcp != null)
+                    int channel = (int) e.getNewValue();
+                    RhythmVoice rv = songMidiMix.getRhythmVoice(channel);
+                    InstrumentMix oldInsMix = (InstrumentMix) e.getOldValue();
+                    InstrumentMix insMix = songMidiMix.getInstrumentMixFromChannel(channel);
+                    updateVisibleRhythmUI();
+                    if (insMix == null)
                     {
-                        removeMixChannelPanel(mcp);
-                        if (getMixChannelPanels().isEmpty())
+                        // InstrumentMix was removed
+                        LOGGER.fine("propertyChange() InstrumentMix removed");   //NOI18N
+                        MixChannelPanel mcp = getMixChannelPanel(channel); // can be null if not visible
+                        if (mcp != null)
                         {
-                            setVisibleRhythm(null);     // Make all rhythms visible
+                            removeMixChannelPanel(mcp);
+                            if (getMixChannelPanels().isEmpty())
+                            {
+                                setVisibleRhythm(null);     // Make all rhythms visible
+                            }
+                        }
+                    } else if (oldInsMix == null)
+                    {
+                        // New InstrumentMix was added
+                        LOGGER.fine("propertyChange() InstrumentMix added insMix=" + insMix);   //NOI18N
+                        if (getVisibleRhythm() == null || getVisibleRhythm() == rv.getContainer() || rv instanceof UserRhythmVoice)
+                        {
+                            addMixChannelPanel(songMidiMix, channel);
+                        }
+                    } else
+                    {
+                        // InstrumentMix is replacing an existing one
+                        LOGGER.fine("propertyChange() InstrumentMix replaced");   //NOI18N
+                        MixChannelPanel mcp = getMixChannelPanel(channel);
+                        if (mcp != null)
+                        {
+                            removeMixChannelPanel(mcp);
+                        }
+                        if (getVisibleRhythm() == null || getVisibleRhythm() == rv.getContainer() || rv instanceof UserRhythmVoice)
+                        {
+                            addMixChannelPanel(songMidiMix, channel);
                         }
                     }
-                } else if (oldInsMix == null)
+                }
+                case MidiMix.PROP_RHYTHM_VOICE ->
                 {
-                    // New InstrumentMix was added
-                    LOGGER.fine("propertyChange() InstrumentMix added insMix=" + insMix);   //NOI18N
-                    if (getVisibleRhythm() == null || getVisibleRhythm() == rv.getContainer() || rv instanceof UserRhythmVoice)
-                    {
-                        addMixChannelPanel(songMidiMix, channel);
-                    }
-                } else
+                    // Handled directly by the MixChannelPanelModel
+                }
+                case MidiMix.PROP_MODIFIED_OR_SAVED ->
                 {
-                    // InstrumentMix is replacing an existing one
-                    LOGGER.fine("propertyChange() InstrumentMix replaced");   //NOI18N
-                    MixChannelPanel mcp = getMixChannelPanel(channel);
-                    if (mcp != null)
+                    boolean b = (boolean) e.getNewValue();
+                    if (b)
                     {
-                        removeMixChannelPanel(mcp);
-                    }
-                    if (getVisibleRhythm() == null || getVisibleRhythm() == rv.getContainer() || rv instanceof UserRhythmVoice)
+                        setSongModified();
+                    } else
                     {
-                        addMixChannelPanel(songMidiMix, channel);
+                        resetSongModified();
                     }
                 }
-            } else if (e.getPropertyName().equals(MidiMix.PROP_MODIFIED_OR_SAVED))
-            {
-                boolean b = (boolean) e.getNewValue();
-                if (b)
+                default ->
                 {
-                    setSongModified();
-                } else
-                {
-                    resetSongModified();
                 }
             }
         } else if (e.getSource() == SongEditorManager.getInstance())

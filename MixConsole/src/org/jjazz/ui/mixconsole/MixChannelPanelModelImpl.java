@@ -22,6 +22,7 @@
  */
 package org.jjazz.ui.mixconsole;
 
+import java.awt.Color;
 import org.jjazz.ui.mixconsole.api.MixConsole;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
@@ -29,6 +30,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.Icon;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.midi.api.Instrument;
 import org.jjazz.midi.api.InstrumentMix;
@@ -53,7 +55,12 @@ public class MixChannelPanelModelImpl implements MixChannelPanelModel, PropertyC
     private InstrumentMix insMix;
     private InstrumentSettings insSettings;
     private int channelId;
+    private Color channelColor;
     private RhythmVoice rhythmVoice;
+    private String channelName;
+    private String channelNameTooltip;
+    private String iconTooltip;
+    private Icon icon;
     private transient SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
 
     /**
@@ -102,7 +109,7 @@ public class MixChannelPanelModelImpl implements MixChannelPanelModel, PropertyC
         insMix.removePropertyChangeListener(this);
         insSettings.removePropertyChangeListener(this);
     }
-  
+
 
     @Override
     public boolean isDrumsReroutingEnabled()
@@ -311,6 +318,36 @@ public class MixChannelPanelModelImpl implements MixChannelPanelModel, PropertyC
     }
 
     @Override
+    public String getChannelName()
+    {
+        return channelName;
+    }
+
+    @Override
+    public String getChannelNameTooltip()
+    {
+        return channelNameTooltip;
+    }
+
+    @Override
+    public String getIconTooltip()
+    {
+        return iconTooltip;
+    }
+
+    @Override
+    public Icon getIcon()
+    {
+        return icon;
+    }
+
+    @Override
+    public Color getChannelColor()
+    {
+        return channelColor;
+    }
+
+    @Override
     public void addPropertyChangeListener(PropertyChangeListener l
     )
     {
@@ -336,69 +373,44 @@ public class MixChannelPanelModelImpl implements MixChannelPanelModel, PropertyC
     {
         if (e.getSource() == insMix)
         {
-            if (null != e.getPropertyName())
+            switch (e.getPropertyName())
             {
-                switch (e.getPropertyName())
+                case InstrumentMix.PROP_INSTRUMENT -> pcs.firePropertyChange(PROP_INSTRUMENT, e.getOldValue(), e.getNewValue());
+                case InstrumentMix.PROP_MUTE -> pcs.firePropertyChange(PROP_MUTE, e.getOldValue(), e.getNewValue());
+                case InstrumentMix.PROP_SOLO -> pcs.firePropertyChange(PROP_SOLO, e.getOldValue(), e.getNewValue());
+                case InstrumentMix.PROP_INSTRUMENT_ENABLED -> pcs.firePropertyChange(PROP_INSTRUMENT_ENABLED, e.getOldValue(), e.getNewValue());
+                default ->
                 {
-                    case InstrumentMix.PROP_INSTRUMENT:
-                        this.firePropertyChange(PROP_INSTRUMENT, e.getOldValue(), e.getNewValue());
-                        break;
-                    case InstrumentMix.PROP_MUTE:
-                        this.firePropertyChange(PROP_MUTE, e.getOldValue(), e.getNewValue());
-                        break;
-                    case InstrumentMix.PROP_SOLO:
-                        this.firePropertyChange(PROP_SOLO, e.getOldValue(), e.getNewValue());
-                        break;
-                    case InstrumentMix.PROP_INSTRUMENT_ENABLED:
-                        this.firePropertyChange(PROP_INSTRUMENT_ENABLED, e.getOldValue(), e.getNewValue());
-                        break;
-                    default:
-                        break;
                 }
             }
         } else if (e.getSource() == insSettings)
         {
-            if (null != e.getPropertyName())
+            switch (e.getPropertyName())
             {
-                switch (e.getPropertyName())
+                case InstrumentSettings.PROPERTY_CHORUS -> pcs.firePropertyChange(PROP_CHORUS, e.getOldValue(), e.getNewValue());
+                case InstrumentSettings.PROPERTY_REVERB -> pcs.firePropertyChange(PROP_REVERB, e.getOldValue(), e.getNewValue());
+                case InstrumentSettings.PROPERTY_VOLUME -> pcs.firePropertyChange(PROP_VOLUME, e.getOldValue(), e.getNewValue());
+                case InstrumentSettings.PROPERTY_PANORAMIC -> pcs.firePropertyChange(PROP_PANORAMIC, e.getOldValue(), e.getNewValue());
+                case InstrumentSettings.PROPERTY_PANORAMIC_ENABLED -> pcs.firePropertyChange(PROP_PANORAMIC_ENABLED, e.getOldValue(), e.getNewValue());
+                case InstrumentSettings.PROPERTY_REVERB_ENABLED -> pcs.firePropertyChange(PROP_REVERB_ENABLED, e.getOldValue(), e.getNewValue());
+                case InstrumentSettings.PROPERTY_CHORUS_ENABLED -> pcs.firePropertyChange(PROP_CHORUS_ENABLED, e.getOldValue(), e.getNewValue());
+                case InstrumentSettings.PROPERTY_VOLUME_ENABLED -> pcs.firePropertyChange(PROP_VOLUME_ENABLED, e.getOldValue(), e.getNewValue());
+                default ->
                 {
-                    case InstrumentSettings.PROPERTY_CHORUS:
-                        this.firePropertyChange(PROP_CHORUS, e.getOldValue(), e.getNewValue());
-                        break;
-                    case InstrumentSettings.PROPERTY_REVERB:
-                        this.firePropertyChange(PROP_REVERB, e.getOldValue(), e.getNewValue());
-                        break;
-                    case InstrumentSettings.PROPERTY_VOLUME:
-                        this.firePropertyChange(PROP_VOLUME, e.getOldValue(), e.getNewValue());
-                        break;
-                    case InstrumentSettings.PROPERTY_PANORAMIC:
-                        this.firePropertyChange(PROP_PANORAMIC, e.getOldValue(), e.getNewValue());
-                        break;
-                    case InstrumentSettings.PROPERTY_PANORAMIC_ENABLED:
-                        this.firePropertyChange(PROP_PANORAMIC_ENABLED, e.getOldValue(), e.getNewValue());
-                        break;
-                    case InstrumentSettings.PROPERTY_REVERB_ENABLED:
-                        this.firePropertyChange(PROP_REVERB_ENABLED, e.getOldValue(), e.getNewValue());
-                        break;
-                    case InstrumentSettings.PROPERTY_CHORUS_ENABLED:
-                        this.firePropertyChange(PROP_CHORUS_ENABLED, e.getOldValue(), e.getNewValue());
-                        break;
-                    case InstrumentSettings.PROPERTY_VOLUME_ENABLED:
-                        this.firePropertyChange(PROP_VOLUME_ENABLED, e.getOldValue(), e.getNewValue());
-                        break;
-                    default:
-                        break;
                 }
             }
         } else if (e.getSource() == midiMix)
         {
-            if (e.getPropertyName() == MidiMix.PROP_CHANNEL_DRUMS_REROUTED)
+            if (e.getPropertyName().equals(MidiMix.PROP_CHANNEL_DRUMS_REROUTED))
             {
                 int channel = (int) e.getOldValue();
                 if (channel == this.channelId)
                 {
-                    this.firePropertyChange(PROP_DRUMS_CHANNEL_REROUTED, e.getOldValue(), e.getNewValue());
+                    pcs.firePropertyChange(PROP_DRUMS_CHANNEL_REROUTED, e.getOldValue(), e.getNewValue());
                 }
+            } else if (e.getPropertyName().equals(MidiMix.PROP_RHYTHM_VOICE))
+            {
+                rhythmVoiceChanged((RhythmVoice) e.getNewValue());
             }
         }
     }
@@ -406,9 +418,25 @@ public class MixChannelPanelModelImpl implements MixChannelPanelModel, PropertyC
     // Private functions
     //-----------------------------------------------------------------------
 
-    protected void firePropertyChange(String prop, Object oldValue, Object newValue)
+    /**
+     * Update values depending on the RhythmVoice.
+     *
+     * @param rv
+     */
+    private void rhythmVoiceChanged(RhythmVoice rv)
     {
-        pcs.firePropertyChange(prop, oldValue, newValue);
+        var old = rhythmVoice;
+        if (old == rv)
+        {
+            return;
+        }
+
+        rhythmVoice = rv;
+        
+        
+        
+        pcs.firePropertyChange(PROP_RHYTHM_VOICE, old, rhythmVoice);
     }
+
 
 }
