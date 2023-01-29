@@ -69,16 +69,16 @@ public class SgsChangeEvent
     }
 
     /**
-     * @return The first SongPart, i.e. which has the lowest startBarIndex.
+     * @return The first SongPart, i.e. which has the lowest startBarIndex. Can be null.
      */
     public SongPart getSongPart()
     {
-        return songParts.get(0);
+        return songParts.isEmpty() ? null : songParts.get(0);
     }
 
     /**
      *
-     * @return A list of SongParts ordered by startBarIndex (lowest first)
+     * @return A list of SongParts ordered by startBarIndex (lowest first). Can be empty.
      */
     public List<SongPart> getSongParts()
     {

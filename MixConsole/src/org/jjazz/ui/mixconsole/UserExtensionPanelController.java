@@ -24,10 +24,10 @@ package org.jjazz.ui.mixconsole;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.beans.PropertyVetoException;
 import java.beans.VetoableChangeListener;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -35,6 +35,7 @@ import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.Sequence;
 import javax.sound.midi.Track;
+import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.midimix.api.UserRhythmVoice;
 import org.jjazz.phrase.api.Phrase;
@@ -46,11 +47,12 @@ import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythmmusicgeneration.api.SongSequenceBuilder;
 import org.jjazz.song.api.Song;
 import org.jjazz.songcontext.api.SongContext;
-import org.jjazz.ui.mixconsole.UserTrackEditableRangeDialog.EditableRange;
+import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.mixconsole.actions.AddUserTrack;
+import org.jjazz.ui.ss_editor.api.SS_EditorTopComponent;
+import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
 import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
-import org.jjazz.util.api.IntRange;
 import org.jjazz.util.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -71,21 +73,19 @@ public class UserExtensionPanelController
     /**
      * Set the associated UserExtensionPanel.
      * <p>
-     * This also creates the PianoRollEditor for the user phrase.
      *
      * @param panel
      */
-    public void setUserExtentionPanel(UserExtensionPanel panel)
+    public void setUserExtensionPanel(UserExtensionPanel panel)
     {
         this.panel = panel;
-
-        editUserPhrase();
     }
 
     public void userChannelNameEdited(String oldName, String newName)
     {
         String undoText = "Rename user track";
         JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(getSong());
+
         um.startCEdit(undoText);
 
         getSong().renameUserPhrase(oldName, newName);
@@ -106,36 +106,45 @@ public class UserExtensionPanelController
         });
 
 
-        // Prepare data for the editor      
-        int channel = panel.getMidiMix().getChannel(getUserRhythmVoice());
-
-        DrumKit drumKit = panel.getMidiMix().getInstrumentMixFromKey(getUserRhythmVoice()).getInstrument().getDrumKit();
-        DrumKit.KeyMap keyMap = drumKit == null ? null : drumKit.getKeyMap();
-        var p = getUserPhrase();
-
-
-        // Use the whole song or ask user if multiple time signatures
-        EditableRange er = getEditableRange();
-        if (er.barRange().isEmpty())
+        if (getSong().getSize() == 0)
         {
             return;
         }
-        var ts = er.timeSignature();
-        var barRange = er.barRange();
-        var beatRange = getSong().getSongStructure().getBeatRange(barRange);
 
 
-        // Create the editor model
-        String tabName = PianoRollEditorTopComponent.getDefaultTabName(getSong());
-        String strBarRange = (barRange.from + 1) + ".." + (barRange.to + 1);
-        String title = ResUtil.getString(getClass(), "PianoEditorUserPhraseTitle", getUserPhraseName(), channel + 1, strBarRange);
-        var preTc = PianoRollEditorTopComponent.show(getSong(), tabName, title, barRange.from, beatRange, p, ts, keyMap, PianoRollEditorSettings.getDefault());
+        // Create editor TopComponent and open it if required
+        var preTc = PianoRollEditorTopComponent.get(getSong());
+        if (preTc == null)
+        {
+            preTc = new PianoRollEditorTopComponent(getSong(), PianoRollEditorSettings.getDefault());
+            preTc.openNextToSongEditor();
+        }
         var editor = preTc.getEditor();
 
 
-        // Listen to song size change to update editor's beat range
-        // Stop listening when editor is destroyed or its model is changed  
-        // Remove PianoRollEditor if user phrase is removed
+        // Use the whole song or songparts selection if multiple time signatures
+        var editedSpts = getEditedSongParts();
+        if (editedSpts.isEmpty())
+        {
+            preTc.close();
+            return;
+        }
+
+        // Update model of the editor
+        DrumKit drumKit = panel.getMidiMix().getInstrumentMixFromKey(getUserRhythmVoice()).getInstrument().getDrumKit();
+        DrumKit.KeyMap keyMap = drumKit == null ? null : drumKit.getKeyMap();
+        var p = getUserPhrase();
+        var firstSpt = editedSpts.get(0);
+        var lastSpt = editedSpts.get(editedSpts.size() - 1);
+        preTc.setModel(firstSpt, lastSpt, p, keyMap);
+        preTc.setTitle(buildTitle());
+
+
+        // Prepare listeners to:
+        // - Stop listening when editor is destroyed or its model is changed  
+        // - Update title if phrase name is changed
+        // - Remove PianoRollEditor if user phrase is removed
+        var preTc2 = preTc;
         VetoableChangeListener vcl = new VetoableChangeListener()
         {
             @Override
@@ -149,7 +158,7 @@ public class UserExtensionPanelController
                         String removedPhraseName = (String) evt.getOldValue();
                         if (getUserPhraseName().equals(removedPhraseName))
                         {
-                            preTc.close();
+                            preTc2.close();
                         }
                     }
                 }
@@ -164,19 +173,19 @@ public class UserExtensionPanelController
                 {
                     switch (evt.getPropertyName())
                     {
-                        case PianoRollEditor.PROP_MODEL:
-                        case PianoRollEditor.PROP_EDITOR_ALIVE:
+                        case PianoRollEditor.PROP_MODEL, PianoRollEditor.PROP_EDITOR_ALIVE ->
+                        {
                             editor.removePropertyChangeListener(this);
-                            getSong().removePropertyChangeListener(this);
+                            panel.removePropertyChangeListener(this);
                             getSong().removeVetoableChangeListener(vcl);
+
+                        }
                     }
-                } else if (evt.getSource() == getSong())
+                } else if (evt.getSource() == panel)
                 {
-                    if (evt.getPropertyName().equals(Song.PROP_SIZE_IN_BARS))
+                    if (evt.getPropertyName().equals(UserExtensionPanel.PROP_RHYTHM_VOICE))
                     {
-                        // Adjust the model to the new size
-                        var br = getSong().getSongStructure().getBeatRange(null);
-                        editor.setModel(0, br, p, ts, keyMap);
+                        preTc2.setTitle(buildTitle());
                     }
                 }
             }
@@ -184,12 +193,25 @@ public class UserExtensionPanelController
 
 
         editor.addPropertyChangeListener(pcl);
-        getSong().addPropertyChangeListener(pcl);
+        panel.addPropertyChangeListener(pcl);
         getSong().addVetoableChangeListener(vcl);
 
 
+        preTc.requestActive();
+
     }
 
+    /**
+     * Called by panel cleanup().
+     */
+    public void cleanup()
+    {
+        var preTc = PianoRollEditorTopComponent.get(getSong());
+        if (preTc != null)
+        {
+            preTc.close();
+        }
+    }
 
     public void closePanel()
     {
@@ -319,7 +341,7 @@ public class UserExtensionPanelController
 
     private String getUserPhraseName()
     {
-        return aa;
+        return getUserRhythmVoice().getName();
     }
 
     private Phrase getUserPhrase()
@@ -337,38 +359,58 @@ public class UserExtensionPanelController
         return panel.getUserRhythmVoice();
     }
 
+
     /**
-     * If song is multi timesignature, ask user to select which part to edit.
+     * Get the contiguous-and-same-time-signature SongParts to be edited.
      *
      * @return
      */
-    private EditableRange getEditableRange()
+    private List<SongPart> getEditedSongParts()
     {
         var ss = getSong().getSongStructure();
         var timeSignatures = ss.getUniqueTimeSignatures();
 
-
-        EditableRange res = null;
-
         if (timeSignatures.size() == 1)
         {
-            // Usual case, 1 timesignature used
-            res = new EditableRange(null, ss.getBarRange(), ss.getSongPart(0).getRhythm().getTimeSignature());
-        } else if (timeSignatures.size() > 1)
-        {
-            // More than 1, need to ask user which part to use
-            var dlg = new UserTrackEditableRangeDialog(getSong());
-            dlg.setVisible(true);
-            res = dlg.getEditableRange();
+            // Usual case, 1 timesignature used, return the whole song
+            return ss.getSongParts();
         }
 
-        if (res == null)
+
+        // Multiple time signatures used, use the selection in the SS_EditorTopComponent
+        var sseTc = SS_EditorTopComponent.get(getSong().getSongStructure());
+        assert sseTc != null : "getSong()=" + getSong();
+        var sel = new SS_SelectionUtilities(sseTc.getLookup());
+
+
+        // Check that selection is contiguous SongParts with same time signature
+        boolean warnUser = true;
+        var spts = sel.getSelectedSongParts();
+        if (sel.isSongPartSelected() && sel.isContiguousSptSelection())
         {
-            res = new EditableRange(null, IntRange.EMPTY_RANGE, null);
+            TimeSignature ts = spts.get(0).getRhythm().getTimeSignature();
+            warnUser = !spts.stream()
+                    .allMatch(spt -> spt.getRhythm().getTimeSignature().equals(ts));
         }
 
-        return res;
+
+        if (warnUser)
+        {
+            String msg = ResUtil.getString(getClass(), "WarnUserSongPartSelection");
+            NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.WARNING_MESSAGE);
+            DialogDisplayer.getDefault().notify(d);
+        }
+
+
+        return warnUser ? new ArrayList<>() : spts;
     }
+
+    private String buildTitle()
+    {
+        int channel = panel.getMidiMix().getChannel(getUserRhythmVoice());
+        return ResUtil.getString(getClass(), "UserTrackTitle", getUserPhraseName(), channel + 1);
+    }
+
 
     // ============================================================================
     // Inner classes

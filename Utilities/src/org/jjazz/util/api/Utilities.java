@@ -26,11 +26,6 @@ import com.google.common.base.Preconditions;
 import com.thoughtworks.xstream.XStream;
 import java.awt.Desktop;
 import java.awt.Font;
-import java.awt.Window;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.io.*;
 import java.lang.reflect.Modifier;
 import java.net.MalformedURLException;
@@ -47,6 +42,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
@@ -55,11 +51,8 @@ import java.util.logging.Logger;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-import javax.swing.ActionMap;
 import org.openide.*;
 import org.openide.filesystems.FileObject;
-import org.openide.util.Lookup;
-import org.openide.windows.TopComponent;
 
 /**
  * Various convenience functions.
@@ -400,6 +393,7 @@ public class Utilities
         return s;
     }
 
+    
     /**
      * Generate all the permutations of the specified smallArray in the result list.
      * <p>

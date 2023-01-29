@@ -392,7 +392,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         }
 
         notesPanel.scrollToFirstNote();
-
+        
         firePropertyChange(PROP_MODEL, oldModel, model);
     }
 

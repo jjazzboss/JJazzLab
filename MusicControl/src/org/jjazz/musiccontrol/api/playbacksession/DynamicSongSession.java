@@ -628,27 +628,25 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
             disableUpdates = event.getSongParts().stream()
                     .anyMatch(spt -> spt.getStartBarIndex() <= getSongContext().getBarRange().to);
 
-        } else if (event instanceof SptReplacedEvent)
+        } else if (event instanceof SptReplacedEvent re)
         {
             // Ok if replaced spt is not in the context
-            SptReplacedEvent re = (SptReplacedEvent) event;
             disableUpdates = re.getSongParts().stream()
                     .anyMatch(spt -> contextSongParts.contains(spt));
 
-        } else if (event instanceof SptResizedEvent)
+        } else if (event instanceof SptResizedEvent re)
         {
             // Ok if replaced spt is not in the context
-            SptResizedEvent re = (SptResizedEvent) event;
             disableUpdates = re.getMapOldSptSize().getKeys().stream()
                     .anyMatch(spt -> contextSongParts.contains(spt));
 
         } else if (event instanceof SptRenamedEvent)
         {
             // Nothing
-        } else if (event instanceof RpChangedEvent)
+        } else if (event instanceof RpChangedEvent re)
         {
             assert currentSgsChange != null : "event=" + event;
-            if (((RpChangedEvent) event).getRhytmParameter() instanceof RP_SYS_TempoFactor)
+            if (re.getRhytmParameter() instanceof RP_SYS_TempoFactor)
             {
                 // Can't update this in realtime, would need to update track0, not easy
                 dirty = true;

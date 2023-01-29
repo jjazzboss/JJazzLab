@@ -31,15 +31,34 @@ import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.event.SwingPropertyChangeSupport;
+import org.jjazz.midi.api.DrumKit;
 import org.jjazz.midi.api.Instrument;
 import org.jjazz.midi.api.InstrumentMix;
 import org.jjazz.midi.api.InstrumentSettings;
 import org.jjazz.midi.api.MidiConst;
+import static org.jjazz.midi.api.synths.Family.Bass;
+import static org.jjazz.midi.api.synths.Family.Brass;
+import static org.jjazz.midi.api.synths.Family.Ensemble;
+import static org.jjazz.midi.api.synths.Family.Guitar;
+import static org.jjazz.midi.api.synths.Family.Organ;
+import static org.jjazz.midi.api.synths.Family.Percussive;
+import static org.jjazz.midi.api.synths.Family.Piano;
+import static org.jjazz.midi.api.synths.Family.Reed;
+import static org.jjazz.midi.api.synths.Family.Strings;
+import static org.jjazz.midi.api.synths.Family.Synth_Lead;
+import static org.jjazz.midi.api.synths.Family.Synth_Pad;
+import org.jjazz.midi.api.synths.GM1Instrument;
 import org.jjazz.midimix.api.MidiMix;
+import org.jjazz.midimix.api.UserRhythmVoice;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
+import static org.jjazz.rhythm.api.RhythmVoice.Type.DRUMS;
+import static org.jjazz.rhythm.api.RhythmVoice.Type.PERCUSSION;
 import org.jjazz.ui.mixconsole.api.MixConsoleTopComponent;
+import org.jjazz.util.api.ResUtil;
+import org.netbeans.api.annotations.common.StaticResource;
 
 /**
  * Model based on a channel/InstrumentMix data belonging to a MidiMix.
@@ -51,20 +70,24 @@ import org.jjazz.ui.mixconsole.api.MixConsoleTopComponent;
 public class MixChannelPanelModelImpl implements MixChannelPanelModel, PropertyChangeListener
 {
 
+    @StaticResource(relative = true)
+    private final String USER_ICON_PATH = "resources/User-48x48.png";
+
     private MidiMix midiMix;
     private InstrumentMix insMix;
     private InstrumentSettings insSettings;
     private int channelId;
-    private Color channelColor;
-    private RhythmVoice rhythmVoice;
-    private String channelName;
+    private String channelNameUpper;
+    private String channelNameLower;
     private String channelNameTooltip;
     private String iconTooltip;
     private Icon icon;
-    private transient SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    private Color channelColor = Color.LIGHT_GRAY;
+    private final transient SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    private RhythmVoice rhythmVoice;
 
     /**
-     * @param mMix The MidiMix containing all data of our model.
+     * @param mMix    The MidiMix containing all data of our model.
      * @param channel Used to retrieve the InstrumentMix from mMix.
      */
     public MixChannelPanelModelImpl(MidiMix mMix, int channel)
@@ -80,13 +103,7 @@ public class MixChannelPanelModelImpl implements MixChannelPanelModel, PropertyC
         insMix.addPropertyChangeListener(this);
         insSettings = insMix.getSettings();
         insSettings.addPropertyChangeListener(this);
-        rhythmVoice = midiMix.getRhythmVoice(channelId);
-    }
-
-    @Override
-    public RhythmVoice getRhythmVoice()
-    {
-        return rhythmVoice;
+        rhythmVoiceChanged(midiMix.getRhythmVoice(channel));
     }
 
     /**
@@ -318,10 +335,14 @@ public class MixChannelPanelModelImpl implements MixChannelPanelModel, PropertyC
     }
 
     @Override
-    public String getChannelName()
+    public String[] getChannelNames()
     {
-        return channelName;
+        return new String[]
+        {
+            channelNameUpper, channelNameLower
+        };
     }
+
 
     @Override
     public String getChannelNameTooltip()
@@ -339,6 +360,12 @@ public class MixChannelPanelModelImpl implements MixChannelPanelModel, PropertyC
     public Icon getIcon()
     {
         return icon;
+    }
+
+    @Override
+    public RhythmVoice getRhythmVoice()
+    {
+        return rhythmVoice;
     }
 
     @Override
@@ -375,10 +402,14 @@ public class MixChannelPanelModelImpl implements MixChannelPanelModel, PropertyC
         {
             switch (e.getPropertyName())
             {
-                case InstrumentMix.PROP_INSTRUMENT -> pcs.firePropertyChange(PROP_INSTRUMENT, e.getOldValue(), e.getNewValue());
-                case InstrumentMix.PROP_MUTE -> pcs.firePropertyChange(PROP_MUTE, e.getOldValue(), e.getNewValue());
-                case InstrumentMix.PROP_SOLO -> pcs.firePropertyChange(PROP_SOLO, e.getOldValue(), e.getNewValue());
-                case InstrumentMix.PROP_INSTRUMENT_ENABLED -> pcs.firePropertyChange(PROP_INSTRUMENT_ENABLED, e.getOldValue(), e.getNewValue());
+                case InstrumentMix.PROP_INSTRUMENT ->
+                    pcs.firePropertyChange(PROP_INSTRUMENT, e.getOldValue(), e.getNewValue());
+                case InstrumentMix.PROP_MUTE ->
+                    pcs.firePropertyChange(PROP_MUTE, e.getOldValue(), e.getNewValue());
+                case InstrumentMix.PROP_SOLO ->
+                    pcs.firePropertyChange(PROP_SOLO, e.getOldValue(), e.getNewValue());
+                case InstrumentMix.PROP_INSTRUMENT_ENABLED ->
+                    pcs.firePropertyChange(PROP_INSTRUMENT_ENABLED, e.getOldValue(), e.getNewValue());
                 default ->
                 {
                 }
@@ -387,14 +418,22 @@ public class MixChannelPanelModelImpl implements MixChannelPanelModel, PropertyC
         {
             switch (e.getPropertyName())
             {
-                case InstrumentSettings.PROPERTY_CHORUS -> pcs.firePropertyChange(PROP_CHORUS, e.getOldValue(), e.getNewValue());
-                case InstrumentSettings.PROPERTY_REVERB -> pcs.firePropertyChange(PROP_REVERB, e.getOldValue(), e.getNewValue());
-                case InstrumentSettings.PROPERTY_VOLUME -> pcs.firePropertyChange(PROP_VOLUME, e.getOldValue(), e.getNewValue());
-                case InstrumentSettings.PROPERTY_PANORAMIC -> pcs.firePropertyChange(PROP_PANORAMIC, e.getOldValue(), e.getNewValue());
-                case InstrumentSettings.PROPERTY_PANORAMIC_ENABLED -> pcs.firePropertyChange(PROP_PANORAMIC_ENABLED, e.getOldValue(), e.getNewValue());
-                case InstrumentSettings.PROPERTY_REVERB_ENABLED -> pcs.firePropertyChange(PROP_REVERB_ENABLED, e.getOldValue(), e.getNewValue());
-                case InstrumentSettings.PROPERTY_CHORUS_ENABLED -> pcs.firePropertyChange(PROP_CHORUS_ENABLED, e.getOldValue(), e.getNewValue());
-                case InstrumentSettings.PROPERTY_VOLUME_ENABLED -> pcs.firePropertyChange(PROP_VOLUME_ENABLED, e.getOldValue(), e.getNewValue());
+                case InstrumentSettings.PROPERTY_CHORUS ->
+                    pcs.firePropertyChange(PROP_CHORUS, e.getOldValue(), e.getNewValue());
+                case InstrumentSettings.PROPERTY_REVERB ->
+                    pcs.firePropertyChange(PROP_REVERB, e.getOldValue(), e.getNewValue());
+                case InstrumentSettings.PROPERTY_VOLUME ->
+                    pcs.firePropertyChange(PROP_VOLUME, e.getOldValue(), e.getNewValue());
+                case InstrumentSettings.PROPERTY_PANORAMIC ->
+                    pcs.firePropertyChange(PROP_PANORAMIC, e.getOldValue(), e.getNewValue());
+                case InstrumentSettings.PROPERTY_PANORAMIC_ENABLED ->
+                    pcs.firePropertyChange(PROP_PANORAMIC_ENABLED, e.getOldValue(), e.getNewValue());
+                case InstrumentSettings.PROPERTY_REVERB_ENABLED ->
+                    pcs.firePropertyChange(PROP_REVERB_ENABLED, e.getOldValue(), e.getNewValue());
+                case InstrumentSettings.PROPERTY_CHORUS_ENABLED ->
+                    pcs.firePropertyChange(PROP_CHORUS_ENABLED, e.getOldValue(), e.getNewValue());
+                case InstrumentSettings.PROPERTY_VOLUME_ENABLED ->
+                    pcs.firePropertyChange(PROP_VOLUME_ENABLED, e.getOldValue(), e.getNewValue());
                 default ->
                 {
                 }
@@ -410,7 +449,10 @@ public class MixChannelPanelModelImpl implements MixChannelPanelModel, PropertyC
                 }
             } else if (e.getPropertyName().equals(MidiMix.PROP_RHYTHM_VOICE))
             {
-                rhythmVoiceChanged((RhythmVoice) e.getNewValue());
+                if (rhythmVoice == e.getOldValue())
+                {
+                    rhythmVoiceChanged((RhythmVoice) e.getNewValue());
+                }
             }
         }
     }
@@ -423,19 +465,83 @@ public class MixChannelPanelModelImpl implements MixChannelPanelModel, PropertyC
      *
      * @param rv
      */
-    private void rhythmVoiceChanged(RhythmVoice rv)
+    private final void rhythmVoiceChanged(RhythmVoice rv)
     {
-        var old = rhythmVoice;
-        if (old == rv)
+        rhythmVoice = rv;
+
+        boolean isUserVoice = rv instanceof UserRhythmVoice;
+        Rhythm r = rv.getContainer();
+
+        channelNameUpper = isUserVoice ? ResUtil.getString(getClass(), "USER") : rv.getName();
+        channelNameLower = null;
+        icon = getIcon(rv);
+        channelNameTooltip = isUserVoice ? null : r.getName() + " - " + rv.getName();
+        iconTooltip = getIconTooltip(rv);
+
+        pcs.firePropertyChange(PROP_CHANNEL_NAME, null, channelNameUpper);
+        pcs.firePropertyChange(PROP_CHANNEL_NAME_TOOLTIP, null, channelNameTooltip);
+        pcs.firePropertyChange(PROP_ICON, null, icon);
+        pcs.firePropertyChange(PROP_ICON_TOOLTIP, null, iconTooltip);
+    }
+
+    private String getIconTooltip(RhythmVoice rv)
+    {
+        String res = null;
+
+        if (!(rv instanceof UserRhythmVoice))
         {
-            return;
+
+            Instrument prefIns = rv.getPreferredInstrument();
+            res = ResUtil.getString(getClass(), "CTL_RECOMMENDED", prefIns.getFullName());
+            if (!(prefIns instanceof GM1Instrument))
+            {
+                DrumKit kit = prefIns.getDrumKit();
+                res += " - ";
+                res += rv.isDrums() ? "DrumKit type=" + kit.getType().toString() + " keymap= " + kit.getKeyMap().getName()
+                        : "GM substitute: " + prefIns.getSubstitute().getPatchName();
+            }
         }
 
-        rhythmVoice = rv;
-        
-        
-        
-        pcs.firePropertyChange(PROP_RHYTHM_VOICE, old, rhythmVoice);
+        return res;
+    }
+
+    private Icon getIcon(RhythmVoice rv)
+    {
+        if (rv instanceof UserRhythmVoice)
+        {
+            return new ImageIcon(getClass().getResource(USER_ICON_PATH));
+        }
+
+
+        return switch (rv.getType())
+        {
+            case DRUMS ->
+                new ImageIcon(getClass().getResource("resources/Drums-48x48.png"));
+            case PERCUSSION ->
+                new ImageIcon(getClass().getResource("resources/Percu-48x48.png"));
+            default ->
+            {
+                // VOICE
+                yield switch (rv.getPreferredInstrument().getSubstitute().getFamily())
+                {
+                    case Guitar ->
+                        new ImageIcon(getClass().getResource("resources/Guitar-48x48.png"));
+                    case Piano, Organ, Synth_Lead ->
+                        new ImageIcon(getClass().getResource("resources/Keyboard-48x48.png"));
+                    case Bass ->
+                        icon = new ImageIcon(getClass().getResource("resources/Bass-48x48.png"));
+                    case Brass, Reed ->
+                        icon = new ImageIcon(getClass().getResource("resources/HornSection-48x48.png"));
+                    case Strings, Synth_Pad, Ensemble ->
+                        icon = new ImageIcon(getClass().getResource("resources/Strings-48x48.png"));
+                    case Percussive ->
+                        icon = new ImageIcon(getClass().getResource("resources/Percu-48x48.png"));
+                    default ->
+                        icon = new ImageIcon(getClass().getResource("resources/Notes-48x48.png")); // Ethnic, Sound_Effects, Synth_Effects, Pipe, Chromatic_Percussion:
+                };
+            }
+        };
+
     }
 
 

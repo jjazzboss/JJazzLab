@@ -33,7 +33,7 @@ import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.UserRhythmVoice;
-import org.jjazz.phrase.api.Phrase;
+import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.song.api.Song;
 import org.jjazz.songstructure.api.SgsChangeListener;
 import org.jjazz.songstructure.api.event.SgsChangeEvent;
@@ -55,6 +55,10 @@ import org.jjazz.util.api.Utilities;
 public class UserExtensionPanel extends javax.swing.JPanel implements VetoableChangeListener, SgsChangeListener, PropertyChangeListener
 {
 
+    /**
+     * oldValue=old rhythmVoice, newValue=new rhythmVoice
+     */
+    public static final String PROP_RHYTHM_VOICE = "PropRhythmVoice";
     private UserRhythmVoice userRhythmVoice;
     private Song song;
     private MidiMix midiMix;
@@ -80,33 +84,28 @@ public class UserExtensionPanel extends javax.swing.JPanel implements VetoableCh
         }
 
         this.controller = controller;
+        this.controller.setUserExtensionPanel(this);
         this.userRhythmVoice = urv;
         this.song = song;
         this.song.addVetoableChangeListener(this);
         this.song.getSongStructure().addSgsChangeListener(this);
         this.midiMix = midiMix;
+        this.midiMix.addPropertyChangeListener(this);       // Listen to RhythmVoice change
 
-        if (urv != null)
-        {
-            String s = Utilities.truncateWithDots(userRhythmVoice.getName(), 8);
-            fbtn_name.setText(s);
-        }
 
         // By default enable the drag in transfer handler
         setTransferHandler(new MidiFileDragInTransferHandlerImpl());
 
 
-        phraseUpdated();
-
-
-        // To be done last as the controller needs that UserExtensionPanel is ready
-        this.controller.setUserExtentionPanel(this);
+        refreshBirdView();
+        refreshUI();
     }
 
     public UserRhythmVoice getUserRhythmVoice()
     {
         return userRhythmVoice;
     }
+
 
     public Song getSong()
     {
@@ -120,6 +119,8 @@ public class UserExtensionPanel extends javax.swing.JPanel implements VetoableCh
 
     public void cleanup()
     {
+        controller.cleanup();
+        midiMix.removePropertyChangeListener(this);
         song.removeVetoableChangeListener(this);
         song.getSongStructure().removeSgsChangeListener(this);
         settings.removePropertyChangeListener(this);
@@ -134,6 +135,21 @@ public class UserExtensionPanel extends javax.swing.JPanel implements VetoableCh
         if (evt.getSource() == settings)
         {
             refreshUI();
+
+        } else if (evt.getSource() == midiMix)
+        {
+            if (evt.getPropertyName().equals(MidiMix.PROP_RHYTHM_VOICE))
+            {
+                RhythmVoice rvNew = (RhythmVoice) evt.getNewValue();
+                RhythmVoice rvOld = (RhythmVoice) evt.getOldValue();
+                if (userRhythmVoice == rvOld)
+                {
+                    var old = userRhythmVoice;
+                    userRhythmVoice = (UserRhythmVoice) rvNew;
+                    refreshUI();
+                    firePropertyChange(PROP_RHYTHM_VOICE, old, userRhythmVoice);
+                }
+            }
         }
     }
 
@@ -152,7 +168,12 @@ public class UserExtensionPanel extends javax.swing.JPanel implements VetoableCh
                 // => Do nothing
             } else if (e.getPropertyName().equals(Song.PROP_VETOABLE_USER_PHRASE_CONTENT))
             {
-                phraseUpdated();
+                // The phrase has been replaced by another
+                refreshBirdView();
+            } else if (e.getPropertyName().equals(Song.PROP_VETOABLE_PHRASE_NAME))
+            {
+                // The phrase name was changed
+                // Do nothing: we'll catch the Midix RhythmVoice change event
             }
         }
 
@@ -176,18 +197,23 @@ public class UserExtensionPanel extends javax.swing.JPanel implements VetoableCh
                 || e instanceof SptReplacedEvent)
         {
             // Song size in beats is impacted, so is our birdViewComponent
-            phraseUpdated();
+            refreshBirdView();
         }
     }
 
     //-----------------------------------------------------------------------
     // Private methods
     //-----------------------------------------------------------------------
-    private void phraseUpdated()
+    private void refreshBirdView()
     {
         LOGGER.fine("phraseUpdated() --");
-        FloatRange beatRange = song.getSongStructure().getBeatRange(null);
-        TimeSignature ts = song.getSongStructure().getSongPart(0).getRhythm().getTimeSignature();
+        var ss = song.getSongStructure();
+        if (ss.getSizeInBars() == 0)
+        {
+            return;
+        }
+        FloatRange beatRange = ss.getBeatRange(null);
+        TimeSignature ts = ss.getSongPart(0).getRhythm().getTimeSignature();
         var p = song.getUserPhrase(userRhythmVoice.getName());
         birdViewComp.setModel(p, ts, beatRange);
     }
@@ -195,7 +221,13 @@ public class UserExtensionPanel extends javax.swing.JPanel implements VetoableCh
     private void refreshUI()
     {
         this.roundedPanel1.setBackground(settings.getMixChannelBackgroundColor());
+        if (userRhythmVoice != null)
+        {
+            String s = Utilities.truncateWithDots(userRhythmVoice.getName(), 8);
+            fbtn_name.setText(s);
+        }
     }
+
 
     //-----------------------------------------------------------------------
     // Private classes
@@ -362,7 +394,7 @@ public class UserExtensionPanel extends javax.swing.JPanel implements VetoableCh
         String newValue = dlg.getText().trim();
         if (dlg.isExitOk() && newValue.length() > 0 && !newValue.equals(oldValue))
         {
-            controller.userChannelNameEdited(newValue);
+            controller.userChannelNameEdited(oldValue, newValue);
         }
     }//GEN-LAST:event_fbtn_nameActionPerformed
 

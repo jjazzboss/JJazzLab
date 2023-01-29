@@ -40,6 +40,7 @@ import org.jjazz.midi.api.synths.GMSynth;
  */
 public class RhythmVoice
 {
+
     /**
      * The main types of a rhythm voice.
      */
@@ -97,10 +98,10 @@ public class RhythmVoice
     /**
      * Create a RhythmVoice for a non-drums voice with a default InstrumentSettings.
      *
-     * @param container The Rhythm this RhythmVoice belongs to.
-     * @param type DRUMS or PERCUSSION not allowed.
+     * @param container        The Rhythm this RhythmVoice belongs to.
+     * @param type             DRUMS or PERCUSSION not allowed.
      * @param name
-     * @param instrument The instrument to be used by default. Can't be null. Must have getSubstitute() defined.
+     * @param instrument       The instrument to be used by default. Can't be null. Must have getSubstitute() defined.
      * @param preferredChannel Preferred Midi channel
      */
     public RhythmVoice(Rhythm container, Type type, String name, Instrument instrument, int preferredChannel)
@@ -111,11 +112,11 @@ public class RhythmVoice
     /**
      * Create a RhythmVoice for a non-drums voice.
      *
-     * @param container The Rhythm this RhythmVoice belongs to.
-     * @param type DRUMS or PERCUSSION not allowed.
-     * @param name Name of the RhythmVoice
-     * @param ins The recommended instrument. Can't be null. Must have getSubstitute() defined.
-     * @param is The recommended InstrumentSettings.
+     * @param container        The Rhythm this RhythmVoice belongs to.
+     * @param type             DRUMS or PERCUSSION not allowed.
+     * @param name             Name of the RhythmVoice
+     * @param ins              The recommended instrument. Can't be null. Must have getSubstitute() defined.
+     * @param is               The recommended InstrumentSettings.
      * @param preferredChannel The preferred Midi channel for this voice.
      */
     public RhythmVoice(Rhythm container, Type type, String name, Instrument ins, InstrumentSettings is, int preferredChannel)
@@ -123,7 +124,7 @@ public class RhythmVoice
         if (container == null || type == null || type.equals(Type.DRUMS) || type.equals(Type.PERCUSSION) || ins == null
                 || ins.getSubstitute() == null || name == null || is == null || !MidiConst.checkMidiChannel(preferredChannel))
         {
-            throw new IllegalArgumentException(   //NOI18N
+            throw new IllegalArgumentException( //NOI18N
                     "container=" + container + " type=" + type + " name=" + name + " ins=" + ins.toLongString() + " is=" + is + " preferredChannel=" + preferredChannel);
         }
         this.container = container;
@@ -140,9 +141,9 @@ public class RhythmVoice
      *
      * @param drumKit
      * @param container
-     * @param type Must be DRUMS or PERCUSSION.
+     * @param type             Must be DRUMS or PERCUSSION.
      * @param name
-     * @param ins The recommended instrument. Can't be null. Does not need to have getSubstitute() defined.
+     * @param ins              The recommended instrument. Can't be null. Does not need to have getSubstitute() defined.
      * @param preferredChannel
      */
     public RhythmVoice(DrumKit drumKit, Rhythm container, Type type, String name, Instrument ins, int preferredChannel)
@@ -155,11 +156,11 @@ public class RhythmVoice
      * <p>
      *
      * @param drumKit
-     * @param container The Rhythm this RhythmVoice belongs to.
-     * @param type Must be DRUMS or PERCUSSION.
-     * @param name Name of the RhythmVoice
-     * @param ins The recommended instrument. Can't be null. Does not need to have getSubstitute() defined.
-     * @param is The recommended InstrumentSettings.
+     * @param container        The Rhythm this RhythmVoice belongs to.
+     * @param type             Must be DRUMS or PERCUSSION.
+     * @param name             Name of the RhythmVoice
+     * @param ins              The recommended instrument. Can't be null. Does not need to have getSubstitute() defined.
+     * @param is               The recommended InstrumentSettings.
      * @param preferredChannel The preferred Midi channel for this voice.
      */
     public RhythmVoice(DrumKit drumKit, Rhythm container, Type type, String name, Instrument ins, InstrumentSettings is, int preferredChannel)
@@ -167,8 +168,7 @@ public class RhythmVoice
         if (drumKit == null || container == null || type == null || (!type.equals(Type.DRUMS) && !type.equals(Type.PERCUSSION))
                 || ins == null || name == null || is == null || !MidiConst.checkMidiChannel(preferredChannel))
         {
-            throw new IllegalArgumentException(   //NOI18N
-                    "kit=" + drumKit + " container=" + container + " type=" + type + " name=" + name
+            throw new IllegalArgumentException("kit=" + drumKit + " container=" + container + " type=" + type + " name=" + name
                     + " is=" + is + " preferredChannel=" + preferredChannel);
         }
         this.container = container;
@@ -231,7 +231,7 @@ public class RhythmVoice
      * The preferred Instrument for this voice.
      *
      * @return Can't be null. Except for Drums/Percussion, returned instrument is guaranteed to have its method getSubstitute()
-     * defined
+     *         defined
      */
     public Instrument getPreferredInstrument()
     {

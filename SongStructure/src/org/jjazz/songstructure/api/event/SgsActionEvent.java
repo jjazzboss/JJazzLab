@@ -59,7 +59,7 @@ public class SgsActionEvent extends SgsChangeEvent
         this.actionId = actionId;
         this.isUndo = undo;
     }
-
+    
     public boolean isActionStarted()
     {
         return !startedOrComplete;

@@ -374,11 +374,11 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      * Fire a PROP_CHANNEL_INSTRUMENT_MIX change event for this channel, and one UndoableEvent.
      *
      * @param channel A valid midi channel number.
-     * @param rvKey Can be null if insMix is also null. If a song is set, must be consistent with its rhythms and user phrases.
-     * Can't be a RhythmVoiceDelegate.
-     * @param insMix Can be null if rvKey is also null.
+     * @param rvKey   Can be null if insMix is also null. If a song is set, must be consistent with its rhythms and user phrases.
+     *                Can't be a RhythmVoiceDelegate.
+     * @param insMix  Can be null if rvKey is also null.
      * @throws IllegalArgumentException if insMix is already part of this MidiMix for a different channel, or if rvKey is a
-     * RhythmVoiceDelegate.
+     *                                  RhythmVoiceDelegate.
      */
     public void setInstrumentMix(int channel, RhythmVoice rvKey, InstrumentMix insMix)
     {
@@ -722,7 +722,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      * 3/ instrument (or new instrument if one is provided in the mapChannelNewIns parameter) is the VoidInstrument<br>
      *
      * @param mapChannelNewIns Optional channel instruments to be used for the exercise. Ignored if null. See
-     * OutputSynth.getNeedFixInstruments().
+     *                         OutputSynth.getNeedFixInstruments().
      * @return Can be empty
      */
     public List<Integer> getChannelsNeedingDrumsRerouting(HashMap<Integer, Instrument> mapChannelNewIns)
@@ -798,8 +798,8 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      * The operation will fire UndoableEvent edits.
      *
      * @param fromMm
-     * @param r If non null, copy fromMm instrumentMixes only if they belong to rhythm r (if r is an AdaptedRhythm, use its source
-     * rhythm).
+     * @param r      If non null, copy fromMm instrumentMixes only if they belong to rhythm r (if r is an AdaptedRhythm, use its
+     *               source rhythm).
      * @throws MidiUnavailableException If not enough channels available to accommodate mm instruments.
      */
     public final void addInstrumentMixes(MidiMix fromMm, Rhythm r) throws MidiUnavailableException
@@ -988,7 +988,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      *
      * @param f
      * @param isCopy Indicate that we save a copy, ie perform the file save but nothing else (eg no PROP_MODIFIED_OR_SAVED state
-     * change)
+     *               change)
      * @throws java.io.IOException
      */
     public void saveToFile(File f, boolean isCopy) throws IOException
@@ -1355,7 +1355,8 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
                     String newName = (String) e.getNewValue();
                     UserRhythmVoice oldUrv = getUserRhythmVoice(oldName);
                     assert oldUrv != null : "oldName=" + oldName;
-                    UserRhythmVoice newUrv = new UserRhythmVoice(newName, oldUrv.getDrumKit());
+                    var kit = oldUrv.getDrumKit();
+                    UserRhythmVoice newUrv = kit != null ? new UserRhythmVoice(newName, oldUrv.getDrumKit()) : new UserRhythmVoice(newName);
                     replaceRhythmVoice(oldUrv, newUrv);
 
                 }

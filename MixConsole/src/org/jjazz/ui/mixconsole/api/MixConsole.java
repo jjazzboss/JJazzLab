@@ -128,9 +128,6 @@ import org.openide.loaders.DataFolder;
 public class MixConsole extends JPanel implements PropertyChangeListener, ActionListener
 {
 
-    @StaticResource(relative = true)
-    private final String USER_ICON_PATH = "resources/User-48x48.png";
-
     /**
      * Colors used to distinguish channels from different rhythms.
      */
@@ -143,6 +140,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         new Color(255, 255, 153)  // pale yellow
     };
     private static final Color CHANNEL_COLOR_USER = new Color(192, 115, 243);       // Light purple
+
     private static Rhythm RHYTHM_ALL;
     private final InstanceContent instanceContent;
     private final Lookup lookup;
@@ -647,13 +645,13 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
 
     private void addMixChannelPanel(MidiMix mm, int channel)
     {
-        MixChannelPanel mcp;
         RhythmVoice rv = songMidiMix.getRhythmVoice(channel);
+        MixChannelPanel mcp = createMixChannelPanel(mm, channel, rv);
+        insertMixChannelPanel(channel, mcp);
+
         if (rv instanceof UserRhythmVoice)
         {
-            // User channel
-            mcp = createMixChannelPanelForUserVoice(mm, channel);
-            insertMixChannelPanel(channel, mcp);
+            // User channel, also add the extension panel
             UserExtensionPanel ucep = new UserExtensionPanel(songModel,
                     songMidiMix,
                     (UserRhythmVoice) rv,
@@ -661,13 +659,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
                     settings
             );
             panel_mixChannels.add(ucep);      // Out layout manager will place it below the MixChannelPanel
-        } else
-        {
-            // Rhythm channel
-            mcp = createMixChannelPanelForRhythmVoice(mm, channel, rv);
-            insertMixChannelPanel(channel, mcp);
         }
-
 
         // Set a transfer handler for each panel
         mcp.setTransferHandler(new MidiFileDragOutTransferHandler(rv));
@@ -679,86 +671,15 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         updateChannelColors();
     }
 
-    private MixChannelPanel createMixChannelPanelForRhythmVoice(MidiMix mm, int channel, RhythmVoice rv)
+    private MixChannelPanel createMixChannelPanel(MidiMix mm, int channel, RhythmVoice rv)
     {
-        LOGGER.log(Level.FINE, "createMixChannelPanelForRhythmVoice() -- mm={0} channel={1} rv={2}", new Object[]
+        LOGGER.log(Level.FINE, "createMixChannelPanel() -- mm={0} channel={1} rv={2}", new Object[]
         {
             mm, channel, rv
-        });   //NOI18N
+        });
         MixChannelPanelModelImpl mcpModel = new MixChannelPanelModelImpl(mm, channel);
-        MixChannelPanelControllerImpl mcpController = new MixChannelPanelControllerImpl(mm, channel);
+        MixChannelPanelControllerImpl mcpController = new MixChannelPanelControllerImpl(songModel, mm, channel);
         MixChannelPanel mcp = new MixChannelPanel(mcpModel, mcpController, settings);
-        Rhythm r = rv.getContainer();
-        mcp.setChannelName(r.getName(), rv.getName());
-        Instrument prefIns = rv.getPreferredInstrument();
-        Icon icon;
-        switch (rv.getType())
-        {
-            case DRUMS:
-                icon = new ImageIcon(getClass().getResource("resources/Drums-48x48.png"));
-                break;
-            case PERCUSSION:
-                icon = new ImageIcon(getClass().getResource("resources/Percu-48x48.png"));
-                break;
-            default:    // VOICE
-                switch (prefIns.getSubstitute().getFamily())
-                {
-                    case Guitar:
-                        icon = new ImageIcon(getClass().getResource("resources/Guitar-48x48.png"));
-                        break;
-                    case Piano:
-                    case Organ:
-                    case Synth_Lead:
-                        icon = new ImageIcon(getClass().getResource("resources/Keyboard-48x48.png"));
-                        break;
-                    case Bass:
-                        icon = new ImageIcon(getClass().getResource("resources/Bass-48x48.png"));
-                        break;
-                    case Brass:
-                    case Reed:
-                        icon = new ImageIcon(getClass().getResource("resources/HornSection-48x48.png"));
-                        break;
-                    case Strings:
-                    case Synth_Pad:
-                    case Ensemble:
-                        icon = new ImageIcon(getClass().getResource("resources/Strings-48x48.png"));
-                        break;
-                    case Percussive:
-                        icon = new ImageIcon(getClass().getResource("resources/Percu-48x48.png"));
-                        break;
-                    default: // Ethnic, Sound_Effects, Synth_Effects, Pipe, Chromatic_Percussion:
-                        icon = new ImageIcon(getClass().getResource("resources/Notes-48x48.png"));
-                }
-
-        }
-        mcp.setNameToolTipText(r.getName() + " - " + rv.getName());
-
-
-        mcp.setIcon(icon);
-        String txt = ResUtil.getString(getClass(), "CTL_RECOMMENDED", prefIns.getFullName());
-        if (!(prefIns instanceof GM1Instrument))
-        {
-            DrumKit kit = prefIns.getDrumKit();
-            txt += " - ";
-            txt += rv.isDrums() ? "DrumKit type=" + kit.getType().toString() + " keymap= " + kit.getKeyMap().getName()
-                    : "GM substitute: " + prefIns.getSubstitute().getPatchName();
-        }
-        mcp.setIconToolTipText(txt);
-        return mcp;
-
-    }
-
-    private MixChannelPanel createMixChannelPanelForUserVoice(MidiMix mm, int channel)
-    {
-        LOGGER.fine("createMixChannelPanelForUserVoice() -- mm=" + mm + " channel=" + channel);   //NOI18N
-        MixChannelPanelModelImpl mcpModel = new MixChannelPanelModelImpl(mm, channel);
-        MixChannelPanelControllerImpl mcpController = new MixChannelPanelControllerImpl(mm, channel);
-        MixChannelPanel mcp = new MixChannelPanel(mcpModel, mcpController, settings);
-        mcp.setChannelColor(CHANNEL_COLOR_USER);
-        mcp.setChannelName(ResUtil.getString(getClass(), "USER"), ResUtil.getString(getClass(), "CHANNEL"));
-        Icon icon = new ImageIcon(getClass().getResource(USER_ICON_PATH));
-        mcp.setIcon(icon);
-        mcp.setIconToolTipText(null);
         return mcp;
     }
 
@@ -766,10 +687,12 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
     private void removeMixChannelPanel(MixChannelPanel mcp)
     {
         RhythmVoice rv = mcp.getModel().getRhythmVoice();
-        if (rv instanceof UserRhythmVoice)
+
+        if (rv instanceof UserRhythmVoice urv)
         {
             // Need to remove the UserChannelExtenionPanel as well
-            var ucep = getUserChannelExtensionPanel((UserRhythmVoice) rv);
+            var ucep = getUserChannelExtensionPanel(urv);
+            assert ucep != null : "urv=" + urv;
             ucep.cleanup();
             panel_mixChannels.remove(ucep);
         }
@@ -786,9 +709,8 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
     {
         for (Component c : panel_mixChannels.getComponents())
         {
-            if (c instanceof UserExtensionPanel)
+            if (c instanceof UserExtensionPanel ucep)
             {
-                var ucep = (UserExtensionPanel) c;
                 if (ucep.getUserRhythmVoice() == urv)
                 {
                     return ucep;

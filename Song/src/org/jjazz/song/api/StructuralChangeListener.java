@@ -128,19 +128,16 @@ public class StructuralChangeListener implements ClsChangeListener, SgsChangeLis
     {
         boolean changed = false;
 
-        if (event instanceof SgsActionEvent && ((SgsActionEvent) event).isActionComplete())
+        if (event instanceof SgsActionEvent ae && ae.isActionComplete())
         {
-            String actionId = ((SgsActionEvent) event).getActionId();
-            switch (actionId)
+            String actionId = ae.getActionId();
+            changed = switch (actionId)
             {
-                case "replaceSongParts":
-                case "setRhythmParameterValue":
-                case "setSongPartsName":
-                    changed = false;
-                    break;
-                default:
-                    changed = true;
-            }
+                case "replaceSongParts", "setRhythmParameterValue", "setSongPartsName" ->
+                    false;
+                default ->
+                    true;
+            };
         }
 
         if (changed)

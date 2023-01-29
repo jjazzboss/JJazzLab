@@ -105,7 +105,7 @@ public class SongSequenceBuilder
     private static final Logger LOGGER = Logger.getLogger(SongSequenceBuilder.class.getSimpleName());
 
     /**
-     * @param context The songContext to build the sequence. Song's SongStructure can not be empty.
+     * @param context The songContext to build the sequence.
      */
     public SongSequenceBuilder(SongContext context)
     {
@@ -114,7 +114,6 @@ public class SongSequenceBuilder
             throw new NullPointerException("context");   //NOI18N
         }
         this.songContext = context;
-        assert !context.getSong().getSongStructure().getSongParts().isEmpty();   //NOI18N
     }
 
     /**

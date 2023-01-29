@@ -22,6 +22,8 @@
  */
 package org.jjazz.util.api;
 
+import static org.jjazz.util.api.IntRange.EMPTY_RANGE;
+
 /**
  * A range between 2 positive floats.
  */
@@ -173,6 +175,24 @@ public class FloatRange
         return getTransformed(offset, offset);
     }
 
+    /**
+     * Get a new range made from the lowest and highest bounds from this object and r.
+     * <p>
+     * If one of the range is empty, return the empty range.
+     *
+     * @param r
+     * @return
+     */
+    public FloatRange getUnion(FloatRange r)
+    {
+        if (r == EMPTY_FLOAT_RANGE || this == EMPTY_FLOAT_RANGE)
+        {
+            return EMPTY_FLOAT_RANGE;
+        }
+        float low = Math.min(from, r.from);
+        float high = Math.max(to, r.to);
+        return new FloatRange(low, high);
+    }
 
     @Override
     public String toString()

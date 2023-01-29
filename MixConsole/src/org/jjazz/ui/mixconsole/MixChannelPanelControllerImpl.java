@@ -37,6 +37,9 @@ import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.UserRhythmVoice;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.outputsynth.api.OutputSynthManager;
+import org.jjazz.song.api.Song;
+import org.jjazz.undomanager.api.JJazzUndoManager;
+import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.util.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -48,6 +51,7 @@ import org.openide.awt.StatusDisplayer;
 public class MixChannelPanelControllerImpl implements MixChannelPanelController
 {
 
+    private Song song;
     private MidiMix midiMix;
     private int channelId;
     private static final Logger LOGGER = Logger.getLogger(MixChannelPanelControllerImpl.class.getSimpleName());
@@ -56,12 +60,13 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
      * @param mMix    The MidiMix containing all data of our model.
      * @param channel Used to retrieve the InstrumentMix from mMix.
      */
-    public MixChannelPanelControllerImpl(MidiMix mMix, int channel)
+    public MixChannelPanelControllerImpl(Song song, MidiMix mMix, int channel)
     {
         if (mMix == null || !MidiConst.checkMidiChannel(channel) || mMix.getInstrumentMixFromChannel(channel) == null)
         {
             throw new IllegalArgumentException("mMix=" + mMix + " channel=" + channel);   //NOI18N
         }
+        this.song = song;
         channelId = channel;
         midiMix = mMix;
     }
@@ -112,7 +117,13 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
         InstrumentMix insMixDest = midiMix.getInstrumentMixFromChannel(newChannelId);
         RhythmVoice rvKeyDest = midiMix.getRhythmVoice(newChannelId);
 
-
+        
+        // Undoable event
+        String undoText = "Change channel";
+        JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(song);
+        um.startCEdit(undoText);
+        
+        
         // Perform the changes
         if (insMixDest == null)
         {
@@ -127,6 +138,8 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
             midiMix.setInstrumentMix(newChannelId, rvKeySrc, insMixSrc);
             midiMix.setInstrumentMix(channelId, rvKeyDest, insMixDest);
         }
+                
+        um.endCEdit(undoText);
     }
 
     @Override

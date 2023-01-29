@@ -49,7 +49,7 @@ import org.jjazz.uisettings.api.GeneralUISettings;
 import org.jjazz.util.api.Utilities;
 
 /**
- * Display a MixChannel.
+ * The panel to edit the channel Instrument and InstrumentMix.
  */
 public class MixChannelPanel extends javax.swing.JPanel implements PropertyChangeListener
 {
@@ -73,7 +73,7 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         playbackListener = null;
     }
 
-    protected MixChannelPanel(final MixChannelPanelModel model, final MixChannelPanelController controller, MixConsoleSettings settings)
+    public MixChannelPanel(final MixChannelPanelModel model, final MixChannelPanelController controller, MixConsoleSettings settings)
     {
         if (model == null || controller == null || settings == null)
         {
@@ -169,7 +169,10 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
             throw new NullPointerException("upperName");   //NOI18N
         }
         upperName = Utilities.truncate(upperName, 9);       // Because bold
-        lowerName = Utilities.truncate(lowerName, 10);
+        if (lowerName != null)
+        {
+            lowerName = Utilities.truncate(lowerName, 10);
+        }
         String s = (lowerName != null) ? "<html><div style='text-align: center;'><b>" + upperName + "</b><br>" + lowerName + "</div></html>" : upperName;
         lbl_name.setText(s);
     }
@@ -276,6 +279,11 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         fslider_volume.setEnabled(model.isVolumeEnabled());
         fbtn_Instrument.setEnabled(model.isInstrumentEnabled());
 
+
+        this.lbl_Icon.setIcon(model.getIcon());
+        this.lbl_Icon.setToolTipText(model.getIconTooltip());
+        this.setChannelName(model.getChannelNames()[0], model.getChannelNames()[1]);
+        this.lbl_name.setToolTipText(model.getChannelNameTooltip());
 
         // Colors
         roundedPanel.setBackground(settings.getMixChannelBackgroundColor());
@@ -441,7 +449,7 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         pnl_icon.setOpaque(false);
         pnl_icon.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 0, 0));
 
-        lbl_Icon.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/mixconsole/api/resources/Drums-48x48.png"))); // NOI18N
+        lbl_Icon.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/mixconsole/resources/Drums-48x48.png"))); // NOI18N
         lbl_Icon.setAlignmentX(0.5F);
         lbl_Icon.setBorder(javax.swing.BorderFactory.createEmptyBorder(2, 0, 2, 0));
         lbl_Icon.addMouseMotionListener(new java.awt.event.MouseMotionAdapter()
@@ -897,15 +905,18 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         }
 
         @Override
-        public RhythmVoice getRhythmVoice()
+        public String[] getChannelNames()
         {
-            return new UserRhythmVoice("user");
+            return new String[]
+            {
+                "upper", "lower"
+            };
         }
 
         @Override
-        public String getChannelName()
+        public RhythmVoice getRhythmVoice()
         {
-            return "name";
+            return new UserRhythmVoice("bla");
         }
 
         @Override
@@ -929,9 +940,8 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         @Override
         public Color getChannelColor()
         {
-            return Color.GRAY;
+            return Color.CYAN;
         }
-
     }
 
 }

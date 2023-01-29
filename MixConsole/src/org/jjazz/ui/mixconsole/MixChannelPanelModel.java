@@ -35,7 +35,7 @@ import org.jjazz.rhythm.api.RhythmVoice;
  * - provide all variables that need to be listened to<br>
  * - provide all methods to handle actions not directly managed by the MixChannelPanel itself.<br>
  */
-interface MixChannelPanelModel
+public interface MixChannelPanelModel
 {
 
     static final String PROP_PANORAMIC = "PropPanoramic";   //NOI18N 
@@ -51,8 +51,8 @@ interface MixChannelPanelModel
     static final String PROP_SOLO = "PropSolo";   //NOI18N 
     static final String PROP_VOLUME = "PropVolume";   //NOI18N 
     static final String PROP_INSTRUMENT = "PropInstrument";   //NOI18N 
+    static final String PROP_CHANNEL_COLOR = "PropChannelColor";   //NOI18N 
     static final String PROP_CHANNEL_ID = "PropChannelId";   //NOI18N 
-    static final String PROP_RHYTHM_VOICE = "PropRhythmVoice";   //NOI18N 
     static final String PROP_CHANNEL_NAME = "PropChannelName";   //NOI18N 
     static final String PROP_ICON = "PropIcon";   //NOI18N 
     static final String PROP_CHANNEL_NAME_TOOLTIP = "PropChannelNameTooltip";   //NOI18N 
@@ -97,10 +97,15 @@ interface MixChannelPanelModel
     boolean isDrumsReroutingEnabled();
 
     RhythmVoice getRhythmVoice();
-
-    String getChannelName();
-
-    Color getChannelColor();
+    
+    /**
+     * Get the upper name in String[0] and lower name in String[1].
+     * <p>
+     * String[1] can be null if unused.
+     *
+     * @return
+     */
+    String[] getChannelNames();
 
     String getChannelNameTooltip();
 
@@ -108,11 +113,13 @@ interface MixChannelPanelModel
 
     Icon getIcon();
 
+    Color getChannelColor();
+
     /**
      * @param oldValue
      * @param newValue
-     * @param e The MouseEvent representing the user action that changed the volume. e will be null if change did not result from
-     * a mouse drag or wheel event.
+     * @param e        The MouseEvent representing the user action that changed the volume. e will be null if change did not
+     *                 result from a mouse drag or wheel event.
      */
     void setVolume(int oldValue, int newValue, MouseEvent e);
 
