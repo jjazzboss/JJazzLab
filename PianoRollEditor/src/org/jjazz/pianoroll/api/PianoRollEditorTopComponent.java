@@ -29,11 +29,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.logging.Logger;
 import javax.swing.Action;
+import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.phrase.api.Phrase;
+import org.jjazz.pianoroll.RulerPanel;
 import org.jjazz.pianoroll.ToolbarPanel;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
 import org.jjazz.song.api.Song;
@@ -46,7 +49,6 @@ import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.util.api.FloatRange;
 import org.jjazz.util.api.IntRange;
 import org.jjazz.util.api.ResUtil;
-import org.openide.*;
 import org.openide.awt.UndoRedo;
 import org.openide.util.Lookup;
 import org.openide.util.Utilities;
@@ -58,8 +60,7 @@ import org.openide.windows.WindowManager;
 /**
  * The TopComponent for a PianoRollEditor.
  * <p>
- * The TopComponent closes itself when song is closed and listen to SongStructure changes to update the edited range or close the
- * component if SongStructure is not supported like introducing/removing time signatures.
+ * The TopComponent closes itself when song is closed and listen to SongStructure changes to update the edited range.
  */
 public final class PianoRollEditorTopComponent extends TopComponent implements PropertyChangeListener, SgsChangeListener
 {
@@ -67,19 +68,13 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
     // public static final String MODE = "midieditor";  // WindowManager mode
     public static final String MODE = "editor";  // WindowManager mode
 
-
+    
     private final PianoRollEditor editor;
     private final ToolbarPanel toolbarPanel;
     private static final Logger LOGGER = Logger.getLogger(PianoRollEditorTopComponent.class.getSimpleName());
     private final Song song;
-    private SongPart sptFirst;
-    private int saveSptFirstIndex;
-    private SongPart sptLast;
-    private int saveSptLastIndex;
-    private List<SongPart> saveEditedSpts;
-    private boolean wholeSongEdit;
+    private SongPart songPart;
     private String titleBase;
-    private static boolean notifiedOnce;
 
 
     /**
@@ -93,7 +88,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
     {
         Preconditions.checkNotNull(sg);
         Preconditions.checkNotNull(settings);
-
+        
         putClientProperty(TopComponent.PROP_MAXIMIZATION_DISABLED, Boolean.FALSE);
         putClientProperty(TopComponent.PROP_CLOSING_DISABLED, Boolean.FALSE);
         putClientProperty(TopComponent.PROP_DND_COPY_DISABLED, Boolean.TRUE);
@@ -109,19 +104,24 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
         Mode mode = WindowManager.getDefault().findMode(PianoRollEditorTopComponent.MODE);
         assert mode != null;
         assert mode.dockInto(this);
-
-
+        
+        
         this.song = sg;
         setDisplayName(getDefaultTabName(song));
+        
+        
         var spts = this.song.getSongStructure().getSongParts();
-        this.sptFirst = spts.get(0);
-        this.sptLast = spts.get(spts.size() - 1);
-        editor = new PianoRollEditor(sptFirst.getStartBarIndex(), getBeatRange(), new Phrase(0), sptFirst.getRhythm().getTimeSignature(), null, settings);
+        this.songPart = spts.get(0);
+        TreeMap<Float, TimeSignature> tMap = new TreeMap<>();
+        tMap.put(song.getSongStructure().getBeatRange(songPart.getBarRange()).from, songPart.getRhythm().getTimeSignature());
+        
+        
+        editor = new PianoRollEditor(songPart.getStartBarIndex(), getBeatRange(), new Phrase(0), tMap, null, settings);
         editor.setSong(song);
         editor.setUndoManager(JJazzUndoManagerFinder.getDefault().get(song));
         toolbarPanel = new ToolbarPanel(editor, song.getName());
-
-
+        
+        
         initComponents();
 
 
@@ -134,48 +134,62 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
     }
 
     /**
-     * Update the model to edit the phrase on whole or part of the song.
+     * Update the model to edit a phrase on a single SongPart.
      * <p>
      *
-     * @param sptFirst Start of the edited phrase. Must belong to the editor's song.
-     * @param sptLast  End of the edited phrase. Must belong to the editor's song. If sptLast has a different time signature than
-     *                 sptFirst, sptLast will be replaced by the last song part after sptFirst which has the same time signature.
+     * @param spt    Must belong to the song
      * @param p
-     * @param keyMap   Can be null
+     * @param keyMap Can be null
      */
-    public void setModel(SongPart sptFirst, SongPart sptLast, Phrase p, DrumKit.KeyMap keyMap)
+    public void setModel(SongPart spt, Phrase p, DrumKit.KeyMap keyMap)
     {
-        var ss = getSong().getSongStructure();
-        Preconditions.checkNotNull(sptFirst);
-        Preconditions.checkNotNull(sptLast);
         Preconditions.checkNotNull(p);
-        Preconditions.checkArgument(sptFirst.getStartBarIndex() <= sptLast.getStartBarIndex(), "sptFirst=%s sptLast=%s", sptFirst, sptLast);
-        Preconditions.checkArgument(sptFirst.getContainer() == ss && sptLast.getContainer() == ss, "sptFirst=%s sptLast=%s", sptFirst, sptLast);
+        Preconditions.checkNotNull(spt);
+        Preconditions.checkArgument(song.getSongStructure().getSongParts().contains(spt));
+        
+        
+        songPart = spt;
+        TreeMap<Float, TimeSignature> mapPosTs = new TreeMap<>();
+        mapPosTs.put(0f, songPart.getRhythm().getTimeSignature());
+        
+        editor.setModel(songPart.getStartBarIndex(), getBeatRange(), p, mapPosTs, keyMap);
+        
+        refreshToolbarTitle();
+    }
 
-
+    /**
+     * Update the model to edit a phrase on the whole song.
+     * <p>
+     *
+     * @param p
+     * @param keyMap Can be null
+     */
+    public void setModel(Phrase p, DrumKit.KeyMap keyMap)
+    {
+        Preconditions.checkNotNull(p);
+        
+        var ss = song.getSongStructure();
         var spts = ss.getSongParts();
         if (spts.isEmpty())
         {
             return;
         }
-
-
-        this.sptFirst = sptFirst;
-        this.sptLast = sptLast;
-        refreshSptLast();
-        refreshSaveEditedSpts();
-        wholeSongEdit = sptFirst.getStartBarIndex() == 0 && sptLast == spts.get(spts.size() - 1);
-
-        editor.setModel(sptFirst.getStartBarIndex(), getBeatRange(), p, sptFirst.getRhythm().getTimeSignature(), keyMap);
+        
+        songPart = null;
+        TreeMap<Float, TimeSignature> mapPosTs = new TreeMap<>();
+        spts.forEach(spt -> mapPosTs.put(ss.getPositionInNaturalBeats(spt.getStartBarIndex()), spt.getRhythm().getTimeSignature()));
+        
+        
+        editor.setModel(0, getBeatRange(), p, mapPosTs, keyMap);
         refreshToolbarTitle();
     }
+
 
     /**
      * The title used within the editor.
      *
      * @return
      */
-
     public String getTitle()
     {
         return titleBase;
@@ -202,44 +216,44 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
         return song;
     }
 
-    public SongPart getFirstSpt()
+    /**
+     * The edited SongPart, or null if the whole song is edited.
+     *
+     * @return
+     */
+    public SongPart getSongPart()
     {
-        return sptFirst;
-    }
-
-    public SongPart getLastSpt()
-    {
-        return sptLast;
+        return songPart;
     }
 
     /**
-     * The beat range corresponding to start of first SongPart until end of last SongPart.
+     * The edited beat range.
      *
      * @return
      */
     public FloatRange getBeatRange()
     {
-        var brFirst = song.getSongStructure().getBeatRange(sptFirst.getBarRange());
-        var brLast = song.getSongStructure().getBeatRange(sptLast.getBarRange());
-        return brFirst.getUnion(brLast);
+        var ss = song.getSongStructure();
+        return songPart != null ? ss.getBeatRange(songPart.getBarRange()) : ss.getBeatRange(null);
     }
 
     /**
-     * The bar range corresponding to start of first SongPart until end of last SongPart.
+     * The edited bar range.
      *
      * @return
      */
     public IntRange getBarRange()
     {
-        return sptFirst.getBarRange().getUnion(sptLast.getBarRange());
+        var ss = song.getSongStructure();
+        return songPart != null ? songPart.getBarRange() : ss.getBarRange();
     }
-
+    
     @Override
     public String preferredID()
     {
         return "PianoRollEditorTopComponent";
     }
-
+    
     public PianoRollEditor getEditor()
     {
         return editor;
@@ -254,8 +268,8 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
         assert clTcPos != -1;
         openAtTabPosition(clTcPos + 1);
     }
-
-
+    
+    
     @Override
     public UndoRedo getUndoRedo()
     {
@@ -280,38 +294,39 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
         Collections.addAll(actions, super.getActions()); // Get the standard builtin actions Close, Close All, Close Other      
         return actions.toArray(new Action[0]);
     }
-
+    
     @Override
     public Lookup getLookup()
     {
         return editor.getLookup();
     }
-
+    
     @Override
     public int getPersistenceType()
     {
         return TopComponent.PERSISTENCE_NEVER;
     }
-
+    
     @Override
     public boolean canClose()
     {
         return true;
     }
-
+    
     @Override
     public void componentOpened()
     {
-
+        
     }
-
+    
     @Override
     public void componentClosed()
     {
         song.removePropertyChangeListener(this);
         song.getSongStructure().removeSgsChangeListener(this);
         editor.cleanup();
-    }
+        toolbarPanel.cleanup();
+    }        
 
     /**
      * Return the active (i.e. focused or ancestor of the focused component) PianoRollEditorTopComponent.
@@ -383,20 +398,13 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
     {
         // Nothing
     }
-
+    
     @Override
     public void songStructureChanged(SgsChangeEvent e)
     {
-
-        // Check if sptFirst/sptLast are impacted, if yes update the model
         // Use high-level actions to not be polluted by intermediate states
-        if (e instanceof SgsActionEvent evt)
+        if (e instanceof SgsActionEvent evt && evt.isActionComplete())
         {
-            if (evt.isActionStarted())
-            {
-                return;
-            }
-
             var allSpts = getSong().getSongStructure().getSongParts();
             if (allSpts.isEmpty())
             {
@@ -405,76 +413,14 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
             }
 
 
-            // Whole song edit mode: easy, just check that there is only one signature, otherwise close
-            if (wholeSongEdit)
+            // Refresh the editor
+            if (songPart == null)
             {
-                sptFirst = allSpts.get(0);
-                sptLast = allSpts.get(allSpts.size() - 1);
-                boolean multiTs = allSpts.stream()
-                        .anyMatch(spt -> !spt.getRhythm().getTimeSignature().equals(sptFirst.getRhythm().getTimeSignature()));
-                if (multiTs)
-                {
-                    // Unsupported
-                    notifyUserAndCloseBecauseMultiSignature();
-                    return;
-                }
-
-                setModel(sptFirst, sptLast, editor.getModel(), editor.getDrumKeyMap());
-                return;
-            }
-
-
-            // We edit a phrase on part of the song (can be a part of a user phrase on a multi-signature song, or a phrase associated to a Song Part's Rhythm Parameter).
-            switch (evt.getActionId())
+                setModel(editor.getModel(), editor.getDrumKeyMap());
+            } else
             {
-                case "addSongParts" ->
-                {
-                    setModel(sptFirst, sptLast, editor.getModel(), editor.getDrumKeyMap());
-                }
-
-
-                case "removeSongParts" ->
-                {
-                    // Get the remaining song parts from the original editing range
-                    var remainingEditedSpts = saveEditedSpts.stream()
-                            .filter(spt -> allSpts.contains(spt))
-                            .toList();
-                    if (remainingEditedSpts.isEmpty())
-                    {
-                        // Everything is removed, kill editor!
-                        close();
-                        return;
-                    }
-
-                    sptFirst = remainingEditedSpts.get(0);
-                    sptLast = remainingEditedSpts.get(remainingEditedSpts.size() - 1);
-                    setModel(sptFirst, sptLast, editor.getModel(), editor.getDrumKeyMap());
-                }
-
-
-                case "replaceSongParts" ->
-                {
-                    sptFirst = allSpts.get(saveSptFirstIndex);
-                    sptLast = allSpts.get(saveSptLastIndex);
-                    setModel(sptFirst, sptLast, editor.getModel(), editor.getDrumKeyMap());
-                }
-
-
-                case "resizeSongParts" ->
-                {
-                    setModel(sptFirst, sptLast, editor.getModel(), editor.getDrumKeyMap());
-                }
-
-
-                default ->
-                {
-                    // Nothing
-                }
+                setModel(songPart, editor.getModel(), editor.getDrumKeyMap());
             }
-
-        } else
-        {
-            // Nothing
         }
     }
 
@@ -482,112 +428,17 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
     // ============================================================================================
     // Private methods
     // ============================================================================================
-    /**
-     * Update sptLast if it is not consistent with the SongStructure: all SongParts from sptFirst to sptLast must share the same
-     * time signature.
-     */
-    private void refreshSptLast()
-    {
-        if (sptFirst == sptLast)
-        {
-            // Easy
-            return;
-        }
-
-        var spts = song.getSongStructure().getSongParts();
-        var index = spts.indexOf(sptFirst);
-        assert index != -1;
-        var newSptLast = sptFirst;
-        for (int i = index + 1; i < spts.size(); i++)
-        {
-            var spt = spts.get(i);
-            if (!sptFirst.getRhythm().getTimeSignature().equals(spt.getRhythm().getTimeSignature()))
-            {
-                newSptLast = spts.get(i - 1);
-                break;
-            }
-            newSptLast = spt;
-            if (spt == sptLast)
-            {
-                break;
-            }
-        }
-
-        sptLast = newSptLast;
-    }
-
-    private void notifyUserAndCloseBecauseMultiSignature()
-    {
-        if (notifiedOnce)
-        {
-            String msg = ResUtil.getString(getClass(), "CloseEditorMultiSignature");
-            NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.WARNING_MESSAGE);
-            DialogDisplayer.getDefault().notify(nd);
-            notifiedOnce = true;
-        }
-        close();
-    }
-
-    /**
-     * Update sptFirst and sptLast in "whole song" edit mode: search for the largest range of same-time-signature-SongParts around
-     * sptFirst.
-     */
-    private void refreshFirstLastWholeSongEdit()
-    {
-        List<SongPart> editedSpts = new ArrayList<>();
-        var ts = sptFirst.getRhythm().getTimeSignature();
-        var spts = song.getSongStructure().getSongParts();
-        int index = spts.indexOf(sptFirst);
-        assert index != -1;
-        for (int i = index; i >= 0; i--)
-        {
-            var spt = spts.get(i);
-            if (spt.getRhythm().getTimeSignature().equals(ts))
-            {
-                editedSpts.add(0, spt);
-            } else
-            {
-                break;
-            }
-        }
-        for (int i = index + 1; i < spts.size(); i++)
-        {
-            var spt = spts.get(i);
-            if (spt.getRhythm().getTimeSignature().equals(ts))
-            {
-                editedSpts.add(spt);
-            } else
-            {
-                break;
-            }
-        }
-        sptFirst = editedSpts.get(0);
-        sptLast = editedSpts.get(editedSpts.size() - 1);
-    }
-
     private void refreshToolbarTitle()
     {
         var barRange = getBarRange();
-        String strBarRange = (barRange.from + 1) + ".." + (barRange.to + 1);
-        String strSongParts = sptFirst == sptLast ? sptFirst.getName() : sptFirst.getName() + ".." + sptLast.getName();
-        String title = ResUtil.getString(getClass(), "PianoEditorUserPhraseTitle", titleBase, strSongParts, strBarRange, sptFirst.getRhythm().getTimeSignature());
+        String strSongPart = songPart != null ? " - " + songPart.getName() : "";
+        String strBarRange = " - bars " + (barRange.from + 1) + ".." + (barRange.to + 1);        
+        String strTs = songPart != null ? " - " + songPart.getRhythm().getTimeSignature() : "";
+        String title = titleBase + strSongPart + strBarRange + strTs;
         toolbarPanel.setTitle(title);
     }
-
-    /**
-     * Save the spts in the edited range, plus the indexes of sptFirst and sptLast.
-     */
-    private void refreshSaveEditedSpts()
-    {
-        var spts = getSong().getSongStructure().getSongParts();
-        saveEditedSpts = spts.stream()
-                .filter(spt -> spt.getStartBarIndex() >= sptFirst.getStartBarIndex() && spt.getStartBarIndex() <= sptLast.getStartBarIndex())
-                .toList();
-
-        saveSptFirstIndex = spts.indexOf(sptFirst);
-        saveSptLastIndex = spts.indexOf(sptLast);
-    }
-
+    
+    
     void writeProperties(java.util.Properties p)
     {
         // better to version settings since initial version as advocated at
@@ -595,7 +446,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
         p.setProperty("version", "1.0");
         // TODO store your settings
     }
-
+    
     void readProperties(java.util.Properties p)
     {
         String version = p.getProperty("version");
@@ -625,5 +476,5 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
     private javax.swing.JPanel pnl_toolbar;
     // End of variables declaration//GEN-END:variables
 
-
+    
 }

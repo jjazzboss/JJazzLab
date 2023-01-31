@@ -45,15 +45,15 @@ import org.jjazz.util.api.ResUtil;
  */
 public class PlaybackAutoScroll extends ToggleAction implements PropertyChangeListener
 {
-
+    
     private final PianoRollEditor editor;
     private MusicListener musicListener;
     private static final Logger LOGGER = Logger.getLogger(PlaybackAutoScroll.class.getSimpleName());
-
+    
     public PlaybackAutoScroll(PianoRollEditor editor)
     {
         super(editor.isPlaybackAutoScrollEnabled());
-
+        
         this.editor = editor;
 
         // UI settings for the FlatToggleButton
@@ -62,16 +62,16 @@ public class PlaybackAutoScroll extends ToggleAction implements PropertyChangeLi
         // putValue("JJazzDisabledIcon", new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PlaybackPointDisabled-24x24.png")));   //NOI18N                                
         putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(), "PlaybackAutoScrollToolip"));
         putValue("hideActionText", true);
-        
-        
+
+
         // Keyboard shortcut
         editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("A"), "PlaybackAutoScroll");   //NOI18N
         editor.getActionMap().put("PlaybackAutoScroll", this);   //NOI18N
 
-
+        
         listenToTheMusic();
-
-
+        
+        
         editor.addPropertyChangeListener(PianoRollEditor.PROP_EDITOR_ALIVE, e ->
         {
             if (e.getNewValue().equals(false))
@@ -79,16 +79,16 @@ public class PlaybackAutoScroll extends ToggleAction implements PropertyChangeLi
                 stopListeningToTheMusic();
             }
         });
-
+        
     }
-
-
+    
+    
     @Override
     public void actionPerformed(ActionEvent e)
     {
         setSelected(!isSelected());
     }
-
+    
     @Override
     public void selectedStateChanged(boolean b)
     {
@@ -103,9 +103,9 @@ public class PlaybackAutoScroll extends ToggleAction implements PropertyChangeLi
     public void propertyChange(PropertyChangeEvent e)
     {
         LOGGER.log(Level.FINE, "propertyChange() e={0}", e);
-
+        
         var mc = MusicController.getInstance();
-
+        
         if (e.getSource() == mc)
         {
             if (e.getPropertyName().equals(MusicController.PROP_STATE))
@@ -117,14 +117,14 @@ public class PlaybackAutoScroll extends ToggleAction implements PropertyChangeLi
                         musicListener.enabled = false;
                         editor.showPlaybackPoint(-1f);
                         break;
-                        
+                    
                     case PAUSED:
                     case PLAYING:
                         musicListener.enabled = true;
                         break;
                     default:
                         throw new AssertionError(mc.getState().name());
-
+                    
                 }
             }
         }
@@ -140,7 +140,7 @@ public class PlaybackAutoScroll extends ToggleAction implements PropertyChangeLi
         mc.addPlaybackListener(musicListener);
         mc.addPropertyChangeListener(this);
     }
-
+    
     private void stopListeningToTheMusic()
     {
         var mc = MusicController.getInstance();
@@ -154,24 +154,20 @@ public class PlaybackAutoScroll extends ToggleAction implements PropertyChangeLi
 
     private class MusicListener extends PlaybackListenerAdapter
     {
-
+        
         boolean enabled;
-
+        
         @Override
         public void beatChanged(Position oldPos, Position newPos)
         {
-
+            
             if (!enabled || !editor.getBarRange().contains(newPos.getBar()))
             {
                 return;
             }
-
-            int relBar = newPos.getBar() - editor.getStartBarIndex();
-            float relPos = relBar * editor.getTimeSignature().getNbNaturalBeats() + newPos.getBeat();
-            float pos = editor.getBeatRange().from + relPos;
-
-            editor.showPlaybackPoint(pos);
+            
+            editor.showPlaybackPoint(editor.toPositionInBeats(newPos));
         }
-
+        
     }
 }

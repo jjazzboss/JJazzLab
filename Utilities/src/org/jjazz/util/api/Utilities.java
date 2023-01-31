@@ -26,6 +26,7 @@ import com.google.common.base.Preconditions;
 import com.thoughtworks.xstream.XStream;
 import java.awt.Desktop;
 import java.awt.Font;
+import java.beans.PropertyChangeEvent;
 import java.io.*;
 import java.lang.reflect.Modifier;
 import java.net.MalformedURLException;
@@ -42,7 +43,6 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Predicate;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
@@ -393,7 +393,7 @@ public class Utilities
         return s;
     }
 
-    
+
     /**
      * Generate all the permutations of the specified smallArray in the result list.
      * <p>
@@ -705,7 +705,7 @@ public class Utilities
         var joiner = new StringJoiner("\n", "[", "]");
         if (map instanceof NavigableMap nMap)
         {
-            nMap.navigableKeySet().forEach(k -> joiner.add((k == null ? "null" : k.toString())+ " -> " + nMap.get(k)));
+            nMap.navigableKeySet().forEach(k -> joiner.add((k == null ? "null" : k.toString()) + " -> " + nMap.get(k)));
         } else
         {
             map.keySet().forEach(k -> joiner.add((k == null ? "null" : k.toString()) + " -> " + map.get(k)));
@@ -737,6 +737,20 @@ public class Utilities
     public static <T> String toMultilineString(T array[])
     {
         return toMultilineString(Arrays.asList(array));
+    }
+
+    /**
+     * A debug string for a PropertyChangeEvent.
+     *
+     * @param e
+     * @return
+     */
+    public static String toDebugString(PropertyChangeEvent e)
+    {
+        return "e.src=" + e.getSource().getClass().getSimpleName()
+                + "   e.prop=" + e.getPropertyName()
+                + "   e.new=" + (e.getNewValue() == null ? "null" : truncateWithDots(e.getNewValue().toString(), 30)) 
+                + "   e.old=" + (e.getOldValue() == null ? "null" : truncateWithDots(e.getOldValue().toString(), 30));
     }
 
     /**

@@ -22,7 +22,6 @@
  */
 package org.jjazz.quantizer.api;
 
-import com.google.common.base.Preconditions;
 import com.google.common.primitives.Floats;
 import java.util.List;
 import java.util.TreeSet;

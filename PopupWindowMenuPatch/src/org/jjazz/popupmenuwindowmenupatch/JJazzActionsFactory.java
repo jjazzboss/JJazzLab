@@ -40,37 +40,22 @@ import org.openide.windows.WindowManager;
  * See https://blogs.oracle.com/geertjan/entry/removing_menu_items_from_window
  *
  * Reuse implementation code from the core.windows module : ActionsUtils.java Warning it's not official API !!
- *
- *
- *
- *
- *
- *
+ * 
  *
  * Todo: Implementation dependency, check if problem is fixed in future Netbeans RCP releases
  *
- * For popup menus on the tab bar outside of a TopComponent, remove:
- *
- *
- * The action[] we receive for right click on the editor mode bar: a=Close class=DisabledAction a=Close All
- * class=CloseAllDocumentsAction a=Close Other class=DisabledAction a=null a=null a=Maximize class=DisabledAction a=Float
- * class=DisabledAction a=Dock class=DisabledAction a=null a=Clone Document class=DisabledAction a=New Document Tab Group
- * class=DisabledAction a=Collapse Document Tab Group class=CollapseTabGroupAction
- *
- *
- *
- *
- * The action[] we receive for right click on the explorer mode bar (right to SptEditor): a=Close class=DisabledAction a=null
- * a=Maximize class=DisabledAction a=Minimize class=DisabledAction a=Minimize Group class=MinimizeModeAction a=Float
- * class=DisabledAction a=Dock class=DisabledAction a=null a=Move class=DisabledAction a=Move Group class=MoveModeAction
- * a=Size Group class=ResizeModeAction
  */
 @ServiceProvider(service = ActionsFactory.class)
 public class JJazzActionsFactory extends ActionsFactory
 {
-
     private static final Logger LOGGER = Logger.getLogger(JJazzActionsFactory.class.getSimpleName());
 
+    
+    public JJazzActionsFactory()
+    {
+        LOGGER.info("Using custom ActionsFactory for TopComponent tab popup menu.");
+    }
+            
     /**
      * Provide actions to be shown in popup menu on TopComponent tab.
      *

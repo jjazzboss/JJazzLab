@@ -41,6 +41,8 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableMap;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.BorderFactory;
@@ -54,6 +56,7 @@ import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import org.jjazz.base.api.actions.Savable;
 import org.jjazz.harmony.api.TimeSignature;
+import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
@@ -104,7 +107,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
      */
     public static final String PROP_EDITOR_ALIVE = "EditorAlive";
     /**
-     * oldValue=old Phrase model, newValue=new Phrase model
+     * oldValue=old Phrase model, newValue=new Phrase model.
      */
     public static final String PROP_MODEL = "PhraseModel";
     /**
@@ -134,7 +137,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     private JLayer mouseDragLayer;
     private ZoomValue zoomValue;
     private Phrase model;
-    private DrumKit.KeyMap keymap;
+    private DrumKit.KeyMap keyMap;
     private final PianoRollEditorSettings settings;
     private Quantization quantization;
     private final Lookup lookup;
@@ -154,7 +157,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     private final List<EditTool> editTools;
     private Song song;
     private FloatRange beatRange;
-    private TimeSignature timeSignature;
+    private NavigableMap<Float, TimeSignature> mapPosTimeSignature;
 
 
     /**
@@ -163,27 +166,27 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
      * @param startBarIndex The bar index corresponding to the start of the beat range
      * @param beatRange     The range of the phrase to be edited
      * @param p             Can't be null
-     * @param ts            The time signature of the edited beat range
+     * @param mapPosTs      The position of each time signature. Must have at least 1 entry at beatRange.from position or before.
      * @param kmap          If not null set the editor in drums mode
      * @param settings      Can't be null
      */
-    public PianoRollEditor(int startBarIndex, FloatRange beatRange, Phrase p, TimeSignature ts, DrumKit.KeyMap kmap, PianoRollEditorSettings settings)
+    public PianoRollEditor(int startBarIndex, FloatRange beatRange, Phrase p, NavigableMap<Float, TimeSignature> mapPosTs, DrumKit.KeyMap kmap, PianoRollEditorSettings settings)
     {
         Preconditions.checkArgument(startBarIndex >= 0);
         Preconditions.checkNotNull(p);
         Preconditions.checkNotNull(settings);
         Preconditions.checkNotNull(beatRange);
-        Preconditions.checkNotNull(ts);
+        Preconditions.checkNotNull(mapPosTs);
+        Preconditions.checkArgument(!mapPosTs.isEmpty() && mapPosTs.firstKey() <= beatRange.from, "mapPosTs=%s  beatRange=%s", mapPosTs, beatRange);
 
 
         this.startBarIndex = startBarIndex;
         this.model = p;
-        this.timeSignature = ts;
         this.beatRange = beatRange;
-        this.keymap = kmap;
+        this.keyMap = kmap;
         this.settings = settings;
         this.quantization = Quantization.ONE_QUARTER_BEAT;
-
+        this.mapPosTimeSignature = mapPosTs;
 
         // Be notified of changes, note added, moved, removed, set
         model.addPropertyChangeListener(this);
@@ -233,7 +236,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
 
 
         // Normal zoom
-        zoomValue = new ZoomValue(20, keymap == null ? 30 : 60);        // Drum notes need more heigth
+        zoomValue = new ZoomValue(20, keyMap == null ? 30 : 60);        // Drum notes need more heigth
         notesPanel.setScaleFactorX(toScaleFactorX(zoomValue.hValue()));
         float yFactor = toScaleFactorY(zoomValue.vValue());
         keyboard.setScaleFactor(yFactor, Math.min(MAX_WIDTH_FACTOR, yFactor));
@@ -245,12 +248,14 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
             addNote(ne);
         }
 
+
     }
 
     /**
      * Associate an optional song to the editor.
      * <p>
-     * Put the song and a SaveAsCapable instance in the editor's lookup. Put also a Savable instance when required.<p>
+     * Put the song and a SaveAsCapable instance in the editor's lookup. Put also a Savable instance when required. The ruler can
+     * show the chord symbols.<p>
      * This method can be called only once.
      *
      * @param song Can't be null
@@ -266,6 +271,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         generalLookupContent.add(song);
         generalLookupContent.add(new SaveAsCapableSong(song)); // always enabled    
 
+        rulerPanel.setTextLaneVisible(true);
 
         if (song.needSave())
         {
@@ -330,23 +336,23 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     /**
      * Update the edited model.
      * <p>
-     * The method also resets the background models. Fire a PROP_MODEL change event.
+     * The method also resets the background models. Fire a PROP_MODEL change event if p is different from existing model.
      *
      * @param startBar  The new
      * @param beatRange
+     * @param mapPosTs  The position of each time signature. Must have at least 1 entry at beatRange.from position or before.
      * @param p
-     * @param ts
      * @param kMap
      * @see #setBackgroundModels(java.util.Map)
      */
-    public void setModel(int startBar, FloatRange beatRange, Phrase p, TimeSignature ts, DrumKit.KeyMap kMap)
+    public void setModel(int startBar, FloatRange beatRange, Phrase p, NavigableMap<Float, TimeSignature> mapPosTs, DrumKit.KeyMap kMap)
     {
         Preconditions.checkNotNull(p);
         Preconditions.checkArgument(startBar >= 0);
         Preconditions.checkNotNull(beatRange);
-        Preconditions.checkNotNull(ts);
+        Preconditions.checkArgument(!mapPosTs.isEmpty() && mapPosTs.firstKey() <= beatRange.from, "mapPosTs=%s  beatRange=%s", mapPosTs, beatRange);
 
-        if (model == p && startBar == startBarIndex && beatRange == this.beatRange && ts.equals(timeSignature) && kMap.equals(this.keymap))
+        if (p.equals(model) && startBar == startBarIndex && beatRange.equals(this.beatRange) && this.mapPosTimeSignature.equals(mapPosTs) && Objects.equals(kMap, this.keyMap))
         {
             return;
         }
@@ -357,6 +363,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
             removeNote(ne);
         }
 
+
         model.removePropertyChangeListener(this);
         model.removeUndoableEditListener(undoManager);
 
@@ -364,10 +371,10 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         var oldModel = model;
         model = p;
         startBarIndex = startBar;
-        keymap = kMap;
+        keyMap = kMap;
         this.beatRange = beatRange;
-        timeSignature = ts;
-        labelNotes(keyboard, keymap);
+        this.mapPosTimeSignature = mapPosTs;
+        labelNotes(keyboard, keyMap);
 
 
         model.addPropertyChangeListener(this);
@@ -392,7 +399,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         }
 
         notesPanel.scrollToFirstNote();
-        
+
         firePropertyChange(PROP_MODEL, oldModel, model);
     }
 
@@ -421,9 +428,26 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         this.startBarIndex = startBarIndex;
     }
 
-    public TimeSignature getTimeSignature()
+    /**
+     * The time signature at the specified beat position.
+     *
+     * @param posInBeats Must be in the beat range
+     * @return Can't be null
+     */
+    public TimeSignature getTimeSignature(float posInBeats)
     {
-        return timeSignature;
+        Preconditions.checkArgument(beatRange.contains(posInBeats, false));
+        return mapPosTimeSignature.floorEntry(posInBeats).getValue();
+    }
+
+    /**
+     * Get all the time signatures with their position.
+     *
+     * @return Can't be empty.
+     */
+    public NavigableMap<Float, TimeSignature> getTimeSignatures()
+    {
+        return mapPosTimeSignature;
     }
 
 
@@ -435,8 +459,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
 
     public IntRange getBarRange()
     {
-        int nbBars = (int) (getBeatRange().size() / getTimeSignature().getNbNaturalBeats());
-        return new IntRange(getStartBarIndex(), getStartBarIndex() + nbBars - 1);
+        return notesPanel.getXMapper().getBarRange();
     }
 
     /**
@@ -470,7 +493,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
      */
     public DrumKit.KeyMap getDrumKeyMap()
     {
-        return keymap;
+        return keyMap;
     }
 
 
@@ -771,7 +794,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     public float getPositionFromPoint(Point editorPoint)
     {
         return notesPanel.getXMapper().getPositionInBeats(editorPoint.x);
-    }
+    }   
 
     /**
      * Return the X editor position that corresponds to a beat position of the Phrase model.
@@ -782,6 +805,17 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     public int getXFromPosition(float pos)
     {
         return getBeatRange().contains(pos, false) ? notesPanel.getXMapper().getX(pos) : -1;
+    }
+
+    /**
+     * Convert a Position into a position in beats.
+     *
+     * @param pos Must be in the bar range.
+     * @return
+     */
+    public float toPositionInBeats(Position pos)
+    {
+        return notesPanel.getXMapper().toPositionInBeats(pos);
     }
 
     /**
@@ -878,17 +912,26 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     }
 
     /**
+     * Check is editor is ready, ie painted and layouted at the correct size, so all editor methods can be called.
+     *
+     * @return
+     */
+    public boolean isReady()
+    {
+        return notesPanel.getXMapper().isUptodate() && notesPanel.getYMapper().isUptodate();
+    }
+
+    /**
      * Get the min/max bar indexes which are visible.
      *
      * @return
      */
     public IntRange getVisibleBarRange()
     {
-        float nbBeatsPerBar = getTimeSignature().getNbNaturalBeats();
         var visibleBr = getVisibleBeatRange();
-        int relBarFrom = (int) ((visibleBr.from - getBeatRange().from) / nbBeatsPerBar);
-        int relBarTo = (int) ((visibleBr.to - getBeatRange().from) / nbBeatsPerBar);
-        var res = new IntRange(startBarIndex + relBarFrom, startBarIndex + relBarTo);
+        Position posFrom = notesPanel.getXMapper().toPosition(visibleBr.from);
+        Position posTo = notesPanel.getXMapper().toPosition(visibleBr.to);
+        var res = new IntRange(posFrom.getBar(), posTo.getBar());
         return res;
     }
 
@@ -1090,7 +1133,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         JPanel pnl_keyboard = new JPanel();
         pnl_keyboard.setLayout(new BorderLayout());
         keyboard = new KeyboardComponent(KeyboardRange._128_KEYS, KeyboardComponent.Orientation.RIGHT, false);
-        labelNotes(keyboard, keymap);
+        labelNotes(keyboard, keyMap);
         pnl_keyboard.add(keyboard, BorderLayout.PAGE_START);
 
 

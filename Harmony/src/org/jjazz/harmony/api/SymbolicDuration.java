@@ -63,6 +63,11 @@ public enum SymbolicDuration
         return name;
     }
 
+    /**
+     * For example 0.5f for EIGHTH.
+     *
+     * @return 
+     */
     public float getDuration()
     {
         return duration;

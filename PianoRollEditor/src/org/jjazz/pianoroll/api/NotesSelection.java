@@ -26,17 +26,15 @@ import com.google.common.base.Preconditions;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import org.jjazz.phrase.api.NoteEvent;
 import org.openide.util.Lookup;
 
 /**
- * Convenience methods to handle the current selection of notes.
+ * Convenience methods to handle the current selection of notes in a lookup.
  */
 public class NotesSelection
 {
 
     private final List<NoteView> noteViews;
-    private List<NoteEvent> noteEvents;
 
     public NotesSelection(Lookup lookup)
     {
@@ -55,7 +53,7 @@ public class NotesSelection
     {
         return noteViews.isEmpty();
     }
-   
+
     /**
      * Get the selected NoteViews sorted by NoteEvent natural order.
      *
@@ -73,5 +71,5 @@ public class NotesSelection
     {
         noteViews.forEach(nv -> nv.setSelected(false));
     }
-
+    
 }

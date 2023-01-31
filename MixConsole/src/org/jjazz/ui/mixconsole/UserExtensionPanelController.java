@@ -54,6 +54,7 @@ import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
 import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.util.api.ResUtil;
+import org.jjazz.util.api.Utilities;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.awt.StatusDisplayer;
@@ -119,24 +120,13 @@ public class UserExtensionPanelController
             preTc = new PianoRollEditorTopComponent(getSong(), PianoRollEditorSettings.getDefault());
             preTc.openNextToSongEditor();
         }
-        var editor = preTc.getEditor();
 
-
-        // Use the whole song or songparts selection if multiple time signatures
-        var editedSpts = getEditedSongParts();
-        if (editedSpts.isEmpty())
-        {
-            preTc.close();
-            return;
-        }
 
         // Update model of the editor
         DrumKit drumKit = panel.getMidiMix().getInstrumentMixFromKey(getUserRhythmVoice()).getInstrument().getDrumKit();
         DrumKit.KeyMap keyMap = drumKit == null ? null : drumKit.getKeyMap();
         var p = getUserPhrase();
-        var firstSpt = editedSpts.get(0);
-        var lastSpt = editedSpts.get(editedSpts.size() - 1);
-        preTc.setModel(firstSpt, lastSpt, p, keyMap);
+        preTc.setModel(p, keyMap);
         preTc.setTitle(buildTitle());
 
 
@@ -144,6 +134,7 @@ public class UserExtensionPanelController
         // - Stop listening when editor is destroyed or its model is changed  
         // - Update title if phrase name is changed
         // - Remove PianoRollEditor if user phrase is removed
+        var editor = preTc.getEditor();
         var preTc2 = preTc;
         VetoableChangeListener vcl = new VetoableChangeListener()
         {
@@ -169,6 +160,7 @@ public class UserExtensionPanelController
             @Override
             public void propertyChange(PropertyChangeEvent evt)
             {
+                // LOGGER.severe("addUserPhrase.propertyChange() e=" + Utilities.toDebugString(evt));
                 if (evt.getSource() == editor)
                 {
                     switch (evt.getPropertyName())
@@ -359,51 +351,6 @@ public class UserExtensionPanelController
         return panel.getUserRhythmVoice();
     }
 
-
-    /**
-     * Get the contiguous-and-same-time-signature SongParts to be edited.
-     *
-     * @return
-     */
-    private List<SongPart> getEditedSongParts()
-    {
-        var ss = getSong().getSongStructure();
-        var timeSignatures = ss.getUniqueTimeSignatures();
-
-        if (timeSignatures.size() == 1)
-        {
-            // Usual case, 1 timesignature used, return the whole song
-            return ss.getSongParts();
-        }
-
-
-        // Multiple time signatures used, use the selection in the SS_EditorTopComponent
-        var sseTc = SS_EditorTopComponent.get(getSong().getSongStructure());
-        assert sseTc != null : "getSong()=" + getSong();
-        var sel = new SS_SelectionUtilities(sseTc.getLookup());
-
-
-        // Check that selection is contiguous SongParts with same time signature
-        boolean warnUser = true;
-        var spts = sel.getSelectedSongParts();
-        if (sel.isSongPartSelected() && sel.isContiguousSptSelection())
-        {
-            TimeSignature ts = spts.get(0).getRhythm().getTimeSignature();
-            warnUser = !spts.stream()
-                    .allMatch(spt -> spt.getRhythm().getTimeSignature().equals(ts));
-        }
-
-
-        if (warnUser)
-        {
-            String msg = ResUtil.getString(getClass(), "WarnUserSongPartSelection");
-            NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.WARNING_MESSAGE);
-            DialogDisplayer.getDefault().notify(d);
-        }
-
-
-        return warnUser ? new ArrayList<>() : spts;
-    }
 
     private String buildTitle()
     {

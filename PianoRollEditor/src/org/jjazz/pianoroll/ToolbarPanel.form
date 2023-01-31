@@ -113,9 +113,6 @@
             <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
               <ResourceString bundle="org/jjazz/pianoroll/Bundle.properties" key="ToolbarPanel.lbl_velocity.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
             </Property>
-            <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-              <Connection component="spn_velocity" name="getToolTipText" type="method"/>
-            </Property>
           </Properties>
         </Component>
         <Component class="org.jjazz.ui.utilities.api.WheelSpinner" name="spn_velocity">

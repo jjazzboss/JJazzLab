@@ -366,8 +366,8 @@ public class Grid implements Cloneable
         for (NoteEvent ne : nes)
         {
             int newVelocity = MidiUtilities.limit(f.apply(ne.getVelocity()));
-            NoteEvent tNe = ne.getCopyVel(newVelocity);       // This clone also the clientProperties
-            phrase.replace(ne, tNe);
+            NoteEvent newNe = ne.getCopyVel(newVelocity);       // This clone also the clientProperties
+            phrase.replace(ne, newNe);
         }
         if (!nes.isEmpty())
         {
