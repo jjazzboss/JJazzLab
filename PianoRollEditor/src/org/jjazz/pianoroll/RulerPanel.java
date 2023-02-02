@@ -32,12 +32,11 @@ import java.awt.RenderingHints;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.font.TextAttribute;
+import java.awt.font.TextLayout;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.text.AttributedCharacterIterator;
 import java.text.AttributedString;
-import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -49,10 +48,11 @@ import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.rhythmmusicgeneration.api.SongChordSequence;
 import org.jjazz.song.api.Song;
 import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.ui.colorsetmanager.api.ColorSetManager;
 import org.jjazz.ui.utilities.api.HSLColor;
 import org.jjazz.ui.utilities.api.StringMetrics;
+import org.jjazz.ui.utilities.api.TextLayoutUtils;
 import org.jjazz.uisettings.api.GeneralUISettings;
-import org.jjazz.util.api.Utilities;
 
 /**
  * The ruler panel that shows the beat position marks over the NotesPanel.
@@ -74,8 +74,10 @@ public class RulerPanel extends javax.swing.JPanel implements PropertyChangeList
     private int playbackPointX = -1;
     private int preferredHeight;
     private float fontHeight;
-    private int upperLaneHeight;
-    private boolean showUpperLane;
+    private int songPartLaneHeight;
+    private int chordSymbolLaneHeight;
+    private int barLaneHeight;
+    private boolean showMultiLane;
     private TreeSet<Object> upperLaneObjects;
 
     /**
@@ -94,8 +96,8 @@ public class RulerPanel extends javax.swing.JPanel implements PropertyChangeList
         settingsChanged();
 
 
-        fontBar = GeneralUISettings.getInstance().getStdFont().deriveFont(12f);
-        fontBeat = fontBar.deriveFont(fontBar.getSize() - 3f);
+        fontBar = GeneralUISettings.getInstance().getStdCondensedFont().deriveFont(13f);
+        fontBeat = fontBar.deriveFont(fontBar.getSize() - 2f);
 
 
         // Repaint ourself when notesPanel is resized
@@ -115,29 +117,29 @@ public class RulerPanel extends javax.swing.JPanel implements PropertyChangeList
 
 
     /**
-     * Show the upper lane to display chords and song parts.
+     * Show the multiple lanes to display chords and song parts.
      * <p>
      * Do nothing if no song is associated to PianoRollEditor.
      *
      * @param b
      */
-    public void setTextLaneVisible(boolean b)
+    public void setMultiLaneEnabled(boolean b)
     {
-        if (b == showUpperLane || editor.getSong() == null)
+        if (b == showMultiLane || editor.getSong() == null)
         {
             return;
         }
 
-        showUpperLane = b;
+        showMultiLane = b;
         updatePreferredHeight();
 
         revalidate();
         repaint();
     }
 
-    public boolean isTextLaneVisible()
+    public boolean isMultiLaneEnabled()
     {
-        return showUpperLane;
+        return showMultiLane;
     }
 
     @Override
@@ -170,12 +172,7 @@ public class RulerPanel extends javax.swing.JPanel implements PropertyChangeList
 
         // Prepare data
         int h = getHeight();
-        int yTick = showUpperLane ? upperLaneHeight : 0;
-        int beatTickLength = BAR_TICK_LENGTH / 2;
-        int subTickLength = beatTickLength - 2;
-        float oneBeatPixelSize = xMapper.getOneBeatPixelSize();
-        float subTickWidth = oneBeatPixelSize / 4;
-        Color subTickColor = HSLColor.changeLuminance(COLOR_BEAT_TICK, -2);
+        int yTick = h - barLaneHeight;
 
 
         // Get X coordinate of all beat positions
@@ -184,41 +181,82 @@ public class RulerPanel extends javax.swing.JPanel implements PropertyChangeList
 
 
         // Draw upper lane
-        if (showUpperLane && upperLaneObjects == null && editor.isReady())
+        if (showMultiLane && upperLaneObjects == null && editor.isReady())
         {
             updateUpperLaneObjects();
         }
-        if (showUpperLane && upperLaneObjects != null)
+        if (showMultiLane && upperLaneObjects != null)
         {
             // Different background
-            Color c = HSLColor.changeLuminance(getBackground(), 2);
-            g2.setColor(c);
-            g2.fillRect(0, 0, getWidth(), upperLaneHeight);
+//            Color c = HSLColor.changeLuminance(getBackground(), 2);
+//            g2.setColor(c);
+//            g2.fillRect(0, 0, getWidth(), upperLaneHeight);
+            g2.setColor(Color.GRAY);
+            g2.drawLine(0, yTick, getWidth() - 1, yTick);
+            g2.setColor(HSLColor.changeLuminance(getBackground(), 4));
+            g2.fillRect(0, 0, getWidth(), songPartLaneHeight);
 
 
-            // Draw objects as string
+            // Draw chord symbols and song parts
             for (var obj : upperLaneObjects)
             {
                 var pos = getPos(obj);
                 var posInBeats = editor.toPositionInBeats(pos);
                 int x = editor.getXFromPosition(posInBeats);
-                int y = upperLaneHeight - 2;
-                AttributedString aStr = new AttributedString(getString(obj), fontBar.getAttributes());
-                aStr.addAttribute(TextAttribute.FOREGROUND, COLOR_BAR_FONT);
-                if (obj instanceof SongPart)
+                int y;
+                AttributedString aStr;
+                if (obj instanceof CLI_ChordSymbol cliCs)
                 {
-                    x += 20;
-                    aStr.addAttribute(TextAttribute.FOREGROUND, Color.YELLOW.darker());
+                    // Chord in middle lane
+                    y = songPartLaneHeight + chordSymbolLaneHeight - 2;
+                    aStr = new AttributedString(cliCs.getData().getOriginalName(), fontBar.getAttributes());
+                    aStr.addAttribute(TextAttribute.FOREGROUND, COLOR_BAR_FONT);
+                    if (pos.isFirstBarBeat())
+                    {
+                        x++;
+                    }
+
+                } else if (obj instanceof SongPart spt)
+                {
+                    // Song part labels
+                    String str = spt.getName();
+                    aStr = new AttributedString(str, fontBar.getAttributes());
+                    aStr.addAttribute(TextAttribute.FOREGROUND, Color.BLACK);
+                    Color c = ColorSetManager.getDefault().getColor(spt.getParentSection().getData().getName());
+                    var frc = g2.getFontRenderContext();
+                    TextLayout textLayout = new TextLayout(aStr.getIterator(), frc);
+                    float strWidth = TextLayoutUtils.getWidth(textLayout, str, false);
+                    float strHeight = TextLayoutUtils.getHeight(textLayout, frc);
+
+//                    float PADDING = 2;
+//                    int yRect = Math.round((songPartLaneHeight - strHeight - 2 * PADDING) / 2);
+//                    g2.setColor(c);
+//                    g2.fillRoundRect(x, yRect, Math.round(strWidth + 2 * PADDING), Math.round(strHeight + 2 * PADDING), 2, 2);
+//                    x += PADDING;
+//                    y = Math.round(songPartLaneHeight / 2 + strHeight / 2);
+                    aStr.addAttribute(TextAttribute.FOREGROUND, Color.BLACK);
+                    aStr.addAttribute(TextAttribute.BACKGROUND, c);
+                    x += 1;
+                    y = songPartLaneHeight - 3;
+                } else
+                {
+                    throw new IllegalStateException("obj=" + obj);
                 }
+
+
                 g2.drawString(aStr.getIterator(), x, y);
             }
         }
 
 
         // Draw ticks + bar/beat
-        boolean paintSubTicks = oneBeatPixelSize > 60;
+        int beatTickLength = BAR_TICK_LENGTH / 2;
+        int subTickLength = beatTickLength - 2;
+        float oneBeatPixelSize = xMapper.getOneBeatPixelSize();
+        float subTickWidth = oneBeatPixelSize / 4;
+        Color subTickColor = HSLColor.changeLuminance(COLOR_BEAT_TICK, -2);
+        boolean paintSubTicks = oneBeatPixelSize > 40;
         TimeSignature oldTs = null;
-
         for (Position pos : allBeatPositions)
         {
             int x = tmapPosX.get(pos);
@@ -227,7 +265,13 @@ public class RulerPanel extends javax.swing.JPanel implements PropertyChangeList
             Color c = pos.isFirstBarBeat() ? COLOR_BAR_TICK : COLOR_BAR_TICK;
             int tickLength = pos.isFirstBarBeat() ? BAR_TICK_LENGTH : beatTickLength;
             g2.setColor(c);
-            g2.drawLine(x, yTick, x, yTick + tickLength);
+            if (showMultiLane && pos.isFirstBarBeat())
+            {
+                g2.drawLine(x, yTick - chordSymbolLaneHeight, x, yTick + tickLength);
+            } else
+            {
+                g2.drawLine(x, yTick, x, yTick + tickLength);
+            }
 
 
             // Draw subticks
@@ -281,9 +325,10 @@ public class RulerPanel extends javax.swing.JPanel implements PropertyChangeList
                 float yStr = h - 2;           // text baseline position
                 g2.drawString(aStr.getIterator(), xStr, yStr);
             }
-
         }
 
+
+        // Draw playback point
         if (playbackPointX >= 0)
         {
             g2.setColor(MouseDragLayerUI.COLOR_PLAYBACK_LINE);
@@ -295,6 +340,7 @@ public class RulerPanel extends javax.swing.JPanel implements PropertyChangeList
             p.addPoint(playbackPointX - HALF_SIZE, yMax - HALF_SIZE);
             g2.fill(p);
         }
+
 
         g2.dispose();
     }
@@ -368,26 +414,28 @@ public class RulerPanel extends javax.swing.JPanel implements PropertyChangeList
         Graphics2D g2 = img.createGraphics();
         var bounds = new StringMetrics(g2, fontBar).getLogicalBoundsNoLeading("9");
         fontHeight = (float) bounds.getHeight();
-        upperLaneHeight = showUpperLane ? (int) (fontHeight + 2) : 0;
-        preferredHeight = (int) (upperLaneHeight + fontHeight + BAR_TICK_LENGTH + 1);
+        songPartLaneHeight = Math.round(fontHeight + 2);
+        chordSymbolLaneHeight = Math.round(fontHeight + 2);
+        barLaneHeight = Math.round(fontHeight + BAR_TICK_LENGTH + 1);
+        preferredHeight = songPartLaneHeight + chordSymbolLaneHeight + barLaneHeight;
         g2.dispose();
     }
 
-    private String getString(Object o)
-    {
-        String res;
-        if (o instanceof SongPart spt)
-        {
-            res = spt.getName();
-        } else if (o instanceof CLI_ChordSymbol cliCs)
-        {
-            res = cliCs.getData().getOriginalName();
-        } else
-        {
-            throw new IllegalArgumentException("o=" + o);
-        }
-        return res;
-    }
+//    private String getString(Object o)
+//    {
+//        String res;
+//        if (o instanceof SongPart spt)
+//        {
+//            res = spt.getName();
+//        } else if (o instanceof CLI_ChordSymbol cliCs)
+//        {
+//            res = cliCs.getData().getOriginalName();
+//        } else
+//        {
+//            throw new IllegalArgumentException("o=" + o);
+//        }
+//        return res;
+//    }
 
     private Position getPos(Object o)
     {

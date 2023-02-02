@@ -271,7 +271,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         generalLookupContent.add(song);
         generalLookupContent.add(new SaveAsCapableSong(song)); // always enabled    
 
-        rulerPanel.setTextLaneVisible(true);
+        rulerPanel.setMultiLaneEnabled(true);
 
         if (song.needSave())
         {
