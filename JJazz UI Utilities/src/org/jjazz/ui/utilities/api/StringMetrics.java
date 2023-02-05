@@ -37,7 +37,7 @@ public class StringMetrics
     Font font;
     FontRenderContext fontRendererContext;
     LineMetrics lineMetrics;
-    Rectangle2D bounds, boundsNoLeading;
+    Rectangle2D bounds, boundsNoLeading, boundsNoLeadingNoDescent;
     String lastText;
 
     public StringMetrics(Graphics2D g2, Font font)
@@ -69,6 +69,7 @@ public class StringMetrics
         {
             bounds = font.getStringBounds(text, fontRendererContext);
             boundsNoLeading = null;
+            boundsNoLeadingNoDescent = null;
         }
         lastText = text;
         return bounds;
@@ -93,9 +94,36 @@ public class StringMetrics
             bounds = font.getStringBounds(text, fontRendererContext);
             lineMetrics = font.getLineMetrics(text, fontRendererContext);
             boundsNoLeading = new Rectangle2D.Double(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight() - lineMetrics.getLeading());
+            boundsNoLeadingNoDescent = new Rectangle2D.Double(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight() - lineMetrics.getLeading() - lineMetrics.getDescent());
         }
         lastText = text;
         return boundsNoLeading;
+    }
+
+    /**
+     * Return a rectangle in baseline relative coordinates, excluding the descent and the leading (interline spacing).
+     * <p>
+     * See LineMetrics or FontMetrics for more info about descent/leading.<p>
+     * If this method is called several times with the same text, the cached result is returned.
+     *
+     * @param text
+     * @return
+     */
+    public Rectangle2D getLogicalBoundsNoLeadingNoDescent(String text)
+    {
+        if (text == null)
+        {
+            throw new NullPointerException("text");
+        }
+        if (boundsNoLeadingNoDescent == null || !text.equals(lastText))
+        {
+            bounds = font.getStringBounds(text, fontRendererContext);
+            lineMetrics = font.getLineMetrics(text, fontRendererContext);
+            boundsNoLeadingNoDescent = new Rectangle2D.Double(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight() - lineMetrics.getLeading() - lineMetrics.getDescent());
+            boundsNoLeading = new Rectangle2D.Double(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight() - lineMetrics.getLeading());
+        }
+        lastText = text;
+        return boundsNoLeadingNoDescent;
     }
 
     public double getWidth(String text)

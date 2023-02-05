@@ -36,7 +36,6 @@ import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.phrase.api.Phrase;
-import org.jjazz.pianoroll.RulerPanel;
 import org.jjazz.pianoroll.ToolbarPanel;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
 import org.jjazz.song.api.Song;
@@ -68,7 +67,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
     // public static final String MODE = "midieditor";  // WindowManager mode
     public static final String MODE = "editor";  // WindowManager mode
 
-    
+
     private final PianoRollEditor editor;
     private final ToolbarPanel toolbarPanel;
     private static final Logger LOGGER = Logger.getLogger(PianoRollEditorTopComponent.class.getSimpleName());
@@ -81,14 +80,14 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
      * Create a TopComponent editor for the specified song.
      * <p>
      *
-     * @param sg
+     * @param sg       The TopComponent listens to song structure changes to update the edited range.
      * @param settings
      */
     public PianoRollEditorTopComponent(Song sg, PianoRollEditorSettings settings)
     {
         Preconditions.checkNotNull(sg);
         Preconditions.checkNotNull(settings);
-        
+
         putClientProperty(TopComponent.PROP_MAXIMIZATION_DISABLED, Boolean.FALSE);
         putClientProperty(TopComponent.PROP_CLOSING_DISABLED, Boolean.FALSE);
         putClientProperty(TopComponent.PROP_DND_COPY_DISABLED, Boolean.TRUE);
@@ -104,24 +103,24 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
         Mode mode = WindowManager.getDefault().findMode(PianoRollEditorTopComponent.MODE);
         assert mode != null;
         assert mode.dockInto(this);
-        
-        
+
+
         this.song = sg;
         setDisplayName(getDefaultTabName(song));
-        
-        
+
+
         var spts = this.song.getSongStructure().getSongParts();
         this.songPart = spts.get(0);
         TreeMap<Float, TimeSignature> tMap = new TreeMap<>();
         tMap.put(song.getSongStructure().getBeatRange(songPart.getBarRange()).from, songPart.getRhythm().getTimeSignature());
-        
-        
+
+
         editor = new PianoRollEditor(songPart.getStartBarIndex(), getBeatRange(), new Phrase(0), tMap, null, settings);
         editor.setSong(song);
         editor.setUndoManager(JJazzUndoManagerFinder.getDefault().get(song));
         toolbarPanel = new ToolbarPanel(editor, song.getName());
-        
-        
+
+
         initComponents();
 
 
@@ -146,14 +145,14 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
         Preconditions.checkNotNull(p);
         Preconditions.checkNotNull(spt);
         Preconditions.checkArgument(song.getSongStructure().getSongParts().contains(spt));
-        
-        
+
+
         songPart = spt;
         TreeMap<Float, TimeSignature> mapPosTs = new TreeMap<>();
         mapPosTs.put(0f, songPart.getRhythm().getTimeSignature());
-        
+
         editor.setModel(songPart.getStartBarIndex(), getBeatRange(), p, mapPosTs, keyMap);
-        
+
         refreshToolbarTitle();
     }
 
@@ -167,19 +166,19 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
     public void setModel(Phrase p, DrumKit.KeyMap keyMap)
     {
         Preconditions.checkNotNull(p);
-        
+
         var ss = song.getSongStructure();
         var spts = ss.getSongParts();
         if (spts.isEmpty())
         {
             return;
         }
-        
+
         songPart = null;
         TreeMap<Float, TimeSignature> mapPosTs = new TreeMap<>();
         spts.forEach(spt -> mapPosTs.put(ss.getPositionInNaturalBeats(spt.getStartBarIndex()), spt.getRhythm().getTimeSignature()));
-        
-        
+
+
         editor.setModel(0, getBeatRange(), p, mapPosTs, keyMap);
         refreshToolbarTitle();
     }
@@ -247,13 +246,13 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
         var ss = song.getSongStructure();
         return songPart != null ? songPart.getBarRange() : ss.getBarRange();
     }
-    
+
     @Override
     public String preferredID()
     {
         return "PianoRollEditorTopComponent";
     }
-    
+
     public PianoRollEditor getEditor()
     {
         return editor;
@@ -268,8 +267,8 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
         assert clTcPos != -1;
         openAtTabPosition(clTcPos + 1);
     }
-    
-    
+
+
     @Override
     public UndoRedo getUndoRedo()
     {
@@ -294,31 +293,31 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
         Collections.addAll(actions, super.getActions()); // Get the standard builtin actions Close, Close All, Close Other      
         return actions.toArray(new Action[0]);
     }
-    
+
     @Override
     public Lookup getLookup()
     {
         return editor.getLookup();
     }
-    
+
     @Override
     public int getPersistenceType()
     {
         return TopComponent.PERSISTENCE_NEVER;
     }
-    
+
     @Override
     public boolean canClose()
     {
         return true;
     }
-    
+
     @Override
     public void componentOpened()
     {
-        
+
     }
-    
+
     @Override
     public void componentClosed()
     {
@@ -326,7 +325,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
         song.getSongStructure().removeSgsChangeListener(this);
         editor.cleanup();
         toolbarPanel.cleanup();
-    }        
+    }
 
     /**
      * Return the active (i.e. focused or ancestor of the focused component) PianoRollEditorTopComponent.
@@ -398,7 +397,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
     {
         // Nothing
     }
-    
+
     @Override
     public void songStructureChanged(SgsChangeEvent e)
     {
@@ -432,13 +431,13 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
     {
         var barRange = getBarRange();
         String strSongPart = songPart != null ? " - " + songPart.getName() : "";
-        String strBarRange = " - bars " + (barRange.from + 1) + ".." + (barRange.to + 1);        
+        String strBarRange = " - bars " + (barRange.from + 1) + ".." + (barRange.to + 1);
         String strTs = songPart != null ? " - " + songPart.getRhythm().getTimeSignature() : "";
         String title = titleBase + strSongPart + strBarRange + strTs;
         toolbarPanel.setTitle(title);
     }
-    
-    
+
+
     void writeProperties(java.util.Properties p)
     {
         // better to version settings since initial version as advocated at
@@ -446,7 +445,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
         p.setProperty("version", "1.0");
         // TODO store your settings
     }
-    
+
     void readProperties(java.util.Properties p)
     {
         String version = p.getProperty("version");
@@ -476,5 +475,5 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
     private javax.swing.JPanel pnl_toolbar;
     // End of variables declaration//GEN-END:variables
 
-    
+
 }

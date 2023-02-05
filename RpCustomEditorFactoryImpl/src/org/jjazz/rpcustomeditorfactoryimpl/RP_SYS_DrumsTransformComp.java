@@ -428,7 +428,7 @@ public class RP_SYS_DrumsTransformComp extends RealTimeRpEditorComponent<RP_SYS_
         SizedPhrase sp = originalPhrase;
         if (sp == null)
         {
-            sp = new SizedPhrase(getChannel(), songPartContext.getBeatRange().getTransformed(-songPartContext.getBeatRange().from), timeSignature, sp.isDrums());
+            sp = new SizedPhrase(getChannel(), songPartContext.getBeatRange().getTransformed(-songPartContext.getBeatRange().from), timeSignature, true);
         }
         return sp;
     }

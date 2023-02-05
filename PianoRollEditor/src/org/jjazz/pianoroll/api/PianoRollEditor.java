@@ -255,7 +255,8 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
      * Associate an optional song to the editor.
      * <p>
      * Put the song and a SaveAsCapable instance in the editor's lookup. Put also a Savable instance when required. The ruler can
-     * show the chord symbols.<p>
+     * show the chord symbols and listen to chord symbols changes.<p>
+     * <p>
      * This method can be called only once.
      *
      * @param song Can't be null
@@ -271,7 +272,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         generalLookupContent.add(song);
         generalLookupContent.add(new SaveAsCapableSong(song)); // always enabled    
 
-        rulerPanel.setMultiLaneEnabled(true);
+        rulerPanel.setSong(song);
 
         if (song.needSave())
         {

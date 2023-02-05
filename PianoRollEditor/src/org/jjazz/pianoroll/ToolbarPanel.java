@@ -277,7 +277,7 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
         lbl_title.setFont(lbl_title.getFont().deriveFont(lbl_title.getFont().getStyle() | java.awt.Font.BOLD));
         lbl_title.setForeground(new java.awt.Color(168, 171, 199));
         lbl_title.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_title, org.openide.util.NbBundle.getMessage(ToolbarPanel.class, "ToolbarPanel.lbl_title.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_title, "Bass - channel 11"); // NOI18N
         pnl_title.add(lbl_title, java.awt.BorderLayout.CENTER);
 
         add(pnl_title, java.awt.BorderLayout.CENTER);

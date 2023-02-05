@@ -23,13 +23,16 @@
 package org.jjazz.pianoroll;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.beans.PropertyChangeListener;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
+import org.jjazz.uisettings.api.GeneralUISettings;
 import org.jjazz.upgrade.api.UpgradeManager;
 import org.jjazz.upgrade.api.UpgradeTask;
+import org.jjazz.util.api.Utilities;
 import org.openide.util.NbPreferences;
 import org.openide.util.lookup.ServiceProvider;
 
@@ -57,7 +60,7 @@ public class PianoRollEditorSettingsImpl implements PianoRollEditorSettings
     @Override
     public Color getBackgroundColor1()
     {
-        return new Color(prefs.getInt(PROP_BACKGROUND_COLOR1, new Color(182,195,210).getRGB()));
+        return new Color(prefs.getInt(PROP_BACKGROUND_COLOR1, new Color(182, 195, 210).getRGB()));
     }
 
     @Override
@@ -78,7 +81,7 @@ public class PianoRollEditorSettingsImpl implements PianoRollEditorSettings
     @Override
     public Color getBackgroundColor2()
     {
-        return new Color(prefs.getInt(PROP_BACKGROUND_COLOR2,  new Color(193,206,220).getRGB()));
+        return new Color(prefs.getInt(PROP_BACKGROUND_COLOR2, new Color(193, 206, 220).getRGB()));
     }
 
     @Override
@@ -95,11 +98,34 @@ public class PianoRollEditorSettingsImpl implements PianoRollEditorSettings
         }
         pcs.firePropertyChange(PROP_BACKGROUND_COLOR2, old, color);
     }
-    
-      @Override
+
+    @Override
+    public Font getRulerBaseFont()
+    {
+        Font defFont = GeneralUISettings.getInstance().getStdCondensedFont().deriveFont(13f);
+        String strFont = prefs.get(PROP_RULER_BASE_FONT, null);
+        return strFont != null ? Font.decode(strFont) : defFont;
+    }
+
+    @Override
+    public void setRulerBaseFont(Font font)
+    {
+        Font old = getRulerBaseFont();
+        if (font == null)
+        {
+            prefs.remove(PROP_RULER_BASE_FONT);
+            font = getRulerBaseFont();
+        } else
+        {
+            prefs.put(PROP_RULER_BASE_FONT, Utilities.fontAsString(font));
+        }
+        pcs.firePropertyChange(PROP_RULER_BASE_FONT, old, font);
+    }
+
+    @Override
     public Color getRulerBackgroundColor()
     {
-        return new Color(prefs.getInt(PROP_RULER_BACKGROUND_COLOR, new Color(15,29,42).getRGB()));
+        return new Color(prefs.getInt(PROP_RULER_BACKGROUND_COLOR, new Color(15, 29, 42).getRGB()));
     }
 
     @Override
@@ -115,6 +141,48 @@ public class PianoRollEditorSettingsImpl implements PianoRollEditorSettings
             prefs.putInt(PROP_RULER_BACKGROUND_COLOR, color.getRGB());
         }
         pcs.firePropertyChange(PROP_RULER_BACKGROUND_COLOR, old, color);
+    }
+
+    @Override
+    public Color getRulerTsLaneBackgroundColor()
+    {
+        return new Color(prefs.getInt(PROP_RULER_TS_LANE_BACKGROUND_COLOR, new Color(4, 6, 8).getRGB()));
+    }
+
+    @Override
+    public void setRulerTsLaneBackgroundColor(Color color)
+    {
+        Color old = getRulerTsLaneBackgroundColor();
+        if (color == null)
+        {
+            prefs.remove(PROP_RULER_TS_LANE_BACKGROUND_COLOR);
+            color = getRulerTsLaneBackgroundColor();
+        } else
+        {
+            prefs.putInt(PROP_RULER_TS_LANE_BACKGROUND_COLOR, color.getRGB());
+        }
+        pcs.firePropertyChange(PROP_RULER_TS_LANE_BACKGROUND_COLOR, old, color);
+    }
+
+    @Override
+    public Color getRulerBarTickColor()
+    {
+        return new Color(prefs.getInt(PROP_RULER_BAR_TICK_COLOR, new Color(160, 160, 160).getRGB()));
+    }
+
+    @Override
+    public void setRulerBarTickColor(Color color)
+    {
+        Color old = getRulerBarTickColor();
+        if (color == null)
+        {
+            prefs.remove(PROP_RULER_BAR_TICK_COLOR);
+            color = getRulerBarTickColor();
+        } else
+        {
+            prefs.putInt(PROP_RULER_BAR_TICK_COLOR, color.getRGB());
+        }
+        pcs.firePropertyChange(PROP_RULER_BAR_TICK_COLOR, old, color);
     }
 
     @Override
@@ -183,7 +251,7 @@ public class PianoRollEditorSettingsImpl implements PianoRollEditorSettings
     @Override
     public Color getBarLineColor()
     {
-        return new Color(prefs.getInt(PROP_BAR_LINE_COLOR, new Color(142,158,174).getRGB()));
+        return new Color(prefs.getInt(PROP_BAR_LINE_COLOR, new Color(142, 158, 174).getRGB()));
     }
 
     @Override

@@ -23,6 +23,7 @@
 package org.jjazz.pianoroll.spi;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.beans.PropertyChangeListener;
 import org.openide.util.Lookup;
 
@@ -33,6 +34,9 @@ public interface PianoRollEditorSettings
     public static String PROP_BACKGROUND_COLOR1 = "BackgroundColor1";
     public static String PROP_BACKGROUND_COLOR2 = "BackgroundColor2";
     public static String PROP_RULER_BACKGROUND_COLOR = "RulerBackgroundColor";
+    public static String PROP_RULER_TS_LANE_BACKGROUND_COLOR = "RulerTsLaneBackgroundColor";
+    public static String PROP_RULER_BAR_TICK_COLOR = "RulerBarTickColor";
+    public static String PROP_RULER_BASE_FONT = "RulerBaseFont";
     public static String PROP_NOTE_COLOR = "NoteColor";
     public static String PROP_SELECTED_NOTE_COLOR = "SelectedNoteColor";
     public static String PROP_FOCUSED_NOTE_CONTOUR_COLOR = "FocusedNoteContourColor";
@@ -59,6 +63,19 @@ public interface PianoRollEditorSettings
     Color getRulerBackgroundColor();
 
     void setRulerBackgroundColor(Color color);
+
+    Color getRulerTsLaneBackgroundColor();
+
+    void setRulerTsLaneBackgroundColor(Color color);       
+    
+    Color getRulerBarTickColor();
+
+    void setRulerBarTickColor(Color color);
+    
+    Font getRulerBaseFont();
+    
+    void setRulerBaseFont(Font font);
+            
 
     Color getNoteColor();
 

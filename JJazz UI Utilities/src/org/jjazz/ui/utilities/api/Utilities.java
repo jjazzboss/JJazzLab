@@ -460,6 +460,7 @@ public class Utilities
     {
         return KeyStroke.getKeyStroke(keyEventCode, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx());
     }
+    
 
     public static Color calculateDisabledColor(Color c)
     {
