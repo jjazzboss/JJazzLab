@@ -22,11 +22,9 @@
  */
 package org.jjazz.songcontext.api;
 
-import com.google.common.base.Preconditions;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midimix.api.MidiMix;

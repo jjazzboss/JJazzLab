@@ -98,12 +98,12 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
      */
     public static final String PROP_SIZE_IN_BARS = "PROP_SIZE_IN_BARS";
     /**
-     * If a user phrase is removed: oldValue=name and newValue=null.<br>
-     * If a user phrase is added, oldValue=null and newValue=name<br>
+     * If a user phrase is removed: oldValue=name_of_removed_phrase and newValue=removed_phrase.<br>
+     * If a user phrase is added, oldValue=null and newValue=name_of_new_phrase<br>
      */
     public static final String PROP_VETOABLE_USER_PHRASE = "PROP_VETOABLE_USER_PHRASE";   //NOI18N
     /**
-     * An existing phrase was replaced by another. oldValue=old phrase, newValue=name.
+     * An existing phrase was replaced by another. oldValue=old_phrase, newValue=name_of_new_phrase.
      */
     public static final String PROP_VETOABLE_USER_PHRASE_CONTENT = "PROP_VETOABLE_USER_PHRASE_CONTENT";   //NOI18N 
     /**
@@ -155,7 +155,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
      *
      * @param name
      * @param cls
-     * @param sgs Must be kept consistent with cls changes (sgs.getParentChordLeadSheet() must return cls)
+     * @param sgs  Must be kept consistent with cls changes (sgs.getParentChordLeadSheet() must return cls)
      */
     protected Song(String name, ChordLeadSheet cls, SongStructure sgs)
     {
@@ -222,10 +222,10 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
     /**
      * Rename a user phrase.
      * <p>
-     * Fire a PROP_VETOABLE_PHRASE_NAME change event (actually this property change event should never been vetoed, but this allows caller
-     * to use a single vetoable listener for all user phrase events).
+     * Fire a PROP_VETOABLE_PHRASE_NAME change event (actually this property change event should never been vetoed, but this
+     * allows caller to use a single vetoable listener for all user phrase events).
      *
-     * @param name Must be the name of an existing phrase
+     * @param name    Must be the name of an existing phrase
      * @param newName
      */
     public void renameUserPhrase(String name, String newName)
@@ -307,8 +307,8 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
      * made.
      * <p>
      * @param name Can't be blank.
-     * @param p Can't be null. No defensive copy is done, p is directly reused. No control is done on the phrase consistency Vs
-     * the song.
+     * @param p    Can't be null. No defensive copy is done, p is directly reused. No control is done on the phrase consistency Vs
+     *             the song.
      * @throws PropertyVetoException If no Midi channel available for the user phrase
      * @see Song#PROP_VETOABLE_USER_PHRASE
      * @see Song#PROP_VETOABLE_USER_PHRASE_CONTENT
@@ -354,7 +354,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
                     newPhrase.removePropertyChangeListener(Song.this);
                     try
                     {
-                        vcs.fireVetoableChange(PROP_VETOABLE_USER_PHRASE, name, null);
+                        vcs.fireVetoableChange(PROP_VETOABLE_USER_PHRASE, name, newPhrase);
                     } catch (PropertyVetoException ex)
                     {
                         // Should never happen
@@ -438,7 +438,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
     /**
      * Remove the user phrase associated to name.
      * <p>
-     * Fire a PROP_VETOABLE_USER_PHRASE event with oldValue=name and newValue=null.
+     * Fire a PROP_VETOABLE_USER_PHRASE event.
      *
      * @param name
      * @return The removed phrase or null
@@ -489,7 +489,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
                 p.removePropertyChangeListener(Song.this);
                 try
                 {
-                    vcs.fireVetoableChange(PROP_VETOABLE_USER_PHRASE, name, null);
+                    vcs.fireVetoableChange(PROP_VETOABLE_USER_PHRASE, name, p);
                 } catch (PropertyVetoException ex)
                 {
                     // Should never happen
@@ -503,7 +503,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
 
         try
         {
-            vcs.fireVetoableChange(PROP_VETOABLE_USER_PHRASE, name, null);
+            vcs.fireVetoableChange(PROP_VETOABLE_USER_PHRASE, name, p);
         } catch (PropertyVetoException ex)
         {
             // Should never happen
@@ -792,8 +792,8 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
      * oldValue=true and newValue=false.
      *
      * @param songFile
-     * @param isCopy Indicate that the save operation if for a copy, ie just perform the save operation and do nothing else (song
-     * name is not set, etc.)
+     * @param isCopy   Indicate that the save operation if for a copy, ie just perform the save operation and do nothing else
+     *                 (song name is not set, etc.)
      * @throws java.io.IOException
      * @see getFile()
      */

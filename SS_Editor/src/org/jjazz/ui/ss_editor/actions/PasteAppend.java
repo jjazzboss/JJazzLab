@@ -97,7 +97,7 @@ public class PasteAppend extends AbstractAction implements ContextAwareAction, S
         {
             return;
         }
-        SongStructure targetSgs = tc.getSS_Editor().getModel();
+        SongStructure targetSgs = tc.getEditor().getModel();
         SongPartCopyBuffer buffer = SongPartCopyBuffer.getInstance();
         List<SongPart> spts = targetSgs.getSongParts();
         int startBarIndex = 0;
@@ -139,7 +139,7 @@ public class PasteAppend extends AbstractAction implements ContextAwareAction, S
         SS_EditorTopComponent tc = SS_EditorTopComponent.getActive();
         if (tc != null)
         {
-            SS_SelectionUtilities selection = new SS_SelectionUtilities(tc.getSS_Editor().getLookup());
+            SS_SelectionUtilities selection = new SS_SelectionUtilities(tc.getEditor().getLookup());
             selectionChange(selection);
         }
     }

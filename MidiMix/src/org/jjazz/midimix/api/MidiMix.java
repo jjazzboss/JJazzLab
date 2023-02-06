@@ -1325,9 +1325,9 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
             {
                 case Song.PROP_VETOABLE_USER_PHRASE ->
                 {
-                    String name = (String) e.getNewValue();
-                    if (name != null)
+                    if (e.getNewValue() instanceof String name)
                     {
+                        // New user phrase added
                         try
                         {
                             addUserChannel(name);
@@ -1339,9 +1339,8 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
                     } else
                     {
                         // User phrase was removed
-                        name = (String) e.getOldValue();
+                        var name = (String) e.getOldValue();
                         removeUserChannel(name);
-
                     }
                 }
                 case Song.PROP_VETOABLE_USER_PHRASE_CONTENT ->

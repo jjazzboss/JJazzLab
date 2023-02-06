@@ -184,7 +184,7 @@ public class PasteRpValue extends AbstractAction implements ContextAwareAction, 
         SS_EditorTopComponent tc = SS_EditorTopComponent.getActive();
         if (tc != null)
         {
-            SS_SelectionUtilities selection = new SS_SelectionUtilities(tc.getSS_Editor().getLookup());
+            SS_SelectionUtilities selection = new SS_SelectionUtilities(tc.getEditor().getLookup());
             selectionChange(selection);
         }
     }

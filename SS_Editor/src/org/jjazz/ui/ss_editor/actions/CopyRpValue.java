@@ -112,7 +112,7 @@ public class CopyRpValue extends AbstractAction implements ContextAwareAction, S
 
         // Force a selection change so that the Paste action enabled status can be updated 
         // (otherwise Paste action will not see that the CopyBuffer is no more empty)
-        SS_Editor editor = SS_EditorTopComponent.getActive().getSS_Editor();
+        SS_Editor editor = SS_EditorTopComponent.getActive().getEditor();
         editor.selectRhythmParameter(spt0, rp0, false);
         editor.selectRhythmParameter(spt0, rp0, true);
     }

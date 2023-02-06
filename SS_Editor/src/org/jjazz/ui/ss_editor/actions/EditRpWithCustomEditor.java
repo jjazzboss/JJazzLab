@@ -104,7 +104,7 @@ public final class EditRpWithCustomEditor extends AbstractAction implements Cont
         var factory = RpCustomEditorFactory.findFactory(rp);
         if (factory != null)
         {
-            SS_Editor editor = SS_EditorTopComponent.getActive().getSS_Editor();
+            SS_Editor editor = SS_EditorTopComponent.getActive().getEditor();
 
 
             // Prepare our dialog

@@ -118,7 +118,7 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
     {
         CL_SelectionUtilities selection = cap.getSelection();
         final ChordLeadSheet cls = selection.getChordLeadSheet();
-        final CL_Editor editor = CL_EditorTopComponent.getActive().getCL_Editor();
+        final CL_Editor editor = CL_EditorTopComponent.getActive().getEditor();
         char key = (char) 0;
         LOGGER.fine("e=" + e);   //NOI18N
 
@@ -356,7 +356,7 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
 
     static private void adjustDialogPosition(JDialog dialog, int barIndex)
     {
-        CL_Editor editor = CL_EditorTopComponent.getActive().getCL_Editor();
+        CL_Editor editor = CL_EditorTopComponent.getActive().getEditor();
         Rectangle r = editor.getBarRectangle(barIndex);
         Point p = r.getLocation();
         SwingUtilities.convertPointToScreen(p, editor);

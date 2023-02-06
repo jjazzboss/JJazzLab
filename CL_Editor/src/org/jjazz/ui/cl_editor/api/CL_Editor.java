@@ -54,7 +54,7 @@ import org.openide.util.Lookup;
  */
 public abstract class CL_Editor extends JPanel implements Lookup.Provider
 {
-
+    
     abstract public void setEditorMouseListener(CL_EditorMouseListener brm);
 
     /**
@@ -144,9 +144,9 @@ public abstract class CL_Editor extends JPanel implements Lookup.Provider
      * @param nbCols A value between 1 and 16.
      */
     abstract public void setNbColumns(int nbCols);
-
+    
     abstract public int getNbColumns();
-
+    
     abstract public int getNbBarBoxes();
 
     /**
@@ -191,8 +191,8 @@ public abstract class CL_Editor extends JPanel implements Lookup.Provider
      * Select the bars in the specified barIndex range.
      *
      * @param barIndexFrom int
-     * @param barIndexTo int
-     * @param b True to select, False to unselect.
+     * @param barIndexTo   int
+     * @param b            True to select, False to unselect.
      */
     abstract public void selectBars(int barIndexFrom, int barIndexTo, boolean b);
 
@@ -200,8 +200,8 @@ public abstract class CL_Editor extends JPanel implements Lookup.Provider
      * Select the bars out of the specified barIndex range.
      *
      * @param barIndexFrom int
-     * @param barIndexTo int
-     * @param b True to select, False to unselect.
+     * @param barIndexTo   int
+     * @param b            True to select, False to unselect.
      */
     abstract public void selectBarsExcept(int barIndexFrom, int barIndexTo, boolean b);
 
@@ -209,7 +209,7 @@ public abstract class CL_Editor extends JPanel implements Lookup.Provider
      * Select the ItemRenderer(s) whose model is item.
      *
      * @param item
-     * @param b True to select, False to unselect.
+     * @param b    True to select, False to unselect.
      */
     abstract public void selectItem(ChordLeadSheetItem<?> item, boolean b);
 
@@ -217,7 +217,7 @@ public abstract class CL_Editor extends JPanel implements Lookup.Provider
      * Replace the current selection with the specified items.
      *
      * @param items
-     * @param b True to select, False to unselect.
+     * @param b     True to select, False to unselect.
      */
     abstract public void selectItems(List<? extends ChordLeadSheetItem<?>> items, boolean b);
 
@@ -233,7 +233,7 @@ public abstract class CL_Editor extends JPanel implements Lookup.Provider
      *
      * @param item
      * @param irClass the type of ItemRenderer to focus if there is multiple ItemRenderers for one item. If null, focus on the
-     * first ItemRenderer found.
+     *                first ItemRenderer found.
      */
     abstract public void setFocusOnItem(ChordLeadSheetItem<?> item, IR_Type irClass);
 
@@ -248,9 +248,9 @@ public abstract class CL_Editor extends JPanel implements Lookup.Provider
     /**
      * Show an insertion point in the editor for copy/move operations.
      *
-     * @param b Show/hide the insertion point. If false other arguments are not used.
-     * @param item The item for which we show the insertion point for.
-     * @param pos The position of the insertion point.
+     * @param b        Show/hide the insertion point. If false other arguments are not used.
+     * @param item     The item for which we show the insertion point for.
+     * @param pos      The position of the insertion point.
      * @param copyMode If true insertion point is shown for a copy operation, otherwise it's a move operation.
      */
     abstract public void showInsertionPoint(boolean b, ChordLeadSheetItem<?> item, Position pos, boolean copyMode);
@@ -258,7 +258,7 @@ public abstract class CL_Editor extends JPanel implements Lookup.Provider
     /**
      * Show a playback point in the editor at specified position.
      *
-     * @param b Show/hide the playback point.
+     * @param b   Show/hide the playback point.
      * @param pos
      */
     abstract public void showPlaybackPoint(boolean b, Position pos);
@@ -270,6 +270,14 @@ public abstract class CL_Editor extends JPanel implements Lookup.Provider
      * @return A Rectangle in the screen coordinates of this editor.
      */
     abstract public Rectangle getBarRectangle(int barBoxIndex);
+
+    /**
+     * Clear the editor selection.
+     */
+    public void unselectAll()
+    {
+        new CL_SelectionUtilities(getLookup()).unselectAll(this);
+    }
 
     /**
      * Get the Section-quantization-value property name for the specified section.
@@ -292,5 +300,5 @@ public abstract class CL_Editor extends JPanel implements Lookup.Provider
     {
         return "SectionStartOnNewLine" + "-" + section.getName();
     }
-
+    
 }

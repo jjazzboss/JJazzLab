@@ -24,33 +24,42 @@ package org.jjazz.pianoroll;
 
 import com.google.common.base.Preconditions;
 import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
+import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.font.TextAttribute;
 import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.text.AttributedString;
-import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JViewport;
+import javax.swing.SwingUtilities;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.ClsChangeListener;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.leadsheet.chordleadsheet.api.event.ClsActionEvent;
 import org.jjazz.leadsheet.chordleadsheet.api.event.ClsChangeEvent;
+import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.pianoroll.api.PianoRollEditor;
+import org.jjazz.rhythmmusicgeneration.api.ChordSequence;
 import org.jjazz.rhythmmusicgeneration.api.SongChordSequence;
 import org.jjazz.song.api.Song;
+import org.jjazz.ui.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.ui.colorsetmanager.api.ColorSetManager;
+import org.jjazz.ui.ss_editor.api.SS_EditorTopComponent;
 import org.jjazz.ui.utilities.api.HSLColor;
 import org.jjazz.ui.utilities.api.StringMetrics;
 
@@ -84,10 +93,10 @@ public class RulerPanel extends javax.swing.JPanel implements ClsChangeListener,
     private final NotesPanel.XMapper xMapper;
     private final PianoRollEditor editor;
 
-    private static final Logger LOGGER = Logger.getLogger(RulerPanel.class.getSimpleName());
     private int playbackPointX = -1;
     private Song song;
-    private final TreeSet<Object> upperLanesObjects = new TreeSet<>();
+
+    private static final Logger LOGGER = Logger.getLogger(RulerPanel.class.getSimpleName());
 
     /**
      *
@@ -114,6 +123,13 @@ public class RulerPanel extends javax.swing.JPanel implements ClsChangeListener,
                 repaint();
             }
         });
+
+
+        // Enable scroll when dragging the ruler, and update chord leadsheet/song structure selection when clicked
+        // this.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        RulerMouseAdapter ma = new RulerMouseAdapter();
+        addMouseListener(ma);
+        addMouseMotionListener(ma);
 
 
         // Precalculate font metrics
@@ -146,7 +162,9 @@ public class RulerPanel extends javax.swing.JPanel implements ClsChangeListener,
         }
 
         this.song = song;
+
         // Listen to chord leadsheet changes (song structure changes must be managed at a higher level)
+        song.getChordLeadSheet().addClsChangeListener(this);
 
         revalidate();
         repaint();
@@ -194,12 +212,13 @@ public class RulerPanel extends javax.swing.JPanel implements ClsChangeListener,
         int yBottomChordSymbolLane = yTopBarLane - 1;
         Font baseFont = settings.getRulerBaseFont();
 
+
         // Default background
         g2.setColor(settings.getRulerBackgroundColor());
         g2.fillRect(0, yBottomTimeSignatureLane + 1, getWidth(), song != null ? CHORD_SYMBOL_LANE_HEIGHT + BAR_LANE_HEIGHT : BAR_LANE_HEIGHT);
 
 
-        // Paint time signature background
+        // Paint time signature lane background
         g2.setColor(settings.getRulerTsLaneBackgroundColor());
         g2.fillRect(0, yTopTimeSignatureLane, getWidth(), TIME_SIGNATURE_LANE_HEIGHT);
 
@@ -212,7 +231,8 @@ public class RulerPanel extends javax.swing.JPanel implements ClsChangeListener,
         // Draw chord symbols
         if (song != null)
         {
-            SongChordSequence cs = new SongChordSequence(song, editor.getBarRange());
+            ChordSequence cs = new ChordSequence(song.getSongStructure().getBarRange());
+            SongChordSequence.fillChordSequence(cs, song, null);
             for (var cliCs : cs)
             {
                 var pos = cliCs.getPosition();
@@ -282,7 +302,7 @@ public class RulerPanel extends javax.swing.JPanel implements ClsChangeListener,
                     double wRect = bounds.getWidth() + 2 * PADDING;
                     double hRect = bounds.getHeight() + 1 * PADDING;
                     double xRect = xSongPart;
-                    double yRect = yTimeSignatureBaseLine + PADDING - hRect + 1;
+                    double yRect = yTimeSignatureBaseLine + PADDING - hRect;
                     var r = new RoundRectangle2D.Double(xRect, yRect, wRect, hRect, 3, 3);
                     Color c = ColorSetManager.getDefault().getColor(spt.getParentSection().getData().getName());
                     g2.setColor(c);
@@ -408,7 +428,7 @@ public class RulerPanel extends javax.swing.JPanel implements ClsChangeListener,
             {
                 case "addItem", "changeItem", "removeItem", "moveItem", "setSectionName" ->
                 {
-                    updateUpperLanesObjects();
+                    repaint();
                 }
             }
         }
@@ -419,18 +439,79 @@ public class RulerPanel extends javax.swing.JPanel implements ClsChangeListener,
     // ==========================================================================================================    
 
     /**
-     * Prepare the upperLaneObjects data for paintComponent().
-     * <p>
+     * Enable scroll when dragging the ruler, and when clicked update the selection on chord leadsheet and song structure editors.
      */
-    private void updateUpperLanesObjects()
+    private class RulerMouseAdapter extends MouseAdapter
     {
-        assert editor.isReady();
-        upperLanesObjects.clear();
-        var barRange = editor.getBarRange();
-        upperLanesObjects.addAll(song.getSongStructure().getSongParts(spt -> barRange.contains(spt.getStartBarIndex())));
-        SongChordSequence cs = new SongChordSequence(song, barRange);
-        upperLanesObjects.addAll(cs);
+
+        private int xOrigin = Integer.MIN_VALUE;
+
+        @Override
+        public void mousePressed(MouseEvent e)
+        {
+            xOrigin = e.getX();
+            setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        }
+
+        @Override
+        public void mouseClicked(MouseEvent e)
+        {
+            if (song == null)
+            {
+                return;
+            }
+            float posInBeats = editor.getPositionFromPoint(e.getPoint()); // ignore y
+            if (posInBeats == -1 || !editor.getBeatRange().contains(posInBeats, true))
+            {
+                return;
+            }
+            Position pos = editor.toPosition(posInBeats);
+
+
+            // Select the corresponding song part
+            var spt = song.getSongStructure().getSongPart(pos.getBar());
+            var ssTc = SS_EditorTopComponent.get(song.getSongStructure());
+            var ssEditor = ssTc.getEditor();
+            ssEditor.unselectAll();
+            ssEditor.selectSongPart(spt, true);
+
+
+            // Select the corresponding chord symbol
+            var barDelta = pos.getBar() - spt.getStartBarIndex();
+            var section = spt.getParentSection();
+            var clsPos = new Position(section.getPosition().getBar() + barDelta, pos.getBeat());
+            var cliCs = song.getChordLeadSheet().getLastItem(clsPos, CLI_ChordSymbol.class);
+            if (cliCs != null)
+            {
+                var clTc = CL_EditorTopComponent.get(song.getChordLeadSheet());
+                var clEditor = clTc.getEditor();
+                clEditor.unselectAll();
+                clEditor.selectItem(cliCs, true);
+            }
+
+        }
+
+        @Override
+        public void mouseReleased(MouseEvent e)
+        {
+            xOrigin = Integer.MIN_VALUE;
+            setCursor(Cursor.getDefaultCursor());
+        }
+
+        @Override
+        public void mouseDragged(MouseEvent e)
+        {
+            if (xOrigin != Integer.MIN_VALUE)
+            {
+                JViewport viewPort = (JViewport) SwingUtilities.getAncestorOfClass(JViewport.class, notesPanel);
+                if (viewPort != null)
+                {
+                    int deltaX = xOrigin - e.getX();
+                    Rectangle view = viewPort.getViewRect();
+                    view.x += deltaX;
+                    notesPanel.scrollRectToVisible(view);
+                }
+            }
+        }
     }
-
-
 }

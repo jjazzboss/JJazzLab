@@ -130,14 +130,14 @@ public class PlayFromHere extends AbstractAction
         ChordLeadSheet cls = song.getChordLeadSheet();
         CL_EditorTopComponent clTc = CL_EditorTopComponent.get(cls);
         assert clTc != null;   //NOI18N
-        CL_Editor clEditor = clTc.getCL_Editor();
+        CL_Editor clEditor = clTc.getEditor();
         CL_SelectionUtilities clSelection = new CL_SelectionUtilities(clEditor.getLookup());
 
 
         SongStructure ss = song.getSongStructure();
         SS_EditorTopComponent ssTc = SS_EditorTopComponent.get(ss);
         assert ssTc != null;   //NOI18N
-        SS_Editor ssEditor = ssTc.getSS_Editor();
+        SS_Editor ssEditor = ssTc.getEditor();
         SS_SelectionUtilities ssSelection = new SS_SelectionUtilities(ssEditor.getLookup());
 
 

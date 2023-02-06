@@ -176,7 +176,7 @@ public final class CL_EditorTopComponent extends TopComponent implements Propert
         pairedTc = tc;
     }
 
-    public CL_Editor getCL_Editor()
+    public CL_Editor getEditor()
     {
         return clEditor;
     }
@@ -231,7 +231,7 @@ public final class CL_EditorTopComponent extends TopComponent implements Propert
         {
             if (tc instanceof CL_EditorTopComponent clTc)
             {
-                if (clTc.getCL_Editor().getModel() == cls)
+                if (clTc.getEditor().getModel() == cls)
                 {
                     return clTc;
                 }

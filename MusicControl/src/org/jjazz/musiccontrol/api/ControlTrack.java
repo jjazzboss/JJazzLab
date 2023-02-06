@@ -33,10 +33,12 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.MidiUtilities;
+import org.jjazz.rhythm.api.UserErrorGenerationException;
 import org.jjazz.rhythmmusicgeneration.api.SongChordSequence;
 import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.util.api.IntRange;
+import org.openide.util.Exceptions;
 
 /**
  * A control track contains special Midi events used by the MusicController to fire PlaybackListener events.
@@ -65,7 +67,14 @@ public class ControlTrack
      */
     public ControlTrack(SongContext sgContext, int trackId)
     {
-        contextChordSequence = new SongChordSequence(sgContext.getSong(), sgContext.getBarRange());       // This will process the substitute chord symbols
+        try
+        {
+            contextChordSequence = new SongChordSequence(sgContext.getSong(), sgContext.getBarRange());       // This will process the substitute chord symbols
+        } catch (UserErrorGenerationException ex)
+        {
+            // Should never happen
+            Exceptions.printStackTrace(ex);
+        }
 
         // Add track name
         midiEvents.add(new MidiEvent(MidiUtilities.getTrackNameMetaMessage(TRACK_NAME), 0));

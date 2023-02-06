@@ -117,8 +117,8 @@ public class PrintDialog extends javax.swing.JDialog implements ChangeListener
 
         // Create/update our LeadSheetPrinter pageable
         var res = SongEditorManager.getInstance().getEditors(refSong);
-        actualClEditor = res.getTcCle().getCL_Editor();
-        actualSsEditor = res.getTcRle().getSS_Editor();
+        actualClEditor = res.getTcCle().getEditor();
+        actualSsEditor = res.getTcRle().getEditor();
         int zoomVFactor = actualClEditor.getZoomVFactor();
         int nbColumns = actualClEditor.getNbColumns();
 

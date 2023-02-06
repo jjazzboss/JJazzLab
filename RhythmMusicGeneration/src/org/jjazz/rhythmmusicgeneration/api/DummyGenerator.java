@@ -57,7 +57,7 @@ public class DummyGenerator implements MusicGenerator
 
 
     @Override
-    public HashMap<RhythmVoice, Phrase> generateMusic(SongContext sgContext)
+    public HashMap<RhythmVoice, Phrase> generateMusic(SongContext sgContext) throws MusicGenerationException
     {
         HashMap<RhythmVoice, Phrase> res = new HashMap<>();
 
@@ -76,7 +76,7 @@ public class DummyGenerator implements MusicGenerator
             float sptPosInBeats = sgContext.getSong().getSongStructure().getPositionInNaturalBeats(sptRange.from);
 
             // Get the SimpleChordSequence corresponding to the song part
-            SongChordSequence scSeq = new SongChordSequence(sgContext.getSong(), sptRange);
+            SongChordSequence scSeq = new SongChordSequence(sgContext.getSong(), sptRange);     // throw UserErrorGenerationException
             SimpleChordSequence cSeq = new SimpleChordSequence(scSeq, ts);
             
 

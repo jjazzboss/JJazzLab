@@ -82,7 +82,7 @@ public class SelectAll extends AbstractAction implements ContextAwareAction, CL_
     {
         CL_SelectionUtilities selection = cap.getSelection();
         ChordLeadSheet cls = selection.getChordLeadSheet();
-        CL_Editor editor = CL_EditorTopComponent.get(cls).getCL_Editor();
+        CL_Editor editor = CL_EditorTopComponent.get(cls).getEditor();
         if (selection.isEmpty())
         {
             // Select all leadsheet

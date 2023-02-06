@@ -77,7 +77,7 @@ public class AppendSpt extends AbstractAction
         
         
         // Prepare data
-        SongStructure sgs = tc.getSS_Editor().getModel();
+        SongStructure sgs = tc.getEditor().getModel();
         List<SongPart> spts = sgs.getSongParts();
         ChordLeadSheet cls = sgs.getParentChordLeadSheet();
         if (cls == null)

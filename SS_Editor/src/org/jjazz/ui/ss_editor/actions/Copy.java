@@ -91,7 +91,7 @@ public class Copy extends AbstractAction implements ContextAwareAction, SS_Conte
 
         // Force a selection change so that the Paste action enabled status can be updated 
         // (otherwise Paste action will not see that SongPartCopyBuffer is no more empty)
-        SS_Editor editor = SS_EditorTopComponent.getActive().getSS_Editor();
+        SS_Editor editor = SS_EditorTopComponent.getActive().getEditor();
         editor.selectSongPart(spts.get(0), false);
         editor.selectSongPart(spts.get(0), true);
     }

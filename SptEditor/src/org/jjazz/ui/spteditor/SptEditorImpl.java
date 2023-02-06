@@ -450,7 +450,7 @@ public class SptEditorImpl extends SptEditor implements PropertyChangeListener
         instanceContent.add(songModel);
         // instanceContent.add(songModel.getChordLeadSheet());          // Commented out april 2021: seems useless
 
-        ssEditor = SS_EditorTopComponent.get(songModel.getSongStructure()).getSS_Editor();
+        ssEditor = SS_EditorTopComponent.get(songModel.getSongStructure()).getEditor();
         assert ssEditor != null : "songModel=" + songModel;   //NOI18N
 
         // Directly listen to the sgsModel editor selection changes

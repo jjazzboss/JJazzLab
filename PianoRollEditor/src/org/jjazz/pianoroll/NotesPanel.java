@@ -114,8 +114,10 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
     @Override
     public void doLayout()
     {
+        // LOGGER.severe("doLayout() -- ");
         if (!xMapper.isUptodate() || !yMapper.isUptodate())
         {
+            // LOGGER.severe(" ==> doLayout() EXIT NOT UPTODATE");
             return;
         }
 
@@ -140,7 +142,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
         } else
         {
             // Drum notes
-            int side = yMapper.getNoteViewHeight();
+            int side = yMapper.getNoteViewHeight() + 2;
             if (side % 2 == 0)
             {
                 side++;     // Need an odd value so that NoteView will be perfectly centered
@@ -153,10 +155,12 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
                 }
                 NoteEvent ne = nv.getModel();
                 int x = xMapper.getX(ne.getPositionInBeats()) - side / 2;
-                int y = yMapper.getNoteViewChannelYRange(ne.getPitch()).from;
+                var yRange = yMapper.getNoteViewChannelYRange(ne.getPitch());
+                int y = yRange.from;
                 int w = side;
                 int h = side;
                 nv.setBounds(x, y, w, h);
+                // LOGGER.severe("doLayout() side=" + side + " yRange=" + yRange + " bounds=" + nv.getBounds());
             }
         }
 
@@ -191,7 +195,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
     @Override
     public Dimension getPreferredSize()
     {
-        int h = yMapper.lastKeyboardHeight;
+        int h = yMapper.getLastKeyboardHeight();
         int w = (int) (editor.getBeatRange().size() * 50 * scaleFactorX);
         var res = new Dimension(w, h);
         LOGGER.log(Level.FINE, "getPreferredSize() res={0}", res);
@@ -820,7 +824,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
             float adjustedSmallHeight = (octaveHeight - 4 * adjustedLargeHeight) / 8;       // So we can accomodate 4 small + 4 large
 
 
-            noteViewHeight = (int) Math.floor(adjustedSmallHeight);
+            noteViewHeight = (int) Math.round(adjustedSmallHeight);
 
 
             // Fill in the maps
@@ -851,7 +855,10 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
          */
         public synchronized boolean isUptodate()
         {
-            return lastKeyboardHeight == keyboard.getHeight();
+            // Bug fix : drums notes are not resized when zoom in vertically
+            // Use keyboard's preferred height instead of height, because PianoRollEditor setZoom() method directly calls yMapper.refresh(), which
+            // in turn calls revalidate(), so our doLayout() (which needs isUptodate() to return true) can be called before the keyboard bounds are actually changed.
+            return lastKeyboardHeight == keyboard.getPreferredSize().height;
         }
 
         /**

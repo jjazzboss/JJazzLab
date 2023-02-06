@@ -297,7 +297,7 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
             } else
             {
                 SS_EditorTopComponent ssTc = SS_EditorTopComponent.get(song.getSongStructure());
-                ssEditor = ssTc.getSS_Editor();
+                ssEditor = ssTc.getEditor();
                 selection = new SS_SelectionUtilities(ssEditor.getLookup());
                 if (selection.isEmpty())
                 {

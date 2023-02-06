@@ -165,7 +165,7 @@ public final class ImproSupportTopComponent extends TopComponent implements Prop
             CL_EditorTopComponent clTc = CL_EditorTopComponent.get(sg.getChordLeadSheet()); // Can be null in some cases eg when rhythm previewer is used
             if (clTc != null)
             {
-                var clEditor = clTc.getCL_Editor();
+                var clEditor = clTc.getEditor();
                 improSupport = mapEditorImproSupport.get(clEditor);
                 if (improSupport == null)
                 {

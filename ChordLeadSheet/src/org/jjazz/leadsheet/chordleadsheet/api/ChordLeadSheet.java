@@ -74,7 +74,7 @@ public interface ChordLeadSheet
      * @param section
      * @throws IllegalArgumentException If section already exists at specified position or invalid section.
      * @throws UnsupportedEditException If a ChordLeadSheet change listener does not authorize this edit. Exception is thrown
-     * before any change is done.
+     *                                  before any change is done.
      */
     public void addSection(CLI_Section section) throws UnsupportedEditException;
 
@@ -86,7 +86,7 @@ public interface ChordLeadSheet
      *
      * @param section
      * @throws UnsupportedEditException If a ChordLeadSheet change listener does not authorize this edit. Exception is thrown
-     * before any change is done.
+     *                                  before any change is done.
      */
     public void removeSection(CLI_Section section) throws UnsupportedEditException;
 
@@ -108,7 +108,7 @@ public interface ChordLeadSheet
      * @param ts
      * @throws IllegalArgumentException If section does not belong to this leadsheet.
      * @throws UnsupportedEditException If a ChordLeadSheet change listener does not authorize this edit. Exception is thrown
-     * before any change is done.
+     *                                  before any change is done.
      */
     public void setSectionTimeSignature(CLI_Section section, TimeSignature ts) throws UnsupportedEditException;
 
@@ -118,10 +118,10 @@ public interface ChordLeadSheet
      * New position must be free of a section. Section on first bar can not be moved. Some items position might be adjusted to the
      * new bar's TimeSignature.
      *
-     * @param section The section to be moved
+     * @param section     The section to be moved
      * @param newBarIndex The bar index section will be moved to
      * @throws UnsupportedEditException If a ChordLeadSheet change listener does not authorize this edit. Exception is thrown
-     * before any change is done.
+     *                                  before any change is done.
      * @throws IllegalArgumentException If new position is not valid.
      */
     public void moveSection(CLI_Section section, int newBarIndex) throws UnsupportedEditException;
@@ -133,7 +133,7 @@ public interface ChordLeadSheet
      *
      * @param <T>
      * @param item The item to be moved
-     * @param pos The new position.
+     * @param pos  The new position.
      * @throws IllegalArgumentException If new position is not valid.
      */
     public <T> void moveItem(ChordLeadSheetItem<T> item, Position pos);
@@ -163,7 +163,7 @@ public interface ChordLeadSheet
      * If there are bars after barIndex, they are shifted accordingly.
      *
      * @param barIndex The bar index from which to insert the new bars.
-     * @param nbBars The number of bars to insert.
+     * @param nbBars   The number of bars to insert.
      * @throws IllegalArgumentException If barIndex &lt; 0 or barIndex &gt; size()
      */
     public void insertBars(int barIndex, int nbBars);
@@ -177,7 +177,8 @@ public interface ChordLeadSheet
      * @param barIndexFrom
      * @param barIndexTo
      * @throws UnsupportedEditException If a ChordLeadSheet change listener does not authorize this edit. IMPORTANT:some undoable
-     * changes might have been done before exception is thrown, caller will need to rollback them.
+     *                                  changes might have been done before exception is thrown, caller will need to rollback
+     *                                  them.
      */
     public void deleteBars(int barIndexFrom, int barIndexTo) throws UnsupportedEditException;
 
@@ -187,19 +188,30 @@ public interface ChordLeadSheet
     public void cleanup();
 
     /**
+     * Get the last matching item whose position is less or equal to the specified position.
+     *
+     * @param <T>
+     * @param pos
+     * @param aClass The class or superclass of the item to be searched. If null return any item.
+     * @return Can be null
+     * @throws IllegalArgumentException If item is not found.
+     */
+    public <T> ChordLeadSheetItem<T> getLastItem(Position pos, Class<T> aClass);
+
+    /**
      * Get the last matching item in the specified bar range.
      * <p>
      *
      * @param <T>
      * @param barFrom
      * @param barTo
-     * @param aClass The class or superclass of the item to be searched. If null return any item.
+     * @param aClass  The class or superclass of the item to be searched. If null return any item.
      * @return Can be null if no item found.
      */
     public <T> T getLastItem(int barFrom, int barTo, Class<T> aClass);
 
     /**
-     * Get the next similar item after the specified item.
+     * Get the next similar item (same class or subclass) after the specified item.
      *
      * @param <T>
      * @param item
@@ -210,7 +222,7 @@ public interface ChordLeadSheet
 
 
     /**
-     * Get the previous similar item before the specified item.
+     * Get the previous similar item (same class or subclass) before the specified item.
      *
      * @param <T>
      * @param item
@@ -218,6 +230,7 @@ public interface ChordLeadSheet
      * @throws IllegalArgumentException If item is not found.
      */
     public <T> ChordLeadSheetItem<T> getPreviousItem(ChordLeadSheetItem<T> item);
+
 
     /**
      * Get all the items of this chordleadsheet.
@@ -243,7 +256,7 @@ public interface ChordLeadSheet
      * @param <T>
      * @param barFrom
      * @param barTo
-     * @param aClass Return only items which are instance of class aClass.
+     * @param aClass  Return only items which are instance of class aClass.
      * @return A list of items, can be empty if no item found.
      */
     public <T> List<? extends T> getItems(int barFrom, int barTo, Class<T> aClass);
@@ -255,9 +268,9 @@ public interface ChordLeadSheet
      *
      * @param <T>
      * @param sectionItem
-     * @param aClass Return only items only items which are instance of class aClass.
+     * @param aClass      Return only items only items which are instance of class aClass.
      * @return The list of all the items that are part of sectionItem. The sectionItem itself and the special END_EVENT are not
-     * included.
+     *         included.
      */
     public <T> List<? extends T> getItems(CLI_Section sectionItem, Class<T> aClass);
 
@@ -312,7 +325,7 @@ public interface ChordLeadSheet
      *
      * @param size The numbers of bars, must be &gt;= 1 and &lt; MAX_SIZE.
      * @throws UnsupportedEditException If a ChordLeadSheet change listener does not authorize this edit. Exception is thrown
-     * before any change is done.
+     *                                  before any change is done.
      */
     public void setSizeInBars(int size) throws UnsupportedEditException;
 

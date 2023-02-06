@@ -209,4 +209,11 @@ public abstract class SS_Editor extends JPanel implements Lookup.Provider
      */
     abstract public SongPart getFocusedSongPart(boolean includeFocusedRhythmParameter);
 
+    /**
+     * Clear selection.
+     */
+    public void unselectAll()
+    {
+        new SS_SelectionUtilities(getLookup()).unselectAll(this);
+    }
 }

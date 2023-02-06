@@ -76,7 +76,7 @@ public class ToggleCompactView extends AbstractAction
         }
 
         // Just switch between compact and full mode
-        var song = ssTc.getSS_Editor().getSongModel();
+        var song = ssTc.getEditor().getSongModel();
         boolean b = CompactViewModeController.isSongInCompactViewMode(song);
         CompactViewModeController.setSongInCompactViewMode(song, !b);
 

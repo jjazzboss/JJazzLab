@@ -66,7 +66,7 @@ public class ZoomFitWidth extends AbstractAction
         SS_EditorTopComponent ssTc = SS_EditorTopComponent.getActive();
         if (ssTc != null)
         {
-            ssTc.getSS_Editor().setZoomHFactorToFitWidth(ssTc.getWidth());
+            ssTc.getEditor().setZoomHFactorToFitWidth(ssTc.getWidth());
         }
     }
 

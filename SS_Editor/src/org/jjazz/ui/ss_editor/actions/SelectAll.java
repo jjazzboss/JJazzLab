@@ -85,7 +85,7 @@ public class SelectAll extends AbstractAction implements ContextAwareAction, SS_
         {
             return;
         }
-        SS_Editor editor = tc.getSS_Editor();
+        SS_Editor editor = tc.getEditor();
         SongStructure sgs = editor.getModel();
         SS_SelectionUtilities selection = cap.getSelection(); // Warning: selection can be empty ! 
         if (selection.isEmpty() || selection.isSongPartSelected())
@@ -120,7 +120,7 @@ public class SelectAll extends AbstractAction implements ContextAwareAction, SS_
             setEnabled(false);
             return;
         }
-        SongStructure sgs = tc.getSS_Editor().getModel();
+        SongStructure sgs = tc.getEditor().getModel();
         setEnabled(sgs != null && !sgs.getSongParts().isEmpty());
     }
 

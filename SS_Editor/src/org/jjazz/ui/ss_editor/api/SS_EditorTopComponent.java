@@ -170,7 +170,7 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
         pairedTc = tc;
     }
 
-    public SS_Editor getSS_Editor()
+    public SS_Editor getEditor()
     {
         return ssEditor;
     }
@@ -223,7 +223,7 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
             if (tc instanceof SS_EditorTopComponent)
             {
                 SS_EditorTopComponent ssTc = (SS_EditorTopComponent) tc;
-                if (ssTc.getSS_Editor().getModel() == sgs)
+                if (ssTc.getEditor().getModel() == sgs)
                 {
                     return ssTc;
                 }

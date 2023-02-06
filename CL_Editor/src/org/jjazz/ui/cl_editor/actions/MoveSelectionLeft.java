@@ -41,7 +41,7 @@ public class MoveSelectionLeft extends AbstractAction
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        CL_Editor editor = CL_EditorTopComponent.getActive().getCL_Editor();
+        CL_Editor editor = CL_EditorTopComponent.getActive().getEditor();
         Component c = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
         if (c instanceof BarBox)
         {

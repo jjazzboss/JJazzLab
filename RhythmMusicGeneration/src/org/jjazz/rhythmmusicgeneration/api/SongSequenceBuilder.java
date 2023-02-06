@@ -438,7 +438,7 @@ public class SongSequenceBuilder
         checkEmptyRange(songContext);       // throws MusicGenerationException
 
         // Check that there is a valid starting chord at the beginning on each section
-        checkStartChordPresence(songContext);      // throws MusicGenerationException
+        checkStartChordPresence(songContext);      // throws UserErrorGenerationException
 
         // Check there is no 2 chords at same position
         checkChordsAtSamePosition(songContext);            // throws MusicGenerationException        
@@ -647,7 +647,7 @@ public class SongSequenceBuilder
             return ((MusicGenerator) r).generateMusic(songContext);
         } else
         {
-            LOGGER.warning("generateRhythmPhrases() r=" + r + " is not a MusicGenerator instance");
+            LOGGER.log(Level.WARNING, "generateRhythmPhrases() r={0} is not a MusicGenerator instance", r);
             throw new MusicGenerationException("Rhythm " + r.getName() + " is not able to generate music");
         }
     }
@@ -656,7 +656,7 @@ public class SongSequenceBuilder
      * Check that there is a starting chord symbol for each section used in the specified context.
      *
      * @param context
-     * @throws UserErrorException
+     * @throws org.jjazz.rhythm.api.UserErrorGenerationException
      */
     private void checkStartChordPresence(SongContext context) throws UserErrorGenerationException
     {
@@ -767,10 +767,11 @@ public class SongSequenceBuilder
      *
      * @param context
      * @param rvPhrases Keys can include RhythmVoiceDelegates
+     * @throws org.jjazz.rhythm.api.UserErrorGenerationException
      */
-    private void processNoChords(SongContext context, Map<RhythmVoice, Phrase> rvPhrases)
+    private void processNoChords(SongContext context, Map<RhythmVoice, Phrase> rvPhrases) throws UserErrorGenerationException
     {
-        var songChordSequence = new SongChordSequence(context.getSong(), context.getBarRange());
+        var songChordSequence = new SongChordSequence(context.getSong(), context.getBarRange());        // throws UserErrorGenerationException
         SongStructure ss = context.getSong().getSongStructure();
 
         for (int i = 0; i < songChordSequence.size(); i++)

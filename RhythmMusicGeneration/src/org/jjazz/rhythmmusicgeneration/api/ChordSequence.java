@@ -53,6 +53,11 @@ public class ChordSequence extends ArrayList<CLI_ChordSymbol> implements Compara
 
     private static final Logger LOGGER = Logger.getLogger(ChordSequence.class.getSimpleName());
 
+    /**
+     * Construct a chord sequence for the specified bar range.
+     *
+     * @param barRange
+     */
     public ChordSequence(IntRange barRange)
     {
         checkNotNull(barRange);
@@ -154,9 +159,9 @@ public class ChordSequence extends ArrayList<CLI_ChordSymbol> implements Compara
      * A new sub-sequence which uses only 1 time signature.
      *
      * @param subRange
-     * @param ts The TimeSignature of the sub-sequence.
+     * @param ts                 The TimeSignature of the sub-sequence.
      * @param addInitChordSymbol If true, try to add an init chordsymbol if the resulting subsequence does not have one: reuse the
-     * last chord symbol before subRange.from if any
+     *                           last chord symbol before subRange.from if any
      * @return
      * @throws IllegalArgumentException If one chord symbol position is not compatible with the time signature ts
      */
@@ -201,9 +206,9 @@ public class ChordSequence extends ArrayList<CLI_ChordSymbol> implements Compara
     /**
      * A new sub-sequence from this sequence.
      *
-     * @param subRange The range of the sub-sequence.
+     * @param subRange           The range of the sub-sequence.
      * @param addInitChordSymbol If true, try to add an init chordsymbol if the resulting subsequence does not have one: reuse the
-     * last chord symbol before subRange.from if any
+     *                           last chord symbol before subRange.from if any
      * @return
      */
     public ChordSequence subSequence(IntRange subRange, boolean addInitChordSymbol)

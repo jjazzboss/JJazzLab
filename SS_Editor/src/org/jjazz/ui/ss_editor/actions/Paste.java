@@ -133,7 +133,7 @@ public class Paste extends AbstractAction implements ContextAwareAction, SS_Cont
         SS_EditorTopComponent tc = SS_EditorTopComponent.getActive();
         if (tc != null)
         {
-            SS_SelectionUtilities selection = new SS_SelectionUtilities(tc.getSS_Editor().getLookup());
+            SS_SelectionUtilities selection = new SS_SelectionUtilities(tc.getEditor().getLookup());
             selectionChange(selection);
         }
     }

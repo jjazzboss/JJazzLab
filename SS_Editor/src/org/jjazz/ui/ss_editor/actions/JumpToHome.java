@@ -37,7 +37,7 @@ public class JumpToHome extends AbstractAction
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        SS_Editor editor = SS_EditorTopComponent.getActive().getSS_Editor();
+        SS_Editor editor = SS_EditorTopComponent.getActive().getEditor();
         SS_SelectionUtilities selection = new SS_SelectionUtilities(editor.getLookup());
         SongPart spt = editor.getModel().getSongParts().get(0);
         if (selection.isSongPartSelected() || selection.isEmpty())

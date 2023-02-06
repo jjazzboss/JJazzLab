@@ -89,7 +89,7 @@ public class ChangeQuantization extends AbstractAction implements ContextAwareAc
     {
         CL_SelectionUtilities selection = cap.getSelection();
         ChordLeadSheet cls = selection.getChordLeadSheet();
-        CL_Editor editor = CL_EditorTopComponent.getActive().getCL_Editor();
+        CL_Editor editor = CL_EditorTopComponent.getActive().getEditor();
 
         // Selection must contain bars belonging to one section
         CLI_Section section = cls.getSection(selection.getMinBarIndexWithinCls());

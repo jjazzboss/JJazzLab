@@ -119,7 +119,7 @@ public final class SectionAtNewLine extends AbstractAction implements ContextAwa
             CL_EditorTopComponent tc = CL_EditorTopComponent.get(selection.getChordLeadSheet());
             if (tc != null)
             {
-                editor = tc.getCL_Editor();
+                editor = tc.getEditor();
                 s = editor.isSectionStartOnNewLine(cliSection);
             }
         }

@@ -67,7 +67,7 @@ public class SelectAllChordSymbols implements ActionListener
     public void actionPerformed(ActionEvent e)
     {
         assert cls != null;   //NOI18N
-        CL_Editor editor = CL_EditorTopComponent.get(cls).getCL_Editor();
+        CL_Editor editor = CL_EditorTopComponent.get(cls).getEditor();
         CL_SelectionUtilities selection = new CL_SelectionUtilities(editor.getLookup());
         var items = cls.getItems(CLI_ChordSymbol.class);
         if (items.isEmpty())

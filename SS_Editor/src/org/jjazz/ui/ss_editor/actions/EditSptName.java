@@ -127,7 +127,7 @@ public class EditSptName extends AbstractAction implements ContextAwareAction, S
 
     private void adjustDialogPosition(JDialog dialog, SongPart spt)
     {
-        SS_Editor editor = SS_EditorTopComponent.getActive().getSS_Editor();
+        SS_Editor editor = SS_EditorTopComponent.getActive().getEditor();
         Rectangle r = editor.getSptViewerRectangle(spt);
         Point p = r.getLocation();
         //int x = p.x - ((dialog.getWidth() - r.width) / 2);

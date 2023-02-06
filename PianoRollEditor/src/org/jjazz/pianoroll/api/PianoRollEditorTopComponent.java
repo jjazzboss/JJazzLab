@@ -65,7 +65,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
 {
 
     // public static final String MODE = "midieditor";  // WindowManager mode
-    public static final String MODE = "editor";  // WindowManager mode
+    public static final String MODE = "explorer";  // WindowManager mode
 
 
     private final PianoRollEditor editor;

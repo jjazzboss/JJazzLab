@@ -346,8 +346,8 @@ public class ShowPlaybackPoint extends BooleanStateAction implements PropertyCha
         if (currentCL_Editor == null)
         {
             MusicController mc = MusicController.getInstance();
-            currentCL_Editor = SongEditorManager.getInstance().getEditors(currentSong).getTcCle().getCL_Editor();
-            currentRL_Editor = SongEditorManager.getInstance().getEditors(currentSong).getTcRle().getSS_Editor();
+            currentCL_Editor = SongEditorManager.getInstance().getEditors(currentSong).getTcCle().getEditor();
+            currentRL_Editor = SongEditorManager.getInstance().getEditors(currentSong).getTcRle().getEditor();
             newSgsPos.set(mc.getCurrentBeatPosition());
             Position newClsPos = convertToClsPosition(newSgsPos);
             if (newClsPos != null)

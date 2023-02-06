@@ -41,7 +41,7 @@ public class MoveSelectionDown extends AbstractAction
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        SS_Editor editor = SS_EditorTopComponent.getActive().getSS_Editor();
+        SS_Editor editor = SS_EditorTopComponent.getActive().getEditor();
         Component c = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
         if (c instanceof RpViewer)
         {

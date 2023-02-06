@@ -72,7 +72,7 @@ public class CompactRpViewSettings extends AbstractAction
             return;
         }
         
-        var editor = ssTc.getSS_Editor();
+        var editor = ssTc.getEditor();
         var song = editor.getSongModel();
         if (song.getSongStructure().getSongParts().isEmpty())
         {           

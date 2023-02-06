@@ -86,7 +86,7 @@ public class InsertSection extends AbstractAction implements ContextAwareAction,
     {
         CL_SelectionUtilities selection = cap.getSelection();
         ChordLeadSheet cls = selection.getChordLeadSheet();
-        CL_Editor editor = CL_EditorTopComponent.getActive().getCL_Editor();
+        CL_Editor editor = CL_EditorTopComponent.getActive().getEditor();
         int barIndex = selection.getMinBarIndexWithinCls();
         Preset preset = new Preset(Type.SectionNameEdit, null, (char) 0);
         Edit.editBarWithDialog(editor, barIndex, preset, cls, undoText);

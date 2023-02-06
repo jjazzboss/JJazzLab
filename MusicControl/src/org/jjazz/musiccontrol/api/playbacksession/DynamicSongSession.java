@@ -89,6 +89,7 @@ import org.openide.util.*;
  * On-the-fly updates are provided for :<br>
  * - chord symbol changes (add/remove/change/move)<br>
  * - rhythm parameter value changes<br>
+ * - existing user phrase content changes (but not for add/remove user phrase events)<br>
  * - PlaybackSettings playback transposition changes<br>
  * - MidiMix instrument transposition/velocity changes, plus drum keymap and drum rerouting changes<br>
  * <p>
@@ -222,9 +223,14 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
     {
         super.generate(silent);
 
-        getSongContext().getSong().addVetoableChangeListener(this);
-        getSongContext().getSong().getChordLeadSheet().addClsChangeListener(this);
-        getSongContext().getSong().getSongStructure().addSgsChangeListener(this);
+        var song = getSongContext().getSong();
+        song.addVetoableChangeListener(this);       // user phrase add/remove/replaced
+        song.getChordLeadSheet().addClsChangeListener(this);
+        song.getSongStructure().addSgsChangeListener(this);
+        for (var name : song.getUserPhraseNames())
+        {
+            song.getUserPhrase(name).addPropertyChangeListener(this);       // user phrase content
+        }
     }
 
     @Override
@@ -232,9 +238,14 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
     {
         super.close();
 
-        getSongContext().getSong().removeVetoableChangeListener(this);
-        getSongContext().getSong().getChordLeadSheet().removeClsChangeListener(this);
-        getSongContext().getSong().getSongStructure().removeSgsChangeListener(this);
+        var song = getSongContext().getSong();
+        song.removeVetoableChangeListener(this);
+        song.getChordLeadSheet().removeClsChangeListener(this);
+        song.getSongStructure().removeSgsChangeListener(this);
+        for (var name : song.getUserPhraseNames())
+        {
+            song.getUserPhrase(name).removePropertyChangeListener(this);
+        }
         sessions.remove(this);
     }
 
@@ -323,7 +334,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
         {
             return;
         }
-        // If here state=GENERATED
+        // If here it means that state==GENERATED
 
 
         // LOGGER.fine("propertyChange() e=" + e);
@@ -336,72 +347,85 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
         {
             switch (e.getPropertyName())
             {
-                case MidiMix.PROP_CHANNEL_INSTRUMENT_MIX:
+                case MidiMix.PROP_CHANNEL_INSTRUMENT_MIX ->
                     // An instrument mix was added or removed (it can be the user channel)
                     // If it's the user channel there is no impact, and if it's an added/removed rhythm we'll get the change directly via our SgsChangeListener.
                     // But if it's user who directly changed track channels, we should disable updates by security.
                     doDisableUpdates = true;
-                    break;
 
-                case MidiMix.PROP_CHANNEL_DRUMS_REROUTED:
-                case MidiMix.PROP_DRUMS_INSTRUMENT_KEYMAP:
-                case MidiMix.PROP_INSTRUMENT_TRANSPOSITION:
-                case MidiMix.PROP_INSTRUMENT_VELOCITY_SHIFT:
+                case MidiMix.PROP_CHANNEL_DRUMS_REROUTED, MidiMix.PROP_DRUMS_INSTRUMENT_KEYMAP, MidiMix.PROP_INSTRUMENT_TRANSPOSITION, MidiMix.PROP_INSTRUMENT_VELOCITY_SHIFT ->
                     doUpdate = true;
-                    break;
-
-                default:    // e.g.  case MidiMix.PROP_INSTRUMENT_MUTE:
+                default ->
+                {
+                    // e.g. MidiMix.PROP_INSTRUMENT_MUTE:                    
                     // Nothing
-                    break;
+                }
             }
 
         } else if (e.getSource() == PlaybackSettings.getInstance())
         {
             switch (e.getPropertyName())
             {
-                case PlaybackSettings.PROP_PLAYBACK_KEY_TRANSPOSITION:
+                case PlaybackSettings.PROP_PLAYBACK_KEY_TRANSPOSITION ->
                     doUpdate = true;
-                    break;
 
-                case PlaybackSettings.PROP_CLICK_PITCH_HIGH:
-                case PlaybackSettings.PROP_CLICK_PITCH_LOW:
-                case PlaybackSettings.PROP_CLICK_PREFERRED_CHANNEL:
-                case PlaybackSettings.PROP_CLICK_VELOCITY_HIGH:
-                case PlaybackSettings.PROP_CLICK_VELOCITY_LOW:
-                case PlaybackSettings.PROP_CLICK_PRECOUNT_MODE:
-                case PlaybackSettings.PROP_CLICK_PRECOUNT_ENABLED:
+                case PlaybackSettings.PROP_CLICK_PITCH_HIGH, PlaybackSettings.PROP_CLICK_PITCH_LOW, PlaybackSettings.PROP_CLICK_PREFERRED_CHANNEL, PlaybackSettings.PROP_CLICK_VELOCITY_HIGH, PlaybackSettings.PROP_CLICK_VELOCITY_LOW, PlaybackSettings.PROP_CLICK_PRECOUNT_MODE, PlaybackSettings.PROP_CLICK_PRECOUNT_ENABLED ->
                     dirty = true;
-                    break;
 
-                case PlaybackSettings.PROP_AUTO_UPDATE_ENABLED:
+                case PlaybackSettings.PROP_AUTO_UPDATE_ENABLED ->
+                {
                     if (PlaybackSettings.getInstance().isAutoUpdateEnabled())
                     {
                         // Auto-Update switched to ON: try to update to be up-to-date again
                         doUpdate = true;
                     }
-                    break;
-                    
-                default:   // PROP_VETO_PRE_PLAYBACK, PROP_LOOPCOUNT, PROP_PLAYBACK_CLICK_ENABLED
-                    // Do nothing
-                    break;
+                }
+                default ->
+                {
+                }
             }
+
         } else if (e.getSource() == getSongContext().getSong())
         {
             switch (e.getPropertyName())
             {
-                case Song.PROP_VETOABLE_USER_PHRASE:
+                case Song.PROP_VETOABLE_USER_PHRASE ->
+                {
                     // A user phrase was added or removed, can't handle it
                     doDisableUpdates = true;
-                    break;
-
-                case Song.PROP_VETOABLE_USER_PHRASE_CONTENT:
+                    if (e.getNewValue() instanceof Phrase p)
+                    {
+                        // It's a removed phrase, unlisten
+                        p.removePropertyChangeListener(this);
+                    }
+                }
+                case Song.PROP_VETOABLE_USER_PHRASE_CONTENT ->
+                {
                     // It's an update, we can handle it
                     doUpdate = true;
-                    break;
+
+                    Phrase oldPhrase = (Phrase) e.getOldValue();
+                    Phrase newPhrase = getSongContext().getSong().getUserPhrase((String) e.getNewValue());
+                    assert newPhrase != null : "e=" + e;
+                    oldPhrase.removePropertyChangeListener(this);
+                    newPhrase.addPropertyChangeListener(this);
+                }
+                default ->
+                {
+                    // PROP_VETOABLE_PHRASE_NAME
+                    // Nothing
+                }
             }
+        } else if (e.getSource() instanceof Phrase && !Phrase.isAdjustingEvent(e.getPropertyName()))
+        {
+            // User phrase is modified 
+            doUpdate = true;
         }
 
-        LOGGER.log(Level.FINE, "propertyChange() output: dirty=" + dirty + " doUpdate=" + doUpdate + " doDisableUpdates=" + doDisableUpdates);
+        LOGGER.log(Level.FINE, "propertyChange() output: dirty={0} doUpdate={1} doDisableUpdates={2}", new Object[]
+        {
+            dirty, doUpdate, doDisableUpdates
+        });
 
 
         if (doDisableUpdates)

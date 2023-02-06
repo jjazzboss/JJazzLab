@@ -22,6 +22,7 @@
  */
 package org.jjazz.leadsheet.chordleadsheet;
 
+import com.google.common.base.Preconditions;
 import org.jjazz.undomanager.api.SimpleEdit;
 import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
@@ -210,6 +211,29 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     }
 
     @Override
+    public <T> ChordLeadSheetItem<T> getLastItem(Position pos, Class<T> aClass)
+    {
+        Preconditions.checkNotNull(pos);
+        Preconditions.checkArgument(pos.getBar() < getSizeInBars());
+
+        ChordLeadSheetItem<T> res = null;
+        for (int i = items.size() - 1; i >= 0; i--)
+        {
+            var item = items.get(i);
+            var itemPos = item.getPosition();
+
+            if (itemPos.compareTo(pos) > 0 || (aClass != null && !aClass.isAssignableFrom(item.getClass())))
+            {
+                continue;
+            }
+            res =  (ChordLeadSheetItem<T>)item;
+            break;
+        }
+
+        return res;
+    }
+
+    @Override
     public <T> T getLastItem(int barFrom, int barTo, Class<T> aClass)
     {
         if (barFrom < 0 || barTo < barFrom || barTo >= getSizeInBars())
@@ -306,6 +330,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
         return res;
     }
+
 
     @Override
     @SuppressWarnings("unchecked")
@@ -668,7 +693,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
     /**
      *
-     * @param doFire If false do nothing.
+     * @param doFire   If false do nothing.
      * @param actionId
      * @param complete
      */
@@ -1377,7 +1402,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
      * Shift the position of a list of items of nbBars.
      *
      * @param shiftedItems
-     * @param nbBars Shift
+     * @param nbBars       Shift
      */
     private void shiftItemsPosition(final List<ChordLeadSheetItem<?>> shiftedItems, final int nbBars)
     {

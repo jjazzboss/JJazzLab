@@ -164,7 +164,7 @@ public final class SetTimeSignature extends AbstractAction implements Presenter.
 
             mi.addActionListener((ActionEvent e) ->
             {
-                CL_Editor editor = CL_EditorTopComponent.getActive().getCL_Editor();
+                CL_Editor editor = CL_EditorTopComponent.getActive().getEditor();
                 CL_SelectionUtilities selection = new CL_SelectionUtilities(editor.getLookup());
                 ChordLeadSheet cls = editor.getModel();
 

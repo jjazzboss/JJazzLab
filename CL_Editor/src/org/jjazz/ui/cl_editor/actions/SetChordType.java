@@ -108,7 +108,7 @@ public final class SetChordType extends AbstractAction implements Presenter.Menu
                 @Override
                 public void actionPerformed(ActionEvent e)
                 {
-                    CL_Editor editor = CL_EditorTopComponent.getActive().getCL_Editor();
+                    CL_Editor editor = CL_EditorTopComponent.getActive().getEditor();
                     ChordLeadSheet cls = editor.getModel();
                     JJazzUndoManagerFinder.getDefault().get(cls).startCEdit(undoText);
                     changeChordType(editor, ct);

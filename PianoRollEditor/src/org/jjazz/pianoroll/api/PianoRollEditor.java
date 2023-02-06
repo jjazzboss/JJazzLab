@@ -795,7 +795,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     public float getPositionFromPoint(Point editorPoint)
     {
         return notesPanel.getXMapper().getPositionInBeats(editorPoint.x);
-    }   
+    }
 
     /**
      * Return the X editor position that corresponds to a beat position of the Phrase model.
@@ -817,6 +817,17 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     public float toPositionInBeats(Position pos)
     {
         return notesPanel.getXMapper().toPositionInBeats(pos);
+    }
+
+    /**
+     * Convert a position in beats into a Position.
+     *
+     * @param posInBeats Must be in the beat range.
+     * @return
+     */
+    public Position toPosition(float posInBeats)
+    {
+        return notesPanel.getXMapper().toPosition(posInBeats);
     }
 
     /**
