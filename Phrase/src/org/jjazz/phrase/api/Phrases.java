@@ -23,6 +23,8 @@
 package org.jjazz.phrase.api;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -31,17 +33,25 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableMap;
 import java.util.Set;
-import java.util.TreeSet;
+import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiEvent;
+import javax.sound.midi.MidiSystem;
+import javax.sound.midi.Sequence;
 import javax.sound.midi.ShortMessage;
 import javax.sound.midi.Track;
 import org.jjazz.harmony.api.Chord;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.util.api.FloatRange;
+import org.jjazz.util.api.LongRange;
+import org.jjazz.util.api.ResUtil;
+import org.openide.DialogDisplayer;
+import org.openide.NotifyDescriptor;
 
 /**
  * Helper methods using Phrases.
@@ -236,8 +246,8 @@ public class Phrases
 
 
     /**
-     * Get a new phrase with cloned NoteEvents but keeping only the notes in the specified beat range, taking into account possible
-     * live-played/non-quantized notes via the beatWindow parameter.
+     * Get a new phrase with cloned NoteEvents but keeping only the notes in the specified beat range, taking into account
+     * possible live-played/non-quantized notes via the beatWindow parameter.
      * <p>
      * First, if beatWindow &gt; 0 then notes starting in the range [range.from-beatWindow; range.from[ are changed in the
      * returned phrase so they start at range.from, and notes starting in the range [range.to-beatWindow; range.to[ are removed.
@@ -265,12 +275,12 @@ public class Phrases
         checkArgument(cutRight >= 0 && cutRight <= 2, "cutRight=%s", cutRight);
         checkArgument(beatWindow >= 0);
 
-        
+
         Phrase res = new Phrase(p.getChannel(), p.isDrums());
 
 
         // Preprocess to accomodate for live playing / non-quantized notes
-        Set<NoteEvent> beatWindowProcessedNotes = new HashSet<>();        
+        Set<NoteEvent> beatWindowProcessedNotes = new HashSet<>();
         if (beatWindow > 0)
         {
             FloatRange frLeft = range.from - beatWindow > 0 ? new FloatRange(range.from - beatWindow, range.from) : null;
@@ -637,6 +647,73 @@ public class Phrases
 
     }
 
+    /**
+     * Parse a Midi file to extract one phrase from the specified Midi channel notes (notes can be on any track).
+     * <p>
+     * As a special case, if midiFile contains notes from only 1 channel and this channel is different from the channel parameter,
+     * then the method will still accept these notes to build the returned phrase, unless strictChannel is true.
+     *
+     * @param midiFile
+     * @param channel
+     * @param isDrums           The drums settings of the returned phrase
+     *
+     * @param strictChannel
+     * @param notifyUserIfEmpty If true notify user if resulting phrase is empty
+     * @return Can be empty
+     */
+    public static Phrase importPhrase(File midiFile, int channel, boolean isDrums, boolean strictChannel, boolean notifyUserIfEmpty)
+    {
+        // Load file into a sequence
+        Sequence sequence;
+        try
+        {
+            sequence = MidiSystem.getSequence(midiFile);
+            if (sequence.getDivisionType() != Sequence.PPQ)
+            {
+                throw new InvalidMidiDataException("Midi file does not use PPQ division: midifile=" + midiFile.getAbsolutePath());
+            }
+        } catch (IOException | InvalidMidiDataException ex)
+        {
+            NotifyDescriptor d = new NotifyDescriptor.Message(ex.getMessage(), NotifyDescriptor.ERROR_MESSAGE);
+            DialogDisplayer.getDefault().notify(d);
+            return new Phrase(channel, isDrums);
+        }
+
+        // LOGGER.severe("importPhrase() sequence=" + MidiUtilities.toString(sequence));
+
+        // Get one phrase per channel
+        var phrases = getPhrases(sequence.getResolution(), sequence.getTracks());
+
+        Phrase res = new Phrase(channel, isDrums);
+        if (phrases.size() == 1)
+        {
+            var p0 = phrases.get(0);
+            if (p0.getChannel() == channel || !strictChannel)
+            {
+                res.add(p0);
+            }
+        } else
+        {
+            var p = phrases.stream()
+                    .filter(ph -> ph.getChannel() == channel)
+                    .findAny()
+                    .orElse(null);
+            if (p != null)
+            {
+                res.add(p);
+            }
+        }
+
+        if (res.isEmpty() && notifyUserIfEmpty)
+        {
+            String msg = ResUtil.getString(Phrases.class, "NoChannelNotesInMidiFile", channel + 1, midiFile.getAbsolutePath());
+            NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.WARNING_MESSAGE);
+            DialogDisplayer.getDefault().notify(d);
+        }
+
+        return res;
+    }
+
 
     /**
      * Parse all tracks to build one phrase per used channel.
@@ -646,11 +723,11 @@ public class Phrases
      * @param tracksPPQ The Midi PPQ resolution (pulses per quarter) used in the tracks.
      * @param tracks
      * @param channels  Get phrases only for the specified channels. If empty, get phrases for all channels.
-     * @return
+     * @return A list of phrases ordered by channel in ascending order
      */
     public static List<Phrase> getPhrases(int tracksPPQ, Track[] tracks, Integer... channels)
     {
-        Map<Integer, Phrase> mapRes = new HashMap<>();
+        Map<Integer, Phrase> mapChannelPhrase = new HashMap<>();
         List<Integer> selectedChannels = channels.length > 0 ? Arrays.asList(channels) : Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15);
         for (Track track : tracks)
         {
@@ -661,16 +738,27 @@ public class Phrases
             {
                 if (selectedChannels.contains(channel))
                 {
-                    Phrase p = mapRes.get(channel);
+                    Phrase p = mapChannelPhrase.get(channel);
                     if (p == null)
                     {
-                        p = new Phrase(channel, channel == 9);
-                        mapRes.put(channel, p);
+                        p = new Phrase(channel, channel == MidiConst.CHANNEL_DRUMS);
+                        mapChannelPhrase.put(channel, p);
                     }
                     Phrases.addMidiEvents(p, trackEvents, 0, false);
                 }
             }
         }
-        return new ArrayList<>(mapRes.values());
+
+        // Some phrases might be empty
+        List<Phrase> res = new ArrayList<>();
+        for (int i = 0; i < 16; i++)
+        {
+            Phrase p = mapChannelPhrase.get(i);
+            if (p != null && !p.isEmpty())
+            {
+                res.add(p);
+            }
+        }
+        return res;
     }
 }

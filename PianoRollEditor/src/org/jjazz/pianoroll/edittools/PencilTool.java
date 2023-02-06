@@ -146,7 +146,7 @@ public class PencilTool implements EditTool
             editor.unselectAll();
             editor.getNoteView(dragNote).setSelected(true);
 
-        } else if (!editor.isDrumEdit())
+        } else if (!editor.isDrums())
         {
             // Continue dragging
             float dur = pos - dragStartPos;
@@ -199,7 +199,7 @@ public class PencilTool implements EditTool
         MouseEvent editorEvent = SwingUtilities.convertMouseEvent(nv, e, nv.getParent());
 
 
-        if (!editor.isDrumEdit())
+        if (!editor.isDrums())
         {
             // Replace note in melodic mode
             editor.getModel().remove(nv.getModel());
@@ -236,7 +236,7 @@ public class PencilTool implements EditTool
         pos = Math.min(beatRange.to - 0.1f, pos);
 
 
-        if (editor.isDrumEdit())
+        if (editor.isDrums())
         {
             // Special mode: just add the note then ignore the rest of the dragging
             if (dragNote == null)
@@ -274,7 +274,7 @@ public class PencilTool implements EditTool
     @Override
     public void noteReleased(MouseEvent e, NoteView nv)
     {
-        if (dragNote == null || editor.isDrumEdit())
+        if (dragNote == null || editor.isDrums())
         {
             dragNote = null;
             return;
@@ -346,7 +346,7 @@ public class PencilTool implements EditTool
             pos = Quantizer.getQuantizedPrevious(q, pos);
         }
         pos = Math.min(pos, beatRange.to - 0.1f);
-        float dur = editor.isDrumEdit() ? NoteViewDrum.DURATION : q.getSymbolicDuration().getDuration();
+        float dur = editor.isDrums() ? NoteViewDrum.DURATION : q.getSymbolicDuration().getDuration();
         if (!beatRange.contains(pos + dur, false))
         {
             dur = beatRange.to - pos;

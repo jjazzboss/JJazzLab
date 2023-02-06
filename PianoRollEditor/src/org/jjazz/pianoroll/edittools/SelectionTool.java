@@ -467,10 +467,10 @@ public class SelectionTool implements EditTool
 
         State newState;
 
-        if (!editor.isDrumEdit() && isNearLeftSide(e, nv))
+        if (!editor.isDrums() && isNearLeftSide(e, nv))
         {
             newState = State.RESIZE_WEST;
-        } else if (!editor.isDrumEdit() && isNearRightSide(e, nv))
+        } else if (!editor.isDrums() && isNearRightSide(e, nv))
         {
             newState = State.RESIZE_EAST;
         } else

@@ -36,6 +36,7 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.File;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -60,6 +61,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
+import org.jjazz.phrase.api.Phrases;
 import org.jjazz.pianoroll.EditToolBar;
 import org.jjazz.pianoroll.MouseDragLayerUI;
 import org.jjazz.pianoroll.NotesPanel;
@@ -81,10 +83,12 @@ import org.jjazz.savablesong.api.SaveAsCapableSong;
 import org.jjazz.song.api.Song;
 import org.jjazz.ui.keyboardcomponent.api.KeyboardComponent;
 import org.jjazz.ui.keyboardcomponent.api.KeyboardRange;
+import org.jjazz.ui.utilities.api.MidiFileDragInTransferHandler;
 import org.jjazz.ui.utilities.api.Zoomable;
 import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.util.api.FloatRange;
 import org.jjazz.util.api.IntRange;
+import org.jjazz.util.api.ResUtil;
 import org.openide.util.Lookup;
 import org.openide.util.lookup.AbstractLookup;
 import org.openide.util.lookup.InstanceContent;
@@ -230,6 +234,10 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         notesPanel.addMouseListener(editToolProxyMouseListener);
         notesPanel.addMouseMotionListener(editToolProxyMouseListener);
         notesPanel.addMouseWheelListener(editToolProxyMouseListener);
+
+
+        // By default enable the drag in transfer handler
+        notesPanel.setTransferHandler(new MidiFileDragInTransferHandlerImpl());
 
 
         setKeyboardActions();
@@ -481,7 +489,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
      *
      * @return
      */
-    public boolean isDrumEdit()
+    public boolean isDrums()
     {
         return getDrumKeyMap() != null;
     }
@@ -1639,5 +1647,49 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
             }
         }
 
+    }
+
+
+    /**
+     * Handle a Midi file dragged into the notesPanel
+     */
+    private class MidiFileDragInTransferHandlerImpl extends MidiFileDragInTransferHandler
+    {
+
+        @Override
+        protected boolean isImportEnabled()
+        {
+            return isEnabled();
+        }
+
+        @Override
+        protected boolean importMidiFile(File midiFile)
+        {
+            Phrase p = Phrases.importPhrase(midiFile, model.getChannel(), isDrums(), false, true);
+            if (!p.isEmpty())
+            {
+                String undoText = ResUtil.getString(getClass(), "importMidiFile");
+                getUndoManager().startCEdit(undoText);
+
+                unselectAll();
+                NoteView nv0 = null;
+                for (var ne : p)
+                {
+                    model.add(ne);
+                    var nv = getNoteView(ne);
+                    nv.setSelected(true);
+                    if (nv0 == null)
+                    {
+                        nv0 = nv;
+                    }
+                }
+
+                getUndoManager().endCEdit(undoText);
+                
+                notesPanel.scrollRectToVisible(nv0.getBounds());
+            }
+
+            return true;
+        }
     }
 }

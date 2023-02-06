@@ -45,7 +45,6 @@ import org.jjazz.musiccontrol.api.PlaybackListener;
 import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.musiccontrol.api.playbacksession.StaticSongSession;
 import org.jjazz.phrase.api.Phrase;
-import org.jjazz.phrase.api.PhraseSamples;
 import org.jjazz.phrase.api.Phrases;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.rhythm.api.AdaptedRhythm;

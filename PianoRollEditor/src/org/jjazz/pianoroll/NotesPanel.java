@@ -123,7 +123,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
 
         NoteView nv0 = null;
 
-        if (!editor.isDrumEdit())
+        if (!editor.isDrums())
         {
             for (NoteView nv : mapNoteViews.values())
             {

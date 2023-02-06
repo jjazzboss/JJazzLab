@@ -27,7 +27,6 @@ import java.beans.PropertyChangeListener;
 import java.beans.VetoableChangeListener;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -35,7 +34,6 @@ import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.Sequence;
 import javax.sound.midi.Track;
-import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.midimix.api.UserRhythmVoice;
 import org.jjazz.phrase.api.Phrase;
@@ -47,14 +45,10 @@ import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythmmusicgeneration.api.SongSequenceBuilder;
 import org.jjazz.song.api.Song;
 import org.jjazz.songcontext.api.SongContext;
-import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.mixconsole.actions.AddUserTrack;
-import org.jjazz.ui.ss_editor.api.SS_EditorTopComponent;
-import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
 import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.util.api.ResUtil;
-import org.jjazz.util.api.Utilities;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.awt.StatusDisplayer;
@@ -217,7 +211,7 @@ public class UserExtensionPanelController
         um.endCEdit(undoText);
     }
 
-    protected boolean midiFileDraggedIn(File midiFile)
+    public boolean midiFileDraggedIn(File midiFile)
     {
         return addUserPhrase(midiFile);
     }
