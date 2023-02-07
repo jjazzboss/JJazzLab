@@ -329,7 +329,7 @@ public class HearSelection extends ToggleAction
             // Prepare the phrase
             float pos = 0;
             float durMax = noteEvents.size() == 1 ? 8f : 0.5f;
-            Phrase p = new Phrase(editor.getModel().getChannel());
+            Phrase p = new Phrase(editor.getChannel());
             for (var ne : noteEvents.subList(0, Math.min(noteEvents.size(), maxNbNotesPlayed)))
             {
                 float dur = Math.min(durMax, ne.getDurationInBeats());

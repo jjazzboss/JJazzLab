@@ -39,11 +39,11 @@ import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.util.Arrays;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Objects;
+import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.BorderFactory;
@@ -66,9 +66,12 @@ import org.jjazz.pianoroll.EditToolBar;
 import org.jjazz.pianoroll.MouseDragLayerUI;
 import org.jjazz.pianoroll.NotesPanel;
 import org.jjazz.pianoroll.RulerPanel;
+import org.jjazz.pianoroll.actions.CopyNotes;
+import org.jjazz.pianoroll.actions.CutNotes;
 import org.jjazz.pianoroll.actions.DeleteSelection;
 import org.jjazz.pianoroll.actions.MoveSelectionLeft;
 import org.jjazz.pianoroll.actions.MoveSelectionRight;
+import org.jjazz.pianoroll.actions.PasteNotes;
 import org.jjazz.pianoroll.actions.ResizeSelection;
 import org.jjazz.pianoroll.actions.SelectAllNotes;
 import org.jjazz.pianoroll.actions.TransposeSelectionDown;
@@ -131,8 +134,6 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
      */
     public static final String PROP_PLAYBACK_POINT_POSITION = "PlaybackPointPosition";
     private static final float MAX_WIDTH_FACTOR = 1.5f;
-//    private JSplitPane splitPane;
-//    private VelocityPanel velocityPanel;
     private NotesPanel notesPanel;
     private KeyboardComponent keyboard;
     private RulerPanel rulerPanel;
@@ -161,36 +162,30 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     private final List<EditTool> editTools;
     private Song song;
     private FloatRange beatRange;
+    private int channel = 0;
     private NavigableMap<Float, TimeSignature> mapPosTimeSignature;
 
 
     /**
-     * Create a piano roll editor for the specified Phrase.
+     * Create a piano roll editor for a dummy phrase model.
      *
-     * @param startBarIndex The bar index corresponding to the start of the beat range
-     * @param beatRange     The range of the phrase to be edited
-     * @param p             Can't be null
-     * @param mapPosTs      The position of each time signature. Must have at least 1 entry at beatRange.from position or before.
-     * @param kmap          If not null set the editor in drums mode
-     * @param settings      Can't be null
+     * @param settings Can't be null
      */
-    public PianoRollEditor(int startBarIndex, FloatRange beatRange, Phrase p, NavigableMap<Float, TimeSignature> mapPosTs, DrumKit.KeyMap kmap, PianoRollEditorSettings settings)
+    public PianoRollEditor(PianoRollEditorSettings settings)
     {
-        Preconditions.checkArgument(startBarIndex >= 0);
-        Preconditions.checkNotNull(p);
         Preconditions.checkNotNull(settings);
-        Preconditions.checkNotNull(beatRange);
-        Preconditions.checkNotNull(mapPosTs);
-        Preconditions.checkArgument(!mapPosTs.isEmpty() && mapPosTs.firstKey() <= beatRange.from, "mapPosTs=%s  beatRange=%s", mapPosTs, beatRange);
 
 
-        this.startBarIndex = startBarIndex;
-        this.model = p;
-        this.beatRange = beatRange;
-        this.keyMap = kmap;
         this.settings = settings;
+        this.startBarIndex = 0;
+        this.model = new Phrase(0);
+        this.channel = 0;
+        this.beatRange = new FloatRange(0, 8f);
+        this.keyMap = null;
         this.quantization = Quantization.ONE_QUARTER_BEAT;
-        this.mapPosTimeSignature = mapPosTs;
+        this.mapPosTimeSignature = new TreeMap<>();
+        mapPosTimeSignature.put(0f, TimeSignature.FOUR_FOUR);
+
 
         // Be notified of changes, note added, moved, removed, set
         model.addPropertyChangeListener(this);
@@ -296,6 +291,34 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         return song;
     }
 
+
+    /**
+     * Set the channel of the edited phrase.
+     * <p>
+     *
+     *
+     * @param channel
+     * @see #getChannel()
+     */
+    public void setChannel(int channel)
+    {
+        this.channel = channel;
+    }
+
+    /**
+     * Get the channel of the editor.
+     * <p>
+     * The channel is used e.g. when "hear preview" is activated, or when notes are imported from a dragged Midi file.
+     *
+     * @return
+     * @see #setModel(int, org.jjazz.util.api.FloatRange, org.jjazz.phrase.api.Phrase, int, java.util.NavigableMap,
+     * org.jjazz.midi.api.DrumKit.KeyMap)
+     */
+    public int getChannel()
+    {
+        return channel;
+    }
+
     /**
      * The available EditTools.
      *
@@ -345,23 +368,24 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     /**
      * Update the edited model.
      * <p>
-     * The method also resets the background models. Fire a PROP_MODEL change event if p is different from existing model.
+     * Fire a PROP_MODEL change event if p is different from existing model.
      *
      * @param startBar  The new
      * @param beatRange
      * @param mapPosTs  The position of each time signature. Must have at least 1 entry at beatRange.from position or before.
+     * @param channel   The Midi channel of the edited Phrase (p.getChannel() is ignored).
      * @param p
      * @param kMap
-     * @see #setBackgroundModels(java.util.Map)
      */
-    public void setModel(int startBar, FloatRange beatRange, Phrase p, NavigableMap<Float, TimeSignature> mapPosTs, DrumKit.KeyMap kMap)
+    public void setModel(int startBar, FloatRange beatRange, Phrase p, int channel, NavigableMap<Float, TimeSignature> mapPosTs, DrumKit.KeyMap kMap)
     {
         Preconditions.checkNotNull(p);
         Preconditions.checkArgument(startBar >= 0);
         Preconditions.checkNotNull(beatRange);
         Preconditions.checkArgument(!mapPosTs.isEmpty() && mapPosTs.firstKey() <= beatRange.from, "mapPosTs=%s  beatRange=%s", mapPosTs, beatRange);
 
-        if (p.equals(model) && startBar == startBarIndex && beatRange.equals(this.beatRange) && this.mapPosTimeSignature.equals(mapPosTs) && Objects.equals(kMap, this.keyMap))
+        if (p.equals(model) && this.channel == channel && startBar == startBarIndex && beatRange.equals(this.beatRange)
+                && this.mapPosTimeSignature.equals(mapPosTs) && Objects.equals(kMap, this.keyMap))
         {
             return;
         }
@@ -381,6 +405,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         model = p;
         startBarIndex = startBar;
         keyMap = kMap;
+        this.channel = channel;
         this.beatRange = beatRange;
         this.mapPosTimeSignature = mapPosTs;
         labelNotes(keyboard, keyMap);
@@ -388,10 +413,6 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
 
         model.addPropertyChangeListener(this);
         model.addUndoableEditListener(undoManager);
-
-
-        // Reset background models
-        setBackgroundModels(new HashMap<>());
 
 
         // Update the subcomponents          
@@ -1243,9 +1264,9 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     private void setKeyboardActions()
     {
         // Our delegates for standard Netbeans callback actions
-//        getActionMap().put("cut-to-clipboard", new CutNotes(this));
-//        getActionMap().put("copy-to-clipboard", new CopyNotes(this));
-//        getActionMap().put("paste-from-clipboard", new PasteNotes(this));
+        getActionMap().put("cut-to-clipboard", new CutNotes(this));
+        getActionMap().put("copy-to-clipboard", new CopyNotes(this));
+        // getActionMap().put("paste-from-clipboard", new PasteNotes(this));
 
 
         // Delegates for our callback actions        
@@ -1665,7 +1686,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         @Override
         protected boolean importMidiFile(File midiFile)
         {
-            Phrase p = Phrases.importPhrase(midiFile, model.getChannel(), isDrums(), false, true);
+            Phrase p = Phrases.importPhrase(midiFile, channel, isDrums(), false, true);
             if (!p.isEmpty())
             {
                 String undoText = ResUtil.getString(getClass(), "importMidiFile");
@@ -1685,8 +1706,9 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
                 }
 
                 getUndoManager().endCEdit(undoText);
-                
-                notesPanel.scrollRectToVisible(nv0.getBounds());
+
+                final var nv00 = nv0;
+                SwingUtilities.invokeLater(() -> notesPanel.scrollRectToVisible(nv00.getBounds()));     // invokeLater to make sure task is run after nv0 is layouted
             }
 
             return true;

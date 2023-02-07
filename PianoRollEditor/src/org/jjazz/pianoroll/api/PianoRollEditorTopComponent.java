@@ -37,6 +37,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.pianoroll.ToolbarPanel;
+import org.jjazz.pianoroll.actions.PasteNotes;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
 import org.jjazz.song.api.Song;
 import org.jjazz.songstructure.api.SgsChangeListener;
@@ -70,10 +71,10 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
 
     private final PianoRollEditor editor;
     private final ToolbarPanel toolbarPanel;
-    private static final Logger LOGGER = Logger.getLogger(PianoRollEditorTopComponent.class.getSimpleName());
     private final Song song;
     private SongPart songPart;
     private String titleBase;
+    private static final Logger LOGGER = Logger.getLogger(PianoRollEditorTopComponent.class.getSimpleName());
 
 
     /**
@@ -109,17 +110,13 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
         setDisplayName(getDefaultTabName(song));
 
 
-        var spts = this.song.getSongStructure().getSongParts();
-        this.songPart = spts.get(0);
-        TreeMap<Float, TimeSignature> tMap = new TreeMap<>();
-        tMap.put(song.getSongStructure().getBeatRange(songPart.getBarRange()).from, songPart.getRhythm().getTimeSignature());
-
-
-        editor = new PianoRollEditor(songPart.getStartBarIndex(), getBeatRange(), new Phrase(0), tMap, null, settings);
+        editor = new PianoRollEditor(settings);
         editor.setSong(song);
         editor.setUndoManager(JJazzUndoManagerFinder.getDefault().get(song));
         toolbarPanel = new ToolbarPanel(editor, song.getName());
 
+
+        getActionMap().put("paste-from-clipboard", new PasteNotes(editor));
 
         initComponents();
 
@@ -130,17 +127,21 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
 
         // Update model when song structure changes
         song.getSongStructure().addSgsChangeListener(this);
+
+
+        refreshToolbarTitle();
     }
 
     /**
      * Update the model to edit a phrase on a single SongPart.
      * <p>
      *
-     * @param spt    Must belong to the song
+     * @param spt     Must belong to the song
      * @param p
-     * @param keyMap Can be null
+     * @param channel The Midi channel of the edited Phrase (p.getChannel() is ignored).
+     * @param keyMap  Null for melodic phrase
      */
-    public void setModel(SongPart spt, Phrase p, DrumKit.KeyMap keyMap)
+    public void setModel(SongPart spt, Phrase p, int channel, DrumKit.KeyMap keyMap)
     {
         Preconditions.checkNotNull(p);
         Preconditions.checkNotNull(spt);
@@ -151,7 +152,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
         TreeMap<Float, TimeSignature> mapPosTs = new TreeMap<>();
         mapPosTs.put(0f, songPart.getRhythm().getTimeSignature());
 
-        editor.setModel(songPart.getStartBarIndex(), getBeatRange(), p, mapPosTs, keyMap);
+        editor.setModel(songPart.getStartBarIndex(), getBeatRange(), p, channel, mapPosTs, keyMap);
 
         refreshToolbarTitle();
     }
@@ -161,9 +162,10 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
      * <p>
      *
      * @param p
-     * @param keyMap Can be null
+     * @param channel The Midi channel of the edited Phrase (p.getChannel() is ignored).
+     * @param keyMap  Null for melodic phrase
      */
-    public void setModel(Phrase p, DrumKit.KeyMap keyMap)
+    public void setModel(Phrase p, int channel, DrumKit.KeyMap keyMap)
     {
         Preconditions.checkNotNull(p);
 
@@ -179,7 +181,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
         spts.forEach(spt -> mapPosTs.put(ss.getPositionInNaturalBeats(spt.getStartBarIndex()), spt.getRhythm().getTimeSignature()));
 
 
-        editor.setModel(0, getBeatRange(), p, mapPosTs, keyMap);
+        editor.setModel(0, getBeatRange(), p, channel, mapPosTs, keyMap);
         refreshToolbarTitle();
     }
 
@@ -415,10 +417,10 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
             // Refresh the editor
             if (songPart == null)
             {
-                setModel(editor.getModel(), editor.getDrumKeyMap());
+                setModel(editor.getModel(), editor.getChannel(), editor.getDrumKeyMap());
             } else
             {
-                setModel(songPart, editor.getModel(), editor.getDrumKeyMap());
+                setModel(songPart, editor.getModel(), editor.getChannel(), editor.getDrumKeyMap());
             }
         }
     }
