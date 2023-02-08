@@ -1266,7 +1266,8 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         // Our delegates for standard Netbeans callback actions
         getActionMap().put("cut-to-clipboard", new CutNotes(this));
         getActionMap().put("copy-to-clipboard", new CopyNotes(this));
-        // getActionMap().put("paste-from-clipboard", new PasteNotes(this));
+        // WEIRD: we need also, only for past callback action, the action in PianoRollEditorTopComponent! Otherwise our callback action is never called
+        getActionMap().put("paste-from-clipboard", new PasteNotes(this));
 
 
         // Delegates for our callback actions        

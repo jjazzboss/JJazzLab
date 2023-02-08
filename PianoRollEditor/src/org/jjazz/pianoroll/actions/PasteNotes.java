@@ -26,8 +26,10 @@ import java.awt.event.ActionEvent;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import javax.swing.AbstractAction;
+import javax.swing.SwingUtilities;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.pianoroll.api.CopyNoteBuffer;
+import org.jjazz.pianoroll.api.NotesSelectionListener;
 import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.util.api.ResUtil;
 import org.openide.*;
@@ -39,27 +41,34 @@ import org.openide.util.NbPreferences;
  */
 public class PasteNotes extends AbstractAction
 {
-
+    
     private static final String PREF_NOTIFY_USER = "NotifyUser";
     private final PianoRollEditor editor;
     private static final Preferences prefs = NbPreferences.forModule(PasteNotes.class);
-    private static final Logger LOGGER = Logger.getLogger(PasteNotes.class.getSimpleName());    
-
+    private static final Logger LOGGER = Logger.getLogger(PasteNotes.class.getSimpleName());
+    
     public PasteNotes(PianoRollEditor editor)
     {
         this.editor = editor;
-        // PasteAction pa = new PasteAction();
+        
+        CopyNoteBuffer.getInstance().addPropertyChangeListener(e ->
+        {
+            if (e.getPropertyName().equals(CopyNoteBuffer.PROP_EMPTY))
+            {
+                setEnabled(!CopyNoteBuffer.getInstance().isEmpty());
+            }
+        });
+        setEnabled(!CopyNoteBuffer.getInstance().isEmpty());
     }
-
-
+    
+    
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        LOGGER.severe("actionPerformed() --");
-        
         var cnb = CopyNoteBuffer.getInstance();
         if (cnb.isEmpty())
         {
+            LOGGER.warning("actionPerformed() Should not be here, CopyNoteBuffer is empty.");
             return;
         }
 
@@ -85,18 +94,25 @@ public class PasteNotes extends AbstractAction
         {
             // Rely on the first selected note
             targetStartPos = selectedNotes.get(0).getModel().getPositionInBeats();
+            editor.unselectAll();
         }
-
-
+        
+        
         String undoText = ResUtil.getString(getClass(), "PasteNotes");
         editor.getUndoManager().startCEdit(editor, undoText);
-
-        for (var ne : cnb.getNotesCopy(targetStartPos))
+        
+        var nes = cnb.getNotesCopy(targetStartPos);
+        for (var ne : nes)
         {
             editor.getModel().add(ne);
+            var nv = editor.getNoteView(ne);
+            nv.setSelected(true);
         }
-
+        
         editor.getUndoManager().endCEdit(undoText);
+        
+        
+        SwingUtilities.invokeLater(() -> editor.scrollToCenter(nes.get(0).getPitch()));
     }
 
 

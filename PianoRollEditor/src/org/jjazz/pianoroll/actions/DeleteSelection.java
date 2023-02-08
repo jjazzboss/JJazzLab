@@ -46,6 +46,7 @@ public class DeleteSelection extends AbstractAction
         var nsl = NotesSelectionListener.getInstance(editor);
         nsl.addListener(e -> setEnabled(!nsl.isEmpty()));
 
+        setEnabled(false);
     }
 
     @Override

@@ -27,6 +27,7 @@ import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import org.jjazz.pianoroll.api.CopyNoteBuffer;
 import org.jjazz.pianoroll.api.NoteView;
+import org.jjazz.pianoroll.api.NotesSelectionListener;
 import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.util.api.ResUtil;
 
@@ -35,34 +36,42 @@ import org.jjazz.util.api.ResUtil;
  */
 public class CutNotes extends AbstractAction
 {
-    
+
     private final PianoRollEditor editor;
     private static final Logger LOGGER = Logger.getLogger(CutNotes.class.getSimpleName());
-    
+
     public CutNotes(PianoRollEditor editor)
     {
         this.editor = editor;
+
+        // We need to enable/disable as required because action is a callback from the JJazzLab-level Delete action (key + menu entry)
+        var nsl = NotesSelectionListener.getInstance(editor);
+        nsl.addListener(e -> setEnabled(!nsl.isEmpty()));
+        
+        setEnabled(false);
     }
-    
-    
+
+
     @Override
     public void actionPerformed(ActionEvent e)
     {
+        LOGGER.fine("actionPerformed() --");
+        
         var nvs = editor.getSelectedNoteViews();
         if (nvs.isEmpty())
         {
             return;
         }
         CopyNoteBuffer.getInstance().copy(NoteView.getNotes(nvs));
-        LOGGER.severe("actionPerformed() --");
-        
+
+
         String undoText = ResUtil.getString(getClass(), "CutNotes");
         editor.getUndoManager().startCEdit(editor, undoText);
-        
+
         nvs.forEach(nv -> editor.getModel().remove(nv.getModel()));
-        
+
         editor.getUndoManager().endCEdit(undoText);
-        
+
     }
 
 

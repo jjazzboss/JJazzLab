@@ -25,21 +25,15 @@ package org.jjazz.ui.mixconsole;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.VetoableChangeListener;
-import java.io.File;
-import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.sound.midi.MidiSystem;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.midimix.api.UserRhythmVoice;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.pianoroll.api.PianoRollEditorTopComponent;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
-import org.jjazz.rhythm.api.MusicGenerationException;
-import org.jjazz.rhythmmusicgeneration.api.SongSequenceBuilder;
 import org.jjazz.song.api.Song;
-import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.util.api.ResUtil;
@@ -177,17 +171,6 @@ public class UserExtensionPanelController
 
     }
 
-    /**
-     * Called by panel cleanup().
-     */
-    public void cleanup()
-    {
-        var preTc = PianoRollEditorTopComponent.get(getSong());
-        if (preTc != null)
-        {
-            preTc.close();
-        }
-    }
 
     public void closePanel()
     {

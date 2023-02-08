@@ -27,6 +27,7 @@ import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import org.jjazz.pianoroll.api.CopyNoteBuffer;
 import org.jjazz.pianoroll.api.NoteView;
+import org.jjazz.pianoroll.api.NotesSelectionListener;
 import org.jjazz.pianoroll.api.PianoRollEditor;
 
 /**
@@ -41,6 +42,12 @@ public class CopyNotes extends AbstractAction
     public CopyNotes(PianoRollEditor editor)
     {
         this.editor = editor;
+
+        // We need to enable/disable as required because action is a callback from the JJazzLab-level Delete action (key + menu entry)
+        var nsl = NotesSelectionListener.getInstance(editor);
+        nsl.addListener(e -> setEnabled(!nsl.isEmpty()));
+        
+        setEnabled(false);
     }
 
 

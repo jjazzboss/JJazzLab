@@ -66,7 +66,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
 {
 
     // public static final String MODE = "midieditor";  // WindowManager mode
-    public static final String MODE = "explorer";  // WindowManager mode
+    public static final String MODE = "editor";  // WindowManager mode
 
 
     private final PianoRollEditor editor;
@@ -115,9 +115,11 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
         editor.setUndoManager(JJazzUndoManagerFinder.getDefault().get(song));
         toolbarPanel = new ToolbarPanel(editor, song.getName());
 
-
+        // WEIRD: only for the callback Paste action, we need BOTH the action here and in the lookup (see PianoRollEditor constructor)
+        // to make paste work... 
         getActionMap().put("paste-from-clipboard", new PasteNotes(editor));
 
+        
         initComponents();
 
 

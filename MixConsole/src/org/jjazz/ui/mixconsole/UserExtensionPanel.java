@@ -116,7 +116,6 @@ public class UserExtensionPanel extends javax.swing.JPanel implements VetoableCh
 
     public void cleanup()
     {
-        controller.cleanup();
         midiMix.removePropertyChangeListener(this);
         song.removeVetoableChangeListener(this);
         song.getSongStructure().removeSgsChangeListener(this);

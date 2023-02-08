@@ -23,6 +23,8 @@
 package org.jjazz.pianoroll.api;
 
 import com.google.common.base.Preconditions;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.SortedSet;
@@ -35,9 +37,14 @@ import org.jjazz.phrase.api.NoteEvent;
 public class CopyNoteBuffer
 {
 
+    public static final String PROP_EMPTY = "Empty";
     static private CopyNoteBuffer INSTANCE;
     private SortedSet<NoteEvent> noteBuffer = new TreeSet<>();
-    private boolean isEmpty = true;
+    private boolean empty = true;
+
+
+    private transient final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
+
 
     private CopyNoteBuffer()
     {
@@ -67,14 +74,14 @@ public class CopyNoteBuffer
         {
             return;
         }
-        isEmpty = false;
+        setEmpty(false);
         copyNotes(notes);
     }
 
     public void clear()
     {
         noteBuffer.clear();
-        isEmpty = true;
+        setEmpty(true);
     }
 
     /**
@@ -105,13 +112,14 @@ public class CopyNoteBuffer
 
     public boolean isEmpty()
     {
-        return isEmpty;
+        return empty;
     }
 
     /**
      * Return a copy of the buffer notes adjusted so that the first note is at targetStartPosition.
      * <p>
      *
+     * @param targetStartPosition
      * @return Can be an empty list
      */
     public List<NoteEvent> getNotesCopy(float targetStartPosition)
@@ -129,11 +137,21 @@ public class CopyNoteBuffer
         return notes;
     }
 
+    public void addPropertyChangeListener(PropertyChangeListener listener)
+    {
+        pcs.addPropertyChangeListener(listener);
+    }
+
+    public void removePropertyChangeListener(PropertyChangeListener listener)
+    {
+        pcs.removePropertyChangeListener(listener);
+    }
+
     // ===========================================================================================
     // Private methods
     // ===========================================================================================    
     /**
-     * Store in the buffer a clone copy of each note.
+     * Store in the buffer a clone of each note.
      *
      * @param notes List
      */
@@ -143,5 +161,11 @@ public class CopyNoteBuffer
         notes.forEach(ne -> noteBuffer.add(ne.clone()));
     }
 
+    private void setEmpty(boolean b)
+    {
+        boolean old = this.empty;
+        this.empty = b;
+        pcs.firePropertyChange(PROP_EMPTY, old, b);
+    }
 
 }
