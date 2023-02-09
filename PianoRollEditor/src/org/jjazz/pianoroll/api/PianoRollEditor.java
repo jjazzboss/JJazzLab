@@ -40,9 +40,9 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Objects;
+import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -336,11 +336,9 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
      * The specified phrases are shown faded in the background in order to facilite the editing of the Phrase model. E.g. if the
      * edited phrase is a bass line, you can use this method to make the corresponding drums phrase also visible.
      *
-     * @param mapNamePhrases A name associated to a Phrase. Phrase must have the same beatRange and TimeSignature than the Phrase
-     *                       model.
-     * @see #setModel(org.jjazz.phrase.api.Phrase)
+     * @param mapNamePhrases A name associated to a Phrase.
      */
-    public void setBackgroundModels(Map<String, Phrase> mapNamePhrases)
+    public void setBackgroundModels(SortedMap<String, Phrase> mapNamePhrases)
     {
 
     }
@@ -350,7 +348,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
      *
      * @return Can be empty
      */
-    public List<Phrase> getBackgroundModels()
+    public SortedMap<String, Phrase>  getBackgroundModels()
     {
         return null;
     }
