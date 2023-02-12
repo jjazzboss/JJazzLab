@@ -133,7 +133,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      */
     public static final String PROP_INSTRUMENT_VELOCITY_SHIFT = "InstrumentVelocityShift";   //NOI18N 
     /**
-     * A RhythhmVoice has replaced another one (for example a UserRhythmVoice with adifferent name).
+     * A RhythmVoice has replaced another one (for example a UserRhythmVoice with adifferent name).
      * <p>
      * oldValue=old RhythmVoice, newValue=new RhythmVoice
      */
@@ -143,6 +143,13 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      * This property changes when the MidiMix is modified (false-&gt;true) or saved (true-&gt;false).
      */
     public static final String PROP_MODIFIED_OR_SAVED = "PROP_MIDIMIX_MODIFIED_OR_SAVED";   //NOI18N 
+    /**
+     * Fired each time a MidiMix parameter which impacts music generation is modified (oldValue=false, newValue=true), like
+     * instrument transposition.
+     * <p>
+     * Use PROP_MODIFIED_OR_SAVED to get notified of any MidiMix change, including non-musical ones like track mute change, etc.
+     */
+    public static final String PROP_MUSIC_GENERATION = "MidiMixMusicContent";
     public static final int NB_AVAILABLE_CHANNELS = MidiConst.CHANNEL_MAX - MidiConst.CHANNEL_MIN + 1;
 
     /**
@@ -710,6 +717,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
             insMix.getSettings().setVolumeEnabled(saveMixData.getSettings().isVolumeEnabled());
         }
         pcs.firePropertyChange(PROP_CHANNEL_DRUMS_REROUTED, channel, b);
+        fireIsMusicGenerationModified();
         fireIsModified();
     }
 
@@ -1274,7 +1282,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
             oldSpts.stream()
                     .map(spt -> getSourceRhythm(spt.getRhythm()))
                     .filter(r -> !songRhythms.contains(r))
-                    .forEach(r ->
+                    .forEach(r -> 
                     {
                         // Rhythm is no more present in the song, remove it also from the MidiMix
                         removeRhythm(r);
@@ -1285,7 +1293,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
             newSpts.stream()
                     .map(spt -> getSourceRhythm(spt.getRhythm()))
                     .filter(r -> !mixRhythms.contains(r))
-                    .forEach(r ->
+                    .forEach(r -> 
                     {
                         // New song rhythm is not yet in the midimix, add it
                         try
@@ -1355,7 +1363,8 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
                     UserRhythmVoice oldUrv = getUserRhythmVoice(oldName);
                     assert oldUrv != null : "oldName=" + oldName;
                     var kit = oldUrv.getDrumKit();
-                    UserRhythmVoice newUrv = kit != null ? new UserRhythmVoice(newName, oldUrv.getDrumKit()) : new UserRhythmVoice(newName);
+                    UserRhythmVoice newUrv = kit != null ? new UserRhythmVoice(newName, oldUrv.getDrumKit())
+                            : new UserRhythmVoice(newName);
                     replaceRhythmVoice(oldUrv, newUrv);
 
                 }
@@ -1377,79 +1386,98 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
     @Override
     public void propertyChange(PropertyChangeEvent e)
     {
-        LOGGER.fine("propertyChange() e=" + e);   //NOI18N
-        if (e.getSource() instanceof InstrumentMix)
+        LOGGER.log(Level.FINE, "propertyChange() e={0}", e);   
+        
+        
+        if (e.getSource() instanceof InstrumentMix insMix)
         {
-            InstrumentMix insMix = (InstrumentMix) e.getSource();
             int channel = getChannel(insMix);
-            if (e.getPropertyName().equals(InstrumentMix.PROP_SOLO))
+
+            switch (e.getPropertyName())
             {
-                boolean b = (boolean) e.getNewValue();
-                LOGGER.fine("propertyChange() channel=" + channel + " solo=" + b);   //NOI18N
-                if (b)
+                case InstrumentMix.PROP_SOLO ->
                 {
-                    // Solo switched to ON
-                    if (soloedInsMixes.isEmpty())
+                    boolean b = (boolean) e.getNewValue();
+                    LOGGER.log(Level.FINE, "propertyChange() channel={0} solo={1}", new Object[]
                     {
-                        // Fist solo ! 
-                        soloedInsMixes.add(insMix);
-                        // Save config
-                        saveMuteConfig();
-                        // Switch other channels to ON (ezxcept soloed one)
-                        for (InstrumentMix im : instrumentMixes)
+                        channel, b
+                    });
+
+                    if (b)
+                    {
+                        // Solo switched to ON
+                        if (soloedInsMixes.isEmpty())
                         {
-                            if (im != null && im != insMix)
+                            // Fist solo !
+                            soloedInsMixes.add(insMix);
+                            // Save config
+                            saveMuteConfig();
+                            // Switch other channels to ON (ezxcept soloed one)
+                            for (InstrumentMix im : instrumentMixes)
                             {
-                                im.setMute(true);
+                                if (im != null && im != insMix)
+                                {
+                                    im.setMute(true);
+                                }
                             }
+                        } else
+                        {
+                            // It's another solo
+                            soloedInsMixes.add(insMix);
                         }
-                    } else
+                    } else // Solo switched to OFF
                     {
-                        // It's another solo
-                        soloedInsMixes.add(insMix);
-                    }
-                } else // Solo switched to OFF
-                {
-                    soloedInsMixes.remove(insMix);
-                    if (soloedInsMixes.isEmpty())
-                    {
-                        // This was the last SOLO OFF, need to restore Mute config
-                        restoreMuteConfig();
-                    } else
-                    {
-                        // There are still other Solo ON channels, put it in mute again
-                        insMix.setMute(true);
+                        soloedInsMixes.remove(insMix);
+                        if (soloedInsMixes.isEmpty())
+                        {
+                            // This was the last SOLO OFF, need to restore Mute config
+                            restoreMuteConfig();
+                        } else
+                        {
+                            // There are still other Solo ON channels, put it in mute again
+                            insMix.setMute(true);
+                        }
                     }
                 }
-            } else if (e.getPropertyName().equals(InstrumentMix.PROP_MUTE))
-            {
-                boolean b = (boolean) e.getNewValue();
-                // If in solo mode, pressing unmute of a muted channel turns it in solo mode
-                if (b == false && !soloedInsMixes.isEmpty())
+
+                case InstrumentMix.PROP_MUTE ->
                 {
-                    insMix.setSolo(true);
-                }
-                // Forward the MUTE change event
-                pcs.firePropertyChange(MidiMix.PROP_INSTRUMENT_MUTE, insMix, b);
-            } else if (e.getPropertyName().equals(InstrumentMix.PROP_INSTRUMENT))
-            {
-                // If drums instrument change with different KeyMap
-                Instrument oldIns = (Instrument) e.getOldValue();
-                Instrument newIns = (Instrument) e.getNewValue();
-                RhythmVoice rv = getRhythmVoice(channel);
-                if (rv.isDrums())
-                {
-                    DrumKit oldKit = oldIns.getDrumKit();
-                    DrumKit newKit = newIns.getDrumKit();
-                    if ((oldKit != null && newKit != null && oldKit.getKeyMap() != newKit.getKeyMap())
-                            || (oldKit == null && newKit != null)
-                            || (oldKit != null && newKit == null))
+                    boolean b = (boolean) e.getNewValue();
+                    // If in solo mode, pressing unmute of a muted channel turns it in solo mode
+                    if (b == false && !soloedInsMixes.isEmpty())
                     {
-                        pcs.firePropertyChange(MidiMix.PROP_DRUMS_INSTRUMENT_KEYMAP, channel, oldKit != null ? oldKit.getKeyMap() : null);
+                        insMix.setSolo(true);
+                    }       // Forward the MUTE change event
+                    pcs.firePropertyChange(MidiMix.PROP_INSTRUMENT_MUTE, insMix, b);
+                }
+
+                case InstrumentMix.PROP_INSTRUMENT ->
+                {
+                    // If drums instrument change with different KeyMap
+                    Instrument oldIns = (Instrument) e.getOldValue();
+                    Instrument newIns = (Instrument) e.getNewValue();
+                    RhythmVoice rv = getRhythmVoice(channel);
+                    if (rv.isDrums())
+                    {
+                        DrumKit oldKit = oldIns.getDrumKit();
+                        DrumKit newKit = newIns.getDrumKit();
+                        if ((oldKit != null && newKit != null && oldKit.getKeyMap() != newKit.getKeyMap())
+                                || (oldKit == null && newKit != null)
+                                || (oldKit != null && newKit == null))
+                        {
+                            pcs.firePropertyChange(MidiMix.PROP_DRUMS_INSTRUMENT_KEYMAP, channel, oldKit != null
+                                    ? oldKit.getKeyMap()
+                                    : null);
+                            fireIsMusicGenerationModified();
+                        }
                     }
+                }
+                default ->
+                {
                 }
             }
             fireIsModified();
+
         } else if (e.getSource() instanceof InstrumentSettings)
         {
             // Forward some change events
@@ -1459,10 +1487,12 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
             {
                 int value = (Integer) e.getNewValue();
                 pcs.firePropertyChange(MidiMix.PROP_INSTRUMENT_TRANSPOSITION, insMix, value);
+                fireIsMusicGenerationModified();
             } else if (e.getPropertyName().equals(InstrumentSettings.PROPERTY_VELOCITY_SHIFT))
             {
                 int value = (Integer) e.getNewValue();
                 pcs.firePropertyChange(MidiMix.PROP_INSTRUMENT_VELOCITY_SHIFT, insMix, value);
+                fireIsMusicGenerationModified();                
             }
             fireIsModified();
         }
@@ -1548,6 +1578,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
 
                 pcs.firePropertyChange(PROP_CHANNEL_INSTRUMENT_MIX, insMix, channel);
                 fireIsModified();
+                fireIsMusicGenerationModified();
             }
 
             @Override
@@ -1579,12 +1610,14 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
 
                 pcs.firePropertyChange(PROP_CHANNEL_INSTRUMENT_MIX, oldInsMix, channel);
                 fireIsModified();
+                fireIsMusicGenerationModified();
             }
         };
         fireUndoableEditHappened(edit);
 
         pcs.firePropertyChange(PROP_CHANNEL_INSTRUMENT_MIX, oldInsMix, channel);
         fireIsModified();
+        fireIsMusicGenerationModified();
 
     }
 
@@ -1592,6 +1625,11 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
     {
         needSave = true;
         pcs.firePropertyChange(PROP_MODIFIED_OR_SAVED, false, true);
+    }
+
+    private void fireIsMusicGenerationModified()
+    {
+        pcs.firePropertyChange(PROP_MUSIC_GENERATION, false, true);
     }
 
     private void saveMuteConfig()
@@ -1667,7 +1705,8 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
             {
                 // Special case, use the 2 special variables for Drums or Percussion
                 // Use the saved InstrumentMix if channel is drums rerouted
-                InstrumentMix insMixDrums = getDrumsReroutedChannels().contains(channel) ? drumsReroutedChannels.get(channel) : insMix;
+                InstrumentMix insMixDrums = getDrumsReroutedChannels().contains(channel) ? drumsReroutedChannels.get(channel)
+                        : insMix;
                 if (rv.getType().equals(RhythmVoice.Type.DRUMS))
                 {
                     r0InsMixDrums = insMixDrums;
@@ -1709,7 +1748,8 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
                 default:
                     GM1Instrument mmInsGM1 = mmInsMix.getInstrument().getSubstitute();  // Can be null            
                     Family mmFamily = mmInsGM1 != null ? mmInsGM1.getFamily() : null;
-                    String mapKey = Utilities.truncate(mmRv.getName().toLowerCase(), 3) + "-" + ((mmFamily != null) ? mmFamily.name() : "");
+                    String mapKey = Utilities.truncate(mmRv.getName().toLowerCase(), 3) + "-" + ((mmFamily != null)
+                            ? mmFamily.name() : "");
                     insMix = mapKeyMix.get(mapKey);
                     break;
             }
@@ -1783,7 +1823,8 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      */
     protected void addUserChannel(String userPhraseName) throws MidiUnavailableException
     {
-        int channel = getUsedChannels().contains(UserRhythmVoice.DEFAULT_USER_PHRASE_CHANNEL) ? findFreeChannel(false) : UserRhythmVoice.DEFAULT_USER_PHRASE_CHANNEL;
+        int channel = getUsedChannels().contains(UserRhythmVoice.DEFAULT_USER_PHRASE_CHANNEL) ? findFreeChannel(false)
+                : UserRhythmVoice.DEFAULT_USER_PHRASE_CHANNEL;
         if (channel == -1)
         {
             String msg = ResUtil.getString(getClass(), "ERR_NotEnoughChannels");
@@ -1975,7 +2016,8 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
 
         private Object readResolve() throws ObjectStreamException
         {
-            assert spKeys.length == this.spInsMixes.length : "spKeys=" + Arrays.asList(spKeys) + " spInsMixes=" + Arrays.asList(spInsMixes);   //NOI18N
+            assert spKeys.length == this.spInsMixes.length :
+                    "spKeys=" + Arrays.asList(spKeys) + " spInsMixes=" + Arrays.asList(spInsMixes);   //NOI18N
             MidiMix mm = new MidiMix();
             StringBuilder msg = new StringBuilder();
 

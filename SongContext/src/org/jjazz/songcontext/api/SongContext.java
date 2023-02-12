@@ -22,9 +22,12 @@
  */
 package org.jjazz.songcontext.api;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import javax.swing.event.ChangeListener;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midimix.api.MidiMix;
@@ -35,70 +38,38 @@ import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.util.api.FloatRange;
 import org.jjazz.util.api.IntRange;
 import org.jjazz.util.api.LongRange;
+import org.openide.util.ChangeSupport;
+import org.openide.util.WeakListeners;
 
 
 /**
  * Collect various data about a Song context in order to facilitate music generation.
  * <p>
- * Note that a SongContext instance should be discarded if the Song changes, because some SongContext methods may return data not
- * consistent anymore with the actual Song.
+ * Note that a SongContext instance should be discarded if song is structurally modified, because some SongContext methods may
+ * return data not consistent anymore with the actual Song. A ChangeEvent is fired when the song context is musically modified (ie
+ * in a way which impacts music generation).
  */
-public class SongContext
+public class SongContext implements PropertyChangeListener
 {
 
     private Song song;
-    private MidiMix mix;
+    private MidiMix midiMix;
     private IntRange barRange;
     protected List<SongPart> songParts;
     private FloatRange beatRange;
     private LongRange tickRange;
+    private final ChangeSupport cs = new ChangeSupport(this);
+
 
     /**
      * Create a SongContext object for the whole song.
      *
      * @param s
-     * @param mix
+     * @param mm
      */
-    public SongContext(Song s, MidiMix mix)
+    public SongContext(Song s, MidiMix mm)
     {
-        this(s, mix, null);
-    }
-
-    /**
-     * Create a SongContext object for a whole or a part of the song.
-     *
-     * @param s
-     * @param mix
-     * @param bars If null, the range will represent the whole song from first to last bar.
-     */
-    public SongContext(Song s, MidiMix mix, IntRange bars)
-    {
-        if (s == null || mix == null)
-        {
-            throw new IllegalArgumentException("s=" + s + " mix=" + mix + "barRg=" + bars);   //NOI18N
-        }
-        song = s;
-        this.mix = mix;
-        int sizeInBars = s.getSongStructure().getSizeInBars();
-        if (sizeInBars == 0)
-        {
-            this.barRange = IntRange.EMPTY_RANGE;
-        } else if (bars == null)
-        {
-            this.barRange = new IntRange(0, sizeInBars - 1);
-        } else if (bars.to > sizeInBars - 1)
-        {
-            throw new IllegalArgumentException("s=" + s + " sizeInBars=" + sizeInBars + " mix=" + mix + " bars=" + bars);   //NOI18N
-        } else
-        {
-            this.barRange = bars;
-        }
-        songParts = song.getSongStructure().getSongParts().stream()
-                .filter(spt -> contains(spt))
-                .toList();
-        beatRange = song.getSongStructure().getBeatRange(barRange);
-        tickRange = new LongRange((long) (beatRange.from * MidiConst.PPQ_RESOLUTION), (long) (beatRange.to * MidiConst.PPQ_RESOLUTION));
-
+        this(s, mm, null);
     }
 
     /**
@@ -112,10 +83,64 @@ public class SongContext
         this(sgContext.getSong(), sgContext.getMidiMix(), newRange);
     }
 
+    /**
+     * Create a SongContext object for a whole or a part of the song.
+     *
+     * @param s
+     * @param mm
+     * @param bars If null, the range will represent the whole song from first to last bar.
+     */
+    public SongContext(Song s, MidiMix mm, IntRange bars)
+    {
+        if (s == null || mm == null)
+        {
+            throw new IllegalArgumentException("s=" + s + " mix=" + mm + "barRg=" + bars);   //NOI18N
+        }
+        song = s;
+        this.midiMix = mm;
+        int sizeInBars = s.getSongStructure().getSizeInBars();
+        if (sizeInBars == 0)
+        {
+            this.barRange = IntRange.EMPTY_RANGE;
+        } else if (bars == null)
+        {
+            this.barRange = new IntRange(0, sizeInBars - 1);
+        } else if (bars.to > sizeInBars - 1)
+        {
+            throw new IllegalArgumentException("s=" + s + " sizeInBars=" + sizeInBars + " mix=" + mm + " bars=" + bars);   //NOI18N
+        } else
+        {
+            this.barRange = bars;
+        }
+        songParts = song.getSongStructure().getSongParts().stream()
+                .filter(spt -> contains(spt))
+                .toList();
+        beatRange = song.getSongStructure().getBeatRange(barRange);
+        tickRange = new LongRange((long) (beatRange.from * MidiConst.PPQ_RESOLUTION), (long) (beatRange.to * MidiConst.PPQ_RESOLUTION));
+
+
+        // Listen to music generation changes
+        // Use WeakListeners so no need for SongContext.cleanup() method (simplify usage of SongContext objects)
+        song.addPropertyChangeListener(WeakListeners.propertyChange(this, Song.PROP_MUSIC_GENERATION, song));
+        midiMix.addPropertyChangeListener(WeakListeners.propertyChange(this, MidiMix.PROP_MUSIC_GENERATION, midiMix));
+
+    }
+
+
     @Override
     public SongContext clone()
     {
         return new SongContext(this, getBarRange());
+    }
+
+    public void addChangeListener(ChangeListener listener)
+    {
+        cs.addChangeListener(listener);
+    }
+
+    public void removeChangeListener(ChangeListener listener)
+    {
+        cs.removeChangeListener(listener);
     }
 
     /**
@@ -135,7 +160,7 @@ public class SongContext
      */
     public MidiMix getMidiMix()
     {
-        return mix;
+        return midiMix;
     }
 
     /**
@@ -304,7 +329,7 @@ public class SongContext
         return res;
     }
 
-   
+
     /**
      * Convert a tick position relative to this context into a ChordLeadSheet Position.
      *
@@ -357,7 +382,7 @@ public class SongContext
     {
         int hash = 5;
         hash = 97 * hash + Objects.hashCode(this.song);
-        hash = 97 * hash + Objects.hashCode(this.mix);
+        hash = 97 * hash + Objects.hashCode(this.midiMix);
         hash = 97 * hash + Objects.hashCode(this.barRange);
         return hash;
     }
@@ -382,7 +407,7 @@ public class SongContext
         {
             return false;
         }
-        if (!Objects.equals(this.mix, other.mix))
+        if (!Objects.equals(this.midiMix, other.midiMix))
         {
             return false;
         }
@@ -396,6 +421,20 @@ public class SongContext
     @Override
     public String toString()
     {
-        return "SongContext[song=" + song.getName() + ", midiMix=" + mix + ", range=" + barRange + "]";
+        return "SongContext[song=" + song.getName() + ", midiMix=" + midiMix + ", range=" + barRange + "]";
     }
+
+    // ============================================================================================
+    // PropertyChangeListener interface
+    // ============================================================================================    
+    @Override
+    public void propertyChange(PropertyChangeEvent e)
+    {
+        // We only listen to music content changes
+        cs.fireChange();
+    }
+
+    // ============================================================================================
+    // Private methods
+    // ============================================================================================   
 }

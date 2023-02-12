@@ -39,12 +39,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
+import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.phrase.api.NoteEvent;
+import org.jjazz.phrase.api.Phrase;
 import org.jjazz.pianoroll.api.NoteView;
 import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
@@ -64,6 +66,9 @@ import org.jjazz.util.api.Utilities;
 public class NotesPanel extends javax.swing.JPanel implements PropertyChangeListener
 {
 
+    private static final HSLColor BACKGROUND_NOTE_COLOR_BASE = new HSLColor(2f, 40f, 80f);
+    private static final int BACKGROUND_NOTE_ALPHA = 170;
+    private static final float HUE_STEP = 360f / 8;
     private final KeyboardComponent keyboard;
     private final YMapper yMapper;
     private final XMapper xMapper;
@@ -71,7 +76,9 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
     private float scaleFactorX = 1f;
     private boolean scrollToFirstNoteHack = true;
     private final TreeMap<NoteEvent, NoteView> mapNoteViews = new TreeMap<>();
-
+    private SortedMap<String, Phrase> mapNameBackgroundPhrase;
+    private final Map<String, Color> mapNameBackgroundNoteColor = new HashMap<>();
+    private HSLColor lastBackgroundNoteColor = BACKGROUND_NOTE_COLOR_BASE;
     private static final Logger LOGGER = Logger.getLogger(NotesPanel.class.getSimpleName());
 
 
@@ -261,6 +268,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
 
         drawHorizontalGrid(g2);
         drawVerticalGrid(g2);
+        drawBackgroundPhrases(g2);
 
     }
 
@@ -359,6 +367,21 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
     {
         scrollToFirstNoteHack = true;
         revalidate();
+    }
+
+    /**
+     * 
+     * @param mapNamePhrases  Can be null
+     */
+    public void setBackgroundPhrases(SortedMap<String, Phrase> mapNamePhrases)
+    {
+        mapNameBackgroundPhrase = mapNamePhrases;
+        repaint();
+    }
+
+    public SortedMap<String, Phrase> getBackgroundPhrases()
+    {
+        return mapNameBackgroundPhrase;
     }
 
     public void cleanup()
@@ -469,10 +492,51 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
         }
     }
 
+    private void drawBackgroundPhrases(Graphics2D g2)
+    {
+        if (mapNameBackgroundPhrase == null)
+        {
+            return;
+        }
+
+
+        for (var name : mapNameBackgroundPhrase.keySet())
+        {
+            Phrase p = mapNameBackgroundPhrase.get(name);
+            Color c = getBackgroundNoteColor(name);
+            Color c1 = new Color (c.getRed(), c.getGreen(), c.getBlue(), BACKGROUND_NOTE_ALPHA);
+            Color c2 = HSLColor.changeLuminance(c1, -23);
+           
+            for (var ne : p)
+            {
+                 g2.setColor(c1);
+                IntRange xRange = xMapper.getXRange(ne);
+                int y = yMapper.getNoteViewChannelYRange(ne.getPitch()).from;
+                int h = yMapper.getNoteViewHeight();
+                
+                g2.fillRect(xRange.from, y, xRange.size(), h);
+                g2.setColor(c2);
+                g2.drawRect(xRange.from, y, xRange.size(), h);
+            }
+        }
+    }
 
     private void settingsChanged()
     {
         repaint();
+    }
+
+    private Color getBackgroundNoteColor(String name)
+    {
+        Color c = mapNameBackgroundNoteColor.get(name);
+        if (c == null)
+        {
+            float newHue = (lastBackgroundNoteColor.getHue() + HUE_STEP) % 360;
+            lastBackgroundNoteColor = new HSLColor(newHue, lastBackgroundNoteColor.getSaturation(), lastBackgroundNoteColor.getLuminance());
+            c = lastBackgroundNoteColor.getRGB();
+            mapNameBackgroundNoteColor.put(name, c);
+        }
+        return c;
     }
 
 
@@ -712,6 +776,19 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
             xPos = Math.min(w - 1, xPos);
             return xPos;
         }
+
+        /**
+         * Get the X start/end positions of the specified note.
+         *
+         * @param ne
+         * @return
+         */
+        public IntRange getXRange(NoteEvent ne)
+        {
+            var br = ne.getBeatRange();
+            return new IntRange(getX(br.from), getX(br.to));
+        }
+
 
         /**
          *

@@ -62,17 +62,18 @@ import org.jjazz.util.api.ResUtil;
 /**
  * A base implementation of a PlaybackSession to render a SongContext.
  * <p>
- * It relies on SongSequenceBuilder and then add control/click/precount tracks, taking into account drums rerouting.
+ * Music generation uses the SongSequenceBuilder and then adds control/click/precount tracks, taking into account drums rerouting.
  * <p>
- * Once generated the session listens to: <br>
- * - Song tempo changes, closing<br>
+ * Once generated the session listens to the following changes: <br>
+ * - Song tempo, song closing<br>
  * - MidiMix channel mute changes<br>
  * - PlaybackSettings Click and Loop changes<p>
- * Use the provided subclasses for more advanced behaviors, e.g. update the dirty state, etc.
+ * <p>
+ * The session never makes the session dirty. Use the provided subclasses for more advanced behaviors, e.g. update the dirty
+ * state, etc.
  */
 public class BaseSongSession implements PropertyChangeListener, PlaybackSession, ControlTrackProvider, SongContextProvider, EndOfPlaybackActionProvider
 {
-
 
     public static final int PLAYBACK_SETTINGS_LOOP_COUNT = -1298;
     private State state = State.NEW;
@@ -519,7 +520,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     @Override
     public String toString()
     {
-        return "SongSession=[state=" + state + ", isDirty=" + isDirty + " songContext=" + songContext + "]";
+        return "BaseSongSession=[state=" + state + ", isDirty=" + isDirty + " songContext=" + songContext + "]";
     }
 
     // ==========================================================================================================
@@ -533,7 +534,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     }
 
     /**
-     * Set as dirty and fire a change event.
+     * Set session as dirty (session is not up-to-date with it underlying data) and fire a change event.
      * <p>
      * For use by subclasses.
      */
@@ -553,9 +554,15 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     }
 
 
+    /**
+     * Add a click track to the sequence based on the specified context.
+     *
+     * @param sequence
+     * @param context
+     * @return
+     */
     protected int preparePlaybackClickTrack(Sequence sequence, SongContext context)
     {
-        // Add the click track
         PlaybackSettings cm = PlaybackSettings.getInstance();
         int trackId = cm.addClickTrack(sequence, context);
         // Send a Drums program change if Click channel is not used in the current MidiMix
@@ -601,7 +608,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
                 clsCopy.addItem(newCli);
             }
         }
-        
+
         MidiMix mm = context.getMidiMix().getDeepCopy();
         SongContext res = new SongContext(songCopy, mm, context.getBarRange());
         return res;

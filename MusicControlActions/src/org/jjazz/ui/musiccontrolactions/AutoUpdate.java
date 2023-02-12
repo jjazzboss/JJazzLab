@@ -32,7 +32,7 @@ import javax.swing.ImageIcon;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.MusicController.State;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
-import org.jjazz.musiccontrol.api.playbacksession.DynamicSongSession;
+import org.jjazz.musiccontrol.api.playbacksession.UpdateProviderSongSession;
 import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession;
 import org.jjazz.ui.flatcomponents.api.FlatToggleButton;
@@ -57,7 +57,7 @@ import org.openide.util.actions.BooleanStateAction;
 public class AutoUpdate extends BooleanStateAction implements PropertyChangeListener
 {
 
-    private DynamicSongSession currentDynamicSession;
+    private UpdateProviderSongSession currentDynamicSession;
     private static final Logger LOGGER = Logger.getLogger(AutoUpdate.class.getSimpleName());
 
     public AutoUpdate()
@@ -123,7 +123,7 @@ public class AutoUpdate extends BooleanStateAction implements PropertyChangeList
 
         if (evt.getSource() == currentDynamicSession)
         {
-            if (evt.getPropertyName().equals(DynamicSongSession.PROP_UPDATES_ENABLED))
+            if (evt.getPropertyName().equals(UpdateProviderSongSession.PROP_UPDATES_ENABLED))
             {
                 if (!currentDynamicSession.isUpdatable())
                 {
@@ -148,9 +148,9 @@ public class AutoUpdate extends BooleanStateAction implements PropertyChangeList
                 if (session instanceof UpdatableSongSession)
                 {
                     PlaybackSession baseSession = ((UpdatableSongSession) session).getBaseSession();
-                    if (baseSession instanceof DynamicSongSession)
+                    if (baseSession instanceof UpdateProviderSongSession)
                     {
-                        currentDynamicSession = (DynamicSongSession) baseSession;
+                        currentDynamicSession = (UpdateProviderSongSession) baseSession;
                         currentDynamicSession.addPropertyChangeListener(this);
                         setEnabled(currentDynamicSession.isUpdatable());
                     }

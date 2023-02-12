@@ -44,7 +44,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.musiccontrol.api.MusicController;
-import org.jjazz.musiccontrol.api.playbacksession.DynamicSongSession;
+import org.jjazz.musiccontrol.api.playbacksession.UpdateProviderSongSession;
 import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession;
 import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.MusicGenerationException;
@@ -162,7 +162,7 @@ public class Arranger implements SgsChangeListener, PropertyChangeListener
         songContextWork = buildWorkContext(songContextRef, songPartRef, SONG_PART_MAX_BAR_SIZE);
         songPartWork = songContextWork.getSongParts().get(0);
         firstChordSymbol = songContextWork.getSong().getChordLeadSheet().getItems(songPartWork.getParentSection(), CLI_ChordSymbol.class).get(0);
-        var dynSession = DynamicSongSession.getSession(songContextWork, true, true, false, false, false, Sequencer.LOOP_CONTINUOUSLY, null);
+        var dynSession = UpdateProviderSongSession.getSession(songContextWork, true, true, false, false, false, Sequencer.LOOP_CONTINUOUSLY, null);
         dynSession.setPreUpdateBufferTimeMs(5);     // Each user chord change generates only 2 song changes (remove and add 1 CLI_ChordSymbol)
         dynSession.setPostUpdateSleepTimeMs(100);    // This allow user to change chord quickly
         dynSession.setUserErrorExceptionHandler(null);  // User execption may occur depending on timing, as we remove then add a chord symbol at section start

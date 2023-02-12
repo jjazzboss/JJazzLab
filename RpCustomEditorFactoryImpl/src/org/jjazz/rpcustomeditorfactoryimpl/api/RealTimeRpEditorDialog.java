@@ -42,7 +42,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.MusicController.State;
-import org.jjazz.musiccontrol.api.playbacksession.DynamicSongSession;
+import org.jjazz.musiccontrol.api.playbacksession.UpdateProviderSongSession;
 import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.musiccontrol.api.playbacksession.SongContextProvider;
 import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession;
@@ -294,8 +294,8 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
         songPartContextpreview = buildPreviewContext(songPartContextOriginal, getRhythmParameter(), rpValue);
 
 
-        // DynamicSongSession automatically generates updates if a RhythmParameter value changes
-        var dynSession = DynamicSongSession.getSession(songPartContextpreview,
+        // UpdateProviderSongSession automatically generates updates if a RhythmParameter value changes
+        var dynSession = UpdateProviderSongSession.getSession(songPartContextpreview,
                 true,
                 false,
                 false,

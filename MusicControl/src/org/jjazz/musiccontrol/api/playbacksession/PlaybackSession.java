@@ -106,7 +106,7 @@ public interface PlaybackSession
     Sequence getSequence();
 
     /**
-     * The sequence is not up-to-date with its underlying data.
+     * Return true if the sequence is not up-to-date with its underlying data.
      * <p>
      * If playback is stopped a new session should be created.
      *

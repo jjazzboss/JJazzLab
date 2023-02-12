@@ -35,7 +35,7 @@ import org.jjazz.activesong.api.ActiveSongManager;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.MidiMixManager;
 import org.jjazz.musiccontrol.api.MusicController;
-import org.jjazz.musiccontrol.api.playbacksession.DynamicSongSession;
+import org.jjazz.musiccontrol.api.playbacksession.UpdateProviderSongSession;
 import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.song.api.Song;
@@ -252,7 +252,7 @@ public class SetActive extends BooleanStateAction implements PropertyChangeListe
         {
             MidiMix midiMix = MidiMixManager.getInstance().findMix(activeSong);      // Can raise MidiUnavailableException
             SongContext context = new SongContext(activeSong, midiMix);
-            var session = UpdatableSongSession.getSession(DynamicSongSession.getSession(context));   // Might reuse a clean existing session
+            var session = UpdatableSongSession.getSession(UpdateProviderSongSession.getSession(context));   // Might reuse a clean existing session
             MusicController.getInstance().setPlaybackSession(session); // can raise MusicGenerationException for serious errors
 
         } catch (MusicGenerationException ex)

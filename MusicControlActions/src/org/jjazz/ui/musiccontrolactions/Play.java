@@ -40,7 +40,7 @@ import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.MidiMixManager;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
-import org.jjazz.musiccontrol.api.playbacksession.DynamicSongSession;
+import org.jjazz.musiccontrol.api.playbacksession.UpdateProviderSongSession;
 import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession;
 import org.jjazz.songcontext.api.SongContext;
@@ -170,7 +170,7 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
 
 
                         // Prepare the session
-                        DynamicSongSession dynSession = DynamicSongSession.getSession(context);
+                        UpdateProviderSongSession dynSession = UpdateProviderSongSession.getSession(context);
                         session = UpdatableSongSession.getSession(dynSession);
                         if (session.getState().equals(PlaybackSession.State.NEW))
                         {

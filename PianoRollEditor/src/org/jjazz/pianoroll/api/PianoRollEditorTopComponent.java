@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiUnavailableException;
@@ -40,13 +41,18 @@ import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.MidiMixManager;
+import org.jjazz.musiccontrol.api.playbacksession.UpdateProviderSongSession;
+import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.phrase.api.Phrase;
+import org.jjazz.phrase.api.PhraseSamples;
 import org.jjazz.pianoroll.QuantizePanel;
 import org.jjazz.pianoroll.ShowTracksPanel;
 import org.jjazz.pianoroll.ToolbarPanel;
 import org.jjazz.pianoroll.actions.PasteNotes;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
+import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.song.api.Song;
+import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.songstructure.api.SgsChangeListener;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.event.SgsActionEvent;
@@ -57,6 +63,8 @@ import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.util.api.FloatRange;
 import org.jjazz.util.api.IntRange;
 import org.jjazz.util.api.ResUtil;
+import org.openide.DialogDisplayer;
+import org.openide.NotifyDescriptor;
 import org.openide.awt.UndoRedo;
 import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
@@ -86,6 +94,8 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
     private MidiMix midiMix;
     private SongPart songPart;
     private String titleBase;
+    private final SortedMap<String, Phrase> mapNamePhrase = new TreeMap<>();
+    private UpdateProviderSongSession songSession;
     private static final Logger LOGGER = Logger.getLogger(PianoRollEditorTopComponent.class.getSimpleName());
 
 
@@ -148,7 +158,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
 
 
         // Prepare to update showTracksPanel
-        showTracksPanel.addPropertyChangeListener(ShowTracksPanel.PROP_VISIBLE_TRACK_NAMES, e -> visibleTracksChanged((List<String>) e.getNewValue()));
+        showTracksPanel.addPropertyChangeListener(ShowTracksPanel.PROP_VISIBLE_TRACK_NAMES, e -> backgroundPhrasesSelectionChanged((List<String>) e.getNewValue()));
         midiMix = null;
         try
         {
@@ -159,7 +169,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
             Exceptions.printStackTrace(ex);
         }
         midiMix.addPropertyChangeListener(this);
-        updateAvailableTracks();
+        songMidiMixChanged();
 
 
         // Automatically close when song is closed
@@ -434,10 +444,10 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
         {
             if (evt.getPropertyName().equals(MidiMix.PROP_CHANNEL_INSTRUMENT_MIX))
             {
-                updateAvailableTracks();
+                songMidiMixChanged();
             } else if (evt.getPropertyName().equals(MidiMix.PROP_RHYTHM_VOICE))
             {
-                updateAvailableTracks();
+                songMidiMixChanged();
             }
         }
     }
@@ -491,15 +501,74 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
     }
 
 
-    private void visibleTracksChanged(List<String> trackNames)
+    /**
+     * Called when user selected/unselected some tracks in ShowTracksPanel.
+     * <p>
+ Manage the UpdateProviderSongSession to retrieve the backing tracks phrases.
+     *
+     * @param selectedNames
+     */
+    private void backgroundPhrasesSelectionChanged(List<String> selectedNames)
     {
-        // LOGGER.severe("visibleTracksChanged() trackNames=" + trackNames);
-        
+        if (selectedNames.isEmpty())
+        {
+            if (songSession != null)
+            {
+                songSession.close();
+                songSession = null;
+            }
+            return;
+        }
+
+        if (songSession == null)
+        {
+            Runnable task = () ->
+            {
+                SongContext sgContext = new SongContext(song, midiMix, getBarRange());
+                songSession = UpdateProviderSongSession.getSession(sgContext,
+                        true,
+                        false,
+                        false,
+                        false,
+                        false,
+                        0,
+                        null);
+
+                if (songSession.getState().equals(PlaybackSession.State.NEW))
+                {
+                    try
+                    {
+                        songSession.generate(true);          // This can block for some time, possibly a few seconds on slow computers/complex rhythms              
+                    } catch (MusicGenerationException ex)
+                    {
+                        NotifyDescriptor d = new NotifyDescriptor.Message(ex.getMessage(), NotifyDescriptor.ERROR_MESSAGE);
+                        DialogDisplayer.getDefault().notify(d);
+                        return;
+                    }
+                }
+            };
+        }
+        else
+        {
+            // Session is already ON
+            
+        }
+
+        SortedMap<String, Phrase> res = new TreeMap<>();
+        for (var n : selectedNames)
+        {
+            res.put(n, mapNamePhrase.get(n));
+        }
+        editor.setBackgroundPhases(res);
     }
 
-    private void updateAvailableTracks()
+    /**
+     * Song Midi mix has changed, update the available background phrases.
+     */
+    private void songMidiMixChanged()
     {
         List<String> res = new ArrayList<>();
+        mapNamePhrase.clear();
 
         for (int ch : midiMix.getUsedChannels())
         {
@@ -511,8 +580,16 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
             String inst = midiMix.getInstrumentMixFromChannel(ch).getInstrument().getPatchName();
             String name = String.format("%2d: %s - %s", ch + 1, rvName, inst);
             res.add(name);
+
+            mapNamePhrase.put(name, getBackgroundPhrase(ch));
         }
+
         showTracksPanel.setTracks(res);
+    }
+
+    private Phrase getBackgroundPhrase(int channel)
+    {
+        return PhraseSamples.getRandomPhrase(channel, 7, 16);
     }
 
     /**
@@ -569,21 +646,16 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
         sidePanel.setLayout(sidePanelLayout);
         sidePanelLayout.setHorizontalGroup(
             sidePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(sidePanelLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(sidePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(cpan_showTracks, javax.swing.GroupLayout.DEFAULT_SIZE, 204, Short.MAX_VALUE)
-                    .addComponent(cpan_quantize, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap())
+            .addComponent(cpan_quantize, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(cpan_showTracks, javax.swing.GroupLayout.DEFAULT_SIZE, 275, Short.MAX_VALUE)
         );
         sidePanelLayout.setVerticalGroup(
             sidePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(sidePanelLayout.createSequentialGroup()
-                .addContainerGap()
                 .addComponent(cpan_quantize, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(cpan_showTracks, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(32, Short.MAX_VALUE))
+                .addContainerGap(10, Short.MAX_VALUE))
         );
 
         splitpane_tools_editor.setLeftComponent(sidePanel);

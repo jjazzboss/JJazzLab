@@ -70,11 +70,9 @@ import org.openide.awt.StatusDisplayer;
 import org.openide.util.*;
 
 /**
- * A BaseSongSession which listens 
+ * A session to be used as a BaseSongSession for an UpdatableSongSession.
  * <p>
- * The session listens to the context changes to provide on-the-fly updates compatible with an UpdatableSongSession.
- * <p>
- * On-the-fly updates are provided :<br>
+ * The session provides on-the-fly UpdatableSongSession.Updates for:<br>
  * - chord symbol changes (add/remove/change/move)<br>
  * - rhythm parameter value changes<br>
  * - existing user phrase content changes (but not for add/remove user phrase events)<br>
@@ -89,7 +87,7 @@ import org.openide.util.*;
  * track and any future update. So editors should stop showing the playback point, and any further change will not be heard (until
  * a new session is generated).
  */
-public class DynamicSongSession extends BaseSongSession implements UpdatableSongSession.UpdateProvider, SgsChangeListener, ClsChangeListener, VetoableChangeListener
+public class UpdateProviderSongSession extends BaseSongSession implements UpdatableSongSession.UpdateProvider, SgsChangeListener, ClsChangeListener, VetoableChangeListener
 {
 
     /**
@@ -108,8 +106,8 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
     private final boolean isUpdateControlEnabled;
     private MusicGenerationQueue musicGenerationQueue;
     private Consumer<UserErrorGenerationException> userErrorExceptionHandler;
-    private static final List<DynamicSongSession> sessions = new ArrayList<>();
-    private static final Logger LOGGER = Logger.getLogger(DynamicSongSession.class.getSimpleName());  //NOI18N
+    private static final List<UpdateProviderSongSession> sessions = new ArrayList<>();
+    private static final Logger LOGGER = Logger.getLogger(UpdateProviderSongSession.class.getSimpleName());  //NOI18N
 
 
     /**
@@ -133,7 +131,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
      * @param endOfPlaybackAction         Action executed when playback is stopped. Can be null.
      * @return A session in the NEW or GENERATED state.
      */
-    static public DynamicSongSession getSession(SongContext sgContext,
+    static public UpdateProviderSongSession getSession(SongContext sgContext,
             boolean enablePlaybackTransposition, boolean includeClickTrack, boolean includePrecountTrack, boolean includeControlTrack,
             boolean enableUpdateControl,
             int loopCount,
@@ -143,14 +141,14 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
         {
             throw new IllegalArgumentException("sgContext=" + sgContext);
         }
-        DynamicSongSession session = findSession(sgContext,
+        UpdateProviderSongSession session = findSession(sgContext,
                 enablePlaybackTransposition, includeClickTrack, includePrecountTrack, includeControlTrack,
                 enableUpdateControl,
                 loopCount,
                 endOfPlaybackAction);
         if (session == null)
         {
-            final DynamicSongSession newSession = new DynamicSongSession(sgContext,
+            final UpdateProviderSongSession newSession = new UpdateProviderSongSession(sgContext,
                     enablePlaybackTransposition, includeClickTrack, includePrecountTrack, includeControlTrack,
                     enableUpdateControl,
                     loopCount,
@@ -171,13 +169,13 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
      * @param sgContext
      * @return A targetSession in the NEW or GENERATED state.
      */
-    static public DynamicSongSession getSession(SongContext sgContext)
+    static public UpdateProviderSongSession getSession(SongContext sgContext)
     {
         return getSession(sgContext, true, true, true, true, true, PLAYBACK_SETTINGS_LOOP_COUNT, null);
     }
 
 
-    private DynamicSongSession(SongContext sgContext,
+    private UpdateProviderSongSession(SongContext sgContext,
             boolean enablePlaybackTransposition,
             boolean includeClickTrack, boolean includePrecountTrack, boolean includeControlTrack,
             boolean enableUpdateControl,
@@ -193,9 +191,9 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
     }
 
     @Override
-    public DynamicSongSession getFreshCopy()
+    public UpdateProviderSongSession getFreshCopy()
     {
-        DynamicSongSession newSession = new DynamicSongSession(getSongContext().clone(),
+        UpdateProviderSongSession newSession = new UpdateProviderSongSession(getSongContext().clone(),
                 isPlaybackTranspositionEnabled(),
                 isClickTrackIncluded(),
                 isPrecountTrackIncluded(),
@@ -242,7 +240,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
         for (var name : song.getUserPhraseNames())
         {
             song.getUserPhrase(name).removePropertyChangeListener(this);
-        }
+        }       
         sessions.remove(this);
     }
 
@@ -850,7 +848,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
      *
      * @return Null if not found
      */
-    static private DynamicSongSession findSession(SongContext sgContext,
+    static private UpdateProviderSongSession findSession(SongContext sgContext,
             boolean enablePlaybackTransposition, boolean includeClickTrack, boolean includePrecount, boolean includeControlTrack,
             boolean enableUpdateControl,
             int loopCount,

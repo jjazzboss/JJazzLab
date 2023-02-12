@@ -187,10 +187,16 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
 
 
         // Start a task to generate the phrases 
-        Runnable task = () ->
+        Runnable task = () -> 
         {
             SongContext workContext = RealTimeRpEditorDialog.buildPreviewContext(songPartContext, rp, rp.getDefaultValue());
-            StaticSongSession tmpSession = StaticSongSession.getSession(workContext, false, false, false, false, 0, null);
+            StaticSongSession tmpSession = StaticSongSession.getSession(workContext,
+                    false,
+                    false,
+                    false,
+                    false,
+                    0,
+                    null);
             if (tmpSession.getState().equals(PlaybackSession.State.NEW))
             {
                 try
@@ -615,7 +621,7 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
 
 
         // Use SwingUtilites.invokeLater() to make sure this is executed AFTER the repaint task from previous "overlayLayerUI.setText(msg)"
-        Runnable r = () ->
+        Runnable r = () -> 
         {
             try
             {

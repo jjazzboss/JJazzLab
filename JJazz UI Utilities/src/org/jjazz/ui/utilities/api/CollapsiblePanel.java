@@ -179,7 +179,6 @@ public class CollapsiblePanel extends JPanel
     public Dimension getPreferredSize()
     {
         Dimension d = super.getPreferredSize();
-        LOGGER.severe("getPreferredSize() -- d=" + d + "  collapsed=" + collapsed);
         if (collapsed)
         {
             int width = titleComponent.getPreferredSize().width;
@@ -190,7 +189,6 @@ public class CollapsiblePanel extends JPanel
                 d.width = width;
             }
         }
-        LOGGER.severe("getPreferredSize()  AFTER d=" + d);
         return d;
     }
 
@@ -203,7 +201,6 @@ public class CollapsiblePanel extends JPanel
     public Dimension getMinimumSize()
     {
         Dimension d = super.getMinimumSize();
-        LOGGER.severe("getMinimumSize() -- d=" + d + "  collapsed=" + collapsed);        
         if (collapsed)
         {
             int width = titleComponent.getMinimumSize().width;
@@ -214,7 +211,6 @@ public class CollapsiblePanel extends JPanel
                 d.width = width;
             }
         }
-        LOGGER.severe("getMinimumSize()  AFTER d=" + d);        
         return d;
     }
 

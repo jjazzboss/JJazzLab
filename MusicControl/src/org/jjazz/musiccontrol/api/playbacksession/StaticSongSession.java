@@ -32,9 +32,8 @@ import org.jjazz.song.api.Song;
 import org.jjazz.songcontext.api.SongContext;
 
 /**
- * A BaseSongSession which do not provide on-the-fly updates, it becomes dirty as soon as the SongContext has changed.
+ * A BaseSongSession which becomes dirty as soon as the SongContext has changed musically.
  * <p>
- * @see DynamicSongSession
  */
 public class StaticSongSession extends BaseSongSession
 {
@@ -52,16 +51,18 @@ public class StaticSongSession extends BaseSongSession
      *
      * @param sgContext
      * @param enablePlaybackTransposition If true apply the playback transposition
-     * @param includeClickTrack If true add the click track, and its muted/unmuted state will depend on the PlaybackSettings
-     * @param includePrecountTrack If true add the precount track, and loopStartTick will depend on the PlaybackSettings
-     * @param includeControlTrack if true add a control track (beat positions + chord symbol markers)
-     * @param loopCount See Sequencer.setLoopCount(). Use PLAYBACK_SETTINGS_LOOP_COUNT to rely on the PlaybackSettings instance
-     * value.
-     * @param endOfPlaybackAction Action executed when playback is stopped. Can be null.
+     * @param includeClickTrack           If true add the click track, and its muted/unmuted state will depend on the
+     *                                    PlaybackSettings
+     * @param includePrecountTrack        If true add the precount track, and loopStartTick will depend on the PlaybackSettings
+     * @param includeControlTrack         if true add a control track (beat positions + chord symbol markers)
+     * @param loopCount                   See Sequencer.setLoopCount(). Use PLAYBACK_SETTINGS_LOOP_COUNT to rely on the
+     *                                    PlaybackSettings instance value.
+     * @param endOfPlaybackAction         Action executed when playback is stopped. Can be null.
      * @return A session in the NEW or GENERATED state.
      */
     static public StaticSongSession getSession(SongContext sgContext,
-            boolean enablePlaybackTransposition, boolean includeClickTrack, boolean includePrecountTrack, boolean includeControlTrack,
+            boolean enablePlaybackTransposition, boolean includeClickTrack, boolean includePrecountTrack,
+            boolean includeControlTrack,
             int loopCount,
             ActionListener endOfPlaybackAction)
     {
@@ -100,9 +101,11 @@ public class StaticSongSession extends BaseSongSession
         return getSession(sgContext, true, true, true, true, PLAYBACK_SETTINGS_LOOP_COUNT, null);
     }
 
-    private StaticSongSession(SongContext sgContext, boolean enablePlaybackTransposition, boolean enableClickTrack, boolean enablePrecountTrack, boolean enableControlTrack, int loopCount, ActionListener endOfPlaybackAction)
+    private StaticSongSession(SongContext sgContext, boolean enablePlaybackTransposition, boolean enableClickTrack,
+            boolean enablePrecountTrack, boolean enableControlTrack, int loopCount, ActionListener endOfPlaybackAction)
     {
-        super(sgContext, enablePlaybackTransposition, enableClickTrack, enablePrecountTrack, enableControlTrack, loopCount, endOfPlaybackAction);
+        super(sgContext, enablePlaybackTransposition, enableClickTrack, enablePrecountTrack, enableControlTrack, loopCount,
+                endOfPlaybackAction);
     }
 
     @Override
@@ -112,62 +115,40 @@ public class StaticSongSession extends BaseSongSession
         sessions.remove(this);
     }
 
+    // ============================================================================================
+    // PropertyChangeListener interface
+    // ============================================================================================    
     @Override
     public void propertyChange(PropertyChangeEvent e)
     {
+        super.propertyChange(e);
+
         if (!getState().equals(PlaybackSession.State.GENERATED))
         {
             return;
         }
 
-        // LOGGER.fine("propertyChange() e=" + e);
+        //LOGGER.fine("propertyChange() e=" + e);
 
         boolean dirty = false;
-
         if (e.getSource() == getSongContext().getSong())
         {
-            if (e.getPropertyName().equals(Song.PROP_MODIFIED_OR_SAVED_OR_RESET))
+            if (e.getPropertyName().equals(Song.PROP_MUSIC_GENERATION))
             {
-                if ((Boolean) e.getNewValue() == true)
-                {
-                    dirty = true;
-                }
+                dirty = true;
             }
         } else if (e.getSource() == getSongContext().getMidiMix())
         {
-            switch (e.getPropertyName())
+            if (e.getPropertyName().equals(MidiMix.PROP_MUSIC_GENERATION))
             {
-                case MidiMix.PROP_CHANNEL_INSTRUMENT_MIX:
-                case MidiMix.PROP_CHANNEL_DRUMS_REROUTED:
-                case MidiMix.PROP_INSTRUMENT_TRANSPOSITION:
-                case MidiMix.PROP_INSTRUMENT_VELOCITY_SHIFT:
-                case MidiMix.PROP_DRUMS_INSTRUMENT_KEYMAP:
-                    dirty = true;
-                    break;
-
-                default:
-                    // Do nothing
-                    break;
+                dirty = true;
             }
 
         } else if (e.getSource() == PlaybackSettings.getInstance())
         {
-            switch (e.getPropertyName())
+            if (e.getPropertyName().equals(PlaybackSettings.PROP_MUSIC_GENERATION))
             {
-                case PlaybackSettings.PROP_PLAYBACK_KEY_TRANSPOSITION:
-                case PlaybackSettings.PROP_CLICK_PITCH_HIGH:
-                case PlaybackSettings.PROP_CLICK_PITCH_LOW:
-                case PlaybackSettings.PROP_CLICK_PREFERRED_CHANNEL:
-                case PlaybackSettings.PROP_CLICK_VELOCITY_HIGH:
-                case PlaybackSettings.PROP_CLICK_VELOCITY_LOW:
-                case PlaybackSettings.PROP_CLICK_PRECOUNT_MODE:
-                case PlaybackSettings.PROP_CLICK_PRECOUNT_ENABLED:
-                    dirty = true;
-                    break;
-
-                default:   // PROP_VETO_PRE_PLAYBACK, PROP_LOOPCOUNT, PROP_PLAYBACK_CLICK_ENABLED
-                    // Do nothing
-                    break;
+                dirty = true;
             }
         }
 

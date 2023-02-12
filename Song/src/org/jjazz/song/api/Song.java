@@ -115,6 +115,13 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
      * newValue=false) or Song.resetNeedSave() is called (oldValue=null, newValue=false)
      */
     public static final String PROP_MODIFIED_OR_SAVED_OR_RESET = "PROP_MODIFIED_OR_SAVED_OR_RESET";   //NOI18N 
+    /**
+     * Fired each time the musical content of the song is modified (oldValue=false, newValue=true).
+     * <p>
+     * Use PROP_MODIFIED_OR_SAVED_OR_RESET to get notified of any song change, including non-musical ones like tempo change,
+     * phrase name change, etc.
+     */
+    public static final String PROP_MUSIC_GENERATION = "SongMusicGeneration";
     private SongStructure songStructure;
     private ChordLeadSheet chordLeadSheet;
     private String name;
@@ -312,6 +319,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
      * @throws PropertyVetoException If no Midi channel available for the user phrase
      * @see Song#PROP_VETOABLE_USER_PHRASE
      * @see Song#PROP_VETOABLE_USER_PHRASE_CONTENT
+     * @see Song#PROP_MUSIC_GENERATION
      */
     public void setUserPhrase(String name, Phrase p) throws PropertyVetoException
     {
@@ -360,6 +368,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
                         // Should never happen
                         Exceptions.printStackTrace(ex);
                     }
+                    fireIsMusicallyModified();
                     fireIsModified();
                 }
 
@@ -377,6 +386,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
                         // Should never happen
                         Exceptions.printStackTrace(ex);
                     }
+                    fireIsMusicallyModified();
                     fireIsModified();
                 }
             };
@@ -405,6 +415,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
                         // Should never happen
                         Exceptions.printStackTrace(ex);
                     }
+                    fireIsMusicallyModified();
                     fireIsModified();
                 }
 
@@ -422,6 +433,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
                         // Should never happen
                         Exceptions.printStackTrace(ex);
                     }
+                    fireIsMusicallyModified();
                     fireIsModified();
                 }
             };
@@ -431,6 +443,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
 
         }
 
+        fireIsMusicallyModified();
         fireIsModified();
 
     }
@@ -943,6 +956,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
             // Listen to User phrases significant changes to mark the song as modified 
             if (!Phrase.isAdjustingEvent(e.getPropertyName()))
             {
+                fireIsMusicallyModified();
                 fireIsModified();
             }
         }
@@ -959,9 +973,9 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
     }
 
     @Override
-    public void chordLeadSheetChanged(ClsChangeEvent event
-    )
+    public void chordLeadSheetChanged(ClsChangeEvent event)
     {
+        fireIsMusicallyModified();
         fireIsModified();
     }
 
@@ -975,10 +989,8 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
     }
 
     @Override
-    public void songStructureChanged(SgsChangeEvent e
-    )
+    public void songStructureChanged(SgsChangeEvent e)
     {
-        fireIsModified();
 
         if (e instanceof SptAddedEvent
                 || e instanceof SptRemovedEvent
@@ -988,6 +1000,9 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
             pcs.firePropertyChange(PROP_SIZE_IN_BARS, lastSize, newSize);
             lastSize = newSize;
         }
+
+        fireIsMusicallyModified();
+        fireIsModified();
     }
     // ----------------------------------------------------------------------------
     // Private methods 
@@ -1000,6 +1015,15 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
     {
         needSave = true;
         pcs.firePropertyChange(PROP_MODIFIED_OR_SAVED_OR_RESET, false, true);
+    }
+
+    /**
+     * Fire a PROP_MUSIC_GENERATION property change event with oldValue=false, newValue=true
+     */
+    private void fireIsMusicallyModified()
+    {
+        needSave = true;
+        pcs.firePropertyChange(PROP_MUSIC_GENERATION, false, true);
     }
 
     /**

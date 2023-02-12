@@ -40,6 +40,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Objects;
 import java.util.SortedMap;
@@ -338,9 +339,9 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
      *
      * @param mapNamePhrases A name associated to a Phrase.
      */
-    public void setBackgroundModels(SortedMap<String, Phrase> mapNamePhrases)
+    public void setBackgroundPhases(SortedMap<String, Phrase> mapNamePhrases)
     {
-
+        notesPanel.setBackgroundPhrases(mapNamePhrases);
     }
 
     /**
@@ -348,9 +349,9 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
      *
      * @return Can be empty
      */
-    public SortedMap<String, Phrase>  getBackgroundModels()
+    public SortedMap<String, Phrase>  getBackgroundPhrases()
     {
-        return null;
+        return notesPanel.getBackgroundPhrases();
     }
 
     /**

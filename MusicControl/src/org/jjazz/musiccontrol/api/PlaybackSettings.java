@@ -107,6 +107,10 @@ public class PlaybackSettings
     public static final String PROP_CLICK_PRECOUNT_MODE = "ClickPrecountMode";
     public static final String PROP_PLAYBACK_CLICK_ENABLED = "PlaybackClickEnabled";
     public static final String PROP_AUTO_UPDATE_ENABLED = "AutoUpdateEnabled";
+    /**
+     * Fired each time a parameter whic can impact music generation is modified (oldValue=false, newValue=true).
+     */
+    public static final String PROP_MUSIC_GENERATION = "PlaybackSettingsMusicGeneration";
 
     private int loopCount = 0;
     private SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
@@ -184,6 +188,7 @@ public class PlaybackSettings
         int old = getPlaybackKeyTransposition();
         prefs.putInt(PROP_PLAYBACK_KEY_TRANSPOSITION, t);
         pcs.firePropertyChange(PROP_PLAYBACK_KEY_TRANSPOSITION, old, t);
+        pcs.firePropertyChange(PROP_MUSIC_GENERATION, false, true);
     }
 
     /**
@@ -380,6 +385,7 @@ public class PlaybackSettings
         {
             prefs.putInt(PROP_CLICK_PITCH_HIGH, pitch);
             pcs.firePropertyChange(PROP_CLICK_PITCH_HIGH, old, pitch);
+            pcs.firePropertyChange(PROP_MUSIC_GENERATION, false, true);
         }
     }
 
@@ -403,6 +409,7 @@ public class PlaybackSettings
         {
             prefs.putInt(PROP_CLICK_PITCH_LOW, pitch);
             pcs.firePropertyChange(PROP_CLICK_PITCH_LOW, old, pitch);
+            pcs.firePropertyChange(PROP_MUSIC_GENERATION, false, true);
         }
     }
 
@@ -422,6 +429,7 @@ public class PlaybackSettings
         {
             prefs.putInt(PROP_CLICK_VELOCITY_HIGH, v);
             pcs.firePropertyChange(PROP_CLICK_VELOCITY_HIGH, old, v);
+            pcs.firePropertyChange(PROP_MUSIC_GENERATION, false, true);
         }
     }
 
@@ -441,6 +449,7 @@ public class PlaybackSettings
         {
             prefs.putInt(PROP_CLICK_VELOCITY_LOW, v);
             pcs.firePropertyChange(PROP_CLICK_VELOCITY_LOW, old, v);
+            pcs.firePropertyChange(PROP_MUSIC_GENERATION, false, true);
         }
     }
 

@@ -22,6 +22,7 @@
  */
 package org.jjazz.musiccontrol.api.playbacksession;
 
+import com.google.common.base.Preconditions;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -69,15 +70,12 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
     static public class Update
     {
 
-        private Map<RhythmVoice, Phrase> mapRvPhrases;
-        private ControlTrack controlTrack;
+        private final Map<RhythmVoice, Phrase> mapRvPhrases;
+        private final ControlTrack controlTrack;
 
         public Update(Map<RhythmVoice, Phrase> mapRvPhrases, ControlTrack controlTrack)
         {
-            if (mapRvPhrases == null && controlTrack == null)
-            {
-                throw new IllegalArgumentException("mapRvPhrases=" + mapRvPhrases + " controlTrack=" + controlTrack);
-            }
+            Preconditions.checkArgument(mapRvPhrases != null || controlTrack != null);
             this.mapRvPhrases = mapRvPhrases;
             this.controlTrack = controlTrack;
         }
@@ -116,7 +114,8 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
     /**
      * A SongContextSession capability: can provide an update after sequence was generated (i.e. in the GENERATED state).
      * <p>
-     * The session must fire a PROP_UPDATE_AVAILABLE property change event when an update is ready.
+     * The session must fire a PROP_UPDATE_AVAILABLE property change event when an update is ready. Note this change event might 
+     * be fired from outside the Swing Event Dispatching Thread.
      */
     public interface UpdateProvider
     {
