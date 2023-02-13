@@ -78,7 +78,7 @@ public class DummyGenerator implements MusicGenerator
             // Get the SimpleChordSequence corresponding to the song part
             SongChordSequence scSeq = new SongChordSequence(sgContext.getSong(), sptRange);     // throw UserErrorGenerationException
             SimpleChordSequence cSeq = new SimpleChordSequence(scSeq, ts);
-            
+
 
             for (RhythmVoice rv : rhythm.getRhythmVoices())
             {
@@ -87,7 +87,7 @@ public class DummyGenerator implements MusicGenerator
                 Phrase pRes = res.get(rv);
                 if (pRes == null)
                 {
-                    pRes = new Phrase(destChannel);
+                    pRes = new Phrase(destChannel, rv.isDrums());
                     res.put(rv, pRes);
                 }
                 if (rv.isDrums())
@@ -118,7 +118,7 @@ public class DummyGenerator implements MusicGenerator
      *
      * @param startPosInBeats
      * @param cSeq
-     * @param channel The channel of the returned phrase
+     * @param channel         The channel of the returned phrase
      * @return
      */
     static public Phrase getBasicBassPhrase(float startPosInBeats, SimpleChordSequence cSeq, int channel)
@@ -127,7 +127,7 @@ public class DummyGenerator implements MusicGenerator
         {
             throw new IllegalArgumentException("cSeq=" + cSeq + " channel=" + channel);   //NOI18N
         }
-        Phrase p = new Phrase(channel);
+        Phrase p = new Phrase(channel, false);
         for (int i = 0; i < cSeq.size(); i++)
         {
             CLI_ChordSymbol cli = cSeq.get(i);

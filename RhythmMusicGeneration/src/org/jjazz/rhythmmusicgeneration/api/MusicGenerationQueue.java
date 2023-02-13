@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.musiccontrol.api.playbacksession;
+package org.jjazz.rhythmmusicgeneration.api;
 
 import java.util.Map;
 import java.util.Queue;
@@ -38,7 +38,6 @@ import org.jjazz.phrase.api.Phrase;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.UserErrorGenerationException;
-import org.jjazz.rhythmmusicgeneration.api.SongSequenceBuilder;
 import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.util.api.Utilities;
 import org.openide.DialogDisplayer;
@@ -53,7 +52,8 @@ import org.openide.util.ChangeSupport;
  * generation task is done, a new music generation task is started with the last request received, the previous ones are
  * discarded.
  * <p>
- * A ChangeEvent is fired when a music generation task is complete and a result is available.
+ * A ChangeEvent is fired when a music generation task is complete and a result is available. Note that ChangeEvent is fired
+ * outside of the Swing EDT.
  */
 public class MusicGenerationQueue implements Runnable
 {
@@ -61,7 +61,7 @@ public class MusicGenerationQueue implements Runnable
     /**
      * A result from a music generation.
      *
-     * @param userException If not null an exception occured
+     * @param userException If not null an exception occured.
      */
     public record Result(SongContext songContext, Map<RhythmVoice, Phrase> mapRvPhrases, Exception userException)
             {

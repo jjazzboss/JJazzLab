@@ -43,7 +43,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Objects;
-import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -179,7 +178,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
 
         this.settings = settings;
         this.startBarIndex = 0;
-        this.model = new Phrase(0);
+        this.model = new Phrase(0, false);
         this.channel = 0;
         this.beatRange = new FloatRange(0, 8f);
         this.keyMap = null;
@@ -337,11 +336,11 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
      * The specified phrases are shown faded in the background in order to facilite the editing of the Phrase model. E.g. if the
      * edited phrase is a bass line, you can use this method to make the corresponding drums phrase also visible.
      *
-     * @param mapNamePhrases A name associated to a Phrase.
+     * @param mapChannelPhrases A name associated to a Phrase.
      */
-    public void setBackgroundPhases(SortedMap<String, Phrase> mapNamePhrases)
+    public void setBackgroundPhases(Map<Integer, Phrase> mapChannelPhrases)
     {
-        notesPanel.setBackgroundPhrases(mapNamePhrases);
+        notesPanel.setBackgroundPhrases(mapChannelPhrases);
     }
 
     /**
@@ -349,7 +348,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
      *
      * @return Can be empty
      */
-    public SortedMap<String, Phrase>  getBackgroundPhrases()
+    public Map<Integer, Phrase> getBackgroundPhrases()
     {
         return notesPanel.getBackgroundPhrases();
     }
@@ -381,7 +380,8 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         Preconditions.checkNotNull(p);
         Preconditions.checkArgument(startBar >= 0);
         Preconditions.checkNotNull(beatRange);
-        Preconditions.checkArgument(!mapPosTs.isEmpty() && mapPosTs.firstKey() <= beatRange.from, "mapPosTs=%s  beatRange=%s", mapPosTs, beatRange);
+        Preconditions.checkArgument(!mapPosTs.isEmpty() && mapPosTs.firstKey() <= beatRange.from, "mapPosTs=%s  beatRange=%s",
+                mapPosTs, beatRange);
 
         if (p.equals(model) && this.channel == channel && startBar == startBarIndex && beatRange.equals(this.beatRange)
                 && this.mapPosTimeSignature.equals(mapPosTs) && Objects.equals(kMap, this.keyMap))
@@ -922,7 +922,8 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
      */
     public IntRange getVisiblePitchRange()
     {
-        assert notesPanel.getYMapper().isUptodate() : "YMapper.getLastKeyboardHeight()=" + notesPanel.getYMapper().getLastKeyboardHeight()
+        assert notesPanel.getYMapper().isUptodate() :
+                "YMapper.getLastKeyboardHeight()=" + notesPanel.getYMapper().getLastKeyboardHeight()
                 + " kbd.getHeight()=" + keyboard.getHeight()
                 + " kbd.getPreferredHeight()=" + keyboard.getPreferredSize().getHeight();
         IntRange vpYRange = getYRange(scrollpane.getViewport().getViewRect());
@@ -1276,14 +1277,18 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
 
 
         // Use the notesPanel lookup to avoid the arrow keys being captured by the enclosing JScrollPane
-        notesPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("LEFT"), "MoveSelectionLeft");   //NOI18N        
+        notesPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("LEFT"),
+                "MoveSelectionLeft");   //NOI18N        
         notesPanel.getActionMap().put("MoveSelectionLeft", new MoveSelectionLeft(this));
-        notesPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("RIGHT"), "MoveSelectionRight");   //NOI18N        
+        notesPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("RIGHT"),
+                "MoveSelectionRight");   //NOI18N        
         notesPanel.getActionMap().put("MoveSelectionRight", new MoveSelectionRight(this));
 
-        notesPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("alt LEFT"), "ResizeSelectionShorter");   //NOI18N
+        notesPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("alt LEFT"),
+                "ResizeSelectionShorter");   //NOI18N
         notesPanel.getActionMap().put("ResizeSelectionShorter", new ResizeSelection(this, false));
-        notesPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("alt RIGHT"), "ResizeSelectionLonger");   //NOI18N
+        notesPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("alt RIGHT"),
+                "ResizeSelectionLonger");   //NOI18N
         notesPanel.getActionMap().put("ResizeSelectionLonger", new ResizeSelection(this, true));
 
         notesPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("UP"), "TransposeUp");   //NOI18N
@@ -1489,7 +1494,8 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
                 }
 
                 // We don't want to lose the event because it is processed by the the enclosing JScrollPane to move the scrollbar up/down or left-right if shift pressed
-                Container source = e.getSource() instanceof NoteView ? ((Component) e.getSource()).getParent() : (Container) e.getSource();
+                Container source = e.getSource() instanceof NoteView ? ((Component) e.getSource()).getParent()
+                        : (Container) e.getSource();
                 Container parent = source.getParent();
                 MouseEvent parentEvent = SwingUtilities.convertMouseEvent(source, e, parent);
                 parent.dispatchEvent(parentEvent);
@@ -1540,7 +1546,8 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
                 return;
             }
 
-            Point p = e.getSource() instanceof NoteView nv ? SwingUtilities.convertPoint(nv, e.getPoint(), notesPanel) : e.getPoint();
+            Point p = e.getSource() instanceof NoteView nv ? SwingUtilities.convertPoint(nv, e.getPoint(), notesPanel)
+                    : e.getPoint();
             int pitch = notesPanel.getYMapper().getPitch(p.y);
             if (pitch == lastHighlightedPitch)
             {

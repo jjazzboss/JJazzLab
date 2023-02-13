@@ -1097,6 +1097,16 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
     {
         pcs.removePropertyChangeListener(l);
     }
+    
+     public void addPropertyChangeListener(String propertyName, PropertyChangeListener l)
+    {
+        pcs.addPropertyChangeListener(propertyName, l);
+    }
+
+    public void removePropertyChangeListener(String propertyName,PropertyChangeListener l)
+    {
+        pcs.removePropertyChangeListener(propertyName, l);
+    }
 
     @Override
     public String toString()

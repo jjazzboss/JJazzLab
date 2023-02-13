@@ -27,7 +27,6 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 import javax.sound.midi.Sequence;
@@ -41,7 +40,6 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.midi.api.InstrumentMix;
 import org.jjazz.midi.api.MidiConst;
-import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.musiccontrol.api.ControlTrack;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
@@ -233,11 +231,9 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
 
         loopEndTick = loopStartTick + Math.round(workContext.getBeatRange().size() * MidiConst.PPQ_RESOLUTION);
 
-
-        // Update the sequence if rerouting is needed
-        // rerouteDrumsChannels(sequence, workContext.getMidiMix());
+        
         // Listen to changes that can be handled without going dirty
-        this.songContext.getSong().addPropertyChangeListener(this); // tempo changes
+        this.songContext.getSong().addPropertyChangeListener(this); // tempo changes + closing
         this.songContext.getMidiMix().addPropertyChangeListener(this);      // muted changes
         PlaybackSettings.getInstance().addPropertyChangeListener(this); // click on-off changes
 
@@ -576,11 +572,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
         return trackId;
     }
 
-    protected void rerouteDrumsChannels(Sequence seq, MidiMix mm)
-    {
-        List<Integer> toBeRerouted = mm.getDrumsReroutedChannels();
-        MidiUtilities.rerouteShortMessages(seq, toBeRerouted, MidiConst.CHANNEL_DRUMS);
-    }
+      
 
     /**
      * Get a context copy with a new song and a new MidiMix.

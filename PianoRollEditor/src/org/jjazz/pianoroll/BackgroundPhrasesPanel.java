@@ -30,7 +30,7 @@ import java.util.logging.Logger;
 /**
  * Let user select the visible tracks.
  */
-public class ShowTracksPanel extends javax.swing.JPanel
+public class BackgroundPhrasesPanel extends javax.swing.JPanel
 {
 
     /**
@@ -39,25 +39,26 @@ public class ShowTracksPanel extends javax.swing.JPanel
     public static final String PROP_VISIBLE_TRACK_NAMES = "visibleTrackNames";
     private List<String> trackNames = new ArrayList<>();
     private boolean blockChangeEventFiring = false;
-    private static final Logger LOGGER = Logger.getLogger(ShowTracksPanel.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(BackgroundPhrasesPanel.class.getSimpleName());
 
     /**
      * Creates new form ShowTracksPanel
      */
-    public ShowTracksPanel()
+    public BackgroundPhrasesPanel()
     {
 
         initComponents();
 
-        list_tracks.addListSelectionListener(e ->
+        list_tracks.addListSelectionListener(e -> 
         {
             if (!e.getValueIsAdjusting() && !blockChangeEventFiring)
             {
-                firePropertyChange(PROP_VISIBLE_TRACK_NAMES, null, getVisibleTracks());
+                firePropertyChange(PROP_VISIBLE_TRACK_NAMES, null, getSelectedTracks());
             }
         });
     }
 
+    
     /**
      * Set the track names list.
      *
@@ -65,16 +66,26 @@ public class ShowTracksPanel extends javax.swing.JPanel
      */
     public void setTracks(List<String> names)
     {
-        list_tracks.clearSelection();        
+        String saveSelectedName = list_tracks.getSelectedValue();
+        list_tracks.clearSelection();
         trackNames.clear();
         trackNames.addAll(names);
-        blockChangeEventFiring = true;
         list_tracks.setListData(names.toArray(String[]::new));
-        blockChangeEventFiring = false;
+        if (saveSelectedName != null)
+        {
+            list_tracks.setSelectedValue(saveSelectedName, true);
+        }
     }
 
 
-    public void setVisibleTracks(List<String> names)
+    /**
+     * Set the selected tracks.
+     * <p>
+     * NOTE: this method will not fire selection events.
+     *
+     * @param names
+     */
+    public void setSelectedTracks(List<String> names)
     {
         blockChangeEventFiring = true;
         list_tracks.clearSelection();
@@ -90,11 +101,11 @@ public class ShowTracksPanel extends javax.swing.JPanel
     }
 
     /**
-     * Get the names of the visible tracks.
+     * Get the names of the selected tracks.
      *
      * @return
      */
-    public List<String> getVisibleTracks()
+    public List<String> getSelectedTracks()
     {
         List<String> res = new ArrayList<>();
         for (var i : list_tracks.getSelectedIndices())
@@ -122,8 +133,8 @@ public class ShowTracksPanel extends javax.swing.JPanel
         }
         return d;
     }
-    
-     /**
+
+    /**
      * Overridden because the JList is embedded in a JScollPane.
      * <p>
      * Note: JList is sized indirectly via setPrototypeCellValue() in initComponents().
@@ -159,12 +170,12 @@ public class ShowTracksPanel extends javax.swing.JPanel
         list_tracks = new javax.swing.JList<>();
         btn_clearAll = new javax.swing.JButton();
 
-        list_tracks.setToolTipText(org.openide.util.NbBundle.getMessage(ShowTracksPanel.class, "ShowTracksPanel.list_tracks.toolTipText")); // NOI18N
+        list_tracks.setToolTipText(org.openide.util.NbBundle.getMessage(BackgroundPhrasesPanel.class, "BackgroundPhrasesPanel.list_tracks.toolTipText")); // NOI18N
         list_tracks.setPrototypeCellValue("10: Phrase2 - elec. guitar");
         list_tracks.setVisibleRowCount(9);
         jScrollPane1.setViewportView(list_tracks);
 
-        org.openide.awt.Mnemonics.setLocalizedText(btn_clearAll, org.openide.util.NbBundle.getMessage(ShowTracksPanel.class, "ShowTracksPanel.btn_clearAll.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(btn_clearAll, org.openide.util.NbBundle.getMessage(BackgroundPhrasesPanel.class, "BackgroundPhrasesPanel.btn_clearAll.text")); // NOI18N
         btn_clearAll.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)

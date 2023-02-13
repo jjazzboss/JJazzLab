@@ -41,7 +41,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
 import static org.jjazz.phrase.api.Phrase.PARENT_NOTE;
 
 /**
- * A source Phrase is Phrase associated to a source chord symbol and possibly with some client properties.
+ * A source Phrase is a Phrase associated to a source chord symbol and possibly with some client properties.
  */
 public class SourcePhrase extends Phrase
 {

@@ -22,6 +22,7 @@
  */
 package org.jjazz.pianoroll.api;
 
+import org.jjazz.pianoroll.BackgroundPhraseManager;
 import com.google.common.base.Preconditions;
 import java.awt.BorderLayout;
 import java.beans.PropertyChangeEvent;
@@ -30,29 +31,20 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.logging.Logger;
-import javax.sound.midi.MidiUnavailableException;
 import javax.swing.Action;
 import javax.swing.SwingUtilities;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.midi.api.DrumKit;
-import org.jjazz.midimix.api.MidiMix;
-import org.jjazz.midimix.api.MidiMixManager;
-import org.jjazz.musiccontrol.api.playbacksession.UpdateProviderSongSession;
-import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.phrase.api.Phrase;
-import org.jjazz.phrase.api.PhraseSamples;
 import org.jjazz.pianoroll.QuantizePanel;
-import org.jjazz.pianoroll.ShowTracksPanel;
+import org.jjazz.pianoroll.BackgroundPhrasesPanel;
 import org.jjazz.pianoroll.ToolbarPanel;
 import org.jjazz.pianoroll.actions.PasteNotes;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
-import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.song.api.Song;
-import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.songstructure.api.SgsChangeListener;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.event.SgsActionEvent;
@@ -63,10 +55,7 @@ import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.util.api.FloatRange;
 import org.jjazz.util.api.IntRange;
 import org.jjazz.util.api.ResUtil;
-import org.openide.DialogDisplayer;
-import org.openide.NotifyDescriptor;
 import org.openide.awt.UndoRedo;
-import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 import org.openide.util.Utilities;
 import org.openide.windows.Mode;
@@ -75,7 +64,7 @@ import org.openide.windows.WindowManager;
 
 
 /**
- * The TopComponent for a PianoRollEditor.
+ * A TopComponent to use a PianoRollEditor for a song phrase.
  * <p>
  * The TopComponent closes itself when song is closed and listen to SongStructure changes to update the edited range.
  */
@@ -89,13 +78,11 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
     private final PianoRollEditor editor;
     private final ToolbarPanel toolbarPanel;
     private final QuantizePanel quantizePanel;
-    private final ShowTracksPanel showTracksPanel;
+    private final BackgroundPhrasesPanel backgroundPhrasesPanel;
     private final Song song;
-    private MidiMix midiMix;
     private SongPart songPart;
     private String titleBase;
-    private final SortedMap<String, Phrase> mapNamePhrase = new TreeMap<>();
-    private UpdateProviderSongSession songSession;
+    private BackgroundPhraseManager backgroundPhraseManager;
     private static final Logger LOGGER = Logger.getLogger(PianoRollEditorTopComponent.class.getSimpleName());
 
 
@@ -137,6 +124,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
         editor.setUndoManager(JJazzUndoManagerFinder.getDefault().get(song));
         toolbarPanel = new ToolbarPanel(editor, song.getName());
 
+
         // WEIRD: only for the callback Paste action, we need BOTH the action here and in the lookup (see PianoRollEditor constructor)
         // to make paste work... 
         getActionMap().put("paste-from-clipboard", new PasteNotes(editor));
@@ -151,32 +139,24 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
         quantizePanel = new QuantizePanel();
         cpan_quantize.getContentPane().add(quantizePanel, BorderLayout.CENTER);
         cpan_showTracks.getContentPane().setLayout(new BorderLayout());
-        showTracksPanel = new ShowTracksPanel();
-        cpan_showTracks.getContentPane().add(showTracksPanel, BorderLayout.CENTER);
-        cpan_quantize.addPropertyChangeListener(CollapsiblePanel.PROP_COLLAPSED, e -> panelCollapsedStateChanged(cpan_quantize));
-        cpan_showTracks.addPropertyChangeListener(CollapsiblePanel.PROP_COLLAPSED, e -> panelCollapsedStateChanged(cpan_showTracks));
+        backgroundPhrasesPanel = new BackgroundPhrasesPanel();
+        cpan_showTracks.getContentPane().add(backgroundPhrasesPanel, BorderLayout.CENTER);
+        // Reset splitpane divider location when a panel is collapsed/expended
+        cpan_quantize.addPropertyChangeListener(CollapsiblePanel.PROP_COLLAPSED,
+                e -> SwingUtilities.invokeLater(() -> splitpane_tools_editor.resetToPreferredSizes()));
+        cpan_showTracks.addPropertyChangeListener(CollapsiblePanel.PROP_COLLAPSED,
+                e -> SwingUtilities.invokeLater(() -> splitpane_tools_editor.resetToPreferredSizes()));
 
 
-        // Prepare to update showTracksPanel
-        showTracksPanel.addPropertyChangeListener(ShowTracksPanel.PROP_VISIBLE_TRACK_NAMES, e -> backgroundPhrasesSelectionChanged((List<String>) e.getNewValue()));
-        midiMix = null;
-        try
-        {
-            midiMix = MidiMixManager.getInstance().findMix(song);
-        } catch (MidiUnavailableException ex)
-        {
-            // Should never happen
-            Exceptions.printStackTrace(ex);
-        }
-        midiMix.addPropertyChangeListener(this);
-        songMidiMixChanged();
+        // Manage the background phrases
+        backgroundPhraseManager = new BackgroundPhraseManager(editor, backgroundPhrasesPanel);
 
 
         // Automatically close when song is closed
         song.addPropertyChangeListener(this);
 
 
-        // Update model when song structure changes
+        // Listen to song structure changes: editor bounds can be impacted
         song.getSongStructure().addSgsChangeListener(this);
 
 
@@ -376,7 +356,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
     {
         song.removePropertyChangeListener(this);
         song.getSongStructure().removeSgsChangeListener(this);
-        midiMix.removePropertyChangeListener(this);
+        backgroundPhraseManager.cleanup();
         editor.cleanup();
         toolbarPanel.cleanup();
     }
@@ -440,15 +420,6 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
                     setDisplayName(getDefaultTabName(song));
                 }
             }
-        } else if (evt.getSource() == midiMix)
-        {
-            if (evt.getPropertyName().equals(MidiMix.PROP_CHANNEL_INSTRUMENT_MIX))
-            {
-                songMidiMixChanged();
-            } else if (evt.getPropertyName().equals(MidiMix.PROP_RHYTHM_VOICE))
-            {
-                songMidiMixChanged();
-            }
         }
     }
 
@@ -462,8 +433,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
     }
 
     @Override
-    public void songStructureChanged(SgsChangeEvent e
-    )
+    public void songStructureChanged(SgsChangeEvent e)
     {
         // Use high-level actions to not be polluted by intermediate states
         if (e instanceof SgsActionEvent evt && evt.isActionComplete())
@@ -476,7 +446,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
             }
 
 
-            // Refresh the editor
+            // Refresh the editor when the bar range can be impacted
             if (songPart == null)
             {
                 setModel(editor.getModel(), editor.getChannel(), editor.getDrumKeyMap());
@@ -500,107 +470,6 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
         toolbarPanel.setTitle(title);
     }
 
-
-    /**
-     * Called when user selected/unselected some tracks in ShowTracksPanel.
-     * <p>
- Manage the UpdateProviderSongSession to retrieve the backing tracks phrases.
-     *
-     * @param selectedNames
-     */
-    private void backgroundPhrasesSelectionChanged(List<String> selectedNames)
-    {
-        if (selectedNames.isEmpty())
-        {
-            if (songSession != null)
-            {
-                songSession.close();
-                songSession = null;
-            }
-            return;
-        }
-
-        if (songSession == null)
-        {
-            Runnable task = () ->
-            {
-                SongContext sgContext = new SongContext(song, midiMix, getBarRange());
-                songSession = UpdateProviderSongSession.getSession(sgContext,
-                        true,
-                        false,
-                        false,
-                        false,
-                        false,
-                        0,
-                        null);
-
-                if (songSession.getState().equals(PlaybackSession.State.NEW))
-                {
-                    try
-                    {
-                        songSession.generate(true);          // This can block for some time, possibly a few seconds on slow computers/complex rhythms              
-                    } catch (MusicGenerationException ex)
-                    {
-                        NotifyDescriptor d = new NotifyDescriptor.Message(ex.getMessage(), NotifyDescriptor.ERROR_MESSAGE);
-                        DialogDisplayer.getDefault().notify(d);
-                        return;
-                    }
-                }
-            };
-        }
-        else
-        {
-            // Session is already ON
-            
-        }
-
-        SortedMap<String, Phrase> res = new TreeMap<>();
-        for (var n : selectedNames)
-        {
-            res.put(n, mapNamePhrase.get(n));
-        }
-        editor.setBackgroundPhases(res);
-    }
-
-    /**
-     * Song Midi mix has changed, update the available background phrases.
-     */
-    private void songMidiMixChanged()
-    {
-        List<String> res = new ArrayList<>();
-        mapNamePhrase.clear();
-
-        for (int ch : midiMix.getUsedChannels())
-        {
-            if (ch == editor.getChannel())
-            {
-                continue;
-            }
-            String rvName = midiMix.getRhythmVoice(ch).getName();
-            String inst = midiMix.getInstrumentMixFromChannel(ch).getInstrument().getPatchName();
-            String name = String.format("%2d: %s - %s", ch + 1, rvName, inst);
-            res.add(name);
-
-            mapNamePhrase.put(name, getBackgroundPhrase(ch));
-        }
-
-        showTracksPanel.setTracks(res);
-    }
-
-    private Phrase getBackgroundPhrase(int channel)
-    {
-        return PhraseSamples.getRandomPhrase(channel, 7, 16);
-    }
-
-    /**
-     * Update splitpane divider location
-     *
-     * @param cPanel
-     */
-    private void panelCollapsedStateChanged(CollapsiblePanel cPanel)
-    {
-        SwingUtilities.invokeLater(() -> splitpane_tools_editor.resetToPreferredSizes());
-    }
 
     void writeProperties(java.util.Properties p)
     {

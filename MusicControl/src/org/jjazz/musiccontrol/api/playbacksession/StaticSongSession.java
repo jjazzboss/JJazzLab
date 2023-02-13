@@ -158,7 +158,9 @@ public class StaticSongSession extends BaseSongSession
         }
     }
 
-
+    // ==========================================================================================================
+    // Private methods
+    // ==========================================================================================================
     /**
      * Find an identical existing session in state NEW or GENERATED and non-dirty.
      *

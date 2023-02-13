@@ -73,7 +73,7 @@ public class Utilities
             throw new IllegalArgumentException("pSrc=" + pSrc + " ecsDest=" + ecsDest);   //NOI18N
         }
         LOGGER.fine("fitMelodyPhrase2ChordSymbol() -- ecsDest=" + ecsDest + " chordMode=" + chordMode); //  + " pSrc=" + pSrc);   //NOI18N
-        Phrase pDest = new Phrase(pSrc.getChannel());
+        Phrase pDest = new Phrase(pSrc.getChannel(), false);
         if (pSrc.isEmpty())
         {
             // Special case, easy
@@ -148,7 +148,7 @@ public class Utilities
 
 
         LOGGER.fine("fitBassPhrase2ChordSymbol() -- ecsDest=" + ecsDest + " ecsDest.cri=" + ecsDest.getRenderingInfo()); //  + " pSrc=" + pSrc);   //NOI18N
-        Phrase pDest = new Phrase(pSrc.getChannel());
+        Phrase pDest = new Phrase(pSrc.getChannel(), false);
         if (pSrc.isEmpty())
         {
             return pDest;
@@ -245,7 +245,7 @@ public class Utilities
         // LOGGER.log(Level.FINE, "fitChordPhrase2ChordSymbol() -- pSrc="+pSrc);
 
 
-        Phrase pDest = new Phrase(pSrc.getChannel());
+        Phrase pDest = new Phrase(pSrc.getChannel(), false);
         if (pSrc.isEmpty())
         {
             return pDest;

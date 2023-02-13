@@ -42,6 +42,7 @@ import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.UserRhythmVoice;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.PlaybackListener;
+import org.jjazz.musiccontrol.api.playbacksession.BaseSongSession;
 import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.musiccontrol.api.playbacksession.StaticSongSession;
 import org.jjazz.phrase.api.Phrase;
@@ -190,24 +191,21 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
         Runnable task = () -> 
         {
             SongContext workContext = RealTimeRpEditorDialog.buildPreviewContext(songPartContext, rp, rp.getDefaultValue());
-            StaticSongSession tmpSession = StaticSongSession.getSession(workContext,
+            BaseSongSession tmpSession = new BaseSongSession(workContext,
                     false,
                     false,
                     false,
                     false,
                     0,
                     null);
-            if (tmpSession.getState().equals(PlaybackSession.State.NEW))
+            try
             {
-                try
-                {
-                    tmpSession.generate(true);          // This can block for some time, possibly a few seconds on slow computers/complex rhythms              
-                } catch (MusicGenerationException ex)
-                {
-                    NotifyDescriptor d = new NotifyDescriptor.Message(ex.getMessage(), NotifyDescriptor.ERROR_MESSAGE);
-                    DialogDisplayer.getDefault().notify(d);
-                    return;
-                }
+                tmpSession.generate(true);          // This can block for some time, possibly a few seconds on slow computers/complex rhythms              
+            } catch (MusicGenerationException ex)
+            {
+                NotifyDescriptor d = new NotifyDescriptor.Message(ex.getMessage(), NotifyDescriptor.ERROR_MESSAGE);
+                DialogDisplayer.getDefault().notify(d);
+                return;
             }
 
             // Retrieve the data
@@ -378,7 +376,8 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
 
     private void forceListRepaint()
     {
-        list_rhythmVoices.repaint(list_rhythmVoices.getCellBounds(0, songPartContext.getSongPart().getRhythm().getRhythmVoices().size() - 1));
+        list_rhythmVoices.repaint(list_rhythmVoices.getCellBounds(0,
+                songPartContext.getSongPart().getRhythm().getRhythmVoices().size() - 1));
     }
 
     private void fireUiValueChanged()
@@ -543,7 +542,8 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
             String strRvs = Joiner.on(",").join(strs);
             String msg = ResUtil.getString(getClass(), "RP_SYS_CustomPhraseComp.CustomizedRvs", strRvs);
             StatusDisplayer.getDefault().setStatusText(msg);
-            LOGGER.info("importMidiFile() Successfully set custom phrases for " + strRvs + " from Midi file " + midiFile.getAbsolutePath());
+            LOGGER.info(
+                    "importMidiFile() Successfully set custom phrases for " + strRvs + " from Midi file " + midiFile.getAbsolutePath());
         }
 
         return true;
@@ -626,7 +626,8 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
             try
             {
                 // Start the midi editor
-                LOGGER.log(Level.INFO, "editCurrentPhrase() Lanching external Midi editor with file {0}", midiFile.getAbsolutePath());
+                LOGGER.log(Level.INFO, "editCurrentPhrase() Lanching external Midi editor with file {0}",
+                        midiFile.getAbsolutePath());
                 JJazzMidiSystem.getInstance().editMidiFileWithExternalEditor(midiFile); // Blocks until editor quits
             } catch (IOException ex)
             {

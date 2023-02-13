@@ -43,7 +43,7 @@ public class PhraseSamples
      */
     static public Phrase getCscalePhrase(int channel, float startPos, float nbBeats)
     {
-        Phrase p = new Phrase(channel);
+        Phrase p = new Phrase(channel, false);
         float noteDur = nbBeats / 8f;
         float pos = startPos;
         for (Note n : ScaleManager.MAJOR.getNotes())
@@ -68,7 +68,7 @@ public class PhraseSamples
      */
     static public Phrase getRandomPhrase(int channel, int nbBars, int nbNotes)
     {
-        Phrase p = new Phrase(channel);
+        Phrase p = new Phrase(channel, false);
 
         for (int i = 0; i < nbNotes; i++)
         {
@@ -97,7 +97,7 @@ public class PhraseSamples
         {
             throw new IllegalArgumentException("nbBars=" + nbBars + " ts=" + ts + " channel=" + channel);   //NOI18N
         }
-        Phrase p = new Phrase(channel);
+        Phrase p = new Phrase(channel, true);
         float duration = 0.25f;
         for (int bar = 0; bar < nbBars; bar++)
         {

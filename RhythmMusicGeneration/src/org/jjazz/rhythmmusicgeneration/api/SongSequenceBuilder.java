@@ -62,8 +62,6 @@ import org.jjazz.phrase.api.Phrases;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.phrasetransform.api.rps.RP_SYS_DrumsTransform;
 import org.jjazz.phrasetransform.api.rps.RP_SYS_DrumsTransformValue;
-import org.jjazz.phrasetransform.api.rps.RP_SYS_PhraseTransform;
-import org.jjazz.phrasetransform.api.rps.RP_SYS_PhraseTransformValue;
 import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
@@ -169,7 +167,7 @@ public class SongSequenceBuilder
      * - Apply the RP_SYS_DrumsMix velocity changes. Note that it is expected that, if there is an AdaptedRhythm for a Rhythm
      * which uses RP_SYS_DrumsMix, the AdaptedRhythm reuses the same RP_SYS_DrumsMix instance.<br>
      * - Apply the RP_SYS_CustomPhrase changes<br>
-     * - Apply the RP_SYS_PhraseTransform changes<br>
+     * - Apply the RP_SYS_DrumsTransform changes<br>
      * - Apply drums rerouting if needed <br>
      * - Handle the NC chord symbols<br>
      * <p>
@@ -467,9 +465,6 @@ public class SongSequenceBuilder
         // Handle the RP_SYS_DrumsTransform changes
         processDrumsTransforms(songContext, res);
 
-        // Handle the RP_SYS_PhraseTransform changes
-        processPhraseTransforms(songContext, res);
-
         // Handle muted instruments via the SongPart's RP_SYS_Mute parameter
         processMutedInstruments(songContext, res);
 
@@ -489,7 +484,7 @@ public class SongSequenceBuilder
                 if (pDest == null)
                 {
                     // Might happen if the context range contains only SongParts with AdaptedRhythms (source rhythms are excluded)
-                    pDest = new Phrase(p.getChannel());
+                    pDest = new Phrase(p.getChannel(), rvds.isDrums());
                     res.put(rvds, pDest);
                 }
 
@@ -516,7 +511,7 @@ public class SongSequenceBuilder
 
             // Create the phrase on the right Midi channel
             int channel = songContext.getMidiMix().getChannel(urv);
-            Phrase p = new Phrase(channel);
+            Phrase p = new Phrase(channel, urv.isDrums());
             p.add(songContext.getSong().getUserPhrase(userPhraseName));
 
 
@@ -868,53 +863,7 @@ public class SongSequenceBuilder
         }
     }
 
-    /**
-     * Transform rhythm phrases depending on the RP_SYS_PhraseTransform value.
-     *
-     * @param context
-     * @param rvPhrases Keys can include RhythmVoiceDelegates
-     */
-    private void processPhraseTransforms(SongContext context, Map<RhythmVoice, Phrase> rvPhrases)
-    {
-        LOGGER.log(Level.FINE, "processPhraseTransforms() -- context={0}", context);
-        for (SongPart spt : context.getSongParts())
-        {
-            FloatRange sptBeatRange = context.getSptBeatRange(spt);     // Might be smaller than spt.getBeatRange()
-            IntRange sptBarRange = context.getSptBarRange(spt);         // Might be smaller than spt.getBarRange()
-            SongPartContext sptContext = new SongPartContext(context.getSong(), context.getMidiMix(), sptBarRange);
-
-            // Get the RhythmParameter
-            Rhythm r = spt.getRhythm();
-            RP_SYS_PhraseTransform rpCustomPhrase = RP_SYS_PhraseTransform.getPhraseTransformRp(r);
-            if (rpCustomPhrase == null)
-            {
-                continue;
-            }
-
-
-            // Get the RP value and transform phrases as needed
-            RP_SYS_PhraseTransformValue rpValue = spt.getRPValue(rpCustomPhrase);
-            LOGGER.log(Level.FINE, "processPhraseTransforms() rpValue={0}", rpValue);
-            for (RhythmVoice rv : rpValue.getChainRhythmVoices())
-            {
-
-                // The original phrase
-                Phrase p = rvPhrases.get(rv);
-
-                // Make it a SizedPhrase on the relevant beat range and transform it
-                SizedPhrase inSp = new SizedPhrase(p.getChannel(), sptBeatRange, r.getTimeSignature(), p.isDrums());
-                inSp.add(Phrases.getSlice(p, sptBeatRange, false, 1, 0.1f));
-                var chain = rpValue.getTransformChain(rv);
-                var outSp = chain.transform(inSp, sptContext);
-
-
-                // Replace the old song part phrase by the transformed one
-                Phrases.silence(p, sptBeatRange, true, false, 0.1f);
-                p.add(outSp);
-            }
-        }
-    }
-
+ 
     /**
      * Transform the drums phrase depending on the RP_SYS_DrumsTransform value.
      *

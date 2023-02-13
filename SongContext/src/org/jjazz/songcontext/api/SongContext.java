@@ -22,12 +22,9 @@
  */
 package org.jjazz.songcontext.api;
 
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import javax.swing.event.ChangeListener;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midimix.api.MidiMix;
@@ -38,18 +35,15 @@ import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.util.api.FloatRange;
 import org.jjazz.util.api.IntRange;
 import org.jjazz.util.api.LongRange;
-import org.openide.util.ChangeSupport;
-import org.openide.util.WeakListeners;
 
 
 /**
  * Collect various data about a Song context in order to facilitate music generation.
  * <p>
  * Note that a SongContext instance should be discarded if song is structurally modified, because some SongContext methods may
- * return data not consistent anymore with the actual Song. A ChangeEvent is fired when the song context is musically modified (ie
- * in a way which impacts music generation).
+ * return data not consistent anymore with the actual Song.
  */
-public class SongContext implements PropertyChangeListener
+public class SongContext 
 {
 
     private Song song;
@@ -58,7 +52,6 @@ public class SongContext implements PropertyChangeListener
     protected List<SongPart> songParts;
     private FloatRange beatRange;
     private LongRange tickRange;
-    private final ChangeSupport cs = new ChangeSupport(this);
 
 
     /**
@@ -84,7 +77,7 @@ public class SongContext implements PropertyChangeListener
     }
 
     /**
-     * Create a SongContext object for a whole or a part of the song.
+     * Create a SongContext object for whole or part of a song.
      *
      * @param s
      * @param mm
@@ -118,12 +111,6 @@ public class SongContext implements PropertyChangeListener
         beatRange = song.getSongStructure().getBeatRange(barRange);
         tickRange = new LongRange((long) (beatRange.from * MidiConst.PPQ_RESOLUTION), (long) (beatRange.to * MidiConst.PPQ_RESOLUTION));
 
-
-        // Listen to music generation changes
-        // Use WeakListeners so no need for SongContext.cleanup() method (simplify usage of SongContext objects)
-        song.addPropertyChangeListener(WeakListeners.propertyChange(this, Song.PROP_MUSIC_GENERATION, song));
-        midiMix.addPropertyChangeListener(WeakListeners.propertyChange(this, MidiMix.PROP_MUSIC_GENERATION, midiMix));
-
     }
 
 
@@ -131,16 +118,6 @@ public class SongContext implements PropertyChangeListener
     public SongContext clone()
     {
         return new SongContext(this, getBarRange());
-    }
-
-    public void addChangeListener(ChangeListener listener)
-    {
-        cs.addChangeListener(listener);
-    }
-
-    public void removeChangeListener(ChangeListener listener)
-    {
-        cs.removeChangeListener(listener);
     }
 
     /**
@@ -424,16 +401,7 @@ public class SongContext implements PropertyChangeListener
         return "SongContext[song=" + song.getName() + ", midiMix=" + midiMix + ", range=" + barRange + "]";
     }
 
-    // ============================================================================================
-    // PropertyChangeListener interface
-    // ============================================================================================    
-    @Override
-    public void propertyChange(PropertyChangeEvent e)
-    {
-        // We only listen to music content changes
-        cs.fireChange();
-    }
-
+ 
     // ============================================================================================
     // Private methods
     // ============================================================================================   

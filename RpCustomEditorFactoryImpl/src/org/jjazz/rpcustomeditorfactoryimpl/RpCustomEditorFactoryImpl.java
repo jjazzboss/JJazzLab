@@ -23,7 +23,6 @@
 package org.jjazz.rpcustomeditorfactoryimpl;
 
 import org.jjazz.phrasetransform.api.rps.RP_SYS_DrumsTransform;
-import org.jjazz.phrasetransform.api.rps.RP_SYS_PhraseTransform;
 import org.jjazz.rpcustomeditorfactoryimpl.api.RealTimeRpEditorDialog;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhrase;
@@ -46,9 +45,6 @@ public class RpCustomEditorFactoryImpl implements RpCustomEditorFactory
         if (rp instanceof RP_SYS_CustomPhrase)
         {
             b = true;
-        } else if (rp instanceof RP_SYS_PhraseTransform)
-        {
-            b = true;
         } else if (rp instanceof RP_SYS_DrumsTransform)
         {
             b = true;
@@ -66,12 +62,6 @@ public class RpCustomEditorFactoryImpl implements RpCustomEditorFactory
         {
             var rpCustomPhrase = (RP_SYS_CustomPhrase) rp;
             var editor = new RP_SYS_CustomPhraseComp(rpCustomPhrase);
-            res = new RealTimeRpEditorDialog(editor);
-
-        } else if (rp instanceof RP_SYS_PhraseTransform)
-        {
-            var rpPhraseTransform = (RP_SYS_PhraseTransform) rp;
-            var editor = new RP_SYS_PhraseTransformComp(rpPhraseTransform);
             res = new RealTimeRpEditorDialog(editor);
 
         } else if (rp instanceof RP_SYS_DrumsTransform)

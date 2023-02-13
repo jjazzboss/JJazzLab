@@ -29,6 +29,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
@@ -39,7 +40,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
-import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -60,15 +60,14 @@ import org.jjazz.util.api.Utilities;
 /**
  * The main editor panel, shows the grid and holds the NoteViews.
  * <p>
- * Y metrics are taken from the associated vertical keyboard. The XMapper and YMapper objects provide the methods to position
- * notes.
+ * Y metrics are taken from the associated vertical keyboard. The XMapper and YMapper objects provide the methods to position notes.
  */
 public class NotesPanel extends javax.swing.JPanel implements PropertyChangeListener
 {
 
-    private static final HSLColor BACKGROUND_NOTE_COLOR_BASE = new HSLColor(2f, 40f, 80f);
-    private static final int BACKGROUND_NOTE_ALPHA = 170;
-    private static final float HUE_STEP = 360f / 8;
+    private static final HSLColor BACKGROUND_NOTE_COLOR_BASE = new HSLColor(180f, 60f, 75f);
+    private static final int BACKGROUND_NOTE_ALPHA = 200;
+    private static final float HUE_STEP = 180f / 8;
     private final KeyboardComponent keyboard;
     private final YMapper yMapper;
     private final XMapper xMapper;
@@ -76,8 +75,8 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
     private float scaleFactorX = 1f;
     private boolean scrollToFirstNoteHack = true;
     private final TreeMap<NoteEvent, NoteView> mapNoteViews = new TreeMap<>();
-    private SortedMap<String, Phrase> mapNameBackgroundPhrase;
-    private final Map<String, Color> mapNameBackgroundNoteColor = new HashMap<>();
+    private Map<Integer, Phrase> mapChannelBackgroundPhrase;
+    private final Map<Integer, Color> mapNameBackgroundNoteColor = new HashMap<>();
     private HSLColor lastBackgroundNoteColor = BACKGROUND_NOTE_COLOR_BASE;
     private static final Logger LOGGER = Logger.getLogger(NotesPanel.class.getSimpleName());
 
@@ -212,8 +211,8 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
     /**
      * Change the X scale factor.
      * <p>
-     * This methods impacts the preferred size then calls revalidate() (and repaint()). Hence the notesPanel size is NOT directly
-     * updated right after exiting method. Size will be updated once the EDT has finished processing the revalidate.
+     * This methods impacts the preferred size then calls revalidate() (and repaint()). Hence the notesPanel size is NOT directly updated
+     * right after exiting method. Size will be updated once the EDT has finished processing the revalidate.
      * <p>
      * This will
      *
@@ -370,18 +369,24 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
     }
 
     /**
-     * 
-     * @param mapNamePhrases  Can be null
+     * Set the background phrases.
+     *
+     * @param mapChannelPhrase Can be null if no background phrase
      */
-    public void setBackgroundPhrases(SortedMap<String, Phrase> mapNamePhrases)
+    public void setBackgroundPhrases(Map<Integer, Phrase> mapChannelPhrase)
     {
-        mapNameBackgroundPhrase = mapNamePhrases;
+        mapChannelBackgroundPhrase = mapChannelPhrase;
         repaint();
     }
 
-    public SortedMap<String, Phrase> getBackgroundPhrases()
+    /**
+     * Can be null if not set.
+     *
+     * @return
+     */
+    public Map<Integer, Phrase> getBackgroundPhrases()
     {
-        return mapNameBackgroundPhrase;
+        return mapChannelBackgroundPhrase;
     }
 
     public void cleanup()
@@ -494,29 +499,53 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
 
     private void drawBackgroundPhrases(Graphics2D g2)
     {
-        if (mapNameBackgroundPhrase == null)
+        if (mapChannelBackgroundPhrase == null)
         {
             return;
         }
 
 
-        for (var name : mapNameBackgroundPhrase.keySet())
+        for (var channel : mapChannelBackgroundPhrase.keySet())
         {
-            Phrase p = mapNameBackgroundPhrase.get(name);
-            Color c = getBackgroundNoteColor(name);
-            Color c1 = new Color (c.getRed(), c.getGreen(), c.getBlue(), BACKGROUND_NOTE_ALPHA);
+            Phrase p = mapChannelBackgroundPhrase.get(channel);
+            Color c = getBackgroundNoteColor(channel);
+            Color c1 = new Color(c.getRed(), c.getGreen(), c.getBlue(), BACKGROUND_NOTE_ALPHA);
             Color c2 = HSLColor.changeLuminance(c1, -23);
-           
+
             for (var ne : p)
             {
-                 g2.setColor(c1);
-                IntRange xRange = xMapper.getXRange(ne);
-                int y = yMapper.getNoteViewChannelYRange(ne.getPitch()).from;
-                int h = yMapper.getNoteViewHeight();
-                
-                g2.fillRect(xRange.from, y, xRange.size(), h);
-                g2.setColor(c2);
-                g2.drawRect(xRange.from, y, xRange.size(), h);
+                if (editor.getBeatRange().contains(ne.getBeatRange(), false))
+                {
+                    int y = yMapper.getNoteViewChannelYRange(ne.getPitch()).from;
+                    int h = yMapper.getNoteViewHeight();
+
+                    if (!p.isDrums())
+                    {
+                        IntRange xRange = xMapper.getXRange(ne);
+                        g2.setColor(c1);
+                        g2.fillRect(xRange.from, y, xRange.size(), h);
+                        g2.setColor(c2);
+                        g2.drawRect(xRange.from, y, xRange.size(), h);
+                    } else
+                    {
+                        int x = xMapper.getX(ne.getPositionInBeats());
+                        int half = h / 2 + 1;
+                        y += half;
+                        int x0 = x - half;
+                        int x1 = x + half;
+                        int y0 = y - half;
+                        int y1 = y + half;
+                        Polygon polygon = new Polygon();
+                        polygon.addPoint(x0, y);
+                        polygon.addPoint(x, y1);
+                        polygon.addPoint(x1, y);
+                        polygon.addPoint(x, y0);
+                        g2.setColor(c1);
+                        g2.fill(polygon);
+                        g2.setColor(c2);
+                        g2.draw(polygon);
+                    }
+                }
             }
         }
     }
@@ -526,15 +555,16 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
         repaint();
     }
 
-    private Color getBackgroundNoteColor(String name)
+    private Color getBackgroundNoteColor(int channel)
     {
-        Color c = mapNameBackgroundNoteColor.get(name);
+        Color c = mapNameBackgroundNoteColor.get(channel);
         if (c == null)
         {
             float newHue = (lastBackgroundNoteColor.getHue() + HUE_STEP) % 360;
-            lastBackgroundNoteColor = new HSLColor(newHue, lastBackgroundNoteColor.getSaturation(), lastBackgroundNoteColor.getLuminance());
+            lastBackgroundNoteColor = new HSLColor(newHue, lastBackgroundNoteColor.getSaturation(),
+                    lastBackgroundNoteColor.getLuminance());
             c = lastBackgroundNoteColor.getRGB();
-            mapNameBackgroundNoteColor.put(name, c);
+            mapNameBackgroundNoteColor.put(channel, c);
         }
         return c;
     }
@@ -564,7 +594,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
 
         private XMapper()
         {
-            editor.addPropertyChangeListener(PianoRollEditor.PROP_QUANTIZATION, e ->
+            editor.addPropertyChangeListener(PianoRollEditor.PROP_QUANTIZATION, e -> 
             {
                 refresh();
                 repaint();
@@ -915,7 +945,8 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
                 int yi = Math.round(y);
                 tmapPixelPitch.put(yi, p);
                 int pp = p % 12;
-                float yUp = (pp == 0 || pp == 4 || pp == 5 || pp == 11 || p == kbdRange.getHighestPitch()) ? adjustedLargeHeight : adjustedSmallHeight;
+                float yUp = (pp == 0 || pp == 4 || pp == 5 || pp == 11 || p == kbdRange.getHighestPitch()) ? adjustedLargeHeight
+                        : adjustedSmallHeight;
                 IntRange channelNoteYRange = new IntRange(Math.round(y - yUp + 1), yi);
                 mapPitchChannelYRange.put(p, channelNoteYRange);
                 y -= yUp;
@@ -974,7 +1005,8 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
         {
             if (!isUptodate())
             {
-                throw new IllegalStateException("lastKeyboardHeight=" + lastKeyboardHeight + " keyboard.height=" + keyboard.getHeight());
+                throw new IllegalStateException(
+                        "lastKeyboardHeight=" + lastKeyboardHeight + " keyboard.height=" + keyboard.getHeight());
             }
 
             var entry = tmapPixelPitch.ceilingEntry(yPos);

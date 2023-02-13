@@ -168,7 +168,8 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
     {
         if (name == null || name.trim().isEmpty() || cls == null || sgs == null || sgs.getParentChordLeadSheet() != cls)
         {
-            throw new IllegalArgumentException("name=" + name + " cls=" + cls + " sgs=" + sgs + " sgs.getParentChordLeadSheet()=" + sgs.getParentChordLeadSheet());   //NOI18N
+            throw new IllegalArgumentException(
+                    "name=" + name + " cls=" + cls + " sgs=" + sgs + " sgs.getParentChordLeadSheet()=" + sgs.getParentChordLeadSheet());   //NOI18N
         }
         setName(name);
         chordLeadSheet = cls;
@@ -274,7 +275,6 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
             }
 
             @Override
-
             public void redoBody()
             {
                 mapUserPhrases = newMap;
@@ -373,7 +373,6 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
                 }
 
                 @Override
-
                 public void redoBody()
                 {
                     mapUserPhrases = newMap;
@@ -910,6 +909,11 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
         pcs.removePropertyChangeListener(l);
     }
 
+    public void removePropertyChangeListener(String propertyName, PropertyChangeListener l)
+    {
+        pcs.removePropertyChangeListener(propertyName, l);
+    }
+
     public synchronized void addVetoableChangeListener(VetoableChangeListener listener)
     {
         vcs.addVetoableChangeListener(listener);
@@ -1066,10 +1070,12 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
         map.put("Song Structure Bar Size", songStructure.getSizeInBars());
         map.put("Use Bass Pedal Chord", cris.stream().anyMatch(cri -> cri.hasOneFeature(ChordRenderingInfo.Feature.PEDAL_BASS)));
         map.put("Use Accent Chord", cris.stream().anyMatch(cri -> cri.hasOneFeature(ChordRenderingInfo.Feature.ACCENT)));
-        map.put("Use Stronger Accent Chord", cris.stream().anyMatch(cri -> cri.hasOneFeature(ChordRenderingInfo.Feature.ACCENT_STRONGER)));
+        map.put("Use Stronger Accent Chord", cris.stream().anyMatch(cri -> cri.hasOneFeature(
+                ChordRenderingInfo.Feature.ACCENT_STRONGER)));
         map.put("Use Crash Chord", cris.stream().anyMatch(cri -> cri.hasOneFeature(ChordRenderingInfo.Feature.CRASH)));
         map.put("Use No Crash Chord", cris.stream().anyMatch(cri -> cri.hasOneFeature(ChordRenderingInfo.Feature.NO_CRASH)));
-        map.put("Use Extended Hold/Shot Chord", cris.stream().anyMatch(cri -> cri.hasOneFeature(ChordRenderingInfo.Feature.EXTENDED_HOLD_SHOT)));
+        map.put("Use Extended Hold/Shot Chord", cris.stream().anyMatch(cri -> cri.hasOneFeature(
+                ChordRenderingInfo.Feature.EXTENDED_HOLD_SHOT)));
         map.put("Use Shot Chord", cris.stream().anyMatch(cri -> cri.hasOneFeature(ChordRenderingInfo.Feature.SHOT)));
         map.put("Use Hold Chord", cris.stream().anyMatch(cri -> cri.hasOneFeature(ChordRenderingInfo.Feature.HOLD)));
         map.put("Use Scale Chord", cris.stream().anyMatch(cri -> cri.getScaleInstance() != null));

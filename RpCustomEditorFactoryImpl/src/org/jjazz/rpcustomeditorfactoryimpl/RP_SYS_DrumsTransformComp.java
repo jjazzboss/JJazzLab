@@ -32,6 +32,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
@@ -49,6 +50,7 @@ import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.PlaybackListener;
+import org.jjazz.musiccontrol.api.playbacksession.BaseSongSession;
 import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.musiccontrol.api.playbacksession.StaticSongSession;
 import org.jjazz.phrase.api.Phrase;
@@ -108,7 +110,8 @@ public class RP_SYS_DrumsTransformComp extends RealTimeRpEditorComponent<RP_SYS_
         // Update JLists
         list_transformChain.setModel(list_transformChainModel);
         list_transformChain.setTransferHandler(new TransformChainListTransferHandler());
-        list_transformChain.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("DELETE"), "RemoveTransform");   //NOI18N
+        list_transformChain.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("DELETE"),
+                "RemoveTransform");   //NOI18N
         list_transformChain.getActionMap().put("RemoveTransform", new DeleteAction());   //NOI18N
 
 
@@ -173,23 +176,19 @@ public class RP_SYS_DrumsTransformComp extends RealTimeRpEditorComponent<RP_SYS_
 
 
         // Start a task to get the generated drums phrase 
-        Runnable task = () ->
+        Runnable task = () -> 
         {
             SongContext workContext = RealTimeRpEditorDialog.buildPreviewContext(songPartContext, rp, rp.getDefaultValue());
-            StaticSongSession tmpSession = StaticSongSession.getSession(workContext, false, false, false, false, 0, null);
-            if (tmpSession.getState().equals(PlaybackSession.State.NEW))
+            BaseSongSession tmpSession = new BaseSongSession(workContext, false, false, false, false, 0, null);
+            try
             {
-                try
-                {
-                    tmpSession.generate(true);          // This can block for some time, possibly a few seconds on slow computers/complex rhythms              
-                } catch (MusicGenerationException ex)
-                {
-                    NotifyDescriptor d = new NotifyDescriptor.Message(ex.getMessage(), NotifyDescriptor.ERROR_MESSAGE);
-                    DialogDisplayer.getDefault().notify(d);
-                    return;
-                }
+                tmpSession.generate(true);          // This can block for some time, possibly a few seconds on slow computers/complex rhythms              
+            } catch (MusicGenerationException ex)
+            {
+                NotifyDescriptor d = new NotifyDescriptor.Message(ex.getMessage(), NotifyDescriptor.ERROR_MESSAGE);
+                DialogDisplayer.getDefault().notify(d);
+                return;
             }
-
 
             // Retrieve the original phrase
             RhythmVoice rv = rp.getRhythmVoice();
@@ -320,7 +319,7 @@ public class RP_SYS_DrumsTransformComp extends RealTimeRpEditorComponent<RP_SYS_
             // If unluckky we might be notified just before model is set
             return;
         }
-        
+
         float pos = -1;
         long tickPos = songPartContext.getRelativeTick(newPos);
         if (tickPos >= 0)
@@ -403,7 +402,8 @@ public class RP_SYS_DrumsTransformComp extends RealTimeRpEditorComponent<RP_SYS_
     private synchronized void setOriginalPhrase(Phrase p)
     {
         LOGGER.log(Level.FINE, "setOriginalPhrase() -- p={0}", p);
-        originalPhrase = new SizedPhrase(getChannel(), songPartContext.getBeatRange().getTransformed(-songPartContext.getBeatRange().from), timeSignature, p.isDrums());
+        originalPhrase = new SizedPhrase(getChannel(), songPartContext.getBeatRange().getTransformed(
+                -songPartContext.getBeatRange().from), timeSignature, p.isDrums());
         if (p != null)
         {
             originalPhrase.add(p);
@@ -428,14 +428,16 @@ public class RP_SYS_DrumsTransformComp extends RealTimeRpEditorComponent<RP_SYS_
         SizedPhrase sp = originalPhrase;
         if (sp == null)
         {
-            sp = new SizedPhrase(getChannel(), songPartContext.getBeatRange().getTransformed(-songPartContext.getBeatRange().from), timeSignature, true);
+            sp = new SizedPhrase(getChannel(), songPartContext.getBeatRange().getTransformed(-songPartContext.getBeatRange().from),
+                    timeSignature, true);
         }
         return sp;
     }
 
     private void updateAvailableTransformsList()
     {
-        List<PhraseTransform> pts = PhraseTransformManager.getDefault().getRecommendedPhraseTransforms(getOriginalPhrase(), songPartContext, true);
+        List<PhraseTransform> pts = PhraseTransformManager.getDefault().getRecommendedPhraseTransforms(getOriginalPhrase(),
+                songPartContext, true);
         DefaultListModel dlm = new DefaultListModel();
         dlm.addAll(pts);
         list_availableTransforms.setModel(dlm);
@@ -451,7 +453,8 @@ public class RP_SYS_DrumsTransformComp extends RealTimeRpEditorComponent<RP_SYS_
         // Update the birdviews
         var transformChainComplete = uiValue.getTransformChain(false);
         SizedPhrase inPhrase = getOriginalPhrase();
-        SizedPhrase outPhrase = (transformChainComplete == null) ? inPhrase : transformChainComplete.transform(inPhrase, songPartContext);
+        SizedPhrase outPhrase = (transformChainComplete == null) ? inPhrase : transformChainComplete.transform(inPhrase,
+                songPartContext);
         birdview_outPhrase.setModel(outPhrase, outPhrase.getTimeSignature(), outPhrase.getBeatRange());
         // birdview_outPhrase.setForeground(transformChain != null ? PHRASE_COMP_CUSTOMIZED_FOREGROUND : PHRASE_COMP_FOREGROUND);
         birdview_outPhrase.setForeground(transformChainComplete != null ? PHRASE_COMP_FOREGROUND : PHRASE_COMP_FOREGROUND);
@@ -494,7 +497,7 @@ public class RP_SYS_DrumsTransformComp extends RealTimeRpEditorComponent<RP_SYS_
         checkArgument(pt != null && pt.hasUserSettings(), "pt=%s", pt);
 
         // Listen to properties changes while dialog is shown.
-        PropertyChangeListener listener = e ->
+        PropertyChangeListener listener = e -> 
         {
             uiUpdatedByUser();
         };
