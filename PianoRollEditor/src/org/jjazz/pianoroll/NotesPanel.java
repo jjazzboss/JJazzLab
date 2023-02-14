@@ -65,9 +65,14 @@ import org.jjazz.util.api.Utilities;
 public class NotesPanel extends javax.swing.JPanel implements PropertyChangeListener
 {
 
-    private static final HSLColor BACKGROUND_NOTE_COLOR_BASE = new HSLColor(180f, 60f, 75f);
-    private static final int BACKGROUND_NOTE_ALPHA = 200;
-    private static final float HUE_STEP = 180f / 8;
+    private static final Color[] BACKGROUND_NOTE_COLORS = new Color[]
+    {
+        new Color(112, 168, 151), new Color(93, 120, 20), new Color(212, 143, 106), new Color(173, 201, 100),
+        new Color(14, 84, 63), new Color(58, 80, 0), new Color(128, 58, 21), new Color(67, 121, 131)
+    };
+
+    private Color nextBackgroundNoteColor = BACKGROUND_NOTE_COLORS[0];
+    private static final int BACKGROUND_NOTE_ALPHA = 90;
     private final KeyboardComponent keyboard;
     private final YMapper yMapper;
     private final XMapper xMapper;
@@ -77,7 +82,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
     private final TreeMap<NoteEvent, NoteView> mapNoteViews = new TreeMap<>();
     private Map<Integer, Phrase> mapChannelBackgroundPhrase;
     private final Map<Integer, Color> mapNameBackgroundNoteColor = new HashMap<>();
-    private HSLColor lastBackgroundNoteColor = BACKGROUND_NOTE_COLOR_BASE;
+
     private static final Logger LOGGER = Logger.getLogger(NotesPanel.class.getSimpleName());
 
 
@@ -560,11 +565,16 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
         Color c = mapNameBackgroundNoteColor.get(channel);
         if (c == null)
         {
-            float newHue = (lastBackgroundNoteColor.getHue() + HUE_STEP) % 360;
-            lastBackgroundNoteColor = new HSLColor(newHue, lastBackgroundNoteColor.getSaturation(),
-                    lastBackgroundNoteColor.getLuminance());
-            c = lastBackgroundNoteColor.getRGB();
+            c = nextBackgroundNoteColor;
             mapNameBackgroundNoteColor.put(channel, c);
+            for (int i = 0; i < BACKGROUND_NOTE_COLORS.length; i++)
+            {
+                if (BACKGROUND_NOTE_COLORS[i] == c)
+                {
+                    nextBackgroundNoteColor = BACKGROUND_NOTE_COLORS[(i + 1) % BACKGROUND_NOTE_COLORS.length];
+                    break;
+                }
+            }
         }
         return c;
     }
