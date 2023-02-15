@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiUnavailableException;
 import javax.swing.SwingUtilities;
@@ -39,6 +40,7 @@ import org.jjazz.phrase.api.PhraseSamples;
 import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythmmusicgeneration.api.MusicGenerationQueue;
+import org.jjazz.song.api.Song;
 import org.jjazz.songcontext.api.SongContext;
 import org.openide.util.Exceptions;
 
@@ -121,8 +123,9 @@ public class BackgroundPhraseManager implements PropertyChangeListener
             musicGenerationQueue.start();
 
 
-            // Regenerate music each time song context is musically updated
-            songMusicGenerationListener = new SongMusicGenerationListener(new SongContext(editor.getSong(), midiMix));
+            // Regenerate music each time song context is musically updated -except for our own phrase change events
+            songMusicGenerationListener = new SongMusicGenerationListener(editor.getSong(), midiMix);
+            songMusicGenerationListener.setBlackList(Set.of(Song.PROP_VETOABLE_USER_PHRASE_CONTENT));
             songMusicGenerationListener.addChangeListener(
                     e -> musicGenerationQueue.add(new SongContext(editor.getSong(), midiMix)));
         }
@@ -170,7 +173,7 @@ public class BackgroundPhraseManager implements PropertyChangeListener
      */
     private void musicGenerationResultReceived(MusicGenerationQueue.Result result)
     {
-        LOGGER.severe("musicGenerationResultReceived() -- ");
+        LOGGER.fine("musicGenerationResultReceived() -- ");
         lastResult = result;
 
         if (lastResult.userException() != null)

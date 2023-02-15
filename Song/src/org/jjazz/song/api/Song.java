@@ -60,6 +60,7 @@ import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.ClsChangeListener;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
+import org.jjazz.leadsheet.chordleadsheet.api.event.ClsActionEvent;
 import org.jjazz.leadsheet.chordleadsheet.api.event.ClsChangeEvent;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo;
@@ -70,6 +71,7 @@ import org.jjazz.songstructure.api.SongStructureFactory;
 import org.jjazz.songstructure.api.event.SgsChangeEvent;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SgsChangeListener;
+import org.jjazz.songstructure.api.event.SgsActionEvent;
 import org.jjazz.songstructure.api.event.SptAddedEvent;
 import org.jjazz.songstructure.api.event.SptRemovedEvent;
 import org.jjazz.songstructure.api.event.SptResizedEvent;
@@ -116,7 +118,9 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
      */
     public static final String PROP_MODIFIED_OR_SAVED_OR_RESET = "PROP_MODIFIED_OR_SAVED_OR_RESET";   //NOI18N 
     /**
-     * Fired each time the musical content of the song is modified (oldValue=false, newValue=true).
+     * Fired each time the musical content of the song is modified.
+     * <p>
+     * OldValue=false, newValue=the property name or ClsActionEvent/SgsActionEvent actionId that triggered the musical change.
      * <p>
      * Use PROP_MODIFIED_OR_SAVED_OR_RESET to get notified of any song change, including non-musical ones like tempo change,
      * phrase name change, etc.
@@ -162,7 +166,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
      *
      * @param name
      * @param cls
-     * @param sgs  Must be kept consistent with cls changes (sgs.getParentChordLeadSheet() must return cls)
+     * @param sgs Must be kept consistent with cls changes (sgs.getParentChordLeadSheet() must return cls)
      */
     protected Song(String name, ChordLeadSheet cls, SongStructure sgs)
     {
@@ -233,7 +237,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
      * Fire a PROP_VETOABLE_PHRASE_NAME change event (actually this property change event should never been vetoed, but this
      * allows caller to use a single vetoable listener for all user phrase events).
      *
-     * @param name    Must be the name of an existing phrase
+     * @param name Must be the name of an existing phrase
      * @param newName
      */
     public void renameUserPhrase(String name, String newName)
@@ -314,8 +318,8 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
      * made.
      * <p>
      * @param name Can't be blank.
-     * @param p    Can't be null. No defensive copy is done, p is directly reused. No control is done on the phrase consistency Vs
-     *             the song.
+     * @param p Can't be null. No defensive copy is done, p is directly reused. No control is done on the phrase consistency Vs
+     * the song.
      * @throws PropertyVetoException If no Midi channel available for the user phrase
      * @see Song#PROP_VETOABLE_USER_PHRASE
      * @see Song#PROP_VETOABLE_USER_PHRASE_CONTENT
@@ -368,7 +372,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
                         // Should never happen
                         Exceptions.printStackTrace(ex);
                     }
-                    fireIsMusicallyModified();
+                    fireIsMusicallyModified(PROP_VETOABLE_USER_PHRASE);
                     fireIsModified();
                 }
 
@@ -385,7 +389,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
                         // Should never happen
                         Exceptions.printStackTrace(ex);
                     }
-                    fireIsMusicallyModified();
+                    fireIsMusicallyModified(PROP_VETOABLE_USER_PHRASE);
                     fireIsModified();
                 }
             };
@@ -414,7 +418,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
                         // Should never happen
                         Exceptions.printStackTrace(ex);
                     }
-                    fireIsMusicallyModified();
+                    fireIsMusicallyModified(PROP_VETOABLE_USER_PHRASE_CONTENT);
                     fireIsModified();
                 }
 
@@ -432,7 +436,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
                         // Should never happen
                         Exceptions.printStackTrace(ex);
                     }
-                    fireIsMusicallyModified();
+                    fireIsMusicallyModified(PROP_VETOABLE_USER_PHRASE_CONTENT);
                     fireIsModified();
                 }
             };
@@ -442,7 +446,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
 
         }
 
-        fireIsMusicallyModified();
+        fireIsMusicallyModified(oldPhrase == null ? PROP_VETOABLE_USER_PHRASE : PROP_VETOABLE_USER_PHRASE_CONTENT);
         fireIsModified();
 
     }
@@ -804,8 +808,8 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
      * oldValue=true and newValue=false.
      *
      * @param songFile
-     * @param isCopy   Indicate that the save operation if for a copy, ie just perform the save operation and do nothing else
-     *                 (song name is not set, etc.)
+     * @param isCopy Indicate that the save operation if for a copy, ie just perform the save operation and do nothing else (song
+     * name is not set, etc.)
      * @throws java.io.IOException
      * @see getFile()
      */
@@ -960,7 +964,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
             // Listen to User phrases significant changes to mark the song as modified 
             if (!Phrase.isAdjustingEvent(e.getPropertyName()))
             {
-                fireIsMusicallyModified();
+                fireIsMusicallyModified(PROP_VETOABLE_USER_PHRASE_CONTENT);
                 fireIsModified();
             }
         }
@@ -979,8 +983,11 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
     @Override
     public void chordLeadSheetChanged(ClsChangeEvent event)
     {
-        fireIsMusicallyModified();
-        fireIsModified();
+        if (event instanceof ClsActionEvent ae && ae.isActionComplete())
+        {
+            fireIsMusicallyModified(ae.getActionId());
+            fireIsModified();
+        }
     }
 
     //------------------------------------------------------------------------------
@@ -995,18 +1002,25 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
     @Override
     public void songStructureChanged(SgsChangeEvent e)
     {
-
-        if (e instanceof SptAddedEvent
-                || e instanceof SptRemovedEvent
-                || e instanceof SptResizedEvent)
+        if (e instanceof SgsActionEvent ae && ae.isActionComplete())
         {
-            int newSize = getSize();
-            pcs.firePropertyChange(PROP_SIZE_IN_BARS, lastSize, newSize);
-            lastSize = newSize;
-        }
+            String actionId = ae.getActionId();
+            switch (actionId)
+            {
+                case "addSongParts", "removeSongParts", "resizeSongParts" ->
+                {
+                    int newSize = getSize();
+                    pcs.firePropertyChange(PROP_SIZE_IN_BARS, lastSize, newSize);
+                    lastSize = newSize;
+                }
+                default ->
+                {
+                }
+            }
 
-        fireIsMusicallyModified();
-        fireIsModified();
+            fireIsMusicallyModified(actionId);
+            fireIsModified();
+        }
     }
     // ----------------------------------------------------------------------------
     // Private methods 
@@ -1022,12 +1036,12 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
     }
 
     /**
-     * Fire a PROP_MUSIC_GENERATION property change event with oldValue=false, newValue=true
+     * Fire a PROP_MUSIC_GENERATION property change event with oldValue=false and the specified newValue.
      */
-    private void fireIsMusicallyModified()
+    private void fireIsMusicallyModified(String newValue)
     {
         needSave = true;
-        pcs.firePropertyChange(PROP_MUSIC_GENERATION, false, true);
+        pcs.firePropertyChange(PROP_MUSIC_GENERATION, false, newValue);
     }
 
     /**

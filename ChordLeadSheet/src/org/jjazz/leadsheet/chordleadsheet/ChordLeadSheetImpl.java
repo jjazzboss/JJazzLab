@@ -51,7 +51,6 @@ import org.openide.util.Exceptions;
 
 public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 {
-
     /**
      * The tree nodes who store the items per section.
      */

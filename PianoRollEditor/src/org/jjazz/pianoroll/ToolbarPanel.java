@@ -26,8 +26,6 @@ import java.awt.Component;
 import java.awt.Font;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.DefaultComboBoxModel;
@@ -36,8 +34,6 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.SpinnerNumberModel;
 import org.jjazz.midi.api.MidiUtilities;
-import org.jjazz.phrase.api.NoteEvent;
-import org.jjazz.phrase.api.Phrase;
 import org.jjazz.pianoroll.actions.HearSelection;
 import org.jjazz.pianoroll.actions.PlaybackAutoScroll;
 import org.jjazz.pianoroll.actions.SnapToGrid;
@@ -49,8 +45,6 @@ import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.uisettings.api.GeneralUISettings;
 import org.jjazz.util.api.ResUtil;
-import org.jjazz.util.api.Utilities;
-import org.openide.util.Exceptions;
 
 
 /**

@@ -62,9 +62,9 @@ public class ChordSymbolTextInput
      * "C7[2]" =&gt; C7 at pos=defaultPos.getBar()/beat 2<br>
      * "C7[1:2]" =&gt; C7 at pos=bar 1/beat 2
      * <p>
-     * @param str As produced by ChordSymboInput.toString(CLI_ChordSymbol).
+     * @param str        As produced by ChordSymboInput.toString(CLI_ChordSymbol).
      * @param defaultPos Used when position data is missing in str.
-     * @param cls The container for this CLI_ChordSymbol.
+     * @param cls        The container for this CLI_ChordSymbol.
      * @return
      * @throws ParseException
      */
@@ -116,17 +116,15 @@ public class ChordSymbolTextInput
     /**
      * Create CLI_ChordSymbols from a string containing chord symbols of one bar.
      * <p/>
-     * Examples of valid specification strings : "C6(1) F7(3) Em7(4.5)" : Add chord C6 on beat 0, F7 on beat 2 and Em7 on beat
-     * 3.5.
+     * Examples of valid specification strings : "C6(1) F7(3) Em7(4.5)" : Add chord C6 on beat 0, F7 on beat 2 and Em7 on beat 3.5.
      * <p/>
-     * There are special cases if chord symbols are specified without absolute positioning. These examples are based on a 4/4 bar
-     * : "C7" : add C7 on first beat. "C7 F7" : add C7 on first beat and F7 on half of the bar, e.g. like "C7(1) F7(3)". "C7 F7
-     * Gb7" : add C7 on first beat, F7 on half of the bar, Gb7 on last beat. Other nb of chord symbols : add the chords at regular
-     * intervals in the bar.
+     * There are special cases if chord symbols are specified without absolute positioning. These examples are based on a 4/4 bar : "C7" :
+     * add C7 on first beat. "C7 F7" : add C7 on first beat and F7 on half of the bar, e.g. like "C7(1) F7(3)". "C7 F7 Gb7" : add C7 on
+     * first beat, F7 on half of the bar, Gb7 on last beat. Other nb of chord symbols : add the chords at regular intervals in the bar.
      *
-     * @param str The String describing the chord symbols.
+     * @param str      The String describing the chord symbols.
      * @param barIndex The bar where CLI_ChordSymbol will belong to.
-     * @param cls The container for the created CLI_ChordSymbols.
+     * @param cls      The container for the created CLI_ChordSymbols.
      *
      * @return A list of CLI_ChordSymbol.
      *
@@ -220,7 +218,7 @@ public class ChordSymbolTextInput
      * @param str
      * @param barIndex
      * @param cls
-     * @param swing If true for example for 3/4 time signature place half-beat chord symbols at 1.666 (5/3) instead of 1.5
+     * @param swing    If true for example for 3/4 time signature place half-beat chord symbols at 1.666 (5/3) instead of 1.5
      * @return
      * @throws ParseException When thrown, GetErrorOffset() represents the faulty chord symbol index.
      */
@@ -302,7 +300,7 @@ public class ChordSymbolTextInput
                 for (String rawString : rawStrings)
                 {
                     pos = new Position(barIndex, beat);
-                    pos = Quantizer.getQuantized(swing ? Quantization.ONE_THIRD_BEAT : Quantization.HALF_BEAT, pos, ts, barIndex);
+                    pos = Quantizer.getQuantized(swing ? Quantization.ONE_THIRD_BEAT : Quantization.HALF_BEAT, pos, ts, 1f, barIndex);
                     CLI_ChordSymbol cs = toCLI_ChordSymbol(rawString, pos, cls);
                     errorChordIndex++;
                     newItems.add(cs);
@@ -312,7 +310,8 @@ public class ChordSymbolTextInput
         } catch (ParseException ex)
         {
             // Throw a new ParseException with error offset correctly set for str
-            assert errorChordIndex < rawStrings.length : "errorChordIndex=" + errorChordIndex + " rawStrings.length=" + rawStrings.length + " str=" + str;
+            assert errorChordIndex < rawStrings.length :
+                    "errorChordIndex=" + errorChordIndex + " rawStrings.length=" + rawStrings.length + " str=" + str;
             throw new ParseException(ex.getLocalizedMessage(), errorChordIndex);
         }
 
@@ -324,7 +323,7 @@ public class ChordSymbolTextInput
      * Make a string representing the bar chord symbols.<br>
      * This string can be used as input for toCLI_ChordSymbols().
      *
-     * @param ts The TimeSignature of the bar.
+     * @param ts    The TimeSignature of the bar.
      * @param items The chord symbols in the bar.
      *
      * @return
@@ -401,7 +400,7 @@ public class ChordSymbolTextInput
     {
         return items.stream()
                 .map(item -> toString(item, PositionDisplay.NO))
-                .collect(Collectors.joining(" "));        
+                .collect(Collectors.joining(" "));
     }
 
     /**

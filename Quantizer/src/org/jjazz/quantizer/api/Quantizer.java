@@ -22,8 +22,12 @@
  */
 package org.jjazz.quantizer.api;
 
+import com.google.common.base.Preconditions;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+import java.util.prefs.Preferences;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import static org.jjazz.quantizer.api.Quantization.BEAT;
@@ -32,6 +36,7 @@ import static org.jjazz.quantizer.api.Quantization.HALF_BEAT;
 import static org.jjazz.quantizer.api.Quantization.OFF;
 import static org.jjazz.quantizer.api.Quantization.ONE_QUARTER_BEAT;
 import static org.jjazz.quantizer.api.Quantization.ONE_THIRD_BEAT;
+import org.openide.util.NbPreferences;
 
 /**
  * Provide quantize related methods and properties.
@@ -39,8 +44,17 @@ import static org.jjazz.quantizer.api.Quantization.ONE_THIRD_BEAT;
 public class Quantizer
 {
 
+    public static final String PROP_ITERATIVE_QUANTIZE_STRENGTH = "IterativeQuantizeStrength";
+    public static final String PROP_ITERATIVE_ENABLED = "IterativeEnabled";
+    private static final float DEFAULT_ITERATIVE_QUANTIZE_STRENGTH = 0.15f;
+    private static final float ROUND_BEAT_WINDOW = 0.01f;
     private static Quantizer INSTANCE;
     private Quantization qValue;
+    private float iterativeQuantizeStrength;
+    private boolean iterativeEnabled;
+    private static Preferences prefs = NbPreferences.forModule(Quantizer.class);
+    private transient final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
+
 
     public static Quantizer getInstance()
     {
@@ -57,10 +71,66 @@ public class Quantizer
     private Quantizer()
     {
         qValue = Quantization.ONE_QUARTER_BEAT;
+        iterativeQuantizeStrength = prefs.getFloat(PROP_ITERATIVE_QUANTIZE_STRENGTH, DEFAULT_ITERATIVE_QUANTIZE_STRENGTH);
+        iterativeEnabled = prefs.getBoolean(PROP_ITERATIVE_ENABLED, true);
     }
 
     /**
-     * Return the closest quantized position using the Quantizer's quantization value.
+     * Convenience method to get the current quantization strength.
+     *
+     * @return 1f if isIterativeQuantizedEnabled() is false, otherwise return getIterativeQuantizeStrength().
+     */
+    public float getQuantizeStrength()
+    {
+        return iterativeEnabled ? iterativeQuantizeStrength : 1f;
+    }
+
+    /**
+     *
+     * @return @see #setIterativeQuantizeStrength(float)
+     */
+    public float getIterativeQuantizeStrength()
+    {
+        return iterativeQuantizeStrength;
+    }
+
+    /**
+     * Set the iterative quantize strength.
+     * <p>
+     * 1 means hard quantize. 0.2f means note is moved 0.2f * half_quantize_distance.
+     *
+     * @param strength A value in the ]0;1] range.
+     */
+    public void setIterativeQuantizeStrength(float strength)
+    {
+        Preconditions.checkArgument(strength > 0 && strength <= 1f, "strength=%s" + strength);
+        float old = this.iterativeQuantizeStrength;
+        this.iterativeQuantizeStrength = strength;
+        prefs.putFloat(PROP_ITERATIVE_QUANTIZE_STRENGTH, strength);
+        pcs.firePropertyChange(PROP_ITERATIVE_QUANTIZE_STRENGTH, old, strength);
+    }
+
+
+    public boolean isIterativeQuantizeEnabled()
+    {
+        return iterativeEnabled;
+    }
+
+    /**
+     * Set the value of iterativeEnabled
+     *
+     * @param b new value of iterativeEnabled
+     */
+    public void setIterativeQuantizeEnabled(boolean b)
+    {
+        boolean old = this.iterativeEnabled;
+        this.iterativeEnabled = b;
+        prefs.putBoolean(PROP_ITERATIVE_ENABLED, b);
+        pcs.firePropertyChange(PROP_ITERATIVE_ENABLED, old, b);
+    }
+
+    /**
+     * Return the closest quantized position using the Quantizer's global settings.
      *
      * @param pos         The original position.
      * @param ts          The TimeSignature for the original position.
@@ -68,38 +138,41 @@ public class Quantizer
      * @return
      * @see #getQuantized(org.jjazz.quantizer.api.Quantization, org.jjazz.leadsheet.chordleadsheet.api.item.Position,
      * org.jjazz.harmony.api.TimeSignature, int)
+     * @see #isIterativeQuantizeEnabled()
+     * @see #getIterativeQuantizeStrength()
      */
     public Position getQuantized(Position pos, TimeSignature ts, int maxBarIndex)
     {
-        return Quantizer.getQuantized(qValue, pos, ts, maxBarIndex);
+        return Quantizer.getQuantized(qValue, pos, ts, isIterativeQuantizeEnabled() ? getIterativeQuantizeStrength() : 1f, maxBarIndex);
     }
 
     /**
-     * Return the closest quantized position using the specified quantization setting.
+     * Return the closest quantized position using the specified quantization settings.
      *
      * @param q           The quantization setting
      * @param pos         The original position.
      * @param ts          The TimeSignature for the original position.
+     * @param qStrength   A value in the ]0;1] range. 1 means hard quantize. 0.2f means note is moved half_quantize_distance*0.2f.
      * @param maxBarIndex The quantized position can not exceed this maximum bar index.
      * @return
      */
-    static public Position getQuantized(Quantization q, Position pos, TimeSignature ts, int maxBarIndex)
+    static public Position getQuantized(Quantization q, Position pos, TimeSignature ts, float qStrength, int maxBarIndex)
     {
-        if (q == null || !ts.checkBeat(pos.getBeat()) || pos.getBar() > maxBarIndex)
-        {
-            throw new IllegalArgumentException("q=" + q + " pos=" + pos + " ts=" + ts + " maxBarIndex=" + maxBarIndex);   //NOI18N
-        }
-        
+        Preconditions.checkNotNull(q);
+        Preconditions.checkNotNull(pos);
+        Preconditions.checkNotNull(ts);
+        Preconditions.checkArgument(ts.checkBeat(pos.getBeat()), "ts=%s pos=%s", ts, pos);
+        Preconditions.checkArgument(pos.getBar() <= maxBarIndex, "pos=%s maxBarIndex=%s", pos, maxBarIndex);
+        Preconditions.checkArgument(qStrength > 0 && qStrength <= 1, "qStrength=%f", qStrength);
+
         Position newPos = switch (q)
         {
             case OFF ->
                 new Position(pos);
             case HALF_BAR ->
                 quantizeHalfBar(pos, ts, maxBarIndex, false);      // Half-bar straight
-            case BEAT, HALF_BEAT, ONE_THIRD_BEAT, ONE_QUARTER_BEAT, ONE_SIXTH_BEAT ->
-                quantizeStandard(pos, ts, maxBarIndex, q.getBeats());
             default ->
-                throw new IllegalStateException("quantization=" + q);   //NOI18N
+                quantizeImpl(pos, ts, maxBarIndex, qStrength, q.getBeats());
         };
 
         return newPos;
@@ -116,14 +189,13 @@ public class Quantizer
     {
         checkNotNull(q);
         checkArgument(beatPos >= 0, "q=%s beatPos=%s", q, beatPos);
+
         float res = switch (q)
         {
             case OFF, HALF_BAR ->
                 beatPos;      // We don't know the TimeSignature...
-            case BEAT, HALF_BEAT, ONE_THIRD_BEAT, ONE_QUARTER_BEAT, ONE_SIXTH_BEAT ->
-                quantizeStandard(beatPos, q.getBeats());
             default ->
-                throw new IllegalStateException("quantization=" + q);   //NOI18N
+                quantizeImpl(beatPos, q.getBeats());
         };
 
         return res;
@@ -225,6 +297,17 @@ public class Quantizer
         return q;
     }
 
+    public void addPropertyChangeListener(PropertyChangeListener listener)
+    {
+        pcs.addPropertyChangeListener(listener);
+    }
+
+
+    public void removePropertyChangeListener(PropertyChangeListener listener)
+    {
+        pcs.removePropertyChangeListener(listener);
+    }
+
 
     // ====================================================================================
     // Private methods
@@ -253,34 +336,63 @@ public class Quantizer
         return new Position(bar, beat);
     }
 
-    static private Position quantizeStandard(Position pos, TimeSignature ts, int maxBarIndex, float[] qPoints)
+    /**
+     * Perform the quantize.
+     *
+     * @param pos
+     * @param ts
+     * @param maxBarIndex
+     * @param qStrength   A value in the [0;1] range. 1 means a hard quantize.
+     * @param qPoints
+     * @return
+     */
+    static private Position quantizeImpl(Position pos, TimeSignature ts, int maxBarIndex, float qStrength, float[] qPoints)
     {
         float beatInt = (float) Math.floor(pos.getBeat());
-        float beatDecimal = pos.getBeat() - beatInt;
+        float beatFractionalPart = pos.getBeatFractionalPart();
         int bar = pos.getBar();
         int nbPoints = qPoints.length;
         for (int i = 0; i < (nbPoints - 1); i++)
         {
-            if (beatDecimal == qPoints[i] || beatDecimal == qPoints[i + 1])
+            if (beatFractionalPart == qPoints[i] || beatFractionalPart == qPoints[i + 1])
             {
                 // Already quantized
                 break;
             }
-            if (beatDecimal < qPoints[i + 1])
+            if (beatFractionalPart < qPoints[i + 1])
             {
                 // beat is in the range of these 2 values
                 float lower = qPoints[i];
                 float upper = qPoints[i + 1];
-                beatDecimal = (beatDecimal < ((lower + upper) / 2)) ? lower : upper;
+                float toUpper = upper - beatFractionalPart;
+                float toLower = beatFractionalPart - lower;
+                float step = ((upper - lower) / 2) * qStrength;
+                if (toLower < toUpper)
+                {
+                    // Go to lower
+                    beatFractionalPart -= step;
+                    if (beatFractionalPart - lower <= ROUND_BEAT_WINDOW)
+                    {
+                        beatFractionalPart = lower;
+                    }
+                } else
+                {
+                    // Go to upper
+                    beatFractionalPart += step;
+                    if (upper - beatFractionalPart <= ROUND_BEAT_WINDOW)
+                    {
+                        beatFractionalPart = upper;
+                    }
+                }
                 break;
             }
         }
 
         // Check if we reached the next bar
         Position newPos;
-        if (ts.checkBeat(beatInt + beatDecimal))
+        if (ts.checkBeat(beatInt + beatFractionalPart))
         {
-            newPos = new Position(bar, beatInt + beatDecimal);
+            newPos = new Position(bar, beatInt + beatFractionalPart);
         } else if ((bar + 1) <= maxBarIndex)
         {
             // Go to next bar
@@ -294,7 +406,7 @@ public class Quantizer
         return newPos;
     }
 
-    private static float quantizeStandard(float beatPos, float[] qPoints)
+    private static float quantizeImpl(float beatPos, float[] qPoints)
     {
         float res = beatPos;
         float beatInt = (float) Math.floor(beatPos);

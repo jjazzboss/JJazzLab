@@ -43,6 +43,7 @@ import org.jjazz.pianoroll.QuantizePanel;
 import org.jjazz.pianoroll.BackgroundPhrasesPanel;
 import org.jjazz.pianoroll.ToolbarPanel;
 import org.jjazz.pianoroll.actions.PasteNotes;
+import org.jjazz.pianoroll.actions.Quantize;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
 import org.jjazz.song.api.Song;
 import org.jjazz.songstructure.api.SgsChangeListener;
@@ -136,7 +137,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
 
         // Update the CollapsiblePanels
         cpan_quantize.getContentPane().setLayout(new BorderLayout());
-        quantizePanel = new QuantizePanel();
+        quantizePanel = new QuantizePanel(new Quantize(editor));
         cpan_quantize.getContentPane().add(quantizePanel, BorderLayout.CENTER);
         cpan_showTracks.getContentPane().setLayout(new BorderLayout());
         backgroundPhrasesPanel = new BackgroundPhrasesPanel();
@@ -356,6 +357,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
     {
         song.removePropertyChangeListener(this);
         song.getSongStructure().removeSgsChangeListener(this);
+        quantizePanel.cleanup();
         backgroundPhraseManager.cleanup();
         editor.cleanup();
         toolbarPanel.cleanup();

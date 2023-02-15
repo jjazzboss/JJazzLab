@@ -27,6 +27,9 @@ import java.util.List;
 import java.util.TreeSet;
 import org.jjazz.harmony.api.SymbolicDuration;
 
+/**
+ * Quantization possible values.
+ */
 public enum Quantization
 {
 

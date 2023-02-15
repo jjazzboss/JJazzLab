@@ -33,7 +33,7 @@ import org.jjazz.util.api.IntRange;
 /**
  * The model for a chord leadsheet.
  * <p>
- * The leadsheet is made of sections (a name + a time signature) and items like chord symbols. Implement must fire the relevant
+ * The leadsheet is made of sections (a name + a time signature) and items like chord symbols. Implementation must fire the relevant
  * ClsChangeEvents when a method mutates the chord leadsheet.
  * <p>
  * Regarding sections:<br>

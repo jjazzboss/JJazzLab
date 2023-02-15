@@ -30,7 +30,7 @@ import org.junit.*;
 public class QuantizerTest
 {
 
-    private Quantizer instance;
+    private final Quantizer instance;
     private int maxBarIndex;
     private Position pos;
     private TimeSignature ts;
@@ -38,7 +38,8 @@ public class QuantizerTest
     public QuantizerTest()
     {
         instance = Quantizer.getInstance();
-        instance.setQuantizationValue(Quantization.ONE_QUARTER_BEAT);
+        instance.setQuantizationValue(Quantization.HALF_BEAT);
+        instance.setIterativeQuantizeEnabled(false);
     }
 
     @BeforeClass

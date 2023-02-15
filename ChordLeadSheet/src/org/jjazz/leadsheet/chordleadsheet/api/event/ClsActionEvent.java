@@ -27,8 +27,9 @@ import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 /**
  * An event to indicate that a high-level ChordLeadSheet action that changes the leadsheet has started or is complete.
  * <p>
- * This can be used by listener to group lower-level change events by actionId. The actionId must be the corresponding method name
- * from the ChordLeadSheet interface, e.g. "addItem".
+ * All other ClsChangeEvents are always preceded and followed by one ClsActionEvent. This can be used by listener to group lower-level
+ * change events by actionId. The actionId must be the corresponding method name from the ChordLeadSheet interface, e.g.
+ * "addItem".
  * <p>
  * There is the guarantee that if a start ClsActionEvent is received, the complete ClsActionEvent will be received on the same
  * actionId. It's possible that no lower-level change event occur between 2 started/complete action events on the same actionId.
