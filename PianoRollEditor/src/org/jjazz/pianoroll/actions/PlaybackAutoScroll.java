@@ -29,8 +29,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
-import javax.swing.JComponent;
-import javax.swing.KeyStroke;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.PlaybackListenerAdapter;
@@ -45,7 +43,7 @@ import org.jjazz.util.api.ResUtil;
  */
 public class PlaybackAutoScroll extends ToggleAction implements PropertyChangeListener
 {
-
+    public static final String ACTION_ID = "PlaybackAutoScroll";
     private final PianoRollEditor editor;
     private MusicListener musicListener;
     private static final Logger LOGGER = Logger.getLogger(PlaybackAutoScroll.class.getSimpleName());
@@ -62,11 +60,6 @@ public class PlaybackAutoScroll extends ToggleAction implements PropertyChangeLi
         // putValue("JJazzDisabledIcon", new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PlaybackPointDisabled-24x24.png")));   //NOI18N                                
         putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(), "PlaybackAutoScrollToolip"));
         putValue("hideActionText", true);
-
-
-        // Keyboard shortcut
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("A"), "PlaybackAutoScroll");   //NOI18N
-        editor.getActionMap().put("PlaybackAutoScroll", this);   //NOI18N
 
 
         listenToTheMusic();

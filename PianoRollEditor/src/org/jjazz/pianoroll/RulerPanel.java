@@ -231,8 +231,8 @@ public class RulerPanel extends javax.swing.JPanel implements ClsChangeListener,
         // Draw chord symbols
         if (song != null)
         {
-            ChordSequence cs = new ChordSequence(song.getSongStructure().getBarRange());
-            SongChordSequence.fillChordSequence(cs, song, null);
+            ChordSequence cs = new ChordSequence(editor.getBarRange());
+            SongChordSequence.fillChordSequence(cs, song, editor.getBarRange());
             for (var cliCs : cs)
             {
                 var pos = cliCs.getPosition();

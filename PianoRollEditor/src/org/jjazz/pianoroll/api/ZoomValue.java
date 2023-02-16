@@ -23,20 +23,17 @@
 package org.jjazz.pianoroll.api;
 
 import com.google.common.base.Preconditions;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
  * Zoom value for an editor.
  * <p>
- * hValue and vValue must be in the range [0;100]. One of them can be the special ZOOM_TO_FIT value.
+ * hValue and vValue must be in the range [0;100].
  */
 public record ZoomValue(int hValue, int vValue)
         {
 
-    /**
-     * Special value which tells the editor to select the appropriate value to fit the available width OR height (not both).
-     */
-    public static final int ZOOM_TO_FIT = 99999;
     private static final Logger LOGGER = Logger.getLogger(ZoomValue.class.getSimpleName());
 
     /**
@@ -49,7 +46,7 @@ public record ZoomValue(int hValue, int vValue)
 
     public ZoomValue 
     {
-        if (!checkValue(hValue) || !checkValue(vValue) || (hValue == ZOOM_TO_FIT && vValue == ZOOM_TO_FIT))
+        if (!checkValue(hValue) || !checkValue(vValue))
         {
             throw new IllegalArgumentException("hValue=" + hValue + " vValue=" + vValue);
         }
@@ -92,14 +89,9 @@ public record ZoomValue(int hValue, int vValue)
      * @param hDelta
      * @param vDelta
      * @return
-     * @throws IllegalStateException If this object uses ZOOM_TO_FIT
      */
     public ZoomValue getCopy(int hDelta, int vDelta)
     {
-        if (hValue == ZOOM_TO_FIT || vValue == ZOOM_TO_FIT)
-        {
-            throw new IllegalStateException("hValue=" + hValue + " vValue=" + vValue);
-        }
         int newh = hValue + hDelta;
         newh = Math.max(0, newh);
         newh = Math.min(100, newh);
@@ -148,7 +140,7 @@ public record ZoomValue(int hValue, int vValue)
 
         if (res == null)
         {
-            LOGGER.warning("loadFromString() Illegal ZoomValue string=" + s + ". Using default value instead.");
+            LOGGER.log(Level.WARNING, "loadFromString() Illegal ZoomValue string={0}. Using default value instead.", s);
             res = new ZoomValue();
         }
 
@@ -157,6 +149,6 @@ public record ZoomValue(int hValue, int vValue)
 
     private boolean checkValue(int v)
     {
-        return (v >= 0 && v <= 100) || v == ZOOM_TO_FIT;
+        return (v >= 0 && v <= 100);
     }
 }

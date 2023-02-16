@@ -22,35 +22,28 @@
  */
 package org.jjazz.pianoroll.actions;
 
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.util.logging.Logger;
-import javax.swing.Action;
-import javax.swing.ImageIcon;
+import javax.swing.AbstractAction;
 import org.jjazz.pianoroll.api.PianoRollEditor;
-import org.jjazz.ui.utilities.api.ToggleAction;
-import org.jjazz.util.api.ResUtil;
+import org.jjazz.pianoroll.api.ZoomValue;
+import org.jjazz.ui.utilities.api.Zoomable;
+
 
 /**
- * Action to toggle the solo mode.
+ * Adjust zoom and scrollbars to try to make all notes visible.
  */
-public class Solo extends ToggleAction
+public class ZoomToFit extends AbstractAction
 {
-    public static final String ACTION_ID = "Solo";
+
+    public static final String ACTION_ID = "ZoomToFit";
     private final PianoRollEditor editor;
-    private static final Logger LOGGER = Logger.getLogger(Solo.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(ZoomToFit.class.getSimpleName());
 
-    public Solo(PianoRollEditor editor)
+    public ZoomToFit(PianoRollEditor editor)
     {
-        super(false);
-        
         this.editor = editor;
-
-        // UI settings for the FlatToggleButton
-        putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("resources/SoloOFF.png")));
-        setSelectedIcon(new ImageIcon(getClass().getResource("resources/SoloON.png")));
-        // putValue("JJazzDisabledIcon", new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PlaybackPointDisabled-24x24.png")));   //NOI18N                                
-        putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(), "SoloModeTooltip"));
-        putValue("hideActionText", true);
 
     }
 
@@ -58,19 +51,22 @@ public class Solo extends ToggleAction
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        setSelected(!isSelected());
+        var nvs = editor.getNoteViews();
+        if (nvs.isEmpty())
+        {
+            return;
+        }
+        Zoomable zoomable = editor.getLookup().lookup(Zoomable.class);
+        if (zoomable == null)
+        {
+            return;
+        }
+        zoomable.setZoomXFactorToFitContent();
+        zoomable.setZoomYFactorToFitContent();
     }
 
-    @Override
-    public void selectedStateChanged(boolean b)
-    {
-    }
-
- 
 
     // ====================================================================================
     // Private methods
     // ====================================================================================
-
-   
 }

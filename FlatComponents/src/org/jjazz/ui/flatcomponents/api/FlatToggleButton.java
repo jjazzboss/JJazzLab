@@ -183,7 +183,7 @@ public class FlatToggleButton extends FlatButton
     }
 
     /**
-     * Overridden to authorize only some specific types of Action.
+     * Set the button from a BooleanStateAction.
      * <p>
      * When this togglebutton is clicked it just calls action.actionPerformed(). Button selected state will follow the
      * BooleanStateAction.PROP_BOOLEAN_STATE action's property changes.
@@ -195,7 +195,7 @@ public class FlatToggleButton extends FlatButton
      * @param bsa A non-null BooleanStateAction.
      */
     @Deprecated
-    public void setAction(BooleanStateAction bsa)
+    public void setBooleanStateAction(BooleanStateAction bsa)
     {
         super.setAction(bsa);
         setSelectedIcon((Icon) bsa.getValue(Action.LARGE_ICON_KEY));
@@ -203,7 +203,7 @@ public class FlatToggleButton extends FlatButton
     }
 
     /**
-     * Overridden to authorize only some specific types of Action.
+     * Update button from a ToggleAction.
      * <p>
      * When this togglebutton is clicked it just calls action.actionPerformed(). Button selected state will follow the
      * Action.SELECTED_KEY action's property changes.
@@ -211,7 +211,7 @@ public class FlatToggleButton extends FlatButton
      *
      * @param ta
      */
-    public void setAction(ToggleAction ta)
+    public void setToggleAction(ToggleAction ta)
     {
         super.setAction(ta);
         setSelectedIcon(ta.getSelectedIcon());

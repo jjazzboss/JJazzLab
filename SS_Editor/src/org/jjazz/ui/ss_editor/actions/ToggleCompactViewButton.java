@@ -56,7 +56,7 @@ public class ToggleCompactViewButton extends FlatToggleButton implements Propert
 
 
         // Init UI from action properties 
-        // NB: action should be ideally a BooleanStateAction to use FlatToggleButton.setAction(), but BooleanStateAction generates
+        // NB: action should be ideally a BooleanStateAction to use FlatToggleButton.setBooleanStateAction(), but BooleanStateAction generates
         // an error when several instances are created from the same class (which is needed since there is 1 button per song)
         setIcon((Icon) toggleAction.getValue(Action.SMALL_ICON));
         setSelectedIcon((Icon) toggleAction.getValue(Action.LARGE_ICON_KEY));

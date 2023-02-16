@@ -70,9 +70,11 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
         new Color(112, 168, 151), new Color(93, 120, 20), new Color(212, 143, 106), new Color(173, 201, 100),
         new Color(14, 84, 63), new Color(58, 80, 0), new Color(128, 58, 21), new Color(67, 121, 131)
     };
-
     private Color nextBackgroundNoteColor = BACKGROUND_NOTE_COLORS[0];
     private static final int BACKGROUND_NOTE_ALPHA = 90;
+    private static final int ONE_BEAT_SIZE_IN_PIXELS_AT_ZOOM_ONE = 50;
+
+
     private final KeyboardComponent keyboard;
     private final YMapper yMapper;
     private final XMapper xMapper;
@@ -207,19 +209,19 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
     public Dimension getPreferredSize()
     {
         int h = yMapper.getLastKeyboardHeight();
-        int w = (int) (editor.getBeatRange().size() * 50 * scaleFactorX);
+        int w = computePreferredWidth(scaleFactorX);
         var res = new Dimension(w, h);
         LOGGER.log(Level.FINE, "getPreferredSize() res={0}", res);
         return res;
     }
 
+
     /**
-     * Change the X scale factor.
+     * Set the X scale factor.
      * <p>
      * This methods impacts the preferred size then calls revalidate() (and repaint()). Hence the notesPanel size is NOT directly updated
      * right after exiting method. Size will be updated once the EDT has finished processing the revalidate.
      * <p>
-     * This will
      *
      * @param factorX A value &gt; 0
      */
@@ -236,9 +238,28 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
     }
 
 
+    /**
+     * Get the current scale factor on the X axis.
+     *
+     * @return
+     */
     public float getScaleFactorX()
     {
         return scaleFactorX;
+    }
+
+    /**
+     * Compute the scale factor so that pixelWidth represents beatRange.
+     *
+     * @param pixelWidth
+     * @param beatRange
+     * @return
+     */
+    public float getScaleFactorX(int pixelWidth, float beatRange)
+    {
+        beatRange = Math.max(beatRange, 1f);
+        float factor = pixelWidth / (beatRange * ONE_BEAT_SIZE_IN_PIXELS_AT_ZOOM_ONE);
+        return factor;
     }
 
     public YMapper getYMapper()
@@ -577,6 +598,11 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
             }
         }
         return c;
+    }
+
+    private int computePreferredWidth(float scaleVFactor)
+    {
+        return (int) (editor.getBeatRange().size() * ONE_BEAT_SIZE_IN_PIXELS_AT_ZOOM_ONE * scaleVFactor);
     }
 
 

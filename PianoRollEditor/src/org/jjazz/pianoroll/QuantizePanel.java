@@ -26,6 +26,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.logging.Logger;
 import org.jjazz.pianoroll.actions.Quantize;
+import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.quantizer.api.Quantizer;
 
 /**
@@ -34,23 +35,22 @@ import org.jjazz.quantizer.api.Quantizer;
 public class QuantizePanel extends javax.swing.JPanel implements PropertyChangeListener
 {
 
-    private final Quantize quantizeAction;
     private static final Logger LOGGER = Logger.getLogger(QuantizePanel.class.getSimpleName());
+    private final PianoRollEditor editor;
 
 
     /**
      * Creates new form ToolsSidePanel
      */
-    public QuantizePanel(Quantize quantizeAction)
+    public QuantizePanel(PianoRollEditor editor)
     {
-        this.quantizeAction = quantizeAction;
+        this.editor = editor;
 
         initComponents();
 
         var quantizer = Quantizer.getInstance();
         cb_iterative.setSelected(quantizer.isIterativeQuantizeEnabled());
         quantizer.addPropertyChangeListener(this);
-
     }
 
     public void cleanup()
@@ -135,7 +135,7 @@ public class QuantizePanel extends javax.swing.JPanel implements PropertyChangeL
 
     private void btn_quantizeActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_quantizeActionPerformed
     {//GEN-HEADEREND:event_btn_quantizeActionPerformed
-        quantizeAction.actionPerformed(evt);
+        editor.getAction(Quantize.ACTION_ID).actionPerformed(evt);
     }//GEN-LAST:event_btn_quantizeActionPerformed
 
 

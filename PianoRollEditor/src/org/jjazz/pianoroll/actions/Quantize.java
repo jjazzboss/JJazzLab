@@ -25,8 +25,6 @@ package org.jjazz.pianoroll.actions;
 import java.awt.event.ActionEvent;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
-import javax.swing.JComponent;
-import javax.swing.KeyStroke;
 import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.quantizer.api.Quantizer;
 import org.jjazz.util.api.ResUtil;
@@ -36,7 +34,7 @@ import org.jjazz.util.api.ResUtil;
  */
 public class Quantize extends AbstractAction
 {
-
+    public static final String ACTION_ID = "Quantize";
     private final PianoRollEditor editor;
     private static final Logger LOGGER = Logger.getLogger(Quantize.class.getSimpleName());
 
@@ -44,9 +42,6 @@ public class Quantize extends AbstractAction
     {
         this.editor = editor;
 
-
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("Q"), "QuantizeNotes");   //NOI18N
-        editor.getActionMap().put("QuantizeNotes", this);   //NOI18N
     }
 
     @Override

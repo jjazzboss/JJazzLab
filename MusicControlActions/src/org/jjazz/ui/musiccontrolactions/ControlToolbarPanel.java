@@ -56,14 +56,14 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
         initComponents();
 
         // Initialize actions
-        fbtn_Active.setAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.setactive"));   //NOI18N
-        fbtn_Play.setAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.play"));   //NOI18N
-        fbtn_Pause.setAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.pause"));   //NOI18N
-        fbtn_Stop.setAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.stop"));   //NOI18N
-        fbtn_Click.setAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.click"));   //NOI18N
-        fbtn_Precount.setAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.precount"));   //NOI18N
-        fbtn_Loop.setAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.loop"));   //NOI18N
-        fbtn_PlaybackPoint.setAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.showplaybackpoint"));   //NOI18N
+        fbtn_Active.setBooleanStateAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.setactive"));   //NOI18N
+        fbtn_Play.setBooleanStateAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.play"));   //NOI18N
+        fbtn_Pause.setBooleanStateAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.pause"));   //NOI18N
+        fbtn_Stop.setBooleanStateAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.stop"));   //NOI18N
+        fbtn_Click.setBooleanStateAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.click"));   //NOI18N
+        fbtn_Precount.setBooleanStateAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.precount"));   //NOI18N
+        fbtn_Loop.setBooleanStateAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.loop"));   //NOI18N
+        fbtn_PlaybackPoint.setBooleanStateAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.showplaybackpoint"));   //NOI18N
         fbtn_next.setAction(Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.playbacktonextsongpart"));   //NOI18N
         fbtn_previous.setAction(Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.playbacktoprevioussongpart"));   //NOI18N
 

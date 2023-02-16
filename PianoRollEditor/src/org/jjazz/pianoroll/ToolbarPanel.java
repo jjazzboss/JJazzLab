@@ -43,6 +43,7 @@ import org.jjazz.pianoroll.api.NotesSelection;
 import org.jjazz.pianoroll.api.NotesSelectionListener;
 import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.quantizer.api.Quantization;
+import org.jjazz.ui.utilities.api.ToggleAction;
 import org.jjazz.uisettings.api.GeneralUISettings;
 import org.jjazz.util.api.ResUtil;
 
@@ -74,10 +75,10 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
         lbl_title.setText(title);
 
 
-        tbtn_hearNotes.setAction(new HearSelection(editor));
-        tbtn_snap.setAction(new SnapToGrid(editor));
-        tbtn_playbackAutoScroll.setAction(new PlaybackAutoScroll(editor));
-        tbtn_solo.setAction(new Solo(editor));
+        tbtn_hearNotes.setToggleAction((ToggleAction) editor.getAction(HearSelection.ACTION_ID));
+        tbtn_snap.setToggleAction((ToggleAction) editor.getAction(SnapToGrid.ACTION_ID));
+        tbtn_playbackAutoScroll.setToggleAction((ToggleAction) editor.getAction(PlaybackAutoScroll.ACTION_ID));
+        tbtn_solo.setToggleAction((ToggleAction) editor.getAction(Solo.ACTION_ID));
 
 
         var qModel = new DefaultComboBoxModel(Quantization.values());
@@ -288,7 +289,6 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
 
         tbtn_solo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/pianoroll/actions/resources/SoloOFF.png"))); // NOI18N
         tbtn_solo.setToolTipText(org.openide.util.NbBundle.getMessage(ToolbarPanel.class, "ToolbarPanel.tbtn_solo.toolTipText")); // NOI18N
-        tbtn_solo.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/pianoroll/actions/resources/SoloON.png"))); // NOI18N
         pnl_miscButtons.add(tbtn_solo);
 
         tbtn_playbackAutoScroll.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/pianoroll/actions/resources/PlaybackAutoScrollOFF.png"))); // NOI18N

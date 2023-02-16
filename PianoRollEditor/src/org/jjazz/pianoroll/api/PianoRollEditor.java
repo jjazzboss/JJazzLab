@@ -29,6 +29,7 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -46,6 +47,7 @@ import java.util.Objects;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JLayer;
@@ -69,13 +71,19 @@ import org.jjazz.pianoroll.RulerPanel;
 import org.jjazz.pianoroll.actions.CopyNotes;
 import org.jjazz.pianoroll.actions.CutNotes;
 import org.jjazz.pianoroll.actions.DeleteSelection;
+import org.jjazz.pianoroll.actions.HearSelection;
 import org.jjazz.pianoroll.actions.MoveSelectionLeft;
 import org.jjazz.pianoroll.actions.MoveSelectionRight;
 import org.jjazz.pianoroll.actions.PasteNotes;
+import org.jjazz.pianoroll.actions.PlaybackAutoScroll;
+import org.jjazz.pianoroll.actions.Quantize;
 import org.jjazz.pianoroll.actions.ResizeSelection;
 import org.jjazz.pianoroll.actions.SelectAllNotes;
+import org.jjazz.pianoroll.actions.SnapToGrid;
+import org.jjazz.pianoroll.actions.Solo;
 import org.jjazz.pianoroll.actions.TransposeSelectionDown;
 import org.jjazz.pianoroll.actions.TransposeSelectionUp;
+import org.jjazz.pianoroll.actions.ZoomToFit;
 import org.jjazz.pianoroll.edittools.EraserTool;
 import org.jjazz.pianoroll.edittools.PencilTool;
 import org.jjazz.pianoroll.edittools.SelectionTool;
@@ -87,6 +95,7 @@ import org.jjazz.song.api.Song;
 import org.jjazz.ui.keyboardcomponent.api.KeyboardComponent;
 import org.jjazz.ui.keyboardcomponent.api.KeyboardRange;
 import org.jjazz.ui.utilities.api.MidiFileDragInTransferHandler;
+import static org.jjazz.ui.utilities.api.Utilities.getGenericControlKeyStroke;
 import org.jjazz.ui.utilities.api.Zoomable;
 import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.util.api.FloatRange;
@@ -257,8 +266,8 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     /**
      * Associate an optional song to the editor.
      * <p>
-     * Put the song and a SaveAsCapable instance in the editor's lookup. Put also a Savable instance when required. The ruler can
-     * show the chord symbols and listen to chord symbols changes.<p>
+     * Put the song and a SaveAsCapable instance in the editor's lookup. Put also a Savable instance when required. The ruler can show the
+     * chord symbols and listen to chord symbols changes.<p>
      * <p>
      * This method can be called only once.
      *
@@ -333,8 +342,8 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     /**
      * Optional view-only phrases shown in the background of the editor.
      * <p>
-     * The specified phrases are shown faded in the background in order to facilite the editing of the Phrase model. E.g. if the
-     * edited phrase is a bass line, you can use this method to make the corresponding drums phrase also visible.
+     * The specified phrases are shown faded in the background in order to facilite the editing of the Phrase model. E.g. if the edited
+     * phrase is a bass line, you can use this method to make the corresponding drums phrase also visible.
      *
      * @param mapChannelPhrases A name associated to a Phrase.
      */
@@ -567,7 +576,8 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
             this.zoomValue, zoom
         });
 
-        if (zoomValue == null || zoomValue.hValue() != zoom.hValue())
+
+      if (zoomValue == null || zoomValue.hValue() != zoom.hValue())
         {
             // Save position center
             float saveCenterPosInBeats = getVisibleBeatRange().getCenter();
@@ -623,6 +633,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         return zoomValue;
     }
 
+
     /**
      * Set the display quantization.
      * <p>
@@ -630,7 +641,6 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
      *
      * @param q Accepted values are BEAT, HALF_BEAT, ONE_THIRD_BEAT, ONE_QUARTER_BEAT, ONE_SIXTH_BEAT.
      */
-
     public void setQuantization(Quantization q)
     {
         Preconditions.checkArgument(EnumSet.of(Quantization.BEAT,
@@ -696,7 +706,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     }
 
     /**
-     * Get all the NoteViews.
+     * Get all the NoteViews sorted by NoteEvent natural order.
      * <p>
      * @return
      */
@@ -977,6 +987,27 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     }
 
     /**
+     * Retrieve an editor action from its ActionMap.
+     *
+     * @param actionId
+     * @return
+     * @throws IllegalArgumentException If no action found
+     */
+    public Action getAction(String actionId)
+    {
+        Action a = getActionMap().get(actionId);
+        if (a == null)
+        {
+            a = notesPanel.getActionMap().get(actionId);
+        }
+        if (a == null)
+        {
+            throw new IllegalArgumentException("unknown actionId=" + actionId);
+        }
+        return a;
+    }
+
+    /**
      * @return The UndoManager used by this editor.
      */
     public JJazzUndoManager getUndoManager()
@@ -1154,6 +1185,12 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         nv.removePropertyChangeListener(this);
     }
 
+    private int toZoomHValue(float scaleFactorX)
+    {
+        int zoomHValue = (int) (100f * (scaleFactorX - 0.2f) / 4);
+        return zoomHValue;
+    }
+
     private float toScaleFactorX(int zoomHValue)
     {
         float xFactor = 0.2f + 4 * zoomHValue / 100f;
@@ -1276,24 +1313,39 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         getActionMap().put("jjazz-selectall", new SelectAllNotes(this));
 
 
-        // Use the notesPanel lookup to avoid the arrow keys being captured by the enclosing JScrollPane
+        // Other actions
+        getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("Q"), Quantize.ACTION_ID);
+        getActionMap().put(Quantize.ACTION_ID, new Quantize(this));
+        getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("H"), HearSelection.ACTION_ID);
+        getActionMap().put(HearSelection.ACTION_ID, new HearSelection(this));
+        getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("A"), PlaybackAutoScroll.ACTION_ID);
+        getActionMap().put(PlaybackAutoScroll.ACTION_ID, new PlaybackAutoScroll(this));
+        getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("G"), SnapToGrid.ACTION_ID);
+        getActionMap().put(SnapToGrid.ACTION_ID, new SnapToGrid(this));
+        getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("S"), Solo.ACTION_ID);
+        getActionMap().put(Solo.ACTION_ID, new Solo(this));
+        getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(getGenericControlKeyStroke(KeyEvent.VK_F), ZoomToFit.ACTION_ID);
+        getActionMap().put(ZoomToFit.ACTION_ID, new ZoomToFit(this));
+
+
+        // Actions which won't have an associated UI component
+        // Use the notesPanel input map to avoid the arrow keys being captured by the enclosing JScrollPane
         notesPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("LEFT"),
-                "MoveSelectionLeft");   //NOI18N        
+                "MoveSelectionLeft");
         notesPanel.getActionMap().put("MoveSelectionLeft", new MoveSelectionLeft(this));
         notesPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("RIGHT"),
-                "MoveSelectionRight");   //NOI18N        
+                "MoveSelectionRight");
         notesPanel.getActionMap().put("MoveSelectionRight", new MoveSelectionRight(this));
 
         notesPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("alt LEFT"),
-                "ResizeSelectionShorter");   //NOI18N
+                "ResizeSelectionShorter");
         notesPanel.getActionMap().put("ResizeSelectionShorter", new ResizeSelection(this, false));
         notesPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("alt RIGHT"),
-                "ResizeSelectionLonger");   //NOI18N
+                "ResizeSelectionLonger");
         notesPanel.getActionMap().put("ResizeSelectionLonger", new ResizeSelection(this, true));
-
-        notesPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("UP"), "TransposeUp");   //NOI18N
+        notesPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("UP"), "TransposeUp");
         notesPanel.getActionMap().put("TransposeUp", new TransposeSelectionUp(this));
-        notesPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("DOWN"), "TransposeDown");   //NOI18N
+        notesPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("DOWN"), "TransposeDown");
         notesPanel.getActionMap().put("TransposeDown", new TransposeSelectionDown(this));
 
 
@@ -1364,6 +1416,40 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
 
         }
 
+        @Override
+        public void setZoomYFactorToFitContent()
+        {
+            LOGGER.severe("setZoomYFactorToFitContent() -- TO BE IMPLEMENTED");
+        }
+
+        @Override
+        public void setZoomXFactorToFitContent()
+        {
+             // Try to show all notes horizontally in the visible rectangle
+            var nvs = getNoteViews();
+            if (nvs.isEmpty())
+            {
+                return;
+            }            
+            var firstNe = nvs.get(0).getModel();
+            var lastNe = nvs.get(nvs.size() - 1).getModel();
+
+            
+            int visibleWidthPixel = Math.max(100, scrollpane.getViewport().getViewRect().width);
+            var notesBeatRange = firstNe.getBeatRange().getUnion(lastNe.getBeatRange());
+            float beatRange = Math.max(4f, notesBeatRange.size());
+
+            
+            // Compute optimal scaleX
+            float factorX = notesPanel.getScaleFactorX(visibleWidthPixel, beatRange);
+            int zoomH = toZoomHValue(factorX);
+            setZoomXFactor(zoomH, false);
+            
+            
+            SwingUtilities.invokeLater(() -> scrollToCenter(notesBeatRange.getCenter()));
+            
+        }
+        
 
         @Override
         public void addPropertyListener(PropertyChangeListener l)
@@ -1379,6 +1465,8 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
             removePropertyChangeListener(Zoomable.PROPERTY_ZOOM_X, l);
             removePropertyChangeListener(Zoomable.PROPERTY_ZOOM_Y, l);
         }
+
+
     };
 
     /**

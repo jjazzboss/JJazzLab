@@ -52,7 +52,7 @@ public class AutoPreviewToolbarPanel extends javax.swing.JPanel implements Prope
         initComponents();
 
         // Initialize actions
-        fbtn_autopreview.setAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.autoupdate"));   //NOI18N
+        fbtn_autopreview.setBooleanStateAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.autoupdate"));   //NOI18N
 
      
         // Listen to the current Song changes

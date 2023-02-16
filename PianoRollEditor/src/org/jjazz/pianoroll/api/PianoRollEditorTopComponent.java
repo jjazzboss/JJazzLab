@@ -137,7 +137,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
 
         // Update the CollapsiblePanels
         cpan_quantize.getContentPane().setLayout(new BorderLayout());
-        quantizePanel = new QuantizePanel(new Quantize(editor));
+        quantizePanel = new QuantizePanel(editor);
         cpan_quantize.getContentPane().add(quantizePanel, BorderLayout.CENTER);
         cpan_showTracks.getContentPane().setLayout(new BorderLayout());
         backgroundPhrasesPanel = new BackgroundPhrasesPanel();

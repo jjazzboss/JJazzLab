@@ -61,7 +61,7 @@ public class RpCustomEditorFactoryImpl implements RpCustomEditorFactory
         if (rp instanceof RP_SYS_CustomPhrase)
         {
             var rpCustomPhrase = (RP_SYS_CustomPhrase) rp;
-            var editor = new RP_SYS_CustomPhraseComp(rpCustomPhrase);
+            var editor = new RP_SYS_CustomPhraseComp2(rpCustomPhrase);
             res = new RealTimeRpEditorDialog(editor);
 
         } else if (rp instanceof RP_SYS_DrumsTransform)

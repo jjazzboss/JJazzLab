@@ -24,6 +24,12 @@ package org.jjazz.ui.utilities.api;
 
 import java.beans.PropertyChangeListener;
 
+/**
+ * Zooming capabilities for an editor.
+ * <p>
+ * An editor which offers zoomable capabilities should put its Zoomable implementation in its TopComponent lookup, so that it will be
+ * automatically connected to the application-level X/Y zoom sliders when its TopComponent is active.
+ */
 public interface Zoomable
 {
 
@@ -47,10 +53,16 @@ public interface Zoomable
      * <p>
      * If value is changed fire a PROPERTY_ZOOM_Y change event.
      *
-     * @param factor A value between 0 and 100 included.
-     * @param valueIsAdjusting If true the value is still being adjusted, ie the user move is not finished (eg when moving a slider with the mouse).
+     * @param factor           A value between 0 and 100 included.
+     * @param valueIsAdjusting If true the value is still being adjusted, ie the user move is not finished (eg when moving a slider with the
+     *                         mouse).
      */
     void setZoomYFactor(int factor, boolean valueIsAdjusting);
+
+    /**
+     * Ask to adjust automatically the zoomY factor to fit the editor's content.
+     */
+    void setZoomYFactorToFitContent();
 
     /**
      * @return A value between 0 and 100 included.
@@ -62,10 +74,16 @@ public interface Zoomable
      * <p>
      * If value is changed fire a PROPERTY_ZOOM_X change event.
      *
-     * @param factor A value between 0 and 100 included.
-     * @param valueIsAdjusting If true the value is still being adjusted, ie the user move is not finished (eg when moving a slider with the mouse).
+     * @param factor           A value between 0 and 100 included.
+     * @param valueIsAdjusting If true the value is still being adjusted, ie the user move is not finished (eg when moving a slider with the
+     *                         mouse).
      */
     void setZoomXFactor(int factor, boolean valueIsAdjusting);
+
+    /**
+     * Ask to adjust automatically the zoomX factor to fit the editor's content.
+     */
+    void setZoomXFactorToFitContent();
 
     /**
      * Listen to the PROPERTY_ZOOM properties.

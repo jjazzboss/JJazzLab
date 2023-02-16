@@ -1813,5 +1813,17 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         {
             pcs.removePropertyChangeListener(l);
         }
+
+        @Override
+        public void setZoomYFactorToFitContent()
+        {
+            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        }
+
+        @Override
+        public void setZoomXFactorToFitContent()
+        {
+            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        }
     };
 }

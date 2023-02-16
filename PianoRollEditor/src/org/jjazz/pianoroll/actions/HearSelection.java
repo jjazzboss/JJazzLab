@@ -33,8 +33,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
-import javax.swing.JComponent;
-import javax.swing.KeyStroke;
 import javax.swing.event.ChangeListener;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
@@ -53,7 +51,7 @@ import org.openide.util.Exceptions;
  */
 public class HearSelection extends ToggleAction
 {
-
+    public static final String ACTION_ID = "HearSelection";
     private final PianoRollEditor editor;
     private CollectAndPlayNotesTask collectAndPlayNotesTask;
     private final ChangeListener changeListener;
@@ -71,12 +69,7 @@ public class HearSelection extends ToggleAction
         // putValue("JJazzDisabledIcon", new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PlaybackPointDisabled-24x24.png")));   //NOI18N                                
         putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(), "HearNoteTooltip"));
         putValue("hideActionText", true);
-
-
-        // Keyboard shortcut
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("H"), "ToggleHearNote");   //NOI18N
-        editor.getActionMap().put("ToggleHearNote", this);   //NOI18N
-
+  
 
         var nsl = getNotesSelectionListener();
         changeListener = evt -> selectionChanged(nsl.getLastNoteViewAddedToSelection());

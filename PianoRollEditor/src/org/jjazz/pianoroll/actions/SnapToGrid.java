@@ -38,13 +38,14 @@ import org.jjazz.util.api.ResUtil;
 public class SnapToGrid extends ToggleAction
 {
 
+    public static final String ACTION_ID = "SnapToGrid";
     private final PianoRollEditor editor;
     private static final Logger LOGGER = Logger.getLogger(SnapToGrid.class.getSimpleName());
 
     public SnapToGrid(PianoRollEditor editor)
     {
         super(editor.isSnapEnabled());
-        
+
         this.editor = editor;
 
         // UI settings for the FlatToggleButton
@@ -54,10 +55,6 @@ public class SnapToGrid extends ToggleAction
         putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(), "SnapTooltip"));
         putValue("hideActionText", true);
 
-
-        // Keyboard shortcut
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("G"), "SnapToGrid");   //NOI18N
-        editor.getActionMap().put("SnapToGrid", this);   //NOI18N
 
     }
 
@@ -74,11 +71,8 @@ public class SnapToGrid extends ToggleAction
         editor.setSnapEnabled(b);
     }
 
- 
 
     // ====================================================================================
     // Private methods
     // ====================================================================================
-
-   
 }
