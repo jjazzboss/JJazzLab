@@ -57,7 +57,6 @@ import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
-import org.jjazz.base.api.actions.Savable;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.midi.api.DrumKit;
@@ -89,8 +88,6 @@ import org.jjazz.pianoroll.edittools.PencilTool;
 import org.jjazz.pianoroll.edittools.SelectionTool;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
 import org.jjazz.quantizer.api.Quantization;
-import org.jjazz.savablesong.api.SavableSong;
-import org.jjazz.savablesong.api.SaveAsCapableSong;
 import org.jjazz.song.api.Song;
 import org.jjazz.ui.keyboardcomponent.api.KeyboardComponent;
 import org.jjazz.ui.keyboardcomponent.api.KeyboardRange;
@@ -113,7 +110,6 @@ import org.openide.util.lookup.ProxyLookup;
  * - editor's ActionMap<br>
  * - editor's Zoomable instance<br>
  * - the selected NoteViews<br>
- * - A Savable instance if model is modified.<br>
  */
 public class PianoRollEditor extends JPanel implements PropertyChangeListener
 {
@@ -280,19 +276,12 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         {
             throw new IllegalStateException("this.song is already set: " + this.song);
         }
+        
         this.song = song;
         generalLookupContent.add(song);
-        generalLookupContent.add(new SaveAsCapableSong(song)); // always enabled    
 
-        rulerPanel.setSong(song);
+        rulerPanel.setSong(song);     
 
-        if (song.needSave())
-        {
-            setSongModified();
-        }
-
-        // Listen to song save
-        song.addPropertyChangeListener(this);
     }
 
     public Song getSong()
@@ -556,10 +545,6 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         notesPanel.cleanup();
         model.removeUndoableEditListener(undoManager);
         model.removePropertyChangeListener(this);
-        if (song != null)
-        {
-            song.removePropertyChangeListener(this);
-        }
         firePropertyChange(PROP_EDITOR_ALIVE, true, false);
     }
 
@@ -1066,12 +1051,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
                 {
                 }
             }
-
-            if (!Phrase.isAdjustingEvent(evt.getPropertyName()))
-            {
-                setSongModified();
-            }
-
+       
         } else if (evt.getSource() instanceof NoteView nv)
         {
             if (evt.getPropertyName().equals(NoteView.PROP_SELECTED))
@@ -1084,15 +1064,6 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
                     selectionLookupContent.remove(nv);
                 }
             }
-        } else if (evt.getSource() == song)
-        {
-            if (evt.getPropertyName().equals(Song.PROP_MODIFIED_OR_SAVED_OR_RESET))
-            {
-                if (evt.getNewValue().equals(Boolean.FALSE))
-                {
-                    resetSongModified();
-                }
-            }
         }
     }
 
@@ -1100,36 +1071,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     // Private methods
     // =======================================================================================================================
 
-    private void setSongModified()
-    {
-        if (song == null)
-        {
-            return;
-        }
-        SavableSong s = lookup.lookup(SavableSong.class);
-        if (s == null)
-        {
-            s = new SavableSong(song);
-            Savable.ToBeSavedList.add(s);
-            generalLookupContent.add(s);
-        }
-    }
-
-    private void resetSongModified()
-    {
-        if (song == null)
-        {
-            return;
-        }
-        SavableSong s = lookup.lookup(SavableSong.class);
-        if (s != null)
-        {
-            Savable.ToBeSavedList.remove(s);
-            generalLookupContent.remove(s);
-        }
-    }
-
-
+  
     /**
      * Caller is responsible to call revalidate() and/or repaint() as required.
      * <p>

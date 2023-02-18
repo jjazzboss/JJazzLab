@@ -33,7 +33,7 @@ import java.util.concurrent.Callable;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import javax.swing.SwingUtilities;
-import org.jjazz.base.api.actions.Savable;
+import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongCreationException;
 import org.jjazz.startup.spi.StartupTask;
@@ -53,8 +53,8 @@ import org.openide.util.lookup.ServiceProvider;
 /**
  * Manage the opening/closing of song files at startup/shutdown.
  * <p>
- * Upon startup, if file names arguments are passed on the command line, open these files. Otherwise restore the last opened files
- * depending on setting. Upon shutdown ask for user confirmation for unsaved songs.
+ * Upon startup, if file names arguments are passed on the command line, open these files. Otherwise restore the last opened files depending
+ * on setting. Upon shutdown ask for user confirmation for unsaved songs.
  */
 @ServiceProvider(service = OptionProcessor.class)
 @OnStop
@@ -137,7 +137,8 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
             var fileNames = values.get(openOption);
             for (String fileName : fileNames)
             {
-                LOGGER.info("process() Opening command line file: " + fileName + ", current dir: " + env.getCurrentDirectory().getAbsolutePath());   //NOI18N
+                LOGGER.info(
+                        "process() Opening command line file: " + fileName + ", current dir: " + env.getCurrentDirectory().getAbsolutePath());   //NOI18N
 
                 // Normally fileName contains the absolute path, but just in case...
                 File file = new File(fileName);
@@ -184,8 +185,8 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
     /**
      * Called upon shutdown.
      * <p>
-     * Ask user confirmation if unsaved changes (whatever nb of unsaved files), close properly the opened songs (so that listeners
-     * with persistence like RecentFiles are notified).
+     * Ask user confirmation if unsaved changes (whatever nb of unsaved files), close properly the opened songs (so that listeners with
+     * persistence like RecentFiles are notified).
      * <p>
      * Also save the opened songs for possible reopen at startup (see isOpenRecentFilesUponStartup()).
      */
@@ -196,15 +197,25 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
 
 
         // Ask user confirmation if there are still files to be saved
-        List<Savable> savables = Savable.ToBeSavedList.getSavables();
-        if (!savables.isEmpty())
+        var songsToSave = sem.getOpenedSongs().stream()
+                .filter(s -> s.isSaveNeeded())
+                .toList();
+        if (!songsToSave.isEmpty())
         {
+            // Build message and songs which need save
             StringBuilder msg = new StringBuilder();
-            msg.append(ResUtil.getString(getClass(),"CTL_UnsavedChangesExitAnyway")).append("\n\n");
-            for (Savable s : savables)
+            msg.append(ResUtil.getString(getClass(), "CTL_UnsavedChangesExitAnyway")).append("\n\n");            
+            for (Song s : songsToSave)
             {
-                msg.append("  ").append(s.toString()).append("\n");
+                String strFile = s.getName();
+                if (s.getFile() != null)
+                {
+                    File songMixFile = FileDirectoryManager.getInstance().getSongMixFile(s.getFile());
+                    strFile = s.getFile().getAbsolutePath()+", "+songMixFile.getAbsolutePath();                    
+                }
+                msg.append("  ").append(strFile).append("\n");
             }
+            
             NotifyDescriptor nd = new NotifyDescriptor.Confirmation(msg.toString(), NotifyDescriptor.OK_CANCEL_OPTION);
             Object result = DialogDisplayer.getDefault().notify(nd);
             if (result != NotifyDescriptor.OK_OPTION)
@@ -271,7 +282,8 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
                         sem.showSong(f, last, true);
                     } catch (SongCreationException ex)
                     {
-                        LOGGER.warning("OpenFilesAtStartupTask.run() Problem opening song file: " + f.getAbsolutePath() + ". ex=" + ex.getMessage());   //NOI18N
+                        LOGGER.warning(
+                                "OpenFilesAtStartupTask.run() Problem opening song file: " + f.getAbsolutePath() + ". ex=" + ex.getMessage());   //NOI18N
                     }
                 }
 
@@ -303,7 +315,7 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
             {
                 final List<String> strFiles = Arrays.asList(s.split(","));
                 final int max = Math.min(strFiles.size(), MAX_FILES);         // Robustness
-                Runnable run = () ->
+                Runnable run = () -> 
                 {
                     for (int i = 0; i < max; i++)
                     {
@@ -314,7 +326,8 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
                             SongEditorManager.getInstance().showSong(f, last, true);
                         } catch (SongCreationException ex)
                         {
-                            LOGGER.warning("openRecentFilesUponStartup.run() Problem opening song file: " + f.getAbsolutePath() + ". ex=" + ex.getMessage());   //NOI18N
+                            LOGGER.warning(
+                                    "openRecentFilesUponStartup.run() Problem opening song file: " + f.getAbsolutePath() + ". ex=" + ex.getMessage());   //NOI18N
                         }
                     }
                 };

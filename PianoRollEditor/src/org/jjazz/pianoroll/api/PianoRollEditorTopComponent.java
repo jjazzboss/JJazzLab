@@ -49,7 +49,6 @@ import org.jjazz.songstructure.api.SgsChangeListener;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.event.SgsActionEvent;
 import org.jjazz.songstructure.api.event.SgsChangeEvent;
-import org.jjazz.ui.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.ui.utilities.api.CollapsiblePanel;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.util.api.FloatRange;

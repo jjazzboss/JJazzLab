@@ -31,9 +31,7 @@ import java.util.Set;
 import java.util.logging.Logger;
 import javax.swing.Action;
 import org.jjazz.activesong.api.ActiveSongManager;
-import org.jjazz.base.api.actions.Savable;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
-import org.jjazz.savablesong.api.SavableSong;
 import org.jjazz.song.api.Song;
 import org.jjazz.ui.cl_editor.CL_EditorController;
 import org.openide.DialogDisplayer;
@@ -151,8 +149,8 @@ public final class CL_EditorTopComponent extends TopComponent implements Propert
             return true;
         }
 
-        SavableSong ss = getLookup().lookup(SavableSong.class);
-        if (ss != null)
+        
+        if (songModel.isSaveNeeded())
         {
             String msg = songModel.getName() + " : " + ResUtil.getString(getClass(), "CTL_CL_ConfirmClose");
             NotifyDescriptor nd = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.OK_CANCEL_OPTION);
@@ -268,11 +266,6 @@ public final class CL_EditorTopComponent extends TopComponent implements Propert
     @Override
     public void componentClosed()
     {
-        SavableSong ss = getLookup().lookup(SavableSong.class);
-        if (ss != null)
-        {
-            Savable.ToBeSavedList.remove(ss);
-        }
         songModel.removePropertyChangeListener(this);
         ActiveSongManager.getInstance().removePropertyListener(this);
         clEditor.cleanup();
@@ -330,7 +323,7 @@ public final class CL_EditorTopComponent extends TopComponent implements Propert
     {
         boolean isActive = ActiveSongManager.getInstance().getActiveSong() == songModel;
         String name = isActive ? songModel.getName() + " [ON]" : songModel.getName();
-        if (songModel.needSave())
+        if (songModel.isSaveNeeded())
         {
             setHtmlDisplayName("<html><b>" + name + "</b></html>");
         } else

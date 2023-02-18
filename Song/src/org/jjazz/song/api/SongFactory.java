@@ -173,7 +173,7 @@ public class SongFactory implements PropertyChangeListener
         // Update song
         song.setFile(f);
         song.setName(Song.removeSongExtension(f.getName()));
-        song.resetNeedSave();
+        song.setSaveNeeded(false);
         registerSong(song);
 
 
@@ -314,7 +314,7 @@ public class SongFactory implements PropertyChangeListener
         }
         int tempo = song.getSongStructure().getSongPart(0).getRhythm().getPreferredTempo();
         song.setTempo(tempo);
-        song.resetNeedSave();
+        song.setSaveNeeded(false);
         registerSong(song);
         return song;
     }
@@ -415,7 +415,7 @@ public class SongFactory implements PropertyChangeListener
             }
         }
 
-        s.resetNeedSave();
+        s.setSaveNeeded(false);
         if (register)
         {
             registerSong(s);
@@ -489,7 +489,7 @@ public class SongFactory implements PropertyChangeListener
         }
 
 
-        s.resetNeedSave();
+        s.setSaveNeeded(false);
         if (register)
         {
             registerSong(s);

@@ -52,8 +52,6 @@ import javax.swing.Box;
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListCellRenderer;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JList;
 import javax.swing.JMenuBar;
@@ -64,17 +62,11 @@ import javax.swing.TransferHandler;
 import static javax.swing.TransferHandler.COPY;
 import javax.swing.undo.UndoManager;
 import org.jjazz.activesong.api.ActiveSongManager;
-import org.jjazz.base.api.actions.Savable;
 import org.jjazz.harmony.api.TimeSignature;
-import org.jjazz.midi.api.DrumKit;
-import org.jjazz.midi.api.Instrument;
 import org.jjazz.midi.api.InstrumentMix;
 import org.jjazz.midi.api.JJazzMidiSystem;
-import org.jjazz.midi.api.synths.GM1Instrument;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
-import org.jjazz.savablesong.api.SavableSong;
-import org.jjazz.savablesong.api.SaveAsCapableSong;
 import org.jjazz.song.api.Song;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.MidiMixManager;
@@ -108,7 +100,6 @@ import org.jjazz.ui.mixconsole.UserExtensionPanel;
 import org.jjazz.ui.mixconsole.UserExtensionPanelController;
 import org.jjazz.ui.utilities.api.FileTransferable;
 import org.jjazz.util.api.ResUtil;
-import org.netbeans.api.annotations.common.StaticResource;
 import org.netbeans.api.options.OptionsDisplayer;
 import org.openide.awt.MenuBar;
 import org.openide.filesystems.FileUtil;
@@ -121,8 +112,7 @@ import org.openide.loaders.DataFolder;
  * - our ActionMap<br>
  * - the currently edited Song<br>
  * - the currently edited MidiMix<br>
- * - Savable and SaveAsCapable instances<p>
- * .
+ * 
  * The MixConsole Netbeans MenuBar is built from subfolders and actions available in the Actions/MixConsole/MenuBar layer folder.
  */
 public class MixConsole extends JPanel implements PropertyChangeListener, ActionListener
@@ -155,8 +145,6 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
     private final WeakHashMap<Song, Rhythm> mapVisibleRhythm;
     private final MixConsoleSettings settings;
     private final MenuBar menuBar;
-    private SavableSong savableSong;
-    private SaveAsCapableSong saveAsCapableSong;
 
     private static final Logger LOGGER = Logger.getLogger(MixConsole.class.getSimpleName());
 
@@ -531,11 +519,8 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
                     boolean b = (boolean) e.getNewValue();
                     if (b)
                     {
-                        setSongModified();
-                    } else
-                    {
-                        resetSongModified();
-                    }
+                        songModel.setSaveNeeded(true);
+                    } 
                 }
                 default ->
                 {
@@ -612,8 +597,6 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         // Store our MidiMix in the lookup, the Song model, plus a SaveAsCapable object
         instanceContent.add(songMidiMix);
         instanceContent.add(songModel);
-        saveAsCapableSong = new SaveAsCapableSong(songModel);
-        instanceContent.add(saveAsCapableSong); // always enabled
 
         // Update the console with MidiMix changes
         songMidiMix.addPropertyChangeListener(this);
@@ -844,25 +827,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         }
     }
 
-    private void setSongModified()
-    {
-        if (savableSong == null)
-        {
-            savableSong = new SavableSong(songModel);
-            Savable.ToBeSavedList.add(savableSong);
-            instanceContent.add(savableSong);
-        }
-    }
 
-    private void resetSongModified()
-    {
-        if (savableSong != null)
-        {
-            Savable.ToBeSavedList.remove(savableSong);
-            instanceContent.remove(savableSong);
-            savableSong = null;
-        }
-    }
 
     private void resetModel()
     {
@@ -874,11 +839,6 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
             assert um != null;   //NOI18N
             songMidiMix.removeUndoableEditListener(um);
         }
-        if (saveAsCapableSong != null)
-        {
-            instanceContent.remove(saveAsCapableSong);
-        }
-        resetSongModified();
         if (songMidiMix != null)
         {
             songMidiMix.removePropertyChangeListener(this);

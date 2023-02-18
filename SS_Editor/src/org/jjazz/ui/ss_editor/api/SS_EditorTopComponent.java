@@ -35,10 +35,8 @@ import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.SwingUtilities;
 import org.jjazz.activesong.api.ActiveSongManager;
-import org.jjazz.base.api.actions.Savable;
 import org.jjazz.song.api.Song;
 import org.jjazz.ui.ss_editor.SS_EditorController;
-import org.jjazz.savablesong.api.SavableSong;
 import org.openide.awt.UndoRedo;
 import org.openide.util.Lookup;
 import org.openide.util.Utilities;
@@ -308,7 +306,6 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
         {
             // If CL_Editor is first closed, just let this TopComponent be closed
             // If CL_Editor is still here, user is closing this TopComponent first, rely on CL_Editor canClose() logic 
-            // because CL_Editor listens to song changes to add a Savable instance in its lookup
             return pairedTc.isOpened() ? pairedTc.canClose() : true;
         }
 
@@ -319,11 +316,6 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
     @Override
     public void componentClosed()
     {
-        SavableSong ss = getLookup().lookup(SavableSong.class);
-        if (ss != null)
-        {
-            Savable.ToBeSavedList.remove(ss);
-        }
         songModel.removePropertyChangeListener(this);
         ssEditor.cleanup();
     }
@@ -376,7 +368,7 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
     {
         boolean isActive = ActiveSongManager.getInstance().getActiveSong() == songModel;
         String name = isActive ? songModel.getName() + " [ON]" : songModel.getName();
-        if (songModel.needSave())
+        if (songModel.isSaveNeeded())
         {
             setHtmlDisplayName("<html><b>" + name + "</b></html>");
         } else

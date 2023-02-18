@@ -65,11 +65,9 @@ public class Utilities
     private static boolean changedRootLogger = false;
 
     /**
-     * Make logging message include a time stamp in milliseconds, relative to the time of the first logged message in the
-     * application.
+     * Make logging message include a time stamp in milliseconds, relative to the time of the first logged message in the application.
      * <p>
-     * Note: this will impact other Logging of other modules as well, but if not registered explicitly, class will be displayed as
-     * null.
+     * Note: this will impact other Logging of other modules as well, but if not registered explicitly, class will be displayed as null.
      *
      * @param logger The logger for which to apply the new logging message
      */
@@ -209,7 +207,7 @@ public class Utilities
         List<URL> res = new ArrayList<>();
 
         Scanner s = new Scanner(text);
-        s.findAll("https?://.*").forEach(r ->
+        s.findAll("https?://.*").forEach(r -> 
         {
             String str = r.group();
             try
@@ -239,7 +237,7 @@ public class Utilities
         List<File> res = new ArrayList<>();
 
         Scanner s = new Scanner(text);
-        s.findAll("file:/.*").forEach(r ->
+        s.findAll("file:/.*").forEach(r -> 
         {
             String str = r.group();
             try
@@ -590,7 +588,8 @@ public class Utilities
 
         LOGGER.fine("extractZipResource() -- myClass=" + myClass + " zipResource=" + zipResource + " destDir=" + destDir);   //NOI18N
         ArrayList<File> res = new ArrayList<>();
-        try (InputStream is = myClass.getResourceAsStream(zipResource); BufferedInputStream bis = new BufferedInputStream(is); ZipInputStream zis = new ZipInputStream(bis))
+        try (InputStream is = myClass.getResourceAsStream(zipResource); BufferedInputStream bis = new BufferedInputStream(is); ZipInputStream zis = new ZipInputStream(
+                bis))
         {
             ZipEntry entry;
             byte[] buffer = new byte[2048];
@@ -616,7 +615,8 @@ public class Utilities
                 {
                     continue;
                 }
-                try (FileOutputStream fos = new FileOutputStream(destFile); BufferedOutputStream bos = new BufferedOutputStream(fos, buffer.length))
+                try (FileOutputStream fos = new FileOutputStream(destFile); BufferedOutputStream bos = new BufferedOutputStream(fos,
+                        buffer.length))
                 {
                     int len;
                     while ((len = zis.read(buffer)) > 0)
@@ -628,7 +628,8 @@ public class Utilities
             }
         } catch (IOException ex)
         {
-            LOGGER.log(Level.SEVERE, "extractZipResource() problem extracting resource for myClass=" + myClass + " zipResource=" + zipResource + " ex=" + ex.getMessage());   //NOI18N
+            LOGGER.log(Level.SEVERE,
+                    "extractZipResource() problem extracting resource for myClass=" + myClass + " zipResource=" + zipResource + " ex=" + ex.getMessage());   //NOI18N
         }
         return res;
     }
@@ -663,7 +664,9 @@ public class Utilities
             }
         } catch (IOException ex)
         {
-            LOGGER.log(Level.SEVERE, "copyResource() problem copying resource. c=" + c + ", resourcePath=" + resourceFilePath + ", targetFile=" + targetFile, ex);   //NOI18N
+            LOGGER.log(Level.SEVERE,
+                    "copyResource() problem copying resource. c=" + c + ", resourcePath=" + resourceFilePath + ", targetFile=" + targetFile,
+                    ex);   //NOI18N
         }
 
         return b;
@@ -749,19 +752,19 @@ public class Utilities
     {
         return "e.src=" + e.getSource().getClass().getSimpleName()
                 + "   e.prop=" + e.getPropertyName()
-                + "   e.new=" + (e.getNewValue() == null ? "null" : truncateWithDots(e.getNewValue().toString(), 30)) 
-                + "   e.old=" + (e.getOldValue() == null ? "null" : truncateWithDots(e.getOldValue().toString(), 30));
+                + "   e.old=" + (e.getOldValue() == null ? "null" : truncateWithDots(e.getOldValue().toString(), 30))
+                + "   e.new=" + (e.getNewValue() == null ? "null" : truncateWithDots(e.getNewValue().toString(), 30));
     }
 
     /**
      * Gets the base location of the given class. Manage all OS variations and possible problems in characters...
      * <p>
-     * If the class is directly on the file system (e.g., "/path/to/my/package/MyClass.class") then it will return the base
-     * directory (e.g., "file:/path/to").
+     * If the class is directly on the file system (e.g., "/path/to/my/package/MyClass.class") then it will return the base directory (e.g.,
+     * "file:/path/to").
      * </p>
      * <p>
-     * If the class is within a JAR file (e.g., "/path/to/my-jar.jar!/my/package/MyClass.class") then it will return the path to
-     * the JAR (e.g., "file:/path/to/my-jar.jar").
+     * If the class is within a JAR file (e.g., "/path/to/my-jar.jar!/my/package/MyClass.class") then it will return the path to the JAR
+     * (e.g., "file:/path/to/my-jar.jar").
      * </p>
      *
      * @param c The class whose location is desired.
@@ -827,8 +830,8 @@ public class Utilities
     /**
      * Converts the given {@link URL} to its corresponding {@link File}.
      * <p>
-     * This method is similar to calling {@code new File(url.toURI())} except that it also handles "jar:file:" U Sgs, returning
-     * the path to the JAR file.
+     * This method is similar to calling {@code new File(url.toURI())} except that it also handles "jar:file:" U Sgs, returning the path to
+     * the JAR file.
      * </p>
      *
      * @param url The URL to convert.
@@ -1152,7 +1155,8 @@ public class Utilities
                 // Wait a while for tasks to respond to being cancelled
                 if (!pool.awaitTermination(waitCancelTimeMs, TimeUnit.MILLISECONDS))
                 {
-                    LOGGER.warning("shutdownAndAwaitTermination() Pool did not terminate within " + (waitTerminationTimeMs + waitCancelTimeMs) + "ms");
+                    LOGGER.warning(
+                            "shutdownAndAwaitTermination() Pool did not terminate within " + (waitTerminationTimeMs + waitCancelTimeMs) + "ms");
                 }
             }
         } catch (InterruptedException ie)

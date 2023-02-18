@@ -205,7 +205,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      * Get a deep copy of this MidiMix.
      * <p>
      * Mutable internal objects are deeply copied, e.g. InstrumentMixes.<br>
-     * Not copied: undoableListeners, needSave.
+ Not copied: undoableListeners, isSaveNeeded.
      *
      * @return
      */

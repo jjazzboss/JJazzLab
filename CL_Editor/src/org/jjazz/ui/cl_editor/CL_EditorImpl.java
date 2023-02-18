@@ -50,7 +50,6 @@ import javax.swing.Scrollable;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.event.SwingPropertyChangeSupport;
-import org.jjazz.base.api.actions.Savable;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.Section;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
@@ -77,8 +76,6 @@ import org.openide.util.lookup.InstanceContent;
 import org.openide.util.lookup.ProxyLookup;
 import org.jjazz.leadsheet.chordleadsheet.api.ClsChangeListener;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
-import org.jjazz.savablesong.api.SavableSong;
-import org.jjazz.savablesong.api.SaveAsCapableSong;
 import org.jjazz.song.api.Song;
 import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.quantizer.api.Quantizer;
@@ -242,7 +239,6 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         playbackPointLastPos = null;
 
         // Listen to our model changes
-        songModel.addPropertyChangeListener(this);
         clsModel = songModel.getChordLeadSheet();
         clsModel.addClsChangeListener(this);
 
@@ -255,17 +251,10 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         }
 
         // Fill our lookup
-        generalLookupContent.add(new SaveAsCapableSong(songModel)); // always enabled
         generalLookupContent.add(clsModel);
         generalLookupContent.add(songModel);
 
-
-        if (songModel.needSave())
-        {
-            setSongModified();
-        }
-
-
+        
         // Add or remove barboxes at the end if required
         int newSizeInBars = computeNbBarBoxes(NB_EXTRA_LINES);
         setNbBarBoxes(newSizeInBars);  // This will update our songModel via getDisplayQuantizationValue() then Song.putClientProperty()
@@ -327,13 +316,6 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
             clsModel.removeUndoableEditListener(undoManager);
         }
         generalLookupContent.remove(clsModel);
-        songModel.removePropertyChangeListener(this);
-        SaveAsCapableSong saveAsCapableSong = lookup.lookup(SaveAsCapableSong.class);
-        if (saveAsCapableSong != null)
-        {
-            generalLookupContent.remove(saveAsCapableSong);
-        }
-        resetSongModified();
         generalLookupContent.remove(songModel);
         settings.removePropertyChangeListener(this);
 
@@ -928,20 +910,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
                     {
                         setBackground(settings.getBackgroundColor());
                     }
-                } else if (evt.getSource() == songModel)
-                {
-                    if (evt.getPropertyName().equals(Song.PROP_MODIFIED_OR_SAVED_OR_RESET))
-                    {
-                        boolean b = (boolean) evt.getNewValue();
-                        if (b)
-                        {
-                            setSongModified();
-                        } else
-                        {
-                            resetSongModified();
-                        }
-                    }
-                }
+                } 
             }
         };
         org.jjazz.ui.utilities.api.Utilities.invokeLaterIfNeeded(run);
@@ -1289,27 +1258,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     // ----------------------------------------------------------------------------------
     // Private functions
     // ----------------------------------------------------------------------------------
-    private void setSongModified()
-    {
-        SavableSong s = lookup.lookup(SavableSong.class);
-        if (s == null)
-        {
-            s = new SavableSong(songModel);
-            Savable.ToBeSavedList.add(s);
-            generalLookupContent.add(s);
-        }
-    }
-
-    private void resetSongModified()
-    {
-        SavableSong s = lookup.lookup(SavableSong.class);
-        if (s != null)
-        {
-            Savable.ToBeSavedList.remove(s);
-            generalLookupContent.remove(s);
-        }
-    }
-
+  
     /**
      * Calculate the number of BarBoxes required to accomodate clsModel's size.
      * <p>

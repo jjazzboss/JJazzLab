@@ -211,7 +211,7 @@ public class SongEditorManager implements PropertyChangeListener
             // like quantization of zoom factors. This makes the song appear as "modified/savable" by default.
             if (!savable)
             {
-                SwingUtilities.invokeLater(() -> song.resetNeedSave());
+                SwingUtilities.invokeLater(() -> song.setSaveNeeded(false));
             }
 
         };
@@ -419,7 +419,7 @@ public class SongEditorManager implements PropertyChangeListener
                     Song song = ssTc.getSongModel();
                     var clTc = getEditors(song).getCL_EditorTc();
                     var prTc = getEditors(song).getPianoRollTc();
-                    if (prTc == null || WindowManager.getDefault().findMode(prTc).getSelectedTopComponent() != prTc)
+                    if (prTc == null || WindowManager.getDefault().findMode(PianoRollEditorTopComponent.MODE).getSelectedTopComponent() != prTc)
                     {
                         clTc.requestVisible();
                     }

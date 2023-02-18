@@ -72,9 +72,6 @@ import org.jjazz.songstructure.api.event.SgsChangeEvent;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SgsChangeListener;
 import org.jjazz.songstructure.api.event.SgsActionEvent;
-import org.jjazz.songstructure.api.event.SptAddedEvent;
-import org.jjazz.songstructure.api.event.SptRemovedEvent;
-import org.jjazz.songstructure.api.event.SptResizedEvent;
 import org.jjazz.undomanager.api.SimpleEdit;
 import org.jjazz.util.api.ResUtil;
 import org.openide.DialogDisplayer;
@@ -85,7 +82,7 @@ import org.openide.util.Exceptions;
  * The song object.
  * <p>
  * Contents are a chord leadsheet, the related song structure, some parameters and some optional properties.<br>
- * Song can be created using the SongFactory methods.
+ * Songs can be created using the SongFactory methods.
  */
 public class Song implements Serializable, ClsChangeListener, SgsChangeListener, PropertyChangeListener
 {
@@ -113,8 +110,8 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
      */
     public static final String PROP_CLOSED = "PROP_CLOSED";   //NOI18N 
     /**
-     * This property changes each time the song is modified (oldValue=false, newValue=true) or saved (oldValue=true,
-     * newValue=false) or Song.resetNeedSave() is called (oldValue=null, newValue=false)
+     * This property changes each time the song is modified (oldValue=false, newValue=true), or saved (oldValue=true, newValue=false) or
+     * Song.setSaveNeeded(false) is called (oldValue=null, newValue=false)
      */
     public static final String PROP_MODIFIED_OR_SAVED_OR_RESET = "PROP_MODIFIED_OR_SAVED_OR_RESET";   //NOI18N 
     /**
@@ -122,8 +119,8 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
      * <p>
      * OldValue=false, newValue=the property name or ClsActionEvent/SgsActionEvent actionId that triggered the musical change.
      * <p>
-     * Use PROP_MODIFIED_OR_SAVED_OR_RESET to get notified of any song change, including non-musical ones like tempo change,
-     * phrase name change, etc.
+     * Use PROP_MODIFIED_OR_SAVED_OR_RESET to get notified of any song change, including non-musical ones like tempo change, phrase name
+     * change, etc.
      */
     public static final String PROP_MUSIC_GENERATION = "SongMusicGeneration";
     private SongStructure songStructure;
@@ -135,7 +132,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
     private Map<String, Phrase> mapUserPhrases = new HashMap<>();
     private final Properties clientProperties = new Properties();
     private transient File file;
-    private transient boolean needSave = false;
+    private transient boolean saveNeeded = false;
     private transient int lastSize;
     /**
      * The listeners for undoable edits in this LeadSheet.
@@ -166,7 +163,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
      *
      * @param name
      * @param cls
-     * @param sgs Must be kept consistent with cls changes (sgs.getParentChordLeadSheet() must return cls)
+     * @param sgs  Must be kept consistent with cls changes (sgs.getParentChordLeadSheet() must return cls)
      */
     protected Song(String name, ChordLeadSheet cls, SongStructure sgs)
     {
@@ -200,8 +197,8 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
     /**
      * Store a client property.
      * <p>
-     * Client properties are serialized. This can be used by other components to store information specific to this object, eg UI
-     * settings or others like quantization display of a section, zoom factors, etc.<br>
+     * Client properties are serialized. This can be used by other components to store information specific to this object, eg UI settings
+     * or others like quantization display of a section, zoom factors, etc.<br>
      * A PropertyChangeEvent(property name=key) is fired to song listeners. If newValue=null then property is removed.<p>
      * This will fire a song modified event.
      *
@@ -234,10 +231,10 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
     /**
      * Rename a user phrase.
      * <p>
-     * Fire a PROP_VETOABLE_PHRASE_NAME change event (actually this property change event should never been vetoed, but this
-     * allows caller to use a single vetoable listener for all user phrase events).
+     * Fire a PROP_VETOABLE_PHRASE_NAME change event (actually this property change event should never been vetoed, but this allows caller
+     * to use a single vetoable listener for all user phrase events).
      *
-     * @param name Must be the name of an existing phrase
+     * @param name    Must be the name of an existing phrase
      * @param newName
      */
     public void renameUserPhrase(String name, String newName)
@@ -309,17 +306,15 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
     /**
      * Set the user phrase for the specified name.
      * <p>
-     * If a user phrase was already associated to name, it's replaced. Fire a VeotableChange PROP_VETOABLE_USER_PHRASE if no
-     * phrase is replaced, otherwise use PROP_VETOABLE_USER_PHRASE_CONTENT. Actually the possibility of a veto is only when a new
-     * phrase is added (e.g. if MidiMix does not have an available Midi channel). Other user phrase PROP_ events for simplicity
-     * only (one listener required).
+     * If a user phrase was already associated to name, it's replaced. Fire a VeotableChange PROP_VETOABLE_USER_PHRASE if no phrase is
+     * replaced, otherwise use PROP_VETOABLE_USER_PHRASE_CONTENT. Actually the possibility of a veto is only when a new phrase is added
+     * (e.g. if MidiMix does not have an available Midi channel). Other user phrase PROP_ events for simplicity only (one listener
+     * required).
      * <p>
-     * This song will listen to p's changes and fire a PROP_MODIFIED_OR_SAVED_OR_RESET change event when a non-adjusting change is
-     * made.
+     * This song will listen to p's changes and fire a PROP_MODIFIED_OR_SAVED_OR_RESET change event when a non-adjusting change is made.
      * <p>
      * @param name Can't be blank.
-     * @param p Can't be null. No defensive copy is done, p is directly reused. No control is done on the phrase consistency Vs
-     * the song.
+     * @param p    Can't be null. No defensive copy is done, p is directly reused. No control is done on the phrase consistency Vs the song.
      * @throws PropertyVetoException If no Midi channel available for the user phrase
      * @see Song#PROP_VETOABLE_USER_PHRASE
      * @see Song#PROP_VETOABLE_USER_PHRASE_CONTENT
@@ -804,12 +799,12 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
     /**
      * Save this song to a file (XML format).
      * <p>
-     * Song's file and name is set to f and f's name. Fire a PROP_MODIFIED_OR_SAVED_OR_RESET property change event with
-     * oldValue=true and newValue=false.
+     * Song's file and name is set to f and f's name. Fire a PROP_MODIFIED_OR_SAVED_OR_RESET property change event with oldValue=true and
+     * newValue=false.
      *
      * @param songFile
-     * @param isCopy Indicate that the save operation if for a copy, ie just perform the save operation and do nothing else (song
-     * name is not set, etc.)
+     * @param isCopy   Indicate that the save operation if for a copy, ie just perform the save operation and do nothing else (song name is
+     *                 not set, etc.)
      * @throws java.io.IOException
      * @see getFile()
      */
@@ -832,9 +827,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
         try (FileOutputStream fos = new FileOutputStream(songFile))
         {
             XStream xstream = new XStream();
-            xstream
-                    .alias("Song", Song.class
-                    );
+            xstream.alias("Song", Song.class);
             Writer w = new BufferedWriter(new OutputStreamWriter(fos, "UTF-8"));        // Needed to support special/accented chars
             xstream.toXML(this, w);
             if (!isCopy)
@@ -863,20 +856,30 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
     /**
      * @return True if song has some unsaved changes.
      */
-    public boolean needSave()
+    public boolean isSaveNeeded()
     {
-        return needSave;
+        return saveNeeded;
     }
 
     /**
-     * Reset the need save property.
+     * Set the value of the saveNeeded property.
      * <p>
-     * Fire the PROP_MODIFIED_OR_SAVED_OR_RESET with oldValue=null newValue=false
+     * Fire a PROP_MODIFIED_OR_SAVED_OR_RESET change event.
      */
-    public void resetNeedSave()
+    public void setSaveNeeded(boolean b)
     {
-        needSave = false;
-        pcs.firePropertyChange(PROP_MODIFIED_OR_SAVED_OR_RESET, null, false);
+        if (b == saveNeeded)
+        {
+            return;
+        }
+        saveNeeded = b;
+        if (saveNeeded)
+        {
+            pcs.firePropertyChange(PROP_MODIFIED_OR_SAVED_OR_RESET, false, true);
+        } else
+        {
+            pcs.firePropertyChange(PROP_MODIFIED_OR_SAVED_OR_RESET, null, false);
+        }
     }
 
     public void addUndoableEditListener(UndoableEditListener l)
@@ -1031,7 +1034,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
      */
     private void fireIsModified()
     {
-        needSave = true;
+        saveNeeded = true;
         pcs.firePropertyChange(PROP_MODIFIED_OR_SAVED_OR_RESET, false, true);
     }
 
@@ -1040,7 +1043,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
      */
     private void fireIsMusicallyModified(String newValue)
     {
-        needSave = true;
+        saveNeeded = true;
         pcs.firePropertyChange(PROP_MUSIC_GENERATION, false, newValue);
     }
 
@@ -1049,7 +1052,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
      */
     private void fireSaved()
     {
-        needSave = false;
+        saveNeeded = false;
         pcs.firePropertyChange(PROP_MODIFIED_OR_SAVED_OR_RESET, true, false);
     }
 
@@ -1119,8 +1122,8 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
 
 
     /**
-     * RhythmVoices must be stored in a simplified way in order to avoid storing rhythm stuff which depend on InstrumentBanks
-     * which are themselves system dependent.
+     * RhythmVoices must be stored in a simplified way in order to avoid storing rhythm stuff which depend on InstrumentBanks which are
+     * themselves system dependent.
      * <p>
      * Also need to do some cleaning: mapInstruments can contain useless entries if some songparts have been removed .
      */

@@ -50,7 +50,6 @@ import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.SwingPropertyChangeSupport;
-import org.jjazz.base.api.actions.Savable;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
@@ -77,8 +76,6 @@ import org.openide.util.Lookup;
 import org.openide.util.lookup.AbstractLookup;
 import org.openide.util.lookup.InstanceContent;
 import org.openide.util.lookup.ProxyLookup;
-import org.jjazz.savablesong.api.SavableSong;
-import org.jjazz.savablesong.api.SaveAsCapableSong;
 import org.jjazz.song.api.Song;
 import org.jjazz.ui.utilities.api.Utilities;
 import org.openide.awt.UndoRedo;
@@ -102,9 +99,6 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
      * Our sgsModel.
      */
     private SongStructure sgsModel;
-    /**
-     * Optional Song container of sgsModel.
-     */
     private Song songModel;
 
     /**
@@ -240,7 +234,6 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         addMouseWheelListener(this);                    // For zoom operations
 
         // Listen to our models
-        songModel.addPropertyChangeListener(this);
         sgsModel = song.getSongStructure();
         sgsModel.addSgsChangeListener(this);
 
@@ -250,7 +243,6 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         sgsModel.addUndoableEditListener(undoManager);
 
         // Fill our lookup
-        generalLookupContent.add(new SaveAsCapableSong(songModel)); // always enabled
         generalLookupContent.add(sgsModel);
         generalLookupContent.add(songModel);
 
@@ -322,13 +314,6 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         sgsModel.removeUndoableEditListener(undoManager);
         generalLookupContent.remove(sgsModel);
 
-        songModel.removePropertyChangeListener(this);
-        SaveAsCapableSong saveAsCapableSong = lookup.lookup(SaveAsCapableSong.class);
-        if (saveAsCapableSong != null)
-        {
-            generalLookupContent.remove(saveAsCapableSong);
-        }
-        resetSongModified();
         generalLookupContent.remove(songModel);
 
         // Remove everything
@@ -765,20 +750,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
             if (evt.getSource() == settings)
             {
                 updateUIComponents();
-            } else if (evt.getSource() == songModel)
-            {
-                if (evt.getPropertyName().equals(Song.PROP_MODIFIED_OR_SAVED_OR_RESET))
-                {
-                    boolean b = (boolean) evt.getNewValue();
-                    if (b)
-                    {
-                        setSongModified();
-                    } else
-                    {
-                        resetSongModified();
-                    }
-                }
-            }
+            } 
         };
         Utilities.invokeLaterIfNeeded(run);
     }
@@ -1000,26 +972,6 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         setOpaque(false);       // To reuse LAF default background
     }
 
-    private void setSongModified()
-    {
-        SavableSong s = lookup.lookup(SavableSong.class);
-        if (s == null)
-        {
-            s = new SavableSong(songModel);
-            Savable.ToBeSavedList.add(s);
-            generalLookupContent.add(s);
-        }
-    }
-
-    private void resetSongModified()
-    {
-        SavableSong s = lookup.lookup(SavableSong.class);
-        if (s != null)
-        {
-            Savable.ToBeSavedList.remove(s);
-            generalLookupContent.remove(s);
-        }
-    }
 
     private List<SptViewer> getSptViewers()
     {
