@@ -22,12 +22,10 @@
  */
 package org.jjazz.pianoroll.actions;
 
-import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import org.jjazz.pianoroll.api.PianoRollEditor;
-import org.jjazz.pianoroll.api.ZoomValue;
 import org.jjazz.ui.utilities.api.Zoomable;
 
 

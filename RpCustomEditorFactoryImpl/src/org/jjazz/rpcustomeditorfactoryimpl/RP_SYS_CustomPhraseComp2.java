@@ -1,23 +1,15 @@
 package org.jjazz.rpcustomeditorfactoryimpl;
 
-import org.jjazz.ui.utilities.api.MidiFileDragInTransferHandler;
-import org.jjazz.ui.utilities.api.FileTransferable;
 import org.jjazz.ui.utilities.api.TextOverlayLayerUI;
 import com.google.common.base.Joiner;
 import static com.google.common.base.Preconditions.checkNotNull;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
-import java.awt.datatransfer.Transferable;
-import java.awt.event.MouseEvent;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.beans.VetoableChangeListener;
 import org.jjazz.rpcustomeditorfactoryimpl.api.RealTimeRpEditorComponent;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,18 +21,13 @@ import javax.sound.midi.Sequence;
 import javax.sound.midi.Track;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
-import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JLayer;
 import javax.swing.JList;
-import javax.swing.SwingUtilities;
-import javax.swing.TransferHandler;
-import static javax.swing.TransferHandler.COPY;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.midi.api.Instrument;
-import org.jjazz.midi.api.JJazzMidiSystem;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.UserRhythmVoice;
@@ -50,7 +37,6 @@ import org.jjazz.musiccontrol.api.playbacksession.BaseSongSession;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.Phrases;
 import org.jjazz.phrase.api.SizedPhrase;
-import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.pianoroll.api.PianoRollEditorTopComponent;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
 import org.jjazz.rhythm.api.AdaptedRhythm;
@@ -61,13 +47,12 @@ import org.jjazz.rhythm.api.RhythmVoiceDelegate;
 import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Variation;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhrase;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhraseValue;
-import org.jjazz.rhythmmusicgeneration.api.SongSequenceBuilder;
-import org.jjazz.rhythmmusicgeneration.api.SongSequenceBuilder.SongSequence;
 import org.jjazz.rpcustomeditorfactoryimpl.api.RealTimeRpEditorDialog;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
 import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.songcontext.api.SongPartContext;
+import org.jjazz.songeditormanager.api.SongEditorManager;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.util.api.FloatRange;
@@ -75,7 +60,6 @@ import org.jjazz.util.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.awt.StatusDisplayer;
-import org.openide.util.*;
 
 
 /**
@@ -118,6 +102,12 @@ public class RP_SYS_CustomPhraseComp2 extends RealTimeRpEditorComponent<RP_SYS_C
 
     }
 
+    @Override
+    public boolean isModal()
+    {
+        return false;
+    }
+    
 
     @Override
     public RP_SYS_CustomPhrase getRhythmParameter()
@@ -579,12 +569,8 @@ public class RP_SYS_CustomPhraseComp2 extends RealTimeRpEditorComponent<RP_SYS_C
         Song song = songPartContext.getSong();
         SongPart spt = song.getSongStructure().getSongPart(songPartContext.getBarRange().from);
         
-        var preTc = PianoRollEditorTopComponent.get(song);
-        if (preTc == null)
-        {
-            preTc = new PianoRollEditorTopComponent(song, PianoRollEditorSettings.getDefault());
-            preTc.openNextToSongEditor();
-        }
+        
+        var preTc = SongEditorManager.getInstance().showPianoRollEditor(song);
 
 
         // Update model of the editor
@@ -599,6 +585,7 @@ public class RP_SYS_CustomPhraseComp2 extends RealTimeRpEditorComponent<RP_SYS_C
         // Prepare listeners to:
         // - Stop listening when editor is destroyed or its model is changed  
         var editor = preTc.getEditor();
+
 //        PropertyChangeListener pcl = new PropertyChangeListener()
 //        {
 //            @Override

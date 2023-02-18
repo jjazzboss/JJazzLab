@@ -577,7 +577,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         });
 
 
-      if (zoomValue == null || zoomValue.hValue() != zoom.hValue())
+        if (zoomValue == null || zoomValue.hValue() != zoom.hValue())
         {
             // Save position center
             float saveCenterPosInBeats = getVisibleBeatRange().getCenter();
@@ -1419,37 +1419,45 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         @Override
         public void setZoomYFactorToFitContent()
         {
-            LOGGER.severe("setZoomYFactorToFitContent() -- TO BE IMPLEMENTED");
+            // Don't bother zooming, just make sure center pitch is visible
+            var nvs = getNoteViews();
+            if (nvs.isEmpty())
+            {
+                return;
+            }
+            var firstNe = nvs.get(0).getModel();
+            var lastNe = nvs.get(nvs.size() - 1).getModel();
+            scrollToCenter((int) Math.round((lastNe.getPitch() + firstNe.getPitch()) / 2f));
         }
 
         @Override
         public void setZoomXFactorToFitContent()
         {
-             // Try to show all notes horizontally in the visible rectangle
+            // Try to show all notes horizontally in the visible rectangle
             var nvs = getNoteViews();
             if (nvs.isEmpty())
             {
                 return;
-            }            
+            }
             var firstNe = nvs.get(0).getModel();
             var lastNe = nvs.get(nvs.size() - 1).getModel();
 
-            
+
             int visibleWidthPixel = Math.max(100, scrollpane.getViewport().getViewRect().width);
             var notesBeatRange = firstNe.getBeatRange().getUnion(lastNe.getBeatRange());
             float beatRange = Math.max(4f, notesBeatRange.size());
 
-            
+
             // Compute optimal scaleX
             float factorX = notesPanel.getScaleFactorX(visibleWidthPixel, beatRange);
             int zoomH = toZoomHValue(factorX);
             setZoomXFactor(zoomH, false);
-            
-            
+
+
             SwingUtilities.invokeLater(() -> scrollToCenter(notesBeatRange.getCenter()));
-            
+
         }
-        
+
 
         @Override
         public void addPropertyListener(PropertyChangeListener l)

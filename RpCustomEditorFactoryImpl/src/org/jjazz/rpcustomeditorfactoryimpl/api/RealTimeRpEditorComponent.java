@@ -46,6 +46,17 @@ public abstract class RealTimeRpEditorComponent<E> extends JComponent
     // =======================================================================
     // Abstract methods
     // =======================================================================
+    
+    /**
+     * Check if dialog should be modal.
+     * 
+     * @return True by default
+     */
+    public boolean isModal()
+    {
+        return true;
+    }
+    
     /**
      * The RhythmParameter model.
      *

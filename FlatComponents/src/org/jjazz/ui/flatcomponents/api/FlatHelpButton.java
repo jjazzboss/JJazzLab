@@ -22,6 +22,8 @@
  */
 package org.jjazz.ui.flatcomponents.api;
 
+import java.awt.Component;
+import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -36,7 +38,6 @@ import javax.swing.JTextPane;
 import org.jjazz.ui.utilities.api.Utilities;
 import org.jjazz.util.api.ResUtil;
 import org.netbeans.api.annotations.common.StaticResource;
-import org.openide.windows.WindowManager;
 
 /**
  * A help icon button that display text as a dialog when clicked.
@@ -124,8 +125,14 @@ public class FlatHelpButton extends FlatButton implements PropertyChangeListener
 
     private void showHelp()
     {
-        LOGGER.fine("showHelp() --");
-        JDialog dlg = new JDialog(WindowManager.getDefault().getMainWindow(), true);
+        LOGGER.fine("showHelp() --");        
+        // Don't use WindowManager.getDefault(), because a TopComponent might be floating
+        Component parent = getParent();
+        while (!(parent instanceof Frame))
+        {
+            parent = parent.getParent();
+        }        
+        JDialog dlg = new JDialog((Frame)parent, true);
         dlg.setUndecorated(true);
         JTextPane textPane = new JTextPane();
         textPane.setBackground(textPane.getBackground().darker());

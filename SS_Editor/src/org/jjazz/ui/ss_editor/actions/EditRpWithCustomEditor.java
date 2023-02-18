@@ -37,7 +37,6 @@ import static javax.swing.Action.NAME;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.MidiMixManager;
 import org.jjazz.rhythm.api.RhythmParameter;
-import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
 import org.jjazz.songstructure.api.SongPartParameter;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
@@ -96,12 +95,12 @@ public final class EditRpWithCustomEditor extends AbstractAction implements Cont
     {
         SS_SelectionUtilities selection = cap.getSelection();
         List<SongPartParameter> sptps = selection.getSelectedSongPartParameters();
-        RhythmParameter<?> rp = sptps.get(0).getRp();
-        SongPart spt = sptps.get(0).getSpt();
+        RhythmParameter<?> rp0 = sptps.get(0).getRp();
+        SongPart spt0 = sptps.get(0).getSpt();
 
 
         // Open custom editor if supported
-        var factory = RpCustomEditorFactory.findFactory(rp);
+        var factory = RpCustomEditorFactory.findFactory(rp0);
         if (factory != null)
         {
             SS_Editor editor = SS_EditorTopComponent.getActive().getEditor();
@@ -119,15 +118,15 @@ public final class EditRpWithCustomEditor extends AbstractAction implements Cont
                 Exceptions.printStackTrace(ex);
                 return;
             }
-            SongPartContext sptContext = new SongPartContext(song, mm, spt);
-            Object value = spt.getRPValue(rp);
-            var dlgEditor = factory.getEditor((RhythmParameter) rp);
-            assert dlgEditor != null : "rp=" + rp;
+            SongPartContext sptContext = new SongPartContext(song, mm, spt0);
+            Object value = spt0.getRPValue(rp0);
+            var dlgEditor = factory.getEditor((RhythmParameter) rp0);
+            assert dlgEditor != null : "rp=" + rp0;
             dlgEditor.preset(value, sptContext);
 
 
             // Set location
-            Rectangle r = editor.getRpViewerRectangle(spt, rp);
+            Rectangle r = editor.getRpViewerRectangle(spt0, rp0);
             Point p = r.getLocation();
             int x = p.x - ((dlgEditor.getWidth() - r.width) / 2);
             int y = p.y - dlgEditor.getHeight();

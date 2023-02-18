@@ -86,6 +86,8 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
 
     public RealTimeRpEditorDialog(RealTimeRpEditorComponent<E> comp)
     {
+        super(comp.isModal());
+        
         editor = comp;
         editor.addPropertyChangeListener(this);
         setResizable(editor.isResizable());
@@ -401,7 +403,6 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
         fbtn_reset = new org.jjazz.ui.flatcomponents.api.FlatButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        setModalityType(java.awt.Dialog.ModalityType.DOCUMENT_MODAL);
         addWindowListener(new java.awt.event.WindowAdapter()
         {
             public void windowClosed(java.awt.event.WindowEvent evt)

@@ -223,7 +223,7 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
         tbtn_solo = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
         tbtn_playbackAutoScroll = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
         filler5 = new javax.swing.Box.Filler(new java.awt.Dimension(5, 0), new java.awt.Dimension(10, 0), new java.awt.Dimension(5, 32767));
-        flatHelpButton1 = new org.jjazz.ui.flatcomponents.api.FlatHelpButton();
+        fbtn_help = new org.jjazz.ui.flatcomponents.api.FlatHelpButton();
 
         setLayout(new java.awt.BorderLayout());
 
@@ -297,8 +297,8 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
         pnl_miscButtons.add(tbtn_playbackAutoScroll);
         pnl_miscButtons.add(filler5);
 
-        flatHelpButton1.setHelpText(org.openide.util.NbBundle.getMessage(ToolbarPanel.class, "ToolbarPanel.flatHelpButton1.helpText")); // NOI18N
-        pnl_miscButtons.add(flatHelpButton1);
+        fbtn_help.setHelpText(org.openide.util.NbBundle.getMessage(ToolbarPanel.class, "ToolbarPanel.fbtn_help.helpText")); // NOI18N
+        pnl_miscButtons.add(fbtn_help);
 
         pnl_right.add(pnl_miscButtons);
 
@@ -371,12 +371,12 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JComboBox<Quantization> cmb_quantization;
+    private org.jjazz.ui.flatcomponents.api.FlatHelpButton fbtn_help;
     private javax.swing.Box.Filler filler1;
     private javax.swing.Box.Filler filler2;
     private javax.swing.Box.Filler filler3;
     private javax.swing.Box.Filler filler4;
     private javax.swing.Box.Filler filler5;
-    private org.jjazz.ui.flatcomponents.api.FlatHelpButton flatHelpButton1;
     private javax.swing.JLabel lbl_title;
     private javax.swing.JLabel lbl_velocity;
     private javax.swing.JPanel pnl_editTools;

@@ -245,10 +245,10 @@
                 <AuxValue name="classDetails" type="java.lang.String" value="Box.Filler.HorizontalStrut"/>
               </AuxValues>
             </Component>
-            <Component class="org.jjazz.ui.flatcomponents.api.FlatHelpButton" name="flatHelpButton1">
+            <Component class="org.jjazz.ui.flatcomponents.api.FlatHelpButton" name="fbtn_help">
               <Properties>
                 <Property name="helpText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-                  <ResourceString bundle="org/jjazz/pianoroll/Bundle.properties" key="ToolbarPanel.flatHelpButton1.helpText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+                  <ResourceString bundle="org/jjazz/pianoroll/Bundle.properties" key="ToolbarPanel.fbtn_help.helpText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
                 </Property>
               </Properties>
             </Component>

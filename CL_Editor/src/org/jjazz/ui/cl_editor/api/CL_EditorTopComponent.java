@@ -268,10 +268,6 @@ public final class CL_EditorTopComponent extends TopComponent implements Propert
     @Override
     public void componentClosed()
     {
-        if (pairedTc != null)
-        {
-            pairedTc.close();
-        }
         SavableSong ss = getLookup().lookup(SavableSong.class);
         if (ss != null)
         {
@@ -281,19 +277,7 @@ public final class CL_EditorTopComponent extends TopComponent implements Propert
         ActiveSongManager.getInstance().removePropertyListener(this);
         clEditor.cleanup();
     }
-
-    /**
-     * Show the paired TopComponent as well.
-     */
-    @Override
-    public void componentActivated()
-    {
-        super.componentActivated();
-        if (pairedTc != null)
-        {
-            pairedTc.requestVisible();
-        }
-    }
+   
 
 //    void writeProperties(java.util.Properties p)
 //    {

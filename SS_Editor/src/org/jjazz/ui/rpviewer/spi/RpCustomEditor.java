@@ -36,9 +36,9 @@ import org.openide.windows.WindowManager;
 public abstract class RpCustomEditor<E> extends JDialog implements PropertyChangeListener
 {
 
-    public RpCustomEditor()
+    public RpCustomEditor(boolean modal)
     {
-        super(WindowManager.getDefault().getMainWindow(), true);
+        super(WindowManager.getDefault().getMainWindow(), modal);
     }
 
     /**

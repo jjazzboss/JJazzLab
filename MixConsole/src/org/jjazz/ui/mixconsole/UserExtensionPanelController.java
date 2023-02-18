@@ -34,6 +34,7 @@ import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.pianoroll.api.PianoRollEditorTopComponent;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
 import org.jjazz.song.api.Song;
+import org.jjazz.songeditormanager.api.SongEditorManager;
 import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.util.api.ResUtil;
@@ -92,12 +93,7 @@ public class UserExtensionPanelController
 
 
         // Create editor TopComponent and open it if required
-        var preTc = PianoRollEditorTopComponent.get(getSong());
-        if (preTc == null)
-        {
-            preTc = new PianoRollEditorTopComponent(getSong(), PianoRollEditorSettings.getDefault());
-            preTc.openNextToSongEditor();
-        }
+        var preTc = SongEditorManager.getInstance().showPianoRollEditor(getSong());
 
 
         // Update model of the editor
