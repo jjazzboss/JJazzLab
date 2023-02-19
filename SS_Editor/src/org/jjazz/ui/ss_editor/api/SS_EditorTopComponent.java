@@ -31,6 +31,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.SwingUtilities;
@@ -277,8 +278,12 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
                     }
                     if (zfx < 0 || zfx > 100)
                     {
-                        LOGGER.warning(
-                                "SS_EditorController() Invalid zoom factor X client property=" + str + " in song=" + ssEditor.getSongModel().getName());   //NOI18N
+                        LOGGER.log(Level.WARNING, "SS_EditorController() Invalid zoom factor X client property={0} in song={1}",
+                                new Object[]
+                                {
+                                    str,
+                                    ssEditor.getSongModel().getName()
+                                });
                     } else
                     {
                         Zoomable zoomable = ssEditor.getLookup().lookup(Zoomable.class);

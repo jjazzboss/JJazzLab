@@ -43,10 +43,15 @@ import org.openide.util.LookupEvent;
 import org.openide.util.LookupListener;
 import org.openide.util.WeakListeners;
 
+/**
+ * Save song action.
+ * 
+ * Listen to the song presence in the actionGlobalContext, then listen to song's savedNeeded property to enable/disable the action.
+ */
 @ActionID(
         category = "File", id = "org.jjazz.songeditormanager.api.Save"
 )
-@ActionRegistration(displayName = "#CTL_Save", lazy = false) // iconBase = "org/jjazz/songeditormanager/resources/save.png")
+@ActionRegistration(displayName = "#CTL_Save", lazy = false) 
 @ActionReferences(
         {
             @ActionReference(path = "Menu/File", position = 1500),
@@ -58,11 +63,12 @@ public final class Save extends AbstractAction implements PropertyChangeListener
 
     private Song song;
     private final Lookup.Result<Song> songLkpResult;
-    private LookupListener songLkpListener;
+    private final LookupListener songLkpListener;
     private static final Logger LOGGER = Logger.getLogger(Save.class.getSimpleName());
 
     public Save()
     {
+        putValue(NAME, ResUtil.getString(getClass(), "CTL_Save"));
         // Need this for auto icon size changing to work... (switch to saveAll24.gif) since can't be done using actionRegistration's iconBase=xx
         putValue("iconBase", "org/jjazz/songeditormanager/resources/save.png");
 
@@ -88,7 +94,7 @@ public final class Save extends AbstractAction implements PropertyChangeListener
             res = SaveUtils.saveSongAndMix(song, songFile);
         }
 
-        LOGGER.severe("actionPerformed() song=" + song + " res=" + res);
+        LOGGER.log(Level.FINE, "actionPerformed() song={0} res={1}", new Object[]{song, res});
 
         if (res == 0)
         {
@@ -102,7 +108,7 @@ public final class Save extends AbstractAction implements PropertyChangeListener
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
-        LOGGER.severe(Utilities.toDebugString(evt));
+        LOGGER.fine(Utilities.toDebugString(evt));
         if (evt.getSource() == song)
         {
             if (evt.getPropertyName().equals(Song.PROP_MODIFIED_OR_SAVED_OR_RESET))

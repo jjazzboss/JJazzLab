@@ -133,6 +133,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
     private final Properties clientProperties = new Properties();
     private transient File file;
     private transient boolean saveNeeded = false;
+    private boolean closed;
     private transient int lastSize;
     /**
      * The listeners for undoable edits in this LeadSheet.
@@ -698,7 +699,17 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
         {
             p.removePropertyChangeListener(this);
         }
+        closed = true;
         pcs.firePropertyChange(PROP_CLOSED, false, true);
+    }
+
+    /**
+     *
+     * @return True if close() has been called.
+     */
+    public boolean isClosed()
+    {
+        return closed;
     }
 
     /**

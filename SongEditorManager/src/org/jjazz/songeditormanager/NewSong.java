@@ -98,7 +98,6 @@ public final class NewSong implements ActionListener
 
                 song.setFile(null);    // Do like it was created from scratch. Must be done AFTER mmm.findMix(song)
                 song.setName(name);
-                song.setSaveNeeded(false);
 
             } catch (SongCreationException | MidiUnavailableException ex)
             {

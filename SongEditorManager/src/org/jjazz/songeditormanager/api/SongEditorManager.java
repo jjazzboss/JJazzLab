@@ -106,23 +106,21 @@ public class SongEditorManager implements PropertyChangeListener
     }
 
     /**
-     * Programmatically close the editors associated to a song.
+     * Try to programmatically close the editors associated to a song.
      *
      * @param song
-     * @param isShuttingDown If true, just do what's required to notify listeners.
+     * @param isShuttingDown If true, just do what's required to notify listeners. Method will return true in all cases.
+     * @return True if editors were successfully closed
      */
-    public void closeSong(Song song, boolean isShuttingDown)
+    public boolean closeSong(Song song, boolean isShuttingDown)
     {
         if (!isShuttingDown)
         {
-            Editors editors = getEditors(song);
-            if (editors != null)
-            {
-                editors.tcCle.close();  // This will make TopComponent.canClose() be called first, with possibly user confirmation dialog
-            }
+            return closeEditors(song);
         } else
         {
             songEditorClosed(song);
+            return true;
         }
     }
 
@@ -396,11 +394,15 @@ public class SongEditorManager implements PropertyChangeListener
                 if (evt.getNewValue() instanceof CL_EditorTopComponent clTc)
                 {
                     // User closed a song
+                    assert closeEditors(clTc.getSongModel()) == true;       // Should be OK since clTc is already closed
                     songEditorClosed(clTc.getSongModel());
+
                 } else if (evt.getNewValue() instanceof SS_EditorTopComponent ssTc)
                 {
                     // User closed a song
+                    assert closeEditors(ssTc.getSongModel()) == true;       // Should be OK since ssTc is already closed                    
                     songEditorClosed(ssTc.getSongModel());
+
                 } else if (evt.getNewValue() instanceof PianoRollEditorTopComponent prTc)
                 {
                     // Nothing
@@ -444,23 +446,45 @@ public class SongEditorManager implements PropertyChangeListener
     // Private
     //=============================================================================  
     /**
-     * Song editor is closed, notify listeners and do some cleanup
+     * Song editors are closed, notify listeners and do some cleanup
      *
      * @param s
      */
     private void songEditorClosed(Song s)
     {
-        // Close editors still opened
-        getEditors(s).getTopComponents().stream()
-                .filter(tc -> tc.isOpened())
-                .forEach(tc -> tc.close());
-
         s.removePropertyChangeListener(this);
         s.removeUndoableEditListener(JJazzUndoManagerFinder.getDefault().get(s));
         mapSongEditors.remove(s);
         pcs.firePropertyChange(PROP_SONG_CLOSED, false, s); // Event used for example by RecentSongProvider
         s.close(true);  // This will trigger an "activeSong=null" event from the ActiveSongManager
         updateActiveSong();
+    }
+
+    /**
+     * Try to close the editors which are still opened.
+     * <p>
+     * This might trigger a user confirmation dialog, which can cancel the operation.
+     *
+     * @param s
+     * @return True if editors have been successfully closed
+     */
+    private boolean closeEditors(Song s)
+    {
+        var editors = getEditors(s);
+        assert editors != null : "s=" + s + " mapSongEditors=" + mapSongEditors;
+        if (editors.getCL_EditorTc() != null)
+        {
+            if (!editors.getCL_EditorTc().close())
+            {
+                return false;
+            }
+        }
+        assert editors.getSS_EditorTc().close() == true;  // Should always close since CL_Editor was closed successfully
+        if (editors.getPianoRollTc() != null)
+        {
+            editors.getPianoRollTc().close();   // Does not trigger user confirmation dialog
+        }
+        return true;
     }
 
     private void songSaved(Song s)

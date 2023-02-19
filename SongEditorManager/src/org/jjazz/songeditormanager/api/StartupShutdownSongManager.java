@@ -204,7 +204,7 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
         {
             // Build message and songs which need save
             StringBuilder msg = new StringBuilder();
-            msg.append(ResUtil.getString(getClass(), "CTL_UnsavedChangesExitAnyway")).append("\n\n");            
+            msg.append(ResUtil.getString(getClass(), "CTL_UnsavedChangesExitAnyway")).append("\n");            
             for (Song s : songsToSave)
             {
                 String strFile = s.getName();
@@ -220,12 +220,13 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
             Object result = DialogDisplayer.getDefault().notify(nd);
             if (result != NotifyDescriptor.OK_OPTION)
             {
+                // User cancelled the shutdown
                 return Boolean.FALSE;
             }
         }
 
 
-        // Close the open editors and update the preferences
+        // Close the open editors without saving, and update the preferences
         StringBuilder sb = new StringBuilder();
         for (Song s : sem.getOpenedSongs())
         {
