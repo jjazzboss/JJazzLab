@@ -6,6 +6,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import org.jjazz.rpcustomeditorfactoryimpl.api.RealTimeRpEditorComponent;
 import java.io.File;
 import java.io.IOException;
@@ -37,6 +39,7 @@ import org.jjazz.musiccontrol.api.playbacksession.BaseSongSession;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.Phrases;
 import org.jjazz.phrase.api.SizedPhrase;
+import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.pianoroll.api.PianoRollEditorTopComponent;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
 import org.jjazz.rhythm.api.AdaptedRhythm;
@@ -67,6 +70,7 @@ import org.openide.awt.StatusDisplayer;
  */
 public class RP_SYS_CustomPhraseComp2 extends RealTimeRpEditorComponent<RP_SYS_CustomPhraseValue> implements PlaybackListener
 {
+
     private static final float PHRASE_COMPARE_BEAT_WINDOW = 0.01f;
     private static final Color PHRASE_COMP_FOCUSED_BORDER_COLOR = new Color(131, 42, 21);
     public static final Color PHRASE_COMP_CUSTOMIZED_FOREGROUND = new Color(255, 102, 102);
@@ -91,7 +95,6 @@ public class RP_SYS_CustomPhraseComp2 extends RealTimeRpEditorComponent<RP_SYS_C
         // By default enable the drag in transfer handler
         // setAllTransferHandlers(new MidiFileDragInTransferHandlerImpl());
 
-
         // Remove and replace by a JLayer  (this way we can use pnl_overlay in Netbeans form designer)
         remove(pnl_overlay);
         overlayLayerUI = new TextOverlayLayerUI();
@@ -107,7 +110,7 @@ public class RP_SYS_CustomPhraseComp2 extends RealTimeRpEditorComponent<RP_SYS_C
     {
         return false;
     }
-    
+
 
     @Override
     public RP_SYS_CustomPhrase getRhythmParameter()
@@ -561,51 +564,64 @@ public class RP_SYS_CustomPhraseComp2 extends RealTimeRpEditorComponent<RP_SYS_C
     }
 
 
- 
     private void editCurrentPhrase()
     {
-        
+
         // Create editor TopComponent and open it if required
         Song song = songPartContext.getSong();
         SongPart spt = song.getSongStructure().getSongPart(songPartContext.getBarRange().from);
-        
-        
+
+
         var preTc = SongEditorManager.getInstance().showPianoRollEditor(song);
 
 
-        // Update model of the editor
+        // Create the editor
         RhythmVoice rv = getCurrentRhythmVoice();
         DrumKit drumKit = getInstrument(rv).getDrumKit();
         DrumKit.KeyMap keyMap = drumKit == null ? null : drumKit.getKeyMap();
         var p = getPhrase(rv);
         preTc.setModel(spt, p, getChannel(rv), keyMap);
-        preTc.setTitle("SongPart custom phrase edit rv="+rv.getName());
+        preTc.setTitle("SongPart custom phrase edit rv=" + rv.getName());
+        preTc.requestActive();
+
+
+        // Add the phrase in the RP value
+        addCustomizedPhrase(rv, p);
 
 
         // Prepare listeners to:
         // - Stop listening when editor is destroyed or its model is changed  
+        // - Fire a change event
         var editor = preTc.getEditor();
+        PropertyChangeListener listener = new PropertyChangeListener()
+        {
+            @Override
+            public void propertyChange(PropertyChangeEvent evt)
+            {
+                if (evt.getSource() == editor)
+                {
+                    switch (evt.getPropertyName())
+                    {
+                        case PianoRollEditor.PROP_MODEL, PianoRollEditor.PROP_EDITOR_ALIVE ->
+                        {
+                            editor.removePropertyChangeListener(this);
+                            p.removePropertyChangeListener(this);
+                        }
+                    }
+                } else if (evt.getSource() == p)
+                {
+                    if (!evt.getPropertyName().equals(Phrase.isAdjustingEvent(PROP_EDITED_RP_VALUE)))
+                    {
+                        // Phrase has changed
+                        fireUiValueChanged();
+                    }
+                }
+            }
+        };
 
-//        PropertyChangeListener pcl = new PropertyChangeListener()
-//        {
-//            @Override
-//            public void propertyChange(PropertyChangeEvent evt)
-//            {
-//                if (evt.getSource() == editor)
-//                {
-//                    switch (evt.getPropertyName())
-//                    {
-//                        case PianoRollEditor.PROP_MODEL, PianoRollEditor.PROP_EDITOR_ALIVE ->
-//                        {
-//                            editor.removePropertyChangeListener(this);
-//                        }
-//                    }
-//                } 
-//            }
-//        };
+        editor.addPropertyChangeListener(listener);
+        p.addPropertyChangeListener(listener);
 
-//        editor.addPropertyChangeListener(pcl);
-        preTc.requestActive();
 
     }
 
@@ -632,8 +648,8 @@ public class RP_SYS_CustomPhraseComp2 extends RealTimeRpEditorComponent<RP_SYS_C
 
 
     /**
-     * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of
-     * this method is always regenerated by the Form Editor.
+     * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of this
+     * method is always regenerated by the Form Editor.
      */
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -782,6 +798,9 @@ public class RP_SYS_CustomPhraseComp2 extends RealTimeRpEditorComponent<RP_SYS_C
                         .addComponent(tbtn_solo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap())
         );
+
+        pnl_overlayLayout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {btn_edit, btn_restore});
+
         pnl_overlayLayout.setVerticalGroup(
             pnl_overlayLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pnl_overlayLayout.createSequentialGroup()
