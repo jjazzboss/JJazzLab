@@ -94,6 +94,7 @@ public class UserExtensionPanelController
 
         // Create editor TopComponent and open it if required
         var preTc = SongEditorManager.getInstance().showPianoRollEditor(getSong());
+        preTc.getEditor().setUndoManager(JJazzUndoManagerFinder.getDefault().get(getSong()));
 
 
         // Update model of the editor
@@ -110,21 +111,17 @@ public class UserExtensionPanelController
         // - Remove PianoRollEditor if user phrase is removed
         var editor = preTc.getEditor();
         var preTc2 = preTc;
-        VetoableChangeListener vcl = new VetoableChangeListener()
+        VetoableChangeListener vcl = evt ->
         {
-            @Override
-            public void vetoableChange(PropertyChangeEvent evt)
+            if (evt.getSource() == getSong())
             {
-                if (evt.getSource() == getSong())
+                if (evt.getPropertyName().equals(Song.PROP_VETOABLE_USER_PHRASE))
                 {
-                    if (evt.getPropertyName().equals(Song.PROP_VETOABLE_USER_PHRASE))
+                    // Close the editor if phrase is removed
+                    String name = (String) evt.getOldValue();   // name is null if a user phrase has been added
+                    if (getUserPhraseName().equals(name))
                     {
-                        // Close the editor if phrase is removed
-                        String name = (String) evt.getOldValue();   // name is null if a user phrase has been added
-                        if (getUserPhraseName().equals(name))
-                        {
-                            preTc2.close();
-                        }
+                        preTc2.close();
                     }
                 }
             }
@@ -144,7 +141,6 @@ public class UserExtensionPanelController
                             editor.removePropertyChangeListener(this);
                             panel.removePropertyChangeListener(this);
                             getSong().removeVetoableChangeListener(vcl);
-
                         }
                     }
                 } else if (evt.getSource() == panel)

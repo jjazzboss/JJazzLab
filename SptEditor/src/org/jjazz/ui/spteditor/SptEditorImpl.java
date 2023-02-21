@@ -294,7 +294,7 @@ public class SptEditorImpl extends SptEditor implements PropertyChangeListener
                 RhythmParameter rp = rpe.getRpModel();
                 Object newValue = e.getNewValue();
                 getUndoManager().startCEdit(ResUtil.getString(getClass(), "CTL_SetRpValue"));
-                for (SongPart spt : songParts.toArray(new SongPart[0]))
+                for (SongPart spt : songParts.toArray(SongPart[]::new))
                 {
                     Object value = spt.getRPValue(rp);
                     if (!value.equals(newValue))

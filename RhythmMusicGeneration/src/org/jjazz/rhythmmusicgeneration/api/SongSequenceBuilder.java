@@ -816,15 +816,17 @@ public class SongSequenceBuilder
             for (RhythmVoice rv : rpValue.getCustomizedRhythmVoices())
             {
 
+                
                 // Remove a slice for the current songpart            
                 Phrase p = rvPhrases.get(rv);
                 Phrases.silence(p, sptBeatRange, true, false, 0.1f);
 
 
-                // Get the custom phrase, starts at beat 0
-                SizedPhrase spCustom = rpValue.getCustomizedPhrase(rv);
-                float sizeInBeats = spCustom.getBeatRange().size();
-                TimeSignature ts = spCustom.getTimeSignature();
+                // Get the custom phrase as a Phrase (because possibly extended), starts at beat 0
+                Phrase pCustom = new Phrase(0);         // Channel not important here
+                pCustom.add(rpValue.getCustomizedPhrase(rv));
+                float sizeInBeats = sptBeatRange.size();
+                TimeSignature ts = r.getTimeSignature();
 
 
                 // If custom phrase is at least one bar shorter than current song part, duplicate the custom phrase to fill the remaining space
@@ -834,7 +836,7 @@ public class SongSequenceBuilder
                     List<NoteEvent> toBeAdded = new ArrayList<>();
                     while (offset < sptBeatRange.size())
                     {
-                        for (NoteEvent ne : spCustom)
+                        for (NoteEvent ne : pCustom)
                         {
                             float newPosInBeats = ne.getPositionInBeats() + offset;
                             if (newPosInBeats >= sptBeatRange.size())
@@ -846,19 +848,19 @@ public class SongSequenceBuilder
                         offset += sizeInBeats;
                     }
 
-                    toBeAdded.forEach(ne -> spCustom.add(ne));
+                    toBeAdded.forEach(ne -> pCustom.add(ne));
                 }
 
 
                 // Make sure it's not too long 
-                Phrases.silenceAfter(spCustom, sptBeatRange.size());
+                Phrases.silenceAfter(pCustom, sptBeatRange.size());
 
 
                 // Shift to fit the current song part position
-                spCustom.shiftAllEvents(sptBeatRange.from);
+                pCustom.shiftAllEvents(sptBeatRange.from);
 
                 // Update the current phrase
-                p.add(spCustom);
+                p.add(pCustom);
             }
         }
     }

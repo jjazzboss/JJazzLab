@@ -180,6 +180,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     {
         Preconditions.checkNotNull(settings);
 
+        LOGGER.severe("PianoRollEditor() -- ");
 
         this.settings = settings;
         this.startBarIndex = 0;
@@ -262,8 +263,8 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     /**
      * Associate an optional song to the editor.
      * <p>
-     * Put the song and a SaveAsCapable instance in the editor's lookup. Put also a Savable instance when required. The ruler can show the
-     * chord symbols and listen to chord symbols changes.<p>
+     * Put the song and a SaveAsCapable instance in the editor's lookup. Put also a Savable instance when required. The ruler can
+     * show the chord symbols and listen to chord symbols changes.<p>
      * <p>
      * This method can be called only once.
      *
@@ -276,11 +277,11 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         {
             throw new IllegalStateException("this.song is already set: " + this.song);
         }
-        
+
         this.song = song;
         generalLookupContent.add(song);
 
-        rulerPanel.setSong(song);     
+        rulerPanel.setSong(song);
 
     }
 
@@ -331,8 +332,8 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     /**
      * Optional view-only phrases shown in the background of the editor.
      * <p>
-     * The specified phrases are shown faded in the background in order to facilite the editing of the Phrase model. E.g. if the edited
-     * phrase is a bass line, you can use this method to make the corresponding drums phrase also visible.
+     * The specified phrases are shown faded in the background in order to facilite the editing of the Phrase model. E.g. if the
+     * edited phrase is a bass line, you can use this method to make the corresponding drums phrase also visible.
      *
      * @param mapChannelPhrases A name associated to a Phrase.
      */
@@ -366,10 +367,10 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
      * <p>
      * Fire a PROP_MODEL change event if p is different from existing model.
      *
-     * @param startBar  The new
+     * @param startBar The new
      * @param beatRange
-     * @param mapPosTs  The position of each time signature. Must have at least 1 entry at beatRange.from position or before.
-     * @param channel   The Midi channel of the edited Phrase (p.getChannel() is ignored).
+     * @param mapPosTs The position of each time signature. Must have at least 1 entry at beatRange.from position or before.
+     * @param channel The Midi channel of the edited Phrase (p.getChannel() is ignored).
      * @param p
      * @param kMap
      */
@@ -380,6 +381,8 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         Preconditions.checkNotNull(beatRange);
         Preconditions.checkArgument(!mapPosTs.isEmpty() && mapPosTs.firstKey() <= beatRange.from, "mapPosTs=%s  beatRange=%s",
                 mapPosTs, beatRange);
+
+        LOGGER.severe("setModel() -- p=" + p);
 
         if (p.equals(model) && this.channel == channel && startBar == startBarIndex && beatRange.equals(this.beatRange)
                 && this.mapPosTimeSignature.equals(mapPosTs) && Objects.equals(kMap, this.keyMap))
@@ -541,6 +544,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
      */
     public void cleanup()
     {
+        LOGGER.severe("cleanup() --");
         rulerPanel.cleanup();
         notesPanel.cleanup();
         model.removeUndoableEditListener(undoManager);
@@ -1051,7 +1055,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
                 {
                 }
             }
-       
+
         } else if (evt.getSource() instanceof NoteView nv)
         {
             if (evt.getPropertyName().equals(NoteView.PROP_SELECTED))
@@ -1071,7 +1075,6 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     // Private methods
     // =======================================================================================================================
 
-  
     /**
      * Caller is responsible to call revalidate() and/or repaint() as required.
      * <p>

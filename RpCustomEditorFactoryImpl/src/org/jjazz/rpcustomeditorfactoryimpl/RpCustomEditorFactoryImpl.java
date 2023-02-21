@@ -55,19 +55,18 @@ public class RpCustomEditorFactoryImpl implements RpCustomEditorFactory
     @Override
     public <E> RpCustomEditor<E> getEditor(RhythmParameter<E> rp)
     {
-        RealTimeRpEditorDialog res = null;
+        RpCustomEditor res = null;
 
 
-        if (rp instanceof RP_SYS_CustomPhrase)
+        if (rp instanceof RP_SYS_CustomPhrase rpCustom)
         {
-            var rpCustomPhrase = (RP_SYS_CustomPhrase) rp;
-            var editor = new RP_SYS_CustomPhraseComp2(rpCustomPhrase);
-            res = new RealTimeRpEditorDialog(editor);
+//            var editor = new RP_SYS_CustomPhraseComp2(rpCustom);
+//            res = new RealTimeRpEditorDialog(editor);
+            res = new RP_SYS_CustomPhraseEditor(rpCustom);
 
-        } else if (rp instanceof RP_SYS_DrumsTransform)
+        } else if (rp instanceof RP_SYS_DrumsTransform rpDrums)
         {
-            var rpDrumsTransform = (RP_SYS_DrumsTransform) rp;
-            var editor = new RP_SYS_DrumsTransformComp(rpDrumsTransform);
+            var editor = new RP_SYS_DrumsTransformComp(rpDrums);
             res = new RealTimeRpEditorDialog(editor);
         }
 

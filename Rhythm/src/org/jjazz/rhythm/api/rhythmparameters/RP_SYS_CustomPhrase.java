@@ -107,20 +107,15 @@ public class RP_SYS_CustomPhrase implements RhythmParameter<RP_SYS_CustomPhraseV
     }
 
     /**
-     * Compatible with another RP_SYS_CustomPhrase for the same rhythm time signature.
+     * Return false: reusing the same custom phrases for different sont parts with possibly different size/chord symbols makes no sense.
      *
      * @param rp
-     * @return
+     * @return False
      */
     @Override
     public boolean isCompatibleWith(RhythmParameter<?> rp)
     {
-        if (!(rp instanceof RP_SYS_CustomPhrase) || !rp.getId().equals(getId()))
-        {
-            return false;
-        }
-        RP_SYS_CustomPhrase rpCustom = (RP_SYS_CustomPhrase) rp;
-        return getRhythm().getTimeSignature().equals(rpCustom.getRhythm().getTimeSignature());
+        return false;
     }
 
     /**

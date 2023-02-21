@@ -85,7 +85,6 @@ public class RP_SYS_CustomPhraseValue
     public RP_SYS_CustomPhraseValue getCopyMinus(RhythmVoice minusRv)
     {
         RP_SYS_CustomPhraseValue res = new RP_SYS_CustomPhraseValue(rhythm);
-//        res.mapRvPhrase = (Map<RhythmVoice, SptPhrase>) ((HashMap) mapRvPhrase).clone();
         res.mapRvSizedPhrase = (Map<RhythmVoice, SizedPhrase>) ((HashMap) mapRvSizedPhrase).clone();
         res.mapRvSizedPhrase.remove(minusRv);
         return res;
@@ -115,7 +114,7 @@ public class RP_SYS_CustomPhraseValue
     /**
      * Get the RhythmVoices for which there is a custom phrase.
      *
-     * @return Empty if no custom phrase.
+     * @return Empty set if no custom phrase.
      */
     public Set<RhythmVoice> getCustomizedRhythmVoices()
     {

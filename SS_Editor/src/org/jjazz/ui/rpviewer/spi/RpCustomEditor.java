@@ -33,7 +33,7 @@ import org.openide.windows.WindowManager;
  * <p>
  * @param <E> RhythmParameter value class
  */
-public abstract class RpCustomEditor<E> extends JDialog implements PropertyChangeListener
+public abstract class RpCustomEditor<E> extends JDialog
 {
 
     public RpCustomEditor(boolean modal)

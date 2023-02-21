@@ -452,10 +452,10 @@ public class SS_EditorController implements SS_EditorMouseListener
         RhythmParameter<?> focusedRp = null;
         SongPart focusedSpt = null;
         Component c = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
-        if (c instanceof RpViewer)
+        if (c instanceof RpViewer rpv)
         {
-            focusedRp = ((RpViewer) c).getRpModel();
-            focusedSpt = ((RpViewer) c).getSptModel();
+            focusedRp = rpv.getRpModel();
+            focusedSpt = rpv.getSptModel();
         }
 
         SS_SelectionUtilities selection = new SS_SelectionUtilities(editor.getLookup());

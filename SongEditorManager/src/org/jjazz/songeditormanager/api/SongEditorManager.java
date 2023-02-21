@@ -320,6 +320,7 @@ public class SongEditorManager implements PropertyChangeListener
      * Song must be already edited. Create the PianoRollEditorTopComponent at the appropriate position, or just activate it.
      *
      * @param song
+     * @return 
      */
     public PianoRollEditorTopComponent showPianoRollEditor(Song song)
     {

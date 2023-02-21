@@ -165,7 +165,7 @@ public class SongPartImpl implements SongPart, Serializable
         }
         @SuppressWarnings("unchecked")
         T value = rp.cloneValue((T) mapRpValue.getValue(rp));
-        assert value != null : "rp=" + rp + " mapRpValueProfile=" + mapRpValue;   //NOI18N
+        assert value != null : "rp=" + rp + " mapRpValue=" + mapRpValue;   //NOI18N
         return value;
     }
 

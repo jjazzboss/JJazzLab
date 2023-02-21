@@ -73,7 +73,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
     // public static final String MODE = "midieditor";  // WindowManager mode
     public static final String MODE = "editor";  // WindowManager mode
 
-
+    
     private final PianoRollEditor editor;
     private final ToolbarPanel toolbarPanel;
     private final QuantizePanel quantizePanel;
@@ -89,14 +89,16 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
      * Create a TopComponent editor for the specified song.
      * <p>
      *
-     * @param sg       The TopComponent listens to song structure changes to update the edited range.
+     * @param sg The TopComponent listens to song structure changes to update the edited range.
      * @param settings
      */
     public PianoRollEditorTopComponent(Song sg, PianoRollEditorSettings settings)
     {
         Preconditions.checkNotNull(sg);
         Preconditions.checkNotNull(settings);
-
+        
+        LOGGER.severe("PianoRollEditorTopComponent() -- sg=" + sg);
+        
         putClientProperty(TopComponent.PROP_MAXIMIZATION_DISABLED, Boolean.FALSE);
         putClientProperty(TopComponent.PROP_CLOSING_DISABLED, Boolean.FALSE);
         putClientProperty(TopComponent.PROP_DND_COPY_DISABLED, Boolean.TRUE);
@@ -112,23 +114,22 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
         Mode mode = WindowManager.getDefault().findMode(PianoRollEditorTopComponent.MODE);
         assert mode != null;
         assert mode.dockInto(this);
-
-
+        
+        
         this.song = sg;
         setDisplayName(getDefaultTabName(song));
-
-
+        
+        
         editor = new PianoRollEditor(settings);
         editor.setSong(song);
-        editor.setUndoManager(JJazzUndoManagerFinder.getDefault().get(song));
         toolbarPanel = new ToolbarPanel(editor, song.getName());
 
 
         // WEIRD: only for the callback Paste action, we need BOTH the action here and in the lookup (see PianoRollEditor constructor)
         // to make paste work... 
         getActionMap().put("paste-from-clipboard", new PasteNotes(editor));
-
-
+        
+        
         initComponents();
         splitpane_tools_editor.setRightComponent(editor);
 
@@ -157,8 +158,8 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
 
         // Listen to song structure changes: editor bounds can be impacted
         song.getSongStructure().addSgsChangeListener(this);
-
-
+        
+        
         refreshToolbarTitle();
     }
 
@@ -166,24 +167,23 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
      * Update the model to edit a phrase on a single SongPart.
      * <p>
      *
-     * @param spt     Must belong to the song
+     * @param spt Must belong to the song
      * @param p
      * @param channel The Midi channel of the edited Phrase (p.getChannel() is ignored).
-     * @param keyMap  Null for melodic phrase
+     * @param keyMap Null for melodic phrase
      */
     public void setModel(SongPart spt, Phrase p, int channel, DrumKit.KeyMap keyMap)
     {
         Preconditions.checkNotNull(p);
         Preconditions.checkNotNull(spt);
         Preconditions.checkArgument(song.getSongStructure().getSongParts().contains(spt));
-
-
+        
         songPart = spt;
         TreeMap<Float, TimeSignature> mapPosTs = new TreeMap<>();
         mapPosTs.put(0f, songPart.getRhythm().getTimeSignature());
-
+        
         editor.setModel(songPart.getStartBarIndex(), getBeatRange(), p, channel, mapPosTs, keyMap);
-
+        
         refreshToolbarTitle();
     }
 
@@ -193,24 +193,24 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
      *
      * @param p
      * @param channel The Midi channel of the edited Phrase (p.getChannel() is ignored).
-     * @param keyMap  Null for melodic phrase
+     * @param keyMap Null for melodic phrase
      */
     public void setModel(Phrase p, int channel, DrumKit.KeyMap keyMap)
     {
         Preconditions.checkNotNull(p);
-
+        
         var ss = song.getSongStructure();
         var spts = ss.getSongParts();
         if (spts.isEmpty())
         {
             return;
         }
-
+        
         songPart = null;
         TreeMap<Float, TimeSignature> mapPosTs = new TreeMap<>();
         spts.forEach(spt -> mapPosTs.put(ss.getPositionInNaturalBeats(spt.getStartBarIndex()), spt.getRhythm().getTimeSignature()));
-
-
+        
+        
         editor.setModel(0, getBeatRange(), p, channel, mapPosTs, keyMap);
         refreshToolbarTitle();
     }
@@ -285,15 +285,15 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
     @Override
     public String preferredID()
     {
-        String name = song!=null ? song.getName(): "no_song";
+        String name = song != null ? song.getName() : "no_song";
         return "PianoRollEditorTopComponent-" + name;
     }
-
+    
     public PianoRollEditor getEditor()
     {
         return editor;
     }
-
+    
     @Override
     public UndoRedo getUndoRedo()
     {
@@ -318,34 +318,35 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
         Collections.addAll(actions, super.getActions()); // Get the standard builtin actions Close, Close All, Close Other      
         return actions.toArray(new Action[0]);
     }
-
+    
     @Override
     public Lookup getLookup()
     {
         return editor.getLookup();
     }
-
+    
     @Override
     public int getPersistenceType()
     {
         return TopComponent.PERSISTENCE_NEVER;
     }
-
+    
     @Override
     public boolean canClose()
     {
         return true;
     }
-
+    
     @Override
     public void componentOpened()
     {
-
+        
     }
-
+    
     @Override
     public void componentClosed()
     {
+        LOGGER.severe("componentClosed() -- ");
         song.removePropertyChangeListener(this);
         song.getSongStructure().removeSgsChangeListener(this);
         quantizePanel.cleanup();
@@ -424,7 +425,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
     {
         // Nothing
     }
-
+    
     @Override
     public void songStructureChanged(SgsChangeEvent e)
     {
@@ -435,6 +436,12 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
             if (allSpts.isEmpty())
             {
                 close();
+                return;
+            }
+            
+            if ("setRhythmParameterValue".equals(evt.getActionId()))
+            {
+                // No impact on structure change
                 return;
             }
 
@@ -462,8 +469,8 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
         String title = titleBase + strSongPart + strBarRange + strTs;
         toolbarPanel.setTitle(title);
     }
-
-
+    
+    
     void writeProperties(java.util.Properties p)
     {
         // better to version settings since initial version as advocated at
@@ -471,7 +478,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
         p.setProperty("version", "1.0");
         // TODO store your settings
     }
-
+    
     void readProperties(java.util.Properties p)
     {
         String version = p.getProperty("version");
@@ -479,8 +486,8 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
     }
 
     /**
-     * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of this
-     * method is always regenerated by the Form Editor.
+     * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of
+     * this method is always regenerated by the Form Editor.
      */
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents()
@@ -538,5 +545,5 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
     private javax.swing.JSplitPane splitpane_tools_editor;
     // End of variables declaration//GEN-END:variables
 
-
+    
 }
