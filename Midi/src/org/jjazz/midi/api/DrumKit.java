@@ -152,7 +152,7 @@ public class DrumKit implements Serializable
     {
         if (type == null || map == null)
         {
-            throw new IllegalArgumentException("type=" + type + " map=" + map);   //NOI18N
+            throw new IllegalArgumentException("type=" + type + " map=" + map);   
         }
         this.type = type;
         this.map = map;
@@ -284,7 +284,7 @@ public class DrumKit implements Serializable
             if (map == null)
             {
                 map = KeyMapGM.getInstance();
-                LOGGER.warning("readResolve() Can't find KeyMap from name=" + spKeyMapName + ". Using GM keymap instead.");   //NOI18N
+                LOGGER.warning("readResolve() Can't find KeyMap from name=" + spKeyMapName + ". Using GM keymap instead.");   
             }
 
             // Rebuild the instance

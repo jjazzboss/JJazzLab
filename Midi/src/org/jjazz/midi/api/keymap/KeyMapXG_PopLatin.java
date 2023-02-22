@@ -194,12 +194,12 @@ public class KeyMapXG_PopLatin implements DrumKit.KeyMap
     {
         if (pitch < 0 || pitch > 127 || name == null || name.trim().isEmpty())
         {
-            throw new IllegalArgumentException("pitch=" + pitch + " name=" + name);   //NOI18N
+            throw new IllegalArgumentException("pitch=" + pitch + " name=" + name);   
         }
         name = name.toUpperCase();
         if (mapNamePitch.get(name) != null || mapPitchName.get(pitch) != null)
         {
-            throw new IllegalArgumentException("pitch=" + pitch + ", name=" + name + ": value already used");   //NOI18N
+            throw new IllegalArgumentException("pitch=" + pitch + ", name=" + name + ": value already used");   
         }
         mapNamePitch.put(name, pitch);
         mapPitchName.put(pitch, name);

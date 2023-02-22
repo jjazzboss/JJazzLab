@@ -40,7 +40,7 @@ import org.jjazz.harmony.api.TimeSignature;
 public interface Rhythm extends Comparable<Rhythm>
 {
 
-    public static final String PROP_RESOURCES_LOADED = "ResourcesLoaded";   //NOI18N 
+    public static final String PROP_RESOURCES_LOADED = "ResourcesLoaded";    
 
     /**
      * The general features of this rhythm.

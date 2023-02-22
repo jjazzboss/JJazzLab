@@ -59,7 +59,7 @@ public class Quantize extends AbstractAction
 
 
         float qStrength = Quantizer.getInstance().getQuantizeStrength();
-        var beatRange = editor.getBeatRange();
+        var beatRange = editor.getPhraseBeatRange();
 
 
         String undoText = ResUtil.getString(getClass(), "QuantizeNotes");
@@ -70,7 +70,7 @@ public class Quantize extends AbstractAction
             var ne = nv.getModel();
             var ts = editor.getTimeSignature(ne.getPositionInBeats());
             var pos = editor.toPosition(ne.getPositionInBeats());
-            var newPos = Quantizer.getQuantized(editor.getQuantization(), pos, ts, qStrength, editor.getBarRange().to);
+            var newPos = Quantizer.getQuantized(editor.getQuantization(), pos, ts, qStrength, editor.getPhraseBarRange().to);
             float newPosInBeats = editor.toPositionInBeats(newPos);
             if (!beatRange.contains(newPosInBeats + ne.getDurationInBeats(), true))
             {

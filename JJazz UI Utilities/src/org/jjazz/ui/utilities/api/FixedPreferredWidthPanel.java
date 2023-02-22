@@ -64,7 +64,7 @@ public class FixedPreferredWidthPanel extends JPanel
     {
         if (prefWidth < 1)
         {
-            throw new IllegalArgumentException("prefWidth=" + prefWidth);   //NOI18N
+            throw new IllegalArgumentException("prefWidth=" + prefWidth);   
         }
         this.fixedPreferredWidth = prefWidth;
         invalidate();

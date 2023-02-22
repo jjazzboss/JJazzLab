@@ -67,19 +67,19 @@ public class SongEditorManager implements PropertyChangeListener
      * <p>
      * NewValue is the song object.
      */
-    public static final String PROP_SONG_OPENED = "SongOpened";   //NOI18N 
+    public static final String PROP_SONG_OPENED = "SongOpened";
     /**
      * This property change event is fired when a song is closed.
      * <p>
      * NewValue is the song object. Note that a Song object also fires a Closed event when it is closed by the SongEditorManager.
      */
-    public static final String PROP_SONG_CLOSED = "SongClosed";   //NOI18N 
+    public static final String PROP_SONG_CLOSED = "SongClosed";
     /**
      * This property change event is fired when a song is saved.
      * <p>
      * NewValue is the song object. This is just a forward of a Song Saved event.
      */
-    public static final String PROP_SONG_SAVED = "SongSaved";   //NOI18N 
+    public static final String PROP_SONG_SAVED = "SongSaved";
 
     private static SongEditorManager INSTANCE;
     private final HashMap<Song, Editors> mapSongEditors;       // Don't use WeakHashMap here
@@ -106,22 +106,56 @@ public class SongEditorManager implements PropertyChangeListener
     }
 
     /**
-     * Try to programmatically close the editors associated to a song.
+     * Programmatically close all the editors associated to a song.
      *
      * @param song
-     * @param isShuttingDown If true, just do what's required to notify listeners. Method will return true in all cases.
-     * @return True if editors were successfully closed
+     * @param enforce If true, close the song unconditionnaly (block user prompt if song is not saved)
+     * @return True if all editors were successfully closed, false if user blocked the closing due to unsaved song
      */
-    public boolean closeSong(Song song, boolean isShuttingDown)
+    public boolean closeSong(Song song, boolean enforce)
     {
-        if (!isShuttingDown)
+        var editors = getEditors(song);
+        assert editors != null : "song=" + song + " mapSongEditors=" + mapSongEditors;
+
+
+        // CL_Editor
+        var clTc = editors.getCL_EditorTc();
+        if (clTc.isOpened())
         {
-            return closeEditors(song);
-        } else
-        {
-            songEditorClosed(song);
-            return true;
+            if (enforce)
+            {
+                editors.getCL_EditorTc().closeSilent();
+            } else if (!clTc.close())
+            {
+                return false;
+            }
         }
+
+        // SS_Editor
+        var ssTc = editors.getSS_EditorTc();
+        if (ssTc.isOpened())
+        {
+            assert ssTc.close() == true;           // No need to enforce: if we're here clTc is closed and there should not be a user confirmation anymore
+        }
+
+
+        // PianoRollEditor
+        if (editors.getPianoRollTc() != null)
+        {
+            editors.getPianoRollTc().close();   // This never triggers user confirmation dialog
+        }
+
+
+        // Cleanup
+        song.removePropertyChangeListener(this);
+        song.removeUndoableEditListener(JJazzUndoManagerFinder.getDefault().get(song));
+        mapSongEditors.remove(song);
+        pcs.firePropertyChange(PROP_SONG_CLOSED, false, song); // Event used for example by RecentSongProvider
+        song.close(true);  // This will trigger an "activeSong=null" event from the ActiveSongManager
+        updateActiveSong();
+
+
+        return true;
     }
 
     /**
@@ -320,7 +354,7 @@ public class SongEditorManager implements PropertyChangeListener
      * Song must be already edited. Create the PianoRollEditorTopComponent at the appropriate position, or just activate it.
      *
      * @param song
-     * @return 
+     * @return
      */
     public PianoRollEditorTopComponent showPianoRollEditor(Song song)
     {
@@ -367,7 +401,7 @@ public class SongEditorManager implements PropertyChangeListener
     {
         if (s == null)
         {
-            throw new IllegalArgumentException("s=" + s);   //NOI18N
+            throw new IllegalArgumentException("s=" + s);
         }
         return mapSongEditors.get(s);
     }
@@ -394,19 +428,18 @@ public class SongEditorManager implements PropertyChangeListener
             {
                 if (evt.getNewValue() instanceof CL_EditorTopComponent clTc)
                 {
-                    // User closed a song
-                    assert closeEditors(clTc.getSongModel()) == true;       // Should be OK since clTc is already closed
-                    songEditorClosed(clTc.getSongModel());
+                    // User closed a song, close all editors
+                    closeSong(clTc.getSongModel(), true);
 
                 } else if (evt.getNewValue() instanceof SS_EditorTopComponent ssTc)
                 {
-                    // User closed a song
-                    assert closeEditors(ssTc.getSongModel()) == true;       // Should be OK since ssTc is already closed                    
-                    songEditorClosed(ssTc.getSongModel());
-
+                    // User closed a song, close all editors
+                    closeSong(ssTc.getSongModel(), true);
+                    
                 } else if (evt.getNewValue() instanceof PianoRollEditorTopComponent prTc)
                 {
-                    // Nothing
+                    getEditors(prTc.getSong()).setPianoRollEditor(null);
+                    
                 }
             } else if (evt.getPropertyName().equals(TopComponent.Registry.PROP_ACTIVATED))
             {
@@ -446,47 +479,6 @@ public class SongEditorManager implements PropertyChangeListener
     //=============================================================================
     // Private
     //=============================================================================  
-    /**
-     * Song editors are closed, notify listeners and do some cleanup
-     *
-     * @param s
-     */
-    private void songEditorClosed(Song s)
-    {
-        s.removePropertyChangeListener(this);
-        s.removeUndoableEditListener(JJazzUndoManagerFinder.getDefault().get(s));
-        mapSongEditors.remove(s);
-        pcs.firePropertyChange(PROP_SONG_CLOSED, false, s); // Event used for example by RecentSongProvider
-        s.close(true);  // This will trigger an "activeSong=null" event from the ActiveSongManager
-        updateActiveSong();
-    }
-
-    /**
-     * Try to close the editors which are still opened.
-     * <p>
-     * This might trigger a user confirmation dialog, which can cancel the operation.
-     *
-     * @param s
-     * @return True if editors have been successfully closed
-     */
-    private boolean closeEditors(Song s)
-    {
-        var editors = getEditors(s);
-        assert editors != null : "s=" + s + " mapSongEditors=" + mapSongEditors;
-        if (editors.getCL_EditorTc() != null)
-        {
-            if (!editors.getCL_EditorTc().close())
-            {
-                return false;
-            }
-        }
-        assert editors.getSS_EditorTc().close() == true;  // Should always close since CL_Editor was closed successfully
-        if (editors.getPianoRollTc() != null)
-        {
-            editors.getPianoRollTc().close();   // Does not trigger user confirmation dialog
-        }
-        return true;
-    }
 
     private void songSaved(Song s)
     {
@@ -574,14 +566,16 @@ public class SongEditorManager implements PropertyChangeListener
     {
 
         private final CL_EditorTopComponent tcCle;
-        private final SS_EditorTopComponent tcRle;
+        private final SS_EditorTopComponent tcSse;
         private PianoRollEditorTopComponent tcPre;
 
 
-        protected Editors(CL_EditorTopComponent tcCle, SS_EditorTopComponent tcRle)
+        protected Editors(CL_EditorTopComponent tcCle, SS_EditorTopComponent tcSse)
         {
+            Preconditions.checkNotNull(tcCle);
+            Preconditions.checkNotNull(tcSse);
             this.tcCle = tcCle;
-            this.tcRle = tcRle;
+            this.tcSse = tcSse;
         }
 
 
@@ -602,30 +596,7 @@ public class SongEditorManager implements PropertyChangeListener
 
         public SS_EditorTopComponent getSS_EditorTc()
         {
-            return tcRle;
-        }
-
-        /**
-         * Get all non-null TopComponent editors.
-         *
-         * @return
-         */
-        public List<TopComponent> getTopComponents()
-        {
-            List<TopComponent> res = new ArrayList<>();
-            if (tcCle != null)
-            {
-                res.add(tcCle);
-            }
-            if (tcRle != null)
-            {
-                res.add(tcRle);
-            }
-            if (tcPre != null)
-            {
-                res.add(tcPre);
-            }
-            return res;
+            return tcSse;
         }
 
     }

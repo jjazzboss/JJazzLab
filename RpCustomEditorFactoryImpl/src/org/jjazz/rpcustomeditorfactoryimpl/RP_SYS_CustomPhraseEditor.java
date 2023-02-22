@@ -13,11 +13,11 @@ import java.util.logging.Logger;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.SwingUtilities;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.midi.api.Instrument;
 import org.jjazz.musiccontrol.api.playbacksession.BaseSongSession;
 import org.jjazz.phrase.api.Phrase;
-import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.Rhythm;
@@ -32,6 +32,7 @@ import org.jjazz.songeditormanager.api.SongEditorManager;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.rpviewer.spi.RpCustomEditor;
 import org.jjazz.ui.utilities.api.Utilities;
+import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.util.api.FloatRange;
 import org.jjazz.util.api.ResUtil;
 import org.openide.DialogDisplayer;
@@ -41,8 +42,9 @@ import org.openide.NotifyDescriptor;
 /**
  * A RpCustomEditor for RP_SYS_CustomPhrase.
  * <p>
- * The editor can not use the standard RpCustomEditor<E> mechanism (i.e. make the modifications within the modal dialog) because
- * we use a PianoRollEditorTopComponent which remains available after dialog is closed.
+ * The editor can not use the standard RpCustomEditor<E> mechanism (i.e. make the modifications within the modal dialog) because we use a
+ * PianoRollEditorTopComponent which remains available after dialog is closed, and RP_SYS_CustomPhraseValue is mutable (MutableRpValue
+ * instance).
  */
 public class RP_SYS_CustomPhraseEditor extends RpCustomEditor<RP_SYS_CustomPhraseValue>
 {
@@ -53,7 +55,7 @@ public class RP_SYS_CustomPhraseEditor extends RpCustomEditor<RP_SYS_CustomPhras
     private RP_SYS_CustomPhraseValue rpValue;
     private SongPartContext songPartContext;
     private boolean exitOk;
-    private final Map<RhythmVoice, SizedPhrase> mapRvPhrase = new HashMap<>();
+    private final Map<RhythmVoice, Phrase> mapRvPhrase = new HashMap<>();
     private static final Logger LOGGER = Logger.getLogger(RP_SYS_CustomPhraseEditor.class.getSimpleName());
 
     public RP_SYS_CustomPhraseEditor(RP_SYS_CustomPhrase rp)
@@ -67,8 +69,6 @@ public class RP_SYS_CustomPhraseEditor extends RpCustomEditor<RP_SYS_CustomPhras
 
         Utilities.installEscapeKeyAction(this, () -> btn_cancelActionPerformed(null));
         Utilities.installEnterKeyAction(this, () -> btn_editActionPerformed(null));
-
-        pack();
 
     }
 
@@ -91,6 +91,7 @@ public class RP_SYS_CustomPhraseEditor extends RpCustomEditor<RP_SYS_CustomPhras
 
         songPartContext = sptContext;
         var spt = songPartContext.getSongPart();
+        Rhythm r = spt.getRhythm();
 
 
         LOGGER.log(Level.FINE, "preset() -- rpValue={0} spt={1}", new Object[]
@@ -99,19 +100,39 @@ public class RP_SYS_CustomPhraseEditor extends RpCustomEditor<RP_SYS_CustomPhras
         });
 
 
-        this.rpValue = new RP_SYS_CustomPhraseValue(rpValue);
+        // We need a new RP_SYS_CustomPhraseValue instance between the caller framework will compare with equals() the old rpValue with the new rpValue
+        // to decide to update the SongPart RP value.
+        // If there is at least 1 non-empty customized phrase, rpValue instances will be different because NoteEvents are never equal.
+        this.rpValue = new RP_SYS_CustomPhraseValue(r);
+        this.rpValue.set(rpValue);       // This let's us add/remove a customized phrase but with the same Phrase instances
 
 
-        list_rhythmVoices.setListData(rpValue.getRhythm().getRhythmVoices().toArray(RhythmVoice[]::new));
-        list_rhythmVoices.setSelectedIndex(0);
-        Rhythm r = spt.getRhythm();
+        // Populate the JList and select the first customized RhythmVoice, if any
+        var rvs = r.getRhythmVoices();
+        list_rhythmVoices.setListData(rvs.toArray(RhythmVoice[]::new));
+        int index = 0;
+        var crvs = rpValue.getCustomizedRhythmVoices();
+        if (!crvs.isEmpty())
+        {
+            for (int i = 0; i < rvs.size(); i++)
+            {
+                if (crvs.contains(rvs.get(i)))
+                {
+                    index = i;
+                    break;
+                }
+            }
+        }
+        list_rhythmVoices.setSelectedIndex(index);
+
+
         var rpVariation = RP_STD_Variation.getVariationRp(r);
         String strVariation = rpVariation == null ? "" : "/" + spt.getRPValue(rpVariation);
         lbl_phraseInfo.setText(r.getName() + strVariation);
 
 
         // Start a task to generate the phrases 
-        Runnable task = () ->
+        Runnable task = () -> 
         {
             BaseSongSession tmpSession = new BaseSongSession(songPartContext,
                     false,
@@ -127,6 +148,8 @@ public class RP_SYS_CustomPhraseEditor extends RpCustomEditor<RP_SYS_CustomPhras
             {
                 NotifyDescriptor d = new NotifyDescriptor.Message(ex.getMessage(), NotifyDescriptor.ERROR_MESSAGE);
                 DialogDisplayer.getDefault().notify(d);
+                tmpSession.close();
+                SwingUtilities.invokeLater(() -> btn_cancelActionPerformed(null));
                 return;
             }
 
@@ -137,6 +160,8 @@ public class RP_SYS_CustomPhraseEditor extends RpCustomEditor<RP_SYS_CustomPhras
         };
 
         new Thread(task).start();
+
+        pack();
 
     }
 
@@ -167,27 +192,19 @@ public class RP_SYS_CustomPhraseEditor extends RpCustomEditor<RP_SYS_CustomPhras
      * Called by thread started from preset() when phrases are ready.
      * <p>
      *
-     * @param map A map generated by SongSequenceBuilder, with no RhythmVoiceDelegate since they have been processed
+     * @param map A map generated by SongSequenceBuilder, with no RhythmVoiceDelegate since they have been processed. Phrases start at beat
+     *            0.
      */
     private synchronized void setMapRvPhrase(Map<RhythmVoice, Phrase> map)
     {
-        LOGGER.log(Level.FINE, "setMapRvPhrase() -- map={0}", map);
+        // LOGGER.log(Level.SEVERE, "setMapRvPhrase() -- map={0}", org.jjazz.util.api.Utilities.toMultilineString(map));
 
         mapRvPhrase.clear();
-        for (var rv : map.keySet())
-        {
-            Phrase p = map.get(rv);     // Phrase always start at bar 0
-            SizedPhrase sp = new SizedPhrase(getChannel(rv),
-                    songPartContext.getBeatRange().getTransformed(-songPartContext.getBeatRange().from),
-                    songPartContext.getSongPart().getRhythm().getTimeSignature(),
-                    p.isDrums()
-            );
-            sp.add(p);
-            mapRvPhrase.put(rv, sp);
-        }
+        mapRvPhrase.putAll(map);
 
         // Refresh the birdview
-        list_rhythmVoicesValueChanged(null);
+        refreshUI();
+
     }
 
     /**
@@ -199,36 +216,36 @@ public class RP_SYS_CustomPhraseEditor extends RpCustomEditor<RP_SYS_CustomPhras
      * @param rv
      * @return Can be null!
      */
-    private synchronized SizedPhrase getPhrase(RhythmVoice rv)
+    private synchronized Phrase getPhrase(RhythmVoice rv)
     {
         if (mapRvPhrase.isEmpty() || rpValue == null)
         {
             return null;
         }
-        SizedPhrase sp = null;
+        Phrase p = null;
         if (isCustomizedPhrase(rv))
         {
-            sp = rpValue.getCustomizedPhrase(rv);
+            p = rpValue.getCustomizedPhrase(rv);
         } else if (rv instanceof RhythmVoiceDelegate)
         {
-            sp = mapRvPhrase.get(((RhythmVoiceDelegate) rv).getSource());
+            p = mapRvPhrase.get(((RhythmVoiceDelegate) rv).getSource());
         } else
         {
-            sp = mapRvPhrase.get(rv);
+            p = mapRvPhrase.get(rv);
         }
 
-        return sp;
+        return p;
     }
 
-    private void addCustomizedPhrase(RhythmVoice rv, SizedPhrase sp)
+    private void setCustomizedPhrase(RhythmVoice rv, Phrase p)
     {
-        rpValue = rpValue.getCopyPlus(rv, sp);
+        rpValue.setCustomizedPhrase(rv, p);
         forceListRepaint();
     }
 
     private void removeCustomizedPhrase(RhythmVoice rv)
     {
-        rpValue = rpValue.getCopyMinus(rv);
+        rpValue.removeCustomizedPhrase(rv);
         forceListRepaint();
     }
 
@@ -253,7 +270,7 @@ public class RP_SYS_CustomPhraseEditor extends RpCustomEditor<RP_SYS_CustomPhras
         if (rv != null)
         {
             isCustom = isCustomizedPhrase(rv);
-            SizedPhrase p = getPhrase(rv);
+            Phrase p = getPhrase(rv);
             if (p != null)
             {
                 // Computed phrases are shifted to start at 0.
@@ -275,7 +292,7 @@ public class RP_SYS_CustomPhraseEditor extends RpCustomEditor<RP_SYS_CustomPhras
 
     private String buildTitle(SongPart spt)
     {
-        String txt = "\"" + spt.getName() + "\" - bars " + (spt.getBarRange().from + 1) + "..." + (spt.getBarRange().to + 1);
+        String txt = "\"" + spt.getName() + "\" - bars " + (spt.getBarRange().from + 1) + ".." + (spt.getBarRange().to + 1);
         return ResUtil.getString(getClass(), "RP_SYS_CustomPhraseEditor.DialogTitle", txt);
     }
 
@@ -292,57 +309,64 @@ public class RP_SYS_CustomPhraseEditor extends RpCustomEditor<RP_SYS_CustomPhras
         var p = getPhrase(rv);
         if (!isCustomizedPhrase(rv))
         {
-            addCustomizedPhrase(rv, p);
+            setCustomizedPhrase(rv, p);
         }
 
 
         // Create editor TopComponent and open it if required
         Song song = songPartContext.getSong();
+        var spt = songPartContext.getSongPart();
 
         var preTc = SongEditorManager.getInstance().showPianoRollEditor(song);
+        var editor = preTc.getEditor();
+        editor.setUndoManager(JJazzUndoManagerFinder.getDefault().get(song));
+        
 
         // Update the editor model
         DrumKit drumKit = getInstrument(rv).getDrumKit();
         DrumKit.KeyMap keyMap = drumKit == null ? null : drumKit.getKeyMap();
-        preTc.setModel(songPartContext.getSongPart(), p, getChannel(rv), keyMap);
-        preTc.setTitle("SongPart custom phrase edit rv=" + rv.getName());
+        preTc.setModel(spt, p, getChannel(rv), keyMap);
+        String text = ResUtil.getString(getClass(), "RP_SYS_CustomPhraseEditor.customPhraseTitle", rv.getName());
+        preTc.setTitle(text);
         preTc.requestActive();
 
-
-        // Prepare listeners to:
-        // - Update the song when edited song is changed
-        // - Stop listening when editor is destroyed or its model is changed  
-        var editor = preTc.getEditor();
+       
+        // Listen to RP value changes while editor edits our model
         PropertyChangeListener listener = new PropertyChangeListener()
         {
             @Override
-            public void propertyChange(PropertyChangeEvent evt)
+            public void propertyChange(PropertyChangeEvent e)
             {
-                if (evt.getSource() == editor)
+                if (e.getSource() == spt)
                 {
-                    switch (evt.getPropertyName())
+                    if (e.getPropertyName().equals(SongPart.PROP_RP_VALUE)
+                            && e.getOldValue() == rp
+                            && e.getNewValue() instanceof RP_SYS_CustomPhraseValue newRpValue)
+                    {
+                        // Our rpValue was replaced, check if our customized phrase is still there
+                        Phrase newP = newRpValue.getCustomizedPhrase(rv);
+                        if (newP != p)
+                        {
+                            // It's not there anymore, close the editor
+                            preTc.close();
+                        }
+                    }
+                } else if (e.getSource() == editor)
+                {
+                    switch (e.getPropertyName())
                     {
                         case PianoRollEditor.PROP_MODEL, PianoRollEditor.PROP_EDITOR_ALIVE ->
                         {
-                            LOGGER.severe("editCurrentPhrase.propertyChange() STOP listening evt.getPropertyName()=" + evt.getPropertyName());
                             editor.removePropertyChangeListener(this);
-                            p.removePropertyChangeListener(this);
+                            spt.removePropertyChangeListener(this);
                         }
-                    }
-                } else if (evt.getSource() == p)
-                {
-                    if (!Phrase.isAdjustingEvent(evt.getPropertyName()))
-                    {
-                        // Update the song           
-                        LOGGER.severe("editCurrentPhrase.propertyChange() phrase updated!");
-                        song.getSongStructure().setRhythmParameterValue(songPartContext.getSongPart(), rp, rpValue);
                     }
                 }
             }
         };
 
         editor.addPropertyChangeListener(listener);
-        p.addPropertyChangeListener(listener);
+        spt.addPropertyChangeListener(listener);
 
     }
 
@@ -369,8 +393,8 @@ public class RP_SYS_CustomPhraseEditor extends RpCustomEditor<RP_SYS_CustomPhras
 
 
     /**
-     * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of
-     * this method is always regenerated by the Form Editor.
+     * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of this
+     * method is always regenerated by the Form Editor.
      */
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -391,6 +415,14 @@ public class RP_SYS_CustomPhraseEditor extends RpCustomEditor<RP_SYS_CustomPhras
         setPreferredSize(new java.awt.Dimension(500, 200));
 
         list_rhythmVoices.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        list_rhythmVoices.setToolTipText(org.openide.util.NbBundle.getMessage(RP_SYS_CustomPhraseEditor.class, "RP_SYS_CustomPhraseEditor.list_rhythmVoices.toolTipText")); // NOI18N
+        list_rhythmVoices.addMouseListener(new java.awt.event.MouseAdapter()
+        {
+            public void mouseClicked(java.awt.event.MouseEvent evt)
+            {
+                list_rhythmVoicesMouseClicked(evt);
+            }
+        });
         list_rhythmVoices.addListSelectionListener(new javax.swing.event.ListSelectionListener()
         {
             public void valueChanged(javax.swing.event.ListSelectionEvent evt)
@@ -423,6 +455,7 @@ public class RP_SYS_CustomPhraseEditor extends RpCustomEditor<RP_SYS_CustomPhras
 
         btn_edit.setFont(btn_edit.getFont().deriveFont(btn_edit.getFont().getStyle() | java.awt.Font.BOLD));
         org.openide.awt.Mnemonics.setLocalizedText(btn_edit, org.openide.util.NbBundle.getMessage(RP_SYS_CustomPhraseEditor.class, "RP_SYS_CustomPhraseEditor.btn_edit.text")); // NOI18N
+        btn_edit.setToolTipText(org.openide.util.NbBundle.getMessage(RP_SYS_CustomPhraseEditor.class, "RP_SYS_CustomPhraseEditor.btn_edit.toolTipText")); // NOI18N
         btn_edit.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -441,6 +474,7 @@ public class RP_SYS_CustomPhraseEditor extends RpCustomEditor<RP_SYS_CustomPhras
         });
 
         org.openide.awt.Mnemonics.setLocalizedText(btn_reset, org.openide.util.NbBundle.getMessage(RP_SYS_CustomPhraseEditor.class, "RP_SYS_CustomPhraseEditor.btn_reset.text")); // NOI18N
+        btn_reset.setToolTipText(org.openide.util.NbBundle.getMessage(RP_SYS_CustomPhraseEditor.class, "RP_SYS_CustomPhraseEditor.btn_reset.toolTipText")); // NOI18N
         btn_reset.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -455,23 +489,20 @@ public class RP_SYS_CustomPhraseEditor extends RpCustomEditor<RP_SYS_CustomPhras
             pnl_overlayLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pnl_overlayLayout.createSequentialGroup()
                 .addContainerGap()
+                .addGroup(pnl_overlayLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 212, Short.MAX_VALUE)
+                    .addComponent(lbl_phraseInfo, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(pnl_overlayLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(pnl_overlayLayout.createSequentialGroup()
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 212, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addGroup(pnl_overlayLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(pnl_overlayLayout.createSequentialGroup()
-                                .addGap(0, 76, Short.MAX_VALUE)
-                                .addComponent(btn_reset)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(btn_edit)
-                                .addGap(18, 18, 18)
-                                .addComponent(btn_cancel))
-                            .addComponent(birdViewComponent, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-                    .addGroup(pnl_overlayLayout.createSequentialGroup()
-                        .addComponent(lbl_phraseInfo, javax.swing.GroupLayout.PREFERRED_SIZE, 80, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(lbl_rhythmVoice, javax.swing.GroupLayout.PREFERRED_SIZE, 240, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGap(0, 78, Short.MAX_VALUE)
+                        .addComponent(btn_edit)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btn_reset)
+                        .addGap(18, 18, 18)
+                        .addComponent(btn_cancel))
+                    .addComponent(birdViewComponent, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(lbl_rhythmVoice, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
         pnl_overlayLayout.setVerticalGroup(
@@ -499,7 +530,7 @@ public class RP_SYS_CustomPhraseEditor extends RpCustomEditor<RP_SYS_CustomPhras
 
     private void list_rhythmVoicesValueChanged(javax.swing.event.ListSelectionEvent evt)//GEN-FIRST:event_list_rhythmVoicesValueChanged
     {//GEN-HEADEREND:event_list_rhythmVoicesValueChanged
-        if (evt != null && evt.getValueIsAdjusting())
+        if (evt.getValueIsAdjusting())
         {
             return;
         }
@@ -527,6 +558,14 @@ public class RP_SYS_CustomPhraseEditor extends RpCustomEditor<RP_SYS_CustomPhras
         exitOk = true;
         setVisible(false);
     }//GEN-LAST:event_btn_resetActionPerformed
+
+    private void list_rhythmVoicesMouseClicked(java.awt.event.MouseEvent evt)//GEN-FIRST:event_list_rhythmVoicesMouseClicked
+    {//GEN-HEADEREND:event_list_rhythmVoicesMouseClicked
+        if (evt.getClickCount() == 2 && getCurrentRhythmVoice() != null)
+        {
+            btn_editActionPerformed(null);
+        }
+    }//GEN-LAST:event_list_rhythmVoicesMouseClicked
 
 
 
@@ -564,7 +603,7 @@ public class RP_SYS_CustomPhraseEditor extends RpCustomEditor<RP_SYS_CustomPhras
             {
                 channel = getChannel(rv) + 1;
                 var ins = getInstrument(rv);
-                s = "[" + (channel + 1) + "] " + ins.getPatchName() + " / " + rv.getName();
+                s = "[" + channel + "] " + ins.getPatchName() + " / " + rv.getName();
             }
             lbl.setText(s);
             Font f = lbl.getFont();

@@ -87,7 +87,7 @@ final class GeneralPanel extends javax.swing.JPanel implements PropertyChangeLis
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
-        LOGGER.log(Level.FINE, "PropertyChangeEvent() evt={0}", evt);   //NOI18N
+        LOGGER.log(Level.FINE, "PropertyChangeEvent() evt={0}", evt);   
         FileDirectoryManager fdm = FileDirectoryManager.getInstance();
         if (evt.getSource() == fdm)
         {

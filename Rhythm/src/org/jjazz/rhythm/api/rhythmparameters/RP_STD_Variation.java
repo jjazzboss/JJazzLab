@@ -54,7 +54,7 @@ public class RP_STD_Variation extends RP_State
     {
         if (rhythm == null)
         {
-            throw new NullPointerException("r");   //NOI18N
+            throw new NullPointerException("r");   
         }
         return (RP_STD_Variation) rhythm.getRhythmParameters()
                 .stream()

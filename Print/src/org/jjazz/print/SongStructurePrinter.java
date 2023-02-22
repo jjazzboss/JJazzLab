@@ -150,7 +150,7 @@ public class SongStructurePrinter implements Printable, Pageable
     public int print(Graphics g, PageFormat pageFormat, int pageIndex) throws PrinterException
     {
 
-        LOGGER.fine("print() -- pageIndex=" + pageIndex);   //NOI18N
+        LOGGER.fine("print() -- pageIndex=" + pageIndex);   
 
 
         Graphics2D g2d = (Graphics2D) g.create();
@@ -161,7 +161,7 @@ public class SongStructurePrinter implements Printable, Pageable
 
         // Y offset corresponding to pageIndex
         double yOffset = pageIndex * scaledEditorPageHeight;
-        LOGGER.fine("print() yOffset=" + yOffset);   //NOI18N
+        LOGGER.fine("print() yOffset=" + yOffset);   
 
 
         // Set position on upper left corner of Imageable area
@@ -258,7 +258,7 @@ public class SongStructurePrinter implements Printable, Pageable
         scaledEditorLastPageHeight = scaledEditorHeight - (nbPages - 1) * scaledEditorPageHeight;
 
 
-        LOGGER.fine("computeEditorDimensions() "   //NOI18N
+        LOGGER.fine("computeEditorDimensions() "   
                 + " scaledEditorHeight=" + scaledEditorHeight
                 + " scaledEditorPageHeight=" + scaledEditorPageHeight
                 + " centralZoneHeight=" + centralZoneHeight

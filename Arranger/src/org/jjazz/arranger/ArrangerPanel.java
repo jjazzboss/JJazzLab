@@ -86,7 +86,7 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
     private Transmitter transmitterChordSymbolFinder;
     private ChordReceiver chordReceiver;
     private final Future<?> chordSymbolFinderBuildFuture;
-    private static final Logger LOGGER = Logger.getLogger(ArrangerPanel.class.getSimpleName());  //NOI18N  
+    private static final Logger LOGGER = Logger.getLogger(ArrangerPanel.class.getSimpleName());    
 
     /**
      * Creates new form ArrangerPanel

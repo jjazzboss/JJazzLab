@@ -136,7 +136,7 @@ public final class MusicXmlParser
         Element root = xomDoc.getRootElement();
         if (root.getQualifiedName().equalsIgnoreCase("score-timewise"))
         {
-            LOGGER.warning("parse() score-timewise musicXML is not currently supported.");   //NOI18N
+            LOGGER.warning("parse() score-timewise musicXML is not currently supported.");   
             return;
         } else if (root.getQualifiedName().equalsIgnoreCase("score-partwise"))
         {
@@ -150,24 +150,24 @@ public final class MusicXmlParser
         Element part = findPartContainingHarmony(root);
         if (part == null)
         {
-            LOGGER.warning("parseHarmonyPartWise() No part found with an harmony element.");   //NOI18N
+            LOGGER.warning("parseHarmonyPartWise() No part found with an harmony element.");   
             return;
         }
 
         Attribute partId = part.getAttribute("id");     // Some files don't have an id !?
         if (partId == null)
         {
-            LOGGER.log(Level.WARNING, "parseHarmonyPartWise() No id found for part={0}", part.getLocalName());   //NOI18N
+            LOGGER.log(Level.WARNING, "parseHarmonyPartWise() No id found for part={0}", part.getLocalName());   
         } else
         {
-            LOGGER.log(Level.FINE, "parseHarmonyPartWise() Processing part id={0}", partId.getValue());   //NOI18N
+            LOGGER.log(Level.FINE, "parseHarmonyPartWise() Processing part id={0}", partId.getValue());   
         }
 
 
         for (Element elMeasure : part.getChildElements("measure"))
         {
             String numberId = elMeasure.getAttribute("number").getValue();
-            LOGGER.log(Level.FINE, "parseHarmonyPartWise() processing measure numberId={0} curBarIndex={1}", new Object[]   //NOI18N
+            LOGGER.log(Level.FINE, "parseHarmonyPartWise() processing measure numberId={0} curBarIndex={1}", new Object[]   
             {
                 numberId, curBarIndex
             });
@@ -217,7 +217,7 @@ public final class MusicXmlParser
                 timeSignature = TimeSignature.get(upper, lower);
                 if (timeSignature == null)
                 {
-                    LOGGER.warning("parseMusicData() Invalid time signature=" + upper + "/" + lower + ". Using 4/4 instead.");   //NOI18N
+                    LOGGER.warning("parseMusicData() Invalid time signature=" + upper + "/" + lower + ". Using 4/4 instead.");   
                     timeSignature = TimeSignature.FOUR_FOUR;
                 }
                 fireTimeSignatureParsed(timeSignature, curBarIndex);
@@ -226,7 +226,7 @@ public final class MusicXmlParser
 
         for (Element el : musicDataRoot.getChildElements())
         {
-            LOGGER.log(Level.FINE, "parseMeasure() el={0}", el.getLocalName());   //NOI18N
+            LOGGER.log(Level.FINE, "parseMeasure() el={0}", el.getLocalName());   
             switch (el.getLocalName())
             {
                 case "harmony":
@@ -282,7 +282,7 @@ public final class MusicXmlParser
             }
             if (curDivisionInBar < 0)
             {
-                LOGGER.severe("parseMusicData() invalid value for curDivisionInBar=" + curDivisionInBar + ", el=" + el + ". Resetting value to 0");   //NOI18N
+                LOGGER.severe("parseMusicData() invalid value for curDivisionInBar=" + curDivisionInBar + ", el=" + el + ". Resetting value to 0");   
                 curDivisionInBar = 0;
             }
         }
@@ -349,7 +349,7 @@ public final class MusicXmlParser
     {
         if (barIndex < 0 || divisionPosInBar < 0)
         {
-            throw new IllegalArgumentException("harmony=" + elHarmony + " barIndex=" + barIndex + " divisionPosInBar=" + divisionPosInBar);   //NOI18N
+            throw new IllegalArgumentException("harmony=" + elHarmony + " barIndex=" + barIndex + " divisionPosInBar=" + divisionPosInBar);   
         }
         ChordTypeDatabase ctdb = ChordTypeDatabase.getInstance();
 
@@ -371,7 +371,7 @@ public final class MusicXmlParser
             divisionPosInBar += offset;
             if (divisionPosInBar < 0)
             {
-                LOGGER.severe("parseHarmony() invalid value for divisionPosInBar=" + divisionPosInBar + ", barIndex=" + barIndex + ", elOffset=" + elOffset + ", elHarmony=" + elHarmony + ". Resetting value to 0");   //NOI18N
+                LOGGER.severe("parseHarmony() invalid value for divisionPosInBar=" + divisionPosInBar + ", barIndex=" + barIndex + ", elOffset=" + elOffset + ", elHarmony=" + elHarmony + ". Resetting value to 0");   
                 divisionPosInBar = 0;
             }
         }
@@ -389,7 +389,7 @@ public final class MusicXmlParser
         Element chord_kind = elHarmony.getFirstChildElement("kind");    // In rare cases was null!
         if (chord_kind == null)
         {
-            LOGGER.log(Level.WARNING, "parseHarmony() No kind value for element harmony={1}. Using major chord instead.", new Object[]   //NOI18N
+            LOGGER.log(Level.WARNING, "parseHarmony() No kind value for element harmony={1}. Using major chord instead.", new Object[]   
             {
                 elHarmony.toString()
             });
@@ -402,7 +402,7 @@ public final class MusicXmlParser
         if (strKindValue == null || strKindValue.isBlank())
         {
             // Robustness cases - it should never happen but some .xml are malformed
-            LOGGER.log(Level.WARNING, "parseHarmony() Invalid empty kind value={0} in element harmony={1}. Using major chord instead.", new Object[]   //NOI18N
+            LOGGER.log(Level.WARNING, "parseHarmony() Invalid empty kind value={0} in element harmony={1}. Using major chord instead.", new Object[]   
             {
                 strKindValue, elHarmony.toString()
             });
@@ -435,14 +435,14 @@ public final class MusicXmlParser
                 }
 
                 // Default
-                LOGGER.warning("parseHarmony() No chord type found for kind_value=" + strKindValue + " in element harmony=" + elHarmony.toString() + ". Using major chord instead.");   //NOI18N
+                LOGGER.warning("parseHarmony() No chord type found for kind_value=" + strKindValue + " in element harmony=" + elHarmony.toString() + ". Using major chord instead.");   
                 strChordType = "";
 
             }
 
             // Get the corresponding chordtype which will give us the Degrees
             ChordType ct = ctdb.getChordType(strChordType);
-            assert ct != null : "strChordType=" + strChordType;   //NOI18N
+            assert ct != null : "strChordType=" + strChordType;   
             degrees.addAll(ct.getDegrees());
         }
 
@@ -464,7 +464,7 @@ public final class MusicXmlParser
             if (ct == null)
             {
                 ct = ctdb.getChordType(0); // Default if problem
-                LOGGER.warning("parseHarmony() Can't parse chord symbol for " + strKindText + ". Using chord kind value=" + ct.getName() + " instead.");   //NOI18N
+                LOGGER.warning("parseHarmony() Can't parse chord symbol for " + strKindText + ". Using chord kind value=" + ct.getName() + " instead.");   
             }
         }
 
@@ -576,14 +576,14 @@ public final class MusicXmlParser
                     degree = Degree.getDegree(Degree.Natural.SIXTH, intAlter);
                     break;
                 default:
-                    LOGGER.log(Level.WARNING, "parseDegrees() degree-value={0} not supported. Skipping degree element...", intValue);   //NOI18N
+                    LOGGER.log(Level.WARNING, "parseDegrees() degree-value={0} not supported. Skipping degree element...", intValue);   
                     continue;
             }
 
             if (degree == null)
             {
                 // Example found: 13 degree with alter=+1 !
-                LOGGER.log(Level.WARNING, "parseDegrees() degree-value={0}/degree-alter={1} not supported. Skipping degree element...",   //NOI18N
+                LOGGER.log(Level.WARNING, "parseDegrees() degree-value={0}/degree-alter={1} not supported. Skipping degree element...",   
                         new Object[]
                         {
                             intValue, intAlter
@@ -599,10 +599,10 @@ public final class MusicXmlParser
                     degrees.add(degree);
                     break;
                 case "subtract":
-                    LOGGER.warning("parseDegrees() degree-type=substract not handled. Skipping degree element...");   //NOI18N
+                    LOGGER.warning("parseDegrees() degree-type=substract not handled. Skipping degree element...");   
                     continue;
                 default:
-                    throw new IllegalStateException("strType=" + strType);   //NOI18N
+                    throw new IllegalStateException("strType=" + strType);   
             }
         }
     }

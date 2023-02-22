@@ -43,7 +43,7 @@ public abstract class MidiFileDragInTransferHandler extends TransferHandler
     @Override
     public boolean canImport(TransferHandler.TransferSupport support)
     {
-        LOGGER.fine("MidiFileDragInTransferHandler.canImport() -- support=" + support); //NOI18N
+        LOGGER.fine("MidiFileDragInTransferHandler.canImport() -- support=" + support); 
         if (!isImportEnabled() || !support.isDataFlavorSupported(DataFlavor.javaFileListFlavor))
         {
             return false;

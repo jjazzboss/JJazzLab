@@ -120,7 +120,7 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
         final ChordLeadSheet cls = selection.getChordLeadSheet();
         final CL_Editor editor = CL_EditorTopComponent.getActive().getEditor();
         char key = (char) 0;
-        LOGGER.fine("e=" + e);   //NOI18N
+        LOGGER.fine("e=" + e);   
 
         // Is it a chord note ?        
         if (e != null && e.getActionCommand().length() == 1)
@@ -166,7 +166,7 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
             }
         } else
         {
-            assert selection.isBarSelectedWithinCls() == true : "selection=" + selection;   //NOI18N
+            assert selection.isBarSelectedWithinCls() == true : "selection=" + selection;   
             int modelBarIndex = selection.getMinBarIndexWithinCls();
             editBarWithDialog(editor, modelBarIndex, new Preset(Preset.Type.BarEdit, null, key), cls, undoText);
         }
@@ -183,7 +183,7 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
         {
             b = selection.getSelectedBarIndexesWithinCls().size() == 1;
         }
-        LOGGER.log(Level.FINE, "selectionChange() b=" + b);   //NOI18N
+        LOGGER.log(Level.FINE, "selectionChange() b=" + b);   
         setEnabled(b);
     }
 
@@ -207,7 +207,7 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
                 if (dialog.exitedOk())
                 {
                     Section newSection = dialog.getNewData();
-                    assert newSection != null;   //NOI18N
+                    assert newSection != null;   
                     JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(cls);
                     try
                     {
@@ -245,7 +245,7 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
                 if (dialog.exitedOk())
                 {
                     ExtChordSymbol newCs = dialog.getData();
-                    assert newCs != null;   //NOI18N
+                    assert newCs != null;   
                     JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(cls);
                     um.startCEdit(undoText);
                     cls.changeItem(csItem, newCs);
@@ -273,7 +273,7 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
                 dialog.preset(preset, editor.getModel(), barIndex, editor.getDisplayQuantizationValue(cls.getSection(barIndex)).equals(Quantization.ONE_THIRD_BEAT));
                 adjustDialogPosition(dialog, barIndex);
                 dialog.setVisible(true);
-                LOGGER.fine("editBarWithDialog() right after setVisible(true)");   //NOI18N
+                LOGGER.fine("editBarWithDialog() right after setVisible(true)");   
                 if (!dialog.isExitOk())
                 {
                     dialog.cleanup();

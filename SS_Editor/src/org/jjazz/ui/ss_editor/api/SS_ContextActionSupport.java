@@ -80,7 +80,7 @@ public class SS_ContextActionSupport
     {
         if (context == null)
         {
-            throw new IllegalArgumentException("context=" + context);   //NOI18N
+            throw new IllegalArgumentException("context=" + context);   
         }
         this.context = context;
 

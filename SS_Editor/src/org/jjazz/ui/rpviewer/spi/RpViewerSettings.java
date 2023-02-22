@@ -43,7 +43,7 @@ public interface RpViewerSettings
         RpViewerSettings result = Lookup.getDefault().lookup(RpViewerSettings.class);
         if (result == null)
         {
-            throw new NullPointerException("result=" + result);   //NOI18N
+            throw new NullPointerException("result=" + result);   
         }
         return result;
     }

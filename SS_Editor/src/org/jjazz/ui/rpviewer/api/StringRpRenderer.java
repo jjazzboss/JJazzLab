@@ -32,12 +32,10 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.song.api.Song;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.rpviewer.spi.StringRpRendererSettings;
@@ -66,7 +64,7 @@ public class StringRpRenderer implements RpViewerRenderer, PropertyChangeListene
     {
         if (stringSupplier == null || settings == null)
         {
-            throw new IllegalArgumentException("stringSupplier=" + stringSupplier + " settings=" + settings);   //NOI18N
+            throw new IllegalArgumentException("stringSupplier=" + stringSupplier + " settings=" + settings);   
         }
         this.settings = settings;
         this.settings.addPropertyChangeListener(this);

@@ -73,7 +73,7 @@ import org.openide.windows.WindowManager;
 public final class ImportSongAction implements ActionListener
 {
 
-    public static final String PREF_LAST_IMPORT_DIRECTORY = "LastImportDirectory";   //NOI18N 
+    public static final String PREF_LAST_IMPORT_DIRECTORY = "LastImportDirectory";    
     private static Preferences prefs = NbPreferences.forModule(ImportSongAction.class);
     private final ResourceBundle bundle = ResUtil.getBundle(getClass());
     private static final Logger LOGGER = Logger.getLogger(ImportSongAction.class.getSimpleName());
@@ -161,7 +161,7 @@ public final class ImportSongAction implements ActionListener
                 {
                     // Extension not managed by any SongImporter
                     String msg = ResUtil.getString(getClass(), "FILE TYPE IS NOT SUPPORTED", f.getAbsolutePath());
-                    LOGGER.log(Level.WARNING, "actionPerformed() " + msg);   //NOI18N
+                    LOGGER.log(Level.WARNING, "actionPerformed() " + msg);   
                     NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
                     DialogDisplayer.getDefault().notify(nd);
                     return;
@@ -216,11 +216,11 @@ public final class ImportSongAction implements ActionListener
             Song song = null;
             try
             {
-                LOGGER.info("importFiles() -- importerId=" + importer.getId() + " Importing file " + f.getAbsolutePath());   //NOI18N
+                LOGGER.info("importFiles() -- importerId=" + importer.getId() + " Importing file " + f.getAbsolutePath());   
                 song = importer.importFromFile(f);
             } catch (SongCreationException | IOException ex)
             {
-                LOGGER.warning("importFiles() ex=" + ex.getMessage());   //NOI18N
+                LOGGER.warning("importFiles() ex=" + ex.getMessage());   
                 NotifyDescriptor nd = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
                 DialogDisplayer.getDefault().notify(nd);
                 continue;
@@ -228,7 +228,7 @@ public final class ImportSongAction implements ActionListener
 
             if (song == null)
             {
-                LOGGER.log(Level.WARNING, "importFiles() song=null, importer=" + importer.getId() + " f=" + f.getAbsolutePath());   //NOI18N
+                LOGGER.log(Level.WARNING, "importFiles() song=null, importer=" + importer.getId() + " f=" + f.getAbsolutePath());   
                 NotifyDescriptor nd = new NotifyDescriptor.Message(bundle.getString("ERR_UnexpectedError"), NotifyDescriptor.ERROR_MESSAGE);
                 DialogDisplayer.getDefault().notify(nd);
             } else

@@ -58,7 +58,7 @@ public class MoveSelectionRight extends AbstractAction
 
         float qDur = editor.getQuantization().getSymbolicDuration().getDuration();
         Phrase model = editor.getModel();
-        FloatRange br = editor.getBeatRange();
+        FloatRange br = editor.getPhraseBeatRange();
 
 
         String undoText = ResUtil.getString(getClass(), "MoveNoteRight");

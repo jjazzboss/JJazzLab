@@ -152,7 +152,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
     {
         if (settings == null)
         {
-            throw new IllegalArgumentException("settings=" + settings);   //NOI18N
+            throw new IllegalArgumentException("settings=" + settings);   
         }
 
 
@@ -185,10 +185,10 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         cb_viewRhythms.setRenderer(new MyRenderer());
 
         // Connect to standard actions
-        // fbtn_muteAll.setAction(Actions.forID("MixConsole", "org.jjazz.ui.mixconsole.actions.mastermuteall"));   //NOI18N
-        fbtn_panic.setAction(Actions.forID("MixConsole", "org.jjazz.ui.mixconsole.actions.panic"));   //NOI18N
-        fbtn_switchAllMute.setAction(Actions.forID("MixConsole", "org.jjazz.ui.mixconsole.actions.switchallmute"));   //NOI18N
-        fbtn_allSoloOff.setAction(Actions.forID("MixConsole", "org.jjazz.ui.mixconsole.actions.allsolooff"));   //NOI18N
+        // fbtn_muteAll.setAction(Actions.forID("MixConsole", "org.jjazz.ui.mixconsole.actions.mastermuteall"));   
+        fbtn_panic.setAction(Actions.forID("MixConsole", "org.jjazz.ui.mixconsole.actions.panic"));   
+        fbtn_switchAllMute.setAction(Actions.forID("MixConsole", "org.jjazz.ui.mixconsole.actions.switchallmute"));   
+        fbtn_allSoloOff.setAction(Actions.forID("MixConsole", "org.jjazz.ui.mixconsole.actions.allsolooff"));   
         fbtn_addUserChannel.setAction(Actions.forID("MixConsole", "org.jjazz.ui.mixconsole.actions.addusertrack"));
 
 
@@ -268,7 +268,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
     {
         if (songModel == null || r instanceof AdaptedRhythm || (r != null && !songModel.getSongStructure().getUniqueRhythms(true, false).contains(r)))
         {
-            throw new IllegalStateException("songModel=" + songModel + " r=" + r);   //NOI18N
+            throw new IllegalStateException("songModel=" + songModel + " r=" + r);   
         }
         Rhythm oldVisibleRhythm = getVisibleRhythm();
         if (r != oldVisibleRhythm)
@@ -477,7 +477,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
                     if (insMix == null)
                     {
                         // InstrumentMix was removed
-                        LOGGER.fine("propertyChange() InstrumentMix removed");   //NOI18N
+                        LOGGER.fine("propertyChange() InstrumentMix removed");   
                         MixChannelPanel mcp = getMixChannelPanel(channel); // can be null if not visible
                         if (mcp != null)
                         {
@@ -490,7 +490,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
                     } else if (oldInsMix == null)
                     {
                         // New InstrumentMix was added
-                        LOGGER.fine("propertyChange() InstrumentMix added insMix=" + insMix);   //NOI18N
+                        LOGGER.fine("propertyChange() InstrumentMix added insMix=" + insMix);   
                         if (getVisibleRhythm() == null || getVisibleRhythm() == rv.getContainer() || rv instanceof UserRhythmVoice)
                         {
                             addMixChannelPanel(songMidiMix, channel);
@@ -498,7 +498,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
                     } else
                     {
                         // InstrumentMix is replacing an existing one
-                        LOGGER.fine("propertyChange() InstrumentMix replaced");   //NOI18N
+                        LOGGER.fine("propertyChange() InstrumentMix replaced");   
                         MixChannelPanel mcp = getMixChannelPanel(channel);
                         if (mcp != null)
                         {
@@ -556,7 +556,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
     private void songPresenceChanged()
     {
         Song song = Utilities.actionsGlobalContext().lookup(Song.class);
-        LOGGER.log(Level.FINE, "songPresenceChanged() -- song=" + song + " songModel=" + songModel);   //NOI18N
+        LOGGER.log(Level.FINE, "songPresenceChanged() -- song=" + song + " songModel=" + songModel);   
         if (songModel == song || song == null)
         {
             // Do nothing if same window or non song-editor-topcomponent got activated
@@ -573,7 +573,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         {
             String msg = ResUtil.getString(getClass(), "CTL_NoMidiMixFound", song.getName());
             msg += ".\n" + ex.getLocalizedMessage();
-            LOGGER.severe(msg);   //NOI18N
+            LOGGER.severe(msg);   
             NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(d);
             return;
@@ -582,7 +582,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
 
         // Connect the song UndoManager to the MidiMix
         UndoManager um = JJazzUndoManagerFinder.getDefault().get(songModel);
-        assert um != null;   //NOI18N
+        assert um != null;   
         songMidiMix.addUndoableEditListener(um);
 
         // Update the combobox
@@ -604,7 +604,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         // Add the visible channel panels
         addVisibleMixChannelPanels();
 
-        LOGGER.fine("   songMidiMix=" + songMidiMix);   //NOI18N
+        LOGGER.fine("   songMidiMix=" + songMidiMix);   
     }
 
     private void addVisibleMixChannelPanels()
@@ -836,7 +836,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         {
             instanceContent.remove(songMidiMix);
             UndoManager um = JJazzUndoManagerFinder.getDefault().get(songModel);
-            assert um != null;   //NOI18N
+            assert um != null;   
             songMidiMix.removeUndoableEditListener(um);
         }
         if (songMidiMix != null)
@@ -858,7 +858,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
      */
     private void updateActiveState(boolean b)
     {
-        LOGGER.fine("updateActiveState() -- b=" + b);   //NOI18N
+        LOGGER.fine("updateActiveState() -- b=" + b);   
         org.jjazz.ui.utilities.api.Utilities.setRecursiveEnabled(b, menuBar);
         org.jjazz.ui.utilities.api.Utilities.setRecursiveEnabled(b, panel_MasterControls);
     }
@@ -1073,7 +1073,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         @Override
         public int getSourceActions(JComponent c)
         {
-            LOGGER.log(Level.FINE, "MidiFileDragOutTransferHandler.getSourceActions()  c={0}", c);   //NOI18N
+            LOGGER.log(Level.FINE, "MidiFileDragOutTransferHandler.getSourceActions()  c={0}", c);   
 
             int res = TransferHandler.NONE;
 
@@ -1093,7 +1093,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         @Override
         public Transferable createTransferable(JComponent c)
         {
-            LOGGER.fine("MidiFileDragOutTransferHandler.createTransferable()  c=" + c);   //NOI18N
+            LOGGER.fine("MidiFileDragOutTransferHandler.createTransferable()  c=" + c);   
 
             File midiFile = null;
             try
@@ -1125,7 +1125,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
             LOGGER.log(Level.FINE, "MidiFileDragOutTransferHandler.exportDone()  c={0} data={1} action={2}", new Object[]
             {
                 c, data, action
-            });   //NOI18N
+            });   
         }
 
         /**

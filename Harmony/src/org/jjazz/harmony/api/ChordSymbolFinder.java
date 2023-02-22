@@ -45,7 +45,7 @@ public class ChordSymbolFinder
     static long[] positions5;
     static private List<ChordType> allChordTypes;
     private final int maxNbNotes;
-    private static final Logger LOGGER = Logger.getLogger(ChordSymbolFinder.class.getSimpleName());  //NOI18N
+    private static final Logger LOGGER = Logger.getLogger(ChordSymbolFinder.class.getSimpleName());  
 
 
     /**

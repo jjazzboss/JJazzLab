@@ -142,7 +142,7 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
     private static final List<UpdatableSongSession> sessions = new ArrayList<>();
 
     private final SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
-    private static final Logger LOGGER = Logger.getLogger(UpdatableSongSession.class.getSimpleName());  //NOI18N
+    private static final Logger LOGGER = Logger.getLogger(UpdatableSongSession.class.getSimpleName());  
 
 
     /**
@@ -645,10 +645,10 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
      *
      * @param trackId
      * @param newEvents     IMPORTANT events positions will be modified!
-     * @param precountShift
+     * @param precountTickOffset
      * @throws IllegalArgumentException
      */
-    private void updateTrack(int trackId, List<MidiEvent> newEvents, long precountShift) throws IllegalArgumentException
+    private void updateTrack(int trackId, List<MidiEvent> newEvents, long precountTickOffset) throws IllegalArgumentException
     {
         Track bufferTrack = trackSet.getBufferTrack(trackId);
         MidiUtilities.clearTrack(bufferTrack);
@@ -657,7 +657,7 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
         for (MidiEvent me : newEvents)
         {
             // Adjust position if precount bars are used
-            me.setTick(me.getTick() + precountShift);
+            me.setTick(me.getTick() + precountTickOffset);
 
             if (me.getTick() > originalTrackTickSize)
             {

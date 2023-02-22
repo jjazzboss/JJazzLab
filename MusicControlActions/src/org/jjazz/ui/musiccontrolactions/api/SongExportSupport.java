@@ -79,7 +79,7 @@ public class SongExportSupport
             midiMix = MidiMixManager.getInstance().findMix(sg);
         } catch (MidiUnavailableException ex)
         {
-            LOGGER.log(Level.WARNING, ex.getMessage(), ex);   //NOI18N
+            LOGGER.log(Level.WARNING, ex.getMessage(), ex);   
             NotifyDescriptor nd = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(nd);
             return false;
@@ -99,7 +99,7 @@ public class SongExportSupport
         if (allMuted)
         {
             String msg = ResUtil.getString(SongExportSupport.class, "ERR_AllChannelsMuted");
-            LOGGER.warning(msg);   //NOI18N
+            LOGGER.warning(msg);   
             NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(nd);
             return false;
@@ -115,7 +115,7 @@ public class SongExportSupport
             songSequence = seqBuilder.buildExportableSequence(false, false);
         } catch (MusicGenerationException ex)
         {
-            LOGGER.log(Level.WARNING, "export() ex={0}", ex.getMessage());   //NOI18N
+            LOGGER.log(Level.WARNING, "export() ex={0}", ex.getMessage());   
             if (ex.getLocalizedMessage() != null)
             {
                 NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
@@ -125,7 +125,7 @@ public class SongExportSupport
         }
 
 
-        assert songSequence != null;   //NOI18N
+        assert songSequence != null;   
         Sequence sequence = songSequence.sequence;
 
 
@@ -144,20 +144,20 @@ public class SongExportSupport
         // Dump sequence in debug mode
         if (MusicController.getInstance().isDebugPlayedSequence())
         {
-            LOGGER.log(Level.INFO, "export() sg={0} - sequence :", sg.getName());   //NOI18N
-            LOGGER.info(MidiUtilities.toString(sequence));   //NOI18N
+            LOGGER.log(Level.INFO, "export() sg={0} - sequence :", sg.getName());   
+            LOGGER.info(MidiUtilities.toString(sequence));   
         }
 
 
         // Write to file
-        LOGGER.log(Level.INFO, "export() writing sequence to Midi file: {0}", midiFile.getAbsolutePath());   //NOI18N
+        LOGGER.log(Level.INFO, "export() writing sequence to Midi file: {0}", midiFile.getAbsolutePath());   
         try
         {
             MidiSystem.write(sequence, 1, midiFile);
             StatusDisplayer.getDefault().setStatusText(ResUtil.getString(SongExportSupport.class, "CTL_MidiSequenceWritten", midiFile.getAbsolutePath()));
         } catch (IOException ex)
         {
-            LOGGER.log(Level.WARNING, ex.getMessage(), ex);   //NOI18N
+            LOGGER.log(Level.WARNING, ex.getMessage(), ex);   
             NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(d);
             return false;

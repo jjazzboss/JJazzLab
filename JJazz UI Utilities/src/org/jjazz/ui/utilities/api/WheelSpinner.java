@@ -87,8 +87,8 @@ public class WheelSpinner extends JSpinner implements MouseWheelListener
         // setBlockKeyEventForwarding(true);
 
         // Support for ctrl+UP/DOWN arrow (up/down arrow is supported by default by JSpinner if editor is editable)
-        getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, InputEvent.CTRL_DOWN_MASK), "actionIncreaseBig");   //NOI18N
-        getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, InputEvent.CTRL_DOWN_MASK), "actionDecreaseBig");   //NOI18N
+        getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, InputEvent.CTRL_DOWN_MASK), "actionIncreaseBig");   
+        getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, InputEvent.CTRL_DOWN_MASK), "actionDecreaseBig");   
         getActionMap().put("actionIncreaseBig", new AbstractAction()
         {
             @Override
@@ -144,8 +144,8 @@ public class WheelSpinner extends JSpinner implements MouseWheelListener
         String actionName = b ? "noAction" : "donotexist";
         for (char c = 32; c <= 126; c++)
         {
-            getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(c, 0), actionName);   //NOI18N
-            getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(c, InputEvent.SHIFT_DOWN_MASK), actionName);   //NOI18N
+            getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(c, 0), actionName);   
+            getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(c, InputEvent.SHIFT_DOWN_MASK), actionName);   
         }
         getActionMap().put("noAction", new NoAction());
     }
@@ -167,7 +167,7 @@ public class WheelSpinner extends JSpinner implements MouseWheelListener
     {
         if (!(model instanceof SpinnerListModel) && !(model instanceof SpinnerNumberModel))
         {
-            throw new IllegalArgumentException("model=" + model);   //NOI18N
+            throw new IllegalArgumentException("model=" + model);   
         }
         super.setModel(model);
 

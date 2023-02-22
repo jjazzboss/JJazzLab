@@ -146,7 +146,7 @@ public class SmallMap<K, V> implements Serializable
     {
         return keys.size();
     }
-
+    
     @Override
     public String toString()
     {

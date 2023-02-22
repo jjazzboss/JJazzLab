@@ -81,7 +81,7 @@ public class FixMidiMixDialog extends javax.swing.JDialog
     {
         if (mapChannelNewIns == null || reroutedChannels == null || midiMix == null)
         {
-            throw new IllegalArgumentException("mapChannelNewIns=" + mapChannelNewIns + " reroutedChannels=" + reroutedChannels + " midiMix=" + midiMix);   //NOI18N
+            throw new IllegalArgumentException("mapChannelNewIns=" + mapChannelNewIns + " reroutedChannels=" + reroutedChannels + " midiMix=" + midiMix);   
         }
 
         // Update dialog UI

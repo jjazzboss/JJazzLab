@@ -114,7 +114,7 @@ public class UpgradeManager
             prop.load(reader);
         } catch (IOException ex)
         {
-            LOGGER.warning("getPropertiesFromPrefs() problem reading file=" + f.getAbsolutePath() + ": ex=" + ex.getMessage());   //NOI18N
+            LOGGER.warning("getPropertiesFromPrefs() problem reading file=" + f.getAbsolutePath() + ": ex=" + ex.getMessage());   
             return null;
         }
 
@@ -129,7 +129,7 @@ public class UpgradeManager
      */
     public boolean duplicateOldPreferences(Preferences nbPrefs)
     {
-        LOGGER.fine("duplicateOldPreferences() -- nbPrefs=" + nbPrefs.absolutePath());   //NOI18N
+        LOGGER.fine("duplicateOldPreferences() -- nbPrefs=" + nbPrefs.absolutePath());   
         Properties prop = getPropertiesFromPrefs(nbPrefs);
         if (prop == null)
         {
@@ -145,7 +145,7 @@ public class UpgradeManager
             nbPrefs.flush();        // Make sure it's copied to disk now
         } catch (BackingStoreException ex)
         {
-            LOGGER.warning("duplicateOldPreferences() Can't flush copied preferences. ex=" + ex.getMessage());   //NOI18N
+            LOGGER.warning("duplicateOldPreferences() Can't flush copied preferences. ex=" + ex.getMessage());   
         }
         return true;
     }
@@ -161,7 +161,7 @@ public class UpgradeManager
     {
         if (nbPrefs == null)
         {
-            throw new IllegalArgumentException("nbPrefs=" + nbPrefs);   //NOI18N
+            throw new IllegalArgumentException("nbPrefs=" + nbPrefs);   
         }
 
         String importVersion = getImportSourceVersion();        // If non null validate the Netbeans User Dir.
@@ -176,11 +176,11 @@ public class UpgradeManager
 
         if (!f.exists())
         {
-            LOGGER.fine("getOldPreferencesFile Not found f=" + f.getAbsolutePath());   //NOI18N
+            LOGGER.fine("getOldPreferencesFile Not found f=" + f.getAbsolutePath());   
             f = null;
         } else
         {
-            LOGGER.fine("getOldPreferencesFile() FOUND f=" + f.getAbsolutePath());   //NOI18N
+            LOGGER.fine("getOldPreferencesFile() FOUND f=" + f.getAbsolutePath());   
         }
         return f;
     }
@@ -205,7 +205,7 @@ public class UpgradeManager
         File userDir = Places.getUserDirectory();
         if (userDir == null || !userDir.isDirectory() || userDir.getParentFile() == null)
         {
-            LOGGER.warning("getImportSourceVersion() Invalid Netbeans User Directory userDir=" + userDir);   //NOI18N
+            LOGGER.warning("getImportSourceVersion() Invalid Netbeans User Directory userDir=" + userDir);   
             return importSourceVersion;
         }
 
@@ -218,11 +218,11 @@ public class UpgradeManager
 
             if (f.exists())
             {
-                LOGGER.fine("getImportSourceVersion() FOUND f=" + f.getAbsolutePath());   //NOI18N
+                LOGGER.fine("getImportSourceVersion() FOUND f=" + f.getAbsolutePath());   
                 importSourceVersion = oldVersion;
                 break;
             }
-            LOGGER.fine("getImportSourceVersion Not found f=" + f.getAbsolutePath());   //NOI18N
+            LOGGER.fine("getImportSourceVersion Not found f=" + f.getAbsolutePath());   
         }
 
         return importSourceVersion;
@@ -259,15 +259,15 @@ public class UpgradeManager
                 Object result = DialogDisplayer.getDefault().notify(d);
                 if (NotifyDescriptor.YES_OPTION != result)
                 {
-                    LOGGER.info("FreshStartUpgrader() -- importVersion=" + importVersion + ", import dismissed by user");   //NOI18N
+                    LOGGER.info("FreshStartUpgrader() -- importVersion=" + importVersion + ", import dismissed by user");   
                     importVersion = null;
                 } else
                 {
-                    LOGGER.info("FreshStartUpgrader() -- importVersion=" + importVersion + ", import authorized by user");   //NOI18N
+                    LOGGER.info("FreshStartUpgrader() -- importVersion=" + importVersion + ", import authorized by user");   
                 }
             } else
             {
-                LOGGER.info("FreshStartUpgrader() -- importVersion=" + importVersion);   //NOI18N
+                LOGGER.info("FreshStartUpgrader() -- importVersion=" + importVersion);   
             }
 
 

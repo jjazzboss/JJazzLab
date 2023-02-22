@@ -197,7 +197,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     {
         if (song == null || settings == null || brf == null)
         {
-            throw new IllegalArgumentException("song=" + song + " settings=" + settings + " brf=" + brf);   //NOI18N
+            throw new IllegalArgumentException("song=" + song + " settings=" + settings + " brf=" + brf);   
         }
         songModel = song;
         this.barRendererFactory = brf;
@@ -343,7 +343,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         int sectionBar = cliSection.getPosition().getBar();
         if (clsModel.getSection(sectionBar) != cliSection)
         {
-            throw new IllegalArgumentException("cliSection=" + cliSection + " not found in clsModel=" + clsModel);   //NOI18N
+            throw new IllegalArgumentException("cliSection=" + cliSection + " not found in clsModel=" + clsModel);   
         }
         storeSectionQValue(cliSection.getData(), q);
         propagateSectionChange(cliSection);
@@ -356,7 +356,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         int sectionBar = cliSection.getPosition().getBar();
         if (clsModel.getSection(sectionBar) != cliSection)
         {
-            throw new IllegalArgumentException("section=" + cliSection + " not found in clsModel=" + clsModel);   //NOI18N
+            throw new IllegalArgumentException("section=" + cliSection + " not found in clsModel=" + clsModel);   
         }
 
 
@@ -451,7 +451,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     {
         if (nbCols < 1 || nbCols > 16)
         {
-            throw new IllegalArgumentException("nbCols=" + nbCols);   //NOI18N
+            throw new IllegalArgumentException("nbCols=" + nbCols);   
         }
         if (nbCols == nbColumns)
         {
@@ -464,7 +464,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         revalidate();
         int oldFactor = computeNbColsToXFactor(oldValue);
         int newFactor = computeNbColsToXFactor(nbColumns);
-        LOGGER.log(Level.FINER, "oldFactor={0} newFactor={1}", new Object[]   //NOI18N
+        LOGGER.log(Level.FINER, "oldFactor={0} newFactor={1}", new Object[]   
         {
             oldFactor, newFactor
         });
@@ -492,7 +492,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     {
         if (factor < 0 || factor > 100)
         {
-            throw new IllegalArgumentException("factor=" + factor);   //NOI18N
+            throw new IllegalArgumentException("factor=" + factor);   
         }
         zoomVFactor = factor;
         for (BarBox bb : getBarBoxes())
@@ -548,7 +548,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     {
         if (barIndex < 0 || barIndex >= getNbBarBoxes())
         {
-            throw new IllegalArgumentException("barIndex=" + barIndex + " getNbBars()=" + getNbBarBoxes());   //NOI18N
+            throw new IllegalArgumentException("barIndex=" + barIndex + " getNbBars()=" + getNbBarBoxes());   
         }
 
 
@@ -566,7 +566,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         {
             // Make sure row+1 is visible, because it's better to always have next row also visible
             int compIndex = getComponentIndex(barIndex);
-            assert compIndex + getNbColumns() < getComponentCount() : "compIndex=" + compIndex + " getNbColumns()=" + getNbColumns() + " getComponentCount()=" + getComponentCount();   //NOI18N
+            assert compIndex + getNbColumns() < getComponentCount() : "compIndex=" + compIndex + " getNbColumns()=" + getNbColumns() + " getComponentCount()=" + getComponentCount();   
             Component c = getComponent(compIndex + getNbColumns());
             scrollRectToVisible(c.getBounds());
         }
@@ -578,7 +578,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     {
         if (barIndex < 0 || barIndex >= getNbBarBoxes())
         {
-            throw new IllegalArgumentException("barIndex=" + barIndex);   //NOI18N
+            throw new IllegalArgumentException("barIndex=" + barIndex);   
         }
         BarBox bb = getBarBox(barIndex);
         Point p = bb.getLocation();
@@ -593,9 +593,9 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     {
         if (bbIndexFrom < 0 || bbIndexTo >= getNbBarBoxes() || bbIndexFrom > bbIndexTo)
         {
-            throw new IllegalArgumentException("bbIndexFrom=" + bbIndexFrom + " bbIndexTo=" + bbIndexTo + " getNbBarBoxes()=" + getNbBarBoxes());   //NOI18N
+            throw new IllegalArgumentException("bbIndexFrom=" + bbIndexFrom + " bbIndexTo=" + bbIndexTo + " getNbBarBoxes()=" + getNbBarBoxes());   
         }
-        LOGGER.log(Level.FINE, "Before selectBar() b={0} bbIndexFrom={1} selectionLookup={2}", new Object[]   //NOI18N
+        LOGGER.log(Level.FINE, "Before selectBar() b={0} bbIndexFrom={1} selectionLookup={2}", new Object[]   
         {
             b, bbIndexFrom, selectionLookup
         });
@@ -626,7 +626,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         // not required but seems to perform better because it does a single repaint of the entire frame
         // instead of trying to skip repainting the borders
         repaint();
-        LOGGER.log(Level.FINE, "After selectBar() b={0} bbIndexFrom={1} selectionLookup={2}", new Object[]   //NOI18N
+        LOGGER.log(Level.FINE, "After selectBar() b={0} bbIndexFrom={1} selectionLookup={2}", new Object[]   
         {
             b, bbIndexFrom, selectionLookup
         });
@@ -680,7 +680,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         // not required but seems to perform better because it does a single repaint of the entire frame
         // instead of trying to skip repainting the borders
         repaint();
-        LOGGER.log(Level.FINE, "After selectBarsExcept() b={0} bbIndexFrom={1} selectionLookup={2}", new Object[]   //NOI18N
+        LOGGER.log(Level.FINE, "After selectBarsExcept() b={0} bbIndexFrom={1} selectionLookup={2}", new Object[]   
         {
             b, bbIndexFrom, selectionLookup
         });
@@ -706,7 +706,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
             selectionLookupContent.remove(item);
             selectionLastContent.remove(item);
         }
-        LOGGER.log(Level.FINE, "After selectItem() b={0} item={1} lkp={2}", new Object[]   //NOI18N
+        LOGGER.log(Level.FINE, "After selectItem() b={0} item={1} lkp={2}", new Object[]   
         {
             b, item, lookup
         });
@@ -788,10 +788,10 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     {
         if (item == null || (show && pos == null))
         {
-            throw new NullPointerException("show=" + show + " item=" + item + " pos=" + pos + " copyMode=" + copyMode);   //NOI18N
+            throw new NullPointerException("show=" + show + " item=" + item + " pos=" + pos + " copyMode=" + copyMode);   
         }
 
-        LOGGER.log(Level.FINER, "showInsertionPoint() b=" + show + " item=" + item + " pos=" + pos + " copyMode=" + copyMode);   //NOI18N
+        LOGGER.log(Level.FINER, "showInsertionPoint() b=" + show + " item=" + item + " pos=" + pos + " copyMode=" + copyMode);   
 
         if (!show && insertionPointLastPos != null)
         {
@@ -819,13 +819,13 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     @Override
     public void showPlaybackPoint(boolean show, Position pos)
     {
-        LOGGER.log(Level.FINE, "showPlaybackPoint() show={0} pos={1}", new Object[]   //NOI18N
+        LOGGER.log(Level.FINE, "showPlaybackPoint() show={0} pos={1}", new Object[]   
         {
             show, pos
         });
         if (show && (pos == null))
         {
-            throw new IllegalArgumentException("show=" + show + " pos=" + pos);   //NOI18N
+            throw new IllegalArgumentException("show=" + show + " pos=" + pos);   
         }
         if (playbackPointLastPos != null)
         {
@@ -867,7 +867,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     {
         if (!clsModel.contains(item))
         {
-            throw new IllegalArgumentException("item=" + item + " clsModel=" + clsModel);   //NOI18N
+            throw new IllegalArgumentException("item=" + item + " clsModel=" + clsModel);   
         }
         BarBox bb = getBarBox(item.getPosition().getBar());
         for (BarRenderer br : bb.getBarRenderers())
@@ -1151,7 +1151,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
             {
                 ItemBarShiftedEvent e = (ItemBarShiftedEvent) event;
                 int barDiff = e.getBarDiff();
-                assert barDiff != 0;   //NOI18N
+                assert barDiff != 0;   
                 List<ChordLeadSheetItem<?>> items = e.getItems();
                 int last = items.size() - 1;
                 if (barDiff > 0)
@@ -1267,10 +1267,10 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
      */
     private int computeNbBarBoxes(int nbExtraLines)
     {
-        assert clsModel != null;   //NOI18N
+        assert clsModel != null;   
         if (nbExtraLines < 1 || nbExtraLines > 100)
         {
-            throw new IllegalArgumentException("nbExtraLines=" + nbExtraLines);   //NOI18N
+            throw new IllegalArgumentException("nbExtraLines=" + nbExtraLines);   
         }
         int modelSize = clsModel.getSizeInBars() + nbExtraLines * nbColumns;
         int bars = ((modelSize / nbColumns) + 1) * nbColumns;
@@ -1314,7 +1314,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
 
     private BarBox getBarBox(int bbIndex)
     {
-        assert bbIndex >= 0 && bbIndex < barBoxes.size() : "bbIndex=" + bbIndex + " barBoxes=" + barBoxes;   //NOI18N
+        assert bbIndex >= 0 && bbIndex < barBoxes.size() : "bbIndex=" + bbIndex + " barBoxes=" + barBoxes;   
         return barBoxes.get(bbIndex);
     }
 
@@ -1335,7 +1335,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     {
         if (bbIndex < 0 || bbIndex > getNbBarBoxes() || modelBarIndex > clsModel.getSizeInBars() - 1)
         {
-            throw new IllegalArgumentException("bbIndex=" + bbIndex + " getNbBarBoxes()=" + getNbBarBoxes() + " modelBarIndex=" + modelBarIndex + " config=" + config + " clsModel=" + clsModel);   //NOI18N
+            throw new IllegalArgumentException("bbIndex=" + bbIndex + " getNbBarBoxes()=" + getNbBarBoxes() + " modelBarIndex=" + modelBarIndex + " config=" + config + " clsModel=" + clsModel);   
         }
         BarBox bb = new BarBox(this, bbIndex, modelBarIndex, clsModel, config, settings.getBarBoxSettings(), barRendererFactory);
         if (modelBarIndex >= 0)
@@ -1374,10 +1374,10 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     {
         if (barBoxIndex < 0 || barBoxIndex > getBarBoxes().size())
         {
-            throw new IllegalArgumentException("barBoxIndex=" + barBoxIndex + " getBarBoxes().size()=" + getBarBoxes().size());   //NOI18N
+            throw new IllegalArgumentException("barBoxIndex=" + barBoxIndex + " getBarBoxes().size()=" + getBarBoxes().size());   
         }
         // getComponents() should be called on EDT, otherwise need treeLock
-        assert SwingUtilities.isEventDispatchThread() : "barBoxIndex=" + barBoxIndex;   //NOI18N
+        assert SwingUtilities.isEventDispatchThread() : "barBoxIndex=" + barBoxIndex;   
         int bbIndex = 0;
         int index = 0;
         for (Component c : getComponents())
@@ -1666,7 +1666,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
      */
     private void updatePaddingBoxes()
     {
-        assert SwingUtilities.isEventDispatchThread();   //NOI18N
+        assert SwingUtilities.isEventDispatchThread();   
         boolean needRevalidate = false;
         // Remove all non-BarBox components
         for (Component c : getComponents())
@@ -1739,7 +1739,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         public int getZoomXFactor()
         {
             int factor = computeNbColsToXFactor(nbColumns);
-            LOGGER.log(Level.FINER, "getZoomFactor() nbColumns=" + nbColumns + " factor=" + factor);   //NOI18N
+            LOGGER.log(Level.FINER, "getZoomFactor() nbColumns=" + nbColumns + " factor=" + factor);   
             return factor;
         }
 
@@ -1747,7 +1747,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         public void setZoomXFactor(int factor, boolean valueIsAdjusting)
         {
             int nbCols = computeXFactorToNbColumns(factor);
-            LOGGER.log(Level.FINER, "setZoomFactor() factor=" + factor + "> nbCols=" + nbCols);   //NOI18N
+            LOGGER.log(Level.FINER, "setZoomFactor() factor=" + factor + "> nbCols=" + nbCols);   
             setNbColumns(nbCols);      // This will fire the event
         }
 

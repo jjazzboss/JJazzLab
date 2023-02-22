@@ -61,7 +61,7 @@ public class BarBoxConfig
     {
         if (brTypes.length == 0)
         {
-            throw new IllegalArgumentException("brs=" + brTypes);   //NOI18N
+            throw new IllegalArgumentException("brs=" + brTypes);   
         }
         for (String brType : brTypes)
         {
@@ -96,7 +96,7 @@ public class BarBoxConfig
         {
             if (!supportedBarRenderers.contains(brType))
             {
-                throw new IllegalArgumentException("brType=" + brType);   //NOI18N
+                throw new IllegalArgumentException("brType=" + brType);   
             }
             if (!res.activeBarRenderers.contains(brType))
             {

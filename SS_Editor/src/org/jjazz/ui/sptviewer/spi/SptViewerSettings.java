@@ -55,7 +55,7 @@ public interface SptViewerSettings
         SptViewerSettings result = Lookup.getDefault().lookup(SptViewerSettings.class);
         if (result == null)
         {
-            throw new NullPointerException("result=" + result);   //NOI18N
+            throw new NullPointerException("result=" + result);   
         }
         return result;
     }

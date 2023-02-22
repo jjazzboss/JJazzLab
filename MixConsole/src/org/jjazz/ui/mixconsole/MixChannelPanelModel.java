@@ -38,25 +38,25 @@ import org.jjazz.rhythm.api.RhythmVoice;
 public interface MixChannelPanelModel
 {
 
-    static final String PROP_PANORAMIC = "PropPanoramic";   //NOI18N 
-    static final String PROP_REVERB = "PropReverb";   //NOI18N 
-    static final String PROP_CHORUS = "PropChorus";   //NOI18N 
-    static final String PROP_PANORAMIC_ENABLED = "PropPanoramicEnabled";   //NOI18N 
-    static final String PROP_REVERB_ENABLED = "PropReverbEnabled";   //NOI18N 
-    static final String PROP_CHORUS_ENABLED = "PropChorusEnabled";   //NOI18N 
-    static final String PROP_VOLUME_ENABLED = "PropVolumeEnabled";   //NOI18N 
-    static final String PROP_INSTRUMENT_ENABLED = "PropInstrumentEnabled";   //NOI18N 
-    static final String PROP_DRUMS_CHANNEL_REROUTED = "PropDrumsChannelRerouted";   //NOI18N 
-    static final String PROP_MUTE = "PropMute";   //NOI18N 
-    static final String PROP_SOLO = "PropSolo";   //NOI18N 
-    static final String PROP_VOLUME = "PropVolume";   //NOI18N 
-    static final String PROP_INSTRUMENT = "PropInstrument";   //NOI18N 
-    static final String PROP_CHANNEL_COLOR = "PropChannelColor";   //NOI18N 
-    static final String PROP_CHANNEL_ID = "PropChannelId";   //NOI18N 
-    static final String PROP_CHANNEL_NAME = "PropChannelName";   //NOI18N 
-    static final String PROP_ICON = "PropIcon";   //NOI18N 
-    static final String PROP_CHANNEL_NAME_TOOLTIP = "PropChannelNameTooltip";   //NOI18N 
-    static final String PROP_ICON_TOOLTIP = "PropIconTooltip";   //NOI18N 
+    static final String PROP_PANORAMIC = "PropPanoramic";    
+    static final String PROP_REVERB = "PropReverb";    
+    static final String PROP_CHORUS = "PropChorus";    
+    static final String PROP_PANORAMIC_ENABLED = "PropPanoramicEnabled";    
+    static final String PROP_REVERB_ENABLED = "PropReverbEnabled";    
+    static final String PROP_CHORUS_ENABLED = "PropChorusEnabled";    
+    static final String PROP_VOLUME_ENABLED = "PropVolumeEnabled";    
+    static final String PROP_INSTRUMENT_ENABLED = "PropInstrumentEnabled";    
+    static final String PROP_DRUMS_CHANNEL_REROUTED = "PropDrumsChannelRerouted";    
+    static final String PROP_MUTE = "PropMute";    
+    static final String PROP_SOLO = "PropSolo";    
+    static final String PROP_VOLUME = "PropVolume";    
+    static final String PROP_INSTRUMENT = "PropInstrument";    
+    static final String PROP_CHANNEL_COLOR = "PropChannelColor";    
+    static final String PROP_CHANNEL_ID = "PropChannelId";    
+    static final String PROP_CHANNEL_NAME = "PropChannelName";    
+    static final String PROP_ICON = "PropIcon";    
+    static final String PROP_CHANNEL_NAME_TOOLTIP = "PropChannelNameTooltip";    
+    static final String PROP_ICON_TOOLTIP = "PropIconTooltip";    
 
     void addPropertyChangeListener(PropertyChangeListener l);
 

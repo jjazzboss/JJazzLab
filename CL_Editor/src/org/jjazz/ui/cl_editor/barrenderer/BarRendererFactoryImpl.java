@@ -88,7 +88,7 @@ public class BarRendererFactoryImpl implements BarRendererFactory
                 }
                 if (br == null)
                 {
-                    throw new IllegalStateException("No BarRendererProvider found for brType=" + brType);   //NOI18N
+                    throw new IllegalStateException("No BarRendererProvider found for brType=" + brType);   
                 }
         }
 

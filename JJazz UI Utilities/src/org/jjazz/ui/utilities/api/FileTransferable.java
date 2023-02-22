@@ -63,14 +63,14 @@ public class FileTransferable implements Transferable
     @Override
     public boolean isDataFlavorSupported(DataFlavor flavor)
     {
-        LOGGER.fine("isDataFlavorSupported() -- flavor=" + flavor); //NOI18N
+        LOGGER.fine("isDataFlavorSupported() -- flavor=" + flavor); 
         return data == null ? false : flavor.equals(DataFlavor.javaFileListFlavor);
     }
 
     @Override
     public Object getTransferData(DataFlavor df) throws UnsupportedFlavorException, IOException
     {
-        LOGGER.fine("getTransferData()  df=" + df); //NOI18N
+        LOGGER.fine("getTransferData()  df=" + df); 
         if (!df.equals(DataFlavor.javaFileListFlavor))
         {
             return new UnsupportedFlavorException(df);

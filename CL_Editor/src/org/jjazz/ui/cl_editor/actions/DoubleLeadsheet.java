@@ -61,7 +61,7 @@ public class DoubleLeadsheet implements ActionListener
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        assert song != null;   //NOI18N
+        assert song != null;   
         ChordLeadSheet cls = song.getChordLeadSheet();
         JJazzUndoManagerFinder.getDefault().get(cls).startCEdit(undoText);
         SongUtils.doubleChordLeadsheet(song);

@@ -257,17 +257,17 @@ public class MidiSynthManager
     {
         MidiSynth res;
         InputStream is = clazz.getResourceAsStream(insResourcePath);
-        assert is != null : "insResourcePath=" + insResourcePath;   //NOI18N
+        assert is != null : "insResourcePath=" + insResourcePath;   
         MidiSynthFileReader r = MidiSynthFileReader.getReader("ins");
-        assert r != null;   //NOI18N
+        assert r != null;   
         try
         {
             List<MidiSynth> synths = r.readSynthsFromStream(is, null);
-            assert synths.size() == 1;   //NOI18N
+            assert synths.size() == 1;   
             res = synths.get(0);
         } catch (IOException ex)
         {
-            throw new IllegalStateException("Unexpected error", ex);   //NOI18N
+            throw new IllegalStateException("Unexpected error", ex);   
         }
         return res;
     }
@@ -409,7 +409,7 @@ public class MidiSynthManager
             }
             if (!dir.isDirectory())
             {
-                LOGGER.warning("CopyMidiSynthsTask.initializeDir() Could not access directory " + dir.getAbsolutePath() + ".");   //NOI18N
+                LOGGER.warning("CopyMidiSynthsTask.initializeDir() Could not access directory " + dir.getAbsolutePath() + ".");   
             } else
             {
                 // Copy files 
@@ -433,7 +433,7 @@ public class MidiSynthManager
                 isEmpty = Utilities.isEmpty(dir.toPath());
             } catch (IOException ex)
             {
-                LOGGER.warning("CopyMidiSynthsTask.copyFilesOrNot() Can't check if dir. is empty. ex=" + ex.getMessage());   //NOI18N
+                LOGGER.warning("CopyMidiSynthsTask.copyFilesOrNot() Can't check if dir. is empty. ex=" + ex.getMessage());   
                 return;
             }
 
@@ -455,7 +455,7 @@ public class MidiSynthManager
 
             // Copy the default rhythms
             List<File> res = Utilities.extractZipResource(getClass(), ZIP_RESOURCE_PATH, dir.toPath(), true);
-            LOGGER.info("CopyMidiSynthsTask.copyFilesOrNot() Copied " + res.size() + " Midi synth definition files to " + dir.getAbsolutePath());   //NOI18N
+            LOGGER.info("CopyMidiSynthsTask.copyFilesOrNot() Copied " + res.size() + " Midi synth definition files to " + dir.getAbsolutePath());   
 
         }
 

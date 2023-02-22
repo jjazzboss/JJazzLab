@@ -112,7 +112,7 @@ public class ZoomYWidget extends javax.swing.JPanel implements StatusLineElement
             int newFactor = (int) evt.getNewValue();
             if (newFactor < 0 || newFactor > 100)
             {
-                throw new IllegalStateException("factor=" + newFactor);   //NOI18N
+                throw new IllegalStateException("factor=" + newFactor);   
             }
             slider.setValue(newFactor);
             slider.setToolTipText(String.valueOf(newFactor));

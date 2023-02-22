@@ -44,7 +44,7 @@ public final class RpEditor extends JPanel implements PropertyChangeListener
     /**
      * This property change event must be fired each time value is modified by the editor.
      */
-    public static final String PROP_RP_VALUE = "rpValue";   //NOI18N     
+    public static final String PROP_RP_VALUE = "rpValue";        
 
     public static final Color MULTI_FOREGROUND_COLOR = new Color(121, 21, 42);      // Dark brown/red
 

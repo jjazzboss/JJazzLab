@@ -86,7 +86,7 @@ public final class NextRpValue extends AbstractAction implements ContextAwareAct
     {
         SS_SelectionUtilities selection = cap.getSelection();
         SongStructure sgs = selection.getModel();
-        LOGGER.log(Level.FINE, "actionPerformed() sgs=" + sgs + " selection=" + selection);   //NOI18N
+        LOGGER.log(Level.FINE, "actionPerformed() sgs=" + sgs + " selection=" + selection);   
         JJazzUndoManagerFinder.getDefault().get(sgs).startCEdit(undoText);
         for (SongPartParameter sptp : selection.getSelectedSongPartParameters())
         {
@@ -106,7 +106,7 @@ public final class NextRpValue extends AbstractAction implements ContextAwareAct
     {
         boolean b = selection.isEnumerableRhythmParameterSelected();
         setEnabled(b);
-        LOGGER.log(Level.FINE, "selectionChange() b=" + b);   //NOI18N
+        LOGGER.log(Level.FINE, "selectionChange() b=" + b);   
     }
 
     @Override

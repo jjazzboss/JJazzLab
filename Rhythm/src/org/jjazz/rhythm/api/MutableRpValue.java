@@ -12,7 +12,7 @@
  *
  *  JJazzLabX is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
  *  GNU Lesser General Public License for more details.
  * 
  *  You should have received a copy of the GNU Lesser General Public License
@@ -20,34 +20,27 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.rhythm.spi;
+package org.jjazz.rhythm.api;
 
-import org.jjazz.harmony.api.TimeSignature;
-import org.jjazz.rhythm.api.Rhythm;
-import org.openide.util.Lookup;
+import javax.swing.event.ChangeListener;
 
 /**
- * The service provider in charge of providing the rhythm stubs when no valid rhythm is available for a given time signature.
+ * A tagging interface for RhythmParameter value classes which are mutable.
+ * <p>
+ * RP value class must notify listeners when its state has changed.
  */
-public interface StubRhythmProvider extends RhythmProvider
+public interface MutableRpValue
 {
 
-    static public StubRhythmProvider getDefault()
-    {
-        StubRhythmProvider result = Lookup.getDefault().lookup(StubRhythmProvider.class);
-        if (result == null)
-        {
-            throw new NullPointerException("result=" + result);   
-        }
-        return result;
-    }
-
-
     /**
-     * Get the stub rhythm for the specified time signature.
+     * Be notified of value mutations (state changes).
+     * <p>
+     * Note that listeners won't be notified if a new RhythmParameter value instance is replaced by another one. Use SongStructure
+     * RpChangedEvent to get all types of RP value changes.
      *
-     * @param ts
-     * @return Can't be null.
+     * @param listener
      */
-    Rhythm getStubRhythm(TimeSignature ts);
+    void addChangeListener(ChangeListener listener);
+
+    void removeChangeListener(ChangeListener listener);
 }

@@ -111,7 +111,7 @@ public class PlaySelection extends AbstractAction
     {
         if (song == null)
         {
-            LOGGER.severe("actionPerformed() unexpected value song=" + song);   //NOI18N
+            LOGGER.severe("actionPerformed() unexpected value song=" + song);   
             return;
         }
 
@@ -129,14 +129,14 @@ public class PlaySelection extends AbstractAction
 
         ChordLeadSheet cls = song.getChordLeadSheet();
         CL_EditorTopComponent clTc = CL_EditorTopComponent.get(cls);
-        assert clTc != null;   //NOI18N
+        assert clTc != null;   
         CL_Editor clEditor = clTc.getEditor();
         CL_SelectionUtilities clSelection = new CL_SelectionUtilities(clEditor.getLookup());
 
 
         SongStructure ss = song.getSongStructure();
         SS_EditorTopComponent ssTc = SS_EditorTopComponent.get(ss);
-        assert ssTc != null;   //NOI18N
+        assert ssTc != null;   
         SS_Editor ssEditor = ssTc.getEditor();
         SS_SelectionUtilities ssSelection = new SS_SelectionUtilities(ssEditor.getLookup());
 
@@ -235,7 +235,7 @@ public class PlaySelection extends AbstractAction
         }
 
         boolean b = song != null;
-        LOGGER.fine("updateEnabledStatus() b=" + b);   //NOI18N
+        LOGGER.fine("updateEnabledStatus() b=" + b);   
 
         setEnabled(b);
     }
@@ -258,7 +258,7 @@ public class PlaySelection extends AbstractAction
     {
         if (ss == null || cls == null || clsRange.to > cls.getSizeInBars() - 1)
         {
-            throw new IllegalArgumentException("cls=" + cls + ", ss=" + ss + ", clsRange=" + clsRange);   //NOI18N
+            throw new IllegalArgumentException("cls=" + cls + ", ss=" + ss + ", clsRange=" + clsRange);   
         }
         CLI_Section fromSection = cls.getSection(clsRange.from);
         int fromBar = -1;

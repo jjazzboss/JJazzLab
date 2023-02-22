@@ -56,16 +56,16 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
         initComponents();
 
         // Initialize actions
-        fbtn_Active.setBooleanStateAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.setactive"));   //NOI18N
-        fbtn_Play.setBooleanStateAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.play"));   //NOI18N
-        fbtn_Pause.setBooleanStateAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.pause"));   //NOI18N
-        fbtn_Stop.setBooleanStateAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.stop"));   //NOI18N
-        fbtn_Click.setBooleanStateAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.click"));   //NOI18N
-        fbtn_Precount.setBooleanStateAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.precount"));   //NOI18N
-        fbtn_Loop.setBooleanStateAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.loop"));   //NOI18N
-        fbtn_PlaybackPoint.setBooleanStateAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.showplaybackpoint"));   //NOI18N
-        fbtn_next.setAction(Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.playbacktonextsongpart"));   //NOI18N
-        fbtn_previous.setAction(Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.playbacktoprevioussongpart"));   //NOI18N
+        fbtn_Active.setBooleanStateAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.setactive"));   
+        fbtn_Play.setBooleanStateAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.play"));   
+        fbtn_Pause.setBooleanStateAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.pause"));   
+        fbtn_Stop.setBooleanStateAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.stop"));   
+        fbtn_Click.setBooleanStateAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.click"));   
+        fbtn_Precount.setBooleanStateAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.precount"));   
+        fbtn_Loop.setBooleanStateAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.loop"));   
+        fbtn_PlaybackPoint.setBooleanStateAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.showplaybackpoint"));   
+        fbtn_next.setAction(Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.playbacktonextsongpart"));   
+        fbtn_previous.setAction(Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.playbacktoprevioussongpart"));   
 
 
         // The model for the PositionViewer
@@ -104,7 +104,7 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
             newSong = s;
             i++;
         }
-        assert i < 2 : "i=" + i + " lookupResult.allInstances()=" + lookupResult.allInstances();   //NOI18N
+        assert i < 2 : "i=" + i + " lookupResult.allInstances()=" + lookupResult.allInstances();   
         if (newSong != null)
         {
             // Current song has changed
@@ -119,7 +119,7 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
         {
             // Do nothing : player is still using the last valid song
         }
-        LOGGER.log(Level.FINE, "resultChanged() newSong={0} => currentSong={1}", new Object[]   //NOI18N
+        LOGGER.log(Level.FINE, "resultChanged() newSong={0} => currentSong={1}", new Object[]   
         {
             newSong, currentSong
         });
@@ -168,7 +168,7 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
         boolean b = (currentSong != null) && (currentSong == activeSong);
 
 
-        LOGGER.log(Level.FINE, "activeSongChanged() b={0} currentSong={1} activeSong={2}", new Object[]   //NOI18N
+        LOGGER.log(Level.FINE, "activeSongChanged() b={0} currentSong={1} activeSong={2}", new Object[]   
         {
             b, currentSong, activeSong
         });
@@ -333,7 +333,7 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
 
     private void spn_TempoStateChanged(javax.swing.event.ChangeEvent evt)//GEN-FIRST:event_spn_TempoStateChanged
     {//GEN-HEADEREND:event_spn_TempoStateChanged
-        assert currentSong != null; // Otherwise button should be disabled   //NOI18N
+        assert currentSong != null; // Otherwise button should be disabled   
         IncreaseTempo.setSongTempo(currentSong, (int) spn_Tempo.getValue());
     }//GEN-LAST:event_spn_TempoStateChanged
 

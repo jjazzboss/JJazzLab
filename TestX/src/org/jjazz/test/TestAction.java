@@ -77,21 +77,21 @@ public final class TestAction implements ActionListener
         {
             try
             {
-                LOGGER.log(Level.INFO, "TestAction.actionPerformed() called");   //NOI18N
+                LOGGER.log(Level.INFO, "TestAction.actionPerformed() called");   
                 JJazzMidiSystem mss = JJazzMidiSystem.getInstance();
                 MidiDevice md = mss.getDefaultOutDevice();
-                LOGGER.log(Level.INFO, "Default out device " + md.getDeviceInfo().getName());   //NOI18N
-                LOGGER.log(Level.INFO, "Default out device class " + md.getClass() + " isInstanceOfSynth=" + (md instanceof Synthesizer));   //NOI18N
+                LOGGER.log(Level.INFO, "Default out device " + md.getDeviceInfo().getName());   
+                LOGGER.log(Level.INFO, "Default out device class " + md.getClass() + " isInstanceOfSynth=" + (md instanceof Synthesizer));   
                 FileDirectoryManager fdm = FileDirectoryManager.getInstance();
                 File dir = fdm.getUserRhythmDirectory();
                 File soundFontFile = new File(dir, "FluidR3_GM.SF2");
                 Soundbank newSb = MidiSystem.getSoundbank(soundFontFile);
-                LOGGER.log(Level.INFO, "newSb=" + newSb.getName() + ", " + newSb.getDescription());   //NOI18N
+                LOGGER.log(Level.INFO, "newSb=" + newSb.getName() + ", " + newSb.getDescription());   
 //            LOGGER.log(Level.INFO, "newSb insts=" + Arrays.asList(newSb.getInstruments()));
 
                 // Synthesizer synth = MidiSystem.getSynthesizer();
                 Synthesizer synth = (Synthesizer) md;
-                LOGGER.log(Level.INFO, "synth=" + synth.getDeviceInfo().getName() + " " + synth.getDeviceInfo().getDescription() + " isOpen=" + synth.isOpen());   //NOI18N
+                LOGGER.log(Level.INFO, "synth=" + synth.getDeviceInfo().getName() + " " + synth.getDeviceInfo().getDescription() + " isOpen=" + synth.isOpen());   
 //            Soundbank oldSb = synth.getDefaultSoundbank();
 //            LOGGER.log(Level.INFO, "synth default sb=" + oldSb.getName() + ", " + oldSb.getDescription());
 //            LOGGER.log(Level.INFO, "synth instruments=" + Arrays.asList(synth.getLoadedInstruments()));
@@ -101,7 +101,7 @@ public final class TestAction implements ActionListener
                 // synth.open();  // Done by setDefaultOutDevice(synth)
 //            synth.unloadAllInstruments(oldSb);
                 boolean loadOk = synth.loadAllInstruments(newSb);
-                LOGGER.log(Level.INFO, "synth loadOk=" + loadOk + " insts=" + Arrays.asList(synth.getLoadedInstruments()));   //NOI18N
+                LOGGER.log(Level.INFO, "synth loadOk=" + loadOk + " insts=" + Arrays.asList(synth.getLoadedInstruments()));   
             } catch (InvalidMidiDataException | IOException ex)
             {
                 Exceptions.printStackTrace(ex);
@@ -112,7 +112,7 @@ public final class TestAction implements ActionListener
     // @Override
     public void actionPerformed2(ActionEvent ae)
     {
-        LOGGER.log(Level.INFO, "TestAction.actionPerformed() called");   //NOI18N
+        LOGGER.log(Level.INFO, "TestAction.actionPerformed() called");   
         Lookup l1, l2, lc, lc1, lc2;
         InstanceContent ic;
         l1 = Lookups.fixed("L1");
@@ -128,9 +128,9 @@ public final class TestAction implements ActionListener
 
         String s = lc1.lookup(String.class);
         Integer i = lc1.lookup(Integer.class);
-        LOGGER.info("lc1 s=" + s + " i=" + i);   //NOI18N
+        LOGGER.info("lc1 s=" + s + " i=" + i);   
         s = lc2.lookup(String.class);
         Float f = lc1.lookup(Float.class);
-        LOGGER.info("lc2 s=" + s + " f=" + f);   //NOI18N
+        LOGGER.info("lc2 s=" + s + " f=" + f);   
     }
 }

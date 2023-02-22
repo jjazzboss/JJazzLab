@@ -1,7 +1,10 @@
 package org.jjazz.rhythm.api.rhythmparameters;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Preconditions;
 import static com.google.common.base.Preconditions.checkNotNull;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.text.ParseException;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -12,18 +15,26 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.logging.Logger;
+import javax.swing.event.ChangeListener;
+import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.SizedPhrase;
+import org.jjazz.rhythm.api.MutableRpValue;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
+import org.openide.util.ChangeSupport;
 
 /**
  * A RhythmParameter to replace one or more RhythmVoice phrases by custom phrases.
+ * <p>
+ * All custom phrases start at beat 0. This is a mutable class which fires a ChangeEvent when a phrase is added/removed, or when an added
+ * phrase content is modified.
  */
-public class RP_SYS_CustomPhraseValue
+public class RP_SYS_CustomPhraseValue implements MutableRpValue, PropertyChangeListener
 {
 
     private Rhythm rhythm;
-    private Map<RhythmVoice, SizedPhrase> mapRvSizedPhrase = new HashMap<>();
+    private Map<RhythmVoice, Phrase> mapRvPhrase = new HashMap<>();
+    private transient final ChangeSupport cs = new ChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(RP_SYS_CustomPhraseValue.class.getSimpleName());
 
 
@@ -43,51 +54,67 @@ public class RP_SYS_CustomPhraseValue
         this(value.getRhythm());
         for (var rv : value.getCustomizedRhythmVoices())
         {
-            SizedPhrase sp = (SizedPhrase) value.getCustomizedPhrase(rv).clone();
-            mapRvSizedPhrase.put(rv, sp);
+            var p = value.getCustomizedPhrase(rv).clone();
+            p.addPropertyChangeListener(this);
+            mapRvPhrase.put(rv, p);
         }
     }
 
-
     /**
-     * Create a shallow copy of this RP value with a phrase added for the specified RhythmVoice.
-     * <p>
-     * If a phrase was already associated for rv, it is replaced.
-     * <p>
-     * NOTE: Phrases are not cloned.
+     * Set the customized phrases from the specified value (phrases are directly reused, not cloned).
      *
-     * @param rv It must be a RhythmVoice from our rhythm.
-     * @param sp
-     * @return
+     * @param value Must share the same rhythm
      */
-    public RP_SYS_CustomPhraseValue getCopyPlus(RhythmVoice rv, SizedPhrase sp)
+    public void set(RP_SYS_CustomPhraseValue value)
     {
-        checkNotNull(sp);
-        if (!rhythm.getRhythmVoices().contains(rv))
+        assert value.getRhythm() == rhythm : " value.getRhythm()=" + value.getRhythm() + " rhythm=" + rhythm;
+        mapRvPhrase.clear();
+        for (var rv : value.getCustomizedRhythmVoices())
         {
-            throw new IllegalArgumentException("rhythm=" + rhythm + " rv=" + rv + " sp=" + sp);
+            var p = value.getCustomizedPhrase(rv);
+            p.addPropertyChangeListener(this);
+            mapRvPhrase.put(rv, p);
         }
-        RP_SYS_CustomPhraseValue res = new RP_SYS_CustomPhraseValue(rhythm);
-        res.mapRvSizedPhrase = (Map<RhythmVoice, SizedPhrase>) ((HashMap) mapRvSizedPhrase).clone();
-        res.mapRvSizedPhrase.put(rv, sp);
-        return res;
+        fireChanged();
+    }
 
+    public RP_SYS_CustomPhrase getRhythmParameter()
+    {
+        var rp = RP_SYS_CustomPhrase.getCustomPhraseRp(rhythm);
+        assert rp != null : "rhythm=" + rhythm;
+        return rp;
     }
 
     /**
-     * Create a shallow copy of this RP value with a phrase removed for the specified RhythmVoice.
-     * <p>
-     * NOTE: Phrases are not cloned.
+     * Set the customized phrase for the specified RhythmVoice.
      *
-     * @param minusRv
-     * @return
+     * @param rv Must belong to the rhythm
+     * @param p  Can't be null. Phrase starts at beat 0.
      */
-    public RP_SYS_CustomPhraseValue getCopyMinus(RhythmVoice minusRv)
+    public void setCustomizedPhrase(RhythmVoice rv, Phrase p)
     {
-        RP_SYS_CustomPhraseValue res = new RP_SYS_CustomPhraseValue(rhythm);
-        res.mapRvSizedPhrase = (Map<RhythmVoice, SizedPhrase>) ((HashMap) mapRvSizedPhrase).clone();
-        res.mapRvSizedPhrase.remove(minusRv);
-        return res;
+        Preconditions.checkArgument(rhythm.getRhythmVoices().contains(rv), "rhythm=%s rv=%s", rhythm, rv);
+        Preconditions.checkNotNull(p);
+        mapRvPhrase.put(rv, p);
+        p.addPropertyChangeListener(this);
+        fireChanged();
+    }
+
+    /**
+     * Remove the customized phrase for the specified RhythmVoice.
+     *
+     * @param rv
+     * @return The removed phrase, or null
+     */
+    public Phrase removeCustomizedPhrase(RhythmVoice rv)
+    {
+        var p = mapRvPhrase.remove(rv);
+        if (p != null)
+        {
+            p.removePropertyChangeListener(this);
+            fireChanged();
+        }
+        return p;
     }
 
     /**
@@ -101,14 +128,14 @@ public class RP_SYS_CustomPhraseValue
     }
 
     /**
-     * Get a copy of the custom phrase for the specified RhythmVoice.
+     * Get the custom phrase for the specified RhythmVoice.
      *
      * @param rv
-     * @return Null if no customized phrase for rv
+     * @return Null if no customized phrase for rv. Phrase starts at beat 0.
      */
-    public SizedPhrase getCustomizedPhrase(RhythmVoice rv)
+    public Phrase getCustomizedPhrase(RhythmVoice rv)
     {
-        return mapRvSizedPhrase.get(rv).clone();
+        return mapRvPhrase.get(rv);
     }
 
     /**
@@ -118,7 +145,7 @@ public class RP_SYS_CustomPhraseValue
      */
     public Set<RhythmVoice> getCustomizedRhythmVoices()
     {
-        return new HashSet<>(mapRvSizedPhrase.keySet());
+        return new HashSet<>(mapRvPhrase.keySet());
     }
 
     /**
@@ -128,7 +155,7 @@ public class RP_SYS_CustomPhraseValue
      */
     public String toDescriptionString()
     {
-        List<String> strs = mapRvSizedPhrase.keySet().stream()
+        List<String> strs = mapRvPhrase.keySet().stream()
                 .sorted(Comparator.comparingInt(RhythmVoice::getPreferredChannel))
                 .map(rv -> rv.getName())
                 .toList();
@@ -138,7 +165,7 @@ public class RP_SYS_CustomPhraseValue
     /**
      * Save the specified object state as a string.
      * <p>
-     * Example "Bass%[SizedPhraseString]&Piano%[SizedPhraseString]" means 2 RhythmVoices/Phrases. "" means no custom phrase.
+     * Example "Bass%[PhraseString]&Piano%[PhraseString]" means 2 RhythmVoices/Phrases. "" means no custom phrase.
      *
      * @param v
      * @return
@@ -149,8 +176,8 @@ public class RP_SYS_CustomPhraseValue
         StringJoiner joiner = new StringJoiner("&");
         for (RhythmVoice rv : v.getCustomizedRhythmVoices())
         {
-            SizedPhrase sp = v.getCustomizedPhrase(rv);
-            String s = rv.getName() + "%" + SizedPhrase.saveAsString(sp);
+            Phrase p = v.getCustomizedPhrase(rv);
+            String s = rv.getName() + "%" + Phrase.saveAsString(p);
             joiner.add(s);
         }
         return joiner.toString();
@@ -190,8 +217,21 @@ public class RP_SYS_CustomPhraseValue
                         break;
                     }
 
-                    SizedPhrase sp = SizedPhrase.loadAsString(subStrs[1]);
-                    res.mapRvSizedPhrase.put(rv, sp);
+                    Phrase p;
+                    String pStr = subStrs[1];
+
+                    // Backward compatibility HACK: up to JJazzLab 3.2.1, we used SizedPhrase instead of Phrase
+                    if (isSizedPhraseSaveString(pStr))
+                    {
+                        SizedPhrase sp = SizedPhrase.loadAsString(pStr);
+                        p = new Phrase(sp.getChannel());
+                        p.add(sp);
+                    } else
+                    {
+                        p = Phrase.loadAsString(pStr);
+                    }
+
+                    res.setCustomizedPhrase(rv, p);
 
                 } catch (IllegalArgumentException ex)
                 {
@@ -230,7 +270,7 @@ public class RP_SYS_CustomPhraseValue
             return false;
         }
         final RP_SYS_CustomPhraseValue other = (RP_SYS_CustomPhraseValue) obj;
-        if (!Objects.equals(this.mapRvSizedPhrase, other.mapRvSizedPhrase))
+        if (!Objects.equals(this.mapRvPhrase, other.mapRvPhrase))
         {
             return false;
         }
@@ -241,7 +281,7 @@ public class RP_SYS_CustomPhraseValue
     public int hashCode()
     {
         int hash = 7;
-        hash = 11 * hash + Objects.hashCode(this.mapRvSizedPhrase);
+        hash = 11 * hash + Objects.hashCode(this.mapRvPhrase);
         return hash;
     }
 
@@ -252,12 +292,64 @@ public class RP_SYS_CustomPhraseValue
         return toDescriptionString();
     }
 
+
+    // ===================================================================================
+    // MutableRpValue interface
+    // ===================================================================================  
+    @Override
+    public void addChangeListener(ChangeListener listener)
+    {
+        cs.addChangeListener(listener);
+    }
+
+    @Override
+    public void removeChangeListener(ChangeListener listener)
+    {
+        cs.removeChangeListener(listener);
+    }
+
+
+    //=============================================================================
+    // PropertyChangeListener interface
+    //=============================================================================
+    @Override
+    public void propertyChange(PropertyChangeEvent evt)
+    {
+        if (evt.getSource() instanceof Phrase)
+        {
+            if (!Phrase.isAdjustingEvent(evt.getPropertyName()))
+            {
+                fireChanged();
+            }
+        }
+    }
+
     // ===================================================================================
     // Private methods
     // ===================================================================================   
+
+    private void fireChanged()
+    {
+        cs.fireChange();
+    }
+
+    /**
+     * Check is saveString is for a SizedPhrase or a simple phrase.
+     *
+     * @param saveString
+     * @return
+     */
+    private static boolean isSizedPhraseSaveString(String saveString)
+    {
+        // PHRASE: "[8|NoteEventStr0|NoteEventStr1]" 
+        // SIZED_PHRASE: "[8|12.0|16.0|4/4|NoteEventStr0|NoteEventStr1]"
+        String[] strs = saveString.split("\\|");
+        assert strs.length > 1 : "saveString=" + saveString;
+        return strs.length >= 4 && strs[3].contains("/");   // Check that 4th cell is a time signature
+    }
+
     // ===================================================================================
     // Inner classes
     // ===================================================================================   
-
 
 }

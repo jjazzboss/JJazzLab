@@ -80,7 +80,7 @@ public class MusicGenerationQueue implements Runnable
     private final int postUpdateSleepTimeMs;
     private volatile boolean running;
     private final ChangeSupport cs = new ChangeSupport(this);
-    private static final Logger LOGGER = Logger.getLogger(MusicGenerationQueue.class.getSimpleName());  //NOI18N
+    private static final Logger LOGGER = Logger.getLogger(MusicGenerationQueue.class.getSimpleName());  
 
     /**
      * Create the handler.

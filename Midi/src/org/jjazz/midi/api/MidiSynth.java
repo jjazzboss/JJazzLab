@@ -64,7 +64,7 @@ public class MidiSynth
             Finder finder = Lookup.getDefault().lookup(Finder.class);
             if (finder == null)
             {
-                throw new IllegalStateException("Can't find a MidiSynth.Finder instance in the global lookup");   //NOI18N
+                throw new IllegalStateException("Can't find a MidiSynth.Finder instance in the global lookup");   
             }
             return finder;
         }
@@ -102,7 +102,7 @@ public class MidiSynth
     {
         if (name == null || name.trim().isEmpty() || manufacturer == null)
         {
-            throw new IllegalArgumentException("name=" + name + " manufacturer=" + manufacturer);   //NOI18N
+            throw new IllegalArgumentException("name=" + name + " manufacturer=" + manufacturer);   
         }
         this.name = name.replaceAll(",", "");
         this.manufacturer = manufacturer;
@@ -171,7 +171,7 @@ public class MidiSynth
         if (reader == null)
         {
             String msg = ResUtil.getString(MidiSynth.class, "ERR_NoSynthReaderForFile", file.getAbsolutePath());
-            LOGGER.log(Level.WARNING, "loadFromFile(file) " + msg);   //NOI18N
+            LOGGER.log(Level.WARNING, "loadFromFile(file) " + msg);   
             throw new IOException(msg);
         }
 
@@ -190,7 +190,7 @@ public class MidiSynth
         if (res == null)
         {
             String msg = ResUtil.getString(MidiSynth.class, "ERR_NoSynthFoundInFile", file.getAbsolutePath());
-            LOGGER.log(Level.WARNING, "loadFromFile(file) " + msg);   //NOI18N
+            LOGGER.log(Level.WARNING, "loadFromFile(file) " + msg);   
             throw new IOException(msg);
         }
 
@@ -524,7 +524,7 @@ public class MidiSynth
     {
         if (bank == null)
         {
-            throw new NullPointerException("bank");   //NOI18N
+            throw new NullPointerException("bank");   
         }
         float count = 0;
         int nbInstruments = 0;
@@ -622,13 +622,13 @@ public class MidiSynth
 
     public void dump()
     {
-        LOGGER.severe("DUMP synth: " + this.name + "(" + getNbInstruments() + ") ================================================");   //NOI18N
+        LOGGER.severe("DUMP synth: " + this.name + "(" + getNbInstruments() + ") ================================================");   
         for (InstrumentBank<?> bank : getBanks())
         {
-            LOGGER.severe("   Bank=" + bank.getName() + " (" + bank.getSize() + ") ---------");   //NOI18N
+            LOGGER.severe("   Bank=" + bank.getName() + " (" + bank.getSize() + ") ---------");   
             for (Instrument ins : bank.getInstruments())
             {
-                LOGGER.severe(ins.toLongString() + ", " + ins.getMidiAddress());   //NOI18N
+                LOGGER.severe(ins.toLongString() + ", " + ins.getMidiAddress());   
             }
         }
     }
@@ -645,7 +645,7 @@ public class MidiSynth
         LOGGER.log(Level.FINE, "saveAsString() MidiSynth={0}, getFile()={1}", new Object[]
         {
             getName(), getFile()
-        });   //NOI18N
+        });   
         String strFile = getFile() == null ? "NOT_SET" : getFile().getAbsolutePath();
         return getName() + "#:#" + strFile;
     }
@@ -663,12 +663,12 @@ public class MidiSynth
     {
         if (s == null)
         {
-            throw new NullPointerException("s");   //NOI18N
+            throw new NullPointerException("s");   
         }
         String[] strs = s.split("#:#");
         if (strs.length != 2)
         {
-            LOGGER.warning("loadFromString() Invalid string format : " + s);   //NOI18N
+            LOGGER.warning("loadFromString() Invalid string format : " + s);   
             return null;
         }
         String synthName = strs[0].trim();

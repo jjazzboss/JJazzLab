@@ -114,7 +114,7 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
      */
     static public void changeRhythm(final List<SongPart> selectedSpts)
     {
-        LOGGER.fine("changeRhythm() -- selectedSpts=" + selectedSpts);   //NOI18N
+        LOGGER.fine("changeRhythm() -- selectedSpts=" + selectedSpts);   
 
 
         List<SongPart> selSpts = new ArrayList<>(selectedSpts);               // Copy to avoid concurrent modifications
@@ -133,7 +133,7 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
             previewer.setContext(song, selSpt0);
         } catch (MidiUnavailableException ex)
         {
-            LOGGER.warning("changeRhythm() Can't set context ex=" + ex.getMessage() + ". RhythmPreviewProvider disabled.");   //NOI18N
+            LOGGER.warning("changeRhythm() Can't set context ex=" + ex.getMessage() + ". RhythmPreviewProvider disabled.");   
             previewer = null;
         }
         var rdb = RhythmDatabase.getDefault();
@@ -162,14 +162,14 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
 
         // Get the new rhythm
         RhythmInfo newRhythmInfo = dlg.getSelectedRhythm();
-        LOGGER.fine("changeRhythm() selected newRhythm=" + newRhythmInfo);   //NOI18N
+        LOGGER.fine("changeRhythm() selected newRhythm=" + newRhythmInfo);   
         Rhythm newRhythm;
         try
         {
             newRhythm = rdb.getRhythmInstance(newRhythmInfo);
         } catch (UnavailableRhythmException ex)
         {
-            LOGGER.warning("changeRhythm() can't get Rhythm instance from RhythmInfo=" + newRhythmInfo);   //NOI18N
+            LOGGER.warning("changeRhythm() can't get Rhythm instance from RhythmInfo=" + newRhythmInfo);   
             NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(d);
             return;
@@ -272,7 +272,7 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
     {
         boolean b;
         b = !selection.isEmpty();
-        LOGGER.log(Level.FINE, "selectionChange() b=" + b);   //NOI18N
+        LOGGER.log(Level.FINE, "selectionChange() b=" + b);   
         setEnabled(b);
     }
 

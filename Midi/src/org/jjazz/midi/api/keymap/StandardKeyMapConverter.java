@@ -50,7 +50,7 @@ public class StandardKeyMapConverter
     {
         if (srcPitch < 0 || srcPitch > 127)
         {
-            throw new IllegalArgumentException("srcMap=" + srcMap + " srcPitch=" + srcPitch + " destMap=" + destMap);   //NOI18N
+            throw new IllegalArgumentException("srcMap=" + srcMap + " srcPitch=" + srcPitch + " destMap=" + destMap);   
         }
 
         if (srcMap.getKeyName(srcPitch) == null)
@@ -116,7 +116,7 @@ public class StandardKeyMapConverter
     {
         if (map == null)
         {
-            throw new NullPointerException("map");   //NOI18N
+            throw new NullPointerException("map");   
         }
         return map == xgMap || map == gm2Map || map == gmMap || map == xgLatinMap;
     }
@@ -129,7 +129,7 @@ public class StandardKeyMapConverter
         int p = srcPitch - srcKeyMap.getRange().lowNote;
         if (p < 0 || p >= mapSrcDest.length)
         {
-            LOGGER.warning("convertPitch() Invalid srcPitch/keyMap: srcPitch=" + srcPitch + " srcKeyMap=" + srcKeyMap + " mapSrcDest.length=" + mapSrcDest.length);   //NOI18N
+            LOGGER.warning("convertPitch() Invalid srcPitch/keyMap: srcPitch=" + srcPitch + " srcKeyMap=" + srcKeyMap + " mapSrcDest.length=" + mapSrcDest.length);   
             return srcPitch;
         }
         return mapSrcDest[p];

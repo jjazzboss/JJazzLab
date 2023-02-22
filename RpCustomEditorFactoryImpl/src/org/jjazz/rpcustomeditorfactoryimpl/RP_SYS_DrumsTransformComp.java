@@ -32,7 +32,6 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.util.List;
-import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
@@ -51,8 +50,6 @@ import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.PlaybackListener;
 import org.jjazz.musiccontrol.api.playbacksession.BaseSongSession;
-import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
-import org.jjazz.musiccontrol.api.playbacksession.StaticSongSession;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.phrasetransform.api.DrumsMixTransform;
@@ -65,7 +62,7 @@ import org.jjazz.phrasetransform.api.ui.PhraseTransformListCellRenderer;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.RhythmVoiceDelegate;
-import static org.jjazz.rpcustomeditorfactoryimpl.RP_SYS_CustomPhraseComp.PHRASE_COMP_FOREGROUND;
+import static org.jjazz.rpcustomeditorfactoryimpl.RP_SYS_CustomPhraseEditor.PHRASE_COMP_FOREGROUND;
 import org.jjazz.rpcustomeditorfactoryimpl.api.RealTimeRpEditorDialog;
 import org.jjazz.rpcustomeditorfactoryimpl.api.RealTimeRpEditorComponent;
 import static org.jjazz.rpcustomeditorfactoryimpl.api.RealTimeRpEditorComponent.PROP_EDITED_RP_VALUE;
@@ -92,7 +89,7 @@ public class RP_SYS_DrumsTransformComp extends RealTimeRpEditorComponent<RP_SYS_
     private boolean saveDrumsTrackSoloState;
     private final DefaultListModel<PhraseTransform> list_transformChainModel = new DefaultListModel<>();
     private SizedPhrase originalPhrase;
-    private static final Logger LOGGER = Logger.getLogger(RP_SYS_DrumsTransformComp.class.getSimpleName());  //NOI18N
+    private static final Logger LOGGER = Logger.getLogger(RP_SYS_DrumsTransformComp.class.getSimpleName());  
 
     /**
      * Creates new form RP_SYS_DrumsTransformerComp
@@ -111,8 +108,8 @@ public class RP_SYS_DrumsTransformComp extends RealTimeRpEditorComponent<RP_SYS_
         list_transformChain.setModel(list_transformChainModel);
         list_transformChain.setTransferHandler(new TransformChainListTransferHandler());
         list_transformChain.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("DELETE"),
-                "RemoveTransform");   //NOI18N
-        list_transformChain.getActionMap().put("RemoveTransform", new DeleteAction());   //NOI18N
+                "RemoveTransform");   
+        list_transformChain.getActionMap().put("RemoveTransform", new DeleteAction());   
 
 
         list_availableTransforms.setTransferHandler(new TransformChainListTransferHandler());

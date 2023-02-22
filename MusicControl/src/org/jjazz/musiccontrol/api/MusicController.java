@@ -85,8 +85,8 @@ import org.openide.awt.StatusDisplayer;
 public class MusicController implements PropertyChangeListener, MetaEventListener, ControllerEventListener
 {
 
-    public static final String PROP_STATE = "PropPlaybackState";   //NOI18N 
-    public static final String PROP_PLAYBACK_SESSION = "PropPlaybackSession";   //NOI18N 
+    public static final String PROP_STATE = "PropPlaybackState";    
+    public static final String PROP_PLAYBACK_SESSION = "PropPlaybackSession";    
 
     /**
      * The playback states.
@@ -158,7 +158,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
 
     private final List<PlaybackListener> playbackListeners = new ArrayList<>();
     private final List<NoteListener> noteListeners = new ArrayList<>();
-    private static final Logger LOGGER = Logger.getLogger(MusicController.class.getSimpleName());  //NOI18N
+    private static final Logger LOGGER = Logger.getLogger(MusicController.class.getSimpleName());  
 
     public static MusicController getInstance()
     {
@@ -223,10 +223,10 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     {
         if (lockHolder == null)
         {
-            throw new NullPointerException("lockHolder");   //NOI18N
+            throw new NullPointerException("lockHolder");   
         }
 
-        LOGGER.fine("acquireSequencer() -- lockHolder=" + lockHolder);  //NOI18N
+        LOGGER.fine("acquireSequencer() -- lockHolder=" + lockHolder);  
 
         if (sequencerLockHolder == lockHolder)
         {
@@ -247,12 +247,12 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             State oldState = getState();
             setState(State.DISABLED);
 
-            LOGGER.fine("acquireSequencer() external lock acquired.  MusicController released the sequencer, oldState=" + oldState + " newState=DISABLED");  //NOI18N
+            LOGGER.fine("acquireSequencer() external lock acquired.  MusicController released the sequencer, oldState=" + oldState + " newState=DISABLED");  
 
             return sequencer;
         } else
         {
-            LOGGER.fine("acquireSequencer() can't give lock to " + lockHolder + ", current lock=" + sequencerLockHolder);  //NOI18N
+            LOGGER.fine("acquireSequencer() can't give lock to " + lockHolder + ", current lock=" + sequencerLockHolder);  
             return null;
         }
     }
@@ -269,10 +269,10 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     {
         if (lockHolder == null || sequencerLockHolder != lockHolder)
         {
-            throw new IllegalArgumentException("lockHolder=" + lockHolder + " sequencerLockHolder=" + sequencerLockHolder);   //NOI18N
+            throw new IllegalArgumentException("lockHolder=" + lockHolder + " sequencerLockHolder=" + sequencerLockHolder);   
         }
 
-        LOGGER.fine("releaseSequencer() -- lockHolder=" + lockHolder);  //NOI18N
+        LOGGER.fine("releaseSequencer() -- lockHolder=" + lockHolder);  
 
         sequencerLockHolder = null;
 
@@ -427,8 +427,8 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         {
             SongContext sgContext = getSongContext(playbackSession);        // Can be null
             String songName = sgContext != null ? sgContext.getSong().getName() : "unknown";
-            LOGGER.info("play() song=" + songName + " sequence :"); //NOI18N
-            LOGGER.info(MidiUtilities.toString(playbackSession.getSequence())); //NOI18N
+            LOGGER.info("play() song=" + songName + " sequence :"); 
+            LOGGER.info(MidiUtilities.toString(playbackSession.getSequence())); 
         }
 
 
@@ -781,7 +781,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                 break;
 
             default:
-                LOGGER.log(Level.WARNING, "controlChange() controller event not managed data1={0}", data1);  //NOI18N
+                LOGGER.log(Level.WARNING, "controlChange() controller event not managed data1={0}", data1);  
                 break;
         }
     }
@@ -796,7 +796,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         {
             // This method  is called from the Sequencer thread, NOT from the EDT !
             // So if this method impacts the UI, it must use SwingUtilities.InvokeLater() (or InvokeAndWait())
-            LOGGER.fine("Sequence end reached");  //NOI18N        
+            LOGGER.fine("Sequence end reached");          
             SwingUtilities.invokeLater(() -> stop());
 
         } else if (meta.getType() == 6)     // Marker
@@ -832,7 +832,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     @Override
     public void propertyChange(PropertyChangeEvent e)
     {
-        LOGGER.log(Level.FINE, "propertyChange() e={0}", e);  //NOI18N
+        LOGGER.log(Level.FINE, "propertyChange() e={0}", e);  
 
 
         // Always enabled changes
@@ -941,7 +941,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         int[] res = sequencer.addControllerEventListener(this, listenedControllers);
         if (res.length != listenedControllers.length)
         {
-            LOGGER.severe("This sequencer implementation is limited, music playback may not work");  //NOI18N
+            LOGGER.severe("This sequencer implementation is limited, music playback may not work");  
         }
     }
 
@@ -1176,7 +1176,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
 
     private void updateCurrentPosition(int bar, float beat)
     {
-        assert !state.equals(State.DISABLED);   //NOI18N
+        assert !state.equals(State.DISABLED);   
         Position oldPos = new Position(currentBeatPosition);
         currentBeatPosition.setBar(bar);
         currentBeatPosition.setBeat(beat);
@@ -1238,7 +1238,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      */
     private void updateTempoFactor()
     {
-        assert !state.equals(State.DISABLED);   //NOI18N
+        assert !state.equals(State.DISABLED);   
 
         // Recommended way instead of setTempoInBpm() which cause problems when playback is looped
         float f = songPartTempoFactor * songTempoFactor;

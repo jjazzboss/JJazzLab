@@ -80,7 +80,7 @@ public class EditSptName extends AbstractAction implements ContextAwareAction, S
         cap.addListener(this);
         putValue(NAME, undoText);
         putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("ENTER"));
-        LOGGER.log(Level.FINE, "constructor called");   //NOI18N
+        LOGGER.log(Level.FINE, "constructor called");   
         selectionChange(cap.getSelection());
     }
 
@@ -88,7 +88,7 @@ public class EditSptName extends AbstractAction implements ContextAwareAction, S
     public void actionPerformed(ActionEvent e)
     {
         SS_SelectionUtilities selection = cap.getSelection();
-        LOGGER.log(Level.FINE, "actionPerformed() selection=" + selection.toString());   //NOI18N
+        LOGGER.log(Level.FINE, "actionPerformed() selection=" + selection.toString());   
         List<SongPart> spts = selection.getIndirectlySelectedSongParts();
         SongPart spt0 = spts.get(0);
         SongStructure sgs = selection.getModel();
@@ -115,7 +115,7 @@ public class EditSptName extends AbstractAction implements ContextAwareAction, S
     public void selectionChange(SS_SelectionUtilities selection)
     {
         boolean b = selection.isSongPartSelected() && selection.isContiguousSptSelection();
-        LOGGER.log(Level.FINE, "selectionChange() b={0}", b);   //NOI18N
+        LOGGER.log(Level.FINE, "selectionChange() b={0}", b);   
         setEnabled(b);
     }
 

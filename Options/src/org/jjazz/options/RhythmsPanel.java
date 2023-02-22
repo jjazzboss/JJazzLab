@@ -98,7 +98,7 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
-        LOGGER.log(Level.FINE, "PropertyChangeEvent() evt={0}", evt);   //NOI18N
+        LOGGER.log(Level.FINE, "PropertyChangeEvent() evt={0}", evt);   
         FileDirectoryManager fdm = FileDirectoryManager.getInstance();
         if (evt.getSource() == fdm)
         {
@@ -122,7 +122,7 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
         if (e.getSource() == list_rhythmProviders)
         {
             RhythmProvider rp = list_rhythmProviders.getSelectedValue();
-            LOGGER.log(Level.FINE, "valueChanged() selected RhythmProvider=" + rp);   //NOI18N
+            LOGGER.log(Level.FINE, "valueChanged() selected RhythmProvider=" + rp);   
             boolean b = false;
             if (rp != null)
             {
@@ -133,7 +133,7 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
         } else if (e.getSource() == rhythmTable.getSelectionModel())
         {
             RhythmInfo ri = rhythmTable.getSelectedRhythm();
-            LOGGER.log(Level.FINE, "valueChanged() selected Rhythm=" + ri);   //NOI18N
+            LOGGER.log(Level.FINE, "valueChanged() selected Rhythm=" + ri);   
             btn_setDefaultRhythm.setEnabled(ri != null && !ri.isAdaptedRhythm());
         }
     }
@@ -187,7 +187,7 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
     public void stateChanged(ChangeEvent e)
     {
         // We can be out of the EDT
-        LOGGER.fine("stateChanged()");   //NOI18N
+        LOGGER.fine("stateChanged()");   
         Runnable run = new Runnable()
         {
             @Override
@@ -515,7 +515,7 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
     {
         if (rp == null)
         {
-            throw new IllegalArgumentException("rp=" + rp);   //NOI18N
+            throw new IllegalArgumentException("rp=" + rp);   
         }
         // Refresh the list of rhythms        
         RhythmDatabase rdb = RhythmDatabase.getDefault();
@@ -525,7 +525,7 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
                 .toList();
 
         // Update the table
-        LOGGER.fine("updateRhythmTable() rp=" + rp.getInfo().getName() + " rhythms.size()=" + rhythms.size());   //NOI18N
+        LOGGER.fine("updateRhythmTable() rp=" + rp.getInfo().getName() + " rhythms.size()=" + rhythms.size());   
         rhythmTable.getModel().setRhythms(rhythms);
     }
     

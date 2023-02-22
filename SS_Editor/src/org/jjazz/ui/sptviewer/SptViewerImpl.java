@@ -103,7 +103,7 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
     {
         if (spt == null || settings == null || factory == null)
         {
-            throw new IllegalArgumentException("spt=" + spt + " settings=" + settings + " factory=" + factory);   //NOI18N
+            throw new IllegalArgumentException("spt=" + spt + " settings=" + settings + " factory=" + factory);   
         }
         songModel = song;
         sptModel = spt;
@@ -180,7 +180,7 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
     {
         if (factor < 0 || factor > 100)
         {
-            throw new IllegalArgumentException("factor=" + factor);   //NOI18N
+            throw new IllegalArgumentException("factor=" + factor);   
         }
         zoomHFactor = factor;
         revalidate();
@@ -198,7 +198,7 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
     {
         if (factor < 0 || factor > 100)
         {
-            throw new IllegalArgumentException("factor=" + factor);   //NOI18N
+            throw new IllegalArgumentException("factor=" + factor);   
         }
         zoomVFactor = factor;
         // Only RpViewers height is impacted
@@ -347,7 +347,7 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
                 pnl_RpEditors.add(Box.createRigidArea(new Dimension(0, 4)));
             } else
             {
-                throw new IllegalArgumentException("rp=" + rp + " sptModel.getRhythm().getRhythmParameters()=" + sptModel.getRhythm().getRhythmParameters());   //NOI18N
+                throw new IllegalArgumentException("rp=" + rp + " sptModel.getRhythm().getRhythmParameters()=" + sptModel.getRhythm().getRhythmParameters());   
             }
         }
         pnl_RpEditors.revalidate();
@@ -359,7 +359,7 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
     {
         if (show && pos == null)
         {
-            throw new IllegalArgumentException("show=" + show + " pos=" + pos);   //NOI18N
+            throw new IllegalArgumentException("show=" + show + " pos=" + pos);   
         }
         isPlaybackOn = show;
         int startBarIndex = getModel().getStartBarIndex();
@@ -368,7 +368,7 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
         {
             // Show the playbackpoint but BarIndex does not belong in this SptViewer ! 
             isPlaybackOn = false;
-            LOGGER.log(Level.WARNING, "showPlaybackPoint() show={0} pos.getBar()={1} is outside SptViewer startBarIndex={2} size={3}", //NOI18N
+            LOGGER.log(Level.WARNING, "showPlaybackPoint() show={0} pos.getBar()={1} is outside SptViewer startBarIndex={2} size={3}", 
                     new Object[]
                     {
                         show, pos.getBar(), getModel().getStartBarIndex(), getModel().getNbBars()
@@ -436,7 +436,7 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
             return;
         }
         Component c = (Component) e.getSource();
-        LOGGER.log(Level.FINE, "mousePressed() c={0}", c);   //NOI18N
+        LOGGER.log(Level.FINE, "mousePressed() c={0}", c);   
         if (c == this)
         {
             controller.songPartClicked(e, sptModel, false);
@@ -533,10 +533,10 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
             updateUIComponents();       // Our parentSection's color might have changed
         } else if (e.getSource() == sptModel)
         {
-            if (e.getPropertyName() == SongPart.PROPERTY_NAME)
+            if (e.getPropertyName() == SongPart.PROP_NAME)
             {
                 updateUIComponents();
-            } else if (e.getPropertyName() == SongPart.PROPERTY_NB_BARS)
+            } else if (e.getPropertyName() == SongPart.PROP_NB_BARS)
             {
                 revalidate(); // our overridden getPreferredSize() could return a different value
             }

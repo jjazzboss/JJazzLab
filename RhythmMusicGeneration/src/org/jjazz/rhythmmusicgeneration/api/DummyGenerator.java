@@ -50,7 +50,7 @@ public class DummyGenerator implements MusicGenerator
     {
         if (r == null)
         {
-            throw new NullPointerException("r=" + r);   //NOI18N
+            throw new NullPointerException("r=" + r);   
         }
         rhythm = r;
     }
@@ -92,19 +92,19 @@ public class DummyGenerator implements MusicGenerator
                 }
                 if (rv.isDrums())
                 {
-                    LOGGER.fine("generateMusic() generate dummy drums track for RhythmVoice: " + rv.getName());   //NOI18N
+                    LOGGER.fine("generateMusic() generate dummy drums track for RhythmVoice: " + rv.getName());   
                     Phrase p = PhraseSamples.getBasicDrumPhrase(sptPosInBeats, sptRange.size(), ts, destChannel);
                     pRes.add(p);
                 } else
                 {
                     if (rv.getPreferredInstrument().getSubstitute().getFamily().equals(Family.Bass))
                     {
-                        LOGGER.fine("generateMusic() generate dummy bass track for RhythmVoice: " + rv.getName());   //NOI18N
+                        LOGGER.fine("generateMusic() generate dummy bass track for RhythmVoice: " + rv.getName());   
                         Phrase p = getBasicBassPhrase(sptPosInBeats, cSeq, destChannel);
                         pRes.add(p);
                     } else
                     {
-                        LOGGER.fine("generateMusic() music generation not supported for this RhythmVoice: " + rv.getName());   //NOI18N
+                        LOGGER.fine("generateMusic() music generation not supported for this RhythmVoice: " + rv.getName());   
                     }
                 }
             }
@@ -125,7 +125,7 @@ public class DummyGenerator implements MusicGenerator
     {
         if (cSeq == null || !MidiConst.checkMidiChannel(channel))
         {
-            throw new IllegalArgumentException("cSeq=" + cSeq + " channel=" + channel);   //NOI18N
+            throw new IllegalArgumentException("cSeq=" + cSeq + " channel=" + channel);   
         }
         Phrase p = new Phrase(channel, false);
         for (int i = 0; i < cSeq.size(); i++)

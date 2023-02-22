@@ -79,7 +79,7 @@ class BR_ChordsLayoutManager implements LayoutManager
     {
         if (!(br instanceof BeatBasedBarRenderer))
         {
-            throw new IllegalArgumentException("br=" + br);   //NOI18N
+            throw new IllegalArgumentException("br=" + br);   
         }
         TimeSignature ts = ((BeatBasedBarRenderer) br).getTimeSignature();
         Rectangle r = br.getDrawingArea();
@@ -102,7 +102,7 @@ class BR_ChordsLayoutManager implements LayoutManager
     {
         if (!(parent instanceof BarRenderer) || !(parent instanceof BeatBasedBarRenderer))
         {
-            throw new IllegalArgumentException("parent=" + parent);   //NOI18N
+            throw new IllegalArgumentException("parent=" + parent);   
         }
 
         BarRenderer br = (BarRenderer) parent;
@@ -151,7 +151,7 @@ class BR_ChordsLayoutManager implements LayoutManager
         {
             ItemRenderer ir = irs.get(i);
             ChordLeadSheetItem<?> item = ir.getModel();
-            assert (item instanceof CLI_ChordSymbol) : "item=" + item + " irs=" + irs;   //NOI18N
+            assert (item instanceof CLI_ChordSymbol) : "item=" + item + " irs=" + irs;   
             Position pos = quantize(item.getPosition(), ts);
             int itemWidth = ir.getWidth();
             int itemHeight = ir.getHeight();
@@ -273,7 +273,7 @@ class BR_ChordsLayoutManager implements LayoutManager
 
             if (isOverlapping)
             {
-                throw new IllegalStateException("Error robustness=0 irsCoordinates=" + chordIrsCoordinates);   //NOI18N
+                throw new IllegalStateException("Error robustness=0 irsCoordinates=" + chordIrsCoordinates);   
             }
         }
 

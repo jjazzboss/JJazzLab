@@ -106,7 +106,7 @@ public class PitchBendEvent extends NoteEvent
     @Override
     public List<MidiEvent> toMidiEvents(int channel)
     {
-        LOGGER.warning("toMidiEvents() NOT VALIDED YET !");   //NOI18N
+        LOGGER.warning("toMidiEvents() NOT VALIDED YET !");   
         int pitchShift = getPitch() - fromPitch;
 
         ShortMessage[] mes = MidiUtilities.getPitchBendMessages(channel, pitchShift);

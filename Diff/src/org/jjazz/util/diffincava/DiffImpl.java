@@ -161,7 +161,7 @@ public class DiffImpl<Type> implements DiffProvider<Type>
     {
         if (a == null || b == null)
         {
-            throw new IllegalStateException("a=" + a + " b=" + b);   //NOI18N
+            throw new IllegalStateException("a=" + a + " b=" + b);   
         }
         if (DEBUG)
         {

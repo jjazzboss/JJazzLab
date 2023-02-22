@@ -40,8 +40,8 @@ import org.openide.util.NbBundle.Messages;
 public final class Position implements Comparable<Position>, Serializable
 {
 
-    public static final String PROP_BAR = "PropBar";   //NOI18N 
-    public static final String PROP_BEAT = "PropBeat";   //NOI18N 
+    public static final String PROP_BAR = "PropBar";    
+    public static final String PROP_BEAT = "PropBeat";    
     /**
      * Separator char, e.g ':' in "[8:2.5])".
      */
@@ -80,7 +80,7 @@ public final class Position implements Comparable<Position>, Serializable
     {
         if ((beat < 0) || (bar < 0))
         {
-            throw new IllegalArgumentException("b=" + beat + " bar=" + bar);   //NOI18N
+            throw new IllegalArgumentException("b=" + beat + " bar=" + bar);   
         }
         this.bar = bar;
         this.beat = beat;
@@ -90,7 +90,7 @@ public final class Position implements Comparable<Position>, Serializable
     {
         if (beat < 0)
         {
-            throw new IllegalArgumentException("beat=" + beat);   //NOI18N
+            throw new IllegalArgumentException("beat=" + beat);   
         }
         float old = this.beat;
 //        this.beat = Note.roundForMusic(beat);
@@ -103,7 +103,7 @@ public final class Position implements Comparable<Position>, Serializable
     {
         if (bar < 0)
         {
-            throw new IllegalArgumentException("bar=" + bar);   //NOI18N
+            throw new IllegalArgumentException("bar=" + bar);   
         }
         int old = this.bar;
         this.bar = bar;
@@ -258,7 +258,7 @@ public final class Position implements Comparable<Position>, Serializable
     {
         if (tsFrom == null || tsTo == null || beat >= tsFrom.getNbNaturalBeats())
         {
-            throw new IllegalArgumentException("this=" + this + " tsFrom=" + tsFrom + " tsTo=" + tsTo);   //NOI18N
+            throw new IllegalArgumentException("this=" + this + " tsFrom=" + tsFrom + " tsTo=" + tsTo);   
         }
 
 
@@ -487,7 +487,7 @@ public final class Position implements Comparable<Position>, Serializable
         float newBeat = beat;
         if ((userString == null) || (defaultBar < 0))
         {
-            throw new IllegalArgumentException("str=" + userString + " defaultBar=" + defaultBar);   //NOI18N
+            throw new IllegalArgumentException("str=" + userString + " defaultBar=" + defaultBar);   
         }
 
         // Remove brackets
@@ -604,7 +604,7 @@ public final class Position implements Comparable<Position>, Serializable
                 pos.valueOf(spPos, 0);
             } catch (ParseException ex)
             {
-                LOGGER.log(Level.SEVERE, "Can't read position " + spPos + ", using position(0,0) instead", ex);   //NOI18N
+                LOGGER.log(Level.SEVERE, "Can't read position " + spPos + ", using position(0,0) instead", ex);   
                 pos = new Position(0, 0);
             }
             return pos;

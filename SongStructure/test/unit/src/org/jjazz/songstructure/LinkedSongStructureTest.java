@@ -132,7 +132,7 @@ public class LinkedSongStructureTest
             u_sgs.addSongParts(Arrays.asList(u_spt0));
         } catch (ParseException ex)
         {
-            throw new IllegalStateException("ParseException ex=" + ex);   //NOI18N
+            throw new IllegalStateException("ParseException ex=" + ex);   
         } catch (UnsupportedEditException ex)
         {
             Exceptions.printStackTrace(ex);
@@ -158,14 +158,14 @@ public class LinkedSongStructureTest
         System.out.println("\ncls after Undo ALL=" + cls1.toDumpString());
         System.out.println("\n  sgs after Undo ALL =" + sgs);
         System.out.println("u_sgs after Undo ALL =" + u_sgs);
-        assertTrue(sgs.getSizeInBars() == u_sgs.getSizeInBars());   //NOI18N
+        assertTrue(sgs.getSizeInBars() == u_sgs.getSizeInBars());   
         for (int i = 0; i < sgs.getSongParts().size(); i++)
         {
             SongPart spt1 = sgs.getSongParts().get(i);
             SongPart spt2 = u_sgs.getSongParts().get(i);
-            assertTrue(spt1.getNbBars() == spt2.getNbBars());   //NOI18N
-            assertTrue(spt1.getStartBarIndex() == spt2.getStartBarIndex());   //NOI18N
-            assertTrue(spt1.getRhythm() == spt2.getRhythm());   //NOI18N
+            assertTrue(spt1.getNbBars() == spt2.getNbBars());   
+            assertTrue(spt1.getStartBarIndex() == spt2.getStartBarIndex());   
+            assertTrue(spt1.getRhythm() == spt2.getRhythm());   
         }
     }
 
@@ -173,11 +173,11 @@ public class LinkedSongStructureTest
     public void testAddAndRemove()
     {
         System.out.println("\n============ Test testAddAndRemove add chord symbol");
-        assertTrue(sgs.getSizeInBars() == 11);   //NOI18N
+        assertTrue(sgs.getSizeInBars() == 11);   
         cls1.addItem(newChord);
         System.out.println(" sgs after=" + sgs);
-        assertTrue(sgs.getSizeInBars() == 11);   //NOI18N
-        assertTrue(sgs.getSongParts().get(1).getNbBars() == 3);   //NOI18N
+        assertTrue(sgs.getSizeInBars() == 11);   
+        assertTrue(sgs.getSongParts().get(1).getNbBars() == 3);   
         System.out.println("\n== Test testAddAndRemove add section");
         try
         {
@@ -187,13 +187,13 @@ public class LinkedSongStructureTest
             Exceptions.printStackTrace(ex);
         }
         System.out.println(" sgs after=" + sgs);
-        assertTrue(cls1.getSection(newSection1.getData().getName()) != null);   //NOI18N
-        assertTrue(sgs.getSongParts().get(2).getParentSection() == newSection1);   //NOI18N
-        assertTrue(sgs.getSongParts().get(2).getNbBars() == 1);   //NOI18N
-        assertTrue(sgs.getSongParts().get(1).getNbBars() == 2);   //NOI18N
-        assertTrue(sgs.getSongParts().get(4).getNbBars() == 2);   //NOI18N
+        assertTrue(cls1.getSection(newSection1.getData().getName()) != null);   
+        assertTrue(sgs.getSongParts().get(2).getParentSection() == newSection1);   
+        assertTrue(sgs.getSongParts().get(2).getNbBars() == 1);   
+        assertTrue(sgs.getSongParts().get(1).getNbBars() == 2);   
+        assertTrue(sgs.getSongParts().get(4).getNbBars() == 2);   
         System.out.println("\n== Test testAddAndRemove removeSection");
-        assertTrue(sgs.getSizeInBars() == 10);   //NOI18N
+        assertTrue(sgs.getSizeInBars() == 10);   
         try
         {
             cls1.removeSection(section2);
@@ -202,18 +202,18 @@ public class LinkedSongStructureTest
             Exceptions.printStackTrace(ex);
         }
         System.out.println(" sgs after=" + sgs);
-        assertTrue(sgs.getSizeInBars() == 8);   //NOI18N
-        assertTrue(sgs.getSongParts().size() == 3);   //NOI18N
-        assertTrue(sgs.getSongParts().get(1).getParentSection() != section2);   //NOI18N
-        assertTrue(sgs.getSongParts().get(1).getStartBarIndex() == 4);   //NOI18N
-        assertTrue(sgs.getSongParts().get(2).getStartBarIndex() == 5);   //NOI18N
+        assertTrue(sgs.getSizeInBars() == 8);   
+        assertTrue(sgs.getSongParts().size() == 3);   
+        assertTrue(sgs.getSongParts().get(1).getParentSection() != section2);   
+        assertTrue(sgs.getSongParts().get(1).getStartBarIndex() == 4);   
+        assertTrue(sgs.getSongParts().get(2).getStartBarIndex() == 5);   
     }
 
     @Test
     public void testAdd2()
     {
         System.out.println("\n============ testAdd2");
-        assertTrue(sgs.getSizeInBars() == 11);   //NOI18N
+        assertTrue(sgs.getSizeInBars() == 11);   
         try
         {
             sgs.removeSongParts(ml(sgs.getSongParts().get(1)));
@@ -230,16 +230,16 @@ public class LinkedSongStructureTest
             Exceptions.printStackTrace(ex);
         }
         System.out.println(" sgs after(2)=" + sgs);
-        assertTrue(sgs.getSizeInBars() == 8);   //NOI18N
-        assertTrue(sgs.getSongParts().get(3).getParentSection() == newSection1);   //NOI18N
-        assertTrue(sgs.getSongParts().get(3).getStartBarIndex() == 7);   //NOI18N
+        assertTrue(sgs.getSizeInBars() == 8);   
+        assertTrue(sgs.getSongParts().get(3).getParentSection() == newSection1);   
+        assertTrue(sgs.getSongParts().get(3).getStartBarIndex() == 7);   
     }
 
     @Test
     public void testAdd3()
     {
         System.out.println("\n============ testAdd3 after absent section");
-        assertTrue(sgs.getSizeInBars() == 11);   //NOI18N
+        assertTrue(sgs.getSizeInBars() == 11);   
         try
         {
             sgs.removeSongParts(ml(sgs.getSongParts().get(2)));
@@ -256,16 +256,16 @@ public class LinkedSongStructureTest
             Exceptions.printStackTrace(ex);
         }
         System.out.println(" sgs after(2)=" + sgs);
-        assertTrue(sgs.getSizeInBars() == 10);   //NOI18N
-        assertTrue(sgs.getSongParts().get(3).getParentSection() == newSection2);   //NOI18N
-        assertTrue(sgs.getSongParts().get(3).getStartBarIndex() == 8);   //NOI18N
+        assertTrue(sgs.getSizeInBars() == 10);   
+        assertTrue(sgs.getSongParts().get(3).getParentSection() == newSection2);   
+        assertTrue(sgs.getSongParts().get(3).getStartBarIndex() == 8);   
     }
 
     @Test
     public void testAddAdaptedRhythm()
     {
         System.out.println("\n============ testAddAdaptedRhythm add section with new time signature => adapted rhythm");
-        assertTrue(sgs.getSizeInBars() == 11);   //NOI18N
+        assertTrue(sgs.getSizeInBars() == 11);   
         try
         {
             cls1.addSection(newSection3);
@@ -275,11 +275,11 @@ public class LinkedSongStructureTest
         }
         // System.out.println("rdb=" + RhythmDatabase.getDefault().toString());
         System.out.println(" sgs after(1)=" + sgs);
-        assertTrue(sgs.getSizeInBars() == 11);   //NOI18N
-        assertTrue(sgs.getSongParts().get(3).getParentSection() == newSection3);   //NOI18N
+        assertTrue(sgs.getSizeInBars() == 11);   
+        assertTrue(sgs.getSongParts().get(3).getParentSection() == newSection3);   
         Rhythm r = sgs.getSongParts().get(3).getRhythm();
-        assertTrue(r instanceof AdaptedRhythm);   //NOI18N
-        assertTrue(((AdaptedRhythm) r).getSourceRhythm() == sgs.getSongParts().get(2).getRhythm());   //NOI18N
+        assertTrue(r instanceof AdaptedRhythm);   
+        assertTrue(((AdaptedRhythm) r).getSourceRhythm() == sgs.getSongParts().get(2).getRhythm());   
     }
 
     @Test
@@ -294,7 +294,7 @@ public class LinkedSongStructureTest
             Exceptions.printStackTrace(ex);
         }
         System.out.println(" sgs after=" + sgs);
-        assertTrue(sgs.getSongParts().get(1).getRhythm().getTimeSignature() == TimeSignature.FOUR_FOUR);   //NOI18N
+        assertTrue(sgs.getSongParts().get(1).getRhythm().getTimeSignature() == TimeSignature.FOUR_FOUR);   
     }
 
     @Test
@@ -309,9 +309,9 @@ public class LinkedSongStructureTest
             Exceptions.printStackTrace(ex);
         }
         System.out.println(" sgs after=" + sgs);
-        assertTrue(sgs.getSongParts().get(1).getStartBarIndex() == 1);   //NOI18N
-        assertTrue(sgs.getSongParts().get(1).getNbBars() == 4);   //NOI18N
-        assertTrue(sgs.getSongParts().get(3).getNbBars() == 4);   //NOI18N
+        assertTrue(sgs.getSongParts().get(1).getStartBarIndex() == 1);   
+        assertTrue(sgs.getSongParts().get(1).getNbBars() == 4);   
+        assertTrue(sgs.getSongParts().get(3).getNbBars() == 4);   
     }
 
     @Test
@@ -326,9 +326,9 @@ public class LinkedSongStructureTest
             Exceptions.printStackTrace(ex);
         }
         System.out.println(" sgs after=" + sgs);
-        assertTrue(sgs.getSongParts().size() == 3);   //NOI18N
-        assertTrue(sgs.getSongParts().get(2).getStartBarIndex() == 6);   //NOI18N
-        assertTrue(sgs.getSongParts().get(2).getNbBars() == 2);   //NOI18N
+        assertTrue(sgs.getSongParts().size() == 3);   
+        assertTrue(sgs.getSongParts().get(2).getStartBarIndex() == 6);   
+        assertTrue(sgs.getSongParts().get(2).getNbBars() == 2);   
     }
 
     @Test
@@ -343,9 +343,9 @@ public class LinkedSongStructureTest
             Exceptions.printStackTrace(ex);
         }
         System.out.println(" sgs after=" + sgs);
-        assertTrue(sgs.getSizeInBars() == 13);   //NOI18N
-        assertTrue(sgs.getSongParts().get(2).getNbBars() == 5);   //NOI18N
-        assertTrue(sgs.getSongParts().get(3).getStartBarIndex() == 10);   //NOI18N
+        assertTrue(sgs.getSizeInBars() == 13);   
+        assertTrue(sgs.getSongParts().get(2).getNbBars() == 5);   
+        assertTrue(sgs.getSongParts().get(3).getStartBarIndex() == 10);   
     }
 
     @Test
@@ -360,10 +360,10 @@ public class LinkedSongStructureTest
             Exceptions.printStackTrace(ex);
         }
         System.out.println(" sgs after=" + sgs);
-        assertTrue(sgs.getSongParts().size() == 2);   //NOI18N
-        assertTrue(sgs.getSongParts().get(0).getNbBars() == 5);   //NOI18N
-        assertTrue(sgs.getSongParts().get(1).getParentSection() == section3);   //NOI18N
-        assertTrue(sgs.getSizeInBars() == 8);   //NOI18N
+        assertTrue(sgs.getSongParts().size() == 2);   
+        assertTrue(sgs.getSongParts().get(0).getNbBars() == 5);   
+        assertTrue(sgs.getSongParts().get(1).getParentSection() == section3);   
+        assertTrue(sgs.getSizeInBars() == 8);   
     }
 
     @Test
@@ -379,10 +379,10 @@ public class LinkedSongStructureTest
         }
         System.out.println(" cls1 after=" + cls1.toDumpString());
         System.out.println(" sgs after=" + sgs);
-        assertTrue(sgs.getSizeInBars() == 10);   //NOI18N
-        assertTrue(sgs.getSongParts().get(1).getNbBars() == 4);   //NOI18N
-        assertTrue(sgs.getSongParts().get(2).getStartBarIndex() == 6);   //NOI18N
-        assertTrue(sgs.getSongParts().get(2).getNbBars() == 4);   //NOI18N
+        assertTrue(sgs.getSizeInBars() == 10);   
+        assertTrue(sgs.getSongParts().get(1).getNbBars() == 4);   
+        assertTrue(sgs.getSongParts().get(2).getStartBarIndex() == 6);   
+        assertTrue(sgs.getSongParts().get(2).getNbBars() == 4);   
     }
 
     @Test
@@ -393,8 +393,8 @@ public class LinkedSongStructureTest
         try
         {
             cls1.addSection(newSection);
-            assertTrue(sgs.getSongParts().size() == 5 && sgs.getSizeInBars() == 11);   //NOI18N
-            assertTrue(sgs.getSongParts().get(1).getParentSection() == newSection);   //NOI18N
+            assertTrue(sgs.getSongParts().size() == 5 && sgs.getSizeInBars() == 11);   
+            assertTrue(sgs.getSongParts().get(1).getParentSection() == newSection);   
 //            System.out.println(" cls1 after=" + cls1.toDumpString());
 //            System.out.println(" sgs after=" + sgs);
             cls1.deleteBars(0, 0);
@@ -404,8 +404,8 @@ public class LinkedSongStructureTest
         }
         System.out.println(" cls1 after=" + cls1.toDumpString());
         System.out.println(" sgs after=" + sgs);
-        assertTrue(sgs.getSongParts().size() == 4 && sgs.getSizeInBars() == 10);   //NOI18N
-        assertTrue(sgs.getSongParts().get(0).getParentSection() == newSection);   //NOI18N
+        assertTrue(sgs.getSongParts().size() == 4 && sgs.getSizeInBars() == 10);   
+        assertTrue(sgs.getSongParts().get(0).getParentSection() == newSection);   
     }
 
     @Test
@@ -419,7 +419,7 @@ public class LinkedSongStructureTest
         {
             Exceptions.printStackTrace(ex);
         }
-        assertTrue(sgs.getSongParts().size() == 5);   //NOI18N
+        assertTrue(sgs.getSongParts().size() == 5);   
         try
         {
             cls1.deleteBars(6, 7);
@@ -429,8 +429,8 @@ public class LinkedSongStructureTest
         }
         System.out.println(" cls1 after=" + cls1.toDumpString());
         System.out.println(" sgs after=" + sgs);
-        assertTrue(sgs.getSongParts().size() == 4);   //NOI18N
-        assertTrue(sgs.getSongParts().get(2).getNbBars() == 1);   //NOI18N
+        assertTrue(sgs.getSongParts().size() == 4);   
+        assertTrue(sgs.getSongParts().get(2).getNbBars() == 1);   
     }
 
     @Test
@@ -448,7 +448,7 @@ public class LinkedSongStructureTest
         System.out.println(" cls1 after(1) =" + cls1.toDumpString());
         System.out.println(" sgs after(1) =" + sgs);
 
-        assertTrue(sgs.getSongParts().size() == 5);   //NOI18N
+        assertTrue(sgs.getSongParts().size() == 5);   
         Rhythm r = sgs.getSongParts().get(2).getRhythm();
         boolean exceptionOccured = false;
         try
@@ -460,9 +460,9 @@ public class LinkedSongStructureTest
         }
         System.out.println(" cls1 after (2) =" + cls1.toDumpString());
         System.out.println(" sgs after (2) =" + sgs);
-        assertTrue(exceptionOccured);   //NOI18N
-        assertTrue(sgs.getSongParts().get(2).getRhythm() == r);   //NOI18N
-        assertTrue(sgs.getSongParts().size() == 5);   //NOI18N
+        assertTrue(exceptionOccured);   
+        assertTrue(sgs.getSongParts().get(2).getRhythm() == r);   
+        assertTrue(sgs.getSongParts().size() == 5);   
     }
 
     @Test
@@ -478,7 +478,7 @@ public class LinkedSongStructureTest
         }
         System.out.println(" cls1 after add newSection3=" + cls1.toDumpString());
         System.out.println(" sgs after add newSection3=" + sgs);
-        assertTrue(sgs.getSongParts().size() == 5);   //NOI18N
+        assertTrue(sgs.getSongParts().size() == 5);   
         Rhythm r = sgs.getSongParts().get(2).getRhythm();
         boolean exceptionOccured = false;
         try
@@ -493,9 +493,9 @@ public class LinkedSongStructureTest
         }
         System.out.println(" cls1 after section1=2/4=" + cls1.toDumpString());
         System.out.println(" sgs after section1=2/4=" + sgs);
-        assertTrue(exceptionOccured);   //NOI18N
-        assertTrue(sgs.getSongParts().get(0).getRhythm() == r);   //NOI18N
-        assertTrue(sgs.getSongParts().size() == 5);   //NOI18N
+        assertTrue(exceptionOccured);   
+        assertTrue(sgs.getSongParts().get(0).getRhythm() == r);   
+        assertTrue(sgs.getSongParts().size() == 5);   
     }
 
     private void redoAll()

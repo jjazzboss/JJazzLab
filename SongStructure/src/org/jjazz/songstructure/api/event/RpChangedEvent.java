@@ -26,6 +26,9 @@ import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 
+/**
+ * A RhythmParameter value has changed.
+ */
 public class RpChangedEvent extends SgsChangeEvent
 {
 
@@ -33,24 +36,29 @@ public class RpChangedEvent extends SgsChangeEvent
     private Object oldValue;
     private Object newValue;
 
-    public Object getNewValue()
-    {
-        return newValue;
-    }
 
+    /**
+     * Create an event.
+     *
+     * @param src
+     * @param spt
+     * @param rp
+     * @param oldValue
+     * @param newValue Can be the same than newValue for mutable RP values.
+     */
     public RpChangedEvent(SongStructure src, SongPart spt, RhythmParameter<?> rp, Object oldValue, Object newValue)
     {
         super(src, spt);
         if (spt == null || rp == null || newValue == null)
         {
-            throw new IllegalArgumentException("spt=" + spt + " rp=" + rp + " oldValue=" + oldValue + " newValue=" + newValue);   //NOI18N
+            throw new IllegalArgumentException("spt=" + spt + " rp=" + rp + " oldValue=" + oldValue + " newValue=" + newValue);   
         }
         this.rhytmParameter = rp;
         this.oldValue = oldValue;
         this.newValue = newValue;
     }
 
-    public RhythmParameter<?> getRhytmParameter()
+    public RhythmParameter<?> getRhythmParameter()
     {
         return rhytmParameter;
     }
@@ -58,5 +66,17 @@ public class RpChangedEvent extends SgsChangeEvent
     public Object getOldValue()
     {
         return oldValue;
+    }
+
+    /**
+     * Get the new Rhythm parameter value.
+     * <p>
+     * Note that newValue can be the same as oldValue if the RP value class is mutable.
+     *
+     * @return
+     */
+    public Object getNewValue()
+    {
+        return newValue;
     }
 }

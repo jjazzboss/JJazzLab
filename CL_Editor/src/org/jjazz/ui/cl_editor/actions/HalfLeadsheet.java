@@ -62,7 +62,7 @@ public class HalfLeadsheet implements ActionListener
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        assert song != null;   //NOI18N
+        assert song != null;   
 
         JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(song.getChordLeadSheet());
         um.startCEdit(undoText);

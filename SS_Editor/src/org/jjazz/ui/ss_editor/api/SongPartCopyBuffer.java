@@ -79,7 +79,7 @@ public class SongPartCopyBuffer
     {
         if (spts == null)
         {
-            throw new IllegalArgumentException("spts=" + spts);   //NOI18N
+            throw new IllegalArgumentException("spts=" + spts);   
         }
         if (spts.isEmpty())
         {

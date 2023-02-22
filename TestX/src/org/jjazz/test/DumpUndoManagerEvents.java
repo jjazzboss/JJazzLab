@@ -55,12 +55,12 @@ public final class DumpUndoManagerEvents implements ActionListener
     @Override
     public void actionPerformed(ActionEvent ae)
     {
-        LOGGER.info("DumpUndoManagerEvents() --");   //NOI18N
+        LOGGER.info("DumpUndoManagerEvents() --");   
         Song song = Utilities.actionsGlobalContext().lookup(Song.class);
 
         if (song == null)
         {
-            LOGGER.severe("No current song, aborting");   //NOI18N
+            LOGGER.severe("No current song, aborting");   
             return;
         }
 

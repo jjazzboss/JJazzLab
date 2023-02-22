@@ -65,7 +65,7 @@ public class ExportToMidiFile extends AbstractAction
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        assert song != null;   //NOI18N
+        assert song != null;   
 
         if (song.getSongStructure().getSongParts().isEmpty())
         {

@@ -70,7 +70,7 @@ public class ImprovisorFileReader
     {
         if (f == null)
         {
-            throw new NullPointerException("f");   //NOI18N
+            throw new NullPointerException("f");   
         }
         this.initMap();
         this.file = f;
@@ -137,7 +137,7 @@ public class ImprovisorFileReader
                         }
                     } catch (NumberFormatException ex)
                     {
-                        LOGGER.warning("readSong() file=" + file.getName() + ", line " + lineCount + ", ex=" + ex.getMessage());   //NOI18N
+                        LOGGER.warning("readSong() file=" + file.getName() + ", line " + lineCount + ", ex=" + ex.getMessage());   
                     }
                 } else if (mMeter.find())
                 {
@@ -148,14 +148,14 @@ public class ImprovisorFileReader
                         upper = Integer.parseUnsignedInt(mMeter.group(1));
                     } catch (NumberFormatException ex)
                     {
-                        LOGGER.warning("readSong() file=" + file.getName() + ", line " + lineCount + ", ex=" + ex.getMessage());   //NOI18N
+                        LOGGER.warning("readSong() file=" + file.getName() + ", line " + lineCount + ", ex=" + ex.getMessage());   
                     }
                     try
                     {
                         lower = Integer.parseUnsignedInt(mMeter.group(2));
                     } catch (NumberFormatException ex)
                     {
-                        LOGGER.warning("readSong() file=" + file.getName() + ", line " + lineCount + ", ex=" + ex.getMessage());   //NOI18N
+                        LOGGER.warning("readSong() file=" + file.getName() + ", line " + lineCount + ", ex=" + ex.getMessage());   
                     }
                     ts = TimeSignature.get(upper, lower);
                     if (ts == null)
@@ -270,7 +270,7 @@ public class ImprovisorFileReader
                 ChordSymbol cs = getChordSymbol(token);
                 if (cs == null)
                 {
-                    LOGGER.warning("fillInChordLeadSheet() chord symbol not recognized: '" + token + "', file=" + f.getName() + ", line " + lineIndex);   //NOI18N
+                    LOGGER.warning("fillInChordLeadSheet() chord symbol not recognized: '" + token + "', file=" + f.getName() + ", line " + lineIndex);   
                 } else
                 {
                     currentBarCsBuffer.add(cs);
@@ -372,7 +372,7 @@ public class ImprovisorFileReader
 
         } catch (ParseException ex)
         {
-            LOGGER.warning("getChordSymbol() can't convert token=" + token + ". ex=" + ex.getMessage());   //NOI18N
+            LOGGER.warning("getChordSymbol() can't convert token=" + token + ". ex=" + ex.getMessage());   
         }
 
         return cs;
@@ -389,7 +389,7 @@ public class ImprovisorFileReader
      */
     private void flush(ChordLeadSheet cls, TimeSignature ts, List<ChordSymbol> barCsBuffer, int barIndex)
     {
-        assert !barCsBuffer.isEmpty() : "barCsBuffer empty ! barIndex=" + barIndex;   //NOI18N
+        assert !barCsBuffer.isEmpty() : "barCsBuffer empty ! barIndex=" + barIndex;   
         CLI_Factory clif = CLI_Factory.getDefault();
         float beatStep = ts.getNbNaturalBeats() / barCsBuffer.size();
         int i = 0;

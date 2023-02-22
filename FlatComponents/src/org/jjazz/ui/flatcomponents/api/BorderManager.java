@@ -101,7 +101,7 @@ public class BorderManager implements MouseListener, MouseMotionListener, Proper
     {
         if (component == null)
         {
-            throw new NullPointerException("component");   //NOI18N
+            throw new NullPointerException("component");   
         }
         CompBorders cb = mapCompBorders.get(component);
         if (cb == null)

@@ -99,7 +99,7 @@ public class InsertSpt extends AbstractAction implements ContextAwareAction, SS_
         cls = sgs.getParentChordLeadSheet();
         if (cls == null)
         {
-            throw new IllegalStateException("sgs=" + sgs);   //NOI18N
+            throw new IllegalStateException("sgs=" + sgs);   
         }
 
 
@@ -114,7 +114,7 @@ public class InsertSpt extends AbstractAction implements ContextAwareAction, SS_
         {
             // Perform change
             CLI_Section parentSection = dlg.getParentSection();
-            assert parentSection != null;   //NOI18N
+            assert parentSection != null;   
 
 
             // Create the new song part
@@ -148,7 +148,7 @@ public class InsertSpt extends AbstractAction implements ContextAwareAction, SS_
     public void selectionChange(SS_SelectionUtilities selection)
     {
         boolean b = selection.isContiguousSptSelection();
-        LOGGER.log(Level.FINE, "selectionChange() b=" + b);   //NOI18N
+        LOGGER.log(Level.FINE, "selectionChange() b=" + b);   
         setEnabled(b);
     }
 }

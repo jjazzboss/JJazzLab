@@ -40,10 +40,10 @@ import org.jjazz.util.api.LongRange;
 /**
  * Collect various data about a Song context in order to facilitate music generation.
  * <p>
- * Note that a SongContext instance should be discarded if song is structurally modified, because some SongContext methods may
- * return data not consistent anymore with the actual Song.
+ * Note that a SongContext instance should be discarded if song is structurally modified, because some SongContext methods may return data
+ * not consistent anymore with the actual Song.
  */
-public class SongContext 
+public class SongContext
 {
 
     private Song song;
@@ -87,7 +87,7 @@ public class SongContext
     {
         if (s == null || mm == null)
         {
-            throw new IllegalArgumentException("s=" + s + " mix=" + mm + "barRg=" + bars);   //NOI18N
+            throw new IllegalArgumentException("s=" + s + " mix=" + mm + "barRg=" + bars);
         }
         song = s;
         this.midiMix = mm;
@@ -100,7 +100,7 @@ public class SongContext
             this.barRange = new IntRange(0, sizeInBars - 1);
         } else if (bars.to > sizeInBars - 1)
         {
-            throw new IllegalArgumentException("s=" + s + " sizeInBars=" + sizeInBars + " mix=" + mm + " bars=" + bars);   //NOI18N
+            throw new IllegalArgumentException("s=" + s + " sizeInBars=" + sizeInBars + " mix=" + mm + " bars=" + bars);
         } else
         {
             this.barRange = bars;
@@ -191,9 +191,8 @@ public class SongContext
     }
 
     /**
-     * Get the bar range of the specified SongPart in this context.
+     * Get the intersection between the song part bar range and this SongContext bar range.
      * <p>
-     * Note that a SongPart may be partially in the context bar range.
      *
      * @param spt
      * @return Can be the EMPTY_RANGE if spt is not part of this context.
@@ -204,7 +203,8 @@ public class SongContext
     }
 
     /**
-     * Get the range of natural beats of spt belonging to this context.
+     * Get the intersection between the song part beat range and this SongContext beat range.
+     * <p>
      *
      * @param spt
      * @return
@@ -336,7 +336,7 @@ public class SongContext
     {
         if (pos == null)
         {
-            throw new NullPointerException("pos");   //NOI18N
+            throw new NullPointerException("pos");
         }
         long tick = -1;
         int bar = pos.getBar();
@@ -401,7 +401,7 @@ public class SongContext
         return "SongContext[song=" + song.getName() + ", midiMix=" + midiMix + ", range=" + barRange + "]";
     }
 
- 
+
     // ============================================================================================
     // Private methods
     // ============================================================================================   

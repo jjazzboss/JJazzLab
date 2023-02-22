@@ -52,7 +52,7 @@ public class GM1Instrument extends Instrument implements Serializable
         super(programChange, patchName);
         if (f == null)
         {
-            throw new NullPointerException("f");   //NOI18N
+            throw new NullPointerException("f");   
         }
         family = f;
     }
@@ -67,7 +67,7 @@ public class GM1Instrument extends Instrument implements Serializable
     {
         if (!(bank instanceof GM1Bank))
         {
-            throw new IllegalArgumentException("bank=" + bank);   //NOI18N
+            throw new IllegalArgumentException("bank=" + bank);   
         }
         super.setBank(bank);
     }
@@ -116,7 +116,7 @@ public class GM1Instrument extends Instrument implements Serializable
         {
             if (ins.getBank() == null)
             {
-                throw new IllegalStateException("ins=" + ins);   //NOI18N
+                throw new IllegalStateException("ins=" + ins);   
             }
             spProgChange = ins.getMidiAddress().getProgramChange();
         }
@@ -127,7 +127,7 @@ public class GM1Instrument extends Instrument implements Serializable
             GM1Bank gm1Bank = GM1Bank.getInstance();
             if (spProgChange < 0 || spProgChange > 127)
             {
-                LOGGER.log(Level.WARNING, "readResolve() Can''t find GM1 instrument with PC={0}. Replacing with default instrument.", spProgChange);   //NOI18N
+                LOGGER.log(Level.WARNING, "readResolve() Can''t find GM1 instrument with PC={0}. Replacing with default instrument.", spProgChange);   
                 ins = gm1Bank.getInstrument(0);
             } else
             {

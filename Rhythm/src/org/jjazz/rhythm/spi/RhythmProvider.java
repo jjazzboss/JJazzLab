@@ -41,7 +41,7 @@ public interface RhythmProvider
     /**
      * See getFileRhythms().
      */
-    public static final String PREFIX_IGNORED_SUBDIR = "_";   //NOI18N 
+    public static final String PREFIX_IGNORED_SUBDIR = "_";    
     /**
      * See getFileRhythms().
      */
@@ -149,7 +149,7 @@ public interface RhythmProvider
         {
             if (uniqueId == null || uniqueId.trim().isEmpty() || name == null || name.trim().isEmpty() || description == null || author == null || version == null)
             {
-                throw new IllegalArgumentException("uniqueId=" + uniqueId + " name=" + name + ", description=" + description + ", author=" + author + ", version=" + version);   //NOI18N
+                throw new IllegalArgumentException("uniqueId=" + uniqueId + " name=" + name + ", description=" + description + ", author=" + author + ", version=" + version);   
             }
             this.uniqueId = uniqueId;
             this.name = name.trim();

@@ -54,7 +54,7 @@ public class MidiAddress
     {
         if (bankMSB < -1 || bankMSB > 127 || bankLSB < -1 || bankLSB > 127 || progChange < 0 || progChange > 127)
         {
-            throw new IllegalArgumentException("bankMSB=" + bankMSB + " bankLSB=" + bankLSB + " progChange=" + progChange);   //NOI18N
+            throw new IllegalArgumentException("bankMSB=" + bankMSB + " bankLSB=" + bankLSB + " progChange=" + progChange);   
         }
         this.bankMSB = bankMSB;
         this.bankLSB = bankLSB;
@@ -121,7 +121,7 @@ public class MidiAddress
             case PC_ONLY:
                 return true;
             default:
-                throw new IllegalStateException("bsMethod=" + bsMethod);   //NOI18N
+                throw new IllegalStateException("bsMethod=" + bsMethod);   
         }
     }
 
@@ -156,7 +156,7 @@ public class MidiAddress
                     // Nothing
                     break;
                 default:
-                    throw new IllegalStateException("bsMethod=" + bsMethod);   //NOI18N
+                    throw new IllegalStateException("bsMethod=" + bsMethod);   
             }
         }
         hash = 23 * hash + this.progChange;
@@ -203,7 +203,7 @@ public class MidiAddress
             case PC_ONLY:
                 return true;
             default:
-                throw new IllegalArgumentException("bsMethod=" + this.bsMethod);   //NOI18N
+                throw new IllegalArgumentException("bsMethod=" + this.bsMethod);   
         }
     }
 }

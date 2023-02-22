@@ -51,7 +51,7 @@ public final class MidiOptionsPanelController extends OptionsPanelController
     @Override
     public void update()
     {
-        LOGGER.log(Level.FINE, "update()");   //NOI18N
+        LOGGER.log(Level.FINE, "update()");   
         getPanel().load();
         changed = false;
     }
@@ -59,7 +59,7 @@ public final class MidiOptionsPanelController extends OptionsPanelController
     @Override
     public void applyChanges()
     {
-        LOGGER.log(Level.FINE, "applyChanges()");   //NOI18N
+        LOGGER.log(Level.FINE, "applyChanges()");   
         SwingUtilities.invokeLater(new Runnable()
         {
             @Override
@@ -76,7 +76,7 @@ public final class MidiOptionsPanelController extends OptionsPanelController
     {
         // need not do anything special, if no changes have been persisted yet
         getPanel().cancel();
-        LOGGER.log(Level.FINE, "cancel()");   //NOI18N
+        LOGGER.log(Level.FINE, "cancel()");   
     }
 
     @Override

@@ -64,7 +64,7 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
     {
         if (mMix == null || !MidiConst.checkMidiChannel(channel) || mMix.getInstrumentMixFromChannel(channel) == null)
         {
-            throw new IllegalArgumentException("mMix=" + mMix + " channel=" + channel);   //NOI18N
+            throw new IllegalArgumentException("mMix=" + mMix + " channel=" + channel);   
         }
         this.song = song;
         channelId = channel;

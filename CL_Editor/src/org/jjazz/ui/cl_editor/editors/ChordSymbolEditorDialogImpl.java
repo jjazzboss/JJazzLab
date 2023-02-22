@@ -107,7 +107,7 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
     {
         if (cliCs == null)
         {
-            throw new NullPointerException("cliCs");   //NOI18N
+            throw new NullPointerException("cliCs");   
         }
         exitOk = false;
         model = cliCs;
@@ -215,7 +215,7 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
                     {
                         // There is a problem (can happen if e.g. .sng was manually updated to change the AltDataFilter values)
                         // Do not add the value
-                        LOGGER.warning("preset() cliCs=" + cliCs + " invalid AltFilter marker value=" + marker);   //NOI18N
+                        LOGGER.warning("preset() cliCs=" + cliCs + " invalid AltFilter marker value=" + marker);   
                     } else
                     {
                         list_markerValues.addSelectionInterval(index, index);
@@ -271,7 +271,7 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
             ecs = ExtChordSymbol.get(text, cri, getAltChordSymbol(), getAltFilter());
         } catch (ParseException ex)
         {
-            throw new IllegalStateException("text=" + text + " :" + ex.getMessage());   //NOI18N
+            throw new IllegalStateException("text=" + text + " :" + ex.getMessage());   
         }
         return ecs;
     }
@@ -1240,7 +1240,7 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
     protected JRootPane createRootPane()
     {
         JRootPane contentPane = new JRootPane();
-//      contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ENTER"), "actionOk");   //NOI18N
+//      contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ENTER"), "actionOk");   
 //      contentPane.getActionMap().put("actionOk", new AbstractAction("OK")
 //      {
 //
@@ -1251,7 +1251,7 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
 //         }
 //      });
 
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ESCAPE"), "actionCancel");   //NOI18N
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ESCAPE"), "actionCancel");   
         contentPane.getActionMap().put("actionCancel", new AbstractAction("Cancel")
         {
 

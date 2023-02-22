@@ -31,15 +31,15 @@ public interface MixConsoleSettings
 
 // public static String PROP_NAME_FONT = "NameFont";
 //    public static String PROP_RHYTHM_FONT = "RhythmFont";
-    public static final String PROP_CHANNEL_PANEL_BACKGROUND_COLOR = "PrefChannelPanelBackgroundColor";   //NOI18N 
-    public static final String PROP_BACKGROUND_COLOR = "PrefBackgroundColor";   //NOI18N 
+    public static final String PROP_CHANNEL_PANEL_BACKGROUND_COLOR = "PrefChannelPanelBackgroundColor";    
+    public static final String PROP_BACKGROUND_COLOR = "PrefBackgroundColor";    
 
     public static MixConsoleSettings getDefault()
     {
         MixConsoleSettings result = Lookup.getDefault().lookup(MixConsoleSettings.class);
         if (result == null)
         {
-            throw new NullPointerException("result=" + result);   //NOI18N
+            throw new NullPointerException("result=" + result);   
         }
         return result;
     }

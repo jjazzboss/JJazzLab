@@ -65,7 +65,7 @@ public class CompactRpViewSettings extends AbstractAction
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        LOGGER.log(Level.FINE, "actionPerformed()");   //NOI18N
+        LOGGER.log(Level.FINE, "actionPerformed()");   
         SS_EditorTopComponent ssTc = SS_EditorTopComponent.getActive();
         if (ssTc == null)
         {

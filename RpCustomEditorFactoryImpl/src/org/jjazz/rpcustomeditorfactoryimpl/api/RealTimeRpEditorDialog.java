@@ -82,7 +82,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
     private E saveRpValue;
     private GlobalKeyActionListener globalKeyListener;
     private PlaybackSession previousPlaybackSession;
-    private static final Logger LOGGER = Logger.getLogger(RealTimeRpEditorDialog.class.getSimpleName());  //NOI18N
+    private static final Logger LOGGER = Logger.getLogger(RealTimeRpEditorDialog.class.getSimpleName());  
 
     public RealTimeRpEditorDialog(RealTimeRpEditorComponent<E> comp)
     {
@@ -360,7 +360,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
     protected JRootPane createRootPane()
     {
         JRootPane contentPane = new JRootPane();
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ENTER"), "actionOk");   //NOI18N
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ENTER"), "actionOk");   
         contentPane.getActionMap().put("actionOk", new AbstractAction("OK")
         {
 
@@ -371,7 +371,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
             }
         });
 
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ESCAPE"), "actionCancel");   //NOI18N
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ESCAPE"), "actionCancel");   
         contentPane.getActionMap().put("actionCancel", new AbstractAction("Cancel")
         {
 

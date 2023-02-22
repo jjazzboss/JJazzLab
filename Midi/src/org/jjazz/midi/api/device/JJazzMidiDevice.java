@@ -57,7 +57,7 @@ public class JJazzMidiDevice implements MidiDevice
     @Override
     public void close()
     {
-        LOGGER.fine("close()");   //NOI18N
+        LOGGER.fine("close()");   
         isOpen = false;
         for (Transmitter t : getTransmitters())
         {
@@ -72,7 +72,7 @@ public class JJazzMidiDevice implements MidiDevice
     @Override
     public void open()
     {
-        LOGGER.fine("open()");   //NOI18N
+        LOGGER.fine("open()");   
         isOpen = true;
     }
 
@@ -106,7 +106,7 @@ public class JJazzMidiDevice implements MidiDevice
         JJazzTransmitter mt = new JJazzTransmitter();
         transmitters.add(mt);
         open();
-        LOGGER.log(Level.FINE, "getTransmitter() mt={0}", mt);   //NOI18N
+        LOGGER.log(Level.FINE, "getTransmitter() mt={0}", mt);   
         return mt;
     }
 
@@ -167,7 +167,7 @@ public class JJazzMidiDevice implements MidiDevice
         @Override
         public void close()
         {
-            LOGGER.fine("JJazzTransmitter.close()");   //NOI18N
+            LOGGER.fine("JJazzTransmitter.close()");   
             rcv = null;
             transmitters.remove(this);
         }

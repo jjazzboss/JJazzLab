@@ -104,7 +104,7 @@ public final class NewSong implements ActionListener
                 song = null; // Because non null if it's a MidiUnavailableException
                 String msg = ResUtil.getString(NewSong.class,"ERR_CantCreateSongFromTemplate", songTemplateFile.getAbsolutePath());
                 msg += ": " + ex.getLocalizedMessage();
-                LOGGER.warning("createSongFromTemplate() " + msg);   //NOI18N
+                LOGGER.warning("createSongFromTemplate() " + msg);   
                 NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
                 DialogDisplayer.getDefault().notify(nd);
             }

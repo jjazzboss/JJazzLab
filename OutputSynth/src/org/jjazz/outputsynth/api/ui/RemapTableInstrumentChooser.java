@@ -201,7 +201,7 @@ public class RemapTableInstrumentChooser extends JDialog implements ChangeListen
     protected JRootPane createRootPane()
     {
         JRootPane contentPane = new JRootPane();
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ENTER"), "actionOk");   //NOI18N
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ENTER"), "actionOk");   
         contentPane.getActionMap().put("actionOk", new AbstractAction("OK")
         {
 
@@ -212,7 +212,7 @@ public class RemapTableInstrumentChooser extends JDialog implements ChangeListen
             }
         });
 
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ESCAPE"), "actionCancel");   //NOI18N
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ESCAPE"), "actionCancel");   
         contentPane.getActionMap().put("actionCancel", new AbstractAction("Cancel")
         {
 
@@ -233,7 +233,7 @@ public class RemapTableInstrumentChooser extends JDialog implements ChangeListen
     {
         if (evt.getSource() == favoriteSynth)
         {
-            LOGGER.fine("stateChanged()");   //NOI18N
+            LOGGER.fine("stateChanged()");   
 
 //            // Favorite synth must be the first : make sure it is repaint to have the right size displayed
 //            list_MidiSynths.repaint(list_MidiSynths.getCellBounds(0, 0));
@@ -260,7 +260,7 @@ public class RemapTableInstrumentChooser extends JDialog implements ChangeListen
     @Override
     public void valueChanged(ListSelectionEvent e)
     {
-        LOGGER.log(Level.FINE, "valueChanged() e={0}", e);   //NOI18N
+        LOGGER.log(Level.FINE, "valueChanged() e={0}", e);   
         if (e.getValueIsAdjusting())
         {
             return;
@@ -616,7 +616,7 @@ public class RemapTableInstrumentChooser extends JDialog implements ChangeListen
         Instrument ins = tbl_Instruments.getSelectedInstrument();
         if (ins == null || !ins.getMidiAddress().isFullyDefined())
         {
-            LOGGER.fine("btn_HearActionPerformed() called but invalid ins=" + ins + " ins.getMidiAddress()=" + ins.getMidiAddress());   //NOI18N
+            LOGGER.fine("btn_HearActionPerformed() called but invalid ins=" + ins + " ins.getMidiAddress()=" + ins.getMidiAddress());   
             return;
         }
 
@@ -654,7 +654,7 @@ public class RemapTableInstrumentChooser extends JDialog implements ChangeListen
 
     private void tf_FilterActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_tf_FilterActionPerformed
     {//GEN-HEADEREND:event_tf_FilterActionPerformed
-        LOGGER.fine("tf_FilterActionPerformed()");   //NOI18N
+        LOGGER.fine("tf_FilterActionPerformed()");   
         String s = tf_Filter.getText().trim();
         if (s.isEmpty())
         {
@@ -666,7 +666,7 @@ public class RemapTableInstrumentChooser extends JDialog implements ChangeListen
             rf = RowFilter.regexFilter("(?i)" + s);
         } catch (java.util.regex.PatternSyntaxException e)
         {
-            LOGGER.warning("tf_FilterActionPerformed() invalid filter regex string e=" + e.getMessage());   //NOI18N
+            LOGGER.warning("tf_FilterActionPerformed() invalid filter regex string e=" + e.getMessage());   
             return;
         }
         TableRowSorter<? extends TableModel> sorter = (TableRowSorter<? extends TableModel>) tbl_Instruments.getRowSorter();

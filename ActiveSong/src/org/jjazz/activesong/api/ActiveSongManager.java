@@ -55,7 +55,7 @@ public class ActiveSongManager implements PropertyChangeListener, VetoableChange
     /**
      * oldValue=MidiMix, newValue=Song
      */
-    public static final String PROP_ACTIVE_SONG = "ActiveSongAndMidiMix";   //NOI18N 
+    public static final String PROP_ACTIVE_SONG = "ActiveSongAndMidiMix";    
 
     /**
      * When to send Midi Messages.
@@ -146,7 +146,7 @@ public class ActiveSongManager implements PropertyChangeListener, VetoableChange
     {
         if (sg != null && mm == null)
         {
-            throw new IllegalArgumentException("sg=" + sg + " mm=" + mm);   //NOI18N
+            throw new IllegalArgumentException("sg=" + sg + " mm=" + mm);   
         }
         if (activeSong == sg)
         {
@@ -195,7 +195,7 @@ public class ActiveSongManager implements PropertyChangeListener, VetoableChange
      */
     public void sendAllMidiMixMessages()
     {
-        LOGGER.fine("sendAllMidiMixMessages()");   //NOI18N
+        LOGGER.fine("sendAllMidiMixMessages()");   
         if (activeMidiMix != null)
         {
             for (Integer channel : activeMidiMix.getUsedChannels())
@@ -212,7 +212,7 @@ public class ActiveSongManager implements PropertyChangeListener, VetoableChange
      */
     public void sendAllMidiVolumeMessages()
     {
-        LOGGER.fine("sendAllMidiVolumeMessages()");   //NOI18N
+        LOGGER.fine("sendAllMidiVolumeMessages()");   
         if (activeMidiMix != null)
         {
             for (Integer channel : activeMidiMix.getUsedChannels())
@@ -267,7 +267,7 @@ public class ActiveSongManager implements PropertyChangeListener, VetoableChange
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
-        LOGGER.fine("propertyChange() -- evt=" + evt);   //NOI18N
+        LOGGER.fine("propertyChange() -- evt=" + evt);   
         if (evt.getSource() == activeMidiMix)
         {
             MidiMix mm = (MidiMix) evt.getSource();

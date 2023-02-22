@@ -65,7 +65,7 @@ public final class InsertBarDialog extends javax.swing.JDialog
     {
         if (cls == null || fromBar < 0 || nbBars < 0 || fromBar > cls.getSizeInBars())
         {
-            throw new IllegalArgumentException("cls=" + cls + " fromBar=" + fromBar + " nbBars=" + nbBars);   //NOI18N
+            throw new IllegalArgumentException("cls=" + cls + " fromBar=" + fromBar + " nbBars=" + nbBars);   
         }
         lblFromBar.setText(String.valueOf(fromBar + 1));
         spnNbBars.setValue(Math.min(nbBars, 200));
@@ -233,13 +233,13 @@ public final class InsertBarDialog extends javax.swing.JDialog
 //                LOGGER.severe("processKeyEvent() ke=" + ke);
 //            }
 //        };
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ENTER"), "actionOk");   //NOI18N
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ENTER"), "actionOk");   
         // HACK ! On Windows (I was not able to test this on Linux/Mac), when first showing the Dialog, if pressing ENTER directly,
         // contentPane's processKeyBinding() receives a "released ENTER" keystroke !!?? It's like the "pressed ENTER" was captured 
         // somewhere by the JSpinner, and we only receive the last part of the event.
         // If pressing ENTER again then it's always the correct "pressed ENTER", problem disappears.
         // So we add a specific entry for "released ENTER" as well...
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("released ENTER"), "actionOk");   //NOI18N
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("released ENTER"), "actionOk");   
         contentPane.getActionMap().put("actionOk", new AbstractAction("OK")
         {
 
@@ -250,7 +250,7 @@ public final class InsertBarDialog extends javax.swing.JDialog
             }
         });
 
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ESCAPE"), "actionCancel");   //NOI18N
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ESCAPE"), "actionCancel");   
         contentPane.getActionMap().put("actionCancel", new AbstractAction("Cancel")
         {
 

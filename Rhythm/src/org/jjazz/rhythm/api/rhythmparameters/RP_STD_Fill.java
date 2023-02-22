@@ -58,7 +58,7 @@ public class RP_STD_Fill extends RP_State
     {
         if (rhythm == null)
         {
-            throw new NullPointerException("r");   //NOI18N
+            throw new NullPointerException("r");   
         }
         return (RP_STD_Fill) rhythm.getRhythmParameters()
                 .stream()

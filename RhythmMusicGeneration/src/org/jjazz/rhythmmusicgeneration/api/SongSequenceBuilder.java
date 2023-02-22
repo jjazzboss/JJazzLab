@@ -109,7 +109,7 @@ public class SongSequenceBuilder
     {
         if (context == null)
         {
-            throw new NullPointerException("context");   //NOI18N
+            throw new NullPointerException("context");
         }
         this.songContext = context;
     }
@@ -164,8 +164,8 @@ public class SongSequenceBuilder
      * - Ask each used rhythm in the song to produce music (one Phrase per RhythmVoice) via its MusicGenerator implementation.<br>
      * - Add the user phrases if any<br>
      * - Apply on each channel possible instrument transpositions, velocity shift, mute (RP_SYS_Mute).<br>
-     * - Apply the RP_SYS_DrumsMix velocity changes. Note that it is expected that, if there is an AdaptedRhythm for a Rhythm
-     * which uses RP_SYS_DrumsMix, the AdaptedRhythm reuses the same RP_SYS_DrumsMix instance.<br>
+     * - Apply the RP_SYS_DrumsMix velocity changes. Note that it is expected that, if there is an AdaptedRhythm for a Rhythm which uses
+     * RP_SYS_DrumsMix, the AdaptedRhythm reuses the same RP_SYS_DrumsMix instance.<br>
      * - Apply the RP_SYS_CustomPhrase changes<br>
      * - Apply the RP_SYS_DrumsTransform changes<br>
      * - Apply drums rerouting if needed <br>
@@ -200,16 +200,16 @@ public class SongSequenceBuilder
     /**
      * Build the SongSequence from the specified RhythmVoice phrases for the defined context.
      * <p>
-     * - Create a track 0 with no notes but MidiEvents for song name, time signature changes, CTRL_CHG_JJAZZ_TEMPO_FACTOR
-     * controller messages based on the RP_SYS_TempoFactor value (if used by a rhythm). <br>
+     * - Create a track 0 with no notes but MidiEvents for song name, time signature changes, CTRL_CHG_JJAZZ_TEMPO_FACTOR controller
+     * messages based on the RP_SYS_TempoFactor value (if used by a rhythm). <br>
      * - Then create a track per RhythmVoice.
      * <p>
      * If songContext range start bar is &gt; 0, the Midi events are shifted to start at sequence tick 0.
      *
      * @param rvPhrases The RhythmVoice phrases such as produced by buildMapRvPhrase(boolean), must start at beat 0.
      * @param silent    If true do not show a progress dialog
-     * @return A Sequence containing accompaniment tracks for the songContext, including time signature change Midi meta events
-     *         and JJazz custom Midi controller messages (MidiConst.CTRL_CHG_JJAZZ_TEMPO_FACTOR) for tempo factor changes.
+     * @return A Sequence containing accompaniment tracks for the songContext, including time signature change Midi meta events and JJazz
+     *         custom Midi controller messages (MidiConst.CTRL_CHG_JJAZZ_TEMPO_FACTOR) for tempo factor changes.
      * @throws MusicGenerationException
      * @see #buildMapRvPhrase(boolean)
      */
@@ -662,7 +662,8 @@ public class SongSequenceBuilder
             List<? extends CLI_ChordSymbol> clis = cls.getItems(section, CLI_ChordSymbol.class);
             if (clis.isEmpty() || !clis.get(0).getPosition().equals(pos))
             {
-                throw new UserErrorGenerationException(ResUtil.getString(getClass(), "ERR_MissingChordSymbolAtSection", section.getData().getName(), (pos.getBar() + 1)));
+                throw new UserErrorGenerationException(ResUtil.getString(getClass(), "ERR_MissingChordSymbolAtSection",
+                        section.getData().getName(), (pos.getBar() + 1)));
             }
         }
     }
@@ -749,7 +750,7 @@ public class SongSequenceBuilder
                 Phrase p = rvPhrases.get(rv);
                 if (p == null)
                 {
-                    LOGGER.warning("muteNotes() Unexpected null phase. rv=" + rv + " rvPhrases=" + rvPhrases);   //NOI18N
+                    LOGGER.warning("muteNotes() Unexpected null phase. rv=" + rv + " rvPhrases=" + rvPhrases);
                     continue;
                 }
                 Phrases.silence(p, sptRange, true, false, 0.1f);
@@ -793,79 +794,50 @@ public class SongSequenceBuilder
      * Replace phrases by custom phrases depending on the RP_SYS_CustomPhrase value.
      *
      * @param context
-     * @param rvPhrases Keys can include RhythmVoiceDelegates
+     * @param rvPhrases Keys can include RhythmVoiceDelegates. Phrases contain notes within context.getBeatRange().
      */
     private void processCustomPhrases(SongContext context, Map<RhythmVoice, Phrase> rvPhrases)
     {
         for (SongPart spt : context.getSongParts())
         {
-            FloatRange sptBeatRange = context.getSptBeatRange(spt);
 
-
-            // Get the RhythmParameter
+            // Check if rhythm has support for a RP_SYS_CustomPhrase
             Rhythm r = spt.getRhythm();
             RP_SYS_CustomPhrase rpCustomPhrase = RP_SYS_CustomPhrase.getCustomPhraseRp(r);
             if (rpCustomPhrase == null)
             {
                 continue;
             }
+            
+            
+            FloatRange sptBeatRange = context.getSong().getSongStructure().getBeatRange(spt.getBarRange());
+            FloatRange sptBeatRangeInContext = context.getSptBeatRange(spt);            
 
-
+            
             // Get the RP value and process each customized phrase
             RP_SYS_CustomPhraseValue rpValue = spt.getRPValue(rpCustomPhrase);
             for (RhythmVoice rv : rpValue.getCustomizedRhythmVoices())
             {
 
+
+
+                // Prepare the phrase
+                Phrase pCustom = rpValue.getCustomizedPhrase(rv);   
+                var pWork = new Phrase(0);
+                pWork.add(pCustom);
+                pWork.shiftAllEvents(sptBeatRange.from);                // Custom phrase starts at beat 0, make it match spt's start
+                pWork = Phrases.getSlice(pWork, sptBeatRangeInContext, false, 1, 0.1f);    // Keep only the relevant slice
                 
-                // Remove a slice for the current songpart            
+                
+                // Add to the current phrase
                 Phrase p = rvPhrases.get(rv);
-                Phrases.silence(p, sptBeatRange, true, false, 0.1f);
-
-
-                // Get the custom phrase as a Phrase (because possibly extended), starts at beat 0
-                Phrase pCustom = new Phrase(0);         // Channel not important here
-                pCustom.add(rpValue.getCustomizedPhrase(rv));
-                float sizeInBeats = sptBeatRange.size();
-                TimeSignature ts = r.getTimeSignature();
-
-
-                // If custom phrase is at least one bar shorter than current song part, duplicate the custom phrase to fill the remaining space
-                if (sizeInBeats <= sptBeatRange.size() - ts.getNbNaturalBeats())
-                {
-                    float offset = sizeInBeats;
-                    List<NoteEvent> toBeAdded = new ArrayList<>();
-                    while (offset < sptBeatRange.size())
-                    {
-                        for (NoteEvent ne : pCustom)
-                        {
-                            float newPosInBeats = ne.getPositionInBeats() + offset;
-                            if (newPosInBeats >= sptBeatRange.size())
-                            {
-                                break;
-                            }
-                            toBeAdded.add(ne.getCopyPos(newPosInBeats));
-                        }
-                        offset += sizeInBeats;
-                    }
-
-                    toBeAdded.forEach(ne -> pCustom.add(ne));
-                }
-
-
-                // Make sure it's not too long 
-                Phrases.silenceAfter(pCustom, sptBeatRange.size());
-
-
-                // Shift to fit the current song part position
-                pCustom.shiftAllEvents(sptBeatRange.from);
-
-                // Update the current phrase
-                p.add(pCustom);
+                Phrases.silence(p, sptBeatRangeInContext, true, false, 0.1f);                
+                p.add(pWork);
             }
         }
     }
 
- 
+
     /**
      * Transform the drums phrase depending on the RP_SYS_DrumsTransform value.
      *
@@ -925,7 +897,7 @@ public class SongSequenceBuilder
      */
     private void processInstrumentsSettings(SongContext context, Map<RhythmVoice, Phrase> rvPhrases)
     {
-        LOGGER.fine("processInstrumentsSettings() -- ");   //NOI18N
+        LOGGER.fine("processInstrumentsSettings() -- ");
         MidiMix midiMix = context.getMidiMix();
         for (RhythmVoice rv : rvPhrases.keySet())
         {
@@ -933,19 +905,19 @@ public class SongSequenceBuilder
             InstrumentMix insMix = midiMix.getInstrumentMixFromKey(rv);
             if (insMix == null)
             {
-                LOGGER.warning("applyInstrumentsSettings() Unexpected null InstrumentMix for rv=" + rv + " midMix=" + midiMix);   //NOI18N
+                LOGGER.warning("applyInstrumentsSettings() Unexpected null InstrumentMix for rv=" + rv + " midMix=" + midiMix);
                 continue;
             }
             InstrumentSettings insSet = insMix.getSettings();
             if (insSet.getTransposition() != 0)
             {
                 p.processPitch(pitch -> pitch + insSet.getTransposition());
-                LOGGER.fine("processInstrumentsSettings()    Adjusting transposition=" + insSet.getTransposition() + " for rv=" + rv);   //NOI18N
+                LOGGER.fine("processInstrumentsSettings()    Adjusting transposition=" + insSet.getTransposition() + " for rv=" + rv);
             }
             if (insSet.getVelocityShift() != 0)
             {
                 p.processVelocity(v -> v + insSet.getVelocityShift());
-                LOGGER.fine("processInstrumentsSettings()    Adjusting velocity=" + insSet.getVelocityShift() + " for rv=" + rv);   //NOI18N
+                LOGGER.fine("processInstrumentsSettings()    Adjusting velocity=" + insSet.getVelocityShift() + " for rv=" + rv);
             }
         }
     }
@@ -958,7 +930,7 @@ public class SongSequenceBuilder
      */
     private void processDrumsRerouting(SongContext context, Map<RhythmVoice, Phrase> rvPhrases)
     {
-        LOGGER.fine("processDrumsRerouting() -- ");   //NOI18N
+        LOGGER.fine("processDrumsRerouting() -- ");
 
         MidiMix midiMix = context.getMidiMix();
         var reroutedChannels = midiMix.getDrumsReroutedChannels();
@@ -1047,8 +1019,8 @@ public class SongSequenceBuilder
                 {
                     // songContext.getPosition(0)
                     String msg = ResUtil.getString(getClass(), "ERR_InvalidNotePosition", ne.toString(), r.getName());
-                    LOGGER.log(Level.INFO, "checkRhythmPhrasesScope() " + msg);   //NOI18N
-                    LOGGER.fine("DEBUG!  rv=" + rv.getName() + " ne=" + ne + " p=" + p);   //NOI18N
+                    LOGGER.log(Level.INFO, "checkRhythmPhrasesScope() " + msg);
+                    LOGGER.fine("DEBUG!  rv=" + rv.getName() + " ne=" + ne + " p=" + p);
                     throw new MusicGenerationException(msg);
                 }
             }
@@ -1138,7 +1110,7 @@ public class SongSequenceBuilder
             // Make sure all tracks have the same EndOfTrack
             if (!MidiUtilities.setEndOfTrackPosition(t, lastTick))
             {
-                LOGGER.log(Level.WARNING, "checkSequence() problem adjusting EndOfTrack event to lastTick={0}", lastTick);   //NOI18N
+                LOGGER.log(Level.WARNING, "checkSequence() problem adjusting EndOfTrack event to lastTick={0}", lastTick);
             }
         }
     }

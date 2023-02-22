@@ -68,11 +68,11 @@ public class GMRemapTable implements Serializable
     /**
      * oldValue=Family, newValue=Instrument
      */
-    public static final String PROP_FAMILY = "Family";   //NOI18N 
+    public static final String PROP_FAMILY = "Family";    
     /**
      * oldValue=GM1Instrument or the special DRUMS/PERCUSSION static instances, newValue=Instrument
      */
-    public static final String PROP_INSTRUMENT = "Instrument";   //NOI18N 
+    public static final String PROP_INSTRUMENT = "Instrument";    
     private HashMap<Instrument, Instrument> mapInstruments = new HashMap<>();
     private HashMap<Family, Instrument> mapFamilyInstruments = new HashMap<>();
     private final MidiSynth midiSynth;
@@ -155,7 +155,7 @@ public class GMRemapTable implements Serializable
     {
         if (remappedIns == null || remappedIns != DRUMS_INSTRUMENT && remappedIns != PERCUSSION_INSTRUMENT && !(remappedIns instanceof GM1Instrument))
         {
-            throw new IllegalArgumentException("remappedIns");   //NOI18N
+            throw new IllegalArgumentException("remappedIns");   
         }
     }
 
@@ -218,7 +218,7 @@ public class GMRemapTable implements Serializable
     {
         if (family == null)
         {
-            throw new NullPointerException("family");   //NOI18N
+            throw new NullPointerException("family");   
         }
         return mapFamilyInstruments.get(family);
     }

@@ -53,7 +53,7 @@ public class BeatBasedLayoutManager implements LayoutManager
     {
         if (!(br instanceof BeatBasedBarRenderer))
         {
-            throw new IllegalArgumentException("br=" + br);   //NOI18N
+            throw new IllegalArgumentException("br=" + br);   
         }
         TimeSignature ts = ((BeatBasedBarRenderer) br).getTimeSignature();
         Rectangle r = br.getDrawingArea();
@@ -95,7 +95,7 @@ public class BeatBasedLayoutManager implements LayoutManager
     {
         if (!(parent instanceof BarRenderer) || !(parent instanceof BeatBasedBarRenderer))
         {
-            throw new IllegalArgumentException("parent=" + parent);   //NOI18N
+            throw new IllegalArgumentException("parent=" + parent);   
         }
         BarRenderer br = (BarRenderer) parent;
         int barWidth = br.getDrawingArea().width;

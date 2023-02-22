@@ -31,9 +31,8 @@ import java.util.List;
  * RpCustomEditorProvider, RpViewerRendererFactory, etc.
  * <p>
  *
- * @param <E> The type of value of this RhythmParameter. Should be an immutable class. E.toString() should return a short (max ~30
- *            characters) user-readable string.
- *
+ * @param <E> The type of value of this RhythmParameter. E.toString() should return a short (max ~30 characters) user-readable string.
+ *            Prefer an immutable class, but if value class is mutable, it must implement the MutableRpValue interface.
  */
 public interface RhythmParameter<E>
 {
@@ -119,8 +118,8 @@ public interface RhythmParameter<E>
     /**
      * Clone the specified value.
      * <p>
-     * The default implementation just return value, which is fine is E is an immutable class. If E is mutable, this method must
-     * be overridden.
+     * The default implementation just return value, which is fine is E is an immutable class. If E is mutable, this method must be
+     * overridden.
      *
      * @param value
      * @return A copy of the specified value.

@@ -48,7 +48,7 @@ public final class RP_STD_Intensity extends RP_Integer
     {
         if (rhythm == null)
         {
-            throw new NullPointerException("r");   //NOI18N
+            throw new NullPointerException("r");   
         }
         return (RP_STD_Intensity) rhythm.getRhythmParameters()
                 .stream()

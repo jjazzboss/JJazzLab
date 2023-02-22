@@ -118,7 +118,7 @@ public class TestLookupMutableObject
 
         } catch (ParseException ex)
         {
-            throw new IllegalStateException("ParseException ex=" + ex);   //NOI18N
+            throw new IllegalStateException("ParseException ex=" + ex);   
         } catch (UnsupportedEditException ex)
         {
             Exceptions.printStackTrace(ex);
@@ -151,7 +151,7 @@ public class TestLookupMutableObject
         ic.remove(cliCS1);
         ic.remove(cliCS2);
         System.out.println("AFTER CHANGE myLookup=" + myLookup);
-        assertTrue(myLookup.lookupAll(CLI_ChordSymbol.class).size() == 0);   //NOI18N
+        assertTrue(myLookup.lookupAll(CLI_ChordSymbol.class).size() == 0);   
     }
 
     @Test
@@ -173,7 +173,7 @@ public class TestLookupMutableObject
         System.out.println("AFTER 2nd CHANGE  myLookup=" + myLookup);
         ic.remove(m0);
         System.out.println("AFTER 2nd REMOVE  myLookup=" + myLookup);
-        assertTrue(myLookup.lookupAll(MutableObject.class).size() == 2);   //NOI18N
+        assertTrue(myLookup.lookupAll(MutableObject.class).size() == 2);   
     }
 }
 

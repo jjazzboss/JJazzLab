@@ -24,6 +24,7 @@ package org.jjazz.rhythm.api;
 
 import com.google.common.base.Preconditions;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -32,7 +33,9 @@ import java.util.StringJoiner;
 import java.util.logging.Logger;
 
 /**
- * A RhythmParemeter composed of a set of strings.
+ * A RhythmParameter composed of a set of strings.
+ * <p>
+ * All Set instances returned are immutable.
  */
 public class RP_StringSet implements RhythmParameter<Set<String>>, RpEnumerable<Set<String>>
 {
@@ -58,15 +61,14 @@ public class RP_StringSet implements RhythmParameter<Set<String>>, RpEnumerable<
      * @param description
      * @param isPrimary
      * @param defaultValue   All members of the Set must be one of the possibleValues
-     * @param possibleValues String[] The possible values which can be used in a Set (max MAX_SET_SIZE). By convention, min value
-     *                       is set to the 1st possible value, max value to the last one. The empty string must not be one of the
-     *                       possible values.
+     * @param possibleValues String[] The possible values which can be used in a Set (max MAX_SET_SIZE). By convention, min value is set to
+     *                       the 1st possible value, max value to the last one. The empty string must not be one of the possible values.
      */
     public RP_StringSet(String id, String name, String description, boolean isPrimary, Set<String> defaultValue, String... possibleValues)
     {
         if (id == null || name == null || defaultValue == null || possibleValues == null || possibleValues.length == 0 || possibleValues.length > MAX_SET_SIZE)
         {
-            throw new IllegalArgumentException( //NOI18N
+            throw new IllegalArgumentException( 
                     "id=" + id + " name=" + name + " defaultVal=" + defaultValue + " possibleValues=" + Arrays.asList(possibleValues));
         }
         this.id = id;
@@ -75,15 +77,15 @@ public class RP_StringSet implements RhythmParameter<Set<String>>, RpEnumerable<
         this.possibleValues = Arrays.asList(possibleValues);
         if (this.possibleValues.indexOf("") != -1)
         {
-            throw new IllegalArgumentException("n=" + name + " defaultVal=" + defaultValue + " possibleValues=" + this.possibleValues);   //NOI18N
+            throw new IllegalArgumentException("n=" + name + " defaultVal=" + defaultValue + " possibleValues=" + this.possibleValues);   
         }
-        this.defaultValue = defaultValue;
+        this.defaultValue = Collections.unmodifiableSet(defaultValue);
         if (!isValidValue(defaultValue))
         {
-            throw new IllegalArgumentException("n=" + name + " defaultVal=" + defaultValue + " possibleValues=" + this.possibleValues);   //NOI18N
+            throw new IllegalArgumentException("n=" + name + " defaultVal=" + defaultValue + " possibleValues=" + this.possibleValues);   
         }
-        this.minValue = new HashSet<>();
-        this.maxValue = new HashSet<>(this.possibleValues);
+        this.minValue = Collections.unmodifiableSet(new HashSet<>());
+        this.maxValue = Collections.unmodifiableSet(new HashSet<>(this.possibleValues));
         this.primary = isPrimary;
 
     }
@@ -147,7 +149,6 @@ public class RP_StringSet implements RhythmParameter<Set<String>>, RpEnumerable<
         return Objects.equals(this.possibleValues, other.possibleValues);
     }
 
-        
 
     @Override
     public final String getId()
@@ -198,7 +199,7 @@ public class RP_StringSet implements RhythmParameter<Set<String>>, RpEnumerable<
     {
         if (p < 0 || p > 1)
         {
-            throw new IllegalArgumentException("p=" + p);   //NOI18N
+            throw new IllegalArgumentException("p=" + p);   
         }
         HashSet<String> set = new HashSet<>();
         long pBin = Math.round(10000 * p);
@@ -218,7 +219,7 @@ public class RP_StringSet implements RhythmParameter<Set<String>>, RpEnumerable<
         }
 //      LOGGER.severe("calculateValue() possibleValues="+possibleValues);
 //      LOGGER.severe("calculateValue() p="+(Math.round(10000 * p))+" set="+set);
-        return set;
+        return Collections.unmodifiableSet(set);
     }
 
     /**
@@ -234,18 +235,18 @@ public class RP_StringSet implements RhythmParameter<Set<String>>, RpEnumerable<
     {
         if (!isValidValue(value))
         {
-            throw new IllegalArgumentException("value=" + value + " possibleValues=" + possibleValues);   //NOI18N
+            throw new IllegalArgumentException("value=" + value + " possibleValues=" + possibleValues);   
         }
         double p = 0;
         for (String s : value)
         {
             int index = possibleValues.indexOf(s);
-            assert index != -1 : "s=" + s;   //NOI18N
+            assert index != -1 : "s=" + s;   
             p += Math.pow(2, index);
         }
         if (p > 10000)
         {
-            throw new IllegalStateException("p=" + p + " value=" + value);   //NOI18N
+            throw new IllegalStateException("p=" + p + " value=" + value);   
         }
 //      LOGGER.severe("calculatePercentage() value="+value+" p="+p);
         return p / 10000;
@@ -286,7 +287,7 @@ public class RP_StringSet implements RhythmParameter<Set<String>>, RpEnumerable<
     {
         if (!isValidValue(value))
         {
-            throw new IllegalArgumentException("value=" + value + " this=" + this);   //NOI18N
+            throw new IllegalArgumentException("value=" + value + " this=" + this);   
         }
         double maxPercentage = (Math.pow(2, possibleValues.size()) - 1) / 10000d;
         double p = calculatePercentage(value);
@@ -304,7 +305,7 @@ public class RP_StringSet implements RhythmParameter<Set<String>>, RpEnumerable<
     {
         if (!isValidValue(value))
         {
-            throw new IllegalArgumentException("value=" + value + " this=" + this);   //NOI18N
+            throw new IllegalArgumentException("value=" + value + " this=" + this);   
         }
         double maxPercentage = (Math.pow(2, possibleValues.size()) - 1) / 10000d;
         double p = this.calculatePercentage(value);
@@ -369,7 +370,7 @@ public class RP_StringSet implements RhythmParameter<Set<String>>, RpEnumerable<
                 res.add(str);
             }
         }
-        return res;
+        return Collections.unmodifiableSet(res);
     }
 
     @Override
@@ -407,7 +408,7 @@ public class RP_StringSet implements RhythmParameter<Set<String>>, RpEnumerable<
             }
         }
 
-        return res;
+        return Collections.unmodifiableSet(res);
     }
 
     @Override

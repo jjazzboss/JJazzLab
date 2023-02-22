@@ -71,7 +71,7 @@ public class StartupManager
             
             for (var task : res)
             {
-                LOGGER.info("Launcher.run() Starting task: " + task.getName() + " priority=" + task.getPriority());   //NOI18N
+                LOGGER.info("Launcher.run() Starting task: " + task.getName() + " priority=" + task.getPriority());   
                 task.run();
             }
         }

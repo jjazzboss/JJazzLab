@@ -104,7 +104,7 @@ public final class OpenSong implements ActionListener
         } catch (SongCreationException ex)
         {
             String msg = ResUtil.getString(OpenSong.class, "ERR_CantOpenSongFile", songFile.getAbsolutePath(), ex.getLocalizedMessage());
-            LOGGER.warning("openSong() " + msg);   //NOI18N
+            LOGGER.warning("openSong() " + msg);   
             NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(nd);
             b = false;

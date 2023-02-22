@@ -73,7 +73,7 @@ public class FixMidiMixAction implements VetoableChangeListener, Runnable
     @Override
     public void vetoableChange(PropertyChangeEvent evt) throws PropertyVetoException
     {
-        LOGGER.log(Level.FINE, "vetoableChange() -- evt={0}", evt);   //NOI18N
+        LOGGER.log(Level.FINE, "vetoableChange() -- evt={0}", evt);   
 
         if (evt.getSource() != PlaybackSettings.getInstance()
                 || !evt.getPropertyName().equals(PlaybackSettings.PROP_VETO_PRE_PLAYBACK)
@@ -119,7 +119,7 @@ public class FixMidiMixAction implements VetoableChangeListener, Runnable
                             // Do nothing, leave toBeFixedChannels empty
                             break;
                         default:
-                            throw new IllegalStateException("choice=" + choice);   //NOI18N
+                            throw new IllegalStateException("choice=" + choice);   
                     }
                     if (dialog.isRememberChoiceSelected())
                     {
@@ -133,7 +133,7 @@ public class FixMidiMixAction implements VetoableChangeListener, Runnable
                     // Do nothing, leave toBeFixedChannels empty
                     break;
                 default:
-                    throw new IllegalStateException("savedChoice=" + savedChoice);   //NOI18N
+                    throw new IllegalStateException("savedChoice=" + savedChoice);   
             }
         }
     }

@@ -77,7 +77,7 @@ final public class SS_SelectionUtilities
     {
         if (lookup == null)
         {
-            throw new IllegalArgumentException("lookup=" + lookup);   //NOI18N
+            throw new IllegalArgumentException("lookup=" + lookup);   
         }
         @SuppressWarnings("unchecked")
         ArrayList<SongPart> spts = (ArrayList<SongPart>) new ArrayList<>(lookup.lookupAll(SongPart.class));
@@ -85,7 +85,7 @@ final public class SS_SelectionUtilities
         ArrayList<SongPartParameter> sptps = (ArrayList<SongPartParameter>) new ArrayList<>(lookup.lookupAll(SongPartParameter.class));
         if (!spts.isEmpty() && !sptps.isEmpty())
         {
-            throw new IllegalStateException("lookup=" + lookup);   //NOI18N
+            throw new IllegalStateException("lookup=" + lookup);   
         }
         if (!spts.isEmpty())
         {
@@ -100,13 +100,13 @@ final public class SS_SelectionUtilities
     {
         if (spts == null)
         {
-            throw new IllegalArgumentException("items=" + spts);   //NOI18N
+            throw new IllegalArgumentException("items=" + spts);   
         }
         songParts.clear();
         songParts.addAll(spts);
         if (!songParts.isEmpty() && !songPartParameters.isEmpty())
         {
-            throw new IllegalStateException("songParts=" + spts + " rhythmParameters=" + songPartParameters);   //NOI18N
+            throw new IllegalStateException("songParts=" + spts + " rhythmParameters=" + songPartParameters);   
         }
         isRhythmParameterCompatible = false;
         isSameRhythm = true;
@@ -140,20 +140,20 @@ final public class SS_SelectionUtilities
                 return spt1.getStartBarIndex() - spt2.getStartBarIndex();
             }
         });
-        LOGGER.log(Level.FINE, "refreshSongParts() minStartSptIndex=" + minStartSptIndex + " maxStartSptIndex=" + maxStartSptIndex + " isOneSection=" + isContiguousSptSelection);   //NOI18N
+        LOGGER.log(Level.FINE, "refreshSongParts() minStartSptIndex=" + minStartSptIndex + " maxStartSptIndex=" + maxStartSptIndex + " isOneSection=" + isContiguousSptSelection);   
     }
 
     private void refreshRhythmParameters(List<SongPartParameter> sptps)
     {
         if (sptps == null)
         {
-            throw new IllegalArgumentException("srps=" + sptps);   //NOI18N
+            throw new IllegalArgumentException("srps=" + sptps);   
         }
         songPartParameters.clear();
         songPartParameters.addAll(sptps);
         if (!songParts.isEmpty() && !songPartParameters.isEmpty())
         {
-            throw new IllegalStateException("songParts=" + songParts + " SongPartParameters=" + songPartParameters);   //NOI18N
+            throw new IllegalStateException("songParts=" + songParts + " SongPartParameters=" + songPartParameters);   
         }
         isRhythmParameterCompatible = true;
         isSameRhythm = true;

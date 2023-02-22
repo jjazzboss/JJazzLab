@@ -66,11 +66,11 @@ public final class TestAllRhythms implements ActionListener
     @Override
     public void actionPerformed(ActionEvent ae)
     {
-        LOGGER.severe("TestAllRhythms() ------------");   //NOI18N
+        LOGGER.severe("TestAllRhythms() ------------");   
         Song song = Utilities.actionsGlobalContext().lookup(Song.class);
         if (song == null)
         {
-            LOGGER.severe("No current song");   //NOI18N
+            LOGGER.severe("No current song");   
             return;
         }
 
@@ -98,7 +98,7 @@ public final class TestAllRhythms implements ActionListener
             TimeSignature ts0 = sgs.getSongPart(0).getRhythm().getTimeSignature();
             for (RhythmInfo ri : rdb.getRhythms(ts0))
             {
-                LOGGER.log(Level.SEVERE, "-- ri={0} file={1}", new Object[]   //NOI18N
+                LOGGER.log(Level.SEVERE, "-- ri={0} file={1}", new Object[]   
                 {
                     ri.getName(), ri.getFile().getAbsolutePath()
                 });
@@ -108,7 +108,7 @@ public final class TestAllRhythms implements ActionListener
                     r = rdb.getRhythmInstance(ri);
                 } catch (UnavailableRhythmException ex)
                 {
-                    LOGGER.severe("Can't get rhythm instance, skipped");   //NOI18N
+                    LOGGER.severe("Can't get rhythm instance, skipped");   
                     continue;
                 }
                 SongPart spt = sgs.getSongPart(0);
@@ -132,7 +132,7 @@ public final class TestAllRhythms implements ActionListener
                     }
                 } catch (UnsupportedEditException ex)
                 {
-                    LOGGER.log(Level.SEVERE, "Problem changing rhythm. ex={0}", ex.getMessage());   //NOI18N
+                    LOGGER.log(Level.SEVERE, "Problem changing rhythm. ex={0}", ex.getMessage());   
                     continue;
                 }
             }

@@ -111,7 +111,7 @@ final class MidiInPanel extends javax.swing.JPanel implements ListSelectionListe
         // someCheckBox.setSelected(NbPreferences.forModule(MidiInPanel.class).getBoolean("someFlag", false));
         // or:
         // someTextField.setText(SomeSystemOption.getDefault().getSomeStringProperty());
-        LOGGER.log(Level.FINE, "load() --");   //NOI18N
+        LOGGER.log(Level.FINE, "load() --");   
         // TODO read settings and initialize GUI
         // Example:        
         // someCheckBox.setSelected(Preferences.userNodeForPackage(MidiPanel.class).getBoolean("someFlag", false));
@@ -220,7 +220,7 @@ final class MidiInPanel extends javax.swing.JPanel implements ListSelectionListe
         {
             String msg = ResUtil.getString(getClass(), "ERR_DeviceProblem", mdIn.getDeviceInfo().getName());
             msg += "\n\n" + ex.getLocalizedMessage();
-            LOGGER.log(Level.WARNING, msg);   //NOI18N
+            LOGGER.log(Level.WARNING, msg);   
             NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(nd);
             return false;

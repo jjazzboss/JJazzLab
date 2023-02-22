@@ -40,7 +40,7 @@ public interface IR_ChordSymbolSettings
         IR_ChordSymbolSettings result = Lookup.getDefault().lookup(IR_ChordSymbolSettings.class);
         if (result == null)
         {
-            throw new NullPointerException("result=" + result);   //NOI18N
+            throw new NullPointerException("result=" + result);   
         }
         return result;
     }

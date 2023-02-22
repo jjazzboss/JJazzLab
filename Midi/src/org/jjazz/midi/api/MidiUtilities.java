@@ -327,7 +327,7 @@ public class MidiUtilities
             sm.setMessage(data, 6);
         } catch (InvalidMidiDataException ex)
         {
-            LOGGER.log(Level.WARNING, ex.getMessage(), ex);   //NOI18N
+            LOGGER.log(Level.WARNING, ex.getMessage(), ex);   
         }
         return sm;
     }
@@ -344,7 +344,7 @@ public class MidiUtilities
             sm.setMessage(data, 6);
         } catch (InvalidMidiDataException ex)
         {
-            LOGGER.log(Level.WARNING, ex.getMessage(), ex);   //NOI18N
+            LOGGER.log(Level.WARNING, ex.getMessage(), ex);   
         }
         return sm;
     }
@@ -361,7 +361,7 @@ public class MidiUtilities
             sm.setMessage(data, 9);
         } catch (InvalidMidiDataException ex)
         {
-            LOGGER.log(Level.WARNING, ex.getMessage(), ex);   //NOI18N
+            LOGGER.log(Level.WARNING, ex.getMessage(), ex);   
         }
         return sm;
     }
@@ -378,7 +378,7 @@ public class MidiUtilities
             sm.setMessage(data, 11);
         } catch (InvalidMidiDataException ex)
         {
-            LOGGER.log(Level.WARNING, ex.getMessage(), ex);   //NOI18N
+            LOGGER.log(Level.WARNING, ex.getMessage(), ex);   
         }
         return sm;
     }
@@ -392,14 +392,14 @@ public class MidiUtilities
      */
     static public void sendSysExMessage(SysexMessage sm)
     {
-        LOGGER.fine("sendSysExMessage() sm=" + sm);   //NOI18N
+        LOGGER.fine("sendSysExMessage() sm=" + sm);   
         JJazzMidiSystem.getInstance().sendMidiMessagesOnJJazzMidiOut(sm);
         try
         {
             Thread.sleep(50);  // Give time for the hardware to execute
         } catch (InterruptedException ex)
         {
-            LOGGER.log(Level.WARNING, ex.getMessage(), ex);   //NOI18N
+            LOGGER.log(Level.WARNING, ex.getMessage(), ex);   
         }
     }
 
@@ -416,7 +416,7 @@ public class MidiUtilities
     {
         if (!MidiConst.checkMidiChannel(channel))
         {
-            throw new IllegalArgumentException("command=" + command + " channel=" + channel + " d1=" + d1 + " d2=" + d2);   //NOI18N
+            throw new IllegalArgumentException("command=" + command + " channel=" + channel + " d1=" + d1 + " d2=" + d2);   
         }
         ShortMessage sm = new ShortMessage();
         try
@@ -424,7 +424,7 @@ public class MidiUtilities
             sm.setMessage(command, channel, d1, d2);
         } catch (InvalidMidiDataException ex)
         {
-            LOGGER.log(Level.SEVERE, "Invalid Midi message: command=" + command + " channel=" + channel + " d1=" + d1 + " d2=" + d2, ex);   //NOI18N
+            LOGGER.log(Level.SEVERE, "Invalid Midi message: command=" + command + " channel=" + channel + " d1=" + d1 + " d2=" + d2, ex);   
         }
         return sm;
     }
@@ -463,7 +463,7 @@ public class MidiUtilities
     {
         if (ts == null)
         {
-            throw new IllegalArgumentException("ts=" + ts);   //NOI18N
+            throw new IllegalArgumentException("ts=" + ts);   
         }
         byte powerOf2;
         switch (ts.getLower())
@@ -478,7 +478,7 @@ public class MidiUtilities
                 powerOf2 = 3;
                 break;
             default:
-                throw new IllegalArgumentException("ts=" + ts);   //NOI18N
+                throw new IllegalArgumentException("ts=" + ts);   
         }
         byte[] data = new byte[]
         {
@@ -490,7 +490,7 @@ public class MidiUtilities
             mm = new MetaMessage(88, data, 4);
         } catch (InvalidMidiDataException ex)
         {
-            LOGGER.log(Level.SEVERE, ex.getMessage(), ex);   //NOI18N
+            LOGGER.log(Level.SEVERE, ex.getMessage(), ex);   
         }
         return mm;
     }
@@ -499,7 +499,7 @@ public class MidiUtilities
     {
         if (!MidiConst.checkMidiChannel(channel) || bpm < 10 || bpm > 400)
         {
-            throw new IllegalArgumentException("channel=" + channel + " tempo=" + bpm);   //NOI18N
+            throw new IllegalArgumentException("channel=" + channel + " tempo=" + bpm);   
         }
         long mspq = Math.round(60000000f / bpm);        // microseconds per quarter note
         byte[] data = new byte[]
@@ -512,7 +512,7 @@ public class MidiUtilities
             mm = new MetaMessage(81, data, 3);
         } catch (InvalidMidiDataException ex)
         {
-            LOGGER.log(Level.SEVERE, ex.getMessage(), ex);   //NOI18N
+            LOGGER.log(Level.SEVERE, ex.getMessage(), ex);   
         }
         return mm;
     }
@@ -533,7 +533,7 @@ public class MidiUtilities
         int pc = ins.getMidiAddress().getProgramChange();
         if (bsm == null || bankMSB > 127 || bankLSB > 127)
         {
-            throw new IllegalArgumentException( //NOI18N
+            throw new IllegalArgumentException( 
                     "bsm=" + bsm + " bankMSB=" + bankMSB + " bankLSB=" + bankLSB + " channel=" + channel + " ins=" + ins + " ins.bank=" + ins.
                             getBank());
         }
@@ -542,7 +542,7 @@ public class MidiUtilities
             case MSB_LSB:
                 if (bankMSB < 0 || bankLSB < 0)
                 {
-                    throw new IllegalArgumentException( //NOI18N
+                    throw new IllegalArgumentException( 
                             "bsm=" + bsm + " bankMSB=" + bankMSB + " bankLSB=" + bankLSB + " channel=" + channel + " ins=" + ins + " ins.bank=" + ins.
                                     getBank());
                 }
@@ -557,7 +557,7 @@ public class MidiUtilities
             case MSB_ONLY:
                 if (bankMSB < 0)
                 {
-                    throw new IllegalArgumentException( //NOI18N
+                    throw new IllegalArgumentException( 
                             "bsm=" + bsm + " bankMSB=" + bankMSB + " bankLSB=" + bankLSB + " channel=" + channel + " ins=" + ins + " ins.bank=" + ins.
                                     getBank());
                 }
@@ -570,7 +570,7 @@ public class MidiUtilities
             case LSB_ONLY:
                 if (bankLSB < 0)
                 {
-                    throw new IllegalArgumentException( //NOI18N
+                    throw new IllegalArgumentException( 
                             "bsm=" + bsm + " bankMSB=" + bankMSB + " bankLSB=" + bankLSB + " channel=" + channel + " ins=" + ins + " ins.bank=" + ins.
                                     getBank());
                 }
@@ -586,7 +586,7 @@ public class MidiUtilities
                 sms[0] = buildMessage(ShortMessage.PROGRAM_CHANGE, channel, pc, 0);
                 break;
         }
-        LOGGER.log(Level.FINE, "getPatchMessages() chan={0} ins={1} bsm={2}", new Object[]   //NOI18N
+        LOGGER.log(Level.FINE, "getPatchMessages() chan={0} ins={1} bsm={2}", new Object[]   
         {
             channel, ins.getPatchName(), bsm
         });
@@ -601,7 +601,7 @@ public class MidiUtilities
      */
     static public ShortMessage[] getPitchBendMessages(int channel, int pitchDelta)
     {
-        LOGGER.warning("getPitchBendMessages() NOT VALIDED YET !");   //NOI18N
+        LOGGER.warning("getPitchBendMessages() NOT VALIDED YET !");   
         final int PITCH_UP_MAX_D2 = 0x40;
         final int PITCH_UP_MAX_D1 = 0;
         final int PITCH_CENTER_D2 = 0x20;
@@ -664,7 +664,7 @@ public class MidiUtilities
     {
         if (tempoFactor < .5 || tempoFactor > 2)
         {
-            throw new IllegalArgumentException("channel=" + channel + " tempoFactor=" + tempoFactor);   //NOI18N
+            throw new IllegalArgumentException("channel=" + channel + " tempoFactor=" + tempoFactor);   
         }
         int tempoFactorByte = Math.round((100 * tempoFactor - 50) * 127f / 150);
         return buildMessage(ShortMessage.CONTROL_CHANGE, channel, MidiConst.CTRL_CHG_JJAZZ_TEMPO_FACTOR, tempoFactorByte);
@@ -680,7 +680,7 @@ public class MidiUtilities
     {
         if (tempoFactorMsg.getData1() != MidiConst.CTRL_CHG_JJAZZ_TEMPO_FACTOR)
         {
-            throw new IllegalArgumentException("tempoFactorMsg=" + tempoFactorMsg);   //NOI18N
+            throw new IllegalArgumentException("tempoFactorMsg=" + tempoFactorMsg);   
         }
         float res = (50 + tempoFactorMsg.getData2() * 150f / 127f) / 100;
         return res;
@@ -753,7 +753,7 @@ public class MidiUtilities
     {
         if (txt == null || txt.trim().isEmpty())
         {
-            throw new IllegalArgumentException("txt=" + txt);   //NOI18N
+            throw new IllegalArgumentException("txt=" + txt);   
         }
         MetaMessage mm = null;
         try
@@ -770,7 +770,7 @@ public class MidiUtilities
     {
         if (txt == null || txt.isEmpty())
         {
-            throw new IllegalArgumentException("txt=" + txt);   //NOI18N
+            throw new IllegalArgumentException("txt=" + txt);   
         }
         MetaMessage mm = null;
         try
@@ -787,7 +787,7 @@ public class MidiUtilities
     {
         if (txt == null || txt.isEmpty())
         {
-            throw new IllegalArgumentException("txt=" + txt);   //NOI18N
+            throw new IllegalArgumentException("txt=" + txt);   
         }
         MetaMessage mm = null;
         try
@@ -804,7 +804,7 @@ public class MidiUtilities
     {
         if (txt == null || txt.isEmpty())
         {
-            throw new IllegalArgumentException("txt=" + txt);   //NOI18N
+            throw new IllegalArgumentException("txt=" + txt);   
         }
         MetaMessage mm = null;
         try
@@ -844,7 +844,7 @@ public class MidiUtilities
         if (!res && notifyUser)
         {
             String msg = ResUtil.getString(MidiUtilities.class, "ERR_MidiFileTypeNotSupported", fileType);
-            LOGGER.warning(msg);   //NOI18N
+            LOGGER.warning(msg);   
             NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(nd);
         }
@@ -886,7 +886,7 @@ public class MidiUtilities
                             sm.setMessage(sm.getCommand(), destChannel, sm.getData1(), sm.getData2());
                         } catch (InvalidMidiDataException ex)
                         {
-                            LOGGER.warning("rerouteShortMessages() ex=" + ex.getMessage());   //NOI18N
+                            LOGGER.warning("rerouteShortMessages() ex=" + ex.getMessage());   
                         }
                     }
                 }
@@ -908,7 +908,7 @@ public class MidiUtilities
     {
         if (srcTick < 0 || srcPPQresolution <= 0)
         {
-            throw new IllegalArgumentException("srcTick=" + srcTick + " srcPPQresolution=" + srcPPQresolution);   //NOI18N
+            throw new IllegalArgumentException("srcTick=" + srcTick + " srcPPQresolution=" + srcPPQresolution);   
         }
         double ratio = ((double) srcTick) / srcPPQresolution;
         long tick = Math.round(MidiConst.PPQ_RESOLUTION * ratio);
@@ -1033,7 +1033,7 @@ public class MidiUtilities
         byte[] data = tempoMsg.getData();
         if (tempoMsg.getType() != 81 || data.length != 3)
         {
-            throw new IllegalArgumentException("tempoMsg=" + tempoMsg);   //NOI18N
+            throw new IllegalArgumentException("tempoMsg=" + tempoMsg);   
         }
         int mspq = ((data[0] & 0xff) << 16) | ((data[1] & 0xff) << 8) | (data[2] & 0xff);
         int tempo = Math.round(60000001f / mspq);
@@ -1372,7 +1372,7 @@ public class MidiUtilities
     public static boolean setEndOfTrackPosition(Track t, long tick)
     {
         boolean res = false;
-        assert tick >= 0 && t != null && t.size() > 0 : "t=" + t + " t.size()=" + t.size() + " tick=" + tick;   //NOI18N
+        assert tick >= 0 && t != null && t.size() > 0 : "t=" + t + " t.size()=" + t.size() + " tick=" + tick;   
         MidiEvent me = t.get(t.size() - 1);
         MidiMessage mm = me.getMessage();
         if ((mm instanceof MetaMessage) && ((MetaMessage) mm).getType() == MidiConst.META_END_OF_TRACK)
@@ -1395,7 +1395,7 @@ public class MidiUtilities
     {
         if (controllerId < 0 || controllerId >= 256)
         {
-            throw new IllegalArgumentException("ctrl=" + controllerId);   //NOI18N
+            throw new IllegalArgumentException("ctrl=" + controllerId);   
         }
         if (CONTROL_CHANGE_STRINGS == null)
         {
@@ -1417,7 +1417,7 @@ public class MidiUtilities
     {
         if (command < 0 || command > 255)
         {
-            throw new IllegalArgumentException("cmd=" + command);   //NOI18N
+            throw new IllegalArgumentException("cmd=" + command);   
         }
         if (COMMAND_STRINGS == null)
         {

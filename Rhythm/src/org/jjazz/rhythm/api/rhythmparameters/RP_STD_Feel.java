@@ -43,7 +43,7 @@ public final class RP_STD_Feel extends RP_State
     {
         if (rhythm == null)
         {
-            throw new NullPointerException("r");   //NOI18N
+            throw new NullPointerException("r");   
         }
         return (RP_STD_Feel) rhythm.getRhythmParameters()
                 .stream()

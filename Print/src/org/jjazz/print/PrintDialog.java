@@ -100,7 +100,7 @@ public class PrintDialog extends javax.swing.JDialog implements ChangeListener
     {
         if (sg == null)
         {
-            throw new IllegalArgumentException("sg=" + sg);   //NOI18N
+            throw new IllegalArgumentException("sg=" + sg);   
         }
 
         this.refSong = sg;
@@ -214,7 +214,7 @@ public class PrintDialog extends javax.swing.JDialog implements ChangeListener
     protected JRootPane createRootPane()
     {
         JRootPane contentPane = new JRootPane();
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ENTER"), "actionOk");   //NOI18N
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ENTER"), "actionOk");   
         contentPane.getActionMap().put("actionOk", new AbstractAction("OK")
         {
 
@@ -225,7 +225,7 @@ public class PrintDialog extends javax.swing.JDialog implements ChangeListener
             }
         });
 
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ESCAPE"), "actionCancel");   //NOI18N
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ESCAPE"), "actionCancel");   
         contentPane.getActionMap().put("actionCancel", new AbstractAction("Cancel")
         {
 
@@ -236,13 +236,13 @@ public class PrintDialog extends javax.swing.JDialog implements ChangeListener
             }
         });
 
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("PAGE_UP"), "PreviousPreviewPageAction");   //NOI18N
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("PAGE_UP"), "PreviousPreviewPageAction");   
         contentPane.getActionMap().put("PreviousPreviewPageAction", new PreviousPreviewPageAction());
 
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("PAGE_DOWN"), "NextPreviewPageAction");   //NOI18N
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("PAGE_DOWN"), "NextPreviewPageAction");   
         contentPane.getActionMap().put("NextPreviewPageAction", new NextPreviewPageAction());
 
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("HOME"), "FirstPageAction");   //NOI18N
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("HOME"), "FirstPageAction");   
         contentPane.getActionMap().put("FirstPageAction", new AbstractAction()
         {
             @Override
@@ -252,7 +252,7 @@ public class PrintDialog extends javax.swing.JDialog implements ChangeListener
             }
 
         });
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("END"), "LastPageAction");   //NOI18N
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("END"), "LastPageAction");   
         contentPane.getActionMap().put("LastPageAction", new AbstractAction()
         {
             @Override
@@ -263,8 +263,8 @@ public class PrintDialog extends javax.swing.JDialog implements ChangeListener
 
         });
 
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("PLUS"), "BarHeightPlus");   //NOI18N
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ADD"), "BarHeightPlus");   //NOI18N
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("PLUS"), "BarHeightPlus");   
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ADD"), "BarHeightPlus");   
         contentPane.getActionMap().put("BarHeightPlus", new AbstractAction()
         {
             @Override
@@ -275,8 +275,8 @@ public class PrintDialog extends javax.swing.JDialog implements ChangeListener
 
         });
 
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("MINUS"), "BarHeightMinus");   //NOI18N
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("SUBTRACT"), "BarHeightMinus");   //NOI18N
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("MINUS"), "BarHeightMinus");   
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("SUBTRACT"), "BarHeightMinus");   
         contentPane.getActionMap().put("BarHeightMinus", new AbstractAction()
         {
             @Override

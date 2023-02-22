@@ -64,11 +64,11 @@ public class Click extends BooleanStateAction implements PropertyChangeListener,
     {
         setBooleanState(false);
 
-        putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/Click-OFF-24x24.png")));     //NOI18N
-        putValue(Action.LARGE_ICON_KEY, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/Click-ON-24x24.png")));   //NOI18N
-        putValue("JJazzDisabledIcon", new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/ClickDisabled-24x24.png")));   //NOI18N
-        putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(),"CTL_ClickTooltip"));   //NOI18N
-        putValue("hideActionText", true);       //NOI18N
+        putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/Click-OFF-24x24.png")));     
+        putValue(Action.LARGE_ICON_KEY, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/Click-ON-24x24.png")));   
+        putValue("JJazzDisabledIcon", new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/ClickDisabled-24x24.png")));   
+        putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(),"CTL_ClickTooltip"));   
+        putValue("hideActionText", true);       
 
         // Listen to clickbackState and position changes
         PlaybackSettings.getInstance().addPropertyChangeListener(this);
@@ -92,7 +92,7 @@ public class Click extends BooleanStateAction implements PropertyChangeListener,
             newSong = s;
             i++;
         }
-        assert i < 2 : "i=" + i + " lookupResult.allInstances()=" + lookupResult.allInstances();   //NOI18N
+        assert i < 2 : "i=" + i + " lookupResult.allInstances()=" + lookupResult.allInstances();   
         if (newSong != null)
         {
             // Current song has changed
@@ -113,7 +113,7 @@ public class Click extends BooleanStateAction implements PropertyChangeListener,
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        assert currentSong != null; // Otherwise button should be disabled   //NOI18N
+        assert currentSong != null; // Otherwise button should be disabled   
         setSelected(!getBooleanState());
     }
 
@@ -131,7 +131,7 @@ public class Click extends BooleanStateAction implements PropertyChangeListener,
     @Override
     public String getName()
     {
-        return ResUtil.getString(getClass(),"CTL_Click");       //NOI18N
+        return ResUtil.getString(getClass(),"CTL_Click");       
     }
 
     @Override

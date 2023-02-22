@@ -65,8 +65,8 @@ public class Phrases
      * NOTE_ON events without a corresponding NOTE_OFF event are ignored.
      *
      * @param p
-     * @param midiEvents       MidiEvents which are not ShortMessage.Note_ON/OFF are ignored. Must be ordered by tick position,
-     *                         resolution must be MidiConst.PPQ_RESOLUTION.
+     * @param midiEvents       MidiEvents which are not ShortMessage.Note_ON/OFF are ignored. Must be ordered by tick position, resolution
+     *                         must be MidiConst.PPQ_RESOLUTION.
      * @param posInBeatsOffset The position in natural beats of the first tick of the track.
      * @param ignoreChannel    If true, add also NoteEvents for MidiEvents which do not match this phrase channel.
      * @see MidiUtilities#getMidiEvents(javax.sound.midi.Track, java.util.function.Predicate, LongRange)
@@ -210,9 +210,8 @@ public class Phrases
     /**
      * Make sure there is no note ringing in the phrase after the specified position.
      * <p>
-     * Notes starting after posInBeats are removed.<br>
-     * If a note starts before posInBeats but is still ON beyond posInBeats, note duration is shortened to have Note OFF at
-     * posInBeats.
+     * Notes starting after posInBeats are removed. If a note starts before posInBeats but is still ON beyond posInBeats, note duration is
+     * shortened to have Note OFF at posInBeats.
      *
      * @param p
      * @param posInBeats
@@ -246,11 +245,11 @@ public class Phrases
 
 
     /**
-     * Get a new phrase with cloned NoteEvents but keeping only the notes in the specified beat range, taking into account
-     * possible live-played/non-quantized notes via the beatWindow parameter.
+     * Get a new phrase with cloned NoteEvents but keeping only the notes in the specified beat range, taking into account possible
+     * live-played/non-quantized notes via the beatWindow parameter.
      * <p>
-     * First, if beatWindow &gt; 0 then notes starting in the range [range.from-beatWindow; range.from[ are changed in the
-     * returned phrase so they start at range.from, and notes starting in the range [range.to-beatWindow; range.to[ are removed.
+     * First, if beatWindow &gt; 0 then notes starting in the range [range.from-beatWindow; range.from[ are changed in the returned phrase
+     * so they start at range.from, and notes starting in the range [range.to-beatWindow; range.to[ are removed.
      * <p>
      * Then, if a note is starting before startPos and ending after range.from: <br>
      * - if keepLeft is false, the note is removed<br>
@@ -397,16 +396,16 @@ public class Phrases
 
 
     /**
-     * Remove all phrase notes whose start position is in the specified beat range, taking into account possible
-     * live-played/non-quantized notes via the beatWindow parameter.
+     * Remove all phrase notes whose start position is in the specified beat range, taking into account possible live-played/non-quantized
+     * notes via the beatWindow parameter.
      * <p>
      * If a note is starting before range.from and ending after range.from: <br>
      * - if cutLeft is false, the note is not removed.<br>
-     * - if cutLeft is true, the note is replaced by a shorter identical that ends at range.from, except if the note starts in the
-     * range [range.from-beatWindow;range.from[, then it's removed.<p>
+     * - if cutLeft is true, the note is replaced by a shorter identical that ends at range.from, except if the note starts in the range
+     * [range.from-beatWindow;range.from[, then it's removed.<p>
      * If a note is starting before range.to and ending after range.to: <br>
-     * - if keepRight is false, the note is removed, except if the note starts in the range [range.to-beatWindow;range.to[, then
-     * it's replaced by a shorter identical one starting at range<br>
+     * - if keepRight is false, the note is removed, except if the note starts in the range [range.to-beatWindow;range.to[, then it's
+     * replaced by a shorter identical one starting at range<br>
      * - if keepRight is true, the note is replaced by a shorter identical one starting at range.to<br>
      *
      * @param p
@@ -560,8 +559,8 @@ public class Phrases
     /**
      * Remove overlapped phrase notes with identical pitch.
      * <p>
-     * A note N1 is overlapped by N2 if N1's noteOn event occurs after N2's noteOn event and N1's noteOff event occurs before N2's
-     * noteOff event.
+     * A note N1 is overlapped by N2 if N1's noteOn event occurs after N2's noteOn event and N1's noteOff event occurs before N2's noteOff
+     * event.
      *
      * @param p
      */
@@ -625,11 +624,11 @@ public class Phrases
     {
         if (lowLimit < 0 || highLimit > 127 || lowLimit > highLimit || highLimit - lowLimit < 11)
         {
-            throw new IllegalArgumentException("lowLimit=" + lowLimit + " highLimit=" + highLimit);   //NOI18N
+            throw new IllegalArgumentException("lowLimit=" + lowLimit + " highLimit=" + highLimit);
         }
 
         Predicate<NoteEvent> tester = ne -> ne.getPitch() < lowLimit || ne.getPitch() > highLimit;
-        Function<NoteEvent, NoteEvent> mapper = ne ->
+        Function<NoteEvent, NoteEvent> mapper = ne -> 
         {
             int pitch = ne.getPitch();
             while (pitch < lowLimit)
@@ -650,8 +649,8 @@ public class Phrases
     /**
      * Parse a Midi file to extract one phrase from the specified Midi channel notes (notes can be on any track).
      * <p>
-     * As a special case, if midiFile contains notes from only 1 channel and this channel is different from the channel parameter,
-     * then the method will still accept these notes to build the returned phrase, unless strictChannel is true.
+     * As a special case, if midiFile contains notes from only 1 channel and this channel is different from the channel parameter, then the
+     * method will still accept these notes to build the returned phrase, unless strictChannel is true.
      *
      * @param midiFile
      * @param channel
@@ -728,11 +727,13 @@ public class Phrases
     public static List<Phrase> getPhrases(int tracksPPQ, Track[] tracks, Integer... channels)
     {
         Map<Integer, Phrase> mapChannelPhrase = new HashMap<>();
-        List<Integer> selectedChannels = channels.length > 0 ? Arrays.asList(channels) : Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15);
+        List<Integer> selectedChannels = channels.length > 0 ? Arrays.asList(channels) : Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
+                12, 13, 14, 15);
         for (Track track : tracks)
         {
             // Get all the events at the appropriate resolution
-            List<MidiEvent> trackEvents = MidiUtilities.getMidiEvents(track, ShortMessage.class, sm -> sm.getCommand() == ShortMessage.NOTE_OFF || sm.getCommand() == ShortMessage.NOTE_ON, null);
+            List<MidiEvent> trackEvents = MidiUtilities.getMidiEvents(track, ShortMessage.class, sm
+                    -> sm.getCommand() == ShortMessage.NOTE_OFF || sm.getCommand() == ShortMessage.NOTE_ON, null);
             trackEvents = MidiUtilities.getMidiEventsAtPPQ(trackEvents, tracksPPQ, MidiConst.PPQ_RESOLUTION);
             for (int channel : MidiUtilities.getUsedChannels(track))
             {

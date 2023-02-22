@@ -285,7 +285,7 @@ final class ChordSymbolsPanel extends javax.swing.JPanel implements ListSelectio
                     s = ResUtil.getString(getClass(),"ALIASES");
                     break;
                 default:
-                    throw new IllegalStateException("columnIndex=" + columnIndex);   //NOI18N
+                    throw new IllegalStateException("columnIndex=" + columnIndex);   
             }
             return s;
         }
@@ -325,7 +325,7 @@ final class ChordSymbolsPanel extends javax.swing.JPanel implements ListSelectio
                     }
                     return sb.toString();
                 default:
-                    throw new IllegalStateException("columnIndex=" + columnIndex);   //NOI18N
+                    throw new IllegalStateException("columnIndex=" + columnIndex);   
             }
         }
 

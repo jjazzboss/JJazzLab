@@ -68,7 +68,7 @@ public class MusicXMLFileReader
     {
         if (f == null)
         {
-            throw new NullPointerException("f");   //NOI18N
+            throw new NullPointerException("f");   
         }
         this.noUserPrompt = noUserPrompt;
         this.file = f;
@@ -184,7 +184,7 @@ public class MusicXMLFileReader
             }
             if (firstChordPos == null)
             {
-                LOGGER.warning("afterParsingFinished() No chord symbols found, importing an empty song.");   //NOI18N
+                LOGGER.warning("afterParsingFinished() No chord symbols found, importing an empty song.");   
             }
         }
 
@@ -195,7 +195,7 @@ public class MusicXMLFileReader
             {
                 if (tempoBPM < TempoRange.TEMPO_MIN)
                 {
-                    LOGGER.log(Level.WARNING, "onTempoChanged() Invalid tempo={0}, using {1} instead", new Object[]   //NOI18N
+                    LOGGER.log(Level.WARNING, "onTempoChanged() Invalid tempo={0}, using {1} instead", new Object[]   
                     {
                         tempoBPM, TempoRange.TEMPO_MIN
                     });
@@ -203,7 +203,7 @@ public class MusicXMLFileReader
                 }
                 if (tempoBPM > TempoRange.TEMPO_MAX)
                 {
-                    LOGGER.log(Level.WARNING, "onTempoChanged() Invalid tempo={0}, using {1} instead", new Object[]   //NOI18N
+                    LOGGER.log(Level.WARNING, "onTempoChanged() Invalid tempo={0}, using {1} instead", new Object[]   
                     {
                         tempoBPM, TempoRange.TEMPO_MAX
                     });
@@ -212,7 +212,7 @@ public class MusicXMLFileReader
                 song.setTempo(tempoBPM);
             } else
             {
-                LOGGER.log(Level.WARNING, "onTempoChanged() Tempo changed to {0} at barIndex={1}: ignored", new Object[]   //NOI18N
+                LOGGER.log(Level.WARNING, "onTempoChanged() Tempo changed to {0} at barIndex={1}: ignored", new Object[]   
                 {
                     tempoBPM, barIndex
                 });
@@ -232,7 +232,7 @@ public class MusicXMLFileReader
                     cls.setSectionTimeSignature(cliSection, ts);
                 } catch (UnsupportedEditException ex)
                 {
-                    LOGGER.warning("onTimeSignatureParsed() Can't change time signature to " + ts + " at bar " + barIndex + " because: " + ex);   //NOI18N
+                    LOGGER.warning("onTimeSignatureParsed() Can't change time signature to " + ts + " at bar " + barIndex + " because: " + ex);   
                     return;
                 }
             } else if (!section.getTimeSignature().equals(ts))
@@ -245,7 +245,7 @@ public class MusicXMLFileReader
                     cls.addSection(cliSection);
                 } catch (UnsupportedEditException ex)
                 {
-                    LOGGER.warning("onTimeSignatureParsed() Can't change time signature to " + ts + " at bar " + barIndex + " because: " + ex);   //NOI18N
+                    LOGGER.warning("onTimeSignatureParsed() Can't change time signature to " + ts + " at bar " + barIndex + " because: " + ex);   
                 }
             }
         }
@@ -286,7 +286,7 @@ public class MusicXMLFileReader
                 ecs = ExtChordSymbol.get(strChord);
             } catch (ParseException ex)
             {
-                LOGGER.warning("onChordSymbolParsed() Invalid chord string=" + strChord + "(" + ex.getMessage() + "), can't insert chord at pos=" + pos);   //NOI18N
+                LOGGER.warning("onChordSymbolParsed() Invalid chord string=" + strChord + "(" + ex.getMessage() + "), can't insert chord at pos=" + pos);   
                 return;
             }
             CLI_ChordSymbol cliCs = CLI_Factory.getDefault().createChordSymbol(cls, ecs, pos);

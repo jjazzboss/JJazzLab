@@ -80,7 +80,7 @@ public final class TempoRange implements Cloneable, Serializable
     {
         if (!checkTempo(min) || !checkTempo(max) || min > max || name == null)
         {
-            throw new IllegalArgumentException(" min=" + min + " max=" + max + " name=" + name);   //NOI18N
+            throw new IllegalArgumentException(" min=" + min + " max=" + max + " name=" + name);   
         }
         this.min = min;
         this.max = max;
@@ -171,7 +171,7 @@ public final class TempoRange implements Cloneable, Serializable
         float union = 1;
         if (tr == null)
         {
-            throw new NullPointerException("tr=" + tr);   //NOI18N
+            throw new NullPointerException("tr=" + tr);   
         }
         if (min <= tr.min && max >= tr.min)
         {

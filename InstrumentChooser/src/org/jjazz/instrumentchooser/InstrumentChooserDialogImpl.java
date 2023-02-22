@@ -112,7 +112,7 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
     {
         if (outSynth == null || rv == null || !MidiConst.checkMidiChannel(channel))
         {
-            throw new IllegalArgumentException("outSynth=" + outSynth + " rv=" + rv + " preselectedIns=" + preselectedIns + " channel=" + channel);   //NOI18N
+            throw new IllegalArgumentException("outSynth=" + outSynth + " rv=" + rv + " preselectedIns=" + preselectedIns + " channel=" + channel);   
         }
         this.outputSynth = outSynth;
         this.channel = channel;
@@ -201,7 +201,7 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
     protected JRootPane createRootPane()
     {
         JRootPane contentPane = new JRootPane();
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ENTER"), "actionOk");   //NOI18N
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ENTER"), "actionOk");   
         contentPane.getActionMap().put("actionOk", new AbstractAction("OK")
         {
 
@@ -212,7 +212,7 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
             }
         });
 
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ESCAPE"), "actionCancel");   //NOI18N
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ESCAPE"), "actionCancel");   
         contentPane.getActionMap().put("actionCancel", new AbstractAction("Cancel")
         {
 
@@ -231,7 +231,7 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
     @Override
     public void valueChanged(ListSelectionEvent e)
     {
-        LOGGER.log(Level.FINE, "valueChanged() e={0}", e);   //NOI18N
+        LOGGER.log(Level.FINE, "valueChanged() e={0}", e);   
         if (e.getValueIsAdjusting())
         {
             return;
@@ -641,7 +641,7 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
         Instrument ins = tbl_Instruments.getSelectedInstrument();
         if (ins == null || !ins.getMidiAddress().isFullyDefined())
         {
-            LOGGER.fine("btn_HearActionPerformed() called but invalid ins=" + ins + " ins.getMidiAddress()=" + ins.getMidiAddress());   //NOI18N
+            LOGGER.fine("btn_HearActionPerformed() called but invalid ins=" + ins + " ins.getMidiAddress()=" + ins.getMidiAddress());   
             return;
         }
 
@@ -679,7 +679,7 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
 
     private void tf_FilterActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_tf_FilterActionPerformed
     {//GEN-HEADEREND:event_tf_FilterActionPerformed
-        LOGGER.fine("tf_FilterActionPerformed()");   //NOI18N
+        LOGGER.fine("tf_FilterActionPerformed()");   
         String s = tf_Filter.getText().trim();
         if (s.isEmpty())
         {
@@ -691,7 +691,7 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
             rf = RowFilter.regexFilter("(?i)" + s);
         } catch (java.util.regex.PatternSyntaxException e)
         {
-            LOGGER.warning("tf_FilterActionPerformed() invalid filter regex string e=" + e.getMessage());   //NOI18N
+            LOGGER.warning("tf_FilterActionPerformed() invalid filter regex string e=" + e.getMessage());   
             return;
         }
         TableRowSorter<? extends TableModel> sorter = (TableRowSorter<? extends TableModel>) tbl_Instruments.getRowSorter();

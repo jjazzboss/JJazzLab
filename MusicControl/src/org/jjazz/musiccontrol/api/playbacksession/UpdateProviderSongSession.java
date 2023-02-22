@@ -108,7 +108,7 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
     private MusicGenerationQueue musicGenerationQueue;
     private Consumer<UserErrorGenerationException> userErrorExceptionHandler;
     private static final List<UpdateProviderSongSession> sessions = new ArrayList<>();
-    private static final Logger LOGGER = Logger.getLogger(UpdateProviderSongSession.class.getSimpleName());  //NOI18N
+    private static final Logger LOGGER = Logger.getLogger(UpdateProviderSongSession.class.getSimpleName());  
 
 
     /**
@@ -667,7 +667,7 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
         } else if (event instanceof RpChangedEvent re)
         {
             assert currentSgsChange != null : "event=" + event;
-            if (re.getRhytmParameter() instanceof RP_SYS_TempoFactor)
+            if (re.getRhythmParameter() instanceof RP_SYS_TempoFactor)
             {
                 // Can't update this in realtime, would need to update track0, not easy
                 dirty = true;

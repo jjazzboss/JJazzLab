@@ -47,7 +47,7 @@ public enum SymbolicDuration
     {
         if (d < 0)
         {
-            throw new IllegalArgumentException("d=" + d);   //NOI18N
+            throw new IllegalArgumentException("d=" + d);   
         }
         duration = d;
         this.name = name;

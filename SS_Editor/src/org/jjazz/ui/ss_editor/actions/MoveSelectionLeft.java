@@ -66,9 +66,9 @@ public class MoveSelectionLeft extends AbstractAction
     {
         List<SongPart> spts = ed.getModel().getSongParts();
         int index = spts.indexOf(spt);
-        assert index >= 0;   //NOI18N
+        assert index >= 0;   
         int indexRp = spt.getRhythm().getRhythmParameters().indexOf(rp);
-        assert indexRp >= 0;   //NOI18N
+        assert indexRp >= 0;   
         if (index > 0)
         {
             SongPart prevSpt = spts.get(index - 1);
@@ -104,7 +104,7 @@ public class MoveSelectionLeft extends AbstractAction
     {
         List<SongPart> spts = ed.getModel().getSongParts();
         int index = spts.indexOf(spt);
-        assert index >= 0;   //NOI18N
+        assert index >= 0;   
         if (index > 0)
         {
             SongPart prevSpt = spts.get(index - 1);

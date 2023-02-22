@@ -70,9 +70,9 @@ public class Utilities
     {
         if (pSrc == null || ecsDest == null)
         {
-            throw new IllegalArgumentException("pSrc=" + pSrc + " ecsDest=" + ecsDest);   //NOI18N
+            throw new IllegalArgumentException("pSrc=" + pSrc + " ecsDest=" + ecsDest);   
         }
-        LOGGER.fine("fitMelodyPhrase2ChordSymbol() -- ecsDest=" + ecsDest + " chordMode=" + chordMode); //  + " pSrc=" + pSrc);   //NOI18N
+        LOGGER.fine("fitMelodyPhrase2ChordSymbol() -- ecsDest=" + ecsDest + " chordMode=" + chordMode); //  + " pSrc=" + pSrc);   
         Phrase pDest = new Phrase(pSrc.getChannel(), false);
         if (pSrc.isEmpty())
         {
@@ -112,7 +112,7 @@ public class Utilities
             int srcRelPitchToRoot = Note.getNormalizedRelPitch(srcNote.getRelativePitch() - ecsSrc.getRootNote().getRelativePitch());
             Degree srcDegree = ecsSrc.getChordType().getDegreeMostProbable(srcRelPitchToRoot);
             Degree destDegree = mapSrcDestDegrees.get(srcDegree);
-            assert destDegree != null : "srcDegree=" + srcDegree + " srcNote=" + srcNote + " pSrc=" + pSrc + " ecsDest=" + ecsDest + " chordMode=" + chordMode;   //NOI18N
+            assert destDegree != null : "srcDegree=" + srcDegree + " srcNote=" + srcNote + " pSrc=" + pSrc + " ecsDest=" + ecsDest + " chordMode=" + chordMode;   
             int destRelPitch = ecsDest.getRelativePitch(destDegree);
             int destPitch = new Note(srcNote.getPitch() + rootPitchDelta).getClosestPitch(destRelPitch);
             NoteEvent destNote = srcNote.getCopyPitch(destPitch);
@@ -143,11 +143,11 @@ public class Utilities
     {
         if (pSrc == null || ecsDest == null)
         {
-            throw new IllegalArgumentException("pSrc=" + pSrc + " ecsDest=" + ecsDest);   //NOI18N
+            throw new IllegalArgumentException("pSrc=" + pSrc + " ecsDest=" + ecsDest);   
         }
 
 
-        LOGGER.fine("fitBassPhrase2ChordSymbol() -- ecsDest=" + ecsDest + " ecsDest.cri=" + ecsDest.getRenderingInfo()); //  + " pSrc=" + pSrc);   //NOI18N
+        LOGGER.fine("fitBassPhrase2ChordSymbol() -- ecsDest=" + ecsDest + " ecsDest.cri=" + ecsDest.getRenderingInfo()); //  + " pSrc=" + pSrc);   
         Phrase pDest = new Phrase(pSrc.getChannel(), false);
         if (pSrc.isEmpty())
         {
@@ -198,7 +198,7 @@ public class Utilities
             int srcRelPitchToRoot = Note.getNormalizedRelPitch(srcNote.getRelativePitch() - ecsSrc.getRootNote().getRelativePitch());
             Degree srcDegree = ecsSrc.getChordType().getDegreeMostProbable(srcRelPitchToRoot);
             Degree destDegree = mapSrcDestDegrees.get(srcDegree);
-            assert destDegree != null : "srcDegree=" + srcDegree + " srcNote=" + srcNote + " pSrc=" + pSrc;   //NOI18N
+            assert destDegree != null : "srcDegree=" + srcDegree + " srcNote=" + srcNote + " pSrc=" + pSrc;   
             int destRelPitch = ecsDest.getRelativePitch(destDegree);
 
             // Use the chord symbol bass note if BassLineModifier says so, or to replace the chord symbol root note
@@ -238,10 +238,10 @@ public class Utilities
     {
         if (pSrc == null || ecsDest == null)
         {
-            throw new IllegalArgumentException("pSrc=" + pSrc + " ecsDest=" + ecsDest);   //NOI18N
+            throw new IllegalArgumentException("pSrc=" + pSrc + " ecsDest=" + ecsDest);   
         }
 
-        LOGGER.log(Level.FINE, "fitChordPhrase2ChordSymbol() -- ecsDest=" + ecsDest);   //NOI18N
+        LOGGER.log(Level.FINE, "fitChordPhrase2ChordSymbol() -- ecsDest=" + ecsDest);   
         // LOGGER.log(Level.FINE, "fitChordPhrase2ChordSymbol() -- pSrc="+pSrc);
 
 
@@ -261,7 +261,7 @@ public class Utilities
         // Code added for robustness (LimboRock.S749.prs!), eg if a rhythm uses a glissando in a chord-oriented source phrase -which is an error.
         if (mapSrcDestDegrees.size() > 9)
         {
-            LOGGER.log(Level.INFO, "fitChordPhrase2ChordSymbol() Unusual high nb of degrees ({0}) used in source phrase (channel={1}). Fixing source phrase...", //NOI18N
+            LOGGER.log(Level.INFO, "fitChordPhrase2ChordSymbol() Unusual high nb of degrees ({0}) used in source phrase (channel={1}). Fixing source phrase...", 
                     new Object[]
                     {
                         mapSrcDestDegrees.size(), pSrc.getChannel()
@@ -276,11 +276,11 @@ public class Utilities
         Collection<Degree> destDegrees = mapSrcDestDegrees.values();
 
 
-        LOGGER.log(Level.FINE, "fitChordPhrase2ChordSymbol()   mapSrcDestDegrees={0}", mapSrcDestDegrees);   //NOI18N
+        LOGGER.log(Level.FINE, "fitChordPhrase2ChordSymbol()   mapSrcDestDegrees={0}", mapSrcDestDegrees);   
 
         // Compute all the destination degrees permutations, eg [1,3,7] [7,3,1] [3,1,7] etc.
         // CAUTIOUS this is X! => 6!=720 permutations. But normally most Yamaha chord source phrase should use max 4 or 5 chord notes.     
-        assert destDegrees.size() <= 9 : destDegrees;   //NOI18N
+        assert destDegrees.size() <= 9 : destDegrees;   
         int nbPermutations = 1;
         for (int i = 2; i <= destDegrees.size(); i++)
         {
@@ -326,7 +326,7 @@ public class Utilities
 
         // Fix musical problems, like 2 contiguous top notes etc.
         // fixChordMusicalProblems(bestDestChord, ecsDest);
-        assert bestDestChord != null : "pSrcWork=" + pSrcWork + " ecsDest=" + ecsDest;   //NOI18N
+        assert bestDestChord != null : "pSrcWork=" + pSrcWork + " ecsDest=" + ecsDest;   
 
 
         // Create the destination phrase with the best matching chord
@@ -334,7 +334,7 @@ public class Utilities
         {
             int srcPitch = srcNote.getPitch();
             int srcIndex = pSrcChord.indexOfPitch(srcPitch);
-            assert srcIndex != -1 : "srcPitch=" + srcPitch + " pSrcChord=" + pSrcChord + " pSrcWork=" + pSrcWork;   //NOI18N
+            assert srcIndex != -1 : "srcPitch=" + srcPitch + " pSrcChord=" + pSrcChord + " pSrcWork=" + pSrcWork;   
             if (srcIndex < bestDestChord.size())            // Because of computeParallelChord(), bestDestChord size might be smaller
             {
                 int destPitch = bestDestChord.getNote(srcIndex).getPitch();
@@ -362,7 +362,7 @@ public class Utilities
     {
         if (!Note.checkPitch(rootPitch) || degrees == null)
         {
-            throw new IllegalArgumentException("rootPitch=" + rootPitch + " degrees=" + degrees);   //NOI18N
+            throw new IllegalArgumentException("rootPitch=" + rootPitch + " degrees=" + degrees);   
         }
         List<Integer> res = Stream.of(degrees)
                 .map(d -> Note.getNormalizedRelPitch(rootPitch + d.getPitch()))

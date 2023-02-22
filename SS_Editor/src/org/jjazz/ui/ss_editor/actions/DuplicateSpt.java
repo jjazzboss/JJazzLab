@@ -149,7 +149,7 @@ public class DuplicateSpt extends AbstractAction implements ContextAwareAction, 
     public void selectionChange(SS_SelectionUtilities selection)
     {
         boolean b = selection.isContiguousSptSelection();  // True whatever the selection SongParts or RhythmParameters
-        LOGGER.log(Level.FINE, "selectionChange() b=" + b);   //NOI18N
+        LOGGER.log(Level.FINE, "selectionChange() b=" + b);   
         setEnabled(b);
     }
 }

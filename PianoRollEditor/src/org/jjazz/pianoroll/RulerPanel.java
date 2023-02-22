@@ -66,8 +66,10 @@ import org.jjazz.ui.utilities.api.StringMetrics;
 /**
  * The ruler panel that shows the beat position marks + time signatures over the NotesPanel.
  * <p>
- * If a song is associated, show also the chord symbols and song parts. The RulerPanel listens to chord symbols changes to refresh
- * itself (song structure changes are handled by the PianoRollEditor
+ * The ruler has its own startBar which might be different from the model phrase start bar.
+ * <p>
+ * If a song is associated, show also the chord symbols and song parts. The RulerPanel listens to chord symbols changes to refresh itself
+ * (song structure changes are handled by the PianoRollEditor).
  */
 public class RulerPanel extends javax.swing.JPanel implements ClsChangeListener, PropertyChangeListener
 {
@@ -228,21 +230,27 @@ public class RulerPanel extends javax.swing.JPanel implements ClsChangeListener,
         var allBeatPositions = tmapPosX.navigableKeySet();
 
 
+        // Take into account the possible different rulerStartBar
+        int barOffset = editor.getRulerStartBar() - editor.getPhraseStartBar();
+
+
         // Draw chord symbols
         if (song != null)
         {
-            ChordSequence cs = new ChordSequence(editor.getBarRange());
-            SongChordSequence.fillChordSequence(cs, song, editor.getBarRange());
+            var offsettedBarRange = editor.getPhraseBarRange().getTransformed(barOffset);
+            ChordSequence cs = new ChordSequence(offsettedBarRange);
+            SongChordSequence.fillChordSequence(cs, song, offsettedBarRange);
             for (var cliCs : cs)
             {
                 var pos = cliCs.getPosition();
-                var posInBeats = editor.toPositionInBeats(pos);
+                var posOffsetted = pos.getMovedPosition(-barOffset, 0); // Convert to phraseStartBar
+                var posInBeats = editor.toPositionInBeats(posOffsetted);
                 int x = editor.getXFromPosition(posInBeats);
                 int y = yBottomChordSymbolLane - 1;
                 AttributedString aStr;
                 aStr = new AttributedString(cliCs.getData().getOriginalName(), baseFont.getAttributes());
                 aStr.addAttribute(TextAttribute.FOREGROUND, COLOR_BAR_FONT);
-                if (pos.isFirstBarBeat())
+                if (posOffsetted.isFirstBarBeat())
                 {
                     x += 1;
                 }
@@ -290,8 +298,9 @@ public class RulerPanel extends javax.swing.JPanel implements ClsChangeListener,
             // Possibly draw song part
             if (song != null && pos.isFirstBarBeat())
             {
-                var spt = song.getSongStructure().getSongPart(pos.getBar());
-                if (spt.getStartBarIndex() == pos.getBar())
+                int offsettedBar = pos.getBar() + barOffset;
+                var spt = song.getSongStructure().getSongPart(offsettedBar);
+                if (spt.getStartBarIndex() == offsettedBar)
                 {
                     String text = spt.getName();
                     StringMetrics sm = new StringMetrics(g2, SMALL_FONT);
@@ -341,15 +350,16 @@ public class RulerPanel extends javax.swing.JPanel implements ClsChangeListener,
 
             // Draw bar or beat number
             AttributedString aStr = null;
+            int offsettedBar = pos.getBar() + 1 + barOffset;
             if (pos.isFirstBarBeat())
             {
-                var strBar = String.valueOf(pos.getBar() + 1);
+                var strBar = String.valueOf(offsettedBar);
                 aStr = new AttributedString(strBar, baseFont.getAttributes());
                 aStr.addAttribute(TextAttribute.FOREGROUND, COLOR_BAR_FONT);
 
             } else if (paintSixteenthTicks)
             {
-                var strBeat = String.valueOf(pos.getBar() + 1) + "." + String.valueOf((int) pos.getBeat() + 1);
+                var strBeat = String.valueOf(offsettedBar) + "." + String.valueOf((int) pos.getBeat() + 1);
                 aStr = new AttributedString(strBeat, SMALL_FONT.getAttributes());
                 aStr.addAttribute(TextAttribute.FOREGROUND, COLOR_BEAT_FONT);
             }
@@ -461,7 +471,7 @@ public class RulerPanel extends javax.swing.JPanel implements ClsChangeListener,
                 return;
             }
             float posInBeats = editor.getPositionFromPoint(e.getPoint()); // ignore y
-            if (posInBeats == -1 || !editor.getBeatRange().contains(posInBeats, true))
+            if (posInBeats == -1 || !editor.getPhraseBeatRange().contains(posInBeats, true))
             {
                 return;
             }

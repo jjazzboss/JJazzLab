@@ -73,7 +73,7 @@ public class RP_SYS_Marker extends RP_State
     {
         if (r == null)
         {
-            throw new NullPointerException("r");   //NOI18N
+            throw new NullPointerException("r");   
         }
         return r.getRhythmParameters().contains(INSTANCE) ? INSTANCE : null;
     }

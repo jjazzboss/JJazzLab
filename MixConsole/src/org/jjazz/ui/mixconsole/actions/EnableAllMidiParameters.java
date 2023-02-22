@@ -60,7 +60,7 @@ public class EnableAllMidiParameters extends AbstractAction
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        LOGGER.fine("actionPerformed() songMidiMix=" + songMidiMix);   //NOI18N
+        LOGGER.fine("actionPerformed() songMidiMix=" + songMidiMix);   
 
         Song song = MixConsoleTopComponent.getInstance().getEditor().getSong();
 

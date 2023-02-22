@@ -106,6 +106,8 @@ import org.openide.util.lookup.ProxyLookup;
 /**
  * A piano roll editor of a phrase.
  * <p>
+ * It can edit whole or part of a Phrase.
+ * <p>
  * Its Lookup must contain :<br>
  * - editor's ActionMap<br>
  * - editor's Zoomable instance<br>
@@ -156,7 +158,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     private final Lookup selectionLookup;
     private final InstanceContent selectionLookupContent;
     private final InstanceContent generalLookupContent;
-    private int startBarIndex;
+    private int rulerStartBar;
     private EditTool activeTool;
     private final EditToolProxyMouseListener editToolProxyMouseListener;
     private final GenericMouseListener genericMouseListener;
@@ -169,6 +171,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     private FloatRange beatRange;
     private int channel = 0;
     private NavigableMap<Float, TimeSignature> mapPosTimeSignature;
+    private int phraseStartBar;
 
 
     /**
@@ -183,7 +186,8 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         LOGGER.severe("PianoRollEditor() -- ");
 
         this.settings = settings;
-        this.startBarIndex = 0;
+        this.phraseStartBar = 0;
+        this.rulerStartBar = this.phraseStartBar;
         this.model = new Phrase(0, false);
         this.channel = 0;
         this.beatRange = new FloatRange(0, 8f);
@@ -263,8 +267,8 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     /**
      * Associate an optional song to the editor.
      * <p>
-     * Put the song and a SaveAsCapable instance in the editor's lookup. Put also a Savable instance when required. The ruler can
-     * show the chord symbols and listen to chord symbols changes.<p>
+     * Put the song and a SaveAsCapable instance in the editor's lookup. Put also a Savable instance when required. The ruler can show the
+     * chord symbols and listen to chord symbols changes.<p>
      * <p>
      * This method can be called only once.
      *
@@ -332,8 +336,8 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     /**
      * Optional view-only phrases shown in the background of the editor.
      * <p>
-     * The specified phrases are shown faded in the background in order to facilite the editing of the Phrase model. E.g. if the
-     * edited phrase is a bass line, you can use this method to make the corresponding drums phrase also visible.
+     * The specified phrases are shown faded in the background in order to facilite the editing of the Phrase model. E.g. if the edited
+     * phrase is a bass line, you can use this method to make the corresponding drums phrase also visible.
      *
      * @param mapChannelPhrases A name associated to a Phrase.
      */
@@ -363,29 +367,33 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     }
 
     /**
-     * Update the edited model.
+     * Set the edited model.
      * <p>
      * Fire a PROP_MODEL change event if p is different from existing model.
      *
-     * @param startBar The new
-     * @param beatRange
-     * @param mapPosTs The position of each time signature. Must have at least 1 entry at beatRange.from position or before.
-     * @param channel The Midi channel of the edited Phrase (p.getChannel() is ignored).
-     * @param p
-     * @param kMap
+     * @param p              The phrase model
+     * @param beatRange      The edited part of the phrase model
+     * @param phraseStartBar The start bar corresponding to beatRange.from
+     * @param rulerStartBar  The start bar displayed on the ruler corresponding to beatRange.from. Usually it has the same value than
+     *                       phraseStartBar, but it can be different to make the edited range appear at a different bar range.
+     * @param channel        The Midi channel of the edited Phrase (p.getChannel() is ignored).
+     * @param mapPosTs       The position of each time signature. Must have at least 1 entry at beatRange.from position or before.
+     * @param kMap           If null means it's a melodic phrase
      */
-    public void setModel(int startBar, FloatRange beatRange, Phrase p, int channel, NavigableMap<Float, TimeSignature> mapPosTs, DrumKit.KeyMap kMap)
+    public void setModel(Phrase p, FloatRange beatRange, int phraseStartBar, int rulerStartBar, int channel, NavigableMap<Float, TimeSignature> mapPosTs, DrumKit.KeyMap kMap)
     {
         Preconditions.checkNotNull(p);
-        Preconditions.checkArgument(startBar >= 0);
         Preconditions.checkNotNull(beatRange);
+        Preconditions.checkArgument(rulerStartBar >= 0);
+        Preconditions.checkArgument(phraseStartBar >= 0);
         Preconditions.checkArgument(!mapPosTs.isEmpty() && mapPosTs.firstKey() <= beatRange.from, "mapPosTs=%s  beatRange=%s",
                 mapPosTs, beatRange);
 
-        LOGGER.severe("setModel() -- p=" + p);
+        LOGGER.log(Level.FINE, "setModel() -- p={0}", p);
 
-        if (p.equals(model) && this.channel == channel && startBar == startBarIndex && beatRange.equals(this.beatRange)
-                && this.mapPosTimeSignature.equals(mapPosTs) && Objects.equals(kMap, this.keyMap))
+
+        if (p.equals(model) && this.channel == channel && rulerStartBar == this.rulerStartBar && beatRange.equals(this.beatRange)
+                && this.mapPosTimeSignature.equals(mapPosTs) && Objects.equals(kMap, this.keyMap) && phraseStartBar == this.phraseStartBar)
         {
             return;
         }
@@ -403,7 +411,8 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
 
         var oldModel = model;
         model = p;
-        startBarIndex = startBar;
+        this.rulerStartBar = rulerStartBar;
+        this.phraseStartBar = phraseStartBar;
         keyMap = kMap;
         this.channel = channel;
         this.beatRange = beatRange;
@@ -435,28 +444,29 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
 
 
     /**
-     * Get the bar index of the start of the Phrase model.
+     * Get the bar index displayed on the ruler corresponding to getBeatRange().from.
+     * <p>
+     * Usually identical to getPhraseStartBar(), but it can be different to make the edited range appear at a different bar in the ruler.
      *
      * @return
      */
-    public int getStartBarIndex()
+    public int getRulerStartBar()
     {
-        return startBarIndex;
+        return rulerStartBar;
     }
 
     /**
-     * Set the bar index of the start of the Phrase model.
+     * Get the ruler bar range.
+     * <p>
+     * An IntRange starting at getRulerStartbar() with size equals to getPhraseBarRange().
      *
-     * @param startBarIndex
+     * @return
      */
-    public void setStartBarIndex(int startBarIndex)
+    public IntRange getRulerBarRange()
     {
-        if (startBarIndex == this.startBarIndex)
-        {
-            return;
-        }
-        this.startBarIndex = startBarIndex;
+        return new IntRange(rulerStartBar, rulerStartBar + getPhraseBarRange().size() - 1);
     }
+
 
     /**
      * The time signature at the specified beat position.
@@ -481,13 +491,22 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     }
 
 
-    public FloatRange getBeatRange()
+    public FloatRange getPhraseBeatRange()
     {
         return beatRange;
     }
 
+    /**
+     * Get the bar index corresponding to getPhraseBeatRange().from.
+     *
+     * @return
+     */
+    public int getPhraseStartBar()
+    {
+        return phraseStartBar;
+    }
 
-    public IntRange getBarRange()
+    public IntRange getPhraseBarRange()
     {
         return notesPanel.getXMapper().getBarRange();
     }
@@ -763,11 +782,11 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     }
 
     /**
-     * Show (or hide) a playback point in the editor at specified position.
+     * Show (or hide) a playback point in the editor at specified phrase position.
      * <p>
      * If pos is &lt; 0 or out of the editor bounds, nothing is shown. Fire a PROP_PLAYBACK_POINT_POSITION change event.
      *
-     * @param pos The position in beats.
+     * @param pos The phrase position in beats.
      */
     public void showPlaybackPoint(float pos)
     {
@@ -780,7 +799,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
 
 
         int xPos = -1;
-        if (getBeatRange().contains(playbackPointPosition, false))
+        if (getPhraseBeatRange().contains(playbackPointPosition, false))
         {
             xPos = notesPanel.getXMapper().getX(pos);
         }
@@ -794,7 +813,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         var visibleBr = getVisibleBeatRange();
         if (xPos >= 0 && playbackAutoScrollEnabled && !visibleBr.contains(pos, true))
         {
-            float shiftedPos = Math.min(getBeatRange().to - visibleBr.size() / 2, pos + visibleBr.size() / 2 - 1f);
+            float shiftedPos = Math.min(getPhraseBeatRange().to - visibleBr.size() / 2, pos + visibleBr.size() / 2 - 1f);
             scrollToCenter(shiftedPos);
         }
 
@@ -812,7 +831,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     }
 
     /**
-     * Return the position in beats that corresponds to a graphical point in the editor.
+     * Return the phrase position in beats that corresponds to a graphical point in the editor.
      * <p>
      *
      * @param editorPoint A point in the editor's coordinates. -1 if point is not valid.
@@ -824,6 +843,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         return notesPanel.getXMapper().getPositionInBeats(editorPoint.x);
     }
 
+
     /**
      * Return the X editor position that corresponds to a beat position of the Phrase model.
      *
@@ -832,11 +852,11 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
      */
     public int getXFromPosition(float pos)
     {
-        return getBeatRange().contains(pos, false) ? notesPanel.getXMapper().getX(pos) : -1;
+        return getPhraseBeatRange().contains(pos, false) ? notesPanel.getXMapper().getX(pos) : -1;
     }
 
     /**
-     * Convert a Position into a position in beats.
+     * Convert a phrase Position into a phrase position in beats.
      *
      * @param pos Must be in the bar range.
      * @return
@@ -847,10 +867,11 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     }
 
     /**
-     * Convert a position in beats into a Position.
+     * Convert a phrase position in beats into a Position.
      *
      * @param posInBeats Must be in the beat range.
      * @return
+     * @see #getPhraseStartBar()
      */
     public Position toPosition(float posInBeats)
     {
@@ -899,7 +920,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
      */
     public void scrollToCenter(float posInBeats)
     {
-        Preconditions.checkArgument(getBeatRange().contains(posInBeats, true));
+        Preconditions.checkArgument(getPhraseBeatRange().contains(posInBeats, true));
 
         var vpRect = scrollpane.getViewport().getViewRect();
         int vpCenterX = vpRect.x + vpRect.width / 2;
@@ -1133,6 +1154,8 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     private int toZoomHValue(float scaleFactorX)
     {
         int zoomHValue = (int) (100f * (scaleFactorX - 0.2f) / 4);
+        zoomHValue = Math.max(0, zoomHValue);
+        zoomHValue = Math.min(100, zoomHValue);
         return zoomHValue;
     }
 
@@ -1200,7 +1223,6 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         popupMenu.add(menuItem);
         notesPanel.setComponentPopupMenu(popupMenu);
     }
-
 
     private void showSelectionRectangle(Rectangle r)
     {

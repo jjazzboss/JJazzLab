@@ -68,7 +68,7 @@ public class Loop extends BooleanStateAction implements PropertyChangeListener, 
         setBooleanState(false);
         putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/Loop-OFF-24x24.png")));
         putValue(Action.LARGE_ICON_KEY, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/Loop-ON-24x24.png")));
-        putValue("JJazzDisabledIcon", new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/LoopDisabled-24x24.png")));   //NOI18N                
+        putValue("JJazzDisabledIcon", new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/LoopDisabled-24x24.png")));                   
         putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(), "CTL_LoopTooltip"));
         putValue("hideActionText", true);
 
@@ -95,7 +95,7 @@ public class Loop extends BooleanStateAction implements PropertyChangeListener, 
             newSong = s;
             i++;
         }
-        assert i < 2 : "i=" + i + " lookupResult.allInstances()=" + lookupResult.allInstances();   //NOI18N
+        assert i < 2 : "i=" + i + " lookupResult.allInstances()=" + lookupResult.allInstances();   
         if (newSong != null)
         {
             // Current song has changed
@@ -116,7 +116,7 @@ public class Loop extends BooleanStateAction implements PropertyChangeListener, 
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        assert currentSong != null; // Otherwise button should be disabled   //NOI18N
+        assert currentSong != null; // Otherwise button should be disabled   
         setSelected(!getBooleanState());
     }
 

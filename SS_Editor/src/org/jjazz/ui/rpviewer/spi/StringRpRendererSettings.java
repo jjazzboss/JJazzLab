@@ -41,7 +41,7 @@ public interface StringRpRendererSettings
         StringRpRendererSettings result = Lookup.getDefault().lookup(StringRpRendererSettings.class);
         if (result == null)
         {
-            throw new NullPointerException("result=" + result);   //NOI18N
+            throw new NullPointerException("result=" + result);   
         }
         return result;
     }

@@ -107,7 +107,7 @@ public class SetActive extends BooleanStateAction implements PropertyChangeListe
             newSong = s;
             i++;
         }
-        assert i < 2 : "i=" + i + " lookupResult.allInstances()=" + lookupResult.allInstances();   //NOI18N
+        assert i < 2 : "i=" + i + " lookupResult.allInstances()=" + lookupResult.allInstances();   
         if (newSong != null)
         {
             // Current song has changed
@@ -123,7 +123,7 @@ public class SetActive extends BooleanStateAction implements PropertyChangeListe
             } catch (MidiUnavailableException ex)
             {
                 // We should never be here
-                throw new IllegalStateException("Unexpected MidiUnavailableException", ex);   //NOI18N
+                throw new IllegalStateException("Unexpected MidiUnavailableException", ex);   
             }
             currentSong.addPropertyChangeListener(this);
             updateEnabledAndSelected();

@@ -66,7 +66,7 @@ public final class RP_SYS_TempoFactor extends RP_Integer
     {
         if (r == null)
         {
-            throw new NullPointerException("r");   //NOI18N
+            throw new NullPointerException("r");   
         }
         return r.getRhythmParameters().contains(INSTANCE) ? INSTANCE : null;
     }

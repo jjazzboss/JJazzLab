@@ -159,7 +159,7 @@ public class IR_TimeSignature extends ItemRenderer implements IR_Copiable
         Insets in = getInsets();
         Font font = getFont();
         Graphics2D g2 = (Graphics2D) getGraphics();
-        assert g2 != null;   //NOI18N
+        assert g2 != null;   
         FontRenderContext frc = g2.getFontRenderContext();
 
         // Font size depends on zoom factor
@@ -196,7 +196,7 @@ public class IR_TimeSignature extends ItemRenderer implements IR_Copiable
         upperY = in.top + PADDING + hUpper;
 
         Dimension d = new Dimension(pw, ph);
-        LOGGER.fine("getPreferredSize() d=" + d);   //NOI18N
+        LOGGER.fine("getPreferredSize() d=" + d);   
         return d;
     }
 

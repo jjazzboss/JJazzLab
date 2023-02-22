@@ -68,6 +68,7 @@ public final class CL_EditorTopComponent extends TopComponent implements Propert
      * The editor's controller.
      */
     private CL_EditorController clEditorController;
+    private boolean silentClose;
 
     /**
      * The paired TopComponent.
@@ -79,7 +80,7 @@ public final class CL_EditorTopComponent extends TopComponent implements Propert
     {
         if (song == null || song.getChordLeadSheet() == null)
         {
-            throw new IllegalArgumentException("song=" + song);   //NOI18N
+            throw new IllegalArgumentException("song=" + song);   
         }
         songModel = song;
         songModel.addPropertyChangeListener(this);
@@ -138,10 +139,23 @@ public final class CL_EditorTopComponent extends TopComponent implements Propert
     {
         return TopComponent.PERSISTENCE_NEVER;
     }
+    
+    /**
+     * Close the TopComponent without asking for user confirmation.
+     */
+    public void closeSilent()
+    {
+        silentClose=true;
+        close();
+    }
 
     @Override
     public boolean canClose()
     {
+        if (silentClose)
+        {
+            return true;
+        }
 
         if (pairedTc != null && !pairedTc.isOpened())
         {

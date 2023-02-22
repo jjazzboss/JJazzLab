@@ -91,20 +91,20 @@ public class AdjustRpValues extends AbstractAction implements ContextAwareAction
         cap.addListener(this);
         buildMenus();
         selectionChange(cap.getSelection());        // Make sure menu is correctly intialized at creation
-        LOGGER.log(Level.FINE, " AdjustRpValues(context)");   //NOI18N
+        LOGGER.log(Level.FINE, " AdjustRpValues(context)");   
     }
 
     @Override
     public Action createContextAwareInstance(Lookup context)
     {
-        LOGGER.log(Level.FINE, " createContextAwareInstance(context)");   //NOI18N
+        LOGGER.log(Level.FINE, " createContextAwareInstance(context)");   
         return new AdjustRpValues(context);
     }
 
     @Override
     public JMenuItem getPopupPresenter()
     {
-        LOGGER.log(Level.FINE, " getPopupPresenter()");   //NOI18N
+        LOGGER.log(Level.FINE, " getPopupPresenter()");   
         return subMenu;
     }
 
@@ -130,7 +130,7 @@ public class AdjustRpValues extends AbstractAction implements ContextAwareAction
             b = true;
         }
 
-        LOGGER.log(Level.FINE, "selectionChange() b=" + b);   //NOI18N        
+        LOGGER.log(Level.FINE, "selectionChange() b=" + b);           
         subMenu.setEnabled(b);
     }
 
@@ -186,7 +186,7 @@ public class AdjustRpValues extends AbstractAction implements ContextAwareAction
         {
             RhythmParameter rp = sptp.getRp();
             double y = (1.0 - ((1 + Math.log((10 - x) * 10 + 0.37)) / 5.7)) * yDiff;
-            LOGGER.log(Level.FINE, "upSlow() rpData.doubleValue0=" + rpData.doubleValue0 + " rpData.doubleValue1=" + rpData.doubleValue1 + " x=" + x + " y=" + y);   //NOI18N
+            LOGGER.log(Level.FINE, "upSlow() rpData.doubleValue0=" + rpData.doubleValue0 + " rpData.doubleValue1=" + rpData.doubleValue1 + " x=" + x + " y=" + y);   
             double d = enforceBounds(rpData.doubleValue0 + y);
             Object value = ((RpEnumerable) rp).calculateValue(d);
             rpData.sgs.setRhythmParameterValue(sptp.getSpt(), rp, value);
@@ -208,7 +208,7 @@ public class AdjustRpValues extends AbstractAction implements ContextAwareAction
         for (SongPartParameter sptp : rpData.enumerableSptps)
         {
             double y = ((1 + Math.log(x * 10 + 0.37)) / 5.7) * yDiff;
-            LOGGER.log(Level.FINER, "rpData.doubleValue0=" + rpData.doubleValue0 + " rpData.doubleValue1=" + rpData.doubleValue1 + " x=" + x + " y=" + y);   //NOI18N
+            LOGGER.log(Level.FINER, "rpData.doubleValue0=" + rpData.doubleValue0 + " rpData.doubleValue1=" + rpData.doubleValue1 + " x=" + x + " y=" + y);   
             RhythmParameter rp = sptp.getRp();
             double d = enforceBounds(rpData.doubleValue0 + y);
             Object value = ((RpEnumerable) rp).calculateValue(d);
@@ -230,7 +230,7 @@ public class AdjustRpValues extends AbstractAction implements ContextAwareAction
         for (SongPartParameter sptp : rpData.enumerableSptps)
         {
             double y = ((1 + Math.log((10 - x) * 10 + 0.37)) / 5.7) * yDiff;
-            LOGGER.log(Level.FINER, "rpData.doubleValue0=" + rpData.doubleValue0 + " rpData.doubleValue1=" + rpData.doubleValue1 + " x=" + x + " y=" + y);   //NOI18N
+            LOGGER.log(Level.FINER, "rpData.doubleValue0=" + rpData.doubleValue0 + " rpData.doubleValue1=" + rpData.doubleValue1 + " x=" + x + " y=" + y);   
             RhythmParameter rp = sptp.getRp();
 
             double d = enforceBounds(rpData.doubleValue1 + y);
@@ -255,7 +255,7 @@ public class AdjustRpValues extends AbstractAction implements ContextAwareAction
         for (SongPartParameter sptp : rpData.enumerableSptps)
         {
             double y = ((1.0 + Math.log(x * 10 + 0.37)) / 5.7) * yDiff;
-            LOGGER.log(Level.FINER, "rpData.doubleValue0=" + rpData.doubleValue0 + " rpData.doubleValue1=" + rpData.doubleValue1 + " x=" + x + " y=" + y);   //NOI18N
+            LOGGER.log(Level.FINER, "rpData.doubleValue0=" + rpData.doubleValue0 + " rpData.doubleValue1=" + rpData.doubleValue1 + " x=" + x + " y=" + y);   
             RhythmParameter rp = sptp.getRp();
             double d = enforceBounds(rpData.doubleValue0 - y);
             Object value = ((RpEnumerable) rp).calculateValue(d);

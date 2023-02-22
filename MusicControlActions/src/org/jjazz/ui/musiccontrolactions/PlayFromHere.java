@@ -112,7 +112,7 @@ public class PlayFromHere extends AbstractAction
     {
         if (song == null)
         {
-            LOGGER.severe("actionPerformed() unexpected value song=" + song);   //NOI18N
+            LOGGER.severe("actionPerformed() unexpected value song=" + song);   
             return;
         }
 
@@ -129,14 +129,14 @@ public class PlayFromHere extends AbstractAction
 
         ChordLeadSheet cls = song.getChordLeadSheet();
         CL_EditorTopComponent clTc = CL_EditorTopComponent.get(cls);
-        assert clTc != null;   //NOI18N
+        assert clTc != null;   
         CL_Editor clEditor = clTc.getEditor();
         CL_SelectionUtilities clSelection = new CL_SelectionUtilities(clEditor.getLookup());
 
 
         SongStructure ss = song.getSongStructure();
         SS_EditorTopComponent ssTc = SS_EditorTopComponent.get(ss);
-        assert ssTc != null;   //NOI18N
+        assert ssTc != null;   
         SS_Editor ssEditor = ssTc.getEditor();
         SS_SelectionUtilities ssSelection = new SS_SelectionUtilities(ssEditor.getLookup());
 
@@ -233,7 +233,7 @@ public class PlayFromHere extends AbstractAction
         }
 
         boolean b = song != null;
-        LOGGER.fine("updateEnabledStatus() b=" + b);   //NOI18N
+        LOGGER.fine("updateEnabledStatus() b=" + b);   
 
         setEnabled(b);
     }
@@ -250,12 +250,12 @@ public class PlayFromHere extends AbstractAction
     {
         int sgsBarIndex = -1;
         CLI_Section section = cls.getSection(clsBarIndex);
-        LOGGER.fine("getSsBarIndex() section=" + section);   //NOI18N
+        LOGGER.fine("getSsBarIndex() section=" + section);   
 
 
         // If there are some selected spts, try to match one of them
         SS_EditorTopComponent ssTc = SS_EditorTopComponent.get(ss);
-        assert ssTc != null : "sgs=" + ss;   //NOI18N
+        assert ssTc != null : "sgs=" + ss;   
         SS_SelectionUtilities ssSelection = new SS_SelectionUtilities(ssTc.getLookup());
         for (SongPart spt : ssSelection.getIndirectlySelectedSongParts())
         {
@@ -271,7 +271,7 @@ public class PlayFromHere extends AbstractAction
         if (sgsBarIndex == -1)
         {
             // It did not work, search the first SongPart which matches
-            LOGGER.fine("getSsBarIndex() no matching in selected spt, test all spts");   //NOI18N
+            LOGGER.fine("getSsBarIndex() no matching in selected spt, test all spts");   
             for (SongPart spt : ss.getSongParts())
             {
                 if (spt.getParentSection() == section)
@@ -284,7 +284,7 @@ public class PlayFromHere extends AbstractAction
         }
 
 
-        LOGGER.fine("getSsBarIndex() sgsBarIndex=" + sgsBarIndex);   //NOI18N
+        LOGGER.fine("getSsBarIndex() sgsBarIndex=" + sgsBarIndex);   
         return sgsBarIndex;
     }
 

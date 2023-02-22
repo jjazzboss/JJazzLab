@@ -98,7 +98,7 @@ public class ImportMix extends AbstractAction
         if (!file.exists())
         {
             String msg = ResUtil.getString(ImportMix.class, "ERR_FileDoesNotExist", file.getAbsolutePath());
-            LOGGER.log(Level.WARNING, msg);   //NOI18N
+            LOGGER.log(Level.WARNING, msg);   
             NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.WARNING_MESSAGE);
             DialogDisplayer.getDefault().notify(nd);
             return null;
@@ -106,7 +106,7 @@ public class ImportMix extends AbstractAction
         if (!file.canRead())
         {
             String msg = ResUtil.getString(ImportMix.class, "ERR_CantReadFile", file.getAbsolutePath());
-            LOGGER.log(Level.WARNING, msg);   //NOI18N
+            LOGGER.log(Level.WARNING, msg);   
             NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.WARNING_MESSAGE);
             DialogDisplayer.getDefault().notify(nd);
             return null;

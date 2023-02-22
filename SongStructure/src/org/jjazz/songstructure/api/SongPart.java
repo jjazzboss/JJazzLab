@@ -33,19 +33,30 @@ import org.jjazz.util.api.IntRange;
 /**
  * A song part defines how a rhythm is played for a number of bars starting at startBarIndex.
  * <p>
- * Rhythm generation is controlled by the RhythmParameters values. Rhythm can not be changed but a SongPart can be cloned using a
- * new rhythm.
+ * Rhythm generation is controlled by the RhythmParameters values. Rhythm can not be changed but a SongPart can be cloned using a new
+ * rhythm.
  */
 public interface SongPart extends Transferable
 {
-
     /**
+     * Fired when a rhythm parameter value has changed.
+     * <p>
+     * Occurs when value was replaced by another value (for immutable values), or value state has changed (for RpMutableValue instances).
+     * <p>
      * oldValue=rhythm parameter, newValue=value.
      */
-    public static final String PROPERTY_RP_VALUE = "SptRpValue";   //NOI18N 
-    public static final String PROPERTY_START_BAR_INDEX = "SptStartBarIndex";   //NOI18N 
-    public static final String PROPERTY_NB_BARS = "SptNbBars";   //NOI18N 
-    public static final String PROPERTY_NAME = "SptName";   //NOI18N 
+    public static final String PROP_RP_VALUE = "SptRpValue";
+    /**
+     * Fired when a mutable value has changed (in addition to the PROP_RP_VALUE change event).
+     * <p>
+     * Occurs when the value state of a RpMutableValue instance has changed.
+     * <p>
+     * oldValue=rhythm parameter, newValue=value.
+     */
+    public static final String PROP_RP_MUTABLE_VALUE = "SptRpMutableValue";
+    public static final String PROP_START_BAR_INDEX = "SptStartBarIndex";
+    public static final String PROP_NB_BARS = "SptNbBars";
+    public static final String PROP_NAME = "SptName";
     public static final DataFlavor DATA_FLAVOR = new DataFlavor(SongPart.class, "Song Part");
 
     public int getStartBarIndex();
@@ -82,7 +93,7 @@ public interface SongPart extends Transferable
     public CLI_Section getParentSection();
 
     /**
-     * Get a copy of the RhythmParameter value.
+     * Get the RhythmParameter value.
      *
      * @param <T>
      * @param rp
@@ -103,9 +114,9 @@ public interface SongPart extends Transferable
      * Parameters of the new SongPart can be adjusted.<br>
      * If using a different rhythm, try to adapt the value of compatible RhythmParameters.
      *
-     * @param r The new Rhythm to be used. If null Rhythm is unchanged.
+     * @param r             The new Rhythm to be used. If null Rhythm is unchanged.
      * @param startBarIndex The startBarIndex of the new SongPart
-     * @param nbBars The nbBars of the new SongPart
+     * @param nbBars        The nbBars of the new SongPart
      * @param parentSection The parentSection of the new SongPart. TimeSignature must match the specified rhythm. Can be null.
      * @return A new SongPart.
      */

@@ -82,11 +82,11 @@ public class RhythmDbCache implements Serializable
 
     public void dump()
     {
-        LOGGER.info("dump():");   //NOI18N
+        LOGGER.info("dump():");   
         for (String rpId : data.keySet())
         {
             var rhythms = data.get(rpId);
-            LOGGER.info("- " + rpId + ": total=" + rhythms.size());   //NOI18N
+            LOGGER.info("- " + rpId + ": total=" + rhythms.size());   
         }
     }
 
@@ -110,7 +110,7 @@ public class RhythmDbCache implements Serializable
     {
         var fdm = FileDirectoryManager.getInstance();
         File dir = fdm.getAppConfigDirectory(null);
-        assert dir != null;   //NOI18N
+        assert dir != null;   
         return new File(dir, DB_CACHE_FILE);
     }
 

@@ -82,7 +82,7 @@ public class AppendSpt extends AbstractAction
         ChordLeadSheet cls = sgs.getParentChordLeadSheet();
         if (cls == null)
         {
-            throw new IllegalStateException("sgs=" + sgs);   //NOI18N
+            throw new IllegalStateException("sgs=" + sgs);   
         }
         
         
@@ -98,7 +98,7 @@ public class AppendSpt extends AbstractAction
         {
             // Perform change
             CLI_Section parentSection = dlg.getParentSection();
-            assert parentSection != null;   //NOI18N
+            assert parentSection != null;   
                                    
             
             // Create the song part

@@ -51,7 +51,7 @@ public class Scale
     {
         if (name == null || name.isEmpty() || degs == null || degs.length == 0 || degs[0] != Degree.ROOT)
         {
-            throw new IllegalArgumentException("name=" + name + " degrees=" + degs);   //NOI18N
+            throw new IllegalArgumentException("name=" + name + " degrees=" + degs);   
         }
         this.name = name;
         this.degrees.add(Degree.ROOT);
@@ -63,7 +63,7 @@ public class Scale
             int newPitch = degs[i].getPitch();
             if (newPitch <= lastPitch)
             {
-                throw new IllegalArgumentException("Degrees must unique and ascending. name=" + name + " degs=" + degs);   //NOI18N
+                throw new IllegalArgumentException("Degrees must unique and ascending. name=" + name + " degs=" + degs);   
             }
             this.degrees.add(degs[i]);
             this.notesInC.add(new Note(degs[i].getPitch()));
@@ -138,7 +138,7 @@ public class Scale
     {
         if (relPitch < 0 || relPitch > 11)
         {
-            throw new IllegalArgumentException("relPitch=" + relPitch);   //NOI18N
+            throw new IllegalArgumentException("relPitch=" + relPitch);   
         }
         for (Degree d : degrees)
         {

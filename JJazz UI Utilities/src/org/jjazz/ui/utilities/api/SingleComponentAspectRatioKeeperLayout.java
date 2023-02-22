@@ -62,7 +62,7 @@ public class SingleComponentAspectRatioKeeperLayout implements LayoutManager
         int parentComponentCount = parent.getComponentCount();
         if (parentComponentCount > 1)
         {
-            throw new IllegalArgumentException(this.getClass().getSimpleName()   //NOI18N
+            throw new IllegalArgumentException(this.getClass().getSimpleName()   
                     + " can not handle more than one component");
         }
         Component comp = (parentComponentCount == 1) ? parent.getComponent(0) : fakeComponent;

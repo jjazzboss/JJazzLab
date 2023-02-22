@@ -51,7 +51,7 @@ import org.jjazz.uisettings.api.GeneralUISettings;
 public class FlatIntegerVerticalSlider extends JComponent implements MouseListener, MouseMotionListener, MouseWheelListener
 {
 
-    public static final String PROP_VALUE = "PropValue";   //NOI18N 
+    public static final String PROP_VALUE = "PropValue";    
 
     // UI variables
     private int padding = 5;
@@ -299,7 +299,7 @@ public class FlatIntegerVerticalSlider extends JComponent implements MouseListen
     {
         if (v < 0 || v > 127)
         {
-            throw new IllegalArgumentException("v=" + v);   //NOI18N
+            throw new IllegalArgumentException("v=" + v);   
         }
         if (value != v)
         {

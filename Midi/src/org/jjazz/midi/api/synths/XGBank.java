@@ -654,7 +654,7 @@ public class XGBank extends InstrumentBank<Instrument>
                     res.add(instruments.get(516));
                     break;
                 default:
-                    throw new IllegalStateException("kit=" + kit);   //NOI18N
+                    throw new IllegalStateException("kit=" + kit);   
             }
         }
         return res;

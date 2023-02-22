@@ -281,7 +281,7 @@ public class SptEditorImpl extends SptEditor implements PropertyChangeListener
     @Override
     public void propertyChange(PropertyChangeEvent e)
     {
-        LOGGER.fine("propertyChange() e=" + e);   //NOI18N
+        LOGGER.fine("propertyChange() e=" + e);   
         if (e.getSource() == settings)
         {
             tf_name.setFont(settings.getNameFont());
@@ -310,14 +310,14 @@ public class SptEditorImpl extends SptEditor implements PropertyChangeListener
             SongPart spt = (SongPart) e.getSource();
             if (!songParts.contains(spt))
             {
-                throw new IllegalStateException("spt=" + spt + " songParts=" + songParts);   //NOI18N
+                throw new IllegalStateException("spt=" + spt + " songParts=" + songParts);   
             }
-            if (e.getPropertyName().equals(SongPart.PROPERTY_NAME)
-                    || e.getPropertyName().equals(SongPart.PROPERTY_NB_BARS)
-                    || e.getPropertyName().equals(SongPart.PROPERTY_START_BAR_INDEX))
+            if (e.getPropertyName().equals(SongPart.PROP_NAME)
+                    || e.getPropertyName().equals(SongPart.PROP_NB_BARS)
+                    || e.getPropertyName().equals(SongPart.PROP_START_BAR_INDEX))
             {
                 updateUIComponents();
-            } else if (e.getPropertyName().equals(SongPart.PROPERTY_RP_VALUE))
+            } else if (e.getPropertyName().equals(SongPart.PROP_RP_VALUE))
             {
                 updateUIComponents();
             }
@@ -366,7 +366,7 @@ public class SptEditorImpl extends SptEditor implements PropertyChangeListener
             // SongPart selection. Nothing to do
         }
 
-        LOGGER.log(Level.FINE, "refresh() spts=" + spts);   //NOI18N
+        LOGGER.log(Level.FINE, "refresh() spts=" + spts);   
 
         // Unregister previous songParts
         for (SongPart spt : songParts)
@@ -411,7 +411,7 @@ public class SptEditorImpl extends SptEditor implements PropertyChangeListener
      */
     private void sptPresenceChanged()
     {
-        LOGGER.log(Level.FINE, "sptPresenceChanged()");   //NOI18N
+        LOGGER.log(Level.FINE, "sptPresenceChanged()");   
         refresh(ssEditor.getLookup());
     }
 
@@ -420,7 +420,7 @@ public class SptEditorImpl extends SptEditor implements PropertyChangeListener
      */
     private void sptpPresenceChanged()
     {
-        LOGGER.log(Level.FINE, "sptpPresenceChanged()");   //NOI18N
+        LOGGER.log(Level.FINE, "sptpPresenceChanged()");   
         refresh(ssEditor.getLookup());
     }
 
@@ -431,7 +431,7 @@ public class SptEditorImpl extends SptEditor implements PropertyChangeListener
      */
     private void songPresenceChanged()
     {
-        LOGGER.log(Level.FINE, "songPresenceChanged()");   //NOI18N
+        LOGGER.log(Level.FINE, "songPresenceChanged()");   
         Song song = Utilities.actionsGlobalContext().lookup(Song.class
         );
         if (song == songModel || song == null)
@@ -451,7 +451,7 @@ public class SptEditorImpl extends SptEditor implements PropertyChangeListener
         // instanceContent.add(songModel.getChordLeadSheet());          // Commented out april 2021: seems useless
 
         ssEditor = SS_EditorTopComponent.get(songModel.getSongStructure()).getEditor();
-        assert ssEditor != null : "songModel=" + songModel;   //NOI18N
+        assert ssEditor != null : "songModel=" + songModel;   
 
         // Directly listen to the sgsModel editor selection changes
         Lookup context = ssEditor.getLookup();
@@ -472,7 +472,7 @@ public class SptEditorImpl extends SptEditor implements PropertyChangeListener
     {
         if (songParts.isEmpty())
         {
-            throw new IllegalStateException("isEnabled()=" + isEnabled() + " songParts=" + songParts);   //NOI18N
+            throw new IllegalStateException("isEnabled()=" + isEnabled() + " songParts=" + songParts);   
         }
 
         // 

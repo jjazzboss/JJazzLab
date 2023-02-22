@@ -75,7 +75,7 @@ public class RpValueCopyBuffer
     {
         if (r == null || rp == null || values == null)
         {
-            throw new IllegalArgumentException("r=" + r + " rp=" + rp + " values=" + values);   //NOI18N
+            throw new IllegalArgumentException("r=" + r + " rp=" + rp + " values=" + values);   
         }
         if (values.isEmpty())
         {

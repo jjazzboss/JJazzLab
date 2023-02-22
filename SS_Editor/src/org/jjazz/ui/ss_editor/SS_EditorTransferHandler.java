@@ -64,7 +64,7 @@ public class SS_EditorTransferHandler extends TransferHandler
     {
         if (ed == null)
         {
-            throw new NullPointerException("ed");   //NOI18N
+            throw new NullPointerException("ed");   
         }
         editor = ed;
     }
@@ -75,14 +75,14 @@ public class SS_EditorTransferHandler extends TransferHandler
     @Override
     public int getSourceActions(JComponent c)
     {
-        LOGGER.fine("getSourceActions()  c" + c);   //NOI18N
+        LOGGER.fine("getSourceActions()  c" + c);   
         return TransferHandler.COPY_OR_MOVE;
     }
 
     @Override
     public Transferable createTransferable(JComponent c)
     {
-        LOGGER.fine("createTransferable()  c" + c);   //NOI18N
+        LOGGER.fine("createTransferable()  c" + c);   
         if (c instanceof SptViewer)
         {
             SptViewer sptv = (SptViewer) c;
@@ -102,7 +102,7 @@ public class SS_EditorTransferHandler extends TransferHandler
     @Override
     protected void exportDone(JComponent c, Transferable data, int action)
     {
-        LOGGER.fine("exportDone()  c=" + c + " data=" + data + " action=" + action);   //NOI18N
+        LOGGER.fine("exportDone()  c=" + c + " data=" + data + " action=" + action);   
         // Will be called if drag was initiated from this handler
         editor.showSptInsertionMark(false, 0, false);
     }
@@ -110,7 +110,7 @@ public class SS_EditorTransferHandler extends TransferHandler
     @Override
     public boolean canImport(TransferHandler.TransferSupport info)
     {
-        LOGGER.fine("canImport() info.getComponent()=" + info.getComponent());   //NOI18N
+        LOGGER.fine("canImport() info.getComponent()=" + info.getComponent());   
 
 
         // Check data flavor and origin of the transfert
@@ -130,7 +130,7 @@ public class SS_EditorTransferHandler extends TransferHandler
             }
         } else
         {
-            LOGGER.fine("-- unsupported DataFlavor");   //NOI18N
+            LOGGER.fine("-- unsupported DataFlavor");   
             return false;
         }
 
@@ -141,7 +141,7 @@ public class SS_EditorTransferHandler extends TransferHandler
         boolean moveSupported = (MOVE & info.getSourceDropActions()) == MOVE;
         if (!copySupported && !moveSupported)
         {
-            LOGGER.fine("-- copy or move not supported");   //NOI18N
+            LOGGER.fine("-- copy or move not supported");   
             return false;
         }
         // Force modes if not supported by source
@@ -167,15 +167,15 @@ public class SS_EditorTransferHandler extends TransferHandler
     @Override
     public boolean importData(TransferHandler.TransferSupport info)
     {
-        LOGGER.fine("importData() info.getComponent()=" + info.getComponent());   //NOI18N
+        LOGGER.fine("importData() info.getComponent()=" + info.getComponent());   
         if (!info.isDrop())
         {
-            LOGGER.fine("--- not a drop");   //NOI18N
+            LOGGER.fine("--- not a drop");   
             return false;
         }
         if (!canImport(info))
         {
-            LOGGER.fine("--- can't import");   //NOI18N
+            LOGGER.fine("--- can't import");   
             return false;
         }
 
@@ -189,9 +189,9 @@ public class SS_EditorTransferHandler extends TransferHandler
             b = importSection(info);
         } else
         {
-            LOGGER.warning("importData() unexpected data flavor=" + info.getDataFlavors());   //NOI18N
+            LOGGER.warning("importData() unexpected data flavor=" + info.getDataFlavors());   
         }
-        LOGGER.fine("--- exited with b=" + b);   //NOI18N
+        LOGGER.fine("--- exited with b=" + b);   
         return b;
     }
 
@@ -207,11 +207,11 @@ public class SS_EditorTransferHandler extends TransferHandler
     private boolean importSongPart(TransferSupport info)
     {
         SongPart spt = getTransferredSpt(info.getTransferable());
-        assert spt != null;   //NOI18N
+        assert spt != null;   
 
         // Calculate insertion point
         int targetSptIndex = getInsertionSptIndex(info);
-        assert targetSptIndex != -1;   //NOI18N
+        assert targetSptIndex != -1;   
 
         SongStructure sgs = editor.getModel();
         List<SongPart> spts = sgs.getSongParts();
@@ -245,7 +245,7 @@ public class SS_EditorTransferHandler extends TransferHandler
         if (info.getDropAction() == MOVE)
         {
             // Move the SongPart
-            LOGGER.log(Level.FINE, "importSongPart() MOVE spt=" + spt + " newSpt=" + newSpt);   //NOI18N
+            LOGGER.log(Level.FINE, "importSongPart() MOVE spt=" + spt + " newSpt=" + newSpt);   
             um.startCEdit(ResUtil.getString(getClass(), "CTL_MoveSpt"));
             try
             {
@@ -265,7 +265,7 @@ public class SS_EditorTransferHandler extends TransferHandler
         } else
         {
             // Copy
-            LOGGER.log(Level.FINE, "importSongPart() COPY newSpt=" + newSpt);   //NOI18N
+            LOGGER.log(Level.FINE, "importSongPart() COPY newSpt=" + newSpt);   
             um.startCEdit(ResUtil.getString(getClass(), "CTL_CopySpt"));
             try
             {
@@ -291,10 +291,10 @@ public class SS_EditorTransferHandler extends TransferHandler
 
     private boolean importSection(TransferSupport info)
     {
-        assert info.getDropAction() == COPY;    // Can't move a CL_Editor section here !   //NOI18N
+        assert info.getDropAction() == COPY;    // Can't move a CL_Editor section here !   
 
         CLI_Section parentSection = getTransferredSection(info.getTransferable());
-        assert parentSection != null;   //NOI18N
+        assert parentSection != null;   
 
         SS_SelectionUtilities selection = new SS_SelectionUtilities(editor.getLookup());
         selection.unselectAll(editor);
@@ -332,7 +332,7 @@ public class SS_EditorTransferHandler extends TransferHandler
             section = (CLI_Section) t.getTransferData(CLI_Section.DATA_FLAVOR);
         } catch (UnsupportedFlavorException | IOException ex)
         {
-            LOGGER.log(Level.FINE, ex.getMessage(), ex);   //NOI18N
+            LOGGER.log(Level.FINE, ex.getMessage(), ex);   
         }
         return section;
     }
@@ -345,7 +345,7 @@ public class SS_EditorTransferHandler extends TransferHandler
             spt = (SongPart) t.getTransferData(SongPart.DATA_FLAVOR);
         } catch (UnsupportedFlavorException | IOException ex)
         {
-            LOGGER.log(Level.FINE, ex.getMessage(), ex);   //NOI18N
+            LOGGER.log(Level.FINE, ex.getMessage(), ex);   
         }
         return spt;
     }

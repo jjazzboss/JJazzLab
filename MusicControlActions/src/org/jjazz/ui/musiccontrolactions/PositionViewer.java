@@ -54,7 +54,7 @@ public class PositionViewer extends JLabel implements PropertyChangeListener
     {
         if (pos == null)
         {
-            throw new IllegalArgumentException("song=" + song + " pos=" + pos);   //NOI18N
+            throw new IllegalArgumentException("song=" + song + " pos=" + pos);   
         }
         if (posModel != null)
         {

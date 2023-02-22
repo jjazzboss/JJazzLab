@@ -131,7 +131,7 @@ public class RpEditorSpinner extends RpEditorComponent<Integer> implements Chang
         {
             if (!(val instanceof Integer) || !rp.isValidValue((Integer) val))
             {
-                throw new IllegalArgumentException(); // Will be catched by the JSpinner code to revert to previous value   //NOI18N
+                throw new IllegalArgumentException(); // Will be catched by the JSpinner code to revert to previous value   
             }
             super.setValue(val);
         }

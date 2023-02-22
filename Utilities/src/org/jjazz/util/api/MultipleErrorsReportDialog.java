@@ -49,7 +49,7 @@ public class MultipleErrorsReportDialog extends javax.swing.JDialog
     {
         super(f, dialogTitle, true);
 
-        assert errRpt.primaryErrorMessage != null;   //NOI18N
+        assert errRpt.primaryErrorMessage != null;   
 
         errorRpt = errRpt;
 
@@ -81,8 +81,8 @@ public class MultipleErrorsReportDialog extends javax.swing.JDialog
     protected JRootPane createRootPane()
     {
         JRootPane contentPane = new JRootPane();
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ENTER"), "actionOk");   //NOI18N
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ESCAPE"), "actionOk");   //NOI18N
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ENTER"), "actionOk");   
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ESCAPE"), "actionOk");   
         contentPane.getActionMap().put("actionOk", new AbstractAction("OK")
         {
 

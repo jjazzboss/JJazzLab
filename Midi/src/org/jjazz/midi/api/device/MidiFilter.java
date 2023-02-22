@@ -73,7 +73,7 @@ public class MidiFilter extends JJazzMidiDevice
         FilterReceiver rcv = new FilterReceiver();
         receivers.add(rcv);
         open();
-        LOGGER.log(Level.FINE, "getReceiver() rcv={0}", rcv);   //NOI18N
+        LOGGER.log(Level.FINE, "getReceiver() rcv={0}", rcv);   
         return rcv;
     }
 
@@ -100,7 +100,7 @@ public class MidiFilter extends JJazzMidiDevice
     {
         if (configLog.contains(ConfigLog.LOG_FILTERED_MESSAGES))
         {
-            LOGGER.log(Level.INFO, "{0} : FILTERED={1}", new Object[]   //NOI18N
+            LOGGER.log(Level.INFO, "{0} : FILTERED={1}", new Object[]   
             {
                 devInfo.getName(),
                 MidiUtilities.toString(msg, timestamp)
@@ -129,7 +129,7 @@ public class MidiFilter extends JJazzMidiDevice
         // Optional log
         if (configLog.contains(ConfigLog.LOG_PASSED_MESSAGES))
         {
-            LOGGER.log(Level.INFO, "{0} : PASSED={1}", new Object[]   //NOI18N
+            LOGGER.log(Level.INFO, "{0} : PASSED={1}", new Object[]   
             {
                 devInfo.getName(),
                 MidiUtilities.toString(msg, timestamp)
@@ -148,7 +148,7 @@ public class MidiFilter extends JJazzMidiDevice
         @Override
         synchronized public void close()
         {
-            LOGGER.fine("FilterReceiver.close()");   //NOI18N
+            LOGGER.fine("FilterReceiver.close()");   
             isOpen = false;
             receivers.remove(this);
         }
@@ -165,7 +165,7 @@ public class MidiFilter extends JJazzMidiDevice
 
             if (!isOpen)
             {
-                throw new IllegalStateException("FilterReceiver object is closed");   //NOI18N
+                throw new IllegalStateException("FilterReceiver object is closed");   
             }
 
             if (configFilter.isEmpty())

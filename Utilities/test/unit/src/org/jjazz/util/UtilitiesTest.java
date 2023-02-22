@@ -94,7 +94,7 @@ public class UtilitiesTest
         String ext = "";
         boolean expResult = false;
         boolean result = Utilities.endsWithIgnoreCase(str, ext);
-        assertEquals(expResult, result);   //NOI18N
+        assertEquals(expResult, result);   
         // TODO review the generated test code and remove the default call to fail.
         fail("The test case is a prototype.");
     }
@@ -108,7 +108,7 @@ public class UtilitiesTest
         String path = "";
         String expResult = "";
         String result = Utilities.getExtension(path);
-        assertEquals(expResult, result);   //NOI18N
+        assertEquals(expResult, result);   
         // TODO review the generated test code and remove the default call to fail.
         fail("The test case is a prototype.");
     }
@@ -123,7 +123,7 @@ public class UtilitiesTest
         String ext = "";
         String expResult = "";
         String result = Utilities.replaceExtension(filename, ext);
-        assertEquals(expResult, result);   //NOI18N
+        assertEquals(expResult, result);   
         // TODO review the generated test code and remove the default call to fail.
         fail("The test case is a prototype.");
     }
@@ -149,7 +149,7 @@ public class UtilitiesTest
         Object v = null;
         Object expResult = null;
         Object result = Utilities.reverseGet(map, v);
-        assertEquals(expResult, result);   //NOI18N
+        assertEquals(expResult, result);   
         // TODO review the generated test code and remove the default call to fail.
         fail("The test case is a prototype.");
     }
@@ -164,7 +164,7 @@ public class UtilitiesTest
         Class<?> clazz = null;
         int expResult = 0;
         int result = Utilities.indexOfInstance(list, clazz);
-        assertEquals(expResult, result);   //NOI18N
+        assertEquals(expResult, result);   
         // TODO review the generated test code and remove the default call to fail.
         fail("The test case is a prototype.");
     }
@@ -180,7 +180,7 @@ public class UtilitiesTest
         String es = "";
         String expResult = "";
         String result = Utilities.expand(s, l, es);
-        assertEquals(expResult, result);   //NOI18N
+        assertEquals(expResult, result);   
         // TODO review the generated test code and remove the default call to fail.
         fail("The test case is a prototype.");
     }
@@ -195,7 +195,7 @@ public class UtilitiesTest
         List<? extends Object> array = null;
         int expResult = 0;
         int result = Utilities.getObjectRefIndex(o, array);
-        assertEquals(expResult, result);   //NOI18N
+        assertEquals(expResult, result);   
         // TODO review the generated test code and remove the default call to fail.
         fail("The test case is a prototype.");
     }
@@ -210,7 +210,7 @@ public class UtilitiesTest
         String str = "";
         int expResult = 0;
         int result = Utilities.indexOfStringIgnoreCase(list, str);
-        assertEquals(expResult, result);   //NOI18N
+        assertEquals(expResult, result);   
         // TODO review the generated test code and remove the default call to fail.
         fail("The test case is a prototype.");
     }
@@ -224,7 +224,7 @@ public class UtilitiesTest
         Font font = null;
         String expResult = "";
         String result = Utilities.fontAsString(font);
-        assertEquals(expResult, result);   //NOI18N
+        assertEquals(expResult, result);   
         // TODO review the generated test code and remove the default call to fail.
         fail("The test case is a prototype.");
     }
@@ -252,7 +252,7 @@ public class UtilitiesTest
         URL url = null;
         File expResult = null;
         File result = Utilities.urlToFile(url);
-        assertEquals(expResult, result);   //NOI18N
+        assertEquals(expResult, result);   
         // TODO review the generated test code and remove the default call to fail.
         fail("The test case is a prototype.");
     }
@@ -266,7 +266,7 @@ public class UtilitiesTest
         String url = "";
         File expResult = null;
         File result = Utilities.urlToFile(url);
-        assertEquals(expResult, result);   //NOI18N
+        assertEquals(expResult, result);   
         // TODO review the generated test code and remove the default call to fail.
         fail("The test case is a prototype.");
     }

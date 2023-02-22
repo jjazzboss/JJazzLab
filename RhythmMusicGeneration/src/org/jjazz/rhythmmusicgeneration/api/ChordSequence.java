@@ -272,7 +272,7 @@ public class ChordSequence extends ArrayList<CLI_ChordSymbol> implements Compara
     {
         if (absoluteBarIndex < 1)
         {
-            throw new IllegalArgumentException("absoluteBarIndex=" + absoluteBarIndex);   //NOI18N
+            throw new IllegalArgumentException("absoluteBarIndex=" + absoluteBarIndex);   
         }
         int index = -1;
         int firstIndex = indexOfFirstChordFromBar(absoluteBarIndex);

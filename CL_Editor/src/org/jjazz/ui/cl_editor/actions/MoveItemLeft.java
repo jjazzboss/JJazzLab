@@ -53,7 +53,7 @@ public final class MoveItemLeft implements ActionListener
     @Override
     public void actionPerformed(ActionEvent ev)
     {
-        assert !context.isEmpty() : "context=" + context;   //NOI18N
+        assert !context.isEmpty() : "context=" + context;   
         ChordLeadSheet cls = context.get(0).getContainer();
         JJazzUndoManagerFinder.getDefault().get(cls).startCEdit(undoText);
         if (context.get(0) instanceof CLI_Section)

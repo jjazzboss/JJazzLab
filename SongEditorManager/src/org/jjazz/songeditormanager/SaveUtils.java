@@ -117,7 +117,7 @@ class SaveUtils
     {
         if (song == null || songFile == null)
         {
-            throw new IllegalArgumentException("song=" + song + " songFile=" + songFile);   //NOI18N
+            throw new IllegalArgumentException("song=" + song + " songFile=" + songFile);   
         }
         FileDirectoryManager fdm = FileDirectoryManager.getInstance();
         int resSong;
@@ -191,7 +191,7 @@ class SaveUtils
             midiMix = MidiMixManager.getInstance().findMix(song);
         } catch (MidiUnavailableException ex)
         {
-            LOGGER.severe("getMidiMixSilent() Could not retrieve MidiMix for song " + song.getName() + " - ex=" + ex.getMessage());   //NOI18N
+            LOGGER.severe("getMidiMixSilent() Could not retrieve MidiMix for song " + song.getName() + " - ex=" + ex.getMessage());   
         }
         return midiMix;
     }

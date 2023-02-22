@@ -142,7 +142,7 @@ public class FlatButton extends JLabel implements PropertyChangeListener
     {
         if (a == null)
         {
-            throw new NullPointerException("a");   //NOI18N
+            throw new NullPointerException("a");   
         }
         if (action != null)
         {

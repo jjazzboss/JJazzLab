@@ -81,7 +81,7 @@ public class RhythmVoice
                 case OTHER:
                     return gmBank.getDefaultInstrument(Family.Piano);
                 default:
-                    throw new IllegalStateException("this=" + this);   //NOI18N
+                    throw new IllegalStateException("this=" + this);   
             }
         }
     }
@@ -124,7 +124,7 @@ public class RhythmVoice
         if (container == null || type == null || type.equals(Type.DRUMS) || type.equals(Type.PERCUSSION) || ins == null
                 || ins.getSubstitute() == null || name == null || is == null || !MidiConst.checkMidiChannel(preferredChannel))
         {
-            throw new IllegalArgumentException( //NOI18N
+            throw new IllegalArgumentException( 
                     "container=" + container + " type=" + type + " name=" + name + " ins=" + ins.toLongString() + " is=" + is + " preferredChannel=" + preferredChannel);
         }
         this.container = container;

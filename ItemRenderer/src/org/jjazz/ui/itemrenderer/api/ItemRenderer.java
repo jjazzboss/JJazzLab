@@ -78,7 +78,7 @@ public abstract class ItemRenderer extends JPanel implements PropertyChangeListe
         super();
         if (item == null || irType == null)
         {
-            throw new NullPointerException("item=" + item + " irType=" + irType);   //NOI18N
+            throw new NullPointerException("item=" + item + " irType=" + irType);   
         }
         this.irType = irType;
         modelItem = item;

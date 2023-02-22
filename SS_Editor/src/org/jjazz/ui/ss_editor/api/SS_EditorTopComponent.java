@@ -83,8 +83,10 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
      */
     private TopComponent pairedTc;
     private SS_EditorToolBar ssToolBar;
+    private boolean silentClose;
 
     private static final Logger LOGGER = Logger.getLogger(SS_EditorTopComponent.class.getName());
+
 
     /**
      * Create an editor.
@@ -95,7 +97,7 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
     {
         if (song == null || song.getSongStructure() == null)
         {
-            throw new IllegalArgumentException("song=" + song);   //NOI18N
+            throw new IllegalArgumentException("song=" + song);
         }
         songModel = song;
         songModel.addPropertyChangeListener(this);
@@ -303,10 +305,23 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
         SwingUtilities.invokeLater(r);
     }
 
+    /**
+     * Close the TopComponent without asking for user confirmation.
+     */
+    public void closeSilent()
+    {
+        silentClose = true;
+        close();
+    }
 
     @Override
     public boolean canClose()
     {
+        if (silentClose)
+        {
+            return true;
+        }
+
         if (pairedTc != null)
         {
             // If CL_Editor is first closed, just let this TopComponent be closed

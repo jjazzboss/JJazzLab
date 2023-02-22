@@ -99,7 +99,7 @@ public abstract class RpEditorComponent<E> extends JComponent implements Propert
     {
         if (evt.getSource() == songPart)
         {
-            if (SongPart.PROPERTY_RP_VALUE.equals(evt.getPropertyName()) && evt.getOldValue() == rp)
+            if (SongPart.PROP_RP_VALUE.equals(evt.getPropertyName()) && evt.getOldValue() == rp)
             {
                 updateEditorValue((E) evt.getNewValue());
             }

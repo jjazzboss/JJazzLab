@@ -72,7 +72,7 @@ public class ResizeSelection extends AbstractAction
             qDur = -qDur;
         }
         Phrase model = editor.getModel();
-        FloatRange br = editor.getBeatRange();
+        FloatRange br = editor.getPhraseBeatRange();
 
 
         String undoText = ResUtil.getString(ResizeSelection.class, "ResizeNote");

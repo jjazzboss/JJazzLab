@@ -133,7 +133,7 @@ public class CompactViewModeController implements PropertyChangeListener, SgsCha
                 LOGGER.log(Level.FINE, "CompactViewModeController.songStructureChanged() -- e={0} spts={1}", new Object[]
                 {
                     e, e.getSongParts()
-                });   //NOI18N
+                });   
 
                 // Get the new rhythms
                 List<Rhythm> rhythms = new ArrayList<>();

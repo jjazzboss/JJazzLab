@@ -97,7 +97,7 @@ public class RpViewer extends JPanel implements PropertyChangeListener, FocusLis
     {
         if (rp == null || spt == null || settings == null || renderer == null)
         {
-            throw new NullPointerException("controller=" + controller + " spt=" + spt + " rp=" + rp + " settings=" + settings + " renderer=" + renderer);   //NOI18N
+            throw new NullPointerException("controller=" + controller + " spt=" + spt + " rp=" + rp + " settings=" + settings + " renderer=" + renderer);   
         }
         this.rpModel = rp;
         this.sptModel = spt;
@@ -157,7 +157,7 @@ public class RpViewer extends JPanel implements PropertyChangeListener, FocusLis
     {
         if (factor < 0 || factor > 100)
         {
-            throw new IllegalArgumentException("factor=" + factor);   //NOI18N
+            throw new IllegalArgumentException("factor=" + factor);   
         }
         if (factor != zoomVFactor)
         {
@@ -209,7 +209,7 @@ public class RpViewer extends JPanel implements PropertyChangeListener, FocusLis
     public void setSelected(boolean b)
     {
         isSelected = b;
-        LOGGER.log(Level.FINE, "setSelected this=" + this + " b=" + b);   //NOI18N
+        LOGGER.log(Level.FINE, "setSelected this=" + this + " b=" + b);   
         if (isSelected)
         {
             setBackground(settings.getSelectedBackgroundColor());
@@ -261,7 +261,7 @@ public class RpViewer extends JPanel implements PropertyChangeListener, FocusLis
             updateUIComponents();
         } else if (evt.getSource() == sptModel)
         {
-            if (evt.getPropertyName().equals(SongPart.PROPERTY_RP_VALUE))
+            if (evt.getPropertyName().equals(SongPart.PROP_RP_VALUE))
             {
                 if (evt.getOldValue() == rpModel)
                 {

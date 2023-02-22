@@ -79,7 +79,7 @@ public interface CLI_Section extends ChordLeadSheetItem<Section>
 
             if (robustness == 0)
             {
-                throw new IllegalStateException("createSectionName() sectionName=" + sectionName + " robustness=" //NOI18N
+                throw new IllegalStateException("createSectionName() sectionName=" + sectionName + " robustness=" 
                         + robustness);
             }
             return newName;

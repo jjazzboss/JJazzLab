@@ -76,7 +76,7 @@ public class RhythmInfoImpl implements RhythmInfo, Serializable
     {
         if (rhythm == null || rhythmProvider == null )
         {
-            throw new IllegalArgumentException("rhythm=" + rhythm + " rhythm.getFile()=" + rhythm.getFile() + " rhythmProvider=" + rhythmProvider);   //NOI18N
+            throw new IllegalArgumentException("rhythm=" + rhythm + " rhythm.getFile()=" + rhythm.getFile() + " rhythmProvider=" + rhythmProvider);   
         }
         this.rhythmProviderId = rhythmProvider.getInfo().getUniqueId();
         this.rhythmUniqueId = rhythm.getUniqueId();
@@ -115,28 +115,28 @@ public class RhythmInfoImpl implements RhythmInfo, Serializable
         boolean b = true;
         if (!rhythmUniqueId.equals(r.getUniqueId()))
         {
-            LOGGER.warning("checkConsistency() r=" + r + ": uniqueId mismatch. rhythmUniqueId=" + rhythmUniqueId + " r.getUniqueId()=" + r.getUniqueId());   //NOI18N
+            LOGGER.warning("checkConsistency() r=" + r + ": uniqueId mismatch. rhythmUniqueId=" + rhythmUniqueId + " r.getUniqueId()=" + r.getUniqueId());   
             b = false;
         }
         if (!rhythmProviderId.equals(rp.getInfo().getUniqueId()))
         {
-            LOGGER.warning("checkConsistency() r=" + r + ": rhythmProviderId mismatch. rhythmProviderId=" + rhythmProviderId   //NOI18N
+            LOGGER.warning("checkConsistency() r=" + r + ": rhythmProviderId mismatch. rhythmProviderId=" + rhythmProviderId   
                     + " rdb.rp.uniqueId=" + RhythmDatabase.getDefault().getRhythmProvider(r).getInfo().getUniqueId());
             b = false;
         }
         if (!name.equals(r.getName()))
         {
-            LOGGER.warning("checkConsistency() r=" + r + ": name mismatch. name=" + name + " r.getName()=" + r.getName());   //NOI18N
+            LOGGER.warning("checkConsistency() r=" + r + ": name mismatch. name=" + name + " r.getName()=" + r.getName());   
             b = false;
         }
         if (!file.equals(r.getFile()))
         {
-            LOGGER.warning("checkConsistency() r=" + r + ": file mismatch. file=" + file.getAbsolutePath() + " r.getFile()=" + r.getFile().getAbsolutePath());   //NOI18N
+            LOGGER.warning("checkConsistency() r=" + r + ": file mismatch. file=" + file.getAbsolutePath() + " r.getFile()=" + r.getFile().getAbsolutePath());   
             b = false;
         }
         if (!timeSignature.equals(r.getTimeSignature()))
         {
-            LOGGER.warning("checkConsistency() r=" + r + ": timeSignature mismatch. timeSignature=" + timeSignature + " r.getTimeSignature()=" + r.getTimeSignature());   //NOI18N
+            LOGGER.warning("checkConsistency() r=" + r + ": timeSignature mismatch. timeSignature=" + timeSignature + " r.getTimeSignature()=" + r.getTimeSignature());   
             b = false;
         }
 

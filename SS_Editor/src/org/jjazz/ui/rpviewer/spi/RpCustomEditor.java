@@ -22,7 +22,6 @@
  */
 package org.jjazz.ui.rpviewer.spi;
 
-import java.beans.PropertyChangeListener;
 import javax.swing.JDialog;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.songcontext.api.SongPartContext;

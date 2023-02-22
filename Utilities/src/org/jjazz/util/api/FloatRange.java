@@ -52,7 +52,7 @@ public class FloatRange
     {
         if (from < 0 || from >= to)
         {
-            throw new IllegalArgumentException("from=" + from + " to=" + to);   //NOI18N
+            throw new IllegalArgumentException("from=" + from + " to=" + to);   
         }
         this.from = from;
         this.to = to;

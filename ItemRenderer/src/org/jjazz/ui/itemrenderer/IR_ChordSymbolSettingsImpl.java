@@ -81,7 +81,7 @@ public class IR_ChordSymbolSettingsImpl implements IR_ChordSymbolSettings, FontC
                 GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(MUSIC_FONT); // So it is available in getAvailableFontFamilyNames() etc.
             } catch (IOException | FontFormatException e)
             {
-                LOGGER.log(Level.SEVERE, "Can''t access " + MUSIC_FONT_PATH);   //NOI18N
+                LOGGER.log(Level.SEVERE, "Can''t access " + MUSIC_FONT_PATH);   
             }
         }
     }
@@ -184,7 +184,7 @@ public class IR_ChordSymbolSettingsImpl implements IR_ChordSymbolSettings, FontC
     {
         if (accentFeature != Feature.ACCENT && accentFeature != Feature.ACCENT_STRONGER)
         {
-            throw new IllegalArgumentException("accentFeature");   //NOI18N
+            throw new IllegalArgumentException("accentFeature");   
         }
         return PROP_FONT_ACCENT_COLOR + "-" + accentFeature.name();
     }

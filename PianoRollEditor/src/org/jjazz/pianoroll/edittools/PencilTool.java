@@ -133,7 +133,7 @@ public class PencilTool implements EditTool
     {
         Point point = e.getPoint();
         boolean overrideSnapSetting = isOverrideSnapSetting(e);
-        FloatRange beatRange = editor.getBeatRange();
+        FloatRange beatRange = editor.getPhraseBeatRange();
         float pos = editor.getPositionFromPoint(point);
 
         if (dragNote == null)
@@ -226,7 +226,7 @@ public class PencilTool implements EditTool
     {
         Point editorPoint = SwingUtilities.convertPoint(nv, e.getPoint(), nv.getParent());
         boolean overrideSnapSetting = isOverrideSnapSetting(e);
-        FloatRange beatRange = editor.getBeatRange();
+        FloatRange beatRange = editor.getPhraseBeatRange();
         float pos = editor.getPositionFromPoint(editorPoint);
         if ((editor.isSnapEnabled() && !overrideSnapSetting) || (!editor.isSnapEnabled() && overrideSnapSetting))
         {
@@ -336,7 +336,7 @@ public class PencilTool implements EditTool
         boolean overrideSnapSetting = isOverrideSnapSetting(e);
         var q = editor.getQuantization();
         var point = e.getPoint();
-        var beatRange = editor.getBeatRange();
+        var beatRange = editor.getPhraseBeatRange();
 
 
         float pos = editor.getPositionFromPoint(point);

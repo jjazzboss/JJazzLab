@@ -160,7 +160,7 @@ public class BackgroundPhraseManager implements PropertyChangeListener
         } else
         {
             // Need to generate music
-            SongContext sgContext = new SongContext(editor.getSong(), midiMix, editor.getBarRange());
+            SongContext sgContext = new SongContext(editor.getSong(), midiMix, editor.getPhraseBarRange());
             musicGenerationQueue.add(sgContext);
         }
 
@@ -217,7 +217,7 @@ public class BackgroundPhraseManager implements PropertyChangeListener
         List<String> names = new ArrayList<>();
         for (int ch : midiMix.getUsedChannels())
         {
-            if (ch == editor.getChannel())
+            if (ch == editor.getChannel() || midiMix.getUserChannels().contains(ch))
             {
                 continue;
             }
@@ -242,11 +242,6 @@ public class BackgroundPhraseManager implements PropertyChangeListener
         return Integer.parseInt(name.substring(0, index)) - 1;
     }
 
-
-    private Phrase getBackgroundPhrase(int channel)
-    {
-        return PhraseSamples.getRandomPhrase(channel, 7, 16);
-    }
 
     //=============================================================================
     // PropertyChangeListener interface

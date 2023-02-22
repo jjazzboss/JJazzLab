@@ -184,7 +184,7 @@ public class PlaybackToNextSongPart extends AbstractAction implements PropertyCh
             newSong = s;
             i++;
         }
-        assert i < 2 : "i=" + i + " lookupResult.allInstances()=" + lookupResult.allInstances();   //NOI18N
+        assert i < 2 : "i=" + i + " lookupResult.allInstances()=" + lookupResult.allInstances();   
         if (newSong != null)
         {
             // Current song has changed

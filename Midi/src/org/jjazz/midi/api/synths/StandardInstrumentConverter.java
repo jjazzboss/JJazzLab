@@ -183,7 +183,7 @@ public class StandardInstrumentConverter
     {
         if (srcKit == null || midiSynth == null)
         {
-            throw new IllegalArgumentException("srcKit=" + srcKit + " midiSynth=" + midiSynth + " tryHarder=" + tryHarder);   //NOI18N
+            throw new IllegalArgumentException("srcKit=" + srcKit + " midiSynth=" + midiSynth + " tryHarder=" + tryHarder);   
         }
 
         Instrument res = null;
@@ -328,7 +328,7 @@ public class StandardInstrumentConverter
         {
             if (id == null || id.isEmpty() || map == null || map.length == 0)
             {
-                throw new IllegalArgumentException("id=" + id + " map=" + map);   //NOI18N
+                throw new IllegalArgumentException("id=" + id + " map=" + map);   
             }
             this.map = map;
         }

@@ -273,7 +273,7 @@ public class SelectionTool implements EditTool
                         }
 
 
-                        if (Float.floatToIntBits(srcNe.getDurationInBeats()) != Float.floatToIntBits(newDur) && (srcNe.getPositionInBeats() + newDur) < editor.getBeatRange().to)
+                        if (Float.floatToIntBits(srcNe.getDurationInBeats()) != Float.floatToIntBits(newDur) && (srcNe.getPositionInBeats() + newDur) < editor.getPhraseBeatRange().to)
                         {
                             var dragNe = mapSrcDragNotes.get(srcNe);
                             var newNe = srcNe.getCopyDur(newDur);
@@ -310,9 +310,9 @@ public class SelectionTool implements EditTool
                         }
 
 
-                        if (newPos + sne.getDurationInBeats() >= editor.getBeatRange().to)
+                        if (newPos + sne.getDurationInBeats() >= editor.getPhraseBeatRange().to)
                         {
-                            newPos = editor.getBeatRange().to - sne.getDurationInBeats();
+                            newPos = editor.getPhraseBeatRange().to - sne.getDurationInBeats();
                         }
                         newPitch = isConstantPitchModifier(e) ? sne.getPitch() : MidiUtilities.limit(sne.getPitch() + dPitch);
 

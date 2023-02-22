@@ -118,7 +118,7 @@ public class DeleteItem extends AbstractAction implements ContextAwareAction, CL
             }
         } else
         {
-            assert selection.isItemSelected() == true : " selection=" + selection;   //NOI18N
+            assert selection.isItemSelected() == true : " selection=" + selection;   
             items.addAll(selection.getSelectedItems());
         }
 
@@ -157,7 +157,7 @@ public class DeleteItem extends AbstractAction implements ContextAwareAction, CL
         {
             b = true;
         }
-        LOGGER.log(Level.FINE, "selectionChange() b=" + b);   //NOI18N
+        LOGGER.log(Level.FINE, "selectionChange() b=" + b);   
         setEnabled(b);
     }
 

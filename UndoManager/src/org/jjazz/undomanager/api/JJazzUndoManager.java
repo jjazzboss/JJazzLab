@@ -100,7 +100,7 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
     {
         if (name == null || name.isBlank())
         {
-            throw new IllegalArgumentException("name=" + name);   //NOI18N
+            throw new IllegalArgumentException("name=" + name);   
         }
         this.name = name;
     }
@@ -126,11 +126,11 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
     /**
      * Start a JJazzLab high-level compound edit with a null source object.
      *
-     * @param actionName Name of the edit
+     * @param editName Name of the edit
      */
-    public void startCEdit(String actionName)
+    public void startCEdit(String editName)
     {
-        startCEdit(null, actionName);
+        startCEdit(null, editName);
     }
 
     /**
@@ -143,7 +143,7 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
     {
         if (currentCEdit != null)
         {
-            throw new IllegalStateException("currentCEdit=" + currentCEdit + " source=" + source + "  editName=" + editName);   //NOI18N
+            throw new IllegalStateException("currentCEdit=" + currentCEdit + " source=" + source + "  editName=" + editName);   
         }
         LOGGER.log(Level.FINE, "startCEdit() source={0} editName={1} edits={2}", new Object[]
         {
@@ -165,7 +165,7 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
     {
         if (currentCEdit == null || !currentCEdit.getPresentationName().equals(editName))
         {
-            throw new IllegalStateException("currentCEdit=" + currentCEdit + " editName=" + editName);   //NOI18N
+            throw new IllegalStateException("currentCEdit=" + currentCEdit + " editName=" + editName);   
         }
         Object source = currentCEdit.getSource();
         LOGGER.log(Level.FINE, "endCEdit() -- source={0} n={1} edits={2} currentCEdit.edits={3}", new Object[]
@@ -478,7 +478,7 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
         {
             if (n == null)
             {
-                throw new IllegalArgumentException("n=" + n);   //NOI18N
+                throw new IllegalArgumentException("n=" + n);   
             }
             source = src;
             name = n;

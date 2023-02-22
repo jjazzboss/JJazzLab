@@ -44,7 +44,7 @@ final public class SelectedBar implements Comparable<SelectedBar>
     {
         if (barBoxIndex < 0)
         {
-            throw new IllegalArgumentException("barBoxIndex=" + barBoxIndex);   //NOI18N
+            throw new IllegalArgumentException("barBoxIndex=" + barBoxIndex);   
         }
         this.barBoxIndex = barBoxIndex;
         container = cls;

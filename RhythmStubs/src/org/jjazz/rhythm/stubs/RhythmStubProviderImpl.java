@@ -62,7 +62,7 @@ public class RhythmStubProviderImpl implements StubRhythmProvider
     {
         if (ts == null)
         {
-            throw new NullPointerException("ts");   //NOI18N
+            throw new NullPointerException("ts");   
         }
         Rhythm res = null;
         for (Rhythm r : rhythms)

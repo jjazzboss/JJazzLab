@@ -97,7 +97,7 @@ final class ThemePanel extends javax.swing.JPanel implements ActionListener
                 String id = fcs.getId();
                 if (saveMapIdValues.get(id) != null)
                 {
-                    LOGGER.severe("Duplicate FCSetting Id=" + id);   //NOI18N
+                    LOGGER.severe("Duplicate FCSetting Id=" + id);   
                 }
                 saveMapIdValues.put(id, new FCvalues(fcs));
             }
@@ -131,7 +131,7 @@ final class ThemePanel extends javax.swing.JPanel implements ActionListener
         for (FCSetting fcs : saveListValues)
         {
             FCvalues fcv = saveMapIdValues.get(fcs.getId());
-            assert fcv != null : "fcs=" + fcs + " mapIdValues=" + saveMapIdValues;   //NOI18N
+            assert fcv != null : "fcs=" + fcs + " mapIdValues=" + saveMapIdValues;   
             if (fcv.color != null)
             {
                 fcs.setColor(fcv.color);
@@ -163,7 +163,7 @@ final class ThemePanel extends javax.swing.JPanel implements ActionListener
             if (c != null)
             {
                 FCSetting fcs = list_fcSettings.getSelectedValue();
-                assert fcs != null;   //NOI18N
+                assert fcs != null;   
                 fcs.setColor(c);
             }
         }
@@ -450,7 +450,7 @@ final class ThemePanel extends javax.swing.JPanel implements ActionListener
    private void btn_fontActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_fontActionPerformed
    {//GEN-HEADEREND:event_btn_fontActionPerformed
        FCSetting fcs = list_fcSettings.getSelectedValue();
-       assert fcs != null;   //NOI18N
+       assert fcs != null;   
 
        JFontChooser jfc = new JFontChooser();
        jfc.setSelectedFont(fcs.getFont());
@@ -492,7 +492,7 @@ final class ThemePanel extends javax.swing.JPanel implements ActionListener
    private void btn_resetFontActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_resetFontActionPerformed
    {//GEN-HEADEREND:event_btn_resetFontActionPerformed
        FCSetting fcs = list_fcSettings.getSelectedValue();
-       assert fcs != null;   //NOI18N
+       assert fcs != null;   
        fcs.setFont(null);
        list_fcSettingsValueChanged(null);
    }//GEN-LAST:event_btn_resetFontActionPerformed
@@ -500,7 +500,7 @@ final class ThemePanel extends javax.swing.JPanel implements ActionListener
    private void btn_resetColorActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_resetColorActionPerformed
    {//GEN-HEADEREND:event_btn_resetColorActionPerformed
        FCSetting fcs = list_fcSettings.getSelectedValue();
-       assert fcs != null;   //NOI18N
+       assert fcs != null;   
        fcs.setColor(null);
        list_fcSettingsValueChanged(null);
    }//GEN-LAST:event_btn_resetColorActionPerformed

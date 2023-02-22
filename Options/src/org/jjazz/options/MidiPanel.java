@@ -122,7 +122,7 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
 
     void load()
     {
-        LOGGER.log(Level.FINE, "load() --");   //NOI18N
+        LOGGER.log(Level.FINE, "load() --");   
         // TODO read settings and initialize GUI
         // Example:        
         // someCheckBox.setSelected(Preferences.userNodeForPackage(MidiPanel.class).getBoolean("someFlag", false));
@@ -153,7 +153,7 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
 
     void store()
     {
-        LOGGER.log(Level.FINE, "store() --");   //NOI18N
+        LOGGER.log(Level.FINE, "store() --");   
         // TODO store modified settings
         // Example:
         // Preferences.userNodeForPackage(MidiPanel.class).putBoolean("someFlag", someCheckBox.isSelected());
@@ -455,7 +455,7 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
         {
             String msg = ResUtil.getString(getClass(), "ERR_DeviceProblem", mdOut.getDeviceInfo().getName());
             msg += "\n\n" + ex.getLocalizedMessage();
-            LOGGER.log(Level.WARNING, msg);   //NOI18N
+            LOGGER.log(Level.WARNING, msg);   
             NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(nd);
             return false;
@@ -860,7 +860,7 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
 
     private void btn_testActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_testActionPerformed
     {//GEN-HEADEREND:event_btn_testActionPerformed
-        LOGGER.log(Level.FINE, "Testing {0}", list_OutDevices.getSelectedValue().getDeviceInfo().getName());   //NOI18N
+        LOGGER.log(Level.FINE, "Testing {0}", list_OutDevices.getSelectedValue().getDeviceInfo().getName());   
         // sendTestNotes(tbl_instruments.getSelectedInstrument());
         sendTestNotes(null);
     }//GEN-LAST:event_btn_testActionPerformed

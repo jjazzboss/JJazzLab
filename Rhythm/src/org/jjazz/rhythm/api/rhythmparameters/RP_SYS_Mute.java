@@ -87,7 +87,7 @@ public class RP_SYS_Mute extends RP_StringSet
             for (String s : value)
             {
                 RhythmVoice rv = map.get(s);
-                assert rv != null : "r=" + r + " s=" + s + " value=" + value;   //NOI18N
+                assert rv != null : "r=" + r + " s=" + s + " value=" + value;   
                 res.add(rv);
             }
         }
@@ -104,7 +104,7 @@ public class RP_SYS_Mute extends RP_StringSet
     {
         if (rhythm == null)
         {
-            throw new NullPointerException("r");   //NOI18N
+            throw new NullPointerException("r");   
         }
         return (RP_SYS_Mute) rhythm.getRhythmParameters()
                 .stream()

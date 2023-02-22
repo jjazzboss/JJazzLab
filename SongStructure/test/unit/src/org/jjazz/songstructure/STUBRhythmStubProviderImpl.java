@@ -113,7 +113,7 @@ public class STUBRhythmStubProviderImpl implements RhythmProvider
     {
         if (r == null || ts == null || r.getTimeSignature().equals(ts))
         {
-            throw new IllegalArgumentException("r=" + r + " ts=" + ts);   //NOI18N
+            throw new IllegalArgumentException("r=" + r + " ts=" + ts);   
         }
         if (r instanceof STUBRhythm)
         {

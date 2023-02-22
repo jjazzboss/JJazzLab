@@ -60,7 +60,7 @@ public class MoveSelectionLeft extends AbstractAction
         var q = editor.getQuantization();
         float qDur = q.getSymbolicDuration().getDuration();
         Phrase model = editor.getModel();
-        FloatRange br = editor.getBeatRange();
+        FloatRange br = editor.getPhraseBeatRange();
 
 
         String undoText = ResUtil.getString(getClass(), "MoveNoteLeft");

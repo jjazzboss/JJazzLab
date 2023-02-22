@@ -150,7 +150,7 @@ public class InstrumentTable extends JTable
         {
             if (instruments == null)
             {
-                throw new NullPointerException("instruments");   //NOI18N
+                throw new NullPointerException("instruments");   
             }
             this.instruments = instruments;
             fireTableDataChanged();
@@ -178,7 +178,7 @@ public class InstrumentTable extends JTable
                 case COL_BANK:
                     return String.class;
                 default:
-                    throw new IllegalStateException("columnIndex=" + col);   //NOI18N
+                    throw new IllegalStateException("columnIndex=" + col);   
             }
         }
 
@@ -213,7 +213,7 @@ public class InstrumentTable extends JTable
                     s = "Bank ";
                     break;
                 default:
-                    throw new IllegalStateException("columnIndex=" + columnIndex);   //NOI18N
+                    throw new IllegalStateException("columnIndex=" + columnIndex);   
             }
             return s;
         }
@@ -256,7 +256,7 @@ public class InstrumentTable extends JTable
                 case COL_ID:
                     return row + 1;
                 default:
-                    throw new IllegalStateException("col=" + col);   //NOI18N
+                    throw new IllegalStateException("col=" + col);   
             }
         }
     }
@@ -319,7 +319,7 @@ public class InstrumentTable extends JTable
                     // Nothing
                     break;
                 default:
-                    throw new IllegalStateException("col=" + colIndex);   //NOI18N
+                    throw new IllegalStateException("col=" + colIndex);   
             }
         }
     }

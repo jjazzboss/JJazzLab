@@ -61,7 +61,7 @@ public class SgsChangeEvent
     {
         if (src == null || spts == null)
         {
-            throw new IllegalArgumentException("src=" + src + " spts=" + spts);   //NOI18N
+            throw new IllegalArgumentException("src=" + src + " spts=" + spts);   
         }
         source = src;
         songParts.addAll(spts);

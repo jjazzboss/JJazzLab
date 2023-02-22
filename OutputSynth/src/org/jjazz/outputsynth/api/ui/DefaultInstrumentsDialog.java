@@ -310,13 +310,13 @@ public class DefaultInstrumentsDialog extends javax.swing.JDialog implements Pro
         Instrument remappedIns = tbl_Remap.getSelectedRemappedInstrument();
         if (remappedIns == null)
         {
-            LOGGER.fine("btn_HearActionPerformed() called but invalid remappedIns=" + remappedIns);   //NOI18N
+            LOGGER.fine("btn_HearActionPerformed() called but invalid remappedIns=" + remappedIns);   
             return;
         }
         Instrument ins = remapTable.getInstrument(remappedIns);
         if (ins == null || !ins.getMidiAddress().isFullyDefined())
         {
-            LOGGER.fine("btn_HearActionPerformed() called but invalid ins=" + ins + " ins.getMidiAddress()=" + (ins != null ? ins.getMidiAddress() : ""));   //NOI18N
+            LOGGER.fine("btn_HearActionPerformed() called but invalid ins=" + ins + " ins.getMidiAddress()=" + (ins != null ? ins.getMidiAddress() : ""));   
             return;
         }
         tbl_Remap.setEnabled(false);

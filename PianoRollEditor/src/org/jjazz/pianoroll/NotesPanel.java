@@ -307,7 +307,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
     public NoteView addNoteView(NoteEvent ne)
     {
         Preconditions.checkNotNull(ne);
-        Preconditions.checkArgument(editor.getBeatRange().contains(ne.getBeatRange(), false));
+        Preconditions.checkArgument(editor.getPhraseBeatRange().contains(ne.getBeatRange(), false));
 
         var keymap = editor.getDrumKeyMap();
         NoteView nv = keymap == null ? new NoteView(ne) : new NoteViewDrum(ne);
@@ -540,7 +540,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
 
             for (var ne : p)
             {
-                if (editor.getBeatRange().contains(ne.getBeatRange(), false))
+                if (editor.getPhraseBeatRange().contains(ne.getBeatRange(), false))
                 {
                     int y = yMapper.getNoteViewChannelYRange(ne.getPitch()).from;
                     int h = yMapper.getNoteViewHeight();
@@ -602,7 +602,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
 
     private int computePreferredWidth(float scaleVFactor)
     {
-        return (int) (editor.getBeatRange().size() * ONE_BEAT_SIZE_IN_PIXELS_AT_ZOOM_ONE * scaleVFactor);
+        return (int) (editor.getPhraseBeatRange().size() * ONE_BEAT_SIZE_IN_PIXELS_AT_ZOOM_ONE * scaleVFactor);
     }
 
 
@@ -643,7 +643,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
         }
 
         /**
-         * Get the bar range of the current context.
+         * Get the bar range of the edited phrase range.
          *
          * @return
          */
@@ -677,7 +677,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
             });
 
             lastWidth = getWidth();
-            var beatRange = editor.getBeatRange();
+            var beatRange = editor.getPhraseBeatRange();
             assert beatRange.from == (int) beatRange.from;      // it's an int value         
 
             tmap_allQuantizedPos2X.clear();
@@ -693,7 +693,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
 
 
             // Precompute all positions and relative X coordinate
-            int bar = editor.getStartBarIndex();
+            int bar = editor.getPhraseStartBar();
             float barPosInBeats = beatRange.from;
             float x = 0;
 
@@ -730,16 +730,16 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
             } while (barPosInBeats <= beatRange.to);
 
 
-            barRange = new IntRange(editor.getStartBarIndex(), bar - 2);
+            barRange = new IntRange(editor.getPhraseStartBar(), bar - 2);
 
             // LOGGER.log(Level.SEVERE, "refresh() output barRange=" + barRange + " tmap_allQuantizedPos2X=" + Utilities.toMultilineString(tmap_allQuantizedPos2X));
 
         }
 
         /**
-         * Get the X coordinate of each quantized position in the specified barRange.
+         * Get the X coordinate of each quantized position in the specified phrase barRange.
          *
-         * @param barRange If null, use this.getBarRange() instead.
+         * @param barRange If null, use this.getPhraseBarRange() instead.
          * @return
          * @throws IllegalStateException If this yMapper is not up-to-date.
          */
@@ -755,16 +755,16 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
             }
             if (barRange == null)
             {
-                barRange = editor.getBarRange();
+                barRange = editor.getPhraseBarRange();
             }
             var res = tmap_allQuantizedPos2X.subMap(new Position(barRange.from, 0), true, new Position(barRange.to + 1, 0), false);
             return res;
         }
 
         /**
-         * Get the X coordinate of each integer beat in the specified barRange.
+         * Get the X coordinate of each integer beat in the specified phrase barRange.
          *
-         * @param barRange If null, use this.getBarRange() instead.
+         * @param barRange If null, use this.getPhraseBarRange() instead.
          * @return
          * @throws IllegalStateException If this yMapper is not up-to-date.
          */
@@ -781,7 +781,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
 
             if (barRange == null)
             {
-                barRange = editor.getBarRange();
+                barRange = editor.getPhraseBarRange();
             }
             var res = tmap_allIntPos2X.subMap(new Position(barRange.from, 0), true, new Position(barRange.to + 1, 0), false);
             return res;
@@ -794,14 +794,14 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
          */
         public float getOneBeatPixelSize()
         {
-            return getWidth() / editor.getBeatRange().size();
+            return getWidth() / editor.getPhraseBeatRange().size();
         }
 
         /**
          * Get the beat position corresponding to the specified xPos in this panel's coordinates.
          *
          * @param yPos
-         * @return A beat position within getBeatRange(). -1 if xPos is out of the bounds of this panel.
+         * @return A beat position within getPhraseBeatRange(). -1 if xPos is out of the bounds of this panel.
          */
         public float getPositionInBeats(int xPos)
         {
@@ -810,7 +810,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
                 return -1;
             }
             float relPos = xPos / getOneBeatPixelSize();
-            float absPos = editor.getBeatRange().from + relPos;
+            float absPos = editor.getPhraseBeatRange().from + relPos;
             return absPos;
         }
 
@@ -828,15 +828,15 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
 
         /**
          *
-         * Get the X position (in this panel's coordinates) corresponding to the specified beat position.
+         * Get the X position (in this panel's coordinates) corresponding to the specified phrase beat position.
          *
-         * @param posInBeats A beat position within getBeatRange()
+         * @param posInBeats A beat position within getPhraseBeatRange()
          * @return
          */
         public int getX(float posInBeats)
         {
-            var br = editor.getBeatRange();
-            Preconditions.checkArgument(br.contains(posInBeats, true), "br=%s posInBeats=%s", br, posInBeats);
+            var br = editor.getPhraseBeatRange();
+            Preconditions.checkArgument(br.contains(posInBeats, false), "br=%s posInBeats=%s", br, posInBeats);
             int w = getWidth();
             int xPos = Math.round((posInBeats - br.from) * getOneBeatPixelSize());
             xPos = Math.min(w - 1, xPos);
@@ -844,7 +844,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
         }
 
         /**
-         * Get the X start/end positions of the specified note.
+         * Get the X start/end positions of the specified phrase note.
          *
          * @param ne
          * @return
@@ -858,9 +858,9 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
 
         /**
          *
-         * Get the X position (in this panel's coordinates) corresponding to the specified position in bar/beat.
+         * Get the X position (in this panel's coordinates) corresponding to the specified phrase position in bar/beat.
          *
-         * @param posInBeats A beat position within getBeatRange()
+         * @param pos
          * @return
          */
         public int getX(Position pos)
@@ -870,14 +870,14 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
         }
 
         /**
-         * Convert a position in beats into a bar/beat position.
+         * Convert a phrase position in beats into a bar/beat phrase position.
          *
          * @param posInBeats
          * @return
          */
         public Position toPosition(float posInBeats)
         {
-            var br = editor.getBeatRange();
+            var br = editor.getPhraseBeatRange();
             Preconditions.checkArgument(br.contains(posInBeats, true), "posInBeats=%s", posInBeats);
             float posInBeatsFloor = (float) Math.floor(posInBeats);
             Position pos = new Position(bimap_pos_posInBeats.inverse().get(posInBeatsFloor));

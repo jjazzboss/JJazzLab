@@ -233,7 +233,7 @@ public class GM1Bank extends InstrumentBank<GM1Instrument>
     {
         if (patchName == null)
         {
-            throw new NullPointerException("patchName");   //NOI18N
+            throw new NullPointerException("patchName");   
         }
         if (patchName.trim().isEmpty())
         {
@@ -538,7 +538,7 @@ public class GM1Bank extends InstrumentBank<GM1Instrument>
     {
         if (f == null)
         {
-            throw new IllegalArgumentException("f=" + f);   //NOI18N
+            throw new IllegalArgumentException("f=" + f);   
         }
         switch (f)
         {
@@ -588,7 +588,7 @@ public class GM1Bank extends InstrumentBank<GM1Instrument>
     {
         if (lsb < 0 || lsb > 127)
         {
-            throw new IllegalArgumentException("lsb=" + lsb);   //NOI18N
+            throw new IllegalArgumentException("lsb=" + lsb);   
         }
         this.defaultLsb = lsb;
     }
@@ -597,7 +597,7 @@ public class GM1Bank extends InstrumentBank<GM1Instrument>
     {
         if (msb < 0 || msb > 127)
         {
-            throw new IllegalArgumentException("msb=" + msb);   //NOI18N
+            throw new IllegalArgumentException("msb=" + msb);   
         }
         this.defaultMsb = msb;
     }

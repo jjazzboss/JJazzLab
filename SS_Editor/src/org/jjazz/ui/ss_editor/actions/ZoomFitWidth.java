@@ -62,7 +62,7 @@ public class ZoomFitWidth extends AbstractAction
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        LOGGER.fine("actionPerformed()");   //NOI18N
+        LOGGER.fine("actionPerformed()");   
         SS_EditorTopComponent ssTc = SS_EditorTopComponent.getActive();
         if (ssTc != null)
         {

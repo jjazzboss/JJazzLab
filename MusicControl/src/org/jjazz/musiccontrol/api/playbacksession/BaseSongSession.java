@@ -93,7 +93,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     private Map<RhythmVoice, Phrase> mapRvPhrase;
     private Map<Integer, Boolean> mapTrackIdMuted;
     private final SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
-    private static final Logger LOGGER = Logger.getLogger(BaseSongSession.class.getSimpleName());  //NOI18N
+    private static final Logger LOGGER = Logger.getLogger(BaseSongSession.class.getSimpleName());  
 
     /**
      * Create a session with the specified parameters.

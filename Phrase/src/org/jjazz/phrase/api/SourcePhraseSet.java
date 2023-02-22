@@ -68,7 +68,7 @@ public class SourcePhraseSet
     {
         if (!MidiConst.checkMidiChannel(channel))
         {
-            throw new IllegalArgumentException("channel=" + channel);   //NOI18N
+            throw new IllegalArgumentException("channel=" + channel);   
         }
         SourcePhrase sp = mapChannelPhrase.get(channel);
         return sp;
@@ -96,7 +96,7 @@ public class SourcePhraseSet
     {
         if (!MidiConst.checkMidiChannel(channel))
         {
-            throw new IllegalArgumentException("channel=" + channel + " sp=" + sp);   //NOI18N
+            throw new IllegalArgumentException("channel=" + channel + " sp=" + sp);   
         }
         if (sp == null)
         {
@@ -117,7 +117,7 @@ public class SourcePhraseSet
     {
         if (!MidiConst.checkMidiChannel(channel))
         {
-            throw new IllegalArgumentException("channel=" + channel);   //NOI18N
+            throw new IllegalArgumentException("channel=" + channel);   
         }
         return mapChannelPhrase.remove(channel);
     }
@@ -140,7 +140,7 @@ public class SourcePhraseSet
     {
         if (propName == null)
         {
-            throw new IllegalArgumentException("propName=" + propName + " propValue=" + propValue);   //NOI18N
+            throw new IllegalArgumentException("propName=" + propName + " propValue=" + propValue);   
         }
         if (clientProperties == null)
         {
@@ -165,7 +165,7 @@ public class SourcePhraseSet
     {
         if (propName == null)
         {
-            throw new IllegalArgumentException("propName=" + propName);   //NOI18N
+            throw new IllegalArgumentException("propName=" + propName);   
         }
         return clientProperties.get(propName);
     }

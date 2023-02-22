@@ -55,18 +55,18 @@ public final class SequenceToMidiFileAction implements ActionListener
     @Override
     public void actionPerformed(ActionEvent ae)
     {
-        LOGGER.info("actionPerformed() --");   //NOI18N
+        LOGGER.info("actionPerformed() --");   
         
         Sequencer s = JJazzMidiSystem.getInstance().getDefaultSequencer();
         if (s == null)
         {
-            LOGGER.severe("actionPerformed() can't acquire sequencer");   //NOI18N
+            LOGGER.severe("actionPerformed() can't acquire sequencer");   
             return;
         }
         Sequence seq = s.getSequence();
         if (seq == null)
         {
-            LOGGER.warning("No sequence");   //NOI18N
+            LOGGER.warning("No sequence");   
             return;
         }
 
@@ -100,14 +100,14 @@ public final class SequenceToMidiFileAction implements ActionListener
             int[] fileTypes = MidiSystem.getMidiFileTypes(sequence);
             for (Integer i : fileTypes)
             {
-                LOGGER.info(" supported fileType=" + i);   //NOI18N
+                LOGGER.info(" supported fileType=" + i);   
             }
             if (fileTypes.length == 0)
             {
-                LOGGER.info(" NO fileTypes supported for this sequence !");   //NOI18N
+                LOGGER.info(" NO fileTypes supported for this sequence !");   
             }
 
-            LOGGER.info("writing sequence to Midi File: " + midiTempFile.getAbsolutePath());   //NOI18N
+            LOGGER.info("writing sequence to Midi File: " + midiTempFile.getAbsolutePath());   
             try
             {
                 MidiSystem.write(sequence, 1, midiTempFile);
@@ -117,7 +117,7 @@ public final class SequenceToMidiFileAction implements ActionListener
                 return;
             } 
             
-            LOGGER.info("Starting Midi Editor...");   //NOI18N
+            LOGGER.info("Starting Midi Editor...");   
             ProcessBuilder pb = new ProcessBuilder("C:\\Program Files (x86)\\MidiEditor\\MidiEditor.exe", midiTempFile.getAbsolutePath());
             try
             {

@@ -95,7 +95,7 @@ public class PhraseSamples
     {
         if (ts == null || !MidiConst.checkMidiChannel(channel))
         {
-            throw new IllegalArgumentException("nbBars=" + nbBars + " ts=" + ts + " channel=" + channel);   //NOI18N
+            throw new IllegalArgumentException("nbBars=" + nbBars + " ts=" + ts + " channel=" + channel);   
         }
         Phrase p = new Phrase(channel, true);
         float duration = 0.25f;

@@ -63,7 +63,7 @@ public class ChordReceiver implements Receiver
     private final List<ChordListener> listeners = new ArrayList<>();
     private final List<Note> notes = new LinkedList<>();
     private static Preferences prefs = NbPreferences.forModule(JJazzMidiSystem.class);
-    private static final Logger LOGGER = Logger.getLogger(ChordReceiver.class.getSimpleName());  //NOI18N
+    private static final Logger LOGGER = Logger.getLogger(ChordReceiver.class.getSimpleName());  
 
     public ChordReceiver()
     {

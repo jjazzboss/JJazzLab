@@ -159,7 +159,7 @@ public class SimpleChordSequence extends ChordSequence
     {
         if (pos == null || startBarPosInBeats < 0)
         {
-            throw new IllegalArgumentException("pos=" + pos + " startBarPosInBeats=" + startBarPosInBeats);   //NOI18N
+            throw new IllegalArgumentException("pos=" + pos + " startBarPosInBeats=" + startBarPosInBeats);   
         }
         float relPosInBeats = (pos.getBar() - getBarRange().from) * timeSignature.getNbNaturalBeats() + pos.getBeat();
         return startBarPosInBeats + relPosInBeats;

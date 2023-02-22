@@ -70,7 +70,7 @@ public class RP_Integer implements RhythmParameter<Integer>, RpEnumerable<Intege
                 || step < 0
                 || step > (maxValue - minValue))
         {
-            throw new IllegalArgumentException( //NOI18N
+            throw new IllegalArgumentException( 
                     "id=" + id + " n=" + name + " defaultVal=" + defaultVal + " min=" + minValue + " max=" + maxValue + " st=" + step);
         }
         this.id = id;
@@ -82,7 +82,7 @@ public class RP_Integer implements RhythmParameter<Integer>, RpEnumerable<Intege
         this.primary = isPrimary;
         if (!isValidValue(defaultVal))
         {
-            throw new IllegalArgumentException( //NOI18N
+            throw new IllegalArgumentException( 
                     "n=" + name + " defaultVal=" + defaultVal + " min=" + minValue + " max=" + maxValue + " st=" + step);
         }
         this.defaultValue = defaultVal;
@@ -230,7 +230,7 @@ public class RP_Integer implements RhythmParameter<Integer>, RpEnumerable<Intege
     {
         if (y < 0 || y > 1)
         {
-            throw new IllegalArgumentException("y=" + y);   //NOI18N
+            throw new IllegalArgumentException("y=" + y);   
         }
         if (step == 0)
         {
@@ -250,7 +250,7 @@ public class RP_Integer implements RhythmParameter<Integer>, RpEnumerable<Intege
     {
         if (!isValidValue(value))
         {
-            throw new IllegalArgumentException("value=" + value);   //NOI18N
+            throw new IllegalArgumentException("value=" + value);   
         }
         if (step == 0)
         {

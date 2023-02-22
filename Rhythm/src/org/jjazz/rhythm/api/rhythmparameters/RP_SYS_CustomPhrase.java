@@ -18,9 +18,7 @@ public class RP_SYS_CustomPhrase implements RhythmParameter<RP_SYS_CustomPhraseV
 
     private final Rhythm rhythm;
     private final boolean primary;
-
     private static final Logger LOGGER = Logger.getLogger(RP_SYS_CustomPhrase.class.getSimpleName());
-
 
     public RP_SYS_CustomPhrase(Rhythm r, boolean primary)
     {
@@ -107,15 +105,20 @@ public class RP_SYS_CustomPhrase implements RhythmParameter<RP_SYS_CustomPhraseV
     }
 
     /**
-     * Return false: reusing the same custom phrases for different sont parts with possibly different size/chord symbols makes no sense.
+     * Compatible with another RP_SYS_CustomPhrase for the same rhythm time signature.
      *
      * @param rp
-     * @return False
+     * @return
      */
     @Override
     public boolean isCompatibleWith(RhythmParameter<?> rp)
     {
-        return false;
+        if (!(rp instanceof RP_SYS_CustomPhrase) || !rp.getId().equals(getId()))
+        {
+            return false;
+        }
+        RP_SYS_CustomPhrase rpCustom = (RP_SYS_CustomPhrase) rp;
+        return getRhythm().getTimeSignature().equals(rpCustom.getRhythm().getTimeSignature());
     }
 
     /**
@@ -147,7 +150,7 @@ public class RP_SYS_CustomPhrase implements RhythmParameter<RP_SYS_CustomPhraseV
                     .findAny().orElse(null);
             if (rv != null)
             {
-                res = res.getCopyPlus(rv, rpValue.getCustomizedPhrase(rpRv));
+                res.setCustomizedPhrase(rv, rpValue.getCustomizedPhrase(rpRv));
                 rvs.remove(rv);     // Do not reuse this phrase
             }
         }
@@ -177,7 +180,7 @@ public class RP_SYS_CustomPhrase implements RhythmParameter<RP_SYS_CustomPhraseV
     {
         if (rhythm == null)
         {
-            throw new NullPointerException("r");   //NOI18N
+            throw new NullPointerException("r");
         }
         return (RP_SYS_CustomPhrase) rhythm.getRhythmParameters()
                 .stream()

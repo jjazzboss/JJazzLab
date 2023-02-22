@@ -69,7 +69,7 @@ public class UseDefaultInstruments extends AbstractAction implements Presenter.M
             return;
         }
         Song song = mixConsole.getSong();
-        assert song != null;   //NOI18N
+        assert song != null;   
         JJazzUndoManagerFinder.getDefault().get(song).startCEdit(undoText);
         Rhythm rhythm = mixConsole.getVisibleRhythm();
         for (Integer channel : songMidiMix.getUsedChannels())

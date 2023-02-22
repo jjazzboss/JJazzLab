@@ -52,7 +52,7 @@ public class AutoPreviewToolbarPanel extends javax.swing.JPanel implements Prope
         initComponents();
 
         // Initialize actions
-        fbtn_autopreview.setBooleanStateAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.autoupdate"));   //NOI18N
+        fbtn_autopreview.setBooleanStateAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.autoupdate"));   
 
      
         // Listen to the current Song changes
@@ -71,7 +71,7 @@ public class AutoPreviewToolbarPanel extends javax.swing.JPanel implements Prope
             newSong = s;
             i++;
         }
-        assert i < 2 : "i=" + i + " lookupResult.allInstances()=" + lookupResult.allInstances();   //NOI18N
+        assert i < 2 : "i=" + i + " lookupResult.allInstances()=" + lookupResult.allInstances();   
         if (newSong != null)
         {
             // Current song has changed
@@ -86,7 +86,7 @@ public class AutoPreviewToolbarPanel extends javax.swing.JPanel implements Prope
         {
             // Do nothing : player is still using the last valid song
         }
-        LOGGER.log(Level.FINE, "resultChanged() newSong={0} => currentSong={1}", new Object[]   //NOI18N
+        LOGGER.log(Level.FINE, "resultChanged() newSong={0} => currentSong={1}", new Object[]   
         {
             newSong, currentSong
         });
@@ -135,7 +135,7 @@ public class AutoPreviewToolbarPanel extends javax.swing.JPanel implements Prope
         boolean b = (currentSong != null) && (currentSong == activeSong);
 
 
-        LOGGER.log(Level.FINE, "activeSongChanged() b={0} currentSong={1} activeSong={2}", new Object[]   //NOI18N
+        LOGGER.log(Level.FINE, "activeSongChanged() b={0} currentSong={1} activeSong={2}", new Object[]   
         {
             b, currentSong, activeSong
         });

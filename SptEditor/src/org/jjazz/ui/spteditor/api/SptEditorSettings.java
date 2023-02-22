@@ -37,7 +37,7 @@ public abstract class SptEditorSettings
         SptEditorSettings result = Lookup.getDefault().lookup(SptEditorSettings.class);
         if (result == null)
         {
-            throw new NullPointerException("result=" + result);   //NOI18N
+            throw new NullPointerException("result=" + result);   
         }
         return result;
     }

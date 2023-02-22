@@ -89,7 +89,7 @@ public class DefaultRpEditorComponentFactoryImpl implements DefaultRpEditorCompo
     {
         if (type == null || spt == null || rp == null)
         {
-            throw new NullPointerException("type=" + type + " spt=" + spt + " rp=" + rp);   //NOI18N
+            throw new NullPointerException("type=" + type + " spt=" + spt + " rp=" + rp);   
         }
         RpEditorComponent c = null;
         switch (type)

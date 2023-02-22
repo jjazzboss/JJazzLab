@@ -51,7 +51,7 @@ public class SnapToGrid extends ToggleAction
         // UI settings for the FlatToggleButton
         putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("resources/SnapOFF.png")));
         setSelectedIcon(new ImageIcon(getClass().getResource("resources/SnapON.png")));
-        // putValue("JJazzDisabledIcon", new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PlaybackPointDisabled-24x24.png")));   //NOI18N                                
+        // putValue("JJazzDisabledIcon", new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PlaybackPointDisabled-24x24.png")));                                   
         putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(), "SnapTooltip"));
         putValue("hideActionText", true);
 

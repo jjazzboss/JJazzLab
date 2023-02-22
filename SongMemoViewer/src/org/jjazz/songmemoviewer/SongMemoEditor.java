@@ -121,7 +121,7 @@ public class SongMemoEditor extends javax.swing.JPanel implements PropertyChange
     public UndoRedo getUndoManager()
     {
         UndoRedo res = songModel == null ? null : mapSongUndoer.get(songModel).getUndoManager();
-        LOGGER.fine("getUndoManager() songModel=" + songModel + " UndoRedo=" + res);   //NOI18N
+        LOGGER.fine("getUndoManager() songModel=" + songModel + " UndoRedo=" + res);   
         return res;
     }
 
@@ -154,7 +154,7 @@ public class SongMemoEditor extends javax.swing.JPanel implements PropertyChange
                     // An external component has changed the comments
                     var undoer = mapSongUndoer.get(songModel);
                     String txt = (String) evt.getNewValue();
-                    LOGGER.fine("propertyChange() an external component has changed the text to: " + txt);   //NOI18N
+                    LOGGER.fine("propertyChange() an external component has changed the text to: " + txt);   
                     undoer.setTextSilently(txt);    // This will not trigger a document change event
                 }
             } else if (evt.getPropertyName().equals(Song.PROP_CLOSED))
@@ -265,7 +265,7 @@ public class SongMemoEditor extends javax.swing.JPanel implements PropertyChange
         {
             song = Utilities.actionsGlobalContext().lookup(Song.class);
         }
-        LOGGER.log(Level.FINE, "songPresenceChanged() -- song=" + song);   //NOI18N
+        LOGGER.log(Level.FINE, "songPresenceChanged() -- song=" + song);   
 
         if (song == songModel || song == null)
         {

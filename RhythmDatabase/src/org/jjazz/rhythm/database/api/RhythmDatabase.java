@@ -54,7 +54,7 @@ public interface RhythmDatabase
         {
             if (rp == null || r == null)
             {
-                throw new IllegalArgumentException("rp=" + rp + " r=" + r);   //NOI18N
+                throw new IllegalArgumentException("rp=" + rp + " r=" + r);   
             }
             this.rp = rp;
             this.r = r;

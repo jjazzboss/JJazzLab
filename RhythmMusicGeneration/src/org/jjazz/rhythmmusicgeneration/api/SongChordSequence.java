@@ -96,7 +96,7 @@ public class SongChordSequence extends ChordSequence
             CLI_ChordSymbol prevCliCs = items.get(items.size() - 1);        // Take the last chord before the range
             CLI_ChordSymbol newCs = getInitCopy(prevCliCs);
             add(0, newCs);      // Add at first position                    
-            LOGGER.log(Level.FINE, "fixChordSequence()   lacking a starting chord. Add a copy of previous chord={0}", newCs);   //NOI18N
+            LOGGER.log(Level.FINE, "fixChordSequence()   lacking a starting chord. Add a copy of previous chord={0}", newCs);   
         }
     }
 
@@ -188,7 +188,7 @@ public class SongChordSequence extends ChordSequence
      */
     public <T> List<SplitResult<T>> split(Rhythm r, RhythmParameter<T> rp)
     {
-        LOGGER.fine("split() --");   //NOI18N
+        LOGGER.fine("split() --");   
 
         List<SplitResult<T>> res = new ArrayList<>();
 
@@ -247,7 +247,7 @@ public class SongChordSequence extends ChordSequence
             res.add(new SplitResult(sSeq, lastRpValue));
         }
 
-        LOGGER.log(Level.FINE, "split()   res={0}", res.toString());   //NOI18N
+        LOGGER.log(Level.FINE, "split()   res={0}", res.toString());   
         return res;
     }
 
@@ -313,7 +313,7 @@ public class SongChordSequence extends ChordSequence
                 // Don't allow Void chordsymbol if it's the init chord symbol
                 if (newEcs == VoidAltExtChordSymbol.getInstance() && newPos.equals(new Position(0, 0)))
                 {
-                    LOGGER.log(Level.INFO, "fillChordSequence() Can''t use the void alternate chord symbol of {0} at initial position.", ecs.getName());   //NOI18N
+                    LOGGER.log(Level.INFO, "fillChordSequence() Can''t use the void alternate chord symbol of {0} at initial position.", ecs.getName());   
                     newEcs = ecs;
                 }
 

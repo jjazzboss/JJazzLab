@@ -108,7 +108,7 @@ public class Pause extends BooleanStateAction implements PropertyChangeListener,
 
         MusicController mc = MusicController.getInstance();
         MusicController.State playBackState = mc.getState();
-        LOGGER.fine("buttonStateChanged() newState=" + newState + " playBackState=" + playBackState);   //NOI18N
+        LOGGER.fine("buttonStateChanged() newState=" + newState + " playBackState=" + playBackState);   
         switch (playBackState)
         {
             case STOPPED:
@@ -129,7 +129,7 @@ public class Pause extends BooleanStateAction implements PropertyChangeListener,
                 } else
                 {
                     // Restart playback
-                    assert currentSong != null; // Otherwise button should be disabled   //NOI18N
+                    assert currentSong != null; // Otherwise button should be disabled   
                     try
                     {
                         mc.resume();
@@ -155,7 +155,7 @@ public class Pause extends BooleanStateAction implements PropertyChangeListener,
                 }
                 break;
             default:
-                throw new IllegalArgumentException("playBackState=" + playBackState + " newState=" + newState);   //NOI18N
+                throw new IllegalArgumentException("playBackState=" + playBackState + " newState=" + newState);   
         }
     }
 
@@ -169,7 +169,7 @@ public class Pause extends BooleanStateAction implements PropertyChangeListener,
             newSong = s;
             i++;
         }
-        assert i < 2 : "i=" + i + " lookupResult.allInstances()=" + lookupResult.allInstances();   //NOI18N
+        assert i < 2 : "i=" + i + " lookupResult.allInstances()=" + lookupResult.allInstances();   
         if (newSong != null)
         {
             // Current song has changed

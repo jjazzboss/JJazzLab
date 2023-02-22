@@ -286,7 +286,7 @@ public class BR_ChordPositions extends BarRenderer implements BeatBasedBarRender
     @Override
     public void showInsertionPoint(boolean b, ChordLeadSheetItem<?> item, Position pos, boolean copyMode)
     {
-        LOGGER.fine("showInsertionPoint() b=" + b + " item=" + item + " pos=" + pos + " copyMode=" + copyMode);   //NOI18N
+        LOGGER.fine("showInsertionPoint() b=" + b + " item=" + item + " pos=" + pos + " copyMode=" + copyMode);   
         if (!b)
         {
             // Remove the insertion point
@@ -324,10 +324,10 @@ public class BR_ChordPositions extends BarRenderer implements BeatBasedBarRender
     @Override
     public void showPlaybackPoint(boolean b, Position pos)
     {
-        LOGGER.fine("showPlaybackPoint() b=" + b + " pos=" + pos);   //NOI18N
+        LOGGER.fine("showPlaybackPoint() b=" + b + " pos=" + pos);   
         if (b && pos.getBar() != getBarIndex())
         {
-            throw new IllegalArgumentException("b=" + b + " pos=" + pos);   //NOI18N
+            throw new IllegalArgumentException("b=" + b + " pos=" + pos);   
         }
         if (!b)
         {
@@ -351,7 +351,7 @@ public class BR_ChordPositions extends BarRenderer implements BeatBasedBarRender
     @Override
     public void setDisplayQuantizationValue(Quantization q)
     {
-        LOGGER.fine("setDisplayQuantizationValue() q=" + q);   //NOI18N
+        LOGGER.fine("setDisplayQuantizationValue() q=" + q);   
         layoutManager.setDisplayQuantization(q);
         revalidate();  // Reposition items
         repaint(); // Update graduations
@@ -374,7 +374,7 @@ public class BR_ChordPositions extends BarRenderer implements BeatBasedBarRender
     {
         if (!isRegisteredItemClass(item))
         {
-            throw new IllegalArgumentException("item=" + item);   //NOI18N
+            throw new IllegalArgumentException("item=" + item);   
         }
         ItemRenderer ir = getItemRendererFactory().createItemRenderer(IR_Type.ChordPosition, item, getSettings().getItemRendererSettings());
         return ir;

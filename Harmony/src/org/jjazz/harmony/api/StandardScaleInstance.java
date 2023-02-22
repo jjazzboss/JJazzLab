@@ -49,7 +49,7 @@ public class StandardScaleInstance implements Serializable
     {
         if (scale == null || startNote == null)
         {
-            throw new NullPointerException("scale=" + scale + " startNote=" + startNote);   //NOI18N
+            throw new NullPointerException("scale=" + scale + " startNote=" + startNote);   
         }
         this.scale = scale;
         this.startNote = new Note(startNote.getPitch());
@@ -208,7 +208,7 @@ public class StandardScaleInstance implements Serializable
         {
             spStartNotePitch = ssi.getStartNote().getPitch();
             spStdScaleIndex = ScaleManager.getInstance().getStandardScales().indexOf(ssi.getScale());
-            assert spStdScaleIndex != -1;   //NOI18N
+            assert spStdScaleIndex != -1;   
         }
 
         private Object readResolve() throws ObjectStreamException
@@ -217,7 +217,7 @@ public class StandardScaleInstance implements Serializable
             StandardScale ss;
             if (spStdScaleIndex < 0 || spStdScaleIndex >= stdScales.size())
             {
-                LOGGER.warning("readResolve() invalid standard scale index=" + spStdScaleIndex + ". Use MAJOR scale instead.");   //NOI18N
+                LOGGER.warning("readResolve() invalid standard scale index=" + spStdScaleIndex + ". Use MAJOR scale instead.");   
                 ss = stdScales.get(0);
             } else
             {

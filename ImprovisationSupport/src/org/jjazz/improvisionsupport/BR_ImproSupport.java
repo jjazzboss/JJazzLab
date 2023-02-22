@@ -495,13 +495,13 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
     @Override
     protected ItemRenderer createItemRenderer(ChordLeadSheetItem<?> item)
     {
-        throw new IllegalStateException("item=" + item);   //NOI18N
+        throw new IllegalStateException("item=" + item);   
     }
 
     @Override
     public void moveItemRenderer(ChordLeadSheetItem<?> item)
     {
-        throw new IllegalStateException("item=" + item);   //NOI18N
+        throw new IllegalStateException("item=" + item);   
     }
 
     @Override

@@ -161,7 +161,7 @@ public class ControlTrack
     {
         if (track == null)
         {
-            throw new IllegalArgumentException("track=" + track);   //NOI18N
+            throw new IllegalArgumentException("track=" + track);   
         }
         getMidiEvents().forEach(me -> track.add(me));
     }
@@ -193,7 +193,7 @@ public class ControlTrack
         float nbNaturalBeatsPerBar = spt.getRhythm().getTimeSignature().getNbNaturalBeats();
         float nbNaturalBeats = sptRange.size() * nbNaturalBeatsPerBar;
 
-        // LOGGER.fine("addBeatChangeEvents() -- tickOffset=" + tickOffset + " spt=" + spt + " sptRange=" + sptRange);   //NOI18N
+        // LOGGER.fine("addBeatChangeEvents() -- tickOffset=" + tickOffset + " spt=" + spt + " sptRange=" + sptRange);   
 
         // Add CTRL_CHG_JJAZZ_BEAT_CHANGE events every beat change
         for (float beat = 0; beat < nbNaturalBeats; beat++)

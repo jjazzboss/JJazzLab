@@ -66,11 +66,11 @@ public class AutoUpdate extends BooleanStateAction implements PropertyChangeList
         
         setBooleanState(PlaybackSettings.getInstance().isAutoUpdateEnabled());
 
-        putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/AutoUpdate-OFF-24x24.png")));     //NOI18N
-        putValue(Action.LARGE_ICON_KEY, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/AutoUpdate-ON-24x24.png")));   //NOI18N
-        putValue("JJazzDisabledIcon", new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/AutoUpdate-disabled-24x24.png")));   //NOI18N
-        putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(), "CTL_AutoUpdateTooltip"));   //NOI18N
-        putValue("hideActionText", true);       //NOI18N
+        putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/AutoUpdate-OFF-24x24.png")));     
+        putValue(Action.LARGE_ICON_KEY, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/AutoUpdate-ON-24x24.png")));   
+        putValue("JJazzDisabledIcon", new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/AutoUpdate-disabled-24x24.png")));   
+        putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(), "CTL_AutoUpdateTooltip"));   
+        putValue("hideActionText", true);       
 
         MusicController.getInstance().addPropertyChangeListener(this);
         
@@ -98,7 +98,7 @@ public class AutoUpdate extends BooleanStateAction implements PropertyChangeList
     @Override
     public String getName()
     {
-        return "not used";       //NOI18N
+        return "not used";       
     }
 
     @Override

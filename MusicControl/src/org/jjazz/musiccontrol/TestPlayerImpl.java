@@ -90,7 +90,7 @@ public class TestPlayerImpl implements TestPlayer
     {
         if (phrase == null)
         {
-            throw new NullPointerException("p=" + phrase + " endAction=" + endAction);   //NOI18N
+            throw new NullPointerException("p=" + phrase + " endAction=" + endAction);   
         }
 
         final MusicController mc = MusicController.getInstance();        

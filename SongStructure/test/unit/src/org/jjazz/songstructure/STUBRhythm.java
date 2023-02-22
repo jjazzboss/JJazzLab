@@ -72,7 +72,7 @@ public class STUBRhythm implements Rhythm
     {
         if (uniqueId == null || uniqueId.trim().isEmpty() || ts == null)
         {
-            throw new IllegalArgumentException("uniqueId=" + uniqueId + " ts=" + ts);   //NOI18N
+            throw new IllegalArgumentException("uniqueId=" + uniqueId + " ts=" + ts);   
         }
 
         this.uniqueId = uniqueId;

@@ -305,7 +305,7 @@ public class Utilities
     {
         if (action == null)
         {
-            throw new IllegalArgumentException("action=" + action + " context=" + context);   //NOI18N
+            throw new IllegalArgumentException("action=" + action + " context=" + context);   
         }
 
         // switch to replacement action if there is some
@@ -314,7 +314,7 @@ public class Utilities
             Action contextAwareAction = ((ContextAwareAction) action).createContextAwareInstance(context);
             if (contextAwareAction == null)
             {
-                throw new IllegalArgumentException("ContextAwareAction.createContextAwareInstance(context) returns null.");   //NOI18N
+                throw new IllegalArgumentException("ContextAwareAction.createContextAwareInstance(context) returns null.");   
             } else
             {
                 action = contextAwareAction;
@@ -327,7 +327,7 @@ public class Utilities
             item = ((Presenter.Popup) action).getPopupPresenter();
             if (item == null)
             {
-                throw new IllegalArgumentException("getPopupPresenter() returning null for action=" + action);   //NOI18N
+                throw new IllegalArgumentException("getPopupPresenter() returning null for action=" + action);   
             }
         } else
         {
@@ -421,8 +421,8 @@ public class Utilities
         // see https://docs.oracle.com/javase/tutorial/uiswing/misc/keybinding.html
         for (char c = 32; c <= 126; c++)
         {
-            textComponent.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(c, 0), "doNothing");   //NOI18N
-            textComponent.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(c, InputEvent.SHIFT_DOWN_MASK), "doNothing");   //NOI18N
+            textComponent.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(c, 0), "doNothing");   
+            textComponent.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(c, InputEvent.SHIFT_DOWN_MASK), "doNothing");   
         }
         textComponent.getActionMap().put("doNothing", NoActionInstance);
 
@@ -479,7 +479,7 @@ public class Utilities
     {
         if (menuBar == null)
         {
-            throw new NullPointerException("menuBar=" + menuBar + " fontSizeOffset=" + fontSizeOffset);   //NOI18N
+            throw new NullPointerException("menuBar=" + menuBar + " fontSizeOffset=" + fontSizeOffset);   
         }
         for (int i = 0; i < menuBar.getMenuCount(); i++)
         {
@@ -523,7 +523,7 @@ public class Utilities
     {
         if (c == null)
         {
-            throw new NullPointerException("c=" + c + " fontSizeOffset=" + fontSizeOffset);   //NOI18N
+            throw new NullPointerException("c=" + c + " fontSizeOffset=" + fontSizeOffset);   
         }
         Font f = c.getFont();
         if (f != null)

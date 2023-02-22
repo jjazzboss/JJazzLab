@@ -50,7 +50,7 @@ public class ChannelRerouter extends JJazzMidiDevice
     {
         if (!MidiConst.checkMidiChannel(channelTo) || MidiConst.checkMidiChannel(channelFrom))
         {
-            throw new IllegalArgumentException("channelFrom=" + channelFrom + " channelTo=" + channelTo);   //NOI18N
+            throw new IllegalArgumentException("channelFrom=" + channelFrom + " channelTo=" + channelTo);   
         }
         if (channelFrom == channelTo)
         {
@@ -87,7 +87,7 @@ public class ChannelRerouter extends JJazzMidiDevice
         RerouterReceiver rcv = new RerouterReceiver();
         receivers.add(rcv);
         open();
-        LOGGER.log(Level.FINE, "getReceiver() rcv={0}", rcv);   //NOI18N
+        LOGGER.log(Level.FINE, "getReceiver() rcv={0}", rcv);   
         return rcv;
     }
 
@@ -108,7 +108,7 @@ public class ChannelRerouter extends JJazzMidiDevice
         @Override
         public void close()
         {
-            LOGGER.fine("RerouterReceiver.close()");   //NOI18N
+            LOGGER.fine("RerouterReceiver.close()");   
             isOpen = false;
             receivers.remove(this);
         }
@@ -121,7 +121,7 @@ public class ChannelRerouter extends JJazzMidiDevice
         {
             if (!isOpen)
             {
-                throw new IllegalStateException("RerouterReceiver object is closed");   //NOI18N
+                throw new IllegalStateException("RerouterReceiver object is closed");   
             }
 
             if (msg instanceof ShortMessage)
@@ -138,7 +138,7 @@ public class ChannelRerouter extends JJazzMidiDevice
                         sm.setMessage(sm.getCommand(), newChannel, sm.getData1(), sm.getData2());
                     } catch (InvalidMidiDataException ex)
                     {
-                        throw new IllegalStateException(ex);   //NOI18N
+                        throw new IllegalStateException(ex);   
                     }
                 }
             }

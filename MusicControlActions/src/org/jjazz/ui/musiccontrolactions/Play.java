@@ -233,7 +233,7 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
                 }
                 break;
             default:
-                throw new IllegalArgumentException("playBackState=" + playBackState + " newState=" + newState);   //NOI18N
+                throw new IllegalArgumentException("playBackState=" + playBackState + " newState=" + newState);   
         }
     }
 
@@ -247,7 +247,7 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
             newSong = s;
             i++;
         }
-        assert i < 2 : "i=" + i + " lookupResult.allInstances()=" + lookupResult.allInstances();   //NOI18N
+        assert i < 2 : "i=" + i + " lookupResult.allInstances()=" + lookupResult.allInstances();   
         if (newSong != null)
         {
             // Current song has changed
@@ -338,7 +338,7 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
     private void playbackStateChanged()
     {
         MusicController mc = MusicController.getInstance();
-        LOGGER.fine("playbackStateChanged() actionState=" + getBooleanState() + " mc.getPlaybackState()=" + mc.getState());   //NOI18N
+        LOGGER.fine("playbackStateChanged() actionState=" + getBooleanState() + " mc.getPlaybackState()=" + mc.getState());   
         setEnabled(!mc.getState().equals(MusicController.State.DISABLED));
         setBooleanState(mc.getState() == MusicController.State.PLAYING);
     }

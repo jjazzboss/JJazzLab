@@ -43,6 +43,7 @@ import org.jjazz.util.api.ResUtil;
  */
 public class PlaybackAutoScroll extends ToggleAction implements PropertyChangeListener
 {
+
     public static final String ACTION_ID = "PlaybackAutoScroll";
     private final PianoRollEditor editor;
     private MusicListener musicListener;
@@ -57,7 +58,7 @@ public class PlaybackAutoScroll extends ToggleAction implements PropertyChangeLi
         // UI settings for the FlatToggleButton
         putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("resources/PlaybackAutoScrollOFF.png")));
         setSelectedIcon(new ImageIcon(getClass().getResource("resources/PlaybackAutoScrollON.png")));
-        // putValue("JJazzDisabledIcon", new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PlaybackPointDisabled-24x24.png")));   //NOI18N                                
+        // putValue("JJazzDisabledIcon", new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PlaybackPointDisabled-24x24.png")));                                   
         putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(), "PlaybackAutoScrollToolip"));
         putValue("hideActionText", true);
 
@@ -65,7 +66,7 @@ public class PlaybackAutoScroll extends ToggleAction implements PropertyChangeLi
         listenToTheMusic();
 
 
-        editor.addPropertyChangeListener(PianoRollEditor.PROP_EDITOR_ALIVE, e ->
+        editor.addPropertyChangeListener(PianoRollEditor.PROP_EDITOR_ALIVE, e -> 
         {
             if (e.getNewValue().equals(false))
             {
@@ -160,13 +161,18 @@ public class PlaybackAutoScroll extends ToggleAction implements PropertyChangeLi
         @Override
         public void beatChanged(Position oldPos, Position newPos)
         {
-
-            if (!enabled || !editor.getBarRange().contains(newPos.getBar()))
+            // newPos is a song/ruler position, not a phrase position
+            if (!enabled || !editor.getRulerBarRange().contains(newPos.getBar()))
             {
+                if (editor.getPlaybackPointPosition() >= 0)
+                {
+                    editor.showPlaybackPoint(-1);
+                }
                 return;
             }
 
-            editor.showPlaybackPoint(editor.toPositionInBeats(newPos));
+            var barOffset = editor.getRulerStartBar() - editor.getPhraseStartBar();
+            editor.showPlaybackPoint(editor.toPositionInBeats(newPos.getMovedPosition(-barOffset, 0)));
         }
 
     }

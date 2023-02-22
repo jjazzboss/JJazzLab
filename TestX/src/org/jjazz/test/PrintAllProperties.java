@@ -50,14 +50,14 @@ public final class PrintAllProperties implements ActionListener
     @Override
     public void actionPerformed(ActionEvent ae)
     {
-        LOGGER.log(Level.INFO, "PrintAllProperties()");   //NOI18N
+        LOGGER.log(Level.INFO, "PrintAllProperties()");   
         Properties p = System.getProperties();
         Enumeration<?> keys = p.keys();
         while (keys.hasMoreElements())
         {
             String key = (String) keys.nextElement();
             String value = (String) p.get(key);
-            LOGGER.severe(key + ": " + value);   //NOI18N
+            LOGGER.severe(key + ": " + value);   
         }
     }
 }

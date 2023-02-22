@@ -90,7 +90,7 @@ public class RhythmPreviewProviderImpl implements RhythmSelectionDialog.RhythmPr
     {
         if (sg == null || spt == null)
         {
-            throw new IllegalArgumentException("sg=" + sg + " spt=" + spt);   //NOI18N
+            throw new IllegalArgumentException("sg=" + sg + " spt=" + spt);   
         }
         originalSong = sg;
         originalSpt = spt;
@@ -123,7 +123,7 @@ public class RhythmPreviewProviderImpl implements RhythmSelectionDialog.RhythmPr
             mm = previouslyActivatedSong == null ? null : MidiMixManager.getInstance().findMix(previouslyActivatedSong);
         } catch (MidiUnavailableException ex)
         {
-            LOGGER.severe("cleanup() ex=" + ex.getMessage());   //NOI18N
+            LOGGER.severe("cleanup() ex=" + ex.getMessage());   
             Exceptions.printStackTrace(ex);
             previouslyActivatedSong = null;
         }
@@ -135,10 +135,10 @@ public class RhythmPreviewProviderImpl implements RhythmSelectionDialog.RhythmPr
     {
         if (r == null)
         {
-            throw new IllegalArgumentException("r=" + r + " rpValues=" + rpValues + " useRhythmTempo=" + useRhythmTempo + " loopCount=" + loopCount);   //NOI18N
+            throw new IllegalArgumentException("r=" + r + " rpValues=" + rpValues + " useRhythmTempo=" + useRhythmTempo + " loopCount=" + loopCount);   
         }
 
-        LOGGER.fine("previewRhythm() -- r=" + r + " rpValues=" + rpValues + " useRhythmTempo=" + useRhythmTempo + " loop=" + loopCount + " endListener=" + endListener);   //NOI18N
+        LOGGER.fine("previewRhythm() -- r=" + r + " rpValues=" + rpValues + " useRhythmTempo=" + useRhythmTempo + " loop=" + loopCount + " endListener=" + endListener);   
 
         MusicController mc = MusicController.getInstance();
         if (mc.getState().equals(MusicController.State.PLAYING))
@@ -218,7 +218,7 @@ public class RhythmPreviewProviderImpl implements RhythmSelectionDialog.RhythmPr
             sgContext = new SongContext(song, mm);
         } catch (UnsupportedEditException | MidiUnavailableException ex)
         {
-            LOGGER.warning("buildSongContext() r=" + r + " ex=" + ex.getMessage());   //NOI18N
+            LOGGER.warning("buildSongContext() r=" + r + " ex=" + ex.getMessage());   
             throw new MusicGenerationException(ex.getLocalizedMessage());
         }
 

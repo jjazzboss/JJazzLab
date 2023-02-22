@@ -59,7 +59,7 @@ public class FlatIntegerKnob extends JPanel implements MouseMotionListener, Mous
     /**
      * Fire a PROP_Value property change event when user changes the value.
      */
-    public static final String PROP_VALUE = "PropValue";   //NOI18N 
+    public static final String PROP_VALUE = "PropValue";    
 
     private double valueLineThickness = 4;
     private double valueLineGap = 2;
@@ -378,7 +378,7 @@ public class FlatIntegerKnob extends JPanel implements MouseMotionListener, Mous
     {
         if (v < getMinValue() || v > getMaxValue())
         {
-            throw new IllegalArgumentException("v=" + v);   //NOI18N
+            throw new IllegalArgumentException("v=" + v);   
         }
         if (value != v)
         {

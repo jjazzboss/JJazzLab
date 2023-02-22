@@ -126,9 +126,9 @@ public final class MidiWizardVisualPanel5 extends JPanel
     {
         if (mode < 0 || mode > 4)
         {
-            throw new IllegalArgumentException("mode=" + mode + " channel=" + channel + " instrument=" + instrument.toLongString());   //NOI18N
+            throw new IllegalArgumentException("mode=" + mode + " channel=" + channel + " instrument=" + instrument.toLongString());   
         }
-        assert midiDeviceOut != null;   //NOI18N
+        assert midiDeviceOut != null;   
 
         final JJazzMidiSystem jms = JJazzMidiSystem.getInstance();
         final MidiDevice saveDeviceOut = jms.getDefaultOutDevice();

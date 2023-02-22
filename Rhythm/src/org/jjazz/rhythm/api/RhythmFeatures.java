@@ -54,7 +54,7 @@ public class RhythmFeatures implements Serializable
     {
         if (f == null || b == null || g == null || rg == null || i == null)
         {
-            throw new NullPointerException("f=" + f + " b=" + b + " g=" + g + " tg=" + rg + " i=" + i);   //NOI18N
+            throw new NullPointerException("f=" + f + " b=" + b + " g=" + g + " tg=" + rg + " i=" + i);   
         }
         feel = f;
         beat = b;
@@ -188,7 +188,7 @@ public class RhythmFeatures implements Serializable
     {
         if (name == null || name.isBlank())
         {
-            throw new IllegalArgumentException("rName=" + name + " fixedValues=" + fixedValues);   //NOI18N
+            throw new IllegalArgumentException("rName=" + name + " fixedValues=" + fixedValues);   
         }
 
 

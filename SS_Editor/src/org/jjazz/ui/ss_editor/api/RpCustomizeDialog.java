@@ -25,7 +25,6 @@ package org.jjazz.ui.ss_editor.api;
 import java.util.List;
 import javax.swing.JDialog;
 import org.jjazz.rhythm.api.RhythmParameter;
-import org.openide.util.Lookup;
 import org.openide.windows.WindowManager;
 
 /**
@@ -33,16 +32,6 @@ import org.openide.windows.WindowManager;
  */
 abstract public class RpCustomizeDialog extends JDialog
 {
-
-    public static RpCustomizeDialog getDefault()
-    {
-        RpCustomizeDialog result = Lookup.getDefault().lookup(RpCustomizeDialog.class);
-        if (result == null)
-        {
-            throw new NullPointerException("result=" + result);   //NOI18N
-        }
-        return result;
-    }
 
     /**
      * Dialog is automatically owned by WindowManager.getDefault().getMainWindow()

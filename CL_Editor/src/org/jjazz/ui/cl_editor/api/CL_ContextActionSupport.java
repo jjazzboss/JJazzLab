@@ -90,7 +90,7 @@ public class CL_ContextActionSupport implements ClsChangeListener
     {
         if (context == null)
         {
-            throw new IllegalArgumentException("context=" + context);   //NOI18N
+            throw new IllegalArgumentException("context=" + context);   
         }
         this.context = context;
 
@@ -213,7 +213,7 @@ public class CL_ContextActionSupport implements ClsChangeListener
     private void itemPresenceChanged()
     {
         selection = new CL_SelectionUtilities(context);
-        LOGGER.log(Level.FINE, "itemPresenceChanged() model=" + model + " selection.getSelectedItems()=" + selection.getSelectedItems());   //NOI18N
+        LOGGER.log(Level.FINE, "itemPresenceChanged() model=" + model + " selection.getSelectedItems()=" + selection.getSelectedItems());   
         fireSelectionChanged(selection);
     }
 
@@ -228,7 +228,7 @@ public class CL_ContextActionSupport implements ClsChangeListener
     private void barPresenceChanged()
     {
         selection = new CL_SelectionUtilities(context);
-        LOGGER.log(Level.FINE, "barPresenceChanged() model=" + model + " selection.getSelectedBars()=" + selection.getSelectedBars());   //NOI18N
+        LOGGER.log(Level.FINE, "barPresenceChanged() model=" + model + " selection.getSelectedBars()=" + selection.getSelectedBars());   
         fireSelectionChanged(selection);
     }
 

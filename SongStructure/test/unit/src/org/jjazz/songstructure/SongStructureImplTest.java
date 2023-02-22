@@ -128,14 +128,14 @@ public class SongStructureImplTest
         redoAll();
         undoAll();
         System.out.println("sgs after Undo=" + sgs);
-        assertTrue(sgs.getSizeInBars() == u_sgs.getSizeInBars());   //NOI18N
+        assertTrue(sgs.getSizeInBars() == u_sgs.getSizeInBars());   
         for (int i = 0; i < 2; i++)
         {
             SongPart spt1 = sgs.getSongParts().get(i);
             SongPart spt2 = u_sgs.getSongParts().get(i);
-            assertTrue(spt1.getNbBars() == spt2.getNbBars());   //NOI18N
-            assertTrue(spt1.getStartBarIndex() == spt2.getStartBarIndex());   //NOI18N
-            assertTrue(spt1.getRhythm() == spt2.getRhythm());   //NOI18N
+            assertTrue(spt1.getNbBars() == spt2.getNbBars());   
+            assertTrue(spt1.getStartBarIndex() == spt2.getStartBarIndex());   
+            assertTrue(spt1.getRhythm() == spt2.getRhythm());   
             // TODO : check RhythmParameters'valueProfiles
         }
     }
@@ -147,9 +147,9 @@ public class SongStructureImplTest
     public void testAddSongPart()
     {
         System.out.println("\n============ Test addSongPart");
-        assertTrue(sgs.getSizeInBars() == 20);   //NOI18N
-        assertTrue(sgs.getSongParts().get(0) == spt0 && sgs.getSongParts().get(1) == spt1);   //NOI18N
-        assertTrue(spt0.getStartBarIndex() == 0 && spt1.getStartBarIndex() == 10);   //NOI18N
+        assertTrue(sgs.getSizeInBars() == 20);   
+        assertTrue(sgs.getSongParts().get(0) == spt0 && sgs.getSongParts().get(1) == spt1);   
+        assertTrue(spt0.getStartBarIndex() == 0 && spt1.getStartBarIndex() == 10);   
         Rhythm r54 = null;
         try
         {
@@ -167,8 +167,8 @@ public class SongStructureImplTest
             Exceptions.printStackTrace(ex);
         }
         System.out.println("sgs=" + sgs);
-        assertTrue(spt0.getStartBarIndex() == 1 && spt1.getStartBarIndex() == 11);   //NOI18N
-        assertTrue(sgs.getSizeInBars() == 21);   //NOI18N
+        assertTrue(spt0.getStartBarIndex() == 1 && spt1.getStartBarIndex() == 11);   
+        assertTrue(sgs.getSizeInBars() == 21);   
     }
 
     /**
@@ -186,9 +186,9 @@ public class SongStructureImplTest
             Exceptions.printStackTrace(ex);
         }
         System.out.println("sgs=" + sgs);
-        assertTrue(sgs.getSizeInBars() == 10);   //NOI18N
-        assertTrue(sgs.getSongParts().get(0) == spt1 && sgs.getSongParts().get(1) == spt2);   //NOI18N
-        assertTrue(spt1.getStartBarIndex() == 0 && spt2.getStartBarIndex() == 4);   //NOI18N
+        assertTrue(sgs.getSizeInBars() == 10);   
+        assertTrue(sgs.getSongParts().get(0) == spt1 && sgs.getSongParts().get(1) == spt2);   
+        assertTrue(spt1.getStartBarIndex() == 0 && spt2.getStartBarIndex() == 4);   
     }
 
     /**
@@ -200,8 +200,8 @@ public class SongStructureImplTest
         System.out.println("\n============ Test resizeSongPart");
         sgs.resizeSongParts(msm(spt1, 1));
         System.out.println("sgs=" + sgs);
-        assertTrue(sgs.getSizeInBars() == 17 && spt1.getNbBars() == 1);   //NOI18N
-        assertTrue(spt2.getStartBarIndex() == 11);   //NOI18N
+        assertTrue(sgs.getSizeInBars() == 17 && spt1.getNbBars() == 1);   
+        assertTrue(spt2.getStartBarIndex() == 11);   
     }
 
     @Test
@@ -218,8 +218,8 @@ public class SongStructureImplTest
             Exceptions.printStackTrace(ex);
         }
         System.out.println("after replace sp1=>spt3 sgs=" + sgs);
-        assertTrue(sgs.getSizeInBars() == 20);   //NOI18N
-        assertTrue(sgs.getSongParts().get(1) == spt3);   //NOI18N
+        assertTrue(sgs.getSizeInBars() == 20);   
+        assertTrue(sgs.getSongParts().get(1) == spt3);   
         Rhythm r = r44_2;
         SongPartImpl newSpt = (SongPartImpl) spt0.clone(r, spt0.getStartBarIndex(), spt0.getNbBars(), spt0.getParentSection());
         try
@@ -231,8 +231,8 @@ public class SongStructureImplTest
         }
         System.out.println("after replace spt0=>newSpt sgs=" + sgs);
         System.out.println("spt0=" + spt0.toDumpString() + "\nnewSpt=" + newSpt.toDumpString());
-        assertTrue(sgs.getSongParts().get(0) == newSpt && !sgs.getSongParts().contains(spt0));   //NOI18N
-        assertTrue(sgs.getSizeInBars() == 20);   //NOI18N
+        assertTrue(sgs.getSongParts().get(0) == newSpt && !sgs.getSongParts().contains(spt0));   
+        assertTrue(sgs.getSizeInBars() == 20);   
     }
 
     /**
@@ -243,11 +243,11 @@ public class SongStructureImplTest
     {
         System.out.println("\n============ Test findSongPart");
         SongPart spt = sgs.getSongPart(0);
-        assertTrue(spt == spt0);   //NOI18N
+        assertTrue(spt == spt0);   
         spt = sgs.getSongPart(10);
-        assertTrue(spt == spt1);   //NOI18N
+        assertTrue(spt == spt1);   
         spt = sgs.getSongPart(15);
-        assertTrue(spt == spt2);   //NOI18N
+        assertTrue(spt == spt2);   
     }
 
     private List<SongPart> ml(SongPart rp)

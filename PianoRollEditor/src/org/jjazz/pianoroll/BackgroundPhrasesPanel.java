@@ -171,7 +171,7 @@ public class BackgroundPhrasesPanel extends javax.swing.JPanel
         btn_clearAll = new javax.swing.JButton();
 
         list_tracks.setToolTipText(org.openide.util.NbBundle.getMessage(BackgroundPhrasesPanel.class, "BackgroundPhrasesPanel.list_tracks.toolTipText")); // NOI18N
-        list_tracks.setPrototypeCellValue("10: Phrase2 - elec. guitar");
+        list_tracks.setPrototypeCellValue("average length-------");
         list_tracks.setVisibleRowCount(9);
         jScrollPane1.setViewportView(list_tracks);
 

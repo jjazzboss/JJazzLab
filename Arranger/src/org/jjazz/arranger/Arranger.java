@@ -81,7 +81,7 @@ public class Arranger implements SgsChangeListener, PropertyChangeListener
     private CLI_ChordSymbol firstChordSymbol;
     private boolean playing;
     private SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
-    private static final Logger LOGGER = Logger.getLogger(Arranger.class.getSimpleName());  //NOI18N    
+    private static final Logger LOGGER = Logger.getLogger(Arranger.class.getSimpleName());      
 
     /**
      * Create an arranger for the specified song context.
@@ -264,7 +264,7 @@ public class Arranger implements SgsChangeListener, PropertyChangeListener
             // Forward the change to our work context
             RpChangedEvent rpe = (RpChangedEvent) e;
             SongStructure sgs = songContextWork.getSong().getSongStructure();
-            sgs.setRhythmParameterValue(songPartWork, (RhythmParameter) rpe.getRhytmParameter(), rpe.getNewValue());
+            sgs.setRhythmParameterValue(songPartWork, (RhythmParameter) rpe.getRhythmParameter(), rpe.getNewValue());
         }
     }
 

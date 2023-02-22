@@ -91,7 +91,7 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
 
         if (rInfo == null || (altChordSymbol == null && altFilter != null) || (altChordSymbol != null && altFilter == null))
         {
-            throw new IllegalArgumentException("cs=" + cs + " rInfo=" + rInfo + " altChordSymbol=" + altChordSymbol + " altFilter=" + altFilter);   //NOI18N
+            throw new IllegalArgumentException("cs=" + cs + " rInfo=" + rInfo + " altChordSymbol=" + altChordSymbol + " altFilter=" + altFilter);   
         }
         renderingInfo = rInfo;
         this.altChordSymbol = altChordSymbol;
@@ -115,7 +115,7 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
 
         if (rInfo == null || (altChordSymbol == null && altFilter != null) || (altChordSymbol != null && altFilter == null))
         {
-            throw new IllegalArgumentException("rootDg=" + rootDg + " bassDg=" + bassDg + " ct=" + ct + " rInfo=" + rInfo + " altChordSymbol=" + altChordSymbol + " altFilter=" + altFilter);   //NOI18N
+            throw new IllegalArgumentException("rootDg=" + rootDg + " bassDg=" + bassDg + " ct=" + ct + " rInfo=" + rInfo + " altChordSymbol=" + altChordSymbol + " altFilter=" + altFilter);   
         }
         renderingInfo = rInfo;
         this.altChordSymbol = altChordSymbol;
@@ -335,7 +335,7 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
     {
         if (cs == null)
         {
-            throw new NullPointerException("cs");   //NOI18N
+            throw new NullPointerException("cs");   
         }
         return isSameChordType(cs) && getRootNote().equalsRelativePitch(cs.getRootNote()) && getBassNote().equalsRelativePitch(cs.getBassNote());
     }
@@ -417,7 +417,7 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
                 try
                 {
                     ecs = get(spName, spRenderingInfo, spAltChordSymbol, spAltFilter);
-                    LOGGER.log(Level.WARNING, spOriginalName + ": Invalid chord symbol. Using '" + spName + "' instead.");   //NOI18N
+                    LOGGER.log(Level.WARNING, spOriginalName + ": Invalid chord symbol. Using '" + spName + "' instead.");   
                 } catch (ParseException e)
                 {
                     // Nothing
@@ -425,7 +425,7 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
             }
             if (ecs == null)
             {
-                LOGGER.log(Level.WARNING, spName + ": Invalid chord symbol. Using 'C' ChordSymbol instead.");   //NOI18N
+                LOGGER.log(Level.WARNING, spName + ": Invalid chord symbol. Using 'C' ChordSymbol instead.");   
                 ecs = new ExtChordSymbol();
             }
 

@@ -139,7 +139,7 @@ public class RemapTableUI extends JTable
     {
         if (ins != GMRemapTable.DRUMS_INSTRUMENT && ins != GMRemapTable.PERCUSSION_INSTRUMENT && !(ins instanceof GM1Instrument))
         {
-            throw new IllegalArgumentException("ins=" + ins);   //NOI18N
+            throw new IllegalArgumentException("ins=" + ins);   
         }
         int index;
         if (ins == GMRemapTable.DRUMS_INSTRUMENT)
@@ -152,7 +152,7 @@ public class RemapTableUI extends JTable
         {
             index = ins.getMidiAddress().getProgramChange() + Model.ROW_GMVOICE_START;
         }
-        assert index >= 0;   //NOI18N
+        assert index >= 0;   
         int vIndex = convertRowIndexToView(index);      // Take into account sorting/filtering 
         if (vIndex != -1)
         {
@@ -215,7 +215,7 @@ public class RemapTableUI extends JTable
                     // Nothing
                     break;
                 default:
-                    throw new IllegalStateException("col=" + colIndex);   //NOI18N
+                    throw new IllegalStateException("col=" + colIndex);   
 
             }
         }
@@ -241,7 +241,7 @@ public class RemapTableUI extends JTable
         {
             if (model == null)
             {
-                throw new NullPointerException("model");   //NOI18N
+                throw new NullPointerException("model");   
             }
             if (remapTable != null)
             {
@@ -285,7 +285,7 @@ public class RemapTableUI extends JTable
                     res = "#";
                     break;
                 default:
-                    throw new IllegalArgumentException("col=" + col);   //NOI18N
+                    throw new IllegalArgumentException("col=" + col);   
             }
             return res;
         }
@@ -309,7 +309,7 @@ public class RemapTableUI extends JTable
                     res = Integer.class;
                     break;
                 default:
-                    throw new IllegalArgumentException("col=" + col);   //NOI18N
+                    throw new IllegalArgumentException("col=" + col);   
             }
             return res;
         }
@@ -342,7 +342,7 @@ public class RemapTableUI extends JTable
                             res = remapTable.getInstrument(GMRemapTable.DRUMS_INSTRUMENT);
                             break;
                         default:
-                            throw new IllegalArgumentException("row=" + row + " col=" + col);   //NOI18N
+                            throw new IllegalArgumentException("row=" + row + " col=" + col);   
                     }
                     break;
                 case ROW_PERC:
@@ -358,7 +358,7 @@ public class RemapTableUI extends JTable
                             res = remapTable.getInstrument(GMRemapTable.PERCUSSION_INSTRUMENT);
                             break;
                         default:
-                            throw new IllegalArgumentException("row=" + row + " col=" + col);   //NOI18N
+                            throw new IllegalArgumentException("row=" + row + " col=" + col);   
                     }
                     break;
                 default:
@@ -376,7 +376,7 @@ public class RemapTableUI extends JTable
                             res = remapTable.getInstrument(insGM1);
                             break;
                         default:
-                            throw new IllegalArgumentException("row=" + row + " col=" + col);   //NOI18N
+                            throw new IllegalArgumentException("row=" + row + " col=" + col);   
                     }
             }
             // LOGGER.fine("getValueAt() row=" + row + " col" + col + " res=" + res);
@@ -410,12 +410,12 @@ public class RemapTableUI extends JTable
                         row = ins.getMidiAddress().getProgramChange() + ROW_GMVOICE_START;
                     } else
                     {
-                        throw new IllegalStateException("ins=" + ins);   //NOI18N
+                        throw new IllegalStateException("ins=" + ins);   
                     }
                     fireTableCellUpdated(row, COL_INS_MAP);
                     break;
                 default:
-                    throw new IllegalArgumentException("e=" + e);   //NOI18N
+                    throw new IllegalArgumentException("e=" + e);   
             }
         }
     }

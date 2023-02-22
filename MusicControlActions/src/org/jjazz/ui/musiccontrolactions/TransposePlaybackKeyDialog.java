@@ -43,7 +43,7 @@ public class TransposePlaybackKeyDialog extends javax.swing.JDialog
     {
         if (keyTransposition < -11 || keyTransposition > 0)
         {
-            throw new IllegalArgumentException("transposition=" + keyTransposition);   //NOI18N
+            throw new IllegalArgumentException("transposition=" + keyTransposition);   
         }
         cb_enableKeyTransposition.setSelected(keyTransposition != 0);
         cmb_transposition.setEnabled(keyTransposition != 0);
@@ -85,7 +85,7 @@ public class TransposePlaybackKeyDialog extends javax.swing.JDialog
     protected JRootPane createRootPane()
     {
         JRootPane contentPane = new JRootPane();
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ENTER"), "actionOk");   //NOI18N
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ENTER"), "actionOk");   
         contentPane.getActionMap().put("actionOk", new AbstractAction("OK")
         {
 
@@ -96,7 +96,7 @@ public class TransposePlaybackKeyDialog extends javax.swing.JDialog
             }
         });
 
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ESCAPE"), "actionCancel");   //NOI18N
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ESCAPE"), "actionCancel");   
         contentPane.getActionMap().put("actionCancel", new AbstractAction("Cancel")
         {
 
