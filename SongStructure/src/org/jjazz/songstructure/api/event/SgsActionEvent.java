@@ -46,17 +46,17 @@ public class SgsActionEvent extends SgsChangeEvent
      * @param sgs
      * @param actionId The corresponding method name from the SongStructure interface which performs the change, e.g.
      * "addSongParts".
-     * @param startedOrComplete False means action has started, true action is complete
+     * @param isComplete False means action has started, true action is complete
      * @param undo True if we're actually undoing the action
      */
-    public SgsActionEvent(SongStructure sgs, String actionId, boolean startedOrComplete, boolean undo)
+    public SgsActionEvent(SongStructure sgs, String actionId, boolean isComplete, boolean undo)
     {
         super(sgs);
         if (actionId == null)
         {
-            throw new IllegalArgumentException("sgs=" + sgs + " actionId=" + actionId + " startedOrComplete=" + startedOrComplete + " undo=" + undo);
+            throw new IllegalArgumentException("sgs=" + sgs + " actionId=" + actionId + " isComplete=" + isComplete + " undo=" + undo);
         }
-        this.startedOrComplete = startedOrComplete;
+        this.startedOrComplete = isComplete;
         this.actionId = actionId;
         this.isUndo = undo;
     }

@@ -36,7 +36,7 @@ public class BackgroundPhrasesPanel extends javax.swing.JPanel
     /**
      * newValue = ths list of visible track names.
      */
-    public static final String PROP_VISIBLE_TRACK_NAMES = "visibleTrackNames";
+    public static final String PROP_SELECTED_TRACK_NAMES = "selectedTrackNames";
     private List<String> trackNames = new ArrayList<>();
     private boolean blockChangeEventFiring = false;
     private static final Logger LOGGER = Logger.getLogger(BackgroundPhrasesPanel.class.getSimpleName());
@@ -53,7 +53,7 @@ public class BackgroundPhrasesPanel extends javax.swing.JPanel
         {
             if (!e.getValueIsAdjusting() && !blockChangeEventFiring)
             {
-                firePropertyChange(PROP_VISIBLE_TRACK_NAMES, null, getSelectedTracks());
+                firePropertyChange(PROP_SELECTED_TRACK_NAMES, null, getSelectedTracks());
             }
         });
     }
@@ -171,7 +171,7 @@ public class BackgroundPhrasesPanel extends javax.swing.JPanel
         btn_clearAll = new javax.swing.JButton();
 
         list_tracks.setToolTipText(org.openide.util.NbBundle.getMessage(BackgroundPhrasesPanel.class, "BackgroundPhrasesPanel.list_tracks.toolTipText")); // NOI18N
-        list_tracks.setPrototypeCellValue("average length-------");
+        list_tracks.setPrototypeCellValue("average length--");
         list_tracks.setVisibleRowCount(9);
         jScrollPane1.setViewportView(list_tracks);
 

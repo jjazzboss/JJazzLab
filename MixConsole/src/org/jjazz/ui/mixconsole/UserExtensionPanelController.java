@@ -94,9 +94,8 @@ public class UserExtensionPanelController
 
         // Create editor TopComponent and open it if required
         var preTc = SongEditorManager.getInstance().showPianoRollEditor(getSong());
-        preTc.getEditor().setUndoManager(JJazzUndoManagerFinder.getDefault().get(getSong()));
 
-
+        
         // Update model of the editor
         DrumKit drumKit = panel.getMidiMix().getInstrumentMixFromKey(getUserRhythmVoice()).getInstrument().getDrumKit();
         DrumKit.KeyMap keyMap = drumKit == null ? null : drumKit.getKeyMap();

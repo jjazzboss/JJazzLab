@@ -31,8 +31,7 @@ import org.jjazz.song.api.Song;
 import org.openide.util.ChangeSupport;
 
 /**
- * A helper class to be notified when a song and other elements have changed in a way that will impact music generation for that
- * song.
+ * A helper class to be notified when a song and other elements have changed in a way that will impact music generation for that song.
  * <p>
  * Listen to specific changes in Song, ChordLeadSheet, SongStructure, MidiMix, and PlaybackSettings.
  * <p>
@@ -70,8 +69,7 @@ public class SongMusicGenerationListener implements PropertyChangeListener
     }
 
     /**
-     * Black list some source events by their property name or actionId: those source events won't trigger a ChangeEvent from this
-     * instance.
+     * Black list some source events by their property name or actionId: those source events won't trigger a ChangeEvent from this instance.
      * <p>
      * Property names or actionId of Song, ChordLeadSheet, SongStructure, MidiMix, or PlaybackSettings.
      *
@@ -100,14 +98,21 @@ public class SongMusicGenerationListener implements PropertyChangeListener
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
-        if (evt.getNewValue() instanceof String s && blackList != null && blackList.contains(s))
+        if (blackList != null)
         {
-            return;
+            if (blackList.contains(evt.getPropertyName()))
+            {
+                return;
+            }
+            if ((evt.getSource() == midiMix || evt.getSource() == song)
+                    && blackList.contains(evt.getNewValue().toString()))
+            {
+                return;
+            }
         }
-        
-        
+
         boolean changed = false;
-        
+
         if (evt.getSource() == song || evt.getSource() == midiMix)
         {
             changed = true;

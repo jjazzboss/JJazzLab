@@ -527,9 +527,9 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
                 // Propagate mutable value changes as SongStructure RpChangedEvents
                 var rp = (RhythmParameter) evt.getOldValue();
                 var rpValue = evt.getNewValue();
-                fireActionEvent(true, "setRhythmParameterValueContent", false);
+                fireAuthorizedChangeEvent(new SgsActionEvent(this, "setRhythmParameterValueContent", false, false));
                 fireAuthorizedChangeEvent(new RpChangedEvent(SongStructureImpl.this, spt, rp, rpValue, rpValue));
-                fireActionEvent(true, "setRhythmParameterValueContent", true);
+                fireAuthorizedChangeEvent(new SgsActionEvent(this, "setRhythmParameterValueContent", true, false));
             }
         }
     }
@@ -557,7 +557,7 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
         // Possible exception here!
         authorizeAddSongParts(spts);
 
-        fireActionEvent(enableActionEvent, "addSongParts", false);
+        fireUndoableActionEvent(enableActionEvent, "addSongParts", false);
 
         // Change state
         for (SongPart spt : spts)
@@ -565,7 +565,7 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
             addSongPartImpl(spt);
         }
 
-        fireActionEvent(enableActionEvent, "addSongParts", true);
+        fireUndoableActionEvent(enableActionEvent, "addSongParts", true);
 
 
         // Make sure all AdaptedRhythms for the song rhythms are generated in the database so that user can 
@@ -594,13 +594,13 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
         authorizeRemoveSongParts(spts);
 
 
-        fireActionEvent(enableActionEvent, "removeSongParts", false);
+        fireUndoableActionEvent(enableActionEvent, "removeSongParts", false);
 
 
         // Perform the change
         removeSongPartsImpl(spts);
 
-        fireActionEvent(enableActionEvent, "removeSongParts", true);
+        fireUndoableActionEvent(enableActionEvent, "removeSongParts", true);
 
     }
 
@@ -619,7 +619,7 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
             return;
         }
 
-        fireActionEvent(enableActionEvent, "resizeSongParts", false);
+        fireUndoableActionEvent(enableActionEvent, "resizeSongParts", false);
 
 
         final SmallMap<SongPart, Integer> saveMap = mapSptSize.clone();
@@ -678,7 +678,7 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
         fireAuthorizedChangeEvent(event);
 
 
-        fireActionEvent(enableActionEvent, "resizeSongParts", true);
+        fireUndoableActionEvent(enableActionEvent, "resizeSongParts", true);
     }
 
     private void replaceSongParts(final List<SongPart> oldSpts, final List<SongPart> newSpts, boolean enableActionEvent) throws UnsupportedEditException
@@ -717,7 +717,7 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
         authorizeReplaceSongParts(oldSpts, newSpts);
 
 
-        fireActionEvent(enableActionEvent, "replaceSongParts", false);
+        fireUndoableActionEvent(enableActionEvent, "replaceSongParts", false);
 
 
         // Save old state and perform the changes
@@ -741,7 +741,7 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
             Rhythm r = newSpt.getRhythm();
             TimeSignature ts = r.getTimeSignature();
             mapTsLastRhythm.putValue(ts, r);
-            
+
             oldSpt.removePropertyChangeListener(this);
             newSpt.addPropertyChangeListener(this);
         }
@@ -786,13 +786,13 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
                 songParts = new ArrayList<>(newSongParts);      // Must use a copy to make sure newSongParts remains unaffected
                 mapTsLastRhythm = newMapTsRhythm.clone();           // Must use a copy to make sure map remains unaffected                        
                 // Change the container of the replacing songparts
-                 for (int i = 0; i < newSpts.size(); i++)
+                for (int i = 0; i < newSpts.size(); i++)
                 {
                     var newSpt = newSpts.get(i);
-                    var oldSpt = oldSpts.get(i);                    
+                    var oldSpt = oldSpts.get(i);
                     ((SongPartImpl) newSpt).setContainer(SongStructureImpl.this);
                     newSpt.addPropertyChangeListener(SongStructureImpl.this);
-                    oldSpt.removePropertyChangeListener(SongStructureImpl.this);                    
+                    oldSpt.removePropertyChangeListener(SongStructureImpl.this);
                 }
                 // Don't use vetoablechange : it already worked, normally there is no reason it would change
                 fireAuthorizedChangeEvent(new SptReplacedEvent(SongStructureImpl.this, oldSpts, newSpts));
@@ -809,7 +809,7 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
         fireAuthorizedChangeEvent(event);
 
 
-        fireActionEvent(enableActionEvent, "replaceSongParts", true);
+        fireUndoableActionEvent(enableActionEvent, "replaceSongParts", true);
 
 
         // Make sure all AdaptedRhythms for the song rhythms are generated in the database so that user can 
@@ -837,7 +837,7 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
             return;
         }
 
-        fireActionEvent(enableActionEvent, "setSongPartsName", false);
+        fireUndoableActionEvent(enableActionEvent, "setSongPartsName", false);
 
         final SmallMap<SongPart, String> save = new SmallMap<>();
         for (SongPart spt : spts)
@@ -884,7 +884,7 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
         fireAuthorizedChangeEvent(new SptRenamedEvent(this, save.getKeys()));
 
 
-        fireActionEvent(enableActionEvent, "setSongPartsName", true);
+        fireUndoableActionEvent(enableActionEvent, "setSongPartsName", true);
     }
 
     private <T> void setRhythmParameterValue(SongPart spt, final RhythmParameter<T> rp, final T newValue, boolean enableActionEvent)
@@ -907,7 +907,7 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
         }
 
 
-        fireActionEvent(enableActionEvent, "setRhythmParameterValue", false);
+        fireUndoableActionEvent(enableActionEvent, "setRhythmParameterValue", false);
 
 
         // Update the value
@@ -946,7 +946,7 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
         fireAuthorizedChangeEvent(new RpChangedEvent(SongStructureImpl.this, wspt, rp, oldValue, newValue));
 
 
-        fireActionEvent(enableActionEvent, "setRhythmParameterValue", true);
+        fireUndoableActionEvent(enableActionEvent, "setRhythmParameterValue", true);
     }
 
 
@@ -978,12 +978,13 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
     }
 
     /**
+     * Fire an undoable ActionEvent.
      *
      * @param doFire   If false do nothing.
      * @param actionId
      * @param complete
      */
-    private void fireActionEvent(boolean doFire, String actionId, boolean complete)
+    private void fireUndoableActionEvent(boolean doFire, String actionId, boolean complete)
     {
         if (!doFire)
         {
@@ -991,7 +992,7 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
         }
 
         // Create an undoable event for this event which does nothing but refiring the SgsActionEvent
-        UndoableEdit edit = new SimpleEdit("SgsActionEventEdit(" + actionId + ")")
+        UndoableEdit edit = new SimpleEdit("SgsActionEventEdit(" + actionId + "-complete=" + complete + ")")
         {
             @Override
             public void undoBody()

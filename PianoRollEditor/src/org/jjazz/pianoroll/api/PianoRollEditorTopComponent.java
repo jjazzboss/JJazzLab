@@ -51,7 +51,6 @@ import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.event.SgsActionEvent;
 import org.jjazz.songstructure.api.event.SgsChangeEvent;
 import org.jjazz.ui.utilities.api.CollapsiblePanel;
-import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.util.api.FloatRange;
 import org.jjazz.util.api.IntRange;
 import org.jjazz.util.api.ResUtil;
@@ -98,7 +97,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
         Preconditions.checkNotNull(sg);
         Preconditions.checkNotNull(settings);
 
-        LOGGER.severe("PianoRollEditorTopComponent() -- sg=" + sg);
+        LOGGER.log(Level.FINE, "PianoRollEditorTopComponent() -- sg={0}", sg);
 
         putClientProperty(TopComponent.PROP_MAXIMIZATION_DISABLED, Boolean.FALSE);
         putClientProperty(TopComponent.PROP_CLOSING_DISABLED, Boolean.FALSE);
@@ -186,8 +185,9 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
         mapPosTs.put(0f, songPart.getRhythm().getTimeSignature());
 
         editor.setModel(p, beatRange0, 0, spt.getStartBarIndex(), channel, mapPosTs, keyMap);
-
+       
         refreshToolbarTitle();
+        backgroundPhraseManager.updateTrackNames();        
     }
 
     /**
@@ -215,7 +215,10 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
 
 
         editor.setModel(p, getBeatRange(), 0, 0, channel, mapPosTs, keyMap);
+        
+        
         refreshToolbarTitle();
+        backgroundPhraseManager.updateTrackNames();
     }
 
 
@@ -436,20 +439,20 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
         // Use high-level actions to not be polluted by intermediate states
         if (e instanceof SgsActionEvent evt && evt.isActionComplete())
         {
-            var allSpts = getSong().getSongStructure().getSongParts();
-            if (allSpts.isEmpty() || (isSongPartMode() && !allSpts.contains(songPart)))
-            {
-                // Underlying model is gone, close
-                close();
-                return;
-            }
-
             LOGGER.log(Level.FINE, "songStructureChanged() actionId={0}", evt.getActionId());
 
 
             if (evt.getActionId().startsWith("setRhythmParameterValue"))
             {
                 // No impact on structure change
+                return;
+            }
+
+            // Check if the underlying model is gone
+            var allSpts = getSong().getSongStructure().getSongParts();
+            if (allSpts.isEmpty() || (isSongPartMode() && !allSpts.contains(songPart)))
+            {
+                close();
                 return;
             }
 

@@ -36,7 +36,6 @@ import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.MidiMixManager;
 import org.jjazz.musiccontrol.api.SongMusicGenerationListener;
 import org.jjazz.phrase.api.Phrase;
-import org.jjazz.phrase.api.PhraseSamples;
 import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythmmusicgeneration.api.MusicGenerationQueue;
@@ -72,15 +71,35 @@ public class BackgroundPhraseManager implements PropertyChangeListener
             Exceptions.printStackTrace(ex);
         }
         midiMix.addPropertyChangeListener(this);
-        songMidiMixChanged();
+        updateTrackNames();
 
 
         // Listen to user selection changes
-        backgroundPhrasesPanel.addPropertyChangeListener(BackgroundPhrasesPanel.PROP_VISIBLE_TRACK_NAMES, this);
+        backgroundPhrasesPanel.addPropertyChangeListener(BackgroundPhrasesPanel.PROP_SELECTED_TRACK_NAMES, this);
 
 
         musicGenerationQueue = new MusicGenerationQueue(300, 600);
         musicGenerationQueue.addChangeListener(e -> musicGenerationResultReceived(musicGenerationQueue.getLastResult()));
+    }
+
+    /**
+     * Refresh the track names in the backgroundPhrasesPanel.
+     * <p>
+     * Should be called when editor's channel or midiMix has changed.
+     */
+    public void updateTrackNames()
+    {
+        List<String> names = new ArrayList<>();
+        for (int ch : midiMix.getUsedChannels())
+        {
+            if (ch == editor.getChannel())
+            {
+                continue;
+            }
+            String name = buildPhraseName(ch);
+            names.add(name);
+        }
+        backgroundPhrasesPanel.setTracks(names);
     }
 
     public void cleanup()
@@ -125,7 +144,7 @@ public class BackgroundPhraseManager implements PropertyChangeListener
 
             // Regenerate music each time song context is musically updated -except for our own phrase change events
             songMusicGenerationListener = new SongMusicGenerationListener(editor.getSong(), midiMix);
-            songMusicGenerationListener.setBlackList(Set.of(Song.PROP_VETOABLE_USER_PHRASE_CONTENT));
+            songMusicGenerationListener.setBlackList(Set.of(Song.PROP_VETOABLE_USER_PHRASE_CONTENT, "setRhythmParameterValueContent"));
             songMusicGenerationListener.addChangeListener(
                     e -> musicGenerationQueue.add(new SongContext(editor.getSong(), midiMix)));
         }
@@ -209,23 +228,6 @@ public class BackgroundPhraseManager implements PropertyChangeListener
         });
     }
 
-    /**
-     * Song Midi mix has changed, update the available background phrase names.
-     */
-    private void songMidiMixChanged()
-    {
-        List<String> names = new ArrayList<>();
-        for (int ch : midiMix.getUsedChannels())
-        {
-            if (ch == editor.getChannel() || midiMix.getUserChannels().contains(ch))
-            {
-                continue;
-            }
-            String name = buildPhraseName(ch);
-            names.add(name);
-        }
-        backgroundPhrasesPanel.setTracks(names);
-    }
 
     private String buildPhraseName(int channel)
     {
@@ -253,14 +255,14 @@ public class BackgroundPhraseManager implements PropertyChangeListener
         {
             if (evt.getPropertyName().equals(MidiMix.PROP_CHANNEL_INSTRUMENT_MIX))
             {
-                songMidiMixChanged();
+                updateTrackNames();
             } else if (evt.getPropertyName().equals(MidiMix.PROP_RHYTHM_VOICE))
             {
-                songMidiMixChanged();
+                updateTrackNames();
             }
         } else if (evt.getSource() == backgroundPhrasesPanel)
         {
-            if (evt.getPropertyName().equals(BackgroundPhrasesPanel.PROP_VISIBLE_TRACK_NAMES))
+            if (evt.getPropertyName().equals(BackgroundPhrasesPanel.PROP_SELECTED_TRACK_NAMES))
             {
                 selectionChanged((List<String>) evt.getNewValue());
             }

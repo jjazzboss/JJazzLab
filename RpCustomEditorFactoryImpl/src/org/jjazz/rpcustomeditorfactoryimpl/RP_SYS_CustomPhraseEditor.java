@@ -319,7 +319,6 @@ public class RP_SYS_CustomPhraseEditor extends RpCustomEditor<RP_SYS_CustomPhras
 
         var preTc = SongEditorManager.getInstance().showPianoRollEditor(song);
         var editor = preTc.getEditor();
-        editor.setUndoManager(JJazzUndoManagerFinder.getDefault().get(song));
         
 
         // Update the editor model

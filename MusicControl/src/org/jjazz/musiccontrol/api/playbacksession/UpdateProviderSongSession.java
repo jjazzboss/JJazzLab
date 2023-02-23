@@ -613,6 +613,7 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
         boolean disableUpdates = false;
         boolean dirty = false;
 
+        
         // Context song parts (at the time of the SongContext object creation)
         List<SongPart> contextSongParts = getSongContext().getSongParts();
 

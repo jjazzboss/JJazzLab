@@ -95,6 +95,7 @@ import org.jjazz.ui.utilities.api.MidiFileDragInTransferHandler;
 import static org.jjazz.ui.utilities.api.Utilities.getGenericControlKeyStroke;
 import org.jjazz.ui.utilities.api.Zoomable;
 import org.jjazz.undomanager.api.JJazzUndoManager;
+import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.util.api.FloatRange;
 import org.jjazz.util.api.IntRange;
 import org.jjazz.util.api.ResUtil;
@@ -183,7 +184,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     {
         Preconditions.checkNotNull(settings);
 
-        LOGGER.severe("PianoRollEditor() -- ");
+        LOGGER.fine("PianoRollEditor() -- ");
 
         this.settings = settings;
         this.phraseStartBar = 0;
@@ -267,8 +268,8 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     /**
      * Associate an optional song to the editor.
      * <p>
-     * Put the song and a SaveAsCapable instance in the editor's lookup. Put also a Savable instance when required. The ruler can show the
-     * chord symbols and listen to chord symbols changes.<p>
+     * Put the song in the editor's lookup. Song undo manager is used. The ruler can show the chord symbols and listen to chord symbols
+     * changes.<p>
      * <p>
      * This method can be called only once.
      *
@@ -284,28 +285,14 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
 
         this.song = song;
         generalLookupContent.add(song);
-
         rulerPanel.setSong(song);
+        setUndoManager(JJazzUndoManagerFinder.getDefault().get(getSong()));
 
     }
 
     public Song getSong()
     {
         return song;
-    }
-
-
-    /**
-     * Set the channel of the edited phrase.
-     * <p>
-     *
-     *
-     * @param channel
-     * @see #getChannel()
-     */
-    public void setChannel(int channel)
-    {
-        this.channel = channel;
     }
 
     /**
@@ -424,7 +411,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         model.addUndoableEditListener(undoManager);
 
 
-        // Update the subcomponents          
+        // Update the subcomponents                  
         notesPanel.getXMapper().refresh();
         notesPanel.repaint();
         rulerPanel.revalidate();
@@ -563,7 +550,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
      */
     public void cleanup()
     {
-        LOGGER.severe("cleanup() --");
+        LOGGER.fine("cleanup() --");
         rulerPanel.cleanup();
         notesPanel.cleanup();
         model.removeUndoableEditListener(undoManager);
@@ -1037,16 +1024,19 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         model.addUndoableEditListener(undoManager);
     }
 
+    @Override
+    public String toString()
+    {
+        return "PianoRollEditor[" + song.getName() + "]";
+    }
+
     // ==========================================================================================================
     // PropertyChangeListener interface
     // ==========================================================================================================    
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
-        LOGGER.log(Level.FINE, "propertyChange() evt.source.class={0}prop={1} old={2} new={3}", new Object[]
-        {
-            evt.getSource().getClass().getSimpleName(), evt.getPropertyName(), evt.getOldValue(), evt.getNewValue()
-        });
+        LOGGER.log(Level.FINE, "propertyChange() -- evt={0}", evt);
 
         if (evt.getSource() == model)
         {

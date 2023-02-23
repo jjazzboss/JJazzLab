@@ -100,7 +100,7 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
     {
         if (name == null || name.isBlank())
         {
-            throw new IllegalArgumentException("name=" + name);   
+            throw new IllegalArgumentException("name=" + name);
         }
         this.name = name;
     }
@@ -143,7 +143,7 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
     {
         if (currentCEdit != null)
         {
-            throw new IllegalStateException("currentCEdit=" + currentCEdit + " source=" + source + "  editName=" + editName);   
+            throw new IllegalStateException("currentCEdit=" + currentCEdit + " source=" + source + "  editName=" + editName);
         }
         LOGGER.log(Level.FINE, "startCEdit() source={0} editName={1} edits={2}", new Object[]
         {
@@ -165,13 +165,18 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
     {
         if (currentCEdit == null || !currentCEdit.getPresentationName().equals(editName))
         {
-            throw new IllegalStateException("currentCEdit=" + currentCEdit + " editName=" + editName);   
+            throw new IllegalStateException("currentCEdit=" + currentCEdit + " editName=" + editName);
         }
         Object source = currentCEdit.getSource();
+
         LOGGER.log(Level.FINE, "endCEdit() -- source={0} n={1} edits={2} currentCEdit.edits={3}", new Object[]
         {
-            source, editName, edits, currentCEdit.dumpEdits()
+            source, editName, edits, currentCEdit
         });
+        if (LOGGER.isLoggable(Level.FINE))
+        {
+            LOGGER.log(Level.FINE, "   currentCedit.dumpEdits()={0}", currentCEdit.dumpEdits());
+        }
 
         currentCEdit.end();
 
@@ -265,10 +270,14 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
 
         if (currentCEdit == null)
         {
-            LOGGER.log(Level.FINE, "undoableEditHappened() but currentCEdit=null");
-        } else
+            LOGGER.log(Level.FINE, "undoableEditHappened() ue received but currentCEdit=null, ue.source={0} ue.edit={1}", new Object[]
+            {
+                ue.getSource(),
+                ue.getEdit().getPresentationName()
+            });
+        } else if (LOGGER.isLoggable(Level.FINE))
         {
-            LOGGER.log(Level.FINE, "undoableEditHappened() currentCEdit.edits=" + currentCEdit.dumpEdits());
+            LOGGER.log(Level.FINE, "undoableEditHappened() currentCEdit.edits={0}", currentCEdit.dumpEdits());
         }
     }
 
@@ -330,8 +339,8 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
     }
 
     /**
-     * Convenience method : the right way to handle UnsupportedEditException when catched by the highest level caller, ie the one
-     * who called startCEdit() and should call endCEdit().
+     * Convenience method : the right way to handle UnsupportedEditException when catched by the highest level caller, ie the one who called
+     * startCEdit() and should call endCEdit().
      * <p>
      * This method should be called first in the catch section.
      * <p>
@@ -478,7 +487,7 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
         {
             if (n == null)
             {
-                throw new IllegalArgumentException("n=" + n);   
+                throw new IllegalArgumentException("n=" + n);
             }
             source = src;
             name = n;
