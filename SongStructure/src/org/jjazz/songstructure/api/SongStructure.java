@@ -43,7 +43,9 @@ import org.jjazz.util.api.SmallMap;
 /**
  * A SongStructure manages SongParts.
  * <p>
- * Implement must fire the relevant SgsChangeEvents when a method mutates the song structure.
+ * Implementation must fire the relevant SgsChangeEvents when a method mutates the song structure. If a RhythmParameter uses a value class which
+ * is mutable (implements MutableRpValue), the SongStructure will listen to value changes and propagate the change event via
+ * SgsChangeEvents.
  */
 public interface SongStructure
 {
@@ -53,13 +55,12 @@ public interface SongStructure
      * <p>
      * Parameters can be used to exclude from the return list AdaptedRhythm and "implicit source rhythm" instances.
      * <p>
-     * An "implicit source rhythm" is the source rhythm of an AdaptedRhythm in a song which does not directly use the source
-     * rhythm. For example if song contains only spt1=bossa[3/4], then bossa(4/4) is the implicit source rhythm of the
-     * AdaptedRhythm bossa[3/4]. If song contains spt1=bossa and spt2=bossa[3/4], then bossa(4/4) is a source rhythm but is not an
-     * "implicit source rhythm".
+     * An "implicit source rhythm" is the source rhythm of an AdaptedRhythm in a song which does not directly use the source rhythm. For
+     * example if song contains only spt1=bossa[3/4], then bossa(4/4) is the implicit source rhythm of the AdaptedRhythm bossa[3/4]. If song
+     * contains spt1=bossa and spt2=bossa[3/4], then bossa(4/4) is a source rhythm but is not an "implicit source rhythm".
      * <p>
-     * If both excludeAdaptedRhythms and excludeImplicitSourceRhythms parameters are false and there is an implicit source rhythm,
-     * then the return list will contain the AdaptedRhythm instance juste before the implicit rhythm instance.
+     * If both excludeAdaptedRhythms and excludeImplicitSourceRhythms parameters are false and there is an implicit source rhythm, then the
+     * return list will contain the AdaptedRhythm instance juste before the implicit rhythm instance.
      *
      * @param excludeAdaptedRhythms        If true, don't return AdaptedRhythm instances
      * @param excludeImplicitSourceRhythms If true don't return "implicit source rhythms" instances
@@ -125,8 +126,7 @@ public interface SongStructure
     /**
      * Get all the unique RhythmVoices used by this SongStructure.
      * <p>
-     * Parameters are used to exclude RhythmVoice instances from AdaptedRhythms or "implicit source rhythms" (see
-     * getUniqueRhythms()).
+     * Parameters are used to exclude RhythmVoice instances from AdaptedRhythms or "implicit source rhythms" (see getUniqueRhythms()).
      *
      * @param excludeAdaptedRhythms  If true exclude the RhythmVoiceDelegate instances of AdaptedRhythms
      * @param excludeImplicitRhythms If true exclude the RhythmVoice instances of the "implicit source rhythms"
@@ -236,8 +236,7 @@ public interface SongStructure
     public FloatRange getBeatRange(IntRange barRange);
 
     /**
-     * The position of the specified bar in natural beats: take into account the possible different time signatures before
-     * specified bar.
+     * The position of the specified bar in natural beats: take into account the possible different time signatures before specified bar.
      *
      * @param absoluteBarIndex A value in the range [0; getSizeInBars()].
      * @return
@@ -344,8 +343,8 @@ public interface SongStructure
     /**
      * Replace SongParts by other SongParts.
      * <p>
-     * Typically used to changed rhythm. The size and startBarIndex of new SongParts must be the same than the replaced ones. The
-     * container of newSpt will be set to this object.
+     * Typically used to changed rhythm. The size and startBarIndex of new SongParts must be the same than the replaced ones. The container
+     * of newSpt will be set to this object.
      *
      * @param oldSpts
      * @param newSpts size must match oldSpts
@@ -388,8 +387,7 @@ public interface SongStructure
      * - otherwise return the RhythmDatabase default rhythm for the time signature.<br>
      *
      * @param ts               The TimeSignature of the rhythm
-     * @param sptStartBarIndex The start bar index of the new song part, can be on an existing song part, or right after the last
-     *                         song part.
+     * @param sptStartBarIndex The start bar index of the new song part, can be on an existing song part, or right after the last song part.
      * @return Can't be null
      */
     public Rhythm getRecommendedRhythm(TimeSignature ts, int sptStartBarIndex);

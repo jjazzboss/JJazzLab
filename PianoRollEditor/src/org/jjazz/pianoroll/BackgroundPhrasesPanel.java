@@ -34,7 +34,7 @@ public class BackgroundPhrasesPanel extends javax.swing.JPanel
 {
 
     /**
-     * newValue = ths list of visible track names.
+     * newValue = ths list of selected track names.
      */
     public static final String PROP_SELECTED_TRACK_NAMES = "selectedTrackNames";
     private List<String> trackNames = new ArrayList<>();
@@ -115,43 +115,47 @@ public class BackgroundPhrasesPanel extends javax.swing.JPanel
         return res;
     }
 
-    /**
-     * Overridden because the JList is embedded in a JScollPane.
-     * <p>
-     * Note: JList size is sized indirectly via setPrototypeCellValue() in initComponents().
-     *
-     * @return
-     */
-    @Override
-    public Dimension getPreferredSize()
-    {
-        var d = super.getPreferredSize();
-        var ld = list_tracks.getPreferredSize();
-        if (ld.width > d.width)
-        {
-            d.width = ld.width; // JScrollPane scrollbars width should be added too
-        }
-        return d;
-    }
-
-    /**
-     * Overridden because the JList is embedded in a JScollPane.
-     * <p>
-     * Note: JList is sized indirectly via setPrototypeCellValue() in initComponents().
-     *
-     * @return
-     */
-    @Override
-    public Dimension getMinimumSize()
-    {
-        var d = super.getMinimumSize();
-        var ld = list_tracks.getMinimumSize();
-        if (ld.width > d.width)
-        {
-            d.width = ld.width; // JScrollPane scrollbars width should be added too
-        }
-        return d;
-    }
+//    /**
+//     * Overridden because the JList is embedded in a JScollPane.
+//     * <p>
+//     * Note: JList size is sized indirectly via setPrototypeCellValue() in initComponents().
+//     *
+//     * @return
+//     */
+//    @Override
+//    public Dimension getPreferredSize()
+//    {
+//        var d = super.getPreferredSize();
+//        var ld = list_tracks.getPreferredSize();
+//        if (ld.width > d.width)
+//        {
+//            d.width = ld.width; // JScrollPane scrollbars width should be added too
+//        }
+//        return d;
+//    }
+//
+//    /**
+//     * Overridden because the JList is embedded in a JScollPane.
+//     * <p>
+//     * Note: JList is sized indirectly via setPrototypeCellValue() in initComponents().
+//     *
+//     * @return
+//     */
+//    @Override
+//    public Dimension getMinimumSize()
+//    {
+//        if (true)
+//        {
+//            return getPreferredSize();
+//        }
+//        var d = super.getMinimumSize();
+//        var ld = list_tracks.getMinimumSize();
+//        if (ld.width > d.width)
+//        {
+//            d.width = ld.width; // JScrollPane scrollbars width should be added too
+//        }
+//        return d;
+//    }
 
     // ==============================================================================================================
     // Private methods
@@ -171,7 +175,6 @@ public class BackgroundPhrasesPanel extends javax.swing.JPanel
         btn_clearAll = new javax.swing.JButton();
 
         list_tracks.setToolTipText(org.openide.util.NbBundle.getMessage(BackgroundPhrasesPanel.class, "BackgroundPhrasesPanel.list_tracks.toolTipText")); // NOI18N
-        list_tracks.setPrototypeCellValue("average length--");
         list_tracks.setVisibleRowCount(9);
         jScrollPane1.setViewportView(list_tracks);
 
@@ -200,11 +203,10 @@ public class BackgroundPhrasesPanel extends javax.swing.JPanel
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(btn_clearAll)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addComponent(btn_clearAll))
         );
     }// </editor-fold>//GEN-END:initComponents
 

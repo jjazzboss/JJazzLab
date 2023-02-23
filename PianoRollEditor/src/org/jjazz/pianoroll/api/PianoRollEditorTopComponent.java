@@ -132,6 +132,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
 
         initComponents();
         splitpane_tools_editor.setRightComponent(editor);
+        
 
 
         // Update the CollapsiblePanels
@@ -141,11 +142,11 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
         cpan_showTracks.getContentPane().setLayout(new BorderLayout());
         backgroundPhrasesPanel = new BackgroundPhrasesPanel();
         cpan_showTracks.getContentPane().add(backgroundPhrasesPanel, BorderLayout.CENTER);
-        // Reset splitpane divider location when a panel is collapsed/expended
+        // Reset splitpane divider location when a panel is collapsed/expanded
         cpan_quantize.addPropertyChangeListener(CollapsiblePanel.PROP_COLLAPSED,
-                e -> SwingUtilities.invokeLater(() -> splitpane_tools_editor.resetToPreferredSizes()));
+                e -> SwingUtilities.invokeLater(() -> updateDividerLocation()));
         cpan_showTracks.addPropertyChangeListener(CollapsiblePanel.PROP_COLLAPSED,
-                e -> SwingUtilities.invokeLater(() -> splitpane_tools_editor.resetToPreferredSizes()));
+                e -> SwingUtilities.invokeLater(() -> updateDividerLocation()));
 
 
         // Manage the background phrases
@@ -480,6 +481,14 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
         String title = titleBase + strSongPart + strBarRange + strTs;
         toolbarPanel.setTitle(title);
     }
+    
+    private void updateDividerLocation()
+    {
+        splitpane_tools_editor.resetToPreferredSizes();
+//        int leftWidth = sidePanel.getPreferredSize().width;
+//        leftWidth += splitpane_tools_editor.getInsets().left;
+//        splitpane_tools_editor.setDividerLocation(leftWidth);
+    }
 
     private boolean isSongPartMode()
     {
@@ -532,7 +541,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
         sidePanelLayout.setHorizontalGroup(
             sidePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(cpan_quantize, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(cpan_showTracks, javax.swing.GroupLayout.DEFAULT_SIZE, 275, Short.MAX_VALUE)
+            .addComponent(cpan_showTracks, javax.swing.GroupLayout.DEFAULT_SIZE, 177, Short.MAX_VALUE)
         );
         sidePanelLayout.setVerticalGroup(
             sidePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -540,12 +549,12 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
                 .addComponent(cpan_quantize, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(cpan_showTracks, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(10, Short.MAX_VALUE))
+                .addContainerGap(187, Short.MAX_VALUE))
         );
 
         splitpane_tools_editor.setLeftComponent(sidePanel);
 
-        org.openide.awt.Mnemonics.setLocalizedText(jButton1, org.openide.util.NbBundle.getMessage(PianoRollEditorTopComponent.class, "PianoRollEditorTopComponent.jButton1.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(jButton1, "jButton1"); // NOI18N
         splitpane_tools_editor.setRightComponent(jButton1);
 
         add(splitpane_tools_editor, java.awt.BorderLayout.CENTER);

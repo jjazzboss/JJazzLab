@@ -27,21 +27,20 @@ import javax.swing.border.TitledBorder;
 
 
 /**
- * * Copyright (c) 2004 Memorial Sloan-Kettering Cancer Center * * Code written by: Gary Bader * Authors: Gary Bader, Ethan
- * Cerami, Chris Sander * * This library is free software; you can redistribute it and/or modify it * under the terms of the GNU
- * Lesser General Public License as published * by the Free Software Foundation; either version 2.1 of the License, or * any later
- * version. * * This library is distributed in the hope that it will be useful, but * WITHOUT ANY WARRANTY, WITHOUT EVEN THE
- * IMPLIED WARRANTY OF * MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE. The software and * documentation provided hereunder
- * is on an "as is" basis, and * Memorial Sloan-Kettering Cancer Center * has no obligations to provide maintenance, support, *
- * updates, enhancements or modifications. In no event shall the * Memorial Sloan-Kettering Cancer Center * be liable to any party
- * for direct, indirect, special, * incidental or consequential damages, including lost profits, arising * out of the use of this
- * software and its documentation, even if * Memorial Sloan-Kettering Cancer Center * has been advised of the possibility of such
- * damage. See * the GNU Lesser General Public License for more details. * * You should have received a copy of the GNU Lesser
- * General Public License * along with this library; if not, write to the Free Software Foundation, * Inc., 59 Temple Place, Suite
- * 330, Boston, MA 02111-1307 USA.
+ * * Copyright (c) 2004 Memorial Sloan-Kettering Cancer Center * * Code written by: Gary Bader * Authors: Gary Bader, Ethan Cerami, Chris
+ * Sander * * This library is free software; you can redistribute it and/or modify it * under the terms of the GNU Lesser General Public
+ * License as published * by the Free Software Foundation; either version 2.1 of the License, or * any later version. * * This library is
+ * distributed in the hope that it will be useful, but * WITHOUT ANY WARRANTY, WITHOUT EVEN THE IMPLIED WARRANTY OF * MERCHANTABILITY OR
+ * FITNESS FOR A PARTICULAR PURPOSE. The software and * documentation provided hereunder is on an "as is" basis, and * Memorial
+ * Sloan-Kettering Cancer Center * has no obligations to provide maintenance, support, * updates, enhancements or modifications. In no event
+ * shall the * Memorial Sloan-Kettering Cancer Center * be liable to any party for direct, indirect, special, * incidental or consequential
+ * damages, including lost profits, arising * out of the use of this software and its documentation, even if * Memorial Sloan-Kettering
+ * Cancer Center * has been advised of the possibility of such damage. See * the GNU Lesser General Public License for more details. * * You
+ * should have received a copy of the GNU Lesser General Public License * along with this library; if not, write to the Free Software
+ * Foundation, * Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
  * <p>
- * User: Vuk Pavlovic Date: Nov 29, 2006 Time: 5:34:46 PM Description: The user-triggered collapsable panel containing the
- * component (trigger) in the titled border
+ * User: Vuk Pavlovic Date: Nov 29, 2006 Time: 5:34:46 PM Description: The user-triggered collapsable panel containing the component
+ * (trigger) in the titled border
  */
 /**
  * The user-triggered collapsable contentPanel containing the component (trigger) in the titled border
@@ -84,10 +83,9 @@ public class CollapsiblePanel extends JPanel
     /**
      * Constructor for an option button controlled collapsable panel.
      * <p>
-     * This is useful when a group of options each have unique sub contents. The radio buttons should be created, grouped, and
-     * then used to construct their own collapsable panels. This way choosing a different option in the same option group will
-     * collapse all unselected options. Expanded panels draw a border around the contents and through the radio button in the
-     * fashion of a titled border.
+     * This is useful when a group of options each have unique sub contents. The radio buttons should be created, grouped, and then used to
+     * construct their own collapsable panels. This way choosing a different option in the same option group will collapse all unselected
+     * options. Expanded panels draw a border around the contents and through the radio button in the fashion of a titled border.
      *
      * @param component Radio button that expands and collapses the contentPanel based on if it is selected or not
      */
@@ -102,8 +100,8 @@ public class CollapsiblePanel extends JPanel
     /**
      * Constructor for a label/button controlled collapsable panel.
      * <p>
-     * Displays a clickable title that resembles a native titled border except for an arrow on the right side indicating an
-     * expandable contentPanel. The actual border only appears when the contentPanel is expanded.
+     * Displays a clickable title that resembles a native titled border except for an arrow on the right side indicating an expandable
+     * contentPanel. The actual border only appears when the contentPanel is expanded.
      *
      * @param text Title of the collapsable contentPanel in string format, used to create a button with text and an arrow icon
      */
@@ -115,8 +113,8 @@ public class CollapsiblePanel extends JPanel
     }
 
     /**
-     * Sets layout, creates the content contentPanel and adds it and the title component to the container, all constructors have
-     * this procedure in common.
+     * Sets layout, creates the content contentPanel and adds it and the title component to the container, all constructors have this
+     * procedure in common.
      */
     private void commonConstructor()
     {
@@ -171,7 +169,7 @@ public class CollapsiblePanel extends JPanel
     }
 
     /**
-     * Override to use the titleComponent preferred width when collapsed.
+     * Override make sure preferred width is never smaller than titleComponent preferred width, even when collapsed.
      *
      * @return
      */
@@ -179,21 +177,20 @@ public class CollapsiblePanel extends JPanel
     public Dimension getPreferredSize()
     {
         Dimension d = super.getPreferredSize();
-        if (collapsed)
+
+        int titleWidth = titleComponent.getPreferredSize().width;
+        Insets in = border.getBorderInsets(null, new Insets(0, 0, 0, 0));
+        titleWidth += in.left + in.right;
+        if (d.width < titleWidth)
         {
-            int width = titleComponent.getPreferredSize().width;
-            Insets in = collapsedBorder.getBorderInsets(null, new Insets(0, 0, 0, 0));
-            width += in.left + in.right;
-            if (d.width < width)
-            {
-                d.width = width;
-            }
+            d.width = titleWidth;
         }
+
         return d;
     }
 
     /**
-     * Override to use the titleComponent mininimum width if collapsed.
+     * Override make sure minimum width is never smaller than titleComponent preferred size, even when collapsed.
      *
      * @return
      */
@@ -201,24 +198,23 @@ public class CollapsiblePanel extends JPanel
     public Dimension getMinimumSize()
     {
         Dimension d = super.getMinimumSize();
-        if (collapsed)
+
+        int titleWidth = titleComponent.getPreferredSize().width;
+        Insets in = border.getBorderInsets(null, new Insets(0, 0, 0, 0));
+        titleWidth += in.left + in.right;
+        if (d.width < titleWidth)
         {
-            int width = titleComponent.getMinimumSize().width;
-            Insets in = collapsedBorder.getBorderInsets(null, new Insets(0, 0, 0, 0));
-            width += in.left + in.right;
-            if (d.width < width)
-            {
-                d.width = width;
-            }
+            d.width = titleWidth;
         }
+
         return d;
     }
 
     /**
      * Collapses or expands the panel.
      * <p>
-     * This is done by adding or removing the content pane, alternating between a frame and empty border, and changing the title
-     * arrow. Also, the current state is stored in the collapsed boolean.
+     * This is done by adding or removing the content pane, alternating between a frame and empty border, and changing the title arrow.
+     * Also, the current state is stored in the collapsed boolean.
      *
      * @param collapse When set to true, the contentPanel is collapsed, else it is expanded
      */
