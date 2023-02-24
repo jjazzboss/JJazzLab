@@ -88,7 +88,6 @@ import org.jjazz.util.api.ResUtil;
 import org.jjazz.util.api.Utilities;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
-import org.openide.util.Exceptions;
 
 /**
  * A set of up to 16 InstrumentMixes, 1 per Midi channel with 1 RhythmVoice associated.
@@ -133,12 +132,17 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      */
     public static final String PROP_INSTRUMENT_VELOCITY_SHIFT = "InstrumentVelocityShift";
     /**
-     * A RhythmVoice has replaced another one (for example a UserRhythmVoice with adifferent name).
+     * A RhythmVoice has replaced another one, e.g. this is used to change the name of a user track.
      * <p>
      * oldValue=old RhythmVoice, newValue=new RhythmVoice
      */
     public static final String PROP_RHYTHM_VOICE = "RhythmVoice";
-
+    /**
+     * The channel of a RhythmVoice has been changed by user.
+     * <p>
+     * oldValue=old channel, newValue=new channel
+     */
+    public static final String PROP_RHYTHM_VOICE_CHANNEL = "RhythmVoiceChannel";
     /**
      * This property changes when the MidiMix is modified (false-&gt;true) or saved (true-&gt;false).
      */
@@ -516,6 +520,68 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
         pcs.firePropertyChange(PROP_RHYTHM_VOICE, oldRv, newRv);
         fireIsModified();
     }
+
+    /**
+     * Change the channel of a RhythmVoice.
+     * <p>
+     * Fire a PROP_RHYTHM_VOICE_CHANNEL and an undoable event.
+     *
+     * @param rv         Must be a RhythmVoice used by this MidiMix.
+     * @param newChannel Must be a free channel
+     */
+    public void setRhythmVoiceChannel(RhythmVoice rv, int newChannel)
+    {
+        int oldChannel = getChannel(rv);
+        Preconditions.checkArgument(oldChannel != -1, "rv=%s", rv);
+        Preconditions.checkArgument(getRhythmVoice(newChannel) == null, "newChannel=%s",
+                newChannel + " getRhythmVoice(newChannel)=" + getRhythmVoice(newChannel));
+
+
+        // Change state
+        swapChannels(oldChannel, newChannel);
+
+
+        // Prepare the undoable edit
+        UndoableEdit edit = new SimpleEdit("Set RhythmVoice channel")
+        {
+            @Override
+            public void undoBody()
+            {
+                swapChannels(newChannel, oldChannel);
+
+                LOGGER.log(Level.FINER, "setRhythmVoiceChannel().undoBody oldChannel={0} newChannel={1}", new Object[]
+                {
+                    oldChannel, newChannel
+                });
+
+                pcs.firePropertyChange(PROP_RHYTHM_VOICE_CHANNEL, newChannel, oldChannel);
+                fireIsMusicGenerationModified(PROP_RHYTHM_VOICE_CHANNEL);
+                fireIsModified();
+            }
+
+            @Override
+            public void redoBody()
+            {
+                swapChannels(oldChannel, newChannel);
+
+                LOGGER.log(Level.FINER, "setRhythmVoiceChannel().undoBody oldChannel={0} newChannel={1}", new Object[]
+                {
+                    oldChannel, newChannel
+                });
+
+                pcs.firePropertyChange(PROP_RHYTHM_VOICE_CHANNEL, oldChannel, newChannel);
+                fireIsMusicGenerationModified(PROP_RHYTHM_VOICE_CHANNEL);
+                fireIsModified();
+            }
+        };
+        fireUndoableEditHappened(edit);
+
+
+        pcs.firePropertyChange(PROP_RHYTHM_VOICE_CHANNEL, oldChannel, newChannel);
+        fireIsMusicGenerationModified(PROP_RHYTHM_VOICE_CHANNEL);
+        fireIsModified();
+    }
+
 
     /**
      * Get the instrumet mix for the specified channel.
@@ -1490,7 +1556,8 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
                     if (b == false && !soloedInsMixes.isEmpty())
                     {
                         insMix.setSolo(true);
-                    }       // Forward the MUTE change event
+                    }
+                    // Forward the MUTE change event
                     pcs.firePropertyChange(MidiMix.PROP_INSTRUMENT_MUTE, insMix, b);
                 }
 
@@ -1934,6 +2001,29 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
         }
 
         return -1;
+    }
+
+    /**
+     * Change the internal state so that oldChannel becomes newChannel.
+     *
+     * @param oldChannel
+     * @param newChannel
+     */
+    private void swapChannels(int oldChannel, int newChannel)
+    {
+        rvKeys[newChannel] = rvKeys[oldChannel];
+        rvKeys[oldChannel] = null;
+        var insMix = instrumentMixes[oldChannel];
+        instrumentMixes[newChannel] = insMix;
+        instrumentMixes[oldChannel] = null;
+        var reroutingSaveInsMix = drumsReroutedChannels.get(oldChannel);
+        if (reroutingSaveInsMix != null)
+        {
+            drumsReroutedChannels.remove(oldChannel);
+            drumsReroutedChannels.put(newChannel, reroutingSaveInsMix);
+        }
+        saveMuteConfiguration[newChannel] = saveMuteConfiguration[oldChannel];
+        saveMuteConfiguration[oldChannel] = false;
     }
 
     /**

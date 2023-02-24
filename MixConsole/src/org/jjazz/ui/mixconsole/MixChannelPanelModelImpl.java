@@ -63,8 +63,8 @@ import org.netbeans.api.annotations.common.StaticResource;
 /**
  * Model based on a channel/InstrumentMix data belonging to a MidiMix.
  * <p>
- * Listen to InstrumentMix model changes and notify listeners. UI updates are propagated on the InstrumentMix model and possibly
- * to the enclosing MidiMix.
+ * Listen to InstrumentMix model changes and notify listeners. UI updates are propagated on the InstrumentMix model and possibly to the
+ * enclosing MidiMix.
  * <p>
  */
 public class MixChannelPanelModelImpl implements MixChannelPanelModel, PropertyChangeListener
@@ -94,7 +94,7 @@ public class MixChannelPanelModelImpl implements MixChannelPanelModel, PropertyC
     {
         if (mMix == null || !MidiConst.checkMidiChannel(channel) || mMix.getInstrumentMixFromChannel(channel) == null)
         {
-            throw new IllegalArgumentException("mMix=" + mMix + " channel=" + channel);   
+            throw new IllegalArgumentException("mMix=" + mMix + " channel=" + channel);
         }
         channelId = channel;
         midiMix = mMix;
@@ -123,6 +123,7 @@ public class MixChannelPanelModelImpl implements MixChannelPanelModel, PropertyC
     @Override
     public void cleanup()
     {
+        midiMix.removePropertyChangeListener(this);
         insMix.removePropertyChangeListener(this);
         insSettings.removePropertyChangeListener(this);
     }
@@ -173,8 +174,8 @@ public class MixChannelPanelModelImpl implements MixChannelPanelModel, PropertyC
     /**
      * Set volume of the channel.
      * <p>
-     * If volume was changed using mouse with SHIFT pressed, then we apply the volume delta change to other channels as well,
-     * unless one channel reaches min or max volume.
+     * If volume was changed using mouse with SHIFT pressed, then we apply the volume delta change to other channels as well, unless one
+     * channel reaches min or max volume.
      *
      * @param oldValue
      * @param newValue
@@ -452,6 +453,14 @@ public class MixChannelPanelModelImpl implements MixChannelPanelModel, PropertyC
                 if (rhythmVoice == e.getOldValue())
                 {
                     rhythmVoiceChanged((RhythmVoice) e.getNewValue());
+                }
+            } else if (e.getPropertyName().equals(MidiMix.PROP_RHYTHM_VOICE_CHANNEL))
+            {
+                if (e.getOldValue().equals(channelId))
+                {
+                    int old = channelId;
+                    channelId = (int) e.getNewValue();
+                    pcs.firePropertyChange(PROP_CHANNEL_ID, old, channelId);
                 }
             }
         }

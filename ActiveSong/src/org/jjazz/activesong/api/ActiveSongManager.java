@@ -46,8 +46,7 @@ import org.jjazz.util.api.ResUtil;
 /**
  * Manage the active song and MidiMix.
  * <p>
- * Midi messages are sent upon MidiMix changes depending on getSendMessagePolicy(). If last song is closed, active song is reset
- * to null.
+ * Midi messages are sent upon MidiMix changes depending on getSendMessagePolicy(). If last song is closed, active song is reset to null.
  */
 public class ActiveSongManager implements PropertyChangeListener, VetoableChangeListener
 {
@@ -55,7 +54,7 @@ public class ActiveSongManager implements PropertyChangeListener, VetoableChange
     /**
      * oldValue=MidiMix, newValue=Song
      */
-    public static final String PROP_ACTIVE_SONG = "ActiveSongAndMidiMix";    
+    public static final String PROP_ACTIVE_SONG = "ActiveSongAndMidiMix";
 
     /**
      * When to send Midi Messages.
@@ -146,7 +145,7 @@ public class ActiveSongManager implements PropertyChangeListener, VetoableChange
     {
         if (sg != null && mm == null)
         {
-            throw new IllegalArgumentException("sg=" + sg + " mm=" + mm);   
+            throw new IllegalArgumentException("sg=" + sg + " mm=" + mm);
         }
         if (activeSong == sg)
         {
@@ -195,7 +194,7 @@ public class ActiveSongManager implements PropertyChangeListener, VetoableChange
      */
     public void sendAllMidiMixMessages()
     {
-        LOGGER.fine("sendAllMidiMixMessages()");   
+        LOGGER.fine("sendAllMidiMixMessages()");
         if (activeMidiMix != null)
         {
             for (Integer channel : activeMidiMix.getUsedChannels())
@@ -212,7 +211,7 @@ public class ActiveSongManager implements PropertyChangeListener, VetoableChange
      */
     public void sendAllMidiVolumeMessages()
     {
-        LOGGER.fine("sendAllMidiVolumeMessages()");   
+        LOGGER.fine("sendAllMidiVolumeMessages()");
         if (activeMidiMix != null)
         {
             for (Integer channel : activeMidiMix.getUsedChannels())
@@ -267,7 +266,7 @@ public class ActiveSongManager implements PropertyChangeListener, VetoableChange
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
-        LOGGER.fine("propertyChange() -- evt=" + evt);   
+        LOGGER.fine("propertyChange() -- evt=" + evt);
         if (evt.getSource() == activeMidiMix)
         {
             MidiMix mm = (MidiMix) evt.getSource();
@@ -297,6 +296,15 @@ public class ActiveSongManager implements PropertyChangeListener, VetoableChange
                 } else
                 {
                     // oldInsMix removed but nothing replaced it, nothing to do
+                }
+            } else if (evt.getPropertyName().equals(MidiMix.PROP_RHYTHM_VOICE_CHANNEL))
+            {
+                if (sendMidiMessagePolicy.contains(SendMidiMessagePolicy.MIX_CHANGE))
+                {
+                    int channel = (Integer) evt.getNewValue();
+                    InstrumentMix insMix = mm.getInstrumentMixFromChannel(channel);
+                    JJazzMidiSystem jms = JJazzMidiSystem.getInstance();
+                    jms.sendMidiMessagesOnJJazzMidiOut(insMix.getAllMidiMessages(channel));
                 }
             }
             return;

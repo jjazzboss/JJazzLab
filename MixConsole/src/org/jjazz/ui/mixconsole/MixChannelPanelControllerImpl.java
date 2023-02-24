@@ -22,6 +22,7 @@
  */
 package org.jjazz.ui.mixconsole;
 
+import com.google.common.base.Preconditions;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.instrumentchooser.spi.InstrumentChooserDialog;
@@ -53,47 +54,42 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
 
     private Song song;
     private MidiMix midiMix;
-    private int channelId;
     private static final Logger LOGGER = Logger.getLogger(MixChannelPanelControllerImpl.class.getSimpleName());
 
-    /**
-     * @param mMix    The MidiMix containing all data of our model.
-     * @param channel Used to retrieve the InstrumentMix from mMix.
-     */
-    public MixChannelPanelControllerImpl(Song song, MidiMix mMix, int channel)
+
+    public MixChannelPanelControllerImpl(Song song, MidiMix midiMix)
     {
-        if (mMix == null || !MidiConst.checkMidiChannel(channel) || mMix.getInstrumentMixFromChannel(channel) == null)
-        {
-            throw new IllegalArgumentException("mMix=" + mMix + " channel=" + channel);   
-        }
+        Preconditions.checkNotNull(song);
+        Preconditions.checkNotNull(midiMix);
         this.song = song;
-        channelId = channel;
-        midiMix = mMix;
+        this.midiMix = midiMix;
     }
 
     @Override
-    public void editChannelId(String strNewChannelId)
+    public void editChannel(int channel, String strNewChannel)
     {
-        int newChannelId;
+        int newChannel;
         try
         {
-            newChannelId = Integer.valueOf(strNewChannelId) - 1;
+            newChannel = Integer.valueOf(strNewChannel) - 1;
         } catch (NumberFormatException e)
         {
             return;
         }
-        if (!MidiConst.checkMidiChannel(newChannelId) || newChannelId == channelId)
+        if (!MidiConst.checkMidiChannel(newChannel) || newChannel == channel)
         {
             return;
         }
 
+
         // The current channel data
-        InstrumentMix insMixSrc = midiMix.getInstrumentMixFromChannel(channelId);
-        RhythmVoice rvKeySrc = midiMix.getRhythmVoice(channelId);
+        InstrumentMix insMixSrc = midiMix.getInstrumentMixFromChannel(channel);
+        assert insMixSrc != null : "midiMix=" + midiMix + " channel=" + channel;
+        RhythmVoice rvSrc = midiMix.getRhythmVoice(channel);
 
 
         // Check if we use drums channel for a non drums instrument
-        if (newChannelId == MidiConst.CHANNEL_DRUMS && !rvKeySrc.isDrums() && !Family.couldBeDrums(insMixSrc.getInstrument().getPatchName()))
+        if (newChannel == MidiConst.CHANNEL_DRUMS && !rvSrc.isDrums() && !Family.couldBeDrums(insMixSrc.getInstrument().getPatchName()))
         {
             String msg = ResUtil.getString(getClass(), "MixChannelPanelControllerImpl.Channel10reserved");
             NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
@@ -104,7 +100,7 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
 
         // Can't override the click channel
         int clickChannel = PlaybackSettings.getInstance().getClickChannel(midiMix);
-        if (newChannelId == clickChannel && !rvKeySrc.isDrums())
+        if (newChannel == clickChannel && !rvSrc.isDrums())
         {
             String msg = ResUtil.getString(getClass(), "MixChannelPanelControllerImpl.Channel10ClickReserved", clickChannel + 1);
             NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
@@ -113,60 +109,52 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
         }
 
 
-        // The replaced channel data
-        InstrumentMix insMixDest = midiMix.getInstrumentMixFromChannel(newChannelId);
-        RhythmVoice rvKeyDest = midiMix.getRhythmVoice(newChannelId);
+        // Make sure new channel is free
+        if (midiMix.getRhythmVoice(newChannel) != null)
+        {
+            String msg = ResUtil.getString(getClass(), "MixChannelPanelControllerImpl.ChannelInUse", newChannel + 1);
+            NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
+            DialogDisplayer.getDefault().notify(d);
+            return;
+        }
 
-        
+
         // Undoable event
         String undoText = "Change channel";
         JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(song);
         um.startCEdit(undoText);
-        
-        
-        // Perform the changes
-        if (insMixDest == null)
-        {
-            // We don't replace an existing InstrumentMix                              
-            midiMix.setInstrumentMix(channelId, null, null);
-            midiMix.setInstrumentMix(newChannelId, rvKeySrc, insMixSrc);
 
-        } else
-        {
-            // We replace an existing InstrumentMix, swap
-            midiMix.setInstrumentMix(channelId, null, null);
-            midiMix.setInstrumentMix(newChannelId, rvKeySrc, insMixSrc);
-            midiMix.setInstrumentMix(channelId, rvKeyDest, insMixDest);
-        }
-                
+        midiMix.setRhythmVoiceChannel(rvSrc, newChannel);
+
         um.endCEdit(undoText);
     }
 
     @Override
-    public void editClose()
+    public void editClose(int channel)
     {
-        midiMix.setInstrumentMix(channelId, null, null);
+        midiMix.setInstrumentMix(channel, null, null);
     }
 
     @Override
-    public void editSettings()
+    public void editSettings(int channel)
     {
         MixChannelPanelSettingsDialog dlg = MixChannelPanelSettingsDialog.getInstance();
-        String title = buildTitle();
-        dlg.preset(midiMix, channelId, title);
+        String title = buildTitle(channel);
+        dlg.preset(midiMix, channel, title);
         dlg.setVisible(true);
     }
 
     @Override
-    public void editInstrument()
+    public void editInstrument(int channel)
     {
-        InstrumentMix insMix = midiMix.getInstrumentMixFromChannel(channelId);
-        RhythmVoice rv = midiMix.getRhythmVoice(channelId);
+        InstrumentMix insMix = midiMix.getInstrumentMixFromChannel(channel);
+        RhythmVoice rv = midiMix.getRhythmVoice(channel);
         InstrumentChooserDialog dlg = InstrumentChooserDialog.getDefault();
-        dlg.preset(OutputSynthManager.getInstance().getDefaultOutputSynth(), rv, insMix.getInstrument(), insMix.getSettings().getTransposition(), channelId);
+        dlg.preset(OutputSynthManager.getInstance().getDefaultOutputSynth(), rv, insMix.getInstrument(),
+                insMix.getSettings().getTransposition(), channel);
         dlg.setVisible(true);
-        
-                
+
+
         Instrument ins = dlg.getSelectedInstrument();
         if (ins != null)
         {
@@ -182,7 +170,8 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
                 {
                     // No conversion possible
 
-                    String msg = ResUtil.getString(getClass(), "MixChannelPanelControllerImpl.DrumKeyMapMismatch", ins.getPatchName(), destKeyMap.getName(), srcKeyMap.getName());
+                    String msg = ResUtil.getString(getClass(), "MixChannelPanelControllerImpl.DrumKeyMapMismatch", ins.getPatchName(),
+                            destKeyMap.getName(), srcKeyMap.getName());
                     NotifyDescriptor d = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.YES_NO_OPTION);
                     Object result = DialogDisplayer.getDefault().notify(d);
                     if (NotifyDescriptor.YES_OPTION != result)
@@ -194,10 +183,10 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
                     // Managed via conversion
                     LOGGER.log(Level.INFO, "editInstrument() channel={0} ins={1}: drum keymap conversion will be used {2}>{3}", new Object[]
                     {
-                        channelId, ins.getPatchName(), srcKeyMap, destKeyMap
-                    });   
+                        channel, ins.getPatchName(), srcKeyMap, destKeyMap
+                    });
                     String msg = ResUtil.getString(getClass(), "MixChannelPanelControllerImpl.DrumKeyMapConversion",
-                            srcKeyMap.getName(), destKeyMap.getName(), ins.getPatchName(), (channelId + 1));
+                            srcKeyMap.getName(), destKeyMap.getName(), ins.getPatchName(), (channel + 1));
                     StatusDisplayer.getDefault().setStatusText(msg);
                 }
             }
@@ -207,27 +196,27 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
     }
 
     @Override
-    public void editNextInstrument()
+    public void editNextInstrument(int channel)
     {
-        InstrumentMix insMix = midiMix.getInstrumentMixFromChannel(channelId);
+        InstrumentMix insMix = midiMix.getInstrumentMixFromChannel(channel);
         InstrumentBank<?> bank = insMix.getInstrument().getBank();
         Instrument ins = bank.getNextInstrument(insMix.getInstrument());
         insMix.setInstrument(ins);
     }
 
     @Override
-    public void editPreviousInstrument()
+    public void editPreviousInstrument(int channel)
     {
-        InstrumentMix insMix = midiMix.getInstrumentMixFromChannel(channelId);
+        InstrumentMix insMix = midiMix.getInstrumentMixFromChannel(channel);
         InstrumentBank<?> bank = insMix.getInstrument().getBank();
         Instrument ins = bank.getPreviousInstrument(insMix.getInstrument());
         insMix.setInstrument(ins);
     }
 
-    private String buildTitle()
+    private String buildTitle(int channel)
     {
-        StringBuilder title = new StringBuilder(ResUtil.getString(getClass(), "MixChannelPanelControllerImpl.DialogTitle", channelId + 1));
-        RhythmVoice rv = midiMix.getRhythmVoice(channelId);
+        StringBuilder title = new StringBuilder(ResUtil.getString(getClass(), "MixChannelPanelControllerImpl.DialogTitle", channel + 1));
+        RhythmVoice rv = midiMix.getRhythmVoice(channel);
         if (rv instanceof UserRhythmVoice)
         {
             title.append(" - ").append(ResUtil.getString(getClass(), "MixChannelPanelControllerImpl.User"));

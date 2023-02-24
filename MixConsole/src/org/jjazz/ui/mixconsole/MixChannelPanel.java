@@ -627,7 +627,7 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
 
     private void fbtn_SettingsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_fbtn_SettingsActionPerformed
     {//GEN-HEADEREND:event_fbtn_SettingsActionPerformed
-        controller.editSettings();
+        controller.editSettings(model.getChannelId());
     }//GEN-LAST:event_fbtn_SettingsActionPerformed
 
     private void fbtn_muteActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_fbtn_muteActionPerformed
@@ -646,13 +646,13 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         boolean shift = (evt.getModifiers() & InputEvent.SHIFT_DOWN_MASK) == InputEvent.SHIFT_DOWN_MASK;
         if (ctrl)
         {
-            controller.editPreviousInstrument();
+            controller.editPreviousInstrument(model.getChannelId());
         } else if (shift)
         {
-            controller.editNextInstrument();
+            controller.editNextInstrument(model.getChannelId());
         } else
         {
-            controller.editInstrument();
+            controller.editInstrument(model.getChannelId());
         }
     }//GEN-LAST:event_fbtn_InstrumentActionPerformed
 
@@ -669,10 +669,10 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         dlg.setText(oldValue);
         dlg.setPositionCenter(fbtn_channelId);
         dlg.setVisible(true);
-        String newValue = dlg.getText().trim();
-        if (dlg.isExitOk() && newValue.length() > 0 && !newValue.equals(oldValue))
+        String strNewValue = dlg.getText().trim();
+        if (dlg.isExitOk() && strNewValue.length() > 0 && !strNewValue.equals(oldValue))
         {
-            controller.editChannelId(newValue);
+            controller.editChannel(model.getChannelId(), strNewValue);
         }
     }//GEN-LAST:event_fbtn_channelIdActionPerformed
 

@@ -10,12 +10,15 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.sound.midi.MidiUnavailableException;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.SwingUtilities;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.midi.api.Instrument;
+import org.jjazz.midimix.api.MidiMix;
+import org.jjazz.midimix.api.MidiMixManager;
 import org.jjazz.musiccontrol.api.playbacksession.BaseSongSession;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.pianoroll.api.PianoRollEditor;
@@ -37,6 +40,7 @@ import org.jjazz.util.api.FloatRange;
 import org.jjazz.util.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
+import org.openide.util.Exceptions;
 
 
 /**
@@ -319,18 +323,31 @@ public class RP_SYS_CustomPhraseEditor extends RpCustomEditor<RP_SYS_CustomPhras
 
         var preTc = SongEditorManager.getInstance().showPianoRollEditor(song);
         var editor = preTc.getEditor();
-        
+
 
         // Update the editor model
         DrumKit drumKit = getInstrument(rv).getDrumKit();
         DrumKit.KeyMap keyMap = drumKit == null ? null : drumKit.getKeyMap();
-        preTc.setModel(spt, p, getChannel(rv), keyMap);
-        String text = ResUtil.getString(getClass(), "RP_SYS_CustomPhraseEditor.customPhraseTitle", rv.getName());
+        int channel = getChannel(rv);
+        preTc.setModel(spt, p, channel, keyMap);
+        String text = ResUtil.getString(getClass(), "RP_SYS_CustomPhraseEditor.customPhraseTitle", rv.getName(), channel + 1);
         preTc.setTitle(text);
         preTc.requestActive();
 
-       
-        // Listen to RP value changes while editor edits our model
+
+        MidiMix mm = null;
+        try
+        {
+            mm = MidiMixManager.getInstance().findMix(song);
+        } catch (MidiUnavailableException ex)
+        {
+            // Should never happen
+            Exceptions.printStackTrace(ex);
+        }
+
+
+        // Listen to RP value changes while editor edits our model, and MidiMix for channel changes        
+        final MidiMix midiMix = mm;
         PropertyChangeListener listener = new PropertyChangeListener()
         {
             @Override
@@ -358,7 +375,17 @@ public class RP_SYS_CustomPhraseEditor extends RpCustomEditor<RP_SYS_CustomPhras
                         {
                             editor.removePropertyChangeListener(this);
                             spt.removePropertyChangeListener(this);
+                            midiMix.removePropertyChangeListener(this);
                         }
+                    }
+                } else if (e.getSource() == midiMix)
+                {
+                    if (e.getPropertyName().equals(MidiMix.PROP_RHYTHM_VOICE_CHANNEL))
+                    {
+                        int channel = getChannel(rv);
+                        preTc.setModel(spt, p, channel, keyMap);
+                        String text = ResUtil.getString(getClass(), "RP_SYS_CustomPhraseEditor.customPhraseTitle", rv.getName(), channel + 1);
+                        preTc.setTitle(text);
                     }
                 }
             }
@@ -366,6 +393,7 @@ public class RP_SYS_CustomPhraseEditor extends RpCustomEditor<RP_SYS_CustomPhras
 
         editor.addPropertyChangeListener(listener);
         spt.addPropertyChangeListener(listener);
+        midiMix.addPropertyChangeListener(listener);
 
     }
 

@@ -27,9 +27,10 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Insets;
 import java.awt.LayoutManager;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 import org.jjazz.midimix.api.UserRhythmVoice;
-import org.jjazz.rhythm.api.RhythmVoice;
 
 /**
  * A LayoutManager to arrange the MixChannelPanels and their UserChannelExtensionPanels in the MixConsole.
@@ -44,6 +45,27 @@ public class MixConsoleLayoutManager implements LayoutManager
     @Override
     public void layoutContainer(Container container)
     {
+
+        List<MixChannelPanel> mixChannelPanels = new ArrayList<>();
+        List<UserExtensionPanel> userExtensionPanels = new ArrayList<>();
+        for (Component c : container.getComponents())
+        {
+            if (c instanceof MixChannelPanel mcp)
+            {
+                mixChannelPanels.add(mcp);
+            } else if (c instanceof UserExtensionPanel uep)
+            {
+                userExtensionPanels.add(uep);
+            } else
+            {
+                throw new IllegalStateException("c=" + c);
+            }
+        }
+
+        // Sort by channel
+        mixChannelPanels.sort((mcp1, mcp2) -> Integer.compare(mcp1.getModel().getChannelId(), mcp2.getModel().getChannelId()));
+
+
         Insets in = container.getInsets();
         int xMin = in.left + H_PADDING;
         int yMin = in.top + V_PADDING;
@@ -51,45 +73,37 @@ public class MixConsoleLayoutManager implements LayoutManager
         int y = yMin;
 
 
-        // Process all MixChannelPanels first
-        for (Component c : container.getComponents())       // Components are already ordered by Midi channel
+        for (var mcp : mixChannelPanels)
         {
-            if (c instanceof MixChannelPanel)
-            {
-                var mcp = (MixChannelPanel) c;
-                Dimension pd = mcp.getPreferredSize();
-                mcp.setSize(pd);
-                mcp.setLocation(x, y);
-                x += pd.width + H_PADDING;
-            }
+            Dimension pd = mcp.getPreferredSize();
+            mcp.setSize(pd);
+            mcp.setLocation(x, y);
+            x += pd.width + H_PADDING;
         }
 
 
-        // Process UserExtensionChannelPanels
-        for (Component c : container.getComponents())
+        for (var ucep : userExtensionPanels)
         {
-            if (c instanceof UserExtensionPanel)
+            UserRhythmVoice urv = ucep.getUserRhythmVoice();
+
+            // Find the corresponding MixChannelPanel            
+            var mcp = mixChannelPanels.stream()
+                    .filter(p -> p.getModel().getRhythmVoice() == urv)
+                    .findAny()
+                    .orElse(null);
+            if (mcp == null)
             {
-                var ucep = (UserExtensionPanel) c;
-                UserRhythmVoice urv = ucep.getUserRhythmVoice();
-
-
-                // Find the corresponding MixChannelPanel
-                MixChannelPanel mcp = getMixChannelPanel(container, urv);
-                if (mcp == null)
-                {
-                    continue;
-                }
-
-                // Width must be identical to MixChannelPanel
-                Dimension pd = ucep.getPreferredSize();
-                ucep.setSize(mcp.getWidth(), pd.height);
-
-                // Location is below MixChannelPanel
-                x = mcp.getX();
-                y = mcp.getY() + mcp.getHeight() + H_PADDING;
-                ucep.setLocation(x, y);
+                throw new IllegalStateException("UserExtensionPanel without MixChannelPanel. urv=" + urv);
             }
+
+            // Width must be identical to MixChannelPanel
+            Dimension pd = ucep.getPreferredSize();
+            ucep.setSize(mcp.getWidth(), pd.height);
+
+            // Location is below MixChannelPanel
+            x = mcp.getX();
+            y = mcp.getY() + mcp.getHeight() + H_PADDING;
+            ucep.setLocation(x, y);
         }
 
     }
@@ -119,9 +133,8 @@ public class MixConsoleLayoutManager implements LayoutManager
         // Process all MixChannelPanels first
         for (Component c : container.getComponents())
         {
-            if (c instanceof MixChannelPanel)
+            if (c instanceof MixChannelPanel mcp)
             {
-                var mcp = (MixChannelPanel) c;
                 Dimension pd = mcp.getPreferredSize();
                 w += pd.width + H_PADDING;
                 h0 = Math.max(h0, yMin + pd.height + V_PADDING);
@@ -134,9 +147,8 @@ public class MixConsoleLayoutManager implements LayoutManager
         // Process UserExtensionChannelPanels
         for (Component c : container.getComponents())
         {
-            if (c instanceof UserExtensionPanel)
+            if (c instanceof UserExtensionPanel ucep)
             {
-                var ucep = (UserExtensionPanel) c;
                 Dimension pd = ucep.getPreferredSize();
                 h1 = Math.max(h1, pd.height + V_PADDING);
             }
@@ -157,28 +169,4 @@ public class MixConsoleLayoutManager implements LayoutManager
     // ===============================================================================
     // Private methods
     // ===============================================================================
-    /**
-     *
-     * @param container
-     * @param rv
-     * @return Can be null
-     */
-    private MixChannelPanel getMixChannelPanel(Container container, RhythmVoice rv)
-    {
-        MixChannelPanel res = null;
-        for (Component c : container.getComponents())
-        {
-            if (c instanceof MixChannelPanel)
-            {
-                var mcp = (MixChannelPanel) c;
-                MixChannelPanelModelImpl model = (MixChannelPanelModelImpl) mcp.getModel();
-                if (model.getRhythmVoice() == rv)
-                {
-                    res = mcp;
-                    break;
-                }
-            }
-        }
-        return res;
-    }
 }

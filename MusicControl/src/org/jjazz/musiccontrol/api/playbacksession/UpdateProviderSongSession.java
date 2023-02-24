@@ -345,18 +345,16 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
         {
             switch (e.getPropertyName())
             {
-                case MidiMix.PROP_CHANNEL_INSTRUMENT_MIX ->
-                    // An instrument mix was added or removed (it can be the user channel)
-                    // If it's the user channel there is no impact, and if it's an added/removed rhythm we'll get the change directly via our SgsChangeListener.
-                    // But if it's user who directly changed track channels, we should disable updates by security.
-                    doDisableUpdates = true;
-
+                case MidiMix.PROP_INSTRUMENT_MUTE ->
+                {
+                    // Nothing
+                }    
                 case MidiMix.PROP_CHANNEL_DRUMS_REROUTED, MidiMix.PROP_DRUMS_INSTRUMENT_KEYMAP, MidiMix.PROP_INSTRUMENT_TRANSPOSITION, MidiMix.PROP_INSTRUMENT_VELOCITY_SHIFT ->
                     doUpdate = true;
                 default ->
                 {
-                    // e.g. MidiMix.PROP_INSTRUMENT_MUTE:                    
-                    // Nothing
+                    // PROP_CHANNEL_INSTRUMENT_MIX, PROP_RHYTHM_VOICE, PROP_RHYTHM_VOICE_CHANNEL, ...
+                    doDisableUpdates = true;
                 }
             }
 

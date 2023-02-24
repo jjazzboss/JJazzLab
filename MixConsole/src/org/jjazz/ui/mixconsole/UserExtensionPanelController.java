@@ -31,8 +31,6 @@ import org.jjazz.midi.api.DrumKit;
 import org.jjazz.midimix.api.UserRhythmVoice;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.pianoroll.api.PianoRollEditor;
-import org.jjazz.pianoroll.api.PianoRollEditorTopComponent;
-import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
 import org.jjazz.song.api.Song;
 import org.jjazz.songeditormanager.api.SongEditorManager;
 import org.jjazz.undomanager.api.JJazzUndoManager;
@@ -95,7 +93,7 @@ public class UserExtensionPanelController
         // Create editor TopComponent and open it if required
         var preTc = SongEditorManager.getInstance().showPianoRollEditor(getSong());
 
-        
+
         // Update model of the editor
         DrumKit drumKit = panel.getMidiMix().getInstrumentMixFromKey(getUserRhythmVoice()).getInstrument().getDrumKit();
         DrumKit.KeyMap keyMap = drumKit == null ? null : drumKit.getKeyMap();
@@ -110,7 +108,7 @@ public class UserExtensionPanelController
         // - Remove PianoRollEditor if user phrase is removed
         var editor = preTc.getEditor();
         var preTc2 = preTc;
-        VetoableChangeListener vcl = evt ->
+        VetoableChangeListener vcl = evt -> 
         {
             if (evt.getSource() == getSong())
             {
@@ -147,6 +145,10 @@ public class UserExtensionPanelController
                     if (evt.getPropertyName().equals(UserExtensionPanel.PROP_RHYTHM_VOICE))
                     {
                         preTc2.setTitle(buildTitle());
+                    } else if (evt.getPropertyName().equals(UserExtensionPanel.PROP_RHYTHM_VOICE_CHANNEL))
+                    {
+                        preTc.setModel(p, getChannel(), keyMap);
+                        preTc.setTitle(buildTitle());
                     }
                 }
             }
@@ -191,7 +193,7 @@ public class UserExtensionPanelController
 
     private int getChannel()
     {
-        return panel.getMidiMix().getChannel(getUserRhythmVoice());
+        return panel.getChannel();
     }
 
     private Song getSong()

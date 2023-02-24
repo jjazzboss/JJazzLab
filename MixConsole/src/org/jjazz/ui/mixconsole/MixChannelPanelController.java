@@ -31,31 +31,31 @@ public interface MixChannelPanelController
     /**
      * User has changed the channel id.
      */
-    public void editChannelId(String newChannelId);
+    public void editChannel(int channel, String newChannelId);
 
     /**
      * User asked to close our MixChannelPanel.
      */
-    public void editClose();
+    public void editClose(int channel);
 
     /**
      * User wants to edit settings of our MixChannelPanel.
      */
-    public void editSettings();
+    public void editSettings(int channel);
 
     /**
      * User wants to edit the MixChannelPanel instrument.
      */
-    public void editInstrument();
+    public void editInstrument(int channel);
 
     /**
      * User wants to use the next instrument after current one.
      */
-    public void editNextInstrument();
+    public void editNextInstrument(int channel);
 
     /**
      * User wants to use the previous instrument after current one.
      */
-    public void editPreviousInstrument();
+    public void editPreviousInstrument(int channel);
 
 }
