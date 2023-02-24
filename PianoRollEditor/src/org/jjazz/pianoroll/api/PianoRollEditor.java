@@ -124,7 +124,11 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     /**
      * oldValue=old Phrase model, newValue=new Phrase model.
      */
-    public static final String PROP_MODEL = "PhraseModel";
+    public static final String PROP_MODEL_PHRASE = "PhraseModel";
+    /**
+     * oldValue=old channel, newValue=new channel model.
+     */
+    public static final String PROP_MODEL_CHANNEL = "PhraseChannel";
     /**
      * oldValue=old tool, newValue=new tool
      */
@@ -356,7 +360,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     /**
      * Set the edited model.
      * <p>
-     * Fire a PROP_MODEL change event if p is different from existing model.
+     * Fire a PROP_MODEL_PHRASE change event if p is different from existing model.
      *
      * @param p              The phrase model
      * @param beatRange      The edited part of the phrase model
@@ -401,6 +405,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         this.rulerStartBar = rulerStartBar;
         this.phraseStartBar = phraseStartBar;
         keyMap = kMap;
+        int oldChannel = this.channel;
         this.channel = channel;
         this.beatRange = beatRange;
         this.mapPosTimeSignature = mapPosTs;
@@ -426,7 +431,9 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
 
         notesPanel.scrollToFirstNote();
 
-        firePropertyChange(PROP_MODEL, oldModel, model);
+        firePropertyChange(PROP_MODEL_PHRASE, oldModel, model);
+        firePropertyChange(PROP_MODEL_CHANNEL, oldChannel, this.channel);
+        
     }
 
 

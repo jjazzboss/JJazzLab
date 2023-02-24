@@ -371,7 +371,7 @@ public class RP_SYS_CustomPhraseEditor extends RpCustomEditor<RP_SYS_CustomPhras
                 {
                     switch (e.getPropertyName())
                     {
-                        case PianoRollEditor.PROP_MODEL, PianoRollEditor.PROP_EDITOR_ALIVE ->
+                        case PianoRollEditor.PROP_MODEL_PHRASE, PianoRollEditor.PROP_EDITOR_ALIVE ->
                         {
                             editor.removePropertyChangeListener(this);
                             spt.removePropertyChangeListener(this);
