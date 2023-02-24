@@ -59,7 +59,7 @@ import org.jjazz.song.api.Song;
 import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.songstructure.api.SgsChangeListener;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.songstructure.api.event.RpChangedEvent;
+import org.jjazz.songstructure.api.event.RpValueChangedEvent;
 import org.jjazz.songstructure.api.event.SgsActionEvent;
 import org.jjazz.songstructure.api.event.SgsChangeEvent;
 import org.jjazz.songstructure.api.event.SptAddedEvent;
@@ -663,7 +663,7 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
         } else if (event instanceof SptRenamedEvent)
         {
             // Nothing
-        } else if (event instanceof RpChangedEvent re)
+        } else if (event instanceof RpValueChangedEvent re)
         {
             assert currentSgsChange != null : "event=" + event;
             if (re.getRhythmParameter() instanceof RP_SYS_TempoFactor)

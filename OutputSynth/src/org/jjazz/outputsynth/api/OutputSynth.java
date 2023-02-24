@@ -287,7 +287,7 @@ public class OutputSynth
         HashMap<Integer, Instrument> res = new HashMap<>();
         for (int channel : mm.getUsedChannels())
         {
-            Instrument ins = mm.getInstrumentMixFromChannel(channel).getInstrument(); // Can be the VoidInstrument
+            Instrument ins = mm.getInstrumentMix(channel).getInstrument(); // Can be the VoidInstrument
             if (!midiSynth.contains(ins))
             {
                 RhythmVoice rv = mm.getRhythmVoice(channel);
@@ -317,7 +317,7 @@ public class OutputSynth
         for (int channel : mapNewInstruments.keySet())
         {
             Instrument newIns = mapNewInstruments.get(channel);
-            InstrumentMix insMix = mm.getInstrumentMixFromChannel(channel);
+            InstrumentMix insMix = mm.getInstrumentMix(channel);
             insMix.setInstrument(newIns);
             if (newIns != GMSynth.getInstance().getVoidInstrument())
             {

@@ -95,10 +95,10 @@ public class UserExtensionPanelController
 
 
         // Update model of the editor
-        DrumKit drumKit = panel.getMidiMix().getInstrumentMixFromKey(getUserRhythmVoice()).getInstrument().getDrumKit();
+        DrumKit drumKit = panel.getMidiMix().getInstrumentMix(getUserRhythmVoice()).getInstrument().getDrumKit();
         DrumKit.KeyMap keyMap = drumKit == null ? null : drumKit.getKeyMap();
         var p = getUserPhrase();
-        preTc.setModel(p, getChannel(), keyMap);
+        preTc.setModelForUserPhrase(p, getChannel(), keyMap);
         preTc.setTitle(buildTitle());
 
 
@@ -142,14 +142,12 @@ public class UserExtensionPanelController
                     }
                 } else if (evt.getSource() == panel)
                 {
-                    if (evt.getPropertyName().equals(UserExtensionPanel.PROP_RHYTHM_VOICE))
+                    if (evt.getPropertyName().equals(UserExtensionPanel.PROP_RHYTHM_VOICE)
+                            || evt.getPropertyName().equals(UserExtensionPanel.PROP_RHYTHM_VOICE_CHANNEL))                            
                     {
+                        preTc.setModelForUserPhrase(p, getChannel(), keyMap);
                         preTc2.setTitle(buildTitle());
-                    } else if (evt.getPropertyName().equals(UserExtensionPanel.PROP_RHYTHM_VOICE_CHANNEL))
-                    {
-                        preTc.setModel(p, getChannel(), keyMap);
-                        preTc.setTitle(buildTitle());
-                    }
+                    } 
                 }
             }
         };

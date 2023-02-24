@@ -56,7 +56,7 @@ import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.songstructure.api.SgsChangeListener;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructure;
-import org.jjazz.songstructure.api.event.RpChangedEvent;
+import org.jjazz.songstructure.api.event.RpValueChangedEvent;
 import org.jjazz.songstructure.api.event.SgsChangeEvent;
 import org.openide.util.Exceptions;
 
@@ -259,10 +259,10 @@ public class Arranger implements SgsChangeListener, PropertyChangeListener
     @Override
     public void songStructureChanged(SgsChangeEvent e)
     {
-        if (e instanceof RpChangedEvent && e.getSongPart() == songPartRef)
+        if (e instanceof RpValueChangedEvent && e.getSongPart() == songPartRef)
         {
             // Forward the change to our work context
-            RpChangedEvent rpe = (RpChangedEvent) e;
+            RpValueChangedEvent rpe = (RpValueChangedEvent) e;
             SongStructure sgs = songContextWork.getSong().getSongStructure();
             sgs.setRhythmParameterValue(songPartWork, (RhythmParameter) rpe.getRhythmParameter(), rpe.getNewValue());
         }

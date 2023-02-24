@@ -380,7 +380,7 @@ public class SongSequenceBuilder
         {
             for (RhythmVoice rv : midiMix.getRhythmVoices())
             {
-                if (midiMix.getInstrumentMixFromKey(rv).isMute())
+                if (midiMix.getInstrumentMix(rv).isMute())
                 {
                     Track track = sequence.getTracks()[songSequence.mapRvTrackId.get(rv)];
                     MidiUtilities.clearTrack(track);
@@ -403,7 +403,7 @@ public class SongSequenceBuilder
             track.add(me);
 
             // Instrument + volume + pan etc.
-            InstrumentMix insMix = midiMix.getInstrumentMixFromKey(rv);
+            InstrumentMix insMix = midiMix.getInstrumentMix(rv);
             for (MidiMessage mm : insMix.getAllMidiMessages(channel))
             {
                 me = new MidiEvent(mm, 0);
@@ -902,7 +902,7 @@ public class SongSequenceBuilder
         for (RhythmVoice rv : rvPhrases.keySet())
         {
             Phrase p = rvPhrases.get(rv);
-            InstrumentMix insMix = midiMix.getInstrumentMixFromKey(rv);
+            InstrumentMix insMix = midiMix.getInstrumentMix(rv);
             if (insMix == null)
             {
                 LOGGER.warning("applyInstrumentsSettings() Unexpected null InstrumentMix for rv=" + rv + " midMix=" + midiMix);

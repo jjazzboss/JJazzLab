@@ -28,7 +28,6 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.sound.midi.MidiUnavailableException;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JLabel;
@@ -36,7 +35,6 @@ import javax.swing.JList;
 import javax.swing.SpinnerNumberModel;
 import org.jjazz.midi.api.InstrumentMix;
 import org.jjazz.midi.api.MidiUtilities;
-import org.jjazz.midimix.api.MidiMixManager;
 import org.jjazz.pianoroll.actions.HearSelection;
 import org.jjazz.pianoroll.actions.PlaybackAutoScroll;
 import org.jjazz.pianoroll.actions.SnapToGrid;
@@ -45,11 +43,11 @@ import org.jjazz.pianoroll.api.NoteView;
 import org.jjazz.pianoroll.api.NotesSelection;
 import org.jjazz.pianoroll.api.NotesSelectionListener;
 import org.jjazz.pianoroll.api.PianoRollEditor;
+import org.jjazz.pianoroll.api.PianoRollEditorTopComponent;
 import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.ui.utilities.api.ToggleAction;
 import org.jjazz.uisettings.api.GeneralUISettings;
 import org.jjazz.util.api.ResUtil;
-import org.openide.util.Exceptions;
 
 
 /**
@@ -63,14 +61,17 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
     private int lastSpinnerValue;
     private String title;
     private NotesSelection selection;
+    private final PianoRollEditorTopComponent topComponent;
     private static final Logger LOGGER = Logger.getLogger(ToolbarPanel.class.getSimpleName());
+
 
     /**
      * Creates new form ToolbarPanel
      */
-    public ToolbarPanel(PianoRollEditor editor, String title)
+    public ToolbarPanel(PianoRollEditorTopComponent preTc, String title)
     {
-        this.editor = editor;
+        this.topComponent = preTc;
+        this.editor = preTc.getEditor();
         this.title = title;
 
 
@@ -216,21 +217,7 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
         {
             insMix.removePropertyChangeListener(this);
         }
-
-        try
-        {
-            var midiMix = MidiMixManager.getInstance().findMix(editor.getSong());
-            var channel = editor.getChannel();
-            insMix = midiMix.getInstrumentMixFromChannel(channel);
-            assert insMix != null : "channel=" + channel + " midiMix=" + midiMix;
-        } catch (MidiUnavailableException ex)
-        {
-            // Should never happen
-            Exceptions.printStackTrace(ex);
-            return;
-        }
-
-
+        insMix = topComponent.getMidiMix().getInstrumentMix(editor.getChannel());
         insMix.addPropertyChangeListener(this);
     }
 

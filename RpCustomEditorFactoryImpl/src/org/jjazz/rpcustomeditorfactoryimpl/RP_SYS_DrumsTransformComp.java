@@ -161,7 +161,7 @@ public class RP_SYS_DrumsTransformComp extends RealTimeRpEditorComponent<RP_SYS_
         songPartContext = sptContext;
         timeSignature = songPartContext.getSongPart().getRhythm().getTimeSignature();
         originalPhrase = null;
-        var insMix = songPartContext.getMidiMix().getInstrumentMixFromKey(rp.getRhythmVoice());
+        var insMix = songPartContext.getMidiMix().getInstrumentMix(rp.getRhythmVoice());
         saveDrumsTrackSoloState = insMix.isSolo();
         tbtn_solo.setSelected(insMix.isSolo());
 
@@ -250,7 +250,7 @@ public class RP_SYS_DrumsTransformComp extends RealTimeRpEditorComponent<RP_SYS_
     public void cleanup()
     {
         // Restore solo mode of the drums track
-        var insMix = songPartContext.getMidiMix().getInstrumentMixFromKey(rp.getRhythmVoice());
+        var insMix = songPartContext.getMidiMix().getInstrumentMix(rp.getRhythmVoice());
         insMix.setSolo(saveDrumsTrackSoloState);
 
         MusicController.getInstance().removePlaybackListener(this);
@@ -1247,7 +1247,7 @@ public class RP_SYS_DrumsTransformComp extends RealTimeRpEditorComponent<RP_SYS_
     private void tbtn_soloActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_tbtn_soloActionPerformed
     {//GEN-HEADEREND:event_tbtn_soloActionPerformed
         MidiMix mm = songPartContext.getMidiMix();
-        var insMix = mm.getInstrumentMixFromKey(rp.getRhythmVoice());
+        var insMix = mm.getInstrumentMix(rp.getRhythmVoice());
         insMix.setSolo(tbtn_solo.isSelected());
     }//GEN-LAST:event_tbtn_soloActionPerformed
 

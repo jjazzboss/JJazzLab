@@ -198,7 +198,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
         MidiMix mm = songContext.getMidiMix();
         for (RhythmVoice rv : mapRvTrackId.keySet())
         {
-            mapTrackIdMuted.put(mapRvTrackId.get(rv), mm.getInstrumentMixFromKey(rv).isMute());
+            mapTrackIdMuted.put(mapRvTrackId.get(rv), mm.getInstrumentMix(rv).isMute());
         }
 
 
@@ -563,7 +563,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
         int trackId = cm.addClickTrack(sequence, context);
         // Send a Drums program change if Click channel is not used in the current MidiMix
 //        int clickChannel = PlaybackSettings.getInstance().getPreferredClickChannel();
-//        if (context.getMidiMix().getInstrumentMixFromChannel(clickChannel) == null)
+//        if (context.getMidiMix().getInstrumentMix(clickChannel) == null)
 //        {
         //                Instrument ins = DefaultInstruments.getInstance().getInstrument(RvType.Drums);
         //                JJazzMidiSystem jms = JJazzMidiSystem.getInstance();

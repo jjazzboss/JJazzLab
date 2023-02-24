@@ -589,7 +589,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      * @param channel A valid midi channel number
      * @return The InstrumentMix assigned to the specified Midi channel, or null if no InstrumentMix for this channel.
      */
-    public InstrumentMix getInstrumentMixFromChannel(int channel)
+    public InstrumentMix getInstrumentMix(int channel)
     {
         if (!MidiConst.checkMidiChannel(channel))
         {
@@ -601,20 +601,20 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
     /**
      * Get the instrumet mix for the specified RhythmVoice.
      *
-     * @param rvKey If it's a RhythmVoiceDelegate, return the channel associated to its source RhythmVoice.
-     * @return The InstrumentMix associated to rvKey. Null if no InstrumentMix found.
+     * @param rv If it's a RhythmVoiceDelegate, return the channel associated to its source RhythmVoice.
+     * @return The InstrumentMix associated to rv. Null if no InstrumentMix found.
      */
-    public InstrumentMix getInstrumentMixFromKey(RhythmVoice rvKey)
+    public InstrumentMix getInstrumentMix(RhythmVoice rv)
     {
-        if (rvKey == null)
+        if (rv == null)
         {
             return null;
         }
-        if (rvKey instanceof RhythmVoiceDelegate)
+        if (rv instanceof RhythmVoiceDelegate)
         {
-            rvKey = ((RhythmVoiceDelegate) rvKey).getSource();
+            rv = ((RhythmVoiceDelegate) rv).getSource();
         }
-        int index = Arrays.asList(rvKeys).indexOf(rvKey);
+        int index = Arrays.asList(rvKeys).indexOf(rv);
         return index == -1 ? null : instrumentMixes[index];
     }
 
@@ -838,7 +838,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
         for (RhythmVoice rv : getRhythmVoices())
         {
             int channel = getChannel(rv);
-            InstrumentMix insMix = getInstrumentMixFromKey(rv);
+            InstrumentMix insMix = getInstrumentMix(rv);
             Instrument newIns = mapChannelNewIns == null ? null : mapChannelNewIns.get(channel);
             Instrument ins = (newIns != null) ? newIns : insMix.getInstrument();
             LOGGER.log(Level.FINE, "getChannelsNeedingDrumsRerouting() rv={0} channel={1} ins={2}", new Object[]
@@ -930,7 +930,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
             {
                 int newChannel = getUsedChannels().contains(fromChannel) ? findFreeChannel(fromRvKey.isDrums()) : fromChannel;
                 assert newChannel != -1 : " getUsedChannels()=" + getUsedChannels();
-                InstrumentMix fromInsMix = fromMm.getInstrumentMixFromChannel(fromChannel);
+                InstrumentMix fromInsMix = fromMm.getInstrumentMix(fromChannel);
                 setInstrumentMix(newChannel, fromRvKey, new InstrumentMix(fromInsMix));
             }
         }
@@ -1016,7 +1016,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
         // Copy the InstrumentMixes
         for (RhythmVoice mmRv : mapMatchingVoices.keySet())
         {
-            InstrumentMix mmInsMix = mm.getInstrumentMixFromKey(mmRv);
+            InstrumentMix mmInsMix = mm.getInstrumentMix(mmRv);
             RhythmVoice rv = mapMatchingVoices.get(mmRv);
             int channel = getChannel(rv);
             setInstrumentMix(channel, rv, new InstrumentMix(mmInsMix));
@@ -1029,7 +1029,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
             var urv = getUserRhythmVoice(mmUserRv.getName());
             if (urv != null)
             {
-                InstrumentMix mmInsMix = mm.getInstrumentMixFromKey(mmUserRv);
+                InstrumentMix mmInsMix = mm.getInstrumentMix(mmUserRv);
                 changeInstrumentMix(getChannel(urv), mmInsMix, urv);
             }
         }
@@ -1969,7 +1969,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
             }
             if (rvDrums != null)
             {
-                ins = getInstrumentMixFromKey(rvDrums).getInstrument();
+                ins = getInstrumentMix(rvDrums).getInstrument();
                 urv = new UserRhythmVoice(userPhraseName, ins.getDrumKit());
             } else
             {
@@ -2113,7 +2113,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
             for (Integer channel : mm.getUsedChannels())
             {
                 RhythmVoice rv = mm.getRhythmVoice(channel);
-                InstrumentMix insMix = mm.getInstrumentMixFromChannel(channel);
+                InstrumentMix insMix = mm.getInstrumentMix(channel);
                 mmCopy.setInstrumentMix(channel, rv, new InstrumentMix(insMix));
             }
 
@@ -2135,7 +2135,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
                 if (rv != null)
                 {
                     // Restore the mute status so it can be saved
-                    InstrumentMix originalInsMix = mm.getInstrumentMixFromChannel(i);
+                    InstrumentMix originalInsMix = mm.getInstrumentMix(i);
                     if (!(rv instanceof UserRhythmVoice))
                     {
                         spInsMixes[i].setMute(originalInsMix.isMute());

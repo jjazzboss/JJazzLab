@@ -473,7 +473,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
                     int channel = (int) e.getNewValue();
                     RhythmVoice rv = songMidiMix.getRhythmVoice(channel);
                     InstrumentMix oldInsMix = (InstrumentMix) e.getOldValue();
-                    InstrumentMix insMix = songMidiMix.getInstrumentMixFromChannel(channel);
+                    InstrumentMix insMix = songMidiMix.getInstrumentMix(channel);
                     updateVisibleRhythmUI();
                     if (insMix == null)
                     {
@@ -1146,7 +1146,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
             boolean res = true;
             for (RhythmVoice rv : mm.getRhythmVoices())
             {
-                if (!mm.getInstrumentMixFromKey(rv).isMute())
+                if (!mm.getInstrumentMix(rv).isMute())
                 {
                     res = false;
                     break;

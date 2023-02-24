@@ -96,7 +96,7 @@ public class FixMidiMixDialog extends javax.swing.JDialog
             for (int ch : channels)
             {
                 RhythmVoice rv = midiMix.getRhythmVoice(ch);
-                Instrument ins = midiMix.getInstrumentMixFromChannel(ch).getInstrument();
+                Instrument ins = midiMix.getInstrumentMix(ch).getInstrument();
                 Instrument newIns = mapChannelNewIns.get(ch);
                 sb.append("Channel ").append(ch + 1).append(" : ");
                 sb.append(ins.getFullName()).append(" >> ").append(newIns.getFullName());

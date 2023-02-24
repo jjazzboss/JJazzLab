@@ -34,17 +34,22 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.sound.midi.MidiUnavailableException;
 import javax.swing.Action;
 import javax.swing.SwingUtilities;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.midi.api.DrumKit;
+import org.jjazz.midimix.api.MidiMix;
+import org.jjazz.midimix.api.MidiMixManager;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.pianoroll.QuantizePanel;
 import org.jjazz.pianoroll.BackgroundPhrasesPanel;
 import org.jjazz.pianoroll.ToolbarPanel;
 import org.jjazz.pianoroll.actions.PasteNotes;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
+import org.jjazz.rhythm.api.RhythmVoice;
+import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhrase;
 import org.jjazz.song.api.Song;
 import org.jjazz.songstructure.api.SgsChangeListener;
 import org.jjazz.songstructure.api.SongPart;
@@ -55,6 +60,7 @@ import org.jjazz.util.api.FloatRange;
 import org.jjazz.util.api.IntRange;
 import org.jjazz.util.api.ResUtil;
 import org.openide.awt.UndoRedo;
+import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 import org.openide.util.Utilities;
 import org.openide.windows.Mode;
@@ -79,6 +85,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
     private final QuantizePanel quantizePanel;
     private final BackgroundPhrasesPanel backgroundPhrasesPanel;
     private final Song song;
+    private MidiMix midiMix;
     private SongPart songPart;
     private String titleBase;
     private BackgroundPhraseManager backgroundPhraseManager;
@@ -118,11 +125,19 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
 
         this.song = sg;
         setDisplayName(getDefaultTabName(song));
+        try
+        {
+            midiMix = MidiMixManager.getInstance().findMix(song);
+        } catch (MidiUnavailableException ex)
+        {
+            // Should never happen
+            Exceptions.printStackTrace(ex);
+        }
 
 
         editor = new PianoRollEditor(settings);
         editor.setSong(song);
-        toolbarPanel = new ToolbarPanel(editor, song.getName());
+        toolbarPanel = new ToolbarPanel(this, song.getName());
 
 
         // WEIRD: only for the callback Paste action, we need BOTH the action here and in the lookup (see PianoRollEditor constructor)
@@ -132,7 +147,6 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
 
         initComponents();
         splitpane_tools_editor.setRightComponent(editor);
-        
 
 
         // Update the CollapsiblePanels
@@ -150,7 +164,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
 
 
         // Manage the background phrases
-        backgroundPhraseManager = new BackgroundPhraseManager(editor, backgroundPhrasesPanel);
+        backgroundPhraseManager = new BackgroundPhraseManager(this, backgroundPhrasesPanel);
 
 
         // Automatically close when song is closed
@@ -165,19 +179,26 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
     }
 
     /**
-     * Update the model to edit a phrase on a single SongPart.
+     * Configure the TopComponent to edit a custom phrase for a song part via its RP_SYS_CustomPhrase rhythm parameter.
      * <p>
      *
-     * @param spt     Must belong to the song
-     * @param p       The phrase must start at bar/beat 0 (independently of spt start position)
-     * @param channel The Midi channel of the edited Phrase (p.getChannel() is ignored).
-     * @param keyMap  Null for melodic phrase
+     * @param spt            Must belong to the song
+     * @param rpCustomPhrase The RP_SYS_CustomPhrase rhythm parameter used by the song part rhythm
+     * @param p              The phrase must start at bar/beat 0 (independently of spt start position)
+     * @param channel        The Midi channel of the edited phrase (p.getChannel() is ignored). Must correspond to a RhythmVoice of the song
+     *                       part rhythm.
+     * @param keyMap         Null for melodic phrase
      */
-    public void setModel(SongPart spt, Phrase p, int channel, DrumKit.KeyMap keyMap)
+    public void setModelForRP_SYS_CustomPhrase(SongPart spt, RP_SYS_CustomPhrase rpCustomPhrase, Phrase p, int channel, DrumKit.KeyMap keyMap)
     {
         Preconditions.checkNotNull(p);
+        Preconditions.checkNotNull(rpCustomPhrase);
         Preconditions.checkNotNull(spt);
+        Preconditions.checkArgument(spt.getRhythm().getRhythmParameters().contains(rpCustomPhrase), "rpCustomPhrase=%s rhythm=%s",
+                rpCustomPhrase, spt.getRhythm());
         Preconditions.checkArgument(song.getSongStructure().getSongParts().contains(spt));
+        Preconditions.checkArgument(midiMix.getUsedChannels(spt.getRhythm()).contains(channel), "channel=%s midiMix=%s", channel, midiMix);
+
 
         songPart = spt;
         var beatRange = getBeatRange();
@@ -186,22 +207,27 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
         mapPosTs.put(0f, songPart.getRhythm().getTimeSignature());
 
         editor.setModel(p, beatRange0, 0, spt.getStartBarIndex(), channel, mapPosTs, keyMap);
-       
+
         refreshToolbarTitle();
-        backgroundPhraseManager.updateTrackNames();        
+
+
+        backgroundPhraseManager.updateTrackNames();
+        backgroundPhraseManager.setRpCustomPhrase(rpCustomPhrase);
     }
 
     /**
-     * Update the model to edit a phrase for the whole song.
+     * Configure the TopComponent to edit a user phrase on the whole song.
      * <p>
      *
      * @param p
-     * @param channel The Midi channel of the edited Phrase (p.getChannel() is ignored).
+     * @param channel The Midi channel of the edited Phrase (p.getChannel() is ignored). Must correspond to a UserRhythmVoice in the song's
+     *                MidiMix.
      * @param keyMap  Null for melodic phrase
      */
-    public void setModel(Phrase p, int channel, DrumKit.KeyMap keyMap)
+    public void setModelForUserPhrase(Phrase p, int channel, DrumKit.KeyMap keyMap)
     {
         Preconditions.checkNotNull(p);
+        Preconditions.checkArgument(midiMix.getUserChannels().contains(channel), "channel=%s", channel);
 
         var ss = song.getSongStructure();
         var spts = ss.getSongParts();
@@ -216,10 +242,11 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
 
 
         editor.setModel(p, getBeatRange(), 0, 0, channel, mapPosTs, keyMap);
-        
-        
+
+
         refreshToolbarTitle();
         backgroundPhraseManager.updateTrackNames();
+        backgroundPhraseManager.setRpCustomPhrase(null);
     }
 
 
@@ -255,6 +282,26 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
     }
 
     /**
+     * The MidiMix associated to the song.
+     *
+     * @return
+     */
+    public MidiMix getMidiMix()
+    {
+        return midiMix;
+    }
+
+    /**
+     * The RhythmVoice associated to the
+     *
+     * @return
+     */
+    public RhythmVoice getRhythmVoice()
+    {
+        return midiMix.getRhythmVoice(editor.getChannel());
+    }
+
+    /**
      * The edited SongPart, or null if the whole song is edited.
      *
      * @return
@@ -272,7 +319,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
     public FloatRange getBeatRange()
     {
         var ss = song.getSongStructure();
-        return isSongPartMode() ? ss.getBeatRange(songPart.getBarRange()) : ss.getBeatRange(null);
+        return isSongPartCustomPhraseMode() ? ss.getBeatRange(songPart.getBarRange()) : ss.getBeatRange(null);
     }
 
     /**
@@ -283,7 +330,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
     public IntRange getBarRange()
     {
         var ss = song.getSongStructure();
-        return isSongPartMode() ? songPart.getBarRange() : ss.getBarRange();
+        return isSongPartCustomPhraseMode() ? songPart.getBarRange() : ss.getBarRange();
     }
 
     /**
@@ -451,7 +498,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
 
             // Check if the underlying model is gone
             var allSpts = getSong().getSongStructure().getSongParts();
-            if (allSpts.isEmpty() || (isSongPartMode() && !allSpts.contains(songPart)))
+            if (allSpts.isEmpty() || (isSongPartCustomPhraseMode() && !allSpts.contains(songPart)))
             {
                 close();
                 return;
@@ -459,12 +506,13 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
 
 
             // Refresh the editor when the bar range can be impacted
-            if (!isSongPartMode())
+            if (!isSongPartCustomPhraseMode())
             {
-                setModel(editor.getModel(), editor.getChannel(), editor.getDrumKeyMap());
+                setModelForUserPhrase(editor.getModel(), editor.getChannel(), editor.getDrumKeyMap());
             } else
             {
-                setModel(songPart, editor.getModel(), editor.getChannel(), editor.getDrumKeyMap());
+                setModelForRP_SYS_CustomPhrase(songPart, backgroundPhraseManager.getRpCustomPhrase(), editor.getModel(), editor.getChannel(),
+                        editor.getDrumKeyMap());
             }
         }
     }
@@ -475,13 +523,13 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
     private void refreshToolbarTitle()
     {
         var barRange = getBarRange();
-        String strSongPart = isSongPartMode() ? " - " + songPart.getName() : "";
+        String strSongPart = isSongPartCustomPhraseMode() ? " - " + songPart.getName() : "";
         String strBarRange = " - bars " + (barRange.from + 1) + ".." + (barRange.to + 1);
-        String strTs = isSongPartMode() ? " - " + songPart.getRhythm().getTimeSignature() : "";
+        String strTs = isSongPartCustomPhraseMode() ? " - " + songPart.getRhythm().getTimeSignature() : "";
         String title = titleBase + strSongPart + strBarRange + strTs;
         toolbarPanel.setTitle(title);
     }
-    
+
     private void updateDividerLocation()
     {
         splitpane_tools_editor.resetToPreferredSizes();
@@ -490,7 +538,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
 //        splitpane_tools_editor.setDividerLocation(leftWidth);
     }
 
-    private boolean isSongPartMode()
+    private boolean isSongPartCustomPhraseMode()
     {
         return songPart != null;
     }

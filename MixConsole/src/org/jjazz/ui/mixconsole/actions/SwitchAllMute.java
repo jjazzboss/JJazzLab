@@ -72,7 +72,7 @@ public class SwitchAllMute extends AbstractAction
         // Unmute all if there at least one channel muted
         for (Integer channel : songMidiMix.getUsedChannels(visibleRhythm))
         {
-            InstrumentMix insMix = songMidiMix.getInstrumentMixFromChannel(channel);
+            InstrumentMix insMix = songMidiMix.getInstrumentMix(channel);
             if (insMix.isMute())
             {
                 targetMuteState = false;
@@ -81,7 +81,7 @@ public class SwitchAllMute extends AbstractAction
         }
         for (Integer channel : songMidiMix.getUsedChannels(visibleRhythm))
         {
-            InstrumentMix insMix = songMidiMix.getInstrumentMixFromChannel(channel);
+            InstrumentMix insMix = songMidiMix.getInstrumentMix(channel);
             insMix.setMute(targetMuteState);
         }
     }

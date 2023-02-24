@@ -102,7 +102,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
      */
     public static final String PROP_VETOABLE_USER_PHRASE = "PROP_VETOABLE_USER_PHRASE";   
     /**
-     * An existing phrase was replaced by another. oldValue=old_phrase, newValue=name_of_new_phrase.
+     * An existing phrase was replaced by another. oldValue=old_phrase, newValue=name_of_phrase.
      */
     public static final String PROP_VETOABLE_USER_PHRASE_CONTENT = "PROP_VETOABLE_USER_PHRASE_CONTENT";    
     /**

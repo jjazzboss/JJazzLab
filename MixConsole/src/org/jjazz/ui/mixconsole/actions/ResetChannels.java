@@ -84,7 +84,7 @@ public class ResetChannels extends AbstractAction
             RhythmVoice rv = songMidiMix.getRhythmVoice(channel);
             if (visibleRhythm == null || rv instanceof UserRhythmVoice || visibleRhythm == rv.getContainer())
             {
-                InstrumentMix insMix = new InstrumentMix(songMidiMix.getInstrumentMixFromChannel(channel));
+                InstrumentMix insMix = new InstrumentMix(songMidiMix.getInstrumentMix(channel));
                 resetInstrument(insMix, rv);
                 resetSettings(insMix.getSettings(), rv);
                 songMidiMix.setInstrumentMix(channel, rv, insMix);

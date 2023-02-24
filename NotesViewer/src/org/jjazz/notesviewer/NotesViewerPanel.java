@@ -832,7 +832,7 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
             this.stringValue = "[" + (channel + 1) + "] / unknown";
             if (mm != null)
             {
-                var insMix = midiMixPlaybackMode.getInstrumentMixFromChannel(channel);
+                var insMix = midiMixPlaybackMode.getInstrumentMix(channel);
                 if (insMix != null)
                 {
                     Instrument ins = insMix.getInstrument();

@@ -29,7 +29,7 @@ import org.jjazz.songstructure.api.SongPart;
 /**
  * A RhythmParameter value has changed.
  */
-public class RpChangedEvent extends SgsChangeEvent
+public class RpValueChangedEvent extends SgsChangeEvent
 {
 
     private RhythmParameter<?> rhytmParameter;
@@ -46,7 +46,7 @@ public class RpChangedEvent extends SgsChangeEvent
      * @param oldValue
      * @param newValue Can be the same than newValue for mutable RP values.
      */
-    public RpChangedEvent(SongStructure src, SongPart spt, RhythmParameter<?> rp, Object oldValue, Object newValue)
+    public RpValueChangedEvent(SongStructure src, SongPart spt, RhythmParameter<?> rp, Object oldValue, Object newValue)
     {
         super(src, spt);
         if (spt == null || rp == null || newValue == null)

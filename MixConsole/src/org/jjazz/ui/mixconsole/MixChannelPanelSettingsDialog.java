@@ -94,7 +94,7 @@ public class MixChannelPanelSettingsDialog extends javax.swing.JDialog implement
             throw new IllegalArgumentException("mm=" + mm + " channel=" + channel + " title=" + title);   
         }
         midiMix = mm;
-        insMix = mm.getInstrumentMixFromChannel(channel);
+        insMix = mm.getInstrumentMix(channel);
         insSet = insMix.getSettings();
         this.channel = channel;
 

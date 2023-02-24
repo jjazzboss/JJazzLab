@@ -83,7 +83,7 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
 
 
         // The current channel data
-        InstrumentMix insMixSrc = midiMix.getInstrumentMixFromChannel(channel);
+        InstrumentMix insMixSrc = midiMix.getInstrumentMix(channel);
         assert insMixSrc != null : "midiMix=" + midiMix + " channel=" + channel;
         RhythmVoice rvSrc = midiMix.getRhythmVoice(channel);
 
@@ -147,7 +147,7 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
     @Override
     public void editInstrument(int channel)
     {
-        InstrumentMix insMix = midiMix.getInstrumentMixFromChannel(channel);
+        InstrumentMix insMix = midiMix.getInstrumentMix(channel);
         RhythmVoice rv = midiMix.getRhythmVoice(channel);
         InstrumentChooserDialog dlg = InstrumentChooserDialog.getDefault();
         dlg.preset(OutputSynthManager.getInstance().getDefaultOutputSynth(), rv, insMix.getInstrument(),
@@ -198,7 +198,7 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
     @Override
     public void editNextInstrument(int channel)
     {
-        InstrumentMix insMix = midiMix.getInstrumentMixFromChannel(channel);
+        InstrumentMix insMix = midiMix.getInstrumentMix(channel);
         InstrumentBank<?> bank = insMix.getInstrument().getBank();
         Instrument ins = bank.getNextInstrument(insMix.getInstrument());
         insMix.setInstrument(ins);
@@ -207,7 +207,7 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
     @Override
     public void editPreviousInstrument(int channel)
     {
-        InstrumentMix insMix = midiMix.getInstrumentMixFromChannel(channel);
+        InstrumentMix insMix = midiMix.getInstrumentMix(channel);
         InstrumentBank<?> bank = insMix.getInstrument().getBank();
         Instrument ins = bank.getPreviousInstrument(insMix.getInstrument());
         insMix.setInstrument(ins);

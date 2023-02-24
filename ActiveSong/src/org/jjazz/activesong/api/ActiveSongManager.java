@@ -199,7 +199,7 @@ public class ActiveSongManager implements PropertyChangeListener, VetoableChange
         {
             for (Integer channel : activeMidiMix.getUsedChannels())
             {
-                InstrumentMix insMix = activeMidiMix.getInstrumentMixFromChannel(channel);
+                InstrumentMix insMix = activeMidiMix.getInstrumentMix(channel);
                 JJazzMidiSystem jms = JJazzMidiSystem.getInstance();
                 jms.sendMidiMessagesOnJJazzMidiOut(insMix.getAllMidiMessages(channel));
             }
@@ -216,7 +216,7 @@ public class ActiveSongManager implements PropertyChangeListener, VetoableChange
         {
             for (Integer channel : activeMidiMix.getUsedChannels())
             {
-                InstrumentMix insMix = activeMidiMix.getInstrumentMixFromChannel(channel);
+                InstrumentMix insMix = activeMidiMix.getInstrumentMix(channel);
                 InstrumentSettings insSet = insMix.getSettings();
                 JJazzMidiSystem.getInstance().sendMidiMessagesOnJJazzMidiOut(insSet.getVolumeMidiMessages(channel));
             }
@@ -281,7 +281,7 @@ public class ActiveSongManager implements PropertyChangeListener, VetoableChange
                     oldInsMix.removePropertyChangeListener(this);
                     oldInsMix.getSettings().removePropertyChangeListener(this);
                 }
-                InstrumentMix insMix = mm.getInstrumentMixFromChannel(channel);
+                InstrumentMix insMix = mm.getInstrumentMix(channel);
                 if (insMix != null)
                 {
                     // insMix added (new or replacing oldInsMix)                    
@@ -302,7 +302,7 @@ public class ActiveSongManager implements PropertyChangeListener, VetoableChange
                 if (sendMidiMessagePolicy.contains(SendMidiMessagePolicy.MIX_CHANGE))
                 {
                     int channel = (Integer) evt.getNewValue();
-                    InstrumentMix insMix = mm.getInstrumentMixFromChannel(channel);
+                    InstrumentMix insMix = mm.getInstrumentMix(channel);
                     JJazzMidiSystem jms = JJazzMidiSystem.getInstance();
                     jms.sendMidiMessagesOnJJazzMidiOut(insMix.getAllMidiMessages(channel));
                 }
@@ -401,7 +401,7 @@ public class ActiveSongManager implements PropertyChangeListener, VetoableChange
         mm.addPropertyChangeListener(this);
         for (Integer channel : mm.getUsedChannels())
         {
-            InstrumentMix insMix = mm.getInstrumentMixFromChannel(channel);
+            InstrumentMix insMix = mm.getInstrumentMix(channel);
             insMix.addPropertyChangeListener(this);
             insMix.getSettings().addPropertyChangeListener(this);
         }
@@ -412,7 +412,7 @@ public class ActiveSongManager implements PropertyChangeListener, VetoableChange
         mm.removePropertyChangeListener(this);
         for (Integer channel : mm.getUsedChannels())
         {
-            InstrumentMix insMix = mm.getInstrumentMixFromChannel(channel);
+            InstrumentMix insMix = mm.getInstrumentMix(channel);
             insMix.removePropertyChangeListener(this);
             insMix.getSettings().removePropertyChangeListener(this);
         }

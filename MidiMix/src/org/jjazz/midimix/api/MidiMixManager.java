@@ -230,7 +230,7 @@ public class MidiMixManager implements PropertyChangeListener
                 assert ins != null : "rv=" + rv;   
                 int channel = rv.getPreferredChannel();
 
-                if (mm.getInstrumentMixFromChannel(channel) != null)
+                if (mm.getInstrumentMix(channel) != null)
                 {
                     // If 2 rhythm voices have the same preferred channel (strange...)
                     LOGGER.log(Level.WARNING, "createMix() 2 rhythm voices have the same preferredChannel. r={0} mm={1} channel={2}", new Object[]

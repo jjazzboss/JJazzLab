@@ -361,7 +361,7 @@ public class PlaybackSettings
     public int getClickChannel(MidiMix midiMix)
     {
         int prefChannel = getPreferredClickChannel();
-        InstrumentMix insMix = midiMix.getInstrumentMixFromChannel(prefChannel);
+        InstrumentMix insMix = midiMix.getInstrumentMix(prefChannel);
         if (insMix == null || midiMix.getRhythmVoice(prefChannel).isDrums())
         {
             return prefChannel;

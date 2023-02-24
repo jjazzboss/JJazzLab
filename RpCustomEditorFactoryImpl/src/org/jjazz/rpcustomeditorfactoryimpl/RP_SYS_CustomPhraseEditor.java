@@ -35,7 +35,6 @@ import org.jjazz.songeditormanager.api.SongEditorManager;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.rpviewer.spi.RpCustomEditor;
 import org.jjazz.ui.utilities.api.Utilities;
-import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.util.api.FloatRange;
 import org.jjazz.util.api.ResUtil;
 import org.openide.DialogDisplayer;
@@ -329,7 +328,7 @@ public class RP_SYS_CustomPhraseEditor extends RpCustomEditor<RP_SYS_CustomPhras
         DrumKit drumKit = getInstrument(rv).getDrumKit();
         DrumKit.KeyMap keyMap = drumKit == null ? null : drumKit.getKeyMap();
         int channel = getChannel(rv);
-        preTc.setModel(spt, p, channel, keyMap);
+        preTc.setModelForRP_SYS_CustomPhrase(spt, rp, p, channel, keyMap);
         String text = ResUtil.getString(getClass(), "RP_SYS_CustomPhraseEditor.customPhraseTitle", rv.getName(), channel + 1);
         preTc.setTitle(text);
         preTc.requestActive();
@@ -380,10 +379,11 @@ public class RP_SYS_CustomPhraseEditor extends RpCustomEditor<RP_SYS_CustomPhras
                     }
                 } else if (e.getSource() == midiMix)
                 {
-                    if (e.getPropertyName().equals(MidiMix.PROP_RHYTHM_VOICE_CHANNEL))
+                    if (e.getPropertyName().equals(MidiMix.PROP_RHYTHM_VOICE_CHANNEL)
+                            || e.getPropertyName().equals(MidiMix.PROP_RHYTHM_VOICE))
                     {
                         int channel = getChannel(rv);
-                        preTc.setModel(spt, p, channel, keyMap);
+                        preTc.setModelForRP_SYS_CustomPhrase(spt, rp, p, channel, keyMap);
                         String text = ResUtil.getString(getClass(), "RP_SYS_CustomPhraseEditor.customPhraseTitle", rv.getName(), channel + 1);
                         preTc.setTitle(text);
                     }
@@ -415,7 +415,7 @@ public class RP_SYS_CustomPhraseEditor extends RpCustomEditor<RP_SYS_CustomPhras
 
     private Instrument getInstrument(RhythmVoice rv)
     {
-        return songPartContext.getMidiMix().getInstrumentMixFromKey(rv).getInstrument();
+        return songPartContext.getMidiMix().getInstrumentMix(rv).getInstrument();
     }
 
 

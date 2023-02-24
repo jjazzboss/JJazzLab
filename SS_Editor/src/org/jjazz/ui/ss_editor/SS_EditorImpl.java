@@ -56,7 +56,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.songstructure.api.event.SgsChangeEvent;
-import org.jjazz.songstructure.api.event.RpChangedEvent;
+import org.jjazz.songstructure.api.event.RpValueChangedEvent;
 import org.jjazz.songstructure.api.event.SptAddedEvent;
 import org.jjazz.songstructure.api.event.SptRemovedEvent;
 import org.jjazz.songstructure.api.event.SptRenamedEvent;
@@ -867,7 +867,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
                 {
                     // Update the MultiSelectBar on/off state on each SptViewer
                     updateSptMultiSelectMode();
-                } else if (e instanceof RpChangedEvent)
+                } else if (e instanceof RpValueChangedEvent)
                 {
                     // Nothing, directly managed by SptViewers
                 }

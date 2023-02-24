@@ -39,7 +39,7 @@ public class PhraseTransforms
     {
         checkNotNull(sp);
         checkNotNull(context);
-        return context.getMidiMix().getInstrumentMixFromChannel(sp.getChannel()).getInstrument();
+        return context.getMidiMix().getInstrumentMix(sp.getChannel()).getInstrument();
     }
 
     static public RhythmVoice getRhythmVoice(SizedPhrase sp, SongPartContext context)
@@ -65,7 +65,7 @@ public class PhraseTransforms
         assert rv.isDrums() : "sp=" + sp + " midiMix=" + context.getMidiMix() + " rv=" + rv;
 
         DrumKit kit;
-        Instrument ins = context.getMidiMix().getInstrumentMixFromChannel(sp.getChannel()).getInstrument();
+        Instrument ins = context.getMidiMix().getInstrumentMix(sp.getChannel()).getInstrument();
         kit = ins.getDrumKit();
         if (kit == null)
         {

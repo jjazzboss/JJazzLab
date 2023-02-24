@@ -24,7 +24,7 @@ package org.jjazz.songstructure;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import org.jjazz.songstructure.api.event.RpChangedEvent;
+import org.jjazz.songstructure.api.event.RpValueChangedEvent;
 import org.jjazz.songstructure.api.event.SptReplacedEvent;
 import org.jjazz.songstructure.api.event.SgsChangeEvent;
 import org.jjazz.songstructure.api.event.SptResizedEvent;
@@ -528,7 +528,7 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
                 var rp = (RhythmParameter) evt.getOldValue();
                 var rpValue = evt.getNewValue();
                 fireAuthorizedChangeEvent(new SgsActionEvent(this, "setRhythmParameterValueContent", false, false));
-                fireAuthorizedChangeEvent(new RpChangedEvent(SongStructureImpl.this, spt, rp, rpValue, rpValue));
+                fireAuthorizedChangeEvent(new RpValueChangedEvent(SongStructureImpl.this, spt, rp, rpValue, rpValue));
                 fireAuthorizedChangeEvent(new SgsActionEvent(this, "setRhythmParameterValueContent", true, false));
             }
         }
@@ -926,7 +926,7 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
                     spt, rp, newValue
                 });
                 wspt.setRPValue(rp, oldValue);
-                fireAuthorizedChangeEvent(new RpChangedEvent(SongStructureImpl.this, wspt, rp, newValue, oldValue));
+                fireAuthorizedChangeEvent(new RpValueChangedEvent(SongStructureImpl.this, wspt, rp, newValue, oldValue));
             }
 
             @Override
@@ -937,13 +937,13 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
                     spt, rp, newValue
                 });
                 wspt.setRPValue(rp, newValue);
-                fireAuthorizedChangeEvent(new RpChangedEvent(SongStructureImpl.this, wspt, rp, oldValue, newValue));
+                fireAuthorizedChangeEvent(new RpValueChangedEvent(SongStructureImpl.this, wspt, rp, oldValue, newValue));
             }
         };
         fireUndoableEditHappened(edit);
 
         // Fire event                
-        fireAuthorizedChangeEvent(new RpChangedEvent(SongStructureImpl.this, wspt, rp, oldValue, newValue));
+        fireAuthorizedChangeEvent(new RpValueChangedEvent(SongStructureImpl.this, wspt, rp, oldValue, newValue));
 
 
         fireUndoableActionEvent(enableActionEvent, "setRhythmParameterValue", true);

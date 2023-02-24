@@ -79,7 +79,7 @@ public class DisableAllMidiParameters extends AbstractAction
     {
         for (Integer channel : mm.getUsedChannels())
         {
-            InstrumentMix insMix = mm.getInstrumentMixFromChannel(channel);
+            InstrumentMix insMix = mm.getInstrumentMix(channel);
             InstrumentSettings insSettings = insMix.getSettings();
             insMix.setInstrumentEnabled(b);
             insSettings.setVolumeEnabled(b);

@@ -92,14 +92,14 @@ public class MixChannelPanelModelImpl implements MixChannelPanelModel, PropertyC
      */
     public MixChannelPanelModelImpl(MidiMix mMix, int channel)
     {
-        if (mMix == null || !MidiConst.checkMidiChannel(channel) || mMix.getInstrumentMixFromChannel(channel) == null)
+        if (mMix == null || !MidiConst.checkMidiChannel(channel) || mMix.getInstrumentMix(channel) == null)
         {
             throw new IllegalArgumentException("mMix=" + mMix + " channel=" + channel);
         }
         channelId = channel;
         midiMix = mMix;
         midiMix.addPropertyChangeListener(this);
-        insMix = mMix.getInstrumentMixFromChannel(channel);
+        insMix = mMix.getInstrumentMix(channel);
         insMix.addPropertyChangeListener(this);
         insSettings = insMix.getSettings();
         insSettings.addPropertyChangeListener(this);
@@ -210,7 +210,7 @@ public class MixChannelPanelModelImpl implements MixChannelPanelModel, PropertyC
                     continue;
                 }
                 channelsToUpdate.add(channel);
-                int volume = midiMix.getInstrumentMixFromChannel(channel).getSettings().getVolume() + delta;
+                int volume = midiMix.getInstrumentMix(channel).getSettings().getVolume() + delta;
                 if (volume > 127)
                 {
                     // TargetDelta is > 0
@@ -226,7 +226,7 @@ public class MixChannelPanelModelImpl implements MixChannelPanelModel, PropertyC
             // Now apply the realDelta to other channels
             for (Integer channel : channelsToUpdate)
             {
-                InstrumentSettings is = midiMix.getInstrumentMixFromChannel(channel).getSettings();
+                InstrumentSettings is = midiMix.getInstrumentMix(channel).getSettings();
                 int newVolume = is.getVolume() + possibleDelta;
                 is.setVolume(newVolume);
             }

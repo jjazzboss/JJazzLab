@@ -66,7 +66,7 @@ public class AllSoloOff extends AbstractAction
         }
         for (Integer channel : songMidiMix.getUsedChannels())
         {
-            InstrumentMix insMix = songMidiMix.getInstrumentMixFromChannel(channel);
+            InstrumentMix insMix = songMidiMix.getInstrumentMix(channel);
             insMix.setSolo(false);
         }
     }

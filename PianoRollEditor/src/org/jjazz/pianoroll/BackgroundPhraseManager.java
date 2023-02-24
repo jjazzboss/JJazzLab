@@ -24,24 +24,36 @@ package org.jjazz.pianoroll;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.beans.PropertyVetoException;
+import java.beans.VetoableChangeListener;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.logging.Logger;
-import javax.sound.midi.MidiUnavailableException;
 import javax.swing.SwingUtilities;
+import javax.swing.event.ChangeListener;
+import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.leadsheet.chordleadsheet.api.ClsChangeListener;
+import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
+import org.jjazz.leadsheet.chordleadsheet.api.event.ClsActionEvent;
+import org.jjazz.leadsheet.chordleadsheet.api.event.ClsChangeEvent;
 import org.jjazz.midimix.api.MidiMix;
-import org.jjazz.midimix.api.MidiMixManager;
-import org.jjazz.musiccontrol.api.SongMusicGenerationListener;
+import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.pianoroll.api.PianoRollEditor;
+import org.jjazz.pianoroll.api.PianoRollEditorTopComponent;
 import org.jjazz.rhythm.api.RhythmVoice;
+import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhrase;
 import org.jjazz.rhythmmusicgeneration.api.MusicGenerationQueue;
 import org.jjazz.song.api.Song;
 import org.jjazz.songcontext.api.SongContext;
-import org.openide.util.Exceptions;
+import org.jjazz.songstructure.api.SgsChangeListener;
+import org.jjazz.songstructure.api.SongStructure;
+import org.jjazz.songstructure.api.event.RpValueChangedEvent;
+import org.jjazz.songstructure.api.event.SgsActionEvent;
+import org.jjazz.songstructure.api.event.SgsChangeEvent;
+import org.openide.util.ChangeSupport;
 
 /**
  * Manage the generation of background phrases and coordination with UI elements.
@@ -51,26 +63,21 @@ public class BackgroundPhraseManager implements PropertyChangeListener
 
     private MusicGenerationQueue.Result lastResult;
     private MusicGenerationQueue musicGenerationQueue;
-    private SongMusicGenerationListener songMusicGenerationListener;
-    private MidiMix midiMix;
+    private NeedMusicGenerationListener needMusicGenerationListener;
+    private final PianoRollEditorTopComponent topComponent;
     private final PianoRollEditor editor;
+    private RP_SYS_CustomPhrase rpCustomPhrase;
     private final BackgroundPhrasesPanel backgroundPhrasesPanel;
     private static final Logger LOGGER = Logger.getLogger(BackgroundPhraseManager.class.getSimpleName());
 
-    public BackgroundPhraseManager(PianoRollEditor editor, BackgroundPhrasesPanel bgPhrasesPanel)
+    public BackgroundPhraseManager(PianoRollEditorTopComponent preTc, BackgroundPhrasesPanel bgPhrasesPanel)
     {
-        this.editor = editor;
+        this.topComponent = preTc;
+        this.editor = preTc.getEditor();
         this.backgroundPhrasesPanel = bgPhrasesPanel;
-        midiMix = null;
-        try
-        {
-            midiMix = MidiMixManager.getInstance().findMix(editor.getSong());
-        } catch (MidiUnavailableException ex)
-        {
-            // Should never happen
-            Exceptions.printStackTrace(ex);
-        }
-        midiMix.addPropertyChangeListener(this);
+
+
+        this.topComponent.getMidiMix().addPropertyChangeListener(this);
         updateTrackNames();
 
 
@@ -85,12 +92,11 @@ public class BackgroundPhraseManager implements PropertyChangeListener
     /**
      * Refresh the track names in the backgroundPhrasesPanel.
      * <p>
-     * Should be called when editor's channel or midiMix has changed.
      */
     public void updateTrackNames()
     {
         List<String> names = new ArrayList<>();
-        for (int ch : midiMix.getUsedChannels())
+        for (int ch : topComponent.getMidiMix().getUsedChannels())
         {
             if (ch == editor.getChannel())
             {
@@ -99,17 +105,28 @@ public class BackgroundPhraseManager implements PropertyChangeListener
             String name = buildPhraseName(ch);
             names.add(name);
         }
-        backgroundPhrasesPanel.setTracks(names);
+        lastResult = null;    // Important to make sure we regenerate music when editor's model changes eg from a user track edit to a RP_SYS_CustomPhrase edit
+        backgroundPhrasesPanel.setTracks(names);        // This will clear selection
+    }
+
+    public RP_SYS_CustomPhrase getRpCustomPhrase()
+    {
+        return rpCustomPhrase;
+    }
+
+    public void setRpCustomPhrase(RP_SYS_CustomPhrase rpCustomPhrase)
+    {
+        this.rpCustomPhrase = rpCustomPhrase;
     }
 
     public void cleanup()
     {
-        midiMix.removePropertyChangeListener(this);
+        topComponent.getMidiMix().removePropertyChangeListener(this);
         backgroundPhrasesPanel.removePropertyChangeListener(this);
         musicGenerationQueue.stop();
-        if (songMusicGenerationListener != null)
+        if (needMusicGenerationListener != null)
         {
-            songMusicGenerationListener.cleanup();
+            needMusicGenerationListener.cleanup();
         }
     }
 
@@ -128,9 +145,9 @@ public class BackgroundPhraseManager implements PropertyChangeListener
         {
             musicGenerationQueue.stop();
             editor.setBackgroundPhases(null);
-            if (songMusicGenerationListener != null)
+            if (needMusicGenerationListener != null)
             {
-                songMusicGenerationListener.cleanup();
+                needMusicGenerationListener.cleanup();
             }
             return;
         }
@@ -143,10 +160,12 @@ public class BackgroundPhraseManager implements PropertyChangeListener
 
 
             // Regenerate music each time song context is musically updated -except for our own phrase change events
-            songMusicGenerationListener = new SongMusicGenerationListener(editor.getSong(), midiMix);
-            songMusicGenerationListener.setBlackList(Set.of(Song.PROP_VETOABLE_USER_PHRASE_CONTENT, "setRhythmParameterValueContent"));
-            songMusicGenerationListener.addChangeListener(
-                    e -> musicGenerationQueue.add(new SongContext(editor.getSong(), midiMix)));
+            needMusicGenerationListener = new NeedMusicGenerationListener(editor.getSong(), topComponent.getMidiMix());
+            needMusicGenerationListener.addChangeListener(e -> 
+            {
+                LOGGER.fine("selectionChanged() requesting music generation...");
+                musicGenerationQueue.add(new SongContext(editor.getSong(), topComponent.getMidiMix()));
+            });
         }
 
 
@@ -158,8 +177,8 @@ public class BackgroundPhraseManager implements PropertyChangeListener
             for (var n : selectedNames)
             {
                 int channel = getChannelFromPhraseName(n);
-                RhythmVoice rv = midiMix.getRhythmVoice(channel);
-                assert rv != null : " channel=" + channel + " midiMix=" + midiMix;
+                RhythmVoice rv = topComponent.getMidiMix().getRhythmVoice(channel);
+                assert rv != null : " channel=" + channel + " midiMix=" + topComponent.getMidiMix();
                 Phrase p = lastResult.mapRvPhrases().get(rv);
                 if (p == null)
                 {
@@ -179,7 +198,7 @@ public class BackgroundPhraseManager implements PropertyChangeListener
         } else
         {
             // Need to generate music
-            SongContext sgContext = new SongContext(editor.getSong(), midiMix, editor.getPhraseBarRange());
+            SongContext sgContext = new SongContext(topComponent.getSong(), topComponent.getMidiMix(), editor.getPhraseBarRange());
             musicGenerationQueue.add(sgContext);
         }
 
@@ -218,7 +237,7 @@ public class BackgroundPhraseManager implements PropertyChangeListener
             for (var name : visibleBackgroundTrackNames)
             {
                 int channel = getChannelFromPhraseName(name);
-                var rv = midiMix.getRhythmVoice(channel);
+                var rv = topComponent.getMidiMix().getRhythmVoice(channel);
                 var p = lastResult.mapRvPhrases().get(rv);
                 assert p != null : "rv=" + rv + " lastResult.mapRvPhrases()=" + lastResult.mapRvPhrases();
                 res.put(channel, p);
@@ -231,8 +250,8 @@ public class BackgroundPhraseManager implements PropertyChangeListener
 
     private String buildPhraseName(int channel)
     {
-        String rvName = midiMix.getRhythmVoice(channel).getName();
-        String inst = midiMix.getInstrumentMixFromChannel(channel).getInstrument().getPatchName();
+        String rvName = topComponent.getMidiMix().getRhythmVoice(channel).getName();
+        String inst = topComponent.getMidiMix().getInstrumentMix(channel).getInstrument().getPatchName();
         String name = String.format("%d: %s - %s", channel + 1, rvName, inst);
         return name;
     }
@@ -251,14 +270,17 @@ public class BackgroundPhraseManager implements PropertyChangeListener
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
-        if (evt.getSource() == midiMix)
+        if (evt.getSource() == topComponent.getMidiMix())
         {
-            if (evt.getPropertyName().equals(MidiMix.PROP_CHANNEL_INSTRUMENT_MIX))
+            switch (evt.getPropertyName())
             {
-                updateTrackNames();
-            } else if (evt.getPropertyName().equals(MidiMix.PROP_RHYTHM_VOICE))
-            {
-                updateTrackNames();
+                case MidiMix.PROP_CHANNEL_INSTRUMENT_MIX, MidiMix.PROP_RHYTHM_VOICE, MidiMix.PROP_RHYTHM_VOICE_CHANNEL ->
+                {
+                    updateTrackNames();
+                }
+                default ->
+                {
+                }
             }
         } else if (evt.getSource() == backgroundPhrasesPanel)
         {
@@ -267,6 +289,187 @@ public class BackgroundPhraseManager implements PropertyChangeListener
                 selectionChanged((List<String>) evt.getNewValue());
             }
         }
+    }
+
+
+    /**
+     * A listener which fires when we need a new music generation.
+     * <p>
+     */
+    private class NeedMusicGenerationListener implements PropertyChangeListener, VetoableChangeListener, SgsChangeListener, ClsChangeListener
+    {
+
+        private final ChangeSupport cs = new ChangeSupport(this);
+        private final Song song;
+        private final SongStructure songStructure;
+        private final ChordLeadSheet chordLeadSheet;
+        private final MidiMix midiMix;
+
+        public NeedMusicGenerationListener(Song song, MidiMix midiMix)
+        {
+            this.song = song;
+            this.songStructure = song.getSongStructure();
+            this.chordLeadSheet = song.getChordLeadSheet();
+            this.midiMix = midiMix;
+
+            this.song.addVetoableChangeListener(this);
+            this.song.getSongStructure().addSgsChangeListener(this);
+            this.song.getChordLeadSheet().addClsChangeListener(this);
+            this.midiMix.addPropertyChangeListener(this);
+            PlaybackSettings.getInstance().addPropertyChangeListener(this);
+        }
+
+        public void cleanup()
+        {
+            this.song.removeVetoableChangeListener(this);
+            this.songStructure.removeSgsChangeListener(this);
+            this.chordLeadSheet.removeClsChangeListener(this);
+            this.midiMix.removePropertyChangeListener(this);
+            PlaybackSettings.getInstance().removePropertyChangeListener(this);
+        }
+
+        /**
+         * Add a listener to be notified when a music generation impacting change has occured.
+         *
+         * @param listener
+         */
+        public void addChangeListener(ChangeListener listener)
+        {
+            cs.addChangeListener(listener);
+        }
+
+        public void removeChangeListener(ChangeListener listener)
+        {
+            cs.removeChangeListener(listener);
+        }
+
+        // ========================================================================================================
+        // PropertyChangeListener
+        // ========================================================================================================   
+        @Override
+        public void propertyChange(PropertyChangeEvent evt)
+        {
+            boolean fire = false;
+
+            if (evt.getSource() == song)
+            {
+                switch (evt.getPropertyName())
+                {
+                    case Song.PROP_VETOABLE_USER_PHRASE_CONTENT ->
+                    {
+                        // Ignore user phrase changes which come from our PianoRollEditor
+                        String name = (String) evt.getNewValue();
+                        RhythmVoice rv = midiMix.getUserRhythmVoice(name);
+                        assert rv != null : "name=" + name + " midiMix=" + midiMix;
+                        RhythmVoice rvEditor = midiMix.getRhythmVoice(editor.getChannel());
+                        fire = rv != rvEditor;
+                    }
+                    case Song.PROP_VETOABLE_USER_PHRASE ->
+                    {
+                        // A user phrase was added or removed
+                        fire = true;
+                    }
+                    default ->
+                    {
+
+                    }
+                }
+            } else if (evt.getSource() == midiMix)
+            {
+                switch (evt.getPropertyName())
+                {
+                    case MidiMix.PROP_CHANNEL_DRUMS_REROUTED, MidiMix.PROP_CHANNEL_INSTRUMENT_MIX, MidiMix.PROP_DRUMS_INSTRUMENT_KEYMAP, MidiMix.PROP_INSTRUMENT_TRANSPOSITION, MidiMix.PROP_INSTRUMENT_VELOCITY_SHIFT ->
+                    {
+                        fire = true;
+                    }
+                    case MidiMix.PROP_RHYTHM_VOICE, MidiMix.PROP_RHYTHM_VOICE_CHANNEL ->
+                    {
+                        // If this happens, the PianoRollEditor's model must have been reset by caller
+                    }
+                    default ->
+                    {
+
+                    }
+                }
+            } else if (evt.getSource() == PlaybackSettings.getInstance())
+            {
+                switch (evt.getPropertyName())
+                {
+                    case PlaybackSettings.PROP_CLICK_PITCH_HIGH, PlaybackSettings.PROP_CLICK_PITCH_LOW, PlaybackSettings.PROP_CLICK_VELOCITY_HIGH, PlaybackSettings.PROP_CLICK_VELOCITY_LOW, PlaybackSettings.PROP_PLAYBACK_KEY_TRANSPOSITION ->
+                    {
+                        fire = true;
+                    }
+                    default ->
+                    {
+                    }
+                }
+            }
+
+            if (fire)
+            {
+                cs.fireChange();
+            }
+        }
+        // ========================================================================================================
+        // VetoableChangeListener
+        // ========================================================================================================   
+
+        @Override
+        public void vetoableChange(PropertyChangeEvent evt) throws PropertyVetoException
+        {
+            propertyChange(evt);
+        }
+
+        // ========================================================================================================
+        // SgsChangeListener
+        // ========================================================================================================        
+
+        @Override
+        public void authorizeChange(SgsChangeEvent e) throws UnsupportedEditException
+        {
+            // Nothing
+        }
+
+        @Override
+        public void songStructureChanged(SgsChangeEvent e)
+        {
+            boolean fire = false;
+
+            if (e instanceof RpValueChangedEvent ce)
+            {
+                // Ignore changes coming from the edited RP_SYS_CustomPhrase (even if it could be, theorically, coming from another RhythmVoice)
+                fire = ce.getRhythmParameter() != rpCustomPhrase;
+
+            } else if (e instanceof SgsActionEvent ae && ae.isActionComplete() && !ae.getActionId().startsWith("setRhythmParameterValue"))
+            {
+                fire = true;
+            }
+
+            if (fire)
+            {
+                cs.fireChange();
+            }
+        }
+
+        // ========================================================================================================
+        // ClsChangeListener
+        // ========================================================================================================        
+
+        @Override
+        public void authorizeChange(ClsChangeEvent e) throws UnsupportedEditException
+        {
+            // Nothing
+        }
+
+        @Override
+        public void chordLeadSheetChanged(ClsChangeEvent e)
+        {
+            if (e instanceof ClsActionEvent ae && ae.isActionComplete())
+            {
+                cs.fireChange();
+            }
+        }
+
     }
 
 
