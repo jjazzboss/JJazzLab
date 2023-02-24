@@ -30,12 +30,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListCellRenderer;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.KeyStroke;
 import javax.swing.SpinnerNumberModel;
-import org.jjazz.midi.api.InstrumentMix;
 import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.pianoroll.actions.HearSelection;
+import org.jjazz.pianoroll.actions.PlayEditor;
 import org.jjazz.pianoroll.actions.PlaybackAutoScroll;
 import org.jjazz.pianoroll.actions.SnapToGrid;
 import org.jjazz.pianoroll.actions.Solo;
@@ -55,9 +57,7 @@ import org.jjazz.util.api.ResUtil;
  */
 public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeListener
 {
-
     private final PianoRollEditor editor;
-    private InstrumentMix insMix;
     private int lastSpinnerValue;
     private String title;
     private NotesSelection selection;
@@ -80,12 +80,27 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
 
         lbl_title.setText(title);
 
-
+                
+        // Create the actions used in this ToolbarPanel
+        // Put them here rather than in each individual action just because it's more convenient to oversee all the keyboard shortcuts
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("alt SPACE"), PlayEditor.ACTION_ID);
+        editor.getActionMap().put(PlayEditor.ACTION_ID, new PlayEditor(topComponent));
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("S"), Solo.ACTION_ID);
+        editor.getActionMap().put(Solo.ACTION_ID, new Solo(topComponent));        
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("H"), HearSelection.ACTION_ID);
+        editor.getActionMap().put(HearSelection.ACTION_ID, new HearSelection(editor));
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("A"), PlaybackAutoScroll.ACTION_ID);
+        editor.getActionMap().put(PlaybackAutoScroll.ACTION_ID, new PlaybackAutoScroll(editor));
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("G"), SnapToGrid.ACTION_ID);
+        editor.getActionMap().put(SnapToGrid.ACTION_ID, new SnapToGrid(editor));
+        
+        
+        fbtn_playEditor.setAction(editor.getAction(PlayEditor.ACTION_ID));
         tbtn_hearNotes.setToggleAction((ToggleAction) editor.getAction(HearSelection.ACTION_ID));
         tbtn_snap.setToggleAction((ToggleAction) editor.getAction(SnapToGrid.ACTION_ID));
         tbtn_playbackAutoScroll.setToggleAction((ToggleAction) editor.getAction(PlaybackAutoScroll.ACTION_ID));
         tbtn_solo.setToggleAction((ToggleAction) editor.getAction(Solo.ACTION_ID));
-
+        
 
         var qModel = new DefaultComboBoxModel(Quantization.values());
         qModel.removeElement(Quantization.HALF_BAR);
@@ -93,9 +108,6 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
         cmb_quantization.setModel(qModel);
         cmb_quantization.setSelectedItem(editor.getQuantization());
         cmb_quantization.setRenderer(new QuantizationRenderer());
-
-
-        tbtn_snap.setSelected(editor.isSnapEnabled());
 
 
         NotesSelectionListener nsl = NotesSelectionListener.getInstance(editor);
@@ -106,7 +118,6 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
 
 
         editor.addPropertyChangeListener(this);
-        editorChannelChanged();
 
     }
 
@@ -125,7 +136,6 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
     public void cleanup()
     {
         editor.removePropertyChangeListener(this);
-        insMix.removePropertyChangeListener(this);
     }
 
     // ====================================================================================
@@ -139,13 +149,9 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
         if (evt.getSource() == editor)
         {
             switch (evt.getPropertyName())
-            {
-                case PianoRollEditor.PROP_SNAP_ENABLED ->
-                    tbtn_snap.setSelected(editor.isSnapEnabled());
+            {             
                 case PianoRollEditor.PROP_QUANTIZATION ->
-                    cmb_quantization.setSelectedItem(editor.getQuantization());
-                case PianoRollEditor.PROP_MODEL_CHANNEL ->
-                    editorChannelChanged();
+                    cmb_quantization.setSelectedItem(editor.getQuantization());               
                 default ->
                 {
                 }
@@ -157,13 +163,7 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
             {
                 updateVelocityUI();
             }
-        } else if (evt.getSource() == insMix)
-        {
-            if (evt.getPropertyName().equals(InstrumentMix.PROP_SOLO))
-            {
-                tbtn_solo.setSelected(insMix.isSolo());
-            }
-        }
+        } 
     }
     // ====================================================================================
     // Private methods
@@ -211,15 +211,7 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
         }
     }
 
-    private void editorChannelChanged()
-    {
-        if (insMix != null)
-        {
-            insMix.removePropertyChangeListener(this);
-        }
-        insMix = topComponent.getMidiMix().getInstrumentMix(editor.getChannel());
-        insMix.addPropertyChangeListener(this);
-    }
+
 
 
     /**
@@ -245,9 +237,10 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
         lbl_title = new javax.swing.JLabel();
         pnl_right = new javax.swing.JPanel();
         pnl_miscButtons = new javax.swing.JPanel();
-        tbtn_hearNotes = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
-        tbtn_solo = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
+        fbtn_playEditor = new org.jjazz.ui.flatcomponents.api.FlatButton();
         tbtn_playbackAutoScroll = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
+        tbtn_solo = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
+        tbtn_hearNotes = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
         filler5 = new javax.swing.Box.Filler(new java.awt.Dimension(5, 0), new java.awt.Dimension(10, 0), new java.awt.Dimension(5, 32767));
         fbtn_help = new org.jjazz.ui.flatcomponents.api.FlatHelpButton();
 
@@ -309,25 +302,21 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
 
         pnl_miscButtons.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 1, 2));
 
-        tbtn_hearNotes.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/pianoroll/actions/resources/HearNoteOFF.png"))); // NOI18N
-        tbtn_hearNotes.setToolTipText(org.openide.util.NbBundle.getMessage(ToolbarPanel.class, "ToolbarPanel.tbtn_hearNotes.toolTipText")); // NOI18N
-        pnl_miscButtons.add(tbtn_hearNotes);
-
-        tbtn_solo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/pianoroll/actions/resources/SoloOFF.png"))); // NOI18N
-        tbtn_solo.setToolTipText(org.openide.util.NbBundle.getMessage(ToolbarPanel.class, "ToolbarPanel.tbtn_solo.toolTipText")); // NOI18N
-        tbtn_solo.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                tbtn_soloActionPerformed(evt);
-            }
-        });
-        pnl_miscButtons.add(tbtn_solo);
+        fbtn_playEditor.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/pianoroll/actions/resources/PlayEditor-OFF.png"))); // NOI18N
+        pnl_miscButtons.add(fbtn_playEditor);
 
         tbtn_playbackAutoScroll.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/pianoroll/actions/resources/PlaybackAutoScrollOFF.png"))); // NOI18N
         tbtn_playbackAutoScroll.setToolTipText(org.openide.util.NbBundle.getMessage(ToolbarPanel.class, "ToolbarPanel.tbtn_playbackAutoScroll.toolTipText")); // NOI18N
         tbtn_playbackAutoScroll.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/pianoroll/actions/resources/PlaybackAutoScrollON.png"))); // NOI18N
         pnl_miscButtons.add(tbtn_playbackAutoScroll);
+
+        tbtn_solo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/pianoroll/actions/resources/SoloOFF.png"))); // NOI18N
+        tbtn_solo.setToolTipText(org.openide.util.NbBundle.getMessage(ToolbarPanel.class, "ToolbarPanel.tbtn_solo.toolTipText")); // NOI18N
+        pnl_miscButtons.add(tbtn_solo);
+
+        tbtn_hearNotes.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/pianoroll/actions/resources/HearNoteOFF.png"))); // NOI18N
+        tbtn_hearNotes.setToolTipText(org.openide.util.NbBundle.getMessage(ToolbarPanel.class, "ToolbarPanel.tbtn_hearNotes.toolTipText")); // NOI18N
+        pnl_miscButtons.add(tbtn_hearNotes);
         pnl_miscButtons.add(filler5);
 
         fbtn_help.setHelpText(org.openide.util.NbBundle.getMessage(ToolbarPanel.class, "ToolbarPanel.fbtn_help.helpText")); // NOI18N
@@ -401,15 +390,11 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
         lastSpinnerValue = newSpinnerValue;
     }//GEN-LAST:event_spn_velocityStateChanged
 
-    private void tbtn_soloActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_tbtn_soloActionPerformed
-    {//GEN-HEADEREND:event_tbtn_soloActionPerformed
-        insMix.setSolo(tbtn_solo.isSelected());
-    }//GEN-LAST:event_tbtn_soloActionPerformed
-
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JComboBox<Quantization> cmb_quantization;
     private org.jjazz.ui.flatcomponents.api.FlatHelpButton fbtn_help;
+    private org.jjazz.ui.flatcomponents.api.FlatButton fbtn_playEditor;
     private javax.swing.Box.Filler filler1;
     private javax.swing.Box.Filler filler2;
     private javax.swing.Box.Filler filler3;

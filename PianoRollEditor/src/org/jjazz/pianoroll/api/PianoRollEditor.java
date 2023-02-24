@@ -74,6 +74,7 @@ import org.jjazz.pianoroll.actions.HearSelection;
 import org.jjazz.pianoroll.actions.MoveSelectionLeft;
 import org.jjazz.pianoroll.actions.MoveSelectionRight;
 import org.jjazz.pianoroll.actions.PasteNotes;
+import org.jjazz.pianoroll.actions.PlayEditor;
 import org.jjazz.pianoroll.actions.PlaybackAutoScroll;
 import org.jjazz.pianoroll.actions.Quantize;
 import org.jjazz.pianoroll.actions.ResizeSelection;
@@ -1277,17 +1278,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         getActionMap().put("jjazz-selectall", new SelectAllNotes(this));
 
 
-        // Other actions
-        getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("Q"), Quantize.ACTION_ID);
-        getActionMap().put(Quantize.ACTION_ID, new Quantize(this));
-        getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("H"), HearSelection.ACTION_ID);
-        getActionMap().put(HearSelection.ACTION_ID, new HearSelection(this));
-        getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("A"), PlaybackAutoScroll.ACTION_ID);
-        getActionMap().put(PlaybackAutoScroll.ACTION_ID, new PlaybackAutoScroll(this));
-        getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("G"), SnapToGrid.ACTION_ID);
-        getActionMap().put(SnapToGrid.ACTION_ID, new SnapToGrid(this));
-        getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("S"), Solo.ACTION_ID);
-        getActionMap().put(Solo.ACTION_ID, new Solo(this));
+
         getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(getGenericControlKeyStroke(KeyEvent.VK_F), ZoomToFit.ACTION_ID);
         getActionMap().put(ZoomToFit.ACTION_ID, new ZoomToFit(this));
 

@@ -22,7 +22,6 @@
  */
 package org.jjazz.pianoroll.actions;
 
-import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.logging.Level;
@@ -66,13 +65,7 @@ public class PlaybackAutoScroll extends ToggleAction implements PropertyChangeLi
         listenToTheMusic();
 
 
-        editor.addPropertyChangeListener(PianoRollEditor.PROP_EDITOR_ALIVE, e -> 
-        {
-            if (e.getNewValue().equals(false))
-            {
-                stopListeningToTheMusic();
-            }
-        });
+        editor.addPropertyChangeListener(this);
 
         musicListener.enabled = switch (MusicController.getInstance().getState())
         {
@@ -83,12 +76,6 @@ public class PlaybackAutoScroll extends ToggleAction implements PropertyChangeLi
         };
     }
 
-
-    @Override
-    public void actionPerformed(ActionEvent e)
-    {
-        setSelected(!isSelected());
-    }
 
     @Override
     public void selectedStateChanged(boolean b)
@@ -127,6 +114,13 @@ public class PlaybackAutoScroll extends ToggleAction implements PropertyChangeLi
                         throw new AssertionError(mc.getState().name());
 
                 }
+            }
+        } else if (e.getSource() == editor)
+        {
+            if (e.getPropertyName().equals(PianoRollEditor.PROP_EDITOR_ALIVE))
+            {
+                stopListeningToTheMusic();
+                editor.removePropertyChangeListener(this);
             }
         }
     }

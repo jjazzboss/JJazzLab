@@ -22,12 +22,11 @@
  */
 package org.jjazz.pianoroll.actions;
 
-import java.awt.event.ActionEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
-import javax.swing.JComponent;
-import javax.swing.KeyStroke;
 import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.ui.utilities.api.ToggleAction;
 import org.jjazz.util.api.ResUtil;
@@ -35,7 +34,7 @@ import org.jjazz.util.api.ResUtil;
 /**
  * Action to toggle the snap to the grid.
  */
-public class SnapToGrid extends ToggleAction
+public class SnapToGrid extends ToggleAction implements PropertyChangeListener
 {
 
     public static final String ACTION_ID = "SnapToGrid";
@@ -56,14 +55,10 @@ public class SnapToGrid extends ToggleAction
         putValue("hideActionText", true);
 
 
+        this.editor.addPropertyChangeListener(this);
+
     }
 
-
-    @Override
-    public void actionPerformed(ActionEvent e)
-    {
-        setSelected(!isSelected());
-    }
 
     @Override
     public void selectedStateChanged(boolean b)
@@ -71,8 +66,29 @@ public class SnapToGrid extends ToggleAction
         editor.setSnapEnabled(b);
     }
 
+    // ====================================================================================
+    // PropertyChangeListener interface
+    // ====================================================================================
+    @Override
+    public void propertyChange(PropertyChangeEvent evt)
+    {
+        if (evt.getSource() == editor)
+        {
+            switch (evt.getPropertyName())
+            {
+                case PianoRollEditor.PROP_SNAP_ENABLED -> setSelected(editor.isSnapEnabled());
+                case PianoRollEditor.PROP_EDITOR_ALIVE -> cleanup();
+            }
+        }
+    }
 
-    // ====================================================================================
-    // Private methods
-    // ====================================================================================
+
+// ====================================================================================
+// Private methods
+// ====================================================================================
+    
+    private void cleanup()
+    {
+        editor.removePropertyChangeListener(this);
+    }
 }

@@ -36,6 +36,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiUnavailableException;
 import javax.swing.Action;
+import javax.swing.JComponent;
+import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
@@ -47,6 +49,7 @@ import org.jjazz.pianoroll.QuantizePanel;
 import org.jjazz.pianoroll.BackgroundPhrasesPanel;
 import org.jjazz.pianoroll.ToolbarPanel;
 import org.jjazz.pianoroll.actions.PasteNotes;
+import org.jjazz.pianoroll.actions.PlayEditor;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhrase;
@@ -137,6 +140,8 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
 
         editor = new PianoRollEditor(settings);
         editor.setSong(song);
+
+
         toolbarPanel = new ToolbarPanel(this, song.getName());
 
 
@@ -319,7 +324,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
     public FloatRange getBeatRange()
     {
         var ss = song.getSongStructure();
-        return isSongPartCustomPhraseMode() ? ss.getBeatRange(songPart.getBarRange()) : ss.getBeatRange(null);
+        return isRP_SYS_CustomPhraseMode() ? ss.getBeatRange(songPart.getBarRange()) : ss.getBeatRange(null);
     }
 
     /**
@@ -330,7 +335,17 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
     public IntRange getBarRange()
     {
         var ss = song.getSongStructure();
-        return isSongPartCustomPhraseMode() ? songPart.getBarRange() : ss.getBarRange();
+        return isRP_SYS_CustomPhraseMode() ? songPart.getBarRange() : ss.getBarRange();
+    }
+
+    /**
+     * Check if TopComponent was last configured via setModelForRP_SYS_CustomPhrase().
+     *
+     * @return
+     */
+    public boolean isRP_SYS_CustomPhraseMode()
+    {
+        return songPart != null;
     }
 
     /**
@@ -498,7 +513,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
 
             // Check if the underlying model is gone
             var allSpts = getSong().getSongStructure().getSongParts();
-            if (allSpts.isEmpty() || (isSongPartCustomPhraseMode() && !allSpts.contains(songPart)))
+            if (allSpts.isEmpty() || (isRP_SYS_CustomPhraseMode() && !allSpts.contains(songPart)))
             {
                 close();
                 return;
@@ -506,7 +521,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
 
 
             // Refresh the editor when the bar range can be impacted
-            if (!isSongPartCustomPhraseMode())
+            if (!isRP_SYS_CustomPhraseMode())
             {
                 setModelForUserPhrase(editor.getModel(), editor.getChannel(), editor.getDrumKeyMap());
             } else
@@ -523,9 +538,9 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
     private void refreshToolbarTitle()
     {
         var barRange = getBarRange();
-        String strSongPart = isSongPartCustomPhraseMode() ? " - " + songPart.getName() : "";
+        String strSongPart = isRP_SYS_CustomPhraseMode() ? " - " + songPart.getName() : "";
         String strBarRange = " - bars " + (barRange.from + 1) + ".." + (barRange.to + 1);
-        String strTs = isSongPartCustomPhraseMode() ? " - " + songPart.getRhythm().getTimeSignature() : "";
+        String strTs = isRP_SYS_CustomPhraseMode() ? " - " + songPart.getRhythm().getTimeSignature() : "";
         String title = titleBase + strSongPart + strBarRange + strTs;
         toolbarPanel.setTitle(title);
     }
@@ -536,11 +551,6 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
 //        int leftWidth = sidePanel.getPreferredSize().width;
 //        leftWidth += splitpane_tools_editor.getInsets().left;
 //        splitpane_tools_editor.setDividerLocation(leftWidth);
-    }
-
-    private boolean isSongPartCustomPhraseMode()
-    {
-        return songPart != null;
     }
 
 

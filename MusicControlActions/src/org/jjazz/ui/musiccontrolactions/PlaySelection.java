@@ -90,20 +90,15 @@ public class PlaySelection extends AbstractAction
         putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("control shift SPACE"));     // For popup display only     
 
         // Listen to TopComponent activation changes
-        TopComponent.getRegistry().addPropertyChangeListener(new PropertyChangeListener()
+        TopComponent.getRegistry().addPropertyChangeListener(evt -> 
         {
-            @Override
-            public void propertyChange(PropertyChangeEvent evt)
+            if (evt.getPropertyName().equals(TopComponent.Registry.PROP_ACTIVATED)
+                    || evt.getPropertyName().equals(TopComponent.Registry.PROP_TC_CLOSED))
             {
-                if (evt.getPropertyName().equals(TopComponent.Registry.PROP_ACTIVATED)
-                        || evt.getPropertyName().equals(TopComponent.Registry.PROP_TC_CLOSED))
-                {
-                    updateEnabledStatus();
-                }
+                updateEnabledState();
             }
-        }
-        );
-        updateEnabledStatus();
+        });
+        updateEnabledState();
     }
 
     @Override
@@ -111,7 +106,7 @@ public class PlaySelection extends AbstractAction
     {
         if (song == null)
         {
-            LOGGER.severe("actionPerformed() unexpected value song=" + song);   
+            LOGGER.severe("actionPerformed() unexpected value song=" + song);
             return;
         }
 
@@ -129,14 +124,14 @@ public class PlaySelection extends AbstractAction
 
         ChordLeadSheet cls = song.getChordLeadSheet();
         CL_EditorTopComponent clTc = CL_EditorTopComponent.get(cls);
-        assert clTc != null;   
+        assert clTc != null;
         CL_Editor clEditor = clTc.getEditor();
         CL_SelectionUtilities clSelection = new CL_SelectionUtilities(clEditor.getLookup());
 
 
         SongStructure ss = song.getSongStructure();
         SS_EditorTopComponent ssTc = SS_EditorTopComponent.get(ss);
-        assert ssTc != null;   
+        assert ssTc != null;
         SS_Editor ssEditor = ssTc.getEditor();
         SS_SelectionUtilities ssSelection = new SS_SelectionUtilities(ssEditor.getLookup());
 
@@ -212,7 +207,7 @@ public class PlaySelection extends AbstractAction
     //=====================================================================================
     // Private methods
     //=====================================================================================     
-    private void updateEnabledStatus()
+    private void updateEnabledState()
     {
         MixConsoleTopComponent mcTc = MixConsoleTopComponent.getInstance(); // Can be null
         CL_EditorTopComponent clTc = CL_EditorTopComponent.getActive(); // Can be null
@@ -235,7 +230,7 @@ public class PlaySelection extends AbstractAction
         }
 
         boolean b = song != null;
-        LOGGER.fine("updateEnabledStatus() b=" + b);   
+        LOGGER.fine("updateEnabledStatus() b=" + b);
 
         setEnabled(b);
     }
@@ -249,7 +244,7 @@ public class PlaySelection extends AbstractAction
      * - SongStructure=S1 S1 S3 S2<br>
      * If cls range=bar0+bar1, then sgs range=[0;3]<br>
      *
-     * @param sgs The parent sections of the song parts must be in cls.
+     * @param sgs      The parent sections of the song parts must be in cls.
      * @param cls
      * @param clsRange
      * @return Null if no valid range could be constructed
@@ -258,14 +253,15 @@ public class PlaySelection extends AbstractAction
     {
         if (ss == null || cls == null || clsRange.to > cls.getSizeInBars() - 1)
         {
-            throw new IllegalArgumentException("cls=" + cls + ", ss=" + ss + ", clsRange=" + clsRange);   
+            throw new IllegalArgumentException("cls=" + cls + ", ss=" + ss + ", clsRange=" + clsRange);
         }
         CLI_Section fromSection = cls.getSection(clsRange.from);
         int fromBar = -1;
         CLI_Section toSection = cls.getSection(clsRange.to);
         int toBar = -1;
         IntRange r = null;
-        List<SongPart> spts = ssSelection.isEmpty() || !ssSelection.isContiguousSptSelection() ? ss.getSongParts() : ssSelection.getIndirectlySelectedSongParts();
+        List<SongPart> spts = ssSelection.isEmpty() || !ssSelection.isContiguousSptSelection() ? ss.getSongParts()
+                : ssSelection.getIndirectlySelectedSongParts();
         for (SongPart spt : spts)
         {
             if (fromBar == -1 && spt.getParentSection() == fromSection)

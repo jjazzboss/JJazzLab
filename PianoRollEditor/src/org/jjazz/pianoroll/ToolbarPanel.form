@@ -11,7 +11,7 @@
     <AuxValue name="FormSettings_listenerGenerationStyle" type="java.lang.Integer" value="0"/>
     <AuxValue name="FormSettings_variablesLocal" type="java.lang.Boolean" value="false"/>
     <AuxValue name="FormSettings_variablesModifier" type="java.lang.Integer" value="2"/>
-    <AuxValue name="designerSize" type="java.awt.Dimension" value="-84,-19,0,5,115,114,0,18,106,97,118,97,46,97,119,116,46,68,105,109,101,110,115,105,111,110,65,-114,-39,-41,-84,95,68,20,2,0,2,73,0,6,104,101,105,103,104,116,73,0,5,119,105,100,116,104,120,112,0,0,0,31,0,0,2,61"/>
+    <AuxValue name="designerSize" type="java.awt.Dimension" value="-84,-19,0,5,115,114,0,18,106,97,118,97,46,97,119,116,46,68,105,109,101,110,115,105,111,110,65,-114,-39,-41,-84,95,68,20,2,0,2,73,0,6,104,101,105,103,104,116,73,0,5,119,105,100,116,104,120,112,0,0,0,35,0,0,2,-25"/>
   </AuxValues>
 
   <Layout class="org.netbeans.modules.form.compat2.layouts.DesignBorderLayout"/>
@@ -196,13 +196,23 @@
             <Property name="verticalGap" type="int" value="2"/>
           </Layout>
           <SubComponents>
-            <Component class="org.jjazz.ui.flatcomponents.api.FlatToggleButton" name="tbtn_hearNotes">
+            <Component class="org.jjazz.ui.flatcomponents.api.FlatButton" name="fbtn_playEditor">
               <Properties>
                 <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                  <Image iconType="3" name="/org/jjazz/pianoroll/actions/resources/HearNoteOFF.png"/>
+                  <Image iconType="3" name="/org/jjazz/pianoroll/actions/resources/PlayEditor-OFF.png"/>
+                </Property>
+              </Properties>
+            </Component>
+            <Component class="org.jjazz.ui.flatcomponents.api.FlatToggleButton" name="tbtn_playbackAutoScroll">
+              <Properties>
+                <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
+                  <Image iconType="3" name="/org/jjazz/pianoroll/actions/resources/PlaybackAutoScrollOFF.png"/>
                 </Property>
                 <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-                  <ResourceString bundle="org/jjazz/pianoroll/Bundle.properties" key="ToolbarPanel.tbtn_hearNotes.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+                  <ResourceString bundle="org/jjazz/pianoroll/Bundle.properties" key="ToolbarPanel.tbtn_playbackAutoScroll.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+                </Property>
+                <Property name="selectedIcon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
+                  <Image iconType="3" name="/org/jjazz/pianoroll/actions/resources/PlaybackAutoScrollON.png"/>
                 </Property>
               </Properties>
             </Component>
@@ -215,20 +225,14 @@
                   <ResourceString bundle="org/jjazz/pianoroll/Bundle.properties" key="ToolbarPanel.tbtn_solo.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
                 </Property>
               </Properties>
-              <Events>
-                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="tbtn_soloActionPerformed"/>
-              </Events>
             </Component>
-            <Component class="org.jjazz.ui.flatcomponents.api.FlatToggleButton" name="tbtn_playbackAutoScroll">
+            <Component class="org.jjazz.ui.flatcomponents.api.FlatToggleButton" name="tbtn_hearNotes">
               <Properties>
                 <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                  <Image iconType="3" name="/org/jjazz/pianoroll/actions/resources/PlaybackAutoScrollOFF.png"/>
+                  <Image iconType="3" name="/org/jjazz/pianoroll/actions/resources/HearNoteOFF.png"/>
                 </Property>
                 <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-                  <ResourceString bundle="org/jjazz/pianoroll/Bundle.properties" key="ToolbarPanel.tbtn_playbackAutoScroll.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-                </Property>
-                <Property name="selectedIcon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                  <Image iconType="3" name="/org/jjazz/pianoroll/actions/resources/PlaybackAutoScrollON.png"/>
+                  <ResourceString bundle="org/jjazz/pianoroll/Bundle.properties" key="ToolbarPanel.tbtn_hearNotes.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
                 </Property>
               </Properties>
             </Component>

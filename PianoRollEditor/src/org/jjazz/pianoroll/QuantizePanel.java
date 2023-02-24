@@ -25,6 +25,8 @@ package org.jjazz.pianoroll;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.logging.Logger;
+import javax.swing.JComponent;
+import javax.swing.KeyStroke;
 import org.jjazz.pianoroll.actions.Quantize;
 import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.quantizer.api.Quantizer;
@@ -47,6 +49,12 @@ public class QuantizePanel extends javax.swing.JPanel implements PropertyChangeL
         this.editor = editor;
 
         initComponents();
+
+        
+        // Create the actions used in this ToolbarPanel        
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("Q"), Quantize.ACTION_ID);
+        editor.getActionMap().put(Quantize.ACTION_ID, new Quantize(editor));
+
 
         var quantizer = Quantizer.getInstance();
         cb_iterative.setSelected(quantizer.isIterativeQuantizeEnabled());

@@ -9,7 +9,7 @@
    id="svg8"
    inkscape:version="1.1 (c68e22c387, 2021-05-23)"
    sodipodi:docname="PianoRollEditor.svg"
-   inkscape:export-filename="PlaybackPointON.png"
+   inkscape:export-filename="PlayLooped-ON.png"
    inkscape:export-xdpi="80"
    inkscape:export-ydpi="80"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
@@ -22,6 +22,12 @@
    xmlns:dc="http://purl.org/dc/elements/1.1/">
   <defs
      id="defs2">
+    <rect
+       x="61.766623"
+       y="99.413298"
+       width="102.34681"
+       height="53.943938"
+       id="rect15154" />
     <filter
        id="filter3304"
        inkscape:label="Glow"
@@ -50,9 +56,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="8"
-     inkscape:cx="-17.875"
-     inkscape:cy="24.1875"
+     inkscape:zoom="6.136"
+     inkscape:cx="11.245111"
+     inkscape:cy="51.091916"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -891,6 +897,91 @@
          id="path6859"
          d="m 49.511678,263.39085 v 3.20722"
          style="fill:#ff0000;fill-opacity:1;stroke:#ff0000;stroke-width:0.219882px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+    </g>
+    <path
+       sodipodi:type="star"
+       style="fill:#ff0000;fill-opacity:1;stroke:#ff0000;stroke-width:1.023;stroke-opacity:1;stop-color:#000000"
+       id="path5802"
+       inkscape:flatsided="true"
+       sodipodi:sides="3"
+       sodipodi:cx="-19.3125"
+       sodipodi:cy="9.25"
+       sodipodi:r1="3.8125"
+       sodipodi:r2="1.90625"
+       sodipodi:arg1="0"
+       sodipodi:arg2="1.0471976"
+       inkscape:rounded="0"
+       inkscape:randomized="0"
+       transform="matrix(0.58234008,0,0,0.58234008,13.958461,288.35931)"
+       inkscape:transform-center-x="-0.47194322"
+       inkscape:transform-center-y="-4.5250001e-06"
+       d="m -15.5,9.25 -5.71875,3.301722 V 5.9482781 Z" />
+    <path
+       sodipodi:nodetypes="scccccccccccssssssss"
+       inkscape:export-ydpi="96"
+       inkscape:export-xdpi="96"
+       inkscape:export-filename="C:\Users\lelasseux\Loop-24x24.png"
+       style="vector-effect:none;fill:#e6e6e6;fill-opacity:1;stroke-width:0.0108931;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       inkscape:connector-curvature="0"
+       d="M 5.7784818,294.6479 H 5.1230967 v 0.61742 h 0.5174169 v 0.92607 H 3.5018695 v -0.92607 h 0.724382 l -0.00949,0.65699 0.6993492,-0.96572 -0.6898883,-1.02712 v 0.71843 H 3.3638677 c -0.1905046,0 -0.3449399,0.19743 -0.3449399,0.44099 v 1.2789 c 0,0.24357 0.1544353,0.44098 0.3449399,0.44098 h 2.4145941 c 0.1905112,0 0.3449399,-0.19741 0.3449399,-0.44098 v -1.2789 c 0,-0.24355 -0.1544287,-0.44099 -0.3449466,-0.44099 z"
+       id="path2050" />
+    <text
+       xml:space="preserve"
+       transform="matrix(0.26458333,0,0,0.26458333,8.8395674,265.55423)"
+       id="text15152"
+       style="font-style:normal;font-weight:normal;font-size:40px;line-height:1.25;font-family:sans-serif;white-space:pre;shape-inside:url(#rect15154);fill:#000000;fill-opacity:1;stroke:none"><tspan
+         x="61.767578"
+         y="135.44424"
+         id="tspan42324"><tspan
+           style="font-stretch:condensed;font-family:Arial;-inkscape-font-specification:'Arial, Condensed'"
+           id="tspan42322">loop</tspan></tspan></text>
+    <path
+       sodipodi:type="star"
+       style="fill:#808080;fill-opacity:1;stroke:#808080;stroke-width:1.023;stroke-opacity:1;stop-color:#000000"
+       id="path19072"
+       inkscape:flatsided="true"
+       sodipodi:sides="3"
+       sodipodi:cx="-19.3125"
+       sodipodi:cy="9.25"
+       sodipodi:r1="3.8125"
+       sodipodi:r2="1.90625"
+       sodipodi:arg1="0"
+       sodipodi:arg2="1.0471976"
+       inkscape:rounded="0"
+       inkscape:randomized="0"
+       transform="matrix(0.47764338,0,0,0.47764338,28.670311,310.27677)"
+       inkscape:transform-center-x="-0.45525331"
+       d="m -15.5,9.25 -5.71875,3.301722 V 5.9482781 Z"
+       inkscape:transform-center-y="-6.0650001e-06" />
+    <g
+       id="g30827">
+      <path
+         sodipodi:type="star"
+         style="fill:#808080;fill-opacity:1;stroke:#808080;stroke-width:1.023;stroke-opacity:1;stop-color:#000000"
+         id="path30821"
+         inkscape:flatsided="true"
+         sodipodi:sides="3"
+         sodipodi:cx="-19.3125"
+         sodipodi:cy="9.25"
+         sodipodi:r1="3.8125"
+         sodipodi:r2="1.90625"
+         sodipodi:arg1="0"
+         sodipodi:arg2="1.0471976"
+         inkscape:rounded="0"
+         inkscape:randomized="0"
+         transform="matrix(0.47764338,0,0,0.47764338,22.590414,309.97493)"
+         inkscape:transform-center-x="-0.45525331"
+         d="m -15.5,9.25 -5.71875,3.301722 V 5.9482781 Z"
+         inkscape:transform-center-y="-6.0650001e-06" />
+      <path
+         sodipodi:nodetypes="scccccccccccssssssss"
+         inkscape:export-ydpi="96"
+         inkscape:export-xdpi="96"
+         inkscape:export-filename="C:\Users\lelasseux\Loop-24x24.png"
+         style="vector-effect:none;fill:#b3b3b3;fill-opacity:1;stroke-width:0.00926222;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+         inkscape:connector-curvature="0"
+         d="m 16.190774,315.45335 h -0.557263 v 0.52498 h 0.439951 v 0.78742 h -1.818453 v -0.78742 h 0.61593 l -0.0081,0.55863 0.594644,-0.82114 -0.5866,-0.87334 v 0.61087 h -0.733244 c -0.161983,0 -0.293297,0.16787 -0.293297,0.37497 v 1.08742 c 0,0.20711 0.131314,0.37496 0.293297,0.37496 h 2.053088 c 0.161988,0 0.293296,-0.16785 0.293296,-0.37496 v -1.08742 c 0,-0.20709 -0.131308,-0.37497 -0.293302,-0.37497 z"
+         id="path30823" />
     </g>
   </g>
   <style

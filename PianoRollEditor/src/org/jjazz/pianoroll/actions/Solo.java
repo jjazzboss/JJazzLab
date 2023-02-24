@@ -23,27 +23,36 @@
 package org.jjazz.pianoroll.actions;
 
 import java.awt.event.ActionEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
+import org.jjazz.midi.api.InstrumentMix;
 import org.jjazz.pianoroll.api.PianoRollEditor;
+import org.jjazz.pianoroll.api.PianoRollEditorTopComponent;
 import org.jjazz.ui.utilities.api.ToggleAction;
 import org.jjazz.util.api.ResUtil;
 
 /**
  * Action to toggle the solo mode.
  */
-public class Solo extends ToggleAction
+public class Solo extends ToggleAction implements PropertyChangeListener
 {
+
     public static final String ACTION_ID = "Solo";
+    private InstrumentMix insMix;
     private final PianoRollEditor editor;
+    private final PianoRollEditorTopComponent topComponent;
     private static final Logger LOGGER = Logger.getLogger(Solo.class.getSimpleName());
 
-    public Solo(PianoRollEditor editor)
+
+    public Solo(PianoRollEditorTopComponent topComponent)
     {
         super(false);
-        
-        this.editor = editor;
+        this.topComponent = topComponent;
+        this.editor = topComponent.getEditor();
+
 
         // UI settings for the FlatToggleButton
         putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("resources/SoloOFF.png")));
@@ -52,25 +61,66 @@ public class Solo extends ToggleAction
         putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(), "SoloModeTooltip"));
         putValue("hideActionText", true);
 
+        editor.addPropertyChangeListener(this);
+
+        editorChannelChanged();
     }
 
-
-    @Override
-    public void actionPerformed(ActionEvent e)
-    {
-        setSelected(!isSelected());
-    }
 
     @Override
     public void selectedStateChanged(boolean b)
     {
+        insMix.setSolo(isSelected());
+    }
+    
+    // ====================================================================================
+    // PropertyChangeListener interface
+    // ====================================================================================
+
+    @Override
+    public void propertyChange(PropertyChangeEvent evt)
+    {
+        // LOGGER.severe("propertyChange() -- " + Utilities.toDebugString(evt));
+        if (evt.getSource() == insMix)
+        {
+            if (evt.getPropertyName().equals(InstrumentMix.PROP_SOLO))
+            {
+                setSelected(insMix.isSolo());
+            }
+        } else if (evt.getSource() == editor)
+        {
+            if (evt.getPropertyName().equals(PianoRollEditor.PROP_MODEL_CHANNEL)
+                    || evt.getPropertyName().equals(PianoRollEditor.PROP_MODEL_PHRASE))
+            {
+                editorChannelChanged();
+            } else if (evt.getPropertyName().equals(PianoRollEditor.PROP_EDITOR_ALIVE))
+            {
+                cleanup();
+            }
+        }
     }
 
- 
 
     // ====================================================================================
     // Private methods
     // ====================================================================================
+    private void cleanup()
+    {
+        editor.removePropertyChangeListener(this);
+        if (insMix != null)
+        {
+            insMix.removePropertyChangeListener(this);
+        }
+    }
 
-   
+    private void editorChannelChanged()
+    {
+        if (insMix != null)
+        {
+            insMix.removePropertyChangeListener(this);
+        }
+        insMix = topComponent.getMidiMix().getInstrumentMix(editor.getChannel());
+        insMix.addPropertyChangeListener(this);
+    }
+
 }

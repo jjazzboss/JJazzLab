@@ -22,6 +22,7 @@
  */
 package org.jjazz.ui.utilities.api;
 
+import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.Icon;
@@ -53,7 +54,7 @@ public abstract class ToggleAction extends AbstractAction
         putValue(Action.SELECTED_KEY, selected);
 
         // Make sure selectedStateChanged() is called before other listeners
-        addPropertyChangeListener(evt ->
+        addPropertyChangeListener(evt -> 
         {
             if (evt.getPropertyName().equals(Action.SELECTED_KEY))
             {
@@ -62,6 +63,16 @@ public abstract class ToggleAction extends AbstractAction
         });
     }
 
+    /**
+     * Default implementation just toggles the selected state.
+     *
+     * @param ae
+     */
+    @Override
+    public void actionPerformed(ActionEvent ae)
+    {
+        setSelected(!isSelected());
+    }
 
     public void setSelected(boolean b)
     {

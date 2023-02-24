@@ -63,6 +63,7 @@ public class HearSelection extends ToggleAction
         
         this.editor = editor;
 
+        
         // UI settings for the FlatToggleButton
         putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("resources/HearNoteOFF.png")));
         setSelectedIcon(new ImageIcon(getClass().getResource("resources/HearNoteON.png")));
@@ -75,12 +76,6 @@ public class HearSelection extends ToggleAction
         changeListener = evt -> selectionChanged(nsl.getLastNoteViewAddedToSelection());
     }
 
-
-    @Override
-    public void actionPerformed(ActionEvent e)
-    {
-        setSelected(!isSelected());
-    }
 
     @Override
     public void selectedStateChanged(boolean b)
