@@ -23,8 +23,6 @@
 package org.jjazz.ui.musiccontrolactions;
 
 import java.awt.event.ActionEvent;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.beans.PropertyVetoException;
 import java.util.List;
 import java.util.logging.Logger;

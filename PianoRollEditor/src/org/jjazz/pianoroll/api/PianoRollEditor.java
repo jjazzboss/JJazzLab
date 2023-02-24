@@ -1283,7 +1283,6 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         getActionMap().put(ZoomToFit.ACTION_ID, new ZoomToFit(this));
 
 
-        // Actions which won't have an associated UI component
         // Use the notesPanel input map to avoid the arrow keys being captured by the enclosing JScrollPane
         notesPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("LEFT"),
                 "MoveSelectionLeft");

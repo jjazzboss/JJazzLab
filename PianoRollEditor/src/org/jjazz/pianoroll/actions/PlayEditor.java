@@ -29,6 +29,7 @@ import javax.sound.midi.Sequencer;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
+import org.jjazz.activesong.api.ActiveSongManager;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
@@ -69,6 +70,18 @@ public class PlayEditor extends AbstractAction
     @Override
     public void actionPerformed(ActionEvent e)
     {
+
+        // Song must be active !
+        ActiveSongManager asm = ActiveSongManager.getInstance();
+        if (asm.getActiveSong() != topComponent.getSong())
+        {
+            String msg = ResUtil.getString(getClass(), "PlayEditor.ERR_NotActive");
+            NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
+            DialogDisplayer.getDefault().notify(d);
+            return;
+        }
+
+
         var mc = MusicController.getInstance();
         UpdatableSongSession session = null;
         try
