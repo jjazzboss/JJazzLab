@@ -77,7 +77,7 @@ public class CLI_SectionImpl implements CLI_Section, WritableItem<Section>, Seri
     }
 
     @Override
-    final public void setContainer(ChordLeadSheet cls)
+    final synchronized  public void setContainer(ChordLeadSheet cls)
     {
         if (cls != container)
         {
@@ -88,13 +88,13 @@ public class CLI_SectionImpl implements CLI_Section, WritableItem<Section>, Seri
     }
 
     @Override
-    public Section getData()
+    public synchronized Section getData()
     {
         return data.clone();
     }
 
     @Override
-    public void setData(Section section)
+    public synchronized void setData(Section section)
     {
         if (section == null)
         {
@@ -118,7 +118,7 @@ public class CLI_SectionImpl implements CLI_Section, WritableItem<Section>, Seri
      * Make sure the copy has a different name.
      */
     @Override
-    public CLI_Section getCopy(ChordLeadSheet newCls, Position newPos)
+    public synchronized CLI_Section getCopy(ChordLeadSheet newCls, Position newPos)
     {
         int barIndex = (newPos != null) ? newPos.getBar() : position.getBar();
         ChordLeadSheet cls = (newCls != null) ? newCls : getContainer();
@@ -166,7 +166,7 @@ public class CLI_SectionImpl implements CLI_Section, WritableItem<Section>, Seri
      * @return
      */
     @Override
-    public final Position getPosition()
+    public synchronized final Position getPosition()
     {
         return new Position(position);
     }
@@ -177,7 +177,7 @@ public class CLI_SectionImpl implements CLI_Section, WritableItem<Section>, Seri
      * @param p
      */
     @Override
-    public final void setPosition(Position p)
+    public synchronized final void setPosition(Position p)
     {
         if (position == null)
         {
@@ -192,7 +192,7 @@ public class CLI_SectionImpl implements CLI_Section, WritableItem<Section>, Seri
     }
 
     @Override
-    public final ChordLeadSheet getContainer()
+    public synchronized final ChordLeadSheet getContainer()
     {
         return container;
     }

@@ -162,7 +162,7 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
      * Get the value of a RhythmParameter at a specified barIndex.
      *
      * @param rp
-     * @return 
+     * @return
      */
     @Override
     public <T> T getRPValue(RhythmParameter<T> rp)
@@ -172,7 +172,11 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
             throw new IllegalArgumentException("this=" + this + " rp=" + rp);
         }
         @SuppressWarnings("unchecked")
-        T value =(T) mapRpValue.getValue(rp);
+        T value;
+        synchronized (this)
+        {
+            value = (T) mapRpValue.getValue(rp);
+        }
         assert value != null : "rp=" + rp + " mapRpValue=" + mapRpValue;
         return value;
     }
@@ -180,7 +184,7 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
     /**
      * Change the value for a given RhythmParameter.
      * <p>
- Fire a PROP_RP_VALUE with OldValue=rp, NewValue=vp.
+     * Fire a PROP_RP_VALUE with OldValue=rp, NewValue=vp.
      *
      * @param rp
      * @param value Must be a valid value for rp
@@ -203,9 +207,12 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
             if (value instanceof MutableRpValue mValue)
             {
                 mValue.addChangeListener(this);
-            }            
-            mapRpValue.putValue(rp, value);     // Don't use rp.cloneValue() since we now accept mutable values (eg custom phrase)
-            pcs.firePropertyChange(PROP_RP_VALUE, rp, value);            
+            }
+            synchronized (this)
+            {
+                mapRpValue.putValue(rp, value);     // Don't use rp.cloneValue() since we now accept mutable values (eg custom phrase)
+            }
+            pcs.firePropertyChange(PROP_RP_VALUE, rp, value);
         }
     }
 
@@ -235,7 +242,7 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
     }
 
     @Override
-    public int getStartBarIndex()
+    public synchronized int getStartBarIndex()
     {
         return startBarIndex;
     }
@@ -278,9 +285,13 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
                     newSpt.mapRpValue.putValue(newRp, newRpValue);
                 } else
                 {
-                    LOGGER.warning(
-                            "clone() Can't transpose value crpValue=" + crpValue + " to newRp=" + newRp.getId() + " (newRhythm=" + newRhythm.getName()
-                            + "), despite newRp being compatible with crp=" + crp.getId() + " (rhythm=" + rhythm.getName() + ")");
+                    LOGGER.log(Level.WARNING,
+                            "clone() Can''t transpose value crpValue={0} to newRp={1} (newRhythm={2}), despite newRp being compatible with crp={3} (rhythm={4})",
+                            new Object[]
+                            {
+                                crpValue,
+                                newRp.getId(), newRhythm.getName(), crp.getId(), rhythm.getName()
+                            });
                 }
             }
         }
@@ -359,7 +370,7 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
     {
         var rpValue = e.getSource();
         var rp = mapRpValue.getKey(rpValue);
-        assert rp != null : "rpValue=" + rpValue + " rp="+rp+" mapRpValue=" + mapRpValue;
+        assert rp != null : "rpValue=" + rpValue + " rp=" + rp + " mapRpValue=" + mapRpValue;
         pcs.firePropertyChange(SongPart.PROP_RP_MUTABLE_VALUE, rp, rpValue);
         pcs.firePropertyChange(SongPart.PROP_RP_VALUE, rp, rpValue);
     }

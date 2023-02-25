@@ -78,7 +78,7 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
     }
 
     @Override
-    final public void setContainer(ChordLeadSheet cls)
+    final synchronized public void setContainer(ChordLeadSheet cls)
     {
         if (cls != container)
         {
@@ -94,7 +94,7 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
      * @param p
      */
     @Override
-    public final void setPosition(Position p)
+    public synchronized final void setPosition(Position p)
     {
         if (position == null)
         {
@@ -115,13 +115,13 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
     }
 
     @Override
-    public ExtChordSymbol getData()
+    public synchronized ExtChordSymbol getData()
     {
         return data;
     }
 
     @Override
-    public void setData(ExtChordSymbol cs)
+    public synchronized void setData(ExtChordSymbol cs)
     {
         if (cs == null)
         {
@@ -143,7 +143,7 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
      * @return
      */
     @Override
-    public CLI_ChordSymbol getCopy(ChordLeadSheet newCls, Position newPos)
+    public synchronized CLI_ChordSymbol getCopy(ChordLeadSheet newCls, Position newPos)
     {
         CLI_ChordSymbolImpl cli = new CLI_ChordSymbolImpl(data, (newPos != null) ? newPos : position);
         ChordLeadSheet cls = (newCls != null) ? newCls : getContainer();
@@ -190,13 +190,13 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
      * @return
      */
     @Override
-    public final Position getPosition()
+    public synchronized final Position getPosition()
     {
         return new Position(position);
     }
 
     @Override
-    public final ChordLeadSheet getContainer()
+    public synchronized final ChordLeadSheet getContainer()
     {
         return container;
     }

@@ -31,6 +31,7 @@ import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.song.api.Song;
+import org.jjazz.song.api.SongFactory;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.util.api.FloatRange;
 import org.jjazz.util.api.IntRange;
@@ -114,10 +115,29 @@ public class SongContext
     }
 
 
+    /**
+     * Clone the SongContext reusing the same song and midi mix.
+     *
+     * @return
+     */
     @Override
     public SongContext clone()
     {
         return new SongContext(this, getBarRange());
+    }
+
+    /**
+     * Deep clone the SongContext : make a copy of the song and the midimix.
+     *
+     * @param register If true the created song is registered by the SongFactory
+     * @return
+     */
+    public SongContext deepClone(boolean register)
+    {        
+        SongFactory sf = SongFactory.getInstance();
+        Song songCopy = sf.getCopy(song, register);
+        MidiMix mixCopy = midiMix.getDeepCopy();
+        return new SongContext(songCopy, mixCopy, barRange);
     }
 
     /**

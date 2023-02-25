@@ -67,8 +67,7 @@ import org.jjazz.util.api.ResUtil;
  * - MidiMix channel mute changes<br>
  * - PlaybackSettings Click and Loop changes<p>
  * <p>
- * The session never makes the session dirty. Use the provided subclasses for more advanced behaviors, e.g. update the dirty
- * state, etc.
+ * The session never makes the session dirty. Use the provided subclasses for more advanced behaviors, e.g. update the dirty state, etc.
  */
 public class BaseSongSession implements PropertyChangeListener, PlaybackSession, ControlTrackProvider, SongContextProvider, EndOfPlaybackActionProvider
 {
@@ -93,7 +92,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     private Map<RhythmVoice, Phrase> mapRvPhrase;
     private Map<Integer, Boolean> mapTrackIdMuted;
     private final SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
-    private static final Logger LOGGER = Logger.getLogger(BaseSongSession.class.getSimpleName());  
+    private static final Logger LOGGER = Logger.getLogger(BaseSongSession.class.getSimpleName());
 
     /**
      * Create a session with the specified parameters.
@@ -150,8 +149,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
      * Generate the sequence for the SongContext.
      * <p>
      * When all parameters are enabled, sequence will contain: <br>
-     * - track 0: song name, tempo and tempo factor changes (see
-     * {@link org.jjazz.rhythmmusicgeneration.api.SongSequenceBuilder})<br>
+     * - track 0: song name, tempo and tempo factor changes (see {@link org.jjazz.rhythmmusicgeneration.api.SongSequenceBuilder})<br>
      * - track 1-N: the song tracks, one per RhythmVoice(see {@link org.jjazz.rhythmmusicgeneration.api.SongSequenceBuilder})<br>
      * - track N+1: control track with beat events + chord symbol markers<br>
      * - track N+2: click track<br>
@@ -170,12 +168,9 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
         }
 
 
-        SongContext workContext = songContext;
-        int t = PlaybackSettings.getInstance().getPlaybackKeyTransposition();
-        if (isPlaybackTranspositionEnabled() && t != 0)
-        {
-            workContext = getContextCopy(songContext, t);
-        }
+        // Make a copy of the song so it can't be changed anymore
+        int transpose = isPlaybackTranspositionEnabled() ? PlaybackSettings.getInstance().getPlaybackKeyTransposition() : 0;
+        SongContext  workContext = getContextCopy(songContext, transpose);
 
 
         // Build the sequence
@@ -231,7 +226,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
 
         loopEndTick = loopStartTick + Math.round(workContext.getBeatRange().size() * MidiConst.PPQ_RESOLUTION);
 
-        
+
         // Listen to changes that can be handled without going dirty
         this.songContext.getSong().addPropertyChangeListener(this); // tempo changes + closing
         this.songContext.getMidiMix().addPropertyChangeListener(this);      // muted changes
@@ -572,7 +567,6 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
         return trackId;
     }
 
-      
 
     /**
      * Get a context copy with a new song and a new MidiMix.
@@ -585,11 +579,12 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     protected SongContext getContextCopy(SongContext context, int chordSymbolTransposition)
     {
 
-        SongFactory sf = SongFactory.getInstance();
+        SongContext res = context.deepClone(false);
         CLI_Factory clif = CLI_Factory.getDefault();
-        Song songCopy = sf.getCopy(context.getSong(), false);
 
-        ChordLeadSheet clsCopy = songCopy.getChordLeadSheet();
+        
+        // Apply chord symbol transposition
+        ChordLeadSheet clsCopy = res.getSong().getChordLeadSheet();
         if (chordSymbolTransposition != 0)
         {
             for (CLI_ChordSymbol oldCli : clsCopy.getItems(CLI_ChordSymbol.class))
@@ -601,8 +596,6 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
             }
         }
 
-        MidiMix mm = context.getMidiMix().getDeepCopy();
-        SongContext res = new SongContext(songCopy, mm, context.getBarRange());
         return res;
     }
 

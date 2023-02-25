@@ -137,14 +137,14 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
                 "unchecked"
             })
     @Override
-    public List<SongPart> getSongParts()
+    public synchronized List<SongPart> getSongParts()
     {
 
         return (List<SongPart>) songParts.clone();
     }
 
     @Override
-    public int getSizeInBars()
+    public synchronized int getSizeInBars()
     {
         int res = songParts.isEmpty() ? 0 : getSptLastBarIndex(songParts.size() - 1) + 1;
         return res;
@@ -169,7 +169,7 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
 
         float startPos = -1;
         float endPos = -1;
-        for (SongPart spt : songParts)
+        for (SongPart spt : getSongParts())     // Synchronized
         {
             TimeSignature ts = spt.getRhythm().getTimeSignature();
             IntRange ir = rg.getIntersection(spt.getBarRange());
@@ -301,7 +301,7 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
 
 
     @Override
-    public Rhythm getLastUsedRhythm(TimeSignature ts)
+    public synchronized Rhythm getLastUsedRhythm(TimeSignature ts)
     {
         Rhythm r = mapTsLastRhythm.getValue(ts);
         LOGGER.log(Level.FINE, "getLastUsedRhythm() ts={0} result r={1}", new Object[]
@@ -371,7 +371,7 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
 
 
     @Override
-    public SongPart getSongPart(int absoluteBarIndex)
+    public synchronized SongPart getSongPart(int absoluteBarIndex)
     {
         int abi = absoluteBarIndex;
         for (SongPart spt : songParts)
@@ -385,7 +385,7 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
     }
 
     @Override
-    public List<SongPart> getSongParts(Predicate<SongPart> tester)
+    public synchronized List<SongPart> getSongParts(Predicate<SongPart> tester)
     {
         return songParts.stream().filter(tester).toList();
     }
@@ -397,7 +397,7 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
         {
             throw new IllegalArgumentException("posInBeats=" + posInBeats);
         }
-        for (SongPart spt : songParts)
+        for (SongPart spt : getSongParts())     // Synchronized
         {
             FloatRange rg = getBeatRange(spt.getBarRange());
             if (rg.contains(posInBeats, true))
@@ -414,7 +414,7 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
     }
 
     @Override
-    public float getPositionInNaturalBeats(int barIndex)
+    public synchronized float getPositionInNaturalBeats(int barIndex)
     {
         if (barIndex < 0 || barIndex > getSizeInBars())
         {
@@ -624,21 +624,22 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
 
         final SmallMap<SongPart, Integer> saveMap = mapSptSize.clone();
         final SmallMap<SongPart, Integer> oldMap = new SmallMap<>();
-        for (SongPart spt : mapSptSize.getKeys())
+
+        synchronized (this)
         {
-            if (!songParts.contains(spt))
+            for (SongPart spt : mapSptSize.getKeys())
             {
-                throw new IllegalArgumentException("this=" + this + " spt=" + spt + " mapSptsSize=" + mapSptSize);
+                if (!songParts.contains(spt))
+                {
+                    throw new IllegalArgumentException("this=" + this + " spt=" + spt + " mapSptsSize=" + mapSptSize);
+                }
+                // Save the old size before modifying it
+                oldMap.putValue(spt, spt.getNbBars());
+                SongPartImpl wspt = (SongPartImpl) spt;
+                wspt.setNbBars(mapSptSize.getValue(spt));
             }
-            // Save the old size before modifying it
-            oldMap.putValue(spt, spt.getNbBars());
-            SongPartImpl wspt = (SongPartImpl) spt;
-            wspt.setNbBars(mapSptSize.getValue(spt));
+            updateStartBarIndexes();
         }
-
-
-        updateStartBarIndexes();
-
 
         // Create the undoable event
         UndoableEdit edit = new SimpleEdit("Resize SongParts")
@@ -647,11 +648,14 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
             public void undoBody()
             {
                 LOGGER.log(Level.FINER, "resizeSongParts.undoBody() mapSptSize={0}", mapSptSize);
-                for (SongPart spt : oldMap.getKeys())
+                synchronized (SongStructureImpl.this)
                 {
-                    ((SongPartImpl) spt).setNbBars(oldMap.getValue(spt));
+                    for (SongPart spt : oldMap.getKeys())
+                    {
+                        ((SongPartImpl) spt).setNbBars(oldMap.getValue(spt));
+                    }
+                    updateStartBarIndexes();
                 }
-                updateStartBarIndexes();
                 fireAuthorizedChangeEvent(new SptResizedEvent(SongStructureImpl.this, saveMap));
             }
 
@@ -659,11 +663,14 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
             public void redoBody()
             {
                 LOGGER.log(Level.FINER, "resizeSongParts.redoBody() mapSptSize={0}", mapSptSize);
-                for (SongPart spt : saveMap.getKeys())
+                synchronized (SongStructureImpl.this)
                 {
-                    ((SongPartImpl) spt).setNbBars(saveMap.getValue(spt));
+                    for (SongPart spt : saveMap.getKeys())
+                    {
+                        ((SongPartImpl) spt).setNbBars(saveMap.getValue(spt));
+                    }
+                    updateStartBarIndexes();
                 }
-                updateStartBarIndexes();
                 fireAuthorizedChangeEvent(new SptResizedEvent(SongStructureImpl.this, oldMap));
             }
         };
@@ -724,32 +731,38 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
         final SmallMap<TimeSignature, Rhythm> oldMapTsRhythm = mapTsLastRhythm.clone();
         final ArrayList<SongPart> oldSongParts = new ArrayList<>(songParts);
         final ArrayList<SongStructure> newSptsOldContainer = new ArrayList<>();
-        for (int i = 0; i < oldSpts.size(); i++)
+        final ArrayList<SongPart> newSongParts;
+        final SmallMap<TimeSignature, Rhythm> newMapTsRhythm;
+
+        synchronized (this)
         {
-            SongPart oldSpt = oldSpts.get(i);
-            SongPart newSpt = newSpts.get(i);
+            for (int i = 0; i < oldSpts.size(); i++)
+            {
+                SongPart oldSpt = oldSpts.get(i);
+                SongPart newSpt = newSpts.get(i);
 
-            // Save previous container
-            newSptsOldContainer.add(newSpt.getContainer());
+                // Save previous container
+                newSptsOldContainer.add(newSpt.getContainer());
 
-            // Update songParts and set new container
-            int rpIndex = songParts.indexOf(oldSpt);
-            songParts.set(rpIndex, newSpt);
-            ((SongPartImpl) newSpt).setContainer(this);
+                // Update songParts and set new container
+                int rpIndex = songParts.indexOf(oldSpt);
+                songParts.set(rpIndex, newSpt);
+                ((SongPartImpl) newSpt).setContainer(this);
 
-            // Update mapTsLastRhythm
-            Rhythm r = newSpt.getRhythm();
-            TimeSignature ts = r.getTimeSignature();
-            mapTsLastRhythm.putValue(ts, r);
+                // Update mapTsLastRhythm
+                Rhythm r = newSpt.getRhythm();
+                TimeSignature ts = r.getTimeSignature();
+                mapTsLastRhythm.putValue(ts, r);
 
-            oldSpt.removePropertyChangeListener(this);
-            newSpt.addPropertyChangeListener(this);
+                oldSpt.removePropertyChangeListener(this);
+                newSpt.addPropertyChangeListener(this);
+            }
+
+            // Save new state for undo/redo
+            newSongParts = new ArrayList<>(songParts);
+            newMapTsRhythm = mapTsLastRhythm.clone();
+
         }
-
-
-        // Save new state for undo/redo
-        final ArrayList<SongPart> newSongParts = new ArrayList<>(songParts);
-        final SmallMap<TimeSignature, Rhythm> newMapTsRhythm = mapTsLastRhythm.clone();
 
 
         // Create the undoable event
@@ -760,18 +773,21 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
             {
                 LOGGER.log(Level.FINER, "ReplaceSongParts.undoBody() songParts={0}", songParts);
 
-                // Restore the state of the songStructure
-                songParts = new ArrayList<>(oldSongParts);      // Must use a copy to make sure oldSongParts remains unaffected
-                mapTsLastRhythm = oldMapTsRhythm.clone();           // Must use a copy to make sure map remains unaffected            
-                // restore the container of the replacing songparts
-                for (int i = 0; i < newSpts.size(); i++)
+                synchronized (SongStructureImpl.this)
                 {
-                    var newSpt = newSpts.get(i);
-                    var oldSpt = oldSpts.get(i);
-                    SongStructure sgs = newSptsOldContainer.get(i);
-                    ((SongPartImpl) newSpt).setContainer(sgs);
-                    newSpt.removePropertyChangeListener(SongStructureImpl.this);
-                    oldSpt.addPropertyChangeListener(SongStructureImpl.this);
+                    // Restore the state of the songStructure
+                    songParts = new ArrayList<>(oldSongParts);      // Must use a copy to make sure oldSongParts remains unaffected
+                    mapTsLastRhythm = oldMapTsRhythm.clone();           // Must use a copy to make sure map remains unaffected            
+                    // restore the container of the replacing songparts
+                    for (int i = 0; i < newSpts.size(); i++)
+                    {
+                        var newSpt = newSpts.get(i);
+                        var oldSpt = oldSpts.get(i);
+                        SongStructure sgs = newSptsOldContainer.get(i);
+                        ((SongPartImpl) newSpt).setContainer(sgs);
+                        newSpt.removePropertyChangeListener(SongStructureImpl.this);
+                        oldSpt.addPropertyChangeListener(SongStructureImpl.this);
+                    }
                 }
                 // Don't use vetoablechange  : it already worked, normally there is no reason it would change            
                 fireAuthorizedChangeEvent(new SptReplacedEvent(SongStructureImpl.this, newSpts, oldSpts));
@@ -782,17 +798,20 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
             {
                 LOGGER.log(Level.FINER, "ReplaceSongParts.redoBody() songParts={0}", songParts);
 
-                // Restore the state of the songStructure
-                songParts = new ArrayList<>(newSongParts);      // Must use a copy to make sure newSongParts remains unaffected
-                mapTsLastRhythm = newMapTsRhythm.clone();           // Must use a copy to make sure map remains unaffected                        
-                // Change the container of the replacing songparts
-                for (int i = 0; i < newSpts.size(); i++)
+                synchronized (SongStructureImpl.this)
                 {
-                    var newSpt = newSpts.get(i);
-                    var oldSpt = oldSpts.get(i);
-                    ((SongPartImpl) newSpt).setContainer(SongStructureImpl.this);
-                    newSpt.addPropertyChangeListener(SongStructureImpl.this);
-                    oldSpt.removePropertyChangeListener(SongStructureImpl.this);
+                    // Restore the state of the songStructure
+                    songParts = new ArrayList<>(newSongParts);      // Must use a copy to make sure newSongParts remains unaffected
+                    mapTsLastRhythm = newMapTsRhythm.clone();           // Must use a copy to make sure map remains unaffected                        
+                    // Change the container of the replacing songparts
+                    for (int i = 0; i < newSpts.size(); i++)
+                    {
+                        var newSpt = newSpts.get(i);
+                        var oldSpt = oldSpts.get(i);
+                        ((SongPartImpl) newSpt).setContainer(SongStructureImpl.this);
+                        newSpt.addPropertyChangeListener(SongStructureImpl.this);
+                        oldSpt.removePropertyChangeListener(SongStructureImpl.this);
+                    }
                 }
                 // Don't use vetoablechange : it already worked, normally there is no reason it would change
                 fireAuthorizedChangeEvent(new SptReplacedEvent(SongStructureImpl.this, oldSpts, newSpts));
@@ -840,11 +859,14 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
         fireUndoableActionEvent(enableActionEvent, "setSongPartsName", false);
 
         final SmallMap<SongPart, String> save = new SmallMap<>();
-        for (SongPart spt : spts)
+        synchronized (this)
         {
-            SongPartImpl wspt = (SongPartImpl) spt;
-            save.putValue(wspt, wspt.getName());
-            wspt.setName(name);
+            for (SongPart spt : spts)
+            {
+                SongPartImpl wspt = (SongPartImpl) spt;
+                save.putValue(wspt, wspt.getName());
+                wspt.setName(name);
+            }
         }
         // Create the undoable event
         UndoableEdit edit = new SimpleEdit("Rename SongParts")
@@ -856,9 +878,12 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
                 {
                     spts, name
                 });
-                for (SongPart wspt : save.getKeys())
+                synchronized (SongStructureImpl.this)
                 {
-                    ((SongPartImpl) wspt).setName(save.getValue(wspt));
+                    for (SongPart wspt : save.getKeys())
+                    {
+                        ((SongPartImpl) wspt).setName(save.getValue(wspt));
+                    }
                 }
                 fireAuthorizedChangeEvent(new SptRenamedEvent(SongStructureImpl.this, save.getKeys()));
             }
@@ -870,9 +895,12 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
                 {
                     spts, name
                 });
-                for (SongPart wspt : save.getKeys())
+                synchronized (SongStructureImpl.this)
                 {
-                    ((SongPartImpl) wspt).setName(name);
+                    for (SongPart wspt : save.getKeys())
+                    {
+                        ((SongPartImpl) wspt).setName(name);
+                    }
                 }
                 fireAuthorizedChangeEvent(new SptRenamedEvent(SongStructureImpl.this, save.getKeys()));
             }
@@ -912,7 +940,10 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
 
         // Update the value
         final SongPartImpl wspt = (SongPartImpl) spt;
-        wspt.setRPValue(rp, newValue);
+        synchronized (this)
+        {
+            wspt.setRPValue(rp, newValue);
+        }
 
 
         // Create the undoable event
@@ -925,7 +956,10 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
                 {
                     spt, rp, newValue
                 });
-                wspt.setRPValue(rp, oldValue);
+                synchronized (SongStructureImpl.this)
+                {
+                    wspt.setRPValue(rp, oldValue);
+                }
                 fireAuthorizedChangeEvent(new RpValueChangedEvent(SongStructureImpl.this, wspt, rp, newValue, oldValue));
             }
 
@@ -936,7 +970,10 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
                 {
                     spt, rp, newValue
                 });
-                wspt.setRPValue(rp, newValue);
+                synchronized (SongStructureImpl.this)
+                {
+                    wspt.setRPValue(rp, newValue);
+                }
                 fireAuthorizedChangeEvent(new RpValueChangedEvent(SongStructureImpl.this, wspt, rp, oldValue, newValue));
             }
         };
@@ -1041,32 +1078,34 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
         }
 
 
-        // Update state        
-        if (barIndex == getSizeInBars())
+        // Update state       
+        synchronized (this)
         {
-            // Append at the end
-            songParts.add(spt);
-        } else
-        {
-            // Insert 
-            SongPart curSpt = getSongPart(barIndex);
-            if (barIndex != curSpt.getStartBarIndex())
+            if (barIndex == getSizeInBars())
             {
-                // Caller must have correctly set startBarIndex of the inserted spt
-                throw new IllegalArgumentException("this=" + this + " spt=" + spt + " curSpt=" + curSpt);
+                // Append at the end
+                songParts.add(spt);
+            } else
+            {
+                // Insert 
+                SongPart curSpt = getSongPart(barIndex);
+                if (barIndex != curSpt.getStartBarIndex())
+                {
+                    // Caller must have correctly set startBarIndex of the inserted spt
+                    throw new IllegalArgumentException("this=" + this + " spt=" + spt + " curSpt=" + curSpt);
+                }
+                int rpIndex = songParts.indexOf(curSpt);
+                songParts.add(rpIndex, spt);
             }
-            int rpIndex = songParts.indexOf(curSpt);
-            songParts.add(rpIndex, spt);
+
+
+            // Restore correct startBarIndexes of following songparts
+            updateStartBarIndexes();
+            // Set the container
+            ((SongPartImpl) spt).setContainer(this);
+            // Keep the default rhythm map updated
+            mapTsLastRhythm.putValue(spt.getRhythm().getTimeSignature(), spt.getRhythm());
         }
-
-
-        // Restore correct startBarIndexes of following songparts
-        updateStartBarIndexes();
-        // Set the container
-        ((SongPartImpl) spt).setContainer(this);
-        // Keep the default rhythm map updated
-        mapTsLastRhythm.putValue(spt.getRhythm().getTimeSignature(), spt.getRhythm());
-
 
         // Listen to mutable RP value changes
         spt.addPropertyChangeListener(this);
@@ -1085,11 +1124,14 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
             public void undoBody()
             {
                 LOGGER.log(Level.FINER, "addSongPartInternal.undoBody() spt={0}", spt);
+                synchronized (SongStructureImpl.this)
+                {
 
-                ((SongPartImpl) spt).setContainer(oldContainer);
-                songParts = new ArrayList<>(oldSpts);         // Must use a copy to make sure oldSpts remains unaffected
-                mapTsLastRhythm = oldMapTsRhythm.clone();           // Must use a copy to make sure map remains unaffected
-                updateStartBarIndexes();
+                    ((SongPartImpl) spt).setContainer(oldContainer);
+                    songParts = new ArrayList<>(oldSpts);         // Must use a copy to make sure oldSpts remains unaffected
+                    mapTsLastRhythm = oldMapTsRhythm.clone();           // Must use a copy to make sure map remains unaffected
+                    updateStartBarIndexes();
+                }
 
                 spt.removePropertyChangeListener(SongStructureImpl.this);
 
@@ -1102,10 +1144,13 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
             {
                 LOGGER.log(Level.FINER, "addSongPartInternal.redoBody() spt={0}", spt);
 
-                ((SongPartImpl) spt).setContainer(SongStructureImpl.this);
-                songParts = new ArrayList<>(newSpts);          // Must use a copy to make sure newSpts remains unaffected
-                mapTsLastRhythm = newMapTsRhythm.clone();            // Must use a copy to make sure map remains unaffected
-                updateStartBarIndexes();
+                synchronized (SongStructureImpl.this)
+                {
+                    ((SongPartImpl) spt).setContainer(SongStructureImpl.this);
+                    songParts = new ArrayList<>(newSpts);          // Must use a copy to make sure newSpts remains unaffected
+                    mapTsLastRhythm = newMapTsRhythm.clone();            // Must use a copy to make sure map remains unaffected
+                    updateStartBarIndexes();
+                }
 
                 spt.addPropertyChangeListener(SongStructureImpl.this);
 
@@ -1142,22 +1187,26 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
 
 
         // Update state
-        for (SongPart spt : spts)
+        final ArrayList<SongPart> saveSpts;
+        final ArrayList<SongPart> newSpts;
+        synchronized (this)
         {
-            if (!songParts.remove(spt))
+            for (SongPart spt : spts)
             {
-                throw new IllegalArgumentException("this=" + this + " spt=" + spt + " songParts=" + songParts);
+                if (!songParts.remove(spt))
+                {
+                    throw new IllegalArgumentException("this=" + this + " spt=" + spt + " songParts=" + songParts);
+                }
+                spt.removePropertyChangeListener(this);
             }
-            spt.removePropertyChangeListener(this);
+            updateStartBarIndexes();
+            
+            saveSpts = new ArrayList<>(spts);
+            newSpts = new ArrayList<>(songParts);
         }
-        updateStartBarIndexes();
 
 
         // Save the new state
-        final ArrayList<SongPart> saveSpts = new ArrayList<>(spts);
-        final ArrayList<SongPart> newSpts = new ArrayList<>(songParts);
-
-
         // Create the undoable event
         UndoableEdit edit = new SimpleEdit("Remove SongPart")
         {
@@ -1165,9 +1214,13 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
             public void undoBody()
             {
                 LOGGER.log(Level.FINER, "removeSongPartInternal.undoBody() spts={0}", spts);
-                songParts = new ArrayList<>(oldSpts);            // Must use a copy to make sure oldSpts remains unaffected
-                updateStartBarIndexes();
-                spts.forEach(spt -> spt.addPropertyChangeListener(SongStructureImpl.this));
+                synchronized (SongStructureImpl.this)
+                {
+
+                    songParts = new ArrayList<>(oldSpts);            // Must use a copy to make sure oldSpts remains unaffected
+                    updateStartBarIndexes();
+                    spts.forEach(spt -> spt.addPropertyChangeListener(SongStructureImpl.this));
+                }
                 fireAuthorizedChangeEvent(new SptAddedEvent(SongStructureImpl.this, saveSpts));
 
             }
@@ -1176,9 +1229,12 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
             public void redoBody()
             {
                 LOGGER.log(Level.FINER, "removeSongPartInternal.redoBody() spts={0}", spts);
-                songParts = new ArrayList<>(newSpts);            // Must use a copy to make sure newSpts remains unaffected
-                updateStartBarIndexes();
-                spts.forEach(spt -> spt.removePropertyChangeListener(SongStructureImpl.this));
+                synchronized (SongStructureImpl.this)
+                {
+                    songParts = new ArrayList<>(newSpts);            // Must use a copy to make sure newSpts remains unaffected
+                    updateStartBarIndexes();
+                    spts.forEach(spt -> spt.removePropertyChangeListener(SongStructureImpl.this));
+                }
                 fireAuthorizedChangeEvent(new SptRemovedEvent(SongStructureImpl.this, saveSpts));
             }
         };
