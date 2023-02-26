@@ -34,6 +34,7 @@ import javax.sound.midi.Track;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.leadsheet.chordleadsheet.api.Utilities;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Factory;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
@@ -168,7 +169,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
         }
 
 
-        // Make a copy of the song so it can't be changed anymore
+        // Make a copy of the song so it can't be changed anymore by user
         int transpose = isPlaybackTranspositionEnabled() ? PlaybackSettings.getInstance().getPlaybackKeyTransposition() : 0;
         SongContext  workContext = getContextCopy(songContext, transpose);
 
@@ -578,24 +579,8 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
      */
     protected SongContext getContextCopy(SongContext context, int chordSymbolTransposition)
     {
-
         SongContext res = context.deepClone(false);
-        CLI_Factory clif = CLI_Factory.getDefault();
-
-        
-        // Apply chord symbol transposition
-        ChordLeadSheet clsCopy = res.getSong().getChordLeadSheet();
-        if (chordSymbolTransposition != 0)
-        {
-            for (CLI_ChordSymbol oldCli : clsCopy.getItems(CLI_ChordSymbol.class))
-            {
-                ExtChordSymbol newEcs = oldCli.getData().getTransposedChordSymbol(chordSymbolTransposition, Note.Alteration.FLAT);
-                CLI_ChordSymbol newCli = clif.createChordSymbol(clsCopy, newEcs, oldCli.getPosition());
-                clsCopy.removeItem(oldCli);
-                clsCopy.addItem(newCli);
-            }
-        }
-
+        Utilities.transpose(res.getSong().getChordLeadSheet(), chordSymbolTransposition);
         return res;
     }
 

@@ -90,14 +90,14 @@ public class PlaybackSettings
     public static String CLICK_TRACK_NAME = "JJazzClickTrack";
     public static String PRECOUNT_CLICK_TRACK_NAME = "JJazzPreCountClickTrack";
     /**
-     * This vetoable property change can be fired by playback actions (eg Play, Pause) just before playing a song and can be
-     * vetoed by vetoables listeners to cancel playback start.
+     * This vetoable property change can be fired by playback actions (eg Play, Pause) just before playing a song and can be vetoed by
+     * vetoables listeners to cancel playback start.
      * <p>
      * NewValue=If non null it contains the SongContext object.
      */
-    public static final String PROP_VETO_PRE_PLAYBACK = "PropVetoPrePlayback";    
-    public static final String PROP_LOOPCOUNT = "PropLoopCount";    
-    public static final String PROP_PLAYBACK_KEY_TRANSPOSITION = "PlaybackTransposition";              
+    public static final String PROP_VETO_PRE_PLAYBACK = "PropVetoPrePlayback";
+    public static final String PROP_LOOPCOUNT = "PropLoopCount";
+    public static final String PROP_PLAYBACK_KEY_TRANSPOSITION = "PlaybackTransposition";
     public static final String PROP_CLICK_PITCH_HIGH = "ClickPitchHigh";
     public static final String PROP_CLICK_PITCH_LOW = "ClickPitchLow";
     public static final String PROP_CLICK_VELOCITY_HIGH = "ClickVelocityHigh";
@@ -108,7 +108,9 @@ public class PlaybackSettings
     public static final String PROP_PLAYBACK_CLICK_ENABLED = "PlaybackClickEnabled";
     public static final String PROP_AUTO_UPDATE_ENABLED = "AutoUpdateEnabled";
     /**
-     * Fired each time a parameter whic can impact music generation is modified (oldValue=false, newValue=true).
+     * Fired each time a parameter whic can impact music generation is modified .
+     * <p>
+     * OldValue=false, newValue=the property name that triggered the musical change.
      */
     public static final String PROP_MUSIC_GENERATION = "PlaybackSettingsMusicGeneration";
 
@@ -150,7 +152,7 @@ public class PlaybackSettings
     {
         if (loopCount != Sequencer.LOOP_CONTINUOUSLY && loopCount < 0)
         {
-            throw new IllegalArgumentException("loopCount=" + loopCount);   
+            throw new IllegalArgumentException("loopCount=" + loopCount);
         }
 
         int old = this.loopCount;
@@ -182,13 +184,13 @@ public class PlaybackSettings
     {
         if (t < -11 || t > 0)
         {
-            throw new IllegalArgumentException("t=" + t);   
+            throw new IllegalArgumentException("t=" + t);
         }
 
         int old = getPlaybackKeyTransposition();
         prefs.putInt(PROP_PLAYBACK_KEY_TRANSPOSITION, t);
         pcs.firePropertyChange(PROP_PLAYBACK_KEY_TRANSPOSITION, old, t);
-        pcs.firePropertyChange(PROP_MUSIC_GENERATION, false, true);
+        pcs.firePropertyChange(PROP_MUSIC_GENERATION, false, PROP_PLAYBACK_KEY_TRANSPOSITION);
     }
 
     /**
@@ -258,7 +260,7 @@ public class PlaybackSettings
     {
         if (mode == null)
         {
-            throw new NullPointerException("mode");   
+            throw new NullPointerException("mode");
         }
         PrecountMode old = getClickPrecountMode();
         if (old != mode)
@@ -301,7 +303,7 @@ public class PlaybackSettings
             case AUTO:
                 if (ts == null || tempo < 0)
                 {
-                    throw new IllegalArgumentException("ts=" + ts + " tempo=" + tempo);   
+                    throw new IllegalArgumentException("ts=" + ts + " tempo=" + tempo);
                 }
                 float nBeats = ts.getNbNaturalBeats();
                 int res;
@@ -317,7 +319,7 @@ public class PlaybackSettings
                 }
                 return res;
             default:
-                throw new IllegalStateException("getClickPrecountMode()=" + getClickPrecountMode());   
+                throw new IllegalStateException("getClickPrecountMode()=" + getClickPrecountMode());
         }
     }
 
@@ -329,7 +331,7 @@ public class PlaybackSettings
     {
         if (channel < MidiConst.CHANNEL_MIN || channel > MidiConst.CHANNEL_MAX)
         {
-            throw new IllegalArgumentException("channel=" + channel);   
+            throw new IllegalArgumentException("channel=" + channel);
         }
         int old = getPreferredClickChannel();
         if (old != channel)
@@ -352,8 +354,8 @@ public class PlaybackSettings
     /**
      * The actual Midi channel to be used with he specified MidiMix.
      * <p>
-     * If in the midiMix channel=getPreferredClickChannel() is used and is not a drums/percussion instrument, return the Midi
-     * channel MidiConst.CHANNEL_DRUMS. Otherwise return getPreferredClickChannel().
+     * If in the midiMix channel=getPreferredClickChannel() is used and is not a drums/percussion instrument, return the Midi channel
+     * MidiConst.CHANNEL_DRUMS. Otherwise return getPreferredClickChannel().
      *
      * @param midiMix
      * @return
@@ -366,7 +368,8 @@ public class PlaybackSettings
         {
             return prefChannel;
         }
-        LOGGER.warning("getClickChannel() Can't use preferred click channel " + (prefChannel + 1) + ", using channel " + (MidiConst.CHANNEL_DRUMS + 1) + " instead");   
+        LOGGER.warning(
+                "getClickChannel() Can't use preferred click channel " + (prefChannel + 1) + ", using channel " + (MidiConst.CHANNEL_DRUMS + 1) + " instead");
         return MidiConst.CHANNEL_DRUMS;
     }
 
@@ -378,14 +381,14 @@ public class PlaybackSettings
     {
         if (pitch < 35 || pitch > 81)
         {
-            throw new IllegalArgumentException("pitch=" + pitch);   
+            throw new IllegalArgumentException("pitch=" + pitch);
         }
         int old = getClickPitchHigh();
         if (old != pitch)
         {
             prefs.putInt(PROP_CLICK_PITCH_HIGH, pitch);
             pcs.firePropertyChange(PROP_CLICK_PITCH_HIGH, old, pitch);
-            pcs.firePropertyChange(PROP_MUSIC_GENERATION, false, true);
+            pcs.firePropertyChange(PROP_MUSIC_GENERATION, false, PROP_CLICK_PITCH_HIGH);
         }
     }
 
@@ -402,14 +405,14 @@ public class PlaybackSettings
     {
         if (pitch < 35 || pitch > 81)
         {
-            throw new IllegalArgumentException("pitch=" + pitch);   
+            throw new IllegalArgumentException("pitch=" + pitch);
         }
         int old = getClickPitchLow();
         if (old != pitch)
         {
             prefs.putInt(PROP_CLICK_PITCH_LOW, pitch);
             pcs.firePropertyChange(PROP_CLICK_PITCH_LOW, old, pitch);
-            pcs.firePropertyChange(PROP_MUSIC_GENERATION, false, true);
+            pcs.firePropertyChange(PROP_MUSIC_GENERATION, false, PROP_CLICK_PITCH_LOW);
         }
     }
 
@@ -422,14 +425,14 @@ public class PlaybackSettings
     {
         if (v < 0 || v > 127)
         {
-            throw new IllegalArgumentException("v=" + v);   
+            throw new IllegalArgumentException("v=" + v);
         }
         int old = getClickVelocityHigh();
         if (old != v)
         {
             prefs.putInt(PROP_CLICK_VELOCITY_HIGH, v);
             pcs.firePropertyChange(PROP_CLICK_VELOCITY_HIGH, old, v);
-            pcs.firePropertyChange(PROP_MUSIC_GENERATION, false, true);
+            pcs.firePropertyChange(PROP_MUSIC_GENERATION, false, PROP_CLICK_VELOCITY_HIGH);
         }
     }
 
@@ -442,14 +445,14 @@ public class PlaybackSettings
     {
         if (v < 0 || v > 127)
         {
-            throw new IllegalArgumentException("v=" + v);   
+            throw new IllegalArgumentException("v=" + v);
         }
         int old = getClickVelocityLow();
         if (old != v)
         {
             prefs.putInt(PROP_CLICK_VELOCITY_LOW, v);
             pcs.firePropertyChange(PROP_CLICK_VELOCITY_LOW, old, v);
-            pcs.firePropertyChange(PROP_MUSIC_GENERATION, false, true);
+            pcs.firePropertyChange(PROP_MUSIC_GENERATION, false, PROP_CLICK_VELOCITY_LOW);
         }
     }
 
@@ -470,7 +473,7 @@ public class PlaybackSettings
     {
         if (sequence == null || context == null)
         {
-            throw new IllegalArgumentException("seq=" + sequence + " context=" + context);   
+            throw new IllegalArgumentException("seq=" + sequence + " context=" + context);
         }
         MidiMix midiMix = context.getMidiMix();
         Track track = sequence.createTrack();
@@ -498,8 +501,8 @@ public class PlaybackSettings
     /**
      * Add a precount click track to the sequence for the specified song.
      * <p>
-     * Except for the cases below, all existing sequence MidiEvents are shifted 1 or 2 bars later in order to leave room for the
-     * precount bars.
+     * Except for the cases below, all existing sequence MidiEvents are shifted 1 or 2 bars later in order to leave room for the precount
+     * bars.
      * <p>
      * The following initial events (at tick 0) are not moved:<br>
      * - Meta track name<br>
@@ -517,7 +520,7 @@ public class PlaybackSettings
     {
         if (sequence == null || context == null || sequence.getDivisionType() != Sequence.PPQ || sequence.getResolution() != MidiConst.PPQ_RESOLUTION)
         {
-            throw new IllegalArgumentException("seq=" + sequence + " context=" + context);   
+            throw new IllegalArgumentException("seq=" + sequence + " context=" + context);
         }
 
         TimeSignature ts = context.getSongParts().get(0).getRhythm().getTimeSignature();
@@ -578,9 +581,19 @@ public class PlaybackSettings
         pcs.addPropertyChangeListener(l);
     }
 
+    public void addPropertyChangeListener(String propName, PropertyChangeListener l)
+    {
+        pcs.addPropertyChangeListener(propName, l);
+    }
+
     public void removePropertyChangeListener(PropertyChangeListener l)
     {
         pcs.removePropertyChangeListener(l);
+    }
+
+    public void removePropertyChangeListener(String propName, PropertyChangeListener l)
+    {
+        pcs.removePropertyChangeListener(propName, l);
     }
 
     /**
@@ -628,7 +641,7 @@ public class PlaybackSettings
     {
         if (track == null || !MidiConst.checkMidiChannel(channel) || tickOffset < 0)
         {
-            throw new IllegalArgumentException("track=" + track + " channel=" + channel + " tickOffset=" + tickOffset);   
+            throw new IllegalArgumentException("track=" + track + " channel=" + channel + " tickOffset=" + tickOffset);
         }
         float nbNaturalBeatsPerBar = ts.getNbNaturalBeats();
         float nbNaturalBeats = nbBars * nbNaturalBeatsPerBar;
@@ -646,7 +659,7 @@ public class PlaybackSettings
             }
         } catch (InvalidMidiDataException ex)
         {
-            LOGGER.log(Level.SEVERE, null, ex);   
+            LOGGER.log(Level.SEVERE, null, ex);
         }
 
         // Next section tick

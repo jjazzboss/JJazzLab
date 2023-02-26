@@ -33,9 +33,9 @@ import org.openide.util.ChangeSupport;
 /**
  * A helper class to be notified when a song and other elements have changed in a way that will impact music generation for that song.
  * <p>
- * Listen to specific changes in Song, ChordLeadSheet, SongStructure, MidiMix, and PlaybackSettings.
+ * Listen to PROP_MUSIC_GENERATION property change in Song, MidiMix, and PlaybackSettings.
  * <p>
- * A black-list mechanism can be used to filter the source events that trigger a ChangeEvent from this instance.
+ * A black-list mechanism can be used to filter out some PROP_MUSIC_GENERATION source events.
  * <p>
  */
 public class SongMusicGenerationListener implements PropertyChangeListener
@@ -52,14 +52,24 @@ public class SongMusicGenerationListener implements PropertyChangeListener
         this.midiMix = midiMix;
         this.song.addPropertyChangeListener(Song.PROP_MUSIC_GENERATION, this);
         this.midiMix.addPropertyChangeListener(MidiMix.PROP_MUSIC_GENERATION, this);
-        PlaybackSettings.getInstance().addPropertyChangeListener(this);
+        PlaybackSettings.getInstance().addPropertyChangeListener(PlaybackSettings.PROP_MUSIC_GENERATION, this);
+    }
+
+    public Song getSong()
+    {
+        return song;
+    }
+
+    public MidiMix getMidiMix()
+    {
+        return midiMix;
     }
 
     public void cleanup()
     {
         this.song.removePropertyChangeListener(Song.PROP_MUSIC_GENERATION, this);
         this.midiMix.removePropertyChangeListener(MidiMix.PROP_MUSIC_GENERATION, this);
-        PlaybackSettings.getInstance().removePropertyChangeListener(this);
+        PlaybackSettings.getInstance().removePropertyChangeListener(PlaybackSettings.PROP_MUSIC_GENERATION, this);
     }
 
 
@@ -69,7 +79,8 @@ public class SongMusicGenerationListener implements PropertyChangeListener
     }
 
     /**
-     * Black list some source events by their property name or actionId: those source events won't trigger a ChangeEvent from this instance.
+     * Black list some source PROP_MUSIC_GENERATION events by their property name or actionId: those source events won't trigger a
+     * ChangeEvent from this instance.
      * <p>
      * Property names or actionId of Song, ChordLeadSheet, SongStructure, MidiMix, or PlaybackSettings.
      *
@@ -98,41 +109,11 @@ public class SongMusicGenerationListener implements PropertyChangeListener
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
-        if (blackList != null)
+        // evt is a PROP_MUSIC_GENERATION event: newValue = source property name or actionId
+        if (blackList != null && blackList.contains(evt.getNewValue().toString()))
         {
-            if (blackList.contains(evt.getPropertyName()))
-            {
-                return;
-            }
-            if ((evt.getSource() == midiMix || evt.getSource() == song)
-                    && blackList.contains(evt.getNewValue().toString()))
-            {
-                return;
-            }
+            return;
         }
-
-        boolean changed = false;
-
-        if (evt.getSource() == song || evt.getSource() == midiMix)
-        {
-            changed = true;
-        } else if (evt.getSource() == PlaybackSettings.getInstance())
-        {
-            switch (evt.getPropertyName())
-            {
-                case PlaybackSettings.PROP_CLICK_PITCH_HIGH, PlaybackSettings.PROP_CLICK_PITCH_LOW, PlaybackSettings.PROP_CLICK_VELOCITY_HIGH, PlaybackSettings.PROP_CLICK_VELOCITY_LOW, PlaybackSettings.PROP_PLAYBACK_KEY_TRANSPOSITION ->
-                {
-                    changed = true;
-                }
-                default ->
-                {
-                }
-            }
-        }
-
-        if (changed)
-        {
-            cs.fireChange();
-        }
+        cs.fireChange();
     }
 }

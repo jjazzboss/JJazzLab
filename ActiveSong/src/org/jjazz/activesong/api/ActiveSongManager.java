@@ -241,6 +241,16 @@ public class ActiveSongManager implements PropertyChangeListener, VetoableChange
         pcs.removePropertyChangeListener(l);
     }
 
+    public void addPropertyListener(String prop, PropertyChangeListener l)
+    {
+        pcs.addPropertyChangeListener(prop, l);
+    }
+
+    public void removePropertyListener(String prop, PropertyChangeListener l)
+    {
+        pcs.removePropertyChangeListener(prop, l);
+    }
+
     // ----------------------------------------------------------------------------
     // VetoableChangeListener interface
     // ----------------------------------------------------------------------------

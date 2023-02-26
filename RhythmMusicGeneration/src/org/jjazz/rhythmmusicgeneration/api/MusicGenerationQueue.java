@@ -48,15 +48,16 @@ import org.openide.util.ChangeSupport;
 /**
  * A thread to handle successive incoming music generation requests.
  * <p>
- * If several music generation requests arrive while a music generation task is already running, requests are buffered. When
- * generation task is done, a new music generation task is started with the last request received, the previous ones are
- * discarded.
+ * If several music generation requests arrive while a music generation task is already running, requests are buffered. When generation task
+ * is done, a new music generation task is started with the last request received, the previous ones are discarded.
  * <p>
- * A ChangeEvent is fired when a music generation task is complete and a result is available. Note that ChangeEvent is fired
- * outside of the Swing EDT.
+ * A ChangeEvent is fired when a music generation task is complete and a result is available. Note that ChangeEvent is fired outside of the
+ * Swing EDT.
  */
 public class MusicGenerationQueue implements Runnable
 {
+
+    private static final int POLL_INTERVAL_MS = 20;
 
     /**
      * A result from a music generation.
@@ -80,13 +81,12 @@ public class MusicGenerationQueue implements Runnable
     private final int postUpdateSleepTimeMs;
     private volatile boolean running;
     private final ChangeSupport cs = new ChangeSupport(this);
-    private static final Logger LOGGER = Logger.getLogger(MusicGenerationQueue.class.getSimpleName());  
+    private static final Logger LOGGER = Logger.getLogger(MusicGenerationQueue.class.getSimpleName());
 
     /**
      * Create the handler.
      *
-     * @param preUpdateBufferTimeMs (milliseconds) Wait this time upon receiving the first request before starting the music
-     *                              generation
+     * @param preUpdateBufferTimeMs (milliseconds) Wait this time upon receiving the first request before starting the music generation
      * @param postUpdateSleepTimeMs (milliseconds) Wait this time before restarting a music generation
      */
     public MusicGenerationQueue(int preUpdateBufferTimeMs, int postUpdateSleepTimeMs)
@@ -98,7 +98,7 @@ public class MusicGenerationQueue implements Runnable
     /**
      * Add a music generation request to this queue.
      *
-     * @param sgContext Generate music for this context.
+     * @param sgContext Generate music for this context. sgContext should not be modified after being passed to the method.
      */
     public void add(SongContext sgContext)
     {
@@ -146,8 +146,8 @@ public class MusicGenerationQueue implements Runnable
     /**
      * The minimum delay between 2 consecutive updates.
      * <p>
-     * This avoids too many sequencer changes in a short period of time, which can cause audio issues with notes muted/unmuted too
-     * many times.
+     * This avoids too many sequencer changes in a short period of time, which can cause audio issues with notes muted/unmuted too many
+     * times.
      * <p>
      * @return
      */
@@ -197,10 +197,10 @@ public class MusicGenerationQueue implements Runnable
                 }
             }
 
-            // Check every millisecond
+
             try
             {
-                Thread.sleep(1);
+                Thread.sleep(POLL_INTERVAL_MS);
             } catch (InterruptedException ex)
             {
                 return;
@@ -318,8 +318,8 @@ public class MusicGenerationQueue implements Runnable
          * <p>
          *
          * @param sgContext           This must be an immutable instance (e.g. song must not be modified in parallel)
-         * @param postUpdateSleepTime This delay avoids to have too many sequencer changes in a short period of time, which can
-         *                            cause audio issues with notes muted/unmuted too many times.
+         * @param postUpdateSleepTime This delay avoids to have too many sequencer changes in a short period of time, which can cause audio
+         *                            issues with notes muted/unmuted too many times.
          */
         UpdateGenerationTask(SongContext sgContext, int postUpdateSleepTime)
         {
