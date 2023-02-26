@@ -22,12 +22,13 @@
  */
 package org.jjazz.pianoroll.actions;
 
-import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
+import javax.swing.JComponent;
+import javax.swing.KeyStroke;
 import org.jjazz.midi.api.InstrumentMix;
 import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.pianoroll.api.PianoRollEditorTopComponent;
@@ -41,6 +42,7 @@ public class Solo extends ToggleAction implements PropertyChangeListener
 {
 
     public static final String ACTION_ID = "Solo";
+    public static final String KEYBOARD_SHORTCUT = "S";
     private InstrumentMix insMix;
     private final PianoRollEditor editor;
     private final PianoRollEditorTopComponent topComponent;
@@ -58,8 +60,13 @@ public class Solo extends ToggleAction implements PropertyChangeListener
         putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("resources/SoloOFF.png")));
         setSelectedIcon(new ImageIcon(getClass().getResource("resources/SoloON.png")));
         // putValue("JJazzDisabledIcon", new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PlaybackPointDisabled-24x24.png")));                                   
-        putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(), "SoloModeTooltip"));
+        putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(), "SoloModeTooltip") + " (" + KEYBOARD_SHORTCUT + ")");
         putValue("hideActionText", true);
+
+
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KEYBOARD_SHORTCUT), Solo.ACTION_ID);
+        editor.getActionMap().put(Solo.ACTION_ID, this);
+
 
         editor.addPropertyChangeListener(this);
 
@@ -72,7 +79,7 @@ public class Solo extends ToggleAction implements PropertyChangeListener
     {
         insMix.setSolo(isSelected());
     }
-    
+
     // ====================================================================================
     // PropertyChangeListener interface
     // ====================================================================================

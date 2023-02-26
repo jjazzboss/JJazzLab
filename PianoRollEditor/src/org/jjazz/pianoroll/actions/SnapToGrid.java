@@ -27,6 +27,8 @@ import java.beans.PropertyChangeListener;
 import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
+import javax.swing.JComponent;
+import javax.swing.KeyStroke;
 import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.ui.utilities.api.ToggleAction;
 import org.jjazz.util.api.ResUtil;
@@ -38,6 +40,7 @@ public class SnapToGrid extends ToggleAction implements PropertyChangeListener
 {
 
     public static final String ACTION_ID = "SnapToGrid";
+    public static final String KEYBOARD_SHORTCUT = "G";
     private final PianoRollEditor editor;
     private static final Logger LOGGER = Logger.getLogger(SnapToGrid.class.getSimpleName());
 
@@ -51,8 +54,12 @@ public class SnapToGrid extends ToggleAction implements PropertyChangeListener
         putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("resources/SnapOFF.png")));
         setSelectedIcon(new ImageIcon(getClass().getResource("resources/SnapON.png")));
         // putValue("JJazzDisabledIcon", new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PlaybackPointDisabled-24x24.png")));                                   
-        putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(), "SnapTooltip"));
+        putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(), "SnapTooltip") + " (" + KEYBOARD_SHORTCUT + ")");
         putValue("hideActionText", true);
+
+
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KEYBOARD_SHORTCUT), SnapToGrid.ACTION_ID);
+        editor.getActionMap().put(SnapToGrid.ACTION_ID, this);
 
 
         this.editor.addPropertyChangeListener(this);
@@ -86,7 +93,6 @@ public class SnapToGrid extends ToggleAction implements PropertyChangeListener
 // ====================================================================================
 // Private methods
 // ====================================================================================
-    
     private void cleanup()
     {
         editor.removePropertyChangeListener(this);

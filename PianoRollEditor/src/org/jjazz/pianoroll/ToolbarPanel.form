@@ -196,7 +196,7 @@
             <Property name="verticalGap" type="int" value="2"/>
           </Layout>
           <SubComponents>
-            <Component class="org.jjazz.ui.flatcomponents.api.FlatButton" name="fbtn_playEditor">
+            <Component class="org.jjazz.ui.flatcomponents.api.FlatButton" name="btn_playEditor">
               <Properties>
                 <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
                   <Image iconType="3" name="/org/jjazz/pianoroll/actions/resources/PlayEditor-OFF.png"/>

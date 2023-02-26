@@ -36,36 +36,30 @@ import org.jjazz.quantizer.api.Quantizer;
  */
 public class QuantizePanel extends javax.swing.JPanel implements PropertyChangeListener
 {
-
-    private static final Logger LOGGER = Logger.getLogger(QuantizePanel.class.getSimpleName());
+    
     private final PianoRollEditor editor;
+    private static final Logger LOGGER = Logger.getLogger(QuantizePanel.class.getSimpleName());    
 
 
-    /**
-     * Creates new form ToolsSidePanel
-     */
     public QuantizePanel(PianoRollEditor editor)
     {
         this.editor = editor;
-
-        initComponents();
-
         
-        // Create the actions used in this ToolbarPanel        
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("Q"), Quantize.ACTION_ID);
-        editor.getActionMap().put(Quantize.ACTION_ID, new Quantize(editor));
-
-
+        initComponents();
+        
+        btn_quantize.setAction(new Quantize(this.editor));
+        
+        
         var quantizer = Quantizer.getInstance();
         cb_iterative.setSelected(quantizer.isIterativeQuantizeEnabled());
         quantizer.addPropertyChangeListener(this);
     }
-
+    
     public void cleanup()
     {
         Quantizer.getInstance().removePropertyChangeListener(this);
     }
-
+    
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
@@ -91,15 +85,7 @@ public class QuantizePanel extends javax.swing.JPanel implements PropertyChangeL
         btn_quantize = new javax.swing.JButton();
         cb_iterative = new javax.swing.JCheckBox();
 
-        org.openide.awt.Mnemonics.setLocalizedText(btn_quantize, org.openide.util.NbBundle.getMessage(QuantizePanel.class, "QuantizePanel.btn_quantize.text")); // NOI18N
-        btn_quantize.setToolTipText(org.openide.util.NbBundle.getMessage(QuantizePanel.class, "QuantizePanel.btn_quantize.toolTipText")); // NOI18N
-        btn_quantize.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                btn_quantizeActionPerformed(evt);
-            }
-        });
+        org.openide.awt.Mnemonics.setLocalizedText(btn_quantize, "Quantize"); // NOI18N
 
         cb_iterative.setSelected(true);
         org.openide.awt.Mnemonics.setLocalizedText(cb_iterative, org.openide.util.NbBundle.getMessage(QuantizePanel.class, "QuantizePanel.cb_iterative.text")); // NOI18N
@@ -140,16 +126,11 @@ public class QuantizePanel extends javax.swing.JPanel implements PropertyChangeL
         Quantizer.getInstance().setIterativeQuantizeEnabled(cb_iterative.isSelected());
     }//GEN-LAST:event_cb_iterativeActionPerformed
 
-    private void btn_quantizeActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_quantizeActionPerformed
-    {//GEN-HEADEREND:event_btn_quantizeActionPerformed
-        editor.getAction(Quantize.ACTION_ID).actionPerformed(evt);
-    }//GEN-LAST:event_btn_quantizeActionPerformed
-
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_quantize;
     private javax.swing.JCheckBox cb_iterative;
     // End of variables declaration//GEN-END:variables
 
-
+    
 }

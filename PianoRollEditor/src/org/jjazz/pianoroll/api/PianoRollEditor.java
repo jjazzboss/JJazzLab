@@ -1278,7 +1278,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         getActionMap().put("jjazz-selectall", new SelectAllNotes(this));
 
 
-
+        // Action with no UI button or menu associated
         getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(getGenericControlKeyStroke(KeyEvent.VK_F), ZoomToFit.ACTION_ID);
         getActionMap().put(ZoomToFit.ACTION_ID, new ZoomToFit(this));
 

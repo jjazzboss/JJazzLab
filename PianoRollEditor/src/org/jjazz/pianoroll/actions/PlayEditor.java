@@ -29,6 +29,8 @@ import javax.sound.midi.Sequencer;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
+import javax.swing.JComponent;
+import javax.swing.KeyStroke;
 import org.jjazz.activesong.api.ActiveSongManager;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
@@ -50,6 +52,7 @@ public class PlayEditor extends AbstractAction
 {
 
     public static final String ACTION_ID = "PlayEditor";
+    public static final String KEYBOARD_SHORTCUT = "ctrl alt SPACE";
     private final PianoRollEditorTopComponent topComponent;
 
     private static final Logger LOGGER = Logger.getLogger(PlayEditor.class.getSimpleName());
@@ -61,9 +64,13 @@ public class PlayEditor extends AbstractAction
 
         // UI settings for the FlatToggleButton
         putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("resources/PlayEditor-OFF.png")));
-        putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(), "PlayEditorTooltip"));
+        putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(), "PlayEditorTooltip") + " (" + KEYBOARD_SHORTCUT + ")");
         putValue("hideActionText", true);
 
+        
+        topComponent.getEditor().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KEYBOARD_SHORTCUT),
+                PlayEditor.ACTION_ID);
+        topComponent.getEditor().getActionMap().put(PlayEditor.ACTION_ID, this);
     }
 
 

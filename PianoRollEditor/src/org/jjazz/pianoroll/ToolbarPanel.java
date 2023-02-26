@@ -30,10 +30,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListCellRenderer;
-import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JList;
-import javax.swing.KeyStroke;
 import javax.swing.SpinnerNumberModel;
 import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.pianoroll.actions.HearSelection;
@@ -79,27 +77,13 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
 
 
         lbl_title.setText(title);
-
-                
-        // Create the actions used in this ToolbarPanel
-        // Put them here rather than in each individual action just because it's more convenient to oversee all the keyboard shortcuts
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("alt SPACE"), PlayEditor.ACTION_ID);
-        editor.getActionMap().put(PlayEditor.ACTION_ID, new PlayEditor(topComponent));
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("S"), Solo.ACTION_ID);
-        editor.getActionMap().put(Solo.ACTION_ID, new Solo(topComponent));        
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("H"), HearSelection.ACTION_ID);
-        editor.getActionMap().put(HearSelection.ACTION_ID, new HearSelection(editor));
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("A"), PlaybackAutoScroll.ACTION_ID);
-        editor.getActionMap().put(PlaybackAutoScroll.ACTION_ID, new PlaybackAutoScroll(editor));
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("G"), SnapToGrid.ACTION_ID);
-        editor.getActionMap().put(SnapToGrid.ACTION_ID, new SnapToGrid(editor));
+     
         
-        
-        fbtn_playEditor.setAction(editor.getAction(PlayEditor.ACTION_ID));
-        tbtn_hearNotes.setToggleAction((ToggleAction) editor.getAction(HearSelection.ACTION_ID));
-        tbtn_snap.setToggleAction((ToggleAction) editor.getAction(SnapToGrid.ACTION_ID));
-        tbtn_playbackAutoScroll.setToggleAction((ToggleAction) editor.getAction(PlaybackAutoScroll.ACTION_ID));
-        tbtn_solo.setToggleAction((ToggleAction) editor.getAction(Solo.ACTION_ID));
+        btn_playEditor.setAction(new PlayEditor(topComponent));
+        tbtn_hearNotes.setToggleAction(new HearSelection(editor));
+        tbtn_snap.setToggleAction(new SnapToGrid(editor));
+        tbtn_playbackAutoScroll.setToggleAction(new PlaybackAutoScroll(editor));
+        tbtn_solo.setToggleAction(new Solo(topComponent));
         
 
         var qModel = new DefaultComboBoxModel(Quantization.values());
@@ -237,7 +221,7 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
         lbl_title = new javax.swing.JLabel();
         pnl_right = new javax.swing.JPanel();
         pnl_miscButtons = new javax.swing.JPanel();
-        fbtn_playEditor = new org.jjazz.ui.flatcomponents.api.FlatButton();
+        btn_playEditor = new org.jjazz.ui.flatcomponents.api.FlatButton();
         tbtn_playbackAutoScroll = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
         tbtn_solo = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
         tbtn_hearNotes = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
@@ -302,8 +286,8 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
 
         pnl_miscButtons.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 1, 2));
 
-        fbtn_playEditor.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/pianoroll/actions/resources/PlayEditor-OFF.png"))); // NOI18N
-        pnl_miscButtons.add(fbtn_playEditor);
+        btn_playEditor.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/pianoroll/actions/resources/PlayEditor-OFF.png"))); // NOI18N
+        pnl_miscButtons.add(btn_playEditor);
 
         tbtn_playbackAutoScroll.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/pianoroll/actions/resources/PlaybackAutoScrollOFF.png"))); // NOI18N
         tbtn_playbackAutoScroll.setToolTipText(org.openide.util.NbBundle.getMessage(ToolbarPanel.class, "ToolbarPanel.tbtn_playbackAutoScroll.toolTipText")); // NOI18N
@@ -392,9 +376,9 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private org.jjazz.ui.flatcomponents.api.FlatButton btn_playEditor;
     private javax.swing.JComboBox<Quantization> cmb_quantization;
     private org.jjazz.ui.flatcomponents.api.FlatHelpButton fbtn_help;
-    private org.jjazz.ui.flatcomponents.api.FlatButton fbtn_playEditor;
     private javax.swing.Box.Filler filler1;
     private javax.swing.Box.Filler filler2;
     private javax.swing.Box.Filler filler3;

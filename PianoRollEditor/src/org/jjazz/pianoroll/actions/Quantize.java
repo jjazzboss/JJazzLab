@@ -25,6 +25,9 @@ package org.jjazz.pianoroll.actions;
 import java.awt.event.ActionEvent;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.JComponent;
+import javax.swing.KeyStroke;
 import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.quantizer.api.Quantizer;
 import org.jjazz.util.api.ResUtil;
@@ -34,7 +37,9 @@ import org.jjazz.util.api.ResUtil;
  */
 public class Quantize extends AbstractAction
 {
+
     public static final String ACTION_ID = "Quantize";
+    public static final String KEYBOARD_SHORTCUT = "Q";
     private final PianoRollEditor editor;
     private static final Logger LOGGER = Logger.getLogger(Quantize.class.getSimpleName());
 
@@ -42,6 +47,12 @@ public class Quantize extends AbstractAction
     {
         this.editor = editor;
 
+        putValue(Action.NAME, ResUtil.getString(getClass(), "Quantize"));
+        putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(), "QuantizeTooltip") + " (" + KEYBOARD_SHORTCUT + ")");
+
+        
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KEYBOARD_SHORTCUT), Quantize.ACTION_ID);
+        editor.getActionMap().put(Quantize.ACTION_ID, this);
     }
 
     @Override
@@ -62,7 +73,7 @@ public class Quantize extends AbstractAction
         var beatRange = editor.getPhraseBeatRange();
 
 
-        String undoText = ResUtil.getString(getClass(), "QuantizeNotes");
+        String undoText = ResUtil.getString(getClass(), "Quantize");
         editor.getUndoManager().startCEdit(editor, undoText);
 
         for (var nv : nvs)

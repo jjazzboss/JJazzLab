@@ -22,7 +22,6 @@
  */
 package org.jjazz.pianoroll.actions;
 
-import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
@@ -33,6 +32,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
+import javax.swing.JComponent;
+import javax.swing.KeyStroke;
 import javax.swing.event.ChangeListener;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
@@ -51,7 +52,9 @@ import org.openide.util.Exceptions;
  */
 public class HearSelection extends ToggleAction
 {
+
     public static final String ACTION_ID = "HearSelection";
+    public static final String KEYBOARD_SHORTCUT = "H";
     private final PianoRollEditor editor;
     private CollectAndPlayNotesTask collectAndPlayNotesTask;
     private final ChangeListener changeListener;
@@ -60,17 +63,21 @@ public class HearSelection extends ToggleAction
     public HearSelection(PianoRollEditor editor)
     {
         super(false);
-        
+
         this.editor = editor;
 
-        
+
         // UI settings for the FlatToggleButton
         putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("resources/HearNoteOFF.png")));
         setSelectedIcon(new ImageIcon(getClass().getResource("resources/HearNoteON.png")));
         // putValue("JJazzDisabledIcon", new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PlaybackPointDisabled-24x24.png")));                                   
-        putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(), "HearNoteTooltip"));
+        putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(), "HearNoteTooltip")+ " (" + KEYBOARD_SHORTCUT + ")");
         putValue("hideActionText", true);
-  
+
+
+        this.editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KEYBOARD_SHORTCUT), HearSelection.ACTION_ID);
+        this.editor.getActionMap().put(HearSelection.ACTION_ID, this);
+
 
         var nsl = getNotesSelectionListener();
         changeListener = evt -> selectionChanged(nsl.getLastNoteViewAddedToSelection());
@@ -90,12 +97,10 @@ public class HearSelection extends ToggleAction
         }
     }
 
- 
 
     // ====================================================================================
     // Private methods
     // ====================================================================================
-
     private void selectionChanged(NoteView lastNoteViewAddedToSelection)
     {
         if (isSelected() == false || lastNoteViewAddedToSelection == null)
@@ -330,7 +335,7 @@ public class HearSelection extends ToggleAction
             // Play it
             try
             {
-                Runnable endAction = () ->
+                Runnable endAction = () -> 
                 {
                     if (getState().equals(State.PLAYING))
                     {
