@@ -36,11 +36,11 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.WeakHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -95,7 +95,9 @@ import org.jjazz.ui.flatcomponents.api.FlatButton;
 import org.jjazz.ui.mixconsole.MixChannelPanel;
 import org.jjazz.ui.mixconsole.MixChannelPanelControllerImpl;
 import org.jjazz.ui.mixconsole.MixChannelPanelModelImpl;
+import org.jjazz.ui.mixconsole.PhraseViewerPanel;
 import org.jjazz.ui.mixconsole.MixConsoleLayoutManager;
+import org.jjazz.ui.mixconsole.MixConsoleLayoutManagerHorizontal;
 import org.jjazz.ui.mixconsole.UserExtensionPanel;
 import org.jjazz.ui.mixconsole.UserExtensionPanelController;
 import org.jjazz.ui.utilities.api.FileTransferable;
@@ -145,7 +147,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
     private final WeakHashMap<Song, Rhythm> mapVisibleRhythm;
     private final MixConsoleSettings settings;
     private final MenuBar menuBar;
-
+    private final TreeMap<Integer, ChannelPanelSet> tmapChannelPanelSets = new TreeMap<>();
     private static final Logger LOGGER = Logger.getLogger(MixConsole.class.getSimpleName());
 
     public MixConsole(MixConsoleSettings settings)
@@ -179,7 +181,8 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         panel_mixChannels.setTransferHandler(new MidiFileDragOutTransferHandler(null));
 
         // Use our LayoutManager to arranger MixChannelPanels and their extensions
-        panel_mixChannels.setLayout(new MixConsoleLayoutManager());
+        //panel_mixChannels.setLayout(new MixConsoleLayoutManager(this));
+        panel_mixChannels.setLayout(new MixConsoleLayoutManagerHorizontal(this));
 
         // Our renderer to show visible rhythms
         cb_viewRhythms.setRenderer(new MyRenderer());
@@ -239,6 +242,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
 
     public void cleanup()
     {
+        removeAllChannels();
         settings.removePropertyChangeListener(this);
         ActiveSongManager.getInstance().removePropertyListener(this);
         SongEditorManager.getInstance().removePropertyChangeListener(this);
@@ -275,8 +279,8 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         if (r != oldVisibleRhythm)
         {
             mapVisibleRhythm.put(songModel, r);
-            removeAllMixChannelPanels();
-            addVisibleMixChannelPanels();
+            removeAllChannels();
+            addVisibleChannels();
             cb_viewRhythms.setSelectedItem(r == null ? RHYTHM_ALL : r);
         }
 
@@ -305,6 +309,16 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
     public JJazzUndoManager getUndoManager()
     {
         return JJazzUndoManagerFinder.getDefault().get(songModel);
+    }
+
+    /**
+     * A map which associates a ChannelPanelSet for each used Midi channel.
+     *
+     * @return
+     */
+    public TreeMap<Integer, ChannelPanelSet> getChannelPanelSets()
+    {
+        return tmapChannelPanelSets;
     }
 
     /**
@@ -479,35 +493,30 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
                     {
                         // InstrumentMix was removed
                         LOGGER.fine("propertyChange() InstrumentMix removed");
-                        MixChannelPanel mcp = getMixChannelPanel(channel); // can be null if not visible
-                        if (mcp != null)
+                        removeChannel(channel);
+                        if (getChannelPanelSets().isEmpty())
                         {
-                            removeMixChannelPanel(mcp);
-                            if (getMixChannelPanels().isEmpty())
-                            {
-                                setVisibleRhythm(null);     // Make all rhythms visible
-                            }
+                            setVisibleRhythm(null);     // Make all rhythms visible
                         }
                     } else if (oldInsMix == null)
                     {
                         // New InstrumentMix was added
-                        LOGGER.fine("propertyChange() InstrumentMix added insMix=" + insMix);
+                        LOGGER.log(Level.FINE, "propertyChange() InstrumentMix added insMix={0}", insMix);
                         if (getVisibleRhythm() == null || getVisibleRhythm() == rv.getContainer() || rv instanceof UserRhythmVoice)
                         {
-                            addMixChannelPanel(songMidiMix, channel);
+                            addChannel(channel);
                         }
                     } else
                     {
                         // InstrumentMix is replacing an existing one
                         LOGGER.fine("propertyChange() InstrumentMix replaced");
-                        MixChannelPanel mcp = getMixChannelPanel(channel);
-                        if (mcp != null)
+                        if (isChannelVisible(channel))
                         {
-                            removeMixChannelPanel(mcp);
+                            removeChannel(channel);
                         }
                         if (getVisibleRhythm() == null || getVisibleRhythm() == rv.getContainer() || rv instanceof UserRhythmVoice)
                         {
-                            addMixChannelPanel(songMidiMix, channel);
+                            addChannel(channel);
                         }
                     }
                 }
@@ -520,7 +529,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
                     // MixChannelPanelModel will handle the display, but need to relayout
                     panel_mixChannels.revalidate();
                     panel_mixChannels.repaint();
-                    
+
                 }
                 case MidiMix.PROP_MODIFIED_OR_SAVED ->
                 {
@@ -564,7 +573,11 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
     private void songPresenceChanged()
     {
         Song song = Utilities.actionsGlobalContext().lookup(Song.class);
-        LOGGER.log(Level.FINE, "songPresenceChanged() -- song=" + song + " songModel=" + songModel);
+        LOGGER.log(Level.FINE, "songPresenceChanged() -- song={0} songModel={1}", new Object[]
+        {
+            song, songModel
+        });
+
         if (songModel == song || song == null)
         {
             // Do nothing if same window or non song-editor-topcomponent got activated
@@ -609,19 +622,19 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         // Update the console with MidiMix changes
         songMidiMix.addPropertyChangeListener(this);
 
-        // Add the visible channel panels
-        addVisibleMixChannelPanels();
+        // Add the visible channels
+        addVisibleChannels();
 
-        LOGGER.fine("   songMidiMix=" + songMidiMix);
+        LOGGER.log(Level.FINE, "   songMidiMix={0}", songMidiMix);
     }
 
-    private void addVisibleMixChannelPanels()
+    private void addVisibleChannels()
     {
-        // Add the MixChannelPanels
+        // Add the rhythm channels
         for (Integer channel : songMidiMix.getUsedChannels(getVisibleRhythm()))
         {
             // Add a MixChannelPanel for each InstrumentMix
-            addMixChannelPanel(songMidiMix, channel);
+            addChannel(channel);
         }
 
         // Add user channels if needed
@@ -629,38 +642,96 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         {
             for (int channel : songMidiMix.getUserChannels())
             {
-                addMixChannelPanel(songMidiMix, channel);
+                addChannel(channel);
             }
         }
     }
 
-    private void addMixChannelPanel(MidiMix mm, int channel)
+    private void addChannel(int channel)
     {
-        RhythmVoice rv = songMidiMix.getRhythmVoice(channel);
-        MixChannelPanel mcp = createMixChannelPanel(mm, channel, rv);
-        panel_mixChannels.add(mcp);         // Our layout manager will place it ordered by channel
-        
-        
-        if (rv instanceof UserRhythmVoice)
+        var panelSet = getChannelPanelSet(channel);
+        if (panelSet == null)
         {
-            // User channel, also add the extension panel
+            panelSet = new ChannelPanelSet();
+            tmapChannelPanelSets.put(channel, panelSet);
+        }
+
+
+        RhythmVoice rv = songMidiMix.getRhythmVoice(channel);
+        panelSet.rhythmVoice = rv;
+
+
+        // Main panel
+        MixChannelPanel mcp = createMixChannelPanel(songMidiMix, channel, rv);
+        panelSet.mixChannelPanel = mcp;
+        panel_mixChannels.add(mcp);         // Our layout manager will place it ordered by channel
+
+
+        // Birds-eye-view panel
+        var pvp = new PhraseViewerPanel(songModel, rv, channel);
+        panelSet.phraseViewerPanel = pvp;
+        panel_mixChannels.add(pvp);         // Our layout manager will place it
+
+
+        // Set a transfer handler 
+        var handler = new MidiFileDragOutTransferHandler(rv);
+        mcp.setTransferHandler(handler);
+        pvp.setTransferHandler(handler);
+
+
+        if (rv instanceof UserRhythmVoice urv)
+        {
+            // User channel
             UserExtensionPanel ucep = new UserExtensionPanel(songModel,
                     songMidiMix,
-                    (UserRhythmVoice) rv,
+                    urv,
                     new UserExtensionPanelController(),
                     settings
             );
-            panel_mixChannels.add(ucep);      // Our layout manager will place it below the MixChannelPanel
+            panelSet.userExtensionPanel = ucep;
+            panel_mixChannels.add(ucep);      // Our layout manager will place it 
         }
 
-        // Set a transfer handler for each panel
-        mcp.setTransferHandler(new MidiFileDragOutTransferHandler(rv));
+        updateChannelColors();
 
 
         panel_mixChannels.revalidate();
         panel_mixChannels.repaint();
 
+
+    }
+
+
+    private void removeChannel(int channel)
+    {
+
+        var panelSet = tmapChannelPanelSets.remove(channel);
+        if (panelSet == null)
+        {
+            // Possible if rhythm is not visible
+            return;
+        }
+
+
+        if (panelSet.userExtensionPanel != null)
+        {
+            panel_mixChannels.remove(panelSet.userExtensionPanel);
+            panelSet.userExtensionPanel.cleanup();
+        }
+
+
+        panel_mixChannels.remove(panelSet.phraseViewerPanel);
+        panelSet.phraseViewerPanel.cleanup();
+
+
+        panel_mixChannels.remove(panelSet.mixChannelPanel);
+        panelSet.mixChannelPanel.cleanup();
+
         updateChannelColors();
+
+        panel_mixChannels.revalidate();
+        panel_mixChannels.repaint();
+
     }
 
     private MixChannelPanel createMixChannelPanel(MidiMix mm, int channel, RhythmVoice rv)
@@ -676,43 +747,6 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
     }
 
 
-    private void removeMixChannelPanel(MixChannelPanel mcp)
-    {
-        RhythmVoice rv = mcp.getModel().getRhythmVoice();
-
-        if (rv instanceof UserRhythmVoice urv)
-        {
-            // Need to remove the UserChannelExtenionPanel as well
-            var ucep = getUserChannelExtensionPanel(urv);
-            assert ucep != null : "urv=" + urv;
-            ucep.cleanup();
-            panel_mixChannels.remove(ucep);
-        }
-
-
-        mcp.cleanup();
-        panel_mixChannels.remove(mcp);
-        panel_mixChannels.revalidate();
-        panel_mixChannels.repaint();
-        updateChannelColors();
-    }
-
-    private UserExtensionPanel getUserChannelExtensionPanel(UserRhythmVoice urv)
-    {
-        for (Component c : panel_mixChannels.getComponents())
-        {
-            if (c instanceof UserExtensionPanel ucep)
-            {
-                if (ucep.getUserRhythmVoice() == urv)
-                {
-                    return ucep;
-                }
-            }
-        }
-        return null;
-    }
-
-
     private void updateChannelColors()
     {
         Map<Rhythm, Color> mapRhythmColor = new HashMap<>();
@@ -720,9 +754,8 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         mapRhythmColor.put(UserRhythmVoice.CONTAINER, CHANNEL_COLOR_USER);
 
         int index = 0;
-        for (MixChannelPanel mcp : getMixChannelPanels())
+        for (int channel : tmapChannelPanelSets.keySet())
         {
-            int channel = mcp.getModel().getChannelId();
             Rhythm r = songMidiMix.getRhythmVoice(channel).getContainer();
             Color c = mapRhythmColor.get(r);
             if (c == null)
@@ -735,42 +768,19 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
                     index = 0;
                 }
             }
-            mcp.setChannelColor(c);
+            var panelSet = getChannelPanelSet(channel);
+            panelSet.mixChannelPanel.setChannelColor(c);
+            panelSet.phraseViewerPanel.setForeground(c);
         }
 
     }
 
-    private void removeAllMixChannelPanels()
+    private void removeAllChannels()
     {
-        for (MixChannelPanel mcp : getMixChannelPanels())
+        for (int channel : tmapChannelPanelSets.keySet().toArray(Integer[]::new))
         {
-            removeMixChannelPanel(mcp);
+            removeChannel(channel);
         }
-    }
-
-    private List<MixChannelPanel> getMixChannelPanels()
-    {
-        ArrayList<MixChannelPanel> mcps = new ArrayList<>();
-        for (Component c : panel_mixChannels.getComponents())
-        {
-            if (c instanceof MixChannelPanel)
-            {
-                mcps.add((MixChannelPanel) c);
-            }
-        }
-        return mcps;
-    }
-
-    private MixChannelPanel getMixChannelPanel(int channel)
-    {
-        for (MixChannelPanel mcp : getMixChannelPanels())
-        {
-            if (mcp.getModel().getChannelId() == channel)
-            {
-                return mcp;
-            }
-        }
-        return null;
     }
 
     /**
@@ -795,7 +805,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
             // Update the combo box content and show the combobox if not done
             cb_viewRhythms.removeActionListener(this);
             rhythms.add(0, RHYTHM_ALL);
-            ComboBoxModel<Rhythm> cbModel = new DefaultComboBoxModel<>(rhythms.toArray(new Rhythm[0]));
+            ComboBoxModel<Rhythm> cbModel = new DefaultComboBoxModel<>(rhythms.toArray(Rhythm[]::new));
             cb_viewRhythms.setModel(cbModel);
             Rhythm selectedRhythm = (getVisibleRhythm() == null) ? RHYTHM_ALL : getVisibleRhythm();
             cb_viewRhythms.setSelectedItem(selectedRhythm);
@@ -812,7 +822,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
 
     private void resetModel()
     {
-        removeAllMixChannelPanels();
+        removeAllChannels();
         if (songMidiMix != null)
         {
             instanceContent.remove(songMidiMix);
@@ -839,7 +849,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
      */
     private void updateActiveState(boolean b)
     {
-        LOGGER.fine("updateActiveState() -- b=" + b);
+        LOGGER.log(Level.FINE, "updateActiveState() -- b={0}", b);
         org.jjazz.ui.utilities.api.Utilities.setRecursiveEnabled(b, menuBar);
         org.jjazz.ui.utilities.api.Utilities.setRecursiveEnabled(b, panel_MasterControls);
     }
@@ -936,6 +946,11 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         }
     }
 
+    private ChannelPanelSet getChannelPanelSet(int channel)
+    {
+        return tmapChannelPanelSets.get(channel);
+    }
+
     /**
      * Get MixConsole MenuBar.
      * <p>
@@ -951,11 +966,11 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         // Hack to manage I18N on File and Edit submenus : rename the folder in the layer file!
 
         // Build the bar from actions which are registered in layerPath
-        MenuBar menuBar = new MenuBar(DataFolder.findFolder(FileUtil.getConfigFile(layerPath)));
+        MenuBar mBar = new MenuBar(DataFolder.findFolder(FileUtil.getConfigFile(layerPath)));
 
 
         // Reduce font size
-        org.jjazz.ui.utilities.api.Utilities.changeMenuBarFontSize(menuBar, -2f);
+        org.jjazz.ui.utilities.api.Utilities.changeMenuBarFontSize(mBar, -2f);
 
 
 //        // Replace File & Edit menus (hard-coded in the declaratively-registered actions) by internationalized strings
@@ -974,12 +989,35 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
 //                }
 //            }
 //        }
-        return menuBar;
+        return mBar;
+    }
+
+    private boolean isChannelVisible(int channel)
+    {
+        return tmapChannelPanelSets.containsKey(channel);
     }
 
     // ========================================================================================================
     // Private classes
     // ========================================================================================================
+
+    /**
+     * The UI panels associated to a channel.
+     */
+    static public class ChannelPanelSet
+    {
+
+        public RhythmVoice rhythmVoice;
+        public MixChannelPanel mixChannelPanel;
+        public UserExtensionPanel userExtensionPanel;
+        public PhraseViewerPanel phraseViewerPanel;
+
+        public boolean isEmpty()
+        {
+            return mixChannelPanel == null && userExtensionPanel == null && phraseViewerPanel == null;
+        }
+    }
+
     private class MyRenderer extends DefaultListCellRenderer
     {
 
@@ -1041,14 +1079,14 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
     private class MidiFileDragOutTransferHandler extends TransferHandler
     {
 
-        RhythmVoice rv;
+        RhythmVoice rhythmVoice;
 
         /**
          * @param rv If null, export the whole sequence, otherwise only the rv track.
          */
         public MidiFileDragOutTransferHandler(RhythmVoice rv)
         {
-            this.rv = rv;
+            this.rhythmVoice = rv;
         }
 
         @Override
@@ -1061,7 +1099,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
             // Make sure we'll be able to generate a song
             if (songModel != null && songMidiMix != null)
             {
-                if (!songModel.getSongStructure().getSongParts().isEmpty() && (rv != null || !isAllMuted(songMidiMix)))
+                if (!songModel.getSongStructure().getSongParts().isEmpty() && (rhythmVoice != null || !isAllMuted(songMidiMix)))
                 {
                     res = TransferHandler.COPY_OR_MOVE;
                 }
@@ -1074,12 +1112,12 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         @Override
         public Transferable createTransferable(JComponent c)
         {
-            LOGGER.fine("MidiFileDragOutTransferHandler.createTransferable()  c=" + c);
+            LOGGER.log(Level.FINE, "MidiFileDragOutTransferHandler.createTransferable()  c={0}", c);
 
             File midiFile = null;
             try
             {
-                midiFile = exportSequenceToMidiTempFile(rv);
+                midiFile = exportSequenceToMidiTempFile(rhythmVoice);
             } catch (MusicGenerationException | IOException ex)
             {
                 NotifyDescriptor d = new NotifyDescriptor.Message(ex.getMessage(), NotifyDescriptor.ERROR_MESSAGE);

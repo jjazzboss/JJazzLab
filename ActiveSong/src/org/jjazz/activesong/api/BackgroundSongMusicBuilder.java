@@ -154,7 +154,7 @@ public class BackgroundSongMusicBuilder implements ChangeListener, PropertyChang
 
         // Prepare a copy of the song context
         var song = songMusicGenerationListener.getSong();
-        LOGGER.log(Level.SEVERE, "stateChanged() -- posting music generation request for {0}", song.getName());
+        LOGGER.log(Level.FINE, "stateChanged() -- posting music generation request for {0}", song.getName());
         var midiMix = songMusicGenerationListener.getMidiMix();
         SongContext sgContextCopy = new SongContext(song, midiMix).deepClone(false);
         Utilities.transpose(sgContextCopy.getSong().getChordLeadSheet(), PlaybackSettings.getInstance().getPlaybackKeyTransposition());
@@ -170,7 +170,7 @@ public class BackgroundSongMusicBuilder implements ChangeListener, PropertyChang
     //=============================================================================
     private void musicGenerationResultReceived(MusicGenerationQueue.Result newResult)
     {
-        LOGGER.severe("musicGenerationResultReceived() --");
+        LOGGER.fine("musicGenerationResultReceived() --");
         SwingUtilities.invokeLater(() -> 
         {
             var old = lastResult;

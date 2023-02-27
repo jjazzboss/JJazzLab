@@ -506,9 +506,14 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
         int y1 = yMapper.getKeyboardYRange(127).from;
         var barRange = editor.getVisibleBarRange();
         var mapQPosX = xMapper.getQuantizedXPositions(barRange);              // only draw what's visible        
+        boolean paintSixteenth = xMapper.getOneBeatPixelSize() > 20;
 
         for (Position pos : mapQPosX.navigableKeySet())
         {
+            if (!paintSixteenth && pos.isOffBeat())
+            {
+                continue;
+            }
             Integer xI = mapQPosX.get(pos);
             assert xI != null : "pos=" + pos + " mapQPosX=" + Utilities.toMultilineString(mapQPosX);
             int x = xI;

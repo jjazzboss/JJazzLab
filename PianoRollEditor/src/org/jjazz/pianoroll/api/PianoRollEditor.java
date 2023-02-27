@@ -1151,7 +1151,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
 
     private int toZoomHValue(float scaleFactorX)
     {
-        int zoomHValue = (int) (100f * (scaleFactorX - 0.2f) / 4);
+        int zoomHValue = (int) (100f * (scaleFactorX - 0.1f) / 4);
         zoomHValue = Math.max(0, zoomHValue);
         zoomHValue = Math.min(100, zoomHValue);
         return zoomHValue;
@@ -1159,13 +1159,13 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
 
     private float toScaleFactorX(int zoomHValue)
     {
-        float xFactor = 0.2f + 4 * zoomHValue / 100f;
+        float xFactor = 0.1f + 4 * zoomHValue / 100f;
         return xFactor;
     }
 
     private float toScaleFactorY(int zoomVValue)
     {
-        float yFactor = 0.4f + 4 * zoomVValue / 100f;
+        float yFactor = 0.6f + 4 * zoomVValue / 100f;
         return yFactor;
     }
 

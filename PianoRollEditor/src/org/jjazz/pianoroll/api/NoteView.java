@@ -27,10 +27,7 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.LinearGradientPaint;
 import java.awt.RenderingHints;
-import java.awt.geom.Point2D;
-import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
@@ -43,8 +40,8 @@ import javax.swing.border.LineBorder;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
+import org.jjazz.ui.colorsetmanager.api.NoteColorManager;
 import org.jjazz.ui.utilities.api.HSLColor;
-import org.jjazz.ui.utilities.api.StringMetrics;
 import org.jjazz.ui.utilities.api.Utilities;
 import org.jjazz.uisettings.api.GeneralUISettings;
 import org.jjazz.util.api.ResUtil;
@@ -58,23 +55,11 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
 
     public static final String PROP_SELECTED = "PropSelected";
     public static final String PROP_MODEL = "PropModel";
-    private static Color[] VELOCITY_COLORS;
-    private static Color[] SELECTED_VELOCITY_COLORS;
     private static final Color COLOR_TEXT = Color.WHITE;
-    private static final Font FONT;
-    private static final int FONT_HEIGHT;
+    private static final Font FONT=GeneralUISettings.getInstance().getStdCondensedFont().deriveFont(10f);;
+    private static final int FONT_HEIGHT = (int)Utilities.getStringBounds("A", FONT).getHeight();
     private static String TOOLTIP_HELP = ResUtil.getString(NoteView.class, "NoteViewToolTipHelp");
-
-    static
-    {
-        // Precalculate font height
-        FONT = GeneralUISettings.getInstance().getStdCondensedFont().deriveFont(10f);
-        BufferedImage img = new BufferedImage(10, 10, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g2 = img.createGraphics();
-        var bounds = new StringMetrics(g2, FONT).getLogicalBoundsNoLeading("A");
-        FONT_HEIGHT = (int) bounds.getHeight();
-        g2.dispose();
-    }
+    
 
     private NoteEvent noteEvent;
     private String noteAsString;
@@ -210,40 +195,8 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
         noteViews.forEach(nv -> res.add(nv.getModel()));
         return res;
     }
-
-    /**
-     * Get a color which changes with velocity, red shade for higher value, blue shade for lower value.
-     *
-     * @param velocity
-     * @return
-     */
-    static public Color getColor(int velocity)
-    {
-        Preconditions.checkArgument(velocity >= 0 && velocity <= 127);
-        if (VELOCITY_COLORS == null)
-        {
-            computeVelocityColors();
-        }
-        return VELOCITY_COLORS[velocity];
-    }
-
-    /**
-     * Get a selected note color which changes with velocity.
-     *
-     * @param velocity
-     * @return
-     */
-    static public Color getSelectedColor(int velocity)
-    {
-        Preconditions.checkArgument(velocity >= 0 && velocity <= 127);
-        if (SELECTED_VELOCITY_COLORS == null)
-        {
-            computeVelocityColors();
-        }
-        return SELECTED_VELOCITY_COLORS[velocity];
-    }
-
-  
+ 
+    
 
     // ==========================================================================================================
     // PropertyChangeListener interface
@@ -287,64 +240,13 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
 
     private void updateGraphics()
     {
-        Color bgColor = selected ? getSelectedColor(noteEvent.getVelocity()) : getColor(noteEvent.getVelocity());
+        NoteColorManager ncm = NoteColorManager.getDefault();
+        Color bgColor = selected ? ncm.getSelectedNoteColor(noteEvent.getVelocity()) : ncm.getNoteColor(noteEvent.getVelocity());
         setBackground(bgColor);
         setBorder(BorderFactory.createLineBorder(getBorderColor(bgColor, selected), 1));
         noteAsString = new Note(noteEvent.getPitch()).toPianoOctaveString();
         String tt = noteAsString + " (" + noteEvent.getPitch() + ") v=" + noteEvent.getVelocity() + ". " + TOOLTIP_HELP;
         setToolTipText(tt);
-    }
-
-    /**
-     * Pre-calculate all the velocity colors from 0 to 127.
-     */
-    private static void computeVelocityColors()
-    {
-        BufferedImage img = new BufferedImage(128, 1, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g2 = img.createGraphics();
-        Point2D start = new Point2D.Float(0, 0);
-
-        // Use 128 instead of 127: 1 pixel more to avoid strange error with LinearGradientPaint with last pixel (x=127) black with the selected color
-        Point2D end = new Point2D.Float(128, 0);
-        float[] dist =
-        {
-            0.0f, 0.5f, 1.0f
-        };
-
-
-        Color[] colors =
-        {
-            new Color(2, 0, 252), new Color(128, 0, 126), new Color(255, 0, 0)
-        };
-        LinearGradientPaint p = new LinearGradientPaint(start, end, dist, colors);
-        g2.setPaint(p);
-        g2.fillRect(0, 0, 128, 1);
-        VELOCITY_COLORS = new Color[128];
-        for (int i = 0; i < 128; i++)
-        {
-            int cInt = img.getRGB(i, 0);
-            VELOCITY_COLORS[i] = new Color(cInt);
-        }
-
-
-        Color sc = PianoRollEditorSettings.getDefault().getSelectedNoteColor();
-        Color[] selectedcolors =
-        {
-            HSLColor.changeLuminance(sc, -18), HSLColor.changeLuminance(sc, -9), sc
-        };
-        LinearGradientPaint pSelected = new LinearGradientPaint(start, end, dist, selectedcolors);
-        g2.setPaint(pSelected);
-        g2.fillRect(0, 0, 128, 1);
-        SELECTED_VELOCITY_COLORS = new Color[128];
-        for (int i = 0; i < 128; i++)
-        {
-            int cInt = img.getRGB(i, 0);
-            SELECTED_VELOCITY_COLORS[i] = new Color(cInt);
-        }
-
-
-        g2.dispose();
-
     }
 
     /**

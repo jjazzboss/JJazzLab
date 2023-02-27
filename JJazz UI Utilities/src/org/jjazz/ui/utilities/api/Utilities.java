@@ -43,6 +43,7 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
 import java.awt.geom.Rectangle2D;
+import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -123,6 +124,22 @@ public class Utilities
         return res;
     }
 
+
+    /**
+     * Get the size of a text with the specified font.
+     * <p>
+     * Use a temporary BufferedImage() to calculate the sizing.
+     */
+    static public Rectangle2D getStringBounds(String text, Font f)
+    {
+        BufferedImage img = new BufferedImage(3, 3, BufferedImage.TYPE_INT_ARGB);       // Size does not matter
+        Graphics2D g2 = img.createGraphics();
+        var sm = new StringMetrics(g2, f);
+        var res = sm.getLogicalBoundsNoLeading(text);
+        img.flush();
+        g2.dispose();
+        return res;
+    }
 
     /**
      * Gets the usable rectangle area within the borders (insets) of the JComponent.
@@ -294,8 +311,7 @@ public class Utilities
      * <p>
      * If Presenter.Popup is implemented and the JMenuItem returned by getPopupPresenter()... :<br>
      * - has client property DynamicMenuContent.HIDE_WHEN_DISABLED, then no menu item is created if action is disabled.<br>
-     * - is instance of DynamicContent, then use the result of item.getMenuPresenters() (JMenuItems, or JSeparators for null
-     * values).
+     * - is instance of DynamicContent, then use the result of item.getMenuPresenters() (JMenuItems, or JSeparators for null values).
      *
      * @param action
      * @param context The context used for the action if it's a ContextAwareAction instance
@@ -305,7 +321,7 @@ public class Utilities
     {
         if (action == null)
         {
-            throw new IllegalArgumentException("action=" + action + " context=" + context);   
+            throw new IllegalArgumentException("action=" + action + " context=" + context);
         }
 
         // switch to replacement action if there is some
@@ -314,7 +330,7 @@ public class Utilities
             Action contextAwareAction = ((ContextAwareAction) action).createContextAwareInstance(context);
             if (contextAwareAction == null)
             {
-                throw new IllegalArgumentException("ContextAwareAction.createContextAwareInstance(context) returns null.");   
+                throw new IllegalArgumentException("ContextAwareAction.createContextAwareInstance(context) returns null.");
             } else
             {
                 action = contextAwareAction;
@@ -327,7 +343,7 @@ public class Utilities
             item = ((Presenter.Popup) action).getPopupPresenter();
             if (item == null)
             {
-                throw new IllegalArgumentException("getPopupPresenter() returning null for action=" + action);   
+                throw new IllegalArgumentException("getPopupPresenter() returning null for action=" + action);
             }
         } else
         {
@@ -405,11 +421,10 @@ public class Utilities
     /**
      * Make the specified textComponent capture all ASCII printable key presses.
      * <p>
-     * Key presses are used by an editable JTextComponent to display the chars, but it does not consume the key presses. So they
-     * are transmitted up the containment hierarchy via the keybinding framework. This means a global Netbeans action might be
-     * triggered if user types a global action shortcut (eg SPACE) in the JTextComponent.<p>
-     * This method makes textComponent capture all ASCII printable key presses (ASCII char from 32 to 126) to avoid this
-     * behaviour.
+     * Key presses are used by an editable JTextComponent to display the chars, but it does not consume the key presses. So they are
+     * transmitted up the containment hierarchy via the keybinding framework. This means a global Netbeans action might be triggered if user
+     * types a global action shortcut (eg SPACE) in the JTextComponent.<p>
+     * This method makes textComponent capture all ASCII printable key presses (ASCII char from 32 to 126) to avoid this behaviour.
      * <p>
      *
      * @param textComponent
@@ -421,8 +436,9 @@ public class Utilities
         // see https://docs.oracle.com/javase/tutorial/uiswing/misc/keybinding.html
         for (char c = 32; c <= 126; c++)
         {
-            textComponent.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(c, 0), "doNothing");   
-            textComponent.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(c, InputEvent.SHIFT_DOWN_MASK), "doNothing");   
+            textComponent.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(c, 0), "doNothing");
+            textComponent.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(c,
+                    InputEvent.SHIFT_DOWN_MASK), "doNothing");
         }
         textComponent.getActionMap().put("doNothing", NoActionInstance);
 
@@ -460,7 +476,7 @@ public class Utilities
     {
         return KeyStroke.getKeyStroke(keyEventCode, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx());
     }
-    
+
 
     public static Color calculateDisabledColor(Color c)
     {
@@ -479,7 +495,7 @@ public class Utilities
     {
         if (menuBar == null)
         {
-            throw new NullPointerException("menuBar=" + menuBar + " fontSizeOffset=" + fontSizeOffset);   
+            throw new NullPointerException("menuBar=" + menuBar + " fontSizeOffset=" + fontSizeOffset);
         }
         for (int i = 0; i < menuBar.getMenuCount(); i++)
         {
@@ -523,7 +539,7 @@ public class Utilities
     {
         if (c == null)
         {
-            throw new NullPointerException("c=" + c + " fontSizeOffset=" + fontSizeOffset);   
+            throw new NullPointerException("c=" + c + " fontSizeOffset=" + fontSizeOffset);
         }
         Font f = c.getFont();
         if (f != null)
@@ -644,8 +660,7 @@ public class Utilities
     /**
      * Convenience static method to disable all components of a given Container, including nested Containers.
      * <p>
-     * The method saves the enabled state of children, in order to reenable them (or not) as required when calling
-     * enableContainer().
+     * The method saves the enabled state of children, in order to reenable them (or not) as required when calling enableContainer().
      *
      * @param container the Container containing Components to be disabled
      * @see #enableContainer(java.awt.Container)
@@ -688,8 +703,8 @@ public class Utilities
     }
 
     /**
-     * Convenience method for searching below <code>container</code> in the component hierarchy and return nested components that
-     * are instances of class <code>clazz</code> it finds.
+     * Convenience method for searching below <code>container</code> in the component hierarchy and return nested components that are
+     * instances of class <code>clazz</code> it finds.
      * <p>
      * Returns an empty list if no such components exist in the container.
      * <p>
@@ -754,16 +769,16 @@ public class Utilities
     /**
      * Installs a listener to receive notification when the text of any {@code JTextComponent} is changed.
      * <p>
-     * Internally, it installs a {@link DocumentListener} on the text component's {@link Document}, and a
-     * {@link PropertyChangeListener} on the text component to detect if the {@code Document} itself is replaced.
+     * Internally, it installs a {@link DocumentListener} on the text component's {@link Document}, and a {@link PropertyChangeListener} on
+     * the text component to detect if the {@code Document} itself is replaced.
      * <p>
      * Usage: addChangeListener(someTextBox, e -> doSomething());
      * <p>
      * From Stackoverflow: https://stackoverflow.com/questions/3953208/value-change-listener-to-jtextfield
      *
      * @param text           any text component, such as a {@link JTextField} or {@link JTextArea}
-     * @param changeListener a listener to receieve {@link ChangeEvent}s when the text is changed; the source object for the
-     *                       events will be the text component
+     * @param changeListener a listener to receieve {@link ChangeEvent}s when the text is changed; the source object for the events will be
+     *                       the text component
      * @throws NullPointerException if either parameter is null
      */
     public static void addChangeListener(JTextComponent text, ChangeListener changeListener)
@@ -792,7 +807,7 @@ public class Utilities
             public void changedUpdate(DocumentEvent e)
             {
                 lastChange++;
-                SwingUtilities.invokeLater(() ->
+                SwingUtilities.invokeLater(() -> 
                 {
                     if (lastNotifiedChange != lastChange)
                     {
@@ -804,7 +819,7 @@ public class Utilities
         };
 
 
-        text.addPropertyChangeListener("document", (PropertyChangeEvent e) ->
+        text.addPropertyChangeListener("document", (PropertyChangeEvent e) -> 
         {
             Document d1 = (Document) e.getOldValue();
             Document d2 = (Document) e.getNewValue();

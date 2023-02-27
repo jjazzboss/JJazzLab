@@ -33,26 +33,28 @@ import org.jjazz.ui.mixconsole.api.MixConsole;
 /**
  * A LayoutManager to arrange the MixChannelPanels and their UserChannelExtensionPanels in the MixConsole.
  */
-public class MixConsoleLayoutManager implements LayoutManager
+public class MixConsoleLayoutManagerHorizontal implements LayoutManager
 {
+
     private static final int H_PADDING = 3;
     private static final int V_PADDING = 2;
-    
+
     private final MixConsole mixConsole;
-    private static final Logger LOGGER = Logger.getLogger(MixConsoleLayoutManager.class.getSimpleName());
-    
-    public MixConsoleLayoutManager(MixConsole mixConsole)
+    private static final Logger LOGGER = Logger.getLogger(MixConsoleLayoutManagerHorizontal.class.getSimpleName());
+
+    public MixConsoleLayoutManagerHorizontal(MixConsole mixConsole)
     {
         this.mixConsole = mixConsole;
     }
-    
+
     @Override
     public void layoutContainer(Container container)
-    {                
+    {
         Insets in = container.getInsets();
         int xMin = in.left + H_PADDING;
         int yMin = in.top + V_PADDING;
         int x = xMin;
+        int yMax = 0;
 
 
         for (var panelSet : mixConsole.getChannelPanelSets().values())     // Sorted by channel
@@ -76,16 +78,29 @@ public class MixConsoleLayoutManager implements LayoutManager
                 ucep.setLocation(x, y);
                 y += ucep.getHeight() + V_PADDING;
             }
-
-
-            // PhraseViewerPanel below
-            var mcpv = panelSet.phraseViewerPanel;
-            pd = mcpv.getPreferredSize();
-            mcpv.setSize(mcp.getWidth(), pd.height);
-            mcpv.setLocation(x, y);
-
-
             x += mcp.getWidth() + H_PADDING;
+
+            yMax = Math.max(yMax, y);
+        }
+
+
+        // Layout PhraseViewerPanels as horizontal lanes across the bottom of the MixConsole
+        int nbChannels = mixConsole.getChannelPanelSets().size();
+        if (nbChannels > 0)
+        {
+            yMax += 3;
+            x = xMin;
+            int h = container.getHeight() - in.bottom - yMax;
+            int w = container.getWidth() - in.left - in.right;
+            float yf = yMax;
+            for (var panelSet : mixConsole.getChannelPanelSets().values())     // Sorted by channel
+            {
+                var pvp = panelSet.phraseViewerPanel;
+                int channelHeight = Math.max((h - ((nbChannels - 1) * V_PADDING)) / nbChannels, pvp.getMinimumSize().height);                
+                pvp.setSize(w, channelHeight);
+                pvp.setLocation(x, Math.round(yf));
+                yf += (float) h / nbChannels + V_PADDING;
+            }
         }
 
     }
@@ -99,7 +114,7 @@ public class MixConsoleLayoutManager implements LayoutManager
     @Override
     public void removeLayoutComponent(Component comp)
     {
-     // Nothing
+        // Nothing
     }
 
     @Override
@@ -141,7 +156,6 @@ public class MixConsoleLayoutManager implements LayoutManager
     // Private methods
     // ===============================================================================
 
-  
 
     // ===============================================================================
     // Private classes

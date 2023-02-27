@@ -178,7 +178,7 @@ public class MusicGenerationQueue implements Runnable
 
             if (incoming != null)
             {
-                LOGGER.log(Level.FINE, "MusicGenerationTaskHandler.run() handling incoming={0} nanoTime()={1}", new Object[]
+                LOGGER.log(Level.FINE, "MusicGenerationQueue.run() handling incoming={0} nanoTime()={1}", new Object[]
                 {
                     incoming, System.nanoTime()
                 });
@@ -192,7 +192,7 @@ public class MusicGenerationQueue implements Runnable
                 // Handle the last pending context, reset it if handling was successful
                 if (handleContext(pendingSongContext))
                 {
-                    LOGGER.log(Level.FINE, "MusicGenerationTaskHandler.run() handled pendingSongContext={0}", pendingSongContext);
+                    LOGGER.log(Level.FINE, "MusicGenerationQueue.run() handled pendingSongContext={0}", pendingSongContext);
                     pendingSongContext = null;
                 }
             }

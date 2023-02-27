@@ -23,6 +23,7 @@
 package org.jjazz.phrase.api.ui;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import java.awt.Color;
@@ -32,6 +33,7 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.geom.Line2D;
 import java.awt.geom.Path2D;
+import java.awt.geom.Rectangle2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.logging.Logger;
@@ -39,6 +41,7 @@ import javax.swing.JPanel;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
+import org.jjazz.ui.colorsetmanager.api.NoteColorManager;
 import org.jjazz.ui.utilities.api.HSLColor;
 import org.jjazz.ui.utilities.api.Utilities;
 import org.jjazz.uisettings.api.GeneralUISettings;
@@ -52,7 +55,9 @@ import org.jjazz.util.api.IntRange;
 public class PhraseBirdsEyeViewComponent extends JPanel implements PropertyChangeListener
 {
 
-    public static final int MIN_HEIGHT = 10;
+    private static final Color COLOR_LABEL_FOREGROUND = new Color(187, 187, 187);
+    private static final Color COLOR_LABEL_BACKGROUND = new Color(51, 51, 51);
+    public static final int MIN_HEIGHT = 8;
     public static final int MIN_WIDTH = 30;
     public static final int PREF_HEIGHT = 30;
     public static final int PREF_BAR_WIDTH = 10;
@@ -65,10 +70,31 @@ public class PhraseBirdsEyeViewComponent extends JPanel implements PropertyChang
     private Phrase phrase;
     private FloatRange beatRange;
     private TimeSignature timeSignature;
-    private boolean showVelocity = true;
+    private int showVelocityMode = 1;
     private float markerPos = -1;
+    private String label;
+    private Rectangle2D labelSize;
+
+
     private static final Font FONT = GeneralUISettings.getInstance().getStdCondensedFont().deriveFont(10f);
     private static final Logger LOGGER = Logger.getLogger(PhraseBirdsEyeViewComponent.class.getSimpleName());
+
+    public String getLabel()
+    {
+        return label;
+    }
+
+    /**
+     * Add a label in the top left corner.
+     *
+     * @param label if null no label is shown
+     */
+    public void setLabel(String label)
+    {
+        this.label = label;
+        labelSize = Utilities.getStringBounds(label, FONT);
+        repaint();
+    }
 
     /**
      * Set the position of the marker.
@@ -101,7 +127,6 @@ public class PhraseBirdsEyeViewComponent extends JPanel implements PropertyChang
         {
             int xMax = r.x + r.width - 1;
             int yMax = r.y + r.height - 1;
-            int nbBars = getSizeInBars();
             double xRatio = r.width / beatRange.size();
             IntRange pitchRange = getViewablePitchRange(MID_PITCH_RANGE, OUT_OF_RANGE_PITCH_RATIO);
             double yRatio = (double) r.height / pitchRange.size();
@@ -117,7 +142,7 @@ public class PhraseBirdsEyeViewComponent extends JPanel implements PropertyChang
             for (int i = 0; i < nbBeats; i++)
             {
                 double x = r.x + i * beatWidth; //  - 0.5d;
-                boolean isBar = (i % timeSignature.getNbNaturalBeats()) == 0;
+                boolean isBar = timeSignature != null && (i % timeSignature.getNbNaturalBeats()) == 0;
                 Color c = isBar ? cBar : cBeat;
                 g2.setColor(c);
 
@@ -174,6 +199,22 @@ public class PhraseBirdsEyeViewComponent extends JPanel implements PropertyChang
             Utilities.drawStringAligned(g2, this, "void", 1);
         }
 
+
+        // Draw label with 
+        if (label != null)
+        {
+            Color c = COLOR_LABEL_BACKGROUND;
+            c = new Color(c.getRed(), c.getGreen(), c.getBlue(), 170);
+            g2.setColor(c);
+            g2.fillRect(r.x, r.y, (int) Math.ceil(labelSize.getWidth()) + 2, (int) Math.ceil(labelSize.getHeight()));
+
+            float x = r.x + 1;
+            float yStr = r.y - (float) labelSize.getY() + 1;
+            g2.setColor(COLOR_LABEL_FOREGROUND);
+            g2.setFont(FONT);
+            g2.drawString(label, x, yStr);
+        }
+
         g2.dispose();
     }
 
@@ -185,22 +226,25 @@ public class PhraseBirdsEyeViewComponent extends JPanel implements PropertyChang
 
 
     /**
+     * Get the show velocity mode.
      *
-     * @return If true use different color nuances depending on velocity.
+     * @return
+     * @see #setShowVelocityMode(int)
      */
-    public boolean isShowVelocity()
+    public int getShowVelocityMode()
     {
-        return showVelocity;
+        return showVelocityMode;
     }
 
     /**
-     * If true use different color nuances depending on velocity.
+     * Set the show velocity mode.
      *
-     * @param showVelocity the showVelocity to set
+     * @param showVelocityMode 0=don't show velocity. 1=use variation of the foreground color. 2=use different color shades.
      */
-    public void setShowVelocity(boolean showVelocity)
+    public void setShowVelocityMode(int showVelocityMode)
     {
-        this.showVelocity = showVelocity;
+        Preconditions.checkArgument(showVelocityMode >= 0 && showVelocityMode <= 2, "showVelocityMode=%s", showVelocityMode);
+        this.showVelocityMode = showVelocityMode;
         repaint();
     }
 
@@ -208,12 +252,11 @@ public class PhraseBirdsEyeViewComponent extends JPanel implements PropertyChang
      * Set the Phrase model.
      *
      * @param model
-     * @param ts
+     * @param ts        If null bar lines will not be drawn
      * @param beatRange Can't be an empty range
      */
     public void setModel(Phrase model, TimeSignature ts, FloatRange beatRange)
     {
-        checkNotNull(ts);
         checkNotNull(beatRange);
         checkArgument(!beatRange.isEmpty(), "beatRange is empty");
 
@@ -259,20 +302,16 @@ public class PhraseBirdsEyeViewComponent extends JPanel implements PropertyChang
         }
     }
 
+    /**
+     * Can be null.
+     *
+     * @return
+     */
     public TimeSignature getTimeSignature()
     {
         return timeSignature;
     }
 
-    /**
-     * Get the number of bars corresponding to the beat range.
-     *
-     * @return Rounded to number of bars.
-     */
-    public int getSizeInBars()
-    {
-        return (int) Math.ceil(this.beatRange.size() / timeSignature.getNbNaturalBeats());
-    }
 
     // ----------------------------------------------------------------------------
     // PropertyChangeListener interface
@@ -342,24 +381,21 @@ public class PhraseBirdsEyeViewComponent extends JPanel implements PropertyChang
         if (!isEnabled())
         {
             res = getBackground().brighter();
-        } else if (!isShowVelocity())
+        } else if (showVelocityMode == 0)
         {
             res = getForeground();
+        } else if (showVelocityMode == 1)
+        {
+            // Make one color vary depending on velocity
+            res = NoteColorManager.getDefault().getNoteColor(getForeground(), ne.getVelocity());
         } else
         {
-            // Make color vary depending on velocity
-            // Use a luminance variation centered around velocity=64
-            int v = ne.getVelocity();
-            HSLColor hsl = new HSLColor(getForeground());
-            float lum = hsl.getLuminance();
-            int lumMaxDelta = 20;
-            float lumDelta = (v - 64) * lumMaxDelta / 64;
-            lum += lumDelta;
-            lum = Math.min(100f, lum);
-            lum = Math.max(0f, lum);
-            res = hsl.adjustLuminance(lum);
+            // Use several color shades depending on velocity
+            res = NoteColorManager.getDefault().getNoteColor(ne.getVelocity());
         }
 
         return res;
     }
+
+
 }

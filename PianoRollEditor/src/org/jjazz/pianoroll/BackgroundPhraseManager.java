@@ -64,11 +64,13 @@ public class BackgroundPhraseManager implements PropertyChangeListener
 
 
         // Get notified of new song phrases
-        BackgroundSongMusicBuilder.getInstance().addPropertyChangeListener(this);
-
+        var bsmb = BackgroundSongMusicBuilder.getInstance();
+        bsmb.addPropertyChangeListener(this);
+        lastResult = bsmb.getLastResult();          // Might be null, but important to get some data if PianoRollEditor is created after bsmb produced a result
 
         // Listen to user selection changes
         backgroundPhrasesPanel.addPropertyChangeListener(BackgroundPhrasesPanel.PROP_SELECTED_TRACK_NAMES, this);
+
 
     }
 
@@ -88,7 +90,6 @@ public class BackgroundPhraseManager implements PropertyChangeListener
             String name = buildPhraseName(ch);
             names.add(name);
         }
-        lastResult = null;    // Important to make sure we regenerate music when editor's model changes eg from a user track edit to a RP_SYS_CustomPhrase edit
         backgroundPhrasesPanel.setTracks(names);        // This will clear selection
     }
 
@@ -113,8 +114,6 @@ public class BackgroundPhraseManager implements PropertyChangeListener
     //=============================================================================
     // Private methods
     //=============================================================================
-
-   
 
     /**
      * A music generation task is complete, update visible background phrases.
@@ -150,7 +149,7 @@ public class BackgroundPhraseManager implements PropertyChangeListener
                 return;
             }
 
-            
+
             // Update selected background phrases
             Map<Integer, Phrase> mapChannelPhrase = new HashMap<>();
             for (var name : selectedPhraseNames)

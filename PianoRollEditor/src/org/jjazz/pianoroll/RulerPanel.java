@@ -37,6 +37,7 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.font.TextAttribute;
+import java.awt.geom.Rectangle2D;
 import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
@@ -113,6 +114,7 @@ public class RulerPanel extends javax.swing.JPanel implements ClsChangeListener,
 
 
         this.editor.getSettings().addPropertyChangeListener(this);
+
 
         // Repaint ourself when notesPanel is resized
         this.notesPanel.addComponentListener(new ComponentAdapter()
@@ -200,7 +202,7 @@ public class RulerPanel extends javax.swing.JPanel implements ClsChangeListener,
     public void paintComponent(Graphics g)
     {
         Graphics2D g2 = (Graphics2D) g.create();
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        // g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         var settings = editor.getSettings();
 
@@ -228,6 +230,7 @@ public class RulerPanel extends javax.swing.JPanel implements ClsChangeListener,
         // Get X coordinate of all beat positions
         var tmapPosX = xMapper.getBeatsXPositions(null);
         var allBeatPositions = tmapPosX.navigableKeySet();
+        float oneBeatPixelSize = xMapper.getOneBeatPixelSize();
 
 
         // Take into account the possible different rulerStartBar
@@ -240,6 +243,7 @@ public class RulerPanel extends javax.swing.JPanel implements ClsChangeListener,
             var offsettedBarRange = editor.getPhraseBarRange().getTransformed(barOffset);
             ChordSequence cs = new ChordSequence(offsettedBarRange);
             SongChordSequence.fillChordSequence(cs, song, offsettedBarRange);
+            int lastBar = -1;
             for (var cliCs : cs)
             {
                 var pos = cliCs.getPosition();
@@ -256,13 +260,23 @@ public class RulerPanel extends javax.swing.JPanel implements ClsChangeListener,
                 }
                 g2.setFont(baseFont);
                 g2.setColor(COLOR_CHORD_SYMBOL_FONT);
-                g2.drawString(cliCs.getData().getOriginalName(), x, y);
+                var strCs = cliCs.getData().getOriginalName();
+                if (oneBeatPixelSize > 12 || pos.getBar() != lastBar)
+                {
+                    g2.drawString(strCs, x, y);
+                } else
+                {
+                    // No room to draw several chord symbols per bar
+                    continue;
+                }
+                lastBar = pos.getBar();
             }
         }
 
 
         // Draw ticks, bar/beat number, time signatures, vertical bars, and possibly song part if available
-        boolean paintSixteenthTicks = xMapper.getOneBeatPixelSize() > 40;
+        boolean paintSixteenthTicks = oneBeatPixelSize > 40;
+        boolean paintBeatTicks = oneBeatPixelSize > 5;
         TimeSignature lastTs = null;
         for (Position pos : allBeatPositions)
         {
@@ -312,7 +326,7 @@ public class RulerPanel extends javax.swing.JPanel implements ClsChangeListener,
                     double hRect = bounds.getHeight() + 1 * PADDING;
                     double xRect = xSongPart;
                     double yRect = yTimeSignatureBaseLine + PADDING - hRect;
-                    var r = new RoundRectangle2D.Double(xRect, yRect, wRect, hRect, 3, 3);
+                    var r = new Rectangle2D.Double(xRect, yRect, wRect, hRect);
                     Color c = ColorSetManager.getDefault().getColor(spt.getParentSection().getData().getName());
                     g2.setColor(c);
                     g2.fill(r);
@@ -327,10 +341,19 @@ public class RulerPanel extends javax.swing.JPanel implements ClsChangeListener,
 
 
             // Draw tick
-            Color c = pos.isFirstBarBeat() ? settings.getRulerBarTickColor() : COLOR_BEAT_TICK;
-            int tickLength = pos.isFirstBarBeat() ? BAR_TICK_LENGTH : BEAT_TICK_LENGTH;
-            g2.setColor(c);
-            g2.drawLine(x, yTopBarLane, x, yTopBarLane + tickLength - 1);
+            if (pos.isFirstBarBeat())
+            {
+                Color c = settings.getRulerBarTickColor();
+                int tickLength = BAR_TICK_LENGTH;
+                g2.setColor(c);
+                g2.drawLine(x, yTopBarLane, x, yTopBarLane + tickLength - 1);
+            } else if (paintBeatTicks)
+            {
+                Color c = COLOR_BEAT_TICK;
+                int tickLength = BEAT_TICK_LENGTH;
+                g2.setColor(c);
+                g2.drawLine(x, yTopBarLane, x, yTopBarLane + tickLength - 1);
+            }
 
 
             // Draw sixteenth ticks
@@ -338,7 +361,7 @@ public class RulerPanel extends javax.swing.JPanel implements ClsChangeListener,
             {
                 g2.setColor(COLOR_SIXTEENTH_TICK);
                 float xSixteenthTick = x;
-                float sixteenthBeatPixelSize = xMapper.getOneBeatPixelSize() / 4;
+                float sixteenthBeatPixelSize = oneBeatPixelSize / 4;
                 for (int i = 0; i < 3; i++)
                 {
                     xSixteenthTick += sixteenthBeatPixelSize;
