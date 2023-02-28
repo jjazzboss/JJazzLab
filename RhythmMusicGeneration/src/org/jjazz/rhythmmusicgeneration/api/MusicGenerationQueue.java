@@ -23,8 +23,6 @@
 package org.jjazz.rhythmmusicgeneration.api;
 
 import java.util.Map;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -48,8 +46,8 @@ import org.openide.util.ChangeSupport;
 /**
  * A thread to handle successive incoming music generation requests.
  * <p>
- * If several music generation requests arrive while a music generation task is already running, requests are buffered. When generation task
- * is done, a new music generation task is started with the last request received, the previous ones are discarded.
+ * If several music generation requests arrive while a music generation task is already running, only the last request is kept. When
+ * generation task is done, a new music generation task is started with that last request.
  * <p>
  * A ChangeEvent is fired when a music generation task is complete and a result is available. Note that ChangeEvent is fired outside of the
  * Swing EDT.
@@ -70,12 +68,12 @@ public class MusicGenerationQueue implements Runnable
     }
 
 
-    private final Queue<SongContext> queue = new ConcurrentLinkedQueue<>();
     private ExecutorService executorService;
     private ScheduledExecutorService generationExecutorService;
     private Future<?> generationFuture;
     private UpdateGenerationTask generationTask;
-    private SongContext pendingSongContext;
+    private SongContext threadSharedSongContext;
+    private SongContext lastAddedSongContext;
     private Result lastResult;
     private final int preUpdateBufferTimeMs;
     private final int postUpdateSleepTimeMs;
@@ -98,16 +96,17 @@ public class MusicGenerationQueue implements Runnable
     /**
      * Add a music generation request to this queue.
      *
-     * @param sgContext Generate music for this context. sgContext should not be modified after being passed to the method.
+     * @param sgContext Generate music for this context.
      */
     public void add(SongContext sgContext)
     {
-        queue.add(sgContext);
+        lastAddedSongContext = sgContext;
+        writeThreadSharedSongContext(sgContext);
     }
 
-    public int getQueueSize()
+    public SongContext getLastAddedSongContext()
     {
-        return queue.size();
+        return lastAddedSongContext;
     }
 
     public boolean isRunning()
@@ -172,16 +171,19 @@ public class MusicGenerationQueue implements Runnable
     @Override
     public void run()
     {
+        SongContext pendingSongContext = null;
+
+
         while (running)
         {
-            SongContext incoming = queue.poll();           // Does not block if empty
+            SongContext incoming = readThreadSharedSongContextThenNullify();
 
             if (incoming != null)
             {
-                LOGGER.log(Level.FINE, "MusicGenerationQueue.run() handling incoming={0} nanoTime()={1}", new Object[]
-                {
-                    incoming, System.nanoTime()
-                });
+//                LOGGER.log(Level.FINE, "MusicGenerationQueue.run() handling incoming={0} nanoTime()={1}", new Object[]
+//                {
+//                    incoming, System.nanoTime()
+//                });
                 // LOGGER.info("UpdateRequestsHandler.run() handling cls=" + toDebugString(incoming.getSong().getChordLeadSheet()));
 
                 // Handle new context, save as pending if handling failed
@@ -192,7 +194,7 @@ public class MusicGenerationQueue implements Runnable
                 // Handle the last pending context, reset it if handling was successful
                 if (handleContext(pendingSongContext))
                 {
-                    LOGGER.log(Level.FINE, "MusicGenerationQueue.run() handled pendingSongContext={0}", pendingSongContext);
+//                    LOGGER.log(Level.FINE, "MusicGenerationQueue.run() handled pendingSongContext={0}", pendingSongContext);
                     pendingSongContext = null;
                 }
             }
@@ -235,6 +237,23 @@ public class MusicGenerationQueue implements Runnable
     // =============================================================================================
     // Private methods
     // =============================================================================================
+    private synchronized void writeThreadSharedSongContext(SongContext sgContext)
+    {
+        threadSharedSongContext = sgContext;
+    }
+
+    private synchronized SongContext readThreadSharedSongContext()
+    {
+        return threadSharedSongContext;
+    }
+
+    private synchronized SongContext readThreadSharedSongContextThenNullify()
+    {
+        var res = threadSharedSongContext;
+        threadSharedSongContext = null;
+        return res;
+    }
+
     /**
      * Try to start a new task or update existing task if possible.
      * <p>
@@ -249,14 +268,14 @@ public class MusicGenerationQueue implements Runnable
         if (generationFuture == null)
         {
             // No generation task created yet, start one
-            LOGGER.fine("handleContext() start generation FIRST TIME");
+            // LOGGER.fine("handleContext() start generation FIRST TIME");
             startGenerationTask(sgContext);
             b = true;
 
         } else if (generationFuture.isDone())
         {
             // There is a generation task but it is complete, restart one
-            LOGGER.fine("handleContext() start generation");
+            // LOGGER.fine("handleContext() start generation");
             startGenerationTask(sgContext);
             b = true;
 
@@ -265,7 +284,7 @@ public class MusicGenerationQueue implements Runnable
             // There is a generation task but not started yet (wait preUpdateBufferTimeMs), try to update it
             if (generationTask.changeContext(sgContext))
             {
-                LOGGER.fine("handleContext() changed context of current generation task");
+                // LOGGER.fine("handleContext() changed context of current generation task");
                 // OK, task was waiting, we're done
                 b = true;
 

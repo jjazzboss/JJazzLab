@@ -25,7 +25,6 @@ package org.jjazz.activesong.api;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
@@ -99,7 +98,8 @@ public class BackgroundSongMusicBuilder implements ChangeListener, PropertyChang
     public void addPropertyChangeListener(PropertyChangeListener listener)
     {
         pcs.addPropertyChangeListener(listener);
-        start();
+        LOGGER.severe("addPropertyChangeListener() DEBUG START SKIPPED !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        // start();
     }
 
     public void removePropertyChangeListener(PropertyChangeListener listener)
@@ -154,7 +154,7 @@ public class BackgroundSongMusicBuilder implements ChangeListener, PropertyChang
 
         // Prepare a copy of the song context
         var song = songMusicGenerationListener.getSong();
-        LOGGER.log(Level.FINE, "stateChanged() -- posting music generation request for {0}", song.getName());
+        // LOGGER.log(Level.FINE, "stateChanged() -- posting music generation request for {0}", song.getName());
         var midiMix = songMusicGenerationListener.getMidiMix();
         SongContext sgContextCopy = new SongContext(song, midiMix).deepClone(false);
         Utilities.transpose(sgContextCopy.getSong().getChordLeadSheet(), PlaybackSettings.getInstance().getPlaybackKeyTransposition());

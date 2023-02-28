@@ -74,6 +74,7 @@ public class PhraseBirdsEyeViewComponent extends JPanel implements PropertyChang
     private float markerPos = -1;
     private String label;
     private Rectangle2D labelSize;
+    private static final NoteColorManager noteColorManager = NoteColorManager.getDefault();
 
 
     private static final Font FONT = GeneralUISettings.getInstance().getStdCondensedFont().deriveFont(10f);
@@ -132,28 +133,30 @@ public class PhraseBirdsEyeViewComponent extends JPanel implements PropertyChang
             double yRatio = (double) r.height / pitchRange.size();
 
 
-            // Paint bar gradations                
+            // Paint bar gradations if timeSignature is defined               
             final int STEP = 2;
             int nbBeats = (int) beatRange.size();
             float beatWidth = (float) r.width / nbBeats;
-            Color cBeat = HSLColor.changeLuminance(getBackground(), STEP);
-            Color cBar = HSLColor.changeLuminance(getBackground(), 2 * STEP);
-
-            for (int i = 0; i < nbBeats; i++)
+            if (timeSignature != null)
             {
-                double x = r.x + i * beatWidth; //  - 0.5d;
-                boolean isBar = timeSignature != null && (i % timeSignature.getNbNaturalBeats()) == 0;
-                Color c = isBar ? cBar : cBeat;
-                g2.setColor(c);
+                Color cBeat = HSLColor.changeLuminance(getBackground(), STEP);
+                Color cBar = HSLColor.changeLuminance(getBackground(), 2 * STEP);
 
-                // Don't draw gradations if too small
-                if ((!isBar && beatWidth > 4) // Too small for a beat
-                        || (isBar && beatWidth > 1))     // Too smal for a bar too!
+                for (int i = 0; i < nbBeats; i++)
                 {
-                    var line = new Line2D.Double(x, r.y, x, yMax);
-                    g2.draw(line);
-                }
+                    double x = r.x + i * beatWidth; //  - 0.5d;
+                    boolean isBar = (i % timeSignature.getNbNaturalBeats()) == 0;
+                    Color c = isBar ? cBar : cBeat;
+                    g2.setColor(c);
 
+                    // Don't draw gradations if too small
+                    if ((!isBar && beatWidth > 4) // Too small for a beat
+                            || (isBar && beatWidth > 1))     // Too smal for a bar too!
+                    {
+                        var line = new Line2D.Double(x, r.y, x, yMax);
+                        g2.draw(line);
+                    }
+                }
             }
 
 
@@ -387,11 +390,11 @@ public class PhraseBirdsEyeViewComponent extends JPanel implements PropertyChang
         } else if (showVelocityMode == 1)
         {
             // Make one color vary depending on velocity
-            res = NoteColorManager.getDefault().getNoteColor(getForeground(), ne.getVelocity());
+            res = noteColorManager.getNoteColor(getForeground(), ne.getVelocity());
         } else
         {
             // Use several color shades depending on velocity
-            res = NoteColorManager.getDefault().getNoteColor(ne.getVelocity());
+            res = noteColorManager.getNoteColor(ne.getVelocity());
         }
 
         return res;

@@ -22,29 +22,17 @@
  */
 package org.jjazz.ui.musiccontrolactions;
 
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.jjazz.activesong.api.ActiveSongManager;
-import org.jjazz.musiccontrol.api.MusicController;
-import org.jjazz.song.api.Song;
 
 import org.openide.awt.Actions;
-import org.openide.util.Lookup;
-import org.openide.util.LookupEvent;
-import org.openide.util.LookupListener;
-import org.openide.util.Utilities;
 import org.openide.util.actions.BooleanStateAction;
 
 /**
  * The panel used to show the auto-preview button.
  */
-public class AutoPreviewToolbarPanel extends javax.swing.JPanel implements PropertyChangeListener, LookupListener
+public class AutoPreviewToolbarPanel extends javax.swing.JPanel
 {
 
-    private final Lookup.Result<Song> lookupResult;
-    private Song currentSong;
     private static final Logger LOGGER = Logger.getLogger(AutoPreviewToolbarPanel.class.getSimpleName());
 
     public AutoPreviewToolbarPanel()
@@ -54,118 +42,9 @@ public class AutoPreviewToolbarPanel extends javax.swing.JPanel implements Prope
         // Initialize actions
         fbtn_autopreview.setBooleanStateAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.autoupdate"));   
 
-     
-        // Listen to the current Song changes
-        lookupResult = Utilities.actionsGlobalContext().lookupResult(Song.class);
-        lookupResult.addLookupListener(this);
-        currentSongChanged();
     }
 
-    @Override
-    public void resultChanged(LookupEvent ev)
-    {
-        int i = 0;
-        Song newSong = null;
-        for (Song s : lookupResult.allInstances())
-        {
-            newSong = s;
-            i++;
-        }
-        assert i < 2 : "i=" + i + " lookupResult.allInstances()=" + lookupResult.allInstances();   
-        if (newSong != null)
-        {
-            // Current song has changed
-            if (currentSong != null)
-            {
-                currentSong.removePropertyChangeListener(this);
-            }
-            currentSong = newSong;
-            currentSong.addPropertyChangeListener(this);
-            currentSongChanged();
-        } else
-        {
-            // Do nothing : player is still using the last valid song
-        }
-        LOGGER.log(Level.FINE, "resultChanged() newSong={0} => currentSong={1}", new Object[]   
-        {
-            newSong, currentSong
-        });
-    }
-
-    // ======================================================================
-    // PropertyChangeListener interface
-    // ======================================================================    
-    @Override
-    public void propertyChange(PropertyChangeEvent evt)
-    {
-        MusicController mc = MusicController.getInstance();
-        if (evt.getSource() == mc)
-        {
-            if (evt.getPropertyName().equals(MusicController.PROP_STATE))
-            {
-                playbackStateChanged();
-            }
-        } else if (evt.getSource() == ActiveSongManager.getInstance())
-        {
-            if (evt.getPropertyName().equals(ActiveSongManager.PROP_ACTIVE_SONG))
-            {
-                activeSongChanged();
-            }
-        } else if (evt.getSource() == currentSong)
-        {
-            if (evt.getPropertyName().equals(Song.PROP_TEMPO))
-            {
-                
-            } else if (evt.getPropertyName().equals(Song.PROP_CLOSED))
-            {
-                currentSongClosed();
-            }
-        }
-    }
-
-    // ======================================================================
-    // Private methods
-    // ======================================================================   
-    private void activeSongChanged()
-    {
-        currentSongChanged();    // Enable/Disable components       
-
-
-        Song activeSong = ActiveSongManager.getInstance().getActiveSong();
-        boolean b = (currentSong != null) && (currentSong == activeSong);
-
-
-        LOGGER.log(Level.FINE, "activeSongChanged() b={0} currentSong={1} activeSong={2}", new Object[]   
-        {
-            b, currentSong, activeSong
-        });
-
-
-        if (b)
-        {
-            // Current song is active, initialize Tempo and PositionViewer
-           
-        }
-    }
-
-    private void currentSongChanged()
-    {
-        Song activeSong = ActiveSongManager.getInstance().getActiveSong();
-        boolean b = (currentSong != null) && (currentSong == activeSong);
-    }
-
-    private void currentSongClosed()
-    {
-        currentSong.removePropertyChangeListener(this);
-        currentSong = null;
-        currentSongChanged();
-    }
-
-    private void playbackStateChanged()
-    {
-        // Nothing
-    }
-
+   
     /**
      * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of
      * this method is always regenerated by the Form Editor.

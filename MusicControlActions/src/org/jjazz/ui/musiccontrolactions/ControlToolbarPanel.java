@@ -56,16 +56,17 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
         initComponents();
 
         // Initialize actions
-        fbtn_Active.setBooleanStateAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.setactive"));   
-        fbtn_Play.setBooleanStateAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.play"));   
-        fbtn_Pause.setBooleanStateAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.pause"));   
-        fbtn_Stop.setBooleanStateAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.stop"));   
-        fbtn_Click.setBooleanStateAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.click"));   
-        fbtn_Precount.setBooleanStateAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.precount"));   
-        fbtn_Loop.setBooleanStateAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.loop"));   
-        fbtn_PlaybackPoint.setBooleanStateAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.showplaybackpoint"));   
-        fbtn_next.setAction(Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.playbacktonextsongpart"));   
-        fbtn_previous.setAction(Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.playbacktoprevioussongpart"));   
+        fbtn_Active.setBooleanStateAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.setactive"));
+        fbtn_Play.setBooleanStateAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.play"));
+        fbtn_Pause.setBooleanStateAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.pause"));
+        fbtn_Stop.setBooleanStateAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.stop"));
+        fbtn_Click.setBooleanStateAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.click"));
+        fbtn_Precount.setBooleanStateAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.precount"));
+        fbtn_Loop.setBooleanStateAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.loop"));
+        fbtn_PlaybackPoint.setBooleanStateAction((BooleanStateAction) Actions.forID("MusicControls",
+                "org.jjazz.ui.musiccontrolactions.showplaybackpoint"));
+        fbtn_next.setAction(Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.playbacktonextsongpart"));
+        fbtn_previous.setAction(Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.playbacktoprevioussongpart"));
 
 
         // The model for the PositionViewer
@@ -104,7 +105,7 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
             newSong = s;
             i++;
         }
-        assert i < 2 : "i=" + i + " lookupResult.allInstances()=" + lookupResult.allInstances();   
+        assert i < 2 : "i=" + i + " lookupResult.allInstances()=" + lookupResult.allInstances();
         if (newSong != null)
         {
             // Current song has changed
@@ -119,7 +120,7 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
         {
             // Do nothing : player is still using the last valid song
         }
-        LOGGER.log(Level.FINE, "resultChanged() newSong={0} => currentSong={1}", new Object[]   
+        LOGGER.log(Level.FINE, "resultChanged() newSong={0} => currentSong={1}", new Object[]
         {
             newSong, currentSong
         });
@@ -134,22 +135,22 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
         MusicController mc = MusicController.getInstance();
         if (evt.getSource() == mc)
         {
-            if (evt.getPropertyName() == MusicController.PROP_STATE)
+            if (evt.getPropertyName().equals(MusicController.PROP_STATE))
             {
                 playbackStateChanged();
             }
         } else if (evt.getSource() == ActiveSongManager.getInstance())
         {
-            if (evt.getPropertyName() == ActiveSongManager.PROP_ACTIVE_SONG)
+            if (evt.getPropertyName().equals(ActiveSongManager.PROP_ACTIVE_SONG))
             {
                 activeSongChanged();
             }
         } else if (evt.getSource() == currentSong)
         {
-            if (evt.getPropertyName() == Song.PROP_TEMPO)
+            if (evt.getPropertyName().equals(Song.PROP_TEMPO))
             {
                 spn_Tempo.setValue(currentSong.getTempo());
-            } else if (evt.getPropertyName() == Song.PROP_CLOSED)
+            } else if (evt.getPropertyName().equals(Song.PROP_CLOSED))
             {
                 currentSongClosed();
             }
@@ -168,7 +169,7 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
         boolean b = (currentSong != null) && (currentSong == activeSong);
 
 
-        LOGGER.log(Level.FINE, "activeSongChanged() b={0} currentSong={1} activeSong={2}", new Object[]   
+        LOGGER.log(Level.FINE, "activeSongChanged() b={0} currentSong={1} activeSong={2}", new Object[]
         {
             b, currentSong, activeSong
         });
@@ -208,8 +209,8 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
     }
 
     /**
-     * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of
-     * this method is always regenerated by the Form Editor.
+     * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of this
+     * method is always regenerated by the Form Editor.
      */
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents

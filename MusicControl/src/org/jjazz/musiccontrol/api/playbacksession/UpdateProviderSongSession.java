@@ -80,13 +80,12 @@ import org.openide.util.*;
  * - PlaybackSettings playback transposition changes<br>
  * - MidiMix instrument transposition/velocity changes, plus drum keymap and drum rerouting changes<br>
  * <p>
- * If change can't be handled as an update (eg a tempo change or a click setting), session is marked dirty (ie needs
- * regeneration). If session is dirty, editors can still show the playback point using the control track but the "dirty" changes
- * are not heard.
+ * If change can't be handled as an update (eg a tempo change or a click setting), session is marked dirty (ie needs regeneration). If
+ * session is dirty, editors can still show the playback point using the control track but the "dirty" changes are not heard.
  * <p>
- * A more serious change like a structural change of the song context will make the session dirty, plus it disables the control
- * track and any future update. So editors should stop showing the playback point, and any further change will not be heard (until
- * a new session is generated).
+ * A more serious change like a structural change of the song context will make the session dirty, plus it disables the control track and
+ * any future update. So editors should stop showing the playback point, and any further change will not be heard (until a new session is
+ * generated).
  */
 public class UpdateProviderSongSession extends BaseSongSession implements UpdatableSongSession.UpdateProvider, SgsChangeListener, ClsChangeListener, VetoableChangeListener
 {
@@ -108,27 +107,25 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
     private MusicGenerationQueue musicGenerationQueue;
     private Consumer<UserErrorGenerationException> userErrorExceptionHandler;
     private static final List<UpdateProviderSongSession> sessions = new ArrayList<>();
-    private static final Logger LOGGER = Logger.getLogger(UpdateProviderSongSession.class.getSimpleName());  
+    private static final Logger LOGGER = Logger.getLogger(UpdateProviderSongSession.class.getSimpleName());
 
 
     /**
      * Create or reuse a session for the specified parameters.
      * <p>
      * <p>
-     * Sessions are cached: if a non-dirty session in the NEW or GENERATED state already exists for the same parameters then
-     * return it, otherwise a new session is created.
+     * Sessions are cached: if a non-dirty session in the NEW or GENERATED state already exists for the same parameters then return it,
+     * otherwise a new session is created.
      * <p>
      *
      * @param sgContext
      * @param enablePlaybackTransposition If true apply the playback transposition
-     * @param includeClickTrack           If true add the click track, and its muted/unmuted state will depend on the
-     *                                    PlaybackSettings
+     * @param includeClickTrack           If true add the click track, and its muted/unmuted state will depend on the PlaybackSettings
      * @param includePrecountTrack        If true add the precount track, and loopStartTick will depend on the PlaybackSettings
      * @param includeControlTrack         if true add a control track (beat positions + chord symbol markers)
-     * @param enableUpdateControl         If true updates are authorized depending on the PlaybackSettings AutoUpdateEnabled
-     *                                    value.
-     * @param loopCount                   See Sequencer.setLoopCount(). Use PLAYBACK_SETTINGS_LOOP_COUNT to rely on the
-     *                                    PlaybackSettings instance value.
+     * @param enableUpdateControl         If true updates are authorized depending on the PlaybackSettings AutoUpdateEnabled value.
+     * @param loopCount                   See Sequencer.setLoopCount(). Use PLAYBACK_SETTINGS_LOOP_COUNT to rely on the PlaybackSettings
+     *                                    instance value.
      * @param endOfPlaybackAction         Action executed when playback is stopped. Can be null.
      * @return A session in the NEW or GENERATED state.
      */
@@ -241,7 +238,7 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
         for (var name : song.getUserPhraseNames())
         {
             song.getUserPhrase(name).removePropertyChangeListener(this);
-        }       
+        }
         sessions.remove(this);
     }
 
@@ -348,7 +345,7 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
                 case MidiMix.PROP_INSTRUMENT_MUTE ->
                 {
                     // Nothing
-                }    
+                }
                 case MidiMix.PROP_CHANNEL_DRUMS_REROUTED, MidiMix.PROP_DRUMS_INSTRUMENT_KEYMAP, MidiMix.PROP_INSTRUMENT_TRANSPOSITION, MidiMix.PROP_INSTRUMENT_VELOCITY_SHIFT ->
                     doUpdate = true;
                 default ->
@@ -504,7 +501,8 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
             } else
             {
                 // ClsActionEvent complete, check the status and update
-                assert currentClsChange != null && e.getActionId().equals(currentClsChange.actionId) : "currentClsChange=" + currentClsChange + " e=" + e;
+                assert currentClsChange != null && e.getActionId().equals(currentClsChange.actionId) :
+                        "currentClsChange=" + currentClsChange + " e=" + e;
                 LOGGER.log(Level.FINE, "chordLeadSheetChanged()  ActionEvent({0}) complete, doUpdate={1}", new Object[]
                 {
                     currentClsChange.actionId, currentClsChange.doUpdate
@@ -589,7 +587,6 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
     // ==========================================================================================================
 
     @Override
-
     public void authorizeChange(SgsChangeEvent e) throws UnsupportedEditException
     {
         // Nothing
@@ -611,7 +608,7 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
         boolean disableUpdates = false;
         boolean dirty = false;
 
-        
+
         // Context song parts (at the time of the SongContext object creation)
         List<SongPart> contextSongParts = getSongContext().getSongParts();
 
@@ -629,7 +626,8 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
             } else
             {
                 // ClsActionEvent complete, check the status and update
-                assert currentSgsChange != null && e.getActionId().equals(currentSgsChange.actionId) : "currentSgsChange=" + currentSgsChange + " e=" + e;
+                assert currentSgsChange != null && e.getActionId().equals(currentSgsChange.actionId) :
+                        "currentSgsChange=" + currentSgsChange + " e=" + e;
                 LOGGER.log(Level.FINE, "songStructureChanged()  COMPLETED ActionEvent({0}), doUpdate={1}", new Object[]
                 {
                     currentSgsChange.actionId, currentSgsChange.doUpdate
@@ -746,7 +744,8 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
         } catch (Exception e)
         {
             // Should never be here
-            LOGGER.warning("generateUpdate() unexpected updateRequestsHandler.getQueue().size()=" + musicGenerationQueue.getQueueSize());
+            LOGGER.warning("generateUpdate() unexpected updateRequestsHandler.getLastAddedSongContext()="
+                    + musicGenerationQueue.getLastAddedSongContext());
             Exceptions.printStackTrace(e);
         }
 

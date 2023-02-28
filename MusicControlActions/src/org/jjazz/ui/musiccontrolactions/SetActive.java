@@ -107,7 +107,7 @@ public class SetActive extends BooleanStateAction implements PropertyChangeListe
             newSong = s;
             i++;
         }
-        assert i < 2 : "i=" + i + " lookupResult.allInstances()=" + lookupResult.allInstances();   
+        assert i < 2 : "i=" + i + " lookupResult.allInstances()=" + lookupResult.allInstances();
         if (newSong != null)
         {
             // Current song has changed
@@ -123,7 +123,7 @@ public class SetActive extends BooleanStateAction implements PropertyChangeListe
             } catch (MidiUnavailableException ex)
             {
                 // We should never be here
-                throw new IllegalStateException("Unexpected MidiUnavailableException", ex);   
+                throw new IllegalStateException("Unexpected MidiUnavailableException", ex);
             }
             currentSong.addPropertyChangeListener(this);
             updateEnabledAndSelected();
@@ -258,7 +258,7 @@ public class SetActive extends BooleanStateAction implements PropertyChangeListe
         } catch (MusicGenerationException ex)
         {
             // Notify user "lightly", real notification will be done by the Play action
-            LOGGER.info("updatePlaybackSession() Error while setting playback session: " + ex.getMessage());
+            LOGGER.log(Level.INFO, "updatePlaybackSession() Error while setting playback session: {0}", ex.getMessage());
             StatusDisplayer.getDefault().setStatusText(ex.getMessage());
 
         } catch (MidiUnavailableException ex)

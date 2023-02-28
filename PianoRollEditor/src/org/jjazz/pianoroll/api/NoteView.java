@@ -59,7 +59,7 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
     private static final Font FONT=GeneralUISettings.getInstance().getStdCondensedFont().deriveFont(10f);;
     private static final int FONT_HEIGHT = (int)Utilities.getStringBounds("A", FONT).getHeight();
     private static String TOOLTIP_HELP = ResUtil.getString(NoteView.class, "NoteViewToolTipHelp");
-    
+        private static final NoteColorManager noteColorManager = NoteColorManager.getDefault();
 
     private NoteEvent noteEvent;
     private String noteAsString;
@@ -240,8 +240,7 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
 
     private void updateGraphics()
     {
-        NoteColorManager ncm = NoteColorManager.getDefault();
-        Color bgColor = selected ? ncm.getSelectedNoteColor(noteEvent.getVelocity()) : ncm.getNoteColor(noteEvent.getVelocity());
+        Color bgColor = selected ? noteColorManager.getSelectedNoteColor(noteEvent.getVelocity()) : noteColorManager.getNoteColor(noteEvent.getVelocity());
         setBackground(bgColor);
         setBorder(BorderFactory.createLineBorder(getBorderColor(bgColor, selected), 1));
         noteAsString = new Note(noteEvent.getPitch()).toPianoOctaveString();
