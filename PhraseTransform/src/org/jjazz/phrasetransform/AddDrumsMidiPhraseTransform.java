@@ -63,8 +63,8 @@ public class AddDrumsMidiPhraseTransform implements PhraseTransform
      *
      * @param info
      * @param addPhrase Phrase beatrange must start at 0.
-     * @param replace If true the added notes will replace all same-pitch notes from the destination phrase. If false notes are
-     * just added (but we try to avoid having 2 notes too close).
+     * @param replace If true the added notes will replaceAll all same-pitch notes from the destination phrase. If false notes are
+ just added (but we try to avoid having 2 notes too close).
      */
     public AddDrumsMidiPhraseTransform(PhraseTransform.Info info, SizedPhrase addPhrase, boolean replace)
     {

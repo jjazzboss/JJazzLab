@@ -1479,7 +1479,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
                 }
                 case Song.PROP_VETOABLE_PHRASE_NAME ->
                 {
-                    // User phrase was renamed, replace the UserRhythmVoices
+                    // User phrase was renamed, replaceAll the UserRhythmVoices
                     String oldName = (String) e.getOldValue();
                     String newName = (String) e.getNewValue();
                     UserRhythmVoice oldUrv = getUserRhythmVoice(oldName);

@@ -300,7 +300,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
     /**
      * Create and add a NoteView for the specified NoteEvent.
      * <p>
-     * Caller must call revalidate() and/or repaint() after as needed.
+     * Caller is responsible to call revalidate() and/or repaint() after, if required.
      *
      * @param ne
      */
@@ -313,7 +313,6 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
         NoteView nv = keymap == null ? new NoteView(ne) : new NoteViewDrum(ne);
         mapNoteViews.put(ne, nv);
         add(nv);
-        nv.addPropertyChangeListener(this);
         LOGGER.log(Level.FINE, "addNoteView() ne={0} ==> mapNoteViews={1}", new Object[]
         {
             ne, mapNoteViews
@@ -322,26 +321,40 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
     }
 
     /**
-     * Remove a NoteView for the specified NoteEvent.
+     * Remove NoteView.
      * <p>
-     * NoteView is unselected before being removed. Caller must call revalidate() and/or repaint() after as needed.
+     * Caller must call revalidate() and/or repaint() after as needed.
      *
-     * @param ne
+     * @param nes
      */
     public NoteView removeNoteView(NoteEvent ne)
     {
-        Preconditions.checkNotNull(ne);
+        Preconditions.checkNotNull(ne);        
+        mapNoteViews.remove(ne);        
         NoteView nv = getNoteView(ne);
-        nv.setSelected(false);
-        mapNoteViews.remove(ne);
         remove(nv);
-        nv.removePropertyChangeListener(this);
         nv.cleanup();
         LOGGER.log(Level.FINE, "removeNoteView() ne={0} ==> mapNoteViews={1}", new Object[]
         {
             ne, mapNoteViews
         });
         return nv;
+    }
+
+    /**
+     * Replace the model of an existing NoteView.
+     * 
+     * Caller is responsible of calling revalidate() and/or repaint() after as needed.
+     * @param oldNe
+     * @param newNe 
+     */
+    public void setNoteViewModel(NoteEvent oldNe, NoteEvent newNe)
+    {
+            var nv = getNoteView(oldNe);
+            assert nv!=null:" oldNe="+oldNe;
+            nv.setModel(newNe);
+            mapNoteViews.remove(oldNe);
+            mapNoteViews.put(newNe, nv);
     }
 
 
@@ -440,18 +453,6 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
         {
             settingsChanged();
 
-        } else if (evt.getSource() instanceof NoteView nv)
-        {
-            if (evt.getPropertyName().equals(NoteView.PROP_MODEL))
-            {
-                NoteEvent oldNe = (NoteEvent) evt.getOldValue();
-                // nv's model was changed, remove and readd
-                mapNoteViews.remove(oldNe);
-                mapNoteViews.put(nv.getModel(), nv);
-                revalidate();
-                repaint();
-
-            }
         }
     }
 

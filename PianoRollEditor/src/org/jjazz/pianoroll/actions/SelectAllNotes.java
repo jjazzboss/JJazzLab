@@ -43,7 +43,7 @@ public class SelectAllNotes extends AbstractAction
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        editor.getNoteViews().forEach(nv -> nv.setSelected(true));
+        editor.selectNotes(editor.getModel().getNotes(), true);
     }
 
 

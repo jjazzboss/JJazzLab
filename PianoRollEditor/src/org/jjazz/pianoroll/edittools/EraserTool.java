@@ -212,7 +212,7 @@ public class EraserTool implements EditTool
         String undoText = ResUtil.getString(EraserTool.class, "EraseNote");
         editor.getUndoManager().startCEdit(editor, undoText);
 
-        noteViews.forEach(nv -> editor.getModel().remove(nv.getModel()));
+        editor.getModel().removeAll(NoteView.getNotes(noteViews), false);
 
         editor.getUndoManager().endCEdit(undoText);
     }

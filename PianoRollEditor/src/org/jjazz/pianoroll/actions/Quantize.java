@@ -23,11 +23,14 @@
 package org.jjazz.pianoroll.actions;
 
 import java.awt.event.ActionEvent;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JComponent;
 import javax.swing.KeyStroke;
+import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.quantizer.api.Quantizer;
 import org.jjazz.util.api.ResUtil;
@@ -50,7 +53,7 @@ public class Quantize extends AbstractAction
         putValue(Action.NAME, ResUtil.getString(getClass(), "Quantize"));
         putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(), "QuantizeTooltip") + " (" + KEYBOARD_SHORTCUT + ")");
 
-        
+
         editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KEYBOARD_SHORTCUT), Quantize.ACTION_ID);
         editor.getActionMap().put(Quantize.ACTION_ID, this);
     }
@@ -76,6 +79,9 @@ public class Quantize extends AbstractAction
         String undoText = ResUtil.getString(getClass(), "Quantize");
         editor.getUndoManager().startCEdit(editor, undoText);
 
+        
+        Map<NoteEvent, Float> mapNotePos = new HashMap<>();
+        Map<NoteEvent, NoteEvent> mapOldNew = new HashMap<>();
         for (var nv : nvs)
         {
             var ne = nv.getModel();
@@ -87,13 +93,14 @@ public class Quantize extends AbstractAction
             {
                 float newDur = beatRange.to - newPosInBeats - 0.01f;
                 var newNe = ne.getCopyDurPos(newDur, newPosInBeats);
-                editor.getModel().replace(ne, newNe);
+                mapOldNew.put(ne, newNe);
             } else
             {
-                editor.getModel().move(ne, newPosInBeats);
+                mapNotePos.put(ne, newPosInBeats);
             }
-
         }
+        editor.getModel().moveAll(mapNotePos, false);
+        editor.getModel().replaceAll(mapOldNew, false);
 
 
         editor.getUndoManager().endCEdit(undoText);

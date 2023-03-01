@@ -25,7 +25,6 @@ package org.jjazz.pianoroll.actions;
 import java.awt.event.ActionEvent;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
-import org.jjazz.pianoroll.api.NotesSelectionListener;
 import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.pianoroll.edittools.EraserTool;
 
@@ -43,9 +42,8 @@ public class DeleteSelection extends AbstractAction
         this.editor = editor;
 
         // We need to enable/disable as required because action is a callback from the JJazzLab-level Delete action (key + menu entry)
-        var nsl = NotesSelectionListener.getInstance(editor);
-        nsl.addListener(e -> setEnabled(!nsl.isEmpty()));
-
+        editor.addPropertyChangeListener(PianoRollEditor.PROP_SELECTED_NOTE_VIEWS, e -> setEnabled(!editor.getSelectedNoteViews().isEmpty()));
+        
         setEnabled(false);
     }
 

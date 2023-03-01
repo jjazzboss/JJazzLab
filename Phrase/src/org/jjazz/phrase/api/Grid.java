@@ -27,6 +27,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
@@ -40,8 +41,8 @@ import org.openide.util.Exceptions;
 /**
  * A convenience class to manipulate notes from a Phrase.
  * <p>
- * The class assigns notes in fixed-sized "cells" (eg 4 cells per beats=1/16) which can then be directly accessed or modified
- * using the cell index.
+ * The class assigns notes in fixed-sized "cells" (eg 4 cells per beats=1/16) which can then be directly accessed or modified using the cell
+ * index.
  * <p>
  * To accomodate real time playing, notes starting just before a cell are included in that cell, see PRE_CELL_BEAT_WINDOW.
  * <p>
@@ -77,16 +78,16 @@ public class Grid implements Cloneable
      * The filter parameter can be used to accept only specific Phrase notes.<p>
      * If the caller modifies p outside of this grid it must then call Grid.refresh() to keep it up to date.
      *
-     * @param p Time signature must not change in the phrase.
-     * @param beatRange Grid will contain notes from this beat range, excluding upper bound. Bounds must be integer values.
+     * @param p              Time signature must not change in the phrase.
+     * @param beatRange      Grid will contain notes from this beat range, excluding upper bound. Bounds must be integer values.
      * @param nbCellsPerBeat Must be &gt; 0.
-     * @param filter If null this grid will contain all Phrase notes
+     * @param filter         If null this grid will contain all Phrase notes
      */
     public Grid(Phrase p, FloatRange beatRange, int nbCellsPerBeat, Predicate<NoteEvent> filter)
     {
         if (p == null || beatRange == null || beatRange.from < 0 || nbCellsPerBeat < 1 || beatRange.from % 1 != 0 || beatRange.to % 1 != 0)
         {
-            throw new IllegalArgumentException( 
+            throw new IllegalArgumentException(
                     "p=" + p + " beatRange=" + beatRange + " nbCellsPerBeat=" + nbCellsPerBeat + " filter=" + filter);
         }
         this.phrase = p;
@@ -96,9 +97,10 @@ public class Grid implements Cloneable
         this.originalBeatRange = beatRange;
         if (this.originalBeatRange.size() < cellDuration)
         {
-            throw new IllegalArgumentException("originalBeatRange=" + originalBeatRange + " cellDuration=" + cellDuration);   
+            throw new IllegalArgumentException("originalBeatRange=" + originalBeatRange + " cellDuration=" + cellDuration);
         }
-        this.adjustedBeatRange = this.originalBeatRange.getTransformed(originalBeatRange.from == 0 ? 0 : -preCellBeatWindow, -preCellBeatWindow);
+        this.adjustedBeatRange = this.originalBeatRange.getTransformed(originalBeatRange.from == 0 ? 0 : -preCellBeatWindow,
+                -preCellBeatWindow);
         this.cellRange = new IntRange(0, (int) (this.originalBeatRange.size() * this.cellsPerBeat) - 1);
         this.predicate = (filter != null) ? filter : ne -> true;
         refresh();
@@ -194,7 +196,7 @@ public class Grid implements Cloneable
     {
         if (!cellRange.contains(cell))
         {
-            throw new IllegalArgumentException("cell=" + cell + " cellRange=" + cellRange);   
+            throw new IllegalArgumentException("cell=" + cell + " cellRange=" + cellRange);
         }
         float start = getStartPos(cell);
         return new FloatRange(start, start + cellDuration - getPreCellBeatWindow());
@@ -204,15 +206,15 @@ public class Grid implements Cloneable
      * Return the cell range based on the specified beat range.
      *
      * @param fr
-     * @param strict If true and range is outside the bounds of this grid throw an IllegalArgumentException. Otherwise use the
-     * first/last cell of the grid.
+     * @param strict If true and range is outside the bounds of this grid throw an IllegalArgumentException. Otherwise use the first/last
+     *               cell of the grid.
      * @return
      */
     public IntRange getCellRange(FloatRange fr, boolean strict)
     {
         if (fr == null)
         {
-            throw new IllegalArgumentException("fr=" + fr);   
+            throw new IllegalArgumentException("fr=" + fr);
         }
         return new IntRange(getCell(fr.from, strict), getCell(fr.to, strict));
     }
@@ -234,8 +236,8 @@ public class Grid implements Cloneable
      * Take into account the getPreCellBeatWindow() value.
      *
      * @param posInBeats
-     * @param strict If true and posInBeats is not in this grid bounds, throw an IllegalArgumentException. Otherwise use the first
-     * or last cell.
+     * @param strict     If true and posInBeats is not in this grid bounds, throw an IllegalArgumentException. Otherwise use the first or
+     *                   last cell.
      * @return
      */
     public int getCell(float posInBeats, boolean strict)
@@ -244,7 +246,7 @@ public class Grid implements Cloneable
         {
             if (strict)
             {
-                throw new IllegalArgumentException("posInBeats=" + posInBeats + " adjustedBeatRange=" + adjustedBeatRange);   
+                throw new IllegalArgumentException("posInBeats=" + posInBeats + " adjustedBeatRange=" + adjustedBeatRange);
             } else
             {
                 return cellRange.from;
@@ -253,7 +255,7 @@ public class Grid implements Cloneable
         {
             if (strict)
             {
-                throw new IllegalArgumentException("posInBeats=" + posInBeats + " adjustedBeatRange=" + adjustedBeatRange);   
+                throw new IllegalArgumentException("posInBeats=" + posInBeats + " adjustedBeatRange=" + adjustedBeatRange);
             } else
             {
                 return cellRange.to;
@@ -298,10 +300,10 @@ public class Grid implements Cloneable
      * <p>
      * Notes can be shortened or made longer.
      *
-     * @param range Can be the empty range.
-     * @param cellOff The cell index where notes should go off.
+     * @param range     Can be the empty range.
+     * @param cellOff   The cell index where notes should go off.
      * @param shorterOk If false do not make notes shorter. Can't be false if longerOk is false.
-     * @param longerOk If false do not make notes longer. Can't be false if shorterOk is false.
+     * @param longerOk  If false do not make notes longer. Can't be false if shorterOk is false.
      */
     public void changeDuration(IntRange range, int cellOff, boolean shorterOk, boolean longerOk)
     {
@@ -311,7 +313,8 @@ public class Grid implements Cloneable
         }
         if (!cellRange.contains(range) || cellOff < range.to || !cellRange.contains(cellOff) || !shorterOk && !longerOk)
         {
-            throw new IllegalArgumentException("range=" + range + " cellIndexOff=" + cellOff + " shorterOk=" + shorterOk + " longerOk=" + longerOk + " cellRange=" + cellRange);   
+            throw new IllegalArgumentException(
+                    "range=" + range + " cellIndexOff=" + cellOff + " shorterOk=" + shorterOk + " longerOk=" + longerOk + " cellRange=" + cellRange);
         }
 
 
@@ -350,7 +353,7 @@ public class Grid implements Cloneable
      * Velocity is always maintained in the 0-127 range.
      *
      * @param range Can be the empty range.
-     * @param f A function to modify velocity to another velocity.
+     * @param f     A function to modify velocity to another velocity.
      */
     public void changeVelocity(IntRange range, Function<Integer, Integer> f)
     {
@@ -360,15 +363,17 @@ public class Grid implements Cloneable
         }
         if (!cellRange.contains(range) || f == null)
         {
-            throw new IllegalArgumentException("range=" + range + " f=" + f);   
+            throw new IllegalArgumentException("range=" + range + " f=" + f);
         }
         List<NoteEvent> nes = getCellNotes(range);
+        Map<NoteEvent, NoteEvent> mapOldNew = new HashMap<>();
         for (NoteEvent ne : nes)
         {
             int newVelocity = MidiUtilities.limit(f.apply(ne.getVelocity()));
             NoteEvent newNe = ne.getCopyVel(newVelocity);       // This clone also the clientProperties
-            phrase.replace(ne, newNe);
+            mapOldNew.put(ne, newNe);
         }
+        phrase.replaceAll(mapOldNew, false);
         if (!nes.isEmpty())
         {
             refresh();
@@ -400,7 +405,7 @@ public class Grid implements Cloneable
         }
         if (!cellRange.contains(range))
         {
-            throw new IllegalArgumentException("range=" + range + " cellRange=" + cellRange);   
+            throw new IllegalArgumentException("range=" + range + " cellRange=" + cellRange);
         }
 
         List<NoteEvent> res = new ArrayList<>();
@@ -425,7 +430,7 @@ public class Grid implements Cloneable
     {
         if (!cellRange.contains(cell))
         {
-            throw new IllegalArgumentException("cell=" + cell);   
+            throw new IllegalArgumentException("cell=" + cell);
         }
         NoteEvent res = null;
 
@@ -451,7 +456,7 @@ public class Grid implements Cloneable
         }
         if (!cellRange.contains(range))
         {
-            throw new IllegalArgumentException("range=" + range);   
+            throw new IllegalArgumentException("range=" + range);
         }
         int res = -1;
         for (int i = range.from; i <= range.to; i++)
@@ -476,7 +481,7 @@ public class Grid implements Cloneable
     {
         if (!cellRange.contains(cell))
         {
-            throw new IllegalArgumentException("cell=" + cell);   
+            throw new IllegalArgumentException("cell=" + cell);
         }
         NoteEvent res = null;
 
@@ -502,7 +507,7 @@ public class Grid implements Cloneable
         }
         if (!cellRange.contains(range))
         {
-            throw new IllegalArgumentException("range=" + range);   
+            throw new IllegalArgumentException("range=" + range);
         }
         int res = -1;
         for (int i = range.to; i >= range.from; i--)
@@ -542,7 +547,7 @@ public class Grid implements Cloneable
         }
         if (!cellRange.contains(range))
         {
-            throw new IllegalArgumentException("range=" + range);   
+            throw new IllegalArgumentException("range=" + range);
         }
         List<NoteEvent> nes = getCellNotes(range);
         phrase.removeAll(nes);
@@ -556,16 +561,16 @@ public class Grid implements Cloneable
      * Convenience method that add the note to the grid's phrase and calls refresh().
      *
      * @param cell
-     * @param n Pitch, duration and velocity are reused to create the NoteEvent.
+     * @param n            Pitch, duration and velocity are reused to create the NoteEvent.
      * @param relPosInCell The relative position in beats of the note in the cell. Value must be in the interval
-     * [-getPreCellBeatWindow():cellDuration[
+     *                     [-getPreCellBeatWindow():cellDuration[
      * @return The added note.
      */
     public NoteEvent addNote(int cell, Note n, float relPosInCell)
     {
         if (!cellRange.contains(cell) || n == null || relPosInCell < -getPreCellBeatWindow() || relPosInCell >= cellDuration)
         {
-            throw new IllegalArgumentException("cellIndex=" + cell + " relPosInCell=" + relPosInCell);   
+            throw new IllegalArgumentException("cellIndex=" + cell + " relPosInCell=" + relPosInCell);
         }
         float posInBeats = getStartPos(cell) + relPosInCell;
         NoteEvent ne = new NoteEvent(n.getPitch(), n.getDurationInBeats(), n.getVelocity(), posInBeats);
@@ -586,7 +591,7 @@ public class Grid implements Cloneable
     {
         if (oldNote.getPositionInBeats() != newNote.getPositionInBeats())
         {
-            throw new IllegalArgumentException("oldNote=" + oldNote + " newNote=" + newNote);   
+            throw new IllegalArgumentException("oldNote=" + oldNote + " newNote=" + newNote);
         }
         phrase.replace(oldNote, newNote);
         refresh();
@@ -596,17 +601,17 @@ public class Grid implements Cloneable
     /**
      * Move all notes from one cell to another.
      *
-     * @param cellFrom The index of the cell containing the notes to be moved.
-     * @param cellTo The index of the destination cell
-     * @param keepNoteOffPosition If true AND notes are moved earlier (cellIndexFrom &gt; cellIndexDest), extend the duration of
-     * the moved notes so they keep the same NOTE_OFF position.
+     * @param cellFrom            The index of the cell containing the notes to be moved.
+     * @param cellTo              The index of the destination cell
+     * @param keepNoteOffPosition If true AND notes are moved earlier (cellIndexFrom &gt; cellIndexDest), extend the duration of the moved
+     *                            notes so they keep the same NOTE_OFF position.
      * @return The number of moved notes
      */
     public int moveNotes(int cellFrom, int cellTo, boolean keepNoteOffPosition)
     {
         if (!cellRange.contains(cellFrom) || !cellRange.contains(cellTo))
         {
-            throw new IllegalArgumentException("cellFrom=" + cellFrom + " cellTo=" + cellTo);   
+            throw new IllegalArgumentException("cellFrom=" + cellFrom + " cellTo=" + cellTo);
         }
         if (cellFrom == cellTo)
         {
@@ -639,17 +644,17 @@ public class Grid implements Cloneable
     /**
      * Move the first note of cellIndexFrom to another cell.
      *
-     * @param cellFrom The index of the cell containing the note to be moved.
-     * @param cellTo The index of the destination cell
-     * @param keepNoteOffPosition If true AND note is moved earlier (cellIndexFrom &gt; cellIndexDest), extend the duration of the
-     * moved note so it keeps the same NOTE_OFF position.
+     * @param cellFrom            The index of the cell containing the note to be moved.
+     * @param cellTo              The index of the destination cell
+     * @param keepNoteOffPosition If true AND note is moved earlier (cellIndexFrom &gt; cellIndexDest), extend the duration of the moved
+     *                            note so it keeps the same NOTE_OFF position.
      * @return True if a note was moved.
      */
     public boolean moveFirstNote(int cellFrom, int cellTo, boolean keepNoteOffPosition)
     {
         if (!cellRange.contains(cellFrom) || !cellRange.contains(cellTo))
         {
-            throw new IllegalArgumentException("cellFrom=" + cellFrom + " cellTo=" + cellTo);   
+            throw new IllegalArgumentException("cellFrom=" + cellFrom + " cellTo=" + cellTo);
         }
         NoteEvent ne = getFirstNote(cellFrom);
         if (ne != null)
@@ -683,16 +688,18 @@ public class Grid implements Cloneable
     {
         if (!cellRange.contains(cell))
         {
-            throw new IllegalArgumentException("cell=" + cell);   
+            throw new IllegalArgumentException("cell=" + cell);
         }
         float pos = getStartPos(cell) - preCellBeatWindow;
         List<NoteEvent> nes = Phrases.getCrossingNotes(phrase, pos, true);
+        Map<NoteEvent, NoteEvent> mapOldNew = new HashMap<>();
         for (NoteEvent ne : nes)
         {
             float newDuration = pos - ne.getPositionInBeats();
             NoteEvent newNe = ne.getCopyDur(newDuration);
-            phrase.replace(ne, newNe);
+            mapOldNew.put(ne, newNe);
         }
+        phrase.replaceAll(mapOldNew, false);
         refresh();
         return nes.size();
     }
@@ -740,7 +747,7 @@ public class Grid implements Cloneable
     {
         if (!cellRange.contains(cell))
         {
-            throw new IllegalArgumentException("cell=" + cell + " cellRange=" + cellRange);   
+            throw new IllegalArgumentException("cell=" + cell + " cellRange=" + cellRange);
         }
         float pos = originalBeatRange.from + cell * cellDuration;
         return pos;
@@ -799,14 +806,14 @@ public class Grid implements Cloneable
     /**
      *
      * @param cellFrom If out of bound use 0
-     * @param cellTo If out of bound use lastCell
+     * @param cellTo   If out of bound use lastCell
      * @return
      */
     public String toString(int cellFrom, int cellTo)
     {
         if (cellFrom > cellTo)
         {
-            throw new IllegalArgumentException("cellFrom=" + cellFrom + " cellTo=" + cellTo);   
+            throw new IllegalArgumentException("cellFrom=" + cellFrom + " cellTo=" + cellTo);
         }
         StringBuilder sb = new StringBuilder();
         cellFrom = Math.max(0, cellFrom);

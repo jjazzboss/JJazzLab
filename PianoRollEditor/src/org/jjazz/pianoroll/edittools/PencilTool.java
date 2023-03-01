@@ -29,6 +29,7 @@ import java.awt.Toolkit;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -37,7 +38,6 @@ import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.pianoroll.NoteViewDrum;
 import org.jjazz.pianoroll.api.EditTool;
 import org.jjazz.pianoroll.api.NoteView;
-import org.jjazz.pianoroll.api.NotesSelectionListener;
 import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.quantizer.api.Quantizer;
 import org.jjazz.util.api.FloatRange;
@@ -83,15 +83,15 @@ public class PencilTool implements EditTool
         this.editor = editor;
         lastSelectedNoteVelocity = 64;
 
-        
+
         // Listen to selection to update lastSelectedNoteVelocity
-        var selListener = NotesSelectionListener.getInstance(editor);
-        selListener.addListener(e ->
+        this.editor.addPropertyChangeListener(PianoRollEditor.PROP_SELECTED_NOTE_VIEWS, e -> 
         {
-            var nv = selListener.getLastNoteViewAddedToSelection();
-            if (nv != null)
+            boolean b = (boolean) e.getNewValue();
+            List<NoteView> nvs = (List<NoteView>) e.getOldValue();
+            if (b && !nvs.isEmpty())
             {
-                lastSelectedNoteVelocity = nv.getModel().getVelocity();
+                lastSelectedNoteVelocity = nvs.get(0).getModel().getVelocity();
             }
         });
     }
@@ -125,7 +125,7 @@ public class PencilTool implements EditTool
         editor.getUndoManager().endCEdit(undoText);
 
         editor.unselectAll();
-        editor.getNoteView(ne).setSelected(true);
+        editor.selectNote(ne, true);
     }
 
     @Override
@@ -144,7 +144,7 @@ public class PencilTool implements EditTool
             dragPitch = dragNote.getPitch();
 
             editor.unselectAll();
-            editor.getNoteView(dragNote).setSelected(true);
+            editor.selectNote(dragNote, true);
 
         } else if (!editor.isDrums())
         {
@@ -159,7 +159,7 @@ public class PencilTool implements EditTool
             }
             dur = Math.min(beatRange.to - dragStartPos, dur);
             var ne = new NoteEvent(dragPitch, dur, getNewNoteVelocity(), dragStartPos);
-            editor.getModel().replace(dragNote, ne, true);
+            editor.getModel().replaceAll(Map.of(dragNote, ne), true);
             dragNote = ne;
         }
     }
@@ -210,9 +210,8 @@ public class PencilTool implements EditTool
         editor.getUndoManager().endCEdit(undoText);
 
         editor.unselectAll();
-        editor.getNoteView(ne).setSelected(true);
-
-
+        editor.selectNote(ne, true);
+        
     }
 
     @Override
@@ -255,10 +254,10 @@ public class PencilTool implements EditTool
             float dur = pos - dragStartPos;
             dur = Math.max(0.1f, dur);
             dragNote = ne.getCopyDur(dur);
-            editor.getModel().replace(ne, dragNote, true);
+            editor.getModel().replaceAll(Map.of(ne, dragNote), true);
 
             editor.unselectAll();
-            editor.getNoteView(dragNote).setSelected(true);
+            editor.selectNote(dragNote, true);
 
         } else
         {
@@ -266,7 +265,7 @@ public class PencilTool implements EditTool
             float dur = pos - dragStartPos;
             dur = Math.max(0.1f, dur);
             var newNe = dragNote.getCopyDur(dur);
-            editor.getModel().replace(dragNote, newNe, true);
+            editor.getModel().replaceAll(Map.of(dragNote, newNe), true);
             dragNote = newNe;
         }
     }

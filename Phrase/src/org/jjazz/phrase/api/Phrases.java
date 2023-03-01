@@ -74,8 +74,8 @@ public class Phrases
      */
     static public void addMidiEvents(Phrase p, List<MidiEvent> midiEvents, float posInBeatsOffset, boolean ignoreChannel)
     {
-
         // Build the NoteEvents
+        var nes = new ArrayList<NoteEvent>();
         MidiEvent[] lastNoteOn = new MidiEvent[128];
         for (MidiEvent me : midiEvents)
         {
@@ -116,7 +116,7 @@ public class Phrases
                     float duration = ((float) tick - tickOn) / MidiConst.PPQ_RESOLUTION;
                     float posInBeats = posInBeatsOffset + ((float) tickOn / MidiConst.PPQ_RESOLUTION);
                     NoteEvent ne = new NoteEvent(pitch, duration, smOn.getData2(), posInBeats);
-                    p.add(ne);
+                    nes.add(ne);
 
                     // Clean the last NoteOn
                     lastNoteOn[pitch] = null;
@@ -126,6 +126,7 @@ public class Phrases
                 }
             }
         }
+        p.addAll(nes);
     }
 
 
@@ -240,7 +241,7 @@ public class Phrases
         }
 
         p.removeAll(toBeRemoved);
-        tobeReplaced.keySet().forEach(ne -> p.replace(ne, tobeReplaced.get(ne)));
+        p.replaceAll(tobeReplaced, false);
     }
 
 
@@ -292,7 +293,7 @@ public class Phrases
                 {
                     if (frLeft.contains(neBr, false))
                     {
-                        // Note is fully contained in the beatWindow! Probably a drums/perc note, move it
+                        // Note is fully contained in the beatWindow! Probably a drums/perc note, moveAll it
                         NoteEvent newNe = ne.getCopyPos(range.from);
                         res.add(newNe);
                     } else
@@ -495,7 +496,7 @@ public class Phrases
 
         // Add the new NoteEvents after range
         p.addAll(toBeAdded);
-        toBeReplaced.keySet().forEach(ne -> p.replace(ne, toBeReplaced.get(ne)));
+        p.replaceAll(toBeReplaced, false);
     }
 
 

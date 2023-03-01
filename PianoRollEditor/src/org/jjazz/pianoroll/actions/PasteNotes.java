@@ -27,13 +27,10 @@ import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import javax.swing.AbstractAction;
 import javax.swing.SwingUtilities;
-import org.jjazz.phrase.api.Phrase;
 import org.jjazz.pianoroll.api.CopyNoteBuffer;
-import org.jjazz.pianoroll.api.NotesSelectionListener;
 import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.util.api.ResUtil;
 import org.openide.*;
-import org.openide.actions.PasteAction;
 import org.openide.util.NbPreferences;
 
 /**
@@ -102,12 +99,7 @@ public class PasteNotes extends AbstractAction
         editor.getUndoManager().startCEdit(editor, undoText);
         
         var nes = cnb.getNotesCopy(targetStartPos);
-        for (var ne : nes)
-        {
-            editor.getModel().add(ne);
-            var nv = editor.getNoteView(ne);
-            nv.setSelected(true);
-        }
+        editor.selectNotes(nes, true);
         
         editor.getUndoManager().endCEdit(undoText);
         

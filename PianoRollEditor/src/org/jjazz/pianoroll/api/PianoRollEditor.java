@@ -38,13 +38,16 @@ import java.awt.event.MouseWheelListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Objects;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.Action;
@@ -70,17 +73,11 @@ import org.jjazz.pianoroll.RulerPanel;
 import org.jjazz.pianoroll.actions.CopyNotes;
 import org.jjazz.pianoroll.actions.CutNotes;
 import org.jjazz.pianoroll.actions.DeleteSelection;
-import org.jjazz.pianoroll.actions.HearSelection;
 import org.jjazz.pianoroll.actions.MoveSelectionLeft;
 import org.jjazz.pianoroll.actions.MoveSelectionRight;
 import org.jjazz.pianoroll.actions.PasteNotes;
-import org.jjazz.pianoroll.actions.PlayEditor;
-import org.jjazz.pianoroll.actions.PlaybackAutoScroll;
-import org.jjazz.pianoroll.actions.Quantize;
 import org.jjazz.pianoroll.actions.ResizeSelection;
 import org.jjazz.pianoroll.actions.SelectAllNotes;
-import org.jjazz.pianoroll.actions.SnapToGrid;
-import org.jjazz.pianoroll.actions.Solo;
 import org.jjazz.pianoroll.actions.TransposeSelectionDown;
 import org.jjazz.pianoroll.actions.TransposeSelectionUp;
 import org.jjazz.pianoroll.actions.ZoomToFit;
@@ -103,7 +100,6 @@ import org.jjazz.util.api.ResUtil;
 import org.openide.util.Lookup;
 import org.openide.util.lookup.AbstractLookup;
 import org.openide.util.lookup.InstanceContent;
-import org.openide.util.lookup.ProxyLookup;
 
 /**
  * A piano roll editor of a phrase.
@@ -112,8 +108,7 @@ import org.openide.util.lookup.ProxyLookup;
  * <p>
  * Its Lookup must contain :<br>
  * - editor's ActionMap<br>
- * - editor's Zoomable instance<br>
- * - the selected NoteViews<br>
+ * - editor's Zoomable instance
  */
 public class PianoRollEditor extends JPanel implements PropertyChangeListener
 {
@@ -130,6 +125,10 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
      * oldValue=old channel, newValue=new channel model.
      */
     public static final String PROP_MODEL_CHANNEL = "PhraseChannel";
+    /**
+     * oldValue=sorted list of selected NoteViews, newValue=selected state
+     */
+    public static final String PROP_SELECTED_NOTE_VIEWS = "NoteViewSelection";
     /**
      * oldValue=old tool, newValue=new tool
      */
@@ -157,12 +156,10 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     private Phrase model;
     private DrumKit.KeyMap keyMap;
     private final PianoRollEditorSettings settings;
+    private final TreeSet<NoteView> selectedNoteViews = new TreeSet<>((nv1, nv2) -> nv1.getModel().compareTo(nv2.getModel()));
     private Quantization quantization;
     private final Lookup lookup;
-    private final Lookup generalLookup;
     private JJazzUndoManager undoManager;
-    private final Lookup selectionLookup;
-    private final InstanceContent selectionLookupContent;
     private final InstanceContent generalLookupContent;
     private int rulerStartBar;
     private EditTool activeTool;
@@ -212,20 +209,11 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         model.addUndoableEditListener(undoManager);
 
 
-        // Selection lookup
-        selectionLookupContent = new InstanceContent();
-        selectionLookup = new AbstractLookup(selectionLookupContent);
-
-
         // The lookup for other stuff, before createUI()
         generalLookupContent = new InstanceContent();
         generalLookupContent.add(new PianoRollZoomable());
         generalLookupContent.add(getActionMap());
-        generalLookup = new AbstractLookup(generalLookupContent);
-
-
-        // Global lookup = sum of both
-        lookup = new ProxyLookup(selectionLookup, generalLookup);
+        lookup = new AbstractLookup(generalLookupContent);
 
 
         editTools = Arrays.asList(new SelectionTool(this), new PencilTool(this), new EraserTool(this));
@@ -262,11 +250,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
 
 
         // Add the notes
-        for (var ne : model)
-        {
-            addNote(ne);
-        }
-
+        addNotes(model.getNotes());
 
     }
 
@@ -391,10 +375,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         }
 
 
-        for (var ne : model)
-        {
-            removeNote(ne);
-        }
+        removeNotes(model.getNotes());
 
 
         model.removePropertyChangeListener(this);
@@ -425,16 +406,17 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
 
 
         // Add the notes
-        for (var ne : model)
-        {
-            addNote(ne);        // Will call notesPanel.revalidate()
-        }
+        addNotes(model.getNotes());
+
 
         notesPanel.scrollToFirstNote();
+        notesPanel.revalidate();
+        notesPanel.repaint();
+
 
         firePropertyChange(PROP_MODEL_PHRASE, oldModel, model);
         firePropertyChange(PROP_MODEL_CHANNEL, oldChannel, this.channel);
-        
+
     }
 
 
@@ -670,6 +652,57 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         return quantization;
     }
 
+    public boolean isNoteSelected(NoteEvent ne)
+    {
+        return selectedNoteViews.contains(getNoteView(ne));
+    }
+
+    public void selectNote(NoteEvent ne, boolean b)
+    {
+        PianoRollEditor.this.selectNotes(Arrays.asList(ne), b);
+    }
+
+    /**
+     * Select or unselect NoteViews.
+     * <p>
+     * Fire a PROP_SELECTED_NOTE_VIEWS change event.
+     *
+     * @param notes
+     * @param b
+     */
+    public void selectNotes(Collection<NoteEvent> notes, boolean b)
+    {
+        if (notes.isEmpty())
+        {
+            return;
+        }
+
+        List<NoteView> nvs = new ArrayList<>();
+        for (var n : notes)
+        {
+            var nv = getNoteView(n);
+            if (nv == null)
+            {
+                continue;
+            }
+            if (b && !selectedNoteViews.contains(nv))
+            {
+                selectedNoteViews.add(nv);
+                nvs.add(nv);
+            } else if (!b && selectedNoteViews.contains(nv))
+            {
+                selectedNoteViews.remove(nv);
+                nvs.add(nv);
+            }
+            nv.setSelected(b);
+        }
+
+        if (!nvs.isEmpty())
+        {
+            firePropertyChange(PROP_SELECTED_NOTE_VIEWS, nvs, b);
+        }
+    }
+
     /**
      * Enable or disable the snap to quantization feature.
      * <p>
@@ -723,17 +756,17 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
      */
     public void unselectAll()
     {
-        new NotesSelection(getLookup()).unselectAll();
+        selectNotes(NoteView.getNotes(selectedNoteViews), false);
     }
 
     /**
      * Get the currently selected NoteViews sorted by NoteEvent natural order.
      *
-     * @return An immutable list.
+     * @return
      */
     public List<NoteView> getSelectedNoteViews()
     {
-        return new NotesSelection(getLookup()).getNoteViews();
+        return new ArrayList<>(selectedNoteViews);
     }
 
     /**
@@ -1050,43 +1083,35 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         {
             switch (evt.getPropertyName())
             {
-                case Phrase.PROP_NOTE_ADDED, Phrase.PROP_NOTE_ADDED_ADJUSTING ->
+                case Phrase.PROP_NOTES_ADDED, Phrase.PROP_NOTES_ADDED_ADJUSTING ->
                 {
                     List<NoteEvent> nes = (List<NoteEvent>) evt.getNewValue();
-                    nes.forEach(ne -> addNote(ne));
+                    addNotes(nes);
                     notesPanel.revalidate();
                 }
-                case Phrase.PROP_NOTE_REMOVED, Phrase.PROP_NOTE_REMOVED_ADJUSTING ->
+                case Phrase.PROP_NOTES_REMOVED, Phrase.PROP_NOTES_REMOVED_ADJUSTING ->
                 {
                     List<NoteEvent> nes = (List<NoteEvent>) evt.getNewValue();
-                    nes.forEach(ne -> removeNote(ne));
+                    removeNotes(nes);
                     notesPanel.revalidate();
                     notesPanel.repaint();
                 }
-                case Phrase.PROP_NOTE_MOVED, Phrase.PROP_NOTE_MOVED_ADJUSTING, Phrase.PROP_NOTE_REPLACED, Phrase.PROP_NOTE_REPLACED_ADJUSTING ->
+                case Phrase.PROP_NOTES_MOVED, Phrase.PROP_NOTES_MOVED_ADJUSTING, Phrase.PROP_NOTES_REPLACED, Phrase.PROP_NOTES_REPLACED_ADJUSTING ->
                 {
-                    NoteEvent newNe = (NoteEvent) evt.getNewValue();
-                    NoteEvent oldNe = (NoteEvent) evt.getOldValue();
-                    var nv = notesPanel.getNoteView(oldNe);
-                    nv.setModel(newNe);
+                    Map<NoteEvent, NoteEvent> mapOldNew = (Map<NoteEvent, NoteEvent>) evt.getNewValue();
+                    for (var oldNe : mapOldNew.keySet())
+                    {
+                        var newNe = mapOldNew.get(oldNe);
+                        notesPanel.setNoteViewModel(oldNe, newNe);
+                    }
+                    notesPanel.revalidate();
+                    notesPanel.repaint();
                 }
                 default ->
                 {
                 }
             }
 
-        } else if (evt.getSource() instanceof NoteView nv)
-        {
-            if (evt.getPropertyName().equals(NoteView.PROP_SELECTED))
-            {
-                if (nv.isSelected())
-                {
-                    selectionLookupContent.add(nv);
-                } else
-                {
-                    selectionLookupContent.remove(nv);
-                }
-            }
         }
     }
 
@@ -1099,29 +1124,42 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
      * <p>
      * Don't add if not in the beat range.
      *
-     * @param ne
+     * @param notes
      */
-    private void addNote(NoteEvent ne)
+    private void addNotes(List<NoteEvent> notes)
     {
-        if (beatRange.contains(ne.getBeatRange(), false))
+        var rangeNotes = notes.stream()
+                .filter(ne -> beatRange.contains(ne.getBeatRange(), false))
+                .toList();
+        if (!rangeNotes.isEmpty())
         {
-            var nv = notesPanel.addNoteView(ne);
-            registerNoteView(nv);
-            revalidate();
+            for (var ne : rangeNotes)
+            {
+                var nv = notesPanel.addNoteView(ne);
+                registerNoteView(nv);
+            }
+            notesPanel.revalidate();
         }
     }
 
     /**
      * Caller is responsible to call revalidate() and/or repaint() as required.
      *
-     * @param ne
+     * @param notes
      */
-    private void removeNote(NoteEvent ne)
+    private void removeNotes(List<NoteEvent> notes)
     {
-        if (beatRange.contains(ne.getBeatRange(), false))
+        var rangeNotes = notes.stream()
+                .filter(ne -> beatRange.contains(ne.getBeatRange(), false))
+                .toList();
+        if (!rangeNotes.isEmpty())
         {
-            var nv = notesPanel.removeNoteView(ne);
-            unregisterNoteView(nv);
+            PianoRollEditor.this.selectNotes(rangeNotes, false);
+            for (var ne : rangeNotes)
+            {
+                unregisterNoteView(notesPanel.getNoteView(ne));
+                notesPanel.removeNoteView(ne);
+            }
         }
     }
 
@@ -1133,7 +1171,6 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         nv.addMouseMotionListener(genericMouseListener);
         nv.addMouseWheelListener(editToolProxyMouseListener);
         nv.addMouseWheelListener(genericMouseListener);
-        nv.addPropertyChangeListener(this);
         nv.setInheritsPopupMenu(true);
 
     }
@@ -1146,7 +1183,6 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         nv.removeMouseMotionListener(genericMouseListener);
         nv.removeMouseWheelListener(editToolProxyMouseListener);
         nv.removeMouseWheelListener(genericMouseListener);
-        nv.removePropertyChangeListener(this);
     }
 
     private int toZoomHValue(float scaleFactorX)
@@ -1543,7 +1579,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
                     return;
                 }
 
-                // We don't want to lose the event because it is processed by the the enclosing JScrollPane to move the scrollbar up/down or left-right if shift pressed
+                // We don't want to lose the event because it is processed by the the enclosing JScrollPane to moveAll the scrollbar up/down or left-right if shift pressed
                 Container source = e.getSource() instanceof NoteView ? ((Component) e.getSource()).getParent()
                         : (Container) e.getSource();
                 Container parent = source.getParent();
@@ -1746,26 +1782,18 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
             Phrase p = Phrases.importPhrase(midiFile, channel, isDrums(), false, true);
             if (!p.isEmpty())
             {
+                unselectAll();
+
                 String undoText = ResUtil.getString(getClass(), "importMidiFile");
                 getUndoManager().startCEdit(undoText);
 
-                unselectAll();
-                NoteView nv0 = null;
-                for (var ne : p)
-                {
-                    model.add(ne);
-                    var nv = getNoteView(ne);
-                    nv.setSelected(true);
-                    if (nv0 == null)
-                    {
-                        nv0 = nv;
-                    }
-                }
+                model.add(p);
 
                 getUndoManager().endCEdit(undoText);
 
-                final var nv00 = nv0;
-                SwingUtilities.invokeLater(() -> notesPanel.scrollRectToVisible(nv00.getBounds()));     // invokeLater to make sure task is run after nv0 is layouted
+
+                final var nv0 = getNoteView(p.getNotes().get(0));
+                SwingUtilities.invokeLater(() -> notesPanel.scrollRectToVisible(nv0.getBounds()));     // invokeLater to make sure task is run after nv0 is layouted
             }
 
             return true;

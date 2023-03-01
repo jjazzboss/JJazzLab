@@ -628,7 +628,7 @@ public class RP_SYS_DrumsTransformComp extends RealTimeRpEditorComponent<RP_SYS_
         }
 
         /**
-         * Only move actions.
+         * Only moveAll actions.
          */
         @Override
         public int getSourceActions(JComponent c)

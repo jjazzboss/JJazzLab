@@ -23,8 +23,11 @@
 package org.jjazz.pianoroll.actions;
 
 import java.awt.event.ActionEvent;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
+import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.pianoroll.api.NoteView;
 import org.jjazz.pianoroll.api.PianoRollEditor;
@@ -79,6 +82,7 @@ public class ResizeSelection extends AbstractAction
         editor.getUndoManager().startCEdit(editor, undoText);
 
 
+        Map<NoteEvent, NoteEvent> mapOldNew = new HashMap<>();
         for (var ne : NoteView.getNotes(nvs))
         {
             float pos = ne.getPositionInBeats();
@@ -94,9 +98,11 @@ public class ResizeSelection extends AbstractAction
             if (br.contains(pos + newDur, false))
             {
                 var newNe = ne.getCopyDur(newDur);
-                model.replace(ne, newNe);
+                mapOldNew.put(ne, newNe);
             }
         }
+        model.replaceAll(mapOldNew, false);
+        
 
         editor.getUndoManager().endCEdit(undoText);
     }

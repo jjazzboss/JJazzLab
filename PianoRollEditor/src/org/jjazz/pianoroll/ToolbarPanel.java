@@ -26,6 +26,9 @@ import java.awt.Component;
 import java.awt.Font;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.DefaultComboBoxModel;
@@ -34,18 +37,16 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.SpinnerNumberModel;
 import org.jjazz.midi.api.MidiUtilities;
+import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.pianoroll.actions.HearSelection;
 import org.jjazz.pianoroll.actions.PlayEditor;
 import org.jjazz.pianoroll.actions.PlaybackAutoScroll;
 import org.jjazz.pianoroll.actions.SnapToGrid;
 import org.jjazz.pianoroll.actions.Solo;
 import org.jjazz.pianoroll.api.NoteView;
-import org.jjazz.pianoroll.api.NotesSelection;
-import org.jjazz.pianoroll.api.NotesSelectionListener;
 import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.pianoroll.api.PianoRollEditorTopComponent;
 import org.jjazz.quantizer.api.Quantization;
-import org.jjazz.ui.utilities.api.ToggleAction;
 import org.jjazz.uisettings.api.GeneralUISettings;
 import org.jjazz.util.api.ResUtil;
 
@@ -55,10 +56,10 @@ import org.jjazz.util.api.ResUtil;
  */
 public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeListener
 {
+
     private final PianoRollEditor editor;
     private int lastSpinnerValue;
     private String title;
-    private NotesSelection selection;
     private final PianoRollEditorTopComponent topComponent;
     private static final Logger LOGGER = Logger.getLogger(ToolbarPanel.class.getSimpleName());
 
@@ -77,14 +78,14 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
 
 
         lbl_title.setText(title);
-     
-        
+
+
         btn_playEditor.setAction(new PlayEditor(topComponent));
         tbtn_hearNotes.setToggleAction(new HearSelection(editor));
         tbtn_snap.setToggleAction(new SnapToGrid(editor));
         tbtn_playbackAutoScroll.setToggleAction(new PlaybackAutoScroll(editor));
         tbtn_solo.setToggleAction(new Solo(topComponent));
-        
+
 
         var qModel = new DefaultComboBoxModel(Quantization.values());
         qModel.removeElement(Quantization.HALF_BAR);
@@ -94,8 +95,19 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
         cmb_quantization.setRenderer(new QuantizationRenderer());
 
 
-        NotesSelectionListener nsl = NotesSelectionListener.getInstance(editor);
-        nsl.addListener(l -> selectionChanged(nsl.getSelection()));
+        editor.addPropertyChangeListener(PianoRollEditor.PROP_SELECTED_NOTE_VIEWS, e -> 
+        {
+            boolean b = (boolean) e.getNewValue();
+            List<NoteView> nvs = (List<NoteView>) e.getOldValue();
+            if (b)
+            {
+                nvs.forEach(nv -> nv.addPropertyChangeListener(NoteView.PROP_MODEL, this));
+            } else
+            {
+                nvs.forEach(nv -> nv.removePropertyChangeListener(NoteView.PROP_MODEL, this));
+            }
+            updateVelocityUI();
+        });
 
 
         lastSpinnerValue = (Integer) spn_velocity.getModel().getValue();
@@ -133,9 +145,9 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
         if (evt.getSource() == editor)
         {
             switch (evt.getPropertyName())
-            {             
+            {
                 case PianoRollEditor.PROP_QUANTIZATION ->
-                    cmb_quantization.setSelectedItem(editor.getQuantization());               
+                    cmb_quantization.setSelectedItem(editor.getQuantization());
                 default ->
                 {
                 }
@@ -143,27 +155,18 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
 
         } else if (evt.getSource() instanceof NoteView nv)
         {
+            // We only listen to NoteView.PROP_MODEL
             if (evt.getPropertyName().equals(NoteView.PROP_MODEL))
             {
                 updateVelocityUI();
             }
-        } 
+        }
     }
     // ====================================================================================
     // Private methods
     // ====================================================================================
 
-    private void selectionChanged(NotesSelection newSelection)
-    {
-        if (selection != null)
-        {
-            selection.getNoteViews().forEach(nv -> nv.removePropertyChangeListener(this));
-        }
-        selection = newSelection;
-        selection.getNoteViews().forEach(nv -> nv.addPropertyChangeListener(this));
-        updateVelocityUI();
-    }
-
+ 
 
     /**
      * Update the JSpinner when change resulted from an action which is NOT a JSpinner direct change.
@@ -174,7 +177,7 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
      */
     private void updateVelocityUI()
     {
-        var nvs = selection.getNoteViews();
+        var nvs = editor.getSelectedNoteViews();
         LOGGER.log(Level.FINE, "updateVelocitySpinner() -- nvs={0}", nvs);
 
         var b = !nvs.isEmpty();
@@ -194,8 +197,6 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
             spn_velocity.setFont(f);
         }
     }
-
-
 
 
     /**
@@ -346,8 +347,9 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
         String undoText = ResUtil.getString(getClass(), "ChangeVelocity");
         editor.getUndoManager().startCEdit(editor, undoText);
 
-
         var selectedNvs = editor.getSelectedNoteViews();
+        Map<NoteEvent, NoteEvent> mapOldNew = new HashMap<>();
+
 
         if (isManualEdit)
         {
@@ -355,7 +357,7 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
             selectedNvs.stream()
                     .map(nv -> nv.getModel())
                     .filter(ne -> ne.getVelocity() != newSpinnerValue)
-                    .forEach(ne -> editor.getModel().replace(ne, ne.getCopyVel(newSpinnerValue)));
+                    .forEach(ne -> mapOldNew.put(ne, ne.getCopyVel(newSpinnerValue)));
         } else
         {
             // User increased/decreased, apply the delta to all notes
@@ -365,9 +367,10 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
                     .forEach(ne -> 
                     {
                         int newVel = MidiUtilities.limit(ne.getVelocity() + delta);
-                        editor.getModel().replace(ne, ne.getCopyVel(newVel));
+                        mapOldNew.put(ne, ne.getCopyVel(newVel));
                     });
         }
+        editor.getModel().replaceAll(mapOldNew, false);
 
         editor.getUndoManager().endCEdit(undoText);
 

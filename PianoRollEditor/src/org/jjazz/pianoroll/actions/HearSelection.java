@@ -22,6 +22,8 @@
  */
 package org.jjazz.pianoroll.actions;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
@@ -34,11 +36,9 @@ import javax.swing.Action;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.KeyStroke;
-import javax.swing.event.ChangeListener;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.pianoroll.api.NoteView;
-import org.jjazz.pianoroll.api.NotesSelectionListener;
 import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.testplayerservice.spi.TestPlayer;
@@ -50,14 +50,13 @@ import org.openide.util.Exceptions;
 /**
  * Action to toggle the play of the last selected note.
  */
-public class HearSelection extends ToggleAction
+public class HearSelection extends ToggleAction implements PropertyChangeListener
 {
 
     public static final String ACTION_ID = "HearSelection";
     public static final String KEYBOARD_SHORTCUT = "H";
     private final PianoRollEditor editor;
     private CollectAndPlayNotesTask collectAndPlayNotesTask;
-    private final ChangeListener changeListener;
     private static final Logger LOGGER = Logger.getLogger(HearSelection.class.getSimpleName());
 
     public HearSelection(PianoRollEditor editor)
@@ -71,16 +70,14 @@ public class HearSelection extends ToggleAction
         putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("resources/HearNoteOFF.png")));
         setSelectedIcon(new ImageIcon(getClass().getResource("resources/HearNoteON.png")));
         // putValue("JJazzDisabledIcon", new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PlaybackPointDisabled-24x24.png")));                                   
-        putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(), "HearNoteTooltip")+ " (" + KEYBOARD_SHORTCUT + ")");
+        putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(), "HearNoteTooltip") + " (" + KEYBOARD_SHORTCUT + ")");
         putValue("hideActionText", true);
 
 
-        this.editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KEYBOARD_SHORTCUT), HearSelection.ACTION_ID);
+        this.editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KEYBOARD_SHORTCUT),
+                HearSelection.ACTION_ID);
         this.editor.getActionMap().put(HearSelection.ACTION_ID, this);
 
-
-        var nsl = getNotesSelectionListener();
-        changeListener = evt -> selectionChanged(nsl.getLastNoteViewAddedToSelection());
     }
 
 
@@ -89,14 +86,42 @@ public class HearSelection extends ToggleAction
     {
         if (b)
         {
-            getNotesSelectionListener().addListener(changeListener);
+            editor.addPropertyChangeListener(PianoRollEditor.PROP_SELECTED_NOTE_VIEWS, this);
         } else
         {
-            getNotesSelectionListener().removeListener(changeListener);
+            editor.removePropertyChangeListener(PianoRollEditor.PROP_SELECTED_NOTE_VIEWS, this);
             stopTask();
         }
     }
 
+    // ====================================================================================
+    // PropertyChangeListener interface
+    // ====================================================================================
+    @Override
+    public void propertyChange(PropertyChangeEvent evt)
+    {
+        // LOGGER.severe("propertyChange() -- " + Utilities.toDebugString(evt));
+
+        if (evt.getSource() == editor)
+        {
+            switch (evt.getPropertyName())
+            {
+                case PianoRollEditor.PROP_SELECTED_NOTE_VIEWS ->
+                {
+                    boolean b = (boolean) evt.getNewValue();
+                    List<NoteView> nvs = (List<NoteView>) evt.getOldValue();
+                    if (b && !nvs.isEmpty())
+                    {
+                        selectionChanged(nvs.get(0));
+                    }
+                }
+                default ->
+                {
+                }
+
+            }
+        }
+    }
 
     // ====================================================================================
     // Private methods
@@ -142,11 +167,6 @@ public class HearSelection extends ToggleAction
         }
     }
 
-    private NotesSelectionListener getNotesSelectionListener()
-    {
-        return NotesSelectionListener.getInstance(editor);
-    }
-
 
     // ==========================================================================================================
     // Inner classes
@@ -172,7 +192,7 @@ public class HearSelection extends ToggleAction
         private final int waitTimeMsBeforePlaying;
         private final int maxNbNotesPlayed;
         private State state;
-        private List<NoteEvent> noteEvents = new ArrayList<>(20);
+        private final List<NoteEvent> noteEvents = new ArrayList<>(20);
 
 
         /**

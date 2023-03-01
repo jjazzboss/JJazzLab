@@ -74,7 +74,7 @@ import org.openide.util.*;
  * A session to be used as a BaseSongSession for an UpdatableSongSession.
  * <p>
  * The session provides on-the-fly UpdatableSongSession.Updates for:<br>
- * - chord symbol changes (add/remove/change/move)<br>
+ - chord symbol changes (add/remove/change/moveAll)<br>
  * - rhythm parameter value changes<br>
  * - existing user phrase content changes (but not for add/remove user phrase events)<br>
  * - PlaybackSettings playback transposition changes<br>

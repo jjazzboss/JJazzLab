@@ -23,8 +23,11 @@
 package org.jjazz.pianoroll.actions;
 
 import java.awt.event.ActionEvent;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
+import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.pianoroll.api.NoteView;
 import org.jjazz.pianoroll.api.PianoRollEditor;
@@ -64,14 +67,16 @@ public class MoveSelectionRight extends AbstractAction
         String undoText = ResUtil.getString(getClass(), "MoveNoteRight");
         editor.getUndoManager().startCEdit(editor, undoText);
 
+        Map<NoteEvent, Float> mapNoteNewPos = new HashMap<>();
         for (var ne : NoteView.getNotes(nvs))
         {
             float newPos = ne.getPositionInBeats() + qDur;
             if (br.contains(newPos + ne.getDurationInBeats(), false))
             {
-                model.move(ne, newPos);
+                mapNoteNewPos.put(ne, newPos);
             }
         }
+        model.moveAll(mapNoteNewPos, false);
 
         editor.getUndoManager().endCEdit(undoText);
     }
