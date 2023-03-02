@@ -138,7 +138,14 @@ public class PencilTool implements EditTool
 
         if (dragNote == null)
         {
-            // Start dragging            
+            // Start dragging     
+
+
+            // Important: we don't want drag note to be recognized by the undoManager, we'll manage  undo at drag release
+            assert editor.getUndoManager().isEnabled();
+            editor.getUndoManager().setEnabled(false);
+
+
             dragNote = addNote(e);
             dragStartPos = dragNote.getPositionInBeats();
             dragPitch = dragNote.getPitch();
@@ -173,6 +180,12 @@ public class PencilTool implements EditTool
         }
 
         editor.getModel().remove(dragNote, true);
+
+
+        // Now we can make the undoable changes
+        assert !editor.getUndoManager().isEnabled();
+        editor.getUndoManager().setEnabled(true);
+        
 
         String undoText = ResUtil.getString(getClass(), "AddNote");
         editor.getUndoManager().startCEdit(editor, undoText);
@@ -211,7 +224,7 @@ public class PencilTool implements EditTool
 
         editor.unselectAll();
         editor.selectNote(ne, true);
-        
+
     }
 
     @Override

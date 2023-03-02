@@ -126,7 +126,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
      */
     public static final String PROP_MODEL_CHANNEL = "PhraseChannel";
     /**
-     * oldValue=sorted list of selected NoteViews, newValue=selected state
+     * oldValue=sorted list of NoteViews whose state has changeds, newValue=selected state
      */
     public static final String PROP_SELECTED_NOTE_VIEWS = "NoteViewSelection";
     /**
@@ -287,7 +287,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     /**
      * Get the channel of the editor.
      * <p>
-     * The channel is used e.g. when "hear preview" is activated, or when notes are imported from a dragged Midi file.
+     * The channel is used e.g. when "hear preview" or "solo mode" is activated, or when notes are imported from a dragged Midi file.
      *
      * @return
      * @see #setModel(int, org.jjazz.util.api.FloatRange, org.jjazz.phrase.api.Phrase, int, java.util.NavigableMap,
@@ -1787,7 +1787,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
                 String undoText = ResUtil.getString(getClass(), "importMidiFile");
                 getUndoManager().startCEdit(undoText);
 
-                model.add(p);
+                model.add(p, true);           // Do not clone the notes
 
                 getUndoManager().endCEdit(undoText);
 

@@ -69,8 +69,6 @@ public class Solo extends ToggleAction implements PropertyChangeListener
 
 
         editor.addPropertyChangeListener(this);
-
-        editorChannelChanged();
     }
 
 

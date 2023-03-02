@@ -64,7 +64,7 @@ import org.jjazz.util.api.Utilities;
  */
 public class NotesPanel extends javax.swing.JPanel implements PropertyChangeListener
 {
-
+    
     private static final Color[] BACKGROUND_NOTE_COLORS = new Color[]
     {
         new Color(112, 168, 151), new Color(93, 120, 20), new Color(212, 143, 106), new Color(173, 201, 100),
@@ -73,8 +73,8 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
     private Color nextBackgroundNoteColor = BACKGROUND_NOTE_COLORS[0];
     private static final int BACKGROUND_NOTE_ALPHA = 90;
     private static final int ONE_BEAT_SIZE_IN_PIXELS_AT_ZOOM_ONE = 50;
-
-
+    
+    
     private final KeyboardComponent keyboard;
     private final YMapper yMapper;
     private final XMapper xMapper;
@@ -84,19 +84,19 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
     private final TreeMap<NoteEvent, NoteView> mapNoteViews = new TreeMap<>();
     private Map<Integer, Phrase> mapChannelBackgroundPhrase;
     private final Map<Integer, Color> mapNameBackgroundNoteColor = new HashMap<>();
-
+    
     private static final Logger LOGGER = Logger.getLogger(NotesPanel.class.getSimpleName());
-
-
+    
+    
     public NotesPanel(PianoRollEditor editor, KeyboardComponent keyboard)
     {
         this.editor = editor;
         this.keyboard = keyboard;
         this.xMapper = new XMapper();
         this.yMapper = new YMapper();
-
+        
         editor.getSettings().addPropertyChangeListener(this);
-
+        
     }
 
     /**
@@ -133,9 +133,9 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
             // LOGGER.severe(" ==> doLayout() EXIT NOT UPTODATE");
             return;
         }
-
+        
         NoteView nv0 = null;
-
+        
         if (!editor.isDrums())
         {
             for (NoteView nv : mapNoteViews.values())
@@ -176,7 +176,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
                 // LOGGER.severe("doLayout() side=" + side + " yRange=" + yRange + " bounds=" + nv.getBounds());
             }
         }
-
+        
         if (scrollToFirstNoteHack)
         {
             // Hack needed because a simple SwingUtilities.invokeLater(scrollToFirstNote()) is not enough, we must make sure that all NoteViews are placed            
@@ -201,10 +201,10 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
             }
             SwingUtilities.invokeLater(() -> scrollRectToVisible(r));
         }
-
+        
     }
-
-
+    
+    
     @Override
     public Dimension getPreferredSize()
     {
@@ -228,7 +228,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
     public void setScaleFactorX(float factorX)
     {
         Preconditions.checkArgument(factorX > 0);
-
+        
         if (scaleFactorX != factorX)
         {
             scaleFactorX = factorX;
@@ -261,18 +261,18 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
         float factor = pixelWidth / (beatRange * ONE_BEAT_SIZE_IN_PIXELS_AT_ZOOM_ONE);
         return factor;
     }
-
+    
     public YMapper getYMapper()
     {
         return yMapper;
     }
-
+    
     public XMapper getXMapper()
     {
         return xMapper;
     }
-
-
+    
+    
     @Override
     public void paintComponent(Graphics g)
     {
@@ -290,11 +290,11 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
             // LOGGER.severe("paintComponent() xMapper or yMapper is not uptodate, abort painting");
             return;
         }
-
+        
         drawHorizontalGrid(g2);
         drawVerticalGrid(g2);
         drawBackgroundPhrases(g2);
-
+        
     }
 
     /**
@@ -308,7 +308,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
     {
         Preconditions.checkNotNull(ne);
         Preconditions.checkArgument(editor.getPhraseBeatRange().contains(ne.getBeatRange(), false));
-
+        
         var keymap = editor.getDrumKeyMap();
         NoteView nv = keymap == null ? new NoteView(ne) : new NoteViewDrum(ne);
         mapNoteViews.put(ne, nv);
@@ -330,10 +330,10 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
     public NoteView removeNoteView(NoteEvent ne)
     {
         Preconditions.checkNotNull(ne);        
-        mapNoteViews.remove(ne);        
-        NoteView nv = getNoteView(ne);
+        NoteView nv = getNoteView(ne);        
         remove(nv);
         nv.cleanup();
+        mapNoteViews.remove(ne);        
         LOGGER.log(Level.FINE, "removeNoteView() ne={0} ==> mapNoteViews={1}", new Object[]
         {
             ne, mapNoteViews
@@ -343,18 +343,19 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
 
     /**
      * Replace the model of an existing NoteView.
-     * 
+     * <p>
      * Caller is responsible of calling revalidate() and/or repaint() after as needed.
+     *
      * @param oldNe
-     * @param newNe 
+     * @param newNe
      */
     public void setNoteViewModel(NoteEvent oldNe, NoteEvent newNe)
     {
-            var nv = getNoteView(oldNe);
-            assert nv!=null:" oldNe="+oldNe;
-            nv.setModel(newNe);
-            mapNoteViews.remove(oldNe);
-            mapNoteViews.put(newNe, nv);
+        var nv = getNoteView(oldNe);
+        assert nv != null : " oldNe=" + oldNe;
+        nv.setModel(newNe);
+        mapNoteViews.remove(oldNe);
+        mapNoteViews.put(newNe, nv);
     }
 
 
@@ -427,7 +428,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
     {
         return mapChannelBackgroundPhrase;
     }
-
+    
     public void cleanup()
     {
         for (var nv : mapNoteViews.values().toArray(NoteView[]::new))
@@ -448,11 +449,11 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
         {
             evt.getSource().getClass().getSimpleName(), evt.getPropertyName(), evt.getOldValue(), evt.getNewValue()
         });
-
+        
         if (evt.getSource() == editor.getSettings())
         {
             settingsChanged();
-
+            
         }
     }
 
@@ -474,7 +475,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
 
         // only draw what's visible
         IntRange pitchRange = editor.getVisiblePitchRange();
-
+        
         for (int p = pitchRange.from; p <= pitchRange.to; p++)
         {
             int pp = p % 12;
@@ -488,10 +489,10 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
                 g2.drawLine(0, yRange.to, w - 1, yRange.to);
             }
         }
-
-
+        
+        
     }
-
+    
     private void drawVerticalGrid(Graphics2D g2)
     {
         var settings = PianoRollEditorSettings.getDefault();
@@ -508,7 +509,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
         var barRange = editor.getVisibleBarRange();
         var mapQPosX = xMapper.getQuantizedXPositions(barRange);              // only draw what's visible        
         boolean paintSixteenth = xMapper.getOneBeatPixelSize() > 20;
-
+        
         for (Position pos : mapQPosX.navigableKeySet())
         {
             if (!paintSixteenth && pos.isOffBeat())
@@ -523,34 +524,34 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
             {
                 c = pos.isOffBeat() ? cl3 : cl2;
             }
-
+            
             g2.setColor(c);
             g2.drawLine(x, y0, x, y1);
         }
     }
-
+    
     private void drawBackgroundPhrases(Graphics2D g2)
     {
         if (mapChannelBackgroundPhrase == null)
         {
             return;
         }
-
-
+        
+        
         for (var channel : mapChannelBackgroundPhrase.keySet())
         {
             Phrase p = mapChannelBackgroundPhrase.get(channel);
             Color c = getBackgroundNoteColor(channel);
             Color c1 = new Color(c.getRed(), c.getGreen(), c.getBlue(), BACKGROUND_NOTE_ALPHA);
             Color c2 = HSLColor.changeLuminance(c1, -23);
-
+            
             for (var ne : p)
             {
                 if (editor.getPhraseBeatRange().contains(ne.getBeatRange(), false))
                 {
                     int y = yMapper.getNoteViewChannelYRange(ne.getPitch()).from;
                     int h = yMapper.getNoteViewHeight();
-
+                    
                     if (!p.isDrums())
                     {
                         IntRange xRange = xMapper.getXRange(ne);
@@ -581,12 +582,12 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
             }
         }
     }
-
+    
     private void settingsChanged()
     {
         repaint();
     }
-
+    
     private Color getBackgroundNoteColor(int channel)
     {
         Color c = mapNameBackgroundNoteColor.get(channel);
@@ -605,7 +606,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
         }
         return c;
     }
-
+    
     private int computePreferredWidth(float scaleVFactor)
     {
         return (int) (editor.getPhraseBeatRange().size() * ONE_BEAT_SIZE_IN_PIXELS_AT_ZOOM_ONE * scaleVFactor);
@@ -620,7 +621,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
      */
     public class XMapper
     {
-
+        
         private int lastWidth = -1;
         /**
          * Map all quantized Positions to a X coordinate.
@@ -632,8 +633,8 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
         private final NavigableMap<Position, Integer> tmap_allIntPos2X = new TreeMap<>();
         private BiMap<Position, Float> bimap_pos_posInBeats;
         private IntRange barRange = IntRange.EMPTY_RANGE;
-
-
+        
+        
         private XMapper()
         {
             editor.addPropertyChangeListener(PianoRollEditor.PROP_QUANTIZATION, e -> 
@@ -642,7 +643,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
                 repaint();
             });
         }
-
+        
         public boolean isUptodate()
         {
             return lastWidth == getWidth();
@@ -681,7 +682,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
             {
                 lastWidth, getWidth()
             });
-
+            
             lastWidth = getWidth();
             var beatRange = editor.getPhraseBeatRange();
             assert beatRange.from == (int) beatRange.from;      // it's an int value         
@@ -689,8 +690,8 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
             tmap_allQuantizedPos2X.clear();
             tmap_allIntPos2X.clear();
             bimap_pos_posInBeats = HashBiMap.create((int) beatRange.size());
-
-
+            
+            
             var q = editor.getQuantization();
             float[] qBeats = q.getBeats();
             float qUnit = q.getSymbolicDuration().getDuration();    // ]0;1]
@@ -702,13 +703,13 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
             int bar = editor.getPhraseStartBar();
             float barPosInBeats = beatRange.from;
             float x = 0;
-
-
+            
+            
             do
             {
                 var ts = editor.getTimeSignature(barPosInBeats);
                 assert ts.getNbNaturalBeats() == (int) ts.getNbNaturalBeats();
-
+                
                 for (int beat = 0; beat < ts.getNbNaturalBeats(); beat++)
                 {
                     for (float qBeat : qBeats)
@@ -717,7 +718,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
                         {
                             continue;
                         }
-
+                        
                         var pos = new Position(bar, beat + qBeat);
                         tmap_allQuantizedPos2X.put(pos, Math.round(x));
                         if (qBeat == 0)
@@ -725,17 +726,17 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
                             tmap_allIntPos2X.put(pos, Math.round(x));
                             bimap_pos_posInBeats.put(pos, barPosInBeats + beat);
                         }
-
+                        
                         x += oneQuantizationUnitWidth;
                     }
                 }
-
+                
                 barPosInBeats += ts.getNbNaturalBeats();
                 bar++;
-
+                
             } while (barPosInBeats <= beatRange.to);
-
-
+            
+            
             barRange = new IntRange(editor.getPhraseStartBar(), bar - 2);
 
             // LOGGER.log(Level.SEVERE, "refresh() output barRange=" + barRange + " tmap_allQuantizedPos2X=" + Utilities.toMultilineString(tmap_allQuantizedPos2X));
@@ -784,7 +785,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
             {
                 throw new IllegalStateException("lastWidth=" + lastWidth + " getWidth()=" + getWidth());
             }
-
+            
             if (barRange == null)
             {
                 barRange = editor.getPhraseBarRange();
@@ -922,7 +923,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
         private final NavigableMap<Integer, Integer> tmapPixelPitch = new TreeMap<>();
         private final Map<Integer, IntRange> mapPitchChannelYRange = new HashMap<>();
         private int noteViewHeight;
-
+        
         private YMapper()
         {
             keyboard.addComponentListener(new ComponentAdapter()
@@ -953,7 +954,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
             {
                 newKbdHeight, lastKeyboardHeight
             });
-
+            
             if (newKbdHeight == lastKeyboardHeight)
             {
                 return;
@@ -972,7 +973,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
             assert octaveHeight > 5 : "octaveHeight=" + octaveHeight;
             float adjustedSmallHeight = (octaveHeight - 4 * adjustedLargeHeight) / 8;       // So we can accomodate 4 small + 4 large
 
-
+            
             noteViewHeight = (int) Math.round(adjustedSmallHeight);
 
 
@@ -981,7 +982,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
             tmapPixelPitch.clear();
             mapPitchChannelYRange.clear();
             var kbdRange = keyboard.getRange();
-
+            
             for (int p = kbdRange.getLowestPitch(); p <= kbdRange.getHighestPitch(); p++)
             {
                 int yi = Math.round(y);
@@ -993,7 +994,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
                 mapPitchChannelYRange.put(p, channelNoteYRange);
                 y -= yUp;
             }
-
+            
             revalidate();
             repaint();
         }
@@ -1050,7 +1051,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
                 throw new IllegalStateException(
                         "lastKeyboardHeight=" + lastKeyboardHeight + " keyboard.height=" + keyboard.getHeight());
             }
-
+            
             var entry = tmapPixelPitch.ceilingEntry(yPos);
             // We might be below the (bottom key), can happen if keyboard is unzoomed/small and there is extra space below the keys.        
             int res = entry != null ? entry.getValue() : tmapPixelPitch.lastEntry().getValue();
@@ -1099,9 +1100,9 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
             int yBottom = yTop + key.getHeight();
             return new IntRange(yTop, yBottom);
         }
-
-
+        
+        
     }
-
-
+    
+    
 }

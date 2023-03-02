@@ -113,7 +113,6 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
         {
             selected = b;
             updateGraphics();
-            repaint();
             firePropertyChange(PROP_SELECTED, !b, b);
         }
     }

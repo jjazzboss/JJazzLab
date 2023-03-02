@@ -62,8 +62,8 @@ public class PasteNotes extends AbstractAction
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        var cnb = CopyNoteBuffer.getInstance();
-        if (cnb.isEmpty())
+        var copyBuffer = CopyNoteBuffer.getInstance();
+        if (copyBuffer.isEmpty())
         {
             LOGGER.warning("actionPerformed() Should not be here, CopyNoteBuffer is empty.");
             return;
@@ -81,8 +81,8 @@ public class PasteNotes extends AbstractAction
 
         // Compute target start position
         float targetStartPos;
-        var selectedNotes = editor.getSelectedNoteViews();
-        if (selectedNotes.isEmpty())
+        var selectedNvs = editor.getSelectedNoteViews();
+        if (selectedNvs.isEmpty())
         {
             // Find the first visible round beat
             var beatRange = editor.getVisibleBeatRange();
@@ -90,7 +90,7 @@ public class PasteNotes extends AbstractAction
         } else
         {
             // Rely on the first selected note
-            targetStartPos = selectedNotes.get(0).getModel().getPositionInBeats();
+            targetStartPos = selectedNvs.get(0).getModel().getPositionInBeats();
             editor.unselectAll();
         }
         
@@ -98,12 +98,13 @@ public class PasteNotes extends AbstractAction
         String undoText = ResUtil.getString(getClass(), "PasteNotes");
         editor.getUndoManager().startCEdit(editor, undoText);
         
-        var nes = cnb.getNotesCopy(targetStartPos);
-        editor.selectNotes(nes, true);
+        var nes = copyBuffer.getNotesCopy(targetStartPos);
+        editor.getModel().addAll(nes);        
         
         editor.getUndoManager().endCEdit(undoText);
         
         
+        editor.selectNotes(nes, true);
         SwingUtilities.invokeLater(() -> editor.scrollToCenter(nes.get(0).getPitch()));
     }
 

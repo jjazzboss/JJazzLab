@@ -280,13 +280,10 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
      * @param p
      * @param doNotCloneNotes If true directly add the NoteEvents without cloning them -so client properties might be changed.
      */
-    protected void add(Phrase p, boolean doNotCloneNotes)
+    public void add(Phrase p, boolean doNotCloneNotes)
     {
-        List<NoteEvent> notes;
-        if (doNotCloneNotes)
-        {
-            notes = p.getNotes();
-        } else
+        Collection<NoteEvent> notes = p;
+        if (!doNotCloneNotes)
         {
             notes = p.stream()
                     .map(ne -> ne.clone())

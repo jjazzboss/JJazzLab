@@ -49,6 +49,7 @@ import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.quantizer.api.Quantizer;
 import org.jjazz.util.api.ResUtil;
+import org.jjazz.util.api.Utilities;
 import org.netbeans.api.annotations.common.StaticResource;
 
 /**
@@ -203,7 +204,8 @@ public class SelectionTool implements EditTool
                     // Important: we don't want drag events to be recognized by the undoManager, we'll manage  undo at drag release
                     assert editor.getUndoManager().isEnabled();
                     editor.getUndoManager().setEnabled(false);
-                    editor.getModel().addAll(selectedNotes, true);
+                    editor.getModel().addAll(mapSrcDragNotes.values(), true);
+
                     dragNoteView = editor.getNoteView(mapSrcDragNotes.get(neSource));
 
                     // Listen to ctrl key
@@ -249,13 +251,15 @@ public class SelectionTool implements EditTool
                             posDelta = newPos - srcNe.getPositionInBeats();
                         }
 
-                        if (newPos >= 0 && posDelta < (srcNe.getDurationInBeats() - 0.05f))
+                        var dragNe = mapSrcDragNotes.get(srcNe);
+                        if (Float.compare(dragNe.getPositionInBeats(), newPos) != 0
+                                && posDelta < (srcNe.getDurationInBeats() - 0.05f))
                         {
-                            var dragNe = mapSrcDragNotes.get(srcNe);
                             float newDur = srcNe.getDurationInBeats() - posDelta;
-                            var newNe = srcNe.getCopyDurPos(newDur, newPos);
-                            mapOldNew.put(dragNe, newNe);
-                            mapSrcDragNotes.put(srcNe, newNe);
+                            newDur = Math.min(newDur, editor.getPhraseBeatRange().to - 0.001f - newPos);
+                            var newDragNe = srcNe.getCopyDurPos(newDur, newPos);
+                            mapOldNew.put(dragNe, newDragNe);
+                            mapSrcDragNotes.put(srcNe, newDragNe);
                         }
                     }
                     editor.getModel().replaceAll(mapOldNew, true);
@@ -266,24 +270,25 @@ public class SelectionTool implements EditTool
                     float dPos = editorPointPos - dragStartPos;
 
                     Map<NoteEvent, NoteEvent> mapOldNew = new HashMap<>();
+                    final float DURATION_MIN = 0.05f;
                     for (var srcNe : mapSrcDragNotes.keySet())
                     {
-                        float newDur = Math.max(srcNe.getDurationInBeats() + dPos, 0.05f);
+                        float newDur = Math.max(srcNe.getDurationInBeats() + dPos, DURATION_MIN);
 
                         // Quantize
                         if ((editor.isSnapEnabled() && !overrideSnapSetting) || (!editor.isSnapEnabled() && overrideSnapSetting))
                         {
                             float endPoint = Quantizer.getQuantized(q, srcNe.getPositionInBeats() + newDur);
-                            newDur = Math.max(endPoint - srcNe.getPositionInBeats(), 0.05f);
+                            newDur = Math.max(endPoint - srcNe.getPositionInBeats(), DURATION_MIN);
                         }
 
-
-                        if (Float.floatToIntBits(srcNe.getDurationInBeats()) != Float.floatToIntBits(newDur) && (srcNe.getPositionInBeats() + newDur) < editor.getPhraseBeatRange().to)
+                        if (Float.compare(srcNe.getDurationInBeats(), newDur) != 0
+                                && (srcNe.getPositionInBeats() + newDur) < editor.getPhraseBeatRange().to)
                         {
                             var dragNe = mapSrcDragNotes.get(srcNe);
-                            var newNe = srcNe.getCopyDur(newDur);
-                            mapOldNew.put(dragNe, newNe);
-                            mapSrcDragNotes.put(srcNe, newNe);
+                            var newDragNe = srcNe.getCopyDur(newDur);
+                            mapOldNew.put(dragNe, newDragNe);
+                            mapSrcDragNotes.put(srcNe, newDragNe);
                         }
                     }
                     editor.getModel().replaceAll(mapOldNew, true);
@@ -296,6 +301,7 @@ public class SelectionTool implements EditTool
                     int newDragPitch = editor.getPitchFromPoint(editorPoint);
                     int dPitch = newDragPitch - dragStartPitch;
 
+
                     // Position delta
                     float dPos = editorPointPos - dragStartPos;
 
@@ -305,10 +311,12 @@ public class SelectionTool implements EditTool
                     for (var sne : mapSrcDragNotes.keySet())
                     {
                         var dragNe = mapSrcDragNotes.get(sne);
-
+                        
+                        
                         // Calculate pos/pitch changes
                         float newDragPos = sne.getPositionInBeats() + dPos;
                         newDragPos = Math.max(0, newDragPos);
+
 
                         // Quantize
                         if ((editor.isSnapEnabled() && !overrideSnapSetting) || (!editor.isSnapEnabled() && overrideSnapSetting))
@@ -318,9 +326,9 @@ public class SelectionTool implements EditTool
 
 
                         // Check editor limits
-                        if (newDragPos + sne.getDurationInBeats() >= editor.getPhraseBeatRange().to)
+                        if (newDragPos + dragNe.getDurationInBeats() >= editor.getPhraseBeatRange().to)
                         {
-                            newDragPos = editor.getPhraseBeatRange().to - sne.getDurationInBeats();
+                            newDragPos = Math.max(0, editor.getPhraseBeatRange().to - 0.001f - dragNe.getDurationInBeats());
                         }
                         newDragPitch = isConstantPitchModifier(e) ? sne.getPitch() : MidiUtilities.limit(sne.getPitch() + dPitch);
 
@@ -328,9 +336,9 @@ public class SelectionTool implements EditTool
                         if (dragNe.getPitch() == newDragPitch && Float.compare(dragNe.getPositionInBeats(), newDragPos) == 0)
                         {
                             // No change
-                            return;
+                            continue;
                         }
-                        LOGGER.log(Level.FINE, "\nnoteDragged() continue dragging newPitch={0} newPos={1}", new Object[]
+                        LOGGER.log(Level.FINE, "\nnoteDragged() continue dragging newDragPitch={0} newDragPos={1}", new Object[]
                         {
                             newDragPitch, newDragPos
                         });
@@ -555,11 +563,10 @@ public class SelectionTool implements EditTool
         editor.unselectAll();
         editor.selectNotes(NoteView.getNotes(noteViews), true);
     }
-    
+
     // =============================================================================================
     // Private methods
     // =============================================================================================   
-
 
     private void changeState(State newState, Container container)
     {

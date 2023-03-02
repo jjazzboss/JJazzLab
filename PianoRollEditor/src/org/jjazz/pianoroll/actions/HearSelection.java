@@ -24,12 +24,7 @@ package org.jjazz.pianoroll.actions;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.Action;
@@ -44,8 +39,8 @@ import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.testplayerservice.spi.TestPlayer;
 import org.jjazz.ui.utilities.api.ToggleAction;
 import org.jjazz.util.api.ResUtil;
-import org.jjazz.util.api.Utilities;
-import org.openide.util.Exceptions;
+import org.openide.DialogDisplayer;
+import org.openide.NotifyDescriptor;
 
 /**
  * Action to toggle the play of the last selected note.
@@ -56,7 +51,6 @@ public class HearSelection extends ToggleAction implements PropertyChangeListene
     public static final String ACTION_ID = "HearSelection";
     public static final String KEYBOARD_SHORTCUT = "H";
     private final PianoRollEditor editor;
-    private CollectAndPlayNotesTask collectAndPlayNotesTask;
     private static final Logger LOGGER = Logger.getLogger(HearSelection.class.getSimpleName());
 
     public HearSelection(PianoRollEditor editor)
@@ -90,7 +84,6 @@ public class HearSelection extends ToggleAction implements PropertyChangeListene
         } else
         {
             editor.removePropertyChangeListener(PianoRollEditor.PROP_SELECTED_NOTE_VIEWS, this);
-            stopTask();
         }
     }
 
@@ -100,274 +93,45 @@ public class HearSelection extends ToggleAction implements PropertyChangeListene
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
-        // LOGGER.severe("propertyChange() -- " + Utilities.toDebugString(evt));
-
-        if (evt.getSource() == editor)
+        // This is PianoRollEditor.PROP_SELECTED_NOTE_VIEWS
+        boolean b = (boolean) evt.getNewValue();
+        if (b)
         {
-            switch (evt.getPropertyName())
-            {
-                case PianoRollEditor.PROP_SELECTED_NOTE_VIEWS ->
-                {
-                    boolean b = (boolean) evt.getNewValue();
-                    List<NoteView> nvs = (List<NoteView>) evt.getOldValue();
-                    if (b && !nvs.isEmpty())
-                    {
-                        selectionChanged(nvs.get(0));
-                    }
-                }
-                default ->
-                {
-                }
-
-            }
+            List<NoteView> nvs = (List<NoteView>) evt.getOldValue();
+            hearNotes(NoteView.getNotes(nvs));
         }
     }
+
 
     // ====================================================================================
     // Private methods
     // ====================================================================================
-    private void selectionChanged(NoteView lastNoteViewAddedToSelection)
+    private void hearNotes(List<NoteEvent> noteEvents)
     {
-        if (isSelected() == false || lastNoteViewAddedToSelection == null)
+        if (noteEvents.isEmpty())
         {
-            stopTask();
             return;
         }
 
-        startTask();
-        hearNote(lastNoteViewAddedToSelection.getModel());
-
-    }
-
-    /**
-     * Play one or more notes (wait a delay to possibly accept other notes in case a multiple selection was done).
-     *
-     * @param ne
-     */
-    private void hearNote(NoteEvent ne)
-    {
-        LOGGER.log(Level.FINE, "hearNote() -- ne={0}", ne);
-        collectAndPlayNotesTask.getQueue().add(ne);
-    }
-
-    private void startTask()
-    {
-        if (collectAndPlayNotesTask == null)
+        float firstNotePos = noteEvents.get(0).getPositionInBeats();
+        Phrase p = new Phrase(editor.getChannel());
+        for (var ne : noteEvents)
         {
-            collectAndPlayNotesTask = new CollectAndPlayNotesTask(10, 5);
-        }
-        collectAndPlayNotesTask.start();
-    }
-
-    private void stopTask()
-    {
-        if (collectAndPlayNotesTask != null)
-        {
-            collectAndPlayNotesTask.stop();
-        }
-    }
-
-
-    // ==========================================================================================================
-    // Inner classes
-    // ==========================================================================================================
-    /**
-     * A thread to accumulate incoming notes during waitTimeMsBeforePlaying, then start playing the first notes.
-     * <p>
-     */
-    private class CollectAndPlayNotesTask implements Runnable
-    {
-
-
-        private enum State
-        {
-            OFF,
-            WAITING,
-            ACCUMULATING,
-            PLAYING
-        };
-        private final int POLL_DELAY_MS = 1;
-        private final Queue<NoteEvent> queue = new ConcurrentLinkedQueue<>();
-        private ExecutorService executorService;
-        private final int waitTimeMsBeforePlaying;
-        private final int maxNbNotesPlayed;
-        private State state;
-        private final List<NoteEvent> noteEvents = new ArrayList<>(20);
-
-
-        /**
-         * Create the task.
-         *
-         * @param waitTimeMsBeforePlaying
-         * @param maxNbNotesPlayed
-         */
-        public CollectAndPlayNotesTask(int waitTimeMsBeforePlaying, int maxNbNotesPlayed)
-        {
-            this.waitTimeMsBeforePlaying = waitTimeMsBeforePlaying;
-            this.maxNbNotesPlayed = maxNbNotesPlayed;
-            state = State.OFF;
+            float pos = ne.getPositionInBeats() - firstNotePos;
+            var newNe = ne.getCopyPos(pos);
+            p.add(newNe);
         }
 
-
-        public Queue<NoteEvent> getQueue()
+        try
         {
-            return queue;
-        }
-
-        public void start()
+            TestPlayer.getDefault().playTestNotes(p, null);
+        } catch (MusicGenerationException ex)
         {
-            if (state.equals(State.OFF))
-            {
-                setState(State.WAITING);
-                executorService = Executors.newSingleThreadExecutor();
-                executorService.submit(this);
-            }
-        }
-
-        public void stop()
-        {
-            if (!state.equals(State.OFF))
-            {
-                setState(State.OFF);
-                Utilities.shutdownAndAwaitTermination(executorService, 1, 1);
-            }
-        }
-
-        @Override
-        public void run()
-        {
-            long startTimeMs = 0;
-
-            LOGGER.fine("CollectAndPlayNotesTask.run() -- ");
-
-            while (!state.equals(State.OFF))
-            {
-                if (state.equals(State.ACCUMULATING) && (System.currentTimeMillis() - startTimeMs) > waitTimeMsBeforePlaying)
-                {
-                    setState(State.PLAYING);
-                }
-
-                NoteEvent incoming = queue.poll();           // Does not block if empty                
-                if (incoming != null)
-                {
-
-                    LOGGER.log(Level.FINE, "      state={0} incoming={1}", new Object[]
-                    {
-                        state, incoming
-                    });
-
-                    switch (state)
-                    {
-                        case WAITING ->
-                        {
-                            startTimeMs = System.currentTimeMillis();
-                            noteEvents.add(incoming);
-                            setState(State.ACCUMULATING);
-                        }
-                        case ACCUMULATING ->
-                        {
-                            noteEvents.add(incoming);
-                        }
-                        case PLAYING, OFF ->
-                        {
-                            // Nothing
-                        }
-
-                        default ->
-                            throw new AssertionError(state.name());
-                    }
-                }
-
-
-                try
-                {
-                    Thread.sleep(POLL_DELAY_MS);
-                } catch (InterruptedException ex)
-                {
-                    return;
-                }
-            }
-
-            LOGGER.fine("CollectAndPlayNotesTask.run() stopped ");
-        }
-
-        public synchronized State getState()
-        {
-            return state;
-        }
-
-        private synchronized void setState(State s)
-        {
-            if (s.equals(state))
-            {
-                return;
-            }
-
-            LOGGER.log(Level.FINE, "setState() -- old={0} >> {1}", new Object[]
-            {
-                state, s
-            });
-            state = s;
-            switch (state)
-            {
-                case OFF:
-                    break;
-                case WAITING:
-                    noteEvents.clear();
-                    queue.clear();
-                    break;
-                case ACCUMULATING:
-                    break;
-                case PLAYING:
-                    play();
-                    break;
-                default:
-                    throw new AssertionError(state.name());
-            }
-        }
-
-        private void play()
-        {
-            assert state.equals(State.PLAYING);
-
-            if (noteEvents.isEmpty())
-            {
-                setState(State.WAITING);
-                return;
-            }
-
-            LOGGER.log(Level.FINE, "play() -- noteEvents={0}", noteEvents);
-
-
-            // Prepare the phrase
-            float pos = 0;
-            float durMax = noteEvents.size() == 1 ? 8f : 0.5f;
-            Phrase p = new Phrase(editor.getChannel());
-            for (var ne : noteEvents.subList(0, Math.min(noteEvents.size(), maxNbNotesPlayed)))
-            {
-                float dur = Math.min(durMax, ne.getDurationInBeats());
-                var newNe = ne.getCopyDurPos(dur, pos);
-                pos += dur + 0.1f;
-                p.add(newNe);
-            }
-
-
-            // Play it
-            try
-            {
-                Runnable endAction = () -> 
-                {
-                    if (getState().equals(State.PLAYING))
-                    {
-                        setState(State.WAITING);
-                    }
-                };
-                TestPlayer.getDefault().playTestNotes(p, endAction);
-            } catch (MusicGenerationException ex)
-            {
-                Exceptions.printStackTrace(ex);
-            }
+            LOGGER.log(Level.WARNING, "hearNotes() {0}", ex.getMessage());
+            NotifyDescriptor nd = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
+            DialogDisplayer.getDefault().notify(nd);
         }
 
     }
+
 }
