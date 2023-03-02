@@ -3,6 +3,7 @@ package org.jjazz.rhythm.api.rhythmparameters;
 import com.google.common.base.Preconditions;
 import static com.google.common.base.Preconditions.checkNotNull;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.logging.Logger;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmParameter;
@@ -140,7 +141,7 @@ public class RP_SYS_CustomPhrase implements RhythmParameter<RP_SYS_CustomPhraseV
 
 
         RP_SYS_CustomPhraseValue rpValue = (RP_SYS_CustomPhraseValue) value;
-        var rvs = getRhythm().getRhythmVoices();
+        var rvs = new ArrayList<>(getRhythm().getRhythmVoices());
 
 
         for (RhythmVoice rpRv : rpValue.getCustomizedRhythmVoices())

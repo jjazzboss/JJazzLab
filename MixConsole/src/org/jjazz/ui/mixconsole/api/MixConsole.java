@@ -181,8 +181,8 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         panel_mixChannels.setTransferHandler(new MidiFileDragOutTransferHandler(null));
 
         // Use our LayoutManager to arranger MixChannelPanels and their extensions
-        //panel_mixChannels.setLayout(new MixConsoleLayoutManager(this));
-        panel_mixChannels.setLayout(new MixConsoleLayoutManagerHorizontal(this));
+        panel_mixChannels.setLayout(new MixConsoleLayoutManager(this));
+        // panel_mixChannels.setLayout(new MixConsoleLayoutManagerHorizontal(this));
 
         // Our renderer to show visible rhythms
         cb_viewRhythms.setRenderer(new MyRenderer());
