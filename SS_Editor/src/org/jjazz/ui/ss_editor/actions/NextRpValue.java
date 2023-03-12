@@ -87,7 +87,7 @@ public final class NextRpValue extends AbstractAction implements ContextAwareAct
         SS_SelectionUtilities selection = cap.getSelection();
         SongStructure sgs = selection.getModel();
         assert sgs != null : "selection=" + selection;
-        LOGGER.log(Level.FINE, "actionPerformed() sgs=" + sgs + " selection=" + selection);
+        LOGGER.log(Level.FINE, "actionPerformed() sgs={0} selection={1}", new Object[]{sgs, selection});
         JJazzUndoManagerFinder.getDefault().get(sgs).startCEdit(undoText);
         for (SongPartParameter sptp : selection.getSelectedSongPartParameters())
         {

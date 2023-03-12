@@ -101,77 +101,77 @@ public class CL_EditorController implements CL_EditorMouseListener
         dragStartBbIndex = -1;
 
         // Initialize actions. 
-        transposeDownAction = Actions.forID("JJazz", "org.jjazz.ui.cl_editor.actions.transposedown");   
-        transposeUpAction = Actions.forID("JJazz", "org.jjazz.ui.cl_editor.actions.transposeup");   
-        editAction = Actions.forID("JJazz", "org.jjazz.ui.cl_editor.actions.edit");   
+        transposeDownAction = Actions.forID("JJazz", "org.jjazz.ui.cl_editor.actions.transposedown");
+        transposeUpAction = Actions.forID("JJazz", "org.jjazz.ui.cl_editor.actions.transposeup");
+        editAction = Actions.forID("JJazz", "org.jjazz.ui.cl_editor.actions.edit");
 
         // Actions created by annotations (equivalent to org.openide.awt.Actions.context())
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(getGenericControlKeyStroke(KeyEvent.VK_DOWN), "TransposeDown");   
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(getGenericControlKeyStroke(KeyEvent.VK_DOWN), "TransposeDown");
         editor.getActionMap().put("TransposeDown", transposeDownAction);
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(getGenericControlKeyStroke(KeyEvent.VK_UP), "TransposeUp");   
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(getGenericControlKeyStroke(KeyEvent.VK_UP), "TransposeUp");
         editor.getActionMap().put("TransposeUp", transposeUpAction);
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("shift DELETE"), "RemoveBar");   
-        editor.getActionMap().put("RemoveBar", Actions.forID("JJazz", "org.jjazz.ui.cl_editor.actions.removebar"));   
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(getGenericControlKeyStroke(KeyEvent.VK_LEFT), "MoveItemLeft");   
-        editor.getActionMap().put("MoveItemLeft", Actions.forID("JJazz", "org.jjazz.ui.cl_editor.actions.moveitemleft"));   
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(getGenericControlKeyStroke(KeyEvent.VK_RIGHT), "MoveItemRight");   
-        editor.getActionMap().put("MoveItemRight", Actions.forID("JJazz", "org.jjazz.ui.cl_editor.actions.moveitemright"));   
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(getGenericControlKeyStroke(KeyEvent.VK_E), "SetEndBar");   
-        editor.getActionMap().put("SetEndBar", Actions.forID("JJazz", "org.jjazz.ui.cl_editor.actions.setendbar"));   
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("I"), "InsertBar");   
-        editor.getActionMap().put("InsertBar", Actions.forID("JJazz", "org.jjazz.ui.cl_editor.actions.InsertBar"));   
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("P"), "NextPlayStyle");   
-        editor.getActionMap().put("NextPlayStyle", Actions.forID("JJazz", "org.jjazz.ui.cl_editor.actions.nextplaystyle"));   
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("S"), "AccentStronger");   
-        editor.getActionMap().put("AccentStronger", Actions.forID("JJazz", "org.jjazz.ui.cl_editor.actions.accentstronger"));   
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("H"), "AccentCrash");   
-        editor.getActionMap().put("AccentCrash", Actions.forID("JJazz", "org.jjazz.ui.cl_editor.actions.accentcrash"));   
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("X"), "ExtendHoldShot");   
-        editor.getActionMap().put("ExtendHoldShot", Actions.forID("JJazz", "org.jjazz.ui.cl_editor.actions.extendholdshot"));   
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("shift DELETE"), "RemoveBar");
+        editor.getActionMap().put("RemoveBar", Actions.forID("JJazz", "org.jjazz.ui.cl_editor.actions.removebar"));
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(getGenericControlKeyStroke(KeyEvent.VK_LEFT), "MoveItemLeft");
+        editor.getActionMap().put("MoveItemLeft", Actions.forID("JJazz", "org.jjazz.ui.cl_editor.actions.moveitemleft"));
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(getGenericControlKeyStroke(KeyEvent.VK_RIGHT), "MoveItemRight");
+        editor.getActionMap().put("MoveItemRight", Actions.forID("JJazz", "org.jjazz.ui.cl_editor.actions.moveitemright"));
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(getGenericControlKeyStroke(KeyEvent.VK_E), "SetEndBar");
+        editor.getActionMap().put("SetEndBar", Actions.forID("JJazz", "org.jjazz.ui.cl_editor.actions.setendbar"));
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("I"), "InsertBar");
+        editor.getActionMap().put("InsertBar", Actions.forID("JJazz", "org.jjazz.ui.cl_editor.actions.InsertBar"));
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("P"), "NextPlayStyle");
+        editor.getActionMap().put("NextPlayStyle", Actions.forID("JJazz", "org.jjazz.ui.cl_editor.actions.nextplaystyle"));
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("S"), "AccentStronger");
+        editor.getActionMap().put("AccentStronger", Actions.forID("JJazz", "org.jjazz.ui.cl_editor.actions.accentstronger"));
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("H"), "AccentCrash");
+        editor.getActionMap().put("AccentCrash", Actions.forID("JJazz", "org.jjazz.ui.cl_editor.actions.accentcrash"));
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("X"), "ExtendHoldShot");
+        editor.getActionMap().put("ExtendHoldShot", Actions.forID("JJazz", "org.jjazz.ui.cl_editor.actions.extendholdshot"));
 
 
         // Our delegates for standard Netbeans callback actions
-        editor.getActionMap().put("cut-to-clipboard", Actions.forID("JJazz", "org.jjazz.ui.cl_editor.actions.cut"));   
-        editor.getActionMap().put("copy-to-clipboard", Actions.forID("JJazz", "org.jjazz.ui.cl_editor.actions.copy"));   
-        editor.getActionMap().put("paste-from-clipboard", Actions.forID("JJazz", "org.jjazz.ui.cl_editor.actions.paste"));   
+        editor.getActionMap().put("cut-to-clipboard", Actions.forID("JJazz", "org.jjazz.ui.cl_editor.actions.cut"));
+        editor.getActionMap().put("copy-to-clipboard", Actions.forID("JJazz", "org.jjazz.ui.cl_editor.actions.copy"));
+        editor.getActionMap().put("paste-from-clipboard", Actions.forID("JJazz", "org.jjazz.ui.cl_editor.actions.paste"));
 
         // Delegates for our callback actions        
-        editor.getActionMap().put("jjazz-delete", Actions.forID("JJazz", "org.jjazz.ui.cl_editor.actions.deleteitem"));   
-        editor.getActionMap().put("jjazz-selectall", Actions.forID("JJazz", "org.jjazz.ui.cl_editor.actions.selectall"));   
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("A"), "jjazz-edit");   
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("shift A"), "jjazz-edit");   
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("B"), "jjazz-edit");   
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("shift B"), "jjazz-edit");   
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("C"), "jjazz-edit");   
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("shift C"), "jjazz-edit");   
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("D"), "jjazz-edit");   
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("shift D"), "jjazz-edit");   
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("E"), "jjazz-edit");   
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("shift E"), "jjazz-edit");   
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("F"), "jjazz-edit");   
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("shift F"), "jjazz-edit");   
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("G"), "jjazz-edit");   
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("shift G"), "jjazz-edit");   
+        editor.getActionMap().put("jjazz-delete", Actions.forID("JJazz", "org.jjazz.ui.cl_editor.actions.deleteitem"));
+        editor.getActionMap().put("jjazz-selectall", Actions.forID("JJazz", "org.jjazz.ui.cl_editor.actions.selectall"));
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("A"), "jjazz-edit");
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("shift A"), "jjazz-edit");
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("B"), "jjazz-edit");
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("shift B"), "jjazz-edit");
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("C"), "jjazz-edit");
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("shift C"), "jjazz-edit");
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("D"), "jjazz-edit");
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("shift D"), "jjazz-edit");
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("E"), "jjazz-edit");
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("shift E"), "jjazz-edit");
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("F"), "jjazz-edit");
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("shift F"), "jjazz-edit");
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("G"), "jjazz-edit");
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("shift G"), "jjazz-edit");
         editor.getActionMap().put("jjazz-edit", editAction);
 
         // Other actions
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("LEFT"), "MoveSelectionLeft");   
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("shift TAB"), "MoveSelectionLeft");   
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("LEFT"), "MoveSelectionLeft");
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("shift TAB"), "MoveSelectionLeft");
         editor.getActionMap().put("MoveSelectionLeft", new MoveSelectionLeft());
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("shift LEFT"), "ExtendSelectionLeft");   
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("shift LEFT"), "ExtendSelectionLeft");
         editor.getActionMap().put("ExtendSelectionLeft", new ExtendSelectionLeft());
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("RIGHT"), "MoveSelectionRight");   
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("TAB"), "MoveSelectionRight");   
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("RIGHT"), "MoveSelectionRight");
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("TAB"), "MoveSelectionRight");
         editor.getActionMap().put("MoveSelectionRight", new MoveSelectionRight());
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("shift RIGHT"), "ExtendSelectionRight");   
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("shift RIGHT"), "ExtendSelectionRight");
         editor.getActionMap().put("ExtendSelectionRight", new ExtendSelectionRight());
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("UP"), "MoveSelectionUp");   
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("UP"), "MoveSelectionUp");
         editor.getActionMap().put("MoveSelectionUp", new MoveSelectionUp());
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("DOWN"), "MoveSelectionDown");   
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("DOWN"), "MoveSelectionDown");
         editor.getActionMap().put("MoveSelectionDown", new MoveSelectionDown());
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("HOME"), "JumpToHome");   
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("HOME"), "JumpToHome");
         editor.getActionMap().put("JumpToHome", new JumpToHome());
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("END"), "JumpToEnd");   
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("END"), "JumpToEnd");
         editor.getActionMap().put("JumpToEnd", new JumpToEnd());
 
 
@@ -189,7 +189,8 @@ public class CL_EditorController implements CL_EditorMouseListener
             }
             if (zfx < 0 || zfx > 100)
             {
-                LOGGER.warning("CL_EditorController() Invalid zoom factor X client property=" + str + " in song=" + editor.getSongModel().getName());   
+                LOGGER.warning(
+                        "CL_EditorController() Invalid zoom factor X client property=" + str + " in song=" + editor.getSongModel().getName());
             } else
             {
                 Zoomable zoomable = editor.getLookup().lookup(Zoomable.class);
@@ -213,7 +214,8 @@ public class CL_EditorController implements CL_EditorMouseListener
             }
             if (zfy < 0 || zfy > 100)
             {
-                LOGGER.warning("CL_EditorController() Invalid zoom factor Y client property=" + str + " in song=" + editor.getSongModel().getName());   
+                LOGGER.warning(
+                        "CL_EditorController() Invalid zoom factor Y client property=" + str + " in song=" + editor.getSongModel().getName());
             } else
             {
                 Zoomable zoomable = editor.getLookup().lookup(Zoomable.class);
@@ -251,7 +253,7 @@ public class CL_EditorController implements CL_EditorMouseListener
 
         CL_SelectionUtilities selection = new CL_SelectionUtilities(editor.getLookup());
 
-        LOGGER.log(Level.FINE, "itemClicked() item={0} selection={1}", new Object[]   
+        LOGGER.log(Level.FINE, "itemClicked() item={0} selection={1}", new Object[]
         {
             item, selection
         });
@@ -366,23 +368,27 @@ public class CL_EditorController implements CL_EditorMouseListener
         clTc.requestActive();
 
         boolean isWheelChangeEnabled = GeneralUISettings.getInstance().isChangeValueWithMouseWheelEnabled();
-        LOGGER.log(Level.FINER, "itemWheelMoved() e.getWheelRotation()={0} isWheelChangeEnabled={1}", new Object[]   
+        LOGGER.log(Level.FINER, "itemWheelMoved() e.getWheelRotation()={0} isWheelChangeEnabled={1}", new Object[]
         {
             e.getWheelRotation(), isWheelChangeEnabled
         });
 
 
-        if (isWheelChangeEnabled)
+        // Fix Issue #347: need to give time for clTc to become active if it was not the case
+        SwingUtilities.invokeLater(() -> 
         {
-            if (e.getWheelRotation() > 0)
+            if (isWheelChangeEnabled)
             {
-                transposeDownAction.actionPerformed(null);
+                if (e.getWheelRotation() > 0)
+                {
+                    transposeDownAction.actionPerformed(null);
 
-            } else
-            {
-                transposeUpAction.actionPerformed(null);
+                } else
+                {
+                    transposeUpAction.actionPerformed(null);
+                }
             }
-        }
+        });
     }
 
     @Override
@@ -395,7 +401,7 @@ public class CL_EditorController implements CL_EditorMouseListener
             focusedBarIndex = ((BarBox) c).getBarIndex();
         }
 
-        LOGGER.log(Level.FINE, "barClicked() barIndex{0}", barIndex);   
+        LOGGER.log(Level.FINE, "barClicked() barIndex{0}", barIndex);
 
         CL_SelectionUtilities selection = new CL_SelectionUtilities(editor.getLookup());
 
@@ -477,7 +483,7 @@ public class CL_EditorController implements CL_EditorMouseListener
             selection.unselectAll(editor);
             editor.selectBars(dragStartBbIndex, dragStartBbIndex, true);
             editor.setFocusOnBar(bbIndex);
-            LOGGER.log(Level.FINE, "barDragged() start drag bbIndex={0}", bbIndex);   
+            LOGGER.log(Level.FINE, "barDragged() start drag bbIndex={0}", bbIndex);
         } else
         {
             // We continue a drag operation previously started
@@ -497,7 +503,7 @@ public class CL_EditorController implements CL_EditorMouseListener
     @Override
     public void barReleased(MouseEvent e, int barIndex)
     {
-        LOGGER.log(Level.FINE, "barReleased()");   
+        LOGGER.log(Level.FINE, "barReleased()");
         dragStartBbIndex = -1;
     }
 
@@ -536,8 +542,9 @@ public class CL_EditorController implements CL_EditorMouseListener
         {
             factor = Math.max(0, factor - STEP);
         }
-        LOGGER.log(Level.FINE, "editorWheelMoved() factor={0}", factor);   
-        zoomable.setZoomXFactor(factor, false);
+        LOGGER.log(Level.FINE, "editorWheelMoved() factor={0}", factor);
+        var factor2= factor;
+        SwingUtilities.invokeLater(() -> zoomable.setZoomXFactor(factor2, false));      // Give time to TopComponent to become active
 
 
     }

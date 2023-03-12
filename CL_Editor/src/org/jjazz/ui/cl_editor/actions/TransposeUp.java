@@ -29,7 +29,7 @@ import java.awt.event.KeyEvent;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import static javax.swing.Action.ACCELERATOR_KEY; 
+import static javax.swing.Action.ACCELERATOR_KEY;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
@@ -54,17 +54,17 @@ import org.jjazz.util.api.ResUtil;
         })
 public final class TransposeUp extends AbstractAction implements ContextAwareAction, CL_ContextActionListener
 {
-
+    
     private Lookup context;
     private CL_ContextActionSupport cap;
     private final String undoText = ResUtil.getString(getClass(), "CTL_TransposeUp");
     private static final Logger LOGGER = Logger.getLogger(TransposeUp.class.getSimpleName());
-
+    
     public TransposeUp()
     {
         this(Utilities.actionsGlobalContext());
     }
-
+    
     public TransposeUp(Lookup context)
     {
         this.context = context;
@@ -74,41 +74,41 @@ public final class TransposeUp extends AbstractAction implements ContextAwareAct
         putValue(ACCELERATOR_KEY, getGenericControlKeyStroke(KeyEvent.VK_UP));
         selectionChange(cap.getSelection());
     }
-
+    
     @Override
     public void actionPerformed(ActionEvent e)
     {
         CL_SelectionUtilities selection = cap.getSelection();
-
+        
         
         ChordLeadSheet cls = selection.getChordLeadSheet();
         JJazzUndoManagerFinder.getDefault().get(cls).startCEdit(undoText);
 
-        
+
         // Transpose up use SHARP            
         for (CLI_ChordSymbol cliCs : selection.getSelectedChordSymbols())
         {
-            ExtChordSymbol ecs = cliCs.getData();           
-            ExtChordSymbol newEcs = ecs.getTransposedChordSymbol(+1, Note.Alteration.SHARP);                        
+            ExtChordSymbol ecs = cliCs.getData();            
+            ExtChordSymbol newEcs = ecs.getTransposedChordSymbol(+1, Note.Alteration.SHARP);            
             cliCs.getContainer().changeItem(cliCs, newEcs);
         }
         
         
         JJazzUndoManagerFinder.getDefault().get(cls).endCEdit(undoText);
     }
-
+    
     @Override
     public void selectionChange(CL_SelectionUtilities selection)
     {
         setEnabled(selection.isItemSelected() && (selection.getSelectedItems().get(0) instanceof CLI_ChordSymbol));
     }
-
+    
     @Override
     public Action createContextAwareInstance(Lookup context)
     {
         return new TransposeUp(context);
     }
-
+    
     @Override
     public void sizeChanged(int oldSize, int newSize)
     {
