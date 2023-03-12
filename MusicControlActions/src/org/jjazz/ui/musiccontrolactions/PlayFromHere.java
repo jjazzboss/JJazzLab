@@ -41,6 +41,7 @@ import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.musiccontrol.api.playbacksession.UpdateProviderSongSession;
 import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession;
+import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSessionOnePlay;
 import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.song.api.Song;
@@ -112,7 +113,7 @@ public class PlayFromHere extends AbstractAction
     {
         if (song == null)
         {
-            LOGGER.severe("actionPerformed() unexpected value song=" + song);   
+            LOGGER.severe("actionPerformed() unexpected value song=" + song);
             return;
         }
 
@@ -129,14 +130,14 @@ public class PlayFromHere extends AbstractAction
 
         ChordLeadSheet cls = song.getChordLeadSheet();
         CL_EditorTopComponent clTc = CL_EditorTopComponent.get(cls);
-        assert clTc != null;   
+        assert clTc != null;
         CL_Editor clEditor = clTc.getEditor();
         CL_SelectionUtilities clSelection = new CL_SelectionUtilities(clEditor.getLookup());
 
 
         SongStructure ss = song.getSongStructure();
         SS_EditorTopComponent ssTc = SS_EditorTopComponent.get(ss);
-        assert ssTc != null;   
+        assert ssTc != null;
         SS_Editor ssEditor = ssTc.getEditor();
         SS_SelectionUtilities ssSelection = new SS_SelectionUtilities(ssEditor.getLookup());
 
@@ -186,13 +187,11 @@ public class PlayFromHere extends AbstractAction
             // Check that all listeners are OK to start playback     
             PlaybackSettings.getInstance().firePlaybackStartVetoableChange(context);  // can raise PropertyVetoException
 
-            session = UpdatableSongSession.getSession(UpdateProviderSongSession.getSession(context));
-            if (session.getState().equals(PlaybackSession.State.NEW))
-            {
-                session.generate(false);        // can raise MusicGenerationException
-                mc.setPlaybackSession(session); // can raise MusicGenerationException
-            }
+            var dynSession = UpdateProviderSongSession.getSession(context);
+            session = new UpdatableSongSessionOnePlay(dynSession);
+            mc.setPlaybackSession(session, false); // can raise MusicGenerationException
             mc.play(playFromBar);
+            
         } catch (MusicGenerationException | PropertyVetoException | MidiUnavailableException ex)
         {
             if (session != null)
@@ -233,7 +232,7 @@ public class PlayFromHere extends AbstractAction
         }
 
         boolean b = song != null;
-        LOGGER.fine("updateEnabledStatus() b=" + b);   
+        LOGGER.fine("updateEnabledStatus() b=" + b);
 
         setEnabled(b);
     }
@@ -250,12 +249,12 @@ public class PlayFromHere extends AbstractAction
     {
         int sgsBarIndex = -1;
         CLI_Section section = cls.getSection(clsBarIndex);
-        LOGGER.fine("getSsBarIndex() section=" + section);   
+        LOGGER.fine("getSsBarIndex() section=" + section);
 
 
         // If there are some selected spts, try to match one of them
         SS_EditorTopComponent ssTc = SS_EditorTopComponent.get(ss);
-        assert ssTc != null : "sgs=" + ss;   
+        assert ssTc != null : "sgs=" + ss;
         SS_SelectionUtilities ssSelection = new SS_SelectionUtilities(ssTc.getLookup());
         for (SongPart spt : ssSelection.getIndirectlySelectedSongParts())
         {
@@ -271,7 +270,7 @@ public class PlayFromHere extends AbstractAction
         if (sgsBarIndex == -1)
         {
             // It did not work, search the first SongPart which matches
-            LOGGER.fine("getSsBarIndex() no matching in selected spt, test all spts");   
+            LOGGER.fine("getSsBarIndex() no matching in selected spt, test all spts");
             for (SongPart spt : ss.getSongParts())
             {
                 if (spt.getParentSection() == section)
@@ -284,7 +283,7 @@ public class PlayFromHere extends AbstractAction
         }
 
 
-        LOGGER.fine("getSsBarIndex() sgsBarIndex=" + sgsBarIndex);   
+        LOGGER.fine("getSsBarIndex() sgsBarIndex=" + sgsBarIndex);
         return sgsBarIndex;
     }
 

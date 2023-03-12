@@ -205,9 +205,7 @@ public class RP_SYS_CustomPhraseEditor extends RpCustomEditor<RP_SYS_CustomPhras
         mapRvPhrase.clear();
         mapRvPhrase.putAll(map);
 
-        // Refresh the birdview
-        refreshUI();
-
+        SwingUtilities.invokeLater(() -> refreshUI());  // Refresh the birdview
     }
 
     /**

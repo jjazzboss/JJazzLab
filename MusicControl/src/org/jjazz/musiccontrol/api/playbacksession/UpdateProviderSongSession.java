@@ -74,14 +74,15 @@ import org.openide.util.*;
  * A session to be used as a BaseSongSession for an UpdatableSongSession.
  * <p>
  * The session provides on-the-fly UpdatableSongSession.Updates for:<br>
- - chord symbol changes (add/remove/change/moveAll)<br>
+ * - chord symbol changes (add/remove/change/moveAll)<br>
  * - rhythm parameter value changes<br>
  * - existing user phrase content changes (but not for add/remove user phrase events)<br>
  * - PlaybackSettings playback transposition changes<br>
  * - MidiMix instrument transposition/velocity changes, plus drum keymap and drum rerouting changes<br>
  * <p>
- * If change can't be handled as an update (eg a tempo change or a click setting), session is marked dirty (ie needs regeneration). If
- * session is dirty, editors can still show the playback point using the control track but the "dirty" changes are not heard.
+ * If change can't be handled as an update (eg a song part tempo factor change or a click setting), session is marked dirty (ie needs
+ * regeneration). If session is dirty, editors can still show the playback point using the control track but the "dirty" changes are not
+ * heard.
  * <p>
  * A more serious change like a structural change of the song context will make the session dirty, plus it disables the control track and
  * any future update. So editors should stop showing the playback point, and any further change will not be heard (until a new session is
@@ -90,10 +91,6 @@ import org.openide.util.*;
 public class UpdateProviderSongSession extends BaseSongSession implements UpdatableSongSession.UpdateProvider, SgsChangeListener, ClsChangeListener, VetoableChangeListener
 {
 
-    /**
-     * Property change event fired when updates become disabled (it's enabled by default)
-     */
-    public static final String PROP_UPDATES_ENABLED = "PropUpdatesEnabled";
     public static final int DEFAULT_PRE_UPDATE_BUFFER_TIME_MS = 300;
     public static final int DEFAULT_POST_UPDATE_SLEEP_TIME_MS = 700;
     private int preUpdateBufferTimeMs = DEFAULT_PRE_UPDATE_BUFFER_TIME_MS;
@@ -101,7 +98,7 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
     private Update update;
     private ClsSgsChange currentClsChange;
     private ClsSgsChange currentSgsChange;
-    private boolean isUpdatable = true;
+    private boolean isUpdateProvisionEnabled = true;
     private boolean isControlTrackEnabled = true;
     private final boolean isUpdateControlEnabled;
     private MusicGenerationQueue musicGenerationQueue;
@@ -153,9 +150,11 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
                     endOfPlaybackAction);
 
             sessions.add(newSession);
+            LOGGER.fine("getSession() create new session");
             return newSession;
         } else
         {
+            LOGGER.fine("getSession() reusing existing session");
             return session;
         }
     }
@@ -189,9 +188,10 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
     }
 
     @Override
-    public UpdateProviderSongSession getFreshCopy()
+    public UpdateProviderSongSession getFreshCopy(SongContext sgContext)
     {
-        UpdateProviderSongSession newSession = new UpdateProviderSongSession(getSongContext().clone(),
+        var newContext = sgContext == null ? getSongContext().clone() : sgContext;
+        UpdateProviderSongSession newSession = new UpdateProviderSongSession(newContext,
                 isPlaybackTranspositionEnabled(),
                 isClickTrackIncluded(),
                 isPrecountTrackIncluded(),
@@ -222,7 +222,7 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
         song.getSongStructure().addSgsChangeListener(this);
         for (var name : song.getUserPhraseNames())
         {
-            song.getUserPhrase(name).addPropertyChangeListener(this);       // user phrase content changed
+            song.getUserPhrase(name).addPropertyChangeListener(this);       // listen to user phrase content changes
         }
     }
 
@@ -242,15 +242,6 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
         sessions.remove(this);
     }
 
-    /**
-     * Check if session still listens to song changes and generate updates.
-     *
-     * @return
-     */
-    public boolean isUpdatable()
-    {
-        return isUpdatable;
-    }
 
     /**
      * True if updates are authorized/blocked depending on the PlaybackSettings auto update value.
@@ -264,7 +255,9 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
 
 
     /**
+     * Wait time before starting the music generation to provide an update.
      *
+     * @return
      * @see MusicGenerationQueue#getPreUpdateBufferTimeMs()
      */
     public int getPreUpdateBufferTimeMs()
@@ -283,7 +276,9 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
     }
 
     /**
+     * Wait time after having generated an update.
      *
+     * @return
      * @see MusicGenerationQueue#getPostUpdateSleepTimeMs()
      */
     public int getPostUpdateSleepTimeMs()
@@ -325,7 +320,7 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
 
         LOGGER.log(Level.FINE, "propertyChange() -- e={0}", e);
 
-        if (getState().equals(State.CLOSED) || !isUpdatable())
+        if (getState().equals(State.CLOSED) || !isUpdateProvisionEnabled())
         {
             return;
         }
@@ -457,9 +452,15 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
     // UpdatableSongSession.UpdateProvider interface
     // ==========================================================================================================
     @Override
-    public Update getUpdate()
+    public Update getLastUpdate()
     {
         return update;
+    }
+
+    @Override
+    public boolean isUpdateProvisionEnabled()
+    {
+        return isUpdateProvisionEnabled;
     }
 
     // ==========================================================================================================
@@ -476,7 +477,7 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
     {
         // NOTE: model changes can be generated outside the EDT!
 
-        if (!getState().equals(PlaybackSession.State.GENERATED) || !isUpdatable())
+        if (!getState().equals(PlaybackSession.State.GENERATED) || !isUpdateProvisionEnabled())
         {
             return;
         }
@@ -488,9 +489,8 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
 
         boolean disableUpdates = false;
 
-        if (event instanceof ClsActionEvent)
+        if (event instanceof ClsActionEvent e)
         {
-            var e = (ClsActionEvent) event;
             if (e.isActionStarted())
             {
                 // New ClsActionEvent, save it
@@ -533,9 +533,8 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
             // Bars were inserted/deleted
             disableUpdates = true;
 
-        } else if (event instanceof ItemChangedEvent)
+        } else if (event instanceof ItemChangedEvent e)
         {
-            ItemChangedEvent e = (ItemChangedEvent) event;
             var item = e.getItem();
             if (isClsBarIndexPartOfContext(item.getPosition().getBar()))
             {
@@ -554,9 +553,8 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
                 }
             }
 
-        } else if (event instanceof ItemMovedEvent)
+        } else if (event instanceof ItemMovedEvent e)
         {
-            ItemMovedEvent e = (ItemMovedEvent) event;
             if (isClsBarIndexPartOfContext(e.getNewPosition().getBar()) || isClsBarIndexPartOfContext(e.getOldPosition().getBar()))
             {
                 assert currentClsChange != null : "event=" + event;
@@ -597,7 +595,7 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
     {
         // NOTE: model changes can be generated outside the EDT!        
 
-        if (!getState().equals(PlaybackSession.State.GENERATED) || !isUpdatable())
+        if (!getState().equals(PlaybackSession.State.GENERATED) || !isUpdateProvisionEnabled())
         {
             return;
         }
@@ -613,9 +611,8 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
         List<SongPart> contextSongParts = getSongContext().getSongParts();
 
 
-        if (event instanceof SgsActionEvent)
+        if (event instanceof SgsActionEvent e)
         {
-            var e = (SgsActionEvent) event;
             if (e.isActionStarted())
             {
                 // New SgsActionEvent, save it
@@ -708,7 +705,7 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
         LOGGER.log(Level.FINE, "generateUpdate() --  nanoTime()={0}", System.nanoTime());
         if (!getState().equals(State.GENERATED))
         {
-            LOGGER.log(Level.FINE, "generateUpdate() aborted because getState()=" + getState());
+            LOGGER.log(Level.FINE, "generateUpdate() aborted because getState()={0}", getState());
             return;
         }
 
@@ -744,8 +741,7 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
         } catch (Exception e)
         {
             // Should never be here
-            LOGGER.warning("generateUpdate() unexpected updateRequestsHandler.getLastAddedSongContext()="
-                    + musicGenerationQueue.getLastAddedSongContext());
+            LOGGER.log(Level.WARNING, "generateUpdate() unexpected updateRequestsHandler.getLastAddedSongContext()={0}", musicGenerationQueue.getLastAddedSongContext());
             Exceptions.printStackTrace(e);
         }
 
@@ -770,16 +766,17 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
     /**
      * Like setDirty() plus it stops further updates and disable the control track.
      * <p>
+     * Fire an UpdateProvider.PROP_UPDATE_PROVISION_ENABLED change event.
      */
     private void disableUpdates()
     {
-        if (isUpdatable())
+        if (isUpdateProvisionEnabled())
         {
             LOGGER.fine("disableUpdates() -- ");
-            isUpdatable = false;
+            isUpdateProvisionEnabled = false;
             setDirty();
             disableControlTrack();
-            firePropertyChange(PROP_UPDATES_ENABLED, true, false);
+            firePropertyChange(PROP_UPDATE_PROVISION_ENABLED, true, false);
         }
     }
 

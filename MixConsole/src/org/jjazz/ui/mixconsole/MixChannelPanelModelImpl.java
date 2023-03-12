@@ -481,7 +481,8 @@ public class MixChannelPanelModelImpl implements MixChannelPanelModel, PropertyC
         boolean isUserVoice = rv instanceof UserRhythmVoice;
         Rhythm r = rv.getContainer();
 
-        channelNameUpper = isUserVoice ? ResUtil.getString(getClass(), "USER") : rv.getName();
+        // channelNameUpper = isUserVoice ? ResUtil.getString(getClass(), "USER") : rv.getName();
+        channelNameUpper = rv.getName();
         channelNameLower = null;
         icon = getIcon(rv);
         channelNameTooltip = isUserVoice ? null : r.getName() + " - " + rv.getName();

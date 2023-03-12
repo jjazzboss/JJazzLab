@@ -46,6 +46,7 @@ import org.jjazz.musiccontrol.api.playbacksession.UpdateProviderSongSession;
 import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.musiccontrol.api.playbacksession.SongContextProvider;
 import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession;
+import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSessionOnePlay;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.song.api.Song;
@@ -60,11 +61,10 @@ import org.openide.*;
 import org.openide.util.Exceptions;
 
 /**
- * A RpCustomEditor dialog implementation which lets user preview the RP value changes in real time (while the sequence is
- * playing).
+ * A RpCustomEditor dialog implementation which lets user preview the RP value changes in real time (while the sequence is playing).
  * <p>
- * The dialog can be customized for a given RhythmParameter via the RealTimeRpEditorPanel panel which provides the RP value
- * editing capability.
+ * The dialog can be customized for a given RhythmParameter via the RealTimeRpEditorPanel panel which provides the RP value editing
+ * capability.
  *
  * @param <E> RhythmParameter value class
  */
@@ -82,12 +82,12 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
     private E saveRpValue;
     private GlobalKeyActionListener globalKeyListener;
     private PlaybackSession previousPlaybackSession;
-    private static final Logger LOGGER = Logger.getLogger(RealTimeRpEditorDialog.class.getSimpleName());  
+    private static final Logger LOGGER = Logger.getLogger(RealTimeRpEditorDialog.class.getSimpleName());
 
     public RealTimeRpEditorDialog(RealTimeRpEditorComponent<E> comp)
     {
         super(comp.isModal());
-        
+
         editor = comp;
         editor.addPropertyChangeListener(this);
         setResizable(editor.isResizable());
@@ -122,7 +122,8 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
         var spt = sptContext.getSongPart();
         if (!spt.getRhythm().getRhythmParameters().contains(editor.getRhythmParameter()))
         {
-            throw new IllegalArgumentException("rpValue=" + rpValue + " sptContext=" + sptContext + " spt=" + spt + " getRhythmParameter()=" + getRhythmParameter());
+            throw new IllegalArgumentException(
+                    "rpValue=" + rpValue + " sptContext=" + sptContext + " spt=" + spt + " getRhythmParameter()=" + getRhythmParameter());
         }
 
 
@@ -257,7 +258,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
         {
             try
             {
-                mc.setPlaybackSession(previousPlaybackSession);
+                mc.setPlaybackSession(previousPlaybackSession, false);
                 mc.play(previousPlaybackSession.getBarRange().from);
             } catch (MusicGenerationException ex)
             {
@@ -305,27 +306,14 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
                 false,
                 Sequencer.LOOP_CONTINUOUSLY,
                 null);
-
-        session = UpdatableSongSession.getSession(dynSession);
-        try
-        {
-            session.generate(false);
-        } catch (MusicGenerationException ex)
-        {
-            if (ex.getLocalizedMessage() != null)
-            {
-                NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
-                DialogDisplayer.getDefault().notify(d);
-            }
-            return;
-        }
+        session = new UpdatableSongSessionOnePlay(dynSession);
 
 
         // Play
         MusicController mc = MusicController.getInstance();
         try
         {
-            mc.setPlaybackSession(session);
+            mc.setPlaybackSession(session, false);
             mc.play(session.getBarRange().from);
         } catch (MusicGenerationException ex)
         {
@@ -360,7 +348,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
     protected JRootPane createRootPane()
     {
         JRootPane contentPane = new JRootPane();
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ENTER"), "actionOk");   
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ENTER"), "actionOk");
         contentPane.getActionMap().put("actionOk", new AbstractAction("OK")
         {
 
@@ -371,7 +359,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
             }
         });
 
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ESCAPE"), "actionCancel");   
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ESCAPE"), "actionCancel");
         contentPane.getActionMap().put("actionCancel", new AbstractAction("Cancel")
         {
 
@@ -387,8 +375,8 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
 
 
     /**
-     * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of
-     * this method is always regenerated by the Form Editor.
+     * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of this
+     * method is always regenerated by the Form Editor.
      */
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -635,8 +623,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
 // Private classes
 // =================================================================================
     /**
-     * Use a global approach to trigger some keyboard actions because we can't control what will be in the
-     * RealTimeRpEditorComponent.
+     * Use a global approach to trigger some keyboard actions because we can't control what will be in the RealTimeRpEditorComponent.
      * <p>
      * E.g. if there is a JList, it will capture the SPACE key...
      */

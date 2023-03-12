@@ -374,8 +374,9 @@ public class MusicGenerationQueue implements Runnable
             }
 
 
-            LOGGER.log(Level.FINE, "UpdateGenerationTask.run() >>> STARTING generation nanoTime()={0}", System.nanoTime());
-            // LOGGER.info("UpdateGenerationTask.run() >>> STARTING generation cls=" + toDebugString(songContext.getSong().getChordLeadSheet()));
+            long startTime = System.nanoTime();
+            LOGGER.log(Level.FINE, "UpdateGenerationTask.run() >>> STARTING generation nanoTime()={0}", startTime);
+            //LOGGER.info("UpdateGenerationTask.run() >>> STARTING generation cls=" + toDebugString(songContext.getSong().getChordLeadSheet()));
 
 
             // Recompute the RhythmVoice mapRvPhrases            
@@ -409,6 +410,8 @@ public class MusicGenerationQueue implements Runnable
             lastResult = new Result(songContext, map, exception);
 
 
+            LOGGER.log(Level.FINE, "UpdateGenerationTask.run() <<< ENDING generation  duration={0}ns", System.nanoTime() - startTime);
+
             // Notify listeners
             cs.fireChange();
 
@@ -422,8 +425,6 @@ public class MusicGenerationQueue implements Runnable
                 return;
             }
 
-
-            LOGGER.log(Level.FINE, "UpdateGenerationTask.run() <<< ENDING generation  nanoTime={0}", System.nanoTime());
 
         }
 

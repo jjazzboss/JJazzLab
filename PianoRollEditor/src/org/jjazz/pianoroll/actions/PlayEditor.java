@@ -36,6 +36,7 @@ import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession;
+import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSessionOnePlay;
 import org.jjazz.musiccontrol.api.playbacksession.UpdateProviderSongSession;
 import org.jjazz.pianoroll.api.PianoRollEditorTopComponent;
 import org.jjazz.rhythm.api.MusicGenerationException;
@@ -67,7 +68,7 @@ public class PlayEditor extends AbstractAction
         putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(), "PlayEditorTooltip") + " (" + KEYBOARD_SHORTCUT + ")");
         putValue("hideActionText", true);
 
-        
+
         topComponent.getEditor().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KEYBOARD_SHORTCUT),
                 PlayEditor.ACTION_ID);
         topComponent.getEditor().getActionMap().put(PlayEditor.ACTION_ID, this);
@@ -90,6 +91,9 @@ public class PlayEditor extends AbstractAction
 
 
         var mc = MusicController.getInstance();
+        mc.stop();
+
+        
         UpdatableSongSession session = null;
         try
         {
@@ -101,16 +105,11 @@ public class PlayEditor extends AbstractAction
 
 
             // Create the session
-            session = UpdatableSongSession.getSession(UpdateProviderSongSession.getSession(context));
-            if (session.getState().equals(PlaybackSession.State.NEW))
-            {
-                session.generate(false);        // can raise MusicGenerationException
-            }
-
+            var dynSession = UpdateProviderSongSession.getSession(context);
+            session = new UpdatableSongSessionOnePlay(dynSession);
+            mc.setPlaybackSession(session, false); // can raise MusicGenerationException            
 
             // Play it
-            mc.stop();
-            mc.setPlaybackSession(session); // can raise MusicGenerationException            
             mc.play(barRange.from);
             PlaybackSettings.getInstance().setLoopCount(Sequencer.LOOP_CONTINUOUSLY);
 

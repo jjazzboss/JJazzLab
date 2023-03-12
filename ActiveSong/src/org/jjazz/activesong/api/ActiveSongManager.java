@@ -28,6 +28,7 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyVetoException;
 import java.beans.VetoableChangeListener;
 import java.util.EnumSet;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.midi.api.InstrumentMix;
@@ -39,9 +40,11 @@ import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.musiccontrol.api.playbacksession.SongContextProvider;
 import org.jjazz.outputsynth.api.OutputSynthManager;
+import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.song.api.Song;
 import org.jjazz.util.api.ResUtil;
+import org.openide.util.Exceptions;
 
 /**
  * Manage the active song and MidiMix.
@@ -123,7 +126,7 @@ public class ActiveSongManager implements PropertyChangeListener, VetoableChange
         String err = null;
         MusicController mc = MusicController.getInstance();
         PlaybackSession session = mc.getPlaybackSession();
-        SongContext sgContext = session instanceof SongContextProvider ? ((SongContextProvider) session).getSongContext() : null;
+        SongContext sgContext = session instanceof SongContextProvider scp ? scp.getSongContext() : null;
         if (mc.getState() == MusicController.State.PLAYING && (sgContext == null || sg != sgContext.getSong()))
         {
             err = ResUtil.getString(getClass(), "ErrSongIsPlaying");
@@ -135,6 +138,7 @@ public class ActiveSongManager implements PropertyChangeListener, VetoableChange
      * Set the specified song and MidiMix as active: <br>
      * - send MidiMessages for all MidiMix parameters at activation <br>
      * - listen to MidiMix changes and send the related Midi messages according to the SendPolicy <br>
+     * - reset MusicController session<br>
      * - Fire a PROP_ACTIVE_SONG change event (oldValue=mm, newValue=sg) <br>
      *
      * @param sg If null, mm will be set to null as well.
@@ -155,6 +159,8 @@ public class ActiveSongManager implements PropertyChangeListener, VetoableChange
         {
             return false;
         }
+
+
         if (activeMidiMix != null)
         {
             unregisterMidiMix(activeMidiMix);
@@ -163,8 +169,27 @@ public class ActiveSongManager implements PropertyChangeListener, VetoableChange
         {
             activeSong.removePropertyChangeListener(this);
         }
+
+        // Change state
         activeSong = sg;
         activeMidiMix = (sg == null) ? null : mm;
+
+
+        
+        // MusicController
+        var mc = MusicController.getInstance();
+        mc.stop();                  
+        try
+        {
+            mc.setPlaybackSession(null, false);
+        } catch (MusicGenerationException ex)
+        {
+            // Should never happen
+            Exceptions.printStackTrace(ex);
+        }
+
+
+        // Register
         if (activeMidiMix != null)
         {
             registerMidiMix(activeMidiMix);              // Listen to added/replace/removed instruments, or settings changes
@@ -175,9 +200,12 @@ public class ActiveSongManager implements PropertyChangeListener, VetoableChange
                 sendAllMidiMixMessages();
             }
         }
+
+
         pcs.firePropertyChange(PROP_ACTIVE_SONG, activeMidiMix, activeSong);
         return true;
     }
+
 
     public MidiMix getActiveMidiMix()
     {
@@ -276,7 +304,7 @@ public class ActiveSongManager implements PropertyChangeListener, VetoableChange
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
-        LOGGER.fine("propertyChange() -- evt=" + evt);
+        LOGGER.log(Level.FINE, "propertyChange() -- evt={0}", evt);
         if (evt.getSource() == activeMidiMix)
         {
             MidiMix mm = (MidiMix) evt.getSource();
@@ -357,42 +385,34 @@ public class ActiveSongManager implements PropertyChangeListener, VetoableChange
             return;
         }
 
-        if (evt.getSource() instanceof InstrumentMix)
+        if (evt.getSource() instanceof InstrumentMix insMix)
         {
-            InstrumentMix insMix = (InstrumentMix) evt.getSource();
             int channel = activeMidiMix.getChannel(insMix);
-            if (evt.getPropertyName() == InstrumentMix.PROP_INSTRUMENT || evt.getPropertyName() == InstrumentMix.PROP_INSTRUMENT_ENABLED)
+            if (evt.getPropertyName().equals(InstrumentMix.PROP_INSTRUMENT) || evt.getPropertyName().equals(
+                    InstrumentMix.PROP_INSTRUMENT_ENABLED))
             {
                 JJazzMidiSystem jms = JJazzMidiSystem.getInstance();
                 jms.sendMidiMessagesOnJJazzMidiOut(insMix.getInstrumentMidiMessages(channel));
             }
-        } else if (evt.getSource() instanceof InstrumentSettings)
+        } else if (evt.getSource() instanceof InstrumentSettings insSet)
         {
-            InstrumentSettings insSet = (InstrumentSettings) evt.getSource();
             int channel = activeMidiMix.getChannel(insSet.getContainer());
             if (null != evt.getPropertyName())
             {
                 JJazzMidiSystem jms = JJazzMidiSystem.getInstance();
                 switch (evt.getPropertyName())
                 {
-                    case InstrumentSettings.PROPERTY_CHORUS:
-                    case InstrumentSettings.PROPERTY_CHORUS_ENABLED:
+                    case InstrumentSettings.PROPERTY_CHORUS, InstrumentSettings.PROPERTY_CHORUS_ENABLED ->
                         jms.sendMidiMessagesOnJJazzMidiOut(insSet.getChorusMidiMessages(channel));
-                        break;
-                    case InstrumentSettings.PROPERTY_REVERB:
-                    case InstrumentSettings.PROPERTY_REVERB_ENABLED:
+                    case InstrumentSettings.PROPERTY_REVERB, InstrumentSettings.PROPERTY_REVERB_ENABLED ->
                         jms.sendMidiMessagesOnJJazzMidiOut(insSet.getReverbMidiMessages(channel));
-                        break;
-                    case InstrumentSettings.PROPERTY_VOLUME:
-                    case InstrumentSettings.PROPERTY_VOLUME_ENABLED:
+                    case InstrumentSettings.PROPERTY_VOLUME, InstrumentSettings.PROPERTY_VOLUME_ENABLED ->
                         jms.sendMidiMessagesOnJJazzMidiOut(insSet.getVolumeMidiMessages(channel));
-                        break;
-                    case InstrumentSettings.PROPERTY_PANORAMIC:
-                    case InstrumentSettings.PROPERTY_PANORAMIC_ENABLED:
+                    case InstrumentSettings.PROPERTY_PANORAMIC, InstrumentSettings.PROPERTY_PANORAMIC_ENABLED ->
                         jms.sendMidiMessagesOnJJazzMidiOut(insSet.getPanoramicMidiMessages(channel));
-                        break;
-                    default:
-                        break;
+                    default ->
+                    {
+                    }
                 }
             }
         }
@@ -427,4 +447,5 @@ public class ActiveSongManager implements PropertyChangeListener, VetoableChange
             insMix.getSettings().removePropertyChangeListener(this);
         }
     }
+
 }

@@ -46,6 +46,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.playbacksession.UpdateProviderSongSession;
 import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession;
+import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSessionOnePlay;
 import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.Rhythm;
@@ -59,6 +60,7 @@ import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.event.RpValueChangedEvent;
 import org.jjazz.songstructure.api.event.SgsChangeEvent;
 import org.openide.util.Exceptions;
+import org.openide.windows.OnShowing;
 
 /**
  * Do the arranger thing for a specific song part.
@@ -167,8 +169,8 @@ public class Arranger implements SgsChangeListener, PropertyChangeListener
         dynSession.setPostUpdateSleepTimeMs(100);    // This allow user to change chord quickly
         dynSession.setUserErrorExceptionHandler(null);  // User execption may occur depending on timing, as we remove then add a chord symbol at section start
 
-        var updatableSession = UpdatableSongSession.getSession(dynSession);
-        mc.setPlaybackSession(updatableSession); // Will generate session is state==NEW. Can raise MusicGenerationException
+        var updatableSession = new UpdatableSongSessionOnePlay(dynSession);
+        mc.setPlaybackSession(updatableSession, false); // Will generate session is state==NEW. Can raise MusicGenerationException
 
 
         // Start playback        

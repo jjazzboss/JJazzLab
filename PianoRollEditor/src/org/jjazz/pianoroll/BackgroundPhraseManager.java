@@ -31,7 +31,9 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
-import org.jjazz.activesong.api.BackgroundSongMusicBuilder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import org.jjazz.backgroundsongmusicbuilder.api.ActiveSongMusicBuilder;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.pianoroll.api.PianoRollEditor;
@@ -42,7 +44,7 @@ import org.jjazz.rhythmmusicgeneration.api.MusicGenerationQueue;
 /**
  * Manage the update of background phrases and coordination with UI elements.
  */
-public class BackgroundPhraseManager implements PropertyChangeListener
+public class BackgroundPhraseManager implements PropertyChangeListener, ChangeListener
 {
 
     private MusicGenerationQueue.Result lastResult;
@@ -64,9 +66,9 @@ public class BackgroundPhraseManager implements PropertyChangeListener
 
 
         // Get notified of new song phrases
-        var bsmb = BackgroundSongMusicBuilder.getInstance();
-        bsmb.addPropertyChangeListener(this);
-        lastResult = bsmb.getLastResult();          // Might be null, but important to get some data if PianoRollEditor is created after bsmb produced a result
+        var asmb = ActiveSongMusicBuilder.getInstance();
+        asmb.addChangeListener(this);
+        lastResult = asmb.getLastResult();          // Might be null, but important to get some data if PianoRollEditor is created after bsmb produced a result
 
         // Listen to user selection changes
         backgroundPhrasesPanel.addPropertyChangeListener(BackgroundPhrasesPanel.PROP_SELECTED_TRACK_NAMES, this);
@@ -107,7 +109,7 @@ public class BackgroundPhraseManager implements PropertyChangeListener
     {
         topComponent.getMidiMix().removePropertyChangeListener(this);
         backgroundPhrasesPanel.removePropertyChangeListener(this);
-        BackgroundSongMusicBuilder.getInstance().removePropertyChangeListener(this);
+        ActiveSongMusicBuilder.getInstance().removeChangeListener(this);
 
     }
 
@@ -181,6 +183,14 @@ public class BackgroundPhraseManager implements PropertyChangeListener
         return Integer.parseInt(name.substring(0, index)) - 1;
     }
 
+    //=============================================================================
+    // ChangeListener interface
+    //=============================================================================
+    @Override
+    public void stateChanged(ChangeEvent evt)
+    {
+        musicGenerationResultReceived(ActiveSongMusicBuilder.getInstance().getLastResult());
+    }
 
     //=============================================================================
     // PropertyChangeListener interface
@@ -205,12 +215,6 @@ public class BackgroundPhraseManager implements PropertyChangeListener
             if (evt.getPropertyName().equals(BackgroundPhrasesPanel.PROP_SELECTED_TRACK_NAMES))
             {
                 updateBackgroundPhrases();
-            }
-        } else if (evt.getSource() == BackgroundSongMusicBuilder.getInstance())
-        {
-            if (evt.getPropertyName().equals(BackgroundSongMusicBuilder.PROP_MUSIC_GENERATION_RESULT))
-            {
-                musicGenerationResultReceived((MusicGenerationQueue.Result) evt.getNewValue());
             }
         }
     }

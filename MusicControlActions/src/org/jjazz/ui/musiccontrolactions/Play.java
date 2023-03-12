@@ -43,6 +43,7 @@ import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.musiccontrol.api.playbacksession.UpdateProviderSongSession;
 import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession;
+import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSessionOnePlay;
 import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.song.api.Song;
@@ -171,12 +172,8 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
 
                         // Prepare the session
                         UpdateProviderSongSession dynSession = UpdateProviderSongSession.getSession(context);
-                        session = UpdatableSongSession.getSession(dynSession);
-                        if (session.getState().equals(PlaybackSession.State.NEW))
-                        {
-                            session.generate(false);        // can raise MusicGenerationException
-                            mc.setPlaybackSession(session); // can raise MusicGenerationException
-                        }
+                        session = new UpdatableSongSessionOnePlay(dynSession);
+                        mc.setPlaybackSession(session, false); // can raise MusicGenerationException
 
                         // Start sequencer
                         mc.play(0);

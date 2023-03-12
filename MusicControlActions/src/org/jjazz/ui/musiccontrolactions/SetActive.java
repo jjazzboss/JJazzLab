@@ -26,7 +26,6 @@ import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiUnavailableException;
 import javax.swing.Action;
@@ -34,13 +33,7 @@ import javax.swing.ImageIcon;
 import org.jjazz.activesong.api.ActiveSongManager;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.MidiMixManager;
-import org.jjazz.musiccontrol.api.MusicController;
-import org.jjazz.musiccontrol.api.playbacksession.UpdateProviderSongSession;
-import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession;
-import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.song.api.Song;
-import org.jjazz.songcontext.api.SongContext;
-import org.jjazz.ui.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.ui.flatcomponents.api.FlatToggleButton;
 import org.jjazz.util.api.ResUtil;
 import org.openide.DialogDisplayer;
@@ -49,8 +42,6 @@ import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.awt.StatusDisplayer;
-import org.openide.util.Exceptions;
 import org.openide.util.HelpCtx;
 import org.openide.util.Lookup;
 import org.openide.util.LookupEvent;
@@ -61,8 +52,6 @@ import static org.openide.util.actions.BooleanStateAction.PROP_BOOLEAN_STATE;
 
 /**
  * Toggle the active state of the song.
- * <p>
- * Also update the MusicController PlaybackSession when active song changes.
  */
 @ActionID(category = "MusicControls", id = "org.jjazz.ui.musiccontrolactions.setactive")
 @ActionRegistration(displayName = "#CTL_SetActive", lazy = false)
@@ -201,7 +190,7 @@ public class SetActive extends BooleanStateAction implements PropertyChangeListe
         {
             if (evt.getPropertyName().equals(ActiveSongManager.PROP_ACTIVE_SONG))
             {
-                activeSongChanged();
+                updateEnabledAndSelected();    // Enable/Disable and select/unselect button    
             }
         } else if (evt.getSource() == currentSong)
         {
@@ -215,58 +204,7 @@ public class SetActive extends BooleanStateAction implements PropertyChangeListe
     // ======================================================================
     // Private methods
     // ======================================================================   
-    private void activeSongChanged()
-    {
-        LOGGER.fine("activeSongChanged() --");
-
-        MusicController.getInstance().stop();  // In case the last active song was playing or in pause mode
-        updateEnabledAndSelected();    // Enable/Disable and select/unselect button    
-
-        Song activeSong = ActiveSongManager.getInstance().getActiveSong();
-        if (activeSong != null)
-        {
-            updatePlaybackSession(activeSong);
-        } else
-        {
-            try
-            {
-                LOGGER.fine("activeSongChanged() activeSong=null, resetting MusicController playback session");
-                MusicController.getInstance().setPlaybackSession(null);
-            } catch (MusicGenerationException ex)
-            {
-                // Should never happen
-                Exceptions.printStackTrace(ex);
-            }
-        }
-    }
-
-    /**
-     * Create (or reuse) an Updatable/DynamicSession for the active song and update MusicController.
-     *
-     * @param activeSong
-     */
-    private void updatePlaybackSession(Song activeSong)
-    {
-        LOGGER.log(Level.FINE, "updatePlaybackSession() -- activeSong={0}", activeSong);
-        try
-        {
-            MidiMix midiMix = MidiMixManager.getInstance().findMix(activeSong);      // Can raise MidiUnavailableException
-            SongContext context = new SongContext(activeSong, midiMix);
-            var session = UpdatableSongSession.getSession(UpdateProviderSongSession.getSession(context));   // Might reuse a clean existing session
-            MusicController.getInstance().setPlaybackSession(session); // can raise MusicGenerationException for serious errors
-
-        } catch (MusicGenerationException ex)
-        {
-            // Notify user "lightly", real notification will be done by the Play action
-            LOGGER.log(Level.INFO, "updatePlaybackSession() Error while setting playback session: {0}", ex.getMessage());
-            StatusDisplayer.getDefault().setStatusText(ex.getMessage());
-
-        } catch (MidiUnavailableException ex)
-        {
-            // Should never happen
-            Exceptions.printStackTrace(ex);
-        }
-    }
+ 
 
     private void updateEnabledAndSelected()
     {

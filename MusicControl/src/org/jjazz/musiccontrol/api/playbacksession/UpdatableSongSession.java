@@ -28,6 +28,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -56,13 +57,20 @@ import org.jjazz.util.api.IntRange;
  * A PlaybackSession is a BaseSongSession wrapper which enables on-the-fly updates of the playing sequence using
  * {@link updateSequence(Update)}.
  * <p>
- * Authorized udpates are notes+control track changes which do not change the Sequence size. The class uses buffer tracks and
- * mute/unmute tracks to enable on-the-fly sequence changes.
+ * Authorized udpates are notes+control track changes which do not change the Sequence size. The class uses buffer tracks and mute/unmute
+ * tracks to enable on-the-fly sequence changes.
  * <p>
- * If the BaseSongSession is an instance of UpdateProvider, listen to update availability and automatically apply the update.
+ * If the BaseSongSession is an instance of UpdateProvider, the UpdatableSongSession listens to updates availability and automatically apply
+ * the updates.
  */
 public class UpdatableSongSession implements PropertyChangeListener, PlaybackSession, ControlTrackProvider, SongContextProvider, EndOfPlaybackActionProvider
 {
+
+    public static final String PROP_ENABLED = "PropEnabled";
+    /**
+     * newValue = UpdatableSongSession.Update received.
+     */
+    public static final String PROP_UPDATE_RECEIVED = "PropUpdateReceived";
 
     /**
      * A song update produced by an UpdateProvider and processed by the UpdatableSongSession.
@@ -112,22 +120,42 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
     }
 
     /**
-     * A SongContextSession capability: can provide an update after sequence was generated (i.e. in the GENERATED state).
+     * A SongContextSession capability: can provide updates after sequence was generated (i.e. while session is in the GENERATED state).
      * <p>
-     * The session must fire a PROP_UPDATE_AVAILABLE property change event when an update is ready. Note this change event might 
-     * be fired from outside the Swing Event Dispatching Thread.
+     * Implementation must fire the relevant property change events.
      */
     public interface UpdateProvider
     {
 
+        /**
+         * Property change event to be fired when a new update is available.
+         * <p>
+         * Note: event can be fired out of the Swing EDT.
+         */
         public static String PROP_UPDATE_AVAILABLE = "PropUpdateAvailable";
+        /**
+         * Property change event to be fired when updates can't be provided anymore.
+         */
+        public static final String PROP_UPDATE_PROVISION_ENABLED = "PropUpdateProvisionEnabled";
+
+
+        /**
+         * Check if this UpdateProvider can still provide updates.
+         *
+         *
+         * @return True upon this object's creation, but might become false if UpdateProvider is "too" dirty and not able anymore to provide
+         *         updates.
+         * @see PlaybackSession#isDirty()
+         */
+        boolean isUpdateProvisionEnabled();
+
 
         /**
          * Get the last available update after the PROP_UPDATE_AVAILABLE property change event was fired.
          *
-         * @return Can be null if PROP_UPDATE_AVAILABLE event was never fired.
+         * @return Can be null if PROP_UPDATE_AVAILABLE change event was never fired.
          */
-        Update getUpdate();
+        Update getLastUpdate();
     }
 
 
@@ -136,23 +164,24 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
     private Map<RhythmVoice, Phrase> currentMapRvPhrase;
     private ControlTrack currentControlTrack;
     private TrackSet trackSet;         // Exclude track 0 
-    private final BaseSongSession baseSongSession;
+    private BaseSongSession baseSongSession;
     private Sequence sequence;
+    private boolean enabled;
     private final HashMap<Integer, Boolean> mapTrackIdMuted = new HashMap<>();
     private static final List<UpdatableSongSession> sessions = new ArrayList<>();
 
     private final SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
-    private static final Logger LOGGER = Logger.getLogger(UpdatableSongSession.class.getSimpleName());  
+    private static final Logger LOGGER = Logger.getLogger(UpdatableSongSession.class.getSimpleName());
 
 
     /**
      * Create or reuse a session for the specified parameters.
      * <p>
-     * Sessions are cached: if an existing session already exists for the same parameters then return it, otherwise a new session
-     * is created.
+     * Sessions are cached: if an existing session already exists for the same parameters then return it, otherwise a new session is
+     * created.
      * <p>
-     * @param session Must be in the NEW or GENERATED state. If it is an UpdateProvider instance automatically apply the updates
-     *                when available.
+     * @param session Must be in the NEW or GENERATED state. If it is an UpdateProvider instance automatically apply the updates when
+     *                available.
      * @return
      */
     static public UpdatableSongSession getSession(BaseSongSession session)
@@ -171,9 +200,11 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
         {
             UpdatableSongSession newSession = new UpdatableSongSession(session);
             sessions.add(newSession);
+            LOGGER.fine("getSession() create new session");
             return newSession;
         } else
         {
+            LOGGER.fine("getSession() reusing existing session!");
             return updatableSession;
         }
     }
@@ -183,12 +214,14 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
      *
      * @param session If session is an UpdateProvider instance automatically apply the update.
      */
-    private UpdatableSongSession(BaseSongSession session)
+    protected UpdatableSongSession(BaseSongSession session)
     {
         if (session == null)
         {
             throw new IllegalArgumentException("session=" + session);
         }
+
+        enabled = true;
 
         baseSongSession = session;
         baseSongSession.addPropertyChangeListener(this);
@@ -207,9 +240,9 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
 
 
     @Override
-    public UpdatableSongSession getFreshCopy()
+    public UpdatableSongSession getFreshCopy(SongContext sgContext)
     {
-        var newBaseSession = baseSongSession.getFreshCopy();
+        var newBaseSession = baseSongSession.getFreshCopy(sgContext);
         UpdatableSongSession newSession = new UpdatableSongSession(newBaseSession);
         sessions.add(newSession);
         return newSession;
@@ -226,8 +259,8 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
 
 
     /**
-     * Get the sequence which contains the original song tracks plus additional empty tracks to allow "double buffering
-     * modification" via muting/unmuting tracks.
+     * Get the sequence which contains the original song tracks plus additional empty tracks to allow "double buffering modification" via
+     * muting/unmuting tracks.
      * <p>
      * The total number of tracks is 2 * getNbPlayingTracks().
      *
@@ -260,17 +293,51 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
         return originalTrackTickSize;
     }
 
+    /**
+     * Check is this session is enabled.
+     * <p>
+     * The session is enabled by default upon creation. It might be automatically disabled when our base song session is an UpdateProvider
+     * which can not provide updates anymore.
+     *
+     * @return
+     */
+    public boolean isEnabled()
+    {
+        return enabled;
+    }
+
+
+    /**
+     * Disable the session: session will ignore received updates.
+     *
+     * @param b
+     * @see #PROP_ENABLED
+     */
+    public void setEnabled(boolean b)
+    {
+        if (b != enabled)
+        {
+            enabled = b;
+            pcs.firePropertyChange(PROP_ENABLED, !enabled, enabled);
+        }
+    }
 
     /**
      * Update the sequence with the specified parameter.
      * <p>
-     * Update RhythmVoice tracks for which there is an actual change. Changes are first applied to muted "buffer tracks", then we
-     * switch the mute status between the buffer and the playing tracks. The transition might be noticeable if notes were still
-     * ringing when tracks mute state is switched.
+     * Update RhythmVoice tracks for which there is an actual change. Changes are first applied to muted "buffer tracks", then we switch the
+     * mute status between the buffer and the playing tracks. The transition might be noticeable if notes were still ringing when tracks
+     * mute state is switched.
+     * <p>
+     * Fire a PROP_UPDATED_RECEIVED change event.
+     * <p>
+     * The method does nothing if session is disabled.
+     *
+     *
      *
      * @param update
-     * @throws IllegalArgumentException If a MidiEvent tick position is beyond getOriginalSequenceSize(), or if session is not in
-     *                                  the GENERATED state.
+     * @throws IllegalArgumentException If a MidiEvent tick position is beyond getOriginalSequenceSize(), or if session is not in the
+     *                                  GENERATED state.
      */
     public void updateSequence(Update update)
     {
@@ -278,6 +345,11 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
         {
             update, System.nanoTime()
         });
+
+        if (!enabled)
+        {
+            return;
+        }
 
         if (!getState().equals(PlaybackSession.State.GENERATED))
         {
@@ -290,7 +362,8 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
         if (baseSongSession.getPrecountTrackId() != -1)
         {
             TimeSignature ts = baseSongSession.getSongContext().getSongParts().get(0).getRhythm().getTimeSignature();
-            int nbPrecountBars = PlaybackSettings.getInstance().getClickPrecountNbBars(ts, baseSongSession.getSongContext().getSong().getTempo());
+            int nbPrecountBars = PlaybackSettings.getInstance().getClickPrecountNbBars(ts,
+                    baseSongSession.getSongContext().getSong().getTempo());
             precountShift = (long) Math.ceil(nbPrecountBars * ts.getNbNaturalBeats() * MidiConst.PPQ_RESOLUTION);
         }
 
@@ -309,7 +382,8 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
         // It's an error if we have new user phrase passed in an update: we can only work with a constant number of RhythmVoices/tracks
         if (!newUserPhraseRvs.isEmpty())
         {
-            throw new IllegalStateException("updatedRvs=" + updatedRvs + " currentRvs=" + currentRvs + " => newUserPhraseRvs=" + newUserPhraseRvs);
+            throw new IllegalStateException(
+                    "updatedRvs=" + updatedRvs + " currentRvs=" + currentRvs + " => newUserPhraseRvs=" + newUserPhraseRvs);
         }
 
 
@@ -368,6 +442,10 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
 
         // Notify our listeners that tracks mute status has changed
         pcs.firePropertyChange(PlaybackSession.PROP_MUTED_TRACKS, null, mapTrackIdMuted);
+
+
+        // General notification about the update reception
+        pcs.firePropertyChange(PROP_UPDATE_RECEIVED, null, update);
     }
 
     /**
@@ -560,15 +638,25 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
 
         if (e.getSource() == baseSongSession)
         {
-
             PropertyChangeEvent newEvent = null;
 
-            if (e.getPropertyName().equals(UpdateProvider.PROP_UPDATE_AVAILABLE)
-                    && (baseSongSession instanceof UpdateProvider)
-                    && getState().equals(State.GENERATED))
+            if ((baseSongSession instanceof UpdateProvider up) && getState().equals(State.GENERATED))
             {
-                var update = ((UpdateProvider) (baseSongSession)).getUpdate();
-                updateSequence(update);
+                if (e.getPropertyName().equals(UpdateProvider.PROP_UPDATE_AVAILABLE))
+                {
+                    // Got an update
+                    var update = up.getLastUpdate();
+                    updateSequence(update);
+
+                } else if (e.getPropertyName().equals(UpdateProvider.PROP_UPDATE_PROVISION_ENABLED))
+                {
+                    // We won't receive updates anymore from our baseSongSession: disable ourselves
+                    assert !up.isUpdateProvisionEnabled() && baseSongSession.isDirty() : "baseSongSession=" + baseSongSession;
+                    setEnabled(false);
+                } else
+                {
+                    newEvent = new PropertyChangeEvent(this, e.getPropertyName(), e.getOldValue(), e.getNewValue());
+                }
 
             } else if (e.getPropertyName().equals(PlaybackSession.PROP_MUTED_TRACKS))
             {
@@ -589,7 +677,7 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
 
             if (newEvent != null)
             {
-                // Forward the event and make this object the event source
+                // Forward the event and make this object the event source (eg PROP_STATE, PROP_DIRTY, PROP_LOOP_COUNT, ...)
                 newEvent.setPropagationId(e.getPropagationId());
                 pcs.firePropertyChange(newEvent);
             }
@@ -620,6 +708,7 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
         currentMapRvPhrase = baseSongSession.getRvPhraseMap();
         currentControlTrack = baseSongSession.getControlTrack();
 
+
         // Create the trackset to manage double-buffering at track level
         var originalMapIdMuted = baseSongSession.getTracksMuteStatus(); // Track 0 is not included, but may contain click/precount/control tracks
         trackSet = new TrackSet(sequence);
@@ -644,7 +733,7 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
      * Update one track.
      *
      * @param trackId
-     * @param newEvents     IMPORTANT events positions will be modified!
+     * @param newEvents          IMPORTANT events positions will be modified!
      * @param precountTickOffset
      * @throws IllegalArgumentException
      */
@@ -661,7 +750,8 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
 
             if (me.getTick() > originalTrackTickSize)
             {
-                throw new IllegalArgumentException("me=" + MidiUtilities.toString(me.getMessage(), me.getTick()) + " originalTrackTickSize=" + originalTrackTickSize);
+                throw new IllegalArgumentException(
+                        "me=" + MidiUtilities.toString(me.getMessage(), me.getTick()) + " originalTrackTickSize=" + originalTrackTickSize);
             }
             bufferTrack.add(me);
         }
@@ -692,7 +782,7 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
     {
         for (var updatableSession : sessions)
         {
-            if ((updatableSession.getState().equals(PlaybackSession.State.GENERATED) || updatableSession.getState().equals(PlaybackSession.State.NEW))
+            if (EnumSet.of(PlaybackSession.State.GENERATED, PlaybackSession.State.NEW).contains(session.getState())
                     && !updatableSession.isDirty()
                     && session == updatableSession.baseSongSession)
             {

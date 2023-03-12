@@ -40,6 +40,7 @@ import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.musiccontrol.api.playbacksession.UpdateProviderSongSession;
 import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession;
+import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSessionOnePlay;
 import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.song.api.Song;
@@ -181,12 +182,10 @@ public class PlaySelection extends AbstractAction
             // Check that all listeners are OK to start playback     
             PlaybackSettings.getInstance().firePlaybackStartVetoableChange(context);  // can raise PropertyVetoException
 
-            session = UpdatableSongSession.getSession(UpdateProviderSongSession.getSession(context));
-            if (session.getState().equals(PlaybackSession.State.NEW))
-            {
-                session.generate(false);        // can raise MusicGenerationException
-                mc.setPlaybackSession(session); // can raise MusicGenerationException
-            }
+
+            var dynSession = UpdateProviderSongSession.getSession(context);
+            session = new UpdatableSongSessionOnePlay(dynSession);
+            mc.setPlaybackSession(session, false); // can raise MusicGenerationException
             mc.play(rg.from);
         } catch (MusicGenerationException | PropertyVetoException | MidiUnavailableException ex)
         {

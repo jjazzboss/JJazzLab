@@ -127,9 +127,10 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     }
 
     @Override
-    public BaseSongSession getFreshCopy()
+    public BaseSongSession getFreshCopy(SongContext sgContext)
     {
-        BaseSongSession res = new BaseSongSession(getSongContext().clone(),
+        var newContext = sgContext == null ? getSongContext().clone() : sgContext;
+        BaseSongSession res = new BaseSongSession(newContext,
                 isPlaybackTranspositionEnabled(),
                 isClickTrackIncluded(),
                 isPrecountTrackIncluded(),
@@ -159,6 +160,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
      *
      * @param silent
      * @throws MusicGenerationException
+     * @throws IllegalStateException    if state is not NEW
      */
     @Override
     public void generate(boolean silent) throws MusicGenerationException
@@ -171,7 +173,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
 
         // Make a copy of the song so it can't be changed anymore by user
         int transpose = isPlaybackTranspositionEnabled() ? PlaybackSettings.getInstance().getPlaybackKeyTransposition() : 0;
-        SongContext  workContext = getContextCopy(songContext, transpose);
+        SongContext workContext = getContextCopy(songContext, transpose);
 
 
         // Build the sequence

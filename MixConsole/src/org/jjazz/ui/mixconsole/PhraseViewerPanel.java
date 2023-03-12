@@ -25,8 +25,9 @@ package org.jjazz.ui.mixconsole;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
-import java.beans.PropertyChangeEvent;
-import org.jjazz.activesong.api.BackgroundSongMusicBuilder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import org.jjazz.backgroundsongmusicbuilder.api.ActiveSongMusicBuilder;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.ui.PhraseBirdsEyeViewComponent;
 import org.jjazz.rhythm.api.RhythmVoice;
@@ -38,7 +39,7 @@ import org.jjazz.song.api.Song;
  * <p>
  * Get the phrase from the BackgroundSongMusicBuilder.
  */
-public class PhraseViewerPanel extends PhraseBirdsEyeViewComponent
+public class PhraseViewerPanel extends PhraseBirdsEyeViewComponent implements ChangeListener
 {
 
     private static final Color TOP_LINE_COLOR = new Color(39, 61, 69);
@@ -54,7 +55,7 @@ public class PhraseViewerPanel extends PhraseBirdsEyeViewComponent
         this.channel = channel;
 
 
-        BackgroundSongMusicBuilder.getInstance().addPropertyChangeListener(this);
+        ActiveSongMusicBuilder.getInstance().addChangeListener(this);
 
         setPreferredSize(new Dimension(50, 50));        // width will be ignored by MixConsole layout manager        
         setMinimumSize(new Dimension(50, 8));           // width will be ignored by MixConsole layout manager        
@@ -66,7 +67,7 @@ public class PhraseViewerPanel extends PhraseBirdsEyeViewComponent
 
     public void cleanup()
     {
-        BackgroundSongMusicBuilder.getInstance().removePropertyChangeListener(this);
+        ActiveSongMusicBuilder.getInstance().removeChangeListener(this);
     }
 
     public RhythmVoice getRhythmVoice()
@@ -91,22 +92,14 @@ public class PhraseViewerPanel extends PhraseBirdsEyeViewComponent
         g.setColor(TOP_LINE_COLOR);
         g.drawLine(10, 0, getWidth() - 10, 0);
     }
-
-
-    // ----------------------------------------------------------------------------
-    // PropertyChangeListener interface
-    // ----------------------------------------------------------------------------
+    
+    //=============================================================================
+    // ChangeListener interface
+    //=============================================================================
     @Override
-    public void propertyChange(PropertyChangeEvent evt)
+    public void stateChanged(ChangeEvent e)
     {
-        super.propertyChange(evt);
-        if (evt.getSource() == BackgroundSongMusicBuilder.getInstance())
-        {
-            if (evt.getPropertyName().equals(BackgroundSongMusicBuilder.PROP_MUSIC_GENERATION_RESULT))
-            {
-                musicGenerationResultReceived((MusicGenerationQueue.Result) evt.getNewValue());
-            }
-        }
+        musicGenerationResultReceived(ActiveSongMusicBuilder.getInstance().getLastResult());
     }
 
     // ----------------------------------------------------------------------------

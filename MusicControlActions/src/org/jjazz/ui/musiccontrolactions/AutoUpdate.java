@@ -32,7 +32,6 @@ import javax.swing.ImageIcon;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.MusicController.State;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
-import org.jjazz.musiccontrol.api.playbacksession.UpdateProviderSongSession;
 import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession;
 import org.jjazz.ui.flatcomponents.api.FlatToggleButton;
@@ -52,28 +51,30 @@ import org.openide.util.actions.BooleanStateAction;
 @ActionRegistration(displayName = "NOT USED", lazy = false)
 @ActionReferences(
         {
-            @ActionReference(path = "Actions/ExtendedToolbar", position = 20)    
+            @ActionReference(path = "Actions/ExtendedToolbar", position = 20)
         })
 public class AutoUpdate extends BooleanStateAction implements PropertyChangeListener
 {
 
-    private UpdateProviderSongSession currentDynamicSession;
+    private UpdatableSongSession currentUpdatableSession;
     private static final Logger LOGGER = Logger.getLogger(AutoUpdate.class.getSimpleName());
 
     public AutoUpdate()
     {
         LOGGER.fine("AutoUpdate() -- ");
-        
+
         setBooleanState(PlaybackSettings.getInstance().isAutoUpdateEnabled());
 
-        putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/AutoUpdate-OFF-24x24.png")));     
-        putValue(Action.LARGE_ICON_KEY, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/AutoUpdate-ON-24x24.png")));   
-        putValue("JJazzDisabledIcon", new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/AutoUpdate-disabled-24x24.png")));   
-        putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(), "CTL_AutoUpdateTooltip"));   
-        putValue("hideActionText", true);       
+        putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource(
+                "/org/jjazz/ui/musiccontrolactions/resources/AutoUpdate-OFF-24x24.png")));
+        putValue(Action.LARGE_ICON_KEY, new ImageIcon(getClass().getResource(
+                "/org/jjazz/ui/musiccontrolactions/resources/AutoUpdate-ON-24x24.png")));
+        putValue("JJazzDisabledIcon", new ImageIcon(getClass().getResource(
+                "/org/jjazz/ui/musiccontrolactions/resources/AutoUpdate-disabled-24x24.png")));
+        putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(), "CTL_AutoUpdateTooltip"));
+        putValue("hideActionText", true);
 
         MusicController.getInstance().addPropertyChangeListener(this);
-        
 
 
     }
@@ -91,14 +92,14 @@ public class AutoUpdate extends BooleanStateAction implements PropertyChangeList
             return;
         }
         PlaybackSettings.getInstance().setAutoUpdateEnabled(b);
-        
+
         setBooleanState(b);  // Notify action listeners
     }
 
     @Override
     public String getName()
     {
-        return "not used";       
+        return "not used";
     }
 
     @Override
@@ -121,11 +122,11 @@ public class AutoUpdate extends BooleanStateAction implements PropertyChangeList
     {
         var mc = MusicController.getInstance();
 
-        if (evt.getSource() == currentDynamicSession)
+        if (evt.getSource() == currentUpdatableSession)
         {
-            if (evt.getPropertyName().equals(UpdateProviderSongSession.PROP_UPDATES_ENABLED))
+            if (evt.getPropertyName().equals(UpdatableSongSession.PROP_ENABLED))
             {
-                if (!currentDynamicSession.isUpdatable())
+                if (!currentUpdatableSession.isEnabled())
                 {
                     setEnabled(false);
                 }
@@ -135,55 +136,50 @@ public class AutoUpdate extends BooleanStateAction implements PropertyChangeList
             if (evt.getPropertyName().equals(MusicController.PROP_PLAYBACK_SESSION))
             {
                 // Unregister previous session
-                if (currentDynamicSession != null)
+                if (currentUpdatableSession != null)
                 {
-                    currentDynamicSession.removePropertyChangeListener(this);
+                    currentUpdatableSession.removePropertyChangeListener(this);
                 }
 
-                currentDynamicSession = null;       // By default
+                currentUpdatableSession = null;       // By default
 
 
-                // If it's an Updatable+Dynamic session, we can work
-                PlaybackSession session = mc.getPlaybackSession();
-                if (session instanceof UpdatableSongSession)
+                PlaybackSession newSession = mc.getPlaybackSession();
+                if (newSession instanceof UpdatableSongSession uss)
                 {
-                    PlaybackSession baseSession = ((UpdatableSongSession) session).getBaseSession();
-                    if (baseSession instanceof UpdateProviderSongSession)
-                    {
-                        currentDynamicSession = (UpdateProviderSongSession) baseSession;
-                        currentDynamicSession.addPropertyChangeListener(this);
-                        setEnabled(currentDynamicSession.isUpdatable());
-                    }
+                    currentUpdatableSession = uss;
+                    currentUpdatableSession.addPropertyChangeListener(this);
+                    setEnabled(currentUpdatableSession.isEnabled());
                 }
+            }
 
-                if (currentDynamicSession == null)
-                {
-                    // Unknow session, autoupdate has no meaning                 
-                    setEnabled(false);
-                }
-
-            } else if (evt.getPropertyName().equals(MusicController.PROP_STATE))
+            if (currentUpdatableSession == null)
             {
-                State newState = (State) evt.getNewValue();
-                State oldState = (State) evt.getOldValue();
+                // Unknow session, autoupdate has no meaning                 
+                setEnabled(false);
+            }
 
-                switch (newState)
-                {
-                    case DISABLED:
-                        break;
-                    case PAUSED:
-                    case STOPPED:
-                        if (currentDynamicSession != null)
-                        {
-                            setEnabled(true);
-                        }
-                        break;
-                    case PLAYING:
-                        break;
-                    default:
-                        throw new AssertionError(newState.name());
+        } else if (evt.getPropertyName().equals(MusicController.PROP_STATE))
+        {
+            State newState = (State) evt.getNewValue();
+            State oldState = (State) evt.getOldValue();
 
-                }
+            switch (newState)
+            {
+                case DISABLED:
+                    break;
+                case PAUSED:
+                case STOPPED:
+                    if (currentUpdatableSession != null)
+                    {
+                        setEnabled(true);
+                    }
+                    break;
+                case PLAYING:
+                    break;
+                default:
+                    throw new AssertionError(newState.name());
+
             }
         }
     }
@@ -191,6 +187,4 @@ public class AutoUpdate extends BooleanStateAction implements PropertyChangeList
     // ======================================================================
     // Private methods
     // ======================================================================   
-
-
 }

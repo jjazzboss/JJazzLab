@@ -178,8 +178,7 @@ public class RhythmPreviewProviderImpl implements RhythmSelectionDialog.RhythmPr
 
 
         // Start playback
-        session.generate(false);
-        mc.setPlaybackSession(session);
+        mc.setPlaybackSession(session, false);
         mc.play(0);
 
 

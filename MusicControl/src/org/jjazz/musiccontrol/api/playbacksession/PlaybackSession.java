@@ -26,6 +26,7 @@ import java.beans.PropertyChangeListener;
 import java.util.HashMap;
 import javax.sound.midi.Sequence;
 import org.jjazz.rhythm.api.MusicGenerationException;
+import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.util.api.IntRange;
 
 /**
@@ -92,11 +93,12 @@ public interface PlaybackSession
     void generate(boolean silent) throws MusicGenerationException;
 
     /**
-     * Get a copy of this session in the NEW state.
+     * Get a copy of this session in the NEW state for the specified context.
      *
+     * @param sgContext If null use a copy of this session'SongContext
      * @return
      */
-    PlaybackSession getFreshCopy();
+    PlaybackSession getFreshCopy(SongContext sgContext);
 
     /**
      * The Midi sequence.

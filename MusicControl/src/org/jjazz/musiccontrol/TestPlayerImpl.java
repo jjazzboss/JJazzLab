@@ -37,6 +37,7 @@ import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.Phrases;
+import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.testplayerservice.spi.TestPlayer;
 import org.jjazz.util.api.IntRange;
 import org.openide.util.lookup.ServiceProvider;
@@ -97,8 +98,8 @@ public class TestPlayerImpl implements TestPlayer
         mc.stop();
 
         TestSession session = new TestSession(phrase, endAction);
-        session.generate(false);
-        mc.setPlaybackSession(session);
+        session.generate(false);        // Need to generate ourself because TestSession does not manage its state
+        mc.setPlaybackSession(session, false);
         mc.play(0);
 
     }
@@ -227,7 +228,7 @@ public class TestPlayerImpl implements TestPlayer
         }
 
         @Override
-        public PlaybackSession getFreshCopy()
+        public PlaybackSession getFreshCopy(SongContext sgContext)
         {
             throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
