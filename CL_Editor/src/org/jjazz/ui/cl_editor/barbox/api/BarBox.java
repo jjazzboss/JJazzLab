@@ -54,7 +54,7 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
 {
     // GUI
 
-    private CL_Editor editor;
+    private final CL_Editor editor;
     /**
      * Our graphical settings.
      */
@@ -89,8 +89,8 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
     /**
      * Construct a BarBox.
      *
-     * @param editor Can be null
-     * @param bbIndex The index of this BarBox.
+     * @param editor        Can be null
+     * @param bbIndex       The index of this BarBox.
      * @param modelBarIndex Use -1 if this BarBox does not represent model data.
      * @param model
      * @param config
@@ -109,7 +109,7 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
 
         if (bbIndex < 0 || model == null || config == null)
         {
-            throw new IllegalArgumentException("barIndex=" + bbIndex + " model=" + model + " config="   
+            throw new IllegalArgumentException("barIndex=" + bbIndex + " model=" + model + " config="
                     + config);
         }
 
@@ -150,7 +150,7 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
     {
         if (model == null || modelBarIndex >= model.getSizeInBars())
         {
-            throw new IllegalArgumentException("model=" + model);   
+            throw new IllegalArgumentException("model=" + model);
         }
         this.modelBarIndex = modelBarIndex;
         this.model = model;
@@ -165,15 +165,16 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
     }
 
     /**
-     * Add an item in the BarBox. The operation requests each BarRenderer to create ItemRenderers if appropriate.
+     * Add an item in the BarBox.The operation requests each BarRenderer to create ItemRenderers if appropriate.
      *
+     * @param item
      * @return List The created ItemRenderers.
      */
     public List<ItemRenderer> addItem(ChordLeadSheetItem<?> item)
     {
         if (item == null)
         {
-            throw new IllegalArgumentException("item=" + item);   
+            throw new IllegalArgumentException("item=" + item);
         }
         ArrayList<ItemRenderer> result = new ArrayList<>();
         for (BarRenderer br : getBarRenderers())
@@ -187,15 +188,16 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
     }
 
     /**
-     * Remove an item from the BarBox. The operation requests each BarRenderer to remove the ItemRenderer if appropriate.
+     * Remove an item from the BarBox.The operation requests each BarRenderer to remove the ItemRenderer if appropriate.
      *
+     * @param item
      * @return List The removed ItemRenderers. Can be an empty list.
      */
     public List<ItemRenderer> removeItem(ChordLeadSheetItem<?> item)
     {
         if (item == null)
         {
-            throw new IllegalArgumentException("item=" + item);   
+            throw new IllegalArgumentException("item=" + item);
         }
         ArrayList<ItemRenderer> result = new ArrayList<>();
         for (BarRenderer br : getBarRenderers())
@@ -246,7 +248,7 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
     {
         if (item == null)
         {
-            throw new IllegalArgumentException("item=" + item);   
+            throw new IllegalArgumentException("item=" + item);
         }
         for (BarRenderer br : getBarRenderers())
         {
@@ -264,6 +266,8 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
 
     /**
      * Set the Component selected or not, forward to BarRenderers as well.
+     *
+     * @param b
      */
     public void setSelected(boolean b)
     {
@@ -374,15 +378,15 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
     /**
      * Set the barIndex within the model. Forward to BarRenderers.
      *
-     * @param bar If &lt; 0, it means information from model is not available (for example because the barIndex is past the end of
-     * the model.)
+     * @param bar If &lt; 0, it means information from model is not available (for example because the barIndex is past the end of the
+     *            model.)
      * @throws IllegalArgumentException If bar is &gt; or equals to model's size.
      */
     public void setModelBarIndex(int bar)
     {
         if (bar >= model.getSizeInBars())
         {
-            throw new IllegalArgumentException("bar=" + bar);   
+            throw new IllegalArgumentException("bar=" + bar);
         }
 
         if (bar == modelBarIndex)
@@ -415,10 +419,10 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
         // Find a BeatBasedBarRenderer able to provide an accurate position
         for (BarRenderer br : getBarRenderers())
         {
-            if (br instanceof BeatBasedBarRenderer)
+            if (br instanceof BeatBasedBarRenderer bbbr)
             {
                 Point point = SwingUtilities.convertPoint(this, barboxPoint, br);
-                return ((BeatBasedBarRenderer) br).getPositionFromPoint(point.x);
+                return bbbr.getPositionFromPoint(point.x);
             }
         }
         // Return raw position
@@ -471,7 +475,7 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
     {
         if (bbConfig == null || bbConfig.getActiveBarRenderers().isEmpty())
         {
-            throw new IllegalArgumentException("bbConfig=" + bbConfig);   
+            throw new IllegalArgumentException("bbConfig=" + bbConfig);
         }
 
         if (bbConfig.equals(barBoxConfig))
@@ -498,7 +502,8 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
         // Add new ones
         for (String brType : barBoxConfig.getActiveBarRenderers())
         {
-            BarRenderer br = barRendererFactory.createBarRenderer(editor, brType, barIndex, bbSettings.getBarRendererSettings(), barRendererFactory.getItemRendererFactory());
+            BarRenderer br = barRendererFactory.createBarRenderer(editor, brType, barIndex, bbSettings.getBarRendererSettings(),
+                    barRendererFactory.getItemRendererFactory());
             br.setZoomVFactor(zoomVFactor);
             br.setDisplayQuantizationValue(displayQuantization);
             br.setEnabled(isEnabled());
@@ -530,7 +535,7 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
     {
         if (b && pos.getBar() != getBarIndex())
         {
-            throw new IllegalArgumentException("b=" + b + " pos=" + pos);   
+            throw new IllegalArgumentException("b=" + b + " pos=" + pos);
         }
         isPlaybackOn = b;
         refreshBackground();
@@ -560,9 +565,9 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
         Component[] cs = getComponents();
         for (Component c : cs)
         {
-            if (c instanceof BarRenderer)
+            if (c instanceof BarRenderer barRenderer)
             {
-                brs.add((BarRenderer) c);
+                brs.add(barRenderer);
             }
         }
         return brs;

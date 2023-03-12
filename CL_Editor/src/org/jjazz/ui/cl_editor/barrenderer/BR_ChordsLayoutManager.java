@@ -57,7 +57,7 @@ class BR_ChordsLayoutManager implements LayoutManager
     /**
      * Calculate the X position for a beat, in a bar who has width=barWidth.
      *
-     * @param beat A float representing the beat position.
+     * @param beat     A float representing the beat position.
      * @param barWidth An integer for the width of the bar.
      *
      * @return An integer representing the X position of pos.
@@ -79,7 +79,7 @@ class BR_ChordsLayoutManager implements LayoutManager
     {
         if (!(br instanceof BeatBasedBarRenderer))
         {
-            throw new IllegalArgumentException("br=" + br);   
+            throw new IllegalArgumentException("br=" + br);
         }
         TimeSignature ts = ((BeatBasedBarRenderer) br).getTimeSignature();
         Rectangle r = br.getDrawingArea();
@@ -102,7 +102,7 @@ class BR_ChordsLayoutManager implements LayoutManager
     {
         if (!(parent instanceof BarRenderer) || !(parent instanceof BeatBasedBarRenderer))
         {
-            throw new IllegalArgumentException("parent=" + parent);   
+            throw new IllegalArgumentException("parent=" + parent);
         }
 
         BarRenderer br = (BarRenderer) parent;
@@ -151,7 +151,7 @@ class BR_ChordsLayoutManager implements LayoutManager
         {
             ItemRenderer ir = irs.get(i);
             ChordLeadSheetItem<?> item = ir.getModel();
-            assert (item instanceof CLI_ChordSymbol) : "item=" + item + " irs=" + irs;   
+            assert (item instanceof CLI_ChordSymbol) : "item=" + item + " irs=" + irs;
             Position pos = quantize(item.getPosition(), ts);
             int itemWidth = ir.getWidth();
             int itemHeight = ir.getHeight();
@@ -273,7 +273,7 @@ class BR_ChordsLayoutManager implements LayoutManager
 
             if (isOverlapping)
             {
-                throw new IllegalStateException("Error robustness=0 irsCoordinates=" + chordIrsCoordinates);   
+                throw new IllegalStateException("Error robustness=0 irsCoordinates=" + chordIrsCoordinates);
             }
         }
 
@@ -323,9 +323,7 @@ class BR_ChordsLayoutManager implements LayoutManager
 
     private Position quantize(Position pos, TimeSignature ts)
     {
-        Quantizer qr = Quantizer.getInstance();
-        qr.setQuantizationValue(this.displayQuantization);
-        Position newPos = qr.getQuantized(pos, ts, pos.getBar());
+        Position newPos = Quantizer.getQuantized(displayQuantization, pos, ts, 1f, pos.getBar());
         return newPos;
     }
 

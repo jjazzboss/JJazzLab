@@ -27,6 +27,7 @@ import java.awt.Point;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
@@ -61,7 +62,7 @@ public class CL_EditorTransferHandler extends TransferHandler
     {
         if (ed == null)
         {
-            throw new NullPointerException("ed");   
+            throw new NullPointerException("ed");
         }
         editor = ed;
     }
@@ -72,10 +73,10 @@ public class CL_EditorTransferHandler extends TransferHandler
     @Override
     public int getSourceActions(JComponent c)
     {
-        LOGGER.fine("getSourceActions()  c" + c);   
-        if (c instanceof ItemRenderer)
+        LOGGER.log(Level.FINE, "getSourceActions()  c{0}", c);
+        if (c instanceof ItemRenderer ir)
         {
-            ChordLeadSheetItem<?> cli = ((ItemRenderer) c).getModel();
+            ChordLeadSheetItem<?> cli = ir.getModel();
             if ((cli instanceof CLI_Section) && cli.getPosition().getBar() == 0)
             {
                 return TransferHandler.COPY;
@@ -93,11 +94,10 @@ public class CL_EditorTransferHandler extends TransferHandler
     @Override
     public Transferable createTransferable(JComponent c)
     {
-        LOGGER.fine("createTransferable()  c" + c);   
-        if (c instanceof ItemRenderer)
+        LOGGER.log(Level.FINE, "createTransferable()  c{0}", c);
+        if (c instanceof ItemRenderer ir)
         {
-            ItemRenderer sourceIR = (ItemRenderer) c;
-            return sourceIR.getModel();
+            return ir.getModel();
         } else
         {
             return null;
@@ -115,20 +115,23 @@ public class CL_EditorTransferHandler extends TransferHandler
     protected void exportDone(JComponent c, Transferable data, int action)
     {
         // Not used, everything is done in importData (need to be encapsulated in UndoEvents).
-        LOGGER.fine("exportDone()  c=" + c + " data=" + data + " action=" + action);   
+        LOGGER.log(Level.FINE, "exportDone()  c={0} data={1} action={2}", new Object[]
+        {
+            c, data, action
+        });
         editor.showInsertionPoint(false, getTransferredItem(data), null, true);
     }
 
     @Override
     public boolean canImport(TransferSupport info)
     {
-        LOGGER.fine("canImport() -- info.getComponent()=" + info.getComponent());   
+        LOGGER.log(Level.FINE, "canImport() -- info.getComponent()={0}", info.getComponent());
 
 
         // Check data flavor
         if (!info.isDataFlavorSupported(CLI_ChordSymbol.DATA_FLAVOR) && !info.isDataFlavorSupported(CLI_Section.DATA_FLAVOR))
         {
-            LOGGER.fine("canImport() return false: unsupported DataFlavor");   
+            LOGGER.fine("canImport() return false: unsupported DataFlavor");
             return false;
         }
 
@@ -137,17 +140,17 @@ public class CL_EditorTransferHandler extends TransferHandler
         Position newPos = getDropPosition(info);
         if (newPos == null)
         {
-            LOGGER.fine("canImport() return false: drop position not managed");   
+            LOGGER.fine("canImport() return false: drop position not managed");
             return false;
         }
 
 
         // Don't allow cross-chordleadsheet import
         ChordLeadSheetItem<?> sourceItem = getTransferredItem(info.getTransferable());
-        assert sourceItem != null;   
+        assert sourceItem != null;
         if (sourceItem.getContainer() != editor.getModel())
         {
-            LOGGER.fine("canImport() return false: cross-chordleadsheet drag n drop not managed");   
+            LOGGER.fine("canImport() return false: cross-chordleadsheet drag n drop not managed");
             return false;
         }
 
@@ -158,7 +161,7 @@ public class CL_EditorTransferHandler extends TransferHandler
         boolean moveSupported = (MOVE & info.getSourceDropActions()) == MOVE;
         if (!copySupported && !moveSupported)
         {
-            LOGGER.fine("canImport() copy or move not supported");   
+            LOGGER.fine("canImport() copy or move not supported");
             return false;
         }
         if (!moveSupported)
@@ -180,32 +183,32 @@ public class CL_EditorTransferHandler extends TransferHandler
     @Override
     public boolean importData(TransferSupport info)
     {
-        LOGGER.fine("importData() -- info.getComponent()=" + info.getComponent());   
+        LOGGER.log(Level.FINE, "importData() -- info.getComponent()={0}", info.getComponent());
 
 
         if (!info.isDrop())
         {
-            LOGGER.fine("importData() not a drop");   
+            LOGGER.fine("importData() not a drop");
             return false;
         }
 
 
         if (!canImport(info))
         {
-            LOGGER.fine("importData() can't import");   
+            LOGGER.fine("importData() can't import");
             return false;
         }
 
         // Fetch the Transferable and its data
         ChordLeadSheetItem<?> sourceItem = getTransferredItem(info.getTransferable());
-        assert sourceItem != null;   
+        assert sourceItem != null;
 
 
         // Get the drop position
         Position newPos = getDropPosition(info);
         if (newPos == null)
         {
-            LOGGER.fine("importData() drop position not managed");   
+            LOGGER.fine("importData() drop position not managed");
             return false;
         }
 
@@ -218,14 +221,11 @@ public class CL_EditorTransferHandler extends TransferHandler
         JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(cls);
 
 
-        if (sourceItem instanceof CLI_Section)
+        if (sourceItem instanceof CLI_Section cliSection)
         {
-            CLI_Section section = (CLI_Section) sourceItem;
-
-
             if (sourceBarIndex == newBarIndex)
             {
-                LOGGER.fine("importData() sourceBarIndex=" + sourceBarIndex + "=newBarIndex");   
+                LOGGER.log(Level.FINE, "importData() sourceBarIndex={0}=newBarIndex", sourceBarIndex);
                 return false;
             }
 
@@ -240,8 +240,8 @@ public class CL_EditorTransferHandler extends TransferHandler
                 um.startCEdit(editName);
 
 
-                CLI_Section sectionCopy = (CLI_Section) section.getCopy(null, newPos);
-                String errMsg = ResUtil.getString(getClass(), "IMPOSSIBLE TO COPY SECTION", section.getData());
+                CLI_Section sectionCopy = (CLI_Section) cliSection.getCopy(null, newPos);
+                String errMsg = ResUtil.getString(getClass(), "IMPOSSIBLE TO COPY SECTION", cliSection.getData());
 
                 if (curSection.getPosition().getBar() == newBarIndex)
                 {
@@ -278,7 +278,7 @@ public class CL_EditorTransferHandler extends TransferHandler
             {
                 // Move mode
                 String editName = ResUtil.getString(getClass(), "MOVE SECTION");
-                String errMsg = ResUtil.getString(getClass(), "IMPOSSIBLE TO MOVE SECTION", section.getData());
+                String errMsg = ResUtil.getString(getClass(), "IMPOSSIBLE TO MOVE SECTION", cliSection.getData());
 
                 um.startCEdit(editName);
 
@@ -287,9 +287,9 @@ public class CL_EditorTransferHandler extends TransferHandler
                     // There is already a section there, just update the content                          
                     try
                     {
-                        cls.removeSection(section);
-                        cls.setSectionName(curSection, section.getData().getName());
-                        cls.setSectionTimeSignature(curSection, section.getData().getTimeSignature());
+                        cls.removeSection(cliSection);
+                        cls.setSectionName(curSection, cliSection.getData().getName());
+                        cls.setSectionTimeSignature(curSection, cliSection.getData().getTimeSignature());
                     } catch (UnsupportedEditException ex)
                     {
                         // Section is just moved, it was OK before and it should be OK after the move.
@@ -304,15 +304,15 @@ public class CL_EditorTransferHandler extends TransferHandler
                     try
                     {
                         // No section there, we can move
-                        cls.moveSection(section, newBarIndex);
+                        cls.moveSection(cliSection, newBarIndex);
                     } catch (UnsupportedEditException ex)
                     {
                         errMsg += "\n" + ex.getLocalizedMessage();
                         um.handleUnsupportedEditException(editName, errMsg);
                         return false;
                     }
-                    editor.selectItem(section, true);
-                    editor.setFocusOnItem(section, IR_Type.Section);
+                    editor.selectItem(cliSection, true);
+                    editor.setFocusOnItem(cliSection, IR_Type.Section);
                 }
                 um.endCEdit(editName);
             }
@@ -338,7 +338,7 @@ public class CL_EditorTransferHandler extends TransferHandler
             }
         }
 
-        LOGGER.fine("importData() EXIT with success");   
+        LOGGER.fine("importData() EXIT with success");
 
         return true;
     }
@@ -362,7 +362,7 @@ public class CL_EditorTransferHandler extends TransferHandler
                 sourceItem = (ChordLeadSheetItem<?>) t.getTransferData(CLI_Section.DATA_FLAVOR);
             } catch (UnsupportedFlavorException | IOException ex)
             {
-                LOGGER.fine("getTransferredItem()  not supported data");   
+                LOGGER.fine("getTransferredItem()  not supported data");
             }
         }
         return sourceItem;
@@ -392,7 +392,7 @@ public class CL_EditorTransferHandler extends TransferHandler
         BarBox bb = getEnclosingBarBox(info.getComponent());
         if (bb == null)
         {
-            LOGGER.fine("getTargetDragPosition() target drop component not linked to a BarBox");   
+            LOGGER.fine("getTargetDragPosition() target drop component not linked to a BarBox");
             return null;
         }
         Point p = info.getDropLocation().getDropPoint();

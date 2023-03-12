@@ -111,6 +111,13 @@ public class Quantizer
     }
 
 
+    /**
+     * Check if iterative quantize is enabled.
+     * <p>
+     * This is enabled by default.
+     *
+     * @return
+     */
     public boolean isIterativeQuantizeEnabled()
     {
         return iterativeEnabled;
@@ -228,7 +235,7 @@ public class Quantizer
                 return beatInt + nextBeatDecimal;
             }
             default ->
-                throw new IllegalStateException("quantization=" + q);   
+                throw new IllegalStateException("quantization=" + q);
         }
 
         return res;
@@ -261,7 +268,7 @@ public class Quantizer
                 res = beatInt + previousBeatDecimal;
             }
             default ->
-                throw new IllegalStateException("quantization=" + q);   
+                throw new IllegalStateException("quantization=" + q);
         }
 
         return res;

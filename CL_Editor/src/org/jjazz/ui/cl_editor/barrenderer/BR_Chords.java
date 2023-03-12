@@ -30,6 +30,7 @@ import java.beans.PropertyChangeListener;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.WeakHashMap;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
@@ -65,7 +66,7 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
      */
     private static final WeakHashMap<CL_Editor, PrefSizePanel> mapEditorPrefSizePanel = new WeakHashMap<>();
 
-    private static Dimension MIN_SIZE = new Dimension(10, 4);
+    private static final Dimension MIN_SIZE = new Dimension(10, 4);
     /**
      * The last TimeSignature we used to layout the items.
      */
@@ -78,7 +79,7 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
      * ItemRenderer for the insertion point.
      */
     private ItemRenderer irIP;
-    private BR_ChordsLayoutManager layoutManager;
+    private final BR_ChordsLayoutManager layoutManager;
     private int zoomVFactor = 50;
     private static final Logger LOGGER = Logger.getLogger(BR_Chords.class.getSimpleName());
 
@@ -152,7 +153,10 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
     @Override
     public void showInsertionPoint(boolean b, ChordLeadSheetItem<?> item, Position pos, boolean copyMode)
     {
-        LOGGER.fine("showInsertionPoint() b=" + b + " item=" + item + " pos=" + pos + " copyMode=" + copyMode);   
+        LOGGER.log(Level.FINE, "showInsertionPoint() b={0} item={1} pos={2} copyMode={3}", new Object[]
+        {
+            b, item, pos, copyMode
+        });
         if (!b)
         {
             // Remove the insertion point
@@ -166,11 +170,11 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
         }
 
         // Add or move the insertion point
-        if (item instanceof CLI_ChordSymbol)
+        if (item instanceof CLI_ChordSymbol cliCs)
         {
             if (cliIP == null)
             {
-                cliIP = new IP_ChordSymbol((CLI_ChordSymbol) item);
+                cliIP = new IP_ChordSymbol(cliCs);
                 ((IP_ChordSymbol) cliIP).setPosition(pos);
                 irIP = addItemRenderer(cliIP);
                 irIP.setSelected(true);
@@ -188,9 +192,9 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
             }
         }
 
-        if (irIP instanceof IR_Copiable)
+        if (irIP instanceof IR_Copiable irc)
         {
-            ((IR_Copiable) irIP).showCopyMode(copyMode);
+            irc.showCopyMode(copyMode);
         }
     }
 
@@ -260,7 +264,7 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
     {
         if (!isRegisteredItemClass(item))
         {
-            throw new IllegalArgumentException("item=" + item);   
+            throw new IllegalArgumentException("item=" + item);
         }
         ItemRenderer ir;
         ItemRendererFactory irf = getItemRendererFactory();
@@ -287,7 +291,7 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
     public void componentResized(ComponentEvent e)
     {
         Dimension d = getPrefSizePanelSharedInstance().getSize();
-        LOGGER.fine("componentResized() d=" + d);   
+        LOGGER.log(Level.FINE, "componentResized() d={0}", d);
         setPreferredSize(d);
         revalidate();
         repaint();
@@ -345,8 +349,8 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
     /**
      * A special shared JPanel instance used to calculate the preferred size for all BR_Chords.
      * <p>
-     * Add ItemRenderers with the tallest size. Panel is added to the "hidden" BarRenderer's JDialog to be displayable so that
-     * FontMetrics can be calculated with a Graphics object.
+     * Add ItemRenderers with the tallest size. Panel is added to the "hidden" BarRenderer's JDialog to be displayable so that FontMetrics
+     * can be calculated with a Graphics object.
      * <p>
      */
     private class PrefSizePanel extends JPanel implements PropertyChangeListener
