@@ -37,16 +37,13 @@
         <AuxValue name="classDetails" type="java.lang.String" value="Box.Filler.HorizontalStrut"/>
       </AuxValues>
     </Component>
-    <Component class="org.jjazz.ui.flatcomponents.api.FlatToggleButton" name="fbtn_autopreview">
+    <Component class="javax.swing.JLabel" name="lbl_autoPreview">
       <Properties>
         <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
           <Image iconType="3" name="/org/jjazz/ui/musiccontrolactions/resources/AutoUpdate-OFF-24x24.png"/>
         </Property>
-        <Property name="disabledIcon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-          <Image iconType="3" name="/org/jjazz/ui/musiccontrolactions/resources/ClickDisabled-24x24.png"/>
-        </Property>
-        <Property name="selectedIcon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-          <Image iconType="3" name="/org/jjazz/ui/musiccontrolactions/resources/Click-ON-24x24.png"/>
+        <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="org/jjazz/ui/musiccontrolactions/Bundle.properties" key="AutoPreviewToolbarPanel.lbl_autoPreview.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
         </Property>
       </Properties>
     </Component>

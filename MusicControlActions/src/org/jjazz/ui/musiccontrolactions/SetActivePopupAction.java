@@ -43,7 +43,7 @@ import org.openide.awt.Actions;
  * If multiple songs, righ-click popup menu action can be used on any song, even the non-selected/visible one! If popup menu song
  * is not the active one, the SetActive.java song lookup listener is not updated and SetActive is applied on the wrong song (the
  * still selected one).<br>
- * The problems does not occur when using the Netbeans context-sensitive actions which use a Song as a constructor argument (like
+ * The problem does not occur when using the Netbeans context-sensitive actions which use a Song as a constructor argument (like
  * for DuplicateSong action). So we use this mechanism only for the popup-menu action, action which FIRST selects the Song before calling
  * the original SetActive action.
  * <p>
