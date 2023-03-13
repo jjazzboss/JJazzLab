@@ -131,6 +131,7 @@ public class SongContext
      *
      * @param register If true the created song is registered by the SongFactory
      * @return
+     * @see SongContextCopy &nbsp; (if you need to keep a reference to the original song and midiMix)
      */
     public SongContext deepClone(boolean register)
     {        

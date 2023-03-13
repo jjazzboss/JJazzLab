@@ -435,11 +435,11 @@ public class SongEditorManager implements PropertyChangeListener
                 {
                     // User closed a song, close all editors
                     closeSong(ssTc.getSongModel(), true);
-                    
+
                 } else if (evt.getNewValue() instanceof PianoRollEditorTopComponent prTc)
                 {
                     getEditors(prTc.getSong()).setPianoRollEditor(null);
-                    
+
                 }
             } else if (evt.getPropertyName().equals(TopComponent.Registry.PROP_ACTIVATED))
             {
@@ -447,23 +447,35 @@ public class SongEditorManager implements PropertyChangeListener
                 {
                     // Make the corresponding ssTc visible
                     Song song = clTc.getSongModel();
-                    getEditors(song).getSS_EditorTc().requestVisible();
+                    var editors = getEditors(song);
+                    if (editors != null)        // Might be null when application is exiting
+                    {
+                        editors.getSS_EditorTc().requestVisible();
+                    }
 
                 } else if (evt.getNewValue() instanceof SS_EditorTopComponent ssTc)
                 {
                     // Make the corresponding clTc visible, unless the song pianoroll editor is already visible
                     Song song = ssTc.getSongModel();
-                    var clTc = getEditors(song).getCL_EditorTc();
-                    var prTc = getEditors(song).getPianoRollTc();
-                    if (prTc == null || WindowManager.getDefault().findMode(PianoRollEditorTopComponent.MODE).getSelectedTopComponent() != prTc)
+                    var editors = getEditors(song);
+                    if (editors != null)
                     {
-                        clTc.requestVisible();
+                        var clTc = editors.getCL_EditorTc();
+                        var prTc = editors.getPianoRollTc();
+                        if (prTc == null || WindowManager.getDefault().findMode(PianoRollEditorTopComponent.MODE).getSelectedTopComponent() != prTc)
+                        {
+                            clTc.requestVisible();
+                        }
                     }
                 } else if (evt.getNewValue() instanceof PianoRollEditorTopComponent prTc)
                 {
                     // Make the corresponding ssTc visible
                     Song song = prTc.getSong();
-                    getEditors(song).getSS_EditorTc().requestVisible();
+                    var editors = getEditors(song);
+                    if (editors != null)
+                    {
+                        editors.getSS_EditorTc().requestVisible();
+                    }
                 }
             }
         } else if (evt.getSource() instanceof Song)

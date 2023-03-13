@@ -589,7 +589,7 @@ public class Utilities
      * If component width is too small for text to be centered, text is aligned on the left.<p>
      * If string contains '\n', string will be displayed on several lines.
      *
-     * @param g2     Used to draw the string with the default font and foreground.
+     * @param g2     Used to draw the string with the default font and color.
      * @param jc
      * @param text
      * @param hAlign 0=left, 1=centered, 2=right

@@ -113,8 +113,8 @@ public class SelectionTool implements EditTool
     @Override
     public Icon getIcon(boolean b)
     {
-        return b ? new ImageIcon(SelectionTool.class.getResource(ICON_PATH_ON)) : new ImageIcon(SelectionTool.class.getResource(
-                ICON_PATH_OFF));
+        return b ? new ImageIcon(SelectionTool.class.getResource(ICON_PATH_ON))
+                : new ImageIcon(SelectionTool.class.getResource(ICON_PATH_OFF));
     }
 
     @Override
@@ -311,8 +311,8 @@ public class SelectionTool implements EditTool
                     for (var sne : mapSrcDragNotes.keySet())
                     {
                         var dragNe = mapSrcDragNotes.get(sne);
-                        
-                        
+
+
                         // Calculate pos/pitch changes
                         float newDragPos = sne.getPositionInBeats() + dPos;
                         newDragPos = Math.max(0, newDragPos);

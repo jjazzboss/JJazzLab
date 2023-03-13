@@ -197,7 +197,9 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         this.keyMap = null;
         this.quantization = Quantization.ONE_QUARTER_BEAT;
         this.mapPosTimeSignature = new TreeMap<>();
-        mapPosTimeSignature.put(0f, TimeSignature.FOUR_FOUR);
+        this.snapEnabled = true;        
+        this.mapPosTimeSignature.put(0f, TimeSignature.FOUR_FOUR);
+
 
 
         // Be notified of changes, note added, moved, removed, set

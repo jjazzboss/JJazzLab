@@ -33,7 +33,7 @@ import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.musiccontrol.api.SongMusicGenerationListener;
 import org.jjazz.rhythmmusicgeneration.api.MusicGenerationQueue;
 import org.jjazz.song.api.Song;
-import org.jjazz.songcontext.api.SongContext;
+import org.jjazz.songcontext.api.SongContextCopy;
 import org.openide.util.ChangeSupport;
 
 /**
@@ -46,8 +46,10 @@ import org.openide.util.ChangeSupport;
 public class SongMusicBuilderTask implements ChangeListener
 {
 
-    private static final int PRE_UPDATE_BUFFER_TIME_MS = 1000;
-    private static final int POST_UPDATE_SLEEP_TIME_MS = 500;
+    private static final int PRE_UPDATE_BUFFER_TIME_MS = 600;
+    private static final int POST_UPDATE_SLEEP_TIME_MS = 400;
+    private static final int PRE_CHANGE_EVENT_DELAY_MS = 200;
+    
 
     private MusicGenerationQueue.Result lastResult;
     private MusicGenerationQueue musicGenerationQueue;
@@ -113,7 +115,7 @@ public class SongMusicBuilderTask implements ChangeListener
             musicGenerationQueue.addChangeListener(this);
             musicGenerationQueue.start();
 
-            songMusicGenerationListener = new SongMusicGenerationListener(song, midiMix);
+            songMusicGenerationListener = new SongMusicGenerationListener(song, midiMix, PRE_CHANGE_EVENT_DELAY_MS);
             songMusicGenerationListener.addChangeListener(this);
 
             // Force the 1st generation
@@ -129,7 +131,7 @@ public class SongMusicBuilderTask implements ChangeListener
     /**
      * Get the last music generation result.
      *
-     * @return Can be null.
+     * @return Can be null. The SongContext field will be a SongContextCopy instance.
      */
     public MusicGenerationQueue.Result getLastResult()
     {
@@ -162,18 +164,17 @@ public class SongMusicBuilderTask implements ChangeListener
         if (e.getSource() == songMusicGenerationListener)
         {
             // Song has changed musically
-            Runnable r = () -> 
-            {
-                // Prepare a copy of the song context
-                LOGGER.log(Level.FINE, "stateChanged() -- posting music generation request for {0}", song.getName());
-                SongContext sgContextCopy = new SongContext(song, midiMix).deepClone(false);
-                Utilities.transpose(sgContextCopy.getSong().getChordLeadSheet(),
-                        PlaybackSettings.getInstance().getPlaybackKeyTransposition());
 
-                // Request music generation
-                musicGenerationQueue.add(sgContextCopy);
-            };
-            new Thread(r, "SongMusicBuilderTask-PrepareSgContextCopy").start();
+            // Can't use a thread here because this might lead to concurrent modification (eg of a user phrase) while copy is being made
+            
+            // Prepare a copy of the song context
+            LOGGER.log(Level.FINE, "stateChanged() -- posting music generation request for {0}", song.getName());
+            SongContextCopy sgContextCopy = new SongContextCopy(song, midiMix, false);
+            Utilities.transpose(sgContextCopy.getSong().getChordLeadSheet(),
+                    PlaybackSettings.getInstance().getPlaybackKeyTransposition());
+
+            // Request music generation
+            musicGenerationQueue.add(sgContextCopy);
 
         } else if (e.getSource() == musicGenerationQueue)
         {
@@ -189,5 +190,8 @@ public class SongMusicBuilderTask implements ChangeListener
 
     //=============================================================================
     // Private methods
+    //=============================================================================
+    //=============================================================================
+    // Inner classes
     //=============================================================================
 }

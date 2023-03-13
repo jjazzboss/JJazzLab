@@ -60,6 +60,7 @@ public class MusicGenerationQueue implements Runnable
     /**
      * A result from a music generation.
      *
+     * @param refId The identification object
      * @param userException If not null an exception occured.
      */
     public record Result(SongContext songContext, Map<RhythmVoice, Phrase> mapRvPhrases, Exception userException)

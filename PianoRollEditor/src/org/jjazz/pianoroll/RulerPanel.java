@@ -38,7 +38,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.font.TextAttribute;
 import java.awt.geom.Rectangle2D;
-import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -244,31 +243,34 @@ public class RulerPanel extends javax.swing.JPanel implements ClsChangeListener,
             ChordSequence cs = new ChordSequence(offsettedBarRange);
             SongChordSequence.fillChordSequence(cs, song, offsettedBarRange);
             int lastBar = -1;
+
+
             for (var cliCs : cs)
             {
                 var pos = cliCs.getPosition();
-                var posOffsetted = pos.getMovedPosition(-barOffset, 0); // Convert to phraseStartBar
-                var posInBeats = editor.toPositionInBeats(posOffsetted);
-                int x = editor.getXFromPosition(posInBeats);
-                int y = yBottomChordSymbolLane - 1;
-                AttributedString aStr;
-                aStr = new AttributedString(cliCs.getData().getOriginalName(), baseFont.getAttributes());
-                aStr.addAttribute(TextAttribute.FOREGROUND, COLOR_BAR_FONT);
-                if (posOffsetted.isFirstBarBeat())
+                
+                if (oneBeatPixelSize > 14 || (pos.getBar() != lastBar && pos.isFirstBarBeat()))
                 {
-                    x += 1;
-                }
-                g2.setFont(baseFont);
-                g2.setColor(COLOR_CHORD_SYMBOL_FONT);
-                var strCs = cliCs.getData().getOriginalName();
-                if (oneBeatPixelSize > 12 || pos.getBar() != lastBar)
-                {
-                    g2.drawString(strCs, x, y);
+                    // Draw the chord symbol
+                    var posOffsetted = pos.getMovedPosition(-barOffset, 0); // Convert to phraseStartBar
+                    var posInBeats = editor.toPositionInBeats(posOffsetted);
+                    int x = editor.getXFromPosition(posInBeats);
+                    int y = yBottomChordSymbolLane - 1;
+                    AttributedString aStr;
+                    aStr = new AttributedString(cliCs.getData().getOriginalName(), baseFont.getAttributes());
+                    aStr.addAttribute(TextAttribute.FOREGROUND, COLOR_CHORD_SYMBOL_FONT);
+                    aStr.addAttribute(TextAttribute.BACKGROUND, settings.getRulerBackgroundColor());    // so that some chords remain visible when they overlap
+                    if (posOffsetted.isFirstBarBeat())
+                    {
+                        x += 1;
+                    }
+                    g2.drawString(aStr.getIterator(), x, y);
                 } else
                 {
                     // No room to draw several chord symbols per bar
                     continue;
                 }
+                
                 lastBar = pos.getBar();
             }
         }

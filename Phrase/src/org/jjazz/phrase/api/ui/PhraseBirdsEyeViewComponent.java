@@ -119,8 +119,7 @@ public class PhraseBirdsEyeViewComponent extends JPanel implements PropertyChang
         super.paintComponent(g);
 
         Graphics2D g2 = (Graphics2D) g.create();
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        // g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         var r = Utilities.getUsableArea(this);
 
 
@@ -185,10 +184,10 @@ public class PhraseBirdsEyeViewComponent extends JPanel implements PropertyChang
                 double x0 = r.x + (ne.getPositionInBeats() - beatRange.from) * xRatio;
                 double x1 = r.x + (ne.getPositionInBeats() + ne.getDurationInBeats() - beatRange.from) * xRatio;
                 double y = yMax - (getCorrectedPitch(ne.getPitch(), MID_PITCH_RANGE, OUT_OF_RANGE_PITCH_RATIO) - pitchRange.from) * yRatio;
-                if (x1 - x0 < 0.7d)
-                {
-                    x1 = x0 + 0.7d;
-                }
+//                if (x1 - x0 < 0.7d)
+//                {
+//                    x1 = x0+0.7d;
+//                }
                 var line = new Line2D.Double(x0, y, x1, y);
                 g2.setColor(getNoteColor(ne));
                 g2.draw(line);
@@ -198,14 +197,18 @@ public class PhraseBirdsEyeViewComponent extends JPanel implements PropertyChang
         } else
         {
             // Write "void" centered
+            g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+            Color c = noteColorManager.getNoteColor(getForeground(), 5);
+            g2.setColor(c);
             g2.setFont(FONT);
-            Utilities.drawStringAligned(g2, this, "void", 1);
+            // Utilities.drawStringAligned(g2, this, "void", 1);
         }
 
 
         // Draw label with 
         if (label != null)
         {
+            g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
             Color c = COLOR_LABEL_BACKGROUND;
             c = new Color(c.getRed(), c.getGreen(), c.getBlue(), 170);
             g2.setColor(c);

@@ -58,7 +58,6 @@ public class ActiveSongMusicBuilder implements PropertyChangeListener, ChangeLis
     private MusicGenerationQueue.Result lastResult;
     private SongMusicBuilderTask songMusicBuilderTask;
     private UpdatableSongSession updatableSongSession;
-    private boolean started;
     private Song activeSong;
     private MidiMix activeMidiMix;
     private Mode mode;
@@ -80,6 +79,20 @@ public class ActiveSongMusicBuilder implements PropertyChangeListener, ChangeLis
     private ActiveSongMusicBuilder()
     {
         this.mode = Mode.OFF;
+
+
+        var asm = ActiveSongManager.getInstance();
+        asm.addPropertyListener(this);
+
+        var mc = MusicController.getInstance();
+        mc.addPropertyChangeListener(this);
+
+        activeSong = asm.getActiveSong();
+        activeMidiMix = asm.getActiveMidiMix();
+        if (activeSong != null)
+        {
+            propertyChange(new PropertyChangeEvent(asm, ActiveSongManager.PROP_ACTIVE_SONG, activeMidiMix, activeSong));
+        }
     }
 
     /**
@@ -101,56 +114,47 @@ public class ActiveSongMusicBuilder implements PropertyChangeListener, ChangeLis
     public void addChangeListener(ChangeListener listener)
     {
         cs.addChangeListener(listener);
-        start();
     }
 
     public void removeChangeListener(ChangeListener listener)
     {
         cs.removeChangeListener(listener);
-        if (!cs.hasListeners())
-        {
-            stop();
-        }
     }
-    
-    
+
+
     // ==========================================================================================================
     // PropertyChangeListener implementation
     // ==========================================================================================================
-
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
-
-        if (!started)
-        {
-            return;
-        }
 
         var asm = ActiveSongManager.getInstance();
         var mc = MusicController.getInstance();
 
 
         Mode newMode = mode;
-        UpdatableSongSession newUpdatableSongSession = null;
+        UpdatableSongSession newUpdatableSongSession = updatableSongSession;
+        Song newSong = activeSong;
+        MidiMix newMidiMix = activeMidiMix;
 
 
         if (evt.getSource() == asm)
         {
             if (evt.getPropertyName().equals(ActiveSongManager.PROP_ACTIVE_SONG))
             {
-                activeSong = (Song) evt.getNewValue();          // Can be null
-                activeMidiMix = (MidiMix) evt.getOldValue();
+                newSong = (Song) evt.getNewValue();          // Can be null
+                newMidiMix = (MidiMix) evt.getOldValue();
 
                 if (EnumSet.of(State.PAUSED, State.PLAYING).contains(mc.getState())
                         && mc.getPlaybackSession() instanceof UpdatableSongSession uss
-                        && uss.getSongContext().getSong() == activeSong)
+                        && uss.getSongContext().getSong() == newSong)
                 {
                     newUpdatableSongSession = uss;
                     newMode = Mode.PLAYING_SONG;
                 } else
                 {
-                    newMode = Mode.NON_PLAYING_SONG;
+                    newMode = newSong != null ? Mode.NON_PLAYING_SONG : Mode.OFF;
                 }
             }
 
@@ -184,7 +188,7 @@ public class ActiveSongMusicBuilder implements PropertyChangeListener, ChangeLis
                     }
                 } else
                 {
-                    newMode = Mode.NON_PLAYING_SONG;
+                    newMode = activeSong != null ? Mode.NON_PLAYING_SONG : Mode.OFF;
                 }
             }
 
@@ -198,7 +202,7 @@ public class ActiveSongMusicBuilder implements PropertyChangeListener, ChangeLis
         }
 
 
-        setMode(newMode, newUpdatableSongSession);
+        setState(newMode, newUpdatableSongSession, newSong, newMidiMix);
 
 
     }
@@ -216,75 +220,46 @@ public class ActiveSongMusicBuilder implements PropertyChangeListener, ChangeLis
     //=============================================================================
     // Private methods
     //=============================================================================
-    private void start()
+    private void setState(Mode newMode, UpdatableSongSession newUpdatableSongSession, Song newSong, MidiMix newMidiMix)
     {
-        if (!started)
-        {
-            started = true;
-
-            var asm = ActiveSongManager.getInstance();
-            asm.addPropertyListener(this);
-
-            var mc = MusicController.getInstance();
-            mc.addPropertyChangeListener(this);
-
-            activeSong = asm.getActiveSong();
-            activeMidiMix = asm.getActiveMidiMix();
-            if (activeSong != null)
-            {                
-                propertyChange(new PropertyChangeEvent(asm, ActiveSongManager.PROP_ACTIVE_SONG, activeMidiMix, activeSong));
-            }
-        }
-    }
-
-    private void stop()
-    {
-        if (started)
-        {
-            ActiveSongManager.getInstance().removePropertyListener(ActiveSongManager.PROP_ACTIVE_SONG, this);
-            started = false;
-
-            setMode(Mode.OFF, null);
-        }
-    }
-
-    private void setMode(Mode newMode, UpdatableSongSession newUpdatableSongSession)
-    {
-        if (newMode.equals(mode))
+        if (newSong == activeSong && newMidiMix == activeMidiMix && newMode.equals(mode))
         {
             return;
         }
 
+        activeSong = newSong;
+        activeMidiMix = newMidiMix;
         mode = newMode;
+
+
+        stopListeningToNonPlayingSong();
+        stopListeningToPlayingSong();
+
 
         switch (mode)
         {
             case OFF ->
             {
-                stopListeningToNonPlayingSong();
-                stopListeningToPlayingSong();
+                // Nothing
             }
             case PLAYING_SONG ->
             {
-                stopListeningToNonPlayingSong();
-                listenToPlayingSong(newUpdatableSongSession);
+                updatableSongSession = newUpdatableSongSession;
+                assert updatableSongSession != null;
+                updatableSongSession.addPropertyChangeListener(this);
             }
             case NON_PLAYING_SONG ->
             {
-                stopListeningToPlayingSong();
-                listenToNonPlayingSong();
+                assert activeSong != null;
+                assert activeMidiMix != null;
+                songMusicBuilderTask = new SongMusicBuilderTask(activeSong, activeMidiMix);
+                songMusicBuilderTask.addChangeListener(this);
+                songMusicBuilderTask.start();
             }
             default -> throw new AssertionError(mode.name());
         }
     }
 
-    private void listenToPlayingSong(UpdatableSongSession uss)
-    {
-        assert updatableSongSession == null;
-        assert uss != null;
-        updatableSongSession = uss;
-        updatableSongSession.addPropertyChangeListener(this);
-    }
 
     private void stopListeningToPlayingSong()
     {
@@ -295,21 +270,13 @@ public class ActiveSongMusicBuilder implements PropertyChangeListener, ChangeLis
         updatableSongSession = null;
     }
 
-    private void listenToNonPlayingSong()
-    {
-        assert activeSong != null;
-        assert activeMidiMix != null;
-        songMusicBuilderTask = new SongMusicBuilderTask(activeSong, activeMidiMix);
-        songMusicBuilderTask.start();
-        songMusicBuilderTask.addChangeListener(this);
-    }
 
     private void stopListeningToNonPlayingSong()
     {
         if (songMusicBuilderTask != null)
         {
-            songMusicBuilderTask.stop();
             songMusicBuilderTask.removeChangeListener(this);
+            songMusicBuilderTask.stop();
         }
         songMusicBuilderTask = null;
     }

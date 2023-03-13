@@ -22,9 +22,11 @@
  */
 package org.jjazz.musiccontrol.api;
 
+import com.google.common.base.Preconditions;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.Set;
+import javax.swing.Timer;
 import javax.swing.event.ChangeListener;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.song.api.Song;
@@ -33,10 +35,10 @@ import org.openide.util.ChangeSupport;
 /**
  * A helper class to be notified when a song and other elements have changed in a way that will impact music generation for that song.
  * <p>
- * Listen to PROP_MUSIC_GENERATION property change in Song, MidiMix, and PlaybackSettings.
+ * The class fires a ChangeEvent when it receives a PROP_MUSIC_GENERATION property change from Song, MidiMix, and PlaybackSettings.
  * <p>
- * A black-list mechanism can be used to filter out some PROP_MUSIC_GENERATION source events.
- * <p>
+ * A black-list mechanism can be used to filter out some PROP_MUSIC_GENERATION source events. A delay can be set before firing the
+ * ChangeEvent, in order to automatically filter out rapid successive changes.
  */
 public class SongMusicGenerationListener implements PropertyChangeListener
 {
@@ -45,14 +47,28 @@ public class SongMusicGenerationListener implements PropertyChangeListener
     private final ChangeSupport cs = new ChangeSupport(this);
     private final Song song;
     private final MidiMix midiMix;
+    private final int preFireChangeEventDelayMs;
+    private final Timer timer;
 
-    public SongMusicGenerationListener(Song song, MidiMix midiMix)
+
+    public SongMusicGenerationListener(Song song, MidiMix midiMix, int preFireChangeEventDelayMs)
     {
+        Preconditions.checkArgument(preFireChangeEventDelayMs >= 0, "preFireChangeEventDelayMs=%d", preFireChangeEventDelayMs);
         this.song = song;
         this.midiMix = midiMix;
+        this.preFireChangeEventDelayMs = preFireChangeEventDelayMs;
         this.song.addPropertyChangeListener(Song.PROP_MUSIC_GENERATION, this);
         this.midiMix.addPropertyChangeListener(MidiMix.PROP_MUSIC_GENERATION, this);
         PlaybackSettings.getInstance().addPropertyChangeListener(PlaybackSettings.PROP_MUSIC_GENERATION, this);
+
+        if (preFireChangeEventDelayMs > 0)
+        {
+            timer = new Timer(preFireChangeEventDelayMs, e -> timerElapsed());
+            timer.setRepeats(false);
+        } else
+        {
+            timer = null;
+        }
     }
 
     public Song getSong()
@@ -72,6 +88,18 @@ public class SongMusicGenerationListener implements PropertyChangeListener
         PlaybackSettings.getInstance().removePropertyChangeListener(PlaybackSettings.PROP_MUSIC_GENERATION, this);
     }
 
+
+    /**
+     * The delay to wait before firing a change event.
+     * <p>
+     * All PROP_MUSIC_GENERATION change events received while the delay is running are discarded.
+     *
+     * @return A value in milliseconds.
+     */
+    public int getPreFireChangeEventDelayMs()
+    {
+        return preFireChangeEventDelayMs;
+    }
 
     public Set<String> getBlackList()
     {
@@ -114,6 +142,31 @@ public class SongMusicGenerationListener implements PropertyChangeListener
         {
             return;
         }
+
+        fireChangeEventMaybe();
+    }
+
+    // =================================================================================================================
+    // Private methods
+    // =================================================================================================================
+
+    private void fireChangeEventMaybe()
+    {
+        if (timer == null)
+        {
+            cs.fireChange();
+            return;
+        }
+        if (!timer.isRunning())
+        {
+            timer.start();
+        }
+
+    }
+
+    private void timerElapsed()
+    {
         cs.fireChange();
     }
+
 }

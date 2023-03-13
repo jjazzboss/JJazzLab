@@ -97,7 +97,7 @@ public class AutoPreviewToolbarPanel extends javax.swing.JPanel
                         setEnabledIcon(false);
                     }
                 }
-            } else if (evt.getSource() == MusicController.getInstance())
+            } else if (evt.getSource() == mc)
             {
                 if (evt.getPropertyName().equals(MusicController.PROP_PLAYBACK_SESSION))
                 {
@@ -117,35 +117,34 @@ public class AutoPreviewToolbarPanel extends javax.swing.JPanel
                         currentUpdatableSession.addPropertyChangeListener(this);
                         setEnabledIcon(currentUpdatableSession.isEnabled());
                     }
-                }
 
-                if (currentUpdatableSession == null)
+                    if (currentUpdatableSession == null)
+                    {
+                        // Unknow session, autoupdate has no meaning                 
+                        setEnabledIcon(false);
+                    }
+                } else if (evt.getPropertyName().equals(MusicController.PROP_STATE))
                 {
-                    // Unknow session, autoupdate has no meaning                 
-                    setEnabledIcon(false);
-                }
+                    MusicController.State newState = (MusicController.State) evt.getNewValue();
+                    MusicController.State oldState = (MusicController.State) evt.getOldValue();
 
-            } else if (evt.getPropertyName().equals(MusicController.PROP_STATE))
-            {
-                MusicController.State newState = (MusicController.State) evt.getNewValue();
-                MusicController.State oldState = (MusicController.State) evt.getOldValue();
+                    switch (newState)
+                    {
+                        case DISABLED:
+                            break;
+                        case PAUSED:
+                        case STOPPED:
+                            if (currentUpdatableSession != null)
+                            {
+                                setEnabledIcon(true);
+                            }
+                            break;
+                        case PLAYING:
+                            break;
+                        default:
+                            throw new AssertionError(newState.name());
 
-                switch (newState)
-                {
-                    case DISABLED:
-                        break;
-                    case PAUSED:
-                    case STOPPED:
-                        if (currentUpdatableSession != null)
-                        {
-                            setEnabledIcon(true);
-                        }
-                        break;
-                    case PLAYING:
-                        break;
-                    default:
-                        throw new AssertionError(newState.name());
-
+                    }
                 }
             }
         }

@@ -33,6 +33,7 @@ import org.jjazz.phrase.api.ui.PhraseBirdsEyeViewComponent;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythmmusicgeneration.api.MusicGenerationQueue;
 import org.jjazz.song.api.Song;
+import org.jjazz.songcontext.api.SongContextCopy;
 
 /**
  * A panel to represent the phrase corresponding to a channel.
@@ -55,13 +56,23 @@ public class PhraseViewerPanel extends PhraseBirdsEyeViewComponent implements Ch
         this.channel = channel;
 
 
-        ActiveSongMusicBuilder.getInstance().addChangeListener(this);
+        var asmb = ActiveSongMusicBuilder.getInstance();
+        asmb.addChangeListener(this);
+
 
         setPreferredSize(new Dimension(50, 50));        // width will be ignored by MixConsole layout manager        
         setMinimumSize(new Dimension(50, 8));           // width will be ignored by MixConsole layout manager        
         setLabel(channel + ": " + rv.getName());
         setOpaque(false);
         setShowVelocityMode(2);
+
+
+        // Refresh content if ActiveSongMusicBuilder has already a result for us (happens when user switches between songs)
+        var result = asmb.getLastResult();
+        if (result != null && result.songContext() instanceof SongContextCopy scc && scc.getOriginalSong() == song)
+        {
+            musicGenerationResultReceived(result);
+        }
     }
 
 
@@ -92,7 +103,7 @@ public class PhraseViewerPanel extends PhraseBirdsEyeViewComponent implements Ch
         g.setColor(TOP_LINE_COLOR);
         g.drawLine(10, 0, getWidth() - 10, 0);
     }
-    
+
     //=============================================================================
     // ChangeListener interface
     //=============================================================================
