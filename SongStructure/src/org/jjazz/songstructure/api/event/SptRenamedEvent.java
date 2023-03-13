@@ -22,7 +22,7 @@
  */
 package org.jjazz.songstructure.api.event;
 
-import java.util.List;
+import java.util.Collection;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 
@@ -35,7 +35,7 @@ public class SptRenamedEvent extends SgsChangeEvent
      * @param src
      * @param renamedSpts The list of renamed SongParts.
      */
-    public SptRenamedEvent(SongStructure src, List<SongPart> renamedSpts)
+    public SptRenamedEvent(SongStructure src, Collection<SongPart> renamedSpts)
     {
         super(src, renamedSpts);
     }

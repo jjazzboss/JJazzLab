@@ -25,6 +25,7 @@ package org.jjazz.songstructure.api;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Predicate;
 import javax.swing.event.UndoableEditListener;
 import org.jjazz.harmony.api.TimeSignature;
@@ -326,7 +327,7 @@ public interface SongStructure
      *
      * @param mapSptSize A map which associates a SongPart and the new desired size.
      */
-    public void resizeSongParts(SmallMap<SongPart, Integer> mapSptSize);
+    public void resizeSongParts(Map<SongPart, Integer> mapSptSize);
 
     /**
      * Check if replace operation is doable.

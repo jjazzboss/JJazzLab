@@ -652,12 +652,13 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
         } else if (event instanceof SptResizedEvent re)
         {
             // Ok if replaced spt is not in the context
-            disableUpdates = re.getMapOldSptSize().getKeys().stream()
+            disableUpdates = re.getMapOldSptSize().keySet().stream()
                     .anyMatch(spt -> contextSongParts.contains(spt));
 
         } else if (event instanceof SptRenamedEvent)
         {
             // Nothing
+            
         } else if (event instanceof RpValueChangedEvent re)
         {
             assert currentSgsChange != null : "event=" + event;

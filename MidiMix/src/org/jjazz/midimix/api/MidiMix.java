@@ -150,7 +150,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
     /**
      * Fired each time a MidiMix parameter which impacts music generation is modified, like instrument transposition.
      * <p>
-     * OldValue=false, newValue=the property name that triggers the musical change.<p>
+     * OldValue=the property name that triggers the musical change, newValue=optional associated data.<p>
      * Use PROP_MODIFIED_OR_SAVED to get notified of any MidiMix change, including non-musical ones like track mute change, etc.
      */
     public static final String PROP_MUSIC_GENERATION = "MidiMixMusicContent";
@@ -564,7 +564,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
                 });
 
                 pcs.firePropertyChange(PROP_RHYTHM_VOICE_CHANNEL, newChannel, oldChannel);
-                fireIsMusicGenerationModified(PROP_RHYTHM_VOICE_CHANNEL);
+                fireIsMusicGenerationModified(PROP_RHYTHM_VOICE_CHANNEL, rv);
                 fireIsModified();
             }
 
@@ -579,7 +579,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
                 });
 
                 pcs.firePropertyChange(PROP_RHYTHM_VOICE_CHANNEL, oldChannel, newChannel);
-                fireIsMusicGenerationModified(PROP_RHYTHM_VOICE_CHANNEL);
+                fireIsMusicGenerationModified(PROP_RHYTHM_VOICE_CHANNEL, rv);
                 fireIsModified();
             }
         };
@@ -587,7 +587,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
 
 
         pcs.firePropertyChange(PROP_RHYTHM_VOICE_CHANNEL, oldChannel, newChannel);
-        fireIsMusicGenerationModified(PROP_RHYTHM_VOICE_CHANNEL);
+        fireIsMusicGenerationModified(PROP_RHYTHM_VOICE_CHANNEL, rv);
         fireIsModified();
     }
 
@@ -619,9 +619,9 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
         {
             return null;
         }
-        if (rv instanceof RhythmVoiceDelegate)
+        if (rv instanceof RhythmVoiceDelegate rvd)
         {
-            rv = ((RhythmVoiceDelegate) rv).getSource();
+            rv = rvd.getSource();
         }
         int index = Arrays.asList(rhythmVoices).indexOf(rv);
         return index == -1 ? null : instrumentMixes[index];
@@ -678,9 +678,9 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
         {
             throw new IllegalArgumentException("key=" + rvKey);
         }
-        if (rvKey instanceof RhythmVoiceDelegate)
+        if (rvKey instanceof RhythmVoiceDelegate rvd)
         {
-            rvKey = ((RhythmVoiceDelegate) rvKey).getSource();
+            rvKey = rvd.getSource();
         }
         return Arrays.asList(rhythmVoices).indexOf(rvKey);
     }
@@ -783,7 +783,10 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      */
     public void setDrumsReroutedChannel(boolean b, int channel)
     {
-        LOGGER.fine("setDrumsReroutedChannel() -- b=" + b + " channel=" + channel);
+        LOGGER.log(Level.FINE, "setDrumsReroutedChannel() -- b={0} channel={1}", new Object[]
+        {
+            b, channel
+        });
         if (instrumentMixes[channel] == null)
         {
             throw new IllegalArgumentException("b=" + b + " channel=" + channel + " instrumentMixes=" + getInstrumentMixesPerChannel());
@@ -829,7 +832,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
         }
 
         pcs.firePropertyChange(PROP_CHANNEL_DRUMS_REROUTED, channel, b);
-        fireIsMusicGenerationModified(PROP_CHANNEL_DRUMS_REROUTED);
+        fireIsMusicGenerationModified(PROP_CHANNEL_DRUMS_REROUTED, channel);
         fireIsModified();
     }
 
@@ -999,7 +1002,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
             boolean matched = false;
 
             // Try first on matching RhythmVoices from same rhythm
-            for (RhythmVoice rv : rvs.toArray(new RhythmVoice[0]))
+            for (RhythmVoice rv : rvs.toArray(RhythmVoice[]::new))
             {
                 if (!(rv instanceof UserRhythmVoice) && mmRv == rv)
                 {
@@ -1012,7 +1015,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
             if (!matched)
             {
                 // If no match, try any channel with the same RvType
-                for (RhythmVoice rv : rvs.toArray(new RhythmVoice[0]))
+                for (RhythmVoice rv : rvs.toArray(RhythmVoice[]::new))
                 {
                     if (!(rv instanceof UserRhythmVoice) && !(mmRv instanceof UserRhythmVoice) && mmRv.getType().equals(rv.getType()))
                     {
@@ -1074,7 +1077,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
         if (f.exists() && !f.canWrite())
         {
             String msg = ResUtil.getString(getClass(), "ERR_CantOverwrite", f.getAbsolutePath());
-            LOGGER.log(Level.WARNING, "saveToFileNotify() " + msg);
+            LOGGER.log(Level.WARNING, "saveToFileNotify() {0}", msg);
             NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.WARNING_MESSAGE);
             DialogDisplayer.getDefault().notify(nd);
             b = false;
@@ -1091,7 +1094,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
                 {
                     msg += "\n" + ex.getCause().getLocalizedMessage();
                 }
-                LOGGER.warning("saveToFileNotify() " + msg);
+                LOGGER.log(Level.WARNING, "saveToFileNotify() {0}", msg);
                 NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.WARNING_MESSAGE);
                 DialogDisplayer.getDefault().notify(nd);
                 b = false;
@@ -1115,7 +1118,10 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
         {
             throw new IllegalArgumentException("f=" + f + " isCopy=" + isCopy);
         }
-        LOGGER.fine("saveToFile() f=" + f.getAbsolutePath() + " isCopy=" + isCopy);
+        LOGGER.log(Level.FINE, "saveToFile() f={0} isCopy={1}", new Object[]
+        {
+            f.getAbsolutePath(), isCopy
+        });
 
         if (!isCopy)
         {
@@ -1145,7 +1151,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
             {
                 file = null;
             }
-            LOGGER.warning("saveToFile() exception=" + e.getMessage());
+            LOGGER.log(Level.WARNING, "saveToFile() exception={0}", e.getMessage());
             // Translate into an IOException to be handled by the Netbeans framework 
             throw new IOException("XStream XML unmarshalling error", e);
         }
@@ -1259,7 +1265,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
         }
         MidiMix mm = null;
 
-        try ( var fis = new FileInputStream(f))
+        try (var fis = new FileInputStream(f))
         {
             XStream xstream = Utilities.getSecuredXStreamInstance();
             // From 3.0 all public packages are renamed with api or spi somewhere in the path
@@ -1275,7 +1281,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
             mm.setFile(f);
         } catch (XStreamException e)
         {
-            LOGGER.warning("loadFromFile() XStreamException e=" + e);   // Important in order to get the details of the XStream error   
+            LOGGER.log(Level.WARNING, "loadFromFile() XStreamException e={0}", e);   // Important in order to get the details of the XStream error   
             throw new IOException("XStream loading error", e);         // Translate into an IOException to be handled by the Netbeans framework 
         }
         return mm;
@@ -1288,20 +1294,19 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
     public void authorizeChange(SgsChangeEvent e) throws UnsupportedEditException
     {
 
-        LOGGER.fine("authorizeChange() -- e=" + e);
+        LOGGER.log(Level.FINE, "authorizeChange() -- e={0}", e);
 
         // Build the list of SongPart after the change
         List<SongPart> spts = null;
-        if (e instanceof SptAddedEvent)
+        if (e instanceof SptAddedEvent sae)
         {
             spts = song.getSongStructure().getSongParts();
-            spts.addAll(((SptAddedEvent) e).getSongParts());
+            spts.addAll(sae.getSongParts());
 
-        } else if (e instanceof SptReplacedEvent)
+        } else if (e instanceof SptReplacedEvent sre)
         {
-            SptReplacedEvent e2 = (SptReplacedEvent) e;
-            List<SongPart> oldSpts = e2.getSongParts();
-            List<SongPart> newSpts = e2.getNewSpts();
+            List<SongPart> oldSpts = sre.getSongParts();
+            List<SongPart> newSpts = sre.getNewSpts();
 
             spts = song.getSongStructure().getSongParts();
             spts.removeAll(oldSpts);
@@ -1337,7 +1342,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
     @Override
     public void songStructureChanged(SgsChangeEvent e)
     {
-        LOGGER.fine("songStructureChanged() -- e=" + e);
+        LOGGER.log(Level.FINE, "songStructureChanged() -- e={0}", e);
 
 
         JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(song);
@@ -1354,11 +1359,9 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
         List<Rhythm> songRhythms = song.getSongStructure().getUniqueRhythms(true, false);
         List<Rhythm> mixRhythms = getUniqueRhythms();
 
-        if (e instanceof SptAddedEvent)
+        if (e instanceof SptAddedEvent sae)
         {
-
-            SptAddedEvent e2 = (SptAddedEvent) e;
-            for (SongPart spt : e2.getSongParts())
+            for (SongPart spt : sae.getSongParts())
             {
 
                 Rhythm r = getSourceRhythm(spt.getRhythm());
@@ -1591,7 +1594,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
                             pcs.firePropertyChange(MidiMix.PROP_DRUMS_INSTRUMENT_KEYMAP, channel, oldKit != null
                                     ? oldKit.getKeyMap()
                                     : null);
-                            fireIsMusicGenerationModified(MidiMix.PROP_DRUMS_INSTRUMENT_KEYMAP);
+                            fireIsMusicGenerationModified(MidiMix.PROP_DRUMS_INSTRUMENT_KEYMAP, null);
                         }
                     }
                 }
@@ -1610,12 +1613,12 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
             {
                 int value = (Integer) e.getNewValue();
                 pcs.firePropertyChange(MidiMix.PROP_INSTRUMENT_TRANSPOSITION, insMix, value);
-                fireIsMusicGenerationModified(MidiMix.PROP_INSTRUMENT_TRANSPOSITION);
+                fireIsMusicGenerationModified(MidiMix.PROP_INSTRUMENT_TRANSPOSITION, insMix);
             } else if (e.getPropertyName().equals(InstrumentSettings.PROPERTY_VELOCITY_SHIFT))
             {
                 int value = (Integer) e.getNewValue();
                 pcs.firePropertyChange(MidiMix.PROP_INSTRUMENT_VELOCITY_SHIFT, insMix, value);
-                fireIsMusicGenerationModified(MidiMix.PROP_INSTRUMENT_VELOCITY_SHIFT);
+                fireIsMusicGenerationModified(MidiMix.PROP_INSTRUMENT_VELOCITY_SHIFT, insMix);
             }
             fireIsModified();
         }
@@ -1707,7 +1710,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
 
                 pcs.firePropertyChange(PROP_CHANNEL_INSTRUMENT_MIX, insMix, channel);
                 fireIsModified();
-                fireIsMusicGenerationModified(PROP_CHANNEL_INSTRUMENT_MIX);
+                fireIsMusicGenerationModified(PROP_CHANNEL_INSTRUMENT_MIX, channel);
             }
 
             @Override
@@ -1742,14 +1745,14 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
 
                 pcs.firePropertyChange(PROP_CHANNEL_INSTRUMENT_MIX, oldInsMix, channel);
                 fireIsModified();
-                fireIsMusicGenerationModified(PROP_CHANNEL_INSTRUMENT_MIX);
+                fireIsMusicGenerationModified(PROP_CHANNEL_INSTRUMENT_MIX, channel);
             }
         };
         fireUndoableEditHappened(edit);
 
         pcs.firePropertyChange(PROP_CHANNEL_INSTRUMENT_MIX, oldInsMix, channel);
         fireIsModified();
-        fireIsMusicGenerationModified(PROP_CHANNEL_INSTRUMENT_MIX);
+        fireIsMusicGenerationModified(PROP_CHANNEL_INSTRUMENT_MIX, channel);
 
     }
 
@@ -1759,9 +1762,9 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
         pcs.firePropertyChange(PROP_MODIFIED_OR_SAVED, false, true);
     }
 
-    private void fireIsMusicGenerationModified(String newValue)
+    private void fireIsMusicGenerationModified(String id, Object data)
     {
-        pcs.firePropertyChange(PROP_MUSIC_GENERATION, false, newValue);
+        pcs.firePropertyChange(PROP_MUSIC_GENERATION, id, data);
     }
 
     private void saveMuteConfig()
@@ -1822,7 +1825,10 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      */
     private void adaptInstrumentMixes(MidiMix mm, Rhythm r0)
     {
-        LOGGER.fine("adaptInstrumentMixes() mm=" + mm + " r0=" + r0);
+        LOGGER.log(Level.FINE, "adaptInstrumentMixes() mm={0} r0={1}", new Object[]
+        {
+            mm, r0
+        });
         HashMap<String, InstrumentMix> mapKeyMix = new HashMap<>();
         HashMap<Family, InstrumentMix> mapFamilyMix = new HashMap<>();
         InstrumentMix r0InsMixDrums = null;
@@ -1871,19 +1877,16 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
 
             switch (mmRv.getType())
             {
-                case DRUMS:
-                    insMix = r0InsMixDrums;
-                    break;
-                case PERCUSSION:
-                    insMix = r0InsMixPerc;
-                    break;
-                default:
+                case DRUMS -> insMix = r0InsMixDrums;
+                case PERCUSSION -> insMix = r0InsMixPerc;
+                default ->
+                {
                     GM1Instrument mmInsGM1 = mmInsMix.getInstrument().getSubstitute();  // Can be null            
                     Family mmFamily = mmInsGM1 != null ? mmInsGM1.getFamily() : null;
                     String mapKey = Utilities.truncate(mmRv.getName().toLowerCase(), 3) + "-" + ((mmFamily != null)
                             ? mmFamily.name() : "");
                     insMix = mapKeyMix.get(mapKey);
-                    break;
+                }
             }
 
             if (insMix != null)
@@ -1892,7 +1895,11 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
                 mmInsMix.setInstrument(insMix.getInstrument());
                 mmInsMix.getSettings().set(insMix.getSettings());
                 doneChannels.add(mmChannel);
-                LOGGER.finer("adaptInstrumentMixes() set (1) channel " + mmChannel + " instrument setting to : " + insMix.getSettings());
+                LOGGER.log(Level.FINER, "adaptInstrumentMixes() set (1) channel {0} instrument setting to : {1}", new Object[]
+                {
+                    mmChannel,
+                    insMix.getSettings()
+                });
             }
 
         }
@@ -1917,7 +1924,11 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
                 // Copy InstrumentMix data
                 mmInsMix.setInstrument(insMix.getInstrument());
                 mmInsMix.getSettings().set(insMix.getSettings());
-                LOGGER.finer("adaptInstrumentMixes() set (2) channel " + mmChannel + " instrument setting to : " + insMix.getSettings());
+                LOGGER.log(Level.FINER, "adaptInstrumentMixes() set (2) channel {0} instrument setting to : {1}", new Object[]
+                {
+                    mmChannel,
+                    insMix.getSettings()
+                });
             }
         }
     }
@@ -1969,8 +1980,8 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
 
         // Update the MidiMix
         RhythmVoiceInstrumentProvider insProvider = RhythmVoiceInstrumentProvider.getProvider();
-        UserRhythmVoice urv = null;
-        Instrument ins = null;
+        UserRhythmVoice urv;
+        Instrument ins;
 
         if (!p.isDrums())
         {
@@ -2180,7 +2191,6 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
             for (int channel = 0; channel < spKeys.length; channel++)
             {
                 RvStorage rvs = spKeys[channel];
-                RhythmVoice rv = null;
                 InstrumentMix insMix = spInsMixes[channel];
 
 
@@ -2193,17 +2203,18 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
 
                 if (insMix == null || rvs == null)
                 {
-                    msg.append("Mix file error, unexpected null value for channel " + channel + ":  rvs=" + rvs + " insMix=" + insMix);
+                    msg.append("Mix file error, unexpected null value for channel ").append(channel)
+                            .append(":  rvs=").append(rvs).append(" insMix=").append(insMix);
                     throw new XStreamException(msg.toString());
                 }
 
 
                 // Retrieve the RhythmVoice
-                rv = rvs.rebuildRhythmVoice();
+                RhythmVoice rv = rvs.rebuildRhythmVoice();
                 if (rv == null)
                 {
-                    msg.append(
-                            "Mix file error, can't rebuild RhythmVoice for channel=" + channel + ", rhythmId=" + rvs.rhythmId + " and RhythmVoiceName=" + rvs.rvName);
+                    msg.append("Mix file error, can't rebuild RhythmVoice for channel=").append(channel)
+                            .append(", rhythmId=").append(rvs.rhythmId).append(" and RhythmVoiceName=").append(rvs.rvName);
                     throw new XStreamException(msg.toString());
                 }
 

@@ -40,6 +40,8 @@ public class SgsActionEvent extends SgsChangeEvent
     private final boolean startedOrComplete;      // false = started
     private final boolean isUndo;      // false = started
     private final String actionId;
+    private final Object data;
+
 
     /**
      *
@@ -47,8 +49,9 @@ public class SgsActionEvent extends SgsChangeEvent
      * @param actionId   The corresponding method name from the SongStructure interface which performs the change, e.g. "addSongParts".
      * @param isComplete False means action has started, true action is complete
      * @param undo       True if we're actually undoing the action
+     * @param data       Optional data associated to the event
      */
-    public SgsActionEvent(SongStructure sgs, String actionId, boolean isComplete, boolean undo)
+    public SgsActionEvent(SongStructure sgs, String actionId, boolean isComplete, boolean undo, Object data)
     {
         super(sgs);
         if (actionId == null)
@@ -58,6 +61,7 @@ public class SgsActionEvent extends SgsChangeEvent
         this.startedOrComplete = isComplete;
         this.actionId = actionId;
         this.isUndo = undo;
+        this.data = data;
     }
 
     public boolean isActionStarted()
@@ -68,6 +72,18 @@ public class SgsActionEvent extends SgsChangeEvent
     public boolean isActionComplete()
     {
         return startedOrComplete;
+    }
+
+    /**
+     * Optional data associated to the event.
+     * <p>
+     * Each actionId can have it own kind of data. Check SongStructureImpl.java code to know which data is available.
+     *
+     * @return Can be null.
+     */
+    public Object getData()
+    {
+        return data;
     }
 
     public String getActionId()
@@ -83,6 +99,6 @@ public class SgsActionEvent extends SgsChangeEvent
     @Override
     public String toString()
     {
-        return "SgsActionEvent(" + actionId + ", complete=" + startedOrComplete + ", isUndo=" + isUndo + ")";
+        return "SgsActionEvent(" + actionId + ", complete=" + startedOrComplete + ", isUndo=" + isUndo + " data=" + data + ")";
     }
 }

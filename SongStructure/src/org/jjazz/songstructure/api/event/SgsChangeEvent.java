@@ -24,6 +24,7 @@ package org.jjazz.songstructure.api.event;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -57,7 +58,7 @@ public class SgsChangeEvent
      * @param src
      * @param spts
      */
-    public SgsChangeEvent(SongStructure src, List<SongPart> spts)
+    public SgsChangeEvent(SongStructure src, Collection<SongPart> spts)
     {
         if (src == null || spts == null)
         {

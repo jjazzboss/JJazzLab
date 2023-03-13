@@ -22,14 +22,14 @@
  */
 package org.jjazz.songstructure.api.event;
 
-import org.jjazz.util.api.SmallMap;
+import java.util.Map;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 
 public class SptResizedEvent extends SgsChangeEvent
 {
 
-    private SmallMap<SongPart, Integer> mapOldSptSize;
+    private Map<SongPart, Integer> mapOldSptSize;
 
     /**
      * Some SongParts have been resized.
@@ -37,16 +37,16 @@ public class SptResizedEvent extends SgsChangeEvent
      * @param src
      * @param mapOldSptSize The old size of each resized RhythPart.
      */
-    public SptResizedEvent(SongStructure src, SmallMap<SongPart, Integer> mapOldSptSize)
+    public SptResizedEvent(SongStructure src, Map<SongPart, Integer> mapOldSptSize)
     {
-        super(src, mapOldSptSize.getKeys());
+        super(src, mapOldSptSize.keySet());
         this.mapOldSptSize = mapOldSptSize;
     }
 
     /**
      * @return A map with the old size of each resized SongPart.
      */
-    public SmallMap<SongPart, Integer> getMapOldSptSize()
+    public Map<SongPart, Integer> getMapOldSptSize()
     {
         return mapOldSptSize;
     }

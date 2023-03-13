@@ -24,10 +24,11 @@ package org.jjazz.songstructure;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.Section;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
@@ -170,7 +171,7 @@ public class SgsUpdater implements ClsChangeListener
         assert newBarIndex > 0 : "cliSection=" + cliSection;   
         CLI_Section prevSection = parentCls.getSection(newBarIndex - 1);
         CLI_Section sectionPrevBar = parentCls.getSection(evt.getOldBar());
-        SmallMap<SongPart, Integer> mapSptSize = new SmallMap<>();
+        Map<SongPart, Integer> mapSptSize = new HashMap<>();
 
         if (sectionPrevBar == prevSection || sectionPrevBar == cliSection)
         {
@@ -249,7 +250,7 @@ public class SgsUpdater implements ClsChangeListener
             int barIndex = cliSection.getPosition().getBar();
             if (barIndex > 0 && !authorizeOnly)
             {
-                SmallMap<SongPart, Integer> mapSptSize = new SmallMap<>();
+                Map<SongPart, Integer> mapSptSize = new HashMap<>();
                 CLI_Section prevSection = parentCls.getSection(barIndex - 1);
                 fillMapSptSize(mapSptSize, prevSection);
                 sgs.resizeSongParts(mapSptSize);
@@ -278,7 +279,7 @@ public class SgsUpdater implements ClsChangeListener
             if (prevSection != null && !authorizeOnly)
             {
                 // Resize previous section if there is one
-                SmallMap<SongPart, Integer> mapSptSize = new SmallMap<>();
+                Map<SongPart, Integer> mapSptSize = new HashMap<>();
                 fillMapSptSize(mapSptSize, prevSection);
                 sgs.resizeSongParts(mapSptSize);
             }
@@ -356,7 +357,7 @@ public class SgsUpdater implements ClsChangeListener
 
         // Resize sections before and after the shifted bars.
         // Size of the section before the shifted items has changed
-        SmallMap<SongPart, Integer> mapSptSize = new SmallMap<>();
+        Map<SongPart, Integer> mapSptSize = new HashMap<>();
         int firstBarIndex = cliSections.get(0).getPosition().getBar();
         if (firstBarIndex > 0)
         {
@@ -379,7 +380,7 @@ public class SgsUpdater implements ClsChangeListener
         }
 
         // Need to update size of impacted SongParts
-        SmallMap<SongPart, Integer> mapSptSize = new SmallMap<>();
+        Map<SongPart, Integer> mapSptSize = new HashMap<>();
         CLI_Section lastSection = parentCls.getSection(parentCls.getSizeInBars() - 1);
         fillMapSptSize(mapSptSize, lastSection);
         sgs.resizeSongParts(mapSptSize);
@@ -410,12 +411,12 @@ public class SgsUpdater implements ClsChangeListener
      * @param mapSptSize
      * @param parentSection
      */
-    private void fillMapSptSize(SmallMap<SongPart, Integer> mapSptSize, CLI_Section parentSection)
+    private void fillMapSptSize(Map<SongPart, Integer> mapSptSize, CLI_Section parentSection)
     {
         int size = parentCls.getBarRange(parentSection).size();
         for (SongPart spt : getSongParts(parentSection))
         {
-            mapSptSize.putValue(spt, size);
+            mapSptSize.put(spt, size);
         }
     }
 

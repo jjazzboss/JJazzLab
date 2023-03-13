@@ -23,6 +23,8 @@
 package org.jjazz.backgroundsongmusicbuilder.api;
 
 import com.google.common.base.Preconditions;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.event.ChangeEvent;
@@ -43,13 +45,13 @@ import org.openide.util.ChangeSupport;
  * <p>
  * A ChangeEvent is fired when a new result is available via getLastResult().
  */
-public class SongMusicBuilderTask implements ChangeListener
+public class SongMusicBuilderTask implements ChangeListener, PropertyChangeListener
 {
 
     private static final int PRE_UPDATE_BUFFER_TIME_MS = 600;
     private static final int POST_UPDATE_SLEEP_TIME_MS = 400;
     private static final int PRE_CHANGE_EVENT_DELAY_MS = 200;
-    
+
 
     private MusicGenerationQueue.Result lastResult;
     private MusicGenerationQueue musicGenerationQueue;
@@ -101,7 +103,7 @@ public class SongMusicBuilderTask implements ChangeListener
         {
             musicGenerationQueue.stop();
             musicGenerationQueue.removeChangeListener(this);
-            songMusicGenerationListener.removeChangeListener(this);
+            songMusicGenerationListener.removePropertyChangeListener(this);
             songMusicGenerationListener.cleanup();
         }
     }
@@ -116,10 +118,10 @@ public class SongMusicBuilderTask implements ChangeListener
             musicGenerationQueue.start();
 
             songMusicGenerationListener = new SongMusicGenerationListener(song, midiMix, PRE_CHANGE_EVENT_DELAY_MS);
-            songMusicGenerationListener.addChangeListener(this);
+            songMusicGenerationListener.addPropertyChangeListener(this);
 
             // Force the 1st generation
-            stateChanged(new ChangeEvent(songMusicGenerationListener));
+            propertyChange(new PropertyChangeEvent(songMusicGenerationListener, SongMusicGenerationListener.PROP_CHANGED, null, null));
         }
     }
 
@@ -153,7 +155,32 @@ public class SongMusicBuilderTask implements ChangeListener
     {
         cs.removeChangeListener(listener);
     }
+    // =================================================================================================================
+    // PropertyChangeListener interface
+    // =================================================================================================================
 
+    @Override
+    public void propertyChange(PropertyChangeEvent e)
+    {
+        if (e.getSource() == songMusicGenerationListener)
+        {
+            if (e.getPropertyName().equals(SongMusicGenerationListener.PROP_CHANGED))
+            {
+                // Song has changed musically
+
+                // Prepare a copy of the song context
+                // Can't use a thread here because this might lead to concurrent modification (eg of a user phrase) while copy is being made                
+                LOGGER.log(Level.FINE, "stateChanged() -- posting music generation request for {0}", song.getName());
+                SongContextCopy sgContextCopy = new SongContextCopy(song, midiMix, false);
+                Utilities.transpose(sgContextCopy.getSong().getChordLeadSheet(),
+                        PlaybackSettings.getInstance().getPlaybackKeyTransposition());
+
+
+                // Request music generation
+                musicGenerationQueue.add(sgContextCopy);
+            }
+        }
+    }
 
     //=============================================================================
     // ChangeListener interface
@@ -161,22 +188,7 @@ public class SongMusicBuilderTask implements ChangeListener
     @Override
     public void stateChanged(ChangeEvent e)
     {
-        if (e.getSource() == songMusicGenerationListener)
-        {
-            // Song has changed musically
-
-            // Can't use a thread here because this might lead to concurrent modification (eg of a user phrase) while copy is being made
-            
-            // Prepare a copy of the song context
-            LOGGER.log(Level.FINE, "stateChanged() -- posting music generation request for {0}", song.getName());
-            SongContextCopy sgContextCopy = new SongContextCopy(song, midiMix, false);
-            Utilities.transpose(sgContextCopy.getSong().getChordLeadSheet(),
-                    PlaybackSettings.getInstance().getPlaybackKeyTransposition());
-
-            // Request music generation
-            musicGenerationQueue.add(sgContextCopy);
-
-        } else if (e.getSource() == musicGenerationQueue)
+        if (e.getSource() == musicGenerationQueue)
         {
 
             // MusicGenerationQueue produced a new result

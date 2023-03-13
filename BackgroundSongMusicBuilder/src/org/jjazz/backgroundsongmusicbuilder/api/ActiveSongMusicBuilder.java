@@ -61,7 +61,7 @@ public class ActiveSongMusicBuilder implements PropertyChangeListener, ChangeLis
     private Song activeSong;
     private MidiMix activeMidiMix;
     private Mode mode;
-    private ChangeSupport cs = new ChangeSupport(this);
+    private final ChangeSupport cs = new ChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(ActiveSongMusicBuilder.class.getSimpleName());
 
     public static ActiveSongMusicBuilder getInstance()

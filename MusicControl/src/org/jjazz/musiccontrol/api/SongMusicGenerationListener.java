@@ -25,17 +25,17 @@ package org.jjazz.musiccontrol.api;
 import com.google.common.base.Preconditions;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.util.Set;
 import javax.swing.Timer;
-import javax.swing.event.ChangeListener;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.song.api.Song;
-import org.openide.util.ChangeSupport;
 
 /**
  * A helper class to be notified when a song and other elements have changed in a way that will impact music generation for that song.
  * <p>
- * The class fires a ChangeEvent when it receives a PROP_MUSIC_GENERATION property change from Song, MidiMix, and PlaybackSettings.
+ * The class fires a PROP_CHANGED change event when it receives a PROP_MUSIC_GENERATION property change from Song, MidiMix, and
+ * PlaybackSettings.
  * <p>
  * A black-list mechanism can be used to filter out some PROP_MUSIC_GENERATION source events. A delay can be set before firing the
  * ChangeEvent, in order to automatically filter out rapid successive changes.
@@ -43,12 +43,20 @@ import org.openide.util.ChangeSupport;
 public class SongMusicGenerationListener implements PropertyChangeListener
 {
 
+    /**
+     * oldValue = the name of the Song/MidiMix/PlaybackSettings source property change event (PROP_MUSIC_GENERATION).<br>
+     * newValue = optional data associated to the source property change event (PROP_MUSIC_GENERATION).
+     */
+    public static final String PROP_CHANGED = "PropChanged";
     private Set<String> blackList;
-    private final ChangeSupport cs = new ChangeSupport(this);
+
     private final Song song;
     private final MidiMix midiMix;
     private final int preFireChangeEventDelayMs;
     private final Timer timer;
+    private String lastSourcePropName;
+    private Object lastData;
+    private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
 
     public SongMusicGenerationListener(Song song, MidiMix midiMix, int preFireChangeEventDelayMs)
@@ -124,49 +132,56 @@ public class SongMusicGenerationListener implements PropertyChangeListener
      *
      * @param listener
      */
-    public void addChangeListener(ChangeListener listener)
+    public void addPropertyChangeListener(PropertyChangeListener listener)
     {
-        cs.addChangeListener(listener);
+        pcs.addPropertyChangeListener(listener);
     }
 
-    public void removeChangeListener(ChangeListener listener)
+    public void removePropertyChangeListener(PropertyChangeListener listener)
     {
-        cs.removeChangeListener(listener);
+        pcs.removePropertyChangeListener(listener);
     }
 
+    // =================================================================================================================
+    // PropertyChangeListener interface
+    // =================================================================================================================
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
-        // evt is a PROP_MUSIC_GENERATION event: newValue = source property name or actionId
-        if (blackList != null && blackList.contains(evt.getNewValue().toString()))
+        // evt is a PROP_MUSIC_GENERATION event: oldValue = source property name or actionId, newValue=optional data
+        if (blackList != null && blackList.contains(evt.getOldValue().toString()))
         {
             return;
         }
 
-        fireChangeEventMaybe();
+        fireChangeEventMaybe(evt.getOldValue().toString(), evt.getNewValue());
     }
 
     // =================================================================================================================
     // Private methods
     // =================================================================================================================
 
-    private void fireChangeEventMaybe()
+    private void fireChangeEventMaybe(String sourcePropName, Object data)
     {
         if (timer == null)
         {
-            cs.fireChange();
+            pcs.firePropertyChange(PROP_CHANGED, sourcePropName, data);
             return;
         }
+
         if (!timer.isRunning())
         {
             timer.start();
         }
 
+        lastSourcePropName = sourcePropName;
+        lastData = data;
     }
 
     private void timerElapsed()
     {
-        cs.fireChange();
+        assert lastSourcePropName != null;
+        pcs.firePropertyChange(PROP_CHANGED, lastSourcePropName, lastData);
     }
 
 }

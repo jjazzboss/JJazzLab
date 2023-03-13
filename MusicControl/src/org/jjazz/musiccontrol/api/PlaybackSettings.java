@@ -110,7 +110,7 @@ public class PlaybackSettings
     /**
      * Fired each time a parameter whic can impact music generation is modified .
      * <p>
-     * OldValue=false, newValue=the property name that triggered the musical change.
+     * OldValue=the property name that triggered the musical change, newValue=optional data
      */
     public static final String PROP_MUSIC_GENERATION = "PlaybackSettingsMusicGeneration";
 
@@ -190,7 +190,7 @@ public class PlaybackSettings
         int old = getPlaybackKeyTransposition();
         prefs.putInt(PROP_PLAYBACK_KEY_TRANSPOSITION, t);
         pcs.firePropertyChange(PROP_PLAYBACK_KEY_TRANSPOSITION, old, t);
-        pcs.firePropertyChange(PROP_MUSIC_GENERATION, false, PROP_PLAYBACK_KEY_TRANSPOSITION);
+        pcs.firePropertyChange(PROP_MUSIC_GENERATION, PROP_PLAYBACK_KEY_TRANSPOSITION, t);
     }
 
     /**
@@ -388,7 +388,7 @@ public class PlaybackSettings
         {
             prefs.putInt(PROP_CLICK_PITCH_HIGH, pitch);
             pcs.firePropertyChange(PROP_CLICK_PITCH_HIGH, old, pitch);
-            pcs.firePropertyChange(PROP_MUSIC_GENERATION, false, PROP_CLICK_PITCH_HIGH);
+            pcs.firePropertyChange(PROP_MUSIC_GENERATION, PROP_CLICK_PITCH_HIGH, pitch);
         }
     }
 
@@ -412,7 +412,7 @@ public class PlaybackSettings
         {
             prefs.putInt(PROP_CLICK_PITCH_LOW, pitch);
             pcs.firePropertyChange(PROP_CLICK_PITCH_LOW, old, pitch);
-            pcs.firePropertyChange(PROP_MUSIC_GENERATION, false, PROP_CLICK_PITCH_LOW);
+            pcs.firePropertyChange(PROP_MUSIC_GENERATION, PROP_CLICK_PITCH_LOW, pitch);
         }
     }
 
@@ -432,7 +432,7 @@ public class PlaybackSettings
         {
             prefs.putInt(PROP_CLICK_VELOCITY_HIGH, v);
             pcs.firePropertyChange(PROP_CLICK_VELOCITY_HIGH, old, v);
-            pcs.firePropertyChange(PROP_MUSIC_GENERATION, false, PROP_CLICK_VELOCITY_HIGH);
+            pcs.firePropertyChange(PROP_MUSIC_GENERATION, PROP_CLICK_VELOCITY_HIGH, v);
         }
     }
 
@@ -452,7 +452,7 @@ public class PlaybackSettings
         {
             prefs.putInt(PROP_CLICK_VELOCITY_LOW, v);
             pcs.firePropertyChange(PROP_CLICK_VELOCITY_LOW, old, v);
-            pcs.firePropertyChange(PROP_MUSIC_GENERATION, false, PROP_CLICK_VELOCITY_LOW);
+            pcs.firePropertyChange(PROP_MUSIC_GENERATION, PROP_CLICK_VELOCITY_LOW, v);
         }
     }
 

@@ -24,7 +24,9 @@ package org.jjazz.songstructure;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.rhythm.api.Rhythm;
@@ -264,10 +266,10 @@ public class SongStructureImplTest
         return sm;
     }
 
-    private SmallMap<SongPart, Integer> msm(SongPartImpl rp, Integer i)
+    private Map<SongPart, Integer> msm(SongPartImpl rp, Integer i)
     {
-        SmallMap<SongPart, Integer> sm = new SmallMap<>();
-        sm.putValue(rp, i);
+        Map<SongPart, Integer> sm = new HashMap<>();
+        sm.put(rp, i);
         return sm;
     }
 

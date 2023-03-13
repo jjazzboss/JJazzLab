@@ -28,11 +28,10 @@ import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
  * An event to indicate that a high-level ChordLeadSheet action that changes the leadsheet has started or is complete.
  * <p>
  * All other ClsChangeEvents are always preceded and followed by one ClsActionEvent. This can be used by listener to group lower-level
- * change events by actionId. The actionId must be the corresponding method name from the ChordLeadSheet interface, e.g.
- * "addItem".
+ * change events by actionId. The actionId must be the corresponding method name from the ChordLeadSheet interface, e.g. "addItem".
  * <p>
- * There is the guarantee that if a start ClsActionEvent is received, the complete ClsActionEvent will be received on the same
- * actionId. It's possible that no lower-level change event occur between 2 started/complete action events on the same actionId.
+ * There is the guarantee that if a start ClsActionEvent is received, the complete ClsActionEvent will be received on the same actionId.
+ * It's possible that no lower-level change event occur between 2 started/complete action events on the same actionId.
  */
 public class ClsActionEvent extends ClsChangeEvent
 {
@@ -40,24 +39,40 @@ public class ClsActionEvent extends ClsChangeEvent
     private final boolean startedOrComplete;      // false = started
     private final String actionId;
     private final boolean isUndo;
+    private final Object data;
 
     /**
      *
      * @param src
-     * @param actionId The corresponding method name from the ChordLeadSheet interface which performs the change, e.g. "addItem".
+     * @param actionId          The corresponding method name from the ChordLeadSheet interface which performs the change, e.g. "addItem".
      * @param startedOrComplete False means action has started, true action is complete
-     * @param undo If true this action is part of
+     * @param undo              If true this action is part of
+     * @param data              An optional data associated to the event
      */
-    public ClsActionEvent(ChordLeadSheet src, String actionId, boolean startedOrComplete, boolean undo)
+    public ClsActionEvent(ChordLeadSheet src, String actionId, boolean startedOrComplete, boolean undo, Object data)
     {
         super(src);
         if (actionId == null)
         {
-            throw new IllegalArgumentException("src=" + src + " actionId=" + actionId + " startedOrComplete=" + startedOrComplete + " undo=" + undo);
+            throw new IllegalArgumentException("src=" + src + " actionId=" + actionId
+                    + " startedOrComplete=" + startedOrComplete + " undo=" + undo);
         }
         this.startedOrComplete = startedOrComplete;
         this.actionId = actionId;
         this.isUndo = undo;
+        this.data = data;
+    }
+
+    /**
+     * An optional data associated to the event.
+     * <p>
+     * Check the source code to know which object is associated to which actionId.
+     *
+     * @return Can be null
+     */
+    public Object getData()
+    {
+        return data;
     }
 
     public boolean isActionStarted()
