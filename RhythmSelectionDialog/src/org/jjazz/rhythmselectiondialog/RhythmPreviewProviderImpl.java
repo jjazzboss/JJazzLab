@@ -24,12 +24,12 @@ package org.jjazz.rhythmselectiondialog;
 
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Sequence;
@@ -38,10 +38,7 @@ import org.jjazz.activesong.api.ActiveSongManager;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
-import org.jjazz.midi.api.Instrument;
-import org.jjazz.midi.api.InstrumentMix;
 import org.jjazz.midi.api.MidiUtilities;
-import org.jjazz.midi.api.synths.GMSynth;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.MidiMixManager;
 import org.jjazz.musiccontrol.api.MusicController;
@@ -90,7 +87,7 @@ public class RhythmPreviewProviderImpl implements RhythmSelectionDialog.RhythmPr
     {
         if (sg == null || spt == null)
         {
-            throw new IllegalArgumentException("sg=" + sg + " spt=" + spt);   
+            throw new IllegalArgumentException("sg=" + sg + " spt=" + spt);
         }
         originalSong = sg;
         originalSpt = spt;
@@ -123,7 +120,7 @@ public class RhythmPreviewProviderImpl implements RhythmSelectionDialog.RhythmPr
             mm = previouslyActivatedSong == null ? null : MidiMixManager.getInstance().findMix(previouslyActivatedSong);
         } catch (MidiUnavailableException ex)
         {
-            LOGGER.severe("cleanup() ex=" + ex.getMessage());   
+            LOGGER.log(Level.SEVERE, "cleanup() ex={0}", ex.getMessage());
             Exceptions.printStackTrace(ex);
             previouslyActivatedSong = null;
         }
@@ -135,10 +132,15 @@ public class RhythmPreviewProviderImpl implements RhythmSelectionDialog.RhythmPr
     {
         if (r == null)
         {
-            throw new IllegalArgumentException("r=" + r + " rpValues=" + rpValues + " useRhythmTempo=" + useRhythmTempo + " loopCount=" + loopCount);   
+            throw new IllegalArgumentException(
+                    "r=" + r + " rpValues=" + rpValues + " useRhythmTempo=" + useRhythmTempo + " loopCount=" + loopCount);
         }
 
-        LOGGER.fine("previewRhythm() -- r=" + r + " rpValues=" + rpValues + " useRhythmTempo=" + useRhythmTempo + " loop=" + loopCount + " endListener=" + endListener);   
+        LOGGER.log(Level.FINE, "previewRhythm() -- r={0} rpValues={1} useRhythmTempo={2} loop={3} endListener={4}", new Object[]
+        {
+            r, rpValues,
+            useRhythmTempo, loopCount, endListener
+        });
 
         MusicController mc = MusicController.getInstance();
         if (mc.getState().equals(MusicController.State.PLAYING))
@@ -178,8 +180,8 @@ public class RhythmPreviewProviderImpl implements RhythmSelectionDialog.RhythmPr
 
 
         // Start playback
-        mc.setPlaybackSession(session, false);
-        mc.play(0);
+        mc.setPlaybackSession(session, false);      // Can raise MusicGenerationException
+        mc.play(0);         // Can raise MusicGenerationException
 
 
         // Save previewed rhythm
@@ -217,20 +219,22 @@ public class RhythmPreviewProviderImpl implements RhythmSelectionDialog.RhythmPr
             sgContext = new SongContext(song, mm);
         } catch (UnsupportedEditException | MidiUnavailableException ex)
         {
-            LOGGER.warning("buildSongContext() r=" + r + " ex=" + ex.getMessage());   
+            LOGGER.log(Level.WARNING, "buildSongContext() r={0} ex={1}", new Object[]
+            {
+                r, ex.getMessage()
+            });
             throw new MusicGenerationException(ex.getLocalizedMessage());
         }
 
         return sgContext;
     }
 
-    
 
     /**
      * Build the song used for preview of the specified rhythm.
      * <p>
-     * Song will be only one SongPart, unless r is an AdaptedRhythm and another similar SongPart is added with the source rhythm.
-     * Only the first SongPart should be used.
+     * Song will be only one SongPart, unless r is an AdaptedRhythm and another similar SongPart is added with the source rhythm. Only the
+     * first SongPart should be used.
      *
      * @param song
      * @param spt
@@ -256,9 +260,8 @@ public class RhythmPreviewProviderImpl implements RhythmSelectionDialog.RhythmPr
         newSpts.add(newSpt0);
 
         // If r is an AdaptedRhythm we must also add its source rhythm
-        if (r instanceof AdaptedRhythm)
+        if (r instanceof AdaptedRhythm ar)
         {
-            AdaptedRhythm ar = (AdaptedRhythm) r;
             Rhythm sourceRhythm = ar.getSourceRhythm();
             parentSection = newCls.getItems(CLI_Section.class) // Find a parent section with the right signature
                     .stream()
@@ -286,8 +289,8 @@ public class RhythmPreviewProviderImpl implements RhythmSelectionDialog.RhythmPr
     }
 
     /**
-     * Our own session to manage the special case of a SongPart with an AdaptedRhythm which needs the source rhythm to be present
-     * in the song for building the sequence.
+     * Our own session to manage the special case of a SongPart with an AdaptedRhythm which needs the source rhythm to be present in the
+     * song for building the sequence.
      * <p>
      * In this case we shorten the generated previewSequence and update previewLoopEndTick.
      */

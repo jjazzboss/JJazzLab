@@ -25,48 +25,27 @@ package org.jjazz.musiccontrol.api.playbacksession;
 import org.jjazz.rhythmmusicgeneration.api.MusicGenerationQueue;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
-import java.beans.VetoableChangeListener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
-import org.jjazz.leadsheet.chordleadsheet.api.ClsChangeListener;
-import org.jjazz.leadsheet.chordleadsheet.api.Section;
-import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
-import org.jjazz.leadsheet.chordleadsheet.api.event.ClsActionEvent;
-import org.jjazz.leadsheet.chordleadsheet.api.event.ClsChangeEvent;
-import org.jjazz.leadsheet.chordleadsheet.api.event.ItemAddedEvent;
-import org.jjazz.leadsheet.chordleadsheet.api.event.ItemBarShiftedEvent;
-import org.jjazz.leadsheet.chordleadsheet.api.event.ItemChangedEvent;
-import org.jjazz.leadsheet.chordleadsheet.api.event.ItemMovedEvent;
-import org.jjazz.leadsheet.chordleadsheet.api.event.ItemRemovedEvent;
-import org.jjazz.leadsheet.chordleadsheet.api.event.SectionMovedEvent;
-import org.jjazz.leadsheet.chordleadsheet.api.event.SizeChangedEvent;
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.midimix.api.MidiMix;
+import org.jjazz.midimix.api.UserRhythmVoice;
 import org.jjazz.musiccontrol.api.ControlTrack;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
+import org.jjazz.musiccontrol.api.SongMusicGenerationListener;
+import static org.jjazz.musiccontrol.api.playbacksession.BaseSongSession.PLAYBACK_SETTINGS_LOOP_COUNT;
 import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession.Update;
-import org.jjazz.phrase.api.Phrase;
+import static org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession.UpdateProvider.PROP_UPDATE_PROVISION_ENABLED;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.UserErrorGenerationException;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_TempoFactor;
 import org.jjazz.song.api.Song;
 import org.jjazz.songcontext.api.SongContext;
-import org.jjazz.songstructure.api.SgsChangeListener;
-import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.songstructure.api.event.RpValueChangedEvent;
-import org.jjazz.songstructure.api.event.SgsActionEvent;
-import org.jjazz.songstructure.api.event.SgsChangeEvent;
-import org.jjazz.songstructure.api.event.SptAddedEvent;
-import org.jjazz.songstructure.api.event.SptRemovedEvent;
-import org.jjazz.songstructure.api.event.SptRenamedEvent;
-import org.jjazz.songstructure.api.event.SptReplacedEvent;
-import org.jjazz.songstructure.api.event.SptResizedEvent;
 import org.openide.awt.StatusDisplayer;
 import org.openide.util.*;
 
@@ -88,19 +67,24 @@ import org.openide.util.*;
  * any future update. So editors should stop showing the playback point, and any further change will not be heard (until a new session is
  * generated).
  */
-public class UpdateProviderSongSession extends BaseSongSession implements UpdatableSongSession.UpdateProvider, SgsChangeListener, ClsChangeListener, VetoableChangeListener
+public class UpdateProviderSongSession extends BaseSongSession implements UpdatableSongSession.UpdateProvider
 {
 
+    /**
+     * @see MusicGenerationQueue
+     */
     public static final int DEFAULT_PRE_UPDATE_BUFFER_TIME_MS = 300;
+    /**
+     * @see MusicGenerationQueue
+     */
     public static final int DEFAULT_POST_UPDATE_SLEEP_TIME_MS = 700;
     private int preUpdateBufferTimeMs = DEFAULT_PRE_UPDATE_BUFFER_TIME_MS;
     private int postUpdateSleepTimeMs = DEFAULT_POST_UPDATE_SLEEP_TIME_MS;
     private Update update;
-    private ClsSgsChange currentClsChange;
-    private ClsSgsChange currentSgsChange;
     private boolean isUpdateProvisionEnabled = true;
     private boolean isControlTrackEnabled = true;
     private final boolean isUpdateControlEnabled;
+    private SongMusicGenerationListener songMusicGenerationListener;
     private MusicGenerationQueue musicGenerationQueue;
     private Consumer<UserErrorGenerationException> userErrorExceptionHandler;
     private static final List<UpdateProviderSongSession> sessions = new ArrayList<>();
@@ -217,27 +201,18 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
         super.generate(silent);
 
         var song = getSongContext().getSong();
-        song.addVetoableChangeListener(this);       // user phrase add/remove/replaced
-        song.getChordLeadSheet().addClsChangeListener(this);
-        song.getSongStructure().addSgsChangeListener(this);
-        for (var name : song.getUserPhraseNames())
-        {
-            song.getUserPhrase(name).addPropertyChangeListener(this);       // listen to user phrase content changes
-        }
+        songMusicGenerationListener = new SongMusicGenerationListener(song, getSongContext().getMidiMix(), 0);  // 0ms because we can't miss an event which might disable updates
+        songMusicGenerationListener.addPropertyChangeListener(this);
     }
 
     @Override
     public void close()
     {
         super.close();
-
-        var song = getSongContext().getSong();
-        song.removeVetoableChangeListener(this);
-        song.getChordLeadSheet().removeClsChangeListener(this);
-        song.getSongStructure().removeSgsChangeListener(this);
-        for (var name : song.getUserPhraseNames())
+        if (songMusicGenerationListener != null)
         {
-            song.getUserPhrase(name).removePropertyChangeListener(this);
+            songMusicGenerationListener.removePropertyChangeListener(this);
+            songMusicGenerationListener.cleanup();
         }
         sessions.remove(this);
     }
@@ -297,7 +272,6 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
         this.postUpdateSleepTimeMs = postUpdateSleepTimeMs;
     }
 
-
     /**
      * The handler for exception during music generation due to user error.
      * <p>
@@ -318,104 +292,147 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
     {
         super.propertyChange(e);            // Important
 
-        LOGGER.log(Level.FINE, "propertyChange() -- e={0}", e);
-
-        if (getState().equals(State.CLOSED) || !isUpdateProvisionEnabled())
+        if (getState().equals(PlaybackSession.State.CLOSED) || !isUpdateProvisionEnabled())
         {
             return;
         }
-        // If here it means that state==GENERATED
+
+        if (e.getSource() != songMusicGenerationListener || !e.getPropertyName().equals(SongMusicGenerationListener.PROP_CHANGED))
+        {
+            return;
+        }
 
 
+        //
+        // If we're here it means that 
+        // - song has changed in a way that impact music generation
+        // - state==GENERATED
+        //
         // LOGGER.fine("propertyChange() e=" + e);
         boolean dirty = false;
         boolean doUpdate = false;
         boolean doDisableUpdates = false;
 
 
-        if (e.getSource() == getSongContext().getMidiMix())
+        // Analyze the PROP_CHANGED change event origin
+        String id = (String) e.getOldValue();
+        Object data = e.getNewValue();
+
+        
+        LOGGER.log(Level.FINE, "propertyChange() -- id={0} data={1}", new Object[]
         {
-            switch (e.getPropertyName())
-            {
-                case MidiMix.PROP_INSTRUMENT_MUTE ->
-                {
-                    // Nothing
-                }
-                case MidiMix.PROP_CHANNEL_DRUMS_REROUTED, MidiMix.PROP_DRUMS_INSTRUMENT_KEYMAP, MidiMix.PROP_INSTRUMENT_TRANSPOSITION, MidiMix.PROP_INSTRUMENT_VELOCITY_SHIFT ->
-                    doUpdate = true;
-                default ->
-                {
-                    // PROP_CHANNEL_INSTRUMENT_MIX, PROP_RHYTHM_VOICE, PROP_RHYTHM_VOICE_CHANNEL, ...
-                    doDisableUpdates = true;
-                }
-            }
-
-        } else if (e.getSource() == PlaybackSettings.getInstance())
-        {
-            switch (e.getPropertyName())
-            {
-                case PlaybackSettings.PROP_PLAYBACK_KEY_TRANSPOSITION ->
-                    doUpdate = true;
-
-                case PlaybackSettings.PROP_CLICK_PITCH_HIGH, PlaybackSettings.PROP_CLICK_PITCH_LOW, PlaybackSettings.PROP_CLICK_PREFERRED_CHANNEL, PlaybackSettings.PROP_CLICK_VELOCITY_HIGH, PlaybackSettings.PROP_CLICK_VELOCITY_LOW, PlaybackSettings.PROP_CLICK_PRECOUNT_MODE, PlaybackSettings.PROP_CLICK_PRECOUNT_ENABLED ->
-                    dirty = true;
-
-                case PlaybackSettings.PROP_AUTO_UPDATE_ENABLED ->
-                {
-                    if (PlaybackSettings.getInstance().isAutoUpdateEnabled())
-                    {
-                        // Auto-Update switched to ON: try to update to be up-to-date again
-                        doUpdate = true;
-                    }
-                }
-                default ->
-                {
-                }
-            }
-
-        } else if (e.getSource() == getSongContext().getSong())
-        {
-            switch (e.getPropertyName())
-            {
-                case Song.PROP_VETOABLE_USER_PHRASE ->
-                {
-                    // A user phrase was added or removed, can't handle it
-                    doDisableUpdates = true;
-                    if (e.getNewValue() instanceof Phrase p)
-                    {
-                        // It's a removed phrase, unlisten
-                        p.removePropertyChangeListener(this);
-                    }
-                }
-                case Song.PROP_VETOABLE_USER_PHRASE_CONTENT ->
-                {
-                    // It's an update, we can handle it
-                    doUpdate = true;
-
-                    Phrase oldPhrase = (Phrase) e.getOldValue();
-                    Phrase newPhrase = getSongContext().getSong().getUserPhrase((String) e.getNewValue());
-                    assert newPhrase != null : "e=" + e;
-                    oldPhrase.removePropertyChangeListener(this);
-                    newPhrase.addPropertyChangeListener(this);
-                }
-                default ->
-                {
-                    // PROP_VETOABLE_PHRASE_NAME
-                    // Nothing
-                }
-            }
-        } else if (e.getSource() instanceof Phrase && !Phrase.isAdjustingEvent(e.getPropertyName()))
-        {
-            // User phrase is modified 
-            doUpdate = true;
-        }
-
-        LOGGER.log(Level.FINE, "propertyChange() output: dirty={0} doUpdate={1} doDisableUpdates={2}", new Object[]
-        {
-            dirty, doUpdate, doDisableUpdates
+            id, data
         });
 
+        
+        switch (id)
+        {
+            //
+            // MidiMix source events
+            //                
 
+            case MidiMix.PROP_RHYTHM_VOICE_CHANNEL, MidiMix.PROP_RHYTHM_VOICE ->
+            {
+                doDisableUpdates = true;
+            }
+            case MidiMix.PROP_CHANNEL_INSTRUMENT_MIX ->
+            {
+                if (data instanceof UserRhythmVoice)
+                {
+                    // We can accept user channel removal                    
+                    doUpdate = true;
+                } else
+                {
+                    doDisableUpdates = true;
+                }
+            }
+            case MidiMix.PROP_CHANNEL_DRUMS_REROUTED, MidiMix.PROP_DRUMS_INSTRUMENT_KEYMAP, MidiMix.PROP_INSTRUMENT_TRANSPOSITION, MidiMix.PROP_INSTRUMENT_VELOCITY_SHIFT ->
+            {
+                doUpdate = true;
+            }
+
+
+            //
+            // PlaybackSettings source events
+            //       
+            case PlaybackSettings.PROP_CLICK_PITCH_HIGH, PlaybackSettings.PROP_CLICK_PITCH_LOW, PlaybackSettings.PROP_CLICK_PREFERRED_CHANNEL, PlaybackSettings.PROP_CLICK_VELOCITY_HIGH, PlaybackSettings.PROP_CLICK_VELOCITY_LOW, PlaybackSettings.PROP_CLICK_PRECOUNT_MODE, PlaybackSettings.PROP_CLICK_PRECOUNT_ENABLED ->
+            {
+                dirty = true;
+            }
+            case PlaybackSettings.PROP_PLAYBACK_KEY_TRANSPOSITION, PlaybackSettings.PROP_PLAYBACK_CLICK_ENABLED ->
+            {
+                doUpdate = true;
+            }
+
+
+            //
+            // Song source events
+            //                                
+            case Song.PROP_VETOABLE_USER_PHRASE ->
+            {
+                String phraseName = (String) data;
+                if (getSongContext().getSong().getUserPhrase(phraseName) == null)
+                {
+                    // A user phrase was removed: this is supported by the UpdatableSongSession
+                    doUpdate = true;
+                } else
+                {
+                    // A user phrase was added
+                    doDisableUpdates = true;
+                }
+            }
+            case Song.PROP_VETOABLE_USER_PHRASE_CONTENT ->
+            {
+                doUpdate = true;
+            }
+
+            //
+            // ChordLeadSheet source events
+            //   
+            case "setSize", "addSection", "removeSection", "moveSection", "insertBars", "deleteBars", "setSectionTimeSignature" ->
+            {
+                doDisableUpdates = true;
+            }
+            case "addItem", "removeItem", "moveItem", "changeItem" ->
+            {
+                doUpdate = true;
+            }
+
+
+            //
+            // SongStructure source events
+            //   
+            case "addSongParts", "removeSongParts", "resizeSongParts", "replaceSongParts" ->
+            {
+                doDisableUpdates = true;
+            }
+            case "setRhythmParameterValue" ->
+            {
+                if (data instanceof RP_SYS_TempoFactor)
+                {
+                    // UpdatableSongSession can't update this in realtime                      
+                    dirty = true;
+                } else
+                {
+                    doUpdate = true;
+                }
+            }
+
+
+            default ->
+            {
+                throw new IllegalStateException("id=" + id + " data=" + data);
+            }
+        }
+
+
+        LOGGER.log(Level.FINE,
+                "propertyChange() output: dirty={0} doUpdate={1} doDisableUpdates={2}", new Object[]
+                {
+                    dirty, doUpdate, doDisableUpdates
+                }
+        );
+        
         if (doDisableUpdates)
         {
             disableUpdates();
@@ -437,16 +454,6 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
 
     }
 
-    // ==========================================================================================================
-    // VetoableChangeListener interface
-    // ==========================================================================================================
-    @Override
-    public void vetoableChange(PropertyChangeEvent e)
-    {
-        LOGGER.log(Level.FINE, "vetoableChange() -- e={0}", e);
-        propertyChange(e);
-    }
-
 
     // ==========================================================================================================
     // UpdatableSongSession.UpdateProvider interface
@@ -461,230 +468,6 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
     public boolean isUpdateProvisionEnabled()
     {
         return isUpdateProvisionEnabled;
-    }
-
-    // ==========================================================================================================
-    // ClsChangeListener interface
-    // ==========================================================================================================
-    @Override
-    public void authorizeChange(ClsChangeEvent e) throws UnsupportedEditException
-    {
-        // Nothing
-    }
-
-    @Override
-    public void chordLeadSheetChanged(ClsChangeEvent event)
-    {
-        // NOTE: model changes can be generated outside the EDT!
-
-        if (!getState().equals(PlaybackSession.State.GENERATED) || !isUpdateProvisionEnabled())
-        {
-            return;
-        }
-
-        LOGGER.log(Level.FINE, "chordLeadSheetChanged()  -- event={0} nanoTime()={1}", new Object[]
-        {
-            event, System.nanoTime()
-        });
-
-        boolean disableUpdates = false;
-
-        if (event instanceof ClsActionEvent e)
-        {
-            if (e.isActionStarted())
-            {
-                // New ClsActionEvent, save it
-                LOGGER.log(Level.FINE, "chordLeadSheetChanged()  NEW ActionEvent({0})", e);
-                assert currentClsChange == null : "currentClsChange=" + currentClsChange + " e=" + e;
-                currentClsChange = new ClsSgsChange(e.getActionId());
-
-            } else
-            {
-                // ClsActionEvent complete, check the status and update
-                assert currentClsChange != null && e.getActionId().equals(currentClsChange.actionId) :
-                        "currentClsChange=" + currentClsChange + " e=" + e;
-                LOGGER.log(Level.FINE, "chordLeadSheetChanged()  ActionEvent({0}) complete, doUpdate={1}", new Object[]
-                {
-                    currentClsChange.actionId, currentClsChange.doUpdate
-                });
-                if (currentClsChange.doUpdate)
-                {
-                    generateUpdate();
-                }
-                currentClsChange = null;
-            }
-
-        } else if (event instanceof SizeChangedEvent)
-        {
-            disableUpdates = true;
-
-        } else if ((event instanceof ItemAddedEvent)
-                || (event instanceof ItemRemovedEvent))
-        {
-            var contextItems = event.getItems().stream()
-                    .filter(cli -> isClsBarIndexPartOfContext(cli.getPosition().getBar()))
-                    .toList();
-            disableUpdates = contextItems.stream().anyMatch(cli -> !(cli instanceof CLI_ChordSymbol));
-            assert currentClsChange != null : "event=" + event;
-            currentClsChange.doUpdate = contextItems.stream().allMatch(cli -> cli instanceof CLI_ChordSymbol);
-
-        } else if (event instanceof ItemBarShiftedEvent)
-        {
-            // Bars were inserted/deleted
-            disableUpdates = true;
-
-        } else if (event instanceof ItemChangedEvent e)
-        {
-            var item = e.getItem();
-            if (isClsBarIndexPartOfContext(item.getPosition().getBar()))
-            {
-                if (item instanceof CLI_Section)
-                {
-                    Section newSection = (Section) e.getNewData();
-                    Section oldSection = (Section) e.getOldData();
-                    if (!newSection.getTimeSignature().equals(oldSection.getTimeSignature()))
-                    {
-                        disableUpdates = true;
-                    }
-                } else if (item instanceof CLI_ChordSymbol)
-                {
-                    assert currentClsChange != null : "event=" + event;
-                    currentClsChange.doUpdate = true;
-                }
-            }
-
-        } else if (event instanceof ItemMovedEvent e)
-        {
-            if (isClsBarIndexPartOfContext(e.getNewPosition().getBar()) || isClsBarIndexPartOfContext(e.getOldPosition().getBar()))
-            {
-                assert currentClsChange != null : "event=" + event;
-                currentClsChange.doUpdate = true;
-            }
-
-        } else if (event instanceof SectionMovedEvent)
-        {
-            disableUpdates = true;
-
-        }
-
-        LOGGER.log(Level.FINE, "chordLeadSheetChanged()  => disableUpdates={0} currentClsChange={1}", new Object[]
-        {
-            disableUpdates, currentClsChange
-        });
-
-        if (disableUpdates)
-        {
-            currentClsChange = null;
-            disableUpdates();
-        }
-
-
-    }
-    // ==========================================================================================================
-    // SgsChangeListener interface
-    // ==========================================================================================================
-
-    @Override
-    public void authorizeChange(SgsChangeEvent e) throws UnsupportedEditException
-    {
-        // Nothing
-    }
-
-    @Override
-    public void songStructureChanged(SgsChangeEvent event)
-    {
-        // NOTE: model changes can be generated outside the EDT!        
-
-        if (!getState().equals(PlaybackSession.State.GENERATED) || !isUpdateProvisionEnabled())
-        {
-            return;
-        }
-
-        LOGGER.log(Level.FINE, "songStructureChanged()  -- event={0}", event);
-
-
-        boolean disableUpdates = false;
-        boolean dirty = false;
-
-
-        // Context song parts (at the time of the SongContext object creation)
-        List<SongPart> contextSongParts = getSongContext().getSongParts();
-
-
-        if (event instanceof SgsActionEvent e)
-        {
-            if (e.isActionStarted())
-            {
-                // New SgsActionEvent, save it
-                LOGGER.log(Level.FINE, "songStructureChanged()  NEW ActionEvent({0})", e);
-                assert currentSgsChange == null : "currentSgsChange=" + currentSgsChange + " e=" + e;
-                currentSgsChange = new ClsSgsChange(e.getActionId());
-
-            } else
-            {
-                // ClsActionEvent complete, check the status and update
-                assert currentSgsChange != null && e.getActionId().equals(currentSgsChange.actionId) :
-                        "currentSgsChange=" + currentSgsChange + " e=" + e;
-                LOGGER.log(Level.FINE, "songStructureChanged()  COMPLETED ActionEvent({0}), doUpdate={1}", new Object[]
-                {
-                    currentSgsChange.actionId, currentSgsChange.doUpdate
-                });
-                if (currentSgsChange.doUpdate)
-                {
-                    generateUpdate();
-                }
-                currentSgsChange = null;
-            }
-
-        } else if ((event instanceof SptRemovedEvent)
-                || (event instanceof SptAddedEvent))
-        {
-            // Ok only if removed spt is after our context
-            disableUpdates = event.getSongParts().stream()
-                    .anyMatch(spt -> spt.getStartBarIndex() <= getSongContext().getBarRange().to);
-
-        } else if (event instanceof SptReplacedEvent re)
-        {
-            // Ok if replaced spt is not in the context
-            disableUpdates = re.getSongParts().stream()
-                    .anyMatch(spt -> contextSongParts.contains(spt));
-
-        } else if (event instanceof SptResizedEvent re)
-        {
-            // Ok if replaced spt is not in the context
-            disableUpdates = re.getMapOldSptSize().keySet().stream()
-                    .anyMatch(spt -> contextSongParts.contains(spt));
-
-        } else if (event instanceof SptRenamedEvent)
-        {
-            // Nothing
-            
-        } else if (event instanceof RpValueChangedEvent re)
-        {
-            assert currentSgsChange != null : "event=" + event;
-            if (re.getRhythmParameter() instanceof RP_SYS_TempoFactor)
-            {
-                // Can't update this in realtime, would need to update track0, not easy
-                dirty = true;
-            } else
-            {
-                // Update if updated RP is for a context SongPart
-                currentSgsChange.doUpdate = contextSongParts.contains(event.getSongPart());
-            }
-
-        }
-
-        LOGGER.log(Level.FINE, "songStructureChanged()  => disableUpdates={0}", disableUpdates);
-
-
-        if (disableUpdates)
-        {
-            disableUpdates();
-        } else if (dirty)
-        {
-            setDirty();
-        }
-
     }
 
 
@@ -704,7 +487,7 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
     private void generateUpdate()
     {
         LOGGER.log(Level.FINE, "generateUpdate() --  nanoTime()={0}", System.nanoTime());
-        if (!getState().equals(State.GENERATED))
+        if (!getState().equals(PlaybackSession.State.GENERATED))
         {
             LOGGER.log(Level.FINE, "generateUpdate() aborted because getState()={0}", getState());
             return;
@@ -742,7 +525,8 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
         } catch (Exception e)
         {
             // Should never be here
-            LOGGER.log(Level.WARNING, "generateUpdate() unexpected updateRequestsHandler.getLastAddedSongContext()={0}", musicGenerationQueue.getLastAddedSongContext());
+            LOGGER.log(Level.WARNING, "generateUpdate() unexpected updateRequestsHandler.getLastAddedSongContext()={0}",
+                    musicGenerationQueue.getLastAddedSongContext());
             Exceptions.printStackTrace(e);
         }
 
@@ -874,25 +658,6 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
     // ==========================================================================================================
     // Inner classes
     // ==========================================================================================================  
-    static private class ClsSgsChange
-    {
-
-        boolean doUpdate;
-        String actionId;
-
-        private ClsSgsChange(String actionId)
-        {
-            this.actionId = actionId;
-        }
-
-        @Override
-        public String toString()
-        {
-            return "<actionId=" + actionId + ", doUpdate=" + doUpdate + ">";
-        }
-    }
-
-
     /**
      * Debug method.
      *

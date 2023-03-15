@@ -190,7 +190,7 @@ public class PlaybackSettings
         int old = getPlaybackKeyTransposition();
         prefs.putInt(PROP_PLAYBACK_KEY_TRANSPOSITION, t);
         pcs.firePropertyChange(PROP_PLAYBACK_KEY_TRANSPOSITION, old, t);
-        pcs.firePropertyChange(PROP_MUSIC_GENERATION, PROP_PLAYBACK_KEY_TRANSPOSITION, t);
+        fireIsMusicGenerationModified(PROP_PLAYBACK_KEY_TRANSPOSITION, t);
     }
 
     /**
@@ -227,6 +227,7 @@ public class PlaybackSettings
         boolean old = isPlaybackClickEnabled();
         prefs.putBoolean(PROP_PLAYBACK_CLICK_ENABLED, b);
         pcs.firePropertyChange(PROP_PLAYBACK_CLICK_ENABLED, old, b);
+        fireIsMusicGenerationModified(PROP_PLAYBACK_CLICK_ENABLED, b);        
 
     }
 
@@ -244,6 +245,7 @@ public class PlaybackSettings
         boolean old = isClickPrecountEnabled();
         prefs.putBoolean(PROP_CLICK_PRECOUNT_ENABLED, b);
         pcs.firePropertyChange(PROP_CLICK_PRECOUNT_ENABLED, old, b);
+        fireIsMusicGenerationModified(PROP_CLICK_PRECOUNT_ENABLED, b);
     }
 
     public boolean isClickPrecountEnabled()
@@ -267,6 +269,7 @@ public class PlaybackSettings
         {
             prefs.put(PROP_CLICK_PRECOUNT_MODE, mode.name());
             pcs.firePropertyChange(PROP_CLICK_PRECOUNT_MODE, old, mode);
+            fireIsMusicGenerationModified(PROP_CLICK_PRECOUNT_MODE, mode);
         }
     }
 
@@ -338,6 +341,7 @@ public class PlaybackSettings
         {
             prefs.putInt(PROP_CLICK_PREFERRED_CHANNEL, channel);
             pcs.firePropertyChange(PROP_CLICK_PREFERRED_CHANNEL, old, channel);
+            fireIsMusicGenerationModified(PROP_CLICK_PREFERRED_CHANNEL, channel);
         }
     }
 
@@ -388,7 +392,7 @@ public class PlaybackSettings
         {
             prefs.putInt(PROP_CLICK_PITCH_HIGH, pitch);
             pcs.firePropertyChange(PROP_CLICK_PITCH_HIGH, old, pitch);
-            pcs.firePropertyChange(PROP_MUSIC_GENERATION, PROP_CLICK_PITCH_HIGH, pitch);
+            fireIsMusicGenerationModified(PROP_CLICK_PITCH_HIGH, pitch);
         }
     }
 
@@ -412,7 +416,7 @@ public class PlaybackSettings
         {
             prefs.putInt(PROP_CLICK_PITCH_LOW, pitch);
             pcs.firePropertyChange(PROP_CLICK_PITCH_LOW, old, pitch);
-            pcs.firePropertyChange(PROP_MUSIC_GENERATION, PROP_CLICK_PITCH_LOW, pitch);
+            fireIsMusicGenerationModified(PROP_CLICK_PITCH_LOW, pitch);
         }
     }
 
@@ -432,7 +436,7 @@ public class PlaybackSettings
         {
             prefs.putInt(PROP_CLICK_VELOCITY_HIGH, v);
             pcs.firePropertyChange(PROP_CLICK_VELOCITY_HIGH, old, v);
-            pcs.firePropertyChange(PROP_MUSIC_GENERATION, PROP_CLICK_VELOCITY_HIGH, v);
+            fireIsMusicGenerationModified(PROP_CLICK_VELOCITY_HIGH, v);
         }
     }
 
@@ -452,7 +456,7 @@ public class PlaybackSettings
         {
             prefs.putInt(PROP_CLICK_VELOCITY_LOW, v);
             pcs.firePropertyChange(PROP_CLICK_VELOCITY_LOW, old, v);
-            pcs.firePropertyChange(PROP_MUSIC_GENERATION, PROP_CLICK_VELOCITY_LOW, v);
+            fireIsMusicGenerationModified(PROP_CLICK_VELOCITY_LOW, v);
         }
     }
 
@@ -666,6 +670,12 @@ public class PlaybackSettings
         long nextTick = tickOffset + (long) (nbNaturalBeats * MidiConst.PPQ_RESOLUTION);
         return nextTick;
     }
+
+    private void fireIsMusicGenerationModified(String id, Object data)
+    {
+        pcs.firePropertyChange(PROP_MUSIC_GENERATION, id, data);
+    }
+
 
     // =====================================================================================
     // Upgrade Task

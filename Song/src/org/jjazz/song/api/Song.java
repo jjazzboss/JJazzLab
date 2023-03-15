@@ -513,6 +513,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
                     // Should never happen
                     Exceptions.printStackTrace(ex);
                 }
+                fireIsMusicallyModified(PROP_VETOABLE_USER_PHRASE, name);                                        
                 fireIsModified();
             }
 
@@ -532,6 +533,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
                     // Should never happen
                     Exceptions.printStackTrace(ex);
                 }
+                fireIsMusicallyModified(PROP_VETOABLE_USER_PHRASE, name);                        
                 fireIsModified();
             }
         };
@@ -546,6 +548,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
             // Should never happen
             Exceptions.printStackTrace(ex);
         }
+        fireIsMusicallyModified(PROP_VETOABLE_USER_PHRASE, name);        
         fireIsModified();
 
         return p;
@@ -1084,7 +1087,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
     }
 
     /**
-     * Fire a PROP_MUSIC_GENERATION property change event with oldValue=false and the specified newValue.
+     * Fire a PROP_MUSIC_GENERATION property change event with oldValue=id and the specified newValue.
      */
     private void fireIsMusicallyModified(String id, Object data)
     {

@@ -50,8 +50,6 @@ import javax.swing.JTable;
 import javax.swing.KeyStroke;
 import javax.swing.RowFilter;
 import javax.swing.SwingUtilities;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -110,30 +108,15 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         // Update UI
         Utilities.installSelectAllWhenFocused(tf_filter);
         fbtn_autoPreviewMode.addActionListener(e -> toggleRhythmPreview());
-        rhythmTable.getInputMap(JTable.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0), "PreviewRhythm");   
-        rhythmTable.getInputMap(JTable.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_F, 0), "ToggleFavorite");   
+        rhythmTable.getInputMap(JTable.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0), "PreviewRhythm");
+        rhythmTable.getInputMap(JTable.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_F, 0), "ToggleFavorite");
         rhythmTable.getActionMap().put("PreviewRhythm", new PreviewRhythmAction());
         rhythmTable.getActionMap().put("ToggleFavorite", new ToggleFavoriteAction());
 
 
         // Register for rhythmdatabase changes
         RhythmDatabase rdb = RhythmDatabase.getDefault();
-        rdb.addChangeListener(new ChangeListener()              // RhythmDatabase events might not be sent on the EDT
-        {
-            @Override
-            public void stateChanged(ChangeEvent ce)
-            {
-                Runnable run = new Runnable()
-                {
-                    @Override
-                    public void run()
-                    {
-                        rhythmDatabaseChanged();
-                    }
-                };
-                Utilities.invokeLaterIfNeeded(run);
-            }
-        });
+        rdb.addChangeListener(ce -> Utilities.invokeLaterIfNeeded(() -> rhythmDatabaseChanged()));
 
 
         // Prepare rhythm providers JList
@@ -168,9 +151,9 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
     {
         if (ri == null)
         {
-            throw new IllegalArgumentException("ri=" + ri);   
+            throw new IllegalArgumentException("ri=" + ri);
         }
-        LOGGER.log(Level.FINE, "preset() -- ri={0}", ri);   
+        LOGGER.log(Level.FINE, "preset() -- ri={0}", ri);
         exitOk = false;
         previewDone = false;
 
@@ -193,7 +176,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         {
             // It's the first time, need to populate the UI
             rhythmDatabaseChanged();
-            assert rhythmProvidersListContains(presetRhythmProvider) : "presetRhythmProvider=" + presetRhythmProvider;   
+            assert rhythmProvidersListContains(presetRhythmProvider) : "presetRhythmProvider=" + presetRhythmProvider;
         }
         list_RhythmProviders.clearSelection();      // Make sure the rhythm table will be updated by next line
         list_RhythmProviders.setSelectedValue(presetRhythmProvider, true);  // This will update the rhythm table        
@@ -202,7 +185,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         // Select the preset rhythm and make it visible
         rhythmTable.setSelectedRhythm(presetRhythm);
         int row = rhythmTable.getSelectedRow();
-        assert row != -1;   
+        assert row != -1;
         rhythmTable.scrollRectToVisible(rhythmTable.getCellRect(row, 0, true));
 
 
@@ -250,7 +233,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
     protected JRootPane createRootPane()
     {
         JRootPane contentPane = new JRootPane();
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ENTER"), "actionOk");   
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ENTER"), "actionOk");
         contentPane.getActionMap().put("actionOk", new AbstractAction("OK")
         {
 
@@ -261,7 +244,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
             }
         });
 
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ESCAPE"), "actionCancel");   
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ESCAPE"), "actionCancel");
         contentPane.getActionMap().put("actionCancel", new AbstractAction("Cancel")
         {
 
@@ -311,7 +294,10 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
             return;
         }
 
-        LOGGER.log(Level.FINE, "valueChanged() e.getFirstIndex()=" + e.getFirstIndex() + " e.getLastIndex()=" + e.getLastIndex());   
+        LOGGER.log(Level.FINE, "valueChanged() e.getFirstIndex()={0} e.getLastIndex()={1}", new Object[]
+        {
+            e.getFirstIndex(), e.getLastIndex()
+        });
 
         if (e.getSource() == this.list_RhythmProviders)
         {
@@ -332,7 +318,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
             RhythmInfo ri = rhythmTable.getSelectedRhythm();                 // ri may be null
             mapRpSelectedrythm.put(selectedRhythmProvider, ri);
 
-            LOGGER.fine("valueChanged() selected rhythm ri=" + ri);   
+            LOGGER.log(Level.FINE, "valueChanged() selected rhythm ri={0}", ri);
 
             btn_deleteRhythm.setEnabled(ri != null && !ri.getFile().getName().equals(""));
             btn_openFolder.setEnabled(ri != null && !ri.getFile().getName().equals(""));
@@ -341,12 +327,12 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
             if (rhythmPreviewProvider != null)
             {
                 Rhythm pr = rhythmPreviewProvider.getPreviewedRhythm();
-                LOGGER.fine("valueChanged() pr=" + pr);   
+                LOGGER.log(Level.FINE, "valueChanged() pr={0}", pr);
                 if (pr != null)
                 {
                     // RhythmPreview is ON
                     RhythmInfo pri = RhythmDatabase.getDefault().getRhythm(pr.getUniqueId());
-                    LOGGER.fine("valueChanged() pri=" + pri);   
+                    LOGGER.log(Level.FINE, "valueChanged() pri={0}", pri);
                     if (fbtn_autoPreviewMode.isSelected())
                     {
                         // Change previewed rhythm only if auto preview button is ON and 
@@ -395,7 +381,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
      */
     private void rhythmDatabaseChanged()
     {
-        LOGGER.fine("rhythmDatabaseChanged() --");   
+        LOGGER.fine("rhythmDatabaseChanged() --");
 
         // Save selection
         RhythmProvider saveSelRp = selectedRhythmProvider;
@@ -405,7 +391,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         List<RhythmProvider> rps = new ArrayList<>();
         rps.add(FavoriteRhythmProvider.getInstance());          // Always first
         rps.addAll(rdb.getRhythmProviders());
-        list_RhythmProviders.setListData(rps.toArray(new RhythmProvider[0]));
+        list_RhythmProviders.setListData(rps.toArray(RhythmProvider[]::new));
 
         // Restore selection when possible
         selectedRhythmProvider = null;        // To make sure table is rebuilt
@@ -423,7 +409,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
      */
     private void updateRhythmTable(RhythmProvider rp)
     {
-        LOGGER.fine("updateRhythmTable() -- rp=" + rp.getInfo().getName());   
+        LOGGER.log(Level.FINE, "updateRhythmTable() -- rp={0}", rp.getInfo().getName());
 
 
         // We don't want to react on table change events here, this would mess up our data
@@ -514,14 +500,15 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         }
         if (allExts.isEmpty())
         {
-            NotifyDescriptor d = new NotifyDescriptor.Message(ResUtil.getString(getClass(), "ERR_NoRhythmProviderFound."), NotifyDescriptor.ERROR_MESSAGE);
+            NotifyDescriptor d = new NotifyDescriptor.Message(ResUtil.getString(getClass(), "ERR_NoRhythmProviderFound."),
+                    NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(d);
             return;
         }
         chooser.addChoosableFileFilter(
                 new FileNameExtensionFilter(
                         ResUtil.getString(getClass(), "RhythmFiles", sb.toString()),
-                        allExts.toArray(new String[0])));
+                        allExts.toArray(String[]::new)));
 
 
         // Show filechooser
@@ -532,7 +519,8 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         }
 
 
-        List<String> rhythmFiles = Arrays.asList(chooser.getSelectedFiles()).stream().limit(10).map(f -> f.getName()).collect(Collectors.toList());
+        List<String> rhythmFiles = Arrays.asList(chooser.getSelectedFiles()).stream().limit(10).map(f -> f.getName()).collect(
+                Collectors.toList());
         Analytics.logEvent("Add Rhythms", Analytics.buildMap("Files", rhythmFiles));
 
 
@@ -544,7 +532,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         {
             lastRhythmDir = f.getParentFile();
             String ext = org.jjazz.util.api.Utilities.getExtension(f.getName()).toLowerCase();
-            Rhythm r = null;
+            Rhythm r;
             for (RhythmProvider rp : rps)
             {
                 if (Arrays.asList(rp.getSupportedFileExtensions()).contains(ext))
@@ -554,7 +542,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
                         r = rp.readFast(f);
                     } catch (IOException ex)
                     {
-                        LOGGER.warning("btn_addRhythmsActionPerformed() ex=" + ex);   
+                        LOGGER.log(Level.WARNING, "btn_addRhythmsActionPerformed() ex={0}", ex);
                         errRpt.individualErrorMessages.add(ex.getLocalizedMessage());
                         continue;
                     }
@@ -568,9 +556,11 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         // Notify end-user of errors
         if (!errRpt.individualErrorMessages.isEmpty())
         {
-            errRpt.primaryErrorMessage = ResUtil.getString(getClass(), "ERR_RhythmFilesCouldNotBeRead", errRpt.individualErrorMessages.size());
+            errRpt.primaryErrorMessage = ResUtil.getString(getClass(), "ERR_RhythmFilesCouldNotBeRead",
+                    errRpt.individualErrorMessages.size());
             errRpt.secondaryErrorMessage = "";
-            MultipleErrorsReportDialog dlg = new MultipleErrorsReportDialog(WindowManager.getDefault().getMainWindow(), ResUtil.getString(getClass(), "CTL_RhythmCreationErrors"), errRpt);
+            MultipleErrorsReportDialog dlg = new MultipleErrorsReportDialog(WindowManager.getDefault().getMainWindow(), ResUtil.getString(
+                    getClass(), "CTL_RhythmCreationErrors"), errRpt);
             dlg.setVisible(true);
         }
 
@@ -591,17 +581,12 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
 
 
             // rhythmTable will be updated later on the EDT, so we also need a task on the EDT
-            Runnable r = new Runnable()
+            SwingUtilities.invokeLater(() -> 
             {
-                @Override
-                public void run()
-                {
-                    // Set selection to the first new rhythm
-                    list_RhythmProviders.setSelectedValue(pairs.get(0).rp, true);
-                    rhythmTable.setSelectedRhythm(rdb.getRhythm(pairs.get(0).r.getUniqueId()));
-                }
-            };
-            SwingUtilities.invokeLater(r);
+                // Set selection to the first new rhythm
+                list_RhythmProviders.setSelectedValue(pairs.get(0).rp, true);
+                rhythmTable.setSelectedRhythm(rdb.getRhythm(pairs.get(0).r.getUniqueId()));
+            });
         }
     }
 
@@ -629,7 +614,11 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
     {
         boolean ctrl = (evt.getModifiersEx() & InputEvent.CTRL_DOWN_MASK) == InputEvent.CTRL_DOWN_MASK;
         boolean shift = (evt.getModifiersEx() & InputEvent.SHIFT_DOWN_MASK) == InputEvent.SHIFT_DOWN_MASK;
-        LOGGER.fine("handleTableMouseClicked()  left=" + SwingUtilities.isLeftMouseButton(evt) + " ctrl=" + ctrl + " shift=" + shift + " clickCount=" + evt.getClickCount());   
+        LOGGER.log(Level.FINE, "handleTableMouseClicked()  left={0} ctrl={1} shift={2} clickCount={3}", new Object[]
+        {
+            SwingUtilities.isLeftMouseButton(evt),
+            ctrl, shift, evt.getClickCount()
+        });
 
         if (SwingUtilities.isLeftMouseButton(evt))
         {
@@ -680,7 +669,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
     {
         if (ri == null)
         {
-            throw new IllegalArgumentException("ri=" + ri);   
+            throw new IllegalArgumentException("ri=" + ri);
         }
 
         if (rhythmPreviewProvider == null)
@@ -690,7 +679,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
 
         previewDone = true;
 
-        LOGGER.fine("previewRhythm() ri=" + ri);   
+        LOGGER.log(Level.FINE, "previewRhythm() ri={0}", ri);
 
 
         // Get the Rhythm instance
@@ -722,8 +711,9 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         // Preview
         try
         {
-            LOGGER.fine("previewRhythm() calling rhythmPreviewProvider().previewRhythm()");   
-            rhythmPreviewProvider.previewRhythm(r, mapRpValues, cb_useRhythmTempo.isSelected(), fbtn_autoPreviewMode.isSelected(), e -> rhythmPreviewComplete(r));
+            LOGGER.fine("previewRhythm() calling rhythmPreviewProvider().previewRhythm()");
+            rhythmPreviewProvider.previewRhythm(r, mapRpValues, cb_useRhythmTempo.isSelected(), fbtn_autoPreviewMode.isSelected(), e
+                    -> rhythmPreviewComplete(r));
             // previewRhythm will first stop => endAction => previewComplete() => cmb_variation is disabled/lose focus + highlight is removed
             // So need to restore state
             cmb_variation.setEnabled(true);
@@ -741,12 +731,12 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
     /**
      * Update cmbVariation to fit the specified rhythm.
      * <p>
-     * Adjust to the rhythm RP_STD_Variation possible values. Select a default value, reuse previous one if possible. The changes
-     * done by this method do not trigger an JComboBox.actionPerformed(). If r does not use RP_STD_Variation disable cmbVariation.
+     * Adjust to the rhythm RP_STD_Variation possible values. Select a default value, reuse previous one if possible. The changes done by
+     * this method do not trigger an JComboBox.actionPerformed(). If r does not use RP_STD_Variation disable cmbVariation.
      *
      * @param r
-     * @return Null if r does not use RP_STD_Variation, otherwise return the RP_STD_Variation value to use (we try to reuse the
-     * previous value)
+     * @return Null if r does not use RP_STD_Variation, otherwise return the RP_STD_Variation value to use (we try to reuse the previous
+     *         value)
      */
     private String updateCmbVariation(Rhythm r)
     {
@@ -763,7 +753,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
 
             String oldSelectedValue = (String) cmb_variation.getSelectedItem();
             var possibleValues = rpVariation.getPossibleValues();
-            cmb_variation.setModel(new DefaultComboBoxModel<>(possibleValues.toArray(new String[0])));
+            cmb_variation.setModel(new DefaultComboBoxModel<>(possibleValues.toArray(String[]::new)));
             newSelectedValue = oldSelectedValue; // Try to reuse previous value by default
             if (oldSelectedValue == null || !possibleValues.contains(oldSelectedValue))
             {
@@ -806,8 +796,8 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
     }
 
     /**
-     * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of
-     * this method is always regenerated by the Form Editor.
+     * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of this
+     * method is always regenerated by the Form Editor.
      */
     @SuppressWarnings(
             {
@@ -1104,13 +1094,13 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         {
             return;
         }
-        RowFilter<TableModel, Object> rf = null;
+        RowFilter<TableModel, Object> rf;
         try
         {
             rf = RowFilter.regexFilter("(?i)" + s);
         } catch (java.util.regex.PatternSyntaxException e)
         {
-            LOGGER.warning("btn_FilterActionPerformed() invalid filter regex string e=" + e.getMessage());   
+            LOGGER.log(Level.WARNING, "btn_FilterActionPerformed() invalid filter regex string e={0}", e.getMessage());
             return;
         }
         TableRowSorter<? extends TableModel> sorter = (TableRowSorter<? extends TableModel>) rhythmTable.getRowSorter();
@@ -1130,7 +1120,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
 
     private void btn_clearFilterActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_clearFilterActionPerformed
     {//GEN-HEADEREND:event_btn_clearFilterActionPerformed
-        LOGGER.fine("btn_clearFilterActionPerformed() --");   
+        LOGGER.fine("btn_clearFilterActionPerformed() --");
         TableRowSorter<? extends TableModel> sorter = (TableRowSorter<? extends TableModel>) rhythmTable.getRowSorter();
         sorter.setRowFilter(null);
         btn_Filter.setEnabled(true);
@@ -1238,7 +1228,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         public void actionPerformed(ActionEvent e)
         {
             RhythmInfo ri = rhythmTable.getSelectedRhythm();
-            LOGGER.fine("actionPerformed() selectedRhythm=" + ri);   
+            LOGGER.log(Level.FINE, "actionPerformed() selectedRhythm={0}", ri);
             if (ri != null)
             {
                 FavoriteRhythms fr = FavoriteRhythms.getInstance();
@@ -1250,11 +1240,11 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
                 {
                     if (fr.contains(ri))
                     {
-                        LOGGER.fine("actionPerformed()    removing from favorites: " + ri);   
+                        LOGGER.log(Level.FINE, "actionPerformed()    removing from favorites: {0}", ri);
                         fr.removeRhythm(ri);
                     } else
                     {
-                        LOGGER.fine("actionPerformed()    adding to favorites: " + ri);   
+                        LOGGER.log(Level.FINE, "actionPerformed()    adding to favorites: {0}", ri);
                         fr.addRhythm(ri);
                     }
                 }

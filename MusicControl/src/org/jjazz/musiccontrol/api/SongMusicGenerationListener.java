@@ -59,6 +59,14 @@ public class SongMusicGenerationListener implements PropertyChangeListener
     private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
 
+    /**
+     * Construct a SongMusicGenerationListener.
+     *
+     * @param song
+     * @param midiMix
+     * @param preFireChangeEventDelayMs The delay in ms before firing a PROP_CHANGED event.
+     * @see #getPreFireChangeEventDelayMs()
+     */
     public SongMusicGenerationListener(Song song, MidiMix midiMix, int preFireChangeEventDelayMs)
     {
         Preconditions.checkArgument(preFireChangeEventDelayMs >= 0, "preFireChangeEventDelayMs=%d", preFireChangeEventDelayMs);
@@ -98,9 +106,10 @@ public class SongMusicGenerationListener implements PropertyChangeListener
 
 
     /**
-     * The delay to wait before firing a change event.
+     * The delay to wait before firing a PROP_CHANGED event.
      * <p>
-     * All PROP_MUSIC_GENERATION change events received while the delay is running are discarded.
+     * Delay is activated when receiving a PROP_MUSIC_GENERATION event. When the delay expires a PROP_CHANGED event is fired using the last
+     * PROP_MUSIC_GENERATION received while the delay was running.
      *
      * @return A value in milliseconds.
      */
@@ -165,23 +174,38 @@ public class SongMusicGenerationListener implements PropertyChangeListener
     {
         if (timer == null)
         {
-            pcs.firePropertyChange(PROP_CHANGED, sourcePropName, data);
+            fireChangeEvent(sourcePropName, data);
             return;
         }
 
-        if (!timer.isRunning())
+        synchronized (this)
         {
-            timer.start();
-        }
+            if (!timer.isRunning())
+            {
+                timer.start();
+            }
 
-        lastSourcePropName = sourcePropName;
-        lastData = data;
+            lastSourcePropName = sourcePropName;
+            lastData = data;
+        }
+    }
+
+    private void fireChangeEvent(String sourcePropName, Object data)
+    {
+        pcs.firePropertyChange(PROP_CHANGED, sourcePropName, data);
     }
 
     private void timerElapsed()
     {
         assert lastSourcePropName != null;
-        pcs.firePropertyChange(PROP_CHANGED, lastSourcePropName, lastData);
+        String prop;
+        Object data;
+        synchronized (this)
+        {
+            prop = lastSourcePropName;
+            data = lastData;
+        }
+        fireChangeEvent(prop, data);
     }
 
 }

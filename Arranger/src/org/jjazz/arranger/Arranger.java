@@ -170,7 +170,7 @@ public class Arranger implements SgsChangeListener, PropertyChangeListener
         dynSession.setUserErrorExceptionHandler(null);  // User execption may occur depending on timing, as we remove then add a chord symbol at section start
 
         var updatableSession = new UpdatableSongSessionOnePlay(dynSession);
-        mc.setPlaybackSession(updatableSession, false); // Will generate session is state==NEW. Can raise MusicGenerationException
+        mc.setPlaybackSession(updatableSession, false); // Can raise MusicGenerationException
 
 
         // Start playback        

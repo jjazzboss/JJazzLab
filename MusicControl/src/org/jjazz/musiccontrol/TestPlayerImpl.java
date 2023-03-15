@@ -99,7 +99,7 @@ public class TestPlayerImpl implements TestPlayer
 
         TestSession session = new TestSession(phrase, endAction);
         session.generate(false);        // Need to generate ourself because TestSession does not manage its state
-        mc.setPlaybackSession(session, false);
+        mc.setPlaybackSession(session, false);          // Can generate MusicGenerationException
         mc.play(0);
 
     }

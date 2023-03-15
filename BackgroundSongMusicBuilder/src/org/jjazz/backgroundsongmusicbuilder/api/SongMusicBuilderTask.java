@@ -41,16 +41,26 @@ import org.openide.util.ChangeSupport;
 /**
  * A task to regenerate song music Phrases each time the song changes.
  * <p>
- * The task uses a MusicGenerationQueue to handle rapid successive song changes efficiently.
+ * The task uses a SongMusicGenerationListener to use only relevant song changes, and a MusicGenerationQueue to handle rapid successive song
+ * changes efficiently.
  * <p>
  * A ChangeEvent is fired when a new result is available via getLastResult().
  */
 public class SongMusicBuilderTask implements ChangeListener, PropertyChangeListener
 {
 
-    private static final int PRE_UPDATE_BUFFER_TIME_MS = 600;
-    private static final int POST_UPDATE_SLEEP_TIME_MS = 400;
+    /**
+     * @see SongMusicGenerationListener
+     */
     private static final int PRE_CHANGE_EVENT_DELAY_MS = 200;
+    /**
+     * @see MusicGenerationQueue
+     */
+    private static final int PRE_UPDATE_BUFFER_TIME_MS = 500;
+    /**
+     * @see MusicGenerationQueue
+     */
+    private static final int POST_UPDATE_SLEEP_TIME_MS = 500;
 
 
     private MusicGenerationQueue.Result lastResult;
@@ -121,7 +131,7 @@ public class SongMusicBuilderTask implements ChangeListener, PropertyChangeListe
             songMusicGenerationListener.addPropertyChangeListener(this);
 
             // Force the 1st generation
-            propertyChange(new PropertyChangeEvent(songMusicGenerationListener, SongMusicGenerationListener.PROP_CHANGED, null, null));
+            postMusicGenerationRequest();
         }
     }
 
@@ -167,17 +177,7 @@ public class SongMusicBuilderTask implements ChangeListener, PropertyChangeListe
             if (e.getPropertyName().equals(SongMusicGenerationListener.PROP_CHANGED))
             {
                 // Song has changed musically
-
-                // Prepare a copy of the song context
-                // Can't use a thread here because this might lead to concurrent modification (eg of a user phrase) while copy is being made                
-                LOGGER.log(Level.FINE, "stateChanged() -- posting music generation request for {0}", song.getName());
-                SongContextCopy sgContextCopy = new SongContextCopy(song, midiMix, false);
-                Utilities.transpose(sgContextCopy.getSong().getChordLeadSheet(),
-                        PlaybackSettings.getInstance().getPlaybackKeyTransposition());
-
-
-                // Request music generation
-                musicGenerationQueue.add(sgContextCopy);
+                postMusicGenerationRequest();
             }
         }
     }
@@ -203,6 +203,21 @@ public class SongMusicBuilderTask implements ChangeListener, PropertyChangeListe
     //=============================================================================
     // Private methods
     //=============================================================================
+    private void postMusicGenerationRequest()
+    {
+        // Prepare a copy of the song context
+        // Can't use a thread here because this might lead to concurrent modification (eg of a user phrase) while copy is being made                
+        LOGGER.log(Level.FINE, "stateChanged() -- posting music generation request for {0}", song.getName());
+        SongContextCopy sgContextCopy = new SongContextCopy(song, midiMix, false);
+        Utilities.transpose(sgContextCopy.getSong().getChordLeadSheet(),
+                PlaybackSettings.getInstance().getPlaybackKeyTransposition());
+
+
+        // Request music generation
+        musicGenerationQueue.add(sgContextCopy);
+    }
+
+
     //=============================================================================
     // Inner classes
     //=============================================================================

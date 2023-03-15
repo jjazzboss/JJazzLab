@@ -504,6 +504,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
                 });
 
                 pcs.firePropertyChange(PROP_RHYTHM_VOICE, newRv, oldRv);
+                fireIsMusicGenerationModified(PROP_RHYTHM_VOICE, newRv);
                 fireIsModified();
             }
 
@@ -521,12 +522,14 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
                 });
 
                 pcs.firePropertyChange(PROP_RHYTHM_VOICE, oldRv, newRv);
+                fireIsMusicGenerationModified(PROP_RHYTHM_VOICE, newRv);
                 fireIsModified();
             }
         };
         fireUndoableEditHappened(edit);
 
         pcs.firePropertyChange(PROP_RHYTHM_VOICE, oldRv, newRv);
+        fireIsMusicGenerationModified(PROP_RHYTHM_VOICE, newRv);
         fireIsModified();
     }
 
@@ -1745,14 +1748,14 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
 
                 pcs.firePropertyChange(PROP_CHANNEL_INSTRUMENT_MIX, oldInsMix, channel);
                 fireIsModified();
-                fireIsMusicGenerationModified(PROP_CHANNEL_INSTRUMENT_MIX, channel);
+                fireIsMusicGenerationModified(PROP_CHANNEL_INSTRUMENT_MIX, oldRvKey);
             }
         };
         fireUndoableEditHappened(edit);
 
         pcs.firePropertyChange(PROP_CHANNEL_INSTRUMENT_MIX, oldInsMix, channel);
         fireIsModified();
-        fireIsMusicGenerationModified(PROP_CHANNEL_INSTRUMENT_MIX, channel);
+        fireIsMusicGenerationModified(PROP_CHANNEL_INSTRUMENT_MIX, oldRvKey);
 
     }
 

@@ -292,14 +292,13 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     }
 
     /**
-     * Set the current playback session and try to generate the sequence.
+     * Set the current playback session and try to generate the sequence if required.
      * <p>
-     * If MusicController is paused then current playback is stopped. If generation of the sequence triggers
-     * SongSequenceBuilder.UserErrorExceptions notify user "lightly" using the StatusDisplayer.
+     * If MusicController is paused then current playback is stopped. 
      *
      * @param session Can be null. If not null, must be in NEW or GENERATED state, and can't be dirty.
      * @param silent  If false and session needs to be generated, a progress dialog is shown while generating music
-     * @throws org.jjazz.rhythm.api.MusicGenerationException E.g. if song is already playing, if section lacks a starting chord, etc.
+     * @throws org.jjazz.rhythm.api.MusicGenerationException E.g. if song is already playing, missing start section chord, etc. 
      * @throws IllegalStateException                         If session is dirty or is CLOSED.
      * @see PROP_PLAYBACK_SESSION
      */
@@ -329,7 +328,6 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             case PLAYING -> throw new MusicGenerationException(ResUtil.getString(getClass(), "A SONG IS ALREADY PLAYING"));
             default -> throw new AssertionError(state.name());
         }
-        // Nothing
 
 
         try
@@ -356,15 +354,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             // Try to pre-generate the sequence
             if (playbackSession.getState().equals(PlaybackSession.State.NEW))
             {
-                try
-                {
-                    playbackSession.generate(silent);         // Throws MusicGenerationException
-                } catch (UserErrorGenerationException ex)
-                {
-                    // playbackSession will remain NEW
-                    // Notify user lightly (no blocking dialog) because it is just a pre-generation tentative
-                    StatusDisplayer.getDefault().setStatusText(ex.getMessage());
-                }
+                playbackSession.generate(silent);         // Throws MusicGenerationException
             }
         }
 

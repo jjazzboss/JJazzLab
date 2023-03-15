@@ -57,8 +57,10 @@ import org.jjazz.util.api.IntRange;
  * A PlaybackSession is a BaseSongSession wrapper which enables on-the-fly updates of the playing sequence using
  * {@link updateSequence(Update)}.
  * <p>
- * Authorized udpates are notes+control track changes which do not change the Sequence size. The class uses buffer tracks and mute/unmute
- * tracks to enable on-the-fly sequence changes.
+ * Authorized udpates are notes+control track changes which do not change the Sequence size. Only user phrase modification or removal is
+ * supported.
+ * <p>
+ * The class uses buffer tracks and mute/unmute tracks to enable on-the-fly sequence changes.
  * <p>
  * If the BaseSongSession is an instance of UpdateProvider, the UpdatableSongSession listens to updates availability and automatically apply
  * the updates.
@@ -379,7 +381,7 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
         removedUserPhraseRvs.removeAll(updatedRvs);
 
 
-        // It's an error if we have new user phrase passed in an update: we can only work with a constant number of RhythmVoices/tracks
+        // It's an error if we have a new user phrase passed in an update: we can only work with a constant number of RhythmVoices/tracks
         if (!newUserPhraseRvs.isEmpty())
         {
             throw new IllegalStateException(
@@ -420,7 +422,8 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
         for (RhythmVoice urv : removedUserPhraseRvs)
         {
             LOGGER.log(Level.FINE, "    Clearing user phrase for urv={0}", urv.getName());
-            Phrase emptyPhrase = new Phrase(getSongContext().getMidiMix().getChannel(urv), urv.isDrums());
+            int channel = currentMapRvPhrase.get(urv).getChannel();
+            Phrase emptyPhrase = new Phrase(channel, urv.isDrums());
             currentMapRvPhrase.put(urv, emptyPhrase);
             int trackId = getOriginalRvTrackIdMap().get(urv);
             updateTrack(trackId, Phrases.toMidiEvents(emptyPhrase), precountShift);
@@ -640,25 +643,7 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
         {
             PropertyChangeEvent newEvent = null;
 
-            if ((baseSongSession instanceof UpdateProvider up) && getState().equals(State.GENERATED))
-            {
-                if (e.getPropertyName().equals(UpdateProvider.PROP_UPDATE_AVAILABLE))
-                {
-                    // Got an update
-                    var update = up.getLastUpdate();
-                    updateSequence(update);
-
-                } else if (e.getPropertyName().equals(UpdateProvider.PROP_UPDATE_PROVISION_ENABLED))
-                {
-                    // We won't receive updates anymore from our baseSongSession: disable ourselves
-                    assert !up.isUpdateProvisionEnabled() && baseSongSession.isDirty() : "baseSongSession=" + baseSongSession;
-                    setEnabled(false);
-                } else
-                {
-                    newEvent = new PropertyChangeEvent(this, e.getPropertyName(), e.getOldValue(), e.getNewValue());
-                }
-
-            } else if (e.getPropertyName().equals(PlaybackSession.PROP_MUTED_TRACKS))
+            if (e.getPropertyName().equals(PlaybackSession.PROP_MUTED_TRACKS))
             {
                 // Need to map the new mute status to the currently active tracks                
                 var originalMapTrackIdMuted = baseSongSession.getTracksMuteStatus();
@@ -667,13 +652,33 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
                     boolean muted = originalMapTrackIdMuted.get(trackId);
                     mapTrackIdMuted.put(trackSet.getActiveTrackId(trackId), muted);
                 }
+
+                // We still need to propagate the event (eg used by MusicController to effectively mute/unmute Sequencer tracks
                 newEvent = new PropertyChangeEvent(this, e.getPropertyName(), e.getOldValue(), mapTrackIdMuted);
+
+
+            } else if (getState().equals(State.GENERATED)
+                    && (baseSongSession instanceof UpdateProvider up)
+                    && e.getPropertyName().equals(UpdateProvider.PROP_UPDATE_AVAILABLE))
+            {
+                // Got an update
+                var update = up.getLastUpdate();
+                updateSequence(update);
+
+            } else if (getState().equals(State.GENERATED)
+                    && (baseSongSession instanceof UpdateProvider up)
+                    && e.getPropertyName().equals(UpdateProvider.PROP_UPDATE_PROVISION_ENABLED))
+            {
+                // We won't receive updates anymore from our baseSongSession: disable ourselves
+                assert !up.isUpdateProvisionEnabled() && baseSongSession.isDirty() : "baseSongSession=" + baseSongSession;
+                setEnabled(false);
 
             } else
             {
+                // Not handled here, just propagate the event
                 newEvent = new PropertyChangeEvent(this, e.getPropertyName(), e.getOldValue(), e.getNewValue());
-
             }
+
 
             if (newEvent != null)
             {
@@ -682,9 +687,8 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
                 pcs.firePropertyChange(newEvent);
             }
         }
-
-
     }
+
 
     @Override
     public String toString()
@@ -790,6 +794,7 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
             }
         }
         return null;
+
     }
 
 
