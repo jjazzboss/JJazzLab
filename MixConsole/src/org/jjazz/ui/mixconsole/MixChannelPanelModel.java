@@ -27,7 +27,6 @@ import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeListener;
 import javax.swing.Icon;
 import org.jjazz.midi.api.Instrument;
-import org.jjazz.rhythm.api.RhythmVoice;
 
 /**
  * Model of a MixChannelPanel + controller.
@@ -95,25 +94,28 @@ public interface MixChannelPanelModel
     int getPanoramic();
 
     boolean isDrumsReroutingEnabled();
-
-    RhythmVoice getRhythmVoice();
-    
+   
     /**
-     * Get the upper name in String[0] and lower name in String[1].
+     * Get the channel name.
      * <p>
-     * String[1] can be null if unused.
      *
      * @return
      */
-    String[] getChannelNames();
+    String getChannelName();    
 
     String getChannelNameTooltip();
+    
+    String getCategory();
+    
+    boolean isUserChannel();
 
     String getIconTooltip();
 
     Icon getIcon();
 
     Color getChannelColor();
+    
+    void setChannelColor(Color c);
 
     /**
      * @param oldValue

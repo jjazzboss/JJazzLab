@@ -23,6 +23,7 @@
 package org.jjazz.phrase.api;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -674,7 +675,12 @@ public class Phrases
             }
         } catch (IOException | InvalidMidiDataException ex)
         {
-            NotifyDescriptor d = new NotifyDescriptor.Message(ex.getMessage(), NotifyDescriptor.ERROR_MESSAGE);
+            String msg = ResUtil.getString(Phrases.class, "InvalidMidiFile", midiFile.getAbsolutePath());
+            if (ex.getMessage() != null)
+            {
+                msg += "\n" + ex.getMessage();
+            }
+            NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(d);
             return new Phrase(channel, isDrums);
         }

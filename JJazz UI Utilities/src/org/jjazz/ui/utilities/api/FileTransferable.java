@@ -28,6 +28,7 @@ import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -63,14 +64,14 @@ public class FileTransferable implements Transferable
     @Override
     public boolean isDataFlavorSupported(DataFlavor flavor)
     {
-        LOGGER.fine("isDataFlavorSupported() -- flavor=" + flavor); 
+        LOGGER.log(Level.FINE, "isDataFlavorSupported() -- flavor={0}", flavor);
         return data == null ? false : flavor.equals(DataFlavor.javaFileListFlavor);
     }
 
     @Override
     public Object getTransferData(DataFlavor df) throws UnsupportedFlavorException, IOException
     {
-        LOGGER.fine("getTransferData()  df=" + df); 
+        LOGGER.log(Level.FINE, "getTransferData()  df={0}", df);
         if (!df.equals(DataFlavor.javaFileListFlavor))
         {
             return new UnsupportedFlavorException(df);

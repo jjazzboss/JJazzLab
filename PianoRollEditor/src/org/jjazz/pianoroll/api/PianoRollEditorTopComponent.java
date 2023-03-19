@@ -36,8 +36,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiUnavailableException;
 import javax.swing.Action;
-import javax.swing.JComponent;
-import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
@@ -49,7 +47,6 @@ import org.jjazz.pianoroll.QuantizePanel;
 import org.jjazz.pianoroll.BackgroundPhrasesPanel;
 import org.jjazz.pianoroll.ToolbarPanel;
 import org.jjazz.pianoroll.actions.PasteNotes;
-import org.jjazz.pianoroll.actions.PlayEditor;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhrase;
@@ -181,6 +178,8 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
 
 
         refreshToolbarTitle();
+
+
     }
 
     /**

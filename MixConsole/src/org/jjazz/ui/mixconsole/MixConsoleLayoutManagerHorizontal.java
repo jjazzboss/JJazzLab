@@ -67,17 +67,6 @@ public class MixConsoleLayoutManagerHorizontal implements LayoutManager
             mcp.setSize(pd);
             mcp.setLocation(x, y);
             y += mcp.getHeight() + V_PADDING;
-
-
-            // UserExtensionPanel below
-            var ucep = panelSet.userExtensionPanel;
-            if (ucep != null)
-            {
-                pd = ucep.getPreferredSize();
-                ucep.setSize(mcp.getWidth(), pd.height);
-                ucep.setLocation(x, y);
-                y += ucep.getHeight() + V_PADDING;
-            }
             x += mcp.getWidth() + H_PADDING;
 
             yMax = Math.max(yMax, y);
@@ -96,7 +85,7 @@ public class MixConsoleLayoutManagerHorizontal implements LayoutManager
             for (var panelSet : mixConsole.getChannelPanelSets().values())     // Sorted by channel
             {
                 var pvp = panelSet.phraseViewerPanel;
-                int channelHeight = Math.max((h - ((nbChannels - 1) * V_PADDING)) / nbChannels, pvp.getMinimumSize().height);                
+                int channelHeight = Math.max((h - ((nbChannels - 1) * V_PADDING)) / nbChannels, pvp.getMinimumSize().height);
                 pvp.setSize(w, channelHeight);
                 pvp.setLocation(x, Math.round(yf));
                 yf += (float) h / nbChannels + V_PADDING;
@@ -130,12 +119,6 @@ public class MixConsoleLayoutManagerHorizontal implements LayoutManager
             w += H_PADDING + pd.width;
 
             int h = pd.height + V_PADDING + panelSet.phraseViewerPanel.getPreferredSize().height;
-
-            if (panelSet.userExtensionPanel != null)
-            {
-                h += V_PADDING + panelSet.userExtensionPanel.getPreferredSize().height;
-            }
-
             hMax = Math.max(h, hMax);
         }
 
@@ -147,8 +130,7 @@ public class MixConsoleLayoutManagerHorizontal implements LayoutManager
 
 
     @Override
-    public Dimension minimumLayoutSize(Container parent
-    )
+    public Dimension minimumLayoutSize(Container parent)
     {
         return new Dimension(100, 100);
     }

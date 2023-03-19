@@ -65,18 +65,7 @@ public class MixConsoleLayoutManager implements LayoutManager
             mcp.setSize(pd);
             mcp.setLocation(x, y);
             y += mcp.getHeight() + V_PADDING;
-
-
-            // UserExtensionPanel below
-            var ucep = panelSet.userExtensionPanel;
-            if (ucep != null)
-            {
-                pd = ucep.getPreferredSize();
-                ucep.setSize(mcp.getWidth(), pd.height);
-                ucep.setLocation(x, y);
-                y += ucep.getHeight() + V_PADDING;
-            }
-
+      
 
             // PhraseViewerPanel below
             var mcpv = panelSet.phraseViewerPanel;
@@ -114,12 +103,7 @@ public class MixConsoleLayoutManager implements LayoutManager
             Dimension pd = panelSet.mixChannelPanel.getPreferredSize();
             w += H_PADDING + pd.width;
 
-            int h = pd.height + V_PADDING + panelSet.phraseViewerPanel.getPreferredSize().height;
-
-            if (panelSet.userExtensionPanel != null)
-            {
-                h += V_PADDING + panelSet.userExtensionPanel.getPreferredSize().height;
-            }
+            int h = pd.height + V_PADDING + panelSet.phraseViewerPanel.getPreferredSize().height;     
 
             hMax = Math.max(h, hMax);
         }

@@ -36,11 +36,10 @@ import javax.swing.TransferHandler;
 import org.jjazz.midi.api.Instrument;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.synths.GMSynth;
-import org.jjazz.midimix.api.UserRhythmVoice;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.PlaybackListener;
 import org.jjazz.musiccontrol.api.PlaybackListenerAdapter;
-import org.jjazz.rhythm.api.RhythmVoice;
+import org.jjazz.ui.flatcomponents.api.FlatButton;
 import org.jjazz.ui.flatcomponents.api.FlatIntegerKnob;
 import org.jjazz.ui.flatcomponents.api.FlatIntegerVerticalSlider;
 import org.jjazz.ui.flatcomponents.api.FlatTextEditDialog;
@@ -57,7 +56,7 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
     private MixChannelPanelModel model;
     private MixChannelPanelController controller;
     private MixConsoleSettings settings;
-    private Color channelColor;
+    private FlatButton fbtn_channelNameImpl;
     private boolean selected;
     private final PlaybackListener playbackListener;
     private final Font FONT = GeneralUISettings.getInstance().getStdCondensedFont();
@@ -77,7 +76,7 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
     {
         if (model == null || controller == null || settings == null)
         {
-            throw new IllegalArgumentException("model=" + model + " controller=" + controller + " settings=" + settings);   
+            throw new IllegalArgumentException("model=" + model + " controller=" + controller + " settings=" + settings);
         }
         this.model = model;
         this.controller = controller;
@@ -100,6 +99,16 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
             }
         };
         MusicController.getInstance().addPlaybackListener(playbackListener);
+
+
+        if (model.isUserChannel())
+        {
+            fbtn_channelNameImpl = new FlatButton(org.jjazz.ui.utilities.api.Utilities.getAction(ae -> userChannelNameClicked()), true, true,
+                    false);
+        } else
+        {
+            fbtn_channelNameImpl = new FlatButton(false, false, false);
+        }
 
 
         initComponents();
@@ -130,51 +139,6 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         settings.removePropertyChangeListener(this);
         model.cleanup();
         model = null;
-    }
-
-    public void setChannelColor(Color c)
-    {
-        channelColor = c;
-        knob_panoramic.setValueLineColor(c);
-        knob_reverb.setValueLineColor(c);
-        knob_chorus.setValueLineColor(c);
-        fslider_volume.setValueLineColor(c);
-    }
-
-    public void setIcon(Icon icon)
-    {
-        this.lbl_Icon.setIcon(icon);
-    }
-
-    public void setIconToolTipText(String text)
-    {
-        this.lbl_Icon.setToolTipText(text);
-    }
-
-    public void setNameToolTipText(String text)
-    {
-        this.lbl_name.setToolTipText(text);
-    }
-
-    /**
-     * Update the channel name.
-     *
-     * @param upperName
-     * @param lowerName Can be null if not used
-     */
-    public void setChannelName(String upperName, String lowerName)
-    {
-        if (upperName == null)
-        {
-            throw new NullPointerException("upperName");   
-        }
-        upperName = Utilities.truncate(upperName, 9);       // Because bold
-        if (lowerName != null)
-        {
-            lowerName = Utilities.truncate(lowerName, 10);
-        }
-        String s = (lowerName != null) ? "<html><div style='text-align: center;'><b>" + upperName + "</b><br>" + lowerName + "</div></html>" : upperName;
-        lbl_name.setText(s);
     }
 
     public void setSelected(boolean b)
@@ -260,7 +224,8 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
 
         // Instrument name
         Instrument ins = model.getInstrument();
-        tt = ins.getFullName() + (ins.isDrumKit() ? ", DrumKit type=" + ins.getDrumKit().getType().toString() + " keymap= " + ins.getDrumKit().getKeyMap().getName() : "");
+        tt = ins.getFullName() + (ins.isDrumKit()
+                ? ", DrumKit type=" + ins.getDrumKit().getType().toString() + " keymap= " + ins.getDrumKit().getKeyMap().getName() : "");
         fbtn_Instrument.setToolTipText(tt);
         String patchName = Utilities.truncateWithDots(ins.getPatchName(), 18);
         this.fbtn_Instrument.setvLabel(patchName);
@@ -282,25 +247,64 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
 
         this.lbl_Icon.setIcon(model.getIcon());
         this.lbl_Icon.setToolTipText(model.getIconTooltip());
-        this.setChannelName(model.getChannelNames()[0], model.getChannelNames()[1]);
-        this.lbl_name.setToolTipText(model.getChannelNameTooltip());
+        final int MAX_NB_CHARS = 9;
+        this.fbtn_channelName.setText(Utilities.truncate(model.getChannelName(), MAX_NB_CHARS));
+        this.fbtn_channelName.setToolTipText(model.getChannelNameTooltip());
+        this.lbl_category.setText(Utilities.truncate(model.getCategory(), MAX_NB_CHARS));
+
 
         // Colors
+        Color c = model.getChannelColor();
+        knob_panoramic.setValueLineColor(c);
+        knob_reverb.setValueLineColor(c);
+        knob_chorus.setValueLineColor(c);
+        fslider_volume.setValueLineColor(c);
         roundedPanel.setBackground(settings.getMixChannelBackgroundColor());
 
     }
 
+
+    /**
+     * Edit the text value of a FlatButton using an overlay dialog.
+     *
+     * @param fbtn
+     * @return Null if no value change
+     */
+    private String editValueWithOverlayDialog(FlatButton fbtn, int nbColumns)
+    {
+        var dlg = FlatTextEditDialog.getInstance();
+        dlg.setTextNbColumns(nbColumns);
+        dlg.setTextHorizontalAlignment(JTextField.CENTER);
+        String oldValue = fbtn.getText();
+        dlg.setText(oldValue);
+        dlg.setPositionCenter(fbtn);
+        dlg.setVisible(true);
+        String newValue = dlg.getText().trim();
+        return dlg.isExitOk() && !newValue.equals(oldValue) && !newValue.isBlank() ? newValue : null;
+    }
+
+    private void userChannelNameClicked()
+    {
+        String strNewValue = editValueWithOverlayDialog(fbtn_channelName, 5);
+        if (strNewValue != null)
+        {
+            controller.editChannelName(model.getChannelId(), strNewValue);
+        }
+    }
+
     private void startDragOut(MouseEvent evt)
     {
-        if (SwingUtilities.isLeftMouseButton(evt))
+        TransferHandler th = getTransferHandler();
+        if (th != null && SwingUtilities.isLeftMouseButton(evt))
         {
-            getTransferHandler().exportAsDrag(this, evt, TransferHandler.COPY);
+            th.exportAsDrag(this, evt, TransferHandler.COPY);
+            // Note that from now on our various mouse drag listeners won't be called anymore until DnD export operation is over
         }
     }
 
     /**
-     * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of
-     * this method is always regenerated by the Form Editor.
+     * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of this
+     * method is always regenerated by the Form Editor.
      */
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -321,8 +325,10 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         fbtn_Instrument = new org.jjazz.ui.mixconsole.VInstrumentButton();
         pnl_icon = new javax.swing.JPanel();
         lbl_Icon = new javax.swing.JLabel();
+        pnl_category = new javax.swing.JPanel();
+        lbl_category = new javax.swing.JLabel();
         pnl_name = new javax.swing.JPanel();
-        lbl_name = new javax.swing.JLabel();
+        fbtn_channelName = fbtn_channelNameImpl;
         pnl_channelId = new javax.swing.JPanel();
         fbtn_channelId = new org.jjazz.ui.flatcomponents.api.FlatButton();
         knob_panoramic = new org.jjazz.ui.flatcomponents.api.FlatIntegerKnob();
@@ -461,24 +467,38 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         });
         pnl_icon.add(lbl_Icon);
 
-        pnl_name.setOpaque(false);
-        pnl_name.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 0, 0));
+        pnl_category.setOpaque(false);
+        pnl_category.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 0, 0));
 
-        lbl_name.setBackground(new java.awt.Color(153, 255, 153));
-        lbl_name.setFont(FONT);
-        lbl_name.setForeground(fbtn_Instrument.getForeground());
-        lbl_name.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_name, "swing latin"); // NOI18N
-        lbl_name.setAlignmentX(0.5F);
-        lbl_name.setBorder(javax.swing.BorderFactory.createEmptyBorder(3, 0, 4, 0));
-        lbl_name.addMouseMotionListener(new java.awt.event.MouseMotionAdapter()
+        lbl_category.setFont(FONT.deriveFont(Font.BOLD)
+        );
+        lbl_category.setForeground(fbtn_Instrument.getForeground());
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_category, org.openide.util.NbBundle.getMessage(MixChannelPanel.class, "MixChannelPanel.lbl_category.text")); // NOI18N
+        lbl_category.addMouseMotionListener(new java.awt.event.MouseMotionAdapter()
         {
             public void mouseDragged(java.awt.event.MouseEvent evt)
             {
-                lbl_nameMouseDragged(evt);
+                lbl_categoryMouseDragged(evt);
             }
         });
-        pnl_name.add(lbl_name);
+        pnl_category.add(lbl_category);
+
+        pnl_name.setOpaque(false);
+        pnl_name.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 0, 0));
+
+        fbtn_channelName.setForeground(fbtn_Instrument.getForeground());
+        fbtn_channelName.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        org.openide.awt.Mnemonics.setLocalizedText(fbtn_channelName, org.openide.util.NbBundle.getMessage(MixChannelPanel.class, "MixChannelPanel.fbtn_channelName.text")); // NOI18N
+        fbtn_channelName.setAlignmentX(0.5F);
+        fbtn_channelName.setFont(FONT);
+        fbtn_channelName.addMouseMotionListener(new java.awt.event.MouseMotionAdapter()
+        {
+            public void mouseDragged(java.awt.event.MouseEvent evt)
+            {
+                fbtn_channelNameMouseDragged(evt);
+            }
+        });
+        pnl_name.add(fbtn_channelName);
 
         pnl_channelId.setOpaque(false);
         pnl_channelId.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 0, 0));
@@ -568,7 +588,6 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(pnl_led_close, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
             .addComponent(pnl_mute, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(pnl_name, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addComponent(pnl_icon, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addComponent(pnl_channelId, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addComponent(knob_panoramic, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -579,6 +598,8 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
             .addComponent(lbl_pan, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addComponent(lbl_rev, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addComponent(lbl_cho, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(pnl_name, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(pnl_category, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         roundedPanelLayout.setVerticalGroup(
             roundedPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -606,11 +627,13 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
                 .addComponent(pnl_inst_volume, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(7, 7, 7)
                 .addComponent(pnl_icon, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, 0)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(pnl_category, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(3, 3, 3)
                 .addComponent(pnl_name, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, 0)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(pnl_channelId, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap())
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
@@ -662,17 +685,10 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         {
             return;
         }
-        var dlg = FlatTextEditDialog.getInstance();
-        dlg.setTextNbColumns(2);
-        dlg.setTextHorizontalAlignment(JTextField.CENTER);
-        String oldValue = this.fbtn_channelId.getText();
-        dlg.setText(oldValue);
-        dlg.setPositionCenter(fbtn_channelId);
-        dlg.setVisible(true);
-        String strNewValue = dlg.getText().trim();
-        if (dlg.isExitOk() && strNewValue.length() > 0 && !strNewValue.equals(oldValue))
+        String strNewValue = editValueWithOverlayDialog(fbtn_channelId, 2);
+        if (strNewValue != null)
         {
-            controller.editChannel(model.getChannelId(), strNewValue);
+            controller.editChannelId(model.getChannelId(), strNewValue);
         }
     }//GEN-LAST:event_fbtn_channelIdActionPerformed
 
@@ -696,20 +712,26 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         startDragOut(evt);
     }//GEN-LAST:event_lbl_IconMouseDragged
 
-    private void lbl_nameMouseDragged(java.awt.event.MouseEvent evt)//GEN-FIRST:event_lbl_nameMouseDragged
-    {//GEN-HEADEREND:event_lbl_nameMouseDragged
-        startDragOut(evt);
-    }//GEN-LAST:event_lbl_nameMouseDragged
-
     private void fbtn_channelIdMouseDragged(java.awt.event.MouseEvent evt)//GEN-FIRST:event_fbtn_channelIdMouseDragged
     {//GEN-HEADEREND:event_fbtn_channelIdMouseDragged
         startDragOut(evt);
     }//GEN-LAST:event_fbtn_channelIdMouseDragged
 
+    private void fbtn_channelNameMouseDragged(java.awt.event.MouseEvent evt)//GEN-FIRST:event_fbtn_channelNameMouseDragged
+    {//GEN-HEADEREND:event_fbtn_channelNameMouseDragged
+        startDragOut(evt);
+    }//GEN-LAST:event_fbtn_channelNameMouseDragged
+
+    private void lbl_categoryMouseDragged(java.awt.event.MouseEvent evt)//GEN-FIRST:event_lbl_categoryMouseDragged
+    {//GEN-HEADEREND:event_lbl_categoryMouseDragged
+        startDragOut(evt);
+    }//GEN-LAST:event_lbl_categoryMouseDragged
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private org.jjazz.ui.mixconsole.VInstrumentButton fbtn_Instrument;
     private org.jjazz.ui.flatcomponents.api.FlatButton fbtn_Settings;
     private org.jjazz.ui.flatcomponents.api.FlatButton fbtn_channelId;
+    private org.jjazz.ui.flatcomponents.api.FlatButton fbtn_channelName;
     private org.jjazz.ui.flatcomponents.api.FlatToggleButton fbtn_mute;
     private org.jjazz.ui.flatcomponents.api.FlatToggleButton fbtn_solo;
     private javax.swing.Box.Filler filler1;
@@ -719,10 +741,11 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
     private org.jjazz.ui.flatcomponents.api.FlatIntegerKnob knob_panoramic;
     private org.jjazz.ui.flatcomponents.api.FlatIntegerKnob knob_reverb;
     private javax.swing.JLabel lbl_Icon;
+    private javax.swing.JLabel lbl_category;
     private javax.swing.JLabel lbl_cho;
-    private javax.swing.JLabel lbl_name;
     private javax.swing.JLabel lbl_pan;
     private javax.swing.JLabel lbl_rev;
+    private javax.swing.JPanel pnl_category;
     private javax.swing.JPanel pnl_channelId;
     private javax.swing.JPanel pnl_icon;
     private javax.swing.JPanel pnl_inst_volume;
@@ -905,18 +928,9 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         }
 
         @Override
-        public String[] getChannelNames()
+        public String getChannelName()
         {
-            return new String[]
-            {
-                "upper", "lower"
-            };
-        }
-
-        @Override
-        public RhythmVoice getRhythmVoice()
-        {
-            return new UserRhythmVoice("bla");
+            return "upper";
         }
 
         @Override
@@ -941,6 +955,24 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         public Color getChannelColor()
         {
             return Color.CYAN;
+        }
+
+        @Override
+        public String getCategory()
+        {
+            return "category";
+        }
+
+        @Override
+        public boolean isUserChannel()
+        {
+            return false;
+        }
+
+        @Override
+        public void setChannelColor(Color c)
+        {
+            // Nothing
         }
     }
 

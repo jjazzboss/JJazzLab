@@ -224,6 +224,15 @@
                     </run-dependency>
                 </dependency>
                 <dependency>
+                    <code-name-base>org.netbeans.core.multitabs</code-name-base>
+                    <build-prerequisite/>
+                    <compile-dependency/>
+                    <run-dependency>
+                        <release-version>1</release-version>
+                        <specification-version>1.31.0.1</specification-version>
+                    </run-dependency>
+                </dependency>
+                <dependency>
                     <code-name-base>org.netbeans.libs.flatlaf</code-name-base>
                     <build-prerequisite/>
                     <compile-dependency/>
@@ -239,6 +248,14 @@
                     <run-dependency>
                         <release-version>1</release-version>
                         <specification-version>1.33.1</specification-version>
+                    </run-dependency>
+                </dependency>
+                <dependency>
+                    <code-name-base>org.netbeans.swing.tabcontrol</code-name-base>
+                    <build-prerequisite/>
+                    <compile-dependency/>
+                    <run-dependency>
+                        <specification-version>1.76</specification-version>
                     </run-dependency>
                 </dependency>
                 <dependency>

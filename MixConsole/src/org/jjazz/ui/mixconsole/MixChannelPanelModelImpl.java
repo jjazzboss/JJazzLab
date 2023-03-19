@@ -77,8 +77,7 @@ public class MixChannelPanelModelImpl implements MixChannelPanelModel, PropertyC
     private InstrumentMix insMix;
     private InstrumentSettings insSettings;
     private int channelId;
-    private String channelNameUpper;
-    private String channelNameLower;
+    private String channelName;
     private String channelNameTooltip;
     private String iconTooltip;
     private Icon icon;
@@ -336,12 +335,9 @@ public class MixChannelPanelModelImpl implements MixChannelPanelModel, PropertyC
     }
 
     @Override
-    public String[] getChannelNames()
+    public String getChannelName()
     {
-        return new String[]
-        {
-            channelNameUpper, channelNameLower
-        };
+        return channelName;
     }
 
 
@@ -364,9 +360,11 @@ public class MixChannelPanelModelImpl implements MixChannelPanelModel, PropertyC
     }
 
     @Override
-    public RhythmVoice getRhythmVoice()
+    public void setChannelColor(Color c)
     {
-        return rhythmVoice;
+        var old = channelColor;
+        channelColor = c;
+        pcs.firePropertyChange(PROP_CHANNEL_COLOR, old, channelColor);
     }
 
     @Override
@@ -376,6 +374,19 @@ public class MixChannelPanelModelImpl implements MixChannelPanelModel, PropertyC
     }
 
     @Override
+    public String getCategory()
+    {
+        return isUserChannel() ? ResUtil.getString(getClass(), "USER") : rhythmVoice.getContainer().getName();
+    }
+
+    @Override
+    public boolean isUserChannel()
+    {
+        return rhythmVoice instanceof UserRhythmVoice;
+    }
+
+
+    @Override
     public void addPropertyChangeListener(PropertyChangeListener l
     )
     {
@@ -383,8 +394,7 @@ public class MixChannelPanelModelImpl implements MixChannelPanelModel, PropertyC
     }
 
     @Override
-    public void removePropertyChangeListener(PropertyChangeListener l
-    )
+    public void removePropertyChangeListener(PropertyChangeListener l)
     {
         pcs.removePropertyChangeListener(l);
     }
@@ -474,21 +484,16 @@ public class MixChannelPanelModelImpl implements MixChannelPanelModel, PropertyC
      *
      * @param rv
      */
-    private final void rhythmVoiceChanged(RhythmVoice rv)
+    private void rhythmVoiceChanged(RhythmVoice rv)
     {
         rhythmVoice = rv;
+        channelName = rhythmVoice.getName();
+        icon = getIcon(rhythmVoice);
+        Rhythm r = rhythmVoice.getContainer();
+        channelNameTooltip = isUserChannel() ? rhythmVoice.getName() : r.getName() + " - " + rhythmVoice.getName();
+        iconTooltip = getIconTooltip(rhythmVoice);
 
-        boolean isUserVoice = rv instanceof UserRhythmVoice;
-        Rhythm r = rv.getContainer();
-
-        // channelNameUpper = isUserVoice ? ResUtil.getString(getClass(), "USER") : rv.getName();
-        channelNameUpper = rv.getName();
-        channelNameLower = null;
-        icon = getIcon(rv);
-        channelNameTooltip = isUserVoice ? null : r.getName() + " - " + rv.getName();
-        iconTooltip = getIconTooltip(rv);
-
-        pcs.firePropertyChange(PROP_CHANNEL_NAME, null, channelNameUpper);
+        pcs.firePropertyChange(PROP_CHANNEL_NAME, null, channelName);
         pcs.firePropertyChange(PROP_CHANNEL_NAME_TOOLTIP, null, channelNameTooltip);
         pcs.firePropertyChange(PROP_ICON, null, icon);
         pcs.firePropertyChange(PROP_ICON_TOOLTIP, null, iconTooltip);
@@ -496,23 +501,27 @@ public class MixChannelPanelModelImpl implements MixChannelPanelModel, PropertyC
 
     private String getIconTooltip(RhythmVoice rv)
     {
-        String res = null;
+        StringBuilder sb = new StringBuilder("<html>");
+
+        sb.append(ResUtil.getString(getClass(), "DragToExportTrack"));
 
         if (!(rv instanceof UserRhythmVoice))
         {
-
             Instrument prefIns = rv.getPreferredInstrument();
-            res = ResUtil.getString(getClass(), "CTL_RECOMMENDED", prefIns.getFullName());
+            sb.append(".<br>");
+            sb.append(ResUtil.getString(getClass(), "OriginalStyleInstrument", prefIns.getFullName()));
+
             if (!(prefIns instanceof GM1Instrument))
             {
                 DrumKit kit = prefIns.getDrumKit();
-                res += " - ";
-                res += rv.isDrums() ? "DrumKit type=" + kit.getType().toString() + " keymap= " + kit.getKeyMap().getName()
-                        : "GM substitute: " + prefIns.getSubstitute().getPatchName();
+                sb.append(" - ");
+                sb.append(rv.isDrums() ? "DrumKit type=" + kit.getType().toString() + " keymap= " + kit.getKeyMap().getName()
+                        : "GM substitute: " + prefIns.getSubstitute().getPatchName());
             }
         }
 
-        return res;
+        sb.append("</html>");
+        return sb.toString();
     }
 
     private Icon getIcon(RhythmVoice rv)

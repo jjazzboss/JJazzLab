@@ -29,7 +29,9 @@ import java.awt.dnd.InvalidDnDOperationException;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.ImageIcon;
 import javax.swing.TransferHandler;
 
 /**
@@ -37,30 +39,31 @@ import javax.swing.TransferHandler;
  */
 public abstract class MidiFileDragInTransferHandler extends TransferHandler
 {
-
+    public static final ImageIcon DRAG_ICON = new ImageIcon(MidiFileDragInTransferHandler.class.getResource("resources/DragMidiIcon.png"));
     private static final Logger LOGGER = Logger.getLogger(MidiFileDragInTransferHandler.class.getSimpleName());
+
 
     @Override
     public boolean canImport(TransferHandler.TransferSupport support)
     {
-        LOGGER.fine("MidiFileDragInTransferHandler.canImport() -- support=" + support); 
+        LOGGER.log(Level.FINE, "MidiFileDragInTransferHandler.canImport() -- support={0}", support);
         if (!isImportEnabled() || !support.isDataFlavorSupported(DataFlavor.javaFileListFlavor))
         {
             return false;
         }
-        
+
         // Copy mode must be supported
         if ((COPY & support.getSourceDropActions()) != COPY)
         {
             return false;
         }
-        
+
         // Need a single midi file
         if (getMidiFile(support) == null)
         {
             return false;
         }
-        
+
         // Use copy drop icon
         support.setDropAction(COPY);
         return true;
@@ -90,9 +93,16 @@ public abstract class MidiFileDragInTransferHandler extends TransferHandler
         try
         {
             List<File> files = (List<File>) t.getTransferData(DataFlavor.javaFileListFlavor);
-            if (files.size() == 1 && files.get(0).getName().toLowerCase().endsWith(".mid"))
+            if (files != null && files.size() == 1 && files.get(0).getName().toLowerCase().endsWith(".mid"))
             {
                 midiFile = files.get(0);
+            } else
+            {
+                // Seems to happen on MacOS files==null Issue #348
+                // Looks like a known issue: https://stackoverflow.com/questions/49016784/dataflavor-javafilelistflavor-and-mac-os-x-clipboard
+                // From another SO post: it seems that the TransferSupport object is valid on Mac only when importData() is called, not
+                // when canImport() is called. TODO: need to test this on Mac to try to solve #348
+                LOGGER.log(Level.WARNING, "getMidiFile() Unexpected value for files={0}", files);
             }
         } catch (UnsupportedFlavorException | IOException e)
         {

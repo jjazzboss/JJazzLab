@@ -31,6 +31,8 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
 import java.awt.geom.Line2D;
 import java.awt.geom.Path2D;
 import java.awt.geom.Rectangle2D;
@@ -38,6 +40,8 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.logging.Logger;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+import javax.swing.TransferHandler;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
@@ -74,11 +78,13 @@ public class PhraseBirdsEyeViewComponent extends JPanel implements PropertyChang
     private float markerPos = -1;
     private String label;
     private Rectangle2D labelSize;
+    private MouseMotionAdapter mouseDragListener;
     private static final NoteColorManager noteColorManager = NoteColorManager.getDefault();
 
 
     private static final Font FONT = GeneralUISettings.getInstance().getStdCondensedFont().deriveFont(10f);
     private static final Logger LOGGER = Logger.getLogger(PhraseBirdsEyeViewComponent.class.getSimpleName());
+
 
     public String getLabel()
     {
@@ -222,6 +228,41 @@ public class PhraseBirdsEyeViewComponent extends JPanel implements PropertyChang
         }
 
         g2.dispose();
+    }
+
+    /**
+     * Overridden to also automatically enable mouse drag listener to initiate the drag (if th is not null) .
+     *
+     * @param th
+     */
+    @Override
+    public void setTransferHandler(TransferHandler th)
+    {
+        super.setTransferHandler(th);
+
+        if (mouseDragListener == null)
+        {
+            mouseDragListener = new MouseMotionAdapter()
+            {
+                @Override
+                public void mouseDragged(MouseEvent e)
+                {
+                    if (SwingUtilities.isLeftMouseButton(e))
+                    {
+                        getTransferHandler().exportAsDrag(PhraseBirdsEyeViewComponent.this, e, TransferHandler.COPY);
+                        // Note that from now on this mouse drag listener won't be called anymore until DnD export operation is over
+                    }
+                }
+            };
+        }
+
+        if (th != null)
+        {
+            addMouseMotionListener(mouseDragListener);
+        } else
+        {
+            removeMouseMotionListener(mouseDragListener);
+        }
     }
 
 

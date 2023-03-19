@@ -124,7 +124,7 @@ public class SongSequenceBuilder
     static public String buildTrackName(RhythmVoice rv, int channel)
     {
         // First event will be the name of the track: rhythm - rhythmVoice - channel
-        String name = rv.getContainer().getName() + "-" + rv.getName() + "-Channel" + (channel + 1) + " [1-16]";
+        String name = rv.getContainer().getName() + "-" + rv.getName() + "-channel" + (channel + 1) + "/16";
         return name;
     }
 

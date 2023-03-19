@@ -25,7 +25,6 @@ package org.jjazz.ui.musiccontrolactions;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.logging.Logger;
-import javax.swing.Action;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
@@ -36,7 +35,7 @@ import static org.jjazz.musiccontrol.api.MusicController.State.PLAYING;
 import static org.jjazz.musiccontrol.api.MusicController.State.STOPPED;
 import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession;
-import org.netbeans.api.annotations.common.StaticResource;
+import org.jjazz.util.api.ResUtil;
 import org.openide.awt.Actions;
 
 
@@ -46,14 +45,13 @@ import org.openide.awt.Actions;
 public class AutoPreviewToolbarPanel extends javax.swing.JPanel
 {
 
-    private final AutoUpdateLabelModel autoUpdateLabelModel;
     private static final Logger LOGGER = Logger.getLogger(AutoPreviewToolbarPanel.class.getSimpleName());
 
     public AutoPreviewToolbarPanel()
     {
         initComponents();
 
-        autoUpdateLabelModel = new AutoUpdateLabelModel(lbl_autoPreview);
+        new AutoUpdateLabelModel(lbl_autoPreview);
 
         this.fbtn_playbackTransposition.setAction(Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.transposeplaybackkey"));   //NOI18N
     }
@@ -79,7 +77,7 @@ public class AutoPreviewToolbarPanel extends javax.swing.JPanel
         {
             this.label = label;
             this.label.setText(null);
-            this.label.setIcon(ICON_OFF);
+            setEnabledIcon(false);
             MusicController.getInstance().addPropertyChangeListener(this);
         }
 
@@ -155,6 +153,8 @@ public class AutoPreviewToolbarPanel extends javax.swing.JPanel
         private void setEnabledIcon(boolean b)
         {
             label.setIcon(b ? ICON_ON : ICON_OFF);
+            String tt = b ? ResUtil.getString(getClass(), "AutoUpdateONtooltip") : ResUtil.getString(getClass(), "AutoUpdateOFFtooltip");
+            label.setToolTipText(tt);
         }
 
     }
@@ -183,7 +183,6 @@ public class AutoPreviewToolbarPanel extends javax.swing.JPanel
         add(filler9);
 
         lbl_autoPreview.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/AutoUpdate-OFF-24x24.png"))); // NOI18N
-        lbl_autoPreview.setToolTipText(org.openide.util.NbBundle.getMessage(AutoPreviewToolbarPanel.class, "AutoPreviewToolbarPanel.lbl_autoPreview.toolTipText")); // NOI18N
         add(lbl_autoPreview);
     }// </editor-fold>//GEN-END:initComponents
 

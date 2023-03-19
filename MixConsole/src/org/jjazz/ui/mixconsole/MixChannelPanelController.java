@@ -22,6 +22,8 @@
  */
 package org.jjazz.ui.mixconsole;
 
+import org.jjazz.midimix.api.UserRhythmVoice;
+
 /**
  * The user actions on a MixChannelPanel that can not be handled by the MixChannelPanel itself.
  */
@@ -31,31 +33,43 @@ public interface MixChannelPanelController
     /**
      * User has changed the channel id.
      */
-    public void editChannel(int channel, String newChannelId);
+    void editChannelId(int channel, String newChannelId);
+
+    /**
+     * User has changed the channel name (only for user channels).
+     */
+    void editChannelName(int channel, String newChannelName);
+
+    /**
+     * Open the editor to edit the specified user phrase.
+     *
+     * @param userRhythmVoice
+     */
+    void editUserPhrase(UserRhythmVoice userRhythmVoice);
 
     /**
      * User asked to close our MixChannelPanel.
      */
-    public void editClose(int channel);
+    void editCloseUserChannel(int channel);
 
     /**
      * User wants to edit settings of our MixChannelPanel.
      */
-    public void editSettings(int channel);
+    void editSettings(int channel);
 
     /**
      * User wants to edit the MixChannelPanel instrument.
      */
-    public void editInstrument(int channel);
+    void editInstrument(int channel);
 
     /**
      * User wants to use the next instrument after current one.
      */
-    public void editNextInstrument(int channel);
+    void editNextInstrument(int channel);
 
     /**
      * User wants to use the previous instrument after current one.
      */
-    public void editPreviousInstrument(int channel);
+    void editPreviousInstrument(int channel);
 
 }
