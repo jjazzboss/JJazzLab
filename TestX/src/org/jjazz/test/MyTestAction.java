@@ -22,25 +22,13 @@
  */
 package org.jjazz.test;
 
-import com.formdev.flatlaf.FlatDarkLaf;
-import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Arrays;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.UIManager;
-import org.jjazz.pianoroll.api.PianoRollEditorTopComponent;
-import org.jjazz.ui.itemrenderer.api.IR_ChordSymbolSettings;
-import org.jjazz.ui.mixconsole.api.MixConsoleTopComponent;
-import org.jjazz.util.api.ResUtil;
-import org.jjazz.util.api.Utilities;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.modules.OnStart;
-import org.openide.util.NbPreferences;
 
 /**
  * For debug purposes...
@@ -50,7 +38,7 @@ import org.openide.util.NbPreferences;
 //@ActionReferences(
 //        {
 //            @ActionReference(path = "Menu/Edit", position = 870012),
-//            @ActionReference(path = "Shortcuts", name = "D-T")
+//            @ActionReference(path = "Shortcuts", name = "D-T")      // ctrl T
 //        })
 public final class MyTestAction implements ActionListener
 {
@@ -65,13 +53,14 @@ public final class MyTestAction implements ActionListener
     public void actionPerformed(ActionEvent ae)
     {
         LOGGER.severe("actionPerformed()");
+        int a = 10;
+        assert a != 10 : " comp=" + comp();
 
-        var tc = MixConsoleTopComponent.getInstance();
-        if (tc != null)
-        {
-            LOGGER.severe(Utilities.toMultilineString(Arrays.asList(tc.getActions())));
-            LOGGER.severe("-- ActionMap keys=");
-            LOGGER.severe(Utilities.toMultilineString(tc.getActionMap().allKeys()));
-        }
+    }
+
+    private int comp()
+    {
+        LOGGER.severe("comp() called");
+        return 2938;
     }
 }

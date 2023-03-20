@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
@@ -123,7 +124,7 @@ public class RP_SYS_Mute extends RP_StringSet
      * @param r
      * @return
      */
-    static private HashMap<String, RhythmVoice> getMuteValuesMap(Rhythm r)
+    static private Map<String, RhythmVoice> getMuteValuesMap(Rhythm r)
     {
         var res = new HashMap<String, RhythmVoice>();
         r.getRhythmVoices().forEach(rv -> res.put(rv.getName(), rv));
