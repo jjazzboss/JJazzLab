@@ -28,9 +28,12 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Insets;
 import java.awt.LayoutManager;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.jjazz.backgroundsongmusicbuilder.api.ActiveSongMusicBuilder;
@@ -89,7 +92,7 @@ public class PhraseViewerPanel extends PhraseBirdsEyeViewComponent implements Ch
         {
             musicGenerationResultReceived(result);
         }
-      
+
         if (this.rhythmVoice instanceof UserRhythmVoice)
         {
             addUserButtons();
@@ -149,10 +152,23 @@ public class PhraseViewerPanel extends PhraseBirdsEyeViewComponent implements Ch
         fbtn_close = new FlatButton();
         fbtn_close.setIcon(ICON_CLOSE);
         fbtn_close.addActionListener(ae -> closeButtonPressed());
-        fbtn_close.setToolTipText(ResUtil.getString(getClass(), "PhraseViewerPanel.BtnCloseTooltip"));        
+        fbtn_close.setToolTipText(ResUtil.getString(getClass(), "PhraseViewerPanel.BtnCloseTooltip"));
 
         add(fbtn_edit);
         add(fbtn_close);
+
+
+        addMouseListener(new MouseAdapter()
+        {
+            @Override
+            public void mouseClicked(MouseEvent me)
+            {
+                if (SwingUtilities.isLeftMouseButton(me) && me.getClickCount() == 2)
+                {
+                    editButtonPressed();
+                }
+            }
+        });
     }
 
     private void editButtonPressed()
@@ -164,7 +180,7 @@ public class PhraseViewerPanel extends PhraseBirdsEyeViewComponent implements Ch
     {
         controller.editCloseUserChannel(channel);
     }
-  
+
     // ----------------------------------------------------------------------------
     // Inner classes
     // ----------------------------------------------------------------------------
