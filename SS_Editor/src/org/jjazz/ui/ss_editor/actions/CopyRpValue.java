@@ -51,6 +51,12 @@ import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
 import static org.jjazz.ui.utilities.api.Utilities.getGenericControlKeyStroke;
 import org.jjazz.util.api.ResUtil;
 
+/**
+ * Copy RpValue action.
+ * <p>
+ * This action is directly used when triggered by the RhythmParameter menu entry. Ctrl-C keyboard shortcut is handled by the Copy action
+ * which reuses some of our methods if needed (when RhythmParameters are selected).
+ */
 @ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.copyrpvalue")
 @ActionRegistration(displayName = "#CTL_CopyRpValue", lazy = false)
 @ActionReferences(
@@ -76,7 +82,7 @@ public class CopyRpValue extends AbstractAction implements ContextAwareAction, S
         cap = SS_ContextActionSupport.getInstance(this.context);
         cap.addListener(this);
         putValue(NAME, undoText);
-        putValue(ACCELERATOR_KEY, getGenericControlKeyStroke(KeyEvent.VK_C));
+        putValue(ACCELERATOR_KEY, getGenericControlKeyStroke(KeyEvent.VK_C));       // Only for display
         selectionChange(cap.getSelection());
     }
 
@@ -90,6 +96,23 @@ public class CopyRpValue extends AbstractAction implements ContextAwareAction, S
     public void actionPerformed(ActionEvent e)
     {
         SS_SelectionUtilities selection = cap.getSelection();
+        performAction(selection);
+    }
+
+    @Override
+    public void selectionChange(SS_SelectionUtilities selection)
+    {
+        setEnabled(isEnabled(selection));
+    }
+
+    /**
+     * Make the method accessible to Copy action.
+     *
+     * @param selection
+     * @return
+     */
+    static protected void performAction(SS_SelectionUtilities selection)
+    {
         assert selection.isRhythmParameterSelected() : "selection=" + selection;
         var sptps = selection.getSelectedSongPartParameters();
 
@@ -117,8 +140,13 @@ public class CopyRpValue extends AbstractAction implements ContextAwareAction, S
         editor.selectRhythmParameter(spt0, rp0, true);
     }
 
-    @Override
-    public void selectionChange(SS_SelectionUtilities selection)
+    /**
+     * Make the method accessible to Copy action.
+     *
+     * @param selection
+     * @return
+     */
+    static protected boolean isEnabled(SS_SelectionUtilities selection)
     {
         boolean b = false;
         if (selection.isRhythmParameterSelected() && selection.isContiguousSptSelection())
@@ -132,8 +160,7 @@ public class CopyRpValue extends AbstractAction implements ContextAwareAction, S
                     .findAny();
             b = opt.isEmpty();
         }
-
-        setEnabled(b);
+        return b;
     }
 
 }

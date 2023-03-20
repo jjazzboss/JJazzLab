@@ -39,7 +39,6 @@ import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.util.api.FloatRange;
 import org.jjazz.util.api.IntRange;
-import org.jjazz.util.api.SmallMap;
 
 /**
  * A SongStructure manages SongParts.

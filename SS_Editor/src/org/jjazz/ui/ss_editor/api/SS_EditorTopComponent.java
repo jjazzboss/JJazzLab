@@ -49,6 +49,7 @@ import org.jjazz.ui.ss_editor.SS_EditorImpl;
 import org.jjazz.ui.ss_editor.SS_EditorToolBar;
 import org.jjazz.ui.utilities.api.Zoomable;
 import org.jjazz.util.api.ResUtil;
+import org.openide.awt.Actions;
 import org.openide.windows.Mode;
 import static org.openide.windows.TopComponent.PERSISTENCE_NEVER;
 import org.openide.windows.WindowManager;
@@ -126,6 +127,14 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
         initComponents();
 
         updateTabName();
+
+
+        // Note: since NB 17 (?), these actions also need to be in the TopComponent ActionMap, in addition to the ActionMap in Lookup (see SS_EditorController.java).        
+        getActionMap().put("cut-to-clipboard", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.cut"));
+        getActionMap().put("copy-to-clipboard", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.copy"));
+        getActionMap().put("paste-from-clipboard", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.paste"));
+
+
     }
 
     /**
@@ -144,7 +153,7 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
             actions.add(null);   // Separator         
         }
         Collections.addAll(actions, super.getActions());// Get the standard builtin actions Close, Close All, Close Other      
-        return actions.toArray(new Action[0]);
+        return actions.toArray(Action[]::new);
     }
 
     @Override
@@ -218,16 +227,11 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
     static public SS_EditorTopComponent get(SongStructure sgs)
     {
         Set<TopComponent> tcs = TopComponent.getRegistry().getOpened();
-        for (Iterator<TopComponent> it = tcs.iterator(); it.hasNext();)
+        for (TopComponent tc : tcs)
         {
-            TopComponent tc = it.next();
-            if (tc instanceof SS_EditorTopComponent)
+            if (tc instanceof SS_EditorTopComponent ssTc && ssTc.getEditor().getModel() == sgs)
             {
-                SS_EditorTopComponent ssTc = (SS_EditorTopComponent) tc;
-                if (ssTc.getEditor().getModel() == sgs)
-                {
-                    return ssTc;
-                }
+                return ssTc;
             }
         }
         return null;
@@ -262,43 +266,38 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
     {
 
         // Try to restore zoom factor X from client property, or zoom to fit width
-        Runnable r = new Runnable()
+        Runnable r = () -> 
         {
-            @Override
-            public void run()
+            String str = songModel.getClientProperty(SS_EditorImpl.PROP_ZOOM_FACTOR_X, null);
+            if (str != null)
             {
-                String str = songModel.getClientProperty(SS_EditorImpl.PROP_ZOOM_FACTOR_X, null);
-                if (str != null)
+                int zfx = -1;
+                try
                 {
-                    int zfx = -1;
-                    try
-                    {
-                        zfx = Integer.valueOf(str);
-                    } catch (NumberFormatException e)
-                    {
-                        // Nothing
-                    }
-                    if (zfx < 0 || zfx > 100)
-                    {
-                        LOGGER.log(Level.WARNING, "SS_EditorController() Invalid zoom factor X client property={0} in song={1}",
-                                new Object[]
-                                {
-                                    str,
-                                    ssEditor.getSongModel().getName()
-                                });
-                    } else
-                    {
-                        Zoomable zoomable = ssEditor.getLookup().lookup(Zoomable.class);
-                        if (zoomable != null)
-                        {
-                            zoomable.setZoomXFactor(zfx, false);    // This will mark songModel as modified via Song.putClientProperty()
-                        }
-                    }
+                    zfx = Integer.parseInt(str);
+                } catch (NumberFormatException e)
+                {
+                    // Nothing
+                }
+                if (zfx < 0 || zfx > 100)
+                {
+                    LOGGER.log(Level.WARNING, "SS_EditorController() Invalid zoom factor X client property={0} in song={1}",
+                            new Object[]
+                            {
+                                str,
+                                ssEditor.getSongModel().getName()
+                            });
                 } else
                 {
-                    ssEditor.setZoomHFactorToFitWidth(SS_EditorTopComponent.this.getWidth());   // This will mark songModel as modified via Song.putClientProperty()
+                    Zoomable zoomable = ssEditor.getLookup().lookup(Zoomable.class);
+                    if (zoomable != null)
+                    {
+                        zoomable.setZoomXFactor(zfx, false);    // This will mark songModel as modified via Song.putClientProperty()
+                    }
                 }
-
+            } else
+            {
+                ssEditor.setZoomHFactorToFitWidth(SS_EditorTopComponent.this.getWidth());   // This will mark songModel as modified via Song.putClientProperty()
             }
         };
         // If invokeLater is not used layout is not yet performed and components size are = 0 !

@@ -40,6 +40,7 @@ import org.openide.awt.UndoRedo;
 import org.openide.util.Lookup;
 import org.openide.windows.TopComponent;
 import org.jjazz.util.api.ResUtil;
+import org.openide.awt.Actions;
 import org.openide.util.Utilities;
 import org.openide.windows.Mode;
 import org.openide.windows.WindowManager;
@@ -106,6 +107,13 @@ public final class CL_EditorTopComponent extends TopComponent implements Propert
         initComponents();
 
         updateTabName();
+        
+        
+        // Note: since NB 17 (?), these actions also need to be in the TopComponent ActionMap,  in addition to the ActionMap in Lookup (see CL_EditorController.java)
+        getActionMap().put("cut-to-clipboard", Actions.forID("JJazz", "org.jjazz.ui.cl_editor.actions.cut"));
+        getActionMap().put("copy-to-clipboard", Actions.forID("JJazz", "org.jjazz.ui.cl_editor.actions.copy"));
+        getActionMap().put("paste-from-clipboard", Actions.forID("JJazz", "org.jjazz.ui.cl_editor.actions.paste"));
+        
     }
 
     @Override

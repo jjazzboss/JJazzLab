@@ -387,6 +387,11 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
         return actions.toArray(new Action[0]);
     }
 
+    /**
+     * Return the PianoRollEditor lookup.
+     *
+     * @return
+     */
     @Override
     public Lookup getLookup()
     {

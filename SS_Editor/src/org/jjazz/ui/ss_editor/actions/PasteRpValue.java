@@ -29,7 +29,6 @@ import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.stream.Collectors;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import static javax.swing.Action.ACCELERATOR_KEY;
@@ -57,9 +56,10 @@ import static org.jjazz.ui.utilities.api.Utilities.getGenericControlKeyStroke;
 import org.jjazz.util.api.ResUtil;
 
 /**
- * Paste RhythmParameter values.
+ * Paste RpValue action.
  * <p>
- * @todo Improve paste: should work if song part selected, and possible to past 1 value to multiple song parts
+ * This action is directly used when triggered by the RhythmParameter menu entry. Ctrl-V keyboard shortcut is handled by the Paste action
+ * which reuses some of our methods if needed (when RhythmParameters are selected).
  */
 @ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.pasterpvalue")
 @ActionRegistration(displayName = "#CTL_PasteRpValue", lazy = false)
@@ -72,7 +72,7 @@ public class PasteRpValue extends AbstractAction implements ContextAwareAction, 
 
     private Lookup context;
     private SS_ContextActionSupport cap;
-    private final String undoText = ResUtil.getString(getClass(), "CTL_PasteRpValue");
+    private final static String UNDO_TEXT = ResUtil.getString(PasteRpValue.class, "CTL_PasteRpValue");
 
     public PasteRpValue()
     {
@@ -84,7 +84,7 @@ public class PasteRpValue extends AbstractAction implements ContextAwareAction, 
         this.context = context;
         cap = SS_ContextActionSupport.getInstance(this.context);
         cap.addListener(this);
-        putValue(NAME, undoText);
+        putValue(NAME, UNDO_TEXT);
         putValue(ACCELERATOR_KEY, getGenericControlKeyStroke(KeyEvent.VK_V));
         RpValueCopyBuffer buffer = RpValueCopyBuffer.getInstance();
         buffer.addChangeListener(this);
@@ -101,7 +101,37 @@ public class PasteRpValue extends AbstractAction implements ContextAwareAction, 
     public void actionPerformed(ActionEvent e)
     {
         SS_SelectionUtilities selection = cap.getSelection();
-        SongStructure sgs = selection.getModel();
+        performAction(selection);
+    
+    }
+
+    @Override
+    public void selectionChange(SS_SelectionUtilities selection)
+    {
+        setEnabled(isEnabled(selection));
+    }
+
+    /**
+     * Make the method accessible to Paste action.
+     *
+     * @param selection
+     * @return
+     */
+    static protected boolean isEnabled(SS_SelectionUtilities selection)
+    {
+        RpValueCopyBuffer buffer = RpValueCopyBuffer.getInstance();
+        boolean b = !getPastableSongParts(selection, buffer.getRhythm(), buffer.getRhythmParameter()).isEmpty();
+        return b;
+    }
+    
+     /**
+     * Make the method accessible to Paste action.
+     *
+     * @param selection
+     */
+    static protected void performAction(SS_SelectionUtilities selection)
+    {
+            SongStructure sgs = selection.getModel();
 
         var buffer = RpValueCopyBuffer.getInstance();
         var r = buffer.getRhythm();
@@ -112,7 +142,7 @@ public class PasteRpValue extends AbstractAction implements ContextAwareAction, 
 
 
         JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(sgs);
-        um.startCEdit(undoText);
+        um.startCEdit(UNDO_TEXT);
 
 
         if (selSpts.size() == 1)
@@ -158,17 +188,8 @@ public class PasteRpValue extends AbstractAction implements ContextAwareAction, 
         }
 
 
-        um.endCEdit(undoText);
+        um.endCEdit(UNDO_TEXT);
     }
-
-    @Override
-    public void selectionChange(SS_SelectionUtilities selection)
-    {
-        RpValueCopyBuffer buffer = RpValueCopyBuffer.getInstance();
-        boolean b = !getPastableSongParts(selection, buffer.getRhythm(), buffer.getRhythmParameter()).isEmpty();
-        setEnabled(b);
-    }
-
 
     // =======================================================================
     // ChangeListener interface
@@ -193,7 +214,7 @@ public class PasteRpValue extends AbstractAction implements ContextAwareAction, 
     // =======================================================================
     // Private methods
     // =======================================================================
-    private List<SongPart> getPastableSongParts(SS_SelectionUtilities selection, Rhythm r, RhythmParameter<?> rp)
+    static private List<SongPart> getPastableSongParts(SS_SelectionUtilities selection, Rhythm r, RhythmParameter<?> rp)
     {
         List<SongPart> res;
 

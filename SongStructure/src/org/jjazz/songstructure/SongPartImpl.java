@@ -79,7 +79,7 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
     /**
      * The value associated to each RhythmParameter.
      */
-    private SmallMap<RhythmParameter<?>, Object> mapRpValue = new SmallMap<>();
+    private final SmallMap<RhythmParameter<?>, Object> mapRpValue = new SmallMap<>();
     /**
      * Our container. Must be transient to avoid circular dependency at deserialization.
      */
@@ -341,7 +341,7 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
         sb.append(toString()).append("\n");
         for (RhythmParameter<?> rp : rhythm.getRhythmParameters())
         {
-            sb.append("  " + rp + ":" + this.mapRpValue.getValue(rp) + "\n");
+            sb.append("  ").append(rp).append(":").append(this.mapRpValue.getValue(rp)).append("\n");
         }
         return sb.toString();
     }
@@ -378,9 +378,9 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
     // ------------------------------------------------------------------------------
     // Implementation of interface Transferable
     // ------------------------------------------------------------------------------
-    private static DataFlavor flavor = DATA_FLAVOR;
+    private static final DataFlavor flavor = DATA_FLAVOR;
 
-    private static DataFlavor[] supportedFlavors =
+    private static final DataFlavor[] supportedFlavors =
     {
         DATA_FLAVOR,
         DataFlavor.stringFlavor
@@ -395,11 +395,7 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
     @Override
     public boolean isDataFlavorSupported(DataFlavor fl)
     {
-        if (fl.equals(DATA_FLAVOR) || fl.equals(DataFlavor.stringFlavor))
-        {
-            return true;
-        }
-        return false;
+        return fl.equals(DATA_FLAVOR) || fl.equals(DataFlavor.stringFlavor);
     }
 
     @Override
@@ -448,7 +444,7 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
         /**
          * To avoid multiple error messages when one rhythm is not available, store it here for the session.
          */
-        private static transient List<String> saveUnavailableRhythmIds = new ArrayList<>();
+        private static final transient List<String> saveUnavailableRhythmIds = new ArrayList<>();
 
         private final int spVERSION = 1;
         private final String spRhythmId;
@@ -499,7 +495,7 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
             // Restore the rhythm
             String errRhythm = null;
             RhythmDatabase rdb = RhythmDatabase.getDefault();
-            Rhythm r = null;
+            Rhythm r;
             try
             {
                 r = rdb.getRhythmInstance(spRhythmId);
@@ -507,14 +503,21 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
             } catch (UnavailableRhythmException ex1)
             {
                 // Problem ! The saved rhythm does not exist on the system, need to find another one
-                LOGGER.warning("readResolve() Can't get rhythm instance for rhythm id=" + spRhythmId + ". ex1=" + ex1.getMessage());
+                LOGGER.log(Level.WARNING, "readResolve() Can''t get rhythm instance for rhythm id={0}. ex1={1}", new Object[]
+                {
+                    spRhythmId,
+                    ex1.getMessage()
+                });
                 RhythmInfo ri = rdb.getDefaultRhythm(spRhythmTs);
                 try
                 {
                     r = rdb.getRhythmInstance(ri);
                 } catch (UnavailableRhythmException ex2)
                 {
-                    LOGGER.warning("readResolve() Can't get rhythm instance for " + ri + ". ex2=" + ex2.getMessage());
+                    LOGGER.log(Level.WARNING, "readResolve() Can''t get rhythm instance for {0}. ex2={1}", new Object[]
+                    {
+                        ri, ex2.getMessage()
+                    });
                     r = rdb.getDefaultStubRhythmInstance(spRhythmTs);   // Can't be null
                 }
                 errRhythm = ResUtil.getString(getClass(), "ERR_RhythmNotFound") + ": " + spRhythmName + ". " + ResUtil.getString(getClass(),
@@ -551,8 +554,13 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
                     }
                     if (newValue == null)
                     {
-                        LOGGER.warning("readResolve() Could not restore value of rhythm parameter " + newRp.getId()
-                                + " from savedRpStringValue='" + savedRpStringValue + "'. Using default value instead.");
+                        LOGGER.log(Level.WARNING,
+                                "readResolve() Could not restore value of rhythm parameter {0} from savedRpStringValue=''{1}''. Using default value instead.",
+                                new Object[]
+                                {
+                                    newRp.getId(),
+                                    savedRpStringValue
+                                });
                         newValue = newRp.getDefaultValue();
                     }
                     newSpt.setRPValue(newRp, newValue);

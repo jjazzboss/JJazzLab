@@ -46,11 +46,17 @@ import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
 import static org.jjazz.ui.utilities.api.Utilities.getGenericControlKeyStroke;
 import org.jjazz.util.api.ResUtil;
 
+
+/**
+ * Manage copy of SongParts and RpValues.
+ * <p>
+ * Triggered by the SongPart menu entry and the CTRL-C keyboard shortcut. If RhythmParameters are selected reuse CopyRpValue methods.
+ */
 @ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.copy")
 @ActionRegistration(displayName = "#CTL_Copy", lazy = false)
 @ActionReferences(
         {
-            @ActionReference(path = "Actions/SongPart", position = 1100),
+            @ActionReference(path = "Actions/SongPart", position = 1100),     // CopyRpValue action will also insert its own entry in Actions/RhythmParameter
         })
 public class Copy extends AbstractAction implements ContextAwareAction, SS_ContextActionListener
 {
@@ -84,6 +90,40 @@ public class Copy extends AbstractAction implements ContextAwareAction, SS_Conte
     public void actionPerformed(ActionEvent e)
     {
         SS_SelectionUtilities selection = cap.getSelection();
+        if (selection.isSongPartSelected())
+        {
+            performSongPartCopyAction(selection);
+        } else
+        {
+            CopyRpValue.performAction(selection);
+        }
+    }
+
+    @Override
+    public void selectionChange(SS_SelectionUtilities selection)
+    {
+        boolean b = false;
+        if (selection.isSongPartSelected())
+        {
+            b = isSongPartCopyEnabled(selection);
+        } else if (selection.isRhythmParameterSelected())
+        {
+            b = CopyRpValue.isEnabled(selection);
+        }
+        setEnabled(b);
+    }
+
+    // =======================================================================================
+    // Private methods
+    // =======================================================================================
+
+    private boolean isSongPartCopyEnabled(SS_SelectionUtilities selection)
+    {
+        return selection.isSongPartSelected() && selection.isContiguousSptSelection();
+    }
+
+    private void performSongPartCopyAction(SS_SelectionUtilities selection)
+    {
         SongPartCopyBuffer buffer = SongPartCopyBuffer.getInstance();
         List<SongPart> spts = selection.getSelectedSongParts();
         buffer.put(spts);
@@ -94,12 +134,6 @@ public class Copy extends AbstractAction implements ContextAwareAction, SS_Conte
         SS_Editor editor = SS_EditorTopComponent.getActive().getEditor();
         editor.selectSongPart(spts.get(0), false);
         editor.selectSongPart(spts.get(0), true);
-    }
-
-    @Override
-    public void selectionChange(SS_SelectionUtilities selection)
-    {
-        setEnabled(selection.isSongPartSelected() && selection.isContiguousSptSelection());
     }
 
 }

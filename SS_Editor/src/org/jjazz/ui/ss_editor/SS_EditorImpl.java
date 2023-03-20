@@ -41,7 +41,9 @@ import java.awt.event.MouseWheelListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.TooManyListenersException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
@@ -157,7 +159,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
     /**
      * Store the visible RPs for each rhythm.
      */
-    private SmallMap<Rhythm, List<RhythmParameter<?>>> mapRhythmVisibleRps;
+    private Map<Rhythm, List<RhythmParameter<?>>> mapRhythmVisibleRps;
     /**
      * Editor settings.
      */
@@ -223,7 +225,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
             LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
         }
 
-        mapRhythmVisibleRps = new SmallMap<>();
+        mapRhythmVisibleRps = new HashMap<>();
 
 
         // Graphical init
@@ -339,14 +341,14 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         {
             throw new IllegalArgumentException("r=" + r + " rps=" + rps + " sortedRps=" + sortedRps);
         }
-        var previousRps = mapRhythmVisibleRps.getValue(r);
+        var previousRps = mapRhythmVisibleRps.get(r);
         if (previousRps != null && previousRps.equals(sortedRps))
         {
             return;
         }
 
         // Store the rps
-        mapRhythmVisibleRps.putValue(r, sortedRps);
+        mapRhythmVisibleRps.put(r, sortedRps);
 
 
         // Update UI
@@ -529,7 +531,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
     @Override
     public void showSptInsertionMark(boolean b, int sptIndex, boolean copyMode)
     {
-        LOGGER.fine("showSptInsertionMark() b=" + b + " sptIndex=" + sptIndex + " copyMode=" + copyMode);
+        LOGGER.log(Level.FINE, "showSptInsertionMark() b={0} sptIndex={1} copyMode={2}", new Object[]{b, sptIndex, copyMode});
         if (!b)
         {
             panel_SongParts.remove(insertionMark);
@@ -562,12 +564,12 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
             throw new IllegalArgumentException("r=" + r + " sgsModel=" + sgsModel);
         }
 
-        List<RhythmParameter<?>> rps = mapRhythmVisibleRps.getValue(r);
+        List<RhythmParameter<?>> rps = mapRhythmVisibleRps.get(r);
         if (rps == null)
         {
             // Show all the RhythmParameters by default
             rps = r.getRhythmParameters();
-            mapRhythmVisibleRps.putValue(r, rps);
+            mapRhythmVisibleRps.put(r, rps);
         }
 
         List<RhythmParameter<?>> newRps = new ArrayList<>();

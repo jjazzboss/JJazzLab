@@ -25,10 +25,11 @@ package org.jjazz.ui.colorsetmanager;
 import java.awt.Color;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.prefs.Preferences;
 import javax.swing.event.SwingPropertyChangeSupport;
-import org.jjazz.util.api.SmallMap;
 import org.openide.util.NbPreferences;
 import org.jjazz.ui.colorsetmanager.api.ColorSetManager;
 import org.jjazz.upgrade.api.UpgradeManager;
@@ -45,7 +46,7 @@ public class ColorSetManagerImpl implements ColorSetManager
     private final Color c4 = new Color(206, 193, 155);
     private final Color c5 = new Color(178, 155, 136);
     private final Color c6 = new Color(151, 202, 195);
- // Obtained from Paletton.com http://paletton.com/#uid=7000u0kbRt14+E48dwffUpTkImm    
+    // Obtained from Paletton.com http://paletton.com/#uid=7000u0kbRt14+E48dwffUpTkImm    
 //    private final Color c1 = new Color(0x63, 0x76, 0x8F);
 //    private final Color c2 = new Color(0xAD, 0x8E, 0x92);
 //    private final Color c3 = new Color(0xDB, 0xAF, 0x79);
@@ -66,7 +67,7 @@ public class ColorSetManagerImpl implements ColorSetManager
     /**
      * Associate an identifier to a color index.
      */
-    private SmallMap<String, Integer> mapIdColor = new SmallMap<>();
+    private final Map<String, Integer> mapIdColor = new HashMap<>();
     /**
      * Current colorIndex
      */
@@ -74,7 +75,7 @@ public class ColorSetManagerImpl implements ColorSetManager
     /**
      * Listeners for reference colors changes.
      */
-    private SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    private final SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
 
     static public ColorSetManagerImpl getInstance()
     {
@@ -96,12 +97,12 @@ public class ColorSetManagerImpl implements ColorSetManager
     @Override
     public Color getColor(String id)
     {
-        Integer index = mapIdColor.getValue(id.toUpperCase());
+        Integer index = mapIdColor.get(id.toUpperCase());
         if (index == null)
         {
             colorIndex = (colorIndex + 1) % NB_COLORS;
             index = colorIndex;
-            mapIdColor.putValue(id.toUpperCase(), colorIndex);
+            mapIdColor.put(id.toUpperCase(), colorIndex);
         }
         return getReferenceColors().get(index);
     }
@@ -109,7 +110,7 @@ public class ColorSetManagerImpl implements ColorSetManager
     @Override
     public void resetColor(String id)
     {
-        Integer index = mapIdColor.getValue(id.toUpperCase());
+        Integer index = mapIdColor.get(id.toUpperCase());
         if (index != null)
         {
             mapIdColor.remove(id.toUpperCase());
@@ -130,30 +131,23 @@ public class ColorSetManagerImpl implements ColorSetManager
     @Override
     public Color getReferenceColor(int index)
     {
-        Color c;
-        switch (index)
+
+        Color c = switch (index)
         {
-            case 0:
-                c = new Color(prefs.getInt(COLOR_PROP_PREFIX + index, c1.getRGB()));
-                break;
-            case 1:
-                c = new Color(prefs.getInt(COLOR_PROP_PREFIX + index, c2.getRGB()));
-                break;
-            case 2:
-                c = new Color(prefs.getInt(COLOR_PROP_PREFIX + index, c3.getRGB()));
-                break;
-            case 3:
-                c = new Color(prefs.getInt(COLOR_PROP_PREFIX + index, c4.getRGB()));
-                break;
-            case 4:
-                c = new Color(prefs.getInt(COLOR_PROP_PREFIX + index, c5.getRGB()));
-                break;
-            case 5:
-                c = new Color(prefs.getInt(COLOR_PROP_PREFIX + index, c6.getRGB()));
-                break;
-            default:
-                throw new IllegalArgumentException("index=" + index + " NB_COLORS=" + NB_COLORS);   
-        }
+            case 0 ->
+                new Color(prefs.getInt(COLOR_PROP_PREFIX + index, c1.getRGB()));
+            case 1 ->
+                new Color(prefs.getInt(COLOR_PROP_PREFIX + index, c2.getRGB()));
+            case 2 ->
+                new Color(prefs.getInt(COLOR_PROP_PREFIX + index, c3.getRGB()));
+            case 3 ->
+                new Color(prefs.getInt(COLOR_PROP_PREFIX + index, c4.getRGB()));
+            case 4 ->
+                new Color(prefs.getInt(COLOR_PROP_PREFIX + index, c5.getRGB()));
+            case 5 ->
+                new Color(prefs.getInt(COLOR_PROP_PREFIX + index, c6.getRGB()));
+            default -> throw new IllegalArgumentException("index=" + index + " NB_COLORS=" + NB_COLORS);
+        };
         return c;
     }
 
@@ -162,7 +156,7 @@ public class ColorSetManagerImpl implements ColorSetManager
     {
         if (c == null || index < 0 || index >= NB_COLORS)
         {
-            throw new IllegalArgumentException("index=" + index + " c=" + c);   
+            throw new IllegalArgumentException("index=" + index + " c=" + c);
         }
         Color oldColor = getReferenceColor(index);
         prefs.putInt(COLOR_PROP_PREFIX + index, c.getRGB());

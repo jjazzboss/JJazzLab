@@ -22,7 +22,8 @@
  */
 package org.jjazz.undomanager.api;
 
-import org.jjazz.util.api.SmallMap;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Stores JJazzUndoManager instances, e.g. one per song.
@@ -31,8 +32,8 @@ public class JJazzUndoManagerFinder
 {
 
     private static JJazzUndoManagerFinder INSTANCE;
-    private JJazzUndoManager defaultUndoManager;
-    private SmallMap<Object, JJazzUndoManager> map;
+    private final JJazzUndoManager defaultUndoManager;
+    private final Map<Object, JJazzUndoManager> map;
 
     public static JJazzUndoManagerFinder getDefault()
     {
@@ -48,7 +49,7 @@ public class JJazzUndoManagerFinder
 
     private JJazzUndoManagerFinder()
     {
-        map = new SmallMap<>();
+        map = new HashMap<>();
         defaultUndoManager = new JJazzUndoManager();
     }
 
@@ -61,7 +62,7 @@ public class JJazzUndoManagerFinder
     public void put(Object key, JJazzUndoManager um)
     {
         assert um != null && key != null;   
-        map.putValue(key, um);
+        map.put(key, um);
     }
     
     public void remove(Object key)
@@ -77,7 +78,7 @@ public class JJazzUndoManagerFinder
      */
     public JJazzUndoManager get(Object key)
     {
-        return map.getValue(key);
+        return map.get(key);
     }
 
     public JJazzUndoManager getDefaultUndoManager()

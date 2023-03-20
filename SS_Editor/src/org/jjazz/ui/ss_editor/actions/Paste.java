@@ -53,9 +53,9 @@ import static org.jjazz.ui.utilities.api.Utilities.getGenericControlKeyStroke;
 import org.jjazz.util.api.ResUtil;
 
 /**
- * Paste SongParts.
- *
- * @author Administrateur
+ * Manage paste of SongParts and RpValues.
+ * <p>
+ * Triggered by the SongPart menu entry and the CTRL-V keyboard shortcut. If RhythmParameters are selected reuse PasteRpValue methods.
  */
 @ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.paste")
 @ActionRegistration(displayName = "#CTL_Paste", lazy = false)
@@ -96,8 +96,55 @@ public class Paste extends AbstractAction implements ContextAwareAction, SS_Cont
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        SongPartCopyBuffer buffer = SongPartCopyBuffer.getInstance();
         SS_SelectionUtilities selection = cap.getSelection();
+        if (selection.isSongPartSelected())
+        {
+            performSongPartPasteAction(selection);
+        } else
+        {
+            PasteRpValue.performAction(selection);
+        }
+    }
+
+    @Override
+    public void selectionChange(SS_SelectionUtilities selection)
+    {
+        boolean b = false;
+        if (selection.isSongPartSelected())
+        {
+            b = isSongPartPasteEnabled(selection);
+        } else if (selection.isRhythmParameterSelected())
+        {
+            b = PasteRpValue.isEnabled(selection);
+        }
+        setEnabled(b);
+    }
+
+    @Override
+    public void stateChanged(ChangeEvent e)
+    {
+        SS_EditorTopComponent tc = SS_EditorTopComponent.getActive();
+        if (tc != null)
+        {
+            SS_SelectionUtilities selection = new SS_SelectionUtilities(tc.getEditor().getLookup());
+            selectionChange(selection);
+        }
+    }
+
+    // =======================================================================================
+    // Private methods
+    // =======================================================================================
+
+    private boolean isSongPartPasteEnabled(SS_SelectionUtilities selection)
+    {
+        SongPartCopyBuffer buffer = SongPartCopyBuffer.getInstance();
+        boolean b = selection.isContiguousSptSelection() && !buffer.isEmpty();
+        return b;
+    }
+
+    private void performSongPartPasteAction(SS_SelectionUtilities selection)
+    {
+        SongPartCopyBuffer buffer = SongPartCopyBuffer.getInstance();
         SongStructure targetSgs = selection.getModel();
         List<SongPart> spts = targetSgs.getSongParts();
         // Paste before first selected spt
@@ -118,23 +165,5 @@ public class Paste extends AbstractAction implements ContextAwareAction, SS_Cont
             }
         }
         um.endCEdit(undoText);
-    }
-
-    @Override
-    public void selectionChange(SS_SelectionUtilities selection)
-    {
-        SongPartCopyBuffer buffer = SongPartCopyBuffer.getInstance();
-        setEnabled(selection.isContiguousSptSelection() && !buffer.isEmpty());
-    }
-
-    @Override
-    public void stateChanged(ChangeEvent e)
-    {
-        SS_EditorTopComponent tc = SS_EditorTopComponent.getActive();
-        if (tc != null)
-        {
-            SS_SelectionUtilities selection = new SS_SelectionUtilities(tc.getEditor().getLookup());
-            selectionChange(selection);
-        }
     }
 }

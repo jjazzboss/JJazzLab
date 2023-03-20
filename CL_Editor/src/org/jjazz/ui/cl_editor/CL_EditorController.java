@@ -131,9 +131,11 @@ public class CL_EditorController implements CL_EditorMouseListener
 
 
         // Our delegates for standard Netbeans callback actions
+        // Note: since NB 17 (?), these actions need also to be in the TopComponent ActionMap!
         editor.getActionMap().put("cut-to-clipboard", Actions.forID("JJazz", "org.jjazz.ui.cl_editor.actions.cut"));
         editor.getActionMap().put("copy-to-clipboard", Actions.forID("JJazz", "org.jjazz.ui.cl_editor.actions.copy"));
         editor.getActionMap().put("paste-from-clipboard", Actions.forID("JJazz", "org.jjazz.ui.cl_editor.actions.paste"));
+
 
         // Delegates for our callback actions        
         editor.getActionMap().put("jjazz-delete", Actions.forID("JJazz", "org.jjazz.ui.cl_editor.actions.deleteitem"));
