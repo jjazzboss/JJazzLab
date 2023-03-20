@@ -22,12 +22,17 @@
  */
 package org.jjazz.leadsheet.chordleadsheet.api.item;
 
+import java.text.ParseException;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.item.CLI_FactoryImpl;
 import org.openide.util.Lookup;
 
-public abstract class CLI_Factory
+/**
+ * A factory for ChordLeadSheetItems.
+ * <p>
+ */
+public interface CLI_Factory
 {
 
     public static CLI_Factory getDefault()
@@ -43,13 +48,13 @@ public abstract class CLI_Factory
     /**
      * Create a Section.
      *
-     * @param cls Can be null.
+     * @param cls         Can be null.
      * @param sectionName
      * @param ts
      * @param barIndex
      * @return
      */
-    abstract public CLI_Section createSection(ChordLeadSheet cls, String sectionName, TimeSignature ts, int barIndex);
+    CLI_Section createSection(ChordLeadSheet cls, String sectionName, TimeSignature ts, int barIndex);
 
     /**
      * Create a CLI_ChordSymbol.
@@ -59,9 +64,20 @@ public abstract class CLI_Factory
      * @param pos
      * @return
      */
-    abstract public CLI_ChordSymbol createChordSymbol(ChordLeadSheet cls, ExtChordSymbol cs, Position pos);
+    CLI_ChordSymbol createChordSymbol(ChordLeadSheet cls, ExtChordSymbol cs, Position pos);
 
-    abstract public CLI_Section getSampleSection();
+    /**
+     * Create a CLI_ChordSymbol from a string specification.
+     * <p>
+     * Use default values for non specified attributes.
+     *
+     * @param chordSymbol E.g. "C" or "Bb7#5"
+     * @return
+     * @throws java.text.ParseException If chord symbol specification is invalid
+     */
+    CLI_ChordSymbol createChordSymbol(String chordSymbol) throws ParseException;
 
-    abstract public CLI_ChordSymbol getSampleChordSymbol();
+    CLI_Section getSampleSection();
+
+    CLI_ChordSymbol getSampleChordSymbol();
 }

@@ -25,15 +25,17 @@ package org.jjazz.leadsheet.chordleadsheet.item;
 import java.text.ParseException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jjazz.harmony.api.ChordSymbol;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Factory;
+import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 
-public class CLI_FactoryImpl extends CLI_Factory
+public class CLI_FactoryImpl implements CLI_Factory
 {
 
     private static CLI_FactoryImpl INSTANCE;
@@ -90,5 +92,14 @@ public class CLI_FactoryImpl extends CLI_Factory
     public CLI_ChordSymbol getSampleChordSymbol()
     {
         return CHORD_SYMBOL_SAMPLE;
+    }
+
+    @Override
+    public CLI_ChordSymbol createChordSymbol(String chordSymbol) throws ParseException
+    {
+        ChordSymbol cs = new ChordSymbol(chordSymbol);
+        ExtChordSymbol ecs = new ExtChordSymbol(cs, new ChordRenderingInfo(), null, null);
+        var cli = new CLI_ChordSymbolImpl(ecs, new Position());
+        return cli;
     }
 }

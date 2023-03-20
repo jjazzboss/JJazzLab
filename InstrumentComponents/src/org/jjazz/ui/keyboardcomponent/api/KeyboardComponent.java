@@ -39,7 +39,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.JPanel;
-import org.jjazz.util.api.IntRange;
 
 /**
  * A JPanel representing a Piano keyboard with selectable keys.
