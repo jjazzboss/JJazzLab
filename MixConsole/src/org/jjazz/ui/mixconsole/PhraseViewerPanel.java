@@ -30,6 +30,8 @@ import java.awt.Insets;
 import java.awt.LayoutManager;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -37,6 +39,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.jjazz.backgroundsongmusicbuilder.api.ActiveSongMusicBuilder;
+import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.UserRhythmVoice;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.ui.PhraseBirdsEyeViewComponent;
@@ -48,30 +51,31 @@ import org.jjazz.ui.flatcomponents.api.FlatButton;
 import org.jjazz.util.api.ResUtil;
 
 /**
- * A panel to represent the phrase corresponding to a channel.
+ * A panel to represent the phrase corresponding to a RhythmVoice.
  * <p>
- * Add edit/close buttons for user channel. Get the phrase from the ActiveSongMusicBuilder.
+ * Get the phrase from the ActiveSongMusicBuilder. Add edit/close buttons for UserRhythmVoice.
  */
-public class PhraseViewerPanel extends PhraseBirdsEyeViewComponent implements ChangeListener
+public class PhraseViewerPanel extends PhraseBirdsEyeViewComponent implements ChangeListener, PropertyChangeListener
 {
 
     private static final Icon ICON_EDIT = new ImageIcon(PhraseViewerPanel.class.getResource("resources/Edit-14x14.png"));
     private static final Icon ICON_CLOSE = new ImageIcon(PhraseViewerPanel.class.getResource("resources/Close14x14.png"));
     private static final Color BORDER_COLOR = new Color(32, 36, 53);
-    private final RhythmVoice rhythmVoice;
+    private RhythmVoice rhythmVoice;
     private final Song song;
-    private final int channel;
     private FlatButton fbtn_edit, fbtn_close;
     private final MixChannelPanelController controller;
+    private final MidiMix midiMix;
 
 
-    public PhraseViewerPanel(Song song, MixChannelPanelController controller, RhythmVoice rv, int channel)
+    public PhraseViewerPanel(Song song, MidiMix mMix, MixChannelPanelController controller, RhythmVoice rv)
     {
         this.rhythmVoice = rv;
         this.song = song;
-        this.channel = channel;
+        this.midiMix = mMix;
         this.controller = controller;
 
+        midiMix.addPropertyChangeListener(this);
 
         var asmb = ActiveSongMusicBuilder.getInstance();
         asmb.addChangeListener(this);
@@ -79,7 +83,6 @@ public class PhraseViewerPanel extends PhraseBirdsEyeViewComponent implements Ch
 
         setPreferredSize(new Dimension(50, 50));        // width will be ignored by MixConsole layout manager        
         setMinimumSize(new Dimension(50, 8));           // width will be ignored by MixConsole layout manager        
-        // setLabel(channel + ": " + rv.getName());
         setOpaque(false);
         setShowVelocityMode(2);
         setBorder(BorderFactory.createLineBorder(BORDER_COLOR));
@@ -103,16 +106,12 @@ public class PhraseViewerPanel extends PhraseBirdsEyeViewComponent implements Ch
     public void cleanup()
     {
         ActiveSongMusicBuilder.getInstance().removeChangeListener(this);
+        midiMix.removePropertyChangeListener(this);
     }
 
     public RhythmVoice getRhythmVoice()
     {
         return rhythmVoice;
-    }
-
-    public int getChannel()
-    {
-        return channel;
     }
 
     //=============================================================================
@@ -122,6 +121,31 @@ public class PhraseViewerPanel extends PhraseBirdsEyeViewComponent implements Ch
     public void stateChanged(ChangeEvent e)
     {
         musicGenerationResultReceived(ActiveSongMusicBuilder.getInstance().getLastResult());
+    }
+
+    //-----------------------------------------------------------------------
+    // Implementation of the PropertiesListener interface
+    //-----------------------------------------------------------------------
+    @SuppressWarnings(
+            {
+                "unchecked", "rawtypes"
+            })
+    @Override
+    public void propertyChange(PropertyChangeEvent e)
+    {
+        if (e.getSource() == midiMix)
+        {
+            if (e.getPropertyName().equals(MidiMix.PROP_RHYTHM_VOICE))
+            {
+                if (rhythmVoice == e.getOldValue())
+                {
+                    rhythmVoice = (RhythmVoice) e.getNewValue();
+                }
+            } else if (e.getPropertyName().equals(MidiMix.PROP_RHYTHM_VOICE_CHANNEL))
+            {
+                // Nothing
+            }
+        }
     }
 
     // ----------------------------------------------------------------------------
@@ -178,7 +202,7 @@ public class PhraseViewerPanel extends PhraseBirdsEyeViewComponent implements Ch
 
     private void closeButtonPressed()
     {
-        controller.editCloseUserChannel(channel);
+        controller.removeUserPhrase((UserRhythmVoice) rhythmVoice);
     }
 
     // ----------------------------------------------------------------------------

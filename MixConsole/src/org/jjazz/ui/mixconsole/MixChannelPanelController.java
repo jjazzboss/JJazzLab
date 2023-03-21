@@ -48,9 +48,9 @@ public interface MixChannelPanelController
     void editUserPhrase(UserRhythmVoice userRhythmVoice);
 
     /**
-     * User asked to close our MixChannelPanel.
+     * User asked to close a MixChannelPanel.
      */
-    void editCloseUserChannel(int channel);
+    void removeUserPhrase(UserRhythmVoice userRhythmVoice);
 
     /**
      * User wants to edit settings of our MixChannelPanel.

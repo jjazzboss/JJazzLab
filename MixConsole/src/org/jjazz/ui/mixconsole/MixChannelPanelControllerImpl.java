@@ -23,9 +23,6 @@
 package org.jjazz.ui.mixconsole;
 
 import com.google.common.base.Preconditions;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.beans.VetoableChangeListener;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.instrumentchooser.spi.InstrumentChooserDialog;
@@ -41,10 +38,8 @@ import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.UserRhythmVoice;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.outputsynth.api.OutputSynthManager;
-import org.jjazz.phrase.api.Phrase;
-import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.song.api.Song;
-import org.jjazz.songeditormanager.api.SongEditorManager;
+import org.jjazz.ui.mixconsole.actions.AddUserTrack;
 import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.util.api.ResUtil;
@@ -53,7 +48,7 @@ import org.openide.NotifyDescriptor;
 import org.openide.awt.StatusDisplayer;
 
 /**
- *
+ * Controller of a MixChannelPanel + associated PhraseViewerPanel.
  */
 public class MixChannelPanelControllerImpl implements MixChannelPanelController
 {
@@ -77,7 +72,7 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
         int newChannel;
         try
         {
-            newChannel = Integer.valueOf(strNewChannel) - 1;
+            newChannel = Integer.parseInt(strNewChannel) - 1;
         } catch (NumberFormatException e)
         {
             return;
@@ -156,122 +151,19 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
     @Override
     public void editUserPhrase(UserRhythmVoice userRhythmVoice)
     {
-        Preconditions.checkNotNull(userRhythmVoice);;
-        
-        LOGGER.log(Level.FINE, "editUserPhrase() userRhythmVoice={0}", new Object[]
-        {
-            userRhythmVoice
-        });
-
-
-        if (song.getSize() == 0)
-        {
-            return;
-        }
-
-
-        String initialPhraseName = userRhythmVoice.getName();
-        int initialChannel = midiMix.getChannel(userRhythmVoice);
-
-
-        // Create editor TopComponent and open it if required
-        DrumKit drumKit = midiMix.getInstrumentMix(userRhythmVoice).getInstrument().getDrumKit();
-        DrumKit.KeyMap keyMap = drumKit == null ? null : drumKit.getKeyMap();
-        var userPhrase = song.getUserPhrase(initialPhraseName);
-        var preTc = SongEditorManager.getInstance().showPianoRollEditor(song);
-        preTc.setModelForUserPhrase(userPhrase, initialChannel, keyMap);
-        preTc.setTitle(buildPianoRollEditorTitle(initialPhraseName, initialChannel));
-
-
-        // Prepare listeners to:
-        // - Stop listening when editor is destroyed or its model is changed  
-        // - Update title if phrase name or channel is changed
-        // - Remove PianoRollEditor if user phrase is removed
-        var editor = preTc.getEditor();
-        VetoableChangeListener vcl = evt -> 
-        {
-            if (evt.getSource() == song)
-            {
-                if (evt.getPropertyName().equals(Song.PROP_VETOABLE_USER_PHRASE))
-                {
-                    // Close the editor if our phrase is removed
-                    if (evt.getOldValue() instanceof String && evt.getNewValue() instanceof Phrase p && p == userPhrase)
-                    {
-                        preTc.close();
-                    }
-                }
-            }
-        };
-
-        PropertyChangeListener pcl = new PropertyChangeListener()
-        {
-            @Override
-            public void propertyChange(PropertyChangeEvent evt)
-            {
-                // LOGGER.severe("editUserPhrase.propertyChange() e=" + Utilities.toDebugString(evt));
-                if (evt.getSource() == editor)
-                {
-                    switch (evt.getPropertyName())
-                    {
-                        case PianoRollEditor.PROP_MODEL_PHRASE, PianoRollEditor.PROP_EDITOR_ALIVE ->
-                        {
-                            editor.removePropertyChangeListener(this);
-                            midiMix.removePropertyChangeListener(this);
-                            song.removeVetoableChangeListener(vcl);
-                        }
-                    }
-                } else if (evt.getSource() == midiMix)
-                {
-                    if (evt.getPropertyName().equals(MidiMix.PROP_RHYTHM_VOICE))
-                    {
-                        // Used for UserRhythmVoice name change
-                        var newRv = (RhythmVoice) evt.getNewValue();
-                        var newRvName = newRv.getName();
-                        if (newRv instanceof UserRhythmVoice && song.getUserPhrase(newRvName) == userPhrase)
-                        {
-                            int channel = midiMix.getChannel(newRv);                // Normally unchanged
-                            preTc.setTitle(buildPianoRollEditorTitle(newRvName, channel));
-                        }
-
-                    } else if (evt.getPropertyName().equals(MidiMix.PROP_RHYTHM_VOICE_CHANNEL))
-                    {
-                        // Used to change channel of a RhythmVoice
-                        int newChannel = (int) evt.getNewValue();
-                        var rv = midiMix.getRhythmVoice(newChannel);
-                        var rvName = rv.getName();
-                        if (rv instanceof UserRhythmVoice && song.getUserPhrase(rvName) == userPhrase)
-                        {
-                            preTc.setModelForUserPhrase(userPhrase, newChannel, keyMap);
-                            preTc.setTitle(buildPianoRollEditorTitle(rvName, newChannel));
-                        }
-                    }
-                }
-            }
-        };
-
-
-        editor.addPropertyChangeListener(pcl);
-        midiMix.addPropertyChangeListener(pcl);
-        song.addVetoableChangeListener(vcl);
-
-
-        preTc.requestActive();
-
+        AddUserTrack.editUserPhrase(song, midiMix, userRhythmVoice);
     }
 
 
     @Override
-    public void editCloseUserChannel(int channel)
+    public void removeUserPhrase(UserRhythmVoice urv)
     {
-        RhythmVoice rv = midiMix.getRhythmVoice(channel);
-        assert rv instanceof UserRhythmVoice : " channel=" + channel + " midiMix=" + midiMix;
-
         String undoText = "Remove user track";
 
         JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(song);
         um.startCEdit(undoText);
 
-        song.removeUserPhrase(rv.getName());
+        song.removeUserPhrase(urv.getName());
 
         um.endCEdit(undoText);
     }
@@ -354,6 +246,12 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
         insMix.setInstrument(ins);
     }
 
+   
+
+    // ----------------------------------------------------------------------------
+    // Private methods
+    // ----------------------------------------------------------------------------
+
     private String buildSettingsTitle(int channel)
     {
         StringBuilder title = new StringBuilder(ResUtil.getString(getClass(), "MixChannelPanelControllerImpl.DialogTitle", channel + 1));
@@ -363,14 +261,9 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
             title.append(" - ").append(ResUtil.getString(getClass(), "MixChannelPanelControllerImpl.User"));
         } else
         {
-            title.append(" - " + rv.getContainer().getName() + " - " + rv.getName());
+            title.append(" - ").append(rv.getContainer().getName()).append(" - ").append(rv.getName());
         }
         return title.toString();
-    }
-
-    private String buildPianoRollEditorTitle(String phraseName, int channel)
-    {
-        return ResUtil.getString(getClass(), "UserTrackTitle", phraseName, channel + 1);
     }
 
 }

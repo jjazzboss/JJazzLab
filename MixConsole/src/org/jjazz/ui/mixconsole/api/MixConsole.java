@@ -503,14 +503,14 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
                 }
                 case MidiMix.PROP_RHYTHM_VOICE ->
                 {
-                    // Handled directly by the MixChannelPanelModel
+                    // Handled directly by the MixChannelPanelModel and PhraseViewerPanel
                 }
                 case MidiMix.PROP_RHYTHM_VOICE_CHANNEL ->
                 {
                     // MixChannelPanelModel will handle the display, but need to relayout
+                    changeChannel((int) e.getOldValue(), (int) e.getNewValue());
                     panel_mixChannels.revalidate();
                     panel_mixChannels.repaint();
-
                 }
                 case MidiMix.PROP_MODIFIED_OR_SAVED ->
                 {
@@ -582,35 +582,35 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         }
         songModel = song;
 
-        
+
         // Connect the song UndoManager to the MidiMix
         UndoManager um = JJazzUndoManagerFinder.getDefault().get(songModel);
         assert um != null;
         songMidiMix.addUndoableEditListener(um);
 
-        
+
         // Update the combobox
         updateVisibleRhythmUI();
 
-        
+
         // Restore enabled state depe
         MidiMix activeMix = ActiveSongManager.getInstance().getActiveMidiMix();
         updateActiveState(activeMix == songMidiMix);
 
-        
+
         // Update our lookup
         instanceContent.add(songMidiMix);
         instanceContent.add(songModel);
 
-        
+
         // Update the console with MidiMix changes
         songMidiMix.addPropertyChangeListener(this);
 
-        
+
         // Update the TransferHandler
         panel_mixChannels.setTransferHandler(new MidiFileDragOutTransferHandler(songModel, songMidiMix, null));
-        
-        
+
+
         // Add the visible channels
         addVisibleChannels();
 
@@ -635,6 +635,16 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
             }
         }
     }
+
+    private void changeChannel(int oldChannel, int newChannel)
+    {
+        var panelSet = getChannelPanelSet(oldChannel);
+        assert panelSet != null;
+        assert getChannelPanelSet(newChannel) == null : "tmapChannelPanelSets=" + tmapChannelPanelSets + " newChannel=" + newChannel;
+        tmapChannelPanelSets.remove(oldChannel);
+        tmapChannelPanelSets.put(newChannel, panelSet);
+    }
+
 
     private void addChannel(int channel)
     {
@@ -664,7 +674,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
 
 
         // Birds-eye-view panel
-        var pvp = new PhraseViewerPanel(songModel, mcpController, rv, channel);
+        var pvp = new PhraseViewerPanel(songModel, songMidiMix, mcpController, rv);
         panelSet.phraseViewerPanel = pvp;
         panel_mixChannels.add(pvp);         // Our layout manager will place it
 
@@ -681,10 +691,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
 
         panel_mixChannels.revalidate();
         panel_mixChannels.repaint();
-
-
     }
-
 
     private void removeChannel(int channel)
     {
