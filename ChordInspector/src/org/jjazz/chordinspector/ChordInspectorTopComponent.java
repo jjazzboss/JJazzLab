@@ -90,7 +90,7 @@ public final class ChordInspectorTopComponent extends TopComponent
      */
     static public ChordInspectorTopComponent getInstance()
     {
-        return (ChordInspectorTopComponent) WindowManager.getDefault().findTopComponent("ChordViewerTopComponentId");
+        return (ChordInspectorTopComponent) WindowManager.getDefault().findTopComponent("ChordInspectorTopComponent");
     }
 
 

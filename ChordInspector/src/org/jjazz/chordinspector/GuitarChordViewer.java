@@ -20,76 +20,92 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.notesviewer.guitar;
+package org.jjazz.chordinspector;
 
 import java.awt.Color;
 import java.awt.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
-import javax.swing.JLabel;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JComponent;
+import org.jjazz.chordinspector.spi.ChordViewer;
 import org.jjazz.harmony.api.ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
-import org.jjazz.notesviewer.spi.NotesViewer;
+import org.jjazz.midimix.api.MidiMix;
+import org.jjazz.rhythm.api.RhythmVoice;
+import org.jjazz.song.api.Song;
 import org.jjazz.ui.guitardiagramcomponent.api.GuitarDiagramComponent;
 import org.jjazz.ui.guitardiagramcomponent.api.TGChord;
 import org.jjazz.ui.guitardiagramcomponent.api.TGChordCreatorUtil;
 import org.jjazz.ui.guitardiagramcomponent.api.TGChordSettings;
 import org.jjazz.ui.guitardiagramcomponent.api.TGChordSettings.ChordMode;
+import org.netbeans.api.annotations.common.StaticResource;
+import org.openide.util.lookup.ServiceProvider;
 
-public class GuitarNotesViewerComponent extends javax.swing.JPanel
+@ServiceProvider(service = ChordViewer.class, position = 100)
+public class GuitarChordViewer extends javax.swing.JPanel implements ChordViewer
 {
 
-
+    @StaticResource(relative = true)
+    final private static String ICON_PATH = "resources/DiagramIcon.png";
+    final private static Icon ICON = new ImageIcon(GuitarChordViewer.class.getResource(ICON_PATH));
     private static final Color TONIC_NOTE_COLOR = new Color(231, 83, 35);
-    private final GuitarNotesViewer notesViewer;
-    private ChordSymbol lastChordSymbol;
+    private CLI_ChordSymbol model;
     private final int maxFretSpan = 4;
-    private static final Logger LOGGER = Logger.getLogger(GuitarNotesViewerComponent.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(GuitarChordViewer.class.getSimpleName());
 
-    /**
-     * Creates new form PianoViewerComponent
-     */
-    public GuitarNotesViewerComponent(GuitarNotesViewer viewer)
+    public GuitarChordViewer()
     {
-        notesViewer = viewer;
         initComponents();
 
         fbtn_chordMode.setText(TGChordSettings.getInstance().getChordMode().toString());
     }
 
-    public void clear()
-    {
-        updateDiagrams(null);
-        revalidate();
-        repaint();
-    }
 
-    public void setMode(NotesViewer.Mode mode)
+    // ===================================================================================
+    // ChordViewer interface
+    // ===================================================================================
+    @Override
+    public JComponent getComponent()
     {
-        switch (mode)
-        {
-            case ShowBackingTrack:
-                pnl_instrument.removeAll();
-                pnl_instrument.add(new JLabel("Not supported"));
-                break;
-            case ShowSelection:
-                clear();
-                break;
-            default:
-                throw new AssertionError(mode.name());
-
-        }
-    }
-
-    public void showDiagrams(CLI_ChordSymbol cliCs)
-    {
-        updateDiagrams(cliCs.getData());
+        return this;
     }
 
     @Override
-    public void setEnabled(boolean b
-    )
+    public String getDescription()
+    {
+        return "Guitar diagrams";
+    }
+
+    @Override
+    public Icon getIcon()
+    {
+        return ICON;
+    }
+
+    @Override
+    public void setContext(Song song, MidiMix midiMix, RhythmVoice rv)
+    {
+        // Nothing
+    }
+
+    @Override
+    public void setModel(CLI_ChordSymbol cliCs)
+    {
+        this.model = cliCs;
+        updateDiagrams(cliCs);
+    }
+
+    @Override
+    public CLI_ChordSymbol getModel()
+    {
+        return model;
+    }
+
+    @Override
+    public void setEnabled(boolean b)
     {
         super.setEnabled(b);
         for (GuitarDiagramComponent diagram : getDiagrams())
@@ -97,26 +113,31 @@ public class GuitarNotesViewerComponent extends javax.swing.JPanel
             diagram.setEnabled(false);
         }
     }
+
+    @Override
+    public void cleanup()
+    {
+        // Nothing
+    }
+
     // ===============================================================================
     // Private methods
     // ===============================================================================
 
-    private void updateDiagrams(ChordSymbol cs)
+    private void updateDiagrams(CLI_ChordSymbol cliCs)
     {
-        lastChordSymbol = cs;
         pnl_instrument.removeAll();
 
-
-        if (cs != null)
+        if (cliCs != null)
         {
+            var cs = cliCs.getData();
             List<TGChord> tgChords = new TGChordCreatorUtil(maxFretSpan).getChords(cs);
-            tgChords.stream().limit(30).forEach(tgChord ->
+            tgChords.stream().limit(30).forEach(tgChord -> 
             {
                 GuitarDiagramComponent diagram = new GuitarDiagramComponent(tgChord, cs);
                 diagram.setTonicNoteColor(TONIC_NOTE_COLOR);
                 pnl_instrument.add(diagram);
-            }
-            );
+            });
         }
 
         revalidate();
@@ -129,17 +150,17 @@ public class GuitarNotesViewerComponent extends javax.swing.JPanel
         var res = new ArrayList<GuitarDiagramComponent>();
         for (Component c : pnl_instrument.getComponents())
         {
-            if (c instanceof GuitarDiagramComponent)
+            if (c instanceof GuitarDiagramComponent gdc)
             {
-                res.add((GuitarDiagramComponent) c);
+                res.add(gdc);
             }
         }
         return res;
     }
 
     /**
-     * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of
-     * this method is always regenerated by the Form Editor.
+     * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of this
+     * method is always regenerated by the Form Editor.
      */
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -154,7 +175,7 @@ public class GuitarNotesViewerComponent extends javax.swing.JPanel
         jScrollPane1.setViewportView(pnl_instrument);
 
         org.openide.awt.Mnemonics.setLocalizedText(fbtn_chordMode, "Most common chords"); // NOI18N
-        fbtn_chordMode.setToolTipText(org.openide.util.NbBundle.getMessage(GuitarNotesViewerComponent.class, "GuitarNotesViewerComponent.fbtn_chordMode.toolTipText")); // NOI18N
+        fbtn_chordMode.setToolTipText(org.openide.util.NbBundle.getMessage(GuitarChordViewer.class, "GuitarChordViewer.fbtn_chordMode.toolTipText")); // NOI18N
         fbtn_chordMode.setFont(fbtn_chordMode.getFont().deriveFont(fbtn_chordMode.getFont().getSize()-2f));
         fbtn_chordMode.setMargin(new java.awt.Insets(2, 5, 2, 5));
         fbtn_chordMode.addActionListener(new java.awt.event.ActionListener()
@@ -189,7 +210,7 @@ public class GuitarNotesViewerComponent extends javax.swing.JPanel
         var tgs = TGChordSettings.getInstance();
         ChordMode mode = tgs.getChordMode().next();
         TGChordSettings.getInstance().setChordMode(mode);
-        updateDiagrams(lastChordSymbol);
+        updateDiagrams(model);
         fbtn_chordMode.setText(mode.toString());
     }//GEN-LAST:event_fbtn_chordModeActionPerformed
 

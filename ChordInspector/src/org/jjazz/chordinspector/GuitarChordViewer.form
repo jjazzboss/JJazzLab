@@ -54,7 +54,7 @@
       <Properties>
         <Property name="text" type="java.lang.String" value="Most common chords" noResource="true"/>
         <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/jjazz/notesviewer/guitar/Bundle.properties" key="GuitarNotesViewerComponent.fbtn_chordMode.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+          <ResourceString bundle="org/jjazz/chordinspector/Bundle.properties" key="GuitarChordViewer.fbtn_chordMode.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
         </Property>
         <Property name="font" type="java.awt.Font" editor="org.netbeans.modules.form.editors2.FontEditor">
           <FontInfo relative="true">

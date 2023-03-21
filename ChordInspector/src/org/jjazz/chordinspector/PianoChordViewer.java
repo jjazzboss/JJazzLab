@@ -36,15 +36,17 @@ import org.jjazz.song.api.Song;
 import org.jjazz.ui.keyboardcomponent.api.KeyboardComponent;
 import org.jjazz.ui.keyboardcomponent.api.KeyboardRange;
 import org.jjazz.ui.keyboardcomponent.api.PianoKey;
+import org.netbeans.api.annotations.common.StaticResource;
 import org.openide.util.lookup.ServiceProvider;
 
 /**
  * A ChordViewer based on a keyboard.
  */
-@ServiceProvider(service = ChordViewer.class, position = 0)
+@ServiceProvider(service = ChordViewer.class, position = 200)
 public class PianoChordViewer extends javax.swing.JPanel implements ChordViewer
 {
 
+    @StaticResource(relative = true)
     final private static String ICON_PATH = "resources/KeyboardIcon.png";
     final private static Icon ICON = new ImageIcon(PianoChordViewer.class.getResource(ICON_PATH));
     private static final Color CHORD_COLOR = new Color(0, 128, 192);
@@ -99,6 +101,13 @@ public class PianoChordViewer extends javax.swing.JPanel implements ChordViewer
     public CLI_ChordSymbol getModel()
     {
         return model;
+    }
+
+    @Override
+    public void setEnabled(boolean b)
+    {
+        super.setEnabled(b);
+        // To do
     }
 
     @Override

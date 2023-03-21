@@ -129,7 +129,7 @@ public class ChordInspectorPanel extends javax.swing.JPanel
         CLI_ChordSymbol model = null;
         if (chordViewer != null)
         {
-            model = cViewer.getModel();
+            model = chordViewer.getModel();
             chordViewer.cleanup();
             mapViewerButton.get(chordViewer).setBorderNothing(BORDER_NOTHING_UNSELECTED);
             mapViewerButton.get(chordViewer).setBorderEntered(BORDER_ENTERED_UNSELECTED);
@@ -137,13 +137,15 @@ public class ChordInspectorPanel extends javax.swing.JPanel
 
 
         chordViewer = cViewer;
-        chordViewer.setModel(model);
-
+        chordViewer.setModel(model); 
+        
 
         pnl_viewer.removeAll();
         pnl_viewer.add(chordViewer.getComponent());
         pnl_viewer.revalidate();
         pnl_viewer.repaint();
+
+        
         mapViewerButton.get(chordViewer).setBorderNothing(BORDER_NOTHING_SELECTED);
         mapViewerButton.get(chordViewer).setBorderEntered(BORDER_ENTERED_SELECTED);
 
