@@ -84,9 +84,8 @@ public final class OpenSong implements ActionListener
     }
 
     /**
-     * Call SongEditorManager.showSong() and notify user if problem.
+     * Calls SongEditorManager.showSong() and notifies user if problem.
      * <p>
-     * Also open the possible file or internet links embedded in the song comments.
      *
      * @param songFile
      * @param makeActive

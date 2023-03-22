@@ -451,26 +451,34 @@ public class MixChannelPanelModelImpl implements MixChannelPanelModel, PropertyC
             }
         } else if (e.getSource() == midiMix)
         {
-            if (e.getPropertyName().equals(MidiMix.PROP_CHANNEL_DRUMS_REROUTED))
+            switch (e.getPropertyName())
             {
-                int channel = (int) e.getOldValue();
-                if (channel == this.channelId)
+                case MidiMix.PROP_CHANNEL_DRUMS_REROUTED ->
                 {
-                    pcs.firePropertyChange(PROP_DRUMS_CHANNEL_REROUTED, e.getOldValue(), e.getNewValue());
+                    int channel = (int) e.getOldValue();
+                    if (channel == this.channelId)
+                    {
+                        pcs.firePropertyChange(PROP_DRUMS_CHANNEL_REROUTED, e.getOldValue(), e.getNewValue());
+                    }
                 }
-            } else if (e.getPropertyName().equals(MidiMix.PROP_RHYTHM_VOICE))
-            {
-                if (rhythmVoice == e.getOldValue())
+                case MidiMix.PROP_RHYTHM_VOICE ->
                 {
-                    rhythmVoiceChanged((RhythmVoice) e.getNewValue());
+                    if (rhythmVoice == e.getOldValue())
+                    {
+                        rhythmVoiceChanged((RhythmVoice) e.getNewValue());
+                    }
                 }
-            } else if (e.getPropertyName().equals(MidiMix.PROP_RHYTHM_VOICE_CHANNEL))
-            {
-                if (e.getOldValue().equals(channelId))
+                case MidiMix.PROP_RHYTHM_VOICE_CHANNEL ->
                 {
-                    int old = channelId;
-                    channelId = (int) e.getNewValue();
-                    pcs.firePropertyChange(PROP_CHANNEL_ID, old, channelId);
+                    if (e.getOldValue().equals(channelId))
+                    {
+                        int old = channelId;
+                        channelId = (int) e.getNewValue();
+                        pcs.firePropertyChange(PROP_CHANNEL_ID, old, channelId);
+                    }
+                }
+                default ->
+                {
                 }
             }
         }
@@ -526,6 +534,8 @@ public class MixChannelPanelModelImpl implements MixChannelPanelModel, PropertyC
 
     private Icon getIcon(RhythmVoice rv)
     {
+        assert rv!=null;
+        
         if (rv instanceof UserRhythmVoice)
         {
             return new ImageIcon(getClass().getResource(USER_ICON_PATH));

@@ -39,6 +39,7 @@ import org.jjazz.midimix.api.UserRhythmVoice;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.outputsynth.api.OutputSynthManager;
 import org.jjazz.song.api.Song;
+import org.jjazz.songeditormanager.api.SongEditorManager;
 import org.jjazz.ui.mixconsole.actions.AddUserTrack;
 import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
@@ -151,7 +152,7 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
     @Override
     public void editUserPhrase(UserRhythmVoice userRhythmVoice)
     {
-        AddUserTrack.editUserPhrase(song, midiMix, userRhythmVoice);
+        SongEditorManager.getInstance().showPianoRollEditorForUserTrack(song, midiMix, userRhythmVoice);
     }
 
 

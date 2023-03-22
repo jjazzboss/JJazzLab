@@ -183,23 +183,20 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
     }
 
     /**
-     * Configure the TopComponent to edit a custom phrase for a song part via its RP_SYS_CustomPhrase rhythm parameter.
+     * Configure the TopComponent to edit a custom phrase of a song part.
      * <p>
+     * This can be used to edit a RP_SYS_CustomPhrase value.
      *
-     * @param spt            Must belong to the song
-     * @param rpCustomPhrase The RP_SYS_CustomPhrase rhythm parameter used by the song part rhythm
-     * @param p              The phrase must start at bar/beat 0 (independently of spt start position)
-     * @param channel        The Midi channel of the edited phrase (p.getChannel() is ignored). Must correspond to a RhythmVoice of the song
-     *                       part rhythm.
-     * @param keyMap         Null for melodic phrase
+     * @param spt     Must belong to the song
+     * @param p       The phrase must start at bar/beat 0 (independently of spt start position)
+     * @param channel The Midi channel of the edited phrase (p.getChannel() is ignored). Must correspond to a RhythmVoice of the song part
+     *                rhythm.
+     * @param keyMap  Null for melodic phrase
      */
-    public void setModelForRP_SYS_CustomPhrase(SongPart spt, RP_SYS_CustomPhrase rpCustomPhrase, Phrase p, int channel, DrumKit.KeyMap keyMap)
+    public void setModelForSongPartCustomPhrase(SongPart spt, Phrase p, int channel, DrumKit.KeyMap keyMap)
     {
         Preconditions.checkNotNull(p);
-        Preconditions.checkNotNull(rpCustomPhrase);
         Preconditions.checkNotNull(spt);
-        Preconditions.checkArgument(spt.getRhythm().getRhythmParameters().contains(rpCustomPhrase), "rpCustomPhrase=%s rhythm=%s",
-                rpCustomPhrase, spt.getRhythm());
         Preconditions.checkArgument(song.getSongStructure().getSongParts().contains(spt));
         Preconditions.checkArgument(midiMix.getUsedChannels(spt.getRhythm()).contains(channel), "channel=%s midiMix=%s", channel, midiMix);
 
@@ -216,7 +213,6 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
 
 
         backgroundPhraseManager.updateTrackNames();
-        backgroundPhraseManager.setRpCustomPhrase(rpCustomPhrase);
     }
 
     /**
@@ -250,7 +246,6 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
 
         refreshToolbarTitle();
         backgroundPhraseManager.updateTrackNames();
-        backgroundPhraseManager.setRpCustomPhrase(null);
     }
 
 
@@ -338,7 +333,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
     }
 
     /**
-     * Check if TopComponent was last configured via setModelForRP_SYS_CustomPhrase().
+     * Check if TopComponent was last configured via setModelForSongPartCustomPhrase().
      *
      * @return
      */
@@ -384,7 +379,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
             actions.add(null);   // Separator         
         }
         Collections.addAll(actions, super.getActions()); // Get the standard builtin actions Close, Close All, Close Other      
-        return actions.toArray(new Action[0]);
+        return actions.toArray(Action[]::new);
     }
 
     /**
@@ -530,8 +525,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
                 setModelForUserPhrase(editor.getModel(), editor.getChannel(), editor.getDrumKeyMap());
             } else
             {
-                setModelForRP_SYS_CustomPhrase(songPart, backgroundPhraseManager.getRpCustomPhrase(), editor.getModel(), editor.getChannel(),
-                        editor.getDrumKeyMap());
+                setModelForSongPartCustomPhrase(songPart, editor.getModel(), editor.getChannel(), editor.getDrumKeyMap());
             }
         }
     }

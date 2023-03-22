@@ -50,7 +50,6 @@ public class BackgroundPhraseManager implements PropertyChangeListener, ChangeLi
     private MusicGenerationQueue.Result lastResult;
     private final PianoRollEditorTopComponent topComponent;
     private final PianoRollEditor editor;
-    private RP_SYS_CustomPhrase rpCustomPhrase;
     private final BackgroundPhrasesPanel backgroundPhrasesPanel;
     private static final Logger LOGGER = Logger.getLogger(BackgroundPhraseManager.class.getSimpleName());
 
@@ -94,17 +93,7 @@ public class BackgroundPhraseManager implements PropertyChangeListener, ChangeLi
         }
         backgroundPhrasesPanel.setTracks(names);        // This will clear selection
     }
-
-    public RP_SYS_CustomPhrase getRpCustomPhrase()
-    {
-        return rpCustomPhrase;
-    }
-
-    public void setRpCustomPhrase(RP_SYS_CustomPhrase rpCustomPhrase)
-    {
-        this.rpCustomPhrase = rpCustomPhrase;
-    }
-
+  
     public void cleanup()
     {
         topComponent.getMidiMix().removePropertyChangeListener(this);

@@ -314,85 +314,22 @@ public class RP_SYS_CustomPhraseEditor extends RpCustomEditor<RP_SYS_CustomPhras
         }
 
 
-        // Create editor TopComponent and open it if required
         Song song = songPartContext.getSong();
-        var spt = songPartContext.getSongPart();
-
-        var preTc = SongEditorManager.getInstance().showPianoRollEditor(song);
-        var editor = preTc.getEditor();
-
-
-        // Update the editor model
-        DrumKit drumKit = getInstrument(rv).getDrumKit();
-        DrumKit.KeyMap keyMap = drumKit == null ? null : drumKit.getKeyMap();
-        int channel = getChannel(rv);
-        preTc.setModelForRP_SYS_CustomPhrase(spt, rp, p, channel, keyMap);
-        String text = ResUtil.getString(getClass(), "RP_SYS_CustomPhraseEditor.customPhraseTitle", rv.getName(), channel + 1);
-        preTc.setTitle(text);
-        preTc.requestActive();
-
-
-        MidiMix mm = null;
+        MidiMix midiMix = null;
         try
         {
-            mm = MidiMixManager.getInstance().findMix(song);
+            midiMix = MidiMixManager.getInstance().findMix(song);
         } catch (MidiUnavailableException ex)
         {
             // Should never happen
             Exceptions.printStackTrace(ex);
-        }
+            return;
+        }        
+        var spt = songPartContext.getSongPart();
 
-
-        // Listen to RP value changes while editor edits our model, and MidiMix for channel changes        
-        final MidiMix midiMix = mm;
-        PropertyChangeListener listener = new PropertyChangeListener()
-        {
-            @Override
-            public void propertyChange(PropertyChangeEvent e)
-            {
-                if (e.getSource() == spt)
-                {
-                    if (e.getPropertyName().equals(SongPart.PROP_RP_VALUE)
-                            && e.getOldValue() == rp
-                            && e.getNewValue() instanceof RP_SYS_CustomPhraseValue newRpValue)
-                    {
-                        // Our rpValue was replaced, check if our customized phrase is still there
-                        Phrase newP = newRpValue.getCustomizedPhrase(rv);
-                        if (newP != p)
-                        {
-                            // It's not there anymore, close the editor
-                            preTc.close();
-                        }
-                    }
-                } else if (e.getSource() == editor)
-                {
-                    switch (e.getPropertyName())
-                    {
-                        case PianoRollEditor.PROP_MODEL_PHRASE, PianoRollEditor.PROP_EDITOR_ALIVE ->
-                        {
-                            editor.removePropertyChangeListener(this);
-                            spt.removePropertyChangeListener(this);
-                            midiMix.removePropertyChangeListener(this);
-                        }
-                    }
-                } else if (e.getSource() == midiMix)
-                {
-                    if (e.getPropertyName().equals(MidiMix.PROP_RHYTHM_VOICE_CHANNEL)
-                            || e.getPropertyName().equals(MidiMix.PROP_RHYTHM_VOICE))
-                    {
-                        int channel = getChannel(rv);
-                        preTc.setModelForRP_SYS_CustomPhrase(spt, rp, p, channel, keyMap);
-                        String text = ResUtil.getString(getClass(), "RP_SYS_CustomPhraseEditor.customPhraseTitle", rv.getName(), channel + 1);
-                        preTc.setTitle(text);
-                    }
-                }
-            }
-        };
-
-        editor.addPropertyChangeListener(listener);
-        spt.addPropertyChangeListener(listener);
-        midiMix.addPropertyChangeListener(listener);
-
+        
+        SongEditorManager.getInstance().showPianoRollEditorForSptCustomPhrase(song, midiMix, spt, rv, p);
+     
     }
 
 
