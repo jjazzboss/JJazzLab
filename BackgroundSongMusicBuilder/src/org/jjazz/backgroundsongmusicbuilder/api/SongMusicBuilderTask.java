@@ -29,7 +29,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import org.jjazz.leadsheet.chordleadsheet.api.Utilities;
+import org.jjazz.leadsheet.chordleadsheet.api.ClsUtilities;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.musiccontrol.api.SongMusicGenerationListener;
@@ -209,7 +209,7 @@ public class SongMusicBuilderTask implements ChangeListener, PropertyChangeListe
         // Can't use a thread here because this might lead to concurrent modification (eg of a user phrase) while copy is being made                
         LOGGER.log(Level.FINE, "stateChanged() -- posting music generation request for {0}", song.getName());
         SongContextCopy sgContextCopy = new SongContextCopy(song, midiMix, false);
-        Utilities.transpose(sgContextCopy.getSong().getChordLeadSheet(),
+        ClsUtilities.transpose(sgContextCopy.getSong().getChordLeadSheet(),
                 PlaybackSettings.getInstance().getPlaybackKeyTransposition());
 
 

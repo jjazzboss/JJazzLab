@@ -38,6 +38,7 @@ import java.awt.print.PrinterException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JDialog;
 import javax.swing.JScrollPane;
@@ -82,7 +83,7 @@ public class LeadSheetPrinter implements Printable, Pageable
      * @param actualEditor The reference actual editor
      * @param song
      * @param pageFormat
-     * @param zoomVFactor [0-100]
+     * @param zoomVFactor  [0-100]
      * @param nbColumns
      */
     public LeadSheetPrinter(CL_Editor actualEditor, Song song, PageFormat pageFormat, int zoomVFactor, int nbColumns)
@@ -215,7 +216,7 @@ public class LeadSheetPrinter implements Printable, Pageable
     public int print(Graphics g, PageFormat pageFormat, int pageIndex) throws PrinterException
     {
 
-        LOGGER.fine("print() -- pageIndex=" + pageIndex);   
+        LOGGER.log(Level.FINE, "print() -- pageIndex={0}", pageIndex);
 
 
         Graphics2D g2d = (Graphics2D) g.create();
@@ -226,7 +227,7 @@ public class LeadSheetPrinter implements Printable, Pageable
 
         // Y offset corresponding to pageIndex
         double yOffset = pageIndex * scaledEditorPageHeight;
-        LOGGER.fine("print() yOffset=" + yOffset);   
+        LOGGER.log(Level.FINE, "print() yOffset={0}", yOffset);
 
 
         // Set position on upper left corner of Imageable area
@@ -257,7 +258,8 @@ public class LeadSheetPrinter implements Printable, Pageable
                 String s = footerMsg.format(args);
                 Rectangle2D r = fm.getStringBounds(s, g2d);
                 g2d.setFont(FONT);
-                g2d.drawString(s, (float) (width - r.getWidth() - 1), (float) (HEADER_HEIGHT_PTS + centralZoneHeight + FOOTER_HEIGHT_PTS / 2));
+                g2d.drawString(s, (float) (width - r.getWidth() - 1),
+                        (float) (HEADER_HEIGHT_PTS + centralZoneHeight + FOOTER_HEIGHT_PTS / 2));
             }
         }
 
@@ -330,7 +332,7 @@ public class LeadSheetPrinter implements Printable, Pageable
         scaledEditorLastPageHeight = scaledEditorHeight - (nbPages - 1) * scaledEditorPageHeight;
 
 
-        LOGGER.fine("computeEditorDimensions() scaledEditorBarHeight=" + scaledEditorBarHeight   
+        LOGGER.fine("computeEditorDimensions() scaledEditorBarHeight=" + scaledEditorBarHeight
                 + " scaledEditorHeight=" + scaledEditorHeight
                 + " scaledEditorPageHeight=" + scaledEditorPageHeight
                 + " centralZoneHeight=" + centralZoneHeight
@@ -348,8 +350,8 @@ public class LeadSheetPrinter implements Printable, Pageable
     /**
      * Special hidden dialog (but displayable) used to render the CL_Editor.
      * <p>
-     * A fixed width panel is used to make sure width is not changed when CL_Editor preferred width has changed, like in the
-     * application editor.
+     * A fixed width panel is used to make sure width is not changed when CL_Editor preferred width has changed, like in the application
+     * editor.
      */
     static private class RenderingDialog extends JDialog
     {

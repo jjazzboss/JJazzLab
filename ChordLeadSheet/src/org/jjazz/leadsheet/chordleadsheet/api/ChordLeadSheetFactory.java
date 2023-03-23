@@ -78,15 +78,4 @@ public interface ChordLeadSheetFactory
     ChordLeadSheet getCopy(ChordLeadSheet cls);
 
 
-    /**
-     * Create a cls copy but with no more than 2 chord symbols per bar.
-     * <p>
-     * If more than 1 chord symbol in a bar, keep the first chord symbol and the last one. If interval between them is less than
-     * half-bar, reposition them on first beat and half-bar.
-     *
-     * @param cls
-     * @return
-     */
-    ChordLeadSheet getSimplified(ChordLeadSheet cls);
-
 }

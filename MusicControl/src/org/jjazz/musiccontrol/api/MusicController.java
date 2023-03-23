@@ -63,9 +63,7 @@ import org.jjazz.util.api.Utilities;
 import org.openide.util.Exceptions;
 import org.jjazz.musiccontrol.api.playbacksession.ControlTrackProvider;
 import org.jjazz.outputsynth.api.OutputSynth;
-import org.jjazz.rhythm.api.UserErrorGenerationException;
 import org.jjazz.song.api.Song;
-import org.openide.awt.StatusDisplayer;
 
 /**
  * Control the music playback of a PlaybackSession.

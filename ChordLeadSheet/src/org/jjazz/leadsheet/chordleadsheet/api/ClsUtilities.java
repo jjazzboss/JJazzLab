@@ -26,11 +26,12 @@ import org.jjazz.harmony.api.Note;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Factory;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
+import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 
 /**
  * General methods on ChordLeadSheets.
  */
-public class Utilities
+public class ClsUtilities
 {
 
     /**
@@ -54,4 +55,49 @@ public class Utilities
             cls.addItem(newCli);
         }
     }
+    
+     /**
+     * Create a cls copy but with no more than 2 chord symbols per bar.
+     * <p>
+     * If more than 1 chord symbol in a bar, keep the first chord symbol and the last one. If interval between them is less than
+     * half-bar, reposition them on first beat and half-bar.
+     *
+     * @param cls
+     * @return
+     */
+    static public ChordLeadSheet getSimplified(ChordLeadSheet cls)
+    {
+        ChordLeadSheet simplifiedCls = ChordLeadSheetFactory.getDefault().getCopy(cls);
+
+        for (int barIndex = 0; barIndex < simplifiedCls.getSizeInBars(); barIndex++)
+        {
+            float halfBarBeat = simplifiedCls.getSection(barIndex).getData().getTimeSignature().getHalfBarBeat(false);
+            var items = simplifiedCls.getItems(barIndex, barIndex, CLI_ChordSymbol.class);
+            if (items.size() <= 1)
+            {
+                // Nothing
+            } else
+            {
+                // Move first and last items
+                var item0 = items.get(0);
+                var item0beat = item0.getPosition().getBeat();
+                var item1 = items.get(items.size() - 1);
+                var item1beat = item1.getPosition().getBeat();
+                if (item1beat - item0beat < halfBarBeat)
+                {
+                    simplifiedCls.moveItem(item0, new Position(barIndex, 0));
+                    simplifiedCls.moveItem(item1, new Position(barIndex, halfBarBeat));
+                }
+
+
+                // Remove others
+                for (int i = 1; i < items.size() - 1; i++)
+                {
+                    simplifiedCls.removeItem(items.get(i));
+                }
+            }
+        }
+
+        return simplifiedCls;
+    }    
 }

@@ -38,6 +38,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
+import org.jjazz.song.api.SongUtilities;
 import org.jjazz.songeditormanager.api.SongEditorManager;
 import org.jjazz.ui.cl_editor.api.CL_Editor;
 import org.jjazz.ui.ss_editor.api.SS_Editor;
@@ -160,19 +161,18 @@ public class PrintDialog extends javax.swing.JDialog implements ChangeListener
 
     private Song buildWorkSong()
     {
-        SongFactory sf = SongFactory.getInstance();
         Song res = refSong;
 
 
         if (cb_simplifyLeadSheet.isSelected())
         {
-            res = sf.getSimplifiedLeadSheet(refSong, false);
+            res = SongUtilities.getSimplifiedLeadSheet(refSong, false);
         }
 
 
         if (cb_developLeadSheet.isSelected())
         {
-            res = sf.getDeveloppedLeadSheet(res, false);
+            res = SongUtilities.getDeveloppedSong(res, false);
         }
 
 

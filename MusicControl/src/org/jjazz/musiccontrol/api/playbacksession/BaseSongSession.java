@@ -34,7 +34,7 @@ import javax.sound.midi.Track;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
-import org.jjazz.leadsheet.chordleadsheet.api.Utilities;
+import org.jjazz.leadsheet.chordleadsheet.api.ClsUtilities;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Factory;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
@@ -582,7 +582,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     protected SongContext getContextCopy(SongContext context, int chordSymbolTransposition)
     {
         SongContext res = context.deepClone(false);
-        Utilities.transpose(res.getSong().getChordLeadSheet(), chordSymbolTransposition);
+        ClsUtilities.transpose(res.getSong().getChordLeadSheet(), chordSymbolTransposition);
         return res;
     }
 

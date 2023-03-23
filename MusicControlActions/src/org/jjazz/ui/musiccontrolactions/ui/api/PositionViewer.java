@@ -20,8 +20,9 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.ui.musiccontrolactions;
+package org.jjazz.ui.musiccontrolactions.ui.api;
 
+import com.google.common.base.Preconditions;
 import java.awt.Color;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -32,7 +33,7 @@ import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.song.api.Song;
 
 /**
- * Show the position in bar/beat.
+ * Shows the position in bar/beat.
  */
 public class PositionViewer extends JLabel implements PropertyChangeListener
 {
@@ -41,31 +42,39 @@ public class PositionViewer extends JLabel implements PropertyChangeListener
     private Song songModel;
     private Color saveBackground;
     private Color playBackground;
+    private boolean timeShown;
+
+
     private static final Logger LOGGER = Logger.getLogger(PositionViewer.class.getSimpleName());
 
     public PositionViewer()
     {
-        // Listen to playbackState changes
-        MusicController.getInstance().addPropertyChangeListener(this);
+        timeShown = true;
         updateEditor(new Position(0, 0));
     }
 
     public void setModel(Song song, Position pos)
     {
-        if (pos == null)
-        {
-            throw new IllegalArgumentException("song=" + song + " pos=" + pos);   
-        }
+        Preconditions.checkNotNull(pos);
         if (posModel != null)
         {
             posModel.removePropertyChangeListener(this);
+        }
+        if (songModel != null)
+        {
+            MusicController.getInstance().removePropertyChangeListener(this);
         }
         playBackground = new Color(51, 204, 255);
         songModel = song;
         posModel = pos;
         posModel.addPropertyChangeListener(this);
+        if (songModel != null)
+        {
+            MusicController.getInstance().addPropertyChangeListener(this);
+        }
         updateEditor(posModel);
     }
+
 
     public Position getPositionModel()
     {
@@ -93,6 +102,21 @@ public class PositionViewer extends JLabel implements PropertyChangeListener
         this.playBackground = playBackground;
     }
 
+    /**
+     * Check if time (minute:seconds) is shown by the viewer.
+     *
+     * @return true by default
+     */
+    public boolean isTimeShown()
+    {
+        return timeShown;
+    }
+
+    public void setTimeShown(boolean timeShown)
+    {
+        this.timeShown = timeShown;
+    }
+
     // ======================================================================
     // PropertyChangeListener interface
     // ======================================================================    
@@ -103,9 +127,10 @@ public class PositionViewer extends JLabel implements PropertyChangeListener
         if (evt.getSource() == posModel)
         {
             updateEditor(posModel);
+
         } else if (evt.getSource() == mc)
         {
-            if (evt.getPropertyName() == MusicController.PROP_STATE)
+            if (evt.getPropertyName().equals(MusicController.PROP_STATE))
             {
                 if (mc.getState() == MusicController.State.PLAYING)
                 {
@@ -132,20 +157,24 @@ public class PositionViewer extends JLabel implements PropertyChangeListener
         int bar = pos.getBar() + 1;
         int beat = Math.round(pos.getBeat() + 1);
         String posStr = String.format("%1$03d:%2$d", bar, beat);
+        String timeStr = "";
 
-        String timeStr = "--m--s";
-        if (songModel != null && pos.getBar() < songModel.getSongStructure().getSizeInBars())
+        if (timeShown)
         {
-            int tempo = songModel.getTempo();
-            float posInBeats = songModel.getSongStructure().getPositionInNaturalBeats(pos.getBar()) + pos.getBeat();
-            float oneBeatInSec = 60f / tempo;
-            float posInSec = posInBeats * oneBeatInSec;
-            int min = (int) Math.floor(posInSec / 60);
-            int sec = (int) Math.floor(posInSec - min * 60);
-            timeStr = String.format(" %1$02dm%2$02ds", min, sec);
+            timeStr =  " --m--s";
+            if (songModel != null && pos.getBar() < songModel.getSongStructure().getSizeInBars())
+            {
+                int tempo = songModel.getTempo();
+                float posInBeats = songModel.getSongStructure().getPositionInNaturalBeats(pos.getBar()) + pos.getBeat();
+                float oneBeatInSec = 60f / tempo;
+                float posInSec = posInBeats * oneBeatInSec;
+                int min = (int) Math.floor(posInSec / 60);
+                int sec = (int) Math.floor(posInSec - min * 60);
+                timeStr = String.format(" %1$02dm%2$02ds", min, sec);
+            }
         }
 
-        setText(posStr + " " + timeStr);
+        setText(posStr + timeStr);
     }
 
 }

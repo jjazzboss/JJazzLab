@@ -27,7 +27,7 @@ import java.awt.event.ActionListener;
 import java.util.logging.Logger;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.song.api.Song;
-import org.jjazz.song.api.SongUtils;
+import org.jjazz.song.api.SongUtilities;
 import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.util.api.ResUtil;
@@ -69,7 +69,7 @@ public class HalfLeadsheet implements ActionListener
 
         try
         {
-            SongUtils.halfChordLeadsheet(song);
+            SongUtilities.halfChordLeadsheet(song);
         } catch (UnsupportedEditException ex)
         {
             String msg = "Impossible to half leadsheet.\n" + ex.getLocalizedMessage();

@@ -42,11 +42,7 @@ import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheetFactory;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Factory;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
-import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
-import org.jjazz.phrase.api.Phrase;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructureFactory;
@@ -63,7 +59,7 @@ public class SongFactory implements PropertyChangeListener
 
     static private SongFactory INSTANCE;
     // Use WeakReference to avoid a memory leak if for some reason a closed song was not unregistered. Integer value is not used. 
-    private WeakHashMap<Song, Integer> songs;
+    private final WeakHashMap<Song, Integer> songs;
     /**
      * Used to make sure we don't have the same name twice.
      */
@@ -143,7 +139,7 @@ public class SongFactory implements PropertyChangeListener
     {
         if (f == null)
         {
-            throw new IllegalArgumentException("f=" + f);   
+            throw new IllegalArgumentException("f=" + f);
         }
         Song song = null;
 
@@ -161,7 +157,7 @@ public class SongFactory implements PropertyChangeListener
 
 
         // Read file
-        try ( var fis = new FileInputStream(f))
+        try (var fis = new FileInputStream(f))
         {
             Reader r = new BufferedReader(new InputStreamReader(fis, "UTF-8"));        // Needed to support special/accented chars
             song = (Song) xstream.fromXML(r);
@@ -240,14 +236,14 @@ public class SongFactory implements PropertyChangeListener
      * @param name
      * @param cls
      * @return
-     * @throws UnsupportedEditException Can happen if too many timesignature changes resulting in not enough Midi channels for the
-     *                                  various rhythms.
+     * @throws UnsupportedEditException Can happen if too many timesignature changes resulting in not enough Midi channels for the various
+     *                                  rhythms.
      */
     public Song createSong(String name, ChordLeadSheet cls) throws UnsupportedEditException
     {
         if (name == null || name.isEmpty() || cls == null)
         {
-            throw new IllegalArgumentException("name=" + name + " cls=" + cls);   
+            throw new IllegalArgumentException("name=" + name + " cls=" + cls);
         }
         Song song = new Song(name, cls);
         registerSong(song);
@@ -261,14 +257,14 @@ public class SongFactory implements PropertyChangeListener
      * @param cls
      * @param sgs  Must be kept consistent with cls changes (sgs.getParentChordLeadSheet() must be non null)
      * @return
-     * @throws UnsupportedEditException Can happen if too many timesignature changes resulting in not enough Midi channels for the
-     *                                  various rhythms.
+     * @throws UnsupportedEditException Can happen if too many timesignature changes resulting in not enough Midi channels for the various
+     *                                  rhythms.
      */
     public Song createSong(String name, ChordLeadSheet cls, SongStructure sgs) throws UnsupportedEditException
     {
         if (name == null || name.isEmpty() || cls == null || sgs == null)
         {
-            throw new IllegalArgumentException("name=" + name + " cls=" + cls + " sgs=" + sgs);   
+            throw new IllegalArgumentException("name=" + name + " cls=" + cls + " sgs=" + sgs);
         }
         Song song = new Song(name, cls, sgs);
         registerSong(song);
@@ -299,7 +295,7 @@ public class SongFactory implements PropertyChangeListener
     {
         if (name == null || name.isEmpty() || clsSize < 1)
         {
-            throw new IllegalArgumentException("name=" + name + " clsSize=" + clsSize);   
+            throw new IllegalArgumentException("name=" + name + " clsSize=" + clsSize);
         }
         ChordLeadSheetFactory clsf = ChordLeadSheetFactory.getDefault();
         ChordLeadSheet cls = clsf.createEmptyLeadSheet("A", TimeSignature.FOUR_FOUR, clsSize, true);
@@ -310,7 +306,7 @@ public class SongFactory implements PropertyChangeListener
         } catch (UnsupportedEditException ex)
         {
             // We should not be here
-            throw new IllegalStateException("Unexpected 'UnsupportedEditException'.", ex);   
+            throw new IllegalStateException("Unexpected 'UnsupportedEditException'.", ex);
         }
         int tempo = song.getSongStructure().getSongPart(0).getRhythm().getPreferredTempo();
         song.setTempo(tempo);
@@ -351,7 +347,7 @@ public class SongFactory implements PropertyChangeListener
     {
         if (song == null)
         {
-            throw new IllegalArgumentException("song");   
+            throw new IllegalArgumentException("song");
         }
         ChordLeadSheetFactory clsf = ChordLeadSheetFactory.getDefault();
         ChordLeadSheet newCls = clsf.getCopy(song.getChordLeadSheet());
@@ -363,7 +359,7 @@ public class SongFactory implements PropertyChangeListener
         } catch (UnsupportedEditException ex)
         {
             // Should not occur since it's a clone, ie already accepted edits
-            throw new IllegalArgumentException("clone() failed. Song's name=" + song.getName(), ex);   
+            throw new IllegalArgumentException("clone() failed. Song's name=" + song.getName(), ex);
         }
         s.setComments(song.getComments());
         s.setTempo(song.getTempo());
@@ -386,7 +382,7 @@ public class SongFactory implements PropertyChangeListener
         for (SongPart spt : song.getSongStructure().getSongParts())
         {
             CLI_Section newParentSection = newCls.getSection(spt.getParentSection().getData().getName());
-            assert newParentSection != null : "spt=" + spt;   
+            assert newParentSection != null : "spt=" + spt;
             SongPart sptCopy = spt.clone(spt.getRhythm(), spt.getStartBarIndex(), spt.getNbBars(), newParentSection);
             newSpts.add(sptCopy);
         }
@@ -398,7 +394,8 @@ public class SongFactory implements PropertyChangeListener
         } catch (UnsupportedEditException ex)
         {
             // Should never happen
-            throw new IllegalArgumentException("getCopy() failed. Song's name=" + song.getName() + " newSgs=" + newSgs + " newSpts=" + newSpts, ex);   
+            throw new IllegalArgumentException(
+                    "getCopy() failed. Song's name=" + song.getName() + " newSgs=" + newSgs + " newSpts=" + newSpts, ex);
         }
 
 
@@ -426,10 +423,10 @@ public class SongFactory implements PropertyChangeListener
     /**
      * Return a copy of the song where the SongStructure does NOT listen to the ChordLeadsheet changes.
      * <p>
-     * WARNING: Because SongStructure and ChordLeadsheet are not linked, changing them might result in inconsistent states. This
-     * should be used only in special cases.<p>
-     * Copy the following variables: chordleadsheet, songStructure, name, tempo, comments, tags, user phrases. Listeners or file
-     * are NOT copied.
+     * WARNING: Because SongStructure and ChordLeadsheet are not linked, changing them might result in inconsistent states. This should be
+     * used only in special cases.<p>
+     * Copy the following variables: chordleadsheet, songStructure, name, tempo, comments, tags, user phrases. Listeners or file are NOT
+     * copied.
      *
      * @param song
      * @param register If true register the created song.
@@ -443,7 +440,7 @@ public class SongFactory implements PropertyChangeListener
     {
         if (song == null)
         {
-            throw new IllegalArgumentException("song");   
+            throw new IllegalArgumentException("song");
         }
         ChordLeadSheet cls = ChordLeadSheetFactory.getDefault().getCopy(song.getChordLeadSheet());
         SongStructure ss = null;
@@ -468,7 +465,7 @@ public class SongFactory implements PropertyChangeListener
             ss.addSongParts(newSpts);            // Can raise UnsupportedEditException     
         } catch (UnsupportedEditException ex)
         {
-            throw new IllegalArgumentException("getCopyUnlinked() failed. Song's name=" + song.getName() + " ss=" + ss, ex);   
+            throw new IllegalArgumentException("getCopyUnlinked() failed. Song's name=" + song.getName() + " ss=" + ss, ex);
         }
 
         // Now create the song copy
@@ -497,188 +494,18 @@ public class SongFactory implements PropertyChangeListener
         return s;
     }
 
-    /**
-     * Get a new song with the lead sheet developped/unrolled according to the song structure.
-     * <p>
-     * Return song where each SongPart corresponds to one Section in a linear order.
-     *
-     * @param song
-     * @param register If true register the created song
-     * @return
-     */
-    public Song getDeveloppedLeadSheet(Song song, boolean register)
-    {
-        if (song == null)
-        {
-            throw new IllegalArgumentException("song");   
-        }
-
-
-        var cls = song.getChordLeadSheet();
-        var ss = song.getSongStructure();
-        if (ss.getSongParts().isEmpty())
-        {
-            // Special case
-            return getCopy(song, register);
-        }
-
-
-        // Create an empty song with the right size
-        var resSong = createEmptySong(song.getName(), ss.getSizeInBars());
-        var resCls = resSong.getChordLeadSheet();
-        for (var cliCs : resCls.getItems(CLI_ChordSymbol.class))
-        {
-            resCls.removeItem(cliCs);
-        }
-        var resSs = resSong.getSongStructure();
-        try
-        {
-            resSs.removeSongParts(resSs.getSongParts());
-        } catch (UnsupportedEditException ex)
-        {
-            // Should never happen as we remove everything
-            Exceptions.printStackTrace(ex);
-        }
-
-
-        // The created song parts
-        List<SongPart> newSpts = new ArrayList<>();
-
-
-        // Fill it from the original song data
-        for (SongPart spt : ss.getSongParts())
-        {
-            var parentCliSection = spt.getParentSection();
-            int barIndex = spt.getStartBarIndex();
-
-
-            CLI_Section resCliSection;
-
-
-            // Update the initial section or create the corresponding parent section
-            if (barIndex == 0)
-            {
-                resCliSection = resCls.getSection(0);
-                resCls.setSectionName(resCliSection, parentCliSection.getData().getName());
-                try
-                {
-                    resCls.setSectionTimeSignature(resCliSection, parentCliSection.getData().getTimeSignature());
-                } catch (UnsupportedEditException ex)
-                {
-                    // Should never happen since we copy a valid song
-                    Exceptions.printStackTrace(ex);
-                }
-            } else
-            {
-                // Create it
-                String name = CLI_Section.Util.createSectionName(parentCliSection.getData().getName(), resCls);
-                resCliSection = CLI_Factory.getDefault().createSection(resCls, name, parentCliSection.getData().getTimeSignature(), barIndex);
-                try
-                {
-                    resCls.addSection(resCliSection);
-                } catch (UnsupportedEditException ex)
-                {
-                    // Should never happen since we copy a valid song
-                    Exceptions.printStackTrace(ex);
-                }
-            }
-
-
-            // Fill the corresponding section with chord symbols copies
-            for (CLI_ChordSymbol cliCs : cls.getItems(parentCliSection, CLI_ChordSymbol.class))
-            {
-                var pos = cliCs.getPosition();
-                int resBar = barIndex + pos.getBar() - parentCliSection.getPosition().getBar();
-                var cliCsCopy = cliCs.getCopy(resCls, new Position(resBar, pos.getBeat()));
-                resCls.addItem(cliCsCopy);
-            }
-
-
-            // Create the corresponding SongPart
-            SongPart resSpt = spt.clone(null, barIndex, spt.getNbBars(), resCliSection);
-            newSpts.add(resSpt);
-
-        }
-
-
-        // Add all SongParts in one shot to avoid problem with AdaptedRhythms
-        try
-        {
-            resSs.addSongParts(newSpts);
-        } catch (UnsupportedEditException ex)
-        {
-            // Should never happen since copy of existing song
-            Exceptions.printStackTrace(ex);
-        }
-
-        if (register)
-        {
-            registerSong(resSong);
-        }
-        return resSong;
-    }
-
-    /**
-     * Get a new song with a simplified lead sheet.
-     * <p>
-     * <p>
-     * Created song is registered.
-     *
-     * @param song
-     * @param register If true register the created song
-     * @return
-     * @see ChordLeadSheetFactory#getSimplified(ChordLeadSheet)
-     */
-    public Song getSimplifiedLeadSheet(Song song, boolean register)
-    {
-        if (song == null)
-        {
-            throw new IllegalArgumentException("song");   
-        }
-
-        // Create a full copy to preserve links between SongParts and Sections
-        Song resSong = getCopy(song, register);
-        ChordLeadSheet resCls = resSong.getChordLeadSheet();
-
-
-        // Get a working simplified copy and use it to update the new leadsheet
-        ChordLeadSheet simplifiedCls = ChordLeadSheetFactory.getDefault().getSimplified(song.getChordLeadSheet());
-
-
-        // Remove all chord symbols 
-        for (var item : resCls.getItems(CLI_ChordSymbol.class))
-        {
-            resCls.removeItem(item);
-        }
-
-        // Copy chord symboles from the simplified cls
-        for (var item : simplifiedCls.getItems(CLI_ChordSymbol.class))
-        {
-            resCls.addItem(item);
-        }
-
-        simplifiedCls.cleanup();
-        if (register)
-        {
-            registerSong(resSong);
-        }
-
-        return resSong;
-    }
-
     // =================================================================================
     // PropertyChangeListener methods
     // =================================================================================    
     @Override
     public void propertyChange(PropertyChangeEvent e)
     {
-        if (e.getSource() instanceof Song)
+        if (e.getSource() instanceof Song sg)
         {
-            Song song = (Song) e.getSource();
-            assert songs.keySet().contains(song) : "song=" + song + " songs=" + songs.keySet();   
-            if (e.getPropertyName() == Song.PROP_CLOSED)
+            assert songs.keySet().contains(sg) : "song=" + sg + " songs=" + songs.keySet();
+            if (e.getPropertyName().equals(Song.PROP_CLOSED))
             {
-                unregisterSong(song);
+                unregisterSong(sg);
             }
         }
     }

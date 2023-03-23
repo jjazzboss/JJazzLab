@@ -20,40 +20,41 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.ui.cl_editor.actions;
+package org.jjazz.songeditormanager;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.logging.Logger;
-import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
+import java.util.prefs.Preferences;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongUtilities;
-import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
+import org.jjazz.songeditormanager.api.SongEditorManager;
 import org.jjazz.util.api.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
+import org.openide.util.NbPreferences;
 
 /**
- * Double the distance by 2 between chords, so chordleadsheet size is also multiplied by 2.
- * <p>
- * @see HalfLeadsheet
+ * Get a new song with the leadsheet developped according to the song structure so that the leadsheet becomes linear.
  */
-@ActionID(category = "JJazz", id = "org.jjazz.ui.cl_editor.actions.doubleleadsheet")
-@ActionRegistration(displayName = "#CTL_DoubleLeadsheet", lazy = true)
+@ActionID(category = "JJazz", id = "org.jjazz.ui.cl_editor.actions.linearizesong")
+@ActionRegistration(displayName = "#CTL_LinearizeSong", lazy = true)
 @ActionReferences(
-        { 
-            @ActionReference(path = "Menu/Edit", position = 2110)
+        {
+            @ActionReference(path = "Menu/Edit", position = 2115)
         })
-public class DoubleLeadsheet implements ActionListener
+public class LinearizeSong implements ActionListener
 {
 
+    private static final String PREF_SHOW_TIP = "ShowTipLinearizeSong";
     private final Song song;
-    private final String undoText = ResUtil.getString(getClass(), "CTL_DoubleLeadsheet");
-    private static final Logger LOGGER = Logger.getLogger(DoubleLeadsheet.class.getSimpleName());
+    private static Preferences prefs = NbPreferences.forModule(LinearizeSong.class);
+    private static final Logger LOGGER = Logger.getLogger(LinearizeSong.class.getSimpleName());
 
-    public DoubleLeadsheet(Song context)
+
+    public LinearizeSong(Song context)
     {
         this.song = context;
     }
@@ -61,10 +62,16 @@ public class DoubleLeadsheet implements ActionListener
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        assert song != null;   
-        ChordLeadSheet cls = song.getChordLeadSheet();
-        JJazzUndoManagerFinder.getDefault().get(cls).startCEdit(undoText);
-        SongUtilities.doubleChordLeadsheet(song);
-        JJazzUndoManagerFinder.getDefault().get(cls).endCEdit(undoText);
+        assert song != null;
+
+        if (prefs.getBoolean(PREF_SHOW_TIP, true))
+        {
+            String text = ResUtil.getString(getClass(), "LinearizeSongTip");
+            prefs.putBoolean(PREF_SHOW_TIP, false);
+        }
+
+        Song newSong = SongUtilities.getDeveloppedSong(song, true);
+        newSong.setName(song.getName() + "-linearized");
+        SongEditorManager.getInstance().showSong(newSong, true, false);
     }
 }

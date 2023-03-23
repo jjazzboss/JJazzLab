@@ -197,9 +197,8 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         this.keyMap = null;
         this.quantization = Quantization.ONE_QUARTER_BEAT;
         this.mapPosTimeSignature = new TreeMap<>();
-        this.snapEnabled = true;        
+        this.snapEnabled = true;
         this.mapPosTimeSignature.put(0f, TimeSignature.FOUR_FOUR);
-
 
 
         // Be notified of changes, note added, moved, removed, set
@@ -987,7 +986,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     /**
      * Get the min/max beat positions which are visible.
      *
-     * @return
+     * @return Can be EMPTY_FLOAT_RANGE
      */
     public FloatRange getVisibleBeatRange()
     {
@@ -999,7 +998,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         var vRect = vpRect.intersection(notesPanelBounds);
         var posLeft = notesPanel.getXMapper().getPositionInBeats(vRect.x);
         var posRight = notesPanel.getXMapper().getPositionInBeats(vRect.x + vRect.width - 1);
-        return new FloatRange(posLeft, posRight);
+        return posLeft >= posRight ? FloatRange.EMPTY_FLOAT_RANGE : new FloatRange(posLeft, posRight);
     }
 
     /**

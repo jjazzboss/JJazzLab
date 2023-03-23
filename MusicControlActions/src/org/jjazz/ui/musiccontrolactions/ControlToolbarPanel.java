@@ -227,7 +227,7 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
         fbtn_Pause = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
         fbtn_next = new org.jjazz.ui.flatcomponents.api.FlatButton();
         filler10 = new javax.swing.Box.Filler(new java.awt.Dimension(20, 0), new java.awt.Dimension(16, 0), new java.awt.Dimension(20, 32767));
-        posViewer = new org.jjazz.ui.musiccontrolactions.PositionViewer();
+        posViewer = new org.jjazz.ui.musiccontrolactions.ui.api.PositionViewer();
         filler4 = new javax.swing.Box.Filler(new java.awt.Dimension(3, 0), new java.awt.Dimension(3, 0), new java.awt.Dimension(3, 32767));
         fbtn_Loop = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
         fbtn_PlaybackPoint = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
@@ -360,7 +360,7 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
     private javax.swing.Box.Filler filler9;
     private javax.swing.JPanel panel_PlayButtons;
     private javax.swing.JPanel panel_Tempo;
-    private org.jjazz.ui.musiccontrolactions.PositionViewer posViewer;
+    private org.jjazz.ui.musiccontrolactions.ui.api.PositionViewer posViewer;
     private org.jjazz.ui.utilities.api.WheelSpinner spn_Tempo;
     // End of variables declaration//GEN-END:variables
 
