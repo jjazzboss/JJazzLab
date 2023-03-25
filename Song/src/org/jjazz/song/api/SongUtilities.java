@@ -43,6 +43,8 @@ import org.openide.util.Exceptions;
 public class SongUtilities
 {
 
+    static public final String SECTION_COPY_DELIMITER_CHAR = "#";
+
     /**
      * Half the chord leadsheet of the specified song.
      * <p>
@@ -150,15 +152,16 @@ public class SongUtilities
 
 
     /**
-     * Get a new song with the lead sheet developped/unrolled according to the song structure.
+     * Get a new song with the lead sheet linearized/developped/unrolled according to the song structure.
      * <p>
-     * Return song where each SongPart corresponds to one Section in a linear order.
+     * Return song where each SongPart corresponds to one Section in a linear order. Linearized sections name have the form
+     * "original_section_nameSECTION_COPY_DELIMITER_CHARnumber".
      *
      * @param song
      * @param register If true register the created song
      * @return
      */
-    static public Song getDeveloppedSong(Song song, boolean register)
+    static public Song getLinearizedSong(Song song, boolean register)
     {
         if (song == null)
         {
@@ -175,16 +178,17 @@ public class SongUtilities
         }
 
 
-        // Create an empty song with the right size
-        var resSong = SongFactory.getInstance().createEmptySong(song.getName(), ss.getSizeInBars());
-        var resCls = resSong.getChordLeadSheet();
-        for (var cliCs : resCls.getItems(CLI_ChordSymbol.class))
+        // Create an empty song with the right leadsheet size
+        var newSong = SongFactory.getInstance().createEmptySong(song.getName(), ss.getSizeInBars());
+        var newCls = newSong.getChordLeadSheet();
+        for (var cliCs : newCls.getItems(CLI_ChordSymbol.class))
         {
-            resCls.removeItem(cliCs);
+            newCls.removeItem(cliCs);
         }
-        var resSs = resSong.getSongStructure();
+        var resSs = newSong.getSongStructure();
         try
         {
+            // Remove all SongParts
             resSs.removeSongParts(resSs.getSongParts());
         } catch (UnsupportedEditException ex)
         {
@@ -198,6 +202,7 @@ public class SongUtilities
 
 
         // Fill it from the original song data
+        int sectionCounter = 1;
         for (SongPart spt : ss.getSongParts())
         {
             var parentCliSection = spt.getParentSection();
@@ -210,11 +215,11 @@ public class SongUtilities
             // Update the initial section or create the corresponding parent section
             if (barIndex == 0)
             {
-                resCliSection = resCls.getSection(0);
-                resCls.setSectionName(resCliSection, parentCliSection.getData().getName());
+                resCliSection = newCls.getSection(0);
+                newCls.setSectionName(resCliSection, parentCliSection.getData().getName() + SECTION_COPY_DELIMITER_CHAR + sectionCounter);
                 try
                 {
-                    resCls.setSectionTimeSignature(resCliSection, parentCliSection.getData().getTimeSignature());
+                    newCls.setSectionTimeSignature(resCliSection, parentCliSection.getData().getTimeSignature());
                 } catch (UnsupportedEditException ex)
                 {
                     // Should never happen since we copy a valid song
@@ -223,16 +228,20 @@ public class SongUtilities
             } else
             {
                 // Create it
-                String name = CLI_Section.Util.createSectionName(parentCliSection.getData().getName(), resCls);
-                resCliSection = CLI_Factory.getDefault().createSection(resCls, name, parentCliSection.getData().getTimeSignature(), barIndex);
+                String originalSectionName = parentCliSection.getData().getName();
+                String name = originalSectionName + SECTION_COPY_DELIMITER_CHAR + sectionCounter;
+                resCliSection = CLI_Factory.getDefault().createSection(newCls, name, parentCliSection.getData().getTimeSignature(), barIndex);
                 try
                 {
-                    resCls.addSection(resCliSection);
+                    newCls.addSection(resCliSection);
+                    // The section creation automatically creates a SongPart, remove it
+                    resSs.removeSongParts(resSs.getSongParts());
                 } catch (UnsupportedEditException ex)
                 {
                     // Should never happen since we copy a valid song
                     Exceptions.printStackTrace(ex);
                 }
+
             }
 
 
@@ -241,14 +250,16 @@ public class SongUtilities
             {
                 var pos = cliCs.getPosition();
                 int resBar = barIndex + pos.getBar() - parentCliSection.getPosition().getBar();
-                var cliCsCopy = cliCs.getCopy(resCls, new Position(resBar, pos.getBeat()));
-                resCls.addItem(cliCsCopy);
+                var cliCsCopy = cliCs.getCopy(newCls, new Position(resBar, pos.getBeat()));
+                newCls.addItem(cliCsCopy);
             }
 
 
             // Create the corresponding SongPart
             SongPart resSpt = spt.clone(null, barIndex, spt.getNbBars(), resCliSection);
             newSpts.add(resSpt);
+
+            sectionCounter++;
 
         }
 
@@ -265,9 +276,9 @@ public class SongUtilities
 
         if (register)
         {
-            SongFactory.getInstance().registerSong(resSong);
+            SongFactory.getInstance().registerSong(newSong);
         }
-        return resSong;
+        return newSong;
     }
 
     /**

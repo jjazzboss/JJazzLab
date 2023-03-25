@@ -102,9 +102,8 @@ public class SongFactory implements PropertyChangeListener
      */
     public void registerSong(Song sg)
     {
-        if (!songs.keySet().contains(sg))
+        if (songs.put(sg, 0) == null)
         {
-            songs.put(sg, 0);
             sg.addPropertyChangeListener(this);
         }
     }

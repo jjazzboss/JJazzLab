@@ -172,13 +172,14 @@ public class PrintDialog extends javax.swing.JDialog implements ChangeListener
 
         if (cb_developLeadSheet.isSelected())
         {
-            res = SongUtilities.getDeveloppedSong(res, false);
+            res = SongUtilities.getLinearizedSong(res, false);
         }
 
 
         if (res != refSong)
         {
-            // Copy the CL_Editor song client properties to ensure the same rendering            
+            // Copy the CL_Editor song client properties to ensure the same rendering        
+            // BUGGY: will miss all duplicated songparts !
             var cls = res.getChordLeadSheet();
 
             for (CLI_Section cliSection : cls.getItems(CLI_Section.class))

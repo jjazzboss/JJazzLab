@@ -53,12 +53,12 @@ public final class DuplicateSong implements ActionListener
      */
     private static int counter = 1;
     final private Song song;
-    
+
     public DuplicateSong(Song sg)
     {
         song = sg;
     }
-    
+
     @Override
     public void actionPerformed(ActionEvent e)
     {
@@ -67,27 +67,9 @@ public final class DuplicateSong implements ActionListener
         newSong.setName(song.getName() + " Copy" + counter);
         newSong.setSaveNeeded(false);
         SongEditorManager sm = SongEditorManager.getInstance();
-        sm.showSong(newSong, false, false);        
+        sm.showSong(newSong, false, false);     //  Posts an EDT task to create the editors              
         counter++;
-        
-            
-        SwingUtilities.invokeLater(() ->        // Required because showSong posts an EDT task to create the editors
-        {
-            // Duplicate the possible section at new lines
-            var cls = song.getChordLeadSheet();
-            var newCls = newSong.getChordLeadSheet();
-            CL_Editor clEditor = CL_EditorTopComponent.get(cls).getEditor();
-            CL_Editor newClEditor = CL_EditorTopComponent.get(newCls).getEditor();
-            for (var cliSection : cls.getItems(CLI_Section.class))
-            {
-                if (clEditor.isSectionStartOnNewLine(cliSection))
-                {
-                    var newCliSection = newCls.getSection(cliSection.getData().getName());
-                    assert newCliSection != null : "cliSection=" + cliSection + " newCls=" + newCls;
-                    newClEditor.setSectionStartOnNewLine(cliSection, true);
-                }
-            }
-        }
-        );
+
+        SwingUtilities.invokeLater(() -> sm.copySongEditorSettings(song, newSong));    
     }
 }

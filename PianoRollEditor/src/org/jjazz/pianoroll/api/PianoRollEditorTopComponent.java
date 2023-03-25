@@ -476,7 +476,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
                 close();
             } else if (evt.getPropertyName().equals(Song.PROP_MODIFIED_OR_SAVED_OR_RESET))
             {
-                if (evt.getOldValue().equals(Boolean.TRUE))
+                if (Boolean.TRUE.equals(evt.getOldValue()))
                 {
                     // File was saved
                     setDisplayName(getDefaultTabName(song));
