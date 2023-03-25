@@ -41,7 +41,12 @@ public class MoveSelectionLeft extends AbstractAction
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        SS_Editor editor = SS_EditorTopComponent.getActive().getEditor();
+        var activeTc = SS_EditorTopComponent.getActive();
+        if (activeTc == null)
+        {
+            return;
+        }
+        SS_Editor editor = activeTc.getEditor();
         Component c = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
         if (c instanceof SptViewer)
         {
@@ -58,17 +63,17 @@ public class MoveSelectionLeft extends AbstractAction
      * Move selection left from a RhythmParameter in specified editor.
      *
      * @param ed
-     * @param spt SongPart
-     * @param rp RhythmParameter
+     * @param spt    SongPart
+     * @param rp     RhythmParameter
      * @param extend If true extend the selection rather than move.
      */
     static public void moveSelectionLeftRp(SS_Editor ed, SongPart spt, RhythmParameter<?> rp, boolean extend)
     {
         List<SongPart> spts = ed.getModel().getSongParts();
         int index = spts.indexOf(spt);
-        assert index >= 0;   
+        assert index >= 0;
         int indexRp = spt.getRhythm().getRhythmParameters().indexOf(rp);
-        assert indexRp >= 0;   
+        assert indexRp >= 0;
         if (index > 0)
         {
             SongPart prevSpt = spts.get(index - 1);
@@ -104,7 +109,7 @@ public class MoveSelectionLeft extends AbstractAction
     {
         List<SongPart> spts = ed.getModel().getSongParts();
         int index = spts.indexOf(spt);
-        assert index >= 0;   
+        assert index >= 0;
         if (index > 0)
         {
             SongPart prevSpt = spts.get(index - 1);
