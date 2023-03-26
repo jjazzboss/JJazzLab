@@ -51,8 +51,6 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
-import static org.jjazz.ui.cl_editor.CL_EditorImpl.PROP_ZOOM_FACTOR_X;
-import static org.jjazz.ui.cl_editor.CL_EditorImpl.PROP_ZOOM_FACTOR_Y;
 import org.jjazz.ui.cl_editor.barbox.api.BarBox;
 import org.jjazz.ui.cl_editor.api.CL_Editor;
 import org.jjazz.ui.cl_editor.api.CL_EditorMouseListener;
@@ -75,8 +73,10 @@ public class CL_EditorController implements CL_EditorMouseListener
     /**
      * Actions reused several times
      */
-    private Action editAction;
-    private Action transposeUpAction, transposeDownAction;
+    private final Action editAction;
+    private final Action transposeUpAction;
+    private final Action transposeDownAction;
+    
     /**
      * Popupmenus depending of selection.
      */
@@ -178,56 +178,20 @@ public class CL_EditorController implements CL_EditorMouseListener
 
 
         // Try to restore zoom factors
-        String str = editor.getSongModel().getClientProperty(PROP_ZOOM_FACTOR_X, null);
-        if (str != null)
+        Zoomable zoomable = editor.getLookup().lookup(Zoomable.class);
+        if (zoomable != null)
         {
-            int zfx = -1;
-            try
+            int zfx = editor.getSongSpecificEditorProperties().loadZoomFactor(true);
+            if (zfx != -1)
             {
-                zfx = Integer.valueOf(str);
-            } catch (NumberFormatException e)
-            {
-                // Nothing
+                zoomable.setZoomXFactor(zfx, false);
             }
-            if (zfx < 0 || zfx > 100)
+            int zfy = editor.getSongSpecificEditorProperties().loadZoomFactor(false);
+            if (zfy != -1)
             {
-                LOGGER.warning(
-                        "CL_EditorController() Invalid zoom factor X client property=" + str + " in song=" + editor.getSongModel().getName());
-            } else
-            {
-                Zoomable zoomable = editor.getLookup().lookup(Zoomable.class);
-                if (zoomable != null)
-                {
-                    zoomable.setZoomXFactor(zfx, false);
-                }
+                zoomable.setZoomYFactor(zfy, false);
             }
         }
-
-        str = editor.getSongModel().getClientProperty(PROP_ZOOM_FACTOR_Y, null);
-        if (str != null)
-        {
-            int zfy = -1;
-            try
-            {
-                zfy = Integer.valueOf(str);
-            } catch (NumberFormatException e)
-            {
-                // Nothing
-            }
-            if (zfy < 0 || zfy > 100)
-            {
-                LOGGER.warning(
-                        "CL_EditorController() Invalid zoom factor Y client property=" + str + " in song=" + editor.getSongModel().getName());
-            } else
-            {
-                Zoomable zoomable = editor.getLookup().lookup(Zoomable.class);
-                if (zoomable != null)
-                {
-                    zoomable.setZoomYFactor(zfy, false);
-                }
-            }
-        }
-
 
     }
 
@@ -248,9 +212,9 @@ public class CL_EditorController implements CL_EditorMouseListener
     {
         ChordLeadSheetItem<?> focusedItem = null;
         Component c = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
-        if (c instanceof ItemRenderer)
+        if (c instanceof ItemRenderer ir)
         {
-            focusedItem = ((ItemRenderer) c).getModel();
+            focusedItem = ir.getModel();
         }
 
         CL_SelectionUtilities selection = new CL_SelectionUtilities(editor.getLookup());
@@ -278,9 +242,7 @@ public class CL_EditorController implements CL_EditorMouseListener
                 {
                     editor.selectItem(item, !selection.isItemSelected(item));
                 }
-            } else if (focusedItem != null && (e.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK
-                    | InputEvent.CTRL_DOWN_MASK))
-                    == InputEvent.SHIFT_DOWN_MASK)
+            } else if ((e.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) == InputEvent.SHIFT_DOWN_MASK)
             {
                 // SHIFT CLICK
                 // Select items between the focused one and this item
@@ -329,7 +291,7 @@ public class CL_EditorController implements CL_EditorMouseListener
                 if (popupChordSymbolMenu == null)
                 {
                     List<? extends Action> actions = Utilities.actionsForPath("Actions/ChordSymbol");
-                    popupChordSymbolMenu = Utilities.actionsToPopup(actions.toArray(new Action[actions.size()]), editor);
+                    popupChordSymbolMenu = Utilities.actionsToPopup(actions.toArray(Action[]::new), editor);
                 }
                 popupChordSymbolMenu.show(e.getComponent(), e.getX(), e.getY());
             } else if (item instanceof CLI_Section)
@@ -337,7 +299,7 @@ public class CL_EditorController implements CL_EditorMouseListener
                 if (popupSectionMenu == null)
                 {
                     List<? extends Action> actions = Utilities.actionsForPath("Actions/Section");
-                    popupSectionMenu = Utilities.actionsToPopup(actions.toArray(new Action[actions.size()]), editor);
+                    popupSectionMenu = Utilities.actionsToPopup(actions.toArray(Action[]::new), editor);
                 }
                 popupSectionMenu.show(e.getComponent(), e.getX(), e.getY());
             }
@@ -398,9 +360,9 @@ public class CL_EditorController implements CL_EditorMouseListener
     {
         int focusedBarIndex = -1;
         Component c = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
-        if (c instanceof BarBox)
+        if (c instanceof BarBox bb)
         {
-            focusedBarIndex = ((BarBox) c).getBarIndex();
+            focusedBarIndex = bb.getBarIndex();
         }
 
         LOGGER.log(Level.FINE, "barClicked() barIndex{0}", barIndex);
@@ -463,7 +425,7 @@ public class CL_EditorController implements CL_EditorMouseListener
             if (popupBarMenu == null)
             {
                 List<? extends Action> actions = Utilities.actionsForPath("Actions/Bar");
-                popupBarMenu = Utilities.actionsToPopup(actions.toArray(new Action[actions.size()]), editor);
+                popupBarMenu = Utilities.actionsToPopup(actions.toArray(Action[]::new), editor);
             }
             popupBarMenu.show(e.getComponent(), e.getX(), e.getY());
         }
@@ -545,7 +507,7 @@ public class CL_EditorController implements CL_EditorMouseListener
             factor = Math.max(0, factor - STEP);
         }
         LOGGER.log(Level.FINE, "editorWheelMoved() factor={0}", factor);
-        var factor2= factor;
+        var factor2 = factor;
         SwingUtilities.invokeLater(() -> zoomable.setZoomXFactor(factor2, false));      // Give time to TopComponent to become active
 
 

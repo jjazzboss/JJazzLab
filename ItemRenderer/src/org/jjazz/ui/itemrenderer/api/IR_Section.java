@@ -20,8 +20,9 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.ui.itemrenderer;
+package org.jjazz.ui.itemrenderer.api;
 
+import com.google.common.base.Preconditions;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -32,17 +33,13 @@ import java.awt.Insets;
 import java.awt.RenderingHints;
 import java.awt.geom.Rectangle2D;
 import java.beans.PropertyChangeEvent;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.ui.colorsetmanager.api.ColorSetManager;
-import org.jjazz.ui.itemrenderer.api.IR_SectionSettings;
-import org.jjazz.ui.itemrenderer.api.IR_Copiable;
-import org.jjazz.ui.itemrenderer.api.IR_Type;
-import org.jjazz.ui.itemrenderer.api.ItemRenderer;
-import org.jjazz.ui.itemrenderer.api.ItemRendererSettings;
 
 /**
- * Represent a section's name (upper case).
+ * Represent a section's name.
  */
 public class IR_Section extends ItemRenderer implements IR_Copiable
 {
@@ -55,28 +52,24 @@ public class IR_Section extends ItemRenderer implements IR_Copiable
     /**
      * Our graphical settings.
      */
-    IR_SectionSettings settings;
+    private IR_SectionSettings settings;
     /**
      * Copy mode.
      */
     private boolean copyMode;
     /**
-     * Our section color manager.
-     */
-    ColorSetManager colorSetManager;
-    /**
      * The string represented by this section.
      */
-    String sectionString;
+    private String sectionString;
     /**
      * The x/y baseline position to draw the string
      */
-    int xString;
-    int yString;
+    private int xString;
+    private int yString;
     /**
      * The section color.
      */
-    Color sectionColor;
+    private Color sectionColor;
     private int zoomFactor = 50;
     private Font zFont;
     private static final Logger LOGGER = Logger.getLogger(IR_Section.class.getName());
@@ -91,15 +84,29 @@ public class IR_Section extends ItemRenderer implements IR_Copiable
         settings = irSettings.getIR_SectionSettings();
         settings.addPropertyChangeListener(this);
 
-        // Register color manager changes
-        colorSetManager = ColorSetManager.getDefault();
-        colorSetManager.addPropertyChangeListener(this);
 
         // Init
         zFont = settings.getFont();
         setFont(zFont);
         setForeground(settings.getColor());
-        sectionColor = colorSetManager.getColor(item.getData().getName());
+        sectionColor = Color.CYAN;
+    }
+
+    /**
+     * Set the color of the section.
+     *
+     * @param refColor Must be one of the ColorSetManager reference colors.
+     */
+    public void setSectionColor(Color refColor)
+    {
+        Preconditions.checkArgument(ColorSetManager.getDefault().isReferenceColor(refColor), "refColor=%s", refColor);
+        sectionColor = refColor;
+        repaint();
+    }
+
+    public Color getSectionColor()
+    {
+        return sectionColor;
     }
 
     /**
@@ -114,7 +121,7 @@ public class IR_Section extends ItemRenderer implements IR_Copiable
         Font f = getFont();
         int zFactor = getZoomFactor();
         Graphics2D g2 = (Graphics2D) getGraphics();
-        assert g2 != null : "g2=" + g2 + " sectionString=" + sectionString + " f=" + f + " zFactor=" + zFactor;   
+        assert g2 != null : "g2=" + g2 + " sectionString=" + sectionString + " f=" + f + " zFactor=" + zFactor;
 
         g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -135,7 +142,7 @@ public class IR_Section extends ItemRenderer implements IR_Copiable
         g2.dispose();
 
         Dimension d = new Dimension(pw, ph);
-        LOGGER.fine("getPreferredSize() d=" + d);   
+        LOGGER.log(Level.FINE, "getPreferredSize() d={0}", d);
         return d;
     }
 
@@ -163,14 +170,12 @@ public class IR_Section extends ItemRenderer implements IR_Copiable
     {
         super.cleanup();
         settings.removePropertyChangeListener(this);
-        colorSetManager.removePropertyChangeListener(this);
     }
 
     @Override
     protected void modelChanged()
     {
         sectionString = ((CLI_Section) getModel()).getData().getName();
-        sectionColor = colorSetManager.getColor(sectionString);
         revalidate();
         repaint();
     }
@@ -224,22 +229,14 @@ public class IR_Section extends ItemRenderer implements IR_Copiable
         super.propertyChange(e);
         if (e.getSource() == settings)
         {
-            if (e.getPropertyName() == IR_SectionSettings.PROP_FONT)
+            if (e.getPropertyName().equals(IR_SectionSettings.PROP_FONT))
             {
                 setFont(settings.getFont());
-            } else if (e.getPropertyName() == IR_SectionSettings.PROP_FONT_COLOR)
+            } else if (e.getPropertyName().equals(IR_SectionSettings.PROP_FONT_COLOR))
             {
                 setForeground(settings.getColor());
             }
-        } else if (e.getSource() == colorSetManager)
-        {
-            if (e.getPropertyName() == ColorSetManager.PROP_REF_COLORS_CHANGED)
-            {
-                CLI_Section section = (CLI_Section) getModel();
-                sectionColor = colorSetManager.getColor(section.getData().getName());
-                repaint();
-            }
-        }
+        } 
     }
 
     //-------------------------------------------------------------------------------

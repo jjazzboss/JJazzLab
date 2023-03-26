@@ -50,7 +50,7 @@ import org.openide.util.actions.Presenter;
 @ActionReferences(
         {
             @ActionReference(path = "Actions/Bar", position = 1420),
-            @ActionReference(path = "Actions/Section", position = 2100)
+            @ActionReference(path = "Actions/Section", position = 2110)
         })
 public final class SectionAtNewLine extends AbstractAction implements ContextAwareAction, CL_ContextActionListener, Presenter.Popup
 {

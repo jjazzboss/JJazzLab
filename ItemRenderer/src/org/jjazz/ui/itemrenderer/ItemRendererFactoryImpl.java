@@ -22,6 +22,7 @@
  */
 package org.jjazz.ui.itemrenderer;
 
+import org.jjazz.ui.itemrenderer.api.IR_Section;
 import java.util.logging.Logger;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;

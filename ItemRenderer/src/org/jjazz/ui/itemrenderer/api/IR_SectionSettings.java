@@ -27,6 +27,7 @@ import java.awt.Font;
 import java.beans.PropertyChangeListener;
 import org.openide.util.Lookup;
 
+
 public interface IR_SectionSettings
 {
 

@@ -40,10 +40,10 @@ public class ColorSetManagerImpl implements ColorSetManager
 {
 
     // COLORS
-    private final Color c1 = new Color(0xCE9668);
-    private final Color c2 = new Color(0xCE6868);
+    private final Color c1 = new Color(206, 193, 155);
+    private final Color c2 = new Color(203, 124 ,102);        
     private final Color c3 = new Color(204, 149, 104);
-    private final Color c4 = new Color(206, 193, 155);
+    private final Color c4 = new Color(206, 100, 104);
     private final Color c5 = new Color(178, 155, 136);
     private final Color c6 = new Color(151, 202, 195);
     // Obtained from Paletton.com http://paletton.com/#uid=7000u0kbRt14+E48dwffUpTkImm    
@@ -128,10 +128,16 @@ public class ColorSetManagerImpl implements ColorSetManager
         return res;
     }
 
+
+    @Override
+    public boolean isReferenceColor(Color c)
+    {
+        return getReferenceColors().contains(c);
+    }
+
     @Override
     public Color getReferenceColor(int index)
     {
-
         Color c = switch (index)
         {
             case 0 ->
@@ -160,7 +166,7 @@ public class ColorSetManagerImpl implements ColorSetManager
         }
         Color oldColor = getReferenceColor(index);
         prefs.putInt(COLOR_PROP_PREFIX + index, c.getRGB());
-        pcs.firePropertyChange(PROP_REF_COLORS_CHANGED, oldColor, c);
+        pcs.firePropertyChange(PROP_REF_COLOR_CHANGED, oldColor, c);
     }
 
     @Override

@@ -339,6 +339,11 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
         }
     }
 
+    /**
+     * The bar index in the chordleadsheet model.
+     *
+     * @return -1 if BarBox is past the end of chord leadsheet.
+     */
     public int getModelBarIndex()
     {
         return modelBarIndex;

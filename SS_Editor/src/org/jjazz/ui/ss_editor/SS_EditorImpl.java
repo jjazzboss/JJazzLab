@@ -336,19 +336,19 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
 
         LOGGER.log(Level.FINE, "setVisibleRps() rps={0}", rps);
 
-        var sortedRps = sortRhythmParameters(r, rps);
-        if (sortedRps.isEmpty())
+        var newRpsSorted = sortRhythmParameters(r, rps);
+        if (newRpsSorted.isEmpty())
         {
-            throw new IllegalArgumentException("r=" + r + " rps=" + rps + " sortedRps=" + sortedRps);
+            throw new IllegalArgumentException("r=" + r + " rps=" + rps + " newRpsSorted=" + newRpsSorted);
         }
-        var previousRps = mapRhythmVisibleRps.get(r);
-        if (previousRps != null && previousRps.equals(sortedRps))
+        var oldRps = mapRhythmVisibleRps.get(r);
+        if (newRpsSorted.equals(oldRps))
         {
             return;
         }
 
         // Store the rps
-        mapRhythmVisibleRps.put(r, sortedRps);
+        mapRhythmVisibleRps.put(r, newRpsSorted);
 
 
         // Update UI
@@ -356,12 +356,12 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         {
             if (sptv.getModel().getRhythm() == r)
             {
-                sptv.setVisibleRps(sortedRps);
+                sptv.setVisibleRps(newRpsSorted);
             }
         }
 
         // Fire event
-        firePropertyChange(SS_Editor.PROP_VISIBLE_RPS, false, true);
+        firePropertyChange(SS_Editor.PROP_VISIBLE_RPS, oldRps, newRpsSorted);
     }
 
     @Override

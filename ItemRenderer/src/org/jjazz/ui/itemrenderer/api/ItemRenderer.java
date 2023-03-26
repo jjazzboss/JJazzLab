@@ -42,7 +42,7 @@ public abstract class ItemRenderer extends JPanel implements PropertyChangeListe
 {
     // GUI variables
 
-    private static Dimension MIN_SIZE = new Dimension(2, 2);
+    private static final Dimension MIN_SIZE = new Dimension(2, 2);
     /**
      * The graphics settings for this object.
      */
@@ -64,8 +64,7 @@ public abstract class ItemRenderer extends JPanel implements PropertyChangeListe
      * The type of the itemrenderer.
      */
     private IR_Type irType;
-    // For requestAttention()
-    private Timer timer;
+    private Timer timer;            // For requestAttention()
     private Color saveBackground;
     private static final Logger LOGGER = Logger.getLogger(ItemRenderer.class.getName());
 
@@ -87,7 +86,7 @@ public abstract class ItemRenderer extends JPanel implements PropertyChangeListe
         setFocusTraversalKeysEnabled(false);
         // Register focus events
         addFocusListener(this);
-        // Since JPanel does not normally support drag-and-drop, we add a mouse listener ourselves 
+        // Since JPanel does not support drag-and-drop, we add a mouse listener ourselves 
         // to start drag if a transfer handler is set
         addMouseMotionListener(new MouseAdapter()
         {
@@ -101,6 +100,7 @@ public abstract class ItemRenderer extends JPanel implements PropertyChangeListe
                 }
             }
         });
+        
         // Register settings changes
         settings = ItemRendererSettings.getDefault();
         settings.addPropertyChangeListener(this);

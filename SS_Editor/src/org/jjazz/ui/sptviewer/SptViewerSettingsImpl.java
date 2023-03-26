@@ -57,11 +57,11 @@ public class SptViewerSettingsImpl implements SptViewerSettings, FontColorUserSe
     /**
      * The Preferences of this object.
      */
-    private static Preferences prefs = NbPreferences.forModule(SptViewerSettingsImpl.class);
+    private static final Preferences prefs = NbPreferences.forModule(SptViewerSettingsImpl.class);
     /**
      * The listeners for changes of this object.
      */
-    private SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    private final SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
 
     @Override
     public void setDefaultBackgroundColor(Color color)
@@ -82,20 +82,6 @@ public class SptViewerSettingsImpl implements SptViewerSettings, FontColorUserSe
     public Color getDefaultBackgroundColor()
     {
         return new Color(prefs.getInt(PROP_DEFAULT_BACKGROUND_COLOR, GeneralUISettings.getInstance().getColor("background.white").getRGB()));
-    }
-
-    @Override
-    public boolean isSectionColorUsedAsBackground()
-    {
-        return prefs.getBoolean(PROP_USE_SECTION_COLOR, true);
-    }
-
-    @Override
-    public void setSectionColorUsedAsBackground(boolean b)
-    {
-        boolean old = isSectionColorUsedAsBackground();
-        prefs.putBoolean(PROP_USE_SECTION_COLOR, b);
-        pcs.firePropertyChange(PROP_USE_SECTION_COLOR, old, b);
     }
 
     @Override

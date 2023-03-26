@@ -27,6 +27,7 @@ import java.awt.Font;
 import java.beans.PropertyChangeListener;
 import javax.swing.border.Border;
 import org.jjazz.leadsheet.chordleadsheet.api.Section;
+import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.ui.colorsetmanager.api.ColorSetManager;
 import org.jjazz.ui.rpviewer.spi.RpViewerSettings;
 import org.openide.util.Lookup;
@@ -48,7 +49,6 @@ public interface SptViewerSettings
     public static String PROP_FOCUSED_BORDER_COLOR = "FocusedBorderColor";
     public static String PROP_DEFAULT_BACKGROUND_COLOR = "DefaultBackgroundColor";
     public static String PROP_SELECTED_BACKGROUND_COLOR = "SelectedBackgroundColor";
-    public static String PROP_USE_SECTION_COLOR = "UseSectionColorAsBackground";
 
     public static SptViewerSettings getDefault()
     {
@@ -64,10 +64,6 @@ public interface SptViewerSettings
     {
         return RpViewerSettings.getDefault();
     }
-
-    boolean isSectionColorUsedAsBackground();
-
-    void setSectionColorUsedAsBackground(boolean b);
 
     void setNameFont(Font font);
 
@@ -100,29 +96,7 @@ public interface SptViewerSettings
     void setDefaultBackgroundColor(Color color);
 
     Color getDefaultBackgroundColor();
-
-    /**
-     * Get the default background color based on the parentSection color.
-     * <p>
-     * Return getDefaultBackgroundColor() if problem occured or if isSectionColorUsedAsBackground() is false.
-     *
-     * @param parentSection
-     * @return
-     */
-    public default Color getDefaultBackgroundColor(Section parentSection)
-    {
-        Color res;
-        if (!isSectionColorUsedAsBackground() || parentSection == null)
-        {
-            res = SptViewerSettings.this.getDefaultBackgroundColor();
-        } else
-        {
-            Color c = ColorSetManager.getDefault().getColor(parentSection.getName());
-            res = (c == null) ? SptViewerSettings.this.getDefaultBackgroundColor() : new Color(c.getRed(), c.getGreen(), c.getBlue(), 150);    // A bit transparent
-        }
-        return res;
-    }
-
+  
     void setSelectedBackgroundColor(Color color);
 
     Color getSelectedBackgroundColor();

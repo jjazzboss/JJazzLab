@@ -22,6 +22,7 @@
  */
 package org.jjazz.ui.cl_editor;
 
+import com.google.common.base.Preconditions;
 import static com.google.common.base.Preconditions.checkNotNull;
 import java.awt.Color;
 import java.awt.Component;
@@ -86,6 +87,7 @@ import org.openide.util.NbBundle.Messages;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.cl_editor.barrenderer.spi.BarRendererProvider;
+import org.jjazz.ui.colorsetmanager.api.ColorSetManager;
 
 /**
  * A chordleadsheet editor using BarBox objects to render bars.
@@ -97,8 +99,6 @@ import org.jjazz.ui.cl_editor.barrenderer.spi.BarRendererProvider;
 public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, ClsChangeListener, Scrollable, MouseListener, MouseWheelListener, MouseMotionListener
 {
 
-    protected static final String PROP_ZOOM_FACTOR_X = "PropClEditorZoomFactorX";
-    protected static final String PROP_ZOOM_FACTOR_Y = "PropClEditorZoomFactorY";
 
     private static final int NB_EXTRA_LINES = 4;
 
@@ -189,6 +189,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
      * Store the last Quantization used for each time signature.
      */
     private final HashMap<TimeSignature, Quantization> mapTsQuantization = new HashMap<>();
+    private final SongSpecificEditorProperties songSpecificProperties;
     private final SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(CL_EditorImpl.class.getSimpleName());
 
@@ -201,10 +202,14 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         }
         songModel = song;
         this.barRendererFactory = brf;
+        this.songSpecificProperties = new SongSpecificEditorProperties(songModel);
 
         // Listen to settings changes
         this.settings = settings;
         this.settings.addPropertyChangeListener(this);
+
+        // For section colors changes
+        ColorSetManager.getDefault().addPropertyChangeListener(this);
 
         // Graphical stuff
         nbColumns = 4;
@@ -266,6 +271,11 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
 
     }
 
+    public SongSpecificEditorProperties getSongSpecificEditorProperties()
+    {
+        return songSpecificProperties;
+    }
+
     @Override
     public UndoRedo getUndoManager()
     {
@@ -319,6 +329,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         generalLookupContent.remove(songModel);
         settings.removePropertyChangeListener(this);
 
+        ColorSetManager.getDefault().removePropertyChangeListener(this);
+
         // Need to remove backwards to avoid consistency problems 
         for (int i = barBoxes.size() - 1; i >= 0; i--)
         {
@@ -340,14 +352,21 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     @Override
     public void setDisplayQuantizationValue(CLI_Section cliSection, Quantization q)
     {
+        Preconditions.checkNotNull(cliSection);
+        Preconditions.checkNotNull(q);
         int sectionBar = cliSection.getPosition().getBar();
         if (clsModel.getSection(sectionBar) != cliSection)
         {
             throw new IllegalArgumentException("cliSection=" + cliSection + " not found in clsModel=" + clsModel);
         }
-        storeSectionQValue(cliSection.getData(), q);
-        propagateSectionChange(cliSection);
-        firePropertyChange(getSectionQuantizeValuePropertyName(cliSection.getData()), cliSection, q);
+
+        var old = getDisplayQuantizationValue(cliSection);
+        if (!old.equals(q))
+        {
+            updateSectionQuantization(cliSection, q);
+            propagateSectionChange(cliSection);
+            firePropertyChange(CL_Editor.getSectionQuantizationPropertyName(cliSection.getData()), old, q);
+        }
     }
 
     @Override
@@ -360,7 +379,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         }
 
 
-        Quantization q = getSectionQValue(cliSection.getData());
+        Quantization q = songSpecificProperties.loadSectionQuantization(cliSection.getData());
         if (q == null)
         {
             // Nothing defined yet
@@ -391,8 +410,9 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
 
 
             // Now that we got something, save it
-            storeSectionQValue(cliSection.getData(), q);
+            songSpecificProperties.storeSectionQuantization(cliSection.getData(), q);
         }
+
         return q;
     }
 
@@ -414,21 +434,51 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     @Override
     public void setSectionStartOnNewLine(CLI_Section cliSection, boolean b)
     {
+        Preconditions.checkNotNull(cliSection);
+
         int barIndex = cliSection.getPosition().getBar();
         if (isSectionStartOnNewLine(cliSection) == b || barIndex == 0)
         {
             return;
         }
-        songModel.putClientProperty(getSectionStartOnNewLinePropertyName(cliSection.getData()), b ? Boolean.toString(true) : null);
+        songSpecificProperties.storeSectionIsOnNewLine(cliSection.getData(), b);
         updatePaddingBoxes();
+
+        firePropertyChange(CL_Editor.getSectionOnNewLinePropertyName(cliSection.getData()), !b, b);
     }
 
     @Override
     public boolean isSectionStartOnNewLine(CLI_Section cliSection)
     {
-        String boolString = songModel.getClientProperty(getSectionStartOnNewLinePropertyName(cliSection.getData()), "false");
-        boolean b = Boolean.parseBoolean(boolString);
-        return b;
+        return songSpecificProperties.loadSectionIsOnNewLine(cliSection.getData());
+    }
+
+    @Override
+    public void setSectionColor(CLI_Section cliSection, Color c)
+    {
+        Preconditions.checkNotNull(cliSection);
+        Preconditions.checkNotNull(c);
+        Preconditions.checkArgument(ColorSetManager.getDefault().isReferenceColor(c), "c=%s", c);
+
+        var old = getSectionColor(cliSection);
+        if (!c.equals(old))
+        {
+            songSpecificProperties.storeSectionColor(cliSection.getData(), c);
+            firePropertyChange(CL_Editor.getSectionColorPropertyName(cliSection.getData()), old, c);        // BR_Sections will catch this
+        }
+    }
+
+
+    @Override
+    public Color getSectionColor(CLI_Section cliSection)
+    {
+        Color c = songSpecificProperties.loadSectionColor(cliSection.getData());
+        if (c == null)
+        {
+            c = ColorSetManager.getDefault().getColor(cliSection);
+            songSpecificProperties.storeSectionColor(cliSection.getData(), c);
+        }
+        return c;
     }
 
     @Override
@@ -458,21 +508,22 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         {
             return;
         }
-        int oldValue = nbColumns;
+        int oldNbColumns = nbColumns;
         nbColumns = nbCols;
         gridLayout.setColumns(nbColumns);
         updatePaddingBoxes();
         revalidate();
-        int oldFactor = computeNbColsToXFactor(oldValue);
+        int oldFactor = computeNbColsToXFactor(oldNbColumns);
         int newFactor = computeNbColsToXFactor(nbColumns);
         LOGGER.log(Level.FINER, "oldFactor={0} newFactor={1}", new Object[]
         {
             oldFactor, newFactor
         });
         pcs.firePropertyChange(Zoomable.PROPERTY_ZOOM_X, oldFactor, newFactor);
+        firePropertyChange(PROP_NB_COLUMNS, oldNbColumns, nbColumns);
 
-        // Save the zoom factor with the song as a client property
-        songModel.putClientProperty(PROP_ZOOM_FACTOR_X, Integer.toString(newFactor));
+        // Save the zoom factor with the song as a client property        
+        songSpecificProperties.storeZoomFactor(true, newFactor);
 
     }
 
@@ -502,8 +553,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         }
 
         // Save the zoom factor with the song as a client property
-        songModel.putClientProperty(PROP_ZOOM_FACTOR_Y, Integer.toString(zoomVFactor));
-
+        songSpecificProperties.storeZoomFactor(false, zoomVFactor);
     }
 
     @Override
@@ -913,11 +963,27 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
                 {
                     setBackground(settings.getBackgroundColor());
                 }
+            } else if (evt.getSource() == ColorSetManager.getDefault())
+            {
+                if (evt.getPropertyName().equals(ColorSetManager.PROP_REF_COLOR_CHANGED))
+                {
+                    Color oldColor = (Color) evt.getOldValue();
+                    Color newColor = (Color) evt.getOldValue();
+                    // Check if some section colors are impacted
+                    for (var cliSection : songModel.getChordLeadSheet().getItems(CLI_Section.class))
+                    {
+                        if (getSectionColor(cliSection).equals(oldColor))
+                        {
+                            setSectionColor(cliSection, newColor);
+                        }
+                    }
+                }
             }
         });
     }
 
     @Override
+
     public String toString()
     {
         return "CL_Editor size=" + getNbBarBoxes();
@@ -927,12 +993,14 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     // Implementation of the MouseListener interface
     //-----------------------------------------------------------------------
     @Override
-    public void mouseClicked(MouseEvent e)
+    public void mouseClicked(MouseEvent e
+    )
     {
     }
 
     @Override
-    public void mouseEntered(MouseEvent e)
+    public void mouseEntered(MouseEvent e
+    )
     {
     }
 
@@ -943,7 +1011,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     }
 
     @Override
-    public void mousePressed(MouseEvent e)
+    public void mousePressed(MouseEvent e
+    )
     {
         Component c = (Component) e.getSource();
         if (c instanceof ItemRenderer ir)
@@ -960,7 +1029,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     }
 
     @Override
-    public void mouseReleased(MouseEvent e)
+    public void mouseReleased(MouseEvent e
+    )
     {
         Component c = (Component) e.getSource();
         if (c instanceof BarRenderer)
@@ -977,7 +1047,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     // Implement the MouseMotionListener interface
     //------------------------------------------------------------------
     @Override
-    public void mouseDragged(MouseEvent e)
+    public void mouseDragged(MouseEvent e
+    )
     {
         if (!SwingUtilities.isLeftMouseButton(e))
         {
@@ -992,7 +1063,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     }
 
     @Override
-    public void mouseMoved(MouseEvent e)
+    public void mouseMoved(MouseEvent e
+    )
     {
     }
 
@@ -1000,7 +1072,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
 // Implements MouseWheelListener interface
 // ---------------------------------------------------------------
     @Override
-    public void mouseWheelMoved(MouseWheelEvent e)
+    public void mouseWheelMoved(MouseWheelEvent e
+    )
     {
         Component c = (Component) e.getSource();
         if (c instanceof ItemRenderer ir)
@@ -1022,7 +1095,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     }
 
     @Override
-    public void chordLeadSheetChanged(final ClsChangeEvent event)
+    public void chordLeadSheetChanged(final ClsChangeEvent event
+    )
     {
         // Model changes can be generated outside the EDT
         Runnable run = () -> 
@@ -1079,24 +1153,21 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
                 if (item instanceof CLI_Section cliSection)
                 {
                     Section oldSection = (Section) e.getOldData();
-                    Quantization q = getSectionQValue(oldSection);
-                    if (q != null)
+
+                    if (!oldSection.getName().equals(cliSection.getData().getName()))
                     {
-                        // Quantization was set for this section
-                        if (!oldSection.getName().equals(cliSection.getData().getName()))
-                        {
-                            // Name has changed, need to rename the property
-                            storeSectionQValue(oldSection, null);
-                            storeSectionQValue(cliSection.getData(), q);
-                        }
-                        if (!oldSection.getTimeSignature().equals(cliSection.getData().getTimeSignature()))
-                        {
-                            // TimeSignature has changed, the quantization setting is not valid anymore
-                            // Remove it. A new one will be restored just after in propagateSectionChange()
-                            storeSectionQValue(cliSection.getData(), null);
-                        }
+                        songSpecificProperties.sectionRenamed(oldSection.getName(), cliSection.getData());
                     }
-                    propagateSectionChange((CLI_Section) item);
+
+                    if (!oldSection.getTimeSignature().equals(cliSection.getData().getTimeSignature()))
+                    {
+                        // TimeSignature has changed, the quantization setting is not valid anymore
+                        // Remove it. A new one will be restored just after in propagateSectionChange()
+                        updateSectionQuantization(cliSection, null);
+                    }
+
+                    propagateSectionChange(cliSection);
+
                 }
             } else if (event instanceof ItemMovedEvent e)
             {
@@ -1242,7 +1313,6 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     {
         return false;
     }
-
     // ----------------------------------------------------------------------------------
     // Private functions
     // ----------------------------------------------------------------------------------
@@ -1515,14 +1585,12 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
             unregisterItemRenderer(ir);
         }
 
-        if (!skipSectionRemovalCleaning && (item instanceof CLI_Section))
+        if (!skipSectionRemovalCleaning && (item instanceof CLI_Section cliSection))
         {
-            CLI_Section cliSection = (CLI_Section) item;
             // Update the previous section
             propagateSectionChange(clsModel.getSection(barIndex));
             // Remove the associated UI settings
-            storeSectionQValue(cliSection.getData(), null);
-            setSectionStartOnNewLine(cliSection, false);
+            songSpecificProperties.sectionRemoved(cliSection.getData());
         }
     }
 
@@ -1594,31 +1662,21 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     }
 
     /**
-     * Save the quantization value associated to a section.
+     * Save the quantization value and update the last quantization used per TimeSignature.
      *
-     * @param sectionData
-     * @param q           Can be null: this will remove the entry for the specified section.
+     * @param cliSection
+     * @param q          Can be null: this will remove the entry for the specified section.
      */
-    private void storeSectionQValue(Section sectionData, Quantization q)
+    private void updateSectionQuantization(CLI_Section cliSection, Quantization q)
     {
-        songModel.putClientProperty(getSectionQuantizeValuePropertyName(sectionData), q == null ? null : q.name());
+        songSpecificProperties.storeSectionQuantization(cliSection.getData(), q);
         if (q != null)
         {
             // Store the last quantization use per TimeSignature.
-            mapTsQuantization.put(sectionData.getTimeSignature(), q);
+            mapTsQuantization.put(cliSection.getData().getTimeSignature(), q);
         }
     }
 
-    /**
-     * @param sectionData
-     * @return Null if no Quantization was stored for specified section.
-     * @see storeSectionQValue()
-     */
-    private Quantization getSectionQValue(Section sectionData)
-    {
-        String qString = songModel.getClientProperty(getSectionQuantizeValuePropertyName(sectionData), null);
-        return Quantization.isValidStringValue(qString) ? Quantization.valueOf(qString) : null;
-    }
 
     /**
      * The total number of rows taking into account BarBoxes (within chord leadhseet and after) and the PaddingBoxes.
@@ -1694,7 +1752,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     }
 
     //===========================================================================
-    // Private classes
+    // Inner classes
     //===========================================================================       
     /**
      * Implements the Zoomable functionalities.
@@ -1767,5 +1825,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         {
             throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
         }
-    };
+    }
+
+
 }

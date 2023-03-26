@@ -61,7 +61,6 @@ import org.openide.util.actions.Presenter;
         })
 public final class SetTimeSignature extends AbstractAction implements Presenter.Popup
 {
-
     private MyDynamicMenu menu;
     private final String undoText = ResUtil.getString(getClass(), "CTL_SetTimeSignature");
     private static final Logger LOGGER = Logger.getLogger(SetTimeSignature.class.getSimpleName());

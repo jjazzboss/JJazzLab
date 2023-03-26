@@ -34,7 +34,10 @@ import org.openide.util.Lookup;
 public interface ColorSetManager
 {
 
-    final static String PROP_REF_COLORS_CHANGED = "RefColorsChanged";
+    /**
+     * oldValue=old color, newValue=new color
+     */
+    final static String PROP_REF_COLOR_CHANGED = "RefColorChanged";
 
     static ColorSetManager getDefault()
     {
@@ -62,7 +65,17 @@ public interface ColorSetManager
     List<Color> getReferenceColors();
 
     /**
-     * Set a reference color at specified index.
+     * Check if c is one of the reference colors.
+     *
+     * @param c
+     * @return
+     */
+    boolean isReferenceColor(Color c);
+
+    /**
+     * Set the reference color at specified index.
+     * <p>
+     * Fire a PROP_REF_COLOR_CHANGED change event.
      *
      * @param index Must be in the reference colors bounds.
      * @param c
@@ -70,8 +83,20 @@ public interface ColorSetManager
     void setReferenceColor(int index, Color c);
 
     /**
-     * Return a color associated to an identifier. If identifier does not already exist in the set, we automatically associate a
-     * new reference color to it and return it.
+     * Convenience method which calls getColor(System.identityHashCode(o)).
+     *
+     * @param o
+     * @return
+     */
+    default Color getColor(Object o)
+    {
+        return getColor(String.valueOf(System.identityHashCode(o)));
+    }
+
+    /**
+     * Return a color associated to an identifier.
+     * <p>
+     * If identifier does not already exist in the set, it automatically associates a new reference color to it and return it.
      *
      * @param id Upper/lower case is ignored.
      * @return
@@ -84,6 +109,16 @@ public interface ColorSetManager
      * @param id An identifier which has been already used with getColor(id)
      */
     void resetColor(String id);
+
+    /**
+     * Convenience method which calls resetColor(System.identityHashCode(o)).
+     *
+     * @param o
+     */
+    default void resetColor(Object o)
+    {
+        resetColor(System.identityHashCode(o));
+    }
 
     void addPropertyChangeListener(PropertyChangeListener listener);
 

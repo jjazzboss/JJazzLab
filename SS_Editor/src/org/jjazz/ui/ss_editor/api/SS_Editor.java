@@ -51,6 +51,9 @@ import org.jjazz.ui.sptviewer.spi.SptViewerFactory;
 public abstract class SS_Editor extends JPanel implements Lookup.Provider
 {
 
+    /**
+     * oldValue=old list of visible RPs, newValue=new list of visible RPs
+     */
     static public final String PROP_VISIBLE_RPS = "PropVisibleRps";
 
     abstract public SongStructure getModel();
@@ -153,9 +156,8 @@ public abstract class SS_Editor extends JPanel implements Lookup.Provider
     /**
      * Return the SongPart/RhythmParameter corresponding to a graphical point.
      * <p>
-     * If we're not on a RhythmParameter, only the x coordinate is evaluated to find the right SongPart. If we're on the right of
-     * the last SongPart we return the last SongPart (with sptLeft false). If there is no SongPart, return null values for both
-     * spt and rp.
+     * If we're not on a RhythmParameter, only the x coordinate is evaluated to find the right SongPart. If we're on the right of the last
+     * SongPart we return the last SongPart (with sptLeft false). If there is no SongPart, return null values for both spt and rp.
      *
      * @param editorPoint
      * @param sptLeft     Used to return an indicator if point was on the left or right side of the songpart
@@ -184,6 +186,8 @@ public abstract class SS_Editor extends JPanel implements Lookup.Provider
 
     /**
      * Indicate which RhythmParameters should be made visible for a specific rhythm.
+     * <p>
+     * Can fire a PROP_VISIBLE_RPS change event.
      *
      * @param r
      * @param rps The list of visible RhythmParameters of specified rhythm. Can't be empty.
@@ -203,8 +207,8 @@ public abstract class SS_Editor extends JPanel implements Lookup.Provider
     /**
      * Get the focused SongPart, if any.
      *
-     * @param includeFocusedRhythmParameter If true and focus is on a RhythmParameter editor, return the SongPart for this
-     *                                      RhythmParameter editor.
+     * @param includeFocusedRhythmParameter If true and focus is on a RhythmParameter editor, return the SongPart for this RhythmParameter
+     *                                      editor.
      * @return Can be null. The SongPart corresponding to the SongPart editor.
      */
     abstract public SongPart getFocusedSongPart(boolean includeFocusedRhythmParameter);

@@ -187,19 +187,19 @@ public class PrintDialog extends javax.swing.JDialog implements ChangeListener
                 var section = cliSection.getData();
 
                 // Get the original values
-                String startOnNewLine = refSong.getClientProperty(CL_Editor.getSectionStartOnNewLinePropertyName(section), null);
-                String qString = refSong.getClientProperty(CL_Editor.getSectionQuantizeValuePropertyName(section), null);
+                String startOnNewLine = refSong.getClientProperty(CL_Editor.getSectionOnNewLinePropertyName(section), null);
+                String qString = refSong.getClientProperty(CL_Editor.getSectionQuantizationPropertyName(section), null);
                 Quantization qValue = Quantization.isValidStringValue(qString) ? Quantization.valueOf(qString) : null;
 
 
                 // Copy the values
                 if (startOnNewLine != null)
                 {
-                    res.putClientProperty(CL_Editor.getSectionStartOnNewLinePropertyName(section), "true");
+                    res.putClientProperty(CL_Editor.getSectionOnNewLinePropertyName(section), "true");
                 }
                 if (qValue != null)
                 {
-                    res.putClientProperty(CL_Editor.getSectionQuantizeValuePropertyName(section), qValue.name());
+                    res.putClientProperty(CL_Editor.getSectionQuantizationPropertyName(section), qValue.name());
                 }
             }
         }

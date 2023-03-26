@@ -329,7 +329,7 @@ public class RulerPanel extends javax.swing.JPanel implements ClsChangeListener,
                     double xRect = xSongPart;
                     double yRect = yTimeSignatureBaseLine + PADDING - hRect;
                     var r = new Rectangle2D.Double(xRect, yRect, wRect, hRect);
-                    Color c = ColorSetManager.getDefault().getColor(spt.getParentSection().getData().getName());
+                    Color c = ColorSetManager.getDefault().getColor(spt.getParentSection());
                     g2.setColor(c);
                     g2.fill(r);
 

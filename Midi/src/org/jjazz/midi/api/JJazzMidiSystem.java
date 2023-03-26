@@ -202,7 +202,7 @@ public final class JJazzMidiSystem
             LOGGER.log(Level.WARNING, "JJazzMidiSystem() problem getting Java internal synthesizer: {0}", ex.getMessage());
             
             // On Windows this can happen when there is no audio output available on the system, so it's worth notifying the user            
-            NotifyDescriptor nd = new NotifyDescriptor.Message("Problem getting Java internal sytnth. Please check system audio output.", NotifyDescriptor.ERROR_MESSAGE);
+            NotifyDescriptor nd = new NotifyDescriptor.Message("Problem getting Java internal synth. Please check system audio output.", NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(nd);
             
             javaInternalSynth = null;
