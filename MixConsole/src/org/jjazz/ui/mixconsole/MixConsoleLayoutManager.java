@@ -31,52 +31,122 @@ import java.util.logging.Logger;
 import org.jjazz.ui.mixconsole.api.MixConsole;
 
 /**
- * A LayoutManager to arrange the MixChannelPanels and their UserChannelExtensionPanels in the MixConsole.
+ * A LayoutManager to arrange the MixChannelPanels and the PhrasePreviewPanels in the MixConsole.
  */
 public class MixConsoleLayoutManager implements LayoutManager
 {
+
     private static final int H_PADDING = 3;
     private static final int V_PADDING = 2;
-    
+
     private final MixConsole mixConsole;
+    private boolean vertical;
+
+
     private static final Logger LOGGER = Logger.getLogger(MixConsoleLayoutManager.class.getSimpleName());
-    
-    public MixConsoleLayoutManager(MixConsole mixConsole)
+
+
+    /**
+     * 
+     * @param mixConsole
+     * @param isVertical 
+     */
+    public MixConsoleLayoutManager(MixConsole mixConsole, boolean isVertical)
     {
         this.mixConsole = mixConsole;
+        this.vertical = isVertical;
     }
-    
+
     @Override
     public void layoutContainer(Container container)
-    {                
+    {
         Insets in = container.getInsets();
         int xMin = in.left + H_PADDING;
         int yMin = in.top + V_PADDING;
         int x = xMin;
 
 
-        for (var panelSet : mixConsole.getChannelPanelSets().values())     // Sorted by channel
+        if (vertical)
         {
-            int y = yMin;
+            // Layout the PhraseViewerPanels below each MixChannelPanel 
+            for (var panelSet : mixConsole.getChannelPanelSets().values())     // Sorted by channel
+            {
+                int y = yMin;
 
-            // MixChannelPanel
-            var mcp = panelSet.mixChannelPanel;
-            Dimension pd = mcp.getPreferredSize();
-            mcp.setSize(pd);
-            mcp.setLocation(x, y);
-            y += mcp.getHeight() + V_PADDING;
-      
-
-            // PhraseViewerPanel below
-            var mcpv = panelSet.phraseViewerPanel;
-            pd = mcpv.getPreferredSize();
-            mcpv.setSize(mcp.getWidth(), pd.height);
-            mcpv.setLocation(x, y);
+                // MixChannelPanel
+                var mcp = panelSet.mixChannelPanel;
+                Dimension pd = mcp.getPreferredSize();
+                mcp.setSize(pd);
+                mcp.setLocation(x, y);
+                y += mcp.getHeight() + V_PADDING;
 
 
-            x += mcp.getWidth() + H_PADDING;
+                // PhraseViewerPanel below
+                var mcpv = panelSet.phraseViewerPanel;
+                pd = mcpv.getPreferredSize();
+                mcpv.setSize(mcp.getWidth(), pd.height);
+                mcpv.setLocation(x, y);
+
+
+                x += mcp.getWidth() + H_PADDING;
+            }
+        } else
+        {
+            // Layout the PhraseViewerPanels horizontally in the available space below the MixChannelPanels
+            int yMax = 0;
+
+
+            for (var panelSet : mixConsole.getChannelPanelSets().values())     // Sorted by channel
+            {
+                int y = yMin;
+
+                // MixChannelPanel
+                var mcp = panelSet.mixChannelPanel;
+                Dimension pd = mcp.getPreferredSize();
+                mcp.setSize(pd);
+                mcp.setLocation(x, y);
+                y += mcp.getHeight() + V_PADDING;
+                x += mcp.getWidth() + H_PADDING;
+
+                yMax = Math.max(yMax, y);
+            }
+
+
+            // Layout PhraseViewerPanels as horizontal lanes across the bottom of the MixConsole
+            int nbChannels = mixConsole.getChannelPanelSets().size();
+            if (nbChannels > 0)
+            {
+                yMax += 3;
+                x = xMin;
+                int h = container.getHeight() - in.bottom - yMax;
+                int w = container.getWidth() - in.left - in.right;
+                float yf = yMax;
+                for (var panelSet : mixConsole.getChannelPanelSets().values())     // Sorted by channel
+                {
+                    var pvp = panelSet.phraseViewerPanel;
+                    int channelHeight = Math.max((h - ((nbChannels - 1) * V_PADDING)) / nbChannels, pvp.getMinimumSize().height);
+                    pvp.setSize(w, channelHeight);
+                    pvp.setLocation(x, Math.round(yf));
+                    yf += (float) h / nbChannels + V_PADDING;
+                }
+            }
         }
 
+    }
+
+    public boolean isVertical()
+    {
+        return vertical;
+    }
+
+    /**
+     * Set the layout behavior vertical or horizontal.
+     *
+     * @param vertical
+     */
+    public void setVertical(boolean vertical)
+    {
+        this.vertical = vertical;
     }
 
     @Override
@@ -88,30 +158,54 @@ public class MixConsoleLayoutManager implements LayoutManager
     @Override
     public void removeLayoutComponent(Component comp)
     {
-     // Nothing
+        // Nothing
     }
 
     @Override
     public Dimension preferredLayoutSize(Container container)
     {
+        Dimension res;
         int w = 0;
         int hMax = 0;
 
-
-        for (var panelSet : mixConsole.getChannelPanelSets().values())     // Sorted by channel
+        if (vertical)
         {
-            Dimension pd = panelSet.mixChannelPanel.getPreferredSize();
-            w += H_PADDING + pd.width;
 
-            int h = pd.height + V_PADDING + panelSet.phraseViewerPanel.getPreferredSize().height;     
+            for (var panelSet : mixConsole.getChannelPanelSets().values())     // Sorted by channel
+            {
+                Dimension pd = panelSet.mixChannelPanel.getPreferredSize();
+                w += H_PADDING + pd.width;
 
-            hMax = Math.max(h, hMax);
+                int h = pd.height + V_PADDING + panelSet.phraseViewerPanel.getPreferredSize().height;
+
+                hMax = Math.max(h, hMax);
+            }
+
+            Insets in = container.getInsets();
+            w += in.left + H_PADDING + in.right;
+            int h = in.top + hMax + in.bottom;
+            res = new Dimension(w, h);
+        } else
+        {
+            // Horizontal layout
+
+            for (var panelSet : mixConsole.getChannelPanelSets().values())     // Sorted by channel
+            {
+                Dimension pd = panelSet.mixChannelPanel.getPreferredSize();
+                w += H_PADDING + pd.width;
+
+                int h = pd.height + V_PADDING + panelSet.phraseViewerPanel.getPreferredSize().height;
+                hMax = Math.max(h, hMax);
+            }
+
+            Insets in = container.getInsets();
+            w += in.left + H_PADDING + in.right;
+            int h = in.top + hMax + in.bottom;
+            res = new Dimension(w, h);
         }
 
-        Insets in = container.getInsets();
-        w += in.left + H_PADDING + in.right;
-        int h = in.top + hMax + in.bottom;
-        return new Dimension(w, h);
+
+        return res;
     }
 
 
@@ -125,7 +219,6 @@ public class MixConsoleLayoutManager implements LayoutManager
     // Private methods
     // ===============================================================================
 
-  
 
     // ===============================================================================
     // Private classes

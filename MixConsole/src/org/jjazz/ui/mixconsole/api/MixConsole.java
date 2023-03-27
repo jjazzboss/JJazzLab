@@ -132,7 +132,9 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
     private final MixConsoleSettings settings;
     private final MenuBar menuBar;
     private final TreeMap<Integer, ChannelPanelSet> tmapChannelPanelSets = new TreeMap<>();
+    private final MixConsoleLayoutManager layoutManager;    
     private static final Logger LOGGER = Logger.getLogger(MixConsole.class.getSimpleName());
+
 
     public MixConsole(MixConsoleSettings settings)
     {
@@ -162,8 +164,9 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
 
 
         // Use our LayoutManager to arranger MixChannelPanels and their extensions
-        panel_mixChannels.setLayout(new MixConsoleLayoutManager(this));
-        // panel_mixChannels.setLayout(new MixConsoleLayoutManagerHorizontal(this));
+        layoutManager = new MixConsoleLayoutManager(this, true);
+        panel_mixChannels.setLayout(layoutManager);
+        
 
         // Our renderer to show visible rhythms
         cb_viewRhythms.setRenderer(new MyRenderer());
@@ -324,8 +327,9 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         fbtn_allSoloOff = new org.jjazz.ui.flatcomponents.api.FlatButton();
         filler5 = new javax.swing.Box.Filler(new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 32767));
         fbtn_panic = new org.jjazz.ui.flatcomponents.api.FlatButton();
-        filler2 = new javax.swing.Box.Filler(new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 32767));
+        filler2 = new javax.swing.Box.Filler(new java.awt.Dimension(10, 0), new java.awt.Dimension(15, 0), new java.awt.Dimension(15, 32767));
         fbtn_addUserChannel = new org.jjazz.ui.flatcomponents.api.FlatButton();
+        filler8 = new javax.swing.Box.Filler(new java.awt.Dimension(5, 0), new java.awt.Dimension(5, 0), new java.awt.Dimension(5, 32767));
         scrollPane_mixChannelsPanel = new javax.swing.JScrollPane();
         panel_mixChannels = new javax.swing.JPanel();
 
@@ -376,6 +380,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
 
         fbtn_addUserChannel.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/mixconsole/resources/AddUser-16x16.png"))); // NOI18N
         panel_MasterControls.add(fbtn_addUserChannel);
+        panel_MasterControls.add(filler8);
 
         panel_Main.add(panel_MasterControls, java.awt.BorderLayout.PAGE_START);
 
@@ -415,6 +420,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
     private javax.swing.Box.Filler filler5;
     private javax.swing.Box.Filler filler6;
     private javax.swing.Box.Filler filler7;
+    private javax.swing.Box.Filler filler8;
     private javax.swing.JLabel lbl_Master;
     private org.jjazz.ui.mixconsole.MasterVolumeSlider masterHorizontalSlider1;
     private javax.swing.JPanel panel_Main;
