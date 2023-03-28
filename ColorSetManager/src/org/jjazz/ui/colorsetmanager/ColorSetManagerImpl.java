@@ -41,9 +41,9 @@ public class ColorSetManagerImpl implements ColorSetManager
 
     // COLORS
     private final Color c1 = new Color(206, 193, 155);
-    private final Color c2 = new Color(203, 124 ,102);        
+    private final Color c2 = new Color(180, 124 ,102);        
     private final Color c3 = new Color(204, 149, 104);
-    private final Color c4 = new Color(206, 100, 104);
+    private final Color c4 = new Color(110, 120, 104);
     private final Color c5 = new Color(178, 155, 136);
     private final Color c6 = new Color(151, 202, 195);
     // Obtained from Paletton.com http://paletton.com/#uid=7000u0kbRt14+E48dwffUpTkImm    

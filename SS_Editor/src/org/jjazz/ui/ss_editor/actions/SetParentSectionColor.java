@@ -20,49 +20,87 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.ui.cl_editor.actions;
+package org.jjazz.ui.ss_editor.actions;
 
 import java.awt.Color;
+import org.jjazz.ui.ss_editor.api.SS_ContextActionSupport;
 import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
+import javax.swing.Action;
+import static javax.swing.Action.NAME;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
-import org.jjazz.ui.cl_editor.api.CL_EditorTopComponent;
-import org.jjazz.ui.cl_editor.api.CL_Editor;
-import org.jjazz.ui.cl_editor.api.CL_SelectionUtilities;
-import org.jjazz.ui.colorsetmanager.api.ColorSetManager;
-import org.jjazz.util.api.ResUtil;
+import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
+import org.openide.util.ContextAwareAction;
+import org.openide.util.Lookup;
+import org.openide.util.Utilities;
+import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.ui.cl_editor.api.CL_Editor;
+import org.jjazz.ui.cl_editor.api.CL_EditorTopComponent;
+import org.jjazz.ui.colorsetmanager.api.ColorSetManager;
+import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
+import org.jjazz.util.api.ResUtil;
 import org.openide.util.actions.Presenter;
 
-/**
- * Allow user to change color of selected sections via a JPopupMenu.
- */
-@ActionID(category = "JJazz", id = "org.jjazz.ui.cl_editor.actions.SetSectionColor")
-@ActionRegistration(displayName = "#CTL_SetSectionColor", lazy = false)
+@ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.setparentsectioncolor")
+@ActionRegistration(displayName = "#CTL_SetParentSectionColor", lazy = false)
 @ActionReferences(
         {
-            @ActionReference(path = "Actions/Section", position = 2100, separatorBefore=2099)
+            @ActionReference(path = "Actions/SongPart", position = 1400)
         })
-public final class SetSectionColor extends AbstractAction implements Presenter.Popup
+public class SetParentSectionColor extends AbstractAction implements ContextAwareAction, SS_ContextActionListener, Presenter.Popup
 {
+
     private ColorMenu menu;
-    private final String undoText = ResUtil.getString(getClass(), "CTL_SetSectionColor");
-    private static final Logger LOGGER = Logger.getLogger(SetSectionColor.class.getSimpleName());
+    private Lookup context;
+    private SS_ContextActionSupport cap;
+    private String undoText = ResUtil.getString(getClass(), "CTL_SetParentSectionColor");
+    private static final Logger LOGGER = Logger.getLogger(SetParentSectionColor.class.getSimpleName());
+
+    public SetParentSectionColor()
+    {
+        this(Utilities.actionsGlobalContext());
+    }
+
+    private SetParentSectionColor(Lookup context)
+    {
+        this.context = context;
+        cap = SS_ContextActionSupport.getInstance(this.context);
+        cap.addListener(this);
+        putValue(NAME, undoText);
+        selectionChange(cap.getSelection());
+    }
+
+    @Override
+    public Action createContextAwareInstance(Lookup context)
+    {
+        return new SetParentSectionColor(context);
+    }
 
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        // Useless
+        // Not used
     }
 
-    
+    @Override
+    public void selectionChange(SS_SelectionUtilities selection)
+    {
+        boolean b = selection.isSongPartSelected();
+        LOGGER.log(Level.FINE, "selectionChange() b={0}", b);
+        setEnabled(b);
+    }
+
+
     // ============================================================================================= 
     // Presenter.Popup implementation
     // =============================================================================================      
@@ -79,11 +117,22 @@ public final class SetSectionColor extends AbstractAction implements Presenter.P
     // ============================================================================================= 
     // Private methods
     // =============================================================================================    
+    private void setColorOfSelectedSpts(Color c)
+    {
+        SS_SelectionUtilities selection = cap.getSelection();
+        List<SongPart> spts = selection.getIndirectlySelectedSongParts();
+        CL_Editor clEditor = CL_EditorTopComponent.get(selection.getModel().getParentChordLeadSheet()).getEditor();
+        for (var spt : spts)
+        {
+            var parentSection = spt.getParentSection();
+            clEditor.setSectionColor(parentSection, c);
+        }
+    }
 
     // ============================================================================================= 
     // Private class
     // =============================================================================================    
-    private static class ColorMenu extends JMenu implements PropertyChangeListener
+    private class ColorMenu extends JMenu implements PropertyChangeListener
     {
 
         public ColorMenu(String title)
@@ -91,7 +140,6 @@ public final class SetSectionColor extends AbstractAction implements Presenter.P
             super(title);
 
             prepareMenu();
-
             ColorSetManager.getDefault().addPropertyChangeListener(this);
         }
 
@@ -108,6 +156,7 @@ public final class SetSectionColor extends AbstractAction implements Presenter.P
             }
         }
 
+
         private void prepareMenu()
         {
             removeAll();
@@ -117,18 +166,10 @@ public final class SetSectionColor extends AbstractAction implements Presenter.P
             for (final Color c : csm.getReferenceColors())
             {
                 JMenuItem mi = new JMenuItem("    ");
-                mi.setEnabled(true);                
+                mi.setEnabled(true);
                 mi.setOpaque(true);
                 mi.setBackground(c);
-                mi.addActionListener(ae -> 
-                {
-                    CL_Editor editor = CL_EditorTopComponent.getActive().getEditor();
-                    CL_SelectionUtilities selection = new CL_SelectionUtilities(editor.getLookup());
-                    for (var cliSection: selection.getSelectedSections())
-                    {
-                        editor.setSectionColor(cliSection, c);
-                    }
-                });
+                mi.addActionListener(ae -> setColorOfSelectedSpts(c));
                 add(mi);
             }
         }
