@@ -505,7 +505,7 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
             }
         });
 
-        lbl_Filtered.setForeground(new java.awt.Color(255, 51, 51));
+        lbl_Filtered.setForeground(new java.awt.Color(251, 102, 122));
         org.openide.awt.Mnemonics.setLocalizedText(lbl_Filtered, "(FILTERED)"); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(lbl_recIns, org.openide.util.NbBundle.getMessage(InstrumentChooserDialogImpl.class, "InstrumentChooserDialogImpl.lbl_recIns.text")); // NOI18N

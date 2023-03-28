@@ -276,7 +276,7 @@
     <Component class="javax.swing.JLabel" name="lbl_Filtered">
       <Properties>
         <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-          <Color blue="33" green="33" red="ff" type="rgb"/>
+          <Color blue="7a" green="66" red="fb" type="rgb"/>
         </Property>
         <Property name="text" type="java.lang.String" value="(FILTERED)" noResource="true"/>
       </Properties>
