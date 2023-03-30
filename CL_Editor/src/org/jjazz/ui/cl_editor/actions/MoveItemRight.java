@@ -24,6 +24,8 @@ package org.jjazz.ui.cl_editor.actions;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
@@ -44,11 +46,14 @@ public final class MoveItemRight implements ActionListener
 {
 
     private final List<ChordLeadSheetItem<?>> context;
+    private final List<ChordLeadSheetItem<?>> sortedClis;    
     private final String undoText = ResUtil.getString(getClass(), "CTL_MoveItemRight");
 
     public MoveItemRight(List<ChordLeadSheetItem<?>> context)
     {
         this.context = context;
+        this.sortedClis = new ArrayList<>(context);
+        Collections.sort(sortedClis);        
     }
 
     @Override
@@ -73,7 +78,7 @@ public final class MoveItemRight implements ActionListener
 
     private void moveSections()
     {
-        for (ChordLeadSheetItem<?> cli : ChordLeadSheetItem.Utilities.sortByPosition(context))
+        for (ChordLeadSheetItem<?> cli : sortedClis)
         {
             ChordLeadSheet model = cli.getContainer();
             int barIndex = cli.getPosition().getBar();
@@ -94,7 +99,7 @@ public final class MoveItemRight implements ActionListener
 
     private void moveChordSymbols()
     {
-        for (ChordLeadSheetItem<?> cli : ChordLeadSheetItem.Utilities.sortByPosition(context))
+        for (ChordLeadSheetItem<?> cli : sortedClis)
         {
             ChordLeadSheet model = cli.getContainer();
             Position pos = cli.getPosition();

@@ -23,6 +23,7 @@
 package org.jjazz.leadsheet.chordleadsheet.api.event;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
@@ -53,13 +54,14 @@ public abstract class ClsChangeEvent
     {
         if (src == null)
         {
-            throw new IllegalArgumentException("src=" + src);   
+            throw new IllegalArgumentException("src=" + src);
         }
         source = src;
         items = new ArrayList<>();
     }
 
     /**
+     * @param src
      * @param item The ChordLeadSheetItem which has changed.
      */
     protected ClsChangeEvent(ChordLeadSheet src, ChordLeadSheetItem<?> item)
@@ -68,6 +70,7 @@ public abstract class ClsChangeEvent
     }
 
     /**
+     * @param src
      * @param items The list of the ChordLeadSheetItems which have changed.
      */
     protected ClsChangeEvent(ChordLeadSheet src, List<ChordLeadSheetItem<?>> items)
@@ -75,9 +78,11 @@ public abstract class ClsChangeEvent
         this(src);
         if (items == null)
         {
-            throw new NullPointerException("src=" + src + " items=" + items);   
+            throw new NullPointerException("src=" + src + " items=" + items);
         }
-        this.items.addAll(ChordLeadSheetItem.Utilities.sortByPosition(items));
+        var sortedItems = new ArrayList<>(items);
+        Collections.sort(sortedItems);
+        this.items.addAll(sortedItems);
     }
 
     /**
@@ -90,7 +95,7 @@ public abstract class ClsChangeEvent
 
     /**
      *
-     * @return A list of items ordered by position
+     * @return An ordered list of items
      */
     public List<ChordLeadSheetItem<?>> getItems()
     {

@@ -515,7 +515,7 @@ public class RulerPanel extends javax.swing.JPanel implements ClsChangeListener,
             var barDelta = pos.getBar() - spt.getStartBarIndex();
             var section = spt.getParentSection();
             var clsPos = new Position(section.getPosition().getBar() + barDelta, pos.getBeat());
-            var cliCs = song.getChordLeadSheet().getLastItem(clsPos, CLI_ChordSymbol.class);
+            var cliCs = song.getChordLeadSheet().getItemBefore(clsPos, CLI_ChordSymbol.class);
             if (cliCs != null)
             {
                 var clTc = CL_EditorTopComponent.get(song.getChordLeadSheet());

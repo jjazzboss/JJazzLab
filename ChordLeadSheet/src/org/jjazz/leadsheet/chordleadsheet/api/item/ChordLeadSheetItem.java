@@ -22,63 +22,236 @@
  */
 package org.jjazz.leadsheet.chordleadsheet.api.item;
 
+import com.google.common.base.Preconditions;
+import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.beans.PropertyChangeListener;
+import java.io.IOException;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 
 /**
- * Items that belong to a ChordLeadSheet.
+ * Items which belong to a ChordLeadSheet.
+ * <p>
+ * PropertyChangeEvents are fired when an attribute is modified.
  *
  * @param <T>
  */
-public interface ChordLeadSheetItem<T> extends Item<T>, Transferable
+public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLeadSheetItem<?>>
 {
 
+    /**
+     * oldValue=old container, newValue=new container.
+     */
     public static String PROP_CONTAINER = "PropContainer";
+    /**
+     * oldValue=old data, newValue=new data.
+     */
+    public static String PROP_ITEM_DATA = "ItemData";
+    /**
+     * oldValue=old position, newValue=new position.
+     */
+    public static String PROP_ITEM_POSITION = "ItemPosition";
 
     /**
-     * @return The ChordLeadSheet this object belongs to.
+     * Get the ChordLeadSheet this object belongs to.
+     *
+     * @return Can be null.
      */
-    public ChordLeadSheet getContainer();
+    ChordLeadSheet getContainer();
+
+
+    /**
+     * Get the data part of this item.
+     *
+     * @return
+     */
+    T getData();
+
+    /**
+     * Get the position of this item.
+     *
+     * @return
+     */
+    Position getPosition();
 
     /**
      * Get a copy of this item at a specified position.
      * <p>
-     * @param newCls If null, the copy will have the same container that this
-     * object.
-     * @param newPos If null, the copy will have the same position that this
-     * object.
+     * @param newCls If null, the copy will have the same container that this object.
+     * @param newPos If null, the copy will have the same position that this object.
      * @return
      */
-    public ChordLeadSheetItem<T> getCopy(ChordLeadSheet newCls, Position newPos);
+    ChordLeadSheetItem<T> getCopy(ChordLeadSheet newCls, Position newPos);
 
     /**
-     * Return true if there can be only one single item perbar, like a time
-     * signature.
+     * Return true if there can be only one single item perbar, like a time signature.
      * <p>
      * @return
      */
-    public boolean isBarSingleItem();
+    boolean isBarSingleItem();
+
 
     /**
-     * Convenience functions to work with items.
+     * First compare using position, then use isBarSingleItem().
+     *
+     * @param other
+     * @return
      */
-    public static class Utilities
+    @Override
+    default int compareTo(ChordLeadSheetItem<?> other)
+    {
+        int res;
+        if (this == other)
+        {
+            res = 0;
+        } else
+        {
+            res = getPosition().compareTo(other.getPosition());
+            if (res == 0)
+            {
+                if (isBarSingleItem() && !other.isBarSingleItem())
+                {
+                    res = -1;
+                } else if (!isBarSingleItem() && other.isBarSingleItem())
+                {
+                    res = 1;
+                }
+            }
+        }
+
+        return res;
+    }
+
+    void addPropertyChangeListener(PropertyChangeListener listener);
+
+    void removePropertyChangeListener(PropertyChangeListener listener);
+
+
+    /**
+     * Create an item right after the specified position for comparison purposes.
+     *
+     * @param pos
+     * @return
+     */
+    public static ComparableItem createItemAfter(Position pos)
+    {
+        Position newPos;
+        if (Float.compare(pos.getBeat(), Float.MAX_VALUE) == 0)
+        {
+            newPos = new Position(pos.getBar() + 1, 0);
+        } else
+        {
+            newPos = new Position(pos.getBar(), pos.getBeat() + Float.intBitsToFloat(0x1));
+        }
+        return new ComparableItem(newPos);
+    }
+
+    /**
+     * Create an item right before the specified position for comparison purposes.
+     *
+     * @param pos
+     * @return
+     */
+    public static ComparableItem createItemBefore(Position pos)
+    {
+        Preconditions.checkArgument(!(pos.getBar() == 0 && pos.isFirstBarBeat()), "pos=%s", pos);
+        Position newPos;
+        if (pos.isFirstBarBeat())
+        {
+            newPos = new Position(pos.getBar() - 1, Float.MAX_VALUE);
+        } else
+        {
+            newPos = new Position(pos.getBar(), pos.getBeat() - Float.intBitsToFloat(0x1));
+        }
+        return new ComparableItem(newPos);
+    }
+
+    // ==================================================================================================
+    // Inner classes
+    // ==================================================================================================
+    /**
+     * A dummy ChordLeadSheetItem class used for position comparison when using the NavigableSet-based methods of ChordLeadSheet.
+     */
+    static class ComparableItem implements ChordLeadSheetItem<String>
     {
 
-        /**
-         * Sort a list of ChordLeadSheetItems based on their position.
-         *
-         * @param items
-         * @return A new list correponding to sorted items.
-         */
-        public static List<ChordLeadSheetItem<?>> sortByPosition(final List<ChordLeadSheetItem<?>> items)
+        private final boolean barSingleItem;
+        private final Position position;
+        private final String data;
+
+        public ComparableItem(Position pos)
         {
-            ArrayList<ChordLeadSheetItem<?>> sortedItems = new ArrayList<>(items);
-            Collections.sort(sortedItems, (item1, item2) -> item1.getPosition().compareTo(item2.getPosition()));
-            return sortedItems;
+            this(pos, "comparableItem", false);
+        }
+
+        public ComparableItem(Position pos, String data, boolean barSingleItem)
+        {
+            this.barSingleItem = barSingleItem;
+            this.position = pos;
+            this.data = data;
+        }
+
+        @Override
+        public ChordLeadSheet getContainer()
+        {
+            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        }
+
+        @Override
+        public ChordLeadSheetItem getCopy(ChordLeadSheet newCls, Position newPos)
+        {
+            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        }
+
+        @Override
+        public boolean isBarSingleItem()
+        {
+            return barSingleItem;
+        }
+
+        @Override
+        public String getData()
+        {
+            return data;
+        }
+
+        @Override
+        public Position getPosition()
+        {
+            return position;
+        }
+
+        @Override
+        public void addPropertyChangeListener(PropertyChangeListener listener)
+        {
+            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        }
+
+        @Override
+        public void removePropertyChangeListener(PropertyChangeListener listener)
+        {
+            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        }
+
+        @Override
+        public DataFlavor[] getTransferDataFlavors()
+        {
+            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        }
+
+        @Override
+        public boolean isDataFlavorSupported(DataFlavor flavor)
+        {
+            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        }
+
+        @Override
+        public Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException, IOException
+        {
+            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
         }
     }
+
+
 }

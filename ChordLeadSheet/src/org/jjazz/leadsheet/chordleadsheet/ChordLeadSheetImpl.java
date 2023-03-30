@@ -29,7 +29,11 @@ import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
+import java.util.TreeSet;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.event.UndoableEditEvent;
@@ -54,9 +58,9 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 {
 
     /**
-     * The tree nodes who store the items per section.
+     * The main data structure: store the items sorted.
      */
-    private final ItemArray items = new ItemArray();
+    private final TreeSet<ChordLeadSheetItem<?>> items = new TreeSet<>();
     /**
      * The size of the leadsheet.
      */
@@ -85,7 +89,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         this.size = size;
         WritableItem<Section> wSection = (WritableItem<Section>) initSection;
         wSection.setContainer(this);
-        items.insertOrdered(initSection);
+        items.add(initSection);
     }
 
     @Override
@@ -190,176 +194,116 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         return items.contains(item);
     }
 
-    @Override
-    public synchronized List<ChordLeadSheetItem<?>> getItems()
-    {
-        return new ArrayList<>(items);
-    }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public <T> List<? extends T> getItems(Class<T> aClass)
+    public synchronized ChordLeadSheetItem<?> getLastItemBefore(Position posHigh, boolean inclusive, Predicate<ChordLeadSheetItem<?>> tester)
     {
-        List<T> result = new ArrayList<>();
-        for (ChordLeadSheetItem<?> item : getItems())
+        Preconditions.checkNotNull(posHigh);
+        Preconditions.checkNotNull(tester);
+        Preconditions.checkArgument(posHigh.getBar() < getSizeInBars());
+
+        ChordLeadSheetItem<?> res = null;
+
+        var headSet = items.headSet(new ChordLeadSheetItem.ComparableItem(posHigh), inclusive);
+        var it = headSet.descendingIterator();
+        while (it.hasNext())
         {
-            if (aClass == null || aClass.isAssignableFrom(item.getClass()))
+            var item = it.next();
+            if (tester == null || tester.test(item))
             {
-                result.add((T) item);
+                res = item;
+                break;
             }
-        }
-        return result;
-    }
-
-    @Override
-    public <T> ChordLeadSheetItem<T> getLastItem(Position pos, Class<T> aClass)
-    {
-        Preconditions.checkNotNull(pos);
-        Preconditions.checkArgument(pos.getBar() < getSizeInBars());
-
-        ChordLeadSheetItem<T> res = null;
-        var iitems = getItems();        // Synchronized
-        for (int i = iitems.size() - 1; i >= 0; i--)
-        {
-            var item = iitems.get(i);
-            var itemPos = item.getPosition();
-
-            if (itemPos.compareTo(pos) > 0 || (aClass != null && !aClass.isAssignableFrom(item.getClass())))
-            {
-                continue;
-            }
-            res = (ChordLeadSheetItem<T>) item;
-            break;
         }
 
         return res;
     }
 
     @Override
-    public <T> T getLastItem(int barFrom, int barTo, Class<T> aClass)
+    public <T> T getLastItemBefore(Position posHigh, boolean inclusive, Class<T> itemClass)
     {
-        if (barFrom < 0 || barTo < barFrom || barTo >= getSizeInBars())
+        Preconditions.checkNotNull(itemClass);
+        return (T) getLastItemBefore(posHigh, inclusive, item -> itemClass.isAssignableFrom(item.getClass()));
+    }
+
+
+    @Override
+    public synchronized ChordLeadSheetItem<?> getFirstItemAfter(Position posLow, boolean inclusive, Predicate<ChordLeadSheetItem<?>> tester)
+    {
+        Preconditions.checkNotNull(posLow);
+        Preconditions.checkNotNull(tester);
+        Preconditions.checkArgument(posLow.getBar() < getSizeInBars());
+
+        ChordLeadSheetItem<?> res = null;
+        var tailSet = items.tailSet(new ChordLeadSheetItem.ComparableItem(posLow), inclusive);
+        for (var item : tailSet)
         {
-            throw new IllegalArgumentException(
-                    "barFrom=" + barFrom + " barTo=" + barTo + " aClass=" + aClass);
-        }
-        T res = null;
-        var iitems = getItems();        // Synchronized        
-        for (int i = iitems.size() - 1; i >= 0; i--)
-        {
-            var item = iitems.get(i);
-            int barIndex = item.getPosition().getBar();
-
-
-            if (barIndex > barTo || (aClass != null && !aClass.isAssignableFrom(item.getClass())))
+            if (tester == null || tester.test(item))
             {
-                continue;
-            }
-
-            if (barIndex < barFrom)
-            {
+                res = item;
                 break;
             }
-
-            res = (T) item;
-            break;
         }
-
         return res;
     }
 
+
     @Override
-    public <T> ChordLeadSheetItem<T> getNextItem(ChordLeadSheetItem<T> item)
+    public <T > ChordLeadSheetItem<T> getNextItem(ChordLeadSheetItem<T> item)
     {
-        ChordLeadSheetItem<T> res = null;
-        boolean takeNext = false;
-        boolean itemFound = false;
-
-        var iitems = getItems();        // Synchronized        
-        for (int i = 0; i < iitems.size(); i++)
-        {
-            var it = iitems.get(i);
-
-            if (takeNext && item.getClass().isAssignableFrom(it.getClass()))
-            {
-                res = (ChordLeadSheetItem<T>) it;
-                break;
-            }
-
-            if (it == item)
-            {
-                takeNext = true;
-                itemFound = true;
-            }
-
-        }
-
-        if (!itemFound)
-        {
-            throw new IllegalArgumentException("Item not found: " + item);
-        }
-
+        var res = getFirstItemAfter(item.getPosition(), false, item.getClass());
         return res;
     }
 
     @Override
     public <T> ChordLeadSheetItem<T> getPreviousItem(ChordLeadSheetItem<T> item)
     {
-        ChordLeadSheetItem<T> res = null;
-        boolean takeNext = false;
-        boolean itemFound = false;
-
-        var iitems = getItems();        // Synchronized        
-        for (int i = iitems.size() - 1; i >= 0; i--)
-        {
-            var it = iitems.get(i);
-
-            if (takeNext && item.getClass().isAssignableFrom(it.getClass()))
-            {
-                res = (ChordLeadSheetItem<T>) it;
-                break;
-            }
-
-            if (it == item)
-            {
-                takeNext = true;
-                itemFound = true;
-            }
-
-        }
-
-        if (!itemFound)
-        {
-            throw new IllegalArgumentException("Item not found: " + item);
-        }
-
+        var res = getLastItemBefore(item.getPosition(), false, item.getClass());
         return res;
     }
 
 
     @Override
-    @SuppressWarnings("unchecked")
-    public <T> List<? extends T> getItems(int barFrom, int barTo, Class<T> aClass)
+    public <T> List<ChordLeadSheetItem<T>> getItems(Position posFrom, boolean inclusiveFrom, Position posTo, boolean inclusiveTo,
+            Class<? extends ChordLeadSheetItem<T>> itemClass,
+            Predicate<ChordLeadSheetItem<?>> tester)
     {
-        if (barFrom < 0 || barTo < barFrom || barTo >= getSizeInBars())
-        {
-            throw new IllegalArgumentException(
-                    "barFrom=" + barFrom + " barTo=" + barTo + " aClass=" + aClass);
-        }
+        Preconditions.checkNotNull(posFrom);
+        Preconditions.checkNotNull(posTo);
+        Preconditions.checkNotNull(tester);
+        Preconditions.checkNotNull(itemClass);
 
-        List<T> result = new ArrayList<>();
-        for (ChordLeadSheetItem<?> item : getItems())           // Synchronized
-        {
-            int barIndex = item.getPosition().getBar();
-            if (barIndex >= barFrom && barIndex <= barTo && (aClass == null || aClass.isAssignableFrom(item.getClass())))
-            {
-                result.add((T) item);
-            } else if (barIndex > barTo)
-            {
-                break;
-            }
-        }
-        return result;
+        var rangeItems = items.subSet(new ChordLeadSheetItem.ComparableItem(posFrom), inclusiveFrom,
+                new ChordLeadSheetItem.ComparableItem(posTo), inclusiveTo);
+
+        var res = rangeItems.stream()
+                .filter(item -> tester.test(item) &&  itemClass.isAssignableFrom(item.getClass()))
+                .map(cli -> (ChordLeadSheetItem<T>)cli)
+                .toList();
+
+        return res;
+    }
+
+
+  
+
+
+    @Override
+    public synchronized List<? extends ChordLeadSheetItem<?>> getItems(Position posFrom, boolean inclusiveFrom, Position posTo, boolean inclusiveTo, Predicate<ChordLeadSheetItem<?>> tester)
+    {
+        Preconditions.checkNotNull(posFrom);
+        Preconditions.checkNotNull(posTo);
+        Preconditions.checkNotNull(tester);
+
+        var rangeItems = items.subSet(new ChordLeadSheetItem.ComparableItem(posFrom), inclusiveFrom,
+                new ChordLeadSheetItem.ComparableItem(posTo), inclusiveTo);
+
+        var res = rangeItems.stream()
+                .filter(item -> tester.test(item))
+                .toList();
+
+        return res;
+
     }
 
     @Override
@@ -548,7 +492,6 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
         final int oldSize = size;
         int delta = newSize - oldSize;
-        List<ChordLeadSheetItem<?>> removedItems = new ArrayList<>();
         if (delta == 0)
         {
             return;
@@ -567,29 +510,14 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             } else if (delta < 0)
             {
                 // For undo to work we need to remove possible extra items before setting the size
-                int newLastBarIndex = getSizeInBars() - 1 + delta;
-
-                for (int index = items.size() - 1; index > 0; index--)
+                var limit = new ChordLeadSheetItem.ComparableItem(new Position(newSize - 2, Float.MAX_VALUE));
+                var removedItems = items.tailSet(limit);
+                try
                 {
-                    ChordLeadSheetItem<?> item = items.get(index);
-                    if (item.getPosition().getBar() > newLastBarIndex)
-                    {
-                        removedItems.add(item);
-                    } else
-                    {
-                        break;
-                    }
-                }
-
-                if (!removedItems.isEmpty())
+                    removeSectionsAndItems(removedItems);       // Possible exception here
+                } catch (UnsupportedEditException ex)
                 {
-                    try
-                    {
-                        removeSectionsAndItems(removedItems);       // Possible exception here
-                    } catch (UnsupportedEditException ex)
-                    {
-                        ueException = ex;          // Save to throw the exception outside the synchronized block
-                    }
+                    ueException = ex;          // Save to throw the exception outside the synchronized block
                 }
             }
         }
@@ -1462,9 +1390,9 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
      * @param allItems
      * @throws UnsupportedEditException
      */
-    private void removeSectionsAndItems(List<ChordLeadSheetItem<?>> allItems) throws UnsupportedEditException
+    private void removeSectionsAndItems(Collection<ChordLeadSheetItem<?>> allItems) throws UnsupportedEditException
     {
-        LOGGER.log(Level.FINER, "removeSectionsAndItems() -- removedItems={0}", allItems);
+        LOGGER.log(Level.FINER, "removeSectionsAndItems() -- allItems={0}", allItems);
 
         if (allItems.isEmpty())
         {
@@ -1504,10 +1432,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                     LOGGER.log(Level.FINER, "removeSectionsAndItems.undoBody() removedItems={0}", removedItems);
                     synchronized (ChordLeadSheetImpl.this)
                     {
-                        for (ChordLeadSheetItem<?> item : removedItems)
-                        {
-                            items.insertOrdered(item);
-                        }
+                        items.addAll(removedItems);
                     }
                     fireAuthorizedChangeEvent(new ItemAddedEvent(ChordLeadSheetImpl.this, removedItems));
                 }

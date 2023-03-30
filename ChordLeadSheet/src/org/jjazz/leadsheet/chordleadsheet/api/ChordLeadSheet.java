@@ -22,13 +22,13 @@
  */
 package org.jjazz.leadsheet.chordleadsheet.api;
 
+import com.google.common.base.Preconditions;
 import java.util.List;
-import javax.swing.event.UndoableEditListener;
+import java.util.function.Predicate;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
-import org.jjazz.util.api.IntRange;
 
 /**
  * The model for a chord leadsheet.
@@ -38,7 +38,6 @@ import org.jjazz.util.api.IntRange;
  * <p>
  * Regarding sections:<br>
  * - The first bar must always contain a section <br>
- * - Sections can not be moved <br>
  * - 2 sections can't have the same name
  */
 public interface ChordLeadSheet
@@ -55,7 +54,7 @@ public interface ChordLeadSheet
      * @param item The ChordLeadSheetItem to add.
      * @throws IllegalArgumentException If item's position out of leadsheet bounds or item is a section.
      */
-    public <T> void addItem(ChordLeadSheetItem<T> item);
+    <T> void addItem(ChordLeadSheetItem<T> item);
 
     /**
      * Remove an item from the leadsheet.
@@ -64,7 +63,7 @@ public interface ChordLeadSheet
      * @param item The item to be removed.
      * @throws IllegalArgumentException If no such item or item is a section.
      */
-    public <T> void removeItem(ChordLeadSheetItem<T> item);
+    <T> void removeItem(ChordLeadSheetItem<T> item);
 
     /**
      * Add a section to the leadsheet.
@@ -73,22 +72,21 @@ public interface ChordLeadSheet
      *
      * @param section
      * @throws IllegalArgumentException If section already exists at specified position or invalid section.
-     * @throws UnsupportedEditException If a ChordLeadSheet change listener does not authorize this edit. Exception is thrown
-     *                                  before any change is done.
+     * @throws UnsupportedEditException If a ChordLeadSheet change listener does not authorize this edit. Exception is thrown before any
+     *                                  change is done.
      */
-    public void addSection(CLI_Section section) throws UnsupportedEditException;
+    void addSection(CLI_Section section) throws UnsupportedEditException;
 
     /**
      * Remove a section from the leadsheet.
      * <p>
-     * The section on bar 0 can not be removed. Trailing items' position might be adjusted if it results in a time signature
-     * change.
+     * The section on bar 0 can not be removed. Trailing items' position might be adjusted if it results in a time signature change.
      *
      * @param section
-     * @throws UnsupportedEditException If a ChordLeadSheet change listener does not authorize this edit. Exception is thrown
-     *                                  before any change is done.
+     * @throws UnsupportedEditException If a ChordLeadSheet change listener does not authorize this edit. Exception is thrown before any
+     *                                  change is done.
      */
-    public void removeSection(CLI_Section section) throws UnsupportedEditException;
+    void removeSection(CLI_Section section) throws UnsupportedEditException;
 
     /**
      * Change the name of section.
@@ -97,7 +95,7 @@ public interface ChordLeadSheet
      * @param name
      * @throws IllegalArgumentException If name already exist, is a reserved name, or section does not belong to this leadsheet.
      */
-    public void setSectionName(CLI_Section section, String name);
+    void setSectionName(CLI_Section section, String name);
 
     /**
      * Change the TimeSignature of a section.
@@ -107,24 +105,24 @@ public interface ChordLeadSheet
      * @param section The section to be changed.
      * @param ts
      * @throws IllegalArgumentException If section does not belong to this leadsheet.
-     * @throws UnsupportedEditException If a ChordLeadSheet change listener does not authorize this edit. Exception is thrown
-     *                                  before any change is done.
+     * @throws UnsupportedEditException If a ChordLeadSheet change listener does not authorize this edit. Exception is thrown before any
+     *                                  change is done.
      */
-    public void setSectionTimeSignature(CLI_Section section, TimeSignature ts) throws UnsupportedEditException;
+    void setSectionTimeSignature(CLI_Section section, TimeSignature ts) throws UnsupportedEditException;
 
     /**
      * Move a section to a new position.
      * <p>
-     * New position must be free of a section. Section on first bar can not be moved. Some items position might be adjusted to the
-     * new bar's TimeSignature.
+     * New position must be free of a section. Section on first bar can not be moved. Some items position might be adjusted to the new bar's
+     * TimeSignature.
      *
      * @param section     The section to be moved
      * @param newBarIndex The bar index section will be moved to
-     * @throws UnsupportedEditException If a ChordLeadSheet change listener does not authorize this edit. Exception is thrown
-     *                                  before any change is done.
+     * @throws UnsupportedEditException If a ChordLeadSheet change listener does not authorize this edit. Exception is thrown before any
+     *                                  change is done.
      * @throws IllegalArgumentException If new position is not valid.
      */
-    public void moveSection(CLI_Section section, int newBarIndex) throws UnsupportedEditException;
+    void moveSection(CLI_Section section, int newBarIndex) throws UnsupportedEditException;
 
     /**
      * Move an item to a new position.
@@ -136,7 +134,7 @@ public interface ChordLeadSheet
      * @param pos  The new position.
      * @throws IllegalArgumentException If new position is not valid.
      */
-    public <T> void moveItem(ChordLeadSheetItem<T> item, Position pos);
+    <T> void moveItem(ChordLeadSheetItem<T> item, Position pos);
 
     /**
      * Test if specified item belongs to this object.
@@ -144,7 +142,7 @@ public interface ChordLeadSheet
      * @param item
      * @return
      */
-    public boolean contains(ChordLeadSheetItem<?> item);
+    boolean contains(ChordLeadSheetItem<?> item);
 
     /**
      * Change the data of a specific item.
@@ -155,7 +153,7 @@ public interface ChordLeadSheet
      * @param item
      * @param data
      */
-    public <T> void changeItem(ChordLeadSheetItem<T> item, T data);
+    <T> void changeItem(ChordLeadSheetItem<T> item, T data);
 
     /**
      * Insert bars from a specific position.
@@ -166,49 +164,181 @@ public interface ChordLeadSheet
      * @param nbBars   The number of bars to insert.
      * @throws IllegalArgumentException If barIndex &lt; 0 or barIndex &gt; size()
      */
-    public void insertBars(int barIndex, int nbBars);
+    void insertBars(int barIndex, int nbBars);
 
     /**
      * Delete bars and items from barIndexFrom to barIndexTo (inclusive).
      * <p>
-     * Bars after the deleted bars are shifted accordingly. Trailing items positions might be adjusted if it results in a time
-     * signature change.
+     * Bars after the deleted bars are shifted accordingly. Trailing items positions might be adjusted if it results in a time signature
+     * change.
      *
      * @param barIndexFrom
      * @param barIndexTo
-     * @throws UnsupportedEditException If a ChordLeadSheet change listener does not authorize this edit. IMPORTANT:some undoable
-     *                                  changes might have been done before exception is thrown, caller will need to rollback
-     *                                  them.
+     * @throws UnsupportedEditException If a ChordLeadSheet change listener does not authorize this edit. IMPORTANT:some undoable changes
+     *                                  might have been done before exception is thrown, caller will need to rollback them.
      */
-    public void deleteBars(int barIndexFrom, int barIndexTo) throws UnsupportedEditException;
+    void deleteBars(int barIndexFrom, int barIndexTo) throws UnsupportedEditException;
 
     /**
      * Cleanup function to be called so that the object can be garbaged.
      */
-    public void cleanup();
+    void cleanup();
+
 
     /**
-     * Get the last matching item whose position is less or equal to the specified position.
+     * Get all the items.
+     *
+     * @return
+     */
+    default List<ChordLeadSheetItem> getItems()
+    {
+        var res = getItems(ChordLeadSheetItem.class);
+        return res;
+    }
+
+  
+    
+    /**
+     * Get all the items of this leadsheet, possibly matching a specific class.
      *
      * @param <T>
-     * @param pos
-     * @param aClass The class or superclass of the item to be searched. If null return any item.
-     * @return Can be null
-     * @throws IllegalArgumentException If item is not found.
+     * @param itemClass Return only items which are instance of class itemClass. Can't be null.
+     * @return An ordered list of items
      */
-    public <T> ChordLeadSheetItem<T> getLastItem(Position pos, Class<T> aClass);
+    default <T>  List<ChordLeadSheetItem<T>> getItems(Class<T> itemClass)
+    {
+
+    }
 
     /**
-     * Get the last matching item in the specified bar range.
+     * Get the matching items whose position is in the position range.
+     *
+     * @param <T>
+     * @param posFrom
+     * @param inclusiveFrom
+     * @param posTo
+     * @param inclusiveTo
+     * @param itemClass     Accept only items which are instance of class itemClass. Can't be null.
+     * @param tester        Accept only some items.
+     * @return An ordered list of items
+     */
+    <T> List<ChordLeadSheetItem<T>> getItems(Position posFrom, boolean inclusiveFrom, Position posTo, boolean inclusiveTo,
+            Class<? extends ChordLeadSheetItem<T>> itemClass,
+            Predicate<ChordLeadSheetItem<?>> tester);
+
+
+    /**
+     * Get the items which belong to bars between barFrom and barTo (included).
      * <p>
+     * The results can be filtered to get only items which are instance of a specified class.
      *
      * @param <T>
      * @param barFrom
      * @param barTo
-     * @param aClass  The class or superclass of the item to be searched. If null return any item.
-     * @return Can be null if no item found.
+     * @param itemClass Return only items which are instance of class aClass. If null accept all items.
+     * @return An ordered list of items, can be empty if no item found.
      */
-    public <T> T getLastItem(int barFrom, int barTo, Class<T> aClass);
+    default <T> List<ChordLeadSheetItem<T>> getItems(int barFrom, int barTo, Class<? extends ChordLeadSheetItem<T>> itemClass)
+    {
+        Preconditions.checkArgument(barFrom >= 0 && barTo >= barFrom, "barFrom=%d barTo=%d", barFrom, barTo);
+
+        var posFrom = new Position(barFrom, 0);
+        var posTo = new Position(barTo + 1, 0);
+        var res = getItems(posFrom, true, posTo, false, item -> aClass == null || aClass.isAssignableFrom(item.getClass()));
+        return res;
+    }
+}
+
+/**
+ * Get the matching items which belong to bars between barFrom and barTo (included).
+ * <p>
+ *
+ * @param <T>
+ * @param barFrom
+ * @param barTo
+ * @param tester
+ * @return An ordered list of items, can be empty if no item found.
+ */
+<T> List<ChordLeadSheetItem<?>> getItems(int barFrom, int barTo, Predicate<ChordLeadSheetItem<?>> tester);
+
+
+    /**
+     * Get the matching items whose position is after (or equal, if inclusive is true) posLow.
+     *
+     * @param <T>
+     * @param posLow
+     * @param inclusive
+     * @param tester
+     * @return Can be null
+     */
+    <T> List<? extends T> getItemsAfter(Position posLow, boolean inclusive, Predicate<T> tester);
+
+    /**
+     * Get the matching items whose position is before (or equal, if inclusive is true) posLow.
+     *
+     * @param <T>
+     * @param posHigh
+     * @param inclusive
+     * @param tester
+     * @return Can be null
+     */
+    <T> List<ChordLeadSheetItem<?>> getItemsBefore(Position posHigh, boolean inclusive, Predicate<ChordLeadSheetItem<?>> tester);
+
+
+    /**
+     * Get the items which belong to a specific section.
+     * <p>
+     * The results can be filtered to get only items which are instance of a specified class.
+     *
+     * @param <T>
+     * @param sectionItem
+     * @param itemClass   Return only items only items which are instance of class aClass. If null all items are returned
+     * @return The ordered list of all the items that are part of sectionItem. The sectionItem itself and the special END_EVENT are not
+     *         included.
+     */
+    <T> List<ChordLeadSheetItem<? extends T>> getItems(CLI_Section sectionItem, Class<T> itemClass);
+
+    /**
+     * Get the last matching item whose position is before (or equal, if inclusive is true) posHigh.
+     *
+     * @param posHigh
+     * @param inclusive
+     * @param tester
+     * @return Can be null
+     */
+    ChordLeadSheetItem<?> getLastItemBefore(Position posHigh, boolean inclusive, Predicate<ChordLeadSheetItem<?>> tester);
+
+    /**
+     * Get the last matching item whose position is before (or equal, if inclusive is true) posHigh.
+     *
+     * @param <T>
+     * @param posHigh
+     * @param inclusive
+     * @param itemClass Match only items which are assignable from aClass
+     * @return Can be null.
+     */
+    <T> ChordLeadSheetItem<? extends T> getLastItemBefore(Position posHigh, boolean inclusive, Class<ChordLeadSheetItem<T>> itemClass);
+
+    /**
+     * Get the first matching item whose position is after (or equal, if inclusive is true) posLow.
+     *
+     * @param posLow
+     * @param inclusive
+     * @param tester
+     * @return Can be null
+     */
+    ChordLeadSheetItem<?> getFirstItemAfter(Position posLow, boolean inclusive, Predicate<ChordLeadSheetItem<?>> tester);
+
+    /**
+     * Get the first matching item whose position is after (or equal, if inclusive is true) posLow.
+     *
+     * @param <T>
+     * @param posLow
+     * @param inclusive
+     * @param itemClass Match only items which are assignable from aClass
+     * @return Can be null.
+     */
+    <T> ChordLeadSheetItem<? extends T> getFirstItemAfter(Position posLow, boolean inclusive, Class<ChordLeadSheetItem<T>> itemClass);
 
     /**
      * Get the next similar item (same class or subclass) after the specified item.
@@ -218,7 +348,7 @@ public interface ChordLeadSheet
      * @return Can be null if item is the last item of its kind.
      * @throws IllegalArgumentException If item is not found.
      */
-    public <T> ChordLeadSheetItem<T> getNextItem(ChordLeadSheetItem<T> item);
+    <T> ChordLeadSheetItem<? extends T> getNextItem(ChordLeadSheetItem<T> item);
 
 
     /**
@@ -229,50 +359,7 @@ public interface ChordLeadSheet
      * @return Can be null if item is the first item of its kind.
      * @throws IllegalArgumentException If item is not found.
      */
-    public <T> ChordLeadSheetItem<T> getPreviousItem(ChordLeadSheetItem<T> item);
-
-
-    /**
-     * Get all the items of this chordleadsheet.
-     *
-     * @return
-     */
-    public List<ChordLeadSheetItem<?>> getItems();
-
-    /**
-     * Get all the items of this leadsheet which match a specific class.
-     *
-     * @param <T>
-     * @param aClass Return only items which are instance of class cl. If null all items are returned.
-     * @return A list of items ordered by position.
-     */
-    public <T> List<? extends T> getItems(Class<T> aClass);
-
-    /**
-     * Get the items which belong to bars between barFrom and barTo (included), ordered by position.
-     * <p>
-     * The results can be filtered to get only items which are instance of a specified class.
-     *
-     * @param <T>
-     * @param barFrom
-     * @param barTo
-     * @param aClass  Return only items which are instance of class aClass.
-     * @return A list of items, can be empty if no item found.
-     */
-    public <T> List<? extends T> getItems(int barFrom, int barTo, Class<T> aClass);
-
-    /**
-     * Get the items which belong to a specific section, ordered by position.
-     * <p>
-     * The results can be filtered to get only items which are instance of a specified class.
-     *
-     * @param <T>
-     * @param sectionItem
-     * @param aClass      Return only items only items which are instance of class aClass.
-     * @return The list of all the items that are part of sectionItem. The sectionItem itself and the special END_EVENT are not
-     *         included.
-     */
-    public <T> List<? extends T> getItems(CLI_Section sectionItem, Class<T> aClass);
+    <T> ChordLeadSheetItem<? extends T> getPreviousItem(ChordLeadSheetItem<T> item);
 
     /**
      * Get the Section for a specific bar.
@@ -282,7 +369,7 @@ public interface ChordLeadSheet
      * @param barIndex The index of the bar.
      * @return The section.
      */
-    public CLI_Section getSection(int barIndex);
+    CLI_Section getSection(int barIndex);
 
     /**
      * Get the Section from his name.
@@ -290,7 +377,7 @@ public interface ChordLeadSheet
      * @param sectionName The name of the bar (case is ignored).
      * @return The section or null if not found.
      */
-    public CLI_Section getSection(String sectionName);
+    CLI_Section getSection(String sectionName);
 
 
     /**
@@ -298,14 +385,14 @@ public interface ChordLeadSheet
      *
      * @return
      */
-    public int getSizeInBars();
+    int getSizeInBars();
 
     /**
      * Get the bar range of this chord leadsheet.
      *
      * @return [0; getSizeInBars()-1]
      */
-    default public IntRange getBarRange()
+    default IntRange getBarRange()
     {
         return new IntRange(0, getSizeInBars() - 1);
     }
@@ -317,44 +404,44 @@ public interface ChordLeadSheet
      * @return
      * @throws IllegalArgumentException If section does not exist in this ChordLeadSheet.
      */
-    public IntRange getBarRange(CLI_Section section);
+    IntRange getBarRange(CLI_Section section);
 
 
     /**
      * Set the size of the ChordLeadSheet.
      *
      * @param size The numbers of bars, must be &gt;= 1 and &lt; MAX_SIZE.
-     * @throws UnsupportedEditException If a ChordLeadSheet change listener does not authorize this edit. Exception is thrown
-     *                                  before any change is done.
+     * @throws UnsupportedEditException If a ChordLeadSheet change listener does not authorize this edit. Exception is thrown before any
+     *                                  change is done.
      */
-    public void setSizeInBars(int size) throws UnsupportedEditException;
+    void setSizeInBars(int size) throws UnsupportedEditException;
 
     /**
      * Add a listener to item changes of this object.
      *
      * @param l
      */
-    public void addClsChangeListener(ClsChangeListener l);
+    void addClsChangeListener(ClsChangeListener l);
 
     /**
      * Remove a listener to this object's changes.
      *
      * @param l
      */
-    public void removeClsChangeListener(ClsChangeListener l);
+    void removeClsChangeListener(ClsChangeListener l);
 
     /**
      * Add a listener to undoable edits.
      *
      * @param l
      */
-    public void addUndoableEditListener(UndoableEditListener l);
+    void addUndoableEditListener(UndoableEditListener l);
 
     /**
      * Remove a listener to undoable edits.
      *
      * @param l
      */
-    public void removeUndoableEditListener(UndoableEditListener l);
+    void removeUndoableEditListener(UndoableEditListener l);
 
 }

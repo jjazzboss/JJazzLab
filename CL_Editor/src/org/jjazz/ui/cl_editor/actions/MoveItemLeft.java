@@ -24,8 +24,11 @@ package org.jjazz.ui.cl_editor.actions;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet; 
+import java.util.logging.Logger;
+import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
@@ -43,17 +46,21 @@ public final class MoveItemLeft implements ActionListener
 {
 
     private final List<ChordLeadSheetItem<?>> context;
+    private final List<ChordLeadSheetItem<?>> sortedClis;
     private final String undoText = ResUtil.getString(getClass(), "CTL_MoveItemLeft");
+    private static final Logger LOGGER = Logger.getLogger(MoveItemLeft.class.getSimpleName());
 
     public MoveItemLeft(List<ChordLeadSheetItem<?>> context)
     {
         this.context = context;
+        this.sortedClis = new ArrayList<>(context);
+        Collections.sort(sortedClis);
     }
 
     @Override
     public void actionPerformed(ActionEvent ev)
     {
-        assert !context.isEmpty() : "context=" + context;   
+        assert !context.isEmpty() : "context=" + context;
         ChordLeadSheet cls = context.get(0).getContainer();
         JJazzUndoManagerFinder.getDefault().get(cls).startCEdit(undoText);
         if (context.get(0) instanceof CLI_Section)
@@ -71,7 +78,7 @@ public final class MoveItemLeft implements ActionListener
 
     private void moveSections()
     {
-        for (ChordLeadSheetItem<?> cli : ChordLeadSheetItem.Utilities.sortByPosition(context))
+        for (ChordLeadSheetItem<?> cli : sortedClis)
         {
             ChordLeadSheet model = cli.getContainer();
             int barIndex = cli.getPosition().getBar();
@@ -92,7 +99,7 @@ public final class MoveItemLeft implements ActionListener
 
     private void moveChordSymbols()
     {
-        for (ChordLeadSheetItem<?> cli : ChordLeadSheetItem.Utilities.sortByPosition(context))
+        for (ChordLeadSheetItem<?> cli : sortedClis)
         {
             ChordLeadSheet model = cli.getContainer();
             Position pos = cli.getPosition();
