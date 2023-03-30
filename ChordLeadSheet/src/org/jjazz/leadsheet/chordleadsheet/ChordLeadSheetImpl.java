@@ -264,9 +264,9 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
 
     @Override
-    public <T> List<ChordLeadSheetItem<T>> getItems(Position posFrom, boolean inclusiveFrom, Position posTo, boolean inclusiveTo,
-            Class<? extends ChordLeadSheetItem<T>> itemClass,
-            Predicate<ChordLeadSheetItem<?>> tester)
+    public <T extends ChordLeadSheetItem> List<T> getItems(Position posFrom, boolean inclusiveFrom, Position posTo, boolean inclusiveTo,
+            Class<T> itemClass,
+            Predicate<T> tester)
     {
         Preconditions.checkNotNull(posFrom);
         Preconditions.checkNotNull(posTo);
@@ -277,38 +277,19 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                 new ChordLeadSheetItem.ComparableItem(posTo), inclusiveTo);
 
         var res = rangeItems.stream()
-                .filter(item -> tester.test(item) &&  itemClass.isAssignableFrom(item.getClass()))
-                .map(cli -> (ChordLeadSheetItem<T>)cli)
+                .filter(item -> itemClass.isAssignableFrom(item.getClass()))
+                .map(cli -> (T)cli)
+                .filter(cli -> tester.test(cli))
                 .toList();
 
         return res;
     }
 
 
-  
 
 
     @Override
-    public synchronized List<? extends ChordLeadSheetItem<?>> getItems(Position posFrom, boolean inclusiveFrom, Position posTo, boolean inclusiveTo, Predicate<ChordLeadSheetItem<?>> tester)
-    {
-        Preconditions.checkNotNull(posFrom);
-        Preconditions.checkNotNull(posTo);
-        Preconditions.checkNotNull(tester);
-
-        var rangeItems = items.subSet(new ChordLeadSheetItem.ComparableItem(posFrom), inclusiveFrom,
-                new ChordLeadSheetItem.ComparableItem(posTo), inclusiveTo);
-
-        var res = rangeItems.stream()
-                .filter(item -> tester.test(item))
-                .toList();
-
-        return res;
-
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public <T> List<? extends T> getItems(CLI_Section cliSection, Class<T> aClass)
+    public <T extends ChordLeadSheetItem> List<T> getItems(CLI_Section cliSection, Class<T> aClass)
     {
         if (cliSection == null)
         {
