@@ -30,7 +30,6 @@ import java.awt.datatransfer.DataFlavor;
  */
 public interface CLI_ChordSymbol extends ChordLeadSheetItem<ExtChordSymbol>
 {
-
     public static final DataFlavor DATA_FLAVOR = new DataFlavor(CLI_ChordSymbol.class, "Chord Symbol");
 
 }

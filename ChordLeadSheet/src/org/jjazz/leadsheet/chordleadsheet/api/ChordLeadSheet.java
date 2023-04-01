@@ -22,7 +22,6 @@
  */
 package org.jjazz.leadsheet.chordleadsheet.api;
 
-import com.google.common.base.Preconditions;
 import java.util.List;
 import java.util.function.Predicate;
 import javax.swing.event.UndoableEditListener;
@@ -52,20 +51,18 @@ public interface ChordLeadSheet
      * <p>
      * Item position might be adjusted to the bar's TimeSignature. This will set the item's container to this ChordLeadSheet.
      *
-     * @param <T>
      * @param item The ChordLeadSheetItem to add.
      * @throws IllegalArgumentException If item's position out of leadsheet bounds or item is a section.
      */
-    <T> void addItem(ChordLeadSheetItem<T> item);
+    void addItem(ChordLeadSheetItem<?> item);
 
     /**
      * Remove an item from the leadsheet.
      *
-     * @param <T>
      * @param item The item to be removed.
      * @throws IllegalArgumentException If no such item or item is a section.
      */
-    <T> void removeItem(ChordLeadSheetItem<T> item);
+    void removeItem(ChordLeadSheetItem<?> item);
 
     /**
      * Add a section to the leadsheet.
@@ -187,155 +184,142 @@ public interface ChordLeadSheet
 
 
     /**
-     * Get all the items.
-     *
-     * @return
-     */
-    default List<ChordLeadSheetItem> getItems()
-    {
-        var res = getItems(ChordLeadSheetItem.class);
-        return res;
-    }
-
-
-    /**
-     * Get all the items of this leadsheet, possibly matching a specific class.
-     *
-     * @param <T>
-     * @param itemClass Return only items which are instance of class itemClass. Can't be null.
-     * @return An ordered list of items
-     */
-    default <T extends ChordLeadSheetItem> List<T> getItems(Class<T> itemClass)
-    {
-        var res = getItems(0, getSizeInBars() - 1, itemClass);
-        return res;
-    }
-
-    /**
-     * Get the items which belong to bars between barFrom and barTo (included).
-     * <p>
-     * The results can be filtered to get only items which are instance of a specified class.
-     *
-     * @param <T>
-     * @param barFrom
-     * @param barTo
-     * @param itemClass Return only items which are instance of class aClass. If null accept all items.
-     * @return An ordered list of items, can be empty if no item found.
-     */
-    default <T extends ChordLeadSheetItem> List<T> getItems(int barFrom, int barTo, Class<T> itemClass)
-    {
-        var posFrom = new Position(barFrom, 0);
-        var posTo = new Position(barTo + 1, 0);
-        var res = getItems(posFrom, true, posTo, false, itemClass, item -> true);
-        return res;
-    }
-
-    /**
      * Get the matching items whose position is in the position range.
      *
      * @param <T>
+     * @param <E>
      * @param posFrom
      * @param inclusiveFrom
      * @param posTo
      * @param inclusiveTo
-     * @param itemClass     Accept only items which are instance of class itemClass. Can't be null.
-     * @param tester        Accept only some items.
+     * @param itemClass     Accept only items which are instance of class itemClass
+     * @param tester        Accept only items which satisfy the tester.
      * @return An ordered list of items
      */
-    <T extends ChordLeadSheetItem> List<T> getItems(Position posFrom, boolean inclusiveFrom, Position posTo, boolean inclusiveTo,
+    <T extends ChordLeadSheetItem<E>, E> List<T> getItems(Position posFrom, boolean inclusiveFrom, Position posTo, boolean inclusiveTo,
             Class<T> itemClass,
             Predicate<T> tester);
+
+    /**
+     * Get the last matching item whose position is before (or equal, if inclusive is true) posHigh.
+     *
+     * @param <T>
+     * @param <E>
+     * @param posTo
+     * @param inclusiveTo
+     * @param itemClass   Match only items which are assignable from aClass
+     * @param tester
+     * @return Can be null.
+     */
+    <T extends ChordLeadSheetItem<E>, E> T getLastItemBefore(Position posTo, boolean inclusiveTo, Class<T> itemClass, Predicate<T> tester);
+
+    /**
+     * Get the first matching item whose position is after (or equal, if inclusive is true) posFrom.
+     *
+     * @param <T>
+     * @param <E>
+     * @param posFrom
+     * @param inclusiveFrom
+     * @param itemClass
+     * @param tester
+     * @return Can be null
+     */
+    <T extends ChordLeadSheetItem<E>, E> T getFirstItemAfter(Position posFrom, boolean inclusiveFrom, Class<T> itemClass, Predicate<T> tester);
+
+    /**
+     * Get all the items.
+     *
+     * @return An ordered list of items
+     */
+    default List<ChordLeadSheetItem<?>> getItems()
+    {
+        return getItems(ChordLeadSheetItem.class);
+    }
+
+    /**
+     * Get all the items of this leadsheet matching a specific class.
+     *
+     * @param <T>
+     * @param <E>
+     * @param itemClass Return only items which are instance of class itemClass
+     * @return An ordered list of items
+     */
+    default <T extends ChordLeadSheetItem<E>, E> List<T> getItems(Class<T> itemClass)
+    {
+        return getItems(0, getSizeInBars() - 1, itemClass, item -> true);
+    }
+
+    /**
+     * Get the items matching a specific class which belong to bars between barFrom and barTo (included).
+     * <p>
+     *
+     * @param <T>
+     * @param <E>
+     * @param barFrom
+     * @param barTo
+     * @param itemClass Return only items which are instance of class aClass.
+     * @param tester    Accept only items which satisfy the tester.
+     * @return An ordered list of items
+     */
+    default <T extends ChordLeadSheetItem<E>, E> List<T> getItems(int barFrom, int barTo, Class<T> itemClass, Predicate<T> tester)
+    {
+        var posFrom = new Position(barFrom, 0);
+        var posTo = new Position(barTo + 1, 0);
+        return getItems(posFrom, true, posTo, false, itemClass, tester);
+    }
 
 
     /**
      * Get the matching items whose position is after (or equal, if inclusive is true) posLow.
      *
      * @param <T>
+     * @param <E>
      * @param posFrom
      * @param inclusive
-     * @param itemClass Accept only items which are instance of class itemClass. Can't be null.
-     * @param tester    Accept only some items.
-     * @return Can be null
+     * @param itemClass Accept only items which are instance of class itemClass
+     * @param tester    Accept only items which satisfy the tester.
+     * @return An ordered list of items
      */
-    default <T extends ChordLeadSheetItem> List<T> getItemsAfter(Position posFrom, boolean inclusive, Class<T> itemClass, Predicate<T> tester)
+    default <T extends ChordLeadSheetItem<E>, E> List<T> getItemsAfter(Position posFrom, boolean inclusive, Class<T> itemClass, Predicate<T> tester)
     {
         var posTo = new Position(Integer.MAX_VALUE, Float.MAX_VALUE);
-        var res = getItems(posFrom, inclusive, posTo, false, itemClass, tester);
-        return res;
+        return getItems(posFrom, inclusive, posTo, false, itemClass, tester);
     }
 
     /**
      * Get the matching items whose position is before (or equal, if inclusive is true) posTo.
      *
      * @param <T>
+     * @param <E>
      * @param posTo
      * @param inclusive
      * @param itemClass Accept only items which are instance of class itemClass. Can't be null.
-     * @param tester    Accept only some items.
-     * @return Can be null
+     * @param tester    Accept only items which satisfy the tester.
+     * @return An ordered list of items
      */
-    default <T extends ChordLeadSheetItem> List<T> getItemsBefore(Position posTo, boolean inclusive, Class<T> itemClass, Predicate<T> tester)
+    default <T extends ChordLeadSheetItem<E>, E> List<T> getItemsBefore(Position posTo, boolean inclusive, Class<T> itemClass, Predicate<T> tester)
     {
         var posFrom = new Position(0, 0);
-        var res = getItems(posFrom, true, posTo, inclusive, itemClass, tester);
-        return res;
+        return getItems(posFrom, true, posTo, inclusive, itemClass, tester);
     }
 
-
     /**
-     * Get the items which belong to a specific section.
+     * Get the matching items which belong to a specific section.
      * <p>
-     * The results can be filtered to get only items which are instance of a specified class.
      *
      * @param <T>
-     * @param sectionItem
-     * @param itemClass   Return only items only items which are instance of class aClass. If null all items are returned
-     * @return The ordered list of all the items that are part of sectionItem. The sectionItem itself and the special END_EVENT are not
-     *         included.
+     * @param <E>
+     * @param cliSection
+     * @param itemClass  Return only items only items which are instance of class aClass
+     * @param tester     Accept only items which satisfy the tester.
+     * @return An ordered list of items
      */
-    <T extends ChordLeadSheetItem> List<T> getItems(CLI_Section sectionItem, Class<T> itemClass, Predicate<T> tester);
+    default <T extends ChordLeadSheetItem<E>, E> List<T> getItems(CLI_Section cliSection, Class<T> itemClass, Predicate<T> tester)
+    {
+        var barRange = getBarRange(cliSection);
+        return getItems(barRange.from, barRange.to, itemClass, tester);
+    }
 
-    /**
-     * Get the last matching item whose position is before (or equal, if inclusive is true) posHigh.
-     *
-     * @param posHigh
-     * @param inclusive
-     * @param tester
-     * @return Can be null
-     */
-    ChordLeadSheetItem<?> getLastItemBefore(Position posHigh, boolean inclusive, Predicate<ChordLeadSheetItem<?>> tester);
-
-    /**
-     * Get the last matching item whose position is before (or equal, if inclusive is true) posHigh.
-     *
-     * @param <T>
-     * @param posHigh
-     * @param inclusive
-     * @param itemClass Match only items which are assignable from aClass
-     * @return Can be null.
-     */
-    <T> ChordLeadSheetItem<? extends T> getLastItemBefore(Position posHigh, boolean inclusive, Class<ChordLeadSheetItem<T>> itemClass);
-
-    /**
-     * Get the first matching item whose position is after (or equal, if inclusive is true) posLow.
-     *
-     * @param posLow
-     * @param inclusive
-     * @param tester
-     * @return Can be null
-     */
-    ChordLeadSheetItem<?> getFirstItemAfter(Position posLow, boolean inclusive, Predicate<ChordLeadSheetItem<?>> tester);
-
-    /**
-     * Get the first matching item whose position is after (or equal, if inclusive is true) posLow.
-     *
-     * @param <T>
-     * @param posLow
-     * @param inclusive
-     * @param itemClass Match only items which are assignable from aClass
-     * @return Can be null.
-     */
-    <T> ChordLeadSheetItem<? extends T> getFirstItemAfter(Position posLow, boolean inclusive, Class<ChordLeadSheetItem<T>> itemClass);
 
     /**
      * Get the next similar item (same class or subclass) after the specified item.
@@ -343,10 +327,11 @@ public interface ChordLeadSheet
      * @param <T>
      * @param item
      * @return Can be null if item is the last item of its kind.
-     * @throws IllegalArgumentException If item is not found.
      */
-    <T> ChordLeadSheetItem<? extends T> getNextItem(ChordLeadSheetItem<T> item);
-
+    default <T> ChordLeadSheetItem<T> getNextItem(ChordLeadSheetItem<T> item)
+    {
+        return getFirstItemAfter(item.getPosition(), false, item.getClass(), cli -> true);
+    }
 
     /**
      * Get the previous similar item (same class or subclass) before the specified item.
@@ -354,9 +339,11 @@ public interface ChordLeadSheet
      * @param <T>
      * @param item
      * @return Can be null if item is the first item of its kind.
-     * @throws IllegalArgumentException If item is not found.
      */
-    <T> ChordLeadSheetItem<? extends T> getPreviousItem(ChordLeadSheetItem<T> item);
+    default <T> ChordLeadSheetItem<T> getPreviousItem(ChordLeadSheetItem<T> item)
+    {
+        return getLastItemBefore(item.getPosition(), false, item.getClass(), cli -> true);
+    }
 
     /**
      * Get the Section for a specific bar.

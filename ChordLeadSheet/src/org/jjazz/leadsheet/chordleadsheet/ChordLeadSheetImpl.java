@@ -30,7 +30,6 @@ import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.TreeSet;
 import java.util.function.Predicate;
@@ -106,7 +105,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     }
 
     @Override
-    public final <T> void addItem(ChordLeadSheetItem<T> item)
+    public final void addItem(ChordLeadSheetItem<?> item)
     {
         addItem(item, true);
     }
@@ -134,14 +133,14 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
 
     @Override
-    public <T> void removeItem(final ChordLeadSheetItem<T> item)
+    public void removeItem(final ChordLeadSheetItem<?> item)
     {
         removeItem(item, true);
     }
 
 
     @Override
-    public <T> void moveItem(ChordLeadSheetItem<T> item, Position newPos)
+    public void moveItem(ChordLeadSheetItem<?> item, Position newPos)
     {
         moveItem(item, newPos, true);
     }
@@ -196,75 +195,62 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
 
     @Override
-    public synchronized ChordLeadSheetItem<?> getLastItemBefore(Position posHigh, boolean inclusive, Predicate<ChordLeadSheetItem<?>> tester)
+    public <T extends ChordLeadSheetItem<E>, E> T getFirstItemAfter(Position posFrom, boolean inclusiveFrom, Class<T> itemClass, Predicate<T> tester)
     {
-        Preconditions.checkNotNull(posHigh);
+        Preconditions.checkNotNull(posFrom);
         Preconditions.checkNotNull(tester);
-        Preconditions.checkArgument(posHigh.getBar() < getSizeInBars());
+        Preconditions.checkNotNull(itemClass);
 
-        ChordLeadSheetItem<?> res = null;
+        T res = null;
 
-        var headSet = items.headSet(new ChordLeadSheetItem.ComparableItem(posHigh), inclusive);
+        var tailSet = items.tailSet(new ChordLeadSheetItem.ComparableItem(posFrom), inclusiveFrom);
+        for (var item : tailSet)
+        {
+            if (itemClass.isAssignableFrom(item.getClass()))
+            {
+                T itemT = (T) item;
+                if (tester.test(itemT))
+                {
+                    res = itemT;
+                    break;
+                }
+            }
+        }
+
+        return res;
+    }
+
+
+    @Override
+    public <T extends ChordLeadSheetItem<E>, E> T getLastItemBefore(Position posTo, boolean inclusiveTo, Class<T> itemClass, Predicate<T> tester)
+    {
+        Preconditions.checkNotNull(posTo);
+        Preconditions.checkNotNull(tester);
+        Preconditions.checkNotNull(itemClass);
+        T res = null;
+
+        var headSet = items.headSet(new ChordLeadSheetItem.ComparableItem(posTo), inclusiveTo);
         var it = headSet.descendingIterator();
         while (it.hasNext())
         {
             var item = it.next();
-            if (tester == null || tester.test(item))
+            if (itemClass.isAssignableFrom(item.getClass()))
             {
-                res = item;
-                break;
+                T itemT = (T) item;
+                if (tester.test(itemT))
+                {
+                    res = itemT;
+                    break;
+                }
             }
         }
 
         return res;
     }
 
-    @Override
-    public <T> T getLastItemBefore(Position posHigh, boolean inclusive, Class<T> itemClass)
-    {
-        Preconditions.checkNotNull(itemClass);
-        return (T) getLastItemBefore(posHigh, inclusive, item -> itemClass.isAssignableFrom(item.getClass()));
-    }
-
 
     @Override
-    public synchronized ChordLeadSheetItem<?> getFirstItemAfter(Position posLow, boolean inclusive, Predicate<ChordLeadSheetItem<?>> tester)
-    {
-        Preconditions.checkNotNull(posLow);
-        Preconditions.checkNotNull(tester);
-        Preconditions.checkArgument(posLow.getBar() < getSizeInBars());
-
-        ChordLeadSheetItem<?> res = null;
-        var tailSet = items.tailSet(new ChordLeadSheetItem.ComparableItem(posLow), inclusive);
-        for (var item : tailSet)
-        {
-            if (tester == null || tester.test(item))
-            {
-                res = item;
-                break;
-            }
-        }
-        return res;
-    }
-
-
-    @Override
-    public <T > ChordLeadSheetItem<T> getNextItem(ChordLeadSheetItem<T> item)
-    {
-        var res = getFirstItemAfter(item.getPosition(), false, item.getClass());
-        return res;
-    }
-
-    @Override
-    public <T> ChordLeadSheetItem<T> getPreviousItem(ChordLeadSheetItem<T> item)
-    {
-        var res = getLastItemBefore(item.getPosition(), false, item.getClass());
-        return res;
-    }
-
-
-    @Override
-    public <T extends ChordLeadSheetItem> List<T> getItems(Position posFrom, boolean inclusiveFrom, Position posTo, boolean inclusiveTo,
+    public <T extends ChordLeadSheetItem<E>, E> List<T> getItems(Position posFrom, boolean inclusiveFrom, Position posTo, boolean inclusiveTo,
             Class<T> itemClass,
             Predicate<T> tester)
     {
@@ -278,46 +264,13 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
         var res = rangeItems.stream()
                 .filter(item -> itemClass.isAssignableFrom(item.getClass()))
-                .map(cli -> (T)cli)
+                .map(cli -> (T) cli)
                 .filter(cli -> tester.test(cli))
                 .toList();
 
         return res;
     }
 
-
-
-
-    @Override
-    public <T extends ChordLeadSheetItem> List<T> getItems(CLI_Section cliSection, Class<T> aClass)
-    {
-        if (cliSection == null)
-        {
-            throw new IllegalArgumentException("cliSection=" + cliSection + " aClass=" + aClass);
-        }
-        List<T> result = new ArrayList<>();
-        var iitems = getItems();        // Synchronized
-        int index = iitems.indexOf(cliSection);
-        if (index == -1)
-        {
-            throw new IllegalArgumentException("cliSection=" + cliSection + " aClass=" + aClass + " iitems=" + iitems);
-        }
-        index++;
-        while (index < iitems.size())
-        {
-            ChordLeadSheetItem<?> item = iitems.get(index);
-            if (item instanceof CLI_Section)
-            {
-                break;
-            }
-            if (aClass == null || aClass.isAssignableFrom(item.getClass()))
-            {
-                result.add((T) item);
-            }
-            index++;
-        }
-        return result;
-    }
 
     @Override
     public CLI_Section getSection(int barIndex)
@@ -335,9 +288,9 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             {
                 break;
             }
-            if (item instanceof CLI_Section)
+            if (item instanceof CLI_Section section)
             {
-                lastSection = (CLI_Section) item;
+                lastSection = section;
             }
         }
         return lastSection;
@@ -352,9 +305,8 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         }
         for (ChordLeadSheetItem<?> item : getItems())       // Synchronized
         {
-            if (item instanceof CLI_Section)
+            if (item instanceof CLI_Section cliSection)
             {
-                CLI_Section cliSection = (CLI_Section) item;
                 if (cliSection.getData().getName().equals(sectionName))
                 {
                     return cliSection;
