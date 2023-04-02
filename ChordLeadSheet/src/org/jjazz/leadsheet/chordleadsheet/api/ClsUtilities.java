@@ -72,7 +72,7 @@ public class ClsUtilities
         for (int barIndex = 0; barIndex < simplifiedCls.getSizeInBars(); barIndex++)
         {
             float halfBarBeat = simplifiedCls.getSection(barIndex).getData().getTimeSignature().getHalfBarBeat(false);
-            var items = simplifiedCls.getItems(barIndex, barIndex, CLI_ChordSymbol.class);
+            var items = simplifiedCls.getItems(barIndex, barIndex, CLI_ChordSymbol.class, cli -> true);
             if (items.size() <= 1)
             {
                 // Nothing

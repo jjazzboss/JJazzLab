@@ -231,7 +231,7 @@ public final class Position implements Comparable<Position>, Serializable
     }
 
     /**
-     * Get an adjusted position to make sure it fits the specified time signature.
+     * Get a new adjusted position which is guaranteed to fit the specified time signature.
      *
      * @param ts
      * @return
@@ -273,11 +273,11 @@ public final class Position implements Comparable<Position>, Serializable
         } else if (beat == tsFrom.getHalfBarBeat(true))
         {
             newPos.setBeat(tsTo.getHalfBarBeat(true));
-
-        } else if ((newPos.getBeat() - lastBeat) >= 1)
+        } 
+        
+        if ((newPos.getBeat() - lastBeat) >= 1)
         {
             newPos.setBeat(lastBeat);
-
         }
 
         return newPos;

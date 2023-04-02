@@ -137,7 +137,7 @@ public class ChordLeadSheetImplTest
     {
         System.out.println("=== addItem ChordSymbol");
         cls1.addItem(cliChordSymbolG_b6_0);
-        assertTrue(cls1.getItems(6, 6, ChordLeadSheetItem.class).get(0) == cliChordSymbolG_b6_0);   
+        assertTrue(cls1.getItems(6, 6, ChordLeadSheetItem.class, cli -> true).get(0) == cliChordSymbolG_b6_0);   
     }
 
     @Test
@@ -174,7 +174,7 @@ public class ChordLeadSheetImplTest
         {
             Exceptions.printStackTrace(ex);
         }
-        assertTrue(cls1.getItems(cliSection34_b3, ChordLeadSheetItem.class).size() == 1);   
+        assertTrue(cls1.getItems(cliSection34_b3, ChordLeadSheetItem.class, cli -> true).size() == 1);   
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -202,8 +202,8 @@ public class ChordLeadSheetImplTest
         {
             Exceptions.printStackTrace(ex);
         }
-        assertTrue(cls1.getItems(1, 1, CLI_Section.class).get(0) == cliSection34_b3 
-                && cls1.getItems(cliSection34_b3, ChordLeadSheetItem.class).get(1).getPosition().getBeat() == 2);
+        assertTrue(cls1.getItems(1, 1, CLI_Section.class, cli -> true).get(0) == cliSection34_b3 
+                && cls1.getItems(cliSection34_b3, ChordLeadSheetItem.class, cli -> true).get(1).getPosition().getBeat() == 2);
     }
 
     // RemoveSection() --------------------------------------------------
@@ -234,7 +234,7 @@ public class ChordLeadSheetImplTest
         {
             Exceptions.printStackTrace(ex);
         }
-        assertTrue(cls1.getItems(cls1.getSection("Section2"), ChordLeadSheetItem.class).get(3).getPosition().getBeat() == 2);   
+        assertTrue(cls1.getItems(cls1.getSection("Section2"), ChordLeadSheetItem.class, cli -> true).get(3).getPosition().getBeat() == 2);   
     }
 
     // MoveItem() --------------------------------------------------
@@ -242,7 +242,7 @@ public class ChordLeadSheetImplTest
     public void testMoveItemAndAdjustPosition()
     {
         System.out.println("=== MoveItem and adjust item position");
-        ChordLeadSheetItem cli = cls1.getItems(1, 1, ChordLeadSheetItem.class).get(1);
+        ChordLeadSheetItem<?> cli = cls1.getItems(1, 1, ChordLeadSheetItem.class, i -> true).get(1);
         cls1.moveItem(cli, new Position(2, 3));
         assertTrue(cli.getPosition().equals(new Position(2, 2)));   
     }
@@ -289,7 +289,7 @@ public class ChordLeadSheetImplTest
         {
             Exceptions.printStackTrace(ex);
         }
-        assertTrue(cls1.getItems(1, 1, CLI_ChordSymbol.class).get(1).getPosition().equals(new Position(1, 2)));   
+        assertTrue(cls1.getItems(1, 1, CLI_ChordSymbol.class, cli -> true).get(1).getPosition().equals(new Position(1, 2)));   
         assertTrue(cls1.getSection(1).getPosition().getBar() == 1);   
     }
 
@@ -305,7 +305,7 @@ public class ChordLeadSheetImplTest
         {
             Exceptions.printStackTrace(ex);
         }
-        assertTrue(cls1.getItems(7, 7, ChordLeadSheetItem.class).get(0).getPosition().equals(new Position(7, 2)));   
+        assertTrue(cls1.getItems(7, 7, ChordLeadSheetItem.class, cli->true).get(0).getPosition().equals(new Position(7, 2)));   
         assertTrue(cls1.getSection(1) == cliSection0);   
     }
 
@@ -433,7 +433,7 @@ public class ChordLeadSheetImplTest
         {
             Exceptions.printStackTrace(ex);
         }
-        assertTrue(cls1.getItems(1, 1, ChordLeadSheetItem.class).get(1).getPosition().getBeat() == 2);   
+        assertTrue(cls1.getItems(1, 1, ChordLeadSheetItem.class, cli->true).get(1).getPosition().getBeat() == 2);   
     }
 
     @Test

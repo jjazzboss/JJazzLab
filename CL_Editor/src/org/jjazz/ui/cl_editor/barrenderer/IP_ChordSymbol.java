@@ -90,7 +90,7 @@ public class IP_ChordSymbol implements CLI_ChordSymbol
     @Override
     public Position getPosition()
     {
-        return position;
+        return new Position(position);
     }
 
     /**

@@ -69,7 +69,7 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
     T getData();
 
     /**
-     * Get the position of this item.
+     * Get a copy of the position of this item.
      *
      * @return
      */
@@ -93,32 +93,34 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
 
 
     /**
-     * First compare using position, then use isBarSingleItem().
+     * First compare using position, then use isBarSingleItem(), then use System.identifyHashCode().
      *
      * @param other
-     * @return
+     * @return 0 only if this == other, so that comparison is consistent with equals().
      */
     @Override
     default int compareTo(ChordLeadSheetItem<?> other)
     {
-        int res;
         if (this == other)
         {
-            res = 0;
-        } else
+            return 0;
+        }
+
+        int res = getPosition().compareTo(other.getPosition());
+        if (res == 0)
         {
-            res = getPosition().compareTo(other.getPosition());
-            if (res == 0)
+            if (isBarSingleItem() && !other.isBarSingleItem())
             {
-                if (isBarSingleItem() && !other.isBarSingleItem())
-                {
-                    res = -1;
-                } else if (!isBarSingleItem() && other.isBarSingleItem())
-                {
-                    res = 1;
-                }
+                res = -1;
+            } else if (!isBarSingleItem() && other.isBarSingleItem())
+            {
+                res = 1;
+            } else
+            {
+                res = Long.compare(System.identityHashCode(this), System.identityHashCode(other));
             }
         }
+
 
         return res;
     }
@@ -219,7 +221,7 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
         @Override
         public Position getPosition()
         {
-            return position;
+            return new Position(position);
         }
 
         @Override
