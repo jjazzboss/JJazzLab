@@ -28,6 +28,7 @@ import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
+import java.util.logging.Logger;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 
 /**
@@ -52,6 +53,7 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
      * oldValue=old position, newValue=new position.
      */
     public static String PROP_ITEM_POSITION = "ItemPosition";
+    static final Logger LOGGER = Logger.getLogger(ChordLeadSheetItem.class.getSimpleName());
 
     /**
      * Get the ChordLeadSheet this object belongs to.
@@ -94,6 +96,8 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
 
     /**
      * First compare using position, then use isBarSingleItem(), then use System.identifyHashCode().
+     * <p>
+     * Performs a special handling for ComparableItems.
      *
      * @param other
      * @return 0 only if this == other, so that comparison is consistent with equals().
@@ -109,7 +113,32 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
         int res = getPosition().compareTo(other.getPosition());
         if (res == 0)
         {
-            if (isBarSingleItem() && !other.isBarSingleItem())
+            if (this instanceof ComparableItem ciThis && other instanceof ComparableItem ciOther)
+            {
+                if (ciThis.isBeforeItem() == ciOther.isBeforeItem())
+                {
+                    throw new IllegalStateException("this=" + this + " other=" + other);
+                }
+                res = ciThis.isBeforeItem() ? -1 : 1;
+            } else if (this instanceof ComparableItem ciThis)
+            {
+                if (ciThis.isBeforeItem())
+                {
+                    res = ciThis.isInclusive() ? -1 : 1;
+                } else
+                {
+                    res = ciThis.isInclusive() ? 1 : -1;
+                }
+            } else if (other instanceof ComparableItem ciOther)
+            {
+                if (ciOther.isBeforeItem())
+                {
+                    res = ciOther.isInclusive() ? 1 : -1;
+                } else
+                {
+                    res = ciOther.isInclusive() ? -1 : 1;
+                }
+            } else if (isBarSingleItem() && !other.isBarSingleItem())
             {
                 res = -1;
             } else if (!isBarSingleItem() && other.isBarSingleItem())
@@ -119,6 +148,8 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
             {
                 res = Long.compare(System.identityHashCode(this), System.identityHashCode(other));
             }
+            System.out.println("compareTo() samePos > res=" + res + " this=" + this + " other=" + other);
+            // LOGGER.severe("compareTo() samePos > res="+res+" this=" + this + " other=" + other);
         }
 
 
@@ -132,66 +163,90 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
 
     /**
      * Create an item right after the specified position for comparison purposes.
+     * <p>
+     * For the Comparable interface, any item whose position is before (or equal if inclusive is true) to pos will be considered BEFORE the
+     * returned item.
      *
      * @param pos
+     * @param inclusive
      * @return
      */
-    public static ComparableItem createItemAfter(Position pos)
+    public static ComparableItem createItemTo(Position pos, boolean inclusive)
     {
-        Position newPos;
-        if (Float.compare(pos.getBeat(), Float.MAX_VALUE) == 0)
-        {
-            newPos = new Position(pos.getBar() + 1, 0);
-        } else
-        {
-            newPos = new Position(pos.getBar(), pos.getBeat() + Float.intBitsToFloat(0x1));
-        }
-        return new ComparableItem(newPos);
+        return new ComparableItem(pos, false, inclusive);
+    }
+
+    /**
+     * Create an item at the end of the specified bar for comparison purposes.
+     * <p>
+     * For the Comparable interface, any normal item in the bar will be considered BEFORE the returned item.
+     *
+     * @param bar
+     * @return
+     */
+    public static ComparableItem createItemTo(int bar)
+    {
+        return new ComparableItem(new Position(bar, Float.MAX_VALUE), false, false);
     }
 
     /**
      * Create an item right before the specified position for comparison purposes.
+     * <p>
+     * For the Comparable interface, any item whose position is after (or equal if inclusive is true) to pos will be considered AFTER the
+     * returned item.
      *
      * @param pos
+     * @param inclusive
      * @return
      */
-    public static ComparableItem createItemBefore(Position pos)
+    public static ComparableItem createItemFrom(Position pos, boolean inclusive)
     {
-        Preconditions.checkArgument(!(pos.getBar() == 0 && pos.isFirstBarBeat()), "pos=%s", pos);
-        Position newPos;
-        if (pos.isFirstBarBeat())
-        {
-            newPos = new Position(pos.getBar() - 1, Float.MAX_VALUE);
-        } else
-        {
-            newPos = new Position(pos.getBar(), pos.getBeat() - Float.intBitsToFloat(0x1));
-        }
-        return new ComparableItem(newPos);
+        return new ComparableItem(pos, true, inclusive);
+    }
+
+    /**
+     * Create an item at the beginning of the specified bar for comparison purposes.
+     * <p>
+     * For the Comparable interface, any normal item in the bar will be considered AFTER the returned item.
+     *
+     * @param bar
+     * @return
+     */
+    public static ComparableItem createItemFrom(int bar)
+    {
+        return new ComparableItem(new Position(bar, 0), true, false);
     }
 
     // ==================================================================================================
     // Inner classes
     // ==================================================================================================
     /**
-     * A dummy ChordLeadSheetItem class used for position comparison when using the NavigableSet-based methods of ChordLeadSheet.
+     * A dummy ChordLeadSheetItem class which must be used only for position comparison when using the NavigableSet-based methods of
+     * ChordLeadSheet.
      */
     static class ComparableItem implements ChordLeadSheetItem<String>
     {
 
-        private final boolean barSingleItem;
         private final Position position;
-        private final String data;
+        private final boolean beforeItem;
+        private final boolean inclusive;
 
-        public ComparableItem(Position pos)
+
+        private ComparableItem(Position pos, boolean beforeItem, boolean inclusive)
         {
-            this(pos, "comparableItem", false);
+            this.beforeItem = beforeItem;
+            this.position = pos;
+            this.inclusive = inclusive;
         }
 
-        public ComparableItem(Position pos, String data, boolean barSingleItem)
+        public boolean isBeforeItem()
         {
-            this.barSingleItem = barSingleItem;
-            this.position = pos;
-            this.data = data;
+            return beforeItem;
+        }
+
+        public boolean isInclusive()
+        {
+            return inclusive;
         }
 
         @Override
@@ -209,13 +264,13 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
         @Override
         public boolean isBarSingleItem()
         {
-            return barSingleItem;
+            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
         }
 
         @Override
         public String getData()
         {
-            return data;
+            return "HelloDolly";
         }
 
         @Override
@@ -252,6 +307,12 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
         public Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException, IOException
         {
             throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        }
+
+        @Override
+        public String toString()
+        {
+            return (beforeItem ? "beforeCompItem" : "afterCompItem") + "-" + getPosition() + "-" + (inclusive ? "inclusive" : "exclusive");
         }
     }
 

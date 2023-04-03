@@ -70,7 +70,7 @@ public class LinearizeSong implements ActionListener
             prefs.putBoolean(PREF_SHOW_TIP, false);
         }
 
-        Song newSong = SongUtilities.getDeveloppedSong(song, true);
+        Song newSong = SongUtilities.getLinearizedSong(song, true);
         newSong.setName(song.getName() + "-linearized");
         SongEditorManager.getInstance().showSong(newSong, true, false);
     }

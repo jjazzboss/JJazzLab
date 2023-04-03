@@ -1211,7 +1211,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
             {
                 int barDiff = e.getBarDiff();
                 assert barDiff != 0;
-                List<ChordLeadSheetItem<?>> items = e.getItems();
+                List<ChordLeadSheetItem> items = e.getItems();
                 int last = items.size() - 1;
                 if (barDiff > 0)
                 {

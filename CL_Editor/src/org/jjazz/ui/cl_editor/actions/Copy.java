@@ -28,6 +28,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import static javax.swing.Action.ACCELERATOR_KEY;
@@ -101,12 +102,12 @@ public class Copy extends AbstractAction implements ContextAwareAction, CL_Conte
         ChordLeadSheet cls = selection.getChordLeadSheet();
         JJazzUndoManagerFinder.getDefault().get(cls).startCEdit(undoText);
         CopyBuffer copyBuffer = CopyBuffer.getInstance();
-        ArrayList<ChordLeadSheetItem<?>> items = new ArrayList<>();
+        List<ChordLeadSheetItem> items = new ArrayList<>();
         if (selection.isBarSelectedWithinCls())
         {
             for (Integer modelBarIndex : selection.getSelectedBarIndexesWithinCls())
             {
-                items.addAll((Collection<? extends ChordLeadSheetItem<?>>) cls.getItems(modelBarIndex, modelBarIndex, ChordLeadSheetItem.class));
+                items.addAll(cls.getItems(modelBarIndex, modelBarIndex, ChordLeadSheetItem.class));
             }
             copyBuffer.barModeCopy(items, selection.getMinBarIndexWithinCls(), selection.getMaxBarIndexWithinCls());
         } else if (selection.isItemSelected())

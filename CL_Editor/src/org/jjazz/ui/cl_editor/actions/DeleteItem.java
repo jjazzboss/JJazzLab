@@ -27,6 +27,7 @@ import org.jjazz.ui.cl_editor.api.CL_ContextActionSupport;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
@@ -103,7 +104,7 @@ public class DeleteItem extends AbstractAction implements ContextAwareAction, CL
     {
         CL_SelectionUtilities selection = cap.getSelection();
         ChordLeadSheet cls = selection.getChordLeadSheet();
-        ArrayList<ChordLeadSheetItem<?>> items = new ArrayList<>();
+        List<ChordLeadSheetItem> items = new ArrayList<>();
 
         
         JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(cls);
@@ -114,7 +115,7 @@ public class DeleteItem extends AbstractAction implements ContextAwareAction, CL
         {
             for (Integer modelBarIndex : selection.getSelectedBarIndexesWithinCls())
             {
-                items.addAll((Collection<? extends ChordLeadSheetItem<?>>) cls.getItems(modelBarIndex, modelBarIndex, ChordLeadSheetItem.class));
+                items.addAll(cls.getItems(modelBarIndex, modelBarIndex, ChordLeadSheetItem.class));
             }
         } else
         {

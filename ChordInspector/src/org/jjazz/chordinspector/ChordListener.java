@@ -26,7 +26,8 @@ import com.google.common.base.Preconditions;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
-import org.jjazz.leadsheet.chordleadsheet.api.item.Item;
+import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
+import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.ui.cl_editor.api.CL_ContextActionListener;
 import org.jjazz.ui.cl_editor.api.CL_ContextActionSupport;
 import org.jjazz.ui.cl_editor.api.CL_SelectionUtilities;
@@ -51,7 +52,7 @@ public class ChordListener implements CL_ContextActionListener, PropertyChangeLi
         // Listen to selection changes in the current leadsheet editor
         cap = CL_ContextActionSupport.getInstance(Utilities.actionsGlobalContext());
         cap.addListener(this);
-        
+
         selectionChange(cap.getSelection());
     }
 
@@ -81,7 +82,9 @@ public class ChordListener implements CL_ContextActionListener, PropertyChangeLi
         {
             // Find the last chord valid for this bar
             var cls = selection.getChordLeadSheet();
-            newSelectedChordSymbol = cls.getLastItem(0, selection.geMinBarIndex(), CLI_ChordSymbol.class);
+            //newSelectedChordSymbol = cls.getLastItem(0, selection.getMinBarIndex(), CLI_ChordSymbol.class);
+            newSelectedChordSymbol = cls.getLastItemBefore(new Position(selection.getMinBarIndex() + 1, 0), false, CLI_ChordSymbol.class,
+                    cli -> true);
             if (newSelectedChordSymbol == null)
             {
                 // Can happen if user temporarily remove all chord symbols!
@@ -126,7 +129,7 @@ public class ChordListener implements CL_ContextActionListener, PropertyChangeLi
     {
         if (evt.getSource() == chordSymbol)
         {
-            if (Item.PROP_ITEM_DATA.equals(evt.getPropertyName()))
+            if (ChordLeadSheetItem.PROP_ITEM_DATA.equals(evt.getPropertyName()))
             {
                 editor.setModel(chordSymbol);
             }

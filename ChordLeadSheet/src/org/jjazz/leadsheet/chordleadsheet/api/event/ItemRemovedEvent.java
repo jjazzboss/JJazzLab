@@ -34,7 +34,7 @@ public class ItemRemovedEvent extends ClsChangeEvent
         super(src, item);
     }
 
-    public ItemRemovedEvent(ChordLeadSheet src, List<ChordLeadSheetItem<?>> items)
+    public ItemRemovedEvent(ChordLeadSheet src, List<ChordLeadSheetItem> items)
     {
         super(src, items);
     }

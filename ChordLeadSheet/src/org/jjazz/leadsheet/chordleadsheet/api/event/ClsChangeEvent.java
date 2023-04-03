@@ -41,11 +41,11 @@ public abstract class ClsChangeEvent
     /**
      * The ChordLeadSheet items which have changed.
      */
-    protected List<ChordLeadSheetItem<?>> items;
+    protected List<ChordLeadSheetItem> items;
 
-    static protected List<ChordLeadSheetItem<?>> singletonList(ChordLeadSheetItem<?> item)
+    static protected List<ChordLeadSheetItem> singletonList(ChordLeadSheetItem<?> item)
     {
-        ArrayList<ChordLeadSheetItem<?>> al = new ArrayList<>(1);
+        ArrayList<ChordLeadSheetItem> al = new ArrayList<>(1);
         al.add(item);
         return al;
     }
@@ -73,7 +73,7 @@ public abstract class ClsChangeEvent
      * @param src
      * @param items The list of the ChordLeadSheetItems which have changed.
      */
-    protected ClsChangeEvent(ChordLeadSheet src, List<ChordLeadSheetItem<?>> items)
+    protected ClsChangeEvent(ChordLeadSheet src, List<ChordLeadSheetItem> items)
     {
         this(src);
         if (items == null)
@@ -97,7 +97,7 @@ public abstract class ClsChangeEvent
      *
      * @return An ordered list of items
      */
-    public List<ChordLeadSheetItem<?>> getItems()
+    public List<ChordLeadSheetItem> getItems()
     {
         return items;
     }

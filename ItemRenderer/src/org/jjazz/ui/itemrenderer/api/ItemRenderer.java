@@ -30,7 +30,6 @@ import java.beans.PropertyChangeListener;
 import java.util.logging.Logger;
 import javax.swing.*;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
-import org.jjazz.leadsheet.chordleadsheet.api.item.Item;
 
 /**
  * The base class for ItemRenderers.
@@ -238,10 +237,10 @@ public abstract class ItemRenderer extends JPanel implements PropertyChangeListe
         {
             switch (e.getPropertyName())
             {
-                case Item.PROP_ITEM_DATA:
+                case ChordLeadSheetItem.PROP_ITEM_DATA:
                     modelChanged();
                     break;
-                case Item.PROP_ITEM_POSITION:
+                case ChordLeadSheetItem.PROP_ITEM_POSITION:
                     modelMoved();
                     break;
             }

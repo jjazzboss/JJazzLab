@@ -41,7 +41,7 @@ public class ItemBarShiftedEvent extends ClsChangeEvent
      * @param items This can include sections.
      * @param nbBars positive or negative integer
      */
-    public ItemBarShiftedEvent(ChordLeadSheet src, List<ChordLeadSheetItem<?>> items, int nbBars)
+    public ItemBarShiftedEvent(ChordLeadSheet src, List<ChordLeadSheetItem> items, int nbBars)
     {
         super(src, items);
         barDiff = nbBars;

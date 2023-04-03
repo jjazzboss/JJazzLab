@@ -34,7 +34,7 @@ public class ItemAddedEvent extends ClsChangeEvent
         super(src, item);
     }
 
-    public ItemAddedEvent(ChordLeadSheet src, List<ChordLeadSheetItem<?>> items)
+    public ItemAddedEvent(ChordLeadSheet src, List<ChordLeadSheetItem> items)
     {
         super(src, items);
     }

@@ -28,6 +28,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import static javax.swing.Action.ACCELERATOR_KEY;
@@ -102,7 +103,7 @@ public class Cut extends AbstractAction implements ContextAwareAction, CL_Contex
         CL_SelectionUtilities selection = cap.getSelection();
         ChordLeadSheet cls = selection.getChordLeadSheet();
         CopyBuffer copyBuffer = CopyBuffer.getInstance();
-        ArrayList<ChordLeadSheetItem<?>> items = new ArrayList<>();
+        List<ChordLeadSheetItem> items = new ArrayList<>();
 
         JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(cls);
         um.startCEdit(undoText);
@@ -112,7 +113,7 @@ public class Cut extends AbstractAction implements ContextAwareAction, CL_Contex
         {
             for (Integer modelBarIndex : selection.getSelectedBarIndexesWithinCls())
             {
-                items.addAll((Collection<? extends ChordLeadSheetItem<?>>) cls.getItems(modelBarIndex, modelBarIndex, ChordLeadSheetItem.class));
+                items.addAll(cls.getItems(modelBarIndex, modelBarIndex, ChordLeadSheetItem.class));
             }
 
 

@@ -58,7 +58,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     /**
      * The main data structure: store the items sorted.
      */
-    private final TreeSet<ChordLeadSheetItem<?>> items = new TreeSet<>();
+    private final TreeSet<ChordLeadSheetItem> items = new TreeSet<>();
     /**
      * The size of the leadsheet.
      */
@@ -194,7 +194,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
 
     @Override
-    public synchronized <T extends ChordLeadSheetItem<E>, E> T getFirstItemAfter(Position posFrom, boolean inclusiveFrom, Class<T> itemClass, Predicate<T> tester)
+    public synchronized <T extends ChordLeadSheetItem<?>> T getFirstItemAfter(Position posFrom, boolean inclusiveFrom, Class<T> itemClass, Predicate<T> tester)
     {
         Preconditions.checkNotNull(posFrom);
         Preconditions.checkNotNull(tester);
@@ -202,7 +202,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
         T res = null;
 
-        var tailSet = items.tailSet(new ChordLeadSheetItem.ComparableItem(posFrom), inclusiveFrom);
+        var tailSet = items.tailSet(ChordLeadSheetItem.createItemFrom(posFrom, inclusiveFrom), inclusiveFrom);
         for (var item : tailSet)
         {
             if (itemClass.isAssignableFrom(item.getClass()))
@@ -221,14 +221,14 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
 
     @Override
-    public synchronized <T extends ChordLeadSheetItem<E>, E> T getLastItemBefore(Position posTo, boolean inclusiveTo, Class<T> itemClass, Predicate<T> tester)
+    public synchronized <T extends ChordLeadSheetItem<?>> T getLastItemBefore(Position posTo, boolean inclusiveTo, Class<T> itemClass, Predicate<T> tester)
     {
         Preconditions.checkNotNull(posTo);
         Preconditions.checkNotNull(tester);
         Preconditions.checkNotNull(itemClass);
         T res = null;
 
-        var headSet = items.headSet(new ChordLeadSheetItem.ComparableItem(posTo), inclusiveTo);
+        var headSet = items.headSet(ChordLeadSheetItem.createItemTo(posTo, inclusiveTo), inclusiveTo);
         var it = headSet.descendingIterator();
         while (it.hasNext())
         {
@@ -249,7 +249,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
 
     @Override
-    public synchronized <T extends ChordLeadSheetItem<E>, E> List<T> getItems(Position posFrom, boolean inclusiveFrom, Position posTo, boolean inclusiveTo,
+    public synchronized <T extends ChordLeadSheetItem<?>> List<T> getItems(Position posFrom, boolean inclusiveFrom, Position posTo, boolean inclusiveTo,
             Class<T> itemClass,
             Predicate<T> tester)
     {
@@ -258,8 +258,10 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         Preconditions.checkNotNull(tester);
         Preconditions.checkNotNull(itemClass);
 
-        var rangeItems = items.subSet(new ChordLeadSheetItem.ComparableItem(posFrom), inclusiveFrom,
-                new ChordLeadSheetItem.ComparableItem(posTo), inclusiveTo);
+        var rangeItems = items.subSet(ChordLeadSheetItem.createItemFrom(posFrom, inclusiveFrom),                 
+                inclusiveFrom,  
+ChordLeadSheetItem.createItemTo(posTo, inclusiveTo), 
+                inclusiveTo);   
 
         var res = rangeItems.stream()
                 .filter(item -> itemClass.isAssignableFrom(item.getClass()))
@@ -369,7 +371,8 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             } else if (delta < 0)
             {
                 // For undo to work we need to remove possible extra items before setting the size
-                var posFrom = new ChordLeadSheetItem.ComparableItem(new Position(newSize - 2, Float.MAX_VALUE));
+                // var posFrom = new ChordLeadSheetItem.ComparableItem(new Position(newSize - 2, Float.MAX_VALUE));
+                var posFrom = ChordLeadSheetItem.createItemFrom(new Position(newSize - 1, 0), true);
                 var removedItems = items.tailSet(posFrom);
                 try
                 {
@@ -540,14 +543,16 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         TimeSignature oldTs = oldSection.getData().getTimeSignature();
         TimeSignature newTs = cliSection.getData().getTimeSignature();
 
-        // Change state
 
+        // Change state
         if (!newTs.equals(oldTs))
         {
             // Adjust position of trailing items if required
             // For undo to work properly, must be done before firing the "Add section" UndoableEdit.      
             // No need to synchronize the call because change is done before the section change
-            adjustItemsToTimeSignature(oldTs, newTs, getItems(cliSection, ChordLeadSheetItem.class, cli -> true));
+            var oldSectionBarRange = getBarRange(oldSection);
+            var iitems = getItems(barIndex, oldSectionBarRange.to, ChordLeadSheetItem.class);
+            adjustItemsToTimeSignature(oldTs, newTs, iitems);
         }
         addItemChecked(wSection);
 
@@ -690,16 +695,16 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             // For undo to work properly, must be done before firing the "Move section" UndoableEdit.      
             // No need to synchronize the call because change is done before the section change
             var newPosOldSectionBarRange = getBarRange(newPosOldSection);
-            var items = getItems(newBarIndex, newPosOldSectionBarRange.to, ChordLeadSheetItem.class, cli -> true);
-            adjustItemsToTimeSignature(newPosOldTs, ts, items);
+            var iitems = getItems(newBarIndex, newPosOldSectionBarRange.to, ChordLeadSheetItem.class, cli -> true);
+            adjustItemsToTimeSignature(newPosOldTs, ts, iitems);
         }
 
         if (!ts.equals(oldPosNewTs))
         {
             // Section before old position might need to be checked too
             var cliSectionBarRange = getBarRange(cliSection);
-            var items = getItems(oldBarIndex, cliSectionBarRange.to, ChordLeadSheetItem.class, cli -> true);
-            adjustItemsToTimeSignature(ts, oldPosNewTs, items);
+            var iitems = getItems(oldBarIndex, cliSectionBarRange.to, ChordLeadSheetItem.class, cli -> true);
+            adjustItemsToTimeSignature(ts, oldPosNewTs, iitems);
         }
 
         changeItemPositionChecked(cliSection, new Position(newBarIndex, 0));
@@ -931,9 +936,10 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             Exceptions.printStackTrace(ex);
         }
 
-        // And move items to make room for the new bars
-        var itemsToBeShifted = getItems(barIndex, Integer.MAX_VALUE, ChordLeadSheetItem.class, cli -> true);
-        if (itemsToBeShifted.isEmpty())
+        // Get items to be moved (don't include initiSection)
+        CLI_Section initSection = barIndex > 0 ? null : getSection(0);
+        var itemsToBeShifted = getItems(barIndex, Integer.MAX_VALUE, ChordLeadSheetItem.class, cli -> cli != initSection);
+        if (barIndex > 0 && itemsToBeShifted.isEmpty())
         {
             // Nothing to do
             return;
@@ -944,21 +950,21 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             shiftItems(itemsToBeShifted, nbBars);
         } else
         {
-            // Special case: the initial section will be moved too, create a new initial section            
+            // Special case: create a copy of the initial section        
             synchronized (this)
             {
-                Section initSectionData = getSection(0).getData();
 
-                // This will move the init section
                 shiftItems(itemsToBeShifted, nbBars);
 
-                // Recreate an init section with different name
+                // Create a copy of the init section with different name
                 CLI_Factory clif = CLI_Factory.getDefault();
-                CLI_Section newInitSection = clif.createSection(this, "_" + initSectionData.getName(), initSectionData.getTimeSignature(),
-                        0);
+                CLI_Section initSectionCopy = clif.createSection(this,
+                        "_" + initSection.getData().getName(),
+                        initSection.getData().getTimeSignature(),
+                        nbBars);
                 try
                 {
-                    addSection(newInitSection);
+                    addSection(initSectionCopy);
                 } catch (UnsupportedEditException ex)
                 {
                     // We should never be there since we don't change the time signature
@@ -990,7 +996,9 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
         // Save data after the bars deletion
         CLI_Section afterDeletionSection = (barIndexTo + 1 > size - 1) ? null : getSection(barIndexTo + 1);
-        var afterDeletionSectionItems = afterDeletionSection == null ? null : getItems(barIndexTo + 1, getBarRange(afterDeletionSection).to, ChordLeadSheetItem.class, cli -> true);
+        var afterDeletionSectionItems = afterDeletionSection == null ? null : getItems(afterDeletionSection,
+                ChordLeadSheetItem.class, 
+                cli -> cli.getPosition().getBar() > barIndexTo);
         CLI_Section initSection = getSection(0);
 
 
@@ -1116,13 +1124,13 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     /**
      * Remove sections and items.
      * <p>
-     * Chord symbols are removed in a single undoable operation. Then sections are removed one by one using removeSection()
-     * (possible exception).
+     * Chord symbols are removed in a single undoable operation. Then sections are removed one by one using removeSection() (possible
+     * exception).
      *
      * @param allItems
      * @throws UnsupportedEditException
      */
-    private void removeSectionsAndItems(Collection<ChordLeadSheetItem<?>> allItems) throws UnsupportedEditException
+    private void removeSectionsAndItems(Collection<ChordLeadSheetItem> allItems) throws UnsupportedEditException
     {
         LOGGER.log(Level.FINER, "removeSectionsAndItems() -- allItems={0}", allItems);
 
@@ -1133,7 +1141,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
         // Make 2 lists: removedSections for sections, removedItems for other items
         final List<CLI_Section> removedSections = new ArrayList<>();
-        final List<ChordLeadSheetItem<?>> removedItems = new ArrayList<>();
+        final List<ChordLeadSheetItem> removedItems = new ArrayList<>();
         for (var item : allItems)
         {
             if (item instanceof CLI_Section cliSection)
@@ -1240,7 +1248,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
      * @param shiftedItems
      * @param nbBars
      */
-    private void shiftItems(final List<ChordLeadSheetItem<?>> shiftedItems, final int nbBars)
+    private void shiftItems(final List<ChordLeadSheetItem> shiftedItems, final int nbBars)
     {
         Preconditions.checkNotNull(shiftedItems);
 
@@ -1354,8 +1362,8 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         // No need to synchronize the call because change is done before the section change
         if (!newTs.equals(oldTs))
         {
-            var items = getItems(cliSection, ChordLeadSheetItem.class, cli -> true);
-            adjustItemsToTimeSignature(oldTs, newTs, items);
+            var iitems = getItems(cliSection, ChordLeadSheetItem.class, cli -> true);
+            adjustItemsToTimeSignature(oldTs, newTs, iitems);
         }
 
         changeItemDataChecked(cliSection, newData);
@@ -1451,20 +1459,20 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         // Remove and add, in case data impacts the ordering
         WritableItem<T> wItem = (WritableItem<T>) item;
         var b = items.remove(wItem);
-        assert b : "wItem=" + wItem + " items=" + items;
+        assert b : "wItem=" + wItem + " newData=" + newData + " items=" + items;
         wItem.setData(newData);
         items.add(wItem);
-        assert b : "wItem=" + wItem + " items=" + items;
+        assert b : "wItem=" + wItem + " newData=" + newData + " items=" + items;
     }
 
     private synchronized <T> void changeItemPositionChecked(ChordLeadSheetItem<T> item, Position newPos)
     {
         WritableItem<T> wItem = (WritableItem<T>) item;
         var b = items.remove(wItem);
-        assert b : "wItem=" + wItem + " items=" + items;
+        assert b : "wItem=" + wItem + " newPos=" + newPos + " items=" + items;
         wItem.setPosition(newPos);
         items.add(wItem);
-        assert b : "wItem=" + wItem + " items=" + items;
+        assert b : "wItem=" + wItem + " newPos=" + newPos + " items=" + items;
     }
 
     /**
@@ -1479,7 +1487,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         {
             throw new IllegalArgumentException("event=" + event);
         }
-        var ls = listeners.toArray(new ClsChangeListener[0]);
+        var ls = listeners.toArray(ClsChangeListener[]::new);
         for (ClsChangeListener l : ls)
         {
             l.authorizeChange(event);   // Possible exception here
@@ -1510,7 +1518,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             throw new IllegalArgumentException("edit=" + edit);
         }
         UndoableEditEvent event = new UndoableEditEvent(this, edit);
-        for (UndoableEditListener l : undoListeners.toArray(new UndoableEditListener[undoListeners.size()]))
+        for (UndoableEditListener l : undoListeners.toArray(UndoableEditListener[]::new))
         {
             l.undoableEditHappened(event);
         }
@@ -1518,7 +1526,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
     /**
      *
-     * @param doFire If false do nothing.
+     * @param doFire   If false do nothing.
      * @param actionId
      * @param complete
      */
@@ -1574,7 +1582,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
         private static final long serialVersionUID = 2879716323116L;
         private final int spVERSION = 1;
-        private final ArrayList<ChordLeadSheetItem<?>> spItems;
+        private final ArrayList<ChordLeadSheetItem> spItems;
         private final int spSize;
 
         private SerializationProxy(ChordLeadSheetImpl cls)
@@ -1598,11 +1606,11 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             for (int i = 1; i < spItems.size(); i++)
             {
                 ChordLeadSheetItem<?> item = spItems.get(i);
-                if (item instanceof CLI_Section)
+                if (item instanceof CLI_Section section)
                 {
                     try
                     {
-                        cls.addSection((CLI_Section) item, false);
+                        cls.addSection(section, false);
                     } catch (UnsupportedEditException ex)
                     {
                         // Translate to an ObjectStreamException

@@ -128,7 +128,7 @@ public class SelectAll extends AbstractAction implements ContextAwareAction, CL_
         {
             // There are some selected bars which are past end, reselect from 1st bar to last selected bar
             selection.unselectAll(editor);
-            editor.selectBars(0, selection.geMaxBarIndex(), true);
+            editor.selectBars(0, selection.getMaxBarIndex(), true);
             return;
         }
 

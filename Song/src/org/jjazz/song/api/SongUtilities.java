@@ -115,7 +115,7 @@ public class SongUtilities
         }
 
         // Move items
-        List<ChordLeadSheetItem<?>> items = cls.getItems();
+        List<ChordLeadSheetItem> items = cls.getItems();
         for (int i = items.size() - 1; i >= 0; i--)
         {
             ChordLeadSheetItem<?> cli = items.get(i);

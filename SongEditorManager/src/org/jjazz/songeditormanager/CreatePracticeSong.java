@@ -379,7 +379,8 @@ public final class CreatePracticeSong extends AbstractAction implements ContextA
         if (cliChordSymbols.isEmpty() || !cliChordSymbols.get(0).getPosition().isFirstBarBeat())
         {
             assert startBar > 0 : "startBar=" + startBar + " cliChordSymbols=" + cliChordSymbols;
-            var cliCs = cls.getLastItem(0, startBar - 1, CLI_ChordSymbol.class);
+            // var cliCs = cls.getLastItem(0, startBar - 1, CLI_ChordSymbol.class);
+            var cliCs = cls.getLastItemBefore(new Position(startBar, 0), false, CLI_ChordSymbol.class, cli -> true);
             assert cliCs != null : "startBar=" + startBar + " cls=" + cls;
             var cliCsNew = cliCs.getCopy(newCls, new Position(0, 0));
             newCls.addItem(cliCsNew);

@@ -111,7 +111,7 @@ public final class SetEndBar extends AbstractAction implements ContextAwareActio
         if (selection.getSelectedBars().size() == 1)
         {
             b = true;
-            endBar = selection.geMinBarIndex();
+            endBar = selection.getMinBarIndex();
         }
         setEnabled(b);
     }

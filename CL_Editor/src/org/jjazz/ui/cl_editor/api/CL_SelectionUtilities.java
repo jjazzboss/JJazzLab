@@ -185,7 +185,7 @@ final public class CL_SelectionUtilities
      */
     public boolean isBarSelectedWithinCls()
     {
-        return isBarSelected() && geMinBarIndex() < getChordLeadSheet().getSizeInBars();
+        return isBarSelected() && getMinBarIndex() < getChordLeadSheet().getSizeInBars();
     }
 
     /**
@@ -241,7 +241,7 @@ final public class CL_SelectionUtilities
      *
      * @return -1 if selection is empty.
      */
-    public int geMaxBarIndex()
+    public int getMaxBarIndex()
     {
         int res = -1;
         if (isItemSelected())
@@ -259,7 +259,7 @@ final public class CL_SelectionUtilities
      *
      * @return -1 if selection is empty.
      */
-    public int geMinBarIndex()
+    public int getMinBarIndex()
     {
         int res = -1;
         if (isItemSelected())

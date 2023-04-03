@@ -104,7 +104,7 @@ public class Paste extends AbstractAction implements ContextAwareAction, CL_Cont
         CopyBuffer copyBuffer = CopyBuffer.getInstance();
         CL_SelectionUtilities selection = cap.getSelection();
         ChordLeadSheet targetCls = selection.getChordLeadSheet();
-        int targetBarIndex = selection.geMinBarIndex();
+        int targetBarIndex = selection.getMinBarIndex();
         int lastBar = targetCls.getSizeInBars() - 1;
 
 
