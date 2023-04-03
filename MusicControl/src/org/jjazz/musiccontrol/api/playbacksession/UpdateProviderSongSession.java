@@ -318,13 +318,13 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
         String id = (String) e.getOldValue();
         Object data = e.getNewValue();
 
-        
+
         LOGGER.log(Level.FINE, "propertyChange() -- id={0} data={1}", new Object[]
         {
             id, data
         });
 
-        
+
         switch (id)
         {
             //
@@ -432,7 +432,7 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
                     dirty, doUpdate, doDisableUpdates
                 }
         );
-        
+
         if (doDisableUpdates)
         {
             disableUpdates();
@@ -610,9 +610,14 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
 
         // Create a new control track
         ControlTrack cTrack = null;
-        if (isControlTrackEnabled && isControlTrackIncluded())  // Normaly useless since control track is disabled when updates are disabled
+
+        if (isControlTrackEnabled && isControlTrackIncluded())
         {
-            cTrack = new ControlTrack(result.songContext(), getControlTrack().getTrackId());
+            var sessionCtrack = getControlTrack();      // Might be null if session was closed in the meantime (usually we're NOT on the Swing EDT!)
+            if (sessionCtrack != null)
+            {
+                cTrack = new ControlTrack(result.songContext(), getControlTrack().getTrackId());
+            }
         }
 
 
@@ -667,7 +672,7 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
     {
         StringBuilder sb = new StringBuilder();
         sb.append(cls);
-        for (ChordLeadSheetItem<?> item : cls.getItems())
+        for (var item : cls.getItems())
         {
             if (item instanceof CLI_Section)
             {

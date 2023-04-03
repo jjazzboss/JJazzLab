@@ -28,16 +28,12 @@ import java.beans.PropertyChangeListener;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.Sequence;
 import javax.sound.midi.Track;
 import javax.swing.event.SwingPropertyChangeSupport;
-import org.jjazz.harmony.api.Note;
-import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.ClsUtilities;
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Factory;
-import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.midi.api.InstrumentMix;
 import org.jjazz.midi.api.MidiConst;
@@ -54,7 +50,6 @@ import org.jjazz.rhythmmusicgeneration.api.SongSequenceBuilder;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.song.api.Song;
-import org.jjazz.song.api.SongFactory;
 import org.jjazz.util.api.IntRange;
 import org.jjazz.util.api.ResUtil;
 
@@ -453,7 +448,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
         }
         // If here state=GENERATED
 
-        LOGGER.fine("propertyChange() e=" + e);
+        LOGGER.log(Level.FINE, "propertyChange() e={0}", e);
 
         if (e.getSource() == songContext.getSong())
         {
@@ -469,7 +464,8 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
         {
             switch (e.getPropertyName())
             {
-                case MidiMix.PROP_INSTRUMENT_MUTE:
+                case MidiMix.PROP_INSTRUMENT_MUTE ->
+                {
                     InstrumentMix insMix = (InstrumentMix) e.getOldValue();
                     MidiMix mm = songContext.getMidiMix();
                     RhythmVoice rv = mm.geRhythmVoice(insMix);
@@ -479,33 +475,38 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
                         mapTrackIdMuted.put(trackId, insMix.isMute());
                         pcs.firePropertyChange(PROP_MUTED_TRACKS, false, true);
                     }
+                }
 
-                    break;
-
-                default:
-                    // E.g MidiMix.PROP_USER_CHANNEL: do nothing
-                    break;
+                default ->
+                {
+                }
             }
+            // E.g MidiMix.PROP_USER_CHANNEL: do nothing
 
         } else if (e.getSource() == PlaybackSettings.getInstance())
         {
             switch (e.getPropertyName())
             {
-                case PlaybackSettings.PROP_PLAYBACK_CLICK_ENABLED:
+                case PlaybackSettings.PROP_PLAYBACK_CLICK_ENABLED ->
+                {
                     mapTrackIdMuted.put(playbackClickTrackId, !PlaybackSettings.getInstance().isPlaybackClickEnabled());
                     pcs.firePropertyChange(PROP_MUTED_TRACKS, false, true);
-                    break;
+                }
 
-                case PlaybackSettings.PROP_LOOPCOUNT:
+                case PlaybackSettings.PROP_LOOPCOUNT ->
+                {
                     if (loopCount == PLAYBACK_SETTINGS_LOOP_COUNT)
                     {
                         pcs.firePropertyChange(PROP_LOOP_COUNT, (Integer) e.getOldValue(), (Integer) e.getNewValue());
                     }
-                    break;
+                }
 
-                default:   // E.g. PROP_PLAYBACK_KEY_TRANSPOSITION
-                // Nothing
+                default -> // E.g. PROP_PLAYBACK_KEY_TRANSPOSITION
+                {
+                }
             }
+            // E.g. PROP_PLAYBACK_KEY_TRANSPOSITION
+            // Nothing
 
 
         }

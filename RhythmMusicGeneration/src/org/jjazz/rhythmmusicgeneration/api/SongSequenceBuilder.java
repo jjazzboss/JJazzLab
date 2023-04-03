@@ -299,7 +299,7 @@ public class SongSequenceBuilder
         for (SongPart spt : songContext.getSongParts())
         {
             CLI_Section section = spt.getParentSection();
-            for (CLI_ChordSymbol cliCs : songContext.getSong().getChordLeadSheet().getItems(section, CLI_ChordSymbol.class))
+            for (var cliCs : songContext.getSong().getChordLeadSheet().getItems(section, CLI_ChordSymbol.class))
             {
 
                 Position absPos = ss.getSptItemPosition(spt, cliCs);
@@ -659,7 +659,7 @@ public class SongSequenceBuilder
         for (CLI_Section section : getContextSections(context))
         {
             Position pos = section.getPosition();
-            List<? extends CLI_ChordSymbol> clis = cls.getItems(section, CLI_ChordSymbol.class);
+            var clis = cls.getItems(section, CLI_ChordSymbol.class);
             if (clis.isEmpty() || !clis.get(0).getPosition().equals(pos))
             {
                 throw new UserErrorGenerationException(ResUtil.getString(getClass(), "ERR_MissingChordSymbolAtSection",
@@ -672,7 +672,7 @@ public class SongSequenceBuilder
      * Check if the ChordLeadSheet contains 2 chord symbols at the same position in the passed context.
      *
      * @param context
-     * @throws org.jjazz.rhythmmusicgeneration.api.SongSequenceBuilder.UserErrorException
+     * @throws org.jjazz.rhythm.api.UserErrorGenerationException
      */
     private void checkChordsAtSamePosition(SongContext context) throws UserErrorGenerationException
     {
@@ -681,7 +681,7 @@ public class SongSequenceBuilder
 
         for (CLI_Section cliSection : getContextSections(context))
         {
-            List<? extends CLI_ChordSymbol> clis = cls.getItems(cliSection, CLI_ChordSymbol.class);
+           var clis = cls.getItems(cliSection, CLI_ChordSymbol.class);
             for (CLI_ChordSymbol cliCs : clis)
             {
                 Position pos = cliCs.getPosition();
@@ -808,30 +808,29 @@ public class SongSequenceBuilder
             {
                 continue;
             }
-            
-            
-            FloatRange sptBeatRange = context.getSong().getSongStructure().getBeatRange(spt.getBarRange());
-            FloatRange sptBeatRangeInContext = context.getSptBeatRange(spt);            
 
-            
+
+            FloatRange sptBeatRange = context.getSong().getSongStructure().getBeatRange(spt.getBarRange());
+            FloatRange sptBeatRangeInContext = context.getSptBeatRange(spt);
+
+
             // Get the RP value and process each customized phrase
             RP_SYS_CustomPhraseValue rpValue = spt.getRPValue(rpCustomPhrase);
             for (RhythmVoice rv : rpValue.getCustomizedRhythmVoices())
             {
 
 
-
                 // Prepare the phrase
-                Phrase pCustom = rpValue.getCustomizedPhrase(rv);   
+                Phrase pCustom = rpValue.getCustomizedPhrase(rv);
                 var pWork = new Phrase(0);
                 pWork.add(pCustom);
                 pWork.shiftAllEvents(sptBeatRange.from);                // Custom phrase starts at beat 0, make it match spt's start
                 pWork = Phrases.getSlice(pWork, sptBeatRangeInContext, false, 1, 0.1f);    // Keep only the relevant slice
-                
-                
+
+
                 // Add to the current phrase
                 Phrase p = rvPhrases.get(rv);
-                Phrases.silence(p, sptBeatRangeInContext, true, false, 0.1f);                
+                Phrases.silence(p, sptBeatRangeInContext, true, false, 0.1f);
                 p.add(pWork);
             }
         }

@@ -120,7 +120,7 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
         final ChordLeadSheet cls = selection.getChordLeadSheet();
         final CL_Editor editor = CL_EditorTopComponent.getActive().getEditor();
         char key = (char) 0;
-        LOGGER.fine("e=" + e);   
+        LOGGER.log(Level.FINE, "e={0}", e);   
 
         // Is it a chord note ?        
         if (e != null && e.getActionCommand().length() == 1)
@@ -137,9 +137,8 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
         {
             ChordLeadSheetItem<?> item = selection.getSelectedItems().get(0);
             int barIndex = item.getPosition().getBar();
-            if (item instanceof CLI_ChordSymbol)
+            if (item instanceof CLI_ChordSymbol csItem)
             {
-                CLI_ChordSymbol csItem = (CLI_ChordSymbol) item;
                 ChordSymbolEditorDialog dialog = ChordSymbolEditorDialog.getDefault();
                 if (dialog != null)
                 {
@@ -150,9 +149,8 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
                     // Otherwise use the standard Bar dialog
                     editBarWithDialog(editor, barIndex, new Preset(Preset.Type.ChordSymbolEdit, item, key), cls, undoText);
                 }
-            } else if (item instanceof CLI_Section)
+            } else if (item instanceof CLI_Section sectionItem)
             {
-                CLI_Section sectionItem = (CLI_Section) item;
                 SectionEditorDialog dialog = SectionEditorDialog.getDefault();
                 if (dialog != null)
                 {
@@ -183,7 +181,7 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
         {
             b = selection.getSelectedBarIndexesWithinCls().size() == 1;
         }
-        LOGGER.log(Level.FINE, "selectionChange() b=" + b);   
+        LOGGER.log(Level.FINE, "selectionChange() b={0}", b);   
         setEnabled(b);
     }
 
@@ -232,28 +230,25 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
 
     static protected void editCSWithDialog(final ChordSymbolEditorDialog dialog, final CLI_ChordSymbol csItem, final char key, final ChordLeadSheet cls, String undoText)
     {
-        Runnable run = new Runnable()
+        Runnable run = () ->
         {
-            @Override
-            public void run()
+            // Use specific editor if service is provided
+            Position pos = csItem.getPosition();
+            dialog.preset("Edit Chord Symbol - " + csItem.getData() + " - bar:" + (pos.getBar() + 1) + " beat:" + pos.getBeatAsUserString(), csItem, key, true);
+            dialog.setLocationRelativeTo(WindowManager.getDefault().getMainWindow());
+            dialog.setVisible(true);
+            if (dialog.exitedOk())
             {
-                // Use specific editor if service is provided              
-                Position pos = csItem.getPosition();
-                dialog.preset("Edit Chord Symbol - " + csItem.getData() + " - bar:" + (pos.getBar() + 1) + " beat:" + pos.getBeatAsUserString(), csItem, key, true);
-                dialog.setLocationRelativeTo(WindowManager.getDefault().getMainWindow());
-                dialog.setVisible(true);
-                if (dialog.exitedOk())
-                {
-                    ExtChordSymbol newCs = dialog.getData();
-                    assert newCs != null;   
-                    JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(cls);
-                    um.startCEdit(undoText);
-                    cls.changeItem(csItem, newCs);
-                    um.endCEdit(undoText);
-                }
-                dialog.cleanup();
+                ExtChordSymbol newCs = dialog.getData();
+                assert newCs != null;
+                JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(cls);
+                um.startCEdit(undoText);
+                cls.changeItem(csItem, newCs);
+                um.endCEdit(undoText);
             }
+            dialog.cleanup();
         };
+        
         // IMPORTANT: Dialog must be shown using invokeLater(), otherwise we have the problem of random double chars
         // when action is triggered by a key (InputMap/ActionMap) and key is used in the dialog.      
         // See complete explanation in my question on stackoverflow:
@@ -322,10 +317,10 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
                 }
 
                 // Manage added/removed/changed items
-                List<ChordLeadSheetItem<?>> resultAddedItems = dialog.getAddedItems();
+                var resultAddedItems = dialog.getAddedItems();
                 resultAddedItems.forEach(item -> cls.addItem(item));
 
-                List<ChordLeadSheetItem<?>> resultRemovedItems = dialog.getRemovedItems();
+                var resultRemovedItems = dialog.getRemovedItems();
                 resultRemovedItems.forEach(item -> cls.removeItem(item));
 
                 Map<CLI_ChordSymbol, ExtChordSymbol> map = dialog.getUpdatedChordSymbols();

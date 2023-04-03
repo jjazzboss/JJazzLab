@@ -92,7 +92,7 @@ public class SongChordSequence extends ChordSequence
             {
                 throw new UserErrorGenerationException("Missing chord symbol at the start of song " + song.getName());
             }
-            List<? extends CLI_ChordSymbol> items = song.getChordLeadSheet().getItems(0, clsRange.from - 1, CLI_ChordSymbol.class);
+            var items = song.getChordLeadSheet().getItems(0, clsRange.from - 1, CLI_ChordSymbol.class);
             CLI_ChordSymbol prevCliCs = items.get(items.size() - 1);        // Take the last chord before the range
             CLI_ChordSymbol newCs = getInitCopy(prevCliCs);
             add(0, newCs);      // Add at first position                    
@@ -300,7 +300,7 @@ public class SongChordSequence extends ChordSequence
 
 
             // Process each chord symbol
-            for (CLI_ChordSymbol cliCs : cls.getItems(clsSubRange.from, clsSubRange.to, CLI_ChordSymbol.class))
+            for (var cliCs : cls.getItems(clsSubRange.from, clsSubRange.to, CLI_ChordSymbol.class))
             {
                 Position pos = cliCs.getPosition();
                 ExtChordSymbol ecs = cliCs.getData();

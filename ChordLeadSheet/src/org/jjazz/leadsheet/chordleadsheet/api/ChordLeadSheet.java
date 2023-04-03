@@ -192,9 +192,9 @@ public interface ChordLeadSheet
      * @param inclusiveFrom
      * @param posTo
      * @param inclusiveTo
-     * @param itemClass     Accept only items which are instance of class itemClass
-     * @param tester        Accept only items which satisfy the tester.
-     * @return An ordered list of items
+     * @param itemClass     Accept items which are instance of class itemClass
+     * @param tester        Accept items which satisfy the tester.
+     * @return A non-modifiable ordered list of items
      */
     <T extends ChordLeadSheetItem<?>> List<T> getItems(Position posFrom, boolean inclusiveFrom, Position posTo, boolean inclusiveTo,
             Class<T> itemClass,
@@ -206,7 +206,7 @@ public interface ChordLeadSheet
      * @param <T>
      * @param posTo
      * @param inclusiveTo
-     * @param itemClass   Match only items which are assignable from aClass
+     * @param itemClass   Accept items which are assignable from aClass
      * @param tester
      * @return Can be null.
      */
@@ -227,19 +227,19 @@ public interface ChordLeadSheet
     /**
      * Get all the items.
      *
-     * @return An ordered list of items
+     * @return A non-modifiable ordered list of items
      */
     default List<ChordLeadSheetItem> getItems()
     {
-        return getItems(ChordLeadSheetItem.class);        
+        return getItems(ChordLeadSheetItem.class);
     }
 
     /**
      * Get all the items of this leadsheet matching a specific class.
      *
      * @param <T>
-     * @param itemClass Return only items which are instance of class itemClass
-     * @return An ordered list of items
+     * @param itemClass Accept items which are instance of class itemClass
+     * @return A non-modifiable ordered list of items
      */
     default <T extends ChordLeadSheetItem<?>> List<T> getItems(Class<T> itemClass)
     {
@@ -254,9 +254,9 @@ public interface ChordLeadSheet
      * @param <T>
      * @param barFrom
      * @param barTo
-     * @param itemClass Return only items which are instance of class aClass.
-     * @param tester    Accept only items which satisfy the tester.
-     * @return An ordered list of items
+     * @param itemClass Accept items which are instance of class aClass.
+     * @param tester    Accept items which satisfy the tester.
+     * @return A non-modifiable ordered list of items
      */
     default <T extends ChordLeadSheetItem<?>> List<T> getItems(int barFrom, int barTo, Class<T> itemClass, Predicate<T> tester)
     {
@@ -272,8 +272,8 @@ public interface ChordLeadSheet
      * @param <T>
      * @param barFrom
      * @param barTo
-     * @param itemClass Return only items which are instance of class aClass.
-     * @return An ordered list of items
+     * @param itemClass Accept items which are instance of class aClass.
+     * @return A non-modifiable ordered list of items
      */
     default <T extends ChordLeadSheetItem<?>> List<T> getItems(int barFrom, int barTo, Class<T> itemClass)
     {
@@ -286,9 +286,9 @@ public interface ChordLeadSheet
      * @param <T>
      * @param posFrom
      * @param inclusive
-     * @param itemClass Accept only items which are instance of class itemClass
-     * @param tester    Accept only items which satisfy the tester.
-     * @return An ordered list of items
+     * @param itemClass Accept items which are instance of class itemClass
+     * @param tester    Accept items which satisfy the tester.
+     * @return A non-modifiable ordered list of items
      */
     default <T extends ChordLeadSheetItem<?>> List<T> getItemsAfter(Position posFrom, boolean inclusive, Class<T> itemClass, Predicate<T> tester)
     {
@@ -302,9 +302,9 @@ public interface ChordLeadSheet
      * @param <T>
      * @param posTo
      * @param inclusive
-     * @param itemClass Accept only items which are instance of class itemClass. Can't be null.
-     * @param tester    Accept only items which satisfy the tester.
-     * @return An ordered list of items
+     * @param itemClass Accept items which are instance of class itemClass. Can't be null.
+     * @param tester    Accept items which satisfy the tester.
+     * @return A non-modifiable ordered list of items
      */
     default <T extends ChordLeadSheetItem<?>> List<T> getItemsBefore(Position posTo, boolean inclusive, Class<T> itemClass, Predicate<T> tester)
     {
@@ -318,14 +318,14 @@ public interface ChordLeadSheet
      *
      * @param <T>
      * @param cliSection
-     * @param itemClass  Return only items only items which are instance of class aClass
-     * @param tester     Accept only items which satisfy the tester.
-     * @return An ordered list of items
+     * @param itemClass  Accept items which are instance of class aClass
+     * @param tester     Accept items which satisfy the tester.
+     * @return A non-modifiable ordered list of items
      */
     default <T extends ChordLeadSheetItem<?>> List<T> getItems(CLI_Section cliSection, Class<T> itemClass, Predicate<T> tester)
     {
         var barRange = getBarRange(cliSection);
-        return getItems(barRange.from, barRange.to, itemClass, tester);
+        return getItems(barRange.from, barRange.to, itemClass, cli -> cli != cliSection);
     }
 
     /**
@@ -334,12 +334,12 @@ public interface ChordLeadSheet
      *
      * @param <T>
      * @param cliSection
-     * @param itemClass  Return only items only items which are instance of class aClass
-     * @return An ordered list of items
+     * @param itemClass  Accept items which are instance of class aClass
+     * @return A non-modifiable ordered list of items
      */
     default <T extends ChordLeadSheetItem<?>> List<T> getItems(CLI_Section cliSection, Class<T> itemClass)
     {
-        return getItems(cliSection, itemClass, cli -> true);
+        return getItems(cliSection, itemClass, cli -> cli != cliSection);
     }
 
 
@@ -377,6 +377,7 @@ public interface ChordLeadSheet
      */
     default CLI_Section getSection(int barIndex)
     {
+        Preconditions.checkArgument(barIndex >= 0, "barIndex=%d" + barIndex);
         return getLastItemBefore(new Position(barIndex, 0), true, CLI_Section.class, cli -> true);
     }
 
@@ -423,7 +424,7 @@ public interface ChordLeadSheet
         Preconditions.checkArgument(getSection(pos.getBar()) == cliSection, "cliSection=%s this=%s", cliSection, this);
 
         var nextSection = getFirstItemAfter(pos, false, CLI_Section.class, cli -> true);
-        int lastBar = nextSection == null ? getSizeInBars() - 1 : nextSection.getPosition().getBar();
+        int lastBar = nextSection == null ? getSizeInBars() - 1 : nextSection.getPosition().getBar() - 1;
         return new IntRange(pos.getBar(), lastBar);
     }
 

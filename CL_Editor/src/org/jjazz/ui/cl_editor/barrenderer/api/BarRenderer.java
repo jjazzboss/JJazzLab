@@ -326,7 +326,10 @@ abstract public class BarRenderer extends JPanel implements PropertyChangeListen
             removeItemRenderer(ir);
         }
 
-        LOGGER.log(Level.FINE, "this=" + this + " modelBarIndex=" + modelBarIndex);
+        LOGGER.log(Level.FINE, "this={0} modelBarIndex={1}", new Object[]
+        {
+            this, modelBarIndex
+        });
 
         if (modelBarIndex >= 0)
         {
@@ -335,7 +338,7 @@ abstract public class BarRenderer extends JPanel implements PropertyChangeListen
             // Add the required item renderers            
             for (ChordLeadSheetItem<?> item : getRegisteredModelItems())
             {
-                LOGGER.log(Level.FINE, "   item=" + item);
+                LOGGER.log(Level.FINE, "   item={0}", item);
                 addItemRenderer(item);
             }
         }
@@ -485,7 +488,7 @@ abstract public class BarRenderer extends JPanel implements PropertyChangeListen
      */
     public JDialog getFontMetricsDialog()
     {
-        JDialog dlg = null;
+        JDialog dlg;
         if (editor == null)
         {
             if (noEditorDialog == null)
@@ -541,14 +544,14 @@ abstract public class BarRenderer extends JPanel implements PropertyChangeListen
     /**
      * @return The List of the model items registered by this BarRenderer. List will be empty if modelBarIndex is < 0.
      */
-    private java.util.List<ChordLeadSheetItem<?>> getRegisteredModelItems()
+    private java.util.List<ChordLeadSheetItem> getRegisteredModelItems()
     {
         // Get registeredEvents from the LeadSheet
-        ArrayList<ChordLeadSheetItem<?>> registeredItems = new ArrayList<>();
+        java.util.List<ChordLeadSheetItem> registeredItems = new ArrayList<>();
 
         if (modelBarIndex >= 0)
         {
-            for (ChordLeadSheetItem<?> item : model.getItems(modelBarIndex, modelBarIndex, ChordLeadSheetItem.class))
+            for (var item : model.getItems(modelBarIndex, modelBarIndex, ChordLeadSheetItem.class))
             {
                 if (isRegisteredItemClass(item))
                 {

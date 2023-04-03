@@ -182,7 +182,7 @@ public class PrintDialog extends javax.swing.JDialog implements ChangeListener
             // BUGGY: will miss all duplicated songparts !
             var cls = res.getChordLeadSheet();
 
-            for (CLI_Section cliSection : cls.getItems(CLI_Section.class))
+            for (var cliSection : cls.getItems(CLI_Section.class))
             {
                 var section = cliSection.getData();
 

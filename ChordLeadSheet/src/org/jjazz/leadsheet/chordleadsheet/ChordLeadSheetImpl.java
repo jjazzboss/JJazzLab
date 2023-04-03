@@ -23,6 +23,7 @@
 package org.jjazz.leadsheet.chordleadsheet;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 import org.jjazz.undomanager.api.SimpleEdit;
 import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
@@ -31,6 +32,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.TreeSet;
 import java.util.function.Predicate;
 import java.util.logging.Level;
@@ -202,7 +204,8 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
         T res = null;
 
-        var tailSet = items.tailSet(ChordLeadSheetItem.createItemFrom(posFrom, inclusiveFrom), inclusiveFrom);
+        var tailSet = items.tailSet(ChordLeadSheetItem.createItemFrom(posFrom, inclusiveFrom),
+                inclusiveFrom);   // useless because of createItemFrom
         for (var item : tailSet)
         {
             if (itemClass.isAssignableFrom(item.getClass()))
@@ -228,7 +231,8 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         Preconditions.checkNotNull(itemClass);
         T res = null;
 
-        var headSet = items.headSet(ChordLeadSheetItem.createItemTo(posTo, inclusiveTo), inclusiveTo);
+        var headSet = items.headSet(ChordLeadSheetItem.createItemTo(posTo, inclusiveTo),
+                false);   // useless because of createItemFrom
         var it = headSet.descendingIterator();
         while (it.hasNext())
         {
@@ -258,10 +262,10 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         Preconditions.checkNotNull(tester);
         Preconditions.checkNotNull(itemClass);
 
-        var rangeItems = items.subSet(ChordLeadSheetItem.createItemFrom(posFrom, inclusiveFrom),                 
-                inclusiveFrom,  
-ChordLeadSheetItem.createItemTo(posTo, inclusiveTo), 
-                inclusiveTo);   
+        var rangeItems = items.subSet(ChordLeadSheetItem.createItemFrom(posFrom, inclusiveFrom),
+                false, // useless because of createItemFrom
+                ChordLeadSheetItem.createItemTo(posTo, inclusiveTo),
+                false);   // useless because of createItemFrom
 
         var res = rangeItems.stream()
                 .filter(item -> itemClass.isAssignableFrom(item.getClass()))
@@ -371,12 +375,11 @@ ChordLeadSheetItem.createItemTo(posTo, inclusiveTo),
             } else if (delta < 0)
             {
                 // For undo to work we need to remove possible extra items before setting the size
-                // var posFrom = new ChordLeadSheetItem.ComparableItem(new Position(newSize - 2, Float.MAX_VALUE));
-                var posFrom = ChordLeadSheetItem.createItemFrom(new Position(newSize - 1, 0), true);
-                var removedItems = items.tailSet(posFrom);
+                var itemFrom = ChordLeadSheetItem.createItemFrom(newSize);
+                var itemsToRemove = items.tailSet(itemFrom);
                 try
                 {
-                    removeSectionsAndItems(removedItems);       // Possible exception here
+                    removeSectionsAndItems(itemsToRemove);       // Possible exception here
                 } catch (UnsupportedEditException ex)
                 {
                     // If here synchronized lock is automatically released
@@ -981,8 +984,7 @@ ChordLeadSheetItem.createItemTo(posTo, inclusiveTo),
         if (barIndexFrom < 0 || barIndexTo < barIndexFrom || barIndexTo >= getSizeInBars()
                 || (barIndexTo - barIndexFrom + 1) >= getSizeInBars())
         {
-            throw new IllegalArgumentException(
-                    "barIndexFrom=" + barIndexFrom + " barIndexTo=" + barIndexTo);
+            throw new IllegalArgumentException("barIndexFrom=" + barIndexFrom + " barIndexTo=" + barIndexTo);
         }
 
         LOGGER.log(Level.FINE, "deleteBars() -- barIndexFrom={0} barIndexTo={1}", new Object[]
@@ -997,20 +999,20 @@ ChordLeadSheetItem.createItemTo(posTo, inclusiveTo),
         // Save data after the bars deletion
         CLI_Section afterDeletionSection = (barIndexTo + 1 > size - 1) ? null : getSection(barIndexTo + 1);
         var afterDeletionSectionItems = afterDeletionSection == null ? null : getItems(afterDeletionSection,
-                ChordLeadSheetItem.class, 
+                ChordLeadSheetItem.class,
                 cli -> cli.getPosition().getBar() > barIndexTo);
-        CLI_Section initSection = getSection(0);
 
 
         // Get items to be moved or removed
-        var movedItems = getItems(barIndexTo + 1, Integer.MAX_VALUE, ChordLeadSheetItem.class, cli -> true);
-        var removedItems = getItems(barIndexFrom, barIndexTo, ChordLeadSheetItem.class, cli -> cli != initSection);
+        CLI_Section initSection = getSection(0);
+        var itemsToMove = getItems(barIndexTo + 1, Integer.MAX_VALUE, ChordLeadSheetItem.class, cli -> true);
+        var itemsToRemove = getItems(barIndexFrom, barIndexTo, ChordLeadSheetItem.class, cli -> cli != initSection);
 
 
         // Remove items except the initial block
         try
         {
-            removeSectionsAndItems(removedItems);       // Possible exception here. Note that some changes might have been done before exception is thrown
+            removeSectionsAndItems(itemsToRemove);       // Possible exception here. Note that some changes might have been done before exception is thrown
         } catch (UnsupportedEditException ex)
         {
             fireActionEvent(enableActionEvent, "deleteBars", true, barIndexFrom);       // We need to complete the action
@@ -1023,6 +1025,9 @@ ChordLeadSheetItem.createItemTo(posTo, inclusiveTo),
             // Handle special case if barIndexFrom == 0 and there is a section right after the deleted bars
             if (barIndexFrom == 0 && afterDeletionSection != null && afterDeletionSection.getPosition().getBar() == barIndexTo + 1)
             {
+                // 
+                
+                
                 // Remove the initial section (and fire undoableEvent)
                 try
                 {
@@ -1035,10 +1040,10 @@ ChordLeadSheetItem.createItemTo(posTo, inclusiveTo),
             }
 
             // Shift remaining items
-            if (!movedItems.isEmpty())
+            if (!itemsToMove.isEmpty())
             {
 
-                shiftItems(movedItems, -range);
+                shiftItems(itemsToMove, -range);
             }
         }
 
@@ -1050,7 +1055,8 @@ ChordLeadSheetItem.createItemTo(posTo, inclusiveTo),
         if (afterDeletionSectionItems != null)
         {
             CLI_Section newSection = getSection(barIndexFrom);
-            adjustItemsToTimeSignature(afterDeletionSection.getData().getTimeSignature(), newSection.getData().getTimeSignature(),
+            adjustItemsToTimeSignature(afterDeletionSection.getData().getTimeSignature(),
+                    newSection.getData().getTimeSignature(),
                     afterDeletionSectionItems);
         }
 
@@ -1060,7 +1066,7 @@ ChordLeadSheetItem.createItemTo(posTo, inclusiveTo),
 
     private void setSectionName(CLI_Section cliSection, String name, boolean enableActionEvent)
     {
-        if (cliSection == null || name == null || !(cliSection instanceof WritableItem) || !items.contains(cliSection))
+        if (cliSection == null || name == null || !(cliSection instanceof WritableItem) || !items.contains(cliSection) || getSection(name) != null)
         {
             throw new IllegalArgumentException("section=" + cliSection + " name=" + name + " items=" + items);
         }
@@ -1194,10 +1200,10 @@ ChordLeadSheetItem.createItemTo(posTo, inclusiveTo),
         }
 
 
-        // Remove all sections
-        for (CLI_Section section : removedSections)
+        // Remove all sections in reverse order, this has less impact for the editor
+        for (var cliSection : Lists.reverse(removedSections))
         {
-            removeSection(section, false);      // Possible exception here
+            removeSection(cliSection, false); // Possible exception here
         }
 
     }

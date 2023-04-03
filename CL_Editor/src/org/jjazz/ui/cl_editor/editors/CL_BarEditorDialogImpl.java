@@ -89,13 +89,13 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
      */
     private int barIndex;
     private CLI_Section resultSection;
-    private List<ChordLeadSheetItem<?>> resultAddedItems;
-    private List<ChordLeadSheetItem<?>> resultRemovedItems;
-    private HashMap<CLI_ChordSymbol, ExtChordSymbol> resultMapChangedChordSymbols;
+    private final List<ChordLeadSheetItem> resultAddedItems;
+    private final List<ChordLeadSheetItem> resultRemovedItems;
+    private final HashMap<CLI_ChordSymbol, ExtChordSymbol> resultMapChangedChordSymbols;
     /**
      * Undo manager for the text edits
      */
-    private UndoManager undoManager = new UndoManager();
+    private final UndoManager undoManager = new UndoManager();
     /**
      * The component who will receive the focus when dialog is shown.
      */
@@ -134,10 +134,7 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
     {
         model = null;
         modelSection = null;
-        if (modelCsList != null)
-        {
-            modelCsList.clear();
-        }
+        modelCsList = null;
         resultSection = null;
         resultAddedItems.clear();
         resultRemovedItems.clear();
@@ -149,7 +146,7 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
     {
         if (preset == null || cls == null || barIndx < 0 || barIndx >= cls.getSizeInBars())
         {
-            throw new IllegalArgumentException("preset=" + preset + " cls=" + cls + " barIndx=" + barIndx + " swing=" + swing);   
+            throw new IllegalArgumentException("preset=" + preset + " cls=" + cls + " barIndx=" + barIndx + " swing=" + swing);
         }
 
         cleanup();
@@ -182,7 +179,8 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
         jtfChordSymbols.setText(ChordSymbolTextInput.toStringNoPosition(modelCsList));
         saveCsText = jtfChordSymbols.getText();
 
-        setTitle(ResUtil.getString(getClass(), "CL_BarEditorDialogImpl.CTL_Bar") + " " + (barIndx + 1) + " - " + modelSection.getData().getName() + " " + modelSection.getData().getTimeSignature());
+        setTitle(
+                ResUtil.getString(getClass(), "CL_BarEditorDialogImpl.CTL_Bar") + " " + (barIndx + 1) + " - " + modelSection.getData().getName() + " " + modelSection.getData().getTimeSignature());
         undoManager.discardAllEdits();
 
         // Specific actions depending on presets
@@ -250,13 +248,13 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
     }
 
     @Override
-    public List<ChordLeadSheetItem<?>> getAddedItems()
+    public List<ChordLeadSheetItem> getAddedItems()
     {
         return resultAddedItems;
     }
 
     @Override
-    public List<ChordLeadSheetItem<?>> getRemovedItems()
+    public List<ChordLeadSheetItem> getRemovedItems()
     {
         return resultRemovedItems;
     }
@@ -356,7 +354,7 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
                     return (i1.getData().equals(i2.getData())) ? 0 : 1;
                 }
             });
-            LOGGER.log(Level.FINE, "Diff model=" + modelCsList + " newItems=" + newItems);   
+            LOGGER.log(Level.FINE, "Diff model={0} newItems={1}", new Object[]{modelCsList, newItems});
             for (Difference aDiff : diffResult)
             {
                 if (aDiff.getType() == Difference.ResultType.ADDED)
@@ -364,14 +362,14 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
                     for (int i = aDiff.getAddedStart(); i <= aDiff.getAddedEnd(); i++)
                     {
                         resultAddedItems.add(newItems.get(i));
-                        LOGGER.log(Level.FINE, "adding " + newItems.get(i));   
+                        LOGGER.log(Level.FINE, "adding {0}", newItems.get(i));
                     }
                 } else if (aDiff.getType() == Difference.ResultType.DELETED)
                 {
                     for (int i = aDiff.getDeletedStart(); i <= aDiff.getDeletedEnd(); i++)
                     {
                         resultRemovedItems.add(modelCsList.get(i));
-                        LOGGER.log(Level.FINE, "removing " + modelCsList.get(i));   
+                        LOGGER.log(Level.FINE, "removing {0}", modelCsList.get(i));
                     }
                 } else
                 {
@@ -381,7 +379,7 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
                     do
                     {
                         resultMapChangedChordSymbols.put(modelCsList.get(d), newItems.get(a).getData());
-                        LOGGER.log(Level.FINE, "changing " + modelCsList.get(d) + " to " + newItems.get(a));   
+                        LOGGER.log(Level.FINE, "changing {0} to {1}", new Object[]{modelCsList.get(d), newItems.get(a)});
                         d++;
                         a++;
                     } while (d <= aDiff.getDeletedEnd());
@@ -451,7 +449,7 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
     protected JRootPane createRootPane()
     {
         JRootPane contentPane = new JRootPane();
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ENTER"), "actionOk");   
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ENTER"), "actionOk");
         contentPane.getActionMap().put("actionOk", new AbstractAction("OK")
         {
             @Override
@@ -461,7 +459,7 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
             }
         });
 
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ESCAPE"), "actionCancel");   
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ESCAPE"), "actionCancel");
         contentPane.getActionMap().put("actionCancel", new AbstractAction("Cancel")
         {
             @Override
@@ -471,7 +469,7 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
             }
         });
 
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ctrl Z"), "actionUndo");   
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ctrl Z"), "actionUndo");
         contentPane.getActionMap().put("actionUndo", new AbstractAction("Undo")
         {
             @Override
@@ -480,7 +478,7 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
                 actionUndo();
             }
         });
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ctrl Y"), "actionRedo");   
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ctrl Y"), "actionRedo");
         contentPane.getActionMap().put("actionRedo", new AbstractAction("Redo")
         {
             @Override
@@ -495,7 +493,7 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
     private void selectChordSymbol(CLI_ChordSymbol item)
     {
         int index = modelCsList.indexOf(item);
-        assert index >= 0 : " modelCsList=" + modelCsList + " item=" + item;   
+        assert index >= 0 : " modelCsList=" + modelCsList + " item=" + item;
         String[] rawStrings = jtfChordSymbols.getText().split("\\s+");
         int start = 0;
         for (int i = 0; i < index; i++)
@@ -513,8 +511,8 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
     }
 
     /**
-     * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of
-     * this method is always regenerated by the Form Editor.
+     * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of this
+     * method is always regenerated by the Form Editor.
      */
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents

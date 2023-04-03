@@ -76,7 +76,7 @@ public class CL_EditorController implements CL_EditorMouseListener
     private final Action editAction;
     private final Action transposeUpAction;
     private final Action transposeDownAction;
-    
+
     /**
      * Popupmenus depending of selection.
      */
@@ -254,14 +254,13 @@ public class CL_EditorController implements CL_EditorMouseListener
                     minPosition = item.getPosition();
                 }
                 selection.unselectAll(editor);
-                List<? extends ChordLeadSheetItem> items = editor.getModel().getItems(minPosition.getBar(), maxPosition.getBar(),
-                        focusedItem.getClass());
-                for (ChordLeadSheetItem<?> it : items)
+                var items = editor.getModel().getItems(minPosition.getBar(), maxPosition.getBar(), focusedItem.getClass());
+                for (var iitem : items)
                 {
-                    Position pos = it.getPosition();
+                    Position pos = iitem.getPosition();
                     if (pos.compareTo(minPosition) >= 0 && pos.compareTo(maxPosition) <= 0)
                     {
-                        editor.selectItem(it, true);
+                        editor.selectItem(iitem, true);
                     }
                 }
             }
@@ -310,7 +309,7 @@ public class CL_EditorController implements CL_EditorMouseListener
     public void itemWheelMoved(MouseWheelEvent e, ChordLeadSheetItem<?> item, IR_Type irType)
     {
         CL_SelectionUtilities selection = new CL_SelectionUtilities(editor.getLookup());
-        List<ChordLeadSheetItem<?>> items = selection.getSelectedItems();
+        var items = selection.getSelectedItems();
         if (items.isEmpty() || !(items.get(0) instanceof CLI_ChordSymbol))
         {
             return;

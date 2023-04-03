@@ -89,14 +89,14 @@ public abstract class CL_BarEditorDialog extends JDialog
      *
      * @return Can be empty if no items inserted.
      */
-    abstract public List<ChordLeadSheetItem<?>> getAddedItems();
+    abstract public List<ChordLeadSheetItem> getAddedItems();
 
     /**
      * The items that should be removed in the bar.
      *
      * @return Can be empty if no items to remove.
      */
-    abstract public List<ChordLeadSheetItem<?>> getRemovedItems();
+    abstract public List<ChordLeadSheetItem> getRemovedItems();
 
     /**
      * The ChordSymbols for which data should be changed.

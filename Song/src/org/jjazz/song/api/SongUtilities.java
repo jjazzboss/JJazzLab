@@ -56,19 +56,18 @@ public class SongUtilities
     static public void halfChordLeadsheet(Song song) throws UnsupportedEditException
     {
         ChordLeadSheet cls = song.getChordLeadSheet();
-        for (ChordLeadSheetItem<?> cli : cls.getItems())
+        for (var cli : cls.getItems())
         {
             int bar = cli.getPosition().getBar();
             float beat = cli.getPosition().getBeat();
             float nbBeats = cls.getSection(bar).getData().getTimeSignature().getNbNaturalBeats();
             int newBar = bar / 2;
             float newBeat = (bar % 2 == 0) ? beat / 2f : (nbBeats + beat) / 2f;
-            if (cli instanceof CLI_Section)
+            if (cli instanceof CLI_Section section)
             {
                 if (bar > 0)
                 {
                     CLI_Section destSection = cls.getSection(newBar);
-                    CLI_Section section = (CLI_Section) cli;
                     if (destSection.getPosition().getBar() == newBar)
                     {
                         // There is already a section at destination bar, just remove the section
@@ -115,7 +114,7 @@ public class SongUtilities
         }
 
         // Move items
-        List<ChordLeadSheetItem> items = cls.getItems();
+        var items = cls.getItems();
         for (int i = items.size() - 1; i >= 0; i--)
         {
             ChordLeadSheetItem<?> cli = items.get(i);
@@ -129,9 +128,8 @@ public class SongUtilities
                 newBar++;
                 newBeat -= nbBeats;
             }
-            if (cli instanceof CLI_Section)
+            if (cli instanceof CLI_Section section)
             {
-                CLI_Section section = (CLI_Section) cli;
                 if (bar > 0)
                 {
                     try
@@ -246,7 +244,7 @@ public class SongUtilities
 
 
             // Fill the corresponding section with chord symbols copies
-            for (CLI_ChordSymbol cliCs : cls.getItems(parentCliSection, CLI_ChordSymbol.class))
+            for (var cliCs : cls.getItems(parentCliSection, CLI_ChordSymbol.class))
             {
                 var pos = cliCs.getPosition();
                 int resBar = barIndex + pos.getBar() - parentCliSection.getPosition().getBar();

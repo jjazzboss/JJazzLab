@@ -452,7 +452,7 @@ public class Arranger implements SgsChangeListener, PropertyChangeListener
     {
         StringBuilder sb = new StringBuilder();
         sb.append(cls.toString());
-        for (ChordLeadSheetItem<?> item : cls.getItems())
+        for (var item : cls.getItems())
         {
             if (item instanceof CLI_Section)
             {

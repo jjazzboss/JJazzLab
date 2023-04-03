@@ -25,7 +25,6 @@ package org.jjazz.importers.api;
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import nu.xom.ParsingException;
@@ -68,7 +67,7 @@ public class MusicXMLFileReader
     {
         if (f == null)
         {
-            throw new NullPointerException("f");   
+            throw new NullPointerException("f");
         }
         this.noUserPrompt = noUserPrompt;
         this.file = f;
@@ -184,7 +183,7 @@ public class MusicXMLFileReader
             }
             if (firstChordPos == null)
             {
-                LOGGER.warning("afterParsingFinished() No chord symbols found, importing an empty song.");   
+                LOGGER.warning("afterParsingFinished() No chord symbols found, importing an empty song.");
             }
         }
 
@@ -195,7 +194,7 @@ public class MusicXMLFileReader
             {
                 if (tempoBPM < TempoRange.TEMPO_MIN)
                 {
-                    LOGGER.log(Level.WARNING, "onTempoChanged() Invalid tempo={0}, using {1} instead", new Object[]   
+                    LOGGER.log(Level.WARNING, "onTempoChanged() Invalid tempo={0}, using {1} instead", new Object[]
                     {
                         tempoBPM, TempoRange.TEMPO_MIN
                     });
@@ -203,7 +202,7 @@ public class MusicXMLFileReader
                 }
                 if (tempoBPM > TempoRange.TEMPO_MAX)
                 {
-                    LOGGER.log(Level.WARNING, "onTempoChanged() Invalid tempo={0}, using {1} instead", new Object[]   
+                    LOGGER.log(Level.WARNING, "onTempoChanged() Invalid tempo={0}, using {1} instead", new Object[]
                     {
                         tempoBPM, TempoRange.TEMPO_MAX
                     });
@@ -212,7 +211,7 @@ public class MusicXMLFileReader
                 song.setTempo(tempoBPM);
             } else
             {
-                LOGGER.log(Level.WARNING, "onTempoChanged() Tempo changed to {0} at barIndex={1}: ignored", new Object[]   
+                LOGGER.log(Level.WARNING, "onTempoChanged() Tempo changed to {0} at barIndex={1}: ignored", new Object[]
                 {
                     tempoBPM, barIndex
                 });
@@ -232,7 +231,8 @@ public class MusicXMLFileReader
                     cls.setSectionTimeSignature(cliSection, ts);
                 } catch (UnsupportedEditException ex)
                 {
-                    LOGGER.warning("onTimeSignatureParsed() Can't change time signature to " + ts + " at bar " + barIndex + " because: " + ex);   
+                    LOGGER.warning(
+                            "onTimeSignatureParsed() Can't change time signature to " + ts + " at bar " + barIndex + " because: " + ex);
                     return;
                 }
             } else if (!section.getTimeSignature().equals(ts))
@@ -245,7 +245,12 @@ public class MusicXMLFileReader
                     cls.addSection(cliSection);
                 } catch (UnsupportedEditException ex)
                 {
-                    LOGGER.warning("onTimeSignatureParsed() Can't change time signature to " + ts + " at bar " + barIndex + " because: " + ex);   
+                    LOGGER.log(Level.WARNING, "onTimeSignatureParsed() Can''t change time signature to {0} at bar {1} because: {2}",
+                            new Object[]
+                            {
+                                ts,
+                                barIndex, ex
+                            });
                 }
             }
         }
@@ -274,7 +279,7 @@ public class MusicXMLFileReader
             if (pos.getBar() == 0 && pos.isFirstBarBeat())
             {
                 // Special case, remove first the initial chord since it will be replaced
-                List<? extends CLI_ChordSymbol> clis = cls.getItems(0, 0, CLI_ChordSymbol.class);
+                var clis = cls.getItems(0, 0, CLI_ChordSymbol.class);
                 if (!clis.isEmpty())
                 {
                     cls.removeItem(clis.get(0));
@@ -286,7 +291,12 @@ public class MusicXMLFileReader
                 ecs = ExtChordSymbol.get(strChord);
             } catch (ParseException ex)
             {
-                LOGGER.warning("onChordSymbolParsed() Invalid chord string=" + strChord + "(" + ex.getMessage() + "), can't insert chord at pos=" + pos);   
+                LOGGER.log(Level.WARNING, "onChordSymbolParsed() Invalid chord string={0}({1}), can''t insert chord at pos={2}",
+                        new Object[]
+                        {
+                            strChord,
+                            ex.getMessage(), pos
+                        });
                 return;
             }
             CLI_ChordSymbol cliCs = CLI_Factory.getDefault().createChordSymbol(cls, ecs, pos);

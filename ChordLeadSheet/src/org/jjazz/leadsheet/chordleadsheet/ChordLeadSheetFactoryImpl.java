@@ -178,18 +178,18 @@ public class ChordLeadSheetFactoryImpl implements ChordLeadSheetFactory
     {
         CLI_Section initSection = cls.getSection(0);
         ChordLeadSheet clsCopy = new ChordLeadSheetImpl(initSection.getData().getName(), initSection.getData().getTimeSignature(), cls.getSizeInBars());
-        for (ChordLeadSheetItem<?> item : cls.getItems())
+        for (var item : cls.getItems())
         {
             if (item == initSection)
             {
                 continue;
             }
             ChordLeadSheetItem<?> itemCopy = item.getCopy(clsCopy, null);
-            if (itemCopy instanceof CLI_Section)
+            if (itemCopy instanceof CLI_Section cliSectionCopy)
             {
                 try
                 {
-                    clsCopy.addSection((CLI_Section) itemCopy);
+                    clsCopy.addSection(cliSectionCopy);
                 } catch (UnsupportedEditException ex)
                 {
                     // We should not be there normally

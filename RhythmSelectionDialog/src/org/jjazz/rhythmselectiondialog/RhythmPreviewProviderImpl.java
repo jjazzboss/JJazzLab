@@ -266,7 +266,8 @@ public class RhythmPreviewProviderImpl implements RhythmSelectionDialog.RhythmPr
             parentSection = newCls.getItems(CLI_Section.class) // Find a parent section with the right signature
                     .stream()
                     .filter(s -> s.getData().getTimeSignature().equals(sourceRhythm.getTimeSignature()))
-                    .findFirst().orElseThrow();     // Exception should never be thrown
+                    .findFirst()
+                    .orElseThrow();     // Exception should never be thrown
             var newSpt1 = spt.clone(ar.getSourceRhythm(), spt.getNbBars(), spt.getNbBars(), parentSection);
             newSpts.add(newSpt1);
         }

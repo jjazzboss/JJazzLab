@@ -26,13 +26,11 @@ import org.jjazz.ui.cl_editor.api.CL_ContextActionListener;
 import org.jjazz.ui.cl_editor.api.CL_ContextActionSupport;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
-import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
-import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.ui.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.ui.cl_editor.api.CL_Editor;
 import org.jjazz.ui.cl_editor.api.CL_SelectionUtilities;
@@ -157,12 +155,12 @@ public class SelectAll extends AbstractAction implements ContextAwareAction, CL_
         ChordLeadSheet cls = editor.getModel();
         int minBarIndex = selection.getMinBarIndexWithinCls();
         int maxBarIndex = selection.getMaxBarIndexWithinCls();
-        List<ChordLeadSheetItem<?>> items = selection.getSelectedItems();
+        var items = selection.getSelectedItems();
 
-        Class<? extends ChordLeadSheetItem> itemClass = items.get(0).getClass();
+        var itemClass = items.get(0).getClass();
         CLI_Section sectionStart = cls.getSection(minBarIndex);
         CLI_Section sectionEnd = cls.getSection(maxBarIndex);
-        var sectionItems = cls.getItems(sectionStart, (Class<ChordLeadSheetItem<?>>) itemClass);
+        var sectionItems = cls.getItems(sectionStart, itemClass);
 
         if (sectionStart == sectionEnd && items.size() < sectionItems.size())
         {
@@ -171,7 +169,7 @@ public class SelectAll extends AbstractAction implements ContextAwareAction, CL_
         } else
         {
             // Select all similar items in the leadsheet
-            editor.selectItems((List<? extends ChordLeadSheetItem<?>>) cls.getItems(itemClass), true);
+            editor.selectItems(cls.getItems(itemClass), true);
         }
 
     }

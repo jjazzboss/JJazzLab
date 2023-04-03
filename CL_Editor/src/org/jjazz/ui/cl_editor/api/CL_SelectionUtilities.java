@@ -25,8 +25,8 @@ package org.jjazz.ui.cl_editor.api;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
+import java.util.TreeSet;
 import java.util.logging.Logger;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
@@ -43,7 +43,7 @@ import org.openide.util.Lookup;
 final public class CL_SelectionUtilities
 {
 
-    private List<ChordLeadSheetItem<?>> items;
+    private final List<ChordLeadSheetItem> items;
     private final List<SelectedBar> selectedBars;
     private static final Logger LOGGER = Logger.getLogger(CL_SelectionUtilities.class.getSimpleName());
 
@@ -62,32 +62,20 @@ final public class CL_SelectionUtilities
     {
         if (lookup == null)
         {
-            throw new IllegalArgumentException("lookup=" + lookup);   
+            throw new IllegalArgumentException("lookup=" + lookup);
         }
 
-        items = new ArrayList<>((Collection<ChordLeadSheetItem<?>>) lookup.lookupAll(ChordLeadSheetItem.class));
+        items = new ArrayList<>(lookup.lookupAll(ChordLeadSheetItem.class));
         selectedBars = new ArrayList<>((Collection<SelectedBar>) lookup.lookupAll(SelectedBar.class));
 
         if (!items.isEmpty() && !selectedBars.isEmpty())
         {
-            throw new IllegalStateException("items=" + items + " selectedBars=" + selectedBars);   
-        }
-
-        if (!items.isEmpty())
-        {
-            Collections.sort(items, new Comparator<ChordLeadSheetItem>()
-            {
-                @Override
-                public int compare(ChordLeadSheetItem t, ChordLeadSheetItem t1)
-                {
-                    return t.getPosition().compareTo(t1.getPosition());
-                }
-
-            });
-        } else if (!selectedBars.isEmpty())
-        {
-            Collections.sort(selectedBars);
-        }
+            throw new IllegalStateException("items=" + items + " selectedBars=" + selectedBars);
+        }   
+        
+        Collections.sort(items);
+        Collections.sort(selectedBars);
+        
     }
 
     /**
@@ -314,7 +302,7 @@ final public class CL_SelectionUtilities
      *
      * @return Can be empty.
      */
-    public List<ChordLeadSheetItem<?>> getSelectedItems()
+    public List<ChordLeadSheetItem> getSelectedItems()
     {
         return items;
     }

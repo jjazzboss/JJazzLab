@@ -148,8 +148,7 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
             {
                 res = Long.compare(System.identityHashCode(this), System.identityHashCode(other));
             }
-            System.out.println("compareTo() samePos > res=" + res + " this=" + this + " other=" + other);
-            // LOGGER.severe("compareTo() samePos > res="+res+" this=" + this + " other=" + other);
+            // System.out.println("compareTo() samePos > res=" + res + " this=" + this + " other=" + other);            
         }
 
 
@@ -186,7 +185,7 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
      */
     public static ComparableItem createItemTo(int bar)
     {
-        return new ComparableItem(new Position(bar, Float.MAX_VALUE), false, false);
+        return new ComparableItem(new Position(bar, Float.MAX_VALUE), false, true);
     }
 
     /**
@@ -214,7 +213,7 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
      */
     public static ComparableItem createItemFrom(int bar)
     {
-        return new ComparableItem(new Position(bar, 0), true, false);
+        return new ComparableItem(new Position(bar, 0), true, true);
     }
 
     // ==================================================================================================

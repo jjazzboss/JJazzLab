@@ -68,11 +68,11 @@ public class MoveSelectionLeft extends AbstractAction
     {
         ChordLeadSheetItem<?> fItem = ir.getModel();
         ChordLeadSheet cls = fItem.getContainer();
-        List<? extends ChordLeadSheetItem> items = cls.getItems(0, fItem.getPosition().getBar(), fItem.getClass());
+        var items = cls.getItems(0, fItem.getPosition().getBar(), fItem.getClass());
         int index = items.indexOf(fItem);
         if (index > 0)
         {
-            ChordLeadSheetItem<?> item = items.get(index - 1);
+            var item = items.get(index - 1);
             if (!extend)
             {
                 CL_SelectionUtilities selection = new CL_SelectionUtilities(ed.getLookup());

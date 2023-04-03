@@ -40,7 +40,7 @@ public class CopyBuffer
     /**
      * The buffer for ChordLeadSheetItem.
      */
-    private ArrayList<ChordLeadSheetItem> itemsBuffer = new ArrayList<>();
+    private final ArrayList<ChordLeadSheetItem> itemsBuffer = new ArrayList<>();
     /**
      * True if copy was made in Bar mode.
      */
@@ -79,7 +79,7 @@ public class CopyBuffer
      *
      * @param items
      */
-    public void itemModeCopy(List<ChordLeadSheetItem> items)
+    public void itemModeCopy(List<? extends ChordLeadSheetItem> items)
     {
         if (items == null || items.isEmpty())
         {
@@ -117,7 +117,7 @@ public class CopyBuffer
      *
      * @param items List
      */
-    private void copyItems(List<ChordLeadSheetItem> items)
+    private void copyItems(List<? extends ChordLeadSheetItem> items)
     {
         itemsBuffer.clear();
         for (ChordLeadSheetItem<?> item : items)
@@ -189,9 +189,9 @@ public class CopyBuffer
      * @param targetBarIndex The barIndex where items are copied to. If barIndex&lt;0, positions are not changed. @return
      * @return
      */
-    public List<ChordLeadSheetItem<?>> getItemsCopy(ChordLeadSheet targetCls, int targetBarIndex)
+    public List<ChordLeadSheetItem> getItemsCopy(ChordLeadSheet targetCls, int targetBarIndex)
     {
-        ArrayList<ChordLeadSheetItem<?>> items = new ArrayList<>();
+        List<ChordLeadSheetItem> items = new ArrayList<>();
         if (itemsBuffer.isEmpty())
         {
             return items;

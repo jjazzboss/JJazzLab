@@ -70,7 +70,7 @@ public class SongStructureFactoryImpl extends SongStructureFactory
         var rdb = RhythmDatabase.getDefault();
 
         var newSpts = new ArrayList<SongPart>();
-        for (CLI_Section section : cls.getItems(CLI_Section.class))
+        for (var section : cls.getItems(CLI_Section.class))
         {
             int sptBarIndex = section.getPosition().getBar();
 

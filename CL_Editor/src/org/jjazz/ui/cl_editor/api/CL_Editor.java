@@ -356,7 +356,7 @@ public abstract class CL_Editor extends JPanel implements Lookup.Provider
      * @param items
      * @param b     True to select, False to unselect.
      */
-    abstract public void selectItems(List<? extends ChordLeadSheetItem<?>> items, boolean b);
+    abstract public void selectItems(List<? extends ChordLeadSheetItem> items, boolean b);
 
     /**
      * Set the focus on one bar in the editor.

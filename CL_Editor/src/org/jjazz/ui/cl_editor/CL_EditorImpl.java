@@ -766,7 +766,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     }
 
     @Override
-    public void selectItems(List<? extends ChordLeadSheetItem<?>> items, boolean b)
+    public void selectItems(List<? extends ChordLeadSheetItem> items, boolean b)
     {
         Collection<? extends Object> result = selectionLookup.lookupAll(Object.class);
         selectionLastContent.clear();
@@ -983,7 +983,6 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     }
 
     @Override
-
     public String toString()
     {
         return "CL_Editor size=" + getNbBarBoxes();
@@ -1227,7 +1226,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
                         if (item instanceof CLI_Section)
                         {
                             // Need to also update the bars from previous position to before new position
-                            propagateSectionChange(clsModel.getSection(barIndex - 1));
+                            propagateSectionChange(clsModel.getSection(barIndex - 1));  // Section parameter might be null in special cases
                         }
                         selectItem(item, selected);
                         if (item == fItem)
@@ -1587,8 +1586,11 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
 
         if (!skipSectionRemovalCleaning && (item instanceof CLI_Section cliSection))
         {
+
             // Update the previous section
-            propagateSectionChange(clsModel.getSection(barIndex));
+            propagateSectionChange(clsModel.getSection(barIndex));      // Section parameter might be null in special cases (ChordLeadSheet temporary intermediate state)
+
+
             // Remove the associated UI settings
             songSpecificProperties.sectionRemoved(cliSection.getData());
         }
@@ -1597,10 +1599,15 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     /**
      * Update the bars following the specified section that their parent section has changed.
      *
-     * @param cliSection
+     * @param cliSection If null does nothing
      */
     private void propagateSectionChange(CLI_Section cliSection)
     {
+        if (cliSection == null)
+        {
+            // This can happen in ChordLeadSheet intermediate states where initial section is temporarily removed
+            return;
+        }
         int sectionSize = clsModel.getBarRange(cliSection).size();
         int barIndex = cliSection.getPosition().getBar();
         Quantization q = getDisplayQuantizationValue(cliSection);
@@ -1725,7 +1732,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         }
 
         // Add PaddingBoxes starting from the end
-        List<? extends CLI_Section> cliSections = clsModel.getItems(CLI_Section.class);
+        var cliSections = clsModel.getItems(CLI_Section.class);
         int offset = 0;
         for (CLI_Section cliSection : cliSections)
         {

@@ -45,11 +45,11 @@ import org.openide.util.Exceptions;
 public final class MoveItemRight implements ActionListener
 {
 
-    private final List<ChordLeadSheetItem<?>> context;
-    private final List<ChordLeadSheetItem<?>> sortedClis;    
+    private final List<ChordLeadSheetItem> context;
+    private final List<ChordLeadSheetItem> sortedClis;    
     private final String undoText = ResUtil.getString(getClass(), "CTL_MoveItemRight");
 
-    public MoveItemRight(List<ChordLeadSheetItem<?>> context)
+    public MoveItemRight(List<ChordLeadSheetItem> context)
     {
         this.context = context;
         this.sortedClis = new ArrayList<>(context);
