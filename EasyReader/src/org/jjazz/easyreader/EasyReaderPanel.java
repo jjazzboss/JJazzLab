@@ -24,18 +24,24 @@ package org.jjazz.easyreader;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.logging.Logger;
+import javax.sound.midi.MidiUnavailableException;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
+import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
+import org.jjazz.midimix.api.MidiMix;
+import org.jjazz.midimix.api.MidiMixManager;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.PlaybackListener;
-import org.jjazz.musiccontrol.api.playbacksession.SongContextProvider;
+import org.jjazz.musiccontrol.api.SongMusicGenerationListener;
 import org.jjazz.rhythm.api.UserErrorGenerationException;
 import org.jjazz.rhythmmusicgeneration.api.SongChordSequence;
 import org.jjazz.song.api.Song;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.utilities.api.Utilities;
+import org.openide.util.Exceptions;
 
 /**
  * Display the currently playing chord symbol.
@@ -43,14 +49,19 @@ import org.jjazz.ui.utilities.api.Utilities;
 public class EasyReaderPanel extends JPanel implements PropertyChangeListener, PlaybackListener
 {
 
+    private static final int PRE_FIRE_EVENT_MS = 100;
     private Song song;
     private SongChordSequence songChordSequence;
-    private int scsIndex;
-    private Position posModel;
-
+    private final Position posModel;
+    private final RulerPanel rulerPanel;
+    private CLI_ChordSymbol chord;
+    private CLI_ChordSymbol nextChord;
+    private SongMusicGenerationListener songMusicGenerationListener;
+    private static final Logger LOGGER = Logger.getLogger(EasyReaderPanel.class.getSimpleName());
 
     public EasyReaderPanel()
     {
+        rulerPanel = new RulerPanel();
         initComponents();
         posModel = new Position();
 
@@ -68,6 +79,8 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
      */
     public void setModel(Song song)
     {
+        LOGGER.severe("setModel() song="+song);
+        
         if (this.song == song)
         {
             return;
@@ -77,6 +90,8 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
         {
             MusicController.getInstance().removePropertyChangeListener(this);
             MusicController.getInstance().removePlaybackListener(this);
+            songMusicGenerationListener.removePropertyChangeListener(this);
+            songMusicGenerationListener.cleanup();
         }
 
 
@@ -86,12 +101,27 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
         this.posViewer.setModel(this.song, posModel);
 
         setEnabled(this.song != null);
+        rulerPanel.setSong(this.song);
 
 
         if (this.song != null)
         {
             MusicController.getInstance().addPropertyChangeListener(this);
             MusicController.getInstance().addPlaybackListener(this);
+            MidiMix midiMix;
+            try
+            {
+                midiMix = MidiMixManager.getInstance().findMix(this.song);
+            } catch (MidiUnavailableException ex)
+            {
+                // Should never happen
+                Exceptions.printStackTrace(ex);
+                return;
+            }
+            songMusicGenerationListener = new SongMusicGenerationListener(this.song, midiMix, PRE_FIRE_EVENT_MS);   // We could set a blacklist to avoid MidiMix/PlaybackSettings changes...
+            songMusicGenerationListener.addPropertyChangeListener(this);
+
+            generateChordSequence();
         }
 
     }
@@ -104,6 +134,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
     @Override
     public void setEnabled(boolean b)
     {
+        LOGGER.severe("setEnabled() b=" + b);
         super.setEnabled(b);
         Utilities.setRecursiveEnabled(b, this);
     }
@@ -128,9 +159,44 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
         {
             return;
         }
+
         SwingUtilities.invokeLater(() -> 
         {
             posModel.set(newPos);
+
+            if (songChordSequence == null)
+            {
+                return;
+            }
+
+            // NOT OPTIMIZED AT ALL!!!!
+            CLI_ChordSymbol newChord, newNextChord;
+            newChord = songChordSequence.getChordSymbol(newPos);
+            int chordIndex = songChordSequence.indexOf(newChord);
+            newNextChord = chordIndex == -1 || chordIndex == songChordSequence.size() - 1 ? null : songChordSequence.get(chordIndex + 1);
+
+            if (newChord != chord && newNextChord != nextChord)
+            {
+                chord = newChord;
+                nextChord = newNextChord;
+                String txt = newChord != null ? newChord.getData().getOriginalName() : "-";
+                String nextTxt = newNextChord != null ? newNextChord.getData().getOriginalName() : "-";
+                lbl_chord.setText(txt);
+                lbl_chordNext.setText(nextTxt);
+
+                if (chord != null)
+                {
+                    Position pos = chord.getPosition();
+                    pos.setBeat((int)pos.getBeat());
+                    float posInBeats = song.getSongStructure().getPositionInNaturalBeats(pos);
+                    Position posNext = nextChord != null ? nextChord.getPosition() : pos.getNext(TimeSignature.FOUR_FOUR);
+                    posNext.setBeat((int)posNext.getBeat());
+                    float posNextInBeats = song.getSongStructure().getPositionInNaturalBeats(posNext);
+                    rulerPanel.setPositionRange(pos, posNext, (int) (posNextInBeats - posInBeats));
+                }
+            }
+            
+            rulerPanel.setMarkerPosition(newPos);
         });
 
     }
@@ -138,23 +204,6 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
     @Override
     public void barChanged(int oldBar, int newBar)
     {
-        if (songChordSequence == null)
-        {
-            return;
-        }
-        scsIndex = songChordSequence.indexOfFirstChordFromBar(newBar);
-        CLI_ChordSymbol chord = null;
-        CLI_ChordSymbol chordNext = null;
-        if (scsIndex>=0)
-        {
-            chord =  songChordSequence.get(scsIndex);
-            if (scsIndex<songChordSequence.size()-1)
-            {
-                chordNext = songChordSequence.get(scsIndex+1);
-            }
-        }
-        lbl_chord.setText(chord==null ? "-" : chord.getData().getOriginalName());
-        lbl_chordNext.setText(chordNext==null ? "-" : chordNext.getData().getOriginalName());
     }
 
     @Override
@@ -183,7 +232,14 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
     public void propertyChange(PropertyChangeEvent evt)
     {
         var mc = MusicController.getInstance();
-        if (evt.getSource() == mc)
+        if (evt.getSource() == songMusicGenerationListener)
+        {
+            if (evt.getPropertyName().equals(SongMusicGenerationListener.PROP_CHANGED))
+            {
+                // We can be notified out of the Swing EDT 
+                generateChordSequence();
+            }
+        } else if (evt.getSource() == mc)
         {
             if (evt.getPropertyName().equals(MusicController.PROP_STATE))
             {
@@ -194,27 +250,13 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
                     }
                     case STOPPED ->
                     {
-                        scsIndex = 0;
-                        songChordSequence = null;                        
                     }
                     case PAUSED ->
                     {
                     }
                     case PLAYING ->
                     {
-                        var session = mc.getPlaybackSession();
-                        if (session instanceof SongContextProvider scp)
-                        {
-                            var songContext = scp.getSongContext();
-                            try
-                            {
-                                songChordSequence = new SongChordSequence(songContext.getSong(), null);
-                            } catch (UserErrorGenerationException ex)
-                            {
-                                // Eg starting chord missing
-                                // Nothing
-                            }
-                        }
+
                     }
                     default -> throw new AssertionError(((MusicController.State) evt.getNewValue()).name());
 
@@ -226,6 +268,17 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
     // =================================================================================================
     // Private methods
     // =================================================================================================
+    private void generateChordSequence()
+    {
+        try
+        {
+            songChordSequence = new SongChordSequence(this.song, null);
+        } catch (UserErrorGenerationException ex)
+        {
+            // Do nothing, we'll retry on the next song change
+        }
+    }
+
 
     /**
      * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of this
@@ -246,9 +299,12 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
         posViewer = new org.jjazz.ui.musiccontrolactions.ui.api.PositionViewer();
         pnl_songPart = new javax.swing.JPanel();
         lbl_songPart = new javax.swing.JLabel();
+        pnl_ruler = rulerPanel;
 
         pnl_chords.setBorder(javax.swing.BorderFactory.createEtchedBorder());
-        pnl_chords.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 50, 5));
+        java.awt.FlowLayout flowLayout1 = new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 10, 5);
+        flowLayout1.setAlignOnBaseline(true);
+        pnl_chords.setLayout(flowLayout1);
 
         lbl_chord.setFont(lbl_chord.getFont().deriveFont(lbl_chord.getFont().getStyle() | java.awt.Font.BOLD, lbl_chord.getFont().getSize()+9));
         org.openide.awt.Mnemonics.setLocalizedText(lbl_chord, org.openide.util.NbBundle.getMessage(EasyReaderPanel.class, "EasyReaderPanel.lbl_chord.text")); // NOI18N
@@ -265,18 +321,31 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
         helpTextArea1.setText(org.openide.util.NbBundle.getMessage(EasyReaderPanel.class, "EasyReaderPanel.helpTextArea1.text")); // NOI18N
         jScrollPane1.setViewportView(helpTextArea1);
 
-        pnl_posSection.setLayout(new java.awt.BorderLayout());
+        pnl_posSection.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
 
         posViewer.setFont(new java.awt.Font("Courier New", 1, 18)); // NOI18N
         posViewer.setTimeShown(false);
         pnl_pos.add(posViewer);
 
-        pnl_posSection.add(pnl_pos, java.awt.BorderLayout.NORTH);
+        pnl_posSection.add(pnl_pos);
 
         org.openide.awt.Mnemonics.setLocalizedText(lbl_songPart, org.openide.util.NbBundle.getMessage(EasyReaderPanel.class, "EasyReaderPanel.lbl_songPart.text")); // NOI18N
         pnl_songPart.add(lbl_songPart);
 
-        pnl_posSection.add(pnl_songPart, java.awt.BorderLayout.SOUTH);
+        pnl_posSection.add(pnl_songPart);
+
+        pnl_ruler.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+
+        javax.swing.GroupLayout pnl_rulerLayout = new javax.swing.GroupLayout(pnl_ruler);
+        pnl_ruler.setLayout(pnl_rulerLayout);
+        pnl_rulerLayout.setHorizontalGroup(
+            pnl_rulerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 0, Short.MAX_VALUE)
+        );
+        pnl_rulerLayout.setVerticalGroup(
+            pnl_rulerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 23, Short.MAX_VALUE)
+        );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -285,20 +354,21 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(pnl_posSection, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(pnl_chords, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                        .addContainerGap())))
+                    .addComponent(pnl_ruler, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jScrollPane1)
+                    .addComponent(pnl_chords, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(pnl_posSection, javax.swing.GroupLayout.DEFAULT_SIZE, 292, Short.MAX_VALUE))
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
+                .addGap(7, 7, 7)
                 .addComponent(pnl_posSection, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(pnl_chords, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(pnl_ruler, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(2, 2, 2)
+                .addComponent(pnl_chords, javax.swing.GroupLayout.DEFAULT_SIZE, 73, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
@@ -315,6 +385,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
     private javax.swing.JPanel pnl_chords;
     private javax.swing.JPanel pnl_pos;
     private javax.swing.JPanel pnl_posSection;
+    private javax.swing.JPanel pnl_ruler;
     private javax.swing.JPanel pnl_songPart;
     private org.jjazz.ui.musiccontrolactions.ui.api.PositionViewer posViewer;
     // End of variables declaration//GEN-END:variables

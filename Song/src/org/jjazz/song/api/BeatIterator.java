@@ -137,7 +137,7 @@ public class BeatIterator implements Iterator<Position>
     }
 
     /**
-     * Get the song position corresponding to the next integer beat.
+     * Advance the song position to the next integer beat.
      *
      * @return A position with an integer beat (e.g.bar=2 beat=3.0)
      * @throws NoSuchElementException
@@ -195,7 +195,7 @@ public class BeatIterator implements Iterator<Position>
     }
 
     /**
-     * Get the song position corresponding to the next bar (with beat 0).
+     * Advance the song position to the next bar (with beat 0).
      *
      * @return A position with beat=0
      * @throws NoSuchElementException
@@ -236,7 +236,7 @@ public class BeatIterator implements Iterator<Position>
     }
 
     /**
-     * Get the song position corresponding to the next half bar (beat=0 or half-bar).
+     * Advance the song position to the next half bar (beat=0 or half-bar).
      *
      * @param swing
      * @return

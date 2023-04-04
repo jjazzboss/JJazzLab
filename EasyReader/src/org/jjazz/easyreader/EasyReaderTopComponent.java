@@ -89,7 +89,7 @@ public final class EasyReaderTopComponent extends TopComponent implements Proper
     @Override
     public void componentOpened()
     {
-            // Keep editor up to date
+        // Keep editor up to date
         var asm = ActiveSongManager.getInstance();
         editor.setModel(asm.getActiveSong());
         asm.addPropertyListener(this);
