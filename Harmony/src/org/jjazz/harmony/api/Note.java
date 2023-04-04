@@ -64,20 +64,21 @@ public class Note implements Comparable<Note>, Cloneable
     /**
      * The pitch of the note (0-127).
      */
-    private int pitch;
+    private final int pitch;
     /**
      * The symbolic duration of the note.
      */
-    private SymbolicDuration symbolicDuration;
+    private final SymbolicDuration symbolicDuration;
     /**
      * The duration in beats of the note.
      */
-    private float beatDuration;
+    private final float beatDuration;
     /**
      * Sharp or flat
      */
-    private Alteration alterationDisplay;
-    private int velocity;
+    private final Alteration alterationDisplay;
+    private final int velocity;
+    private String pianoOctaveString;
 
     /**
      * Use MidiConst.PITCH_STD, Quarter duration, Alteration.Flat and standard velocity.
@@ -100,7 +101,7 @@ public class Note implements Comparable<Note>, Cloneable
     /**
      * Create a Note with a pitch and a beat duration and standard velocity. Use FLAT symbol by default.
      *
-     * @param p The pitch of the note.
+     * @param p  The pitch of the note.
      * @param bd The beat duration of the note.
      */
     public Note(int p, float bd)
@@ -124,15 +125,15 @@ public class Note implements Comparable<Note>, Cloneable
      * Create a Note with a pitch, a duration in beat, a velocity and an alteration if any.
      *
      * @param p
-     * @param bd Must be &gt; 0
-     * @param v velocity
+     * @param bd  Must be &gt; 0
+     * @param v   velocity
      * @param alt
      */
     public Note(int p, float bd, int v, Alteration alt)
     {
         if (!checkPitch(p) || bd <= 0 || alt == null || !checkVelocity(v))
         {
-            throw new IllegalArgumentException("p=" + p + " bd=" + bd + " alt=" + alt + " v=" + v);   
+            throw new IllegalArgumentException("p=" + p + " bd=" + bd + " alt=" + alt + " v=" + v);
         }
         pitch = p;
         beatDuration = bd;
@@ -179,7 +180,7 @@ public class Note implements Comparable<Note>, Cloneable
     {
         if (s == null)
         {
-            throw new NullPointerException("s");   
+            throw new NullPointerException("s");
         }
         String str = s.trim();
         Alteration alt = Alteration.FLAT;         // By default
@@ -375,7 +376,7 @@ public class Note implements Comparable<Note>, Cloneable
     {
         if (relPitch > 11 || relPitch < 0)
         {
-            throw new IllegalArgumentException("relPitch=" + relPitch);   
+            throw new IllegalArgumentException("relPitch=" + relPitch);
         }
         int pitchDelta = relPitch - getRelativePitch();
         if (pitchDelta > 6)
@@ -403,7 +404,7 @@ public class Note implements Comparable<Note>, Cloneable
     /**
      * Change the octave of this note so that pitch is within the pitch limits (included).
      *
-     * @param lowPitch Must be &lt; (highPitch-12)
+     * @param lowPitch  Must be &lt; (highPitch-12)
      * @param highPitch
      * @return The new note with corrected pitch and same alteration display
      */
@@ -411,7 +412,7 @@ public class Note implements Comparable<Note>, Cloneable
     {
         if (lowPitch > highPitch - 12)
         {
-            throw new IllegalArgumentException("lowPitch=" + lowPitch + " highPïtch=" + highPitch);   
+            throw new IllegalArgumentException("lowPitch=" + lowPitch + " highPïtch=" + highPitch);
         }
         int newPitch = pitch;
         while (pitch < lowPitch)
@@ -429,8 +430,8 @@ public class Note implements Comparable<Note>, Cloneable
     /**
      * Get a new transposed note.
      * <p>
-     * If the new note is beyond pitchLimit, the note's octave is changed to remain below (pitchShift &gt; 0) or above
-     * (pitchSshift &lt; 0) pitchLimit.
+     * If the new note is beyond pitchLimit, the note's octave is changed to remain below (pitchShift &gt; 0) or above (pitchSshift &lt; 0)
+     * pitchLimit.
      * <p>
      * @param pitchShift A negative or positive value i semi-tons.
      * @param pitchLimit Authorized values are [13, 119]
@@ -440,7 +441,7 @@ public class Note implements Comparable<Note>, Cloneable
     {
         if (pitchLimit < 13 || pitchLimit > 119)
         {
-            throw new IllegalArgumentException("t=" + pitchShift + " pitchLimit=" + pitchLimit);   
+            throw new IllegalArgumentException("t=" + pitchShift + " pitchLimit=" + pitchLimit);
         }
         int newPitch = this.pitch + pitchShift;
         if (pitchShift > 0)
@@ -495,7 +496,7 @@ public class Note implements Comparable<Note>, Cloneable
     {
         if (relPitch < 0 || relPitch > 11)
         {
-            throw new IllegalArgumentException("this=" + this + " relPitch=" + relPitch);   
+            throw new IllegalArgumentException("this=" + this + " relPitch=" + relPitch);
         }
         int p = getOctave() * 12 + relPitch;
         if ((relPitch == getRelativePitch() && !acceptEquals) || relPitch > getRelativePitch())
@@ -510,25 +511,25 @@ public class Note implements Comparable<Note>, Cloneable
     }
 
     /**
-     * Return the absolute pitch corresponding to relPitch above this note (or possibly equals if acceptEquals is true).
+     * Return the absolute pitch corresponding to relPitch above this note (or possibly equals if inclusive is true).
      * <p>
      * Ex: this=G3. If relativePitch=F return value=F4, if relativePitch=A return value=A3
      * <p>
      * If resulting pitch &gt;127, return resulting pitch-12.
      *
      * @param relPitch
-     * @param acceptEquals
+     * @param inclusive
      * @return
      * @throws IllegalArgumentException If there is no lower pitch possible.
      */
-    public int getUpperPitch(int relPitch, boolean acceptEquals)
+    public int getUpperPitch(int relPitch, boolean inclusive)
     {
         if (relPitch < 0 || relPitch > 11)
         {
-            throw new IllegalArgumentException("this=" + this + " relPitch=" + relPitch);   
+            throw new IllegalArgumentException("this=" + this + " relPitch=" + relPitch);
         }
         int p = getOctave() * 12 + relPitch;
-        if ((relPitch == getRelativePitch() && !acceptEquals) || relPitch < getRelativePitch())
+        if ((relPitch == getRelativePitch() && !inclusive) || relPitch < getRelativePitch())
         {
             p = (getOctave() + 1) * 12 + relPitch;
         }
@@ -696,6 +697,23 @@ public class Note implements Comparable<Note>, Cloneable
     }
 
     /**
+     * The note using the "piano octave", e.g. "D-1" for pitch=2 or "C4" for pitch=60 (Midi Middle C).
+     * <p>
+     * "A0" is the lowest 88-note piano note.
+     *
+     * @return
+     * @see Note#parsePianoOctaveString(java.lang.String)
+     */
+    public String toPianoOctaveString()
+    {
+        if (pianoOctaveString == null)
+        {   // Save it because method can be called very often
+            pianoOctaveString = toRelativeNoteString() + (getOctave() - 1);
+        }
+        return pianoOctaveString;
+    }
+
+    /**
      * Convert a string generated by toPianoOctaveString() (like "C4") to a note.
      *
      * @param s
@@ -716,18 +734,6 @@ public class Note implements Comparable<Note>, Cloneable
         return new Note(strNote + "!" + octave);
     }
 
-    /**
-     * The note using the "piano octave", e.g. "D-1" for pitch=2 or "C4" for pitch=60 (Midi Middle C).
-     * <p>
-     * "A0" is the lowest 88-note piano note.
-     *
-     * @return
-     * @see Note#parsePianoOctaveString(java.lang.String)
-     */
-    public String toPianoOctaveString()
-    {
-        return toRelativeNoteString() + (getOctave() - 1);
-    }
 
     //----------------------------------------------------------------------------------------------
     // Static functions
@@ -862,11 +868,11 @@ public class Note implements Comparable<Note>, Cloneable
     }
 
     /**
-     * Return a pitch which is guaranteed to be between lowPitch and highPitch. If pitch is out of bounds, go up/down 1 octave
-     * until we're within the limits.
+     * Return a pitch which is guaranteed to be between lowPitch and highPitch. If pitch is out of bounds, go up/down 1 octave until we're
+     * within the limits.
      *
      * @param pitch
-     * @param lowPitch Constraint: highPitch-lowPitch must be &gt; 11.
+     * @param lowPitch  Constraint: highPitch-lowPitch must be &gt; 11.
      * @param highPitch Constraint: highPitch-lowPitch must be &gt; 11.
      * @return A pitch between lowPitch and highPitch
      */
@@ -874,7 +880,7 @@ public class Note implements Comparable<Note>, Cloneable
     {
         if (lowPitch > highPitch - 11)
         {
-            throw new IllegalArgumentException("lowPitch=" + lowPitch + " highPitch=" + highPitch);   
+            throw new IllegalArgumentException("lowPitch=" + lowPitch + " highPitch=" + highPitch);
         }
         int newPitch = pitch;
         while (newPitch < lowPitch)
@@ -893,7 +899,7 @@ public class Note implements Comparable<Note>, Cloneable
      * E.g., if pitchFrom=0 and pitchTo=12, return the array ["C0", "C#0", "D0"...."C1"]
      *
      * @param pitchFrom A positive integer.
-     * @param pitchTo A positive integer.
+     * @param pitchTo   A positive integer.
      *
      * @return An array of Note objects.
      */
@@ -901,7 +907,7 @@ public class Note implements Comparable<Note>, Cloneable
     {
         if ((pitchFrom > pitchTo) || (pitchFrom < 0) || (pitchTo < 0))
         {
-            throw new IllegalArgumentException("pitchFrom=" + pitchFrom + " pitchTo=" + pitchTo);   
+            throw new IllegalArgumentException("pitchFrom=" + pitchFrom + " pitchTo=" + pitchTo);
         }
 
         Note[] notes = new Note[pitchTo - pitchFrom + 1];

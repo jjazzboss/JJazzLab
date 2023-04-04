@@ -66,23 +66,12 @@ public class Chord implements Cloneable
      */
     public void add(Note note)
     {
-        int pNote = note.getPitch();
-        for (int i = 0; i < notes.size(); i++)
+        int index = Collections.binarySearch(notes, note, (n1, n2) -> Integer.compare(n1.getPitch(), n2.getPitch()));
+        if (index < 0)
         {
-            int p = notes.get(i).getPitch();
-
-            if (p == pNote)
-            {
-                return;
-            } else if (pNote < p)
-            {
-                // No need to continue since notes are ordered by pitch
-                notes.add(i, note);
-                return;
-            }
+            index = -(index + 1);
+            notes.add(index, note);
         }
-        // This is the last note
-        notes.add(note);
     }
 
     /**
@@ -175,7 +164,7 @@ public class Chord implements Cloneable
 
         if (relPitches.size() != getRelativePitchChord().size())
         {
-            throw new IllegalArgumentException("this=" + this + " relPitches=" + relPitches);   
+            throw new IllegalArgumentException("this=" + this + " relPitches=" + relPitches);
         } else if (size() == 0)
         {
             return result;
@@ -202,7 +191,8 @@ public class Chord implements Cloneable
             for (int i = 1; i < skipNexts.size(); i++)
             {
                 Note n = getNote(i);
-                destRelPitch = mapSave.get(n.getRelativePitch()) == null ? relPitches.get(destPitchIndex++) : mapSave.get(n.getRelativePitch());
+                destRelPitch = mapSave.get(n.getRelativePitch()) == null ? relPitches.get(destPitchIndex++) : mapSave.get(
+                        n.getRelativePitch());
                 for (int j = 0; j <= skipNexts.get(i); j++)
                 {
                     destPitch = lastNote.getUpperPitch(destRelPitch, false);
@@ -226,7 +216,7 @@ public class Chord implements Cloneable
     {
         if ((index < 0) || (index > notes.size()))
         {
-            throw new IllegalArgumentException("index=" + index + " notes=" + notes);   
+            throw new IllegalArgumentException("index=" + index + " notes=" + notes);
         }
 
         return notes.get(index);
@@ -242,7 +232,7 @@ public class Chord implements Cloneable
     {
         if ((index < 0) || (index > notes.size()))
         {
-            throw new IllegalArgumentException("i=" + index);   
+            throw new IllegalArgumentException("i=" + index);
         }
         Note rn = notes.remove(index);
         return rn;
@@ -260,7 +250,7 @@ public class Chord implements Cloneable
     {
         if (!Note.checkPitch(p))
         {
-            throw new IllegalArgumentException("pitch=" + p);   
+            throw new IllegalArgumentException("pitch=" + p);
         }
 
         for (int i = 0; i < notes.size(); i++)
@@ -291,7 +281,7 @@ public class Chord implements Cloneable
     {
         if ((p < 0) || (p > 11))
         {
-            throw new IllegalArgumentException("p=" + p);   
+            throw new IllegalArgumentException("p=" + p);
         }
 
         for (int i = 0; i < notes.size(); i++)
@@ -384,7 +374,7 @@ public class Chord implements Cloneable
     {
         if (c == null || c.size() != size())
         {
-            throw new IllegalArgumentException("c=" + c + " this=" + this);   
+            throw new IllegalArgumentException("c=" + c + " this=" + this);
         }
         int dist = 0;
         for (int i = 0; i < size(); i++)
@@ -462,7 +452,7 @@ public class Chord implements Cloneable
     @Override
     public int hashCode()
     {
-        String s= notes.stream()
+        String s = notes.stream()
                 .map(n -> String.valueOf(n.getPitch()))
                 .collect(Collectors.joining());
         return s.hashCode();

@@ -60,11 +60,12 @@ public enum TimeSignature
      * The "natural" beat unit expressed in terms of lower value (e.g. for bars 4/4=&gt;1, 12/8=&gt;3).
      */
     private final int naturalBeat;
+    private final int nbNaturalBeats;
     private static final Logger LOGGER = Logger.getLogger(TimeSignature.class.getSimpleName());
 
     /**
-     * @param upp The number of lower units that make a bar.
-     * @param low The lower unit.
+     * @param upp   The number of lower units that make a bar.
+     * @param low   The lower unit.
      * @param nBeat The "natural" beat unit expressed in terms of lower value (e.g. for bars 4/4=&gt;1, 12/8=&gt;3)
      */
     private TimeSignature(int upp, int low, int nBeat)
@@ -72,6 +73,7 @@ public enum TimeSignature
         this.upper = upp;
         this.lower = low;
         this.naturalBeat = nBeat;
+        this.nbNaturalBeats = upper / naturalBeat;
     }
 
     /**
@@ -104,7 +106,7 @@ public enum TimeSignature
     /**
      * Get the TimeSignature objects represented by a string representation, e.g. "3/4".
      *
-     * @param up The uppser value of the TimSignature, e.g. "3" for "3/4"
+     * @param up  The uppser value of the TimSignature, e.g. "3" for "3/4"
      *
      * @param low The lower value of the TimSignature, e.g. "4" for "3/4"
      * @return TimeSignature Null if no valid time signature could be constructed.
@@ -179,8 +181,9 @@ public enum TimeSignature
      */
     public float getNbNaturalBeats()
     {
-        return upper / naturalBeat;
+        return nbNaturalBeats;
     }
+
 
     /**
      * Tell whether it's a valid beat for that time signature.
@@ -194,7 +197,7 @@ public enum TimeSignature
         if (beat == SYSTEM_END_BEAT)
         {
             return true;
-        } 
+        }
 
         // normal case
         return !((beat < 0) || (beat >= getNbNaturalBeats()));

@@ -22,6 +22,7 @@
  */
 package org.jjazz.harmony.api;
 
+
 public enum SymbolicDuration
 {
     UNKNOWN(0.0F, "unknown"),
@@ -47,7 +48,7 @@ public enum SymbolicDuration
     {
         if (d < 0)
         {
-            throw new IllegalArgumentException("d=" + d);   
+            throw new IllegalArgumentException("d=" + d);
         }
         duration = d;
         this.name = name;
@@ -66,7 +67,7 @@ public enum SymbolicDuration
     /**
      * For example 0.5f for EIGHTH.
      *
-     * @return 
+     * @return
      */
     public float getDuration()
     {
@@ -87,7 +88,7 @@ public enum SymbolicDuration
     {
         for (SymbolicDuration sd : SymbolicDuration.values())
         {
-            if (Float.floatToIntBits(sd.getDuration()) == Float.floatToIntBits(bd))
+            if (Math.abs(bd - sd.getDuration()) < 0.0001f)
             {
                 return sd;
             }
