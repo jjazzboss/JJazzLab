@@ -22,12 +22,14 @@
  */
 package org.jjazz.musiccontrol.api;
 
+import com.google.common.base.Preconditions;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MetaMessage;
 import javax.sound.midi.MidiEvent;
-import javax.sound.midi.ShortMessage;
 import javax.sound.midi.Track;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
@@ -41,22 +43,23 @@ import org.jjazz.util.api.IntRange;
 import org.openide.util.Exceptions;
 
 /**
- * A control track contains special Midi events used by the MusicController to fire PlaybackListener events.
+ * A control track contains custom MetaEvents used by the MusicController to fire PlaybackListener events.
  * <p>
  * - a trackname event <br>
- - a marker event for each chord symbol, with text="csIndex=chord_symbol_index" (index of the SongChordSequence provided by
- {@link #getContextChordSequence()}). <br>
- * - a CTRL_CHG_JJAZZ_BEAT_CHANGE controller Midi event at every beat change, use {@link #getSongPositions()} to get the
- * corresponding Position.<br>
+ * - a MetaEvent for each chord symbol. <br>
+ * - a MetaEvent for each beat changel. <br>
+ * <p>
+ * Methods are provided to extract the original data from these custom MetaEvents.
  */
 public class ControlTrack
 {
 
+    public static final int POSITION_META_EVENT_TYPE = 10;
+    public static final int CHORD_SYMBOL_META_EVENT_TYPE = 11;
     public static String TRACK_NAME = "JJazzControlTrack";
     private List<MidiEvent> midiEvents = new ArrayList<>();
     private SongChordSequence contextChordSequence;
-    private List<Position> songPositions = new ArrayList<>();
-    private int trackId;
+    private final int trackId;
     private static final Logger LOGGER = Logger.getLogger(ControlTrack.class.getSimpleName());
 
     /**
@@ -93,36 +96,13 @@ public class ControlTrack
     }
 
 
-    /**
-     * Create a control track with custom values.
-     * <p>
-     * No null value allowed.
-     *
-     * @param controlTrackEvents
-     * @param contextChordSequence
-     * @param songPositions
-     * @param trackId
-     */
-    public ControlTrack(List<MidiEvent> controlTrackEvents, SongChordSequence contextChordSequence, List<Position> songPositions, int trackId)
-    {
-        if (controlTrackEvents == null || contextChordSequence == null || songPositions == null)
-        {
-            throw new IllegalArgumentException("controlTrackEvents=" + controlTrackEvents + " contextChordSequence=" + contextChordSequence + " songPositions=" + songPositions);
-        }
-        this.midiEvents = controlTrackEvents;
-        this.contextChordSequence = contextChordSequence;
-        this.songPositions = songPositions;
-        this.trackId = trackId;
-    }
-
     public int getTrackId()
     {
         return trackId;
     }
 
     /**
-     * The list of MidiEvents of the control track: track name event, CTRL_CHG_JJAZZ_BEAT_CHANGE controller change events and
-     * chord symbol marker events.
+     * The list of MidiEvents of the control track: track name, beat changes, chord symbol changes.
      *
      * @return Can't be null. IMPORTANT: events may NOT be ordered by tick position.
      */
@@ -131,19 +111,9 @@ public class ControlTrack
         return midiEvents;
     }
 
-    /**
-     * The list is used to convert a CTRL_CHG_JJAZZ_BEAT_CHANGE controller event index into into a Position in the song.
-     *
-     * @return Can't be null
-     *
-     */
-    public List<Position> getSongPositions()
-    {
-        return songPositions;
-    }
 
     /**
-     * The chord sequence used to retrieve the chord symbol from the index passed in the chord symbol Meta marker event.
+     * The chord sequence used to generate the control track events.
      *
      * @return Can't be null
      */
@@ -161,9 +131,46 @@ public class ControlTrack
     {
         if (track == null)
         {
-            throw new IllegalArgumentException("track=" + track);   
+            throw new IllegalArgumentException("track=" + track);
         }
         getMidiEvents().forEach(me -> track.add(me));
+    }
+
+
+    /**
+     * Retrieve the chord symbol from a control track MetaMessage.
+     *
+     * @param mm A MetaMessage with type==CHORD_SYMBOL_META_EVENT_TYPE
+     * @return Can be null if mm is unknown
+     */
+    public CLI_ChordSymbol getChordSymbol(MetaMessage mm)
+    {
+        Preconditions.checkArgument(mm.getType() == CHORD_SYMBOL_META_EVENT_TYPE, "mm=%s", mm);
+        return ((MmChordSymbol) mm).cliCs;
+    }
+
+    /**
+     * Retrieve the Position from a control track MetaMessage.
+     *
+     * @param mm A MetaMessage with type==POSITION_META_EVENT_TYPE
+     * @return Can be null if mm is unknown
+     */
+    public Position getPosition(MetaMessage mm)
+    {
+        Preconditions.checkArgument(mm.getType() == POSITION_META_EVENT_TYPE, "mm=%s", mm);
+        return ((MmPosition) mm).pos;
+    }
+
+    /**
+     * Retrieve the position in beats from a control track MetaMessage.
+     *
+     * @param mm A MetaMessage with type==POSITION_META_EVENT_TYPE
+     * @return -1 if mm is unknown
+     */
+    public float getPositionInBeats(MetaMessage mm)
+    {
+        Preconditions.checkArgument(mm.getType() == POSITION_META_EVENT_TYPE, "mm=%s", mm);
+        return ((MmPosition) mm).posInBeats;
     }
 
     @Override
@@ -192,19 +199,23 @@ public class ControlTrack
         int sptStartBar = sptRange.from;
         float nbNaturalBeatsPerBar = spt.getRhythm().getTimeSignature().getNbNaturalBeats();
         float nbNaturalBeats = sptRange.size() * nbNaturalBeatsPerBar;
+        float posInBeatsOffset = context.getSptBeatRange(spt).from;
 
-        // LOGGER.fine("addBeatChangeEvents() -- tickOffset=" + tickOffset + " spt=" + spt + " sptRange=" + sptRange);   
+        LOGGER.log(Level.FINE, "addBeatChangeEvents() -- tickOffset={0} spt={1} sptRange={2}", new Object[]
+        {
+            tickOffset, spt, sptRange
+        });
 
-        // Add CTRL_CHG_JJAZZ_BEAT_CHANGE events every beat change
+        // Add events every beat change
         for (float beat = 0; beat < nbNaturalBeats; beat++)
         {
             long tick = (long) (tickOffset + beat * MidiConst.PPQ_RESOLUTION);
             int bar = (int) Math.floor(beat / nbNaturalBeatsPerBar);
             float inbarBeat = beat - (bar * nbNaturalBeatsPerBar);
+            float posInBeats = posInBeatsOffset + beat;
             Position pos = new Position(bar + sptStartBar, inbarBeat);
-            songPositions.add(pos);
-            ShortMessage sm = MidiUtilities.getJJazzBeatChangeControllerMessage(MidiConst.CHANNEL_MIN);
-            midiEvents.add(new MidiEvent(sm, tick));
+            MmPosition mm = new MmPosition(pos, posInBeats);
+            midiEvents.add(new MidiEvent(mm, tick));
         }
 
         return (long) (tickOffset + nbNaturalBeats * MidiConst.PPQ_RESOLUTION);
@@ -217,7 +228,7 @@ public class ControlTrack
         {
             long tick = context.getRelativeTick(cliCs.getPosition());
             assert tick != -1 : "cliCs=" + cliCs + " contextChordSequence=" + contextChordSequence + " context=" + context;
-            MetaMessage mm = MidiUtilities.getMarkerMetaMessage("csIndex=" + csIndex);
+            var mm = new MmChordSymbol(cliCs);
             // HACK!
             // tick+1 is a hack, otherwise when tick==0 the first Meta event is sometimes not fired! Don't know why
             midiEvents.add(new MidiEvent(mm, tick + 1));
@@ -225,4 +236,47 @@ public class ControlTrack
         }
     }
 
+
+    // =================================================================================
+    // Inner classes
+    // =================================================================================
+    private class MmPosition extends MetaMessage
+    {
+
+        private final float posInBeats;
+        private final Position pos;
+
+        private MmPosition(Position pos, float posInBeats)
+        {
+            Preconditions.checkNotNull(pos);
+            this.posInBeats = posInBeats;
+            this.pos = pos;
+            try
+            {
+                setMessage(POSITION_META_EVENT_TYPE, new byte[0], 0);
+            } catch (InvalidMidiDataException ex)
+            {
+                Exceptions.printStackTrace(ex);
+            }
+        }
+    }
+
+    private class MmChordSymbol extends MetaMessage
+    {
+
+        private final CLI_ChordSymbol cliCs;
+
+        private MmChordSymbol(CLI_ChordSymbol cliCs)
+        {
+            Preconditions.checkNotNull(cliCs);
+            this.cliCs = cliCs;
+            try
+            {
+                setMessage(CHORD_SYMBOL_META_EVENT_TYPE, new byte[0], 0);
+            } catch (InvalidMidiDataException ex)
+            {
+                Exceptions.printStackTrace(ex);
+            }
+        }
+    }
 }

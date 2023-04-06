@@ -38,26 +38,25 @@ import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.pianoroll.api.PianoRollEditorTopComponent;
-import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhrase;
 import org.jjazz.rhythmmusicgeneration.api.MusicGenerationQueue;
 
 /**
- * Manage the update of background phrases and coordination with UI elements.
+ * Manage the update of ghost phrases and coordination with UI elements.
  */
-public class BackgroundPhraseManager implements PropertyChangeListener, ChangeListener
+public class GhostPhraseManager implements PropertyChangeListener, ChangeListener
 {
 
     private MusicGenerationQueue.Result lastResult;
     private final PianoRollEditorTopComponent topComponent;
     private final PianoRollEditor editor;
-    private final BackgroundPhrasesPanel backgroundPhrasesPanel;
-    private static final Logger LOGGER = Logger.getLogger(BackgroundPhraseManager.class.getSimpleName());
+    private final GhostPhrasesPanel ghostPhrasesPanel;
+    private static final Logger LOGGER = Logger.getLogger(GhostPhraseManager.class.getSimpleName());
 
-    public BackgroundPhraseManager(PianoRollEditorTopComponent preTc, BackgroundPhrasesPanel bgPhrasesPanel)
+    public GhostPhraseManager(PianoRollEditorTopComponent preTc, GhostPhrasesPanel ghostPhrasesPanel)
     {
         this.topComponent = preTc;
         this.editor = preTc.getEditor();
-        this.backgroundPhrasesPanel = bgPhrasesPanel;
+        this.ghostPhrasesPanel = ghostPhrasesPanel;
 
         // Update track names when midi mix changes
         this.topComponent.getMidiMix().addPropertyChangeListener(this);
@@ -70,13 +69,13 @@ public class BackgroundPhraseManager implements PropertyChangeListener, ChangeLi
         lastResult = asmb.getLastResult();          // Might be null, but important to get some data if PianoRollEditor is created after bsmb produced a result
 
         // Listen to user selection changes
-        backgroundPhrasesPanel.addPropertyChangeListener(BackgroundPhrasesPanel.PROP_SELECTED_TRACK_NAMES, this);
+        ghostPhrasesPanel.addPropertyChangeListener(GhostPhrasesPanel.PROP_SELECTED_TRACK_NAMES, this);
 
 
     }
 
     /**
-     * Refresh the track names in the backgroundPhrasesPanel.
+     * Refresh the track names in the ghostPhrasesPanel.
      * <p>
      */
     public void updateTrackNames()
@@ -91,13 +90,13 @@ public class BackgroundPhraseManager implements PropertyChangeListener, ChangeLi
             String name = buildPhraseName(ch);
             names.add(name);
         }
-        backgroundPhrasesPanel.setTracks(names);        // This will clear selection
+        ghostPhrasesPanel.setTracks(names);        // This will clear selection
     }
   
     public void cleanup()
     {
         topComponent.getMidiMix().removePropertyChangeListener(this);
-        backgroundPhrasesPanel.removePropertyChangeListener(this);
+        ghostPhrasesPanel.removePropertyChangeListener(this);
         ActiveSongMusicBuilder.getInstance().removeChangeListener(this);
 
     }
@@ -107,7 +106,7 @@ public class BackgroundPhraseManager implements PropertyChangeListener, ChangeLi
     //=============================================================================
 
     /**
-     * A music generation task is complete, update visible background phrases.
+     * A music generation task is complete, update visible ghost phrases.
      *
      * @param result
      */
@@ -125,23 +124,23 @@ public class BackgroundPhraseManager implements PropertyChangeListener, ChangeLi
             return;
         }
 
-        updateBackgroundPhrases();
+        updateGhostPhrases();
 
     }
 
-    private void updateBackgroundPhrases()
+    private void updateGhostPhrases()
     {
         SwingUtilities.invokeLater(() -> 
         {
-            var selectedPhraseNames = backgroundPhrasesPanel.getSelectedTracks();
+            var selectedPhraseNames = ghostPhrasesPanel.getSelectedTracks();
             if (selectedPhraseNames.isEmpty() || lastResult == null)
             {
-                editor.setBackgroundPhases(null);
+                editor.setGhostPhases(null);
                 return;
             }
 
 
-            // Update selected background phrases
+            // Update selected ghost phrases
             Map<Integer, Phrase> mapChannelPhrase = new HashMap<>();
             for (var name : selectedPhraseNames)
             {
@@ -152,7 +151,7 @@ public class BackgroundPhraseManager implements PropertyChangeListener, ChangeLi
                 mapChannelPhrase.put(channel, p);
             }
 
-            editor.setBackgroundPhases(mapChannelPhrase);
+            editor.setGhostPhases(mapChannelPhrase);
         });
     }
 
@@ -199,11 +198,11 @@ public class BackgroundPhraseManager implements PropertyChangeListener, ChangeLi
                 {
                 }
             }
-        } else if (evt.getSource() == backgroundPhrasesPanel)
+        } else if (evt.getSource() == ghostPhrasesPanel)
         {
-            if (evt.getPropertyName().equals(BackgroundPhrasesPanel.PROP_SELECTED_TRACK_NAMES))
+            if (evt.getPropertyName().equals(GhostPhrasesPanel.PROP_SELECTED_TRACK_NAMES))
             {
-                updateBackgroundPhrases();
+                updateGhostPhrases();
             }
         }
     }

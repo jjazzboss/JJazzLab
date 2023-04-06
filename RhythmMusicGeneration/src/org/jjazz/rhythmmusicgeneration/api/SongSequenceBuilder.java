@@ -281,9 +281,8 @@ public class SongSequenceBuilder
         {
             me = track0.get(i);
             MidiMessage mm = me.getMessage();
-            if (mm instanceof ShortMessage)
+            if (mm instanceof ShortMessage sm)
             {
-                ShortMessage sm = (ShortMessage) mm;
                 if (sm.getCommand() == ShortMessage.CONTROL_CHANGE && sm.getData1() == MidiConst.CTRL_CHG_JJAZZ_TEMPO_FACTOR)
                 {
                     track0.remove(me);
@@ -349,24 +348,19 @@ public class SongSequenceBuilder
 
         // Add XX mode ON initialization message
         OutputSynth os = OutputSynthManager.getInstance().getDefaultOutputSynth();
-        SysexMessage sxm = null;
-        switch (os.getUserSettings().getSendModeOnUponPlay())
+        SysexMessage sxm = switch (os.getUserSettings().getSendModeOnUponPlay())
         {
-            case GM:
-                sxm = MidiUtilities.getGmModeOnSysExMessage();
-                break;
-            case GM2:
-                sxm = MidiUtilities.getGm2ModeOnSysExMessage();
-                break;
-            case GS:
-                sxm = MidiUtilities.getGsModeOnSysExMessage();
-                break;
-            case XG:
-                sxm = MidiUtilities.getXgModeOnSysExMessage();
-                break;
-            default:
-            // Nothing
-        }
+            case GM ->
+                MidiUtilities.getGmModeOnSysExMessage();
+            case GM2 ->
+                MidiUtilities.getGm2ModeOnSysExMessage();
+            case GS ->
+                MidiUtilities.getGsModeOnSysExMessage();
+            case XG ->
+                MidiUtilities.getXgModeOnSysExMessage();
+            default ->
+                null;
+        };
         if (sxm != null)
         {
             me = new MidiEvent(sxm, 0);
@@ -475,9 +469,8 @@ public class SongSequenceBuilder
         // Merge the phrases from delegate RhythmVoices to the source phrase, then remove the delegate phrases        
         for (var rv : res.keySet().toArray(new RhythmVoice[0]))
         {
-            if (rv instanceof RhythmVoiceDelegate)
+            if (rv instanceof RhythmVoiceDelegate rvd)
             {
-                RhythmVoiceDelegate rvd = (RhythmVoiceDelegate) rv;
                 Phrase p = res.get(rvd);
                 RhythmVoice rvds = rvd.getSource();
                 Phrase pDest = res.get(rvds);
@@ -576,9 +569,8 @@ public class SongSequenceBuilder
         Set<Rhythm> targetRhythms = new HashSet<>();
         for (Rhythm r : contextRhythms)
         {
-            if (r instanceof AdaptedRhythm)
+            if (r instanceof AdaptedRhythm ar)
             {
-                AdaptedRhythm ar = (AdaptedRhythm) r;
                 Rhythm sr = ar.getSourceRhythm();
                 if (!contextRhythms.contains(sr))
                 {
@@ -629,17 +621,19 @@ public class SongSequenceBuilder
      * Ask specified rhythm to generate music.
      *
      * @param r
+     * @return
+     * @throws org.jjazz.rhythm.api.MusicGenerationException
      */
     private Map<RhythmVoice, Phrase> generateRhythmPhrases(Rhythm r) throws MusicGenerationException
     {
-        if (r instanceof MusicGenerator)
+        if (r instanceof MusicGenerator mg)
         {
             LOGGER.log(Level.FINE, "fillRhythmTracks() calling generateMusic() for rhythm r={0} hashCode(r)={1}", new Object[]
             {
                 r.getName(), Objects.hashCode(r)
             });
             r.loadResources();
-            return ((MusicGenerator) r).generateMusic(songContext);
+            return mg.generateMusic(songContext);
         } else
         {
             LOGGER.log(Level.WARNING, "generateRhythmPhrases() r={0} is not a MusicGenerator instance", r);
@@ -681,7 +675,7 @@ public class SongSequenceBuilder
 
         for (CLI_Section cliSection : getContextSections(context))
         {
-           var clis = cls.getItems(cliSection, CLI_ChordSymbol.class);
+            var clis = cls.getItems(cliSection, CLI_ChordSymbol.class);
             for (CLI_ChordSymbol cliCs : clis)
             {
                 Position pos = cliCs.getPosition();
@@ -750,7 +744,10 @@ public class SongSequenceBuilder
                 Phrase p = rvPhrases.get(rv);
                 if (p == null)
                 {
-                    LOGGER.warning("muteNotes() Unexpected null phase. rv=" + rv + " rvPhrases=" + rvPhrases);
+                    LOGGER.log(Level.WARNING, "muteNotes() Unexpected null phase. rv={0} rvPhrases={1}", new Object[]
+                    {
+                        rv, rvPhrases
+                    });
                     continue;
                 }
                 Phrases.silence(p, sptRange, true, false, 0.1f);
@@ -770,15 +767,14 @@ public class SongSequenceBuilder
         var songChordSequence = new SongChordSequence(context.getSong(), context.getBarRange());        // throws UserErrorGenerationException
         SongStructure ss = context.getSong().getSongStructure();
 
-        for (int i = 0; i < songChordSequence.size(); i++)
+        for (var cliCs : songChordSequence)
         {
-            var cliCs = songChordSequence.get(i);
             var pos = cliCs.getPosition();
             if (cliCs.getData() instanceof NCExtChordSymbol ncecs)
             {
                 float posInBeats = ss.getPositionInNaturalBeats(pos.getBar()) + pos.getBeat();
                 TimeSignature ts = ss.getSongPart(pos.getBar()).getRhythm().getTimeSignature();
-                float chordDuration = songChordSequence.getChordDuration(i, ts);
+                float chordDuration = songChordSequence.getChordDuration(cliCs, ts);
                 FloatRange beatRange = new FloatRange(posInBeats, posInBeats + chordDuration - 0.1f);
 
                 for (Phrase p : rvPhrases.values())
@@ -892,6 +888,7 @@ public class SongSequenceBuilder
     /**
      * Apply transposition/velocity offset to match the InstrumentSettings of each RhythmVoice.
      *
+     * @param context
      * @param rvPhrases
      */
     private void processInstrumentsSettings(SongContext context, Map<RhythmVoice, Phrase> rvPhrases)
@@ -904,19 +901,31 @@ public class SongSequenceBuilder
             InstrumentMix insMix = midiMix.getInstrumentMix(rv);
             if (insMix == null)
             {
-                LOGGER.warning("applyInstrumentsSettings() Unexpected null InstrumentMix for rv=" + rv + " midMix=" + midiMix);
+                LOGGER.log(Level.WARNING, "applyInstrumentsSettings() Unexpected null InstrumentMix for rv={0} midMix={1}", new Object[]
+                {
+                    rv,
+                    midiMix
+                });
                 continue;
             }
             InstrumentSettings insSet = insMix.getSettings();
             if (insSet.getTransposition() != 0)
             {
                 p.processPitch(pitch -> pitch + insSet.getTransposition());
-                LOGGER.fine("processInstrumentsSettings()    Adjusting transposition=" + insSet.getTransposition() + " for rv=" + rv);
+                LOGGER.log(Level.FINE, "processInstrumentsSettings()    Adjusting transposition={0} for rv={1}", new Object[]
+                {
+                    insSet.getTransposition(),
+                    rv
+                });
             }
             if (insSet.getVelocityShift() != 0)
             {
                 p.processVelocity(v -> v + insSet.getVelocityShift());
-                LOGGER.fine("processInstrumentsSettings()    Adjusting velocity=" + insSet.getVelocityShift() + " for rv=" + rv);
+                LOGGER.log(Level.FINE, "processInstrumentsSettings()    Adjusting velocity={0} for rv={1}", new Object[]
+                {
+                    insSet.getVelocityShift(),
+                    rv
+                });
             }
         }
     }
@@ -946,7 +955,7 @@ public class SongSequenceBuilder
                     .orElse(null);
             if (rvDrums == null)
             {
-                LOGGER.warning("processDrumsRerouting() No available target drums channel found in MidiMix=" + midiMix);
+                LOGGER.log(Level.WARNING, "processDrumsRerouting() No available target drums channel found in MidiMix={0}", midiMix);
                 return;
             }
         }
@@ -974,6 +983,7 @@ public class SongSequenceBuilder
     /**
      * Check that rvPhrases contain music notes only for the relevant bars of rhythm r.
      *
+     * @param context
      * @param r
      * @param rvPhrases
      * @throws MusicGenerationException
@@ -1018,8 +1028,11 @@ public class SongSequenceBuilder
                 {
                     // songContext.getPosition(0)
                     String msg = ResUtil.getString(getClass(), "ERR_InvalidNotePosition", ne.toString(), r.getName());
-                    LOGGER.log(Level.INFO, "checkRhythmPhrasesScope() " + msg);
-                    LOGGER.fine("DEBUG!  rv=" + rv.getName() + " ne=" + ne + " p=" + p);
+                    LOGGER.log(Level.INFO, "checkRhythmPhrasesScope() {0}", msg);
+                    LOGGER.log(Level.FINE, "DEBUG!  rv={0} ne={1} p={2}", new Object[]
+                    {
+                        rv.getName(), ne, p
+                    });
                     throw new MusicGenerationException(msg);
                 }
             }
@@ -1074,6 +1087,7 @@ public class SongSequenceBuilder
      * Add time signature controller messages in the specified track.
      * <p>
      *
+     * @param context
      * @param track
      */
     private void addTimeSignatureChanges(SongContext context, Track track)
@@ -1099,6 +1113,7 @@ public class SongSequenceBuilder
     /**
      * Adjust the EndOfTrack Midi marker for all tracks.
      *
+     * @param context
      * @param seq
      */
     private void fixEndOfTracks(SongContext context, Sequence seq)
@@ -1140,7 +1155,6 @@ public class SongSequenceBuilder
             } catch (MusicGenerationException ex)
             {
                 musicException = ex;
-                return;
             }
         }
     }
@@ -1166,7 +1180,6 @@ public class SongSequenceBuilder
             } catch (MusicGenerationException ex)
             {
                 musicException = ex;
-                return;
             }
         }
     }
@@ -1180,7 +1193,7 @@ public class SongSequenceBuilder
     {
 
         // The generated sequence from the phrases
-        private Map<RhythmVoice, Phrase> rvPhrases;
+        private final Map<RhythmVoice, Phrase> rvPhrases;
         private SongSequence songSequence;
         private MusicGenerationException musicException = null;
 
@@ -1198,7 +1211,6 @@ public class SongSequenceBuilder
             } catch (MusicGenerationException ex)
             {
                 musicException = ex;
-                return;
             }
         }
     }

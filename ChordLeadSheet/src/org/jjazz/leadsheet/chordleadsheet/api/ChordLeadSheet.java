@@ -235,7 +235,7 @@ public interface ChordLeadSheet
     }
 
     /**
-     * Get all the items of this leadsheet matching a specific class.
+     * Get all the matching items of this leadsheet.
      *
      * @param <T>
      * @param itemClass Accept items which are instance of class itemClass
@@ -243,9 +243,21 @@ public interface ChordLeadSheet
      */
     default <T extends ChordLeadSheetItem<?>> List<T> getItems(Class<T> itemClass)
     {
-        return getItems(0, getSizeInBars() - 1, itemClass, item -> true);
+        return getItems(itemClass, item -> true);
     }
 
+    /**
+     * Get all the matching items of this leadsheet.
+     *
+     * @param <T>
+     * @param itemClass Accept items which are instance of class itemClass
+     * @param tester    Accept items which satisfy the tester.
+     * @return A non-modifiable ordered list of items
+     */
+    default <T extends ChordLeadSheetItem<?>> List<T> getItems(Class<T> itemClass, Predicate<T> tester)
+    {
+        return getItems(0, getSizeInBars() - 1, itemClass, tester);
+    }
 
     /**
      * Get the matching items which belong to bars between barFrom and barTo (included).

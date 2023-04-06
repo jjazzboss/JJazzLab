@@ -31,11 +31,11 @@ import org.jjazz.util.api.IntRange;
 /**
  * A helper class to calculate a number of data related to one chord symbol of a chord sequence with an associated grid.
  * <p>
- * Data covers the zone from the chord symbol before (or the start of chord sequence if no previous chord symbol) to the chord
- * symbol after (or end of chord sequence if no next chord symbol). When present the bounding chord symbols before/after are not
- * part of the covered zone.
+ * Data covers the zone from the chord symbol before (or the start of chord sequence if no previous chord symbol) to the chord symbol after
+ * (or end of chord sequence if no next chord symbol). When present the bounding chord symbols before/after are not part of the covered
+ * zone.
  */
-public class GridChordContext 
+public class GridChordContext
 {
 
     // Context
@@ -90,7 +90,8 @@ public class GridChordContext
     {
         if (cliCs == null || cSeq == null || !cSeq.contains(cliCs) || cSeqStartPosInBeats < 0 || grid == null)
         {
-            throw new IllegalArgumentException("cliCs=" + cliCs + " cSeq=" + cSeq + " cSeqStartPosInBeats=" + cSeqStartPosInBeats + " grid=" + grid );   
+            throw new IllegalArgumentException(
+                    "cliCs=" + cliCs + " cSeq=" + cSeq + " cSeqStartPosInBeats=" + cSeqStartPosInBeats + " grid=" + grid);
         }
         this.chord = cliCs;
         this.chordSequence = cSeq;
@@ -103,19 +104,18 @@ public class GridChordContext
 
     private void calculate()
     {
-        chordPosInBeats = chordSequence.toPositionInBeats(chord.getPosition(),  cSeqStartPosInBeats);
+        chordPosInBeats = chordSequence.toPositionInBeats(chord.getPosition(), cSeqStartPosInBeats);
         chordCell = grid.getCell(chordPosInBeats, true);
         int cellFrom, cellTo;
         float posInBeats;
 
 
         // After cell range
-        int chordIndex = chordSequence.indexOf(chord);
-        if (chordIndex < chordSequence.size() - 1)
+        var nextChord = chordSequence.higher(chord);
+        if (nextChord != null)
         {
-            posInBeats = chordSequence.toPositionInBeats(chordSequence.get(chordIndex + 1).getPosition(), cSeqStartPosInBeats);
+            posInBeats = chordSequence.toPositionInBeats(nextChord.getPosition(), cSeqStartPosInBeats);
             cellTo = grid.getCell(posInBeats, true) - 1;
-
         } else
         {
             cellTo = grid.getCellRange().to;
@@ -124,9 +124,10 @@ public class GridChordContext
 
 
         // Before range
-        if (chordIndex > 0)
+        var previousChord = chordSequence.lower(chord);
+        if (previousChord != null)
         {
-            posInBeats = chordSequence.toPositionInBeats(chordSequence.get(chordIndex - 1).getPosition(),  cSeqStartPosInBeats);
+            posInBeats = chordSequence.toPositionInBeats(previousChord.getPosition(), cSeqStartPosInBeats);
             cellFrom = grid.getCell(posInBeats, true) + 1;
 
         } else
@@ -171,7 +172,8 @@ public class GridChordContext
             afterBeatRange = new FloatRange(chordPosInBeats, grid.getStartPos(chordCell) + cellDuration - grid.getPreCellBeatWindow());
         } else
         {
-            afterBeatRange = new FloatRange(chordPosInBeats, grid.getStartPos(afterCellRange.to) + cellDuration - grid.getPreCellBeatWindow());
+            afterBeatRange = new FloatRange(chordPosInBeats,
+                    grid.getStartPos(afterCellRange.to) + cellDuration - grid.getPreCellBeatWindow());
         }
 
         // The global range

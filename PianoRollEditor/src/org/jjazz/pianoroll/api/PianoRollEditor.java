@@ -311,26 +311,26 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
 
 
     /**
-     * Optional view-only phrases shown in the background of the editor.
+     * Optional view-only phrases shown faded in the background of the editor.
      * <p>
      * The specified phrases are shown faded in the background in order to facilite the editing of the Phrase model. E.g. if the edited
      * phrase is a bass line, you can use this method to make the corresponding drums phrase also visible.
      *
      * @param mapChannelPhrases A name associated to a Phrase.
      */
-    public void setBackgroundPhases(Map<Integer, Phrase> mapChannelPhrases)
+    public void setGhostPhases(Map<Integer, Phrase> mapChannelPhrases)
     {
-        notesPanel.setBackgroundPhrases(mapChannelPhrases);
+        notesPanel.setGhostPhrases(mapChannelPhrases);
     }
 
     /**
-     * Get the optional view-only phrases shown in the background of the editor.
+     * Get the optional view-only phrases shown faded in the background of the editor.
      *
      * @return Can be empty
      */
-    public Map<Integer, Phrase> getBackgroundPhrases()
+    public Map<Integer, Phrase> getGhostPhrases()
     {
-        return notesPanel.getBackgroundPhrases();
+        return notesPanel.getGhostPhrases();
     }
 
     /**

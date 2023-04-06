@@ -241,7 +241,7 @@ public class RulerPanel extends javax.swing.JPanel implements ClsChangeListener,
         {
             var offsettedBarRange = editor.getPhraseBarRange().getTransformed(barOffset);
             ChordSequence cs = new ChordSequence(offsettedBarRange);
-            SongChordSequence.fillChordSequence(cs, song, offsettedBarRange);
+            SongChordSequence.fillChordSequence(cs, song, offsettedBarRange); 
             int lastBar = -1;
 
 

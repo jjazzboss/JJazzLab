@@ -79,8 +79,8 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
      */
     public void setModel(Song song)
     {
-        LOGGER.severe("setModel() song="+song);
-        
+        LOGGER.severe("setModel() song=" + song);
+
         if (this.song == song)
         {
             return;
@@ -153,63 +153,50 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
     }
 
     @Override
-    public void beatChanged(Position oldPos, Position newPos)
+    public void beatChanged(Position oldPos, Position newPos, float newPosInBeats)
     {
         if (!isEnabled())
         {
             return;
         }
-
+        LOGGER.severe("beatChanged() newPos=" + newPos + " newPosInBeats=" + newPosInBeats);
         SwingUtilities.invokeLater(() -> 
         {
             posModel.set(newPos);
-
-            if (songChordSequence == null)
-            {
-                return;
-            }
-
-            // NOT OPTIMIZED AT ALL!!!!
-            CLI_ChordSymbol newChord, newNextChord;
-            newChord = songChordSequence.getChordSymbol(newPos);
-            int chordIndex = songChordSequence.indexOf(newChord);
-            newNextChord = chordIndex == -1 || chordIndex == songChordSequence.size() - 1 ? null : songChordSequence.get(chordIndex + 1);
-
-            if (newChord != chord && newNextChord != nextChord)
-            {
-                chord = newChord;
-                nextChord = newNextChord;
-                String txt = newChord != null ? newChord.getData().getOriginalName() : "-";
-                String nextTxt = newNextChord != null ? newNextChord.getData().getOriginalName() : "-";
-                lbl_chord.setText(txt);
-                lbl_chordNext.setText(nextTxt);
-
-                if (chord != null)
-                {
-                    Position pos = chord.getPosition();
-                    pos.setBeat((int)pos.getBeat());
-                    float posInBeats = song.getSongStructure().getPositionInNaturalBeats(pos);
-                    Position posNext = nextChord != null ? nextChord.getPosition() : pos.getNext(TimeSignature.FOUR_FOUR);
-                    posNext.setBeat((int)posNext.getBeat());
-                    float posNextInBeats = song.getSongStructure().getPositionInNaturalBeats(posNext);
-                    rulerPanel.setPositionRange(pos, posNext, (int) (posNextInBeats - posInBeats));
-                }
-            }
-            
             rulerPanel.setMarkerPosition(newPos);
         });
 
     }
 
     @Override
-    public void barChanged(int oldBar, int newBar)
+    public void barChanged(int oldBar, int newBar, float newPosInBeats)
     {
     }
 
     @Override
-    public void chordSymbolChanged(CLI_ChordSymbol chordSymbol)
+    public void chordSymbolChanged(CLI_ChordSymbol newChord)
     {
+        LOGGER.severe("chordSymbolChanged() newChord=" + newChord);
+        SwingUtilities.invokeLater(() -> 
+        {
+            chord = newChord;
+            nextChord = songChordSequence.higher(chord);
 
+            // Update chords UI
+            String txt = chord.getData().getOriginalName();
+            String nextTxt = nextChord != null ? nextChord.getData().getOriginalName() : "-";
+            lbl_chord.setText(txt);
+            lbl_chordNext.setText(nextTxt);
+
+            // Update rulerPanel
+            Position pos = chord.getPosition();
+            pos.setBeat((int) pos.getBeat());
+            float posInBeats = song.getSongStructure().getPositionInNaturalBeats(pos);
+            Position posNext = nextChord != null ? nextChord.getPosition() : pos.getNext(TimeSignature.FOUR_FOUR);
+            posNext.setBeat((int) posNext.getBeat());
+            float posNextInBeats = song.getSongStructure().getPositionInNaturalBeats(posNext);
+            rulerPanel.setPositionRange(pos, posNext, (int) (posNextInBeats - posInBeats));
+        });
     }
 
     @Override

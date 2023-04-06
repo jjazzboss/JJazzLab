@@ -59,15 +59,14 @@ public class SongChordSequence extends ChordSequence
     /**
      * Build a ChordSequence for the specified song, or part of the song.
      * <p>
-     * The constructor relies on fillChordSequence() to add the chord symbols, then it makes sure that the created object has a
-     * ChordSymbol at beginning.<br>
+     * The constructor relies on fillChordSequence() to add the chord symbols, then it makes sure that the created object has a ChordSymbol
+     * at beginning.<br>
      *
      * @param song
      * @param barRange If null, use the whole song.
      * @throws IllegalArgumentException     If barRange is not contained in the song.
      * @throws UserErrorGenerationException If no chord found to be the 1st chord of the ChordSequence
-     * @see #fillChordSequence(org.jjazz.rhythmmusicgeneration.api.ChordSequence, org.jjazz.song.api.Song,
-     * org.jjazz.util.api.IntRange)
+     * @see #fillChordSequence(org.jjazz.rhythmmusicgeneration.api.ChordSequence, org.jjazz.song.api.Song, org.jjazz.util.api.IntRange)
      */
     public SongChordSequence(Song song, IntRange barRange) throws UserErrorGenerationException
     {
@@ -92,11 +91,12 @@ public class SongChordSequence extends ChordSequence
             {
                 throw new UserErrorGenerationException("Missing chord symbol at the start of song " + song.getName());
             }
-            var items = song.getChordLeadSheet().getItems(0, clsRange.from - 1, CLI_ChordSymbol.class);
-            CLI_ChordSymbol prevCliCs = items.get(items.size() - 1);        // Take the last chord before the range
+            var prevCliCs = song.getChordLeadSheet().getLastItemBefore(new Position(clsRange.from, 0),
+                    false, CLI_ChordSymbol.class,
+                    item -> true);
             CLI_ChordSymbol newCs = getInitCopy(prevCliCs);
-            add(0, newCs);      // Add at first position                    
-            LOGGER.log(Level.FINE, "fixChordSequence()   lacking a starting chord. Add a copy of previous chord={0}", newCs);   
+            add(newCs);
+            LOGGER.log(Level.FINE, "fixChordSequence()   lacking a starting chord. Add a copy of previous chord={0}", newCs);
         }
     }
 
@@ -140,38 +140,29 @@ public class SongChordSequence extends ChordSequence
     }
 
     /**
-     * Return the duration in natural beats of the chord at specified index.
+     * Return the duration in natural beats of the specified chord.
      * <p>
      * This is the duration until next chord or the end of the SongChordSequence.
      *
-     * @param chordIndex
+     * @param cliCs
      * @param ts         The TimeSignature of the section where chordIndex belongs to (a chord symbol can not span on 2 sections).
      * @return
      */
-    public float getChordDuration(int chordIndex, TimeSignature ts)
+    public float getChordDuration(CLI_ChordSymbol cliCs, TimeSignature ts)
     {
-        if (chordIndex < 0 || chordIndex >= size() || ts == null)
-        {
-            throw new IllegalArgumentException("chordIndex=" + chordIndex + " ts=" + ts);
-        }
-        Position pos = get(chordIndex).getPosition();
-        Position nextPos;
-        if (chordIndex == size() - 1)
-        {
-            // Duration until end of the sequence
-            nextPos = new Position(getBarRange().to + 1, 0);
-        } else
-        {
-            // Duration until next chord
-            nextPos = get(chordIndex + 1).getPosition();
-        }
+        Preconditions.checkNotNull(cliCs);
+        Preconditions.checkNotNull(ts);
+
+        Position pos = cliCs.getPosition();
+        Position nextPos = cliCs == last() ? new Position(getBarRange().to + 1, 0) : higher(cliCs).getPosition();
         float duration = pos.getDuration(nextPos, ts);
+
         return duration;
     }
 
     /**
-     * Split this SongChordSequence in different SimpleChordSequences for each song contiguous Rhythm's SongParts which have the
-     * same specified RhythmParameter value.
+     * Split this SongChordSequence in different SimpleChordSequences for each song contiguous Rhythm's SongParts which have the same
+     * specified RhythmParameter value.
      * <p>
      * The resulting SimpleChordSequences will have a starting chord symbol.
      * <p>
@@ -188,7 +179,7 @@ public class SongChordSequence extends ChordSequence
      */
     public <T> List<SplitResult<T>> split(Rhythm r, RhythmParameter<T> rp)
     {
-        LOGGER.fine("split() --");   
+        LOGGER.fine("split() --");
 
         List<SplitResult<T>> res = new ArrayList<>();
 
@@ -247,7 +238,7 @@ public class SongChordSequence extends ChordSequence
             res.add(new SplitResult(sSeq, lastRpValue));
         }
 
-        LOGGER.log(Level.FINE, "split()   res={0}", res.toString());   
+        LOGGER.log(Level.FINE, "split()   res={0}", res.toString());
         return res;
     }
 
@@ -255,8 +246,8 @@ public class SongChordSequence extends ChordSequence
     /**
      * Fill a ChordSequence with the chord symbols of the specified song (or part of the song).
      * <p>
-     * Use the song's SongStructure and ChordLeadSheet, limited to the specified bar range, to fill the specified ChordSequence.
-     * Process the alternate chord symbols when relevant.<br>
+     * Use the song's SongStructure and ChordLeadSheet, limited to the specified bar range, to fill the specified ChordSequence. Process the
+     * alternate chord symbols when relevant.<br>
      * Example: <br>
      * - ChordLeadSheet: Section B1: bar0=Cm7, bar1=empty Section B2: bar2=Bb bar3=empty<br>
      * - SongStructure: B1 B2 B1 <br>
@@ -291,7 +282,8 @@ public class SongChordSequence extends ChordSequence
             // The corresponding range in the chord leadsheet
             CLI_Section section = spt.getParentSection();
             int sectionStartBar = section.getPosition().getBar();
-            IntRange clsSubRange = new IntRange(sectionStartBar + sptSubRange.from - spt.getStartBarIndex(), sectionStartBar + sptSubRange.to - spt.getStartBarIndex());
+            IntRange clsSubRange = new IntRange(sectionStartBar + sptSubRange.from - spt.getStartBarIndex(),
+                    sectionStartBar + sptSubRange.to - spt.getStartBarIndex());
 
 
             // Prepare Marker data
@@ -313,7 +305,8 @@ public class SongChordSequence extends ChordSequence
                 // Don't allow Void chordsymbol if it's the init chord symbol
                 if (newEcs == VoidAltExtChordSymbol.getInstance() && newPos.equals(new Position(0, 0)))
                 {
-                    LOGGER.log(Level.INFO, "fillChordSequence() Can''t use the void alternate chord symbol of {0} at initial position.", ecs.getName());   
+                    LOGGER.log(Level.INFO, "fillChordSequence() Can''t use the void alternate chord symbol of {0} at initial position.",
+                            ecs.getName());
                     newEcs = ecs;
                 }
 
@@ -360,8 +353,7 @@ public class SongChordSequence extends ChordSequence
     // Private methods
     // ====================================================================================
     /**
-     * Get the chord leadsheet bar range corresponding to the intersection of the specified song part with this ChordSequence bar
-     * range.
+     * Get the chord leadsheet bar range corresponding to the intersection of the specified song part with this ChordSequence bar range.
      *
      * @param spt
      * @return
@@ -371,7 +363,8 @@ public class SongChordSequence extends ChordSequence
         IntRange sptRange = getSptBarRange(spt);
         CLI_Section section = spt.getParentSection();
         int sectionStartBar = section.getPosition().getBar();
-        IntRange r = new IntRange(sectionStartBar + sptRange.from - spt.getStartBarIndex(), sectionStartBar + sptRange.to - spt.getStartBarIndex());
+        IntRange r = new IntRange(sectionStartBar + sptRange.from - spt.getStartBarIndex(),
+                sectionStartBar + sptRange.to - spt.getStartBarIndex());
         return r;
     }
 

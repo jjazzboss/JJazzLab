@@ -65,13 +65,13 @@ import org.jjazz.util.api.Utilities;
 public class NotesPanel extends javax.swing.JPanel implements PropertyChangeListener
 {
     
-    private static final Color[] BACKGROUND_NOTE_COLORS = new Color[]
+    private static final Color[] GHOST_NOTE_COLORS = new Color[]
     {
         new Color(112, 168, 151), new Color(93, 120, 20), new Color(212, 143, 106), new Color(173, 201, 100),
         new Color(14, 84, 63), new Color(58, 80, 0), new Color(128, 58, 21), new Color(67, 121, 131)
     };
-    private Color nextBackgroundNoteColor = BACKGROUND_NOTE_COLORS[0];
-    private static final int BACKGROUND_NOTE_ALPHA = 90;
+    private Color nextGhostNoteColor = GHOST_NOTE_COLORS[0];
+    private static final int GHOST_NOTE_ALPHA = 90;
     private static final int ONE_BEAT_SIZE_IN_PIXELS_AT_ZOOM_ONE = 50;
     
     
@@ -82,8 +82,8 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
     private float scaleFactorX = 1f;
     private boolean scrollToFirstNoteHack = true;
     private final TreeMap<NoteEvent, NoteView> mapNoteViews = new TreeMap<>();
-    private Map<Integer, Phrase> mapChannelBackgroundPhrase;
-    private final Map<Integer, Color> mapNameBackgroundNoteColor = new HashMap<>();
+    private Map<Integer, Phrase> mapChannelGhostPhrase;
+    private final Map<Integer, Color> mapNameGhostNoteColor = new HashMap<>();
     
     private static final Logger LOGGER = Logger.getLogger(NotesPanel.class.getSimpleName());
     
@@ -293,7 +293,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
         
         drawHorizontalGrid(g2);
         drawVerticalGrid(g2);
-        drawBackgroundPhrases(g2);
+        drawGhostPhrases(g2);
         
     }
 
@@ -409,13 +409,13 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
     }
 
     /**
-     * Set the background phrases.
+     * Set the ghost phrases.
      *
-     * @param mapChannelPhrase Can be null if no background phrase
+     * @param mapChannelPhrase Can be null if no ghost phrase
      */
-    public void setBackgroundPhrases(Map<Integer, Phrase> mapChannelPhrase)
+    public void setGhostPhrases(Map<Integer, Phrase> mapChannelPhrase)
     {
-        mapChannelBackgroundPhrase = mapChannelPhrase;
+        mapChannelGhostPhrase = mapChannelPhrase;
         repaint();
     }
 
@@ -424,9 +424,9 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
      *
      * @return
      */
-    public Map<Integer, Phrase> getBackgroundPhrases()
+    public Map<Integer, Phrase> getGhostPhrases()
     {
-        return mapChannelBackgroundPhrase;
+        return mapChannelGhostPhrase;
     }
     
     public void cleanup()
@@ -530,19 +530,19 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
         }
     }
     
-    private void drawBackgroundPhrases(Graphics2D g2)
+    private void drawGhostPhrases(Graphics2D g2)
     {
-        if (mapChannelBackgroundPhrase == null)
+        if (mapChannelGhostPhrase == null)
         {
             return;
         }
         
         
-        for (var channel : mapChannelBackgroundPhrase.keySet())
+        for (var channel : mapChannelGhostPhrase.keySet())
         {
-            Phrase p = mapChannelBackgroundPhrase.get(channel);
-            Color c = getBackgroundNoteColor(channel);
-            Color c1 = new Color(c.getRed(), c.getGreen(), c.getBlue(), BACKGROUND_NOTE_ALPHA);
+            Phrase p = mapChannelGhostPhrase.get(channel);
+            Color c = getGhostNoteColor(channel);
+            Color c1 = new Color(c.getRed(), c.getGreen(), c.getBlue(), GHOST_NOTE_ALPHA);
             Color c2 = HSLColor.changeLuminance(c1, -23);
             
             for (var ne : p)
@@ -588,18 +588,18 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
         repaint();
     }
     
-    private Color getBackgroundNoteColor(int channel)
+    private Color getGhostNoteColor(int channel)
     {
-        Color c = mapNameBackgroundNoteColor.get(channel);
+        Color c = mapNameGhostNoteColor.get(channel);
         if (c == null)
         {
-            c = nextBackgroundNoteColor;
-            mapNameBackgroundNoteColor.put(channel, c);
-            for (int i = 0; i < BACKGROUND_NOTE_COLORS.length; i++)
+            c = nextGhostNoteColor;
+            mapNameGhostNoteColor.put(channel, c);
+            for (int i = 0; i < GHOST_NOTE_COLORS.length; i++)
             {
-                if (BACKGROUND_NOTE_COLORS[i] == c)
+                if (GHOST_NOTE_COLORS[i] == c)
                 {
-                    nextBackgroundNoteColor = BACKGROUND_NOTE_COLORS[(i + 1) % BACKGROUND_NOTE_COLORS.length];
+                    nextGhostNoteColor = GHOST_NOTE_COLORS[(i + 1) % GHOST_NOTE_COLORS.length];
                     break;
                 }
             }

@@ -99,7 +99,7 @@ public class ShowPlaybackPoint extends BooleanStateAction implements PropertyCha
             }
 
             @Override
-            public void beatChanged(final Position oldPos, final Position newPos)
+            public void beatChanged(final Position oldPos, final Position newPos, float newPosInBeats)
             {
                 if (currentCL_Editor != null)
                 {
@@ -281,18 +281,10 @@ public class ShowPlaybackPoint extends BooleanStateAction implements PropertyCha
         MusicController.State state = MusicController.getInstance().getState();
         switch (state)
         {
-            case PLAYING:
-            case PAUSED:
-                setEnabled(currentIsActive && !playbackListenerDisabled);
-                break;
-            case STOPPED:
-                setEnabled(currentIsActive);
-                break;
-            case DISABLED:
-                setEnabled(false);
-                break;
-            default:
-                throw new IllegalStateException("state=" + state);
+            case PLAYING, PAUSED -> setEnabled(currentIsActive && !playbackListenerDisabled);
+            case STOPPED -> setEnabled(currentIsActive);
+            case DISABLED -> setEnabled(false);
+            default -> throw new IllegalStateException("state=" + state);
         }
     }
 
@@ -311,24 +303,17 @@ public class ShowPlaybackPoint extends BooleanStateAction implements PropertyCha
         {
             switch (state)
             {
-                case PLAYING:
-                case PAUSED:
-                    hidePlaybackPoint();
-                    break;
-                case STOPPED:
-                case DISABLED:
-                    playbackListenerDisabled = false;
-                    break;
-                default:
-                    throw new IllegalStateException(
+                case PLAYING, PAUSED -> hidePlaybackPoint();
+                case STOPPED, DISABLED -> playbackListenerDisabled = false;
+                default -> throw new IllegalStateException(
                             "state=" + state + " currentCL_Editor=" + currentCL_Editor + " songWasModified=" + playbackListenerDisabled + " isEnabled()=" + isEnabled() + " getBooleanState()=" + getBooleanState());
             }
         } else
         {
             switch (state)
             {
-                case PLAYING:
-                case PAUSED:
+                case PLAYING, PAUSED ->
+                {
                     if (currentCL_Editor != null && getBooleanState() == false)
                     {
                         hidePlaybackPoint();
@@ -336,16 +321,15 @@ public class ShowPlaybackPoint extends BooleanStateAction implements PropertyCha
                     {
                         showPlaybackPoint();
                     }
-                    break;
-                case STOPPED:
-                case DISABLED:
+                }
+                case STOPPED, DISABLED ->
+                {
                     if (currentCL_Editor != null)
                     {
                         hidePlaybackPoint();
                     }
-                    break;
-                default:
-                    throw new IllegalStateException(
+                }
+                default -> throw new IllegalStateException(
                             "state=" + state + " currentCL_Editor=" + currentCL_Editor + " songWasModified=" + playbackListenerDisabled + " isEnabled()=" + isEnabled() + " getBooleanState()=" + getBooleanState());
             }
         }

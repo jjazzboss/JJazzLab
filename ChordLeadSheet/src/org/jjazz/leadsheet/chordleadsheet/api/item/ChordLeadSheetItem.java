@@ -22,7 +22,6 @@
  */
 package org.jjazz.leadsheet.chordleadsheet.api.item;
 
-import com.google.common.base.Preconditions;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
@@ -170,9 +169,9 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
      * @param inclusive
      * @return
      */
-    public static ComparableItem createItemTo(Position pos, boolean inclusive)
+    public static DefaultComparableItem createItemTo(Position pos, boolean inclusive)
     {
-        return new ComparableItem(pos, false, inclusive);
+        return new DefaultComparableItem(pos, false, inclusive);
     }
 
     /**
@@ -183,9 +182,9 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
      * @param bar
      * @return
      */
-    public static ComparableItem createItemTo(int bar)
+    public static DefaultComparableItem createItemTo(int bar)
     {
-        return new ComparableItem(new Position(bar, Float.MAX_VALUE), false, true);
+        return new DefaultComparableItem(new Position(bar, Float.MAX_VALUE), false, true);
     }
 
     /**
@@ -198,9 +197,9 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
      * @param inclusive
      * @return
      */
-    public static ComparableItem createItemFrom(Position pos, boolean inclusive)
+    public static DefaultComparableItem createItemFrom(Position pos, boolean inclusive)
     {
-        return new ComparableItem(pos, true, inclusive);
+        return new DefaultComparableItem(pos, true, inclusive);
     }
 
     /**
@@ -211,19 +210,27 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
      * @param bar
      * @return
      */
-    public static ComparableItem createItemFrom(int bar)
+    public static DefaultComparableItem createItemFrom(int bar)
     {
-        return new ComparableItem(new Position(bar, 0), true, true);
+        return new DefaultComparableItem(new Position(bar, 0), true, true);
     }
 
     // ==================================================================================================
     // Inner classes
     // ==================================================================================================
+
     /**
-     * A dummy ChordLeadSheetItem class which must be used only for position comparison when using the NavigableSet-based methods of
-     * ChordLeadSheet.
+     * An interface for items used only for position comparison purposes, when using the NavigableSet/SortedSet-based methods of
+     * ChordLeadSheet or ChordSequence.
      */
-    static class ComparableItem implements ChordLeadSheetItem<String>
+    public interface ComparableItem
+    {
+        boolean isBeforeItem();
+
+        public boolean isInclusive();
+    }
+
+    public static class DefaultComparableItem implements ComparableItem, ChordLeadSheetItem<Object>
     {
 
         private final Position position;
@@ -231,18 +238,20 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
         private final boolean inclusive;
 
 
-        private ComparableItem(Position pos, boolean beforeItem, boolean inclusive)
+        private DefaultComparableItem(Position pos, boolean beforeItem, boolean inclusive)
         {
             this.beforeItem = beforeItem;
             this.position = pos;
             this.inclusive = inclusive;
         }
 
+        @Override
         public boolean isBeforeItem()
         {
             return beforeItem;
         }
 
+        @Override
         public boolean isInclusive()
         {
             return inclusive;
@@ -255,7 +264,7 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
         }
 
         @Override
-        public ChordLeadSheetItem getCopy(ChordLeadSheet newCls, Position newPos)
+        public ChordLeadSheetItem<Object> getCopy(ChordLeadSheet newCls, Position newPos)
         {
             throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
         }
@@ -267,9 +276,9 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
         }
 
         @Override
-        public String getData()
+        public Object getData()
         {
-            return "HelloDolly";
+            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
         }
 
         @Override

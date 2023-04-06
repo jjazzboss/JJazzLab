@@ -22,11 +22,13 @@
  */
 package org.jjazz.rhythmmusicgeneration.api;
 
+import com.google.common.base.Preconditions;
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.lang.Math.round;
 import java.text.DecimalFormat;
 import java.util.Objects;
 import org.jjazz.harmony.api.TimeSignature;
+import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.util.api.FloatRange;
 import org.jjazz.util.api.IntRange;
@@ -34,8 +36,8 @@ import org.jjazz.util.api.IntRange;
 /**
  * A ChordSequence which has only one TimeSignature.
  * <p>
- * User is responsible to ensure CLI_ChordSymbols are added in the right position order, in the startBar/nbBars range, and are
- * compatible with the TimeSignature.
+ * User is responsible to ensure CLI_ChordSymbols are added in the right position order, in the startBar/nbBars range, and are compatible
+ * with the TimeSignature.
  */
 public class SimpleChordSequence extends ChordSequence
 {
@@ -51,7 +53,7 @@ public class SimpleChordSequence extends ChordSequence
     /**
      * Construct a SimpleChordSequence from a standard ChordSequence.
      *
-     * @param cSeq All ChordSymbols should be compatible with the specified TimeSignature.
+     * @param cSeq All ChordSymbols are checked to be compatible with the specified TimeSignature.
      * @param ts
      */
     public SimpleChordSequence(ChordSequence cSeq, TimeSignature ts)
@@ -120,33 +122,24 @@ public class SimpleChordSequence extends ChordSequence
     }
 
     /**
-     * Return the duration in natural beats of the chord at specified index.
+     * Return the specified chord duration in natural beats.
      * <p>
      * This is the duration until next chord or the end of the chordsequence.
      *
-     * @param chordIndex
+     * @param cliCs
      * @return
      */
-    public float getChordDuration(int chordIndex)
+    public float getChordDuration(CLI_ChordSymbol cliCs)
     {
-        if (chordIndex < 0 || chordIndex >= size())
-        {
-            throw new IllegalArgumentException("chordIndex=" + chordIndex);
-        }
-        Position pos = get(chordIndex).getPosition();
-        Position nextPos;
-        if (chordIndex == size() - 1)
-        {
-            // Duration until end of the sequence
-            nextPos = new Position(getBarRange().to + 1, 0);
-        } else
-        {
-            // Duration until next chord
-            nextPos = get(chordIndex + 1).getPosition();
-        }
+        Preconditions.checkNotNull(cliCs);
+
+        Position pos = cliCs.getPosition();
+        Position nextPos = cliCs == last() ? new Position(getBarRange().to + 1, 0) : higher(cliCs).getPosition();
         float duration = pos.getDuration(nextPos, timeSignature);
+
         return duration;
     }
+
 
     /**
      * Convert the specified position into an absolute position in natural beats.
@@ -159,7 +152,7 @@ public class SimpleChordSequence extends ChordSequence
     {
         if (pos == null || startBarPosInBeats < 0)
         {
-            throw new IllegalArgumentException("pos=" + pos + " startBarPosInBeats=" + startBarPosInBeats);   
+            throw new IllegalArgumentException("pos=" + pos + " startBarPosInBeats=" + startBarPosInBeats);
         }
         float relPosInBeats = (pos.getBar() - getBarRange().from) * timeSignature.getNbNaturalBeats() + pos.getBeat();
         return startBarPosInBeats + relPosInBeats;
@@ -184,9 +177,9 @@ public class SimpleChordSequence extends ChordSequence
      * A String which combines the relative root ascending intervals and chord durations, to allow a quick comparison between 2
      * SimpleChordSequences.
      * <p>
-     * If 2 root profiles of 2 SimpleChordSequences are equal, it means that the 2 ChordSequences have the same size, same number
-     * of ChordSymbols at the same position, and that the root relative root ascending intervals are equals, like for e.g.
-     * |Dm|G7|C7M|%| and |E7|Am|Dm|%|.
+     * If 2 root profiles of 2 SimpleChordSequences are equal, it means that the 2 ChordSequences have the same size, same number of
+     * ChordSymbols at the same position, and that the root relative root ascending intervals are equals, like for e.g. |Dm|G7|C7M|%| and
+     * |E7|Am|Dm|%|.
      * <p>
      * Example: |Dm|G7|Ab7M|%| will produce "s4n3f0:a4i5:a4i1"  <br>
      * "s4" = size is 4 bars<br>
@@ -213,15 +206,19 @@ public class SimpleChordSequence extends ChordSequence
         }
 
 
-        float firstPos = toPositionInBeats(get(0).getPosition(), 0);
+        float firstPos = toPositionInBeats(first().getPosition(), 0);
         var df = new DecimalFormat("#.##");             // Avoid trailing 0 if round value
         sb.append("f").append(df.format(firstPos));
 
 
-        for (int i = 0; i < size() - 1; i++)
+        for (var cliCs : this)
         {
-            int interval = get(i).getData().getRootNote().getRelativeAscInterval(get(i + 1).getData().getRootNote());
-            float dur = getChordDuration(i);
+            if (cliCs == last())
+            {
+                break;
+            }
+            int interval = cliCs.getData().getRootNote().getRelativeAscInterval(higher(cliCs).getData().getRootNote());
+            float dur = getChordDuration(cliCs);
             sb.append(":").append("a").append(df.format(dur)).append("i").append(interval);
         }
 
@@ -231,10 +228,9 @@ public class SimpleChordSequence extends ChordSequence
     /**
      * Generate a root profile for a chord progression with 1 chord per bar and the specified root ascending intervals.
      * <p>
-     * Example: if rootAscendingIntervals=[8;4] and ts is 4/4, return "s3n3f0:a4i8:a4i4" (3 chord symbols,
-     * one per bar).
+     * Example: if rootAscendingIntervals=[8;4] and ts is 4/4, return "s3n3f0:a4i8:a4i4" (3 chord symbols, one per bar).
      *
-     * @param ts The TimeSignature to use
+     * @param ts                     The TimeSignature to use
      * @param rootAscendingIntervals Number of values is (number of chords - 1). Can't be empty.
      * @return
      */
@@ -269,9 +265,9 @@ public class SimpleChordSequence extends ChordSequence
     {
         checkArgument(cSeq.size() == size(), "cSeq=%s this=%s", cSeq, this);
         int res = 0;
-        for (int i = 0; i < size(); i++)
+        for (var cliCs:this)
         {
-            res += get(i).getData().getChordType().getSimilarityIndex(cSeq.get(i).getData().getChordType());
+            res += cliCs.getData().getChordType().getSimilarityIndex(cliCs.getData().getChordType());
         }
         return res;
     }

@@ -310,7 +310,7 @@ public class RP_SYS_DrumsTransformComp extends RealTimeRpEditorComponent<RP_SYS_
     }
 
     @Override
-    public void beatChanged(Position oldPos, Position newPos)
+    public void beatChanged(Position oldPos, Position newPos, float newPosInBeats)
     {
         if (birdview_outPhrase.getModel() == null)
         {
@@ -324,11 +324,12 @@ public class RP_SYS_DrumsTransformComp extends RealTimeRpEditorComponent<RP_SYS_
         {
             pos = (float) tickPos / MidiConst.PPQ_RESOLUTION - birdview_outPhrase.getBeatRange().from;
         }
+        LOGGER.severe("DEBUG beatChanged() newPosInBeats=" + newPosInBeats + " pos=" + pos);
         birdview_outPhrase.setMarkerPosition(pos);
     }
 
     @Override
-    public void barChanged(int oldBar, int newBar)
+    public void barChanged(int oldBar, int newBar, float newPosInBeats)
     {
         // Nothing
     }
@@ -400,12 +401,15 @@ public class RP_SYS_DrumsTransformComp extends RealTimeRpEditorComponent<RP_SYS_
     private synchronized void setOriginalPhrase(Phrase p)
     {
         LOGGER.log(Level.FINE, "setOriginalPhrase() -- p={0}", p);
-        originalPhrase = new SizedPhrase(getChannel(), songPartContext.getBeatRange().getTransformed(
-                -songPartContext.getBeatRange().from), timeSignature, p.isDrums());
-        if (p != null)
+        if (p == null)
         {
-            originalPhrase.add(p);
+            LOGGER.info("setOriginalPhrase() p=" + p);
+            return;
         }
+        originalPhrase = new SizedPhrase(getChannel(),
+                songPartContext.getBeatRange()
+                        .getTransformed(-songPartContext.getBeatRange().from), timeSignature, p.isDrums());
+        originalPhrase.add(p);
 
         // Go back to the EDT
         SwingUtilities.invokeLater(() -> 

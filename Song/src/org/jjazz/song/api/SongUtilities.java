@@ -150,9 +150,9 @@ public class SongUtilities
 
 
     /**
-     * Get a new song with the lead sheet linearized/developped/unrolled according to the song structure.
+     * Get a new song with the lead sheet linearized ("unfolded") according to the song structure.
      * <p>
-     * Return song where each SongPart corresponds to one Section in a linear order. Linearized sections name have the form
+     * Returns a song where each chord leadsheet Section represents only one SongPart. Linearized section name has the form
      * "original_section_nameSECTION_COPY_DELIMITER_CHARnumber".
      *
      * @param song

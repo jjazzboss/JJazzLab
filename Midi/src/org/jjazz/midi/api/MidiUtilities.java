@@ -646,12 +646,7 @@ public class MidiUtilities
     static public ShortMessage getResetAllControllersMessage(int channel)
     {
         return buildMessage(ShortMessage.CONTROL_CHANGE, channel, MidiConst.CTRL_CHG_RESET_ALL_CONTROLLERS, 0);
-    }
-
-    static public ShortMessage getJJazzBeatChangeControllerMessage(int channel)
-    {
-        return buildMessage(ShortMessage.CONTROL_CHANGE, channel, MidiConst.CTRL_CHG_JJAZZ_BEAT_CHANGE, 0);
-    }
+    }   
 
     /**
      * Get the Midi controller message to code a tempo factor.
@@ -1469,7 +1464,6 @@ public class MidiUtilities
         CONTROL_CHANGE_STRINGS[93] = "CHORUS_DEPTH";
         CONTROL_CHANGE_STRINGS[110] = "JJAZZ_MARKER_SYNC";
         CONTROL_CHANGE_STRINGS[111] = "JJAZZ_CHORD_CHANGE";
-        CONTROL_CHANGE_STRINGS[112] = "JJAZZ_BEAT_CHANGE";
         CONTROL_CHANGE_STRINGS[113] = "JJAZZ_ACTIVITY_CHANGE";
         CONTROL_CHANGE_STRINGS[114] = "JJAZZ_TEMPO_FACTOR";
         CONTROL_CHANGE_STRINGS[120] = "ALL_SOUND_OFF";

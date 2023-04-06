@@ -22,7 +22,7 @@
  */
 package org.jjazz.pianoroll.api;
 
-import org.jjazz.pianoroll.BackgroundPhraseManager;
+import org.jjazz.pianoroll.GhostPhraseManager;
 import com.google.common.base.Preconditions;
 import java.awt.BorderLayout;
 import java.beans.PropertyChangeEvent;
@@ -44,7 +44,7 @@ import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.MidiMixManager;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.pianoroll.QuantizePanel;
-import org.jjazz.pianoroll.BackgroundPhrasesPanel;
+import org.jjazz.pianoroll.GhostPhrasesPanel;
 import org.jjazz.pianoroll.ToolbarPanel;
 import org.jjazz.pianoroll.actions.PasteNotes;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
@@ -83,12 +83,12 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
     private final PianoRollEditor editor;
     private final ToolbarPanel toolbarPanel;
     private final QuantizePanel quantizePanel;
-    private final BackgroundPhrasesPanel backgroundPhrasesPanel;
+    private final GhostPhrasesPanel backgroundPhrasesPanel;
     private final Song song;
     private MidiMix midiMix;
     private SongPart songPart;
     private String titleBase;
-    private BackgroundPhraseManager backgroundPhraseManager;
+    private GhostPhraseManager backgroundPhraseManager;
     private static final Logger LOGGER = Logger.getLogger(PianoRollEditorTopComponent.class.getSimpleName());
 
 
@@ -156,7 +156,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
         quantizePanel = new QuantizePanel(editor);
         cpan_quantize.getContentPane().add(quantizePanel, BorderLayout.CENTER);
         cpan_showTracks.getContentPane().setLayout(new BorderLayout());
-        backgroundPhrasesPanel = new BackgroundPhrasesPanel();
+        backgroundPhrasesPanel = new GhostPhrasesPanel();
         cpan_showTracks.getContentPane().add(backgroundPhrasesPanel, BorderLayout.CENTER);
         // Reset splitpane divider location when a panel is collapsed/expanded
         cpan_quantize.addPropertyChangeListener(CollapsiblePanel.PROP_COLLAPSED,
@@ -166,7 +166,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
 
 
         // Manage the background phrases
-        backgroundPhraseManager = new BackgroundPhraseManager(this, backgroundPhrasesPanel);
+        backgroundPhraseManager = new GhostPhraseManager(this, backgroundPhrasesPanel);
 
 
         // Automatically close when song is closed

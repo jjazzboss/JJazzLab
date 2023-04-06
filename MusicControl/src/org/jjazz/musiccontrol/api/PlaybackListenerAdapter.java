@@ -35,13 +35,13 @@ public class PlaybackListenerAdapter implements PlaybackListener
 {
 
     @Override
-    public void beatChanged(Position oldPos, Position newPos)
+    public void beatChanged(Position oldPos, Position newPos, float newPosInBeats)
     {
         // Do nothing
     }
 
     @Override
-    public void barChanged(int oldBar, int newBar)
+    public void barChanged(int oldBar, int newBar, float newPosInBeats)
     {
         // Do nothing
     }

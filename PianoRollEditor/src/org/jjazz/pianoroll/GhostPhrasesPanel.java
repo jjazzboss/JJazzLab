@@ -22,7 +22,6 @@
  */
 package org.jjazz.pianoroll;
 
-import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -30,7 +29,7 @@ import java.util.logging.Logger;
 /**
  * Let user select the visible tracks.
  */
-public class BackgroundPhrasesPanel extends javax.swing.JPanel
+public class GhostPhrasesPanel extends javax.swing.JPanel
 {
 
     /**
@@ -39,12 +38,12 @@ public class BackgroundPhrasesPanel extends javax.swing.JPanel
     public static final String PROP_SELECTED_TRACK_NAMES = "selectedTrackNames";
     private List<String> trackNames = new ArrayList<>();
     private boolean blockChangeEventFiring = false;
-    private static final Logger LOGGER = Logger.getLogger(BackgroundPhrasesPanel.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(GhostPhrasesPanel.class.getSimpleName());
 
     /**
      * Creates new form ShowTracksPanel
      */
-    public BackgroundPhrasesPanel()
+    public GhostPhrasesPanel()
     {
 
         initComponents();
@@ -174,11 +173,11 @@ public class BackgroundPhrasesPanel extends javax.swing.JPanel
         list_tracks = new javax.swing.JList<>();
         btn_clearAll = new javax.swing.JButton();
 
-        list_tracks.setToolTipText(org.openide.util.NbBundle.getMessage(BackgroundPhrasesPanel.class, "BackgroundPhrasesPanel.list_tracks.toolTipText")); // NOI18N
+        list_tracks.setToolTipText(org.openide.util.NbBundle.getMessage(GhostPhrasesPanel.class, "GhostPhrasesPanel.list_tracks.toolTipText")); // NOI18N
         list_tracks.setVisibleRowCount(9);
         jScrollPane1.setViewportView(list_tracks);
 
-        org.openide.awt.Mnemonics.setLocalizedText(btn_clearAll, org.openide.util.NbBundle.getMessage(BackgroundPhrasesPanel.class, "BackgroundPhrasesPanel.btn_clearAll.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(btn_clearAll, org.openide.util.NbBundle.getMessage(GhostPhrasesPanel.class, "GhostPhrasesPanel.btn_clearAll.text")); // NOI18N
         btn_clearAll.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)

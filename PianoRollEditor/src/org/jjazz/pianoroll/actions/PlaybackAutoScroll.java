@@ -108,18 +108,13 @@ public class PlaybackAutoScroll extends ToggleAction implements PropertyChangeLi
             {
                 switch (mc.getState())
                 {
-                    case DISABLED:
-                    case STOPPED:
+                    case DISABLED, STOPPED ->
+                    {
                         musicListener.enabled = false;
                         editor.showPlaybackPoint(-1f);
-                        break;
-
-                    case PAUSED:
-                    case PLAYING:
-                        musicListener.enabled = true;
-                        break;
-                    default:
-                        throw new AssertionError(mc.getState().name());
+                    }
+                    case PAUSED, PLAYING -> musicListener.enabled = true;
+                    default -> throw new AssertionError(mc.getState().name());
 
                 }
             }
@@ -161,7 +156,7 @@ public class PlaybackAutoScroll extends ToggleAction implements PropertyChangeLi
         boolean enabled;
 
         @Override
-        public void beatChanged(Position oldPos, Position newPos)
+        public void beatChanged(Position oldPos, Position newPos, float newPosInBeats)
         {
             // newPos is a song/ruler position, not a phrase position
             if (!enabled || !editor.getRulerBarRange().contains(newPos.getBar()))

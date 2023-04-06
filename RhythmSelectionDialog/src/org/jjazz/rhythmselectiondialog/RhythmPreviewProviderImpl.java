@@ -38,6 +38,7 @@ import org.jjazz.activesong.api.ActiveSongManager;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
+import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.MidiMixManager;
@@ -263,11 +264,12 @@ public class RhythmPreviewProviderImpl implements RhythmSelectionDialog.RhythmPr
         if (r instanceof AdaptedRhythm ar)
         {
             Rhythm sourceRhythm = ar.getSourceRhythm();
-            parentSection = newCls.getItems(CLI_Section.class) // Find a parent section with the right signature
-                    .stream()
-                    .filter(s -> s.getData().getTimeSignature().equals(sourceRhythm.getTimeSignature()))
-                    .findFirst()
-                    .orElseThrow();     // Exception should never be thrown
+            // Find a parent section with the right signature
+            parentSection = newCls.getFirstItemAfter(new Position(0, 0),
+                    true,
+                    CLI_Section.class,
+                    s -> s.getData().getTimeSignature().equals(sourceRhythm.getTimeSignature()));
+            assert parentSection != null : " newCls=" + newCls;
             var newSpt1 = spt.clone(ar.getSourceRhythm(), spt.getNbBars(), spt.getNbBars(), parentSection);
             newSpts.add(newSpt1);
         }

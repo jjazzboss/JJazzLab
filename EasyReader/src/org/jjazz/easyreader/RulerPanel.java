@@ -68,7 +68,7 @@ public class RulerPanel extends JPanel
         {
             throw new IllegalArgumentException("posFrom=" + posFrom + " posTo=" + posTo);
         }
-        LOGGER.severe("setPositionRange() posFrom=" + posFrom + " posTo=" + posTo + " nbNaturalBeats=" + nbNaturalBeats);
+        // LOGGER.severe("setPositionRange() posFrom=" + posFrom + " posTo=" + posTo + " nbNaturalBeats=" + nbNaturalBeats);
         this.posFrom = posFrom;
         this.posTo = posTo;
         this.nbNaturalBeats = nbNaturalBeats;
@@ -85,7 +85,7 @@ public class RulerPanel extends JPanel
      */
     public void setMarkerPosition(Position pos)
     {
-        LOGGER.severe("setMarkerPosition() pos=" + pos);
+        // LOGGER.severe("setMarkerPosition() pos=" + pos);
         this.currentPos = pos;
         repaint();
     }
