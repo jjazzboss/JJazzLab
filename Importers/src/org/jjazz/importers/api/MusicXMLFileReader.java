@@ -231,8 +231,12 @@ public class MusicXMLFileReader
                     cls.setSectionTimeSignature(cliSection, ts);
                 } catch (UnsupportedEditException ex)
                 {
-                    LOGGER.warning(
-                            "onTimeSignatureParsed() Can't change time signature to " + ts + " at bar " + barIndex + " because: " + ex);
+                    LOGGER.log(Level.WARNING, "onTimeSignatureParsed() Can''t change time signature to {0} at bar {1} because: {2}",
+                            new Object[]
+                            {
+                                ts,
+                                barIndex, ex
+                            });
                     return;
                 }
             } else if (!section.getTimeSignature().equals(ts))

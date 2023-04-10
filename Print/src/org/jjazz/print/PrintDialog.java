@@ -57,8 +57,8 @@ public class PrintDialog extends javax.swing.JDialog implements ChangeListener
     static private PrintDialog INSTANCE;
     private PrinterJob job;
     private PageFormat pageFormat;
-    private int saveLeadSheetOrientation = PageFormat.PORTRAIT;
-    private int saveSongStructureOrientation = PageFormat.LANDSCAPE;
+    private final int saveLeadSheetOrientation = PageFormat.PORTRAIT;
+    private final int saveSongStructureOrientation = PageFormat.LANDSCAPE;
     private LeadSheetPrinter leadsheetPrinter;
     private SongStructurePrinter songStructurePrinter;
     private Pageable currentPageable;
@@ -101,7 +101,7 @@ public class PrintDialog extends javax.swing.JDialog implements ChangeListener
     {
         if (sg == null)
         {
-            throw new IllegalArgumentException("sg=" + sg);   
+            throw new IllegalArgumentException("sg=" + sg);
         }
 
         this.refSong = sg;
@@ -178,31 +178,9 @@ public class PrintDialog extends javax.swing.JDialog implements ChangeListener
 
         if (res != refSong)
         {
-            // Copy the CL_Editor song client properties to ensure the same rendering        
-            // BUGGY: will miss all duplicated songparts !
-            var cls = res.getChordLeadSheet();
-
-            for (var cliSection : cls.getItems(CLI_Section.class))
-            {
-                var section = cliSection.getData();
-
-                // Get the original values
-                String startOnNewLine = refSong.getClientProperty(CL_Editor.getSectionOnNewLinePropertyName(section), null);
-                String qString = refSong.getClientProperty(CL_Editor.getSectionQuantizationPropertyName(section), null);
-                Quantization qValue = Quantization.isValidStringValue(qString) ? Quantization.valueOf(qString) : null;
-
-
-                // Copy the values
-                if (startOnNewLine != null)
-                {
-                    res.putClientProperty(CL_Editor.getSectionOnNewLinePropertyName(section), "true");
-                }
-                if (qValue != null)
-                {
-                    res.putClientProperty(CL_Editor.getSectionQuantizationPropertyName(section), qValue.name());
-                }
-            }
+            res.getClientProperties().set(refSong.getClientProperties());
         }
+        
         return res;
     }
 
@@ -215,7 +193,7 @@ public class PrintDialog extends javax.swing.JDialog implements ChangeListener
     protected JRootPane createRootPane()
     {
         JRootPane contentPane = new JRootPane();
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ENTER"), "actionOk");   
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ENTER"), "actionOk");
         contentPane.getActionMap().put("actionOk", new AbstractAction("OK")
         {
 
@@ -226,7 +204,7 @@ public class PrintDialog extends javax.swing.JDialog implements ChangeListener
             }
         });
 
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ESCAPE"), "actionCancel");   
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ESCAPE"), "actionCancel");
         contentPane.getActionMap().put("actionCancel", new AbstractAction("Cancel")
         {
 
@@ -237,13 +215,15 @@ public class PrintDialog extends javax.swing.JDialog implements ChangeListener
             }
         });
 
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("PAGE_UP"), "PreviousPreviewPageAction");   
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("PAGE_UP"),
+                "PreviousPreviewPageAction");
         contentPane.getActionMap().put("PreviousPreviewPageAction", new PreviousPreviewPageAction());
 
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("PAGE_DOWN"), "NextPreviewPageAction");   
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("PAGE_DOWN"),
+                "NextPreviewPageAction");
         contentPane.getActionMap().put("NextPreviewPageAction", new NextPreviewPageAction());
 
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("HOME"), "FirstPageAction");   
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("HOME"), "FirstPageAction");
         contentPane.getActionMap().put("FirstPageAction", new AbstractAction()
         {
             @Override
@@ -253,7 +233,7 @@ public class PrintDialog extends javax.swing.JDialog implements ChangeListener
             }
 
         });
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("END"), "LastPageAction");   
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("END"), "LastPageAction");
         contentPane.getActionMap().put("LastPageAction", new AbstractAction()
         {
             @Override
@@ -264,8 +244,8 @@ public class PrintDialog extends javax.swing.JDialog implements ChangeListener
 
         });
 
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("PLUS"), "BarHeightPlus");   
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ADD"), "BarHeightPlus");   
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("PLUS"), "BarHeightPlus");
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ADD"), "BarHeightPlus");
         contentPane.getActionMap().put("BarHeightPlus", new AbstractAction()
         {
             @Override
@@ -276,8 +256,8 @@ public class PrintDialog extends javax.swing.JDialog implements ChangeListener
 
         });
 
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("MINUS"), "BarHeightMinus");   
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("SUBTRACT"), "BarHeightMinus");   
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("MINUS"), "BarHeightMinus");
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("SUBTRACT"), "BarHeightMinus");
         contentPane.getActionMap().put("BarHeightMinus", new AbstractAction()
         {
             @Override
@@ -435,9 +415,9 @@ public class PrintDialog extends javax.swing.JDialog implements ChangeListener
             {
                 // Log event
                 Analytics.logEvent("Print");
-                
+
                 try
-                {                   
+                {
                     job.print();
                 } catch (PrinterException ex)
                 {
@@ -455,8 +435,8 @@ public class PrintDialog extends javax.swing.JDialog implements ChangeListener
     }
 
     /**
-     * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of
-     * this method is always regenerated by the Form Editor.
+     * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of this
+     * method is always regenerated by the Form Editor.
      */
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents

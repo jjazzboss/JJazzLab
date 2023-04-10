@@ -190,7 +190,7 @@ public class GSDrumsInstrument extends Instrument implements Serializable
     {
 
         private static final long serialVersionUID = -9269L;
-        private final int spVERSION = 1;
+        private int spVERSION = 1;      // Do not make final!
         private String spSaveString;
 
         private SerializationProxy(GSDrumsInstrument ins)

@@ -160,8 +160,7 @@ abstract public class BarRenderer extends JPanel implements PropertyChangeListen
     public CLI_Section getCLI_Section()
     {
         var mbi = getModelBarIndex();
-        CLI_Section cliSection = mbi != -1 ? getModel().getSection(getModelBarIndex()) : null;
-        return cliSection;
+        return mbi != -1 ? getModel().getSection(mbi) : null;
     }
 
     public ItemRendererFactory getItemRendererFactory()

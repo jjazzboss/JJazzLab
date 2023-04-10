@@ -22,11 +22,6 @@
  */
 package org.jjazz.easyreader;
 
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.LayoutManager;
-import java.awt.Rectangle;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.logging.Logger;
@@ -44,37 +39,38 @@ import org.jjazz.rhythm.api.UserErrorGenerationException;
 import org.jjazz.rhythmmusicgeneration.api.SongChordSequence;
 import org.jjazz.song.api.Song;
 import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.ui.cl_editor.barbox.api.BarBox;
+import org.jjazz.ui.cl_editor.barbox.api.BarBoxConfig;
+import org.jjazz.ui.cl_editor.barbox.api.BarBoxSettings;
+import org.jjazz.ui.cl_editor.barrenderer.api.BarRendererFactory;
 import org.jjazz.ui.utilities.api.Utilities;
 import org.openide.util.Exceptions;
 
 /**
  * Display the currently playing chord symbol.
  */
-public class EasyReaderPanel extends JPanel implements PropertyChangeListener, PlaybackListener
+public class EasyReaderPanel2 extends JPanel implements PropertyChangeListener, PlaybackListener
 {
 
     private static final int PRE_FIRE_EVENT_MS = 100;
     private Song song;
     private SongChordSequence songChordSequence;
     private final Position posModel;
+    private BarBox barBox;
     private float posInBeatsModel;
-    // private final RulerPanel rulerPanel;
     private CLI_ChordSymbol chord;
     private float chordPosInBeats;
     private CLI_ChordSymbol nextChord;
     private float nextChordPosInBeats;
     private Position position;
-    private MyLayoutManager myLayoutManager;
     private SongMusicGenerationListener songMusicGenerationListener;
-    private static final Logger LOGGER = Logger.getLogger(EasyReaderPanel.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(EasyReaderPanel2.class.getSimpleName());
 
-    public EasyReaderPanel()
+    public EasyReaderPanel2()
     {
         initComponents();
         posModel = new Position();
-        myLayoutManager = new MyLayoutManager();
-        pnl_chords.setLayout(myLayoutManager);
-        pnl_ruler.setLayout(myLayoutManager);
+
     }
 
     public void cleanup()
@@ -130,7 +126,19 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
             songMusicGenerationListener = new SongMusicGenerationListener(this.song, midiMix, PRE_FIRE_EVENT_MS);   // We could set a blacklist to avoid MidiMix/PlaybackSettings changes...
             songMusicGenerationListener.addPropertyChangeListener(this);
 
-            generateChordSequence();
+
+            if (barBox != null)
+            {
+                barBox.cleanup();
+                pnl_barBox.remove(barBox);
+            }
+
+            barBox = new BarBox(null, 0, -1,
+                    song.getChordLeadSheet(),
+                    new BarBoxConfig(BarRendererFactory.BR_CHORD_SYMBOL, BarRendererFactory.BR_CHORD_POSITION),
+                    BarBoxSettings.getDefault(),
+                    BarRendererFactory.getDefault());
+            pnl_barBox.add(barBox);
         }
 
     }
@@ -183,13 +191,17 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
         {
             posInBeatsModel = newPosInBeats;
             posModel.set(newPos);
-            pnl_ruler.revalidate();
         });
     }
 
     @Override
     public void barChanged(int oldBar, int newBar, float newPosInBeats)
     {
+        LOGGER.severe("barChanged() newBar=" + newBar + " newPosInBeats=" + newPosInBeats);
+        if (barBox != null)
+        {
+            barBox.setModelBarIndex(newBar);
+        }
     }
 
     @Override
@@ -197,25 +209,23 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
     {
         LOGGER.severe("chordSymbolChanged() newChord=" + newChord);
 
-        SwingUtilities.invokeLater(() -> 
-        {
-            chord = newChord;
-            synchronized (this)
-            {
-                nextChord = songChordSequence.higher(chord);        // Might be null
-            }
-
-            chordPosInBeats = song.getSongStructure().getPositionInNaturalBeats(chord.getPosition());
-            nextChordPosInBeats = nextChord != null ? song.getSongStructure().getPositionInNaturalBeats(nextChord.getPosition()) : -1f;
-
-
-            // Update chords UI
-            String txt = chord.getData().getOriginalName();
-            String nextTxt = nextChord != null ? nextChord.getData().getOriginalName() : "-";
-            lbl_chord.setText(txt);
-            lbl_chordNext.setText(nextTxt);
-            pnl_chords.revalidate();
-        });
+//        SwingUtilities.invokeLater(() -> 
+//        {
+//            chord = newChord;
+//            synchronized (this)
+//            {
+//                nextChord = songChordSequence.higher(chord);        // Might be null
+//            }
+//
+//            chordPosInBeats = song.getSongStructure().getPositionInNaturalBeats(chord.getPosition());
+//            nextChordPosInBeats = nextChord != null ? song.getSongStructure().getPositionInNaturalBeats(nextChord.getPosition()) : -1f;
+//
+//
+//            // Update chords UI
+//            String txt = chord.getData().getOriginalName();
+//            String nextTxt = nextChord != null ? nextChord.getData().getOriginalName() : "-";
+//            pnl_barBox.revalidate();
+//        });
     }
 
     @Override
@@ -243,7 +253,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
             if (evt.getPropertyName().equals(SongMusicGenerationListener.PROP_CHANGED))
             {
                 // We can be notified out of the Swing EDT 
-                generateChordSequence();
+                // generateChordSequence();
             }
         } else if (evt.getSource() == mc)
         {
@@ -275,119 +285,10 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
     // =================================================================================================
     // Private methods
     // =================================================================================================
-    private synchronized void generateChordSequence()
-    {
-        try
-        {
-            songChordSequence = new SongChordSequence(this.song, null);
-        } catch (UserErrorGenerationException ex)
-        {
-            // Do nothing, we'll retry on the next song change
-        }
-    }
 
     // =================================================================================================
     // Inner classes
     // =================================================================================================
-
-    /**
-     * Our layout manager
-     */
-    public class MyLayoutManager implements LayoutManager
-    {
-
-        private int chordX, nextChordX;
-        private float oneBeatSizeInPixels;
-
-
-        @Override
-        public void layoutContainer(Container parent)
-        {
-            if (parent == pnl_chords)
-            {
-                layoutChordSymbols();
-            } else if (parent == pnl_ruler)
-            {
-                layoutRuler();
-            }
-        }
-
-        @Override
-        public Dimension preferredLayoutSize(Container parent)
-        {
-            return new Dimension(300, 100);
-        }
-
-        @Override
-        public void addLayoutComponent(String name, Component comp)
-        {
-            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-        }
-
-        @Override
-        public void removeLayoutComponent(Component comp)
-        {
-            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-        }
-
-        @Override
-        public Dimension minimumLayoutSize(Container parent)
-        {
-            return preferredLayoutSize(parent);
-        }
-
-        public int getChordX()
-        {
-            return chordX;
-        }
-
-        public int getNextChordX()
-        {
-            return nextChordX;
-        }
-
-        public float getOneBeatSizeInPixels()
-        {
-            return oneBeatSizeInPixels;
-        }
-
-        private void layoutChordSymbols()
-        {
-            Rectangle r = Utilities.getUsableArea(pnl_chords);
-            final float NB_BEATS = 6;
-            int x = r.x;
-
-            // Chord
-            var chordSize = lbl_chord.getPreferredSize();
-            int y = (r.height - chordSize.height) / 2;
-            chordX = x;
-            lbl_chord.setLocation(x, y);
-            lbl_chord.setSize(chordSize);
-
-
-            // Next chord
-            var nextChordSize = lbl_chordNext.getPreferredSize();
-            y += chordSize.height - nextChordSize.height;
-            oneBeatSizeInPixels = (r.width - chordSize.width - nextChordSize.width) / NB_BEATS;
-            x += chordSize.width + Math.round(Math.min(nextChordPosInBeats - chordPosInBeats, NB_BEATS) * oneBeatSizeInPixels);
-            nextChordX = x;
-            lbl_chordNext.setBounds(x, y, nextChordSize.width, nextChordSize.height);
-        }
-
-        private void layoutRuler()
-        {
-            Rectangle r = Utilities.getUsableArea(pnl_ruler);
-            if (chord !=null && posModel.compareTo(chord.getPosition()) >= 0 && nextChord != null && posModel.compareTo(nextChord.getPosition()) <= 0)
-            {
-                var markerSize = lbl_marker.getPreferredSize();
-                int y = (r.height - markerSize.height) / 2;
-                int x = nextChordX - (int) (oneBeatSizeInPixels * (nextChordPosInBeats - posInBeatsModel));
-                lbl_marker.setBounds(x, y, markerSize.width, markerSize.height);
-            }
-        }
-    }
-
-
     /**
      * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of this
      * method is always regenerated by the Form Editor.
@@ -397,38 +298,16 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
     private void initComponents()
     {
 
-        pnl_chords = new javax.swing.JPanel();
-        lbl_chord = new javax.swing.JLabel();
-        lbl_chordNext = new javax.swing.JLabel();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        helpTextArea1 = new org.jjazz.ui.utilities.api.HelpTextArea();
+        pnl_barBox = new javax.swing.JPanel();
         pnl_posSection = new javax.swing.JPanel();
         pnl_pos = new javax.swing.JPanel();
         posViewer = new org.jjazz.ui.musiccontrolactions.ui.api.PositionViewer();
         pnl_songPart = new javax.swing.JPanel();
         lbl_songPart = new javax.swing.JLabel();
-        pnl_ruler = new javax.swing.JPanel();
-        lbl_marker = new javax.swing.JLabel();
+        lbl_nextChord = new javax.swing.JLabel();
 
-        pnl_chords.setBorder(javax.swing.BorderFactory.createEtchedBorder());
-        java.awt.FlowLayout flowLayout1 = new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 10, 5);
-        flowLayout1.setAlignOnBaseline(true);
-        pnl_chords.setLayout(flowLayout1);
-
-        lbl_chord.setFont(lbl_chord.getFont().deriveFont(lbl_chord.getFont().getStyle() | java.awt.Font.BOLD, lbl_chord.getFont().getSize()+9));
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_chord, org.openide.util.NbBundle.getMessage(EasyReaderPanel.class, "EasyReaderPanel.lbl_chord.text")); // NOI18N
-        pnl_chords.add(lbl_chord);
-
-        lbl_chordNext.setFont(lbl_chordNext.getFont().deriveFont(lbl_chordNext.getFont().getStyle() | java.awt.Font.BOLD, lbl_chordNext.getFont().getSize()+1));
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_chordNext, org.openide.util.NbBundle.getMessage(EasyReaderPanel.class, "EasyReaderPanel.lbl_chordNext.text")); // NOI18N
-        pnl_chords.add(lbl_chordNext);
-
-        jScrollPane1.setBorder(null);
-
-        helpTextArea1.setColumns(20);
-        helpTextArea1.setRows(1);
-        helpTextArea1.setText(org.openide.util.NbBundle.getMessage(EasyReaderPanel.class, "EasyReaderPanel.helpTextArea1.text")); // NOI18N
-        jScrollPane1.setViewportView(helpTextArea1);
+        pnl_barBox.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+        pnl_barBox.setLayout(new java.awt.BorderLayout());
 
         pnl_posSection.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
 
@@ -438,30 +317,12 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
 
         pnl_posSection.add(pnl_pos);
 
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_songPart, org.openide.util.NbBundle.getMessage(EasyReaderPanel.class, "EasyReaderPanel.lbl_songPart.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_songPart, org.openide.util.NbBundle.getMessage(EasyReaderPanel2.class, "EasyReaderPanel2.lbl_songPart.text")); // NOI18N
         pnl_songPart.add(lbl_songPart);
 
         pnl_posSection.add(pnl_songPart);
 
-        pnl_ruler.setBorder(javax.swing.BorderFactory.createEtchedBorder());
-
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_marker, org.openide.util.NbBundle.getMessage(EasyReaderPanel.class, "EasyReaderPanel.lbl_marker.text")); // NOI18N
-
-        javax.swing.GroupLayout pnl_rulerLayout = new javax.swing.GroupLayout(pnl_ruler);
-        pnl_ruler.setLayout(pnl_rulerLayout);
-        pnl_rulerLayout.setHorizontalGroup(
-            pnl_rulerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(pnl_rulerLayout.createSequentialGroup()
-                .addGap(108, 108, 108)
-                .addComponent(lbl_marker)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
-        pnl_rulerLayout.setVerticalGroup(
-            pnl_rulerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnl_rulerLayout.createSequentialGroup()
-                .addGap(0, 7, Short.MAX_VALUE)
-                .addComponent(lbl_marker))
-        );
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_nextChord, org.openide.util.NbBundle.getMessage(EasyReaderPanel2.class, "EasyReaderPanel2.lbl_nextChord.text")); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -470,10 +331,11 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(pnl_ruler, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jScrollPane1)
-                    .addComponent(pnl_chords, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(pnl_posSection, javax.swing.GroupLayout.DEFAULT_SIZE, 292, Short.MAX_VALUE))
+                    .addComponent(pnl_posSection, javax.swing.GroupLayout.DEFAULT_SIZE, 292, Short.MAX_VALUE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(pnl_barBox, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(lbl_nextChord)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -481,28 +343,21 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
             .addGroup(layout.createSequentialGroup()
                 .addGap(7, 7, 7)
                 .addComponent(pnl_posSection, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(pnl_ruler, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(2, 2, 2)
-                .addComponent(pnl_chords, javax.swing.GroupLayout.DEFAULT_SIZE, 73, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(pnl_barBox, javax.swing.GroupLayout.PREFERRED_SIZE, 53, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(lbl_nextChord))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private org.jjazz.ui.utilities.api.HelpTextArea helpTextArea1;
-    private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JLabel lbl_chord;
-    private javax.swing.JLabel lbl_chordNext;
-    private javax.swing.JLabel lbl_marker;
+    private javax.swing.JLabel lbl_nextChord;
     private javax.swing.JLabel lbl_songPart;
-    private javax.swing.JPanel pnl_chords;
+    private javax.swing.JPanel pnl_barBox;
     private javax.swing.JPanel pnl_pos;
     private javax.swing.JPanel pnl_posSection;
-    private javax.swing.JPanel pnl_ruler;
     private javax.swing.JPanel pnl_songPart;
     private org.jjazz.ui.musiccontrolactions.ui.api.PositionViewer posViewer;
     // End of variables declaration//GEN-END:variables

@@ -25,6 +25,7 @@ package org.jjazz.easyreader;
 import java.awt.Graphics;
 import java.awt.Rectangle;
 import java.util.logging.Logger;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.song.api.BeatIterator;
@@ -45,10 +46,12 @@ public class RulerPanel extends JPanel
     private Position currentPos;
     private int chordX;
     private int nextChordX;
+    private final JLabel lbl_marker;
     private static final Logger LOGGER = Logger.getLogger(RulerPanel.class.getSimpleName());
 
     public RulerPanel()
     {
+        lbl_marker = new JLabel("x");
     }
 
     public void setSong(Song song)
@@ -59,8 +62,9 @@ public class RulerPanel extends JPanel
     /**
      * Set the position range displayed.
      *
-     * @param posFrom beat must be an int
-     * @param posTo   beat must be an int
+     * @param posFrom        beat must be an int
+     * @param posTo          beat must be an int. Can be null
+     * @param nbNaturalBeats The nb of natural beats between posFrom and posTo. Ignored if posTo==null.
      */
     public void setPositionRange(Position posFrom, Position posTo, int nbNaturalBeats)
     {
@@ -87,11 +91,20 @@ public class RulerPanel extends JPanel
     {
         // LOGGER.severe("setMarkerPosition() pos=" + pos);
         this.currentPos = pos;
-        repaint();
+        if (currentPos==null)
+        {
+            remove(lbl_marker);
+            repaint();
+        } else if (getComponentCount()==0)
+        {
+            // First time, add label            
+            add(lbl_marker);
+            revalidate();
+        }
     }
 
-    @Override
-    public void paintComponent(Graphics g)
+    // @Override
+    public void paintComponentXXX(Graphics g)
     {
         super.paintComponent(g);
 
@@ -157,4 +170,7 @@ public class RulerPanel extends JPanel
     {
         return pos.isFirstBarBeat() ? BAR_TICK_LENGTH : BAR_TICK_LENGTH / 2;
     }
+
+   
+
 }

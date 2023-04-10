@@ -64,7 +64,7 @@ public class SS_EditorTransferHandler extends TransferHandler
     {
         if (ed == null)
         {
-            throw new NullPointerException("ed");   
+            throw new NullPointerException("ed");
         }
         editor = ed;
     }
@@ -75,17 +75,16 @@ public class SS_EditorTransferHandler extends TransferHandler
     @Override
     public int getSourceActions(JComponent c)
     {
-        LOGGER.fine("getSourceActions()  c" + c);   
+        LOGGER.log(Level.FINE, "getSourceActions()  c{0}", c);
         return TransferHandler.COPY_OR_MOVE;
     }
 
     @Override
     public Transferable createTransferable(JComponent c)
     {
-        LOGGER.fine("createTransferable()  c" + c);   
-        if (c instanceof SptViewer)
+        LOGGER.log(Level.FINE, "createTransferable()  c{0}", c);
+        if (c instanceof SptViewer sptv)
         {
-            SptViewer sptv = (SptViewer) c;
             return sptv.getModel();
         } else
         {
@@ -102,7 +101,10 @@ public class SS_EditorTransferHandler extends TransferHandler
     @Override
     protected void exportDone(JComponent c, Transferable data, int action)
     {
-        LOGGER.fine("exportDone()  c=" + c + " data=" + data + " action=" + action);   
+        LOGGER.log(Level.FINE, "exportDone()  c={0} data={1} action={2}", new Object[]
+        {
+            c, data, action
+        });
         // Will be called if drag was initiated from this handler
         editor.showSptInsertionMark(false, 0, false);
     }
@@ -110,7 +112,7 @@ public class SS_EditorTransferHandler extends TransferHandler
     @Override
     public boolean canImport(TransferHandler.TransferSupport info)
     {
-        LOGGER.fine("canImport() info.getComponent()=" + info.getComponent());   
+        LOGGER.log(Level.FINE, "canImport() info.getComponent()={0}", info.getComponent());
 
 
         // Check data flavor and origin of the transfert
@@ -130,7 +132,7 @@ public class SS_EditorTransferHandler extends TransferHandler
             }
         } else
         {
-            LOGGER.fine("-- unsupported DataFlavor");   
+            LOGGER.fine("-- unsupported DataFlavor");
             return false;
         }
 
@@ -141,7 +143,7 @@ public class SS_EditorTransferHandler extends TransferHandler
         boolean moveSupported = (MOVE & info.getSourceDropActions()) == MOVE;
         if (!copySupported && !moveSupported)
         {
-            LOGGER.fine("-- copy or move not supported");   
+            LOGGER.fine("-- copy or move not supported");
             return false;
         }
         // Force modes if not supported by source
@@ -167,15 +169,15 @@ public class SS_EditorTransferHandler extends TransferHandler
     @Override
     public boolean importData(TransferHandler.TransferSupport info)
     {
-        LOGGER.fine("importData() info.getComponent()=" + info.getComponent());   
+        LOGGER.log(Level.FINE, "importData() info.getComponent()={0}", info.getComponent());
         if (!info.isDrop())
         {
-            LOGGER.fine("--- not a drop");   
+            LOGGER.fine("--- not a drop");
             return false;
         }
         if (!canImport(info))
         {
-            LOGGER.fine("--- can't import");   
+            LOGGER.fine("--- can't import");
             return false;
         }
 
@@ -189,9 +191,9 @@ public class SS_EditorTransferHandler extends TransferHandler
             b = importSection(info);
         } else
         {
-            LOGGER.warning("importData() unexpected data flavor=" + info.getDataFlavors());   
+            LOGGER.log(Level.WARNING, "importData() unexpected data flavor={0}", info.getDataFlavors());
         }
-        LOGGER.fine("--- exited with b=" + b);   
+        LOGGER.log(Level.FINE, "--- exited with b={0}", b);
         return b;
     }
 
@@ -207,11 +209,11 @@ public class SS_EditorTransferHandler extends TransferHandler
     private boolean importSongPart(TransferSupport info)
     {
         SongPart spt = getTransferredSpt(info.getTransferable());
-        assert spt != null;   
+        assert spt != null;
 
         // Calculate insertion point
         int targetSptIndex = getInsertionSptIndex(info);
-        assert targetSptIndex != -1;   
+        assert targetSptIndex != -1;
 
         SongStructure sgs = editor.getModel();
         List<SongPart> spts = sgs.getSongParts();
@@ -245,7 +247,10 @@ public class SS_EditorTransferHandler extends TransferHandler
         if (info.getDropAction() == MOVE)
         {
             // Move the SongPart
-            LOGGER.log(Level.FINE, "importSongPart() MOVE spt=" + spt + " newSpt=" + newSpt);   
+            LOGGER.log(Level.FINE, "importSongPart() MOVE spt={0} newSpt={1}", new Object[]
+            {
+                spt, newSpt
+            });
             um.startCEdit(ResUtil.getString(getClass(), "CTL_MoveSpt"));
             try
             {
@@ -256,7 +261,7 @@ public class SS_EditorTransferHandler extends TransferHandler
             } catch (UnsupportedEditException ex)
             {
                 // Should never happen : we just use existing SongParts with the same song
-                String msg = ResUtil.getString(getClass(),"ERR_CantMoveSongPart");
+                String msg = ResUtil.getString(getClass(), "ERR_CantMoveSongPart");
                 msg += "\n" + ex.getLocalizedMessage();
                 um.handleUnsupportedEditException(ResUtil.getString(getClass(), "CTL_MoveSpt"), msg);
                 return false;
@@ -265,7 +270,7 @@ public class SS_EditorTransferHandler extends TransferHandler
         } else
         {
             // Copy
-            LOGGER.log(Level.FINE, "importSongPart() COPY newSpt=" + newSpt);   
+            LOGGER.log(Level.FINE, "importSongPart() COPY newSpt={0}", newSpt);
             um.startCEdit(ResUtil.getString(getClass(), "CTL_CopySpt"));
             try
             {
@@ -273,7 +278,7 @@ public class SS_EditorTransferHandler extends TransferHandler
             } catch (UnsupportedEditException ex)
             {
                 // No new rhythm, so we should never be here
-                String msg = ResUtil.getString(getClass(),"ERR_CantCopy");
+                String msg = ResUtil.getString(getClass(), "ERR_CantCopy");
                 msg += "\n" + ex.getLocalizedMessage();
                 um.handleUnsupportedEditException(ResUtil.getString(getClass(), "CTL_CopySpt"), msg);
                 return false;
@@ -294,7 +299,7 @@ public class SS_EditorTransferHandler extends TransferHandler
         assert info.getDropAction() == COPY;    // Can't move a CL_Editor section here !   
 
         CLI_Section parentSection = getTransferredSection(info.getTransferable());
-        assert parentSection != null;   
+        assert parentSection != null;
 
         SS_SelectionUtilities selection = new SS_SelectionUtilities(editor.getLookup());
         selection.unselectAll(editor);
@@ -332,7 +337,7 @@ public class SS_EditorTransferHandler extends TransferHandler
             section = (CLI_Section) t.getTransferData(CLI_Section.DATA_FLAVOR);
         } catch (UnsupportedFlavorException | IOException ex)
         {
-            LOGGER.log(Level.FINE, ex.getMessage(), ex);   
+            LOGGER.log(Level.FINE, ex.getMessage(), ex);
         }
         return section;
     }
@@ -345,7 +350,7 @@ public class SS_EditorTransferHandler extends TransferHandler
             spt = (SongPart) t.getTransferData(SongPart.DATA_FLAVOR);
         } catch (UnsupportedFlavorException | IOException ex)
         {
-            LOGGER.log(Level.FINE, ex.getMessage(), ex);   
+            LOGGER.log(Level.FINE, ex.getMessage(), ex);
         }
         return spt;
     }
@@ -414,7 +419,7 @@ public class SS_EditorTransferHandler extends TransferHandler
 
         } catch (UnsupportedEditException ex)
         {
-            String msg = ResUtil.getString(getClass(),"ERR_CantAdd", parentSection.getData());
+            String msg = ResUtil.getString(getClass(), "ERR_CantAdd", parentSection.getData());
             msg += ".\n" + ex.getLocalizedMessage();
             um.handleUnsupportedEditException(ResUtil.getString(getClass(), "CTL_AddSpt"), msg);
             return null;

@@ -45,6 +45,7 @@ import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.ui.cl_editor.api.CL_Editor;
 import org.jjazz.ui.cl_editor.barrenderer.api.BarRenderer;
 import org.jjazz.ui.cl_editor.barrenderer.api.BarRendererSettings;
+import org.jjazz.ui.colorsetmanager.api.ColorSetManager;
 import org.jjazz.ui.itemrenderer.api.IR_SectionSettings;
 import org.jjazz.ui.itemrenderer.api.IR_Copiable;
 import org.jjazz.ui.itemrenderer.api.IR_Section;
@@ -87,7 +88,10 @@ public class BR_Sections extends BarRenderer implements ComponentListener, Prope
 
 
         // Listen to section colors changes
-        editor.addPropertyChangeListener(this);
+        if (editor != null)
+        {
+            editor.addPropertyChangeListener(this);
+        }
 
 
         // Our layout manager
@@ -103,21 +107,17 @@ public class BR_Sections extends BarRenderer implements ComponentListener, Prope
 
     }
 
-    /**
-     * Overridden to update the section and repaint.
-     *
-     * @param modelBarIndex
-     */
+
     @Override
     public void setModelBarIndex(int modelBarIndex)
     {
         super.setModelBarIndex(modelBarIndex);
-        Color c = null;
-        if (modelBarIndex >= 0 && modelBarIndex < getModel().getSizeInBars())
+
+        CLI_Section cliSection = getCLI_Section();
+        if (cliSection != null)
         {
-            c = getEditor().getSectionColor(getCLI_Section());
+            setSection(cliSection);
         }
-        setSectionColor(c);
     }
 
 
@@ -129,13 +129,16 @@ public class BR_Sections extends BarRenderer implements ComponentListener, Prope
     {
         super.cleanup();
         getPrefSizePanelSharedInstance().removeComponentListener(this);
-        getEditor().removePropertyChangeListener(this);
-
-        // Remove only if it's the last bar of the editor
-        if (getEditor().getNbBarBoxes() == 1)
+        if (getEditor() != null)
         {
-            JDialog dlg = getFontMetricsDialog();
-            dlg.remove(getPrefSizePanelSharedInstance());
+            getEditor().removePropertyChangeListener(this);
+
+            // Remove only if it's the last bar of the editor
+            if (getEditor().getNbBarBoxes() == 1)
+            {
+                JDialog dlg = getFontMetricsDialog();
+                dlg.remove(getPrefSizePanelSharedInstance());
+            }
         }
     }
 
@@ -148,7 +151,8 @@ public class BR_Sections extends BarRenderer implements ComponentListener, Prope
     @Override
     public void setSection(CLI_Section cliSection)
     {
-        setSectionColor(getEditor().getSectionColor(cliSection));
+
+        setSectionColor(getSectionColor(cliSection));
     }
 
     @Override
@@ -262,7 +266,7 @@ public class BR_Sections extends BarRenderer implements ComponentListener, Prope
         ItemRenderer ir = getItemRendererFactory().createItemRenderer(IR_Type.Section, item, getSettings().getItemRendererSettings());
         if (ir instanceof IR_Section irs)
         {
-            irs.setSectionColor(getEditor().getSectionColor(cliSection));
+            irs.setSectionColor(getSectionColor(cliSection));
         }
         return ir;
     }
@@ -309,14 +313,14 @@ public class BR_Sections extends BarRenderer implements ComponentListener, Prope
     {
         if (evt.getSource() == getEditor())
         {
-            if (CL_Editor.isSectionColorPropertyName(evt.getPropertyName()))
+            if (CL_Editor.PROP_SECTION_COLOR.equals(evt.getPropertyName()))
             {
                 // Check if we are impacted
-                var sectionName = CL_Editor.getSectionNameFromPropertyName(evt.getPropertyName());
+                CLI_Section changedSection = (CLI_Section) evt.getOldValue();
                 CLI_Section cliSection = getCLI_Section();
-                if (cliSection != null && cliSection.getData().getName().equals(sectionName))
+                if (changedSection == cliSection)
                 {
-                    setSectionColor(getEditor().getSectionColor(cliSection));
+                    setSectionColor(getSectionColor(cliSection));
                 }
             }
         }
@@ -345,6 +349,11 @@ public class BR_Sections extends BarRenderer implements ComponentListener, Prope
         {
             irSection.setSectionColor(sectionColor);
         }
+    }
+
+    private Color getSectionColor(CLI_Section cliSection)
+    {
+        return getEditor() != null ? getEditor().getSectionColor(cliSection) : ColorSetManager.getDefault().getColor(cliSection);
     }
 
     /**

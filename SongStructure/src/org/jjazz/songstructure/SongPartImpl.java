@@ -51,6 +51,7 @@ import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.util.api.ResUtil;
 import org.jjazz.rhythm.api.RpEnumerable;
+import org.jjazz.util.api.StringProperties;
 
 public class SongPartImpl implements SongPart, Serializable, ChangeListener
 {
@@ -76,6 +77,7 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
      * Parent section.
      */
     private CLI_Section parentSection;
+    private StringProperties clientProperties;
     /**
      * The value associated to each RhythmParameter.
      */
@@ -89,6 +91,7 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
      */
     private transient SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(SongPartImpl.class.getSimpleName());
+
 
     /**
      * Create a SongPartImpl with default value for each of the rhythm's RhythmParameters.
@@ -112,6 +115,7 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
         this.nbBars = nbBars;
         name = parentSection == null ? NO_NAME : parentSection.getData().getName();
         this.parentSection = parentSection;
+        this.clientProperties = new StringProperties();
 
 
         // Associate a default value to each RhythmParameter                    
@@ -330,6 +334,12 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
     }
 
     @Override
+    public StringProperties getClientProperties()
+    {
+        return clientProperties;
+    }
+
+    @Override
     public String toString()
     {
         return "[" + name + ", r=" + rhythm + ", startBarIndex=" + startBarIndex + ", nbBars=" + nbBars + "]";
@@ -446,17 +456,18 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
          */
         private static final transient List<String> saveUnavailableRhythmIds = new ArrayList<>();
 
-        private final int spVERSION = 1;
-        private final String spRhythmId;
-        private final String spRhythmName;
-        private final TimeSignature spRhythmTs;
-        private final int spStartBarIndex;
-        private final String spName;
-        private final int spNbBars;
-        private final CLI_Section spParentSection;
-        private final SmallMap<String, String> spMapRpIdValue = new SmallMap<>();
-        private final SmallMap<String, String> spMapRpIdDisplayName = new SmallMap<>();        // Used to find a matching RP when rpId does not work
-        private final SmallMap<String, Double> spMapRpIdPercentageValue = new SmallMap<>();   // Used as backup when RP's valueToString() does not work
+        private int spVERSION = 2;  // Do not make final!
+        private String spRhythmId;
+        private String spRhythmName;
+        private TimeSignature spRhythmTs;
+        private int spStartBarIndex;
+        private String spName;
+        private int spNbBars;
+        private CLI_Section spParentSection;
+        private SmallMap<String, String> spMapRpIdValue = new SmallMap<>();
+        private SmallMap<String, String> spMapRpIdDisplayName = new SmallMap<>();        // Used to find a matching RP when rpId does not work
+        private SmallMap<String, Double> spMapRpIdPercentageValue = new SmallMap<>();   // Used as backup when RP's valueToString() does not work
+        private StringProperties spClientProperties;      // From spVERSION 2
 
         @SuppressWarnings(
                 {
@@ -484,7 +495,11 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
                     spMapRpIdValue.putValue(rp.getId(), strValue);
                 }
             }
+
+            // From spVERSION 2
+            spClientProperties = spt.getClientProperties();
         }
+
 
         @SuppressWarnings(
                 {
@@ -578,6 +593,21 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
                 DialogDisplayer.getDefault().notify(nd);
                 saveUnavailableRhythmIds.add(spRhythmId);
             }
+
+
+            // From spVERSION 2
+            if (spVERSION >= 2)
+            {
+                if (spClientProperties != null)
+                {
+                    newSpt.getClientProperties().set(spClientProperties);
+                } else
+                {
+                    LOGGER.log(Level.WARNING, "SerializationProxy.readResolve() Unexpected null value for spClientProperties. spName={0}",
+                            spName);
+                }
+            }
+
 
             return newSpt;
         }

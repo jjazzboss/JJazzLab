@@ -22,8 +22,6 @@
  */
 package org.jjazz.phrase.api;
 
-import org.jjazz.phrase.api.Phrase;
-import org.jjazz.phrase.api.NoteEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -147,10 +145,10 @@ public class SourcePhrase extends Phrase
             if (tester.test(ne))
             {
                 NoteEvent newNe = mapper.apply(ne);
-                newNe.setClientProperties(ne);
-                if (newNe.getClientProperty(PARENT_NOTE) == null)
+                newNe.getClientProperties().set(ne.getClientProperties());
+                if (newNe.getClientProperties().get(PARENT_NOTE) == null)
                 {
-                    newNe.putClientProperty(PARENT_NOTE, ne);         // If no previous PARENT_NOTE client property we can add one
+                    newNe.getClientProperties().put(PARENT_NOTE, ne);         // If no previous PARENT_NOTE client property we can add one
                 }
                 res.add(newNe);
             }
@@ -332,7 +330,7 @@ public class SourcePhrase extends Phrase
             // Ex: ecsSrc=C7M, pSrc=C,E,G,B, and ecsDest=Cm79
             // Take as many "most important dest degrees" as there are source degrees present in the source phrase
             List<DegreeIndex> degreeIndexes = miDestDegreeIndexes.subList(0, nbSrcDegrees);
-            for (DegreeIndex di : degreeIndexes.toArray(new DegreeIndex[0]))
+            for (DegreeIndex di : degreeIndexes.toArray(DegreeIndex[]::new))
             {
                 Degree destDegree = ctDest.fitDegreeAdvanced(di, ecsDest.getRenderingInfo().getScaleInstance());
                 Degree srcDegree = ctSrc.fitDegreeAdvanced(di, chordSymbol.getRenderingInfo().getScaleInstance());
@@ -358,7 +356,7 @@ public class SourcePhrase extends Phrase
 
                 ChordType.DegreeIndex closestDegreeIndex = null;
                 int smallestPitchDelta = 100000;
-                for (ChordType.DegreeIndex di : degreeIndexes.toArray(new DegreeIndex[0]))
+                for (ChordType.DegreeIndex di : degreeIndexes.toArray(DegreeIndex[]::new))
                 {
                     int destRelPitch = ecsDest.getRelativePitch(di);
                     int pitchDelta = Math.abs(srcNote.getRelativePitchDelta(destRelPitch));
@@ -383,7 +381,7 @@ public class SourcePhrase extends Phrase
             // Take all the "most important notes" of the destination degrees
             List<DegreeIndex> degreeIndexes = miDestDegreeIndexes;
 
-            for (DegreeIndex di : degreeIndexes.toArray(new DegreeIndex[0]))
+            for (DegreeIndex di : degreeIndexes.toArray(DegreeIndex[]::new))
             {
                 Degree destDegree = ctDest.fitDegreeAdvanced(di, ecsDest.getRenderingInfo().getScaleInstance());
                 Degree srcDegree = ctSrc.fitDegreeAdvanced(di, chordSymbol.getRenderingInfo().getScaleInstance());

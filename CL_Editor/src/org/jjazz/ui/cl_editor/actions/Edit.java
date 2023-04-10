@@ -194,30 +194,26 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
     static protected void editSectionWithDialog(final SectionEditorDialog dialog, final CLI_Section sectionItem, final char key, final ChordLeadSheet cls, String undoText)
     {
         // Use specific editor if service is provided
-        Runnable run = new Runnable()
+        Runnable run = () ->
         {
-            @Override
-            public void run()
+            dialog.preset(sectionItem, key);
+            dialog.setLocationRelativeTo(WindowManager.getDefault().getMainWindow());
+            dialog.setVisible(true);
+            if (dialog.exitedOk())
             {
-                dialog.preset(sectionItem, key);
-                dialog.setLocationRelativeTo(WindowManager.getDefault().getMainWindow());
-                dialog.setVisible(true);
-                if (dialog.exitedOk())
+                Section newSection = dialog.getNewData();
+                assert newSection != null;
+                JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(cls);
+                try
                 {
-                    Section newSection = dialog.getNewData();
-                    assert newSection != null;   
-                    JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(cls);
-                    try
-                    {
-                        cls.setSectionName(sectionItem, newSection.getName());
-                        cls.setSectionTimeSignature(sectionItem, newSection.getTimeSignature());
-                    } catch (UnsupportedEditException ex)
-                    {
-
-                        String msg = ResUtil.getString(getClass(), "ERR_ChangeSection", sectionItem.getData());
-                        msg += "\n" + ex.getLocalizedMessage();
-                        um.handleUnsupportedEditException(undoText, msg);
-                    }
+                    cls.setSectionName(sectionItem, newSection.getName());
+                    cls.setSectionTimeSignature(sectionItem, newSection.getTimeSignature());
+                } catch (UnsupportedEditException ex)
+                {
+                    
+                    String msg = ResUtil.getString(Edit.class, "ERR_ChangeSection", sectionItem.getData());
+                    msg += "\n" + ex.getLocalizedMessage();
+                    um.handleUnsupportedEditException(undoText, msg);
                 }
             }
         };
@@ -258,88 +254,84 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
 
     static protected void editBarWithDialog(final CL_Editor editor, final int barIndex, final Preset preset, final ChordLeadSheet cls, String undoText)
     {
-        Runnable run = new Runnable()
+        Runnable run = () ->
         {
-            @Override
-            public void run()
+            // Prepare dialog
+            final CL_BarEditorDialog dialog = CL_BarEditorDialog.getDefault();
+            dialog.preset(preset, editor.getModel(), barIndex, editor.getDisplayQuantizationValue(cls.getSection(barIndex)).equals(Quantization.ONE_THIRD_BEAT));
+            adjustDialogPosition(dialog, barIndex);
+            dialog.setVisible(true);
+            LOGGER.fine("editBarWithDialog() right after setVisible(true)");
+            if (!dialog.isExitOk())
             {
-                // Prepare dialog
-                final CL_BarEditorDialog dialog = CL_BarEditorDialog.getDefault();
-                dialog.preset(preset, editor.getModel(), barIndex, editor.getDisplayQuantizationValue(cls.getSection(barIndex)).equals(Quantization.ONE_THIRD_BEAT));
-                adjustDialogPosition(dialog, barIndex);
-                dialog.setVisible(true);
-                LOGGER.fine("editBarWithDialog() right after setVisible(true)");   
-                if (!dialog.isExitOk())
+                dialog.cleanup();
+                return;
+            }
+            
+            JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(cls);
+            um.startCEdit(undoText);
+            
+            // Manage section change
+            CLI_Section resultSection = dialog.getSection();
+            if (resultSection != null)
+            {
+                CLI_Section currentSection = cls.getSection(barIndex);
+                if (currentSection.getPosition().getBar() == barIndex)
                 {
-                    dialog.cleanup();
-                    return;
-                }
-
-                JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(cls);
-                um.startCEdit(undoText);
-
-                // Manage section change
-                CLI_Section resultSection = dialog.getSection();
-                if (resultSection != null)
+                    // Update existing section
+                    cls.setSectionName(currentSection, resultSection.getData().getName());
+                    try
+                    {
+                        // Manage the case where we change initial section, user prompt to apply to whole song
+                        SetTimeSignature.changeTimeSignaturePossiblyForWholeSong(cls, resultSection.getData().getTimeSignature(), Arrays.asList(currentSection));
+                    } catch (UnsupportedEditException ex)
+                    {
+                        String msg = ResUtil.getString(Edit.class, "ERR_ChangeSection", resultSection.getData());
+                        msg += "\n" + ex.getLocalizedMessage();
+                        um.handleUnsupportedEditException(undoText, msg);
+                        // There are other things to do, restart edit
+                        um.startCEdit(undoText);
+                    }
+                } else
                 {
-                    CLI_Section currentSection = cls.getSection(barIndex);
-                    if (currentSection.getPosition().getBar() == barIndex)
+                    // Add new section
+                    try
                     {
-                        // Update existing section
-                        cls.setSectionName(currentSection, resultSection.getData().getName());
-                        try
-                        {
-                            // Manage the case where we change initial section, user prompt to apply to whole song
-                            SetTimeSignature.changeTimeSignaturePossiblyForWholeSong(cls, resultSection.getData().getTimeSignature(), Arrays.asList(currentSection));
-                        } catch (UnsupportedEditException ex)
-                        {
-                            String msg = ResUtil.getString(getClass(), "ERR_ChangeSection", resultSection.getData());
-                            msg += "\n" + ex.getLocalizedMessage();
-                            um.handleUnsupportedEditException(undoText, msg);
-                            // There are other things to do, restart edit
-                            um.startCEdit(undoText);
-                        }
-                    } else
+                        cls.addSection(resultSection);
+                    } catch (UnsupportedEditException ex)
                     {
-                        // Add new section
-                        try
-                        {
-                            cls.addSection(resultSection);
-                        } catch (UnsupportedEditException ex)
-                        {
-                            String msg = ResUtil.getString(getClass(), "ERR_ChangeSection", resultSection.getData());
-                            msg += "\n" + ex.getLocalizedMessage();
-                            um.handleUnsupportedEditException(undoText, msg);
-                            // There are other things to do, restart edit
-                            um.startCEdit(undoText);
-                        }
+                        String msg = ResUtil.getString(Edit.class, "ERR_ChangeSection", resultSection.getData());
+                        msg += "\n" + ex.getLocalizedMessage();
+                        um.handleUnsupportedEditException(undoText, msg);
+                        // There are other things to do, restart edit
+                        um.startCEdit(undoText);
                     }
                 }
-
-                // Manage added/removed/changed items
-                var resultAddedItems = dialog.getAddedItems();
-                resultAddedItems.forEach(item -> cls.addItem(item));
-
-                var resultRemovedItems = dialog.getRemovedItems();
-                resultRemovedItems.forEach(item -> cls.removeItem(item));
-
-                Map<CLI_ChordSymbol, ExtChordSymbol> map = dialog.getUpdatedChordSymbols();
-                map.keySet().forEach(cliCs -> cls.changeItem(cliCs, map.get(cliCs)));
-
-                um.endCEdit(undoText);
-
-                // Go to next bar if chords have changed
-                boolean chordSymbolChange = !resultAddedItems.isEmpty() || !resultRemovedItems.isEmpty() || !map.isEmpty();
-                if (barIndex < cls.getSizeInBars() - 1 && chordSymbolChange)
-                {
-                    CL_SelectionUtilities selection = new CL_SelectionUtilities(editor.getLookup());
-                    selection.unselectAll(editor);
-                    editor.setFocusOnBar(barIndex + 1);
-                    editor.selectBars(barIndex + 1, barIndex + 1, true);
-                }
-
-                dialog.cleanup();
             }
+            
+            // Manage added/removed/changed items
+            var resultAddedItems = dialog.getAddedItems();
+            resultAddedItems.forEach(item -> cls.addItem(item));
+            
+            var resultRemovedItems = dialog.getRemovedItems();
+            resultRemovedItems.forEach(item -> cls.removeItem(item));
+            
+            Map<CLI_ChordSymbol, ExtChordSymbol> map = dialog.getUpdatedChordSymbols();
+            map.keySet().forEach(cliCs -> cls.changeItem(cliCs, map.get(cliCs)));
+            
+            um.endCEdit(undoText);
+            
+            // Go to next bar if chords have changed
+            boolean chordSymbolChange = !resultAddedItems.isEmpty() || !resultRemovedItems.isEmpty() || !map.isEmpty();
+            if (barIndex < cls.getSizeInBars() - 1 && chordSymbolChange)
+            {
+                CL_SelectionUtilities selection = new CL_SelectionUtilities(editor.getLookup());
+                selection.unselectAll(editor);
+                editor.setFocusOnBar(barIndex + 1);
+                editor.selectBars(barIndex + 1, barIndex + 1, true);
+            }
+            
+            dialog.cleanup();
         };
 
         // IMPORTANT: Dialog must be shown using invokeLater(), otherwise we have the problem of random double chars

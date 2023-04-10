@@ -97,7 +97,7 @@ public class Utilities
                 int destRelPitch = ecsSrc.getRelativePitch(srcNote.getRelativePitch(), ecsDest);
                 int destPitch = new Note(srcNote.getPitch() + rootPitchDelta).getClosestPitch(destRelPitch);
                 NoteEvent destNote = srcNote.getCopyPitch(destPitch);
-                destNote.putClientProperty(PARENT_NOTE, srcNote);
+                destNote.getClientProperties().put(PARENT_NOTE, srcNote);
                 pDest.add(destNote);  // Don't need addOrdered here
             }
 
@@ -121,7 +121,7 @@ public class Utilities
             int destRelPitch = ecsDest.getRelativePitch(destDegree);
             int destPitch = new Note(srcNote.getPitch() + rootPitchDelta).getClosestPitch(destRelPitch);
             NoteEvent destNote = srcNote.getCopyPitch(destPitch);
-            destNote.putClientProperty(PARENT_NOTE, srcNote);
+            destNote.getClientProperties().put(PARENT_NOTE, srcNote);
             pDest.add(destNote);        
         }
 
@@ -184,7 +184,7 @@ public class Utilities
 
                 int destPitch = new Note(srcNote.getPitch() + rootPitchDelta).getClosestPitch(destRelPitch);
                 NoteEvent destNote = srcNote.getCopyPitch(destPitch);
-                destNote.putClientProperty(PARENT_NOTE, srcNote);
+                destNote.getClientProperties().put(PARENT_NOTE, srcNote);
                 pDest.add(destNote);         // Don't need addOrdered here
             }
 
@@ -215,7 +215,7 @@ public class Utilities
 
             int destPitch = new Note(srcNote.getPitch() + rootPitchDelta).getClosestPitch(destRelPitch);
             NoteEvent destNote = srcNote.getCopyPitch(destPitch);
-            destNote.putClientProperty(PARENT_NOTE, srcNote);
+            destNote.getClientProperties().put(PARENT_NOTE, srcNote);
             pDest.add(destNote);         // Don't need addOrdered here
         }
 
@@ -345,7 +345,7 @@ public class Utilities
             {
                 int destPitch = bestDestChord.getNote(srcIndex).getPitch();
                 NoteEvent destNote = srcNote.getCopyPitch(destPitch);
-                destNote.putClientProperty(PARENT_NOTE, srcNote);
+                destNote.getClientProperties().put(PARENT_NOTE, srcNote);
                 pDest.add(destNote);     // Don't need addOrdered here
             }
         }

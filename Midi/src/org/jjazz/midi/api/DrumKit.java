@@ -32,6 +32,7 @@ import org.jjazz.midi.api.keymap.KeyRange;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.midi.api.keymap.KeyMapGM;
 import org.jjazz.midi.spi.KeyMapProvider;
@@ -52,11 +53,11 @@ public class DrumKit implements Serializable
         BASS, // All bass drums
         BASS_DEFAULT, // Default bass
         SNARE, // All snares
-        SNARE_DEFAULT,  // the default snare
-        SNARE_BRUSH, 
-        SNARE_RIMSHOT,  // only rimshots
+        SNARE_DEFAULT, // the default snare
+        SNARE_BRUSH,
+        SNARE_RIMSHOT, // only rimshots
         SNARE_HANDCLAP, // onlu hand claps
-        SNARE_DRUM,     // snare drums except rimshots
+        SNARE_DRUM, // snare drums except rimshots
         HI_HAT, // All Hi-Hats
         HI_HAT_PEDAL,
         HI_HAT_CLOSED, HI_HAT_OPEN,
@@ -152,7 +153,7 @@ public class DrumKit implements Serializable
     {
         if (type == null || map == null)
         {
-            throw new IllegalArgumentException("type=" + type + " map=" + map);   
+            throw new IllegalArgumentException("type=" + type + " map=" + map);
         }
         this.type = type;
         this.map = map;
@@ -256,8 +257,8 @@ public class DrumKit implements Serializable
     }
 
     /**
-     * RhythmVoices must be stored in a simplified way in order to avoid storing rhythm stuff which depend on InstrumentBanks
-     * which are themselves system dependent.
+     * RhythmVoices must be stored in a simplified way in order to avoid storing rhythm stuff which depend on InstrumentBanks which are
+     * themselves system dependent.
      * <p>
      * Also need to do some cleaning: mapInstruments can contain useless entries if some songparts have been removed .
      */
@@ -265,9 +266,9 @@ public class DrumKit implements Serializable
     {
 
         private static final long serialVersionUID = -10218260387192L;
-        private final int spVERSION = 1;
-        private final Type spType;
-        private final String spKeyMapName;
+        private int spVERSION = 1;      // Do not make final!
+        private Type spType;
+        private String spKeyMapName;
 
         private SerializationProxy(DrumKit kit)
         {
@@ -284,7 +285,7 @@ public class DrumKit implements Serializable
             if (map == null)
             {
                 map = KeyMapGM.getInstance();
-                LOGGER.warning("readResolve() Can't find KeyMap from name=" + spKeyMapName + ". Using GM keymap instead.");   
+                LOGGER.log(Level.WARNING, "readResolve() Can''t find KeyMap from name={0}. Using GM keymap instead.", spKeyMapName);
             }
 
             // Rebuild the instance

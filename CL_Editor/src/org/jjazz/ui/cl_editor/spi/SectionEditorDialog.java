@@ -71,7 +71,7 @@ public abstract class SectionEditorDialog extends JDialog
     abstract public boolean exitedOk();
 
     /**
-     * The new Section data to be applied for the CLI_Section.
+     * The returned CLI_Section data.
      *
      * @return Non null only if exitedOk() was true.
      */

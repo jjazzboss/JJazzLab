@@ -22,6 +22,7 @@
  */
 package org.jjazz.rhythmmusicgeneration.api;
 
+import com.google.common.base.Preconditions;
 import org.jjazz.rhythm.api.UserErrorGenerationException;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.NoteEvent;
@@ -38,6 +39,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.sound.midi.InvalidMidiDataException;
+import javax.sound.midi.MetaMessage;
 import javax.sound.midi.MidiEvent;
 import javax.sound.midi.MidiMessage;
 import javax.sound.midi.Sequence;
@@ -78,6 +80,7 @@ import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.util.api.FloatRange;
 import org.jjazz.util.api.IntRange;
 import org.jjazz.util.api.ResUtil;
+import org.openide.util.Exceptions;
 
 /**
  * Methods to convert a Song into Phrases and Midi sequence.
@@ -85,6 +88,12 @@ import org.jjazz.util.api.ResUtil;
  */
 public class SongSequenceBuilder
 {
+
+    /**
+     * @see #getTempoFactorMetaMessage(float)
+     * @see #getTempoFactor(javax.sound.midi.MetaMessage) 
+     */
+    public static final int TEMPO_FACTOR_META_EVENT_TYPE = 12;
 
     /**
      * The return value of the buildSongSequence() methods.
@@ -114,19 +123,6 @@ public class SongSequenceBuilder
         this.songContext = context;
     }
 
-    /**
-     * Built the Midi track name from the specified parameters.
-     *
-     * @param rv
-     * @param channel
-     * @return
-     */
-    static public String buildTrackName(RhythmVoice rv, int channel)
-    {
-        // First event will be the name of the track: rhythm - rhythmVoice - channel
-        String name = rv.getContainer().getName() + "-" + rv.getName() + "-channel" + (channel + 1) + "/16";
-        return name;
-    }
 
     /**
      * Call buildMapRvPhrase() then buildSongSequence().
@@ -200,8 +196,8 @@ public class SongSequenceBuilder
     /**
      * Build the SongSequence from the specified RhythmVoice phrases for the defined context.
      * <p>
-     * - Create a track 0 with no notes but MidiEvents for song name, time signature changes, CTRL_CHG_JJAZZ_TEMPO_FACTOR controller
-     * messages based on the RP_SYS_TempoFactor value (if used by a rhythm). <br>
+     * - Create a track 0 with no notes but MidiEvents for song name, time signature changes, TEMPO_FACTOR_META_EVENT_TYPE MetaMessages for
+     * the RP_SYS_TempoFactor value (if used by a rhythm). <br>
      * - Then create a track per RhythmVoice.
      * <p>
      * If songContext range start bar is &gt; 0, the Midi events are shifted to start at sequence tick 0.
@@ -418,6 +414,46 @@ public class SongSequenceBuilder
     public String toString()
     {
         return "MidiSequenceBuilder context=" + songContext.toString();
+    }
+
+
+    /**
+     * Built the Midi track name from the specified parameters.
+     *
+     * @param rv
+     * @param channel
+     * @return
+     */
+    static public String buildTrackName(RhythmVoice rv, int channel)
+    {
+        // First event will be the name of the track: rhythm - rhythmVoice - channel
+        String name = rv.getContainer().getName() + "-" + rv.getName() + "-channel" + (channel + 1) + "/16";
+        return name;
+    }
+
+    /**
+     * Get a Meta message which encodes a JJazz tempo factor.
+     *
+     * @param tempoFactor A percentage in the [.5;2.0] range.
+     * @return A MetaMessage with type==TEMPO_FACTOR_META_EVENT_TYPE
+     */
+    static public MetaMessage getTempoFactorMetaMessage(float tempoFactor)
+    {
+        Preconditions.checkArgument(tempoFactor >= .5f && tempoFactor <= 2f, "tempoFactor=%f", tempoFactor);
+        return new MmTempoFactor(tempoFactor);
+    }
+
+    /**
+     * Get the tempo factor [.5;2.0] from the specified MetaMessage.
+     *
+     * @param tempoFactorMm MetaMessage type must be TEMPO_FACTOR_META_EVENT_TYPE
+     * @return
+     */
+    static public float getTempoFactor(MetaMessage tempoFactorMm)
+    {
+        Preconditions.checkArgument(tempoFactorMm.getType() == TEMPO_FACTOR_META_EVENT_TYPE, "MeatMessage=%s type=%d", tempoFactorMm,
+                tempoFactorMm.getType());
+        return ((MmTempoFactor) tempoFactorMm).tempoFactor;
     }
 
     // =========================================================================
@@ -1062,7 +1098,7 @@ public class SongSequenceBuilder
             }
             float beatPos = context.getSptBeatRange(spt).from - beatOffset;
             long tickPos = Math.round(beatPos * MidiConst.PPQ_RESOLUTION);
-            MidiEvent me = new MidiEvent(MidiUtilities.getJJazzTempoFactorControllerMessage(0, tempoPercentChange), tickPos);
+            MidiEvent me = new MidiEvent(getTempoFactorMetaMessage(tempoPercentChange), tickPos);
             track.add(me);
             if (firstTempoPercentChange == -1)
             {
@@ -1078,7 +1114,7 @@ public class SongSequenceBuilder
         {
             float beatPos = context.getSptBeatRange(spts.get(spts.size() - 1)).to - beatOffset;
             long tickPos = Math.round(beatPos * MidiConst.PPQ_RESOLUTION) - 2;  // Make sure it's before the End of Track
-            MidiEvent me = new MidiEvent(MidiUtilities.getJJazzTempoFactorControllerMessage(0, firstTempoPercentChange), tickPos);
+            MidiEvent me = new MidiEvent(getTempoFactorMetaMessage(firstTempoPercentChange), tickPos);
             track.add(me);
         }
     }
@@ -1211,6 +1247,25 @@ public class SongSequenceBuilder
             } catch (MusicGenerationException ex)
             {
                 musicException = ex;
+            }
+        }
+    }
+
+
+    static private class MmTempoFactor extends MetaMessage
+    {
+
+        private final float tempoFactor;
+
+        private MmTempoFactor(float tempoFactor)
+        {
+            this.tempoFactor = tempoFactor;
+            try
+            {
+                setMessage(TEMPO_FACTOR_META_EVENT_TYPE, new byte[0], 0);
+            } catch (InvalidMidiDataException ex)
+            {
+                Exceptions.printStackTrace(ex);
             }
         }
     }

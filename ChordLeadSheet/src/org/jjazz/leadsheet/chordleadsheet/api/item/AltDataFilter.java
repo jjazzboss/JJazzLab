@@ -183,8 +183,8 @@ public class AltDataFilter implements Serializable
     {
 
         private static final long serialVersionUID = 12973626811L;
-        private final int spVERSION = 1;
-        private final List<String> spValues;
+        private int spVERSION = 1;      // Do not make final!
+        private List<String> spValues;
         private Random spRandom;
 
         private SerializationProxy(AltDataFilter f)

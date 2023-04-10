@@ -192,7 +192,7 @@ public class GSInstrument extends Instrument implements Serializable
     {
 
         private static final long serialVersionUID = 872001761L;
-        private final int spVERSION = 1;
+        private int spVERSION = 1;      // Do not make final!
         private String spSaveString;
 
         private SerializationProxy(GSInstrument ins)

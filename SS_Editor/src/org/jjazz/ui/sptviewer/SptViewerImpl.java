@@ -545,13 +545,13 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
         } else if (e.getSource() == clEditor)
         {
             // Check if our parent section color has changed in CL_Editor
-            if (CL_Editor.isSectionColorPropertyName(e.getPropertyName()))
+            if (CL_Editor.PROP_SECTION_COLOR.equals(e.getPropertyName()))
             {
-                var sectionName = CL_Editor.getSectionNameFromPropertyName(e.getPropertyName());
+                var changedSection = (CLI_Section) e.getOldValue();
                 var parentSection = getModel().getParentSection();
-                if (parentSection.getData().getName().equals(sectionName))
+                if (parentSection == changedSection)
                 {
-                    setSptColor(clEditor.getSectionColor(parentSection));    
+                    setSptColor(clEditor.getSectionColor(parentSection));
                 }
             }
         } else if (e.getSource() == sptModel)

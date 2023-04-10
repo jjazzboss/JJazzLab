@@ -22,6 +22,7 @@
  */
 package org.jjazz.ui.cl_editor.barbox.api;
 
+import com.google.common.base.Preconditions;
 import java.awt.Component;
 import java.awt.Point;
 import java.awt.event.FocusEvent;
@@ -100,6 +101,13 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
     @SuppressWarnings("LeakingThisInConstructor")
     public BarBox(CL_Editor editor, int bbIndex, int modelBarIndex, ChordLeadSheet model, BarBoxConfig config, BarBoxSettings settings, BarRendererFactory brf)
     {
+        Preconditions.checkNotNull(model);
+        Preconditions.checkNotNull(config);
+        Preconditions.checkNotNull(settings);
+        Preconditions.checkNotNull(brf);
+        Preconditions.checkArgument(bbIndex >= 0);
+
+
         this.editor = editor;
         displayQuantization = Quantization.BEAT;
 
@@ -107,11 +115,6 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
         // Pile up BarRenderers
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
-        if (bbIndex < 0 || model == null || config == null)
-        {
-            throw new IllegalArgumentException("barIndex=" + bbIndex + " model=" + model + " config="
-                    + config);
-        }
 
         // Register settings changes
         this.bbSettings = settings;
@@ -165,7 +168,9 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
     }
 
     /**
-     * Add an item in the BarBox.The operation requests each BarRenderer to create ItemRenderers if appropriate.
+     * Add an item in the BarBox.
+     * <p>
+     * The operation requests each BarRenderer to create ItemRenderers if appropriate.
      *
      * @param item
      * @return List The created ItemRenderers.

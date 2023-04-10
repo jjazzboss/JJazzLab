@@ -27,6 +27,7 @@ import java.awt.datatransfer.UnsupportedFlavorException;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.util.api.StringProperties;
 
 /**
  * A ChordLeadSheetItem which uses ExtChordSymbol objects as data.
@@ -191,6 +192,12 @@ public interface CLI_ChordSymbol extends ChordLeadSheetItem<ExtChordSymbol>
         public String toString()
         {
             return (beforeItem ? "beforeCompItem" : "afterCompItem") + "-" + getPosition() + "-" + (inclusive ? "inclusive" : "exclusive");
+        }
+
+        @Override
+        public StringProperties getClientProperties()
+        {
+            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
         }
     }
 

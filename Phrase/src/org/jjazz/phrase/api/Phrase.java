@@ -413,10 +413,10 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
             if (tester.test(ne))
             {
                 NoteEvent newNe = mapper.apply(ne);
-                newNe.setClientProperties(ne);
-                if (newNe.getClientProperty(PARENT_NOTE) == null)
+                newNe.getClientProperties().set(ne.getClientProperties());
+                if (newNe.getClientProperties().get(PARENT_NOTE) == null)
                 {
-                    newNe.putClientProperty(PARENT_NOTE, ne);         // If no previous PARENT_NOTE client property we can add one
+                    newNe.getClientProperties().put(PARENT_NOTE, ne);         // If no previous PARENT_NOTE client property we can add one
                 }
                 res.add(newNe);
             }
@@ -1158,7 +1158,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
             } catch (IllegalArgumentException | ParseException ex)       // Will catch NumberFormatException too
             {
                 // Nothing
-                LOGGER.warning("loadAsString() Catched ex=" + ex.getMessage());
+                LOGGER.log(Level.WARNING, "loadAsString() Catched ex={0}", ex.getMessage());
             }
 
         }
@@ -1420,7 +1420,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
 
         private static final long serialVersionUID = -1823649110L;
 
-        private final int spVERSION = 1;
+        private int spVERSION = 1;          // Do not make final!
         private final String spSaveString;
 
         private SerializationProxy(Phrase p)

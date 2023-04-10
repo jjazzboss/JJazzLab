@@ -29,6 +29,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.util.api.IntRange;
+import org.jjazz.util.api.StringProperties;
 
 /**
  * A song part defines how a rhythm is played for a number of bars starting at startBarIndex.
@@ -107,6 +108,8 @@ public interface SongPart extends Transferable
      * @return The SongStructure this object belong to. Set by SongStructure when the SongPart is added.
      */
     public SongStructure getContainer();
+    
+    public StringProperties getClientProperties();
 
     /**
      * Create a new SongPart with same name based on this object.

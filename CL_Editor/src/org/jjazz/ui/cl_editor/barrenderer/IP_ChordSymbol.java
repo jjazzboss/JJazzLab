@@ -31,6 +31,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
+import org.jjazz.util.api.StringProperties;
 
 /**
  * Represent the insertion point for a chord symbol.
@@ -107,6 +108,12 @@ public class IP_ChordSymbol implements CLI_ChordSymbol
             pcs.firePropertyChange(PROP_ITEM_POSITION, oldPos, position);
         }
     }
+        
+    @Override
+    public StringProperties getClientProperties()
+    {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
 
     @Override
     public void addPropertyChangeListener(PropertyChangeListener listener)
@@ -164,5 +171,6 @@ public class IP_ChordSymbol implements CLI_ChordSymbol
             throw new UnsupportedFlavorException(fl);
         }
     }
+
 
 }

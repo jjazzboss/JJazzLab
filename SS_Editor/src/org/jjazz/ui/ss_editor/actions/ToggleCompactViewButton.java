@@ -53,6 +53,7 @@ public class ToggleCompactViewButton extends FlatToggleButton implements Propert
         this.editor = editor;
         this.song = editor.getSongModel();
         this.song.addPropertyChangeListener(this);
+        this.song.getClientProperties().addPropertyChangeListener(this);
 
 
         // Init UI from action properties 
@@ -82,8 +83,11 @@ public class ToggleCompactViewButton extends FlatToggleButton implements Propert
             if (evt.getPropertyName().equals(Song.PROP_CLOSED))
             {
                 song.removePropertyChangeListener(this);
-
-            } else if (evt.getPropertyName().equals(CompactViewModeController.PROP_COMPACT_VIEW_MODE))
+                song.getClientProperties().removePropertyChangeListener(this);
+            }
+        } else if (evt.getSource() == song.getClientProperties())
+        {
+            if (evt.getPropertyName().equals(CompactViewModeController.PROP_COMPACT_VIEW_MODE))
             {
                 // View mode has changed update the buttons and the editor
                 boolean b = CompactViewModeController.isSongInCompactViewMode(song);

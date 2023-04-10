@@ -215,7 +215,7 @@ public final class TempoRange implements Cloneable, Serializable
     {
 
         private static final long serialVersionUID = 37861L;
-        private final int spVERSION = 1;
+        private int spVERSION = 1;          // Do not make final!
         private final int spMin;
         private final int spMax;
         private final String spName;

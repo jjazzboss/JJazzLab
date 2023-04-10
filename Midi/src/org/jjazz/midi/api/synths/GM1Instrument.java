@@ -109,7 +109,7 @@ public class GM1Instrument extends Instrument implements Serializable
     {
 
         private static final long serialVersionUID = 79972630152521L;
-        private final int spVERSION = 1;
+        private int spVERSION = 1;      // Do not make final!
         private int spProgChange;
 
         private SerializationProxy(GM1Instrument ins)

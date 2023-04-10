@@ -29,12 +29,15 @@ import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.Section;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
+import org.jjazz.util.api.StringProperties;
 
 /**
  * An item for a section.
@@ -50,6 +53,8 @@ public class CLI_SectionImpl implements CLI_Section, WritableItem<Section>, Seri
      * The data section.
      */
     private Section data;
+
+    private StringProperties clientProperties;
     /**
      * The container of this item. Need to be transient otherwise this introduces circularities in the objects graph that prevent
      * ChordLeadSheetImpl's proxyserialization to work. This field must be restored by its container at deserialization.
@@ -59,7 +64,8 @@ public class CLI_SectionImpl implements CLI_Section, WritableItem<Section>, Seri
     /**
      * The listeners for changes in this ChordLeadSheetItem.
      */
-    private transient SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    private final transient SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    private static final Logger LOGGER = Logger.getLogger(CLI_SectionImpl.class.getSimpleName());
 
     /**
      * @param sectionName
@@ -70,14 +76,15 @@ public class CLI_SectionImpl implements CLI_Section, WritableItem<Section>, Seri
     {
         if (sectionName == null || sectionName.trim().isEmpty() || ts == null || barIndex < 0)
         {
-            throw new IllegalArgumentException("sectionName=" + sectionName + " ts=" + ts + " barIndex=" + barIndex);   
+            throw new IllegalArgumentException("sectionName=" + sectionName + " ts=" + ts + " barIndex=" + barIndex);
         }
         data = new Section(sectionName, ts);
         position = new Position(barIndex, 0);
+        clientProperties = new StringProperties();
     }
 
     @Override
-    final synchronized  public void setContainer(ChordLeadSheet cls)
+    synchronized public void setContainer(ChordLeadSheet cls)
     {
         if (cls != container)
         {
@@ -85,6 +92,12 @@ public class CLI_SectionImpl implements CLI_Section, WritableItem<Section>, Seri
             container = cls;
             pcs.firePropertyChange(PROP_CONTAINER, old, container);
         }
+    }
+
+    @Override
+    public StringProperties getClientProperties()
+    {
+        return clientProperties;
     }
 
     @Override
@@ -98,7 +111,7 @@ public class CLI_SectionImpl implements CLI_Section, WritableItem<Section>, Seri
     {
         if (section == null)
         {
-            throw new NullPointerException("section=" + section);   
+            throw new NullPointerException("section=" + section);
         }
         if (!section.equals(data))
         {
@@ -166,7 +179,7 @@ public class CLI_SectionImpl implements CLI_Section, WritableItem<Section>, Seri
      * @return
      */
     @Override
-    public synchronized final Position getPosition()
+    public synchronized Position getPosition()
     {
         return new Position(position);
     }
@@ -177,11 +190,11 @@ public class CLI_SectionImpl implements CLI_Section, WritableItem<Section>, Seri
      * @param p
      */
     @Override
-    public synchronized final void setPosition(Position p)
+    public synchronized void setPosition(Position p)
     {
         if (position == null)
         {
-            throw new NullPointerException("p=" + p);   
+            throw new NullPointerException("p=" + p);
         }
         if (!position.equals(p))
         {
@@ -192,13 +205,13 @@ public class CLI_SectionImpl implements CLI_Section, WritableItem<Section>, Seri
     }
 
     @Override
-    public synchronized final ChordLeadSheet getContainer()
+    public synchronized ChordLeadSheet getContainer()
     {
         return container;
     }
 
     @Override
-    public final void addPropertyChangeListener(PropertyChangeListener l)
+    public void addPropertyChangeListener(PropertyChangeListener l)
     {
         pcs.addPropertyChangeListener(l);
     }
@@ -209,7 +222,7 @@ public class CLI_SectionImpl implements CLI_Section, WritableItem<Section>, Seri
      * @param l
      */
     @Override
-    public final void removePropertyChangeListener(PropertyChangeListener l)
+    public void removePropertyChangeListener(PropertyChangeListener l)
     {
         pcs.removePropertyChangeListener(l);
     }
@@ -234,11 +247,7 @@ public class CLI_SectionImpl implements CLI_Section, WritableItem<Section>, Seri
     @Override
     public boolean isDataFlavorSupported(DataFlavor fl)
     {
-        if (fl.equals(flavor) || fl.equals(DataFlavor.stringFlavor))
-        {
-            return true;
-        }
-        return false;
+        return fl.equals(flavor) || fl.equals(DataFlavor.stringFlavor);
     }
 
     @Override
@@ -273,21 +282,34 @@ public class CLI_SectionImpl implements CLI_Section, WritableItem<Section>, Seri
     {
 
         private static final long serialVersionUID = 5519610279173982L;
-        private final int spVERSION = 1;
-        private final String spName;
-        private final TimeSignature spTs;
-        private final int spBarIndex;
+        private int spVERSION = 2;      // Do not make final!
+        private String spName;
+        private TimeSignature spTs;
+        private int spBarIndex;
+        private StringProperties spClientProperties;  // From spVERSION 2
 
         private SerializationProxy(CLI_SectionImpl section)
         {
             spName = section.getData().getName();
             spTs = section.getData().getTimeSignature();
             spBarIndex = section.getPosition().getBar();
+            spClientProperties = section.getClientProperties();
         }
 
         private Object readResolve() throws ObjectStreamException
         {
             CLI_SectionImpl cli = new CLI_SectionImpl(spName, spTs, spBarIndex);
+            if (spVERSION >= 2)
+            {
+                if (spClientProperties != null)
+                {
+                    cli.getClientProperties().set(spClientProperties);
+                } else
+                {
+                    LOGGER.log(Level.WARNING, "SerializationProxy.readResolve() Unexpected null value for spClientProperties. spName={0}",
+                            spName);
+                }
+            }
             return cli;
         }
     }

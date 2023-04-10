@@ -112,7 +112,7 @@ public class VoidInstrument extends GM1Instrument implements Serializable
     {
 
         private static final long serialVersionUID = -82099017429816L;
-        private final int spVERSION = 1;
+        private int spVERSION = 1;      // Do not make final!
         int spProgChange;
 
         private SerializationProxy(VoidInstrument ins)

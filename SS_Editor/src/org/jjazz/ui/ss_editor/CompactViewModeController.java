@@ -30,7 +30,6 @@ import java.util.List;
 import java.util.StringJoiner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmParameter;
@@ -76,6 +75,7 @@ public class CompactViewModeController implements PropertyChangeListener, SgsCha
 
         // Register song to listen for closing and adding new rhythms events
         song.addPropertyChangeListener(this);
+        song.getClientProperties().addPropertyChangeListener(this);
         song.getSongStructure().addSgsChangeListener(this);
 
 
@@ -94,8 +94,12 @@ public class CompactViewModeController implements PropertyChangeListener, SgsCha
             if (evt.getPropertyName().equals(Song.PROP_CLOSED))
             {
                 song.removePropertyChangeListener(this);
+                song.getClientProperties().removePropertyChangeListener(this);                
                 song.getSongStructure().removeSgsChangeListener(this);
-            } else if (evt.getPropertyName().equals(CompactViewModeController.PROP_COMPACT_VIEW_MODE))
+            } 
+        } else if (evt.getSource() == song.getClientProperties())
+        {
+            if (evt.getPropertyName().equals(CompactViewModeController.PROP_COMPACT_VIEW_MODE))
             {
                 // View mode has changed, update the editor
                 updateEditor(editor);
@@ -125,36 +129,30 @@ public class CompactViewModeController implements PropertyChangeListener, SgsCha
     {
 
         // Model changes can be generated outside the EDT
-        Runnable run = new Runnable()
+        Runnable run = () -> 
         {
-            @Override
-            public void run()
+            LOGGER.log(Level.FINE, "CompactViewModeController.songStructureChanged() -- e={0} spts={1}", new Object[]
             {
-                LOGGER.log(Level.FINE, "CompactViewModeController.songStructureChanged() -- e={0} spts={1}", new Object[]
-                {
-                    e, e.getSongParts()
-                });   
+                e, e.getSongParts()
+            });
 
-                // Get the new rhythms
-                List<Rhythm> rhythms = new ArrayList<>();
+            // Get the new rhythms
+            List<Rhythm> rhythms = new ArrayList<>();
 
-                if (e instanceof SptAddedEvent)
-                {
-                    rhythms.addAll(e.getSongParts().stream()
-                            .map(spt -> spt.getRhythm())
-                            .toList());
+            if (e instanceof SptAddedEvent)
+            {
+                rhythms.addAll(e.getSongParts().stream()
+                        .map(spt -> spt.getRhythm())
+                        .toList());
 
-                } else if (e instanceof SptReplacedEvent)
-                {
-                    SptReplacedEvent re = (SptReplacedEvent) e;
-                    rhythms.addAll(re.getNewSpts().stream()
-                            .map(spt -> spt.getRhythm())
-                            .toList());
-                }
-
-                writeVisibleRPsInCompactModeIfRequired(rhythms);
-
+            } else if (e instanceof SptReplacedEvent re)
+            {
+                rhythms.addAll(re.getNewSpts().stream()
+                        .map(spt -> spt.getRhythm())
+                        .toList());
             }
+
+            writeVisibleRPsInCompactModeIfRequired(rhythms);
         };
         Utilities.invokeLaterIfNeeded(run);
     }
@@ -174,7 +172,7 @@ public class CompactViewModeController implements PropertyChangeListener, SgsCha
         List<RhythmParameter<?>> res = new ArrayList<>();
 
         String rProp = buildCompactViewRhythmPropertyName(r);
-        String s = song.getClientProperty(rProp, null);
+        String s = song.getClientProperties().get(rProp, null);
         if (s != null)
         {
             String strs[] = s.trim().split(",");
@@ -186,7 +184,13 @@ public class CompactViewModeController implements PropertyChangeListener, SgsCha
                     res.add(rp);
                 } else
                 {
-                    LOGGER.fine("getCompactViewModeVisibleRPs() Invalid value=" + s + " for song property " + rProp + " in song=" + song.getName() + ". Invalid rpId=" + str);
+                    LOGGER.log(Level.FINE,
+                            "getCompactViewModeVisibleRPs() Invalid value={0} for song property {1} in song={2}. Invalid rpId={3}",
+                            new Object[]
+                            {
+                                s,
+                                rProp, song.getName(), str
+                            });
                 }
             }
         }
@@ -208,20 +212,20 @@ public class CompactViewModeController implements PropertyChangeListener, SgsCha
         String rProp = buildCompactViewRhythmPropertyName(r);
         StringJoiner joiner = new StringJoiner(",");
         rps.forEach(rp -> joiner.add(rp.getId()));
-        song.putClientProperty(rProp, joiner.toString());
+        song.getClientProperties().put(rProp, joiner.toString());
     }
 
 
     static public boolean isSongInCompactViewMode(Song song)
     {
-        return song.getClientProperty(PROP_COMPACT_VIEW_MODE, "true").equals("true");
+        return song.getClientProperties().get(PROP_COMPACT_VIEW_MODE, "true").equals("true");
     }
 
     static public void setSongInCompactViewMode(Song song, boolean b)
     {
         if (isSongInCompactViewMode(song) != b)
         {
-            song.putClientProperty(PROP_COMPACT_VIEW_MODE, b ? "true" : "false");
+            song.getClientProperties().put(PROP_COMPACT_VIEW_MODE, b ? "true" : "false");
         }
     }
 
@@ -274,7 +278,7 @@ public class CompactViewModeController implements PropertyChangeListener, SgsCha
         // Add non-primary only if used in the song
         rps.stream()
                 .filter(rp -> !rp.isPrimary())
-                .filter(rp ->
+                .filter(rp -> 
                 {
                     return spts.stream()
                             .filter(spt -> spt.getRhythm() == r)
@@ -295,7 +299,8 @@ public class CompactViewModeController implements PropertyChangeListener, SgsCha
 
         if (res.isEmpty())
         {
-            LOGGER.warning("getDefaultVisibleRpsInCompactMode() no default compact-mode visible RPs for r=" + r + ", using 1st RP as default");
+            LOGGER.log(Level.WARNING,
+                    "getDefaultVisibleRpsInCompactMode() no default compact-mode visible RPs for r={0}, using 1st RP as default", r);
             res.add(r.getRhythmParameters().get(0));
         }
 

@@ -25,8 +25,7 @@ package org.jjazz.ui.cl_editor;
 import java.awt.Color;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.jjazz.harmony.api.TimeSignature;
-import org.jjazz.leadsheet.chordleadsheet.api.Section;
+import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.song.api.Song;
 import org.jjazz.ui.cl_editor.api.CL_Editor;
@@ -40,7 +39,7 @@ public class SongSpecificEditorProperties
 
     private static final String PROP_ZOOM_FACTOR_X = "PropClEditorZoomFactorX";
     private static final String PROP_ZOOM_FACTOR_Y = "PropClEditorZoomFactorY";
-    
+
     private final Song song;
     private static final Logger LOGGER = Logger.getLogger(SongSpecificEditorProperties.class.getSimpleName());
 
@@ -49,102 +48,68 @@ public class SongSpecificEditorProperties
         this.song = song;
     }
 
+
     /**
-     * A section was renamed: update related song properties.
+     * Store the quantization value of section as a client property from CLI_Section.
      *
-     * @param oldName The old name of the section
-     * @param section The renamed section
+     * @param cliSection
+     * @param q          Can be null to remove this client property
      */
-    public void sectionRenamed(String oldName, Section section)
+    public void storeSectionQuantization(CLI_Section cliSection, Quantization q)
     {
-        var oldDummy = new Section(oldName, TimeSignature.FOUR_FOUR);
-
-        var q = loadSectionQuantization(oldDummy);
-        storeSectionQuantization(oldDummy, null);
-        storeSectionQuantization(section, q);
-
-        var c = loadSectionColor(oldDummy);
-        storeSectionColor(oldDummy, null);
-        storeSectionColor(section, c);
-
-        var b = loadSectionIsOnNewLine(oldDummy);
-        storeSectionIsOnNewLine(oldDummy, false);
-        storeSectionIsOnNewLine(section, b);
+        cliSection.getClientProperties().put(CL_Editor.PROP_SECTION_QUANTIZATION, q == null ? null : q.name());
     }
 
     /**
-     * A section was removed: update related song properties.
+     * Get the quantization value for section from CLI_Section's client property.
      *
-     * @param section
-     */
-    public void sectionRemoved(Section section)
-    {
-        storeSectionQuantization(section, null);
-        storeSectionColor(section, null);
-        storeSectionIsOnNewLine(section, false);
-    }
-
-    /**
-     * Store the quantization value of section as a client property of the specified song.
-     *
-     * @param section
-     * @param q       Can be null to remove this client property
-     */
-    public void storeSectionQuantization(Section section, Quantization q)
-    {
-        song.putClientProperty(CL_Editor.getSectionQuantizationPropertyName(section), q == null ? null : q.name());
-    }
-
-    /**
-     * Get the quantization value for section from the client property of the specified song.
-     *
-     * @param section
+     * @param cliSection
      * @return Can be null
      */
-    public Quantization loadSectionQuantization(Section section)
+    public Quantization loadSectionQuantization(CLI_Section cliSection)
     {
-        String qString = song.getClientProperty(CL_Editor.getSectionQuantizationPropertyName(section), null);
+        String qString = cliSection.getClientProperties().get(CL_Editor.PROP_SECTION_QUANTIZATION, null);
         return Quantization.isValidStringValue(qString) ? Quantization.valueOf(qString) : null;
     }
 
     /**
-     * Check if section is on new line from the song client properties.
+     * Check if section is on new line from the CLI_Section client properties.
      *
-     * @param section
+     * @param cliSection
      * @return false by default.
      */
-    public boolean loadSectionIsOnNewLine(Section section)
+    public boolean loadSectionIsOnNewLine(CLI_Section cliSection)
     {
-        String boolString = song.getClientProperty(CL_Editor.getSectionOnNewLinePropertyName(section), "false");
+        String boolString = cliSection.getClientProperties().get(CL_Editor.PROP_SECTION_START_ON_NEW_LINE, "false");
         boolean b = Boolean.parseBoolean(boolString);
         return b;
     }
 
-    public void storeSectionIsOnNewLine(Section section, boolean b)
+    public void storeSectionIsOnNewLine(CLI_Section cliSection, boolean b)
     {
-        song.putClientProperty(CL_Editor.getSectionOnNewLinePropertyName(section), b ? Boolean.toString(true) : null);
+        cliSection.getClientProperties().put(CL_Editor.PROP_SECTION_START_ON_NEW_LINE, b ? Boolean.toString(true) : null);
     }
 
     /**
-     * Store a color associated to the specified section.
+     * Store a color associated to the specified CLI_Section.
      *
-     * @param section
-     * @param c       can be null
+     * @param cliSection
+     * @param c          can be null
      */
-    public void storeSectionColor(Section section, Color c)
+    public void storeSectionColor(CLI_Section cliSection, Color c)
     {
-        song.putClientProperty(CL_Editor.getSectionColorPropertyName(section), c == null ? null : String.valueOf(c.getRGB()));
+        cliSection.getClientProperties().put(CL_Editor.PROP_SECTION_COLOR, c == null ? null : String.valueOf(c.getRGB()));
     }
 
     /**
-     * Get the color associated to the specified section.
+     * Get the color associated to the specified CLI_Section.
      *
-     * @param section
+     * @param cliSection
      * @return Can be null. If not null it is one of the ColorSetManager reference colors.
      */
-    public Color loadSectionColor(Section section)
+    public Color loadSectionColor(CLI_Section cliSection)
     {
-        String cString = song.getClientProperty(CL_Editor.getSectionColorPropertyName(section), null);
+        String cString = cliSection.getClientProperties().get(CL_Editor.PROP_SECTION_COLOR, null);
         Color c = null;
         if (cString != null)
         {
@@ -172,7 +137,7 @@ public class SongSpecificEditorProperties
     public void storeZoomFactor(boolean isZoomX, int factor)
     {
         String prop = isZoomX ? PROP_ZOOM_FACTOR_X : PROP_ZOOM_FACTOR_Y;
-        song.putClientProperty(prop, Integer.toString(factor));
+        song.getClientProperties().put(prop, Integer.toString(factor));
     }
 
     /**
@@ -184,7 +149,7 @@ public class SongSpecificEditorProperties
     public int loadZoomFactor(boolean isZoomX)
     {
         String prop = isZoomX ? PROP_ZOOM_FACTOR_X : PROP_ZOOM_FACTOR_Y;
-        var strValue = song.getClientProperty(prop, null);
+        var strValue = song.getClientProperties().get(prop, null);
         int res = -1;
         if (strValue != null)
         {

@@ -79,11 +79,11 @@ public class InstrumentSettings implements Serializable
 
     /**
      *
-     * @param vol Volume (0-127)
-     * @param t Transposition (-24 to +24)
-     * @param pan Panoramic (0-127)
-     * @param rev Reverb effect send (0-127)
-     * @param cho Chorus effect send (0-127)
+     * @param vol      Volume (0-127)
+     * @param t        Transposition (-24 to +24)
+     * @param pan      Panoramic (0-127)
+     * @param rev      Reverb effect send (0-127)
+     * @param cho      Chorus effect send (0-127)
      * @param velShift Velocity shift (-40 to +40)
      */
     public InstrumentSettings(int vol, int t, int pan, int rev, int cho, int velShift)
@@ -223,7 +223,7 @@ public class InstrumentSettings implements Serializable
     {
         if (!MidiConst.checkVolume(v))
         {
-            throw new IllegalArgumentException("v=" + v);   
+            throw new IllegalArgumentException("v=" + v);
         }
         if (volume != v)
         {
@@ -242,7 +242,7 @@ public class InstrumentSettings implements Serializable
     {
         if (!MidiConst.checkPanoramic(v))
         {
-            throw new IllegalArgumentException("v=" + v);   
+            throw new IllegalArgumentException("v=" + v);
         }
         if (panoramic != v)
         {
@@ -261,7 +261,7 @@ public class InstrumentSettings implements Serializable
     {
         if (!MidiConst.checkReverb(v))
         {
-            throw new IllegalArgumentException("v=" + v);   
+            throw new IllegalArgumentException("v=" + v);
         }
         if (reverb != v)
         {
@@ -280,7 +280,7 @@ public class InstrumentSettings implements Serializable
     {
         if (!MidiConst.checkChorus(v))
         {
-            throw new IllegalArgumentException("v=" + v);   
+            throw new IllegalArgumentException("v=" + v);
         }
         if (chorus != v)
         {
@@ -306,7 +306,7 @@ public class InstrumentSettings implements Serializable
     {
         if (v < -64 || v > 64)
         {
-            throw new IllegalArgumentException("v=" + v);   
+            throw new IllegalArgumentException("v=" + v);
         }
         if (velocityShift != v)
         {
@@ -330,7 +330,7 @@ public class InstrumentSettings implements Serializable
     {
         if (t < -36 || t > 36)
         {
-            throw new IllegalArgumentException("t=" + t);   
+            throw new IllegalArgumentException("t=" + t);
         }
         if (transposition != t)
         {
@@ -441,17 +441,17 @@ public class InstrumentSettings implements Serializable
     {
 
         private static final long serialVersionUID = -297226301726L;
-        private final int spVERSION = 1;
-        private final int spTransposition;
-        private final int spVelocityShift;
-        private final int spVolume;
-        private final int spPanoramic;
-        private final int spReverb;
-        private final int spChorus;
-        private final boolean spPanoramicEnabled;
-        private final boolean spReverbEnabled;
-        private final boolean spChorusEnabled;
-        private final boolean spVolumeEnabled;
+        private int spVERSION = 1;      // Do not make final!
+        private int spTransposition;
+        private int spVelocityShift;
+        private int spVolume;
+        private int spPanoramic;
+        private int spReverb;
+        private int spChorus;
+        private boolean spPanoramicEnabled;
+        private boolean spReverbEnabled;
+        private boolean spChorusEnabled;
+        private boolean spVolumeEnabled;
 
         private SerializationProxy(InstrumentSettings is)
         {

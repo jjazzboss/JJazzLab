@@ -49,7 +49,7 @@ public class StandardScaleInstance implements Serializable
     {
         if (scale == null || startNote == null)
         {
-            throw new NullPointerException("scale=" + scale + " startNote=" + startNote);   
+            throw new NullPointerException("scale=" + scale + " startNote=" + startNote);
         }
         this.scale = scale;
         this.startNote = new Note(startNote.getPitch());
@@ -149,7 +149,7 @@ public class StandardScaleInstance implements Serializable
     public String toNoteString()
     {
         return getNotes().stream()
-                .map( n -> n.toRelativeNoteString())
+                .map(n -> n.toRelativeNoteString())
                 .collect(Collectors.joining(",", "[", "]"));
     }
 
@@ -200,15 +200,15 @@ public class StandardScaleInstance implements Serializable
     {
 
         private static final long serialVersionUID = -3012901129L;
-        private final int spVERSION = 1;
-        private final int spStdScaleIndex;
-        private final int spStartNotePitch;
+        private int spVERSION = 1;  // Do not make final!
+        private int spStdScaleIndex;
+        private int spStartNotePitch;
 
         private SerializationProxy(StandardScaleInstance ssi)
         {
             spStartNotePitch = ssi.getStartNote().getPitch();
             spStdScaleIndex = ScaleManager.getInstance().getStandardScales().indexOf(ssi.getScale());
-            assert spStdScaleIndex != -1;   
+            assert spStdScaleIndex != -1;
         }
 
         private Object readResolve() throws ObjectStreamException
@@ -217,7 +217,7 @@ public class StandardScaleInstance implements Serializable
             StandardScale ss;
             if (spStdScaleIndex < 0 || spStdScaleIndex >= stdScales.size())
             {
-                LOGGER.warning("readResolve() invalid standard scale index=" + spStdScaleIndex + ". Use MAJOR scale instead.");   
+                LOGGER.warning("readResolve() invalid standard scale index=" + spStdScaleIndex + ". Use MAJOR scale instead.");
                 ss = stdScales.get(0);
             } else
             {

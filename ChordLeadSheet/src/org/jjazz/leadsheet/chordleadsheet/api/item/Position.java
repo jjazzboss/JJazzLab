@@ -587,8 +587,8 @@ public final class Position implements Comparable<Position>, Serializable
     {
 
         private static final long serialVersionUID = 7987126309001277L;
-        private final int spVERSION = 1;
-        private final String spPos;
+        private int spVERSION = 1;      // Do not make final!
+        private String spPos;
 
         private SerializationProxy(Position pos)
         {

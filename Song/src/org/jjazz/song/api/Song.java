@@ -46,7 +46,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import java.util.logging.Level;
@@ -63,8 +62,10 @@ import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.leadsheet.chordleadsheet.api.event.ClsActionEvent;
 import org.jjazz.leadsheet.chordleadsheet.api.event.ClsChangeEvent;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
+import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo;
 import org.jjazz.phrase.api.Phrase;
+import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.TempoRange;
 import org.jjazz.songstructure.api.SongStructureFactory;
@@ -74,6 +75,7 @@ import org.jjazz.songstructure.api.SgsChangeListener;
 import org.jjazz.songstructure.api.event.SgsActionEvent;
 import org.jjazz.undomanager.api.SimpleEdit;
 import org.jjazz.util.api.ResUtil;
+import org.jjazz.util.api.StringProperties;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.util.Exceptions;
@@ -81,7 +83,7 @@ import org.openide.util.Exceptions;
 /**
  * The song object.
  * <p>
- * Contents are a chord leadsheet, the related song structure, some parameters and some optional properties.<br>
+ * Contents are a chord leadsheet, the related song structure, some parameters and some optional client properties.<br>
  * Songs can be created using the SongFactory methods.
  */
 public class Song implements Serializable, ClsChangeListener, SgsChangeListener, PropertyChangeListener
@@ -131,7 +133,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
     private int tempo = 120;
     private List<String> tags = new ArrayList<>();
     private Map<String, Phrase> mapUserPhrases = new HashMap<>();
-    private final Properties clientProperties = new Properties();
+    private final StringProperties clientProperties = new StringProperties();
     private transient File file;
     private transient boolean saveNeeded = false;
     private boolean closed;
@@ -171,8 +173,8 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
     {
         if (name == null || name.trim().isEmpty() || cls == null || sgs == null || sgs.getParentChordLeadSheet() != cls)
         {
-            throw new IllegalArgumentException(
-                    "name=" + name + " cls=" + cls + " sgs=" + sgs + " sgs.getParentChordLeadSheet()=" + sgs.getParentChordLeadSheet());
+            throw new IllegalArgumentException("name=" + name + " cls=" + cls + " sgs=" + sgs
+                    + " sgs.getParentChordLeadSheet()=" + sgs.getParentChordLeadSheet());
         }
         setName(name);
         chordLeadSheet = cls;
@@ -181,53 +183,14 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
         songStructure.addSgsChangeListener(this);
 
         lastSize = songStructure.getSizeInBars();
+
+        // Mark song as modified if client properties are changed
+        clientProperties.addPropertyChangeListener(e -> fireIsModified());
     }
 
-    /**
-     * Get a client property.
-     *
-     * @param key
-     * @param defaultValue
-     * @return the property associated to key, or defaultValue if the property was not found.
-     */
-    public String getClientProperty(String key, String defaultValue)
+    public StringProperties getClientProperties()
     {
-        String res = clientProperties.getProperty(key);
-        return res != null ? res : defaultValue;
-    }
-
-    /**
-     * Store a client property.
-     * <p>
-     * Client properties are serialized. This can be used by other components to store information specific to this object, eg UI settings
-     * or others like quantization display of a section, zoom factors, etc.<br>
-     * A PropertyChangeEvent(property name=key) is fired to song listeners. If newValue=null then property is removed.<p>
-     * This will fire a song modified event.
-     *
-     * @param key
-     * @param value If value==null then property is removed.
-     */
-    public void putClientProperty(String key, String value)
-    {
-        checkNotNull(key);
-
-        String oldValue = clientProperties.getProperty(key);
-        if (Objects.equals(oldValue, value))
-        {
-            return;
-        }
-
-        if (value == null)
-        {
-            clientProperties.remove(key);
-        } else
-        {
-            clientProperties.setProperty(key, value);
-        }
-
-        pcs.firePropertyChange(key, oldValue, value);
-        fireIsModified();
-
+        return clientProperties;
     }
 
     /**
@@ -811,7 +774,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
         if (f.exists() && !f.canWrite())
         {
             String msg = ResUtil.getString(getClass(), "CAN NOT OVERWRITE", f.getName());
-            LOGGER.warning("saveToFileNotify() " + msg);
+            LOGGER.log(Level.WARNING, "saveToFileNotify() {0}", msg);
             NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.WARNING_MESSAGE);
             DialogDisplayer.getDefault().notify(nd);
             b = false;
@@ -825,7 +788,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
             {
                 String msg = ResUtil.getString(getClass(), "ERR_ProblemSavingSongFile", f.getName());
                 msg += " : " + ex.getLocalizedMessage();
-                LOGGER.warning("saveToFileNotify() " + msg);
+                LOGGER.log(Level.WARNING, "saveToFileNotify() {0}", msg);
                 NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.WARNING_MESSAGE);
                 DialogDisplayer.getDefault().notify(nd);
                 b = false;
@@ -904,6 +867,8 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
      * Set the value of the saveNeeded property.
      * <p>
      * Fire a PROP_MODIFIED_OR_SAVED_OR_RESET change event.
+     *
+     * @param b
      */
     public void setSaveNeeded(boolean b)
     {
@@ -1088,6 +1053,9 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
 
     /**
      * Fire a PROP_MUSIC_GENERATION property change event with oldValue=id and the specified newValue.
+     *
+     * @param id
+     * @param data
      */
     private void fireIsMusicallyModified(String id, Object data)
     {
@@ -1178,26 +1146,23 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
     }
 
 
-    /**
-     * RhythmVoices must be stored in a simplified way in order to avoid storing rhythm stuff which depend on InstrumentBanks which are
-     * themselves system dependent.
-     * <p>
-     * Also need to do some cleaning: mapInstruments can contain useless entries if some songparts have been removed.
-     */
     private static class SerializationProxy implements Serializable
     {
 
         private static final long serialVersionUID = 571097826016222L;
-        private final int spVERSION = 2;
-        private final String spName;
-        private final String spComments;
-        private final int spTempo;
-        private final Properties spClientProperties;
-        private final List<String> spTags;
-        private final ChordLeadSheet spChordLeadSheet;
-        private final SongStructure spSongStructure;
-        // Since spVERSION 2
-        private final Map<String, Phrase> spMapUserPhrases;
+        private int spVERSION = 3;   // Do not make final!
+        private String spName;
+        private String spComments;
+        private int spTempo;
+        private List<String> spTags;
+        private ChordLeadSheet spChordLeadSheet;
+        private SongStructure spSongStructure;
+        // New since spVERSION 2
+        private Map<String, Phrase> spMapUserPhrases;
+        // Until spVERSION 2
+        private Properties spClientProperties;
+        // Since spVERSION 3, replace spClientProperties
+        private StringProperties spClientPropertiesV3;
 
         private SerializationProxy(Song s)
         {
@@ -1207,7 +1172,8 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
             spComments = s.getComments();
             spTempo = s.getTempo();
             spTags = s.getTags();
-            spClientProperties = s.clientProperties;
+            // Since spVERSION 3
+            spClientPropertiesV3 = s.clientProperties;
             // Since spVERSION 2
             spMapUserPhrases = s.mapUserPhrases;
         }
@@ -1218,10 +1184,6 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
             newSong.setComments(spComments);
             newSong.setTags(spTags);
             newSong.setTempo(spTempo);
-            for (String key : spClientProperties.stringPropertyNames())
-            {
-                newSong.putClientProperty(key, spClientProperties.getProperty(key));
-            }
 
             // Since spVERSION 2
             if (spMapUserPhrases != null)
@@ -1234,13 +1196,99 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
                         newSong.setUserPhrase(name, p);
                     } catch (PropertyVetoException ex)
                     {
-                        LOGGER.warning("readResolve() Can't add user phrase for name=" + name + ". ex=" + ex.getMessage());
+                        LOGGER.log(Level.WARNING, "readResolve() Can''t add user phrase for name={0}. ex={1}", new Object[]
+                        {
+                            name,
+                            ex.getMessage()
+                        });
                     }
                 }
             }
 
+            // Client properties format has changed from spVERSION 3 (JJazzLab 4)
+            if (spVERSION <= 2)
+            {
+                for (String key : spClientProperties.stringPropertyNames())
+                {
+                    newSong.getClientProperties().put(key, spClientProperties.getProperty(key));
+                }
+                importV2properties(newSong);
+
+            } else if (spClientPropertiesV3 != null)
+            {
+                newSong.getClientProperties().set(spClientPropertiesV3);
+            } else
+            {
+                LOGGER.log(Level.WARNING,
+                        "readResolve() Unexpected null value for spClientPropertiesV3, ignoring client properties. Song name={0}",
+                        newSong.getName());
+            }
+
 
             return newSong;
+        }
+
+        /**
+         * Import the old spVERSION 2 song properties.
+         * <p>
+         * Up to spVERSION 2, all song editor settings were saved as Song client properties. From spVERSION 3 (JJazzLab 4) some of these
+         * settings are directly saved with the related model object. This is the case for section quantification and startOnNewLine
+         * settings, which are now saved as CLI_Section client properties.
+         * <p>
+         * IMPORTANT: this is a hack, make sure that CL_Editor PROP_* string values are consistent with what's here (we can't depend on
+         * CL_Editor because of circular dependency).
+         *
+         * @param newSong
+         */
+        private void importV2properties(Song newSong)
+        {
+            for (var prop : newSong.getClientProperties().getPropertyNames())
+            {
+
+                // Search for pre-spVersion3 client properties
+                if (prop.startsWith("SectionDisplayQuantization-"))
+                {
+                    int indexStar = prop.indexOf('*');
+                    if (indexStar == -1)
+                    {
+                        indexStar = prop.length();
+                    }
+                    String sectionName = prop.substring("SectionDisplayQuantization-".length(), indexStar);
+                    CLI_Section cliSection = newSong.getChordLeadSheet().getSection(sectionName);
+                    if (cliSection != null)
+                    {
+                        // Store the quantization as a CLI_Section client property
+                        String qString = newSong.getClientProperties().get(prop);
+                        if (Quantization.isValidStringValue(qString))
+                        {
+                            cliSection.getClientProperties().put("PropSectionQuantization", qString);
+                        }
+                    } else
+                    {
+                        LOGGER.log(Level.WARNING,
+                                "SerializationProxy.importV2properties() Unexpected null value for cliSection. Ignoring this client property. prop={0}",
+                                prop);
+                    }
+
+                } else if (prop.startsWith("PropSectionStartOnNewLine-"))
+                {
+                    String sectionName = prop.substring("PropSectionStartOnNewLine-".length());
+                    CLI_Section cliSection = newSong.getChordLeadSheet().getSection(sectionName);
+                    if (cliSection != null)
+                    {
+                        // Store the setting as a CLI_Section client property
+                        String qString = newSong.getClientProperties().get(prop);
+
+                        cliSection.getClientProperties().put("PropSectionStartOnNewLine", qString);
+                    } else
+                    {
+                        LOGGER.log(Level.WARNING,
+                                "SerializationProxy.importV2properties() Unexpected null value for cliSection. Ignoring this client property. prop={0}",
+                                prop);
+                    }
+
+                }
+            }
         }
     }
 

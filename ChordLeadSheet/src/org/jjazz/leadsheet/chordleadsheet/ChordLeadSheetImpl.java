@@ -704,7 +704,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
         if (!ts.equals(oldPosNewTs))
         {
-            // Section before old position might need to be checked too
+            // CLI_Section before old position might need to be checked too
             var cliSectionBarRange = getBarRange(cliSection);
             var iitems = getItems(oldBarIndex, cliSectionBarRange.to, ChordLeadSheetItem.class, cli -> true);
             adjustItemsToTimeSignature(ts, oldPosNewTs, iitems);

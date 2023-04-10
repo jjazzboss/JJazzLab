@@ -62,7 +62,7 @@ public class SgsUpdater implements ClsChangeListener
     {
         if (sgs == null)
         {
-            throw new IllegalArgumentException("sgs=" + sgs);   
+            throw new IllegalArgumentException("sgs=" + sgs);
         }
         this.sgs = sgs;
         parentCls = sgs.getParentChordLeadSheet();
@@ -92,13 +92,16 @@ public class SgsUpdater implements ClsChangeListener
         {
             // Should never happen if it has been authorized first
             Exceptions.printStackTrace(ex);
-            throw new IllegalStateException();   
+            throw new IllegalStateException();
         }
     }
 
     private void processChangeEvent(ClsChangeEvent evt, boolean authorizeOnly) throws UnsupportedEditException
     {
-        LOGGER.log(Level.FINE, "processChangeEvent() evt=" + evt + " authorizeOnly=" + authorizeOnly);   
+        LOGGER.log(Level.FINE, "processChangeEvent() evt={0} authorizeOnly={1}", new Object[]
+        {
+            evt, authorizeOnly
+        });
 
 
         JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(sgs);
@@ -107,7 +110,7 @@ public class SgsUpdater implements ClsChangeListener
             // IMPORTANT : SongStructure generates his own undoableEdits,
             // so we must not listen to chordleadsheet changes if undo/redo in progress, otherwise 
             // the "undo/redo" restore operations will be performed twice !
-            LOGGER.log(Level.FINE, "processChangeEvent() undo is in progress, exiting");   
+            LOGGER.log(Level.FINE, "processChangeEvent() undo is in progress, exiting");
             return;
         }
 
@@ -123,30 +126,30 @@ public class SgsUpdater implements ClsChangeListener
         {
             processSizeChanged(authorizeOnly);
 
-        } else if (!cliSections.isEmpty() && (evt instanceof ItemBarShiftedEvent))
+        } else if (!cliSections.isEmpty() && (evt instanceof ItemBarShiftedEvent ise))
         {
-            processSectionsShifted((ItemBarShiftedEvent) evt, cliSections, authorizeOnly);
+            processSectionsShifted(ise, cliSections, authorizeOnly);
 
-        } else if (!cliSections.isEmpty() && (evt instanceof ItemChangedEvent))
+        } else if (!cliSections.isEmpty() && (evt instanceof ItemChangedEvent ice))
         {
-            processSectionChanged((ItemChangedEvent) evt, cliSections.get(0), authorizeOnly);
+            processSectionChanged(ice, cliSections.get(0), authorizeOnly);
 
-        } else if (!cliSections.isEmpty() && (evt instanceof ItemAddedEvent))
+        } else if (!cliSections.isEmpty() && (evt instanceof ItemAddedEvent iae))
         {
-            processSectionsAdded((ItemAddedEvent) evt, cliSections, authorizeOnly);
+            processSectionsAdded(iae, cliSections, authorizeOnly);
 
-        } else if (!cliSections.isEmpty() && (evt instanceof ItemRemovedEvent))
+        } else if (!cliSections.isEmpty() && (evt instanceof ItemRemovedEvent ire))
         {
-            processSectionsRemoved((ItemRemovedEvent) evt, cliSections, authorizeOnly);
+            processSectionsRemoved(ire, cliSections, authorizeOnly);
 
-        } else if (evt instanceof SectionMovedEvent)
+        } else if (evt instanceof SectionMovedEvent sme)
         {
             if (authorizeOnly)
             {
-                authorizeSectionMove((SectionMovedEvent) evt, cliSections.get(0));
+                authorizeSectionMove(sme, cliSections.get(0));
             } else
             {
-                processSectionMoved((SectionMovedEvent) evt, cliSections.get(0));
+                processSectionMoved(sme, cliSections.get(0));
             }
 
         }
@@ -157,7 +160,7 @@ public class SgsUpdater implements ClsChangeListener
     //----------------------------------------------------------------------------------------------------  
 
     /**
-     * Section was already moved.
+     * CLI_Section was already moved.
      *
      * @param evt
      * @param cliSection
@@ -167,7 +170,7 @@ public class SgsUpdater implements ClsChangeListener
     private void processSectionMoved(SectionMovedEvent evt, CLI_Section cliSection) throws UnsupportedEditException
     {
         int newBarIndex = cliSection.getPosition().getBar();
-        assert newBarIndex > 0 : "cliSection=" + cliSection;   
+        assert newBarIndex > 0 : "cliSection=" + cliSection;
         CLI_Section prevSection = parentCls.getSection(newBarIndex - 1);
         CLI_Section sectionPrevBar = parentCls.getSection(evt.getOldBar());
         Map<SongPart, Integer> mapSptSize = new HashMap<>();
@@ -198,7 +201,7 @@ public class SgsUpdater implements ClsChangeListener
     }
 
     /**
-     * Section has NOT moved yet.
+     * CLI_Section has NOT moved yet.
      *
      * @param evt
      * @param cliSection
@@ -298,7 +301,7 @@ public class SgsUpdater implements ClsChangeListener
         {
             // Time Signature has changed
 
-            
+
             // Need to replace all impacted SongParts based on this section
             List<SongPart> oldSpts = getSongParts(cliSection);
             if (!oldSpts.isEmpty())
@@ -339,7 +342,7 @@ public class SgsUpdater implements ClsChangeListener
 
         if (!newName.equals(oldName) && !authorizeOnly)
         {
-            // Section name has changed : rename songparts which have not been renamed by user
+            // CLI_Section name has changed : rename songparts which have not been renamed by user
             List<SongPart> spts = getSongParts(cliSection).stream()
                     .filter(spt -> spt.getName().equalsIgnoreCase(oldName))
                     .toList();
@@ -429,7 +432,7 @@ public class SgsUpdater implements ClsChangeListener
      *
      * @param newSection
      * @param newSectionSize Size in bars
-     * @param prevSection The section before cliSection. Can be null.
+     * @param prevSection    The section before cliSection. Can be null.
      * @return The created SongPart, ready to be added to the SongStructure.
      */
     private SongPart createSptAfterSection(CLI_Section newSection, int newSectionSize, CLI_Section prevSection)
@@ -457,7 +460,7 @@ public class SgsUpdater implements ClsChangeListener
                     break;
                 }
             }
-            assert sptBarIndex != - 1 : "prevSpts=" + prevSpts + " prevSection=" + prevSection + " newSection=" + newSection;   
+            assert sptBarIndex != - 1 : "prevSpts=" + prevSpts + " prevSection=" + prevSection + " newSection=" + newSection;
         }
 
         // Choose rhythm

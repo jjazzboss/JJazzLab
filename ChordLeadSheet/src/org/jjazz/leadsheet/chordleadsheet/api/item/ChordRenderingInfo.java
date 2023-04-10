@@ -407,7 +407,7 @@ public class ChordRenderingInfo implements Serializable
     {
 
         private static final long serialVersionUID = -655298712991L;
-        private int spVERSION = 2;    // Must be FIRST field !        
+        private int spVERSION = 2;    // Must be FIRST field !      Do not make final!  
 
         // ==================================================================================
         // V1 format: 

@@ -22,7 +22,6 @@
  */
 package org.jjazz.ui.cl_editor.barrenderer;
 
-import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.ui.cl_editor.api.CL_Editor;
 import org.jjazz.ui.cl_editor.barrenderer.api.BarRenderer;
 import org.jjazz.ui.cl_editor.barrenderer.api.BarRendererFactory;
@@ -55,7 +54,7 @@ public class BarRendererFactoryImpl implements BarRendererFactory
     /**
      * Use the default ItemRendererFactory.
      *
-     * @param editor Can be null
+     * @param editor   Can be null
      * @param brType
      * @param barIndex
      * @return
@@ -66,16 +65,11 @@ public class BarRendererFactoryImpl implements BarRendererFactory
         BarRenderer br = null;
         switch (brType)
         {
-            case BarRendererFactory.BR_CHORD_SYMBOL:
-                br = new BR_Chords(editor, barIndex, settings, irf);
-                break;
-            case BarRendererFactory.BR_CHORD_POSITION:
-                br = new BR_ChordPositions(editor, barIndex, settings, irf);
-                break;
-            case BarRendererFactory.BR_SECTION:
-                br = new BR_Sections(editor, barIndex, settings, irf);
-                break;
-            default:
+            case BarRendererFactory.BR_CHORD_SYMBOL -> br = new BR_Chords(editor, barIndex, settings, irf);
+            case BarRendererFactory.BR_CHORD_POSITION -> br = new BR_ChordPositions(editor, barIndex, settings, irf);
+            case BarRendererFactory.BR_SECTION -> br = new BR_Sections(editor, barIndex, settings, irf);
+            default ->
+            {
                 // Search a provider in the global lookup
                 var brProviders = Lookup.getDefault().lookupAll(BarRendererProvider.class);
                 for (var brProvider : brProviders)
@@ -88,8 +82,9 @@ public class BarRendererFactoryImpl implements BarRendererFactory
                 }
                 if (br == null)
                 {
-                    throw new IllegalStateException("No BarRendererProvider found for brType=" + brType);   
+                    throw new IllegalStateException("No BarRendererProvider found for brType=" + brType);
                 }
+            }
         }
 
         // Set the model

@@ -248,10 +248,10 @@ public class IR_TimeSignature extends ItemRenderer implements IR_Copiable
         super.propertyChange(e);
         if (e.getSource() == settings)
         {
-            if (e.getPropertyName() == IR_TimeSignatureSettings.PROP_FONT)
+            if (e.getPropertyName().equals(IR_TimeSignatureSettings.PROP_FONT))
             {
                 setFont(settings.getFont());
-            } else if (e.getPropertyName() == IR_TimeSignatureSettings.PROP_FONT_COLOR)
+            } else if (e.getPropertyName().equals(IR_TimeSignatureSettings.PROP_FONT_COLOR))
             {
                 setForeground(settings.getColor());
             }

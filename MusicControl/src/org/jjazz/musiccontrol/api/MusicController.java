@@ -62,6 +62,7 @@ import org.jjazz.util.api.ResUtil;
 import org.openide.util.Exceptions;
 import org.jjazz.musiccontrol.api.playbacksession.ControlTrackProvider;
 import org.jjazz.outputsynth.api.OutputSynth;
+import org.jjazz.rhythmmusicgeneration.api.SongSequenceBuilder;
 import org.jjazz.song.api.Song;
 
 /**
@@ -78,7 +79,7 @@ import org.jjazz.song.api.Song;
  * <p>
  * Use acquireSequencer()/releaseSequencer() if you want to use the Java system sequencer independently.
  */
-public class MusicController implements PropertyChangeListener, MetaEventListener, ControllerEventListener
+public class MusicController implements PropertyChangeListener, MetaEventListener
 {
 
     public static final String PROP_STATE = "PropPlaybackState";
@@ -138,13 +139,6 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      * Our MidiReceiver to be able to fire events to NoteListeners and PlaybackListener (midiActivity).
      */
     private McReceiver receiver;
-    /**
-     * The list of the controller changes listened to
-     */
-    private static final int[] listenedControllers =
-    {
-        MidiConst.CTRL_CHG_JJAZZ_TEMPO_FACTOR
-    };
     /**
      * If true display built sequence when it is built
      */
@@ -722,31 +716,6 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         pcs.removePropertyChangeListener(listener);
     }
 
-    //-----------------------------------------------------------------------
-    // Implementation of the ControlEventListener interface
-    //-----------------------------------------------------------------------
-    /**
-     * Handle the listened controllers notifications.
-     * <p>
-     * CAUTIOUS : the global listenedControllers array must be consistent with this method !
-     *
-     * @param event
-     */
-    @Override
-    public void controlChange(ShortMessage event)
-    {
-        int data1 = event.getData1();
-        switch (data1)
-        {
-            case MidiConst.CTRL_CHG_JJAZZ_TEMPO_FACTOR ->
-            {
-                songPartTempoFactor = MidiUtilities.getTempoFactor(event);
-                updateTempoFactor();
-            }
-
-            default -> LOGGER.log(Level.WARNING, "controlChange() controller event not managed data1={0}", data1);
-        }
-    }
 
     //-----------------------------------------------------------------------
     // Implementation of the MetaEventListener interface
@@ -793,14 +762,27 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                         float posInBeats = controlTrack.getPositionInBeats(meta);
                         if (pos != null)
                         {
+                            // LOGGER.severe("meta() position received pos=" + pos + " posInBeats=" + posInBeats);
                             updateCurrentPosition(pos.getBar(), pos.getBeat(), posInBeats);
                         } else
                         {
-                            LOGGER.warning("meta() Unexpected null position meta=" + meta);
+                            LOGGER.log(Level.WARNING, "meta() Unexpected null position meta={0}", meta);
                         }
 
                     }
                 }
+            }
+            
+            
+            case SongSequenceBuilder.TEMPO_FACTOR_META_EVENT_TYPE ->
+            {
+                songPartTempoFactor = SongSequenceBuilder.getTempoFactor(meta);
+                updateTempoFactor();
+            }
+
+            default -> 
+            {
+                // Nothing
             }
         }
     }
@@ -902,7 +884,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      */
     private void initSequencer()
     {
-        addSequencerListeners();
+        sequencer.addMetaEventListener(this);
         sequencer.setTempoInBPM(MidiConst.SEQUENCER_REF_TEMPO);
         receiver.setEnabled(true);
     }
@@ -912,37 +894,29 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      */
     private void releaseSequencer()
     {
-        removeSequencerListeners();
-        receiver.setEnabled(false);
-    }
-
-    private void addSequencerListeners()
-    {
-        sequencer.addMetaEventListener(this);
-        int[] res = sequencer.addControllerEventListener(this, listenedControllers);
-        if (res.length != listenedControllers.length)
-        {
-            LOGGER.severe("This sequencer implementation is limited, music playback may not work");
-        }
-    }
-
-    private void removeSequencerListeners()
-    {
         sequencer.removeMetaEventListener(this);
-        sequencer.removeControllerEventListener(this, listenedControllers);
+        receiver.setEnabled(false);
     }
 
 
     private void setPosition(int fromBar)
     {
         assert !state.equals(State.DISABLED) : "state=" + state;
+        LOGGER.log(Level.FINE, "setPosition() fromBar={0}", fromBar);
         long tick = Math.max(playbackSession.getTick(fromBar), 0);
         sequencer.setTickPosition(tick);
         float posInBeats = -1;
         if (playbackSession instanceof SongContextProvider scp)
         {
+
             var sgContext = scp.getSongContext();
-            posInBeats = sgContext.getPositionInBeats(tick); WRONG!
+            long relativeTick = getRelativeTickFromLoopStart(tick);
+            posInBeats = sgContext.getPositionInBeats(relativeTick);
+            LOGGER.log(Level.FINE, "setPosition()   > song session: relativeTick={1} posInBeats={2}", new Object[]
+            {
+                relativeTick,
+                posInBeats
+            });
         }
         updateCurrentPosition(fromBar, 0, posInBeats);
     }
@@ -1127,9 +1101,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                         SongChordSequence cSeq = controlTrack.getContextChordGetSequence();
                         // Fire chord symbol change if no chord symbol at current position (current chord symbol is the previous one)
                         // Fire a song part change event
-                        long loopStartTick = playbackSession.getLoopStartTick();
-                        assert loopStartTick != -1 : "loopStartTick=" + loopStartTick + " playbackSession=" + playbackSession;
-                        long relativeTick = sequencer.getTickPosition() - loopStartTick;    // Can be negative if precount is ON
+                        long relativeTick = getRelativeTickFromLoopStart(sequencer.getTickPosition());      // Can be negative in some cases
                         Position posStart = sgContext.getPosition(relativeTick);
                         if (posStart != null)
                         {
@@ -1275,6 +1247,20 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                 }
             }
         }
+    }
+
+    /**
+     * Convert an absolute sequence tick to a relative tick from loop start (whose tick position may be greater than 0 if precount bars are
+     * used).
+     * <p>
+     *
+     * @param sequenceTick
+     * @return
+     */
+    private long getRelativeTickFromLoopStart(long sequenceTick)
+    {
+        assert playbackSession != null;
+        return sequenceTick - playbackSession.getLoopStartTick();
     }
 
     /**

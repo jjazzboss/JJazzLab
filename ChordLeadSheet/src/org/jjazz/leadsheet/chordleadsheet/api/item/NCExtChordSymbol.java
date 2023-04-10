@@ -129,12 +129,12 @@ public class NCExtChordSymbol extends ExtChordSymbol implements Serializable
     private static class SerializationProxy implements Serializable
     {
 
-        private final int spVERSION = 1;
+        private int spVERSION = 1;      // Do not make final!
         private static final long serialVersionUID = -118977269L;
-        private final String spName;
-        private final ChordRenderingInfo spRenderingInfo;
-        private final AltExtChordSymbol spAltChordSymbol;
-        private final AltDataFilter spAltFilter;
+        private  String spName;
+        private  ChordRenderingInfo spRenderingInfo;
+        private  AltExtChordSymbol spAltChordSymbol;
+        private  AltDataFilter spAltFilter;
 
         private SerializationProxy(NCExtChordSymbol ncecs)
         {

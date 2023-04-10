@@ -29,6 +29,7 @@ import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.util.logging.Logger;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.util.api.StringProperties;
 
 /**
  * Items which belong to a ChordLeadSheet.
@@ -79,6 +80,8 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
     /**
      * Get a copy of this item at a specified position.
      * <p>
+     * Client properties are also copied.
+     *
      * @param newCls If null, the copy will have the same container that this object.
      * @param newPos If null, the copy will have the same position that this object.
      * @return
@@ -92,6 +95,12 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
      */
     boolean isBarSingleItem();
 
+    /**
+     * Get the client properties.
+     *
+     * @return
+     */
+    StringProperties getClientProperties();
 
     /**
      * First compare using position, then use isBarSingleItem(), then use System.identifyHashCode().
@@ -225,6 +234,7 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
      */
     public interface ComparableItem
     {
+
         boolean isBeforeItem();
 
         public boolean isInclusive();
@@ -321,6 +331,12 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
         public String toString()
         {
             return (beforeItem ? "beforeCompItem" : "afterCompItem") + "-" + getPosition() + "-" + (inclusive ? "inclusive" : "exclusive");
+        }
+
+        @Override
+        public StringProperties getClientProperties()
+        {
+            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
         }
     }
 

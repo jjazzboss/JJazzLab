@@ -26,9 +26,6 @@ import java.awt.Color;
 import java.awt.Font;
 import java.beans.PropertyChangeListener;
 import javax.swing.border.Border;
-import org.jjazz.leadsheet.chordleadsheet.api.Section;
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
-import org.jjazz.ui.colorsetmanager.api.ColorSetManager;
 import org.jjazz.ui.rpviewer.spi.RpViewerSettings;
 import org.openide.util.Lookup;
 

@@ -91,7 +91,8 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
 
         if (rInfo == null || (altChordSymbol == null && altFilter != null) || (altChordSymbol != null && altFilter == null))
         {
-            throw new IllegalArgumentException("cs=" + cs + " rInfo=" + rInfo + " altChordSymbol=" + altChordSymbol + " altFilter=" + altFilter);   
+            throw new IllegalArgumentException(
+                    "cs=" + cs + " rInfo=" + rInfo + " altChordSymbol=" + altChordSymbol + " altFilter=" + altFilter);
         }
         renderingInfo = rInfo;
         this.altChordSymbol = altChordSymbol;
@@ -106,8 +107,8 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
      * @param ct
      * @param rInfo
      * @param altChordSymbol Optional alternate chord symbol. If not null altFilter must be also non-null.
-     * @param altFilter      Optional filter to enable the use of the alternate chord symbol. If not null altChordSymbol must be
-     *                       also non-null.
+     * @param altFilter      Optional filter to enable the use of the alternate chord symbol. If not null altChordSymbol must be also
+     *                       non-null.
      */
     public ExtChordSymbol(Note rootDg, Note bassDg, ChordType ct, ChordRenderingInfo rInfo, AltExtChordSymbol altChordSymbol, AltDataFilter altFilter)
     {
@@ -115,7 +116,8 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
 
         if (rInfo == null || (altChordSymbol == null && altFilter != null) || (altChordSymbol != null && altFilter == null))
         {
-            throw new IllegalArgumentException("rootDg=" + rootDg + " bassDg=" + bassDg + " ct=" + ct + " rInfo=" + rInfo + " altChordSymbol=" + altChordSymbol + " altFilter=" + altFilter);   
+            throw new IllegalArgumentException(
+                    "rootDg=" + rootDg + " bassDg=" + bassDg + " ct=" + ct + " rInfo=" + rInfo + " altChordSymbol=" + altChordSymbol + " altFilter=" + altFilter);
         }
         renderingInfo = rInfo;
         this.altChordSymbol = altChordSymbol;
@@ -126,8 +128,8 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
     /**
      * Create a ChordSymbol from a chord string specification, with a standard RenderingInfo and no alternate chord symbol.
      * <p>
-     * If string contains a '/', use ChordRenderingInfo.BassLineModifier.PEDAL_BASS as bassLineModifier. If string is "NC" return
-     * the special NCExtChordSymbol instance.
+     * If string contains a '/', use ChordRenderingInfo.BassLineModifier.PEDAL_BASS as bassLineModifier. If string is "NC" return the
+     * special NCExtChordSymbol instance.
      *
      * @param s Eg 'C7'
      * @return
@@ -144,8 +146,8 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
      * @param s              Eg 'C7'
      * @param rInfo          Can't be null
      * @param altChordSymbol Optional alternate chord symbol. If not null altFilter must be also non-null.
-     * @param altFilter      Optional filter to enable the use of the alternate chord symbol. If not null altChordSymbol must be
-     *                       also non-null.
+     * @param altFilter      Optional filter to enable the use of the alternate chord symbol. If not null altChordSymbol must be also
+     *                       non-null.
      * @return
      *
      * @throws ParseException
@@ -335,9 +337,10 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
     {
         if (cs == null)
         {
-            throw new NullPointerException("cs");   
+            throw new NullPointerException("cs");
         }
-        return isSameChordType(cs) && getRootNote().equalsRelativePitch(cs.getRootNote()) && getBassNote().equalsRelativePitch(cs.getBassNote());
+        return isSameChordType(cs) && getRootNote().equalsRelativePitch(cs.getRootNote()) && getBassNote().equalsRelativePitch(
+                cs.getBassNote());
     }
 
     /**
@@ -376,12 +379,12 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
     {
 
         private static final long serialVersionUID = -6112620289882L;
-        private final int spVERSION = 2;
-        private final String spName;
-        private final String spOriginalName;        // from VERSION 2 only
-        private final ChordRenderingInfo spRenderingInfo;
-        private final AltExtChordSymbol spAltChordSymbol;
-        private final AltDataFilter spAltFilter;
+        private int spVERSION = 2;      // Do not make final!
+        private String spName;
+        private String spOriginalName;        // from VERSION 2 only
+        private ChordRenderingInfo spRenderingInfo;
+        private AltExtChordSymbol spAltChordSymbol;
+        private AltDataFilter spAltFilter;
 
         // Kept for legacy purpose: before JJazzLab 2.2, we did not use UFT-8 encoding with Xstream hence this workaround for "°" char
         private static final String DOT_REPLACEMENT = "_UpperDot_";
@@ -417,7 +420,7 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
                 try
                 {
                     ecs = get(spName, spRenderingInfo, spAltChordSymbol, spAltFilter);
-                    LOGGER.log(Level.WARNING, spOriginalName + ": Invalid chord symbol. Using '" + spName + "' instead.");   
+                    LOGGER.log(Level.WARNING, spOriginalName + ": Invalid chord symbol. Using '" + spName + "' instead.");
                 } catch (ParseException e)
                 {
                     // Nothing
@@ -425,7 +428,7 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
             }
             if (ecs == null)
             {
-                LOGGER.log(Level.WARNING, spName + ": Invalid chord symbol. Using 'C' ChordSymbol instead.");   
+                LOGGER.log(Level.WARNING, spName + ": Invalid chord symbol. Using 'C' ChordSymbol instead.");
                 ecs = new ExtChordSymbol();
             }
 

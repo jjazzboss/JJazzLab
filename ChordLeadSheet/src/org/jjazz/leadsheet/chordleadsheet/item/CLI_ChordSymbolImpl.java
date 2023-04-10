@@ -29,11 +29,15 @@ import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
+import static org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem.LOGGER;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
+import org.jjazz.util.api.StringProperties;
 
 public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtChordSymbol>, Serializable
 {
@@ -46,7 +50,7 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
      * The data section.
      */
     private ExtChordSymbol data;
-
+    private StringProperties clientProperties;
     /**
      * The container of this item.
      * <p>
@@ -58,6 +62,7 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
      * The listeners for changes in this ChordLeadSheetItem.
      */
     private transient SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    private static final Logger LOGGER = Logger.getLogger(CLI_ChordSymbolImpl.class.getSimpleName());
 
     /**
      * Create an object from the specified arguments.
@@ -71,10 +76,11 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
     {
         if (cs == null || pos == null)
         {
-            throw new NullPointerException(" cs=" + cs + " pos=" + pos);   
+            throw new NullPointerException(" cs=" + cs + " pos=" + pos);
         }
         data = cs;
         setPosition(pos);
+        clientProperties = new StringProperties();
     }
 
     @Override
@@ -98,7 +104,7 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
     {
         if (position == null)
         {
-            throw new NullPointerException("p=" + p);   
+            throw new NullPointerException("p=" + p);
         }
         if (!position.equals(p))
         {
@@ -115,6 +121,12 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
     }
 
     @Override
+    public StringProperties getClientProperties()
+    {
+        return clientProperties;
+    }
+
+    @Override
     public synchronized ExtChordSymbol getData()
     {
         return data;
@@ -125,7 +137,7 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
     {
         if (cs == null)
         {
-            throw new NullPointerException("cs=" + cs);   
+            throw new NullPointerException("cs=" + cs);
         }
         if (!cs.equals(data))
         {
@@ -148,6 +160,7 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
         CLI_ChordSymbolImpl cli = new CLI_ChordSymbolImpl(data, (newPos != null) ? newPos : position);
         ChordLeadSheet cls = (newCls != null) ? newCls : getContainer();
         cli.setContainer(cls);
+        cli.getClientProperties().set(clientProperties);
         return cli;
     }
 
@@ -273,23 +286,37 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
         throw new InvalidObjectException("Serialization proxy required");
     }
 
+
     private static class SerializationProxy implements Serializable
     {
 
         private static final long serialVersionUID = 909000172651524L;
-        private final int spVERSION = 1;
-        private final ExtChordSymbol spChord;
-        private final Position spPos;
+        private int spVERSION = 2;          // Do not make final!
+        private ExtChordSymbol spChord;
+        private Position spPos;
+        private StringProperties spClientProperties;  // From spVERSION 2        
 
         private SerializationProxy(CLI_ChordSymbolImpl cli)
         {
             spChord = cli.getData();
             spPos = cli.getPosition();
+            spClientProperties = cli.getClientProperties();     // From spVERSION 2
         }
 
         private Object readResolve() throws ObjectStreamException
         {
             CLI_ChordSymbolImpl cli = new CLI_ChordSymbolImpl(spChord, spPos);
+            if (spVERSION >= 2)
+            {
+                if (spClientProperties != null)
+                {
+                    cli.getClientProperties().set(spClientProperties);
+                } else
+                {
+                    LOGGER.log(Level.WARNING, "SerializationProxy.readResolve() Unexpected null value for spClientProperties. spChord={0}",
+                            spChord);
+                }
+            }
             return cli;
         }
     }

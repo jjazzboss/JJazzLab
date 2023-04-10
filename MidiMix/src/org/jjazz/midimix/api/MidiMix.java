@@ -2136,9 +2136,9 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
 
         private static final long serialVersionUID = -344448971122L;
         private static final String SP_USER_CHANNEL_RHYTHM_ID = "SpUserChannelRhythmID";
-        private final int spVERSION = 2;
-        private final InstrumentMix[] spInsMixes;
-        private final RvStorage[] spKeys;
+        private int spVERSION = 2;      // Do not make final!
+        private  InstrumentMix[] spInsMixes;
+        private  RvStorage[] spKeys;
         // spDelegates introduced with JJazzLab 2.1 => not used anymore with spVERSION=2        
         private List<RvStorage> spDelegates;   // Not used anymore, but keep it for backward compatibility
 

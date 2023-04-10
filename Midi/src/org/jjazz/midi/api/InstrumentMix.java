@@ -255,7 +255,7 @@ public class InstrumentMix implements Serializable
     {
 
         private static final long serialVersionUID = -201729371001L;
-        private final int spVERSION = 1;
+        private int spVERSION = 1;      // Do not make final!
         private Instrument spIns;
         private InstrumentSettings spInsSettings;
         private boolean spInsEnabled;

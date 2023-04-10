@@ -531,7 +531,10 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
     @Override
     public void showSptInsertionMark(boolean b, int sptIndex, boolean copyMode)
     {
-        LOGGER.log(Level.FINE, "showSptInsertionMark() b={0} sptIndex={1} copyMode={2}", new Object[]{b, sptIndex, copyMode});
+        LOGGER.log(Level.FINE, "showSptInsertionMark() b={0} sptIndex={1} copyMode={2}", new Object[]
+        {
+            b, sptIndex, copyMode
+        });
         if (!b)
         {
             panel_SongParts.remove(insertionMark);
@@ -674,7 +677,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
 
 
         // Save the zoom factor with the song as a client property
-        songModel.putClientProperty(PROP_ZOOM_FACTOR_X, Integer.toString(factor));
+        songModel.getClientProperties().put(PROP_ZOOM_FACTOR_X, Integer.toString(factor));
 
 
         revalidate();
@@ -707,7 +710,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         zoomable.fireYPropertyChange(oldFactor, zoomVFactor);
 
         // Save the zoom factor with the song as a client property
-        songModel.putClientProperty(PROP_ZOOM_FACTOR_Y, Integer.toString(factor));
+        songModel.getClientProperties().put(PROP_ZOOM_FACTOR_Y, Integer.toString(factor));
 
         revalidate();
         repaint();
@@ -772,112 +775,111 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
     @Override
     public void songStructureChanged(final SgsChangeEvent e)
     {
+
+
         // Model changes can be generated outside the EDT
-        Runnable run = new Runnable()
+        Runnable run = () -> 
         {
-            @Override
-            public void run()
+            LOGGER.log(Level.FINE, "SS_EditorImpl.songStructureChanged() -- e={0} spts={1}", new Object[]
             {
-                LOGGER.log(Level.FINE, "SS_EditorImpl.songStructureChanged() -- e={0} spts={1}", new Object[]
+                e, e.getSongParts()
+            });
+            
+            if (e instanceof SptRemovedEvent)
+            {
+                for (SongPart spt : e.getSongParts())
                 {
-                    e, e.getSongParts()
-                });
-                if (e instanceof SptRemovedEvent)
-                {
-                    for (SongPart spt : e.getSongParts())
+                    SptViewer rpe = getSptViewer(spt);
+                    if (rpe != null)
                     {
-                        SptViewer rpe = getSptViewer(spt);
-                        if (rpe != null)
+                        removeSptViewer(rpe);
+                    }
+                }
+                panel_SongParts.revalidate();
+                panel_SongParts.repaint();     // Needed if removed Spt was the last one
+                updateSptsVisibleRhythmAndTimeSignature();
+                updateSptMultiSelectMode();
+            } else if (e instanceof SptAddedEvent)
+            {
+                for (SongPart spt : e.getSongParts())
+                {
+                    addSptViewer(spt);
+                }
+                panel_SongParts.revalidate();  // Needed to get immediate UI update
+                updateSptsVisibleRhythmAndTimeSignature();
+                updateSptMultiSelectMode();
+            } else if (e instanceof SptReplacedEvent re)
+            {
+                List<SongPart> oldSpts = re.getSongParts();
+                List<SongPart> newSpts = re.getNewSpts();
+                LOGGER.log(Level.FINE, "SS_EditorImpl.songStructureChanged() SptReplacedEvent  newSpts={0}", newSpts);
+
+                // Save selection so we can restore it the best we can after replacing
+                SS_SelectionUtilities previousSelection = new SS_SelectionUtilities(selectionLookup);
+
+                // Update the viewers
+                for (int i = 0; i < oldSpts.size(); i++)
+                {
+                    SongPart oldSpt = oldSpts.get(i);
+                    SongPart newSpt = newSpts.get(i);
+                    removeSptViewer(getSptViewer(oldSpt));
+                    addSptViewer(newSpt);
+                }
+
+                // Restore the selection
+                if (previousSelection.isSongPartSelected())
+                {
+                    // Reselect a new songpart if the corresponding old songpart was selected
+                    for (SongPart oldSpt : previousSelection.getSelectedSongParts())
+                    {
+                        int index = oldSpts.indexOf(oldSpt);
+                        if (index != -1)
                         {
-                            removeSptViewer(rpe);
+                            // oldSpt was prevously selected AND replaced
+                            SongPart newSpt = newSpts.get(index);
+                            selectSongPart(newSpt, true);
+                        } else
+                        {
+                            // oldSpt was previously selected but NOT replaced, do nothing
                         }
                     }
-                    panel_SongParts.revalidate();
-                    panel_SongParts.repaint();     // Needed if removed Spt was the last one
-                    updateSptsVisibleRhythmAndTimeSignature();
-                    updateSptMultiSelectMode();
-                } else if (e instanceof SptAddedEvent)
+                } else if (previousSelection.isRhythmParameterSelected())
                 {
-                    for (SongPart spt : e.getSongParts())
+                    RhythmParameter<?> rp = previousSelection.getSelectedSongPartParameter(oldSpts.get(0));
+                    if (rp != null)
                     {
-                        addSptViewer(spt);
-                    }
-                    panel_SongParts.revalidate();  // Needed to get immediate UI update
-                    updateSptsVisibleRhythmAndTimeSignature();
-                    updateSptMultiSelectMode();
-                } else if (e instanceof SptReplacedEvent re)
-                {
-                    List<SongPart> oldSpts = re.getSongParts();
-                    List<SongPart> newSpts = re.getNewSpts();
-                    LOGGER.log(Level.FINE, "SS_EditorImpl.songStructureChanged() SptReplacedEvent  newSpts={0}", newSpts);
-
-                    // Save selection so we can restore it the best we can after replacing
-                    SS_SelectionUtilities previousSelection = new SS_SelectionUtilities(selectionLookup);
-
-                    // Update the viewers
-                    for (int i = 0; i < oldSpts.size(); i++)
-                    {
-                        SongPart oldSpt = oldSpts.get(i);
-                        SongPart newSpt = newSpts.get(i);
-                        removeSptViewer(getSptViewer(oldSpt));
-                        addSptViewer(newSpt);
-                    }
-
-                    // Restore the selection
-                    if (previousSelection.isSongPartSelected())
-                    {
-                        // Reselect a new songpart if the corresponding old songpart was selected
-                        for (SongPart oldSpt : previousSelection.getSelectedSongParts())
+                        // Try to reselect a rp in the replacing SongParts
+                        for (SongPart newSpt : newSpts)
                         {
-                            int index = oldSpts.indexOf(oldSpt);
-                            if (index != -1)
+                            List<RhythmParameter<?>> newRps = newSpt.getRhythm().getRhythmParameters();
+                            assert !newRps.isEmpty() : "no RhythmParameters ! newSpt=" + newSpt;
+                            RhythmParameter<?> newRp = RhythmParameter.findFirstCompatibleRp(newRps, rp);
+                            if (newRp != null)
                             {
-                                // oldSpt was prevously selected AND replaced
-                                SongPart newSpt = newSpts.get(index);
-                                selectSongPart(newSpt, true);
+                                selectRhythmParameter(newSpt, newRp, true);
                             } else
                             {
-                                // oldSpt was previously selected but NOT replaced, do nothing
-                            }
-                        }
-                    } else if (previousSelection.isRhythmParameterSelected())
-                    {
-                        RhythmParameter<?> rp = previousSelection.getSelectedSongPartParameter(oldSpts.get(0));
-                        if (rp != null)
-                        {
-                            // Try to reselect a rp in the replacing SongParts
-                            for (SongPart newSpt : newSpts)
-                            {
-                                List<RhythmParameter<?>> newRps = newSpt.getRhythm().getRhythmParameters();
-                                assert !newRps.isEmpty() : "no RhythmParameters ! newSpt=" + newSpt;
-                                RhythmParameter<?> newRp = RhythmParameter.findFirstCompatibleRp(newRps, rp);
-                                if (newRp != null)
-                                {
-                                    selectRhythmParameter(newSpt, newRp, true);
-                                } else
-                                {
-                                    // Select the first RP by default
-                                    selectRhythmParameter(newSpt, newRps.get(0), true);
-                                }
+                                // Select the first RP by default
+                                selectRhythmParameter(newSpt, newRps.get(0), true);
                             }
                         }
                     }
-
-                    panel_SongParts.revalidate();     // Needed to get immediate UI update
-                    panel_SongParts.repaint();        // Needed to avoid glitch if replaced viewer is smaller
-                    updateSptsVisibleRhythmAndTimeSignature();
-                    updateSptMultiSelectMode();
-                } else if (e instanceof SptResizedEvent)
-                {
-                    // Nothing, directly managed by SptViewers
-                } else if (e instanceof SptRenamedEvent)
-                {
-                    // Update the MultiSelectBar on/off state on each SptViewer
-                    updateSptMultiSelectMode();
-                } else if (e instanceof RpValueChangedEvent)
-                {
-                    // Nothing, directly managed by SptViewers
                 }
+
+                panel_SongParts.revalidate();     // Needed to get immediate UI update
+                panel_SongParts.repaint();        // Needed to avoid glitch if replaced viewer is smaller
+                updateSptsVisibleRhythmAndTimeSignature();
+                updateSptMultiSelectMode();
+            } else if (e instanceof SptResizedEvent)
+            {
+                // Nothing, directly managed by SptViewers
+            } else if (e instanceof SptRenamedEvent)
+            {
+                // Update the MultiSelectBar on/off state on each SptViewer
+                updateSptMultiSelectMode();
+            } else if (e instanceof RpValueChangedEvent)
+            {
+                // Nothing, directly managed by SptViewers
             }
         };
         Utilities.invokeLaterIfNeeded(run);

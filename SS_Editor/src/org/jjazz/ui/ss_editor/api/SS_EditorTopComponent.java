@@ -268,7 +268,7 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
         // Try to restore zoom factor X from client property, or zoom to fit width
         Runnable r = () -> 
         {
-            String str = songModel.getClientProperty(SS_EditorImpl.PROP_ZOOM_FACTOR_X, null);
+            String str = songModel.getClientProperties().get(SS_EditorImpl.PROP_ZOOM_FACTOR_X, null);
             if (str != null)
             {
                 int zfx = -1;
