@@ -406,7 +406,7 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
             {
                 doDisableUpdates = true;
             }
-            case "setRhythmParameterValue" ->
+            case "setRhythmParameterValue", "setRhythmParameterValueContent" ->
             {
                 if (data instanceof RP_SYS_TempoFactor)
                 {
