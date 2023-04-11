@@ -226,7 +226,7 @@ public class ControlTrack
         int csIndex = 0;
         for (CLI_ChordSymbol cliCs : contextChordSequence)
         {
-            long tick = context.getRelativeTick(cliCs.getPosition());
+            long tick = context.toRelativeTick(cliCs.getPosition());
             assert tick != -1 : "cliCs=" + cliCs + " contextChordSequence=" + contextChordSequence + " context=" + context;
             var mm = new MmChordSymbol(cliCs);
             // HACK!

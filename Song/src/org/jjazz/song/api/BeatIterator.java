@@ -80,7 +80,7 @@ public class BeatIterator implements Iterator<Position>
     {
         this(song,
                 barRange,
-                song.getSongStructure().getPosition(song.getSongStructure().getPositionInNaturalBeats(barRange.from)));
+                song.getSongStructure().toPosition(song.getSongStructure().toPositionInNaturalBeats(barRange.from)));
     }
 
     /**

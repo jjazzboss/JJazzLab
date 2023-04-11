@@ -53,16 +53,7 @@ public interface PlaybackListener
      */
     void beatChanged(Position oldPos, Position newPos, float newPosInBeats);
 
-    /**
-     * Called on each bar change.
-     *
-     * @param oldBar
-     * @param newBar
-     * @param newPosInBeats Might be -1 when information is not available
-     */
-    void barChanged(int oldBar, int newBar, float newPosInBeats);
-
-    /**
+     /**
      * Called on chord symbol change.
      *
      * @param chordSymbol The current chord symbol with an absolute position (position within the entire song structure).

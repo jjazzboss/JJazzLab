@@ -319,19 +319,13 @@ public class RP_SYS_DrumsTransformComp extends RealTimeRpEditorComponent<RP_SYS_
         }
 
         float pos = -1;
-        long tickPos = songPartContext.getRelativeTick(newPos);
+        long tickPos = songPartContext.toRelativeTick(newPos);
         if (tickPos >= 0)
         {
             pos = (float) tickPos / MidiConst.PPQ_RESOLUTION - birdview_outPhrase.getBeatRange().from;
         }
-        LOGGER.severe("DEBUG beatChanged() newPosInBeats=" + newPosInBeats + " pos=" + pos);
+        // LOGGER.severe("DEBUG beatChanged() newPosInBeats=" + newPosInBeats + " pos=" + pos);
         birdview_outPhrase.setMarkerPosition(pos);
-    }
-
-    @Override
-    public void barChanged(int oldBar, int newBar, float newPosInBeats)
-    {
-        // Nothing
     }
 
     @Override

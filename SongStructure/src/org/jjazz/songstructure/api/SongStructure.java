@@ -43,8 +43,8 @@ import org.jjazz.util.api.IntRange;
 /**
  * A SongStructure manages SongParts.
  * <p>
- * Implementation must fire the relevant SgsChangeEvents when a method mutates the song structure. If a RhythmParameter uses a value class which
- * is mutable (implements MutableRpValue), the SongStructure will listen to value changes and propagate the change event via
+ * Implementation must fire the relevant SgsChangeEvents when a method mutates the song structure. If a RhythmParameter uses a value class
+ * which is mutable (implements MutableRpValue), the SongStructure will listen to value changes and propagate the change event via
  * SgsChangeEvents.
  */
 public interface SongStructure
@@ -72,24 +72,24 @@ public interface SongStructure
         var allRhythms = getSongParts().stream()
                 .map(spt -> spt.getRhythm())
                 .toList();
-
-
+        
+        
         for (SongPart spt : getSongParts())
         {
             Rhythm r = spt.getRhythm();
-
+            
             if (res.contains(r))
             {
                 continue;
             }
-
+            
             if (r instanceof AdaptedRhythm)
             {
                 if (!excludeAdaptedRhythms)
                 {
                     res.add(spt.getRhythm());
                 }
-
+                
                 var sr = ((AdaptedRhythm) r).getSourceRhythm();
                 if (!excludeImplicitSourceRhythms && !allRhythms.contains(sr) && !res.contains(sr))
                 {
@@ -99,7 +99,7 @@ public interface SongStructure
             {
                 res.add(r);
             }
-
+            
         }
         return res;
     }
@@ -226,43 +226,64 @@ public interface SongStructure
     }
 
     /**
-     * Convert the specified bar range into a natural beat range.
+     * Converts the specified bar range into a natural beat range.
      * <p>
      * The method must take into account SongParts with possibly different time signatures.
      *
      * @param barRange If null use the whole song structure.
      * @return Can be an empty range if barRange is not contained in the song structure.
      */
-    public FloatRange getBeatRange(IntRange barRange);
+    public FloatRange toBeatRange(IntRange barRange);
 
     /**
-     * The position of the specified bar in natural beats: take into account the possible different time signatures before specified bar.
+     * Converts the position of the specified bar in natural beats: take into account the possible different time signatures before
+     * specified bar.
      *
      * @param absoluteBarIndex A value in the range [0; getSizeInBars()].
      * @return
      */
-    public float getPositionInNaturalBeats(int absoluteBarIndex);
+    public float toPositionInNaturalBeats(int absoluteBarIndex);
 
     /**
-     * The position in natural beats: take into account the possible different time signatures before specified bar.
+     * Converts the specified position in natural beats: take into account the possible different time signatures before specified bar.
      *
      * @param pos
      * @return
      */
-    default public float getPositionInNaturalBeats(Position pos)
+    default public float toPositionInNaturalBeats(Position pos)
     {
-        return getPositionInNaturalBeats(pos.getBar()) + pos.getBeat();
+        return SongStructure.this.toPositionInNaturalBeats(pos.getBar()) + pos.getBeat();
     }
 
     /**
-     * The position in bars/beats converted from a position specified in natural beats.
+     * Converts a song structure position into a chord leadsheet position.
+     *
+     * @param pos
+     * @return null if pos is beyond the end of the song
+     */
+    default public Position toClsPosition(Position pos)
+    {
+        Position res = null;
+        SongPart spt = getSongPart(pos.getBar());
+        if (spt != null)
+        {
+            var cliSection = spt.getParentSection();
+            res = cliSection.getPosition();
+            res.setBar(res.getBar() + pos.getBar() - spt.getStartBarIndex());
+            res.setBeat(pos.getBeat());
+        }
+        return res;
+    }
+
+    /**
+     * Converts a natural beats position into a bar/beats Position.
      * <p>
      * Take into account the possible different time signatures of the song.
      *
      * @param posInBeats
      * @return Null if posInBeats is beyond the end of the song.
      */
-    public Position getPosition(float posInBeats);
+    public Position toPosition(float posInBeats);
 
 
     /**

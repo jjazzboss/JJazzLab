@@ -165,7 +165,7 @@ public class PositionViewer extends JLabel implements PropertyChangeListener
             if (songModel != null && pos.getBar() < songModel.getSongStructure().getSizeInBars())
             {
                 int tempo = songModel.getTempo();
-                float posInBeats = songModel.getSongStructure().getPositionInNaturalBeats(pos.getBar()) + pos.getBeat();
+                float posInBeats = songModel.getSongStructure().toPositionInNaturalBeats(pos.getBar()) + pos.getBeat();
                 float oneBeatInSec = 60f / tempo;
                 float posInSec = posInBeats * oneBeatInSec;
                 int min = (int) Math.floor(posInSec / 60);

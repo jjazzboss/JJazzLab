@@ -437,12 +437,6 @@ public class ImproSupport
         }
 
         @Override
-        public void barChanged(int oldBar, int newBar, float newPosInBeats)
-        {
-            // Nothing
-        }
-
-        @Override
         public void chordSymbolChanged(CLI_ChordSymbol chordSymbol)
         {
             // Nothing

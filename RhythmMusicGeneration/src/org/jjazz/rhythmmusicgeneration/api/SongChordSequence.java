@@ -125,7 +125,7 @@ public class SongChordSequence extends ChordSequence
      */
     public FloatRange getBeatRange()
     {
-        return song.getSongStructure().getBeatRange(getBarRange());
+        return song.getSongStructure().toBeatRange(getBarRange());
     }
 
     /**

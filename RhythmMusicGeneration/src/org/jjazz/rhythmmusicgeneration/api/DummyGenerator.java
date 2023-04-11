@@ -73,7 +73,7 @@ public class DummyGenerator implements MusicGenerator
 
             TimeSignature ts = r.getTimeSignature();
             IntRange sptRange = sgContext.getSptBarRange(spt); // Context bars can start/end in the middle of a song part
-            float sptPosInBeats = sgContext.getSong().getSongStructure().getPositionInNaturalBeats(sptRange.from);
+            float sptPosInBeats = sgContext.getSong().getSongStructure().toPositionInNaturalBeats(sptRange.from);
 
             // Get the SimpleChordSequence corresponding to the song part
             SongChordSequence scSeq = new SongChordSequence(sgContext.getSong(), sptRange);     // throw UserErrorGenerationException

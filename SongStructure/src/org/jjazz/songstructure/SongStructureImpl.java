@@ -152,7 +152,7 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
     }
 
     @Override
-    public FloatRange getBeatRange(IntRange rg)
+    public FloatRange toBeatRange(IntRange rg)
     {
         if (getSizeInBars() == 0)
         {
@@ -180,7 +180,7 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
             }
             if (startPos == -1)
             {
-                startPos = getPositionInNaturalBeats(ir.from);
+                startPos = toPositionInNaturalBeats(ir.from);
                 endPos = startPos + ir.size() * ts.getNbNaturalBeats();
             } else
             {
@@ -392,7 +392,7 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
     }
 
     @Override
-    public Position getPosition(float posInBeats)
+    public Position toPosition(float posInBeats)
     {
         if (posInBeats < 0)
         {
@@ -400,7 +400,7 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
         }
         for (SongPart spt : getSongParts())     // Synchronized
         {
-            FloatRange rg = getBeatRange(spt.getBarRange());
+            FloatRange rg = toBeatRange(spt.getBarRange());
             if (rg.contains(posInBeats, true))
             {
                 TimeSignature ts = spt.getRhythm().getTimeSignature();
@@ -415,7 +415,7 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
     }
 
     @Override
-    public synchronized float getPositionInNaturalBeats(int barIndex)
+    public synchronized float toPositionInNaturalBeats(int barIndex)
     {
         if (barIndex < 0 || barIndex > getSizeInBars())
         {

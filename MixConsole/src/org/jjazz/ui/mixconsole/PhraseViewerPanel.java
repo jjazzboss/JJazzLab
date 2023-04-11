@@ -162,7 +162,7 @@ public class PhraseViewerPanel extends PhraseBirdsEyeViewComponent implements Ch
         Phrase p = result.mapRvPhrases().get(rhythmVoice);
         if (p != null)
         {
-            setModel(p, null, song.getSongStructure().getBeatRange(null));
+            setModel(p, null, song.getSongStructure().toBeatRange(null));
         }
     }
 

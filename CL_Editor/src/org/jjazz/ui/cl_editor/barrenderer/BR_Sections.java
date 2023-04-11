@@ -88,10 +88,7 @@ public class BR_Sections extends BarRenderer implements ComponentListener, Prope
 
 
         // Listen to section colors changes
-        if (editor != null)
-        {
-            editor.addPropertyChangeListener(this);
-        }
+        getEditor().addPropertyChangeListener(this);
 
 
         // Our layout manager
@@ -129,16 +126,13 @@ public class BR_Sections extends BarRenderer implements ComponentListener, Prope
     {
         super.cleanup();
         getPrefSizePanelSharedInstance().removeComponentListener(this);
-        if (getEditor() != null)
-        {
-            getEditor().removePropertyChangeListener(this);
+        getEditor().removePropertyChangeListener(this);
 
-            // Remove only if it's the last bar of the editor
-            if (getEditor().getNbBarBoxes() == 1)
-            {
-                JDialog dlg = getFontMetricsDialog();
-                dlg.remove(getPrefSizePanelSharedInstance());
-            }
+        // Remove only if it's the last bar of the editor
+        if (getEditor().getNbBarBoxes() == 1)
+        {
+            JDialog dlg = getFontMetricsDialog();
+            dlg.remove(getPrefSizePanelSharedInstance());
         }
     }
 
@@ -353,7 +347,7 @@ public class BR_Sections extends BarRenderer implements ComponentListener, Prope
 
     private Color getSectionColor(CLI_Section cliSection)
     {
-        return getEditor() != null ? getEditor().getSectionColor(cliSection) : ColorSetManager.getDefault().getColor(cliSection);
+        return getEditor().getSectionColor(cliSection);
     }
 
     /**

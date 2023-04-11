@@ -238,7 +238,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
 
         songPart = null;
         TreeMap<Float, TimeSignature> mapPosTs = new TreeMap<>();
-        spts.forEach(spt -> mapPosTs.put(ss.getPositionInNaturalBeats(spt.getStartBarIndex()), spt.getRhythm().getTimeSignature()));
+        spts.forEach(spt -> mapPosTs.put(ss.toPositionInNaturalBeats(spt.getStartBarIndex()), spt.getRhythm().getTimeSignature()));
 
 
         editor.setModel(p, getBeatRange(), 0, 0, channel, mapPosTs, keyMap);
@@ -318,7 +318,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
     public FloatRange getBeatRange()
     {
         var ss = song.getSongStructure();
-        return isRP_SYS_CustomPhraseMode() ? ss.getBeatRange(songPart.getBarRange()) : ss.getBeatRange(null);
+        return isRP_SYS_CustomPhraseMode() ? ss.toBeatRange(songPart.getBarRange()) : ss.toBeatRange(null);
     }
 
     /**

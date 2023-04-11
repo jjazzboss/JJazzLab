@@ -109,7 +109,7 @@ public class SongContext
         songParts = song.getSongStructure().getSongParts().stream()
                 .filter(spt -> contains(spt))
                 .toList();
-        beatRange = song.getSongStructure().getBeatRange(barRange);
+        beatRange = song.getSongStructure().toBeatRange(barRange);
         tickRange = new LongRange((long) (beatRange.from * MidiConst.PPQ_RESOLUTION), (long) (beatRange.to * MidiConst.PPQ_RESOLUTION));
 
     }
@@ -177,7 +177,7 @@ public class SongContext
      * The range (computed at the time of this object creation) for which music should be produced.
      * <p>
      * The range can start/end anywhere in the song (including in the middle of a song part). If getBarRange().from &gt; 0 then
-     * getBeatRange().from is also &gt; 0.
+ toBeatRange().from is also &gt; 0.
      *
      * @return
      */
@@ -189,7 +189,7 @@ public class SongContext
     /**
      * The tick range (computed at the time of this object creation) corresponding to getBarRange() or getBeatRange().
      * <p>
-     * The range can start/end anywhere in the song (including in the middle of a song part). If getBeatRange().from &gt; 0 then
+ The range can start/end anywhere in the song (including in the middle of a song part). If toBeatRange().from &gt; 0 then
      * getTickRange().from is also &gt; 0.
      *
      * @return
@@ -232,7 +232,7 @@ public class SongContext
      */
     public FloatRange getSptBeatRange(SongPart spt)
     {
-        FloatRange sptRange = song.getSongStructure().getBeatRange(spt.getBarRange());
+        FloatRange sptRange = song.getSongStructure().toBeatRange(spt.getBarRange());
         return sptRange.getIntersectRange(getBeatRange());
     }
 
@@ -294,29 +294,29 @@ public class SongContext
     }
 
     /**
-     * Convert a tick position relative to this context into an absolute SongStructure Position.
+     * Converts a tick position relative to this context into an absolute SongStructure Position.
      *
      * @param relativeTick 0 for the start of this context bar range.
      * @return Null if tick is out of the bounds of this context.
      */
-    public Position getPosition(long relativeTick)
+    public Position toPosition(long relativeTick)
     {
         FloatRange br = getBeatRange();
-        float absPosInBeats = getPositionInBeats(relativeTick);
+        float absPosInBeats = toPositionInBeats(relativeTick);
         if (!br.contains(absPosInBeats, true))
         {
             return null;
         }
-        return song.getSongStructure().getPosition(absPosInBeats);
+        return song.getSongStructure().toPosition(absPosInBeats);
     }
 
     /**
-     * Convert a tick position relative to this context into an absolute SongStructure position in beats.
+     * Converts a tick position relative to this context into an absolute SongStructure position in beats.
      *
      * @param relativeTick 0 for the start of this context bar range.
      * @return -1 if tick is out of the bounds of this context.
      */
-    public float getPositionInBeats(long relativeTick)
+    public float toPositionInBeats(long relativeTick)
     {
         FloatRange br = getBeatRange();
         float res = br.from + (float) relativeTick / MidiConst.PPQ_RESOLUTION;
@@ -329,14 +329,14 @@ public class SongContext
 
 
     /**
-     * Convert a tick position relative to this context into a ChordLeadSheet Position.
+     * Converts a tick position relative to this context into a ChordLeadSheet Position.
      *
      * @param relativeTick
      * @return Null if tick is out of the bounds of this context.
      */
-    public Position getClsPosition(long relativeTick)
+    public Position toClsPosition(long relativeTick)
     {
-        Position ssPos = getPosition(relativeTick);
+        Position ssPos = toPosition(relativeTick);
         if (ssPos == null)
         {
             return null;
@@ -353,7 +353,7 @@ public class SongContext
      * @param pos
      * @return -1 if pos is outside this context range. Returns 0 for the first bar/beat of the context range.
      */
-    public long getRelativeTick(Position pos)
+    public long toRelativeTick(Position pos)
     {
         if (pos == null)
         {

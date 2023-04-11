@@ -298,7 +298,7 @@ public class SongSequenceBuilder
             {
 
                 Position absPos = ss.getSptItemPosition(spt, cliCs);
-                long tickPos = songContext.getRelativeTick(absPos);
+                long tickPos = songContext.toRelativeTick(absPos);
                 me = new MidiEvent(MidiUtilities.getMarkerMetaMessage(cliCs.getData().getName()), tickPos);
                 track0.add(me);
             }
@@ -808,7 +808,7 @@ public class SongSequenceBuilder
             var pos = cliCs.getPosition();
             if (cliCs.getData() instanceof NCExtChordSymbol ncecs)
             {
-                float posInBeats = ss.getPositionInNaturalBeats(pos.getBar()) + pos.getBeat();
+                float posInBeats = ss.toPositionInNaturalBeats(pos.getBar()) + pos.getBeat();
                 TimeSignature ts = ss.getSongPart(pos.getBar()).getRhythm().getTimeSignature();
                 float chordDuration = songChordSequence.getChordDuration(cliCs, ts);
                 FloatRange beatRange = new FloatRange(posInBeats, posInBeats + chordDuration - 0.1f);
@@ -826,7 +826,7 @@ public class SongSequenceBuilder
      * Replace phrases by custom phrases depending on the RP_SYS_CustomPhrase value.
      *
      * @param context
-     * @param rvPhrases Keys can include RhythmVoiceDelegates. Phrases contain notes within context.getBeatRange().
+     * @param rvPhrases Keys can include RhythmVoiceDelegates. Phrases contain notes within context.toBeatRange().
      */
     private void processCustomPhrases(SongContext context, Map<RhythmVoice, Phrase> rvPhrases)
     {
@@ -842,7 +842,7 @@ public class SongSequenceBuilder
             }
 
 
-            FloatRange sptBeatRange = context.getSong().getSongStructure().getBeatRange(spt.getBarRange());
+            FloatRange sptBeatRange = context.getSong().getSongStructure().toBeatRange(spt.getBarRange());
             FloatRange sptBeatRangeInContext = context.getSptBeatRange(spt);
 
 
@@ -882,7 +882,7 @@ public class SongSequenceBuilder
 
         for (SongPart spt : context.getSongParts())
         {
-            FloatRange sptBeatRange = context.getSptBeatRange(spt);     // Might be smaller than spt.getBeatRange()
+            FloatRange sptBeatRange = context.getSptBeatRange(spt);     // Might be smaller than spt.toBeatRange()
             IntRange sptBarRange = context.getSptBarRange(spt);         // Might be smaller than spt.getBarRange()
             SongPartContext sptContext = new SongPartContext(context.getSong(), context.getMidiMix(), sptBarRange);
 
@@ -1062,7 +1062,7 @@ public class SongSequenceBuilder
                 }
                 if (!inRange)
                 {
-                    // songContext.getPosition(0)
+                    // songContext.toPosition(0)
                     String msg = ResUtil.getString(getClass(), "ERR_InvalidNotePosition", ne.toString(), r.getName());
                     LOGGER.log(Level.INFO, "checkRhythmPhrasesScope() {0}", msg);
                     LOGGER.log(Level.FINE, "DEBUG!  rv={0} ne={1} p={2}", new Object[]

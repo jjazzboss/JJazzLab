@@ -1571,7 +1571,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     {
         // Remove from selection 
         // We can not call SelectItem(false), because item
-        // might have been already moved, so item.getPosition().getBar() is 
+        // might have been already moved, so item.toPosition().getBar() is 
         // different from barIndex.
         selectionLookupContent.remove(item);
         selectionLastContent.remove(item);

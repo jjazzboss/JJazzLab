@@ -19,8 +19,10 @@
           <Group type="102" attributes="0">
               <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
-                  <Component id="pnl_posSection" pref="292" max="32767" attributes="0"/>
-                  <Group type="102" attributes="0">
+                  <Component id="pnl_posSection" pref="377" max="32767" attributes="0"/>
+                  <Group type="102" alignment="0" attributes="0">
+                      <Component id="lbl_prevChord" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
                       <Component id="pnl_barBox" max="32767" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="lbl_nextChord" min="-2" max="-2" attributes="0"/>
@@ -35,12 +37,18 @@
           <Group type="102" alignment="0" attributes="0">
               <EmptySpace min="-2" pref="7" max="-2" attributes="0"/>
               <Component id="pnl_posSection" min="-2" max="-2" attributes="0"/>
-              <EmptySpace type="unrelated" max="-2" attributes="0"/>
-              <Group type="103" groupAlignment="1" attributes="0">
-                  <Component id="pnl_barBox" min="-2" pref="53" max="-2" attributes="0"/>
-                  <Component id="lbl_nextChord" min="-2" max="-2" attributes="0"/>
+              <EmptySpace type="separate" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <Component id="pnl_barBox" max="32767" attributes="0"/>
+                  <Group type="102" attributes="0">
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Component id="lbl_prevChord" min="-2" max="-2" attributes="0"/>
+                          <Component id="lbl_nextChord" alignment="0" min="-2" max="-2" attributes="0"/>
+                      </Group>
+                      <EmptySpace min="0" pref="98" max="32767" attributes="0"/>
+                  </Group>
               </Group>
-              <EmptySpace max="32767" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -96,6 +104,13 @@
       <Properties>
         <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
           <ResourceString bundle="org/jjazz/easyreader/Bundle.properties" key="EasyReaderPanel2.lbl_nextChord.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+        </Property>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JLabel" name="lbl_prevChord">
+      <Properties>
+        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="org/jjazz/easyreader/Bundle.properties" key="EasyReaderPanel2.lbl_prevChord.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
         </Property>
       </Properties>
     </Component>

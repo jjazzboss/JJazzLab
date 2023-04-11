@@ -41,12 +41,6 @@ public class PlaybackListenerAdapter implements PlaybackListener
     }
 
     @Override
-    public void barChanged(int oldBar, int newBar, float newPosInBeats)
-    {
-        // Do nothing
-    }
-
-    @Override
     public void midiActivity(long tick, int channel)
     {
         // Do nothing

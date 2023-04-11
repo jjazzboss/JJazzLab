@@ -911,7 +911,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
 
             var sgContext = scp.getSongContext();
             long relativeTick = getRelativeTickFromLoopStart(tick);
-            posInBeats = sgContext.getPositionInBeats(relativeTick);
+            posInBeats = sgContext.toPositionInBeats(relativeTick);
             LOGGER.log(Level.FINE, "setPosition()   > song session: relativeTick={1} posInBeats={2}", new Object[]
             {
                 relativeTick,
@@ -997,17 +997,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         });
     }
 
-    private void fireBarChanged(int oldBar, int newBar, float posInBeats)
-    {
-        fireLatencyAwareEvent(() -> 
-        {
-            for (PlaybackListener pl : playbackListeners.toArray(PlaybackListener[]::new))
-            {
-                pl.barChanged(oldBar, newBar, posInBeats);
-            }
-        });
-    }
-
+   
     private void fireMidiActivity(long tick, int channel)
     {
         fireLatencyAwareEvent(() -> 
@@ -1102,7 +1092,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                         // Fire chord symbol change if no chord symbol at current position (current chord symbol is the previous one)
                         // Fire a song part change event
                         long relativeTick = getRelativeTickFromLoopStart(sequencer.getTickPosition());      // Can be negative in some cases
-                        Position posStart = sgContext.getPosition(relativeTick);
+                        Position posStart = sgContext.toPosition(relativeTick);
                         if (posStart != null)
                         {
                             CLI_ChordSymbol lastCliCs = cSeq.getChordSymbol(posStart); // Process substitute chord symbols
@@ -1138,11 +1128,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
 
         // Fire events
         fireBeatChanged(oldPos, new Position(currentBeatPosition), posInBeats);
-        if (barBeat == 0)
-        {
-            fireBarChanged(oldPos.getBar(), bar, posInBeats);
-        }
-
+     
 
         // Possibly fire a songpart change as well
         SongContext sgContext = getSongContext(playbackSession);

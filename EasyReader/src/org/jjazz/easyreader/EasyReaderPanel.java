@@ -188,11 +188,6 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
     }
 
     @Override
-    public void barChanged(int oldBar, int newBar, float newPosInBeats)
-    {
-    }
-
-    @Override
     public void chordSymbolChanged(CLI_ChordSymbol newChord)
     {
         LOGGER.severe("chordSymbolChanged() newChord=" + newChord);
@@ -205,8 +200,8 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
                 nextChord = songChordSequence.higher(chord);        // Might be null
             }
 
-            chordPosInBeats = song.getSongStructure().getPositionInNaturalBeats(chord.getPosition());
-            nextChordPosInBeats = nextChord != null ? song.getSongStructure().getPositionInNaturalBeats(nextChord.getPosition()) : -1f;
+            chordPosInBeats = song.getSongStructure().toPositionInNaturalBeats(chord.getPosition());
+            nextChordPosInBeats = nextChord != null ? song.getSongStructure().toPositionInNaturalBeats(nextChord.getPosition()) : -1f;
 
 
             // Update chords UI

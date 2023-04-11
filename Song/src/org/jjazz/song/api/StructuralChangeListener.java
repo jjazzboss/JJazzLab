@@ -133,7 +133,7 @@ public class StructuralChangeListener implements ClsChangeListener, SgsChangeLis
             String actionId = ae.getActionId();
             changed = switch (actionId)
             {
-                case "replaceSongParts", "setRhythmParameterValue", "setSongPartsName" ->
+                case "replaceSongParts", "setRhythmParameterValue", "setRhythmParameterValueContent", "setSongPartsName" ->
                     false;
                 default ->
                     true;
