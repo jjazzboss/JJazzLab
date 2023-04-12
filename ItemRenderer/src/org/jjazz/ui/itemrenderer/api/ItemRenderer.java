@@ -22,6 +22,7 @@
  */
 package org.jjazz.ui.itemrenderer.api;
 
+import com.google.common.base.Preconditions;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.*;
@@ -81,6 +82,8 @@ public abstract class ItemRenderer extends JPanel implements PropertyChangeListe
         this.irType = irType;
         modelItem = item;
         modelItem.addPropertyChangeListener(this);
+        
+        
         // Disable focus keys on ItemRenderer : must be managed at a higher level
         setFocusTraversalKeysEnabled(false);
         // Register focus events
@@ -113,6 +116,22 @@ public abstract class ItemRenderer extends JPanel implements PropertyChangeListe
     public IR_Type getIR_Type()
     {
         return irType;
+    }
+    
+    public void setModel(ChordLeadSheetItem<?> item)
+    {
+        Preconditions.checkNotNull(item);
+        if (modelItem == item)
+        {
+            return;
+        }
+        
+        modelItem.removePropertyChangeListener(this);
+        modelItem = item;
+        modelItem.addPropertyChangeListener(this);
+        
+        modelChanged();
+        modelMoved();
     }
 
     /**

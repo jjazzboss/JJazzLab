@@ -59,7 +59,7 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
     /**
      * Our graphical settings.
      */
-    private BarBoxSettings bbSettings;
+    private final BarBoxSettings bbSettings;
     // APPLICATION
     /**
      * The BarRenderers displayed in this BarBox.
@@ -82,7 +82,7 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
     /**
      * True if the playback position is on this bar.
      */
-    private boolean isPlaybackOn;
+    private boolean showPlaybackPoint;
     private Quantization displayQuantization;
     private int zoomVFactor = 50;
     private BarRendererFactory barRendererFactory;
@@ -543,11 +543,15 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
      */
     public void showPlaybackPoint(boolean b, Position pos)
     {
+        if (b == showPlaybackPoint)
+        {
+            return;
+        }
         if (b && pos.getBar() != getBarIndex())
         {
             throw new IllegalArgumentException("b=" + b + " pos=" + pos);
         }
-        isPlaybackOn = b;
+        showPlaybackPoint = b;
         refreshBackground();
         for (BarRenderer br : getBarRenderers())
         {
@@ -586,7 +590,7 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
     @Override
     public String toString()
     {
-        return "BarBox " + barIndex;
+        return "BarBox " + barIndex + " modelBarIndex=" + modelBarIndex;
     }
 
     //-----------------------------------------------------------------------
@@ -639,7 +643,7 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
      */
     private void refreshBackground()
     {
-        if (isPlaybackOn)
+        if (showPlaybackPoint)
         {
             setBackground(bbSettings.getPlaybackColor());
             return;
