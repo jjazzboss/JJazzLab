@@ -23,7 +23,6 @@
 package org.jjazz.improvisionsupport;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import org.jjazz.ui.cl_editor.api.CL_Editor;
 import org.jjazz.ui.cl_editor.barrenderer.api.BarRenderer;
@@ -42,12 +41,12 @@ public class ImproSupportBrProvider implements BarRendererProvider
     public static final String BR_IMPRO_SUPPORT = "BrImproSupport";
 
     @Override
-    public BarRenderer createBarRenderer(CL_Editor editor, String brType, int barIndex, BarRendererSettings settings, ItemRendererFactory irf)
+    public BarRenderer createBarRenderer(CL_Editor editor, String brType, int barIndex, BarRendererSettings settings, ItemRendererFactory irf, Object groupKey)
     {
         BarRenderer res = null;
         if (brType.equals(BR_IMPRO_SUPPORT))
         {
-            res = new BR_ImproSupport(editor, barIndex, settings, irf);
+            res = new BR_ImproSupport(editor, barIndex, settings, irf, groupKey);
         }
         return res;
     }

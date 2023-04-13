@@ -29,6 +29,8 @@ import java.awt.event.ComponentListener;
 import java.awt.geom.Path2D;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.WeakHashMap;
 import java.util.logging.Logger;
 import javax.swing.JDialog;
@@ -56,11 +58,10 @@ import org.openide.util.Exceptions;
  */
 public class BR_ChordPositions extends BarRenderer implements BeatBasedBarRenderer, ComponentListener
 {
-
     /**
-     * Special shared JPanel instances per CL_Editor, used to calculate the preferred size for a BarRenderer subclass..
+     * Special shared JPanel instances per GroupKey, used to calculate the preferred size for a BarRenderer subclass..
      */
-    private static final WeakHashMap<CL_Editor, PrefSizePanel> mapEditorPrefSizePanel = new WeakHashMap<>();
+    private static final Map<Object, PrefSizePanel> mapGroupKeyPrefSizePanel = new HashMap<>();
 
     private static final Dimension MIN_SIZE = new Dimension(10, 4);
     /**
@@ -84,9 +85,9 @@ public class BR_ChordPositions extends BarRenderer implements BeatBasedBarRender
     private static final Logger LOGGER = Logger.getLogger(BR_ChordPositions.class.getSimpleName());
 
     @SuppressWarnings("LeakingThisInConstructor")
-    public BR_ChordPositions(CL_Editor editor, int barIndex, BarRendererSettings settings, ItemRendererFactory irf)
+    public BR_ChordPositions(CL_Editor editor, int barIndex, BarRendererSettings settings, ItemRendererFactory irf, Object groupKey)
     {
-        super(editor, barIndex, settings, irf);
+        super(editor, barIndex, settings, irf, groupKey);
 
         // Default value
         lastTimeSignature = TimeSignature.FOUR_FOUR;
@@ -119,6 +120,7 @@ public class BR_ChordPositions extends BarRenderer implements BeatBasedBarRender
             JDialog dlg = getFontMetricsDialog();
             dlg.remove(getPrefSizePanelSharedInstance());
         }
+        mapGroupKeyPrefSizePanel.clear();
     }
 
     @Override
@@ -286,7 +288,7 @@ public class BR_ChordPositions extends BarRenderer implements BeatBasedBarRender
     @Override
     public void showInsertionPoint(boolean b, ChordLeadSheetItem<?> item, Position pos, boolean copyMode)
     {
-        LOGGER.fine("showInsertionPoint() b=" + b + " item=" + item + " pos=" + pos + " copyMode=" + copyMode);   
+        LOGGER.fine("showInsertionPoint() b=" + b + " item=" + item + " pos=" + pos + " copyMode=" + copyMode);
         if (!b)
         {
             // Remove the insertion point
@@ -324,10 +326,10 @@ public class BR_ChordPositions extends BarRenderer implements BeatBasedBarRender
     @Override
     public void showPlaybackPoint(boolean b, Position pos)
     {
-        LOGGER.fine("showPlaybackPoint() b=" + b + " pos=" + pos);   
-        if (b && pos.getBar() != getBarIndex())
+        LOGGER.fine("showPlaybackPoint() b=" + b + " pos=" + pos);
+        if (b && pos.getBar() != getModelBarIndex())
         {
-            throw new IllegalArgumentException("b=" + b + " pos=" + pos);   
+            throw new IllegalArgumentException("b=" + b + " pos=" + pos);
         }
         if (!b)
         {
@@ -351,7 +353,7 @@ public class BR_ChordPositions extends BarRenderer implements BeatBasedBarRender
     @Override
     public void setDisplayQuantizationValue(Quantization q)
     {
-        LOGGER.fine("setDisplayQuantizationValue() q=" + q);   
+        LOGGER.fine("setDisplayQuantizationValue() q=" + q);
         layoutManager.setDisplayQuantization(q);
         revalidate();  // Reposition items
         repaint(); // Update graduations
@@ -374,7 +376,7 @@ public class BR_ChordPositions extends BarRenderer implements BeatBasedBarRender
     {
         if (!isRegisteredItemClass(item))
         {
-            throw new IllegalArgumentException("item=" + item);   
+            throw new IllegalArgumentException("item=" + item);
         }
         ItemRenderer ir = getItemRendererFactory().createItemRenderer(IR_Type.ChordPosition, item, getSettings().getItemRendererSettings());
         return ir;
@@ -433,11 +435,11 @@ public class BR_ChordPositions extends BarRenderer implements BeatBasedBarRender
      */
     private PrefSizePanel getPrefSizePanelSharedInstance()
     {
-        PrefSizePanel panel = mapEditorPrefSizePanel.get(getEditor());
+        PrefSizePanel panel = mapGroupKeyPrefSizePanel.get(getGroupKey());
         if (panel == null)
         {
             panel = new PrefSizePanel();
-            mapEditorPrefSizePanel.put(getEditor(), panel);
+            mapGroupKeyPrefSizePanel.put(getGroupKey(), panel);
         }
         return panel;
     }
@@ -448,8 +450,8 @@ public class BR_ChordPositions extends BarRenderer implements BeatBasedBarRender
     /**
      * A special shared JPanel instance used to calculate the preferred size for all BR_ChordPositions.
      * <p>
-     * Add ItemRenderers with the tallest size. Panel is added to the "hidden" BarRenderer's JDialog to be displayable so that
-     * FontMetrics can be calculated with a Graphics object.
+     * Add ItemRenderers with the tallest size. Panel is added to the "hidden" BarRenderer's JDialog to be displayable so that FontMetrics
+     * can be calculated with a Graphics object.
      * <p>
      */
     private class PrefSizePanel extends JPanel
@@ -474,7 +476,8 @@ public class BR_ChordPositions extends BarRenderer implements BeatBasedBarRender
                 Exceptions.printStackTrace(ex);
             }
 
-            ItemRenderer ir = getItemRendererFactory().createItemRenderer(IR_Type.ChordPosition, item, getSettings().getItemRendererSettings());
+            ItemRenderer ir = getItemRendererFactory().createItemRenderer(IR_Type.ChordPosition, item,
+                    getSettings().getItemRendererSettings());
             irs.add(ir);
             add(ir);
 

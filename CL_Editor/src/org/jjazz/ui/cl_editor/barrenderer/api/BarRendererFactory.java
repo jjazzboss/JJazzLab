@@ -50,8 +50,7 @@ public interface BarRendererFactory
     /**
      * Return the default implementation.
      * <p>
-     * If brType is not handled by the default implementation, it tries to find a relevant BarRendererProvider in the global
-     * lookup.
+     * If brType is not handled by the default implementation, it tries to find a relevant BarRendererProvider in the global lookup.
      *
      * @return
      */
@@ -71,28 +70,30 @@ public interface BarRendererFactory
     }
 
     /**
-     * Create a BarRender with default settings.
+     * Create a BarRenderer with default settings.
      *
-     * @param editor Can be null
+     * @param editor   Can be null
      * @param brType
      * @param barIndex
+     * @param groupKey
      * @return
      */
-    default BarRenderer createBarRenderer(CL_Editor editor, String brType, int barIndex)
+    default BarRenderer createBarRenderer(CL_Editor editor, String brType, int barIndex, Object groupKey)
     {
-        return createBarRenderer(editor, brType, barIndex, BarRendererSettings.getDefault(), getItemRendererFactory());
+        return createBarRenderer(editor, brType, barIndex, BarRendererSettings.getDefault(), getItemRendererFactory(), groupKey);
     }
 
     /**
-     * Create a BarRender of the specified type.
+     * Create a BarRenderer of the specified type.
      *
-     * @param editor Can be null
+     * @param editor   Can be null
      * @param brType
      * @param barIndex
      * @param settings
      * @param irf
+     * @param groupKey
      * @return
      */
-    BarRenderer createBarRenderer(CL_Editor editor, String brType, int barIndex, BarRendererSettings settings, ItemRendererFactory irf);
+    BarRenderer createBarRenderer(CL_Editor editor, String brType, int barIndex, BarRendererSettings settings, ItemRendererFactory irf, Object groupKey);
 
 }

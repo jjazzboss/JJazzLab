@@ -62,9 +62,9 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
 {
 
     /**
-     * Special shared JPanel instances per CL_Editor, used to calculate the preferred size for a BarRenderer subclass..
+     * Special shared JPanel instances per GroupKey, used to calculate the preferred size for a BarRenderer subclass..
      */
-    private static final WeakHashMap<CL_Editor, PrefSizePanel> mapEditorPrefSizePanel = new WeakHashMap<>();
+    private static final WeakHashMap<Object, PrefSizePanel> mapGroupKeyPrefSizePanel = new WeakHashMap<>();
 
     private static final Dimension MIN_SIZE = new Dimension(10, 4);
     /**
@@ -84,9 +84,9 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
     private static final Logger LOGGER = Logger.getLogger(BR_Chords.class.getSimpleName());
 
     @SuppressWarnings("LeakingThisInConstructor")
-    public BR_Chords(CL_Editor editor, int barIndex, BarRendererSettings settings, ItemRendererFactory irf)
+    public BR_Chords(CL_Editor editor, int barIndex, BarRendererSettings settings, ItemRendererFactory irf, Object groupKey)
     {
-        super(editor, barIndex, settings, irf);
+        super(editor, barIndex, settings, irf, groupKey);
 
         // Default value
         lastTimeSignature = TimeSignature.FOUR_FOUR;
@@ -97,7 +97,7 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
 
 
         // Explicity set the preferred size so that layout's preferredLayoutSize() is never called
-        // Use PREF_SIZE_BR_CHORDS prefSize and listen to its changes
+        // listen to its preferred size changes
         setPreferredSize(getPrefSizePanelSharedInstance().getPreferredSize());
         getPrefSizePanelSharedInstance().addComponentListener(this);
         setMinimumSize(MIN_SIZE);
@@ -119,6 +119,7 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
             JDialog dlg = getFontMetricsDialog();
             dlg.remove(getPrefSizePanelSharedInstance());
         }
+        mapGroupKeyPrefSizePanel.clear();
     }
 
     @Override
@@ -231,6 +232,7 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
         }
         // Forward to the shared panel instance
         getPrefSizePanelSharedInstance().setZoomVFactor(factor);
+        
         // Apply to this BR_Chords object
         zoomVFactor = factor;
         for (ItemRenderer ir : getItemRenderers())
@@ -324,21 +326,21 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
         return lastTimeSignature;
     }
 
-// ---------------------------------------------------------------
+    // ---------------------------------------------------------------
     // Private methods
     // ---------------------------------------------------------------
     /**
-     * Get the PrefSizePanel shared instance for our CL_Editor.
+     * Get the PrefSizePanel shared instance between BR_Chords of same groupKey.
      *
      * @return
      */
     private PrefSizePanel getPrefSizePanelSharedInstance()
     {
-        PrefSizePanel panel = mapEditorPrefSizePanel.get(getEditor());
+        PrefSizePanel panel = mapGroupKeyPrefSizePanel.get(getGroupKey());
         if (panel == null)
         {
             panel = new PrefSizePanel();
-            mapEditorPrefSizePanel.put(getEditor(), panel);
+            mapGroupKeyPrefSizePanel.put(getGroupKey(), panel);
         }
         return panel;
     }

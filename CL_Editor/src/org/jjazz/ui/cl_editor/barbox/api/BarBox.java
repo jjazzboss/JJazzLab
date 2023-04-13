@@ -75,6 +75,7 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
      * The bar index within the model.
      */
     private int modelBarIndex;
+    private final Object groupKey;
     /**
      * True if the BarBox is selected.
      */
@@ -97,20 +98,27 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
      * @param config
      * @param settings
      * @param brf
+     * @param groupKey
      */
     @SuppressWarnings("LeakingThisInConstructor")
-    public BarBox(CL_Editor editor, int bbIndex, int modelBarIndex, ChordLeadSheet model, BarBoxConfig config, BarBoxSettings settings, BarRendererFactory brf)
+    public BarBox(CL_Editor editor, int bbIndex, int modelBarIndex, 
+            ChordLeadSheet model, 
+            BarBoxConfig config, 
+            BarBoxSettings settings, 
+            BarRendererFactory brf,
+            Object groupKey)    
     {
         Preconditions.checkNotNull(model);
         Preconditions.checkNotNull(config);
         Preconditions.checkNotNull(settings);
         Preconditions.checkNotNull(brf);
+        Preconditions.checkNotNull(groupKey);
         Preconditions.checkArgument(bbIndex >= 0);
 
 
         this.editor = editor;
         displayQuantization = Quantization.BEAT;
-
+        this.groupKey = groupKey;
 
         // Pile up BarRenderers
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
@@ -193,7 +201,9 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
     }
 
     /**
-     * Remove an item from the BarBox.The operation requests each BarRenderer to remove the ItemRenderer if appropriate.
+     * Remove an item from the BarBox.
+     * <p>
+     * The operation requests each BarRenderer to remove the ItemRenderer if appropriate.
      *
      * @param item
      * @return List The removed ItemRenderers. Can be an empty list.
@@ -456,12 +466,26 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
     }
 
     /**
+     * Get the section this BarBox belongs to.
+     *
+     * @return Can be null if modelBarIndex==-1
+     */
+    public CLI_Section getSection()
+    {
+        return modelBarIndex == -1 ? null : model.getSection(modelBarIndex);
+    }
+
+    /**
      * Request BarRenderers to update if the section they belong to has changed.
      *
      * @param section
      */
     public void setSection(CLI_Section section)
     {
+        if (section != getSection())
+        {
+            throw new IllegalArgumentException("section=" + section + " getSection()=" + getSection());
+        }
         for (BarRenderer br : getBarRenderers())
         {
             br.setSection(section);
@@ -513,7 +537,7 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
         for (String brType : barBoxConfig.getActiveBarRenderers())
         {
             BarRenderer br = barRendererFactory.createBarRenderer(editor, brType, barIndex, bbSettings.getBarRendererSettings(),
-                    barRendererFactory.getItemRendererFactory());
+                    barRendererFactory.getItemRendererFactory(), groupKey);
             br.setZoomVFactor(zoomVFactor);
             br.setDisplayQuantizationValue(displayQuantization);
             br.setEnabled(isEnabled());
@@ -543,11 +567,11 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
      */
     public void showPlaybackPoint(boolean b, Position pos)
     {
-        if (b == showPlaybackPoint)
+        if (!b && !showPlaybackPoint)
         {
             return;
         }
-        if (b && pos.getBar() != getBarIndex())
+        if (b && pos.getBar() != getModelBarIndex())
         {
             throw new IllegalArgumentException("b=" + b + " pos=" + pos);
         }
@@ -566,7 +590,6 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
     {
         removeFocusListener(this);
         bbSettings.removePropertyChangeListener(this);
-        model = null;
         for (BarRenderer br : getBarRenderers())
         {
             removeBarRenderer(br);

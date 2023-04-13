@@ -39,7 +39,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -108,9 +107,9 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
      * @param irf
      */
     @SuppressWarnings("LeakingThisInConstructor")
-    public BR_ImproSupport(CL_Editor editor, int barIndex, BarRendererSettings settings, ItemRendererFactory irf)
+    public BR_ImproSupport(CL_Editor editor, int barIndex, BarRendererSettings settings, ItemRendererFactory irf, Object groupKey)
     {
-        super(editor, barIndex, settings, irf);
+        super(editor, barIndex, settings, irf, groupKey);
         setPreferredSize(new Dimension(10, PREF_HEIGHT));      // Width ignored because of the containers layout
 
         playbackPointEnabled = false;

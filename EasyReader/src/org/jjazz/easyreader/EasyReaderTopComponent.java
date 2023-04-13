@@ -57,7 +57,7 @@ public final class EasyReaderTopComponent extends TopComponent implements Proper
 {
 
     private static final Logger LOGGER = Logger.getLogger(EasyReaderTopComponent.class.getSimpleName());
-    private final EasyReaderPanel2 editor;
+    private final EasyReaderPanel editor;
 
     public EasyReaderTopComponent()
     {
@@ -70,7 +70,7 @@ public final class EasyReaderTopComponent extends TopComponent implements Proper
         initComponents();
 
 
-        editor = new EasyReaderPanel2();
+        editor = new EasyReaderPanel();
         add(editor);
 
     

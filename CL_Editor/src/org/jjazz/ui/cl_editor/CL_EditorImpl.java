@@ -880,7 +880,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         {
             show, pos
         });
-        if (show && (pos == null))
+        if (show && pos == null)
         {
             throw new IllegalArgumentException("show=" + show + " pos=" + pos);
         }
@@ -1154,7 +1154,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
                 {
                     Section oldSection = (Section) e.getOldData();
                     Section newSection = cliSection.getData();
-                 
+
                     if (!oldSection.getTimeSignature().equals(newSection.getTimeSignature()))
                     {
                         // TimeSignature has changed, the quantization setting is not valid anymore
@@ -1392,7 +1392,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
             throw new IllegalArgumentException(
                     "bbIndex=" + bbIndex + " getNbBarBoxes()=" + getNbBarBoxes() + " modelBarIndex=" + modelBarIndex + " config=" + config + " clsModel=" + clsModel);
         }
-        BarBox bb = new BarBox(this, bbIndex, modelBarIndex, clsModel, config, settings.getBarBoxSettings(), barRendererFactory);
+        BarBox bb = new BarBox(this, bbIndex, modelBarIndex, clsModel, config, settings.getBarBoxSettings(), barRendererFactory, this);
         if (modelBarIndex >= 0)
         {
             // If bar represents the model set quantization value
@@ -1536,7 +1536,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     /**
      * Ask the specified BarBox to add ItemRenderer(s) for specified item.
      * <p>
- If item is a CLI_Section do what's required to maintain editor's consistency.
+     * If item is a CLI_Section do what's required to maintain editor's consistency.
      *
      * @param barIndex
      * @param item
@@ -1759,8 +1759,9 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
      */
     private class CL_EditorZoomable implements Zoomable
     {
+
         private final SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
-    
+
         @Override
         public Zoomable.Capabilities getZoomCapabilities()
         {
@@ -1825,7 +1826,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         public void setZoomXFactorToFitContent()
         {
             throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-        }            
+        }
     }
 
 

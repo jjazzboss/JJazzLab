@@ -45,7 +45,6 @@ import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.ui.cl_editor.api.CL_Editor;
 import org.jjazz.ui.cl_editor.barrenderer.api.BarRenderer;
 import org.jjazz.ui.cl_editor.barrenderer.api.BarRendererSettings;
-import org.jjazz.ui.colorsetmanager.api.ColorSetManager;
 import org.jjazz.ui.itemrenderer.api.IR_SectionSettings;
 import org.jjazz.ui.itemrenderer.api.IR_Copiable;
 import org.jjazz.ui.itemrenderer.api.IR_Section;
@@ -58,11 +57,10 @@ import org.jjazz.ui.itemrenderer.api.ItemRendererFactory;
  */
 public class BR_Sections extends BarRenderer implements ComponentListener, PropertyChangeListener
 {
-
     /**
-     * Special shared JPanel instances per CL_Editor, used to calculate the preferred size for a BarRenderer subclass..
+     * Special shared JPanel instances per groupKey, used to calculate the preferred size for a BarRenderer subclass..
      */
-    private static final WeakHashMap<CL_Editor, PrefSizePanel> mapEditorPrefSizePanel = new WeakHashMap<>();
+    private static final WeakHashMap<Object, PrefSizePanel> mapGroupPrefSizePanel = new WeakHashMap<>();
 
     private static final Dimension MIN_SIZE = new Dimension(10, 4);
     /**
@@ -78,9 +76,9 @@ public class BR_Sections extends BarRenderer implements ComponentListener, Prope
     private static final Logger LOGGER = Logger.getLogger(BR_Sections.class.getSimpleName());
 
     @SuppressWarnings("LeakingThisInConstructor")
-    public BR_Sections(CL_Editor editor, int barIndex, BarRendererSettings settings, ItemRendererFactory irf)
+    public BR_Sections(CL_Editor editor, int barIndex, BarRendererSettings settings, ItemRendererFactory irf, Object groupKey)
     {
-        super(editor, barIndex, settings, irf);
+        super(editor, barIndex, settings, irf, groupKey);
 
 
         // By default
@@ -111,10 +109,7 @@ public class BR_Sections extends BarRenderer implements ComponentListener, Prope
         super.setModelBarIndex(modelBarIndex);
 
         CLI_Section cliSection = getCLI_Section();
-        if (cliSection != null)
-        {
-            setSection(cliSection);
-        }
+        setSection(cliSection);
     }
 
 
@@ -134,6 +129,7 @@ public class BR_Sections extends BarRenderer implements ComponentListener, Prope
             JDialog dlg = getFontMetricsDialog();
             dlg.remove(getPrefSizePanelSharedInstance());
         }
+        mapGroupPrefSizePanel.clear();
     }
 
     @Override
@@ -142,11 +138,15 @@ public class BR_Sections extends BarRenderer implements ComponentListener, Prope
         throw new IllegalStateException("item=" + item);
     }
 
+    /**
+     *
+     * @param cliSection Can be null
+     */
     @Override
     public void setSection(CLI_Section cliSection)
     {
-
-        setSectionColor(getSectionColor(cliSection));
+        Color c = cliSection == null ? null : getSectionColor(cliSection);
+        setSectionColor(c);
     }
 
     @Override
@@ -383,17 +383,17 @@ public class BR_Sections extends BarRenderer implements ComponentListener, Prope
     // Private methods
     // ---------------------------------------------------------------
     /**
-     * Get the PrefSizePanel shared instance for our CL_Editor.
+     * Get the PrefSizePanel shared instance between BR_Sections of same groupKey.
      *
      * @return
      */
     private PrefSizePanel getPrefSizePanelSharedInstance()
     {
-        PrefSizePanel panel = mapEditorPrefSizePanel.get(getEditor());
+        PrefSizePanel panel = mapGroupPrefSizePanel.get(getGroupKey());
         if (panel == null)
         {
             panel = new PrefSizePanel();
-            mapEditorPrefSizePanel.put(getEditor(), panel);
+            mapGroupPrefSizePanel.put(getGroupKey(), panel);
         }
         return panel;
     }

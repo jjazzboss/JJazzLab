@@ -50,8 +50,7 @@ abstract public class BarRenderer extends JPanel implements PropertyChangeListen
     /**
      * Store the font rendering hidden dialogs.
      */
-    private static final HashMap<CL_Editor, JDialog> mapEditorDialog = new HashMap<>();
-    private static JDialog noEditorDialog;
+    private static final HashMap<Object, JDialog> mapGroupKeyDialog = new HashMap<>();
 
 
     // GUI settings
@@ -61,6 +60,7 @@ abstract public class BarRenderer extends JPanel implements PropertyChangeListen
      */
     private CL_Editor editor;
     private BarRendererSettings settings;
+    private Object groupKey;
     // APPLICATION variables
     /**
      * The bar index.
@@ -88,16 +88,18 @@ abstract public class BarRenderer extends JPanel implements PropertyChangeListen
      * @param barIndex The barIndex of this BarRenderer.
      * @param settings
      * @param irf
+     * @param groupKey A key object that allow several BarRenderer instances to share common objects
      */
     @SuppressWarnings("LeakingThisInConstructor")
-    public BarRenderer(CL_Editor editor, int barIndex, BarRendererSettings settings, ItemRendererFactory irf)
+    public BarRenderer(CL_Editor editor, int barIndex, BarRendererSettings settings, ItemRendererFactory irf, Object groupKey)
     {
-        if (settings == null || irf == null)
+        if (settings == null || irf == null || groupKey == null)
         {
-            throw new IllegalArgumentException("barIndex=" + barIndex + " settings=" + settings + " irf=" + irf);
+            throw new IllegalArgumentException("barIndex=" + barIndex + " settings=" + settings + " irf=" + irf + " groupKey=" + groupKey);
         }
         this.editor = editor;
         this.barIndex = barIndex;
+        this.groupKey = groupKey;
 
         // Register settings changes
         this.settings = settings;
@@ -471,41 +473,42 @@ abstract public class BarRenderer extends JPanel implements PropertyChangeListen
         return editor;
     }
 
+    /**
+     * Get the group key to which this BarRenderer is linked.
+     * <p>
+     * The groupKey can be used by BarRenderer instances to share objects between BarRenderer that belong to a same groupKey. It is used for
+     * example by getFontMetricsDialog() and BR_Chords.getPrefSizePanelSharedInstance().
+     * <p>
+     *
+     * @return @see #getFontMetricsDialog()
+     */
+    public Object getGroupKey()
+    {
+        return groupKey;
+    }
+
     @Override
     public String toString()
     {
         return "BR[" + getBarIndex() + "]";
     }
 
+
     /**
      * Return a shared instance of a hidden JDialog used to get dimensions of Font-based objects.
      * <p>
-     * JDialog instances are shared between BarRenderers belonging to a same CL_Editor. If no editor set, a common instance is used. JDialog
-     * has an horizontal FlowLayout which layout components at their preferred size.
+     * JDialog instances are shared between BarRenderers which have the same groupKey.
      *
      * @return
      */
     public JDialog getFontMetricsDialog()
     {
-        JDialog dlg;
-        if (editor == null)
+        JDialog dlg = mapGroupKeyDialog.get(groupKey);
+        if (dlg == null)
         {
-            if (noEditorDialog == null)
-            {
-                dlg = new JDialog();
-                dlg.getContentPane().setLayout(new FlowLayout(FlowLayout.LEFT, 2, 2));
-                noEditorDialog = dlg;
-            }
-            dlg = noEditorDialog;
-        } else
-        {
-            dlg = mapEditorDialog.get(editor);
-            if (dlg == null)
-            {
-                dlg = new JDialog();
-                dlg.getContentPane().setLayout(new FlowLayout(FlowLayout.LEFT, 2, 2));
-                mapEditorDialog.put(editor, dlg);
-            }
+            dlg = new JDialog();
+            dlg.getContentPane().setLayout(new FlowLayout(FlowLayout.LEFT, 2, 2));
+            mapGroupKeyDialog.put(groupKey, dlg);
         }
         return dlg;
     }

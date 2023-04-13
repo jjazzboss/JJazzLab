@@ -32,8 +32,8 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
 public class ItemChangedEvent extends ClsChangeEvent
 {
 
-    private Object oldData;
-    private Object newData;
+    private final Object oldData;
+    private final Object newData;
 
     public ItemChangedEvent(ChordLeadSheet src, ChordLeadSheetItem<?> item, Object oldData, Object newData)
     {
