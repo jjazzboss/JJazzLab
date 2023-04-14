@@ -37,8 +37,8 @@ import org.jjazz.pianoroll.api.NoteView;
 import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.testplayerservice.spi.TestPlayer;
-import org.jjazz.ui.utilities.api.ToggleAction;
 import org.jjazz.util.api.ResUtil;
+import org.jjazz.util.api.ToggleAction;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 

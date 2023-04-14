@@ -30,7 +30,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.Icon;
-import org.jjazz.ui.utilities.api.ToggleAction;
+import org.jjazz.util.api.ToggleAction;
 import org.openide.util.actions.BooleanStateAction;
 
 /**

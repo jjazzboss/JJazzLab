@@ -34,8 +34,8 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.PlaybackListenerAdapter;
 import org.jjazz.pianoroll.api.PianoRollEditor;
-import org.jjazz.ui.utilities.api.ToggleAction;
 import org.jjazz.util.api.ResUtil;
+import org.jjazz.util.api.ToggleAction;
 
 /**
  * Action to toggle the playback auto-scroll.

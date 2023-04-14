@@ -30,8 +30,8 @@ import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.KeyStroke;
 import org.jjazz.pianoroll.api.PianoRollEditor;
-import org.jjazz.ui.utilities.api.ToggleAction;
 import org.jjazz.util.api.ResUtil;
+import org.jjazz.util.api.ToggleAction;
 
 /**
  * Action to toggle the snap to the grid.

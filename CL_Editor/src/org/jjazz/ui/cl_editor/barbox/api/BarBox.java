@@ -101,12 +101,12 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
      * @param groupKey
      */
     @SuppressWarnings("LeakingThisInConstructor")
-    public BarBox(CL_Editor editor, int bbIndex, int modelBarIndex, 
-            ChordLeadSheet model, 
-            BarBoxConfig config, 
-            BarBoxSettings settings, 
+    public BarBox(CL_Editor editor, int bbIndex, int modelBarIndex,
+            ChordLeadSheet model,
+            BarBoxConfig config,
+            BarBoxSettings settings,
             BarRendererFactory brf,
-            Object groupKey)    
+            Object groupKey)
     {
         Preconditions.checkNotNull(model);
         Preconditions.checkNotNull(config);
@@ -115,7 +115,9 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
         Preconditions.checkNotNull(groupKey);
         Preconditions.checkArgument(bbIndex >= 0);
 
-
+        this.barIndex = bbIndex;
+        this.modelBarIndex = modelBarIndex;
+        this.model = model;
         this.editor = editor;
         displayQuantization = Quantization.BEAT;
         this.groupKey = groupKey;
@@ -133,9 +135,6 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
         barRendererFactory = brf;
 
 
-        this.barIndex = bbIndex;
-        setModel(modelBarIndex, model);
-
         Border border = settings.getTitledBorder((bbIndex >= 0) ? String.valueOf(bbIndex + 1) : "");
         if (border != null)
         {
@@ -149,6 +148,9 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
 
         // Disable focus keys on BarBox : must be managed at a higher level
         setFocusTraversalKeysEnabled(false);
+        
+        
+        refreshBackground();
     }
 
     /**

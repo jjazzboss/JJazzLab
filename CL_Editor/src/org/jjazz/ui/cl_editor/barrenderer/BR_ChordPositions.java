@@ -29,8 +29,6 @@ import java.awt.event.ComponentListener;
 import java.awt.geom.Path2D;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.WeakHashMap;
 import java.util.logging.Logger;
 import javax.swing.JDialog;
@@ -61,7 +59,7 @@ public class BR_ChordPositions extends BarRenderer implements BeatBasedBarRender
     /**
      * Special shared JPanel instances per GroupKey, used to calculate the preferred size for a BarRenderer subclass..
      */
-    private static final Map<Object, PrefSizePanel> mapGroupKeyPrefSizePanel = new HashMap<>();
+    private static final WeakHashMap<Object, PrefSizePanel> mapGroupKeyPrefSizePanel = new WeakHashMap<>();
 
     private static final Dimension MIN_SIZE = new Dimension(10, 4);
     /**

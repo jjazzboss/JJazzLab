@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.ui.utilities.api;
+package org.jjazz.util.api;
 
 import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
