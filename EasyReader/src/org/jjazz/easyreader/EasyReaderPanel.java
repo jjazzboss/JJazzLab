@@ -221,6 +221,8 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
 
 
         int songBar = pos.getBar();
+        int progress = Math.round(100f * songBar / song.getSongStructure().getSizeInBars());
+        progressBar.setValue(progress);
         Position clsPos = song.getSongStructure().toClsPosition(pos);
         int clsBar = clsPos.getBar();
         LOGGER.log(Level.FINE, "beatChanged() pos={0} clsPos={1}", new Object[]
@@ -663,6 +665,8 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
         jLabel1 = new javax.swing.JLabel();
         slider_zoom = Utilities.buildSlider(SwingConstants.HORIZONTAL, 0.5f);
         cb_startOnBar2 = new javax.swing.JCheckBox();
+        pnl_progressBar = new javax.swing.JPanel();
+        progressBar = new javax.swing.JProgressBar();
 
         pnl_barBox.setLayout(new java.awt.GridLayout(1, 0));
 
@@ -683,6 +687,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
         lbl_songPart.setToolTipText(org.openide.util.NbBundle.getMessage(EasyReaderPanel.class, "EasyReaderPanel.lbl_songPart.toolTipText")); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(posViewer, org.openide.util.NbBundle.getMessage(EasyReaderPanel.class, "EasyReaderPanel.posViewer.text")); // NOI18N
+        posViewer.setToolTipText(org.openide.util.NbBundle.getMessage(EasyReaderPanel.class, "EasyReaderPanel.posViewer.toolTipText")); // NOI18N
         posViewer.setFont(new java.awt.Font("Courier New", 1, 18)); // NOI18N
         posViewer.setTimeShown(false);
 
@@ -710,6 +715,10 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
             }
         });
 
+        pnl_progressBar.setToolTipText(org.openide.util.NbBundle.getMessage(EasyReaderPanel.class, "EasyReaderPanel.pnl_progressBar.toolTipText")); // NOI18N
+        pnl_progressBar.setLayout(new java.awt.GridBagLayout());
+        pnl_progressBar.add(progressBar, new java.awt.GridBagConstraints());
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -720,7 +729,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
                     .addGroup(layout.createSequentialGroup()
                         .addGap(6, 6, 6)
                         .addComponent(cb_startOnBar2)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 65, Short.MAX_VALUE)
                         .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
@@ -730,21 +739,26 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
                                 .addComponent(pnl_nextChord, javax.swing.GroupLayout.PREFERRED_SIZE, 58, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(lbl_songPart)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 334, Short.MAX_VALUE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(pnl_progressBar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(18, 18, 18)
                                 .addComponent(posViewer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                         .addContainerGap())))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(posViewer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(lbl_songPart))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(posViewer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(lbl_songPart)))
+                    .addComponent(pnl_progressBar, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 7, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(pnl_barBox, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(pnl_nextChord, javax.swing.GroupLayout.DEFAULT_SIZE, 127, Short.MAX_VALUE))
+                    .addComponent(pnl_nextChord, javax.swing.GroupLayout.DEFAULT_SIZE, 126, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -789,7 +803,9 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
     private javax.swing.JLabel lbl_songPart;
     private javax.swing.JPanel pnl_barBox;
     private javax.swing.JPanel pnl_nextChord;
+    private javax.swing.JPanel pnl_progressBar;
     private org.jjazz.ui.musiccontrolactions.ui.api.PositionViewer posViewer;
+    private javax.swing.JProgressBar progressBar;
     private javax.swing.JSlider slider_zoom;
     // End of variables declaration//GEN-END:variables
 
