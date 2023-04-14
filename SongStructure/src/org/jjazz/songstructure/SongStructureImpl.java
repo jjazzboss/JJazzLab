@@ -335,7 +335,7 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
 
 
         // Try to use an AdaptedRhythm from the current rhythm
-        if (r == null)
+        if (r == null && !songParts.isEmpty())
         {
             // sptBarIndex is either on an existing rhythm part, or is right after the last song part
             Rhythm curRhythm = getSongPart(sptBarIndex > 0 ? sptBarIndex - 1 : sptBarIndex).getRhythm();
