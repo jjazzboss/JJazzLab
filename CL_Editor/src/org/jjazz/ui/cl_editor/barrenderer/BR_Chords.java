@@ -35,6 +35,7 @@ import java.util.logging.Logger;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
 import org.jjazz.harmony.api.TimeSignature;
+import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_BarAnnotation;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Factory;
@@ -191,6 +192,13 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
                 irIP = addItemRenderer(item);
                 irIP.setSelected(true);
             }
+        }else if (item instanceof CLI_BarAnnotation)
+        {
+            if (irIP == null)
+            {
+                irIP = addItemRenderer(item);
+                irIP.setSelected(true);
+            }
         }
 
         if (irIP instanceof IR_Copiable irc)
@@ -232,7 +240,7 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
         }
         // Forward to the shared panel instance
         getPrefSizePanelSharedInstance().setZoomVFactor(factor);
-        
+
         // Apply to this BR_Chords object
         zoomVFactor = factor;
         for (ItemRenderer ir : getItemRenderers())
@@ -258,7 +266,7 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
     @Override
     public boolean isRegisteredItemClass(ChordLeadSheetItem<?> item)
     {
-        return (item instanceof CLI_ChordSymbol || item instanceof CLI_Section);
+        return item instanceof CLI_ChordSymbol || item instanceof CLI_Section || item instanceof CLI_BarAnnotation;
     }
 
     @Override
@@ -270,13 +278,17 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
         }
         ItemRenderer ir;
         ItemRendererFactory irf = getItemRendererFactory();
-        if (item instanceof CLI_ChordSymbol)
+        if (item instanceof CLI_ChordSymbol cliCs)
         {
-            ir = irf.createItemRenderer(IR_Type.ChordSymbol, item, getSettings().getItemRendererSettings());
-        } else
+            ir = irf.createItemRenderer(IR_Type.ChordSymbol, cliCs, getSettings().getItemRendererSettings());
+        } else if (item instanceof CLI_Section cliSection)
         {
             // CLI_Section
-            ir = irf.createItemRenderer(IR_Type.TimeSignature, item, getSettings().getItemRendererSettings());
+            ir = irf.createItemRenderer(IR_Type.TimeSignature, cliSection, getSettings().getItemRendererSettings());
+        } else
+        {
+            // CLI_BarAnnotation
+            ir = irf.createItemRenderer(IR_Type.BarAnnotation, item, getSettings().getItemRendererSettings());
         }
         return ir;
     }

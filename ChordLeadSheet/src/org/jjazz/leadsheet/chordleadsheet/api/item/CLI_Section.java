@@ -37,52 +37,47 @@ public interface CLI_Section extends ChordLeadSheetItem<Section>
 
     public static final DataFlavor DATA_FLAVOR = new DataFlavor(CLI_Section.class, "Section");
 
-    static public class Util
+    static Pattern PATTERN = Pattern.compile("[0-9]+$");
+
+    /**
+     * Derive a new section name which is unique in the specified chord leadsheet.
+     * <p>
+     * If sectionName is not used, just return it. Otherwise append a number to sectionName (eg "Chorus2") until we get a non-used section
+     * name.
+     *
+     * @param sectionName Create a name from this parameter.
+     * @param cls
+     * @return
+     */
+    static public String createSectionName(String sectionName, ChordLeadSheet cls)
     {
-
-        static private Pattern PATTERN = Pattern.compile("[0-9]+$");
-
-        /**
-         * Derive a new section name which is unique in the specified chord
-         * leadsheet.
-         * <p>
-         * If sectionName is not used, just return it. Otherwise append a number
-         * to sectionName (eg "Chorus2") until we get a non-used section name.
-         *
-         * @param sectionName Create a name from this parameter.
-         * @param cls
-         * @return
-         */
-        static public String createSectionName(String sectionName, ChordLeadSheet cls)
+        if (cls == null || cls.getSection(sectionName) == null)
         {
-            if (cls == null || cls.getSection(sectionName) == null)
-            {
-                return sectionName;
-            }
-            // Find possible index at the end of the string
-            Matcher m = PATTERN.matcher(sectionName);
-            int index = 0;
-            StringBuilder baseName = new StringBuilder(sectionName);
-            if (m.find())
-            {
-                index = Integer.parseInt(m.group());
-                baseName.delete(m.start(), m.end());
-            }
-            int robustness = 1000;
-            String newName;
-            do
-            {
-                robustness--;
-                index++;
-                newName = baseName.toString() + index;
-            } while (cls.getSection(newName) != null && robustness > 0);
-
-            if (robustness == 0)
-            {
-                throw new IllegalStateException("createSectionName() sectionName=" + sectionName + " robustness=" 
-                        + robustness);
-            }
-            return newName;
+            return sectionName;
         }
+        // Find possible index at the end of the string
+        Matcher m = PATTERN.matcher(sectionName);
+        int index = 0;
+        StringBuilder baseName = new StringBuilder(sectionName);
+        if (m.find())
+        {
+            index = Integer.parseInt(m.group());
+            baseName.delete(m.start(), m.end());
+        }
+        int robustness = 1000;
+        String newName;
+        do
+        {
+            robustness--;
+            index++;
+            newName = baseName.toString() + index;
+        } while (cls.getSection(newName) != null && robustness > 0);
+
+        if (robustness == 0)
+        {
+            throw new IllegalStateException("createSectionName() sectionName=" + sectionName + " robustness="
+                    + robustness);
+        }
+        return newName;
     }
 }

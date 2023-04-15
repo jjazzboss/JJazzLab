@@ -61,6 +61,7 @@ import org.openide.util.actions.SystemAction;
             @ActionReference(path = "Actions/Section", position = 1000),
             @ActionReference(path = "Actions/ChordSymbol", position = 1000, separatorBefore = 950),
             @ActionReference(path = "Actions/Bar", position = 1000),
+            @ActionReference(path = "Actions/BarAnnotation", position = 1000, separatorBefore=999)
         })
 public class Cut extends AbstractAction implements ContextAwareAction, CL_ContextActionListener
 {

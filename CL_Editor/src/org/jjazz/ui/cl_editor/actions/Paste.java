@@ -62,6 +62,7 @@ import org.openide.util.actions.SystemAction;
             @ActionReference(path = "Actions/Section", position = 1200),
             @ActionReference(path = "Actions/ChordSymbol", position = 1200),
             @ActionReference(path = "Actions/Bar", position = 1200),
+            @ActionReference(path = "Actions/BarAnnotation", position = 1020)
         })
 public class Paste extends AbstractAction implements ContextAwareAction, CL_ContextActionListener
 {

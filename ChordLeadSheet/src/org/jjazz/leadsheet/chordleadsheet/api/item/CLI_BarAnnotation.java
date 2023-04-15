@@ -20,12 +20,17 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.ui.itemrenderer.api;
+package org.jjazz.leadsheet.chordleadsheet.api.item;
+
+import java.awt.datatransfer.DataFlavor;
 
 /**
- * The various types of ItemRenderers.
+ * Represent a bar annotation text at a specific bar.
+ * <p>
  */
-public enum IR_Type
+public interface CLI_BarAnnotation extends ChordLeadSheetItem<String>
 {
-    ChordSymbol, ChordPosition, Section, TimeSignature, PositionMark, BarAnnotation
+
+    public static final DataFlavor DATA_FLAVOR = new DataFlavor(CLI_BarAnnotation.class, "Bar Annotation");
+
 }

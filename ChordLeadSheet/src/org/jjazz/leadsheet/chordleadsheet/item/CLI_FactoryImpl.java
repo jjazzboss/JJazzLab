@@ -28,6 +28,7 @@ import java.util.logging.Logger;
 import org.jjazz.harmony.api.ChordSymbol;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_BarAnnotation;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Factory;
@@ -100,6 +101,14 @@ public class CLI_FactoryImpl implements CLI_Factory
         ChordSymbol cs = new ChordSymbol(chordSymbol);
         ExtChordSymbol ecs = new ExtChordSymbol(cs, new ChordRenderingInfo(), null, null);
         var cli = new CLI_ChordSymbolImpl(ecs, new Position());
+        return cli;
+    }
+
+    @Override
+    public CLI_BarAnnotation createBarAnnotation(ChordLeadSheet cls, String text, int bar)
+    {
+        var cli = new CLI_BarAnnotationImpl(text, bar);
+        cli.setContainer(cls);
         return cli;
     }
 }

@@ -76,6 +76,8 @@ public interface CLI_Factory
      * @throws java.text.ParseException If chord symbol specification is invalid
      */
     CLI_ChordSymbol createChordSymbol(String chordSymbol) throws ParseException;
+    
+    CLI_BarAnnotation createBarAnnotation(ChordLeadSheet cls, String annotation, int bar);
 
     CLI_Section getSampleSection();
 

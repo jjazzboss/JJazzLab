@@ -77,6 +77,7 @@ public class CollapsiblePanel extends JPanel
 
     public CollapsiblePanel()
     {
+        // this("text", TitledBorder.RIGHT, TitledBorder.DEFAULT_POSITION);
         this("text");
     }
 
@@ -94,7 +95,7 @@ public class CollapsiblePanel extends JPanel
         component.addItemListener(new CollapsiblePanel.ExpandAndCollapseAction());
         titleComponent = component;
         collapsed = !component.isSelected();
-        commonConstructor();
+        commonConstructor(TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION);
     }
 
     /**
@@ -109,14 +110,31 @@ public class CollapsiblePanel extends JPanel
     {
         arrow.setText(text);
         titleComponent = arrow;
-        commonConstructor();
+        commonConstructor(TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION);
+    }
+
+    /**
+     * Constructor for a label/button controlled collapsable panel.
+     *
+     * @param text
+     * @param titleJustification use TitledBorder constant
+     * @param titlePosition      use TitledBorder constant
+     */
+    public CollapsiblePanel(String text, int titleJustification, int titlePosition)
+    {
+        arrow.setText(text);
+        titleComponent = arrow;
+        commonConstructor(titleJustification, titlePosition);
     }
 
     /**
      * Sets layout, creates the content contentPanel and adds it and the title component to the container, all constructors have this
      * procedure in common.
+     *
+     * @param titleJustification use TitledBorder constant
+     * @param titlePosition      use TitledBorder constant
      */
-    private void commonConstructor()
+    private void commonConstructor(int titleJustification, int titlePosition)
     {
         setLayout(new BorderLayout());
 
@@ -126,8 +144,8 @@ public class CollapsiblePanel extends JPanel
         add(titleComponent, BorderLayout.CENTER);
         add(contentPanel, BorderLayout.CENTER);
 
-        collapsedBorder = new CollapsableTitledBorder(COLLAPSED_BORDER_LINE, titleComponent);
-        expandedBorder = new CollapsableTitledBorder(EXPANDED_BORDER_LINE, titleComponent);
+        collapsedBorder = new CollapsableTitledBorder(COLLAPSED_BORDER_LINE, titleComponent, titleJustification, titlePosition);
+        expandedBorder = new CollapsableTitledBorder(EXPANDED_BORDER_LINE, titleComponent, titleJustification, titlePosition);
         setCollapsed(collapsed);
 
         placeTitleComponent();
@@ -299,11 +317,13 @@ public class CollapsiblePanel extends JPanel
     private class ExpandAndCollapseAction extends AbstractAction implements ActionListener, ItemListener
     {
 
+        @Override
         public void actionPerformed(ActionEvent e)
         {
             setCollapsed(!isCollapsed());
         }
 
+        @Override
         public void itemStateChanged(ItemEvent e)
         {
             setCollapsed(!isCollapsed());
@@ -364,28 +384,31 @@ public class CollapsiblePanel extends JPanel
             int diff;
             switch (titlePosition)
             {
-                case ABOVE_TOP:
+                case ABOVE_TOP ->
+                {
                     diff = compR.height + TEXT_SPACING;
                     borderR.y += diff;
                     borderR.height -= diff;
-                    break;
-                case TOP:
-                case DEFAULT_POSITION:
+                }
+                case TOP, DEFAULT_POSITION ->
+                {
                     diff = insets.top / 2 - borderInsets.top - EDGE_SPACING;
                     borderR.y += diff;
                     borderR.height -= diff;
-                    break;
-                case BELOW_TOP:
-                case ABOVE_BOTTOM:
-                    break;
-                case BOTTOM:
+                }
+                case BELOW_TOP, ABOVE_BOTTOM ->
+                {
+                }
+                case BOTTOM ->
+                {
                     diff = insets.bottom / 2 - borderInsets.bottom - EDGE_SPACING;
                     borderR.height -= diff;
-                    break;
-                case BELOW_BOTTOM:
+                }
+                case BELOW_BOTTOM ->
+                {
                     diff = compR.height + TEXT_SPACING;
                     borderR.height -= diff;
-                    break;
+                }
             }
             border.paintBorder(c, g, borderR.x, borderR.y, borderR.width, borderR.height);
             Color col = g.getColor();
@@ -419,25 +442,12 @@ public class CollapsiblePanel extends JPanel
 
             switch (titlePosition)
             {
-                case ABOVE_TOP:
-                    insets.top += compHeight + TEXT_SPACING;
-                    break;
-                case TOP:
-                case DEFAULT_POSITION:
-                    insets.top += Math.max(compHeight, borderInsets.top) - borderInsets.top;
-                    break;
-                case BELOW_TOP:
-                    insets.top += compHeight + TEXT_SPACING;
-                    break;
-                case ABOVE_BOTTOM:
-                    insets.bottom += compHeight + TEXT_SPACING;
-                    break;
-                case BOTTOM:
-                    insets.bottom += Math.max(compHeight, borderInsets.bottom) - borderInsets.bottom;
-                    break;
-                case BELOW_BOTTOM:
-                    insets.bottom += compHeight + TEXT_SPACING;
-                    break;
+                case ABOVE_TOP -> insets.top += compHeight + TEXT_SPACING;
+                case TOP, DEFAULT_POSITION -> insets.top += Math.max(compHeight, borderInsets.top) - borderInsets.top;
+                case BELOW_TOP -> insets.top += compHeight + TEXT_SPACING;
+                case ABOVE_BOTTOM -> insets.bottom += compHeight + TEXT_SPACING;
+                case BOTTOM -> insets.bottom += Math.max(compHeight, borderInsets.bottom) - borderInsets.bottom;
+                case BELOW_BOTTOM -> insets.bottom += compHeight + TEXT_SPACING;
             }
             return insets;
         }
@@ -458,11 +468,9 @@ public class CollapsiblePanel extends JPanel
             Rectangle compR = new Rectangle(0, 0, compD.width, compD.height);
             switch (titlePosition)
             {
-                case ABOVE_TOP:
-                    compR.y = EDGE_SPACING;
-                    break;
-                case TOP:
-                case DEFAULT_POSITION:
+                case ABOVE_TOP -> compR.y = EDGE_SPACING;
+                case TOP, DEFAULT_POSITION ->
+                {
                     if (titleComponent instanceof JButton)
                     {
                         compR.y = EDGE_SPACING + (borderInsets.top - EDGE_SPACING - TEXT_SPACING - compD.height) / 2;
@@ -470,34 +478,19 @@ public class CollapsiblePanel extends JPanel
                     {
                         compR.y = (borderInsets.top - EDGE_SPACING - TEXT_SPACING - compD.height) / 2;
                     }
-                    break;
-                case BELOW_TOP:
-                    compR.y = borderInsets.top - compD.height - TEXT_SPACING;
-                    break;
-                case ABOVE_BOTTOM:
-                    compR.y = rect.height - borderInsets.bottom + TEXT_SPACING;
-                    break;
-                case BOTTOM:
-                    compR.y = rect.height - borderInsets.bottom + TEXT_SPACING
+                }
+                case BELOW_TOP -> compR.y = borderInsets.top - compD.height - TEXT_SPACING;
+                case ABOVE_BOTTOM -> compR.y = rect.height - borderInsets.bottom + TEXT_SPACING;
+                case BOTTOM -> compR.y = rect.height - borderInsets.bottom + TEXT_SPACING
                             + (borderInsets.bottom - EDGE_SPACING - TEXT_SPACING - compD.height) / 2;
-                    break;
-                case BELOW_BOTTOM:
-                    compR.y = rect.height - compD.height - EDGE_SPACING;
-                    break;
+                case BELOW_BOTTOM -> compR.y = rect.height - compD.height - EDGE_SPACING;
             }
             switch (titleJustification)
             {
-                case LEFT:
-                case DEFAULT_JUSTIFICATION:
-                    //compR.x = TEXT_INSET_H + borderInsets.left;
+                case LEFT, DEFAULT_JUSTIFICATION -> //compR.x = TEXT_INSET_H + borderInsets.left;
                     compR.x = TEXT_INSET_H + borderInsets.left - EDGE_SPACING;
-                    break;
-                case RIGHT:
-                    compR.x = rect.width - borderInsets.right - TEXT_INSET_H - compR.width;
-                    break;
-                case CENTER:
-                    compR.x = (rect.width - compR.width) / 2;
-                    break;
+                case RIGHT -> compR.x = rect.width - borderInsets.right - TEXT_INSET_H - compR.width;
+                case CENTER -> compR.x = (rect.width - compR.width) / 2;
             }
             return compR;
         }

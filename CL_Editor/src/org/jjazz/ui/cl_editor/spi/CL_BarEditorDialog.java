@@ -99,11 +99,11 @@ public abstract class CL_BarEditorDialog extends JDialog
     abstract public List<ChordLeadSheetItem> getRemovedItems();
 
     /**
-     * The ChordSymbols for which data should be changed.
+     * The Items for which data should be changed.
      *
-     * @return Can be empty. Associate the new data for each updated chord symbol.
+     * @return Can be empty. Associate the new data for each changed item.
      */
-    abstract public Map<CLI_ChordSymbol, ExtChordSymbol> getUpdatedChordSymbols();
+    abstract public Map<ChordLeadSheetItem, Object> getChangedItems();
 
     /**
      * Cleanup references to preset data and dialog results.

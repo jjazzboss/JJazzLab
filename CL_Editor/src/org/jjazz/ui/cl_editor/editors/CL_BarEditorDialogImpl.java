@@ -25,6 +25,7 @@ package org.jjazz.ui.cl_editor.editors;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -34,8 +35,12 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JRootPane;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.KeyStroke;
 import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoManager;
@@ -43,13 +48,15 @@ import javax.swing.text.DefaultCaret;
 import org.jjazz.chordsymboltextinput.api.ChordSymbolTextInput;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_BarAnnotation;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Factory;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
-import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.ui.cl_editor.spi.CL_BarEditorDialog;
 import org.jjazz.ui.cl_editor.spi.Preset;
+import org.jjazz.ui.utilities.api.Utilities;
+import static org.jjazz.ui.utilities.api.Utilities.getGenericControlKeyStroke;
 import org.jjazz.util.api.ResUtil;
 import org.jjazz.util.diff.api.DiffProvider;
 import org.jjazz.util.diff.api.Difference;
@@ -59,7 +66,11 @@ import org.openide.NotifyDescriptor;
 public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
 {
 
+    static private final Icon ICON_COLLAPSED = new ImageIcon(CL_BarEditorDialogImpl.class.getResource("resources/arrow_collapsed.png"));
+    static private final Icon ICON_EXPANDED = new ImageIcon(CL_BarEditorDialogImpl.class.getResource("resources/arrow_expanded.png"));
+
     static private CL_BarEditorDialogImpl INSTANCE;
+
 
     static public CL_BarEditorDialogImpl getInstance()
     {
@@ -79,11 +90,12 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
     /**
      * The list of ChordSymbol in the model.
      */
-    private List<? extends CLI_ChordSymbol> modelCsList;
+    private List<CLI_ChordSymbol> modelCsList;
     /**
      * The Section in the model.
      */
     private CLI_Section modelSection;
+    private CLI_BarAnnotation modelBarAnnotation;
     /**
      * The barIndex for this dialog.
      */
@@ -91,7 +103,7 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
     private CLI_Section resultSection;
     private final List<ChordLeadSheetItem> resultAddedItems;
     private final List<ChordLeadSheetItem> resultRemovedItems;
-    private final HashMap<CLI_ChordSymbol, ExtChordSymbol> resultMapChangedChordSymbols;
+    private final HashMap<ChordLeadSheetItem, Object> resultMapChangedItems;
     /**
      * Undo manager for the text edits
      */
@@ -111,22 +123,38 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
     private String saveCsText;
     private String saveTsText;
     private String saveSectionText;
+    private String saveAnnotationText;
     private boolean swing;
+    private final JScrollPane sp_annotation;
+    private final JTextArea ta_annotation;
     private static final Logger LOGGER = Logger.getLogger(CL_BarEditorDialogImpl.class.getSimpleName());
 
     private CL_BarEditorDialogImpl()
     {
         initComponents();
 
+        // The annotatio component
+        ta_annotation = new JTextArea();
+        ta_annotation.setRows(2);
+        ta_annotation.setLineWrap(true);
+        ta_annotation.setToolTipText(pnl_annotations.getToolTipText());
+        lbl_annotation.setToolTipText(pnl_annotations.getToolTipText());
+        // Make ctrl+ENTER validate the dialog when ta_annotation is focused
+        ta_annotation.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(getGenericControlKeyStroke(KeyEvent.VK_ENTER), "validateDialog");
+        ta_annotation.getActionMap().put("validateDialog", Utilities.getAction(ae -> actionOK()));
+        sp_annotation = new JScrollPane(ta_annotation);
+
+
         // Mac OSX automatically does a select all upon focus gain: this generates problem see Issue #97
         // This is hack to make sure the default behavior is used, even on Mac OSX
         jtfChordSymbols.setCaret(new DefaultCaret());
+        
 
         saveSectionFieldsForeground = jtfSectionName.getForeground();
         resultSection = null;
         resultAddedItems = new ArrayList<>();
         resultRemovedItems = new ArrayList<>();
-        resultMapChangedChordSymbols = new HashMap<>();
+        resultMapChangedItems = new HashMap<>();
     }
 
     @Override
@@ -138,7 +166,7 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
         resultSection = null;
         resultAddedItems.clear();
         resultRemovedItems.clear();
-        resultMapChangedChordSymbols.clear();
+        resultMapChangedItems.clear();
     }
 
     @Override
@@ -154,6 +182,7 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
         barIndex = barIndx;
         modelCsList = model.getItems(barIndex, barIndex, CLI_ChordSymbol.class);
         modelSection = model.getSection(barIndex);
+        modelBarAnnotation = model.getBarFirstItem(barIndex, CLI_BarAnnotation.class, cli -> true);   // Can be null
         swing = swng;
         boolean isSectionInBar = (modelSection.getPosition().getBar() == barIndx);
 
@@ -179,14 +208,22 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
         jtfChordSymbols.setText(ChordSymbolTextInput.toStringNoPosition(modelCsList));
         saveCsText = jtfChordSymbols.getText();
 
-        setTitle(
-                ResUtil.getString(getClass(), "CL_BarEditorDialogImpl.CTL_Bar") + " " + (barIndx + 1) + " - " + modelSection.getData().getName() + " " + modelSection.getData().getTimeSignature());
+
+        // Update the annotation field
+        saveAnnotationText = modelBarAnnotation == null ? "" : modelBarAnnotation.getData();
+        ta_annotation.setText(saveAnnotationText);
+        ta_annotation.setCaretPosition(0);
+        setAnnotationPanelExpanded(!saveAnnotationText.isBlank());
+
+
+        setTitle(ResUtil.getString(getClass(),
+                "CL_BarEditorDialogImpl.CTL_Bar") + " " + (barIndx + 1) + " - " + modelSection.getData().getName() + " " + modelSection.getData().getTimeSignature());
         undoManager.discardAllEdits();
 
         // Specific actions depending on presets
         switch (preset.getPresetType())
         {
-            case BarEdit:
+            case BarEdit ->
             {
                 focusOnShow = jtfChordSymbols;
                 if (preset.getKey() != (char) 0)
@@ -207,9 +244,7 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
                     jtfChordSymbols.selectAll();
                 }
             }
-            break;
-
-            case ChordSymbolEdit:
+            case ChordSymbolEdit ->
             {
                 focusOnShow = jtfChordSymbols;
                 CLI_ChordSymbol item = (CLI_ChordSymbol) preset.getItem();
@@ -219,19 +254,22 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
                     jtfChordSymbols.replaceSelection("" + Character.toUpperCase(preset.getKey()));
                 }
             }
-            break;
-            case SectionNameEdit:
+            case SectionNameEdit ->
             {
                 focusOnShow = jtfSectionName;
                 jtfSectionName.selectAll();
             }
-            break;
-            case TimeSignatureEdit:
+            case TimeSignatureEdit ->
             {
                 focusOnShow = jtfTimeSignature;
                 jtfTimeSignature.selectAll();
             }
-            break;
+            case AnnotationEdit ->
+            {
+                focusOnShow = ta_annotation;
+                setAnnotationPanelExpanded(true);
+                ta_annotation.selectAll();
+            }
         }
     }
 
@@ -260,9 +298,9 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
     }
 
     @Override
-    public Map<CLI_ChordSymbol, ExtChordSymbol> getUpdatedChordSymbols()
+    public Map<ChordLeadSheetItem, Object> getChangedItems()
     {
-        return resultMapChangedChordSymbols;
+        return resultMapChangedItems;
     }
 
     // ------------------------------------------------------------------------------
@@ -277,10 +315,12 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
         String strSection = jtfSectionName.getText().trim();
         String strSignature = jtfTimeSignature.getText().trim();
         String strChords = jtfChordSymbols.getText().trim();
+        String strAnnotation = ta_annotation.getText().trim();
         boolean isTimeSignatureChanged = !saveTsText.equals(strSignature);
         boolean isSectionChanged = !saveSectionText.equals(strSection);
         boolean isChordsChanged = !saveCsText.equals(strChords);
         boolean isSectionInBar = (modelSection.getPosition().getBar() == barIndex);
+        boolean isAnnotationChanged = !saveAnnotationText.equals(strAnnotation);
 
         if (isSectionChanged || isTimeSignatureChanged)
         {
@@ -354,7 +394,10 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
                     return (i1.getData().equals(i2.getData())) ? 0 : 1;
                 }
             });
-            LOGGER.log(Level.FINE, "Diff model={0} newItems={1}", new Object[]{modelCsList, newItems});
+            LOGGER.log(Level.FINE, "Diff model={0} newItems={1}", new Object[]
+            {
+                modelCsList, newItems
+            });
             for (Difference aDiff : diffResult)
             {
                 if (aDiff.getType() == Difference.ResultType.ADDED)
@@ -378,14 +421,36 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
                     int a = aDiff.getAddedStart();
                     do
                     {
-                        resultMapChangedChordSymbols.put(modelCsList.get(d), newItems.get(a).getData());
-                        LOGGER.log(Level.FINE, "changing {0} to {1}", new Object[]{modelCsList.get(d), newItems.get(a)});
+                        resultMapChangedItems.put(modelCsList.get(d), newItems.get(a).getData());
+                        LOGGER.log(Level.FINE, "changing {0} to {1}", new Object[]
+                        {
+                            modelCsList.get(d), newItems.get(a)
+                        });
                         d++;
                         a++;
                     } while (d <= aDiff.getDeletedEnd());
                 }
             }
         }
+        
+        if (isAnnotationChanged)
+        {
+            if (modelBarAnnotation==null && !strAnnotation.isBlank())
+            {
+                // Add an item
+                var cliBa = CLI_Factory.getDefault().createBarAnnotation(model, strAnnotation, barIndex);
+                resultAddedItems.add(cliBa);
+            } else if (modelBarAnnotation!=null && strAnnotation.isBlank())
+            {
+                // Remove the item
+                resultRemovedItems.add(modelBarAnnotation);
+            } else
+            {
+                // Annotation was changed
+                resultMapChangedItems.put(modelBarAnnotation, strAnnotation);
+            }
+        }
+        
 
         // To avoid one of a section fields accidentally get the focus on next dialog show
         // and have the text cleared by listener
@@ -504,6 +569,32 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
         jtfChordSymbols.select(start, end);
     }
 
+    private void setAnnotationPanelExpanded(boolean b)
+    {
+        if (b == isAnnotationPanelExpanded())
+        {
+            return;
+        }
+        fbtn_expand.setSelected(b);
+        if (b)
+        {
+            pnl_annotations.add(sp_annotation);
+            pnl_annotations.revalidate();
+            ta_annotation.requestFocusInWindow();
+        } else
+        {
+            jtfChordSymbols.requestFocusInWindow();
+            pnl_annotations.remove(sp_annotation);
+            pnl_annotations.revalidate();
+        }
+        pack();
+    }
+
+    private boolean isAnnotationPanelExpanded()
+    {
+        return pnl_annotations.getComponentCount() > 0;
+    }
+
     private void notifyError(String msg)
     {
         NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
@@ -527,6 +618,9 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
         jtfSectionName.getDocument().addUndoableEditListener(undoManager);
         lbl_section = new javax.swing.JLabel();
         lbl_timeSig = new javax.swing.JLabel();
+        lbl_annotation = new javax.swing.JLabel();
+        fbtn_expand = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
+        pnl_annotations = new javax.swing.JPanel();
 
         setModal(true);
         setResizable(false);
@@ -538,6 +632,7 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
             }
         });
 
+        jtfTimeSignature.setColumns(3);
         jtfTimeSignature.setToolTipText(org.openide.util.NbBundle.getMessage(CL_BarEditorDialogImpl.class, "CL_BarEditorDialogImpl.jtfTimeSignature.toolTipText")); // NOI18N
         jtfTimeSignature.addFocusListener(new java.awt.event.FocusAdapter()
         {
@@ -575,22 +670,43 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
 
         lbl_timeSig.setText(org.openide.util.NbBundle.getMessage(CL_BarEditorDialogImpl.class, "CL_BarEditorDialogImpl.lbl_timeSig.text")); // NOI18N
 
+        lbl_annotation.setText(org.openide.util.NbBundle.getMessage(CL_BarEditorDialogImpl.class, "CL_BarEditorDialogImpl.lbl_annotation.text")); // NOI18N
+
+        fbtn_expand.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/cl_editor/editors/resources/arrow_collapsed.png"))); // NOI18N
+        fbtn_expand.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/cl_editor/editors/resources/arrow_expanded.png"))); // NOI18N
+        fbtn_expand.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                fbtn_expandActionPerformed(evt);
+            }
+        });
+
+        pnl_annotations.setToolTipText(org.openide.util.NbBundle.getMessage(CL_BarEditorDialogImpl.class, "CL_BarEditorDialogImpl.pnl_annotations.toolTipText")); // NOI18N
+        pnl_annotations.setLayout(new javax.swing.BoxLayout(pnl_annotations, javax.swing.BoxLayout.LINE_AXIS));
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(pnl_annotations, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jtfChordSymbols, javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
                         .addComponent(lbl_section)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jtfSectionName, javax.swing.GroupLayout.PREFERRED_SIZE, 69, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 15, Short.MAX_VALUE)
+                        .addComponent(jtfSectionName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
                         .addComponent(lbl_timeSig)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jtfTimeSignature, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jtfChordSymbols))
+                        .addComponent(jtfTimeSignature))
+                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                        .addComponent(lbl_annotation)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(fbtn_expand, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -598,13 +714,19 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jtfChordSymbols, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jtfSectionName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jtfTimeSignature, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(lbl_section)
-                    .addComponent(lbl_timeSig))
-                .addContainerGap())
+                    .addComponent(jtfSectionName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(lbl_timeSig)
+                    .addComponent(jtfTimeSignature, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lbl_annotation)
+                    .addComponent(fbtn_expand, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(pnl_annotations, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         pack();
@@ -635,12 +757,20 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
         jtfTimeSignature.setForeground(saveSectionFieldsForeground);
     }//GEN-LAST:event_jtfTimeSignatureKeyPressed
 
+    private void fbtn_expandActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_fbtn_expandActionPerformed
+    {//GEN-HEADEREND:event_fbtn_expandActionPerformed
+        setAnnotationPanelExpanded(fbtn_expand.isSelected());
+    }//GEN-LAST:event_fbtn_expandActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private org.jjazz.ui.flatcomponents.api.FlatToggleButton fbtn_expand;
     private javax.swing.JTextField jtfChordSymbols;
     private javax.swing.JTextField jtfSectionName;
     private javax.swing.JTextField jtfTimeSignature;
+    private javax.swing.JLabel lbl_annotation;
     private javax.swing.JLabel lbl_section;
     private javax.swing.JLabel lbl_timeSig;
+    private javax.swing.JPanel pnl_annotations;
     // End of variables declaration//GEN-END:variables
 
 }

@@ -51,7 +51,8 @@ import org.openide.util.*;
         {
             @ActionReference(path = "Actions/Bar", position = 1300),
             @ActionReference(path = "Actions/Section", position = 1300),
-            @ActionReference(path = "Actions/ChordSymbol", position = 1300)
+            @ActionReference(path = "Actions/ChordSymbol", position = 1300),
+            @ActionReference(path = "Actions/BarAnnotation", position = 1300)
         })
 public class SelectAll extends AbstractAction implements ContextAwareAction, CL_ContextActionListener
 {

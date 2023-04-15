@@ -35,6 +35,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Logger;
 import org.jjazz.harmony.api.TimeSignature;
+import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_BarAnnotation;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
@@ -127,6 +128,12 @@ class BR_ChordsLayoutManager implements LayoutManager
                 int y = barTop + barHeight - ir.getHeight() - 1; // y bottom aligned
                 ir.setLocation(x, y);
                 timeSignatureSpace = ir.getWidth() + 2;
+                irs.remove(ir);
+            } else if (ir.getModel() instanceof CLI_BarAnnotation)
+            {
+                int x = barLeft+barWidth-ir.getWidth()-1;
+                int y = barTop;
+                ir.setLocation(x, y);
                 irs.remove(ir);
             }
         }

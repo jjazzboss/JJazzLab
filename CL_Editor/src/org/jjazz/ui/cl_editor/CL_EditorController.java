@@ -47,6 +47,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_BarAnnotation;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
@@ -83,6 +84,7 @@ public class CL_EditorController implements CL_EditorMouseListener
     private JPopupMenu popupChordSymbolMenu;
     private JPopupMenu popupSectionMenu;
     private JPopupMenu popupBarMenu;
+    private JPopupMenu popupBarAnnotationMenu;
 
     /**
      * The graphical editor we control.
@@ -301,6 +303,14 @@ public class CL_EditorController implements CL_EditorMouseListener
                     popupSectionMenu = Utilities.actionsToPopup(actions.toArray(Action[]::new), editor);
                 }
                 popupSectionMenu.show(e.getComponent(), e.getX(), e.getY());
+            } else if (item instanceof CLI_BarAnnotation)
+            {
+                  if (popupBarAnnotationMenu == null)
+                {
+                    List<? extends Action> actions = Utilities.actionsForPath("Actions/BarAnnotation");
+                    popupBarAnnotationMenu = Utilities.actionsToPopup(actions.toArray(Action[]::new), editor);
+                }
+                popupBarAnnotationMenu.show(e.getComponent(), e.getX(), e.getY());
             }
         }
     }

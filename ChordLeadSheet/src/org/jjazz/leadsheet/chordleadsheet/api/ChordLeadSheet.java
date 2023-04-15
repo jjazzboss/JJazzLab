@@ -356,6 +356,36 @@ public interface ChordLeadSheet
 
 
     /**
+     * Get the first matching item in the specified bar.
+     *
+     * @param <T>
+     * @param barIndex
+     * @param itemClass
+     * @param tester
+     * @return Can be null
+     */
+    default <T extends ChordLeadSheetItem<?>> T getBarFirstItem(int barIndex, Class<T> itemClass, Predicate<T> tester)
+    {
+        var items = getItems(barIndex, barIndex, itemClass, tester);
+        return items.isEmpty() ? null : items.get(0);
+    }
+
+    /**
+     * Get the last matching item in the specified bar.
+     *
+     * @param <T>
+     * @param barIndex
+     * @param itemClass
+     * @param tester
+     * @return Can be null
+     */
+    default <T extends ChordLeadSheetItem<?>> T getBarLastItem(int barIndex, Class<T> itemClass, Predicate<T> tester)
+    {
+        var items = getItems(barIndex, barIndex, itemClass, tester);
+        return items.isEmpty() ? null : items.get(items.size() - 1);
+    }
+
+    /**
      * Get the next similar item (same class or subclass) after the specified item.
      *
      * @param <T>

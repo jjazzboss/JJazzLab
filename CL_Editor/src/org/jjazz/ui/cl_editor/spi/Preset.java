@@ -32,13 +32,14 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
  * - ChordSymbol edit action <br>
  * - TimeSignature edit action <br>
  * - Section's name edit action<br>
+ * - bar annotation edit action<br>
  */
 public class Preset
 {
 
     public enum Type
     {
-        BarEdit, ChordSymbolEdit, TimeSignatureEdit, SectionNameEdit
+        BarEdit, ChordSymbolEdit, TimeSignatureEdit, SectionNameEdit, AnnotationEdit
     }
     private final Type presetType;
     private final ChordLeadSheetItem<?> item;

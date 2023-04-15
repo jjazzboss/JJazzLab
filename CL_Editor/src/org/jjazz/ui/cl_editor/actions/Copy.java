@@ -27,7 +27,6 @@ import org.jjazz.ui.cl_editor.api.CL_ContextActionSupport;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -59,6 +58,7 @@ import org.openide.util.actions.SystemAction;
             @ActionReference(path = "Actions/Section", position = 1100),
             @ActionReference(path = "Actions/ChordSymbol", position = 1100),
             @ActionReference(path = "Actions/Bar", position = 1100),
+            @ActionReference(path = "Actions/BarAnnotation", position = 1010)
         })
 public class Copy extends AbstractAction implements ContextAwareAction, CL_ContextActionListener
 {

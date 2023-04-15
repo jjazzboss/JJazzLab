@@ -26,7 +26,6 @@ import org.jjazz.ui.cl_editor.api.CL_ContextActionListener;
 import org.jjazz.ui.cl_editor.api.CL_ContextActionSupport;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -62,6 +61,7 @@ import org.openide.util.actions.SystemAction;
             @ActionReference(path = "Actions/Bar", position = 1250),
             @ActionReference(path = "Actions/Section", position = 1250),
             @ActionReference(path = "Actions/ChordSymbol", position = 1250),
+            @ActionReference(path = "Actions/BarAnnotation", position = 1250)
         })
 public class DeleteItem extends AbstractAction implements ContextAwareAction, CL_ContextActionListener
 {

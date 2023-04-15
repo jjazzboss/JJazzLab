@@ -24,6 +24,7 @@ package org.jjazz.ui.itemrenderer;
 
 import org.jjazz.ui.itemrenderer.api.IR_Section;
 import java.util.logging.Logger;
+import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_BarAnnotation;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Factory;
@@ -42,6 +43,7 @@ public class ItemRendererFactoryImpl implements ItemRendererFactory
     private static IR_ChordPosition SAMPLE_CHORD_POSITION_RENDERER;
     private static IR_TimeSignature SAMPLE_TIME_SIGNATURE_RENDERER;
     private static IR_PositionMark SAMPLE_POSITION_MARK_RENDERER;
+    private static IR_BarAnnotation SAMPLE_BAR_ANNOTATION_RENDERER;
     private static final Logger LOGGER = Logger.getLogger(ItemRendererFactoryImpl.class.getName());
 
     public static ItemRendererFactoryImpl getInstance()
@@ -57,11 +59,11 @@ public class ItemRendererFactoryImpl implements ItemRendererFactory
     }
 
     private ItemRendererFactoryImpl()
-    {              
+    {
     }
 
     @Override
-    public ItemRenderer createItemRenderer(IR_Type type, ChordLeadSheetItem<?> item ,ItemRendererSettings settings)
+    public ItemRenderer createItemRenderer(IR_Type type, ChordLeadSheetItem<?> item, ItemRendererSettings settings)
     {
         ItemRenderer ir;
         switch (type)
@@ -81,38 +83,42 @@ public class ItemRendererFactoryImpl implements ItemRendererFactory
             case PositionMark:
                 ir = new IR_PositionMark(item);
                 break;
+            case BarAnnotation:
+                ir = new IR_BarAnnotation((CLI_BarAnnotation) item, settings);
+                break;
+
             default:
-                throw new IllegalArgumentException("type=" + type + " item=" + item);   
+                throw new IllegalArgumentException("type=" + type + " item=" + item);
         }
         return ir;
     }
 
     @Override
-    public ItemRenderer getItemRendererSample(IR_Type type,ItemRendererSettings settings)
+    public ItemRenderer getItemRendererSample(IR_Type type, ItemRendererSettings settings)
     {
         ItemRenderer ir;
         CLI_Factory cliFactory = CLI_Factory.getDefault();
         switch (type)
         {
             case ChordSymbol:
-                if (SAMPLE_CHORD_SYMBOL_RENDERER==null)
+                if (SAMPLE_CHORD_SYMBOL_RENDERER == null)
                 {
                     SAMPLE_CHORD_SYMBOL_RENDERER = new IR_ChordSymbol(cliFactory.getSampleChordSymbol(), settings);
                 }
                 ir = SAMPLE_CHORD_SYMBOL_RENDERER;
-                
+
                 break;
-            case ChordPosition:                
-                if (SAMPLE_CHORD_POSITION_RENDERER==null)
+            case ChordPosition:
+                if (SAMPLE_CHORD_POSITION_RENDERER == null)
                 {
-                        SAMPLE_CHORD_POSITION_RENDERER = new IR_ChordPosition(cliFactory.getSampleChordSymbol(), settings);
+                    SAMPLE_CHORD_POSITION_RENDERER = new IR_ChordPosition(cliFactory.getSampleChordSymbol(), settings);
                 }
                 ir = SAMPLE_CHORD_POSITION_RENDERER;
                 break;
             case Section:
-                if (SAMPLE_SECTION_RENDERER==null)
+                if (SAMPLE_SECTION_RENDERER == null)
                 {
-                    SAMPLE_SECTION_RENDERER = new IR_Section(cliFactory.getSampleSection(), settings);                
+                    SAMPLE_SECTION_RENDERER = new IR_Section(cliFactory.getSampleSection(), settings);
                 }
                 ir = SAMPLE_SECTION_RENDERER;
                 break;
@@ -130,14 +136,21 @@ public class ItemRendererFactoryImpl implements ItemRendererFactory
                 }
                 ir = SAMPLE_POSITION_MARK_RENDERER;
                 break;
+            case BarAnnotation:
+                if (SAMPLE_BAR_ANNOTATION_RENDERER == null)
+                {
+                    SAMPLE_BAR_ANNOTATION_RENDERER = new IR_BarAnnotation(cliFactory.createBarAnnotation(null, "edit me", 0), settings);
+                }
+                ir = SAMPLE_BAR_ANNOTATION_RENDERER;
+                break;
             default:
-                throw new IllegalArgumentException("type=" + type);   
+                throw new IllegalArgumentException("type=" + type);
         }
         return ir;
     }
 
     @Override
-    public ItemRenderer createDraggedItemRenderer(IR_Type type, ChordLeadSheetItem<?> item,ItemRendererSettings settings)
+    public ItemRenderer createDraggedItemRenderer(IR_Type type, ChordLeadSheetItem<?> item, ItemRendererSettings settings)
     {
         // Use default implementations, but we could imagine special renderers for dragged items.
         ItemRenderer ir;

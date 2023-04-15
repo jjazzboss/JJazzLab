@@ -34,6 +34,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.TransferHandler;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
+import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_BarAnnotation;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
@@ -46,6 +47,7 @@ import org.jjazz.ui.itemrenderer.api.ItemRenderer;
 import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.util.api.ResUtil;
+import org.openide.util.Exceptions;
 
 /**
  * Drag n Drop Transfer handler for ItemRenderers within a single ChordLeadSheet.
@@ -129,7 +131,9 @@ public class CL_EditorTransferHandler extends TransferHandler
 
 
         // Check data flavor
-        if (!info.isDataFlavorSupported(CLI_ChordSymbol.DATA_FLAVOR) && !info.isDataFlavorSupported(CLI_Section.DATA_FLAVOR))
+        if (!info.isDataFlavorSupported(CLI_ChordSymbol.DATA_FLAVOR)
+                && !info.isDataFlavorSupported(CLI_Section.DATA_FLAVOR)
+                && !info.isDataFlavorSupported(CLI_BarAnnotation.DATA_FLAVOR))
         {
             LOGGER.fine("canImport() return false: unsupported DataFlavor");
             return false;
@@ -316,6 +320,49 @@ public class CL_EditorTransferHandler extends TransferHandler
                 }
                 um.endCEdit(editName);
             }
+        } else if (sourceItem instanceof CLI_BarAnnotation cliBa)
+        {
+            if (sourceBarIndex == newBarIndex)
+            {
+                LOGGER.log(Level.FINE, "importData() sourceBarIndex={0}=newBarIndex", sourceBarIndex);
+                return false;
+            }
+
+            // Unselect everything: we will select the target item
+            CL_SelectionUtilities selection = new CL_SelectionUtilities(editor.getLookup());
+            selection.unselectAll(editor);
+
+
+            String editName = ResUtil.getString(getClass(), "MoveBarAnnotation");
+            um.startCEdit(editName);
+
+
+            CLI_BarAnnotation curAnnotation = cls.getBarFirstItem(newBarIndex, CLI_BarAnnotation.class, cli -> true);
+            if (curAnnotation != null)
+            {
+                // There is already an annotation there, just update its content
+                cls.changeItem(curAnnotation, cliBa.getData());
+                editor.selectItem(curAnnotation, true);
+                editor.setFocusOnItem(curAnnotation, IR_Type.BarAnnotation);
+            } 
+            else
+            {
+                // Add a new annotation
+                CLI_BarAnnotation cliCopy = (CLI_BarAnnotation) cliBa.getCopy(null, newPos);
+                cls.addItem(cliCopy);
+                editor.selectItem(cliCopy, true);
+                editor.setFocusOnItem(cliCopy, IR_Type.BarAnnotation);
+            } 
+            
+            if (info.getDropAction() == MOVE)
+            {
+                // Move annotation
+                cls.removeItem(sourceItem);
+            }
+
+            um.endCEdit(editName);
+            
+            
         } else // ChordSymbols
         {
             if (info.getDropAction() == COPY)
@@ -338,7 +385,9 @@ public class CL_EditorTransferHandler extends TransferHandler
             }
         }
 
-        LOGGER.fine("importData() EXIT with success");
+        LOGGER.fine(
+                "importData() EXIT with success");
+
 
         return true;
     }
@@ -348,24 +397,26 @@ public class CL_EditorTransferHandler extends TransferHandler
     // ==================================================================================
     private ChordLeadSheetItem<?> getTransferredItem(Transferable t)
     {
-        ChordLeadSheetItem<?> sourceItem = null;
+        ChordLeadSheetItem<?> res = null;
         try
         {
-            sourceItem = (ChordLeadSheetItem<?>) t.getTransferData(CLI_ChordSymbol.DATA_FLAVOR);
+            if (t.isDataFlavorSupported(CLI_ChordSymbol.DATA_FLAVOR))
+            {
+                res = (ChordLeadSheetItem<?>) t.getTransferData(CLI_ChordSymbol.DATA_FLAVOR);
+            } else if (t.isDataFlavorSupported(CLI_Section.DATA_FLAVOR))
+            {
+                res = (ChordLeadSheetItem<?>) t.getTransferData(CLI_Section.DATA_FLAVOR);
+            } else if (t.isDataFlavorSupported(CLI_BarAnnotation.DATA_FLAVOR))
+            {
+                res = (ChordLeadSheetItem<?>) t.getTransferData(CLI_BarAnnotation.DATA_FLAVOR);
+            }
         } catch (UnsupportedFlavorException | IOException ex)
         {
+            // Should never happen
+            Exceptions.printStackTrace(ex);
         }
-        if (sourceItem == null)
-        {
-            try
-            {
-                sourceItem = (ChordLeadSheetItem<?>) t.getTransferData(CLI_Section.DATA_FLAVOR);
-            } catch (UnsupportedFlavorException | IOException ex)
-            {
-                LOGGER.fine("getTransferredItem()  not supported data");
-            }
-        }
-        return sourceItem;
+
+        return res;
     }
 
     /**

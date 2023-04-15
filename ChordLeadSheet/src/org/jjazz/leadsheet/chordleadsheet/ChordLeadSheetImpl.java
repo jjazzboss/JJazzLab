@@ -1066,19 +1066,22 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
     private void setSectionName(CLI_Section cliSection, String name, boolean enableActionEvent)
     {
-        if (cliSection == null || name == null || !(cliSection instanceof WritableItem) || !items.contains(cliSection) || getSection(name) != null)
-        {
-            throw new IllegalArgumentException("section=" + cliSection + " name=" + name + " items=" + items);
-        }
-
+        Preconditions.checkNotNull(cliSection);
+        Preconditions.checkNotNull(name);
+        
         LOGGER.log(Level.FINE, "setSectionName() -- cliSection={0} name={1}", new Object[]
         {
             cliSection, name
         });
-
+        
         if (cliSection.getData().getName().equals(name))
         {
             return;
+        }
+        
+        if (!(cliSection instanceof WritableItem) || !items.contains(cliSection) || getSection(name) != null)
+        {
+            throw new IllegalArgumentException("section=" + cliSection + " name=" + name + " items=" + items);
         }
 
         fireActionEvent(enableActionEvent, "setSectionName", false, cliSection);

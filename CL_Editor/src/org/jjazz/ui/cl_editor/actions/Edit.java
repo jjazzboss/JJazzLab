@@ -28,8 +28,6 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
@@ -40,6 +38,7 @@ import javax.swing.SwingUtilities;
 import org.jjazz.leadsheet.chordleadsheet.api.Section;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
+import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_BarAnnotation;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
@@ -80,6 +79,7 @@ import org.openide.windows.WindowManager;
             @ActionReference(path = "Actions/Section", position = 100),
             @ActionReference(path = "Actions/ChordSymbol", position = 100),
             @ActionReference(path = "Actions/Bar", position = 100),
+            @ActionReference(path = "Actions/BarAnnotation", position = 100)
         })
 public class Edit extends AbstractAction implements ContextAwareAction, CL_ContextActionListener
 {
@@ -147,7 +147,7 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
                 } else
                 {
                     // Otherwise use the standard Bar dialog
-                    editBarWithDialog(editor, barIndex, new Preset(Preset.Type.ChordSymbolEdit, item, key), cls, undoText);
+                    editBarWithDialog(editor, barIndex, new Preset(Preset.Type.ChordSymbolEdit, csItem, key), cls, undoText);
                 }
             } else if (item instanceof CLI_Section sectionItem)
             {
@@ -159,8 +159,11 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
                 } else
                 {
                     // Otherwise use the standard Bar dialog
-                    editBarWithDialog(editor, barIndex, new Preset(Preset.Type.SectionNameEdit, item, (char) 0), cls, undoText);
+                    editBarWithDialog(editor, barIndex, new Preset(Preset.Type.SectionNameEdit, sectionItem, (char) 0), cls, undoText);
                 }
+            } else if (item instanceof CLI_BarAnnotation cliBa)
+            {
+                editBarWithDialog(editor, barIndex, new Preset(Preset.Type.AnnotationEdit, cliBa, (char) 0), cls, undoText);
             }
         } else
         {
@@ -271,6 +274,7 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
             JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(cls);
             um.startCEdit(undoText);
             
+            
             // Manage section change
             CLI_Section resultSection = dialog.getSection();
             if (resultSection != null)
@@ -309,6 +313,7 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
                 }
             }
             
+            
             // Manage added/removed/changed items
             var resultAddedItems = dialog.getAddedItems();
             resultAddedItems.forEach(item -> cls.addItem(item));
@@ -316,14 +321,14 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
             var resultRemovedItems = dialog.getRemovedItems();
             resultRemovedItems.forEach(item -> cls.removeItem(item));
             
-            Map<CLI_ChordSymbol, ExtChordSymbol> map = dialog.getUpdatedChordSymbols();
-            map.keySet().forEach(cliCs -> cls.changeItem(cliCs, map.get(cliCs)));
+            var mapChanged = dialog.getChangedItems();
+            mapChanged.keySet().forEach(cliCs -> cls.changeItem(cliCs, mapChanged.get(cliCs)));
             
             um.endCEdit(undoText);
             
-            // Go to next bar if chords have changed
-            boolean chordSymbolChange = !resultAddedItems.isEmpty() || !resultRemovedItems.isEmpty() || !map.isEmpty();
-            if (barIndex < cls.getSizeInBars() - 1 && chordSymbolChange)
+            // Go to next bar if something has changed
+            boolean change = !resultAddedItems.isEmpty() || !resultRemovedItems.isEmpty() || !mapChanged.isEmpty();
+            if (barIndex < cls.getSizeInBars() - 1 && change)
             {
                 CL_SelectionUtilities selection = new CL_SelectionUtilities(editor.getLookup());
                 selection.unselectAll(editor);

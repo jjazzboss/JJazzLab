@@ -27,7 +27,6 @@ import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
-import java.util.logging.Logger;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.util.api.StringProperties;
 
@@ -53,7 +52,7 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
      * oldValue=old position, newValue=new position.
      */
     public static String PROP_ITEM_POSITION = "ItemPosition";
-    static final Logger LOGGER = Logger.getLogger(ChordLeadSheetItem.class.getSimpleName());
+    // static final Logger LOGGER = Logger.getLogger(ChordLeadSheetItem.class.getSimpleName());
 
     /**
      * Get the ChordLeadSheet this object belongs to.

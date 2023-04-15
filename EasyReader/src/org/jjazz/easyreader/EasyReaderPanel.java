@@ -32,6 +32,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import org.jjazz.leadsheet.chordleadsheet.api.ClsChangeListener;
@@ -82,6 +83,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
     private SongPart songPart;
     private SongPart nextSongPart;
     private BarBox barBox, nextBarBox;
+    private JLabel lbl_annotation;
     private int startBar = 0;
     private static final Preferences prefs = NbPreferences.forModule(EasyReaderPanel.class);
     private static final Logger LOGGER = Logger.getLogger(EasyReaderPanel.class.getSimpleName());
@@ -89,6 +91,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
     public EasyReaderPanel()
     {
         initComponents();
+        lbl_annotation.setHorizontalTextPosition(SwingConstants.CENTER);
         lbl_nextChord.setFont(IR_ChordSymbolSettings.getDefault().getFont().deriveFont(14f));
         lbl_nextChord.setText("");
         lbl_nextSongPart.setText("");

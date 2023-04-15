@@ -22,6 +22,7 @@
  */
 package org.jjazz.leadsheet.chordleadsheet.item;
 
+import com.google.common.base.Preconditions;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.beans.PropertyChangeListener;
@@ -29,16 +30,17 @@ import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
-import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
+import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_BarAnnotation;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.util.api.StringProperties;
 
-public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtChordSymbol>, Serializable
+/**
+ * An item for a bar annotation.
+ */
+public class CLI_BarAnnotationImpl implements CLI_BarAnnotation, WritableItem<String>, Serializable
 {
 
     /**
@@ -48,42 +50,37 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
     /**
      * The data section.
      */
-    private ExtChordSymbol data;
-    private StringProperties clientProperties;
+    private String data;
+
+    private final StringProperties clientProperties;
     /**
-     * The container of this item.
-     * <p>
-     * Need to be transient otherwise this introduces circularities in the objects graph that prevent ChordLeadSheetImpl's proxy
-     * serialization to work. This field must be restored by its container at deserialization.
+     * The container of this item. Need to be transient otherwise this introduces circularities in the objects graph that prevent
+     * ChordLeadSheetImpl's proxyserialization to work. This field must be restored by its container at deserialization.
      */
     private transient ChordLeadSheet container = null;
+
     /**
      * The listeners for changes in this ChordLeadSheetItem.
      */
-    private transient SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
-    private static final Logger LOGGER = Logger.getLogger(CLI_ChordSymbolImpl.class.getSimpleName());
+    private final transient SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    private static final Logger LOGGER = Logger.getLogger(CLI_BarAnnotationImpl.class.getSimpleName());
 
     /**
-     * Create an object from the specified arguments.
-     * <p>
-     * No alternate data and no filter set.
-     *
-     * @param cs
-     * @param pos
+     * @param annotation
+     * @param barIndex
      */
-    public CLI_ChordSymbolImpl(ExtChordSymbol cs, Position pos)
+    public CLI_BarAnnotationImpl(String annotation, int barIndex)
     {
-        if (cs == null || pos == null)
-        {
-            throw new NullPointerException(" cs=" + cs + " pos=" + pos);
-        }
-        data = cs;
-        setPosition(pos);
+        Preconditions.checkNotNull(annotation);
+        Preconditions.checkArgument(barIndex >= 0, "barIndex=%d", barIndex);
+
+        data = annotation;
+        position = new Position(barIndex, 0);
         clientProperties = new StringProperties();
     }
 
     @Override
-    final synchronized public void setContainer(ChordLeadSheet cls)
+    synchronized public void setContainer(ChordLeadSheet cls)
     {
         if (cls != container)
         {
@@ -93,32 +90,6 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
         }
     }
 
-    /**
-     * Set the position of this item.
-     *
-     * @param p
-     */
-    @Override
-    public synchronized final void setPosition(Position p)
-    {
-        if (position == null)
-        {
-            throw new NullPointerException("p=" + p);
-        }
-        if (!position.equals(p))
-        {
-            Position oldPos = position;
-            position = new Position(p);
-            pcs.firePropertyChange(PROP_ITEM_POSITION, oldPos, position);
-        }
-    }
-
-    @Override
-    public boolean isBarSingleItem()
-    {
-        return false;
-    }
-
     @Override
     public StringProperties getClientProperties()
     {
@@ -126,54 +97,50 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
     }
 
     @Override
-    public synchronized ExtChordSymbol getData()
+    public synchronized String getData()
     {
         return data;
     }
 
     @Override
-    public synchronized void setData(ExtChordSymbol cs)
+    public synchronized void setData(String annotation)
     {
-        if (cs == null)
+        Preconditions.checkNotNull(annotation);
+        if (!annotation.equals(data))
         {
-            throw new NullPointerException("cs=" + cs);
-        }
-        if (!cs.equals(data))
-        {
-            ExtChordSymbol oldData = data;
-            data = cs;
+            String oldData = data;
+            data = annotation;
             pcs.firePropertyChange(PROP_ITEM_DATA, oldData, data);
         }
     }
 
-    /**
-     * Note that we also copy the alternate data and filter.
-     *
-     * @param newCls
-     * @param newPos
-     * @return
-     */
     @Override
-    public synchronized CLI_ChordSymbol getCopy(ChordLeadSheet newCls, Position newPos)
+    public boolean isBarSingleItem()
     {
-        CLI_ChordSymbolImpl cli = new CLI_ChordSymbolImpl(data, (newPos != null) ? newPos : position);
+        return true;
+    }
+
+    @Override
+    public synchronized CLI_BarAnnotation getCopy(ChordLeadSheet newCls, Position newPos)
+    {
+        int barIndex = (newPos != null) ? newPos.getBar() : position.getBar();
         ChordLeadSheet cls = (newCls != null) ? newCls : getContainer();
+        CLI_BarAnnotationImpl cli = new CLI_BarAnnotationImpl(data, barIndex);
         cli.setContainer(cls);
-        cli.getClientProperties().set(clientProperties);
         return cli;
     }
 
     /*
-    * equals() and hashCode() are NOT defined because they can be used as Map keys and can change while being in the map (InstanceContent
-    * for selected items in the CL_Editor, or ChordLeadSheet.moveSection())
+     * equals() and hashCode() are NOT defined because they can be used as Map keys and can change while being
+     * in the map (InstanceContent for selected items in the CL_Editor, or ChordLeadSheet.moveSection())
      */
 //    @Override
 //    public boolean equals(Object o)
 //    {
-//        if (o instanceof CLI_ChordSymbol)
+//        if (o instanceof CLI_Section)
 //        {
-//            CLI_ChordSymbol cle = (CLI_ChordSymbol) o;
-//            return container == cle.getContainer() && data.equals(cle.getData()) && position.equals(cle.getPosition());
+//            CLI_Section cli = (CLI_Section) o;
+//            return container == cli.getContainer() && data.equals(cli.getData()) && position.equals(cli.getPosition());
 //        }
 //        else
 //        {
@@ -184,7 +151,7 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
 //    @Override
 //    public int hashCode()
 //    {
-//        int hash = 7;
+//        int hash = 3;
 //        hash = 37 * hash + (this.container != null ? this.container.hashCode() : 0);
 //        hash = 37 * hash + (this.position != null ? this.position.hashCode() : 0);
 //        hash = 37 * hash + (this.data != null ? this.data.hashCode() : 0);
@@ -202,19 +169,39 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
      * @return
      */
     @Override
-    public synchronized final Position getPosition()
+    public synchronized Position getPosition()
     {
         return new Position(position);
     }
 
+    /**
+     * Set the position of this item.
+     *
+     * @param p
+     */
     @Override
-    public synchronized final ChordLeadSheet getContainer()
+    public synchronized void setPosition(Position p)
+    {
+        if (position == null)
+        {
+            throw new NullPointerException("p=" + p);
+        }
+        if (!position.equals(p))
+        {
+            Position oldPos = position;
+            position = new Position(p);
+            pcs.firePropertyChange(PROP_ITEM_POSITION, oldPos, position);
+        }
+    }
+
+    @Override
+    public synchronized ChordLeadSheet getContainer()
     {
         return container;
     }
 
     @Override
-    public final void addPropertyChangeListener(PropertyChangeListener l)
+    public void addPropertyChangeListener(PropertyChangeListener l)
     {
         pcs.addPropertyChangeListener(l);
     }
@@ -225,7 +212,7 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
      * @param l
      */
     @Override
-    public final void removePropertyChangeListener(PropertyChangeListener l)
+    public void removePropertyChangeListener(PropertyChangeListener l)
     {
         pcs.removePropertyChangeListener(l);
     }
@@ -233,12 +220,12 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
     // ------------------------------------------------------------------------------
     // Implementation of interface Transferable
     // ------------------------------------------------------------------------------
-    private static DataFlavor flavor = CLI_ChordSymbol.DATA_FLAVOR;
+    private static DataFlavor flavor = CLI_BarAnnotation.DATA_FLAVOR;
 
     private static DataFlavor[] supportedFlavors =
     {
         flavor,
-        DataFlavor.stringFlavor,
+        DataFlavor.stringFlavor
     };
 
     @Override
@@ -250,11 +237,7 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
     @Override
     public boolean isDataFlavorSupported(DataFlavor fl)
     {
-        if (fl.equals(flavor) || fl.equals(DataFlavor.stringFlavor))
-        {
-            return true;
-        }
-        return false;
+        return fl.equals(flavor) || fl.equals(DataFlavor.stringFlavor);
     }
 
     @Override
@@ -272,9 +255,9 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
         }
     }
 
-    // --------------------------------------------------------------------- 
-    // Serialization
-    // ---------------------------------------------------------------------
+    /* ---------------------------------------------------------------------
+     * Serialization
+     * --------------------------------------------------------------------- */
     private Object writeReplace()
     {
         return new SerializationProxy(this);
@@ -285,39 +268,26 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
         throw new InvalidObjectException("Serialization proxy required");
     }
 
-
     private static class SerializationProxy implements Serializable
     {
 
-        private static final long serialVersionUID = 909000172651524L;
-        private int spVERSION = 2;          // Do not make final!
-        private ExtChordSymbol spChord;
-        private Position spPos;
-        private StringProperties spClientProperties;  // From spVERSION 2        
+        private static final long serialVersionUID = -9872601287001L;
+        private int spVERSION = 1;      // Do not make final!
+        private String spAnnotation;
+        private int spBarIndex;
+        private StringProperties spClientProperties;
 
-        private SerializationProxy(CLI_ChordSymbolImpl cli)
+        private SerializationProxy(CLI_BarAnnotationImpl cliBa)
         {
-            spChord = cli.getData();
-            spPos = cli.getPosition();
-            spClientProperties = cli.getClientProperties();     // From spVERSION 2
+            spAnnotation = cliBa.getData();
+            spBarIndex = cliBa.getPosition().getBar();
+            spClientProperties = cliBa.getClientProperties();
         }
 
         private Object readResolve() throws ObjectStreamException
         {
-            CLI_ChordSymbolImpl cli = new CLI_ChordSymbolImpl(spChord, spPos);
-            if (spVERSION >= 2)
-            {
-                if (spClientProperties != null)
-                {
-                    cli.getClientProperties().set(spClientProperties);
-                } else
-                {
-                    LOGGER.log(Level.WARNING, "SerializationProxy.readResolve() Unexpected null value for spClientProperties. spChord={0}",
-                            spChord);
-                }
-            }
+            CLI_BarAnnotationImpl cli = new CLI_BarAnnotationImpl(spAnnotation, spBarIndex);
             return cli;
         }
     }
-
 }

@@ -27,19 +27,26 @@
   <Layout>
     <DimensionLayout dim="0">
       <Group type="103" groupAlignment="0" attributes="0">
-          <Group type="102" attributes="0">
+          <Group type="102" alignment="1" attributes="0">
               <EmptySpace max="-2" attributes="0"/>
-              <Group type="103" groupAlignment="0" attributes="0">
+              <Group type="103" groupAlignment="1" attributes="0">
+                  <Component id="pnl_annotations" max="32767" attributes="0"/>
+                  <Component id="jtfChordSymbols" alignment="0" max="32767" attributes="0"/>
                   <Group type="102" alignment="0" attributes="0">
                       <Component id="lbl_section" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
-                      <Component id="jtfSectionName" min="-2" pref="69" max="-2" attributes="0"/>
-                      <EmptySpace pref="15" max="32767" attributes="0"/>
+                      <Component id="jtfSectionName" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace type="separate" min="-2" max="-2" attributes="0"/>
                       <Component id="lbl_timeSig" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
-                      <Component id="jtfTimeSignature" min="-2" pref="37" max="-2" attributes="0"/>
+                      <Component id="jtfTimeSignature" max="32767" attributes="0"/>
                   </Group>
-                  <Component id="jtfChordSymbols" max="32767" attributes="0"/>
+                  <Group type="102" alignment="0" attributes="0">
+                      <Component id="lbl_annotation" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="fbtn_expand" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
+                  </Group>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
           </Group>
@@ -50,14 +57,21 @@
           <Group type="102" alignment="0" attributes="0">
               <EmptySpace max="-2" attributes="0"/>
               <Component id="jtfChordSymbols" min="-2" max="-2" attributes="0"/>
-              <EmptySpace max="32767" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
-                  <Component id="jtfSectionName" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="jtfTimeSignature" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="lbl_section" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="jtfSectionName" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="lbl_timeSig" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="jtfTimeSignature" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="lbl_annotation" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="fbtn_expand" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace max="-2" attributes="0"/>
+              <Component id="pnl_annotations" min="-2" max="-2" attributes="0"/>
+              <EmptySpace max="32767" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -65,6 +79,7 @@
   <SubComponents>
     <Component class="javax.swing.JTextField" name="jtfTimeSignature">
       <Properties>
+        <Property name="columns" type="int" value="3"/>
         <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
           <ResourceString bundle="org/jjazz/ui/cl_editor/editors/Bundle.properties" key="CL_BarEditorDialogImpl.jtfTimeSignature.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
         </Property>
@@ -110,5 +125,34 @@
         </Property>
       </Properties>
     </Component>
+    <Component class="javax.swing.JLabel" name="lbl_annotation">
+      <Properties>
+        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="org/jjazz/ui/cl_editor/editors/Bundle.properties" key="CL_BarEditorDialogImpl.lbl_annotation.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+        </Property>
+      </Properties>
+    </Component>
+    <Component class="org.jjazz.ui.flatcomponents.api.FlatToggleButton" name="fbtn_expand">
+      <Properties>
+        <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
+          <Image iconType="3" name="/org/jjazz/ui/cl_editor/editors/resources/arrow_collapsed.png"/>
+        </Property>
+        <Property name="selectedIcon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
+          <Image iconType="3" name="/org/jjazz/ui/cl_editor/editors/resources/arrow_expanded.png"/>
+        </Property>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="fbtn_expandActionPerformed"/>
+      </Events>
+    </Component>
+    <Container class="javax.swing.JPanel" name="pnl_annotations">
+      <Properties>
+        <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="org/jjazz/ui/cl_editor/editors/Bundle.properties" key="CL_BarEditorDialogImpl.pnl_annotations.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+        </Property>
+      </Properties>
+
+      <Layout class="org.netbeans.modules.form.compat2.layouts.DesignBoxLayout"/>
+    </Container>
   </SubComponents>
 </Form>

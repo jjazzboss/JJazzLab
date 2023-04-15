@@ -135,7 +135,7 @@ public class CLI_SectionImpl implements CLI_Section, WritableItem<Section>, Seri
     {
         int barIndex = (newPos != null) ? newPos.getBar() : position.getBar();
         ChordLeadSheet cls = (newCls != null) ? newCls : getContainer();
-        CLI_SectionImpl cli = new CLI_SectionImpl(Util.createSectionName(data.getName(), cls), data.getTimeSignature(), barIndex);
+        CLI_SectionImpl cli = new CLI_SectionImpl(CLI_Section.createSectionName(data.getName(), cls), data.getTimeSignature(), barIndex);
         cli.setContainer(cls);
         return cli;
     }
