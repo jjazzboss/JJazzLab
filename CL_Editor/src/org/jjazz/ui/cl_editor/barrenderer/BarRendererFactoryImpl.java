@@ -56,7 +56,7 @@ public class BarRendererFactoryImpl implements BarRendererFactory
      *
      * @param editor   Can be null
      * @param brType
-     * @param barIndex
+     * @param barIndex The barIndex and modelBarIndex (unless barIndex is beyond ChordLeadSheet size, then modelBarIndex is set to -1)
      * @return
      */
     @Override

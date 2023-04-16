@@ -30,6 +30,7 @@ import java.awt.geom.Path2D;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.WeakHashMap;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
@@ -56,6 +57,7 @@ import org.openide.util.Exceptions;
  */
 public class BR_ChordPositions extends BarRenderer implements BeatBasedBarRenderer, ComponentListener
 {
+
     /**
      * Special shared JPanel instances per GroupKey, used to calculate the preferred size for a BarRenderer subclass..
      */
@@ -324,10 +326,13 @@ public class BR_ChordPositions extends BarRenderer implements BeatBasedBarRender
     @Override
     public void showPlaybackPoint(boolean b, Position pos)
     {
-        LOGGER.fine("showPlaybackPoint() b=" + b + " pos=" + pos);
+        LOGGER.log(Level.FINE, "showPlaybackPoint() b={0} pos={1}", new Object[]
+        {
+            b, pos
+        });
         if (b && pos.getBar() != getModelBarIndex())
         {
-            throw new IllegalArgumentException("b=" + b + " pos=" + pos);
+            throw new IllegalArgumentException("b=" + b + " pos=" + pos + "  getModelBarIndex()=" + getModelBarIndex());
         }
         if (!b)
         {

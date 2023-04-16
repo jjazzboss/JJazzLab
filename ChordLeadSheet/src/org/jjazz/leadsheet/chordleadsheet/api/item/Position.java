@@ -109,6 +109,15 @@ public final class Position implements Comparable<Position>, Serializable
         this.bar = bar;
         pcs.firePropertyChange(PROP_BAR, old, this.bar);
     }
+    
+    /**
+     * Set bar and beat to 0.
+     */
+    public void reset()
+    {
+        setBar(0);
+        setBeat(0);
+    }
 
     /**
      * Set the position from another position.

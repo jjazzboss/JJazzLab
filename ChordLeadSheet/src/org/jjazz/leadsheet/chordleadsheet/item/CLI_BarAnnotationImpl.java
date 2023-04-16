@@ -273,13 +273,13 @@ public class CLI_BarAnnotationImpl implements CLI_BarAnnotation, WritableItem<St
 
         private static final long serialVersionUID = -9872601287001L;
         private int spVERSION = 1;      // Do not make final!
-        private String spAnnotation;
+        private String spAnnotation;    
         private int spBarIndex;
         private StringProperties spClientProperties;
 
         private SerializationProxy(CLI_BarAnnotationImpl cliBa)
         {
-            spAnnotation = cliBa.getData();
+            spAnnotation = cliBa.getData(); 
             spBarIndex = cliBa.getPosition().getBar();
             spClientProperties = cliBa.getClientProperties();
         }

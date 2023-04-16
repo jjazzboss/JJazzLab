@@ -22,6 +22,7 @@
  */
 package org.jjazz.ui.cl_editor.editors;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
@@ -35,9 +36,11 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
+import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JRootPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -127,28 +130,35 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
     private boolean swing;
     private final JScrollPane sp_annotation;
     private final JTextArea ta_annotation;
+    private final JLabel lbl_helpAnnotation;
     private static final Logger LOGGER = Logger.getLogger(CL_BarEditorDialogImpl.class.getSimpleName());
 
     private CL_BarEditorDialogImpl()
     {
         initComponents();
 
-        // The annotatio component
+
+        // Prepare the annotation components
         ta_annotation = new JTextArea();
         ta_annotation.setRows(2);
         ta_annotation.setLineWrap(true);
         ta_annotation.setToolTipText(pnl_annotations.getToolTipText());
         lbl_annotation.setToolTipText(pnl_annotations.getToolTipText());
-        // Make ctrl+ENTER validate the dialog when ta_annotation is focused
-        ta_annotation.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(getGenericControlKeyStroke(KeyEvent.VK_ENTER), "validateDialog");
+        ta_annotation.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(getGenericControlKeyStroke(KeyEvent.VK_ENTER),
+                "validateDialog");
+        ta_annotation.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("alt ENTER"), "validateDialog");
+        ta_annotation.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("shift ENTER"), "validateDialog");
         ta_annotation.getActionMap().put("validateDialog", Utilities.getAction(ae -> actionOK()));
         sp_annotation = new JScrollPane(ta_annotation);
+        lbl_helpAnnotation = new JLabel();
+        Utilities.changeFontSize(lbl_helpAnnotation, -2f);
+        lbl_helpAnnotation.setText(pnl_annotations.getToolTipText());
 
 
         // Mac OSX automatically does a select all upon focus gain: this generates problem see Issue #97
         // This is hack to make sure the default behavior is used, even on Mac OSX
         jtfChordSymbols.setCaret(new DefaultCaret());
-        
+
 
         saveSectionFieldsForeground = jtfSectionName.getForeground();
         resultSection = null;
@@ -432,15 +442,15 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
                 }
             }
         }
-        
+
         if (isAnnotationChanged)
         {
-            if (modelBarAnnotation==null && !strAnnotation.isBlank())
+            if (modelBarAnnotation == null && !strAnnotation.isBlank())
             {
                 // Add an item
                 var cliBa = CLI_Factory.getDefault().createBarAnnotation(model, strAnnotation, barIndex);
                 resultAddedItems.add(cliBa);
-            } else if (modelBarAnnotation!=null && strAnnotation.isBlank())
+            } else if (modelBarAnnotation != null && strAnnotation.isBlank())
             {
                 // Remove the item
                 resultRemovedItems.add(modelBarAnnotation);
@@ -450,7 +460,7 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
                 resultMapChangedItems.put(modelBarAnnotation, strAnnotation);
             }
         }
-        
+
 
         // To avoid one of a section fields accidentally get the focus on next dialog show
         // and have the text cleared by listener
@@ -578,13 +588,15 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
         fbtn_expand.setSelected(b);
         if (b)
         {
-            pnl_annotations.add(sp_annotation);
+            pnl_annotations.add(sp_annotation, BorderLayout.CENTER);
+            pnl_annotations.add(lbl_helpAnnotation, BorderLayout.SOUTH);
             pnl_annotations.revalidate();
             ta_annotation.requestFocusInWindow();
         } else
         {
             jtfChordSymbols.requestFocusInWindow();
             pnl_annotations.remove(sp_annotation);
+            pnl_annotations.remove(lbl_helpAnnotation);
             pnl_annotations.revalidate();
         }
         pack();
@@ -683,7 +695,7 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
         });
 
         pnl_annotations.setToolTipText(org.openide.util.NbBundle.getMessage(CL_BarEditorDialogImpl.class, "CL_BarEditorDialogImpl.pnl_annotations.toolTipText")); // NOI18N
-        pnl_annotations.setLayout(new javax.swing.BoxLayout(pnl_annotations, javax.swing.BoxLayout.LINE_AXIS));
+        pnl_annotations.setLayout(new java.awt.BorderLayout());
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);

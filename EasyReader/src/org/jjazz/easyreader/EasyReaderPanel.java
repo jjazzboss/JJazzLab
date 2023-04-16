@@ -25,6 +25,7 @@ package org.jjazz.easyreader;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.LayoutManager;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -45,6 +46,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.event.ItemMovedEvent;
 import org.jjazz.leadsheet.chordleadsheet.api.event.ItemRemovedEvent;
 import org.jjazz.leadsheet.chordleadsheet.api.event.SectionMovedEvent;
 import org.jjazz.leadsheet.chordleadsheet.api.event.SizeChangedEvent;
+import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_BarAnnotation;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
@@ -79,26 +81,39 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
 
     static final String PREF_ZOOM_Y = "PrefEasyReaderPanelZoomY";
     private Song song;
-    private final Position posModel;
+    private final Position songPosition, clsPosition;
     private SongPart songPart;
     private SongPart nextSongPart;
     private BarBox barBox, nextBarBox;
-    private JLabel lbl_annotation;
-    private int startBar = 0;
+    private final Font defaultAnnotationFont;
+    private final Font defaultNextChordFont;
+    private final JLabel lbl_annotation;
+    private int initBar = 0;
     private static final Preferences prefs = NbPreferences.forModule(EasyReaderPanel.class);
     private static final Logger LOGGER = Logger.getLogger(EasyReaderPanel.class.getSimpleName());
 
     public EasyReaderPanel()
     {
         initComponents();
-        lbl_annotation.setHorizontalTextPosition(SwingConstants.CENTER);
-        lbl_nextChord.setFont(IR_ChordSymbolSettings.getDefault().getFont().deriveFont(14f));
-        lbl_nextChord.setText("");
-        lbl_nextSongPart.setText("");
-        lbl_songPart.setText("");
+
+
+        lbl_annotation = new JLabel();
+        defaultAnnotationFont = lbl_annotation.getFont().deriveFont(Font.ITALIC, lbl_annotation.getFont().getSize2D() + 5f);
+        lbl_annotation.setFont(defaultAnnotationFont);
+        // lbl_annotation.setBorder(BorderFactory.createEtchedBorder());
+        lbl_annotation.setHorizontalAlignment(SwingConstants.CENTER);
+        lbl_annotation.setVerticalAlignment(SwingConstants.CENTER);
+        pnl_barBox.add(lbl_annotation);
+        defaultNextChordFont = IR_ChordSymbolSettings.getDefault().getFont().deriveFont(14f);
+        lbl_nextChord.setFont(defaultNextChordFont);
         pnl_barBox.setLayout(new MyLayoutManager());
-        posModel = new Position();
+        songPosition = new Position();
+        clsPosition = new Position();
         slider_zoom.setValue(prefs.getInt(PREF_ZOOM_Y, 50));
+
+
+        // Some labels have text value in the designer 
+        clearLabels();
     }
 
     public void cleanup()
@@ -130,19 +145,25 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
             this.song.getSongStructure().removeSgsChangeListener(this);
 
             removeBarBoxes();
-
         }
 
         this.song = song;
         this.songPart = null;
         this.nextSongPart = null;
-        this.startBar = 0;
+        this.initBar = 0;
+
+
+        // Update data
+        songPosition.reset();
+        clsPosition.reset();
+        initBar = 0;
+        this.posViewer.setModel(this.song, songPosition);
 
 
         // Update UI
-        this.posViewer.setModel(this.song, posModel);
-        cb_startOnBar2.setSelected(startBar != 0);
+        cb_startOnBar2.setSelected(initBar != 0);
         setEnabled(this.song != null);
+        clearLabels();
 
 
         if (this.song != null)
@@ -153,18 +174,16 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
             this.song.getSongStructure().addSgsChangeListener(this);
 
 
-            createBarBoxes();
+            createBarBoxes(this.song, initBar);
 
 
             songPart = song.getSongStructure().getSongPart(0);  // Might be null            
             lbl_songPart.setText(songPart != null ? songPart.getName() : "");
             if (songPart != null)
             {
-                updateBarBoxes(startBar);
+                showStopped();
             }
         }
-
-        showStopped();
 
     }
 
@@ -198,11 +217,13 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
         if (!b)
         {
             showStopped();
+            clearLabels();
         }
     }
 
+
     @Override
-    public void beatChanged(Position oldPos, Position pos, float posInBeats)
+    public void beatChanged(Position oldSongPos, Position songPos, float songPosInBeats)
     {
         if (!isEnabled())
         {
@@ -210,8 +231,13 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
         }
 
 
-        // Update posViewer
-        posModel.set(pos);
+        // Update positions
+        songPosition.set(songPos);
+        clsPosition.set(song.getSongStructure().toClsPosition(songPos));
+        LOGGER.log(Level.SEVERE, "beatChanged() pos={0} clsPos={1}", new Object[]
+        {
+            songPos, clsPosition
+        });
 
 
         // Process beat changed only if music is playing
@@ -223,35 +249,38 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
         }
 
 
-        int songBar = pos.getBar();
+        // Progress bar
+        int songBar = songPos.getBar();
         int progress = Math.round(100f * songBar / song.getSongStructure().getSizeInBars());
         progressBar.setValue(progress);
-        Position clsPos = song.getSongStructure().toClsPosition(pos);
-        int clsBar = clsPos.getBar();
-        LOGGER.log(Level.FINE, "beatChanged() pos={0} clsPos={1}", new Object[]
-        {
-            pos, clsPos
-        });
 
-        if (songBar == 0 && startBar == 1)
+
+        if (songBar == 0 && initBar == 1)
         {
             // Special case!
+            LOGGER.severe("   special case songBar==0 && startBar=1, exiting");
             return;
         }
 
-        if (barBox.getModelBarIndex() == clsBar)
+        // Update annotation on each new bar
+        if (songPosition.isFirstBarBeat())
         {
-            barBox.showPlaybackPoint(true, clsPos);
-            nextBarBox.showPlaybackPoint(false, clsPos);
-        } else if (nextBarBox.getModelBarIndex() == clsBar)
-        {
-            barBox.showPlaybackPoint(false, clsPos);
-            nextBarBox.showPlaybackPoint(true, clsPos);
-        } else
+            updateAnnotation(clsPosition);
+        }
+
+        if ((songBar - initBar)) // need to updateBarBoxes + UpdateNextStuff every 2 bars, whatever initBar and the real start bar (ctrl+SPACE on any bar to start playback)
+
+        var clsBar = clsPosition.getBar();
+        var isBarBoxActive = barBox.getModelBarIndex() == clsBar;
+        var isNextBarBoxActive = nextBarBox.getModelBarIndex() == clsBar;
+        if (!isBarBoxActive && !isNextBarBoxActive)
         {
             updateBarBoxes(songBar);
-            barBox.showPlaybackPoint(true, clsPos);
-            nextBarBox.showPlaybackPoint(false, clsPos);
+            updateNextStuff(songBar);
+            showPlaybackPoint(clsPosition, false);
+        } else
+        {
+            showPlaybackPoint(clsPosition, isNextBarBoxActive);
         }
     }
 
@@ -337,13 +366,17 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
             {
                 for (var item : e.getItems())
                 {
-                    int modelBarIndex = item.getPosition().getBar();
-                    if (barBox.getModelBarIndex() == modelBarIndex)
+                    int itemBar = item.getPosition().getBar();
+                    if (barBox.getModelBarIndex() == itemBar)
                     {
                         barBox.addItem(item);
-                    } else if (nextBarBox.getModelBarIndex() == modelBarIndex)
+                    } else if (nextBarBox.getModelBarIndex() == itemBar)
                     {
                         nextBarBox.addItem(item);
+                    }
+                    if (item instanceof CLI_BarAnnotation && itemBar == clsPosition.getBar())
+                    {
+                        updateAnnotation(clsPosition);
                     }
                 }
 
@@ -351,22 +384,26 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
             {
                 for (var item : e.getItems())
                 {
-                    int modelBarIndex = item.getPosition().getBar();
-                    if (barBox.getModelBarIndex() == modelBarIndex)
+                    int itemBar = item.getPosition().getBar();
+                    if (barBox.getModelBarIndex() == itemBar)
                     {
                         barBox.removeItem(item);
-                    } else if (nextBarBox.getModelBarIndex() == modelBarIndex)
+                    } else if (nextBarBox.getModelBarIndex() == itemBar)
                     {
                         nextBarBox.removeItem(item);
+                    }
+                    if (item instanceof CLI_BarAnnotation && itemBar == clsPosition.getBar())
+                    {
+                        updateAnnotation(clsPosition);
                     }
                 }
             } else if (event instanceof ItemChangedEvent e)
             {
                 // If chord symbol, catched directly by the ItemRenderer
-                // Handle section time signature changes. This will disable our listener but we still need to update the UI
                 var item = e.getItem();
                 if (item instanceof CLI_Section cliSection)
                 {
+                    // Handle section time signature changes. This will disable our listener but we still need to update the UI                    
                     if (barBox.getSection() == cliSection)
                     {
                         barBox.setSection(cliSection);
@@ -375,6 +412,9 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
                     {
                         nextBarBox.setSection(cliSection);
                     }
+                } else if (item instanceof CLI_BarAnnotation cliBa && cliBa.getPosition().getBar() == clsPosition.getBar())
+                {
+                    updateAnnotation(clsPosition);
                 }
             } else if (event instanceof ItemMovedEvent e)
             {
@@ -491,35 +531,42 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
     // Private methods
     // =================================================================================================
 
-    private void createBarBoxes()
+    private void createBarBoxes(Song sg, int startBarIndex)
     {
-        var cls = this.song.getChordLeadSheet();
-        var songSize = this.song.getSize();
+        var cls = sg.getChordLeadSheet();
         CL_Editor clEditor = CL_EditorTopComponent.get(cls).getEditor();
 
-        barBox = new BarBox(clEditor, startBar, songSize > startBar ? startBar : -1, cls,
+
+        var clsPos = sg.getSongStructure().toClsPosition(new Position(startBarIndex, 0));
+        int modelBarIndex = clsPos != null ? clsPos.getBar() : -1;
+
+        barBox = new BarBox(clEditor, startBarIndex, modelBarIndex, cls,
                 new BarBoxConfig(BarRendererFactory.BR_CHORD_SYMBOL, BarRendererFactory.BR_CHORD_POSITION, BarRendererFactory.BR_SECTION),
-                BarBoxSettings.getDefault(), BarRendererFactory.getDefault(), "EasyReaderPanel");
+                BarBoxSettings.getDefault(), BarRendererFactory.getDefault(), this);
         barBox.setDisplayQuantizationValue(Quantization.OFF);
         pnl_barBox.add(barBox);
-        barBox.setZoomVFactor(slider_zoom.getValue());
 
 
-        nextBarBox = new BarBox(clEditor, startBar + 1, songSize > startBar + 1 ? startBar + 1 : -1, cls,
+        clsPos = sg.getSongStructure().toClsPosition(new Position(startBarIndex + 1, 0));
+        modelBarIndex = clsPos != null ? clsPos.getBar() : -1;
+
+        nextBarBox = new BarBox(clEditor, startBarIndex + 1, modelBarIndex, cls,
                 new BarBoxConfig(BarRendererFactory.BR_CHORD_SYMBOL, BarRendererFactory.BR_CHORD_POSITION, BarRendererFactory.BR_SECTION),
-                BarBoxSettings.getDefault(), BarRendererFactory.getDefault(), "EasyReaderPanel");
+                BarBoxSettings.getDefault(), BarRendererFactory.getDefault(), this);
         pnl_barBox.add(nextBarBox);
         nextBarBox.setDisplayQuantizationValue(Quantization.OFF);
-        nextBarBox.setZoomVFactor(slider_zoom.getValue());
+
+        setZoomY(prefs.getInt(PREF_ZOOM_Y, 50));
     }
 
     /**
+     * Update the BarBoxes.
      *
      * @param songBar
      */
     private void updateBarBoxes(int songBar)
     {
-        LOGGER.log(Level.FINE, "updateBarBoxes() -- songBar={0}", songBar);
+        LOGGER.log(Level.SEVERE, "updateBarBoxes() -- songBar={0}", songBar);
 
         int clsBar = song.getSongStructure().toClsPosition(new Position(songBar, 0)).getBar();
         int next1SongBar = songBar + 1;
@@ -530,13 +577,21 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
         barBox.setModelBarIndex(clsBar);
         nextBarBox.setBarIndex(next1SongBar);
         nextBarBox.setModelBarIndex(next1ClsBar);
-        LOGGER.log(Level.FINE, " => barBox.modelBarIndex={0} nextBarBox.modelBarIndex={1}", new Object[]
+        LOGGER.log(Level.SEVERE, "updateBarBoxes()   => barBox.modelBarIndex={0} nextBarBox.modelBarIndex={1}", new Object[]
         {
             clsBar, next1ClsBar
         });
+    }
 
-
+    /**
+     * Update the next chord/song part.
+     *
+     * @param songBar
+     */
+    private void updateNextStuff(int songBar)
+    {
         // Next SongPart
+        var next1SongBar = songBar + 1;
         var next2SongBar = next1SongBar + 1;
         var next3SongBar = next1SongBar + 2;
         SongPart next2SongPart = song.getSongStructure().getSongPart(next2SongBar);
@@ -558,8 +613,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
         var next2ClsBarPos = song.getSongStructure().toClsPosition(next2SongBarPos);
         if (next2ClsBarPos != null)
         {
-            nextChord = song.getChordLeadSheet().getFirstItemAfter(next2ClsBarPos, true, CLI_ChordSymbol.class,
-                    cli -> true);
+            nextChord = song.getChordLeadSheet().getFirstItemAfter(next2ClsBarPos, true, CLI_ChordSymbol.class, cli -> true);
         }
         var str = "";
         if (nextChord != null)
@@ -569,18 +623,38 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
             str += ">" + strDistantChord + nextChord.getData().getOriginalName();
         }
         lbl_nextChord.setText(str);
-
     }
 
     private void showStopped()
     {
         barBox.showPlaybackPoint(false, null);
         nextBarBox.showPlaybackPoint(false, null);
-        this.posModel.setBar(startBar);
-        this.posModel.setFirstBarBeat();
-        this.lbl_nextChord.setText("");
-        this.lbl_nextSongPart.setText("");
-        this.lbl_songPart.setText("");
+        songPosition.reset();
+        clsPosition.reset();
+        updateBarBoxes(initBar);
+        updateNextStuff(initBar);
+        updateAnnotation(clsPosition);
+    }
+
+    private void showPlaybackPoint(Position clsPos, boolean useNextBarBox)
+    {
+        barBox.showPlaybackPoint(!useNextBarBox, clsPos);
+        nextBarBox.showPlaybackPoint(useNextBarBox, clsPos);
+    }
+
+    private void updateAnnotation(Position clsPos)
+    {
+        var cliBa = song.getChordLeadSheet().getBarFirstItem(clsPos.getBar(), CLI_BarAnnotation.class, cli -> true);
+        String text = cliBa != null ? cliBa.getData().replace("\n", "<br>") : "";
+        lbl_annotation.setText("<html>" + text + "</html>");
+    }
+
+    private void clearLabels()
+    {
+        lbl_nextChord.setText("");
+        lbl_nextSongPart.setText("");
+        lbl_songPart.setText("");
+        lbl_annotation.setText("");
     }
 
     private String buildNextSongPartString(SongPart nextSongPart)
@@ -596,12 +670,34 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
         pnl_barBox.remove(nextBarBox);
     }
 
+    /**
+     *
+     * @param value 0-100
+     */
+    private void setZoomY(int value)
+    {
+        if (barBox != null)
+        {
+            barBox.setZoomVFactor(value);
+            nextBarBox.setZoomVFactor(value);
+            float newFontSize = (1f + (Math.max(value, 40f) - 50f) / 100f) * defaultAnnotationFont.getSize2D();
+            lbl_annotation.setFont(defaultAnnotationFont.deriveFont(newFontSize));
+            newFontSize = (1f + (Math.max(value, 40f) - 50f) / 100f) * defaultNextChordFont.getSize2D();
+            lbl_nextChord.setFont(defaultNextChordFont.deriveFont(newFontSize));
+            prefs.putInt(PREF_ZOOM_Y, value);
+        }
+
+        slider_zoom.setValue(value);
+    }
+
     // =================================================================================================
     // Inner classes
     // =================================================================================================
 
     /**
      * Layout the 2 BarBoxes so that they share the available width and keep their preferred height.
+     * <p>
+     * Use the remaining space below for the current bar annotation.
      */
     private class MyLayoutManager implements LayoutManager
     {
@@ -614,10 +710,16 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
                 return;
             }
             var r = Utilities.getUsableArea((JComponent) parent);
+
+            // 2 barboxes on the top
             var prefBbHeight = barBox.getPreferredSize().height;
             var bbWidth = r.width / 2;
             barBox.setBounds(r.x, r.y, bbWidth, prefBbHeight);
             nextBarBox.setBounds(r.x + bbWidth, r.y, r.width - bbWidth, prefBbHeight);
+
+            // Use remaining space below for bar annotation
+            lbl_annotation.setBounds(r.x, prefBbHeight, r.width, r.height - prefBbHeight);
+
         }
 
         @Override
@@ -686,7 +788,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
         pnl_nextChord.add(lbl_nextSongPart);
         pnl_nextChord.add(filler1);
 
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_songPart, org.openide.util.NbBundle.getMessage(EasyReaderPanel.class, "EasyReaderPanel.lbl_songPart.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_songPart, "Verse"); // NOI18N
         lbl_songPart.setToolTipText(org.openide.util.NbBundle.getMessage(EasyReaderPanel.class, "EasyReaderPanel.lbl_songPart.toolTipText")); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(posViewer, org.openide.util.NbBundle.getMessage(EasyReaderPanel.class, "EasyReaderPanel.posViewer.text")); // NOI18N
@@ -777,20 +879,16 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
         {
             return;
         }
-        int value = slider_zoom.getValue();
-        if (barBox != null)
-        {
-            barBox.setZoomVFactor(value);
-            nextBarBox.setZoomVFactor(value);
-            prefs.putInt(PREF_ZOOM_Y, value);
-        }
+        setZoomY(slider_zoom.getValue());
     }//GEN-LAST:event_slider_zoomStateChanged
+
+
 
     private void cb_startOnBar2ActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cb_startOnBar2ActionPerformed
     {//GEN-HEADEREND:event_cb_startOnBar2ActionPerformed
         removeBarBoxes();
-        startBar = (startBar + 1) % 2;
-        createBarBoxes();
+        initBar = (initBar + 1) % 2;
+        createBarBoxes(song, initBar);
     }//GEN-LAST:event_cb_startOnBar2ActionPerformed
 
 

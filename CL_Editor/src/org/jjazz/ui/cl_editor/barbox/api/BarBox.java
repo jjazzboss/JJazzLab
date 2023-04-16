@@ -540,6 +540,7 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
         {
             BarRenderer br = barRendererFactory.createBarRenderer(editor, brType, barIndex, bbSettings.getBarRendererSettings(),
                     barRendererFactory.getItemRendererFactory(), groupKey);
+            br.setModelBarIndex(modelBarIndex);
             br.setZoomVFactor(zoomVFactor);
             br.setDisplayQuantizationValue(displayQuantization);
             br.setEnabled(isEnabled());
@@ -575,7 +576,7 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
         }
         if (b && pos.getBar() != getModelBarIndex())
         {
-            throw new IllegalArgumentException("b=" + b + " pos=" + pos);
+            throw new IllegalArgumentException("b=" + b + " pos=" + pos+" getModelBarIndex()="+getModelBarIndex());
         }
         showPlaybackPoint = b;
         refreshBackground();

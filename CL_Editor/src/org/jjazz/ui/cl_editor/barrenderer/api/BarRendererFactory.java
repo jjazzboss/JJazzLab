@@ -74,7 +74,7 @@ public interface BarRendererFactory
      *
      * @param editor   Can be null
      * @param brType
-     * @param barIndex
+     * @param barIndex The barIndex and the modelBarIndex (unless barIndex is beyond ChordLeadSheet size, then modelBarIndex is set to -1)
      * @param groupKey
      * @return
      */
@@ -88,7 +88,7 @@ public interface BarRendererFactory
      *
      * @param editor   Can be null
      * @param brType
-     * @param barIndex
+     * @param barIndex The barIndex and the modelBarIndex (unless barIndex is beyond ChordLeadSheet size, then modelBarIndex is set to -1)
      * @param settings
      * @param irf
      * @param groupKey

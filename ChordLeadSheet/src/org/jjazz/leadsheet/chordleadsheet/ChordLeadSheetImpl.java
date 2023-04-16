@@ -1026,8 +1026,8 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             if (barIndexFrom == 0 && afterDeletionSection != null && afterDeletionSection.getPosition().getBar() == barIndexTo + 1)
             {
                 // 
-                
-                
+
+
                 // Remove the initial section (and fire undoableEvent)
                 try
                 {
@@ -1068,17 +1068,17 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     {
         Preconditions.checkNotNull(cliSection);
         Preconditions.checkNotNull(name);
-        
+
         LOGGER.log(Level.FINE, "setSectionName() -- cliSection={0} name={1}", new Object[]
         {
             cliSection, name
         });
-        
+
         if (cliSection.getData().getName().equals(name))
         {
             return;
         }
-        
+
         if (!(cliSection instanceof WritableItem) || !items.contains(cliSection) || getSection(name) != null)
         {
             throw new IllegalArgumentException("section=" + cliSection + " name=" + name + " items=" + items);
@@ -1603,18 +1603,39 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
         private Object readResolve() throws ObjectStreamException
         {
-            if (spItems == null || spItems.size() < 1 || !(spItems.get(0) instanceof CLI_Section))
+            if (spItems == null || spItems.size() < 1)
             {
-                throw new IllegalStateException("spItems=" + spItems);
+                throw new IllegalStateException("Invalid spItems=" + spItems);
             }
-            // CLI_Section's container field must be transient, otherwise with Xstream line below produces 
-            // a non-null but empty section (data=null, pos=null).            
-            // See Effective Java p315.
-            CLI_Section initSection = (CLI_Section) spItems.get(0);
-            ChordLeadSheetImpl cls = new ChordLeadSheetImpl(initSection, spSize);
-            for (int i = 1; i < spItems.size(); i++)
+
+
+            // Find the initial section
+            CLI_Section initSection = null;
+            for (var item : spItems)
             {
-                ChordLeadSheetItem<?> item = spItems.get(i);
+                if (item instanceof CLI_Section && item.getPosition().getBar() == 0 && item.getPosition().isFirstBarBeat())
+                {
+                    // CLI_Section's container field must be transient, otherwise with Xstream line below produces 
+                    // a non-null but empty section (data=null, pos=null).            
+                    // See Effective Java p315.
+                    initSection = (CLI_Section) item;
+                    break;
+                }
+            }
+            if (initSection == null)
+            {
+                throw new InvalidObjectException("Missing init section, invalid spItems=" + spItems);
+            }
+
+
+            // Create a ChordLeadSheet and add the items
+            ChordLeadSheetImpl cls = new ChordLeadSheetImpl(initSection, spSize);
+            for (var item : spItems)
+            {
+                if (item == initSection)
+                {
+                    continue;
+                }
                 if (item instanceof CLI_Section section)
                 {
                     try
