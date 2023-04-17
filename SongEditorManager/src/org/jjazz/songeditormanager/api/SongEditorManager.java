@@ -94,12 +94,12 @@ public class SongEditorManager implements PropertyChangeListener
      * NewValue is the song object. This is just a forward of a Song Saved event.
      */
     public static final String PROP_SONG_SAVED = "SongSaved";
-    
+
     private static SongEditorManager INSTANCE;
     private final HashMap<Song, Editors> mapSongEditors;       // Don't use WeakHashMap here
     private final transient PropertyChangeSupport pcs = new java.beans.PropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(SongEditorManager.class.getSimpleName());
-    
+
     static public SongEditorManager getInstance()
     {
         synchronized (SongEditorManager.class)
@@ -111,65 +111,37 @@ public class SongEditorManager implements PropertyChangeListener
         }
         return INSTANCE;
     }
-    
+
     public SongEditorManager()
     {
         mapSongEditors = new HashMap<>();
         TopComponent.getRegistry().addPropertyChangeListener(this);
-        
+
     }
 
     /**
      * Programmatically close all the editors associated to a song.
      *
      * @param song
-     * @param enforce If true, close the song unconditionnaly (block user prompt if song is not saved)
+     * @param enforce If true, close the song unconditionnaly (disable user prompt if song is not saved)
      * @return True if all editors were successfully closed, false if user blocked the closing due to unsaved song
      */
     public boolean closeSong(Song song, boolean enforce)
     {
         var editors = getEditors(song);
-        assert editors != null : "song=" + song + " mapSongEditors=" + mapSongEditors;
+        Preconditions.checkNotNull(editors, "song=%s mapSongEditors=%s", song, mapSongEditors);
 
-
-        // CL_Editor
+        boolean b = true;
         var clTc = editors.getCL_EditorTc();
-        if (clTc.isOpened())
+        assert clTc != null : " song=" + song;
+        if (enforce)
         {
-            if (enforce)
-            {
-                editors.getCL_EditorTc().closeSilent();
-            } else if (!clTc.close())
-            {
-                return false;
-            }
-        }
-
-        // SS_Editor
-        var ssTc = editors.getSS_EditorTc();
-        if (ssTc.isOpened())
+            clTc.closeSilent();         // triggers a TopComponent.Registry event captured by SongEditorManager to complete the closing
+        } else
         {
-            assert ssTc.close() == true;           // No need to enforce: if we're here clTc is closed and there should not be a user confirmation anymore
+            b = clTc.close();           // user might cancel closing. If ok triggers a TopComponent.Registry event captured by SongEditorManager to complete the closing
         }
-
-
-        // PianoRollEditor
-        if (editors.getPianoRollTc() != null)
-        {
-            editors.getPianoRollTc().close();   // This never triggers user confirmation dialog
-        }
-
-
-        // Cleanup
-        song.removePropertyChangeListener(this);
-        song.removeUndoableEditListener(JJazzUndoManagerFinder.getDefault().get(song));
-        mapSongEditors.remove(song);
-        pcs.firePropertyChange(PROP_SONG_CLOSED, false, song); // Event used for example by RecentSongProvider
-        song.close(true);  // This will trigger an "activeSong=null" event from the ActiveSongManager
-        updateActiveSong();
-        
-        
-        return true;
+        return b;
     }
 
     /**
@@ -188,7 +160,7 @@ public class SongEditorManager implements PropertyChangeListener
     public void showSong(final Song song, boolean makeActive, boolean savable)
     {
         Preconditions.checkNotNull(song);
-        
+
         for (Song s : getOpenedSongs())
         {
             if (s == song)
@@ -210,8 +182,8 @@ public class SongEditorManager implements PropertyChangeListener
             Exceptions.printStackTrace(ex);
             return;
         }
-        
-        
+
+
         Runnable openEditorsTask = () -> 
         {
             // Create the undo managers
@@ -231,17 +203,17 @@ public class SongEditorManager implements PropertyChangeListener
             Mode mode = WindowManager.getDefault().findMode(CL_EditorTopComponent.MODE);
             mode.dockInto(clTC);
             clTC.open();
-            
+
             SS_EditorTopComponent ssTC = new SS_EditorTopComponent(song);
             mode = WindowManager.getDefault().findMode(SS_EditorTopComponent.MODE);
             mode.dockInto(ssTC);
             ssTC.open();
-            
-            
+
+
             var editors = new Editors(clTC, ssTC);
             mapSongEditors.put(song, editors);
-            
-            
+
+
             var userChannels = midiMix.getUserChannels();
             if (!userChannels.isEmpty())
             {
@@ -274,7 +246,7 @@ public class SongEditorManager implements PropertyChangeListener
             {
                 SwingUtilities.invokeLater(() -> song.setSaveNeeded(false));
             }
-            
+
         };
 
         // Make sure everything is run on the EDT
@@ -306,8 +278,8 @@ public class SongEditorManager implements PropertyChangeListener
         {
             new Thread(openLinksTask).start();
         }
-        
-        
+
+
     }
 
     /**
@@ -330,7 +302,7 @@ public class SongEditorManager implements PropertyChangeListener
             if (s.getFile() == f)
             {
                 getEditors(s).getCL_EditorTc().requestActive();
-                
+
                 if (makeActive)
                 {
                     var asm = ActiveSongManager.getInstance();
@@ -378,8 +350,8 @@ public class SongEditorManager implements PropertyChangeListener
 
         // Show the song
         showSong(song, makeActive, false);
-        
-        
+
+
         return song;
     }
 
@@ -394,15 +366,15 @@ public class SongEditorManager implements PropertyChangeListener
     public PianoRollEditorTopComponent showPianoRollEditor(Song song)
     {
         Preconditions.checkNotNull(song);
-        
-        
+
+
         var songEditors = getEditors(song);
         if (songEditors == null)
         {
             throw new IllegalArgumentException("song=" + song + " mapSongEditors.keySet()=" + mapSongEditors.keySet());
         }
-        
-        
+
+
         var tc = songEditors.getPianoRollTc();
         if (tc != null)
         {
@@ -416,7 +388,7 @@ public class SongEditorManager implements PropertyChangeListener
             tc.openAtTabPosition(posInMode + 1);
             songEditors.setPianoRollEditor(tc);
         }
-        
+
         return tc;
     }
 
@@ -433,20 +405,20 @@ public class SongEditorManager implements PropertyChangeListener
         Preconditions.checkNotNull(song);
         Preconditions.checkNotNull(midiMix);
         Preconditions.checkNotNull(userRhythmVoice);
-        
+
         LOGGER.log(Level.FINE, "showPianoRollEditor() song={0} userRhythmVoice={1}", new Object[]
         {
             song, userRhythmVoice
         });
-        
+
         var preTc = SongEditorManager.getInstance().showPianoRollEditor(song);
-        
+
         if (song.getSize() == 0)
         {
             return preTc;
         }
-        
-        
+
+
         String initialPhraseName = userRhythmVoice.getName();
         int initialChannel = midiMix.getChannel(userRhythmVoice);
         assert initialChannel != -1 : "midiMix=" + midiMix + " userRhythmVoice=" + userRhythmVoice;
@@ -457,8 +429,8 @@ public class SongEditorManager implements PropertyChangeListener
         DrumKit.KeyMap keyMap = drumKit == null ? null : drumKit.getKeyMap();
         var userPhrase = song.getUserPhrase(initialPhraseName);
         String title = buildPrEditorUserTrackTitle(initialPhraseName, initialChannel);
-        
-        
+
+
         preTc.setModelForUserPhrase(userPhrase, initialChannel, keyMap);
         preTc.setTitle(title);
 
@@ -511,7 +483,7 @@ public class SongEditorManager implements PropertyChangeListener
                             int channel = midiMix.getChannel(newRv);                // Normally unchanged
                             preTc.setTitle(buildPrEditorUserTrackTitle(newRvName, channel));
                         }
-                        
+
                     } else if (evt.getPropertyName().equals(MidiMix.PROP_RHYTHM_VOICE_CHANNEL))
                     {
                         // Used to change channel of a RhythmVoice
@@ -527,15 +499,15 @@ public class SongEditorManager implements PropertyChangeListener
                 }
             }
         };
-        
-        
+
+
         editor.addPropertyChangeListener(pcl);
         midiMix.addPropertyChangeListener(pcl);
         song.addVetoableChangeListener(vcl);
-        
-        
+
+
         preTc.requestActive();
-        
+
         return preTc;
     }
 
@@ -615,11 +587,11 @@ public class SongEditorManager implements PropertyChangeListener
                 }
             }
         };
-        
+
         editor.addPropertyChangeListener(listener);
         spt.addPropertyChangeListener(listener);
         midiMix.addPropertyChangeListener(listener);
-        
+
         return preTc;
     }
 
@@ -637,8 +609,8 @@ public class SongEditorManager implements PropertyChangeListener
     {
         Preconditions.checkNotNull(song);
         Preconditions.checkNotNull(songCopy);
-        
-        
+
+
         var editors = getEditors(song);
         var editorsCopy = getEditors(songCopy);
         assert editors != null && editorsCopy != null : "song=" + song + " songCopy=" + songCopy;
@@ -654,7 +626,7 @@ public class SongEditorManager implements PropertyChangeListener
         for (var cliSectionCopy : clsCopy.getItems(CLI_Section.class))
         {
             var sectionNameCopy = cliSectionCopy.getData().getName();
-            var sectionName = sectionNameCopy.replaceFirst(SongUtilities.SECTION_COPY_DELIMITER_CHAR+".*", "");
+            var sectionName = sectionNameCopy.replaceFirst(SongUtilities.SECTION_COPY_DELIMITER_CHAR + ".*", "");
             var cliSection = cls.getSection(sectionName);
             if (cliSection == null)
             {
@@ -664,7 +636,7 @@ public class SongEditorManager implements PropertyChangeListener
             // Replicate the "start on new line" value
             if (clEditor.isSectionStartOnNewLine(cliSection))
             {
-                    clEditorCopy.setSectionStartOnNewLine(cliSectionCopy, true);
+                clEditorCopy.setSectionStartOnNewLine(cliSectionCopy, true);
             }
 
             // Replicate quantization
@@ -681,9 +653,9 @@ public class SongEditorManager implements PropertyChangeListener
         {
             ssEditorCopy.setVisibleRps(r, ssEditor.getVisibleRps(r));
         }
-        
+
     }
-    
+
     public List<Song> getOpenedSongs()
     {
         return new ArrayList<>(mapSongEditors.keySet());
@@ -703,12 +675,12 @@ public class SongEditorManager implements PropertyChangeListener
         }
         return mapSongEditors.get(s);
     }
-    
+
     public void addPropertyChangeListener(PropertyChangeListener l)
     {
         pcs.addPropertyChangeListener(l);
     }
-    
+
     public void removePropertyChangeListener(PropertyChangeListener l)
     {
         pcs.removePropertyChangeListener(l);
@@ -726,18 +698,18 @@ public class SongEditorManager implements PropertyChangeListener
             {
                 if (evt.getNewValue() instanceof CL_EditorTopComponent clTc)
                 {
-                    // User closed a song, close all editors
-                    closeSong(clTc.getSongModel(), true);
-                    
+                    // User closed a song, close all other editors
+                    completeSongClosing(clTc.getSongModel());
+
                 } else if (evt.getNewValue() instanceof SS_EditorTopComponent ssTc)
                 {
-                    // User closed a song, close all editors
-                    closeSong(ssTc.getSongModel(), true);
-                    
+                    // User closed a song, close all other editors
+                    completeSongClosing(ssTc.getSongModel());
+
                 } else if (evt.getNewValue() instanceof PianoRollEditorTopComponent prTc)
                 {
                     getEditors(prTc.getSong()).setPianoRollEditor(null);
-                    
+
                 }
             } else if (evt.getPropertyName().equals(TopComponent.Registry.PROP_ACTIVATED))
             {
@@ -750,7 +722,7 @@ public class SongEditorManager implements PropertyChangeListener
                     {
                         editors.getSS_EditorTc().requestVisible();
                     }
-                    
+
                 } else if (evt.getNewValue() instanceof SS_EditorTopComponent ssTc)
                 {
                     // Make the corresponding clTc visible, unless the song pianoroll editor is already visible
@@ -798,14 +770,65 @@ public class SongEditorManager implements PropertyChangeListener
             pcs.firePropertyChange(PROP_SONG_SAVED, false, s);
         }
     }
-    
-    private void updateActiveSong()
+
+    /**
+     * Either CL_EditorTopComponent or SS_EditorTopComponent was closed, close the remaining editors and clean up.
+     *
+     * @param song
+     */
+    private void completeSongClosing(Song song)
+    {
+        var editors = getEditors(song);
+        assert editors != null : "song=" + song + " mapSongEditors=" + mapSongEditors;
+
+
+        // Disable listening while closing other TopComponents
+        TopComponent.getRegistry().removePropertyChangeListener(this);
+
+
+        var clTc = editors.getCL_EditorTc();
+        var ssTc = editors.getSS_EditorTc();
+        if (clTc.isOpened())
+        {
+            // If we're here, it means SS_EditorTc was closed first
+            assert !ssTc.isOpened();
+            assert editors.getCL_EditorTc().close();
+        } else
+        {
+            // If we're here, it means CL_EditorTc was closed first            
+            assert ssTc.isOpened();
+            assert ssTc.close();
+        }
+
+
+        // PianoRollEditor
+        if (editors.getPianoRollTc() != null)
+        {
+            editors.getPianoRollTc().close();   // This never triggers user confirmation dialog
+        }
+
+
+        // Reenable listening to TopComponents closing events
+        TopComponent.getRegistry().addPropertyChangeListener(this);
+
+
+        // Cleanup
+        song.removePropertyChangeListener(this);
+        song.removeUndoableEditListener(JJazzUndoManagerFinder.getDefault().get(song));
+        mapSongEditors.remove(song);
+        pcs.firePropertyChange(PROP_SONG_CLOSED, false, song); // Event used for example by RecentSongProvider
+        song.close(true);  // This will trigger an "activeSong=null" event from the ActiveSongManager
+        findSongToBeActivated();
+    }
+
+
+    private void findSongToBeActivated()
     {
         if (mapSongEditors.isEmpty())
         {
             return;
         }
-        
+
         final Song song = (mapSongEditors.size() == 1) ? mapSongEditors.keySet().iterator().next() : null;
 
         // Need to wait for the new TopComponent to be selected, hence the runnable on the EDT
@@ -824,7 +847,7 @@ public class SongEditorManager implements PropertyChangeListener
                 {
                     return;
                 }
-                
+
                 var tc = mode.getSelectedTopComponent();
                 if (tc instanceof CL_EditorTopComponent clTc)
                 {
@@ -840,10 +863,10 @@ public class SongEditorManager implements PropertyChangeListener
             activateSong(sg);
         };
         SwingUtilities.invokeLater(r);
-        
+
     }
-    
-    
+
+
     private void activateSong(Song song)
     {
         ActiveSongManager am = ActiveSongManager.getInstance();
@@ -867,13 +890,13 @@ public class SongEditorManager implements PropertyChangeListener
             }
         }
     }
-    
+
     private String buildPrEditorUserTrackTitle(String initialPhraseName, int initialChannel)
     {
         var title = ResUtil.getString(SongEditorManager.class, "UserTrackTitle", initialPhraseName, initialChannel + 1);
         return title;
     }
-    
+
     private String buildPrEditorSongPartPhraseTitle(String initialPhraseName, int initialChannel)
     {
         var title = ResUtil.getString(SongEditorManager.class, "SongPartCustomPhraseTitle", initialPhraseName, initialChannel + 1);
@@ -886,12 +909,12 @@ public class SongEditorManager implements PropertyChangeListener
     //============================================================================= 
     public class Editors
     {
-        
+
         private final CL_EditorTopComponent tcCle;
         private final SS_EditorTopComponent tcSse;
         private PianoRollEditorTopComponent tcPre;
-        
-        
+
+
         protected Editors(CL_EditorTopComponent tcCle, SS_EditorTopComponent tcSse)
         {
             Preconditions.checkNotNull(tcCle);
@@ -899,27 +922,27 @@ public class SongEditorManager implements PropertyChangeListener
             this.tcCle = tcCle;
             this.tcSse = tcSse;
         }
-        
-        
+
+
         public void setPianoRollEditor(PianoRollEditorTopComponent tc)
         {
             tcPre = tc;
         }
-        
+
         public PianoRollEditorTopComponent getPianoRollTc()
         {
             return tcPre;
         }
-        
+
         public CL_EditorTopComponent getCL_EditorTc()
         {
             return tcCle;
         }
-        
+
         public SS_EditorTopComponent getSS_EditorTc()
         {
             return tcSse;
         }
-        
+
     }
 }

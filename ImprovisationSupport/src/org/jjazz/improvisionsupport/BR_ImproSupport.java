@@ -36,10 +36,11 @@ import java.awt.geom.Rectangle2D;
 import java.awt.geom.RoundRectangle2D;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.WeakHashMap;
 import java.util.logging.Logger;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.jjazz.harmony.api.TimeSignature;
@@ -90,12 +91,12 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
     private int saveModelBarIndex;
 
     private int zoomVFactor = 50;
+
     /**
-     * Maintain an ordered list of BR_ImproSupport instances per editor.
+     * Maintain an ordered list of BR_ImproSupport instances per song.
      * <p>
-     * We use a WeakHashMap to not keep a reference to a CL_Editor instance when editor is discarded.
      */
-    private static final Map<CL_Editor, List<BR_ImproSupport>> mapEditorBrs = new WeakHashMap<>();
+    private static final Map<Integer, List<BR_ImproSupport>> mapEditorBrs = new HashMap<>();
     private static final Logger LOGGER = Logger.getLogger(BR_ImproSupport.class.getSimpleName());
 
     /**
@@ -118,11 +119,11 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
 
 
         // Update the list of instances ordered by bar index
-        var brs = mapEditorBrs.get(editor);
+        var brs = mapEditorBrs.get(getSongKey());
         if (brs == null)
         {
             brs = new ArrayList<>();
-            mapEditorBrs.put(editor, brs);
+            mapEditorBrs.put(getSongKey(), brs);
         }
         int index = Collections.binarySearch(brs, this, (br1, br2) -> Integer.compare(br1.getBarIndex(), br2.getBarIndex()));
         if (index >= 0)
@@ -131,6 +132,7 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
         }
         index = -(index + 1);
         brs.add(index, this);
+
     }
 
 
@@ -206,7 +208,7 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
     public void cleanup()
     {
         super.cleanup();
-        var brs = mapEditorBrs.get(getEditor());
+        var brs = mapEditorBrs.get(getSongKey());
         brs.remove(this);
         songBarIndex = -1;
     }
@@ -494,13 +496,13 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
     @Override
     protected ItemRenderer createItemRenderer(ChordLeadSheetItem<?> item)
     {
-        throw new IllegalStateException("item=" + item);   
+        throw new IllegalStateException("item=" + item);
     }
 
     @Override
     public void moveItemRenderer(ChordLeadSheetItem<?> item)
     {
-        throw new IllegalStateException("item=" + item);   
+        throw new IllegalStateException("item=" + item);
     }
 
     @Override
@@ -545,7 +547,7 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
     {
         checkNotNull(editor);
         var res = new ArrayList<BR_ImproSupport>();
-        var brs = mapEditorBrs.get(editor);
+        var brs = mapEditorBrs.get(System.identityHashCode(editor.getSongModel()));
         if (brs != null)
         {
             res.addAll(brs);
@@ -554,27 +556,20 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
     }
 
     /**
-     * Should be called when a song is discarded, in order to remove all the references to its CL_Editor and BR_Instances.
+     * Should be called when a song is discarded, in order to remove all the references to the related BR_Instances.
      *
      * @param song
-     * @return The removed CL_Editor, or null if nothing was removed
      */
-    static public CL_Editor removeBR_ImproSupportInstances(Song song)
+    static public void removeBR_ImproSupportInstances(Song song)
     {
-        CL_Editor clEditor = null;
-        for (var editor : mapEditorBrs.keySet())
+        for (var songKey : mapEditorBrs.keySet())
         {
-            if (editor.getModel() == song.getChordLeadSheet())
+            if (songKey == System.identityHashCode(song))
             {
-                clEditor = editor;
+                mapEditorBrs.remove(songKey);
                 break;
             }
         }
-        if (clEditor != null)
-        {
-            mapEditorBrs.remove(clEditor);
-        }
-        return clEditor;
     }
     // ---------------------------------------------------------------
     // ChangeListener interface
@@ -647,6 +642,12 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
     private TimeSignature getTimeSignature()
     {
         return getModel().getSection(getModelBarIndex()).getData().getTimeSignature();
+    }
+
+
+    private int getSongKey()
+    {
+        return System.identityHashCode(getEditor().getSongModel());
     }
 
     // ---------------------------------------------------------------

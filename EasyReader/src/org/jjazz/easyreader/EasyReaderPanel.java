@@ -227,7 +227,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
         // Update positions
         songPosition.set(songPos);
         clsPosition.set(song.getSongStructure().toClsPosition(songPos));
-        LOGGER.log(Level.SEVERE, "beatChanged() pos={0} clsPos={1}", new Object[]
+        LOGGER.log(Level.FINE, "beatChanged() pos={0} clsPos={1}", new Object[]
         {
             songPos, clsPosition
         });
@@ -256,7 +256,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
 
         if (playStartBar == -1)
         {
-            LOGGER.severe("beatChanged() firstBeatChangeAfterPlay==true => songBar=" + songBar);
+            // LOGGER.log(Level.FINE, "beatChanged() firstBeatChangeAfterPlay==true => songBar={0}", songBar);
             // Special case, playback has just started. songBar is the start bar, which can be any Song bar.
             // Update the BarBoxes: this is useful for user to make the 2 displayed bars start on an odd bar
             updateBarBoxes(songBar);
@@ -556,8 +556,6 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
      */
     private void updateBarBoxes(int songBar)
     {
-        LOGGER.log(Level.SEVERE, "updateBarBoxes() -- songBar={0}", songBar);
-
         int clsBar = song.getSongStructure().toClsPosition(new Position(songBar, 0)).getBar();
         int next1SongBar = songBar + 1;
         var next1SongBarPos = new Position(next1SongBar, 0);
@@ -567,9 +565,9 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
         barBox.setModelBarIndex(clsBar);
         nextBarBox.setBarIndex(next1SongBar);
         nextBarBox.setModelBarIndex(next1ClsBar);
-        LOGGER.log(Level.SEVERE, "updateBarBoxes()   => barBox.modelBarIndex={0} nextBarBox.modelBarIndex={1}", new Object[]
+        LOGGER.log(Level.FINE, "updateBarBoxes() songBar={0} => barBox.modelBarIndex={1} nextBarBox.modelBarIndex={2}", new Object[]
         {
-            clsBar, next1ClsBar
+            songBar, clsBar, next1ClsBar
         });
     }
 

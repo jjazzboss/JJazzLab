@@ -1456,7 +1456,6 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         unregisterBarBox(bb);
         bb.cleanup();
         remove(bb);
-        // Update our BarBox list        
         barBoxes.remove(bb);
     }
 

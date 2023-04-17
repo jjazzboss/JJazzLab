@@ -29,7 +29,8 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.WeakHashMap;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JDialog;
@@ -65,7 +66,7 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
     /**
      * Special shared JPanel instances per GroupKey, used to calculate the preferred size for a BarRenderer subclass..
      */
-    private static final WeakHashMap<Object, PrefSizePanel> mapGroupKeyPrefSizePanel = new WeakHashMap<>();
+    private static final Map<Integer, PrefSizePanel> mapGroupKeyPrefSizePanel = new HashMap<>();
 
     private static final Dimension MIN_SIZE = new Dimension(10, 4);
     /**
@@ -119,8 +120,8 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
         {
             JDialog dlg = getFontMetricsDialog();
             dlg.remove(getPrefSizePanelSharedInstance());
+            mapGroupKeyPrefSizePanel.remove(System.identityHashCode(getGroupKey()));
         }
-        mapGroupKeyPrefSizePanel.clear();
     }
 
     @Override
@@ -348,11 +349,11 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
      */
     private PrefSizePanel getPrefSizePanelSharedInstance()
     {
-        PrefSizePanel panel = mapGroupKeyPrefSizePanel.get(getGroupKey());
+        PrefSizePanel panel = mapGroupKeyPrefSizePanel.get(System.identityHashCode(getGroupKey()));
         if (panel == null)
         {
             panel = new PrefSizePanel();
-            mapGroupKeyPrefSizePanel.put(getGroupKey(), panel);
+            mapGroupKeyPrefSizePanel.put(System.identityHashCode(getGroupKey()), panel);
         }
         return panel;
     }

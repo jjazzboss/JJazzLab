@@ -50,7 +50,7 @@ abstract public class BarRenderer extends JPanel implements PropertyChangeListen
     /**
      * Store the font rendering hidden dialogs.
      */
-    private static final HashMap<Object, JDialog> mapGroupKeyDialog = new HashMap<>();
+    private static final Map<Integer, JDialog> mapGroupKeyFontMetricsDialog = new HashMap<>();
 
 
     // GUI settings
@@ -410,6 +410,12 @@ abstract public class BarRenderer extends JPanel implements PropertyChangeListen
         for (ItemRenderer ir : getItemRenderers())
         {
             removeItemRenderer(ir);
+        }        
+        
+         // Remove only if it's the last bar of the editor
+        if (getEditor().getNbBarBoxes() == 1)
+        {
+            mapGroupKeyFontMetricsDialog.remove(System.identityHashCode(groupKey));
         }
     }
 
@@ -503,12 +509,12 @@ abstract public class BarRenderer extends JPanel implements PropertyChangeListen
      */
     public JDialog getFontMetricsDialog()
     {
-        JDialog dlg = mapGroupKeyDialog.get(groupKey);
+        JDialog dlg = mapGroupKeyFontMetricsDialog.get(System.identityHashCode(groupKey));
         if (dlg == null)
         {
             dlg = new JDialog();
             dlg.getContentPane().setLayout(new FlowLayout(FlowLayout.LEFT, 2, 2));
-            mapGroupKeyDialog.put(groupKey, dlg);
+            mapGroupKeyFontMetricsDialog.put(System.identityHashCode(groupKey), dlg);
         }
         return dlg;
     }
