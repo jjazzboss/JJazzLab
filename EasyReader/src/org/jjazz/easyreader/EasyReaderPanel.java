@@ -85,10 +85,10 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
     private SongPart songPart;
     private SongPart nextSongPart;
     private BarBox barBox, nextBarBox;
+    private int playStartBar = -1;
     private final Font defaultAnnotationFont;
     private final Font defaultNextChordFont;
     private final JLabel lbl_annotation;
-    private int initBar = 0;
     private static final Preferences prefs = NbPreferences.forModule(EasyReaderPanel.class);
     private static final Logger LOGGER = Logger.getLogger(EasyReaderPanel.class.getSimpleName());
 
@@ -150,18 +150,15 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
         this.song = song;
         this.songPart = null;
         this.nextSongPart = null;
-        this.initBar = 0;
 
 
         // Update data
         songPosition.reset();
         clsPosition.reset();
-        initBar = 0;
         this.posViewer.setModel(this.song, songPosition);
 
 
         // Update UI
-        cb_startOnBar2.setSelected(initBar != 0);
         setEnabled(this.song != null);
         clearLabels();
 
@@ -174,15 +171,12 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
             this.song.getSongStructure().addSgsChangeListener(this);
 
 
-            createBarBoxes(this.song, initBar);
-
-
             songPart = song.getSongStructure().getSongPart(0);  // Might be null            
             lbl_songPart.setText(songPart != null ? songPart.getName() : "");
-            if (songPart != null)
-            {
-                showStopped();
-            }
+
+
+            createBarBoxes(this.song);
+            stopped();
         }
 
     }
@@ -202,7 +196,6 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
         lbl_nextSongPart.setEnabled(b);
         lbl_songPart.setEnabled(b);
         posViewer.setEnabled(b);
-        cb_startOnBar2.setEnabled(b);
         slider_zoom.setEnabled(b);
     }
 
@@ -216,7 +209,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
         setEnabled(b);
         if (!b)
         {
-            showStopped();
+            stopped();
             clearLabels();
         }
     }
@@ -255,32 +248,34 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
         progressBar.setValue(progress);
 
 
-        if (songBar == 0 && initBar == 1)
-        {
-            // Special case!
-            LOGGER.severe("   special case songBar==0 && startBar=1, exiting");
-            return;
-        }
-
         // Update annotation on each new bar
         if (songPosition.isFirstBarBeat())
         {
             updateAnnotation(clsPosition);
         }
 
-        if ((songBar - initBar)) // need to updateBarBoxes + UpdateNextStuff every 2 bars, whatever initBar and the real start bar (ctrl+SPACE on any bar to start playback)
-
-        var clsBar = clsPosition.getBar();
-        var isBarBoxActive = barBox.getModelBarIndex() == clsBar;
-        var isNextBarBoxActive = nextBarBox.getModelBarIndex() == clsBar;
-        if (!isBarBoxActive && !isNextBarBoxActive)
+        if (playStartBar == -1)
         {
+            LOGGER.severe("beatChanged() firstBeatChangeAfterPlay==true => songBar=" + songBar);
+            // Special case, playback has just started. songBar is the start bar, which can be any Song bar.
+            // Update the BarBoxes: this is useful for user to make the 2 displayed bars start on an odd bar
             updateBarBoxes(songBar);
             updateNextStuff(songBar);
             showPlaybackPoint(clsPosition, false);
+            playStartBar = songBar;
+        } else if ((songBar - playStartBar) % 2 == 0)
+        {
+            // Even bars
+            if (songPosition.isFirstBarBeat())
+            {
+                updateBarBoxes(songBar);
+                updateNextStuff(songBar);
+            }
+            showPlaybackPoint(clsPosition, false);
         } else
         {
-            showPlaybackPoint(clsPosition, isNextBarBoxActive);
+            // Odd bars
+            showPlaybackPoint(clsPosition, true);
         }
     }
 
@@ -324,16 +319,11 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
                 {
                     case STOPPED, DISABLED ->
                     {
-                        showStopped();
-                        if (isEnabled())
-                        {
-                            cb_startOnBar2.setEnabled(true);
-                        }
+                        stopped();
                     }
                     case PAUSED, PLAYING ->
                     {
                         // Nothing
-                        cb_startOnBar2.setEnabled(false);
                     }
                     default -> throw new AssertionError(((MusicController.State) evt.getNewValue()).name());
 
@@ -531,26 +521,26 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
     // Private methods
     // =================================================================================================
 
-    private void createBarBoxes(Song sg, int startBarIndex)
+    private void createBarBoxes(Song sg)
     {
         var cls = sg.getChordLeadSheet();
         CL_Editor clEditor = CL_EditorTopComponent.get(cls).getEditor();
 
 
-        var clsPos = sg.getSongStructure().toClsPosition(new Position(startBarIndex, 0));
+        var clsPos = sg.getSongStructure().toClsPosition(new Position(0, 0));
         int modelBarIndex = clsPos != null ? clsPos.getBar() : -1;
 
-        barBox = new BarBox(clEditor, startBarIndex, modelBarIndex, cls,
+        barBox = new BarBox(clEditor, 0, modelBarIndex, cls,
                 new BarBoxConfig(BarRendererFactory.BR_CHORD_SYMBOL, BarRendererFactory.BR_CHORD_POSITION, BarRendererFactory.BR_SECTION),
                 BarBoxSettings.getDefault(), BarRendererFactory.getDefault(), this);
         barBox.setDisplayQuantizationValue(Quantization.OFF);
         pnl_barBox.add(barBox);
 
 
-        clsPos = sg.getSongStructure().toClsPosition(new Position(startBarIndex + 1, 0));
+        clsPos = sg.getSongStructure().toClsPosition(new Position(1, 0));
         modelBarIndex = clsPos != null ? clsPos.getBar() : -1;
 
-        nextBarBox = new BarBox(clEditor, startBarIndex + 1, modelBarIndex, cls,
+        nextBarBox = new BarBox(clEditor, 1, modelBarIndex, cls,
                 new BarBoxConfig(BarRendererFactory.BR_CHORD_SYMBOL, BarRendererFactory.BR_CHORD_POSITION, BarRendererFactory.BR_SECTION),
                 BarBoxSettings.getDefault(), BarRendererFactory.getDefault(), this);
         pnl_barBox.add(nextBarBox);
@@ -625,15 +615,16 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
         lbl_nextChord.setText(str);
     }
 
-    private void showStopped()
+    private void stopped()
     {
         barBox.showPlaybackPoint(false, null);
         nextBarBox.showPlaybackPoint(false, null);
         songPosition.reset();
         clsPosition.reset();
-        updateBarBoxes(initBar);
-        updateNextStuff(initBar);
+        updateBarBoxes(0);
+        updateNextStuff(0);
         updateAnnotation(clsPosition);
+        playStartBar = -1;
     }
 
     private void showPlaybackPoint(Position clsPos, boolean useNextBarBox)
@@ -769,7 +760,6 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
         jPanel1 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         slider_zoom = Utilities.buildSlider(SwingConstants.HORIZONTAL, 0.5f);
-        cb_startOnBar2 = new javax.swing.JCheckBox();
         pnl_progressBar = new javax.swing.JPanel();
         progressBar = new javax.swing.JProgressBar();
 
@@ -811,15 +801,6 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
         });
         jPanel1.add(slider_zoom);
 
-        org.openide.awt.Mnemonics.setLocalizedText(cb_startOnBar2, org.openide.util.NbBundle.getMessage(EasyReaderPanel.class, "EasyReaderPanel.cb_startOnBar2.text")); // NOI18N
-        cb_startOnBar2.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                cb_startOnBar2ActionPerformed(evt);
-            }
-        });
-
         pnl_progressBar.setToolTipText(org.openide.util.NbBundle.getMessage(EasyReaderPanel.class, "EasyReaderPanel.pnl_progressBar.toolTipText")); // NOI18N
         pnl_progressBar.setLayout(new java.awt.GridBagLayout());
         pnl_progressBar.add(progressBar, new java.awt.GridBagConstraints());
@@ -832,9 +813,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(6, 6, 6)
-                        .addComponent(cb_startOnBar2)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 65, Short.MAX_VALUE)
+                        .addGap(6, 189, Short.MAX_VALUE)
                         .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
@@ -865,11 +844,8 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
                     .addComponent(pnl_barBox, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(pnl_nextChord, javax.swing.GroupLayout.DEFAULT_SIZE, 126, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addComponent(cb_startOnBar2)
-                        .addContainerGap())))
+                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(6, 6, 6))
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -884,16 +860,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
 
 
 
-    private void cb_startOnBar2ActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cb_startOnBar2ActionPerformed
-    {//GEN-HEADEREND:event_cb_startOnBar2ActionPerformed
-        removeBarBoxes();
-        initBar = (initBar + 1) % 2;
-        createBarBoxes(song, initBar);
-    }//GEN-LAST:event_cb_startOnBar2ActionPerformed
-
-
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JCheckBox cb_startOnBar2;
     private javax.swing.Box.Filler filler1;
     private javax.swing.Box.Filler filler2;
     private javax.swing.Box.Filler filler3;
