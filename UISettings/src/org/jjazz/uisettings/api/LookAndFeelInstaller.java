@@ -22,6 +22,7 @@
  */
 package org.jjazz.uisettings.api;
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import org.openide.modules.ModuleInstall;
@@ -46,7 +47,7 @@ public class LookAndFeelInstaller extends ModuleInstall
         var uis = GeneralUISettings.getInstance();
         GeneralUISettings.LookAndFeelId lafId = uis.getLafIdUponRestart();
 
-        LOGGER.info("validate() Installing Look & Feel: " + lafId.name());   
+        LOGGER.log(Level.INFO, "validate() Installing Look & Feel: {0}", lafId.name());   
 
         switch (lafId)
         {

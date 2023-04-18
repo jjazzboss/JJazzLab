@@ -27,6 +27,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.rhythm.database.api.RhythmInfo;
@@ -86,7 +87,7 @@ public class RhythmDbCache implements Serializable
         for (String rpId : data.keySet())
         {
             var rhythms = data.get(rpId);
-            LOGGER.info("- " + rpId + ": total=" + rhythms.size());   
+            LOGGER.log(Level.INFO, "- {0}: total={1}", new Object[]{rpId, rhythms.size()});   
         }
     }
 

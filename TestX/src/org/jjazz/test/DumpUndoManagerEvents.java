@@ -24,6 +24,7 @@ package org.jjazz.test;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.song.api.Song;
 import org.jjazz.undomanager.api.JJazzUndoManager;
@@ -65,7 +66,7 @@ public final class DumpUndoManagerEvents implements ActionListener
         }
 
         JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(song);
-        LOGGER.info("um=" + um);
+        LOGGER.log(Level.INFO, "um={0}", um);
 
     }
 }

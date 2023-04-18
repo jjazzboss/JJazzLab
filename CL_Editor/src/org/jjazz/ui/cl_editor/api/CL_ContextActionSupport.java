@@ -40,8 +40,8 @@ import org.openide.util.WeakListeners;
 /**
  * A helper class to write CL_Editor context aware actions.
  * <p>
- * Listen to ChordLeadSheetItem, SelectedBar, ChordLeadSheet presence in the lookup. Listen to the "present" ChordLeadSheet
- * property changes. Fire the corresponding events to listeners.
+ * Listen to ChordLeadSheetItem, SelectedBar, ChordLeadSheet presence in the lookup. Listen to the "present" ChordLeadSheet property
+ * changes. Fire the corresponding events to listeners.
  */
 public class CL_ContextActionSupport implements ClsChangeListener
 {
@@ -90,7 +90,7 @@ public class CL_ContextActionSupport implements ClsChangeListener
     {
         if (context == null)
         {
-            throw new IllegalArgumentException("context=" + context);   
+            throw new IllegalArgumentException("context=" + context);
         }
         this.context = context;
 
@@ -178,13 +178,13 @@ public class CL_ContextActionSupport implements ClsChangeListener
     // ============================================================================================= 
     // ClsChangeListener implementation
     // =============================================================================================      
-       
+
     @Override
     public void authorizeChange(ClsChangeEvent e) throws UnsupportedEditException
     {
         // Nothing
     }
- 
+
     @Override
     public void chordLeadSheetChanged(ClsChangeEvent event)
     {
@@ -213,7 +213,11 @@ public class CL_ContextActionSupport implements ClsChangeListener
     private void itemPresenceChanged()
     {
         selection = new CL_SelectionUtilities(context);
-        LOGGER.log(Level.FINE, "itemPresenceChanged() model=" + model + " selection.getSelectedItems()=" + selection.getSelectedItems());   
+        LOGGER.log(Level.FINE, "itemPresenceChanged() model={0} selection.getSelectedItems()={1}", new Object[]
+        {
+            model,
+            selection.getSelectedItems()
+        });
         fireSelectionChanged(selection);
     }
 
@@ -228,7 +232,11 @@ public class CL_ContextActionSupport implements ClsChangeListener
     private void barPresenceChanged()
     {
         selection = new CL_SelectionUtilities(context);
-        LOGGER.log(Level.FINE, "barPresenceChanged() model=" + model + " selection.getSelectedBars()=" + selection.getSelectedBars());   
+        LOGGER.log(Level.FINE, "barPresenceChanged() model={0} selection.getSelectedBars()={1}", new Object[]
+        {
+            model,
+            selection.getSelectedBars()
+        });
         fireSelectionChanged(selection);
     }
 

@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import javax.swing.SwingUtilities;
@@ -126,7 +127,7 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
     @Override
     protected void process(Env env, Map<Option, String[]> values) throws CommandException
     {
-        LOGGER.fine("process() --  env=" + env + " values=" + values);   
+        LOGGER.log(Level.FINE, "process() --  env={0} values={1}", new Object[]{env, values});   
 
 
         cmdLineFilesToOpen.clear();
@@ -137,8 +138,8 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
             var fileNames = values.get(openOption);
             for (String fileName : fileNames)
             {
-                LOGGER.info(
-                        "process() Opening command line file: " + fileName + ", current dir: " + env.getCurrentDirectory().getAbsolutePath());   
+                LOGGER.log(Level.INFO, "process() Opening command line file: {0}, current dir: {1}", new Object[]{fileName,
+                    env.getCurrentDirectory().getAbsolutePath()});   
 
                 // Normally fileName contains the absolute path, but just in case...
                 File file = new File(fileName);
@@ -150,7 +151,7 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
 
                 if (!file.exists())
                 {
-                    LOGGER.warning("process() Can't find " + file.getAbsolutePath());   
+                    LOGGER.log(Level.WARNING, "process() Can''t find {0}", file.getAbsolutePath());   
                     continue;
 
                 } else
@@ -164,7 +165,8 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
                             SongEditorManager.getInstance().showSong(file, last, true);
                         } catch (SongCreationException ex)
                         {
-                            LOGGER.warning("process() Problem opening song file: " + file.getAbsolutePath() + ". ex=" + ex.getMessage());   
+                            LOGGER.log(Level.WARNING, "process() Problem opening song file: {0}. ex={1}", new Object[]{file.getAbsolutePath(),
+                                ex.getMessage()});   
                         }
 
                     } else
@@ -283,8 +285,8 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
                         sem.showSong(f, last, true);
                     } catch (SongCreationException ex)
                     {
-                        LOGGER.warning(
-                                "OpenFilesAtStartupTask.run() Problem opening song file: " + f.getAbsolutePath() + ". ex=" + ex.getMessage());   
+                        LOGGER.log(Level.WARNING, "OpenFilesAtStartupTask.run() Problem opening song file: {0}. ex={1}", new Object[]{f.getAbsolutePath(),
+                            ex.getMessage()});   
                     }
                 }
 
@@ -327,8 +329,8 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
                             SongEditorManager.getInstance().showSong(f, last, true);
                         } catch (SongCreationException ex)
                         {
-                            LOGGER.warning(
-                                    "openRecentFilesUponStartup.run() Problem opening song file: " + f.getAbsolutePath() + ". ex=" + ex.getMessage());   
+                            LOGGER.log(Level.WARNING, "openRecentFilesUponStartup.run() Problem opening song file: {0}. ex={1}", new Object[]{f.getAbsolutePath(),
+                                ex.getMessage()});   
                         }
                     }
                 };

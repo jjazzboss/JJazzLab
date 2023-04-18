@@ -28,6 +28,7 @@ import com.google.common.math.BigIntegerMath;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.jjazz.util.api.Utilities;
@@ -293,7 +294,7 @@ public class ChordSymbolFinder
             }
         }
         double durationInMs = (System.nanoTime() - startTime) / 1000000d;
-        LOGGER.info("buildPositionsDatabase() complete in " + durationInMs + "ms for " + positionCount + " positions.");
+        LOGGER.log(Level.INFO, "buildPositionsDatabase() complete in {0}ms for {1} positions.", new Object[]{durationInMs, positionCount});
     }
 
     /**

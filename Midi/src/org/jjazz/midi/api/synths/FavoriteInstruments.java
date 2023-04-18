@@ -25,6 +25,7 @@ package org.jjazz.midi.api.synths;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import javax.swing.event.SwingPropertyChangeSupport;
@@ -205,7 +206,7 @@ public class FavoriteInstruments
                 instruments.add(ins);
             } else
             {
-                LOGGER.warning("No instrument could be created from FavoriteInstruments property: " + s + ". Property will be removed.");   
+                LOGGER.log(Level.WARNING, "No instrument could be created from FavoriteInstruments property: {0}. Property will be removed.", s);   
                 prefs.remove(PROP_FAVORITE_INSTRUMENT + i);
             }
         }

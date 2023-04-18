@@ -256,7 +256,8 @@ public class OutputSynthManager implements PropertyChangeListener
                 outSynth = OutputSynth.loadFromString(s);
             } catch (IOException ex)
             {
-                LOGGER.warning("getOutputSynth() mdOutName=" + mdOutName + " Can't restore OutputSynth from String s=" + s + ". ex=" + ex.getMessage());
+                LOGGER.log(Level.WARNING, "getOutputSynth() mdOutName={0} Can''t restore OutputSynth from String s={1}. ex={2}", new Object[]{mdOutName,
+                    s, ex.getMessage()});
             }
         }
 
@@ -348,7 +349,8 @@ public class OutputSynthManager implements PropertyChangeListener
                 store(mdName, outSynth);
             } else
             {
-                LOGGER.warning("propertyChange() Unexpected null mdName! outSynth=" + outSynth + ", mapDeviceNameSynth=" + mapDeviceNameSynth);
+                LOGGER.log(Level.WARNING, "propertyChange() Unexpected null mdName! outSynth={0}, mapDeviceNameSynth={1}", new Object[]{outSynth,
+                    mapDeviceNameSynth});
             }
         }
     }

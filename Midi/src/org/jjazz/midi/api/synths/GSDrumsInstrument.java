@@ -164,7 +164,7 @@ public class GSDrumsInstrument extends Instrument implements Serializable
         }
         messages[0] = sysMsg;
         messages[1] = msgs[0];
-        LOGGER.log(Level.FINE, "getMidiMessages() Sending SysEx messages to set drums mode on channel " + channel);   
+        LOGGER.log(Level.FINE, "getMidiMessages() Sending SysEx messages to set drums mode on channel {0}", channel);   
         return messages;
     }
 

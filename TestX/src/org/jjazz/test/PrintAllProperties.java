@@ -57,7 +57,7 @@ public final class PrintAllProperties implements ActionListener
         {
             String key = (String) keys.nextElement();
             String value = (String) p.get(key);
-            LOGGER.severe(key + ": " + value);   
+            LOGGER.log(Level.SEVERE, "{0}: {1}", new Object[]{key, value});   
         }
     }
 }

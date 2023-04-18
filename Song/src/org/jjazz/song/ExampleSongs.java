@@ -25,6 +25,7 @@ package org.jjazz.song;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.startup.spi.StartupTask;
@@ -66,7 +67,7 @@ public class ExampleSongs implements StartupTask
         File dir = new File(fdm.getJJazzLabUserDirectory(), DIR_NAME);
         if (!dir.isDirectory() && !dir.mkdir())
         {
-            LOGGER.warning("run() Could not create directory " + dir.getAbsolutePath() + ".");   
+            LOGGER.log(Level.WARNING, "run() Could not create directory {0}.", dir.getAbsolutePath());   
             return false;
         } else
         {
@@ -101,7 +102,7 @@ public class ExampleSongs implements StartupTask
             isEmpty = Utilities.isEmpty(dir.toPath());
         } catch (IOException ex)
         {
-            LOGGER.warning("copyFilesOrNot() Can't check if dir. is empty. ex=" + ex.getMessage());   
+            LOGGER.log(Level.WARNING, "copyFilesOrNot() Can''t check if dir. is empty. ex={0}", ex.getMessage());   
             return;
         }
         if (!isEmpty)
@@ -124,7 +125,7 @@ public class ExampleSongs implements StartupTask
 
         // Copy the default rhythms
         List<File> res = Utilities.extractZipResource(getClass(), ZIP_RESOURCE_PATH, dir.toPath(), true);
-        LOGGER.info("copyFilesOrNot() Copied " + res.size() + " song files to " + dir.getAbsolutePath());   
+        LOGGER.log(Level.INFO, "copyFilesOrNot() Copied {0} song files to {1}", new Object[]{res.size(), dir.getAbsolutePath()});   
 
     }
 

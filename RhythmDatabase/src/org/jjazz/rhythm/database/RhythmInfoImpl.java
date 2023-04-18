@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.rhythm.api.AdaptedRhythm;
@@ -115,28 +116,31 @@ public class RhythmInfoImpl implements RhythmInfo, Serializable
         boolean b = true;
         if (!rhythmUniqueId.equals(r.getUniqueId()))
         {
-            LOGGER.warning("checkConsistency() r=" + r + ": uniqueId mismatch. rhythmUniqueId=" + rhythmUniqueId + " r.getUniqueId()=" + r.getUniqueId());   
+            LOGGER.log(Level.WARNING, "checkConsistency() r={0}: uniqueId mismatch. rhythmUniqueId={1} r.getUniqueId()={2}", new Object[]{r,
+                rhythmUniqueId, r.getUniqueId()});   
             b = false;
         }
         if (!rhythmProviderId.equals(rp.getInfo().getUniqueId()))
         {
-            LOGGER.warning("checkConsistency() r=" + r + ": rhythmProviderId mismatch. rhythmProviderId=" + rhythmProviderId   
-                    + " rdb.rp.uniqueId=" + RhythmDatabase.getDefault().getRhythmProvider(r).getInfo().getUniqueId());
+            LOGGER.log(Level.WARNING, "checkConsistency() r={0}: rhythmProviderId mismatch. rhythmProviderId={1} rdb.rp.uniqueId={2}", new Object[]{r,
+                rhythmProviderId, RhythmDatabase.getDefault().getRhythmProvider(r).getInfo().getUniqueId()});
             b = false;
         }
         if (!name.equals(r.getName()))
         {
-            LOGGER.warning("checkConsistency() r=" + r + ": name mismatch. name=" + name + " r.getName()=" + r.getName());   
+            LOGGER.log(Level.WARNING, "checkConsistency() r={0}: name mismatch. name={1} r.getName()={2}", new Object[]{r, name, r.getName()});   
             b = false;
         }
         if (!file.equals(r.getFile()))
         {
-            LOGGER.warning("checkConsistency() r=" + r + ": file mismatch. file=" + file.getAbsolutePath() + " r.getFile()=" + r.getFile().getAbsolutePath());   
+            LOGGER.log(Level.WARNING, "checkConsistency() r={0}: file mismatch. file={1} r.getFile()={2}", new Object[]{r,
+                file.getAbsolutePath(), r.getFile().getAbsolutePath()});   
             b = false;
         }
         if (!timeSignature.equals(r.getTimeSignature()))
         {
-            LOGGER.warning("checkConsistency() r=" + r + ": timeSignature mismatch. timeSignature=" + timeSignature + " r.getTimeSignature()=" + r.getTimeSignature());   
+            LOGGER.log(Level.WARNING, "checkConsistency() r={0}: timeSignature mismatch. timeSignature={1} r.getTimeSignature()={2}", new Object[]{r,
+                timeSignature, r.getTimeSignature()});   
             b = false;
         }
 

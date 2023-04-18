@@ -26,6 +26,7 @@ import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.songcontext.api.SongContext;
 import java.util.HashMap;
+import java.util.logging.Level;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import java.util.logging.Logger;
 import org.jjazz.harmony.api.TimeSignature;
@@ -92,19 +93,19 @@ public class DummyGenerator implements MusicGenerator
                 }
                 if (rv.isDrums())
                 {
-                    LOGGER.fine("generateMusic() generate dummy drums track for RhythmVoice: " + rv.getName());
+                    LOGGER.log(Level.FINE, "generateMusic() generate dummy drums track for RhythmVoice: {0}", rv.getName());
                     Phrase p = PhraseSamples.getBasicDrumPhrase(sptPosInBeats, sptRange.size(), ts, destChannel);
                     pRes.add(p);
                 } else
                 {
                     if (rv.getPreferredInstrument().getSubstitute().getFamily().equals(Family.Bass))
                     {
-                        LOGGER.fine("generateMusic() generate dummy bass track for RhythmVoice: " + rv.getName());
+                        LOGGER.log(Level.FINE, "generateMusic() generate dummy bass track for RhythmVoice: {0}", rv.getName());
                         Phrase p = getBasicBassPhrase(sptPosInBeats, cSeq, destChannel);
                         pRes.add(p);
                     } else
                     {
-                        LOGGER.fine("generateMusic() music generation not supported for this RhythmVoice: " + rv.getName());
+                        LOGGER.log(Level.FINE, "generateMusic() music generation not supported for this RhythmVoice: {0}", rv.getName());
                     }
                 }
             }

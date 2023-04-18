@@ -114,7 +114,7 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
      */
     static public void changeRhythm(final List<SongPart> selectedSpts)
     {
-        LOGGER.fine("changeRhythm() -- selectedSpts=" + selectedSpts);   
+        LOGGER.log(Level.FINE, "changeRhythm() -- selectedSpts={0}", selectedSpts);   
 
 
         List<SongPart> selSpts = new ArrayList<>(selectedSpts);               // Copy to avoid concurrent modifications
@@ -133,7 +133,7 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
             previewer.setContext(song, selSpt0);
         } catch (MidiUnavailableException ex)
         {
-            LOGGER.warning("changeRhythm() Can't set context ex=" + ex.getMessage() + ". RhythmPreviewProvider disabled.");   
+            LOGGER.log(Level.WARNING, "changeRhythm() Can''t set context ex={0}. RhythmPreviewProvider disabled.", ex.getMessage());   
             previewer = null;
         }
         var rdb = RhythmDatabase.getDefault();
@@ -162,14 +162,14 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
 
         // Get the new rhythm
         RhythmInfo newRhythmInfo = dlg.getSelectedRhythm();
-        LOGGER.fine("changeRhythm() selected newRhythm=" + newRhythmInfo);   
+        LOGGER.log(Level.FINE, "changeRhythm() selected newRhythm={0}", newRhythmInfo);   
         Rhythm newRhythm;
         try
         {
             newRhythm = rdb.getRhythmInstance(newRhythmInfo);
         } catch (UnavailableRhythmException ex)
         {
-            LOGGER.warning("changeRhythm() can't get Rhythm instance from RhythmInfo=" + newRhythmInfo);   
+            LOGGER.log(Level.WARNING, "changeRhythm() can''t get Rhythm instance from RhythmInfo={0}", newRhythmInfo);   
             NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(d);
             return;
@@ -272,7 +272,7 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
     {
         boolean b;
         b = !selection.isEmpty();
-        LOGGER.log(Level.FINE, "selectionChange() b=" + b);   
+        LOGGER.log(Level.FINE, "selectionChange() b={0}", b);   
         setEnabled(b);
     }
 

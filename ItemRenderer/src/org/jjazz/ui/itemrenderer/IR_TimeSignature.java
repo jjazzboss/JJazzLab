@@ -33,6 +33,7 @@ import java.awt.font.TextAttribute;
 import java.awt.font.TextLayout;
 import java.beans.PropertyChangeEvent;
 import java.text.AttributedString;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
@@ -196,7 +197,7 @@ public class IR_TimeSignature extends ItemRenderer implements IR_Copiable
         upperY = in.top + PADDING + hUpper;
 
         Dimension d = new Dimension(pw, ph);
-        LOGGER.fine("getPreferredSize() d=" + d);   
+        LOGGER.log(Level.FINE, "getPreferredSize() d={0}", d);   
         return d;
     }
 

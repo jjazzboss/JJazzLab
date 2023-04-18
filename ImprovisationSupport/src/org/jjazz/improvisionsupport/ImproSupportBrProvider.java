@@ -32,7 +32,7 @@ import org.jjazz.ui.itemrenderer.api.ItemRendererFactory;
 import org.openide.util.lookup.ServiceProvider;
 
 /**
- * Provider our BarRenderer
+ * Provides our specific ImproSupport BarRenderer
  */
 @ServiceProvider(service = BarRendererProvider.class)
 public class ImproSupportBrProvider implements BarRendererProvider

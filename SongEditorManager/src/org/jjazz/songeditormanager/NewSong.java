@@ -25,6 +25,7 @@ package org.jjazz.songeditormanager;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiUnavailableException;
 import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
@@ -104,7 +105,7 @@ public final class NewSong implements ActionListener
                 song = null; // Because non null if it's a MidiUnavailableException
                 String msg = ResUtil.getString(NewSong.class,"ERR_CantCreateSongFromTemplate", songTemplateFile.getAbsolutePath());
                 msg += ": " + ex.getLocalizedMessage();
-                LOGGER.warning("createSongFromTemplate() " + msg);   
+                LOGGER.log(Level.WARNING, "createSongFromTemplate() {0}", msg);   
                 NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
                 DialogDisplayer.getDefault().notify(nd);
             }

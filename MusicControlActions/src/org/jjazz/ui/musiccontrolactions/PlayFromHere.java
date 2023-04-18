@@ -27,6 +27,7 @@ import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyVetoException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiUnavailableException;
 import javax.swing.AbstractAction;
@@ -112,7 +113,7 @@ public class PlayFromHere extends AbstractAction
     {
         if (song == null)
         {
-            LOGGER.severe("actionPerformed() unexpected value song=" + song);
+            LOGGER.log(Level.SEVERE, "actionPerformed() unexpected value song={0}", song);
             return;
         }
 
@@ -231,7 +232,7 @@ public class PlayFromHere extends AbstractAction
         }
 
         boolean b = song != null;
-        LOGGER.fine("updateEnabledStatus() b=" + b);
+        LOGGER.log(Level.FINE, "updateEnabledStatus() b={0}", b);
 
         setEnabled(b);
     }
@@ -248,7 +249,7 @@ public class PlayFromHere extends AbstractAction
     {
         int sgsBarIndex = -1;
         CLI_Section section = cls.getSection(clsBarIndex);
-        LOGGER.fine("getSsBarIndex() section=" + section);
+        LOGGER.log(Level.FINE, "getSsBarIndex() section={0}", section);
 
 
         // If there are some selected spts, try to match one of them
@@ -282,7 +283,7 @@ public class PlayFromHere extends AbstractAction
         }
 
 
-        LOGGER.fine("getSsBarIndex() sgsBarIndex=" + sgsBarIndex);
+        LOGGER.log(Level.FINE, "getSsBarIndex() sgsBarIndex={0}", sgsBarIndex);
         return sgsBarIndex;
     }
 

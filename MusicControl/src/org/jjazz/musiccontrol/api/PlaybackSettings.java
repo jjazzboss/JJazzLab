@@ -372,8 +372,8 @@ public class PlaybackSettings
         {
             return prefChannel;
         }
-        LOGGER.warning(
-                "getClickChannel() Can't use preferred click channel " + (prefChannel + 1) + ", using channel " + (MidiConst.CHANNEL_DRUMS + 1) + " instead");
+        LOGGER.log(Level.WARNING, "getClickChannel() Can''t use preferred click channel {0}{1}, using channel {2}{3} instead", new Object[]{prefChannel,
+            1, MidiConst.CHANNEL_DRUMS, 1});
         return MidiConst.CHANNEL_DRUMS;
     }
 

@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JComponent;
@@ -97,7 +98,7 @@ final class ThemePanel extends javax.swing.JPanel implements ActionListener
                 String id = fcs.getId();
                 if (saveMapIdValues.get(id) != null)
                 {
-                    LOGGER.severe("Duplicate FCSetting Id=" + id);   
+                    LOGGER.log(Level.SEVERE, "Duplicate FCSetting Id={0}", id);   
                 }
                 saveMapIdValues.put(id, new FCvalues(fcs));
             }

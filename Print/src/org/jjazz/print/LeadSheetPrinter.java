@@ -332,11 +332,8 @@ public class LeadSheetPrinter implements Printable, Pageable
         scaledEditorLastPageHeight = scaledEditorHeight - (nbPages - 1) * scaledEditorPageHeight;
 
 
-        LOGGER.fine("computeEditorDimensions() scaledEditorBarHeight=" + scaledEditorBarHeight
-                + " scaledEditorHeight=" + scaledEditorHeight
-                + " scaledEditorPageHeight=" + scaledEditorPageHeight
-                + " centralZoneHeight=" + centralZoneHeight
-                + " nbPages=" + nbPages);
+        LOGGER.log(Level.FINE, "computeEditorDimensions() scaledEditorBarHeight={0} scaledEditorHeight={1} scaledEditorPageHeight={2} centralZoneHeight={3} nbPages={4}", new Object[]{scaledEditorBarHeight,
+            scaledEditorHeight, scaledEditorPageHeight, centralZoneHeight, nbPages});
     }
 
     private void fireChanged()

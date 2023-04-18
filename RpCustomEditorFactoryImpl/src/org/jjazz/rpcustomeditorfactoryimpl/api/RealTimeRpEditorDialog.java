@@ -114,7 +114,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
             throw new IllegalArgumentException("rpValue=" + rpValue + " sptContext=" + sptContext);
         }
 
-        LOGGER.fine("preset() -- rpValue=" + rpValue + " sptContext=" + sptContext);
+        LOGGER.log(Level.FINE, "preset() -- rpValue={0} sptContext={1}", new Object[]{rpValue, sptContext});
 
         songPartContextOriginal = sptContext;
 

@@ -43,6 +43,7 @@ import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
@@ -417,18 +418,18 @@ public class FlatIntegerHorizontalSlider extends JComponent implements MouseList
     {
         int h = getKnobDiameter() + 10;
         Object o = getClientProperty(PROP_WH_RATIO);
-        LOGGER.fine("getPreferredSize() o=" + o + " o.getClass()=" + o.getClass());   
+        LOGGER.log(Level.FINE, "getPreferredSize() o={0} o.getClass()={1}", new Object[]{o, o.getClass()});   
         float ratio = (Float) getClientProperty(PROP_WH_RATIO);
         int w = (int) (h * ratio);
         Dimension res = new Dimension(w, h);
-        LOGGER.fine("getPreferredSize() res=" + res);   
+        LOGGER.log(Level.FINE, "getPreferredSize() res={0}", res);   
         return res;
     }
 
     @Override
     public void setEnabled(boolean b)
     {
-        LOGGER.fine("setEnabled() b=" + b);   
+        LOGGER.log(Level.FINE, "setEnabled() b={0}", b);   
         if (isEnabled() && !b)
         {
             saveColorLine = getColorLine();
@@ -476,7 +477,7 @@ public class FlatIntegerHorizontalSlider extends JComponent implements MouseList
     public void mouseDragged(MouseEvent e)
     {
         int x = e.getX();
-        LOGGER.fine("mouseDragged() x=" + x + " xValue=" + xValue + " value=" + value);   
+        LOGGER.log(Level.FINE, "mouseDragged() x={0} xValue={1} value={2}", new Object[]{x, xValue, value});   
         if (!isEnabled() || !SwingUtilities.isLeftMouseButton(e))
         {
             return;
@@ -636,7 +637,7 @@ public class FlatIntegerHorizontalSlider extends JComponent implements MouseList
         }
         if (r == -1)
         {
-            LOGGER.fine("parseString() text=" + text);   
+            LOGGER.log(Level.FINE, "parseString() text={0}", text);   
         }
         return r;
     }

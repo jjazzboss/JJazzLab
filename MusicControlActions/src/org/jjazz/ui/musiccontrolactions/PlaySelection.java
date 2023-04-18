@@ -25,6 +25,7 @@ package org.jjazz.ui.musiccontrolactions;
 import java.awt.event.ActionEvent;
 import java.beans.PropertyVetoException;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiUnavailableException;
 import javax.swing.AbstractAction;
@@ -104,7 +105,7 @@ public class PlaySelection extends AbstractAction
     {
         if (song == null)
         {
-            LOGGER.severe("actionPerformed() unexpected value song=" + song);
+            LOGGER.log(Level.SEVERE, "actionPerformed() unexpected value song={0}", song);
             return;
         }
 
@@ -226,7 +227,7 @@ public class PlaySelection extends AbstractAction
         }
 
         boolean b = song != null;
-        LOGGER.fine("updateEnabledStatus() b=" + b);
+        LOGGER.log(Level.FINE, "updateEnabledStatus() b={0}", b);
 
         setEnabled(b);
     }

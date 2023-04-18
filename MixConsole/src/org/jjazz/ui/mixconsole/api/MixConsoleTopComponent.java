@@ -22,6 +22,7 @@
  */
 package org.jjazz.ui.mixconsole.api;
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.util.api.ResUtil;
 import org.netbeans.api.settings.ConvertAsProperties;
@@ -88,7 +89,7 @@ public final class MixConsoleTopComponent extends TopComponent
         {
             // Log & notify user, this is serious
             String msg = "ERROR can't create the MixConsole, please report this bug with the Log file content. err='" + t.getMessage() + "'";
-            LOGGER.severe("MixConsoleTopComponent() " + msg);
+            LOGGER.log(Level.SEVERE, "MixConsoleTopComponent() {0}", msg);
             Exceptions.printStackTrace(t);
             NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notifyLater(nd);

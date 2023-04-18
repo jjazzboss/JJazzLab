@@ -209,7 +209,7 @@ public class RpViewer extends JPanel implements PropertyChangeListener, FocusLis
     public void setSelected(boolean b)
     {
         isSelected = b;
-        LOGGER.log(Level.FINE, "setSelected this=" + this + " b=" + b);   
+        LOGGER.log(Level.FINE, "setSelected this={0} b={1}", new Object[]{this, b});   
         if (isSelected)
         {
             setBackground(settings.getSelectedBackgroundColor());

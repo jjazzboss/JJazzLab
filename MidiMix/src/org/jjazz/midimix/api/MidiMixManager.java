@@ -107,7 +107,8 @@ public class MidiMixManager implements PropertyChangeListener
 
                 } catch (IOException ex)
                 {
-                    LOGGER.warning("findMix(Song) Problem reading mix file: " + mixFile.getAbsolutePath() + " : " + ex.getMessage());   
+                    LOGGER.log(Level.WARNING, "findMix(Song) Problem reading mix file: {0} : {1}", new Object[]{mixFile.getAbsolutePath(),
+                        ex.getMessage()});   
                 }
 
                 if (mm != null)
@@ -118,7 +119,8 @@ public class MidiMixManager implements PropertyChangeListener
                         mm.checkConsistency(s, true);
                     } catch (SongCreationException ex)
                     {
-                        LOGGER.warning("findMix(Song) song mix file: " + mixFile.getAbsolutePath() + " not consistent with song, ignored. ex=" + ex.getMessage());  
+                        LOGGER.log(Level.WARNING, "findMix(Song) song mix file: {0} not consistent with song, ignored. ex={1}", new Object[]{mixFile.getAbsolutePath(),
+                            ex.getMessage()});  
                         mm = null;
                     }
                 }
@@ -160,7 +162,8 @@ public class MidiMixManager implements PropertyChangeListener
                 StatusDisplayer.getDefault().setStatusText(ResUtil.getString(getClass(), "LoadedRhythmMix", mixFile.getAbsolutePath()));
             } catch (IOException ex)
             {
-                LOGGER.severe("findMix(rhythm) Problem reading mix file: " + mixFile.getAbsolutePath() + " : " + ex.getMessage() + ". Creating a new mix instead.");   
+                LOGGER.log(Level.SEVERE, "findMix(rhythm) Problem reading mix file: {0} : {1}. Creating a new mix instead.", new Object[]{mixFile.getAbsolutePath(),
+                    ex.getMessage()});   
             }
         }
         if (mm == null)

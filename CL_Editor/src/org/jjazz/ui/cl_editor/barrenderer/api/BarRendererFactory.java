@@ -45,6 +45,10 @@ public interface BarRendererFactory
      * BarRenderer type for sections.
      */
     public final String BR_SECTION = "BrSection";
+    /**
+     * BarRenderer type for bar annotation.
+     */    
+    public final String BR_ANNOTATION = "BrAnnotation";
 
 
     /**

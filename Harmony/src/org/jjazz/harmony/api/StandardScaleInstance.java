@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.StringJoiner;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -217,7 +218,7 @@ public class StandardScaleInstance implements Serializable
             StandardScale ss;
             if (spStdScaleIndex < 0 || spStdScaleIndex >= stdScales.size())
             {
-                LOGGER.warning("readResolve() invalid standard scale index=" + spStdScaleIndex + ". Use MAJOR scale instead.");
+                LOGGER.log(Level.WARNING, "readResolve() invalid standard scale index={0}. Use MAJOR scale instead.", spStdScaleIndex);
                 ss = stdScales.get(0);
             } else
             {

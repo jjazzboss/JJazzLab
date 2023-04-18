@@ -45,7 +45,7 @@ import org.openide.windows.WindowManager;
 @ActionRegistration(displayName = "not_used", lazy = false)
 @ActionReferences(
         {
-            @ActionReference(path = "Actions/Bar", position = 300)
+            @ActionReference(path = "Actions/BarInsert", position = 100)
         })
 public class InsertBar extends AbstractAction implements ContextAwareAction, CL_ContextActionListener
 {
@@ -67,7 +67,6 @@ public class InsertBar extends AbstractAction implements ContextAwareAction, CL_
         this.context = context;
         cap = CL_ContextActionSupport.getInstance(this.context);
         cap.addListener(this);
-        LOGGER.log(Level.FINE, "InsertBar(context) context=" + context);   
         putValue(NAME, undoText);
         putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("I"));
         selectionChange(cap.getSelection());
@@ -122,7 +121,7 @@ public class InsertBar extends AbstractAction implements ContextAwareAction, CL_
                 insertNbBars = selection.getSelectedBars().size();
             }
         }
-        LOGGER.log(Level.FINE, "selectionChange() b=" + b);   
+        LOGGER.log(Level.FINE, "selectionChange() b={0}", b);   
         setEnabled(b);
     }
 

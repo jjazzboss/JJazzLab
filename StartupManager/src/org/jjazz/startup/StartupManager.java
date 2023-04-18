@@ -24,6 +24,7 @@ package org.jjazz.startup;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.startup.spi.StartupTask;
 import org.openide.util.Lookup;
@@ -71,7 +72,7 @@ public class StartupManager
             
             for (var task : res)
             {
-                LOGGER.info("Launcher.run() Starting task: " + task.getName() + " priority=" + task.getPriority());   
+                LOGGER.log(Level.INFO, "Launcher.run() Starting task: {0} priority={1}", new Object[]{task.getName(), task.getPriority()});   
                 task.run();
             }
         }

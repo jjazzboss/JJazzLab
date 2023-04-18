@@ -5,7 +5,7 @@
    height="30"
    id="svg2"
    inkscape:version="1.1 (c68e22c387, 2021-05-23)"
-   sodipodi:docname="BarAnnotationIcon.svg"
+   sodipodi:docname="PaperNoteIcon.svg"
    inkscape:export-filename="D:\JeromeDocs\JJazzLab\src\JJazzLab-X\Graphics\NoteQuarter-20x30.png"
    inkscape:export-xdpi="96"
    inkscape:export-ydpi="96"
@@ -46,13 +46,13 @@
      fit-margin-right="0"
      fit-margin-bottom="0"
      inkscape:zoom="5.6568544"
-     inkscape:cx="1.3258252"
+     inkscape:cx="-11.22532"
      inkscape:cy="-92.896151"
      inkscape:window-x="-8"
      inkscape:window-y="-8"
      inkscape:window-maximized="1"
      inkscape:current-layer="svg2"
-     showguides="true"
+     showguides="false"
      inkscape:guide-bbox="true"
      inkscape:document-rotation="0"
      inkscape:pagecheckerboard="0"
@@ -166,10 +166,10 @@
      transform="translate(-478.20977,-97.892924)"><tspan
        x="-79.734375"
        y="69.390946"
-       id="tspan1877"><tspan
+       id="tspan910"><tspan
          dx="0 20 20 20 20"
          style="font-stretch:normal;font-family:Marl;-inkscape-font-specification:'Marl, Normal'"
-         id="tspan1875">azzss</tspan></tspan></text>
+         id="tspan908">azzss</tspan></tspan></text>
   <style
      type="text/css"
      id="style982">
@@ -243,8 +243,8 @@
   <g
      id="g1834"
      inkscape:export-filename="D:\JeromeDocs\JJazzLab\src\JJazzLab-X\Graphics\BarAnnotationIcon.png"
-     inkscape:export-xdpi="96"
-     inkscape:export-ydpi="96">
+     inkscape:export-xdpi="66.876335"
+     inkscape:export-ydpi="66.876335">
     <path
        style="fill:#ffd42a;fill-opacity:1;stroke:#999999;stroke-width:0.391524px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        d="m 24.40041,-92.328513 8.374348,-3.052856 3.346466,-5.637061 -4.875594,-13.65338 -13.20373,4.34498 5.95839,18.129985 z"

@@ -27,6 +27,7 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.swing.AbstractAction;
@@ -215,7 +216,7 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
                     {
                         // There is a problem (can happen if e.g. .sng was manually updated to change the AltDataFilter values)
                         // Do not add the value
-                        LOGGER.warning("preset() cliCs=" + cliCs + " invalid AltFilter marker value=" + marker);   
+                        LOGGER.log(Level.WARNING, "preset() cliCs={0} invalid AltFilter marker value={1}", new Object[]{cliCs, marker});   
                     } else
                     {
                         list_markerValues.addSelectionInterval(index, index);

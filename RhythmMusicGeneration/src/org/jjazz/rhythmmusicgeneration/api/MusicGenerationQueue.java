@@ -423,7 +423,7 @@ public class MusicGenerationQueue implements Runnable
                 Thread.sleep(postUpdateSleepTime);
             } catch (InterruptedException ex)
             {
-                LOGGER.warning("UpdateGenerator.run() Unexpected UpdateGenerator thread.sleep interruption ex=" + ex.getMessage());
+                LOGGER.log(Level.WARNING, "UpdateGenerator.run() Unexpected UpdateGenerator thread.sleep interruption ex={0}", ex.getMessage());
                 return;
             }
 

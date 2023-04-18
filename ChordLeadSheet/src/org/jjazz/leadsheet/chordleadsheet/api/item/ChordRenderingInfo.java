@@ -30,6 +30,7 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.Objects;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.harmony.api.StandardScaleInstance;
 
@@ -473,7 +474,7 @@ public class ChordRenderingInfo implements Serializable
                         spFeatures = EnumSet.of(Feature.ACCENT, Feature.SHOT);
                         break;
                     default:
-                        LOGGER.warning("readResolve() Invalid value for spPlayStyle=" + spPlayStyleV1 + ". Ignored.");   
+                        LOGGER.log(Level.WARNING, "readResolve() Invalid value for spPlayStyle={0}. Ignored.", spPlayStyleV1);   
                 }
                 if (!spAnticipate)
                 {

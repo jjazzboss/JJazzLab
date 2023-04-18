@@ -50,7 +50,7 @@ public class BarBoxConfig
     private BarBoxConfig()
     {
 
-    }
+    }   
 
     /**
      * Create a config with all BarRenderer types active by default.
@@ -82,18 +82,18 @@ public class BarBoxConfig
     /**
      * Return a new instance of this BarBoxConfig with only the specified BarRenderer types active.
      *
-     * @param brTypes Duplicate strings are ignored
+     * @param activeBrTypes Duplicate strings are ignored
      * @return
      */
-    public BarBoxConfig setActive(String... brTypes)
+    public BarBoxConfig getUpdatedConfig(String... activeBrTypes)
     {
-        checkArgument(brTypes.length > 0, "brTypes.length=%s", brTypes.length);
+        checkArgument(activeBrTypes.length > 0, "activeBrTypes.length=%s", activeBrTypes.length);
 
         var res = new BarBoxConfig();
         res.supportedBarRenderers.addAll(supportedBarRenderers);
 
 
-        for (String brType : brTypes)
+        for (String brType : activeBrTypes)
         {
             if (!supportedBarRenderers.contains(brType))
             {

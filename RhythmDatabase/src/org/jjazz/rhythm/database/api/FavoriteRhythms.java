@@ -25,6 +25,7 @@ package org.jjazz.rhythm.database.api;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import javax.swing.event.SwingPropertyChangeSupport;
@@ -227,7 +228,7 @@ public class FavoriteRhythms
                 rhythms.add(ri);
             } else
             {
-                LOGGER.warning("Could not restore favorite rhythm using saved property rhythmId=" + rId);   
+                LOGGER.log(Level.WARNING, "Could not restore favorite rhythm using saved property rhythmId={0}", rId);   
                 prefs.remove(PROP_FAVORITE_RHYTHM + i);
             }
         }

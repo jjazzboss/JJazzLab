@@ -34,6 +34,7 @@ import org.jjazz.activesong.api.ActiveSongManager;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.song.api.Song;
 import org.jjazz.ui.cl_editor.CL_EditorController;
+import org.jjazz.ui.cl_editor.CL_EditorToolBar;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.awt.UndoRedo;
@@ -65,6 +66,7 @@ public final class CL_EditorTopComponent extends TopComponent implements Propert
      * The ChordLeadSheet editor.
      */
     private CL_Editor clEditor;
+    private CL_EditorToolBar clToolBar;
     /**
      * The editor's controller.
      */
@@ -104,8 +106,12 @@ public final class CL_EditorTopComponent extends TopComponent implements Propert
         clEditorController = new CL_EditorController(clEditor);     // This will update our songModel via Song.putClientProperty() by updating the zoom factors 
         clEditor.setEditorMouseListener(clEditorController);
 
+        
+        clToolBar = new CL_EditorToolBar(clEditor);
+        
         initComponents();
 
+        
         updateTabName();
         
         
@@ -269,15 +275,21 @@ public final class CL_EditorTopComponent extends TopComponent implements Propert
     {
 
         scrollPaneCL_Editor = new javax.swing.JScrollPane(clEditor);
+        toolbar = clToolBar;
 
         setLayout(new java.awt.BorderLayout());
 
         scrollPaneCL_Editor.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         add(scrollPaneCL_Editor, java.awt.BorderLayout.CENTER);
+
+        toolbar.setOrientation(javax.swing.SwingConstants.VERTICAL);
+        toolbar.setRollover(true);
+        add(toolbar, java.awt.BorderLayout.EAST);
     }// </editor-fold>//GEN-END:initComponents
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JScrollPane scrollPaneCL_Editor;
+    private javax.swing.JToolBar toolbar;
     // End of variables declaration//GEN-END:variables
 
     @Override

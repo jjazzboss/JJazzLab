@@ -24,6 +24,7 @@ package org.jjazz.ui.mixconsole.actions;
 
 import org.jjazz.midimix.api.MidiMix;
 import java.awt.event.ActionEvent;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import static javax.swing.Action.NAME;
@@ -69,7 +70,7 @@ public class ResetChannels extends AbstractAction
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        LOGGER.fine("actionPerformed() songMidiMix=" + songMidiMix);   
+        LOGGER.log(Level.FINE, "actionPerformed() songMidiMix={0}", songMidiMix);   
         MixConsole mixConsole = MixConsoleTopComponent.getInstance().getEditor();
         Rhythm visibleRhythm = mixConsole.getVisibleRhythm();
         Song song = mixConsole.getSong();

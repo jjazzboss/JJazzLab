@@ -22,6 +22,7 @@
  */
 package org.jjazz.embeddedsynth;
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import org.jjazz.embeddedsynth.api.EmbeddedSynthException;
@@ -65,7 +66,7 @@ public class StartupEmbeddedSynthInitTask implements Runnable
                 provider.setEmbeddedSynthActive(true);
             } catch (EmbeddedSynthException ex)
             {
-                LOGGER.warning("run() Can't activate embedded synth: " + ex.getMessage());
+                LOGGER.log(Level.WARNING, "run() Can''t activate embedded synth: {0}", ex.getMessage());
             }
         }
     }

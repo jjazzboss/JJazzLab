@@ -160,7 +160,7 @@ public class GSInstrument extends Instrument implements Serializable
         messages[0] = sysMsg;
         messages[1] = msgs[0];
         messages[2] = msgs[1];
-        LOGGER.log(Level.FINE, "getMidiMessages() Sending SysEx messages to set melodic mode on channel " + channel);   
+        LOGGER.log(Level.FINE, "getMidiMessages() Sending SysEx messages to set melodic mode on channel {0}", channel);   
         return messages;
     }
 

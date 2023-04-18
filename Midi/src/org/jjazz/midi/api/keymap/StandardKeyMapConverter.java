@@ -1,5 +1,6 @@
 package org.jjazz.midi.api.keymap;
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.midi.api.DrumKit;
 
@@ -129,7 +130,8 @@ public class StandardKeyMapConverter
         int p = srcPitch - srcKeyMap.getRange().lowNote;
         if (p < 0 || p >= mapSrcDest.length)
         {
-            LOGGER.warning("convertPitch() Invalid srcPitch/keyMap: srcPitch=" + srcPitch + " srcKeyMap=" + srcKeyMap + " mapSrcDest.length=" + mapSrcDest.length);   
+            LOGGER.log(Level.WARNING, "convertPitch() Invalid srcPitch/keyMap: srcPitch={0} srcKeyMap={1} mapSrcDest.length={2}", new Object[]{srcPitch,
+                srcKeyMap, mapSrcDest.length});   
             return srcPitch;
         }
         return mapSrcDest[p];

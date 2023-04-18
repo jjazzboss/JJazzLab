@@ -24,6 +24,7 @@ package org.jjazz.ui.mixconsole.actions;
 
 import org.jjazz.midimix.api.MidiMix;
 import java.awt.event.ActionEvent;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import static javax.swing.Action.NAME;
@@ -60,7 +61,7 @@ public class EnableAllMidiParameters extends AbstractAction
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        LOGGER.fine("actionPerformed() songMidiMix=" + songMidiMix);   
+        LOGGER.log(Level.FINE, "actionPerformed() songMidiMix={0}", songMidiMix);   
 
         Song song = MixConsoleTopComponent.getInstance().getEditor().getSong();
 

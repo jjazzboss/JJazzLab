@@ -25,6 +25,7 @@ package org.jjazz.filedirectorymanager.api;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.nio.file.Path;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import javax.swing.event.SwingPropertyChangeSupport;
@@ -46,10 +47,10 @@ public class FileDirectoryManager
     public static final String TEMPLATE_SONG_NAME = "NewSongTemplate";
     public static final String MIX_FILE_EXTENSION = "mix";
     public static final String SONG_EXTENSION = "sng";
-    public static final String PROP_LAST_SONG_DIRECTORY = "PropLastSongDirectory";    
-    public static final String PROP_RHYTHM_USER_DIRECTORY = "PropRhythmUserDirectory";    
-    public static final String PROP_RHYTHM_MIX_DIRECTORY = "PropRhythmMixDirectory";    
-    public static final String PROP_USE_RHYTHM_USER_DIR_FOR_RHYTHM_DEFAULT_MIX = "PropUseRhythmUserDirForRhythmDefaultMix";    
+    public static final String PROP_LAST_SONG_DIRECTORY = "PropLastSongDirectory";
+    public static final String PROP_RHYTHM_USER_DIRECTORY = "PropRhythmUserDirectory";
+    public static final String PROP_RHYTHM_MIX_DIRECTORY = "PropRhythmMixDirectory";
+    public static final String PROP_USE_RHYTHM_USER_DIR_FOR_RHYTHM_DEFAULT_MIX = "PropUseRhythmUserDirForRhythmDefaultMix";
 
     private static FileDirectoryManager INSTANCE;
     /**
@@ -81,8 +82,7 @@ public class FileDirectoryManager
      * SongMix file will be located in the same directory than songFile.
      *
      * @param songFile
-     * @return Return a new file identical to songFile except the extension. If
-     * songFile is null returns null.
+     * @return Return a new file identical to songFile except the extension. If songFile is null returns null.
      */
     public File getSongMixFile(File songFile)
     {
@@ -106,7 +106,7 @@ public class FileDirectoryManager
     {
         if (rhythmName == null || rhythmName.isEmpty() || rhythmFile == null)
         {
-            throw new IllegalArgumentException("rhythmName=" + rhythmName + " rhythmFile=" + rhythmName);   
+            throw new IllegalArgumentException("rhythmName=" + rhythmName + " rhythmFile=" + rhythmName);
         }
         String rhythmMixFileName;
         if (rhythmFile.getName().isEmpty())
@@ -148,9 +148,9 @@ public class FileDirectoryManager
     {
         // We need a valid user.home directory        
         String uh = System.getProperty("user.home");
-        assert uh != null : "user.home property does not exist: " + uh;   
+        assert uh != null : "user.home property does not exist: " + uh;
         File userHome = new File(uh);
-        assert userHome.isDirectory() : "user.home directory does not exist: " + uh;   
+        assert userHome.isDirectory() : "user.home directory does not exist: " + uh;
 
 
         // Our user dir
@@ -160,11 +160,15 @@ public class FileDirectoryManager
             // Create the directory
             if (!userDir.mkdir())
             {
-                LOGGER.warning("getJJazzLabUserDirectory() Can't create directory " + userDir.getAbsolutePath() + ". Using " + uh + " instead...");   
+                LOGGER.log(Level.WARNING, "getJJazzLabUserDirectory() Can''t create directory {0}. Using {1} instead...", new Object[]
+                {
+                    userDir.getAbsolutePath(),
+                    uh
+                });
                 userDir = userHome;
             } else
             {
-                LOGGER.warning("getJJazzLabUserDirectory() Created JJazzLab user directory " + userDir.getAbsolutePath());   
+                LOGGER.log(Level.WARNING, "getJJazzLabUserDirectory() Created JJazzLab user directory {0}", userDir.getAbsolutePath());
             }
         }
 
@@ -185,14 +189,20 @@ public class FileDirectoryManager
         File f = new File(s);
         if (!f.isDirectory())
         {
-            LOGGER.warning("getUserRhythmDirectory() User rhythm directory not found: " + s + " Using: " + uh + " instead.");   
+            LOGGER.log(Level.WARNING, "getUserRhythmDirectory() User rhythm directory not found: {0} Using: {1} instead.", new Object[]
+            {
+                s,
+                uh
+            });
             f = new File(uh);
             if (!f.isDirectory())
             {
-                LOGGER.severe("getUserRhythmDirectory() No valid user rhythm directory found. Can't reuse system user directory because it does not exist: " + f.getAbsolutePath());   
+                LOGGER.log(Level.SEVERE,
+                        "getUserRhythmDirectory() No valid user rhythm directory found. Can''t reuse system user directory because it does not exist: {0}",
+                        f.getAbsolutePath());
             }
         }
-        LOGGER.fine("getUserRhythmDirectory() f=" + f);   
+        LOGGER.log(Level.FINE, "getUserRhythmDirectory() f={0}", f);
         return f;
     }
 
@@ -205,19 +215,21 @@ public class FileDirectoryManager
     {
         if (!dir.isDirectory())
         {
-            throw new IllegalArgumentException("dir=" + dir);   
+            throw new IllegalArgumentException("dir=" + dir);
         }
         File old = getUserRhythmDirectory();
         prefs.put(PROP_RHYTHM_USER_DIRECTORY, dir.getAbsolutePath());
-        LOGGER.fine("setUserRhythmDirectory() old=" + old + " new=" + dir);   
+        LOGGER.log(Level.FINE, "setUserRhythmDirectory() old={0} new={1}", new Object[]
+        {
+            old, dir
+        });
         pcs.firePropertyChange(PROP_RHYTHM_USER_DIRECTORY, old, dir);
     }
 
     /**
      * Get the directory used for rhythm's default mix files.
      * <p>
-     * If isUseRhyhtmUserDirAsRhythmDefaultMixDir() is true use the same default
-     * value than getUserRhythmDirectory().
+     * If isUseRhyhtmUserDirAsRhythmDefaultMixDir() is true use the same default value than getUserRhythmDirectory().
      *
      * @return Can't be null.
      */
@@ -234,10 +246,10 @@ public class FileDirectoryManager
             f = getUserRhythmDirectory();
             if (!f.isDirectory())
             {
-                LOGGER.severe("getRhythmMixDirectory() No valid rhythm mix directory found : " + f.getAbsolutePath());   
+                LOGGER.log(Level.SEVERE, "getRhythmMixDirectory() No valid rhythm mix directory found : {0}", f.getAbsolutePath());
             }
         }
-        LOGGER.fine("getRhythmMixDirectory() f=" + f);   
+        LOGGER.log(Level.FINE, "getRhythmMixDirectory() f={0}", f);
         return f;
 
     }
@@ -251,11 +263,14 @@ public class FileDirectoryManager
     {
         if (dir == null || !dir.isDirectory())
         {
-            throw new IllegalArgumentException("dir=" + dir);   
+            throw new IllegalArgumentException("dir=" + dir);
         }
         File old = getRhythmMixDirectory();
         prefs.put(PROP_RHYTHM_MIX_DIRECTORY, dir.getAbsolutePath());
-        LOGGER.fine("setRhythmMixDirectory() old=" + old + " new=" + dir);   
+        LOGGER.log(Level.FINE, "setRhythmMixDirectory() old={0} new={1}", new Object[]
+        {
+            old, dir
+        });
         pcs.firePropertyChange(PROP_RHYTHM_MIX_DIRECTORY, old, dir);
     }
 
@@ -265,8 +280,7 @@ public class FileDirectoryManager
     }
 
     /**
-     * If b is true getRhythmMixDirectory() will return the same value as
-     * getUserRhythmDirectory().
+     * If b is true getRhythmMixDirectory() will return the same value as getUserRhythmDirectory().
      *
      * @param b
      */
@@ -281,12 +295,10 @@ public class FileDirectoryManager
      * Get the user specific JJazz configuration directory.
      * <p>
      * <p>
-     * Use the APP_CONFIG_PREFIX_DIR subdir of the Netbeans user directory, or
-     * if not set of the user.home system property. Create the directory if it
-     * does not exist.
+     * Use the APP_CONFIG_PREFIX_DIR subdir of the Netbeans user directory, or if not set of the user.home system property. Create the
+     * directory if it does not exist.
      *
-     * @param subDirName An optional extra subdirectory name
-     * (APP_CONFIG_PREFIX_DIR/subDir). Ignored if null or empty.
+     * @param subDirName An optional extra subdirectory name (APP_CONFIG_PREFIX_DIR/subDir). Ignored if null or empty.
      * @return Could be null if no user directory found.
      */
     public File getAppConfigDirectory(String subDirName)
@@ -297,11 +309,12 @@ public class FileDirectoryManager
         if (userDir == null)
         {
             userDir = new File(System.getProperty("user.home"));
-            LOGGER.warning("getAppConfigDirectory() Netbeans user directory is null. Using user's home directory=" + userDir.getAbsolutePath());               
+            LOGGER.log(Level.WARNING, "getAppConfigDirectory() Netbeans user directory is null. Using user''s home directory={0}",
+                    userDir.getAbsolutePath());
         }
         if (!userDir.isDirectory())
         {
-            LOGGER.severe("getAppConfigDirectory() Can't find a valid user directory userDir=" + userDir);   
+            LOGGER.log(Level.SEVERE, "getAppConfigDirectory() Can''t find a valid user directory userDir={0}", userDir);
             return null;
         }
         File appConfigDir = userDir.toPath().resolve(APP_CONFIG_PREFIX_DIR).toFile();
@@ -312,7 +325,9 @@ public class FileDirectoryManager
                 appConfigDir.mkdir();
             } catch (SecurityException e)
             {
-                LOGGER.severe("getAppConfigDirectory() impossible to create application config dir=" + appConfigDir.getAbsolutePath() + ". Using user home directory instead.");   
+                LOGGER.log(Level.SEVERE,
+                        "getAppConfigDirectory() impossible to create application config dir={0}. Using user home directory instead.",
+                        appConfigDir.getAbsolutePath());
                 appConfigDir = new File(System.getProperty("user.home"));
             }
         }
@@ -329,12 +344,12 @@ public class FileDirectoryManager
 
                 } catch (SecurityException e)
                 {
-                    LOGGER.warning("getAppConfigDirectory() impossible to create " + res.getAbsolutePath());   
+                    LOGGER.log(Level.WARNING, "getAppConfigDirectory() impossible to create {0}", res.getAbsolutePath());
                     res = appConfigDir;
                 }
             }
         }
-        LOGGER.fine("getAppConfigDirectory() res=" + res);   
+        LOGGER.log(Level.FINE, "getAppConfigDirectory() res={0}", res);
         return res;
     }
 
@@ -350,13 +365,13 @@ public class FileDirectoryManager
     {
         if (oldVersion == null)
         {
-            throw new IllegalArgumentException("oldVersion=" + oldVersion + " subDirname=" + subDirname);   
+            throw new IllegalArgumentException("oldVersion=" + oldVersion + " subDirname=" + subDirname);
         }
 
         File userDir = Places.getUserDirectory();
         if (userDir == null || !userDir.isDirectory() || userDir.getParentFile() == null)
         {
-            LOGGER.warning("getOldAppConfigDirectory() Invalid Netbeans User Directory userDir=" + userDir);   
+            LOGGER.log(Level.WARNING, "getOldAppConfigDirectory() Invalid Netbeans User Directory userDir={0}", userDir);
             return null;
         }
 
@@ -381,8 +396,7 @@ public class FileDirectoryManager
     /**
      * The last directory used for song open or song save.
      * <p>
-     * If not set return getJJazzLabUserDirectory() unless it does not exist
-     * anymore.
+     * If not set return getJJazzLabUserDirectory() unless it does not exist anymore.
      *
      * @return Can be null
      */
@@ -407,7 +421,7 @@ public class FileDirectoryManager
                 f = null;
             }
         }
-        LOGGER.fine("getLastSongDirectory() f=" + f);   
+        LOGGER.log(Level.FINE, "getLastSongDirectory() f={0}", f);
         return f;
     }
 
@@ -420,11 +434,14 @@ public class FileDirectoryManager
     {
         if (!dir.isDirectory())
         {
-            throw new IllegalArgumentException("dir=" + dir);   
+            throw new IllegalArgumentException("dir=" + dir);
         }
         File old = getLastSongDirectory();
         prefs.put(PROP_LAST_SONG_DIRECTORY, dir.getAbsolutePath());
-        LOGGER.fine("setLastSongDirectory() old=" + old + " new=" + dir);   
+        LOGGER.log(Level.FINE, "setLastSongDirectory() old={0} new={1}", new Object[]
+        {
+            old, dir
+        });
         pcs.firePropertyChange(PROP_LAST_SONG_DIRECTORY, old, dir);
     }
 

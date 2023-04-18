@@ -318,7 +318,7 @@ public class ImproSupport
                     activeBrTypes.add(2, BarRendererFactory.BR_CHORD_POSITION);
                 }
             }
-            bbc = bbc.setActive(activeBrTypes.toArray(new String[0]));
+            bbc = bbc.getUpdatedConfig(activeBrTypes.toArray(new String[0]));
             clEditor.setBarBoxConfig(bbc, i);
         }
 

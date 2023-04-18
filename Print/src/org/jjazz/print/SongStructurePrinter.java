@@ -34,6 +34,7 @@ import java.awt.print.PrinterException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -150,7 +151,7 @@ public class SongStructurePrinter implements Printable, Pageable
     public int print(Graphics g, PageFormat pageFormat, int pageIndex) throws PrinterException
     {
 
-        LOGGER.fine("print() -- pageIndex=" + pageIndex);   
+        LOGGER.log(Level.FINE, "print() -- pageIndex={0}", pageIndex);   
 
 
         Graphics2D g2d = (Graphics2D) g.create();
@@ -161,7 +162,7 @@ public class SongStructurePrinter implements Printable, Pageable
 
         // Y offset corresponding to pageIndex
         double yOffset = pageIndex * scaledEditorPageHeight;
-        LOGGER.fine("print() yOffset=" + yOffset);   
+        LOGGER.log(Level.FINE, "print() yOffset={0}", yOffset);   
 
 
         // Set position on upper left corner of Imageable area
@@ -258,11 +259,8 @@ public class SongStructurePrinter implements Printable, Pageable
         scaledEditorLastPageHeight = scaledEditorHeight - (nbPages - 1) * scaledEditorPageHeight;
 
 
-        LOGGER.fine("computeEditorDimensions() "   
-                + " scaledEditorHeight=" + scaledEditorHeight
-                + " scaledEditorPageHeight=" + scaledEditorPageHeight
-                + " centralZoneHeight=" + centralZoneHeight
-                + " nbPages=" + nbPages);
+        LOGGER.log(Level.FINE, "computeEditorDimensions()  scaledEditorHeight={0} scaledEditorPageHeight={1} centralZoneHeight={2} nbPages={3}", new Object[]{scaledEditorHeight,
+            scaledEditorPageHeight, centralZoneHeight, nbPages});
     }
 
     private void fireChanged()

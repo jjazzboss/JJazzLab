@@ -35,6 +35,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JLabel;
 import javax.swing.JTable;
@@ -178,7 +179,7 @@ public class RhythmTable extends JTable implements PropertyChangeListener
             {
                 throw new NullPointerException("rhythms");   
             }
-            LOGGER.fine("setRhythms() rhythms.size()=" + rhythms.size());   
+            LOGGER.log(Level.FINE, "setRhythms() rhythms.size()={0}", rhythms.size());   
             this.rhythms = new ArrayList<>(rhythms);
             this.rhythms.sort(new RhythmComparator());
 
@@ -202,7 +203,7 @@ public class RhythmTable extends JTable implements PropertyChangeListener
         public void setHighlighted(RhythmInfo ri, boolean b)
         {
             int mIndex = model.getRhythms().indexOf(ri);
-            LOGGER.fine("setHighlighted() ri=" + ri + " b=" + b + " mIndex=" + mIndex);   
+            LOGGER.log(Level.FINE, "setHighlighted() ri={0} b={1} mIndex={2}", new Object[]{ri, b, mIndex});   
 
             if (mIndex == -1)
             {
@@ -332,7 +333,8 @@ public class RhythmTable extends JTable implements PropertyChangeListener
                         s = "./" + relPath.toString();
                     } catch (IllegalArgumentException ex)
                     {
-                        LOGGER.warning("getValueAt() Can't relativize pFile=" + pParentFile + " to pDir=" + pUserRhythmDir);   
+                        LOGGER.log(Level.WARNING, "getValueAt() Can''t relativize pFile={0} to pDir={1}", new Object[]{pParentFile,
+                            pUserRhythmDir});   
                         s = pParentFile.toString();
                     }
                     return s;

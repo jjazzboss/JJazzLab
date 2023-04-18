@@ -27,6 +27,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.Sequencer;
 import javax.swing.AbstractAction;
@@ -135,7 +136,7 @@ public class PlaybackToNextSongPart extends AbstractAction implements PropertyCh
         Position pos = mc.getCurrentBeatPosition();
         if (songPart == null || pos == null)
         {
-            LOGGER.warning("actionPerformed() unexpected null value songPart=" + songPart + " pos=" + pos);
+            LOGGER.log(Level.WARNING, "actionPerformed() unexpected null value songPart={0} pos={1}", new Object[]{songPart, pos});
             return;
         }
 

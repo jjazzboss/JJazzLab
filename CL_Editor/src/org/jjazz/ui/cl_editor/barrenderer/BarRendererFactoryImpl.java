@@ -68,6 +68,7 @@ public class BarRendererFactoryImpl implements BarRendererFactory
             case BarRendererFactory.BR_CHORD_SYMBOL -> br = new BR_Chords(editor, barIndex, settings, irf, groupKey);
             case BarRendererFactory.BR_CHORD_POSITION -> br = new BR_ChordPositions(editor, barIndex, settings, irf, groupKey);
             case BarRendererFactory.BR_SECTION -> br = new BR_Sections(editor, barIndex, settings, irf, groupKey);
+            case BarRendererFactory.BR_ANNOTATION -> br = new BR_Annotation(editor, barIndex, settings, irf, groupKey);
             default ->
             {
                 // Search a provider in the global lookup

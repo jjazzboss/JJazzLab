@@ -121,7 +121,7 @@ public class SongMemoEditor extends javax.swing.JPanel implements PropertyChange
     public UndoRedo getUndoManager()
     {
         UndoRedo res = songModel == null ? null : mapSongUndoer.get(songModel).getUndoManager();
-        LOGGER.fine("getUndoManager() songModel=" + songModel + " UndoRedo=" + res);   
+        LOGGER.log(Level.FINE, "getUndoManager() songModel={0} UndoRedo={1}", new Object[]{songModel, res});   
         return res;
     }
 
@@ -154,7 +154,7 @@ public class SongMemoEditor extends javax.swing.JPanel implements PropertyChange
                     // An external component has changed the comments
                     var undoer = mapSongUndoer.get(songModel);
                     String txt = (String) evt.getNewValue();
-                    LOGGER.fine("propertyChange() an external component has changed the text to: " + txt);   
+                    LOGGER.log(Level.FINE, "propertyChange() an external component has changed the text to: {0}", txt);   
                     undoer.setTextSilently(txt);    // This will not trigger a document change event
                 }
             } else if (evt.getPropertyName().equals(Song.PROP_CLOSED))
@@ -265,7 +265,7 @@ public class SongMemoEditor extends javax.swing.JPanel implements PropertyChange
         {
             song = Utilities.actionsGlobalContext().lookup(Song.class);
         }
-        LOGGER.log(Level.FINE, "songPresenceChanged() -- song=" + song);   
+        LOGGER.log(Level.FINE, "songPresenceChanged() -- song={0}", song);   
 
         if (song == songModel || song == null)
         {
@@ -441,12 +441,14 @@ public class SongMemoEditor extends javax.swing.JPanel implements PropertyChange
         {
             for (URL url : webLinks)
             {
-                LOGGER.info("btn_openLinksActionPerformed() songModel=" + songModel.getName() + " opening song memo internet link: " + url);
+                LOGGER.log(Level.INFO, "btn_openLinksActionPerformed() songModel={0} opening song memo internet link: {1}", new Object[]{songModel.getName(),
+                    url});
                 org.jjazz.util.api.Utilities.openInBrowser(url, true);         // No user notifying
             }
             for (File file : fileLinks)
             {
-                LOGGER.info("btn_openLinksActionPerformed() songModel=" + songModel.getName() + " opening song memo file link: " + file);
+                LOGGER.log(Level.INFO, "btn_openLinksActionPerformed() songModel={0} opening song memo file link: {1}", new Object[]{songModel.getName(),
+                    file});
                 org.jjazz.util.api.Utilities.openFile(file, true);              // No user notifying
             }
         };

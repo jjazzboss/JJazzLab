@@ -121,6 +121,7 @@ public class BR_ChordPositions extends BarRenderer implements BeatBasedBarRender
             JDialog dlg = getFontMetricsDialog();
             dlg.remove(getPrefSizePanelSharedInstance());
             mapGroupKeyPrefSizePanel.remove(System.identityHashCode(getGroupKey()));
+            getPrefSizePanelSharedInstance().cleanup();
         }
     }
 
@@ -289,7 +290,9 @@ public class BR_ChordPositions extends BarRenderer implements BeatBasedBarRender
     @Override
     public void showInsertionPoint(boolean b, ChordLeadSheetItem<?> item, Position pos, boolean copyMode)
     {
-        LOGGER.fine("showInsertionPoint() b=" + b + " item=" + item + " pos=" + pos + " copyMode=" + copyMode);
+        LOGGER.log(Level.FINE, "showInsertionPoint() b={0} item={1} pos={2} copyMode={3}", new Object[]
+        {
+            b, item, pos, copyMode});
         if (!b)
         {
             // Remove the insertion point
@@ -357,7 +360,7 @@ public class BR_ChordPositions extends BarRenderer implements BeatBasedBarRender
     @Override
     public void setDisplayQuantizationValue(Quantization q)
     {
-        LOGGER.fine("setDisplayQuantizationValue() q=" + q);
+        LOGGER.log(Level.FINE, "setDisplayQuantizationValue() q={0}", q);
         layoutManager.setDisplayQuantization(q);
         revalidate();  // Reposition items
         repaint(); // Update graduations
@@ -490,6 +493,11 @@ public class BR_ChordPositions extends BarRenderer implements BeatBasedBarRender
             JDialog dlg = getFontMetricsDialog();
             dlg.add(this);
             dlg.pack();    // Force all components to be displayable
+        }
+        
+        public void cleanup()
+        {
+            
         }
 
         /**

@@ -105,12 +105,11 @@ public final class TextLayoutUtils
             width = textLayout.getAdvance();
             if (LOG.isLoggable(Level.FINE))
             {
-                LOG.fine("TLUtils.getWidth(\"" + debugText(textLayoutText)
-                        + // NOI18N
-                        "\"): Using TL.getAdvance()=" + width
-                        + // NOI18N
-                        //                        textLayoutDump(textLayout) + 
-                        '\n');
+                LOG.log(Level.FINE, "TLUtils.getWidth(\"{0}\"): Using TL.getAdvance()={1}\n", new Object[]{debugText(textLayoutText), width})
+                // NOI18N
+                // NOI18N
+                //                        textLayoutDump(textLayout) +
+                ;
             }
         } else
         {
@@ -123,13 +122,11 @@ public final class TextLayoutUtils
             float tlAdvance = textLayout.getAdvance();
             if (LOG.isLoggable(Level.FINE))
             {
-                LOG.fine("TLUtils.getWidth(\"" + debugText(textLayoutText)
-                        + // NOI18N
-                        "\"): Using minimum of TL.getPixelBounds().getMaxX()=" + width
-                        + // NOI18N
-                        " or TL.getAdvance()=" + tlAdvance
-                        + textLayoutDump(textLayout)
-                        + '\n');
+                LOG.log(Level.FINE, "TLUtils.getWidth(\"{0}\"): Using minimum of TL.getPixelBounds().getMaxX()={1} or TL.getAdvance()={2}{3}\n", new Object[]{debugText(textLayoutText),
+                    width, tlAdvance, textLayoutDump(textLayout)})
+                // NOI18N
+                // NOI18N
+                ;
             }
             width = Math.min(width, tlAdvance);
         }

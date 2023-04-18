@@ -335,7 +335,8 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
     private void playbackStateChanged()
     {
         MusicController mc = MusicController.getInstance();
-        LOGGER.fine("playbackStateChanged() actionState=" + getBooleanState() + " mc.getPlaybackState()=" + mc.getState());   
+        LOGGER.log(Level.FINE, "playbackStateChanged() actionState={0} mc.getPlaybackState()={1}", new Object[]{getBooleanState(),
+            mc.getState()});   
         setEnabled(!mc.getState().equals(MusicController.State.DISABLED));
         setBooleanState(mc.getState() == MusicController.State.PLAYING);
     }

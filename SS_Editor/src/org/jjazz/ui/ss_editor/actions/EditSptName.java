@@ -88,7 +88,7 @@ public class EditSptName extends AbstractAction implements ContextAwareAction, S
     public void actionPerformed(ActionEvent e)
     {
         SS_SelectionUtilities selection = cap.getSelection();
-        LOGGER.log(Level.FINE, "actionPerformed() selection=" + selection.toString());   
+        LOGGER.log(Level.FINE, "actionPerformed() selection={0}", selection.toString());   
         List<SongPart> spts = selection.getIndirectlySelectedSongParts();
         SongPart spt0 = spts.get(0);
         SongStructure sgs = selection.getModel();

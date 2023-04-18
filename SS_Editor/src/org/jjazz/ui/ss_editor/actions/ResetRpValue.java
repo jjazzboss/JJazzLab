@@ -83,7 +83,7 @@ public final class ResetRpValue extends AbstractAction implements ContextAwareAc
     {
         SS_SelectionUtilities selection = cap.getSelection();
         SongStructure sgs = selection.getModel();
-        LOGGER.log(Level.FINE, "actionPerformed() sgs=" + sgs + " selection=" + selection);   
+        LOGGER.log(Level.FINE, "actionPerformed() sgs={0} selection={1}", new Object[]{sgs, selection});   
         JJazzUndoManagerFinder.getDefault().get(sgs).startCEdit(undoText);
 
         if (selection.isRhythmParameterSelected())
@@ -114,7 +114,7 @@ public final class ResetRpValue extends AbstractAction implements ContextAwareAc
     {
         boolean b = !selection.isEmpty();
         setEnabled(b);
-        LOGGER.log(Level.FINE, "selectionChange() b=" + b);   
+        LOGGER.log(Level.FINE, "selectionChange() b={0}", b);   
     }
 
     @Override

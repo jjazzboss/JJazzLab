@@ -38,6 +38,7 @@ import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JPanel;
 import org.jjazz.harmony.api.ChordSymbol;
@@ -227,7 +228,7 @@ public class GuitarDiagramComponent extends JPanel
 
         if (image == null)
         {
-            LOGGER.warning("paintComponent() image==null ! chordModel=" + chordModel);
+            LOGGER.log(Level.WARNING, "paintComponent() image==null ! chordModel={0}", chordModel);
             return;
         }
 

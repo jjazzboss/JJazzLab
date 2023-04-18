@@ -26,6 +26,7 @@ import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
@@ -108,7 +109,7 @@ public class Pause extends BooleanStateAction implements PropertyChangeListener,
 
         MusicController mc = MusicController.getInstance();
         MusicController.State playBackState = mc.getState();
-        LOGGER.fine("buttonStateChanged() newState=" + newState + " playBackState=" + playBackState);   
+        LOGGER.log(Level.FINE, "buttonStateChanged() newState={0} playBackState={1}", new Object[]{newState, playBackState});   
         switch (playBackState)
         {
             case STOPPED:

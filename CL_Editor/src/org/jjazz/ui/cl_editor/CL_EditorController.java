@@ -52,6 +52,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
+import org.jjazz.ui.cl_editor.actions.ToggleBarAnnotationVisible;
 import org.jjazz.ui.cl_editor.barbox.api.BarBox;
 import org.jjazz.ui.cl_editor.api.CL_Editor;
 import org.jjazz.ui.cl_editor.api.CL_EditorMouseListener;
@@ -130,6 +131,13 @@ public class CL_EditorController implements CL_EditorMouseListener
         editor.getActionMap().put("AccentCrash", Actions.forID("JJazz", "org.jjazz.ui.cl_editor.actions.accentcrash"));
         editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("X"), "ExtendHoldShot");
         editor.getActionMap().put("ExtendHoldShot", Actions.forID("JJazz", "org.jjazz.ui.cl_editor.actions.extendholdshot"));
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(getGenericControlKeyStroke(KeyEvent.VK_L), "ToggleBarAnnotation");
+        editor.getActionMap().put("ToggleBarAnnotation", new ToggleBarAnnotationVisible());
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("L"), "InsertBarAnnotation");
+        editor.getActionMap().put("InsertBarAnnotation", Actions.forID("JJazz", "org.jjazz.ui.cl_editor.actions.insertbarannotation"));
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("T"), "InsertSection");
+        editor.getActionMap().put("InsertSection", Actions.forID("JJazz", "org.jjazz.ui.cl_editor.actions.insertsection"));
+        
 
 
         // Our delegates for standard Netbeans callback actions

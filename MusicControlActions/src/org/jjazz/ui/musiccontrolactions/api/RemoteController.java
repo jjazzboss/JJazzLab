@@ -25,6 +25,7 @@ package org.jjazz.ui.musiccontrolactions.api;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import javax.sound.midi.MidiMessage;
@@ -92,7 +93,7 @@ public class RemoteController
             isEnabled = b;
             prefs.putBoolean(PREF_ENABLED, isEnabled);
             pcs.firePropertyChange(PREF_ENABLED, !isEnabled, isEnabled);
-            LOGGER.info("setEnabled() enabled=" + isEnabled);
+            LOGGER.log(Level.INFO, "setEnabled() enabled={0}", isEnabled);
         }
     }
 

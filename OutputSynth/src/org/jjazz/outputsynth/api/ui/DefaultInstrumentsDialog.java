@@ -29,6 +29,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
 import org.jjazz.analytics.api.Analytics;
@@ -310,13 +311,14 @@ public class DefaultInstrumentsDialog extends javax.swing.JDialog implements Pro
         Instrument remappedIns = tbl_Remap.getSelectedRemappedInstrument();
         if (remappedIns == null)
         {
-            LOGGER.fine("btn_HearActionPerformed() called but invalid remappedIns=" + remappedIns);   
+            LOGGER.log(Level.FINE, "btn_HearActionPerformed() called but invalid remappedIns={0}", remappedIns);   
             return;
         }
         Instrument ins = remapTable.getInstrument(remappedIns);
         if (ins == null || !ins.getMidiAddress().isFullyDefined())
         {
-            LOGGER.fine("btn_HearActionPerformed() called but invalid ins=" + ins + " ins.getMidiAddress()=" + (ins != null ? ins.getMidiAddress() : ""));   
+            LOGGER.log(Level.FINE, "btn_HearActionPerformed() called but invalid ins={0} ins.getMidiAddress()={1}", new Object[]{ins,
+                ins != null ? ins.getMidiAddress() : ""});   
             return;
         }
         tbl_Remap.setEnabled(false);

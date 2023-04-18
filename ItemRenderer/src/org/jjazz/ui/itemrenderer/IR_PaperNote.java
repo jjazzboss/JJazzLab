@@ -36,20 +36,19 @@ import org.jjazz.ui.itemrenderer.api.ItemRenderer;
 import org.jjazz.ui.itemrenderer.api.ItemRendererSettings;
 
 /**
- * Represent a Bar annotation.
+ * Represents a Bar annotation as a paper note image.
  */
-public class IR_BarAnnotation extends ItemRenderer implements IR_Copiable
+public class IR_PaperNote extends ItemRenderer implements IR_Copiable
 {
-
-    private static final Icon ICON = new ImageIcon(IR_BarAnnotation.class.getResource("resources/BarAnnotationIcon.png"));
+    private static final Icon ICON = new ImageIcon(IR_PaperNote.class.getResource("resources/PaperNoteIcon.png"));
     private boolean copyMode;
     private int zoomFactor = 50;
-    private static final Logger LOGGER = Logger.getLogger(IR_BarAnnotation.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(IR_PaperNote.class.getName());
 
     @SuppressWarnings("LeakingThisInConstructor")
-    public IR_BarAnnotation(CLI_BarAnnotation item, ItemRendererSettings irSettings)
+    public IR_PaperNote(CLI_BarAnnotation item, ItemRendererSettings irSettings)
     {
-        super(item, IR_Type.BarAnnotation);
+        super(item, IR_Type.BarAnnotationPaperNote);
         setToolTipText(item.getData());
     }
 

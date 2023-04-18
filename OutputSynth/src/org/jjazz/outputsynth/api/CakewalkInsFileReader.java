@@ -177,7 +177,8 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
                         // Add instrument to the current bank
                         if (currentBankInstruments == null)
                         {
-                            LOGGER.warning("readSynthsFromStream() Patch name found in file " + fileName + " at line " + lineCount + " but no bank set.");   
+                            LOGGER.log(Level.WARNING, "readSynthsFromStream() Patch name found in file {0} at line {1} but no bank set.", new Object[]{fileName,
+                                lineCount});   
                             continue;
                         }
                         String spc = mPatch.group(1);
@@ -188,14 +189,16 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
                         } catch (NumberFormatException e)
                         {
                             // Leave pc=0
-                            LOGGER.warning("readSynthsFromStream() Invalid program change value in file " + fileName + " at line " + lineCount);   
+                            LOGGER.log(Level.WARNING, "readSynthsFromStream() Invalid program change value in file {0} at line {1}", new Object[]{fileName,
+                                lineCount});   
                         }
                         DrumKit kit = null;
                         GM1Instrument gmSubstitute = null;
                         String patchName = mPatch.group(2);
                         if (patchName == null || patchName.trim().isEmpty())
                         {
-                            LOGGER.warning("readSynthsFromStream() Invalid patch name in file " + fileName + " at line " + lineCount);   
+                            LOGGER.log(Level.WARNING, "readSynthsFromStream() Invalid patch name in file {0} at line {1}", new Object[]{fileName,
+                                lineCount});   
                             patchName = "ERROR";
                         } else
                         {
@@ -213,7 +216,8 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
                                 DrumKit.KeyMap kitKeyMap = KeyMapProvider.Util.getKeyMap(keyMapName);
                                 if (kitKeyMap == null)
                                 {
-                                    LOGGER.warning("readSynthsFromStream() Invalid DrumKit KeyMap " + keyMapName + " for instrument" + patchName + " in file " + fileName + " at line " + lineCount + ". Using the GM drum map instead.");   
+                                    LOGGER.log(Level.WARNING, "readSynthsFromStream() Invalid DrumKit KeyMap {0} for instrument{1} in file {2} at line {3}. Using the GM drum map instead.", new Object[]{keyMapName,
+                                        patchName, fileName, lineCount});   
                                     kitKeyMap = KeyMapGM.getInstance();
                                 }
                                 DrumKit.Type kitType = DrumKit.Type.STANDARD;
@@ -222,7 +226,8 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
                                     kitType = DrumKit.Type.valueOf(typeName);
                                 } catch (IllegalArgumentException e)
                                 {
-                                    LOGGER.warning("readSynthsFromStream() Invalid DrumKit type " + typeName + " for instrument" + patchName + " in file " + fileName + " at line " + lineCount + ". Using the STANDARD DrumKit type instead.");   
+                                    LOGGER.log(Level.WARNING, "readSynthsFromStream() Invalid DrumKit type {0} for instrument{1} in file {2} at line {3}. Using the STANDARD DrumKit type instead.", new Object[]{typeName,
+                                        patchName, fileName, lineCount});   
                                 }
                                 kit = new DrumKit(kitType, kitKeyMap);
                             }
@@ -243,8 +248,8 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
                                 }
                                 if (pcGM1 < 0 || pcGM1 > 127)
                                 {
-                                    LOGGER.warning("readSynthsFromStream() Invalid SubGM1 program change " + pcGM1str + " for instrument" + patchName 
-                                            + " in file " + fileName + " at line " + lineCount + ". Using value SubGM1 PC=0 instead.");
+                                    LOGGER.log(Level.WARNING, "readSynthsFromStream() Invalid SubGM1 program change {0} for instrument{1} in file {2} at line {3}. Using value SubGM1 PC=0 instead.", new Object[]{pcGM1str,
+                                        patchName, fileName, lineCount});
                                     pcGM1 = 0;
                                 }
                                 gmSubstitute = GMSynth.getInstance().getGM1Bank().getInstrument(pcGM1);
@@ -296,7 +301,8 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
                         // IMPORTANT: it will impact only lines after this line ! So should be the first line after Synth name
                         if (currentSynth == null)
                         {
-                            LOGGER.warning("readSynthsFromStream() BankSelectMethod found in file " + fileName + " at line " + lineCount + " but no instrument set.");   
+                            LOGGER.log(Level.WARNING, "readSynthsFromStream() BankSelectMethod found in file {0} at line {1} but no instrument set.", new Object[]{fileName,
+                                lineCount});   
                             continue;
                         }
                         String s = mBsm.group(1);
@@ -307,7 +313,8 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
                         } catch (NumberFormatException e)
                         {
                             // Leave defaultBsm=0
-                            LOGGER.warning("readSynthsFromStream() Invalid BankSelectMethod in file " + fileName + " at line " + lineCount);   
+                            LOGGER.log(Level.WARNING, "readSynthsFromStream() Invalid BankSelectMethod in file {0} at line {1}", new Object[]{fileName,
+                                lineCount});   
                         }
                         currentBsm = getBsm(bsm);
                         continue;
@@ -317,7 +324,8 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
                         // Find the bank by its name, set the special BankSelectMethod, attach to the current MidiSynth
                         if (currentSynth == null)
                         {
-                            LOGGER.warning("readSynthsFromStream() Patch[*] found in file " + fileName + " at line " + lineCount + " but no instrument set.");   
+                            LOGGER.log(Level.WARNING, "readSynthsFromStream() Patch[*] found in file {0} at line {1} but no instrument set.", new Object[]{fileName,
+                                lineCount});   
                             continue;
                         }
                         String bankName = m2Patch.group(1).trim();
@@ -344,7 +352,8 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
                         List<Instrument> bankInstruments = mapBankNameInstruments.get(bankName);
                         if (bankInstruments == null)
                         {
-                            LOGGER.warning("readSynthsFromStream() Invalid bank " + bankName + " in file " + fileName + " at line " + lineCount);   
+                            LOGGER.log(Level.WARNING, "readSynthsFromStream() Invalid bank {0} in file {1} at line {2}", new Object[]{bankName,
+                                fileName, lineCount});   
                         } else
                         {
                             // Create the actual bank with BankSelectMethod.PC_ONLY
@@ -373,7 +382,8 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
                                     bank.addInstrument(insCopy);    // Instrument will inherit the MSB/LSB/BSM from the bank
                                 } catch (IllegalArgumentException ex)
                                 {
-                                    LOGGER.warning("readSynthsFromStream() Can't add instrument " + insCopy.getPatchName() + " in file " + fileName + " at line " + lineCount + ". Exception=" + ex.getMessage());   
+                                    LOGGER.log(Level.WARNING, "readSynthsFromStream() Can''t add instrument {0} in file {1} at line {2}. Exception={3}", new Object[]{insCopy.getPatchName(),
+                                        fileName, lineCount, ex.getMessage()});   
                                 }
                             }
                         }
@@ -383,7 +393,8 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
                         // Find the bank by its name, set the MSB and LSB, attach to the current MidiSynth
                         if (currentSynth == null)
                         {
-                            LOGGER.warning("readSynthsFromStream() Patch[] found in file " + fileName + " at line " + lineCount + " but no instrument set.");   
+                            LOGGER.log(Level.WARNING, "readSynthsFromStream() Patch[] found in file {0} at line {1} but no instrument set.", new Object[]{fileName,
+                                lineCount});   
                             continue;
                         }
                         String s = mPatch.group(1);
@@ -394,7 +405,8 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
                         } catch (NumberFormatException e)
                         {
                             // Leave i=0
-                            LOGGER.warning("readSynthsFromStream() Invalid Patch[] integer value in file " + fileName + " at line " + lineCount);   
+                            LOGGER.log(Level.WARNING, "readSynthsFromStream() Invalid Patch[] integer value in file {0} at line {1}", new Object[]{fileName,
+                                lineCount});   
                         }
                         int msb = value / 128;
                         int lsb = value - (msb * 128);
@@ -419,10 +431,12 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
                         List<Instrument> bankInstruments = mapBankNameInstruments.get(bankName);
                         if (bankInstruments == null)
                         {
-                            LOGGER.warning("readSynthsFromStream() Invalid bank " + bankName + " in file " + fileName + " at line " + lineCount);   
+                            LOGGER.log(Level.WARNING, "readSynthsFromStream() Invalid bank {0} in file {1} at line {2}", new Object[]{bankName,
+                                fileName, lineCount});   
                         } else if (bankInstruments.isEmpty())
                         {
-                            LOGGER.warning("readSynthsFromStream() Empty bank " + bankName + " in file " + fileName + " at line " + lineCount);   
+                            LOGGER.log(Level.WARNING, "readSynthsFromStream() Empty bank {0} in file {1} at line {2}", new Object[]{bankName,
+                                fileName, lineCount});   
 
                         } else
                         {
@@ -440,22 +454,24 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
                                     case "GM":
                                         currentSynth.setCompatibility(true, null, null, null);
                                         currentSynth.setGM1BankBaseMidiAddress(new MidiAddress(0, msb, lsb, currentBsm));
-                                        LOGGER.fine("readSynthsFromStream() marking " + currentSynth.getName() + " as GM compatible, GM1 bank base address=" + currentSynth.getGM1BankBaseMidiAddress());
+                                        LOGGER.log(Level.FINE, "readSynthsFromStream() marking {0} as GM compatible, GM1 bank base address={1}", new Object[]{currentSynth.getName(),
+                                            currentSynth.getGM1BankBaseMidiAddress()});
                                         break;
                                     case "GM2":
                                         currentSynth.setCompatibility(null, true, null, null);
-                                        LOGGER.fine("readSynthsFromStream() marking currentSynth=" + currentSynth.getName() + " as GM2 compatible");
+                                        LOGGER.log(Level.FINE, "readSynthsFromStream() marking currentSynth={0} as GM2 compatible", currentSynth.getName());
                                         break;
                                     case "XG":
                                         currentSynth.setCompatibility(null, null, true, null);
-                                        LOGGER.fine("readSynthsFromStream() marking currentSynth=" + currentSynth.getName() + " as XG compatible");
+                                        LOGGER.log(Level.FINE, "readSynthsFromStream() marking currentSynth={0} as XG compatible", currentSynth.getName());
                                         break;
                                     case "GS":
                                         currentSynth.setCompatibility(null, null, null, true);
-                                        LOGGER.fine("readSynthsFromStream() marking currentSynth=" + currentSynth.getName() + " as GS compatible");
+                                        LOGGER.log(Level.FINE, "readSynthsFromStream() marking currentSynth={0} as GS compatible", currentSynth.getName());
                                         break;
                                     default:
-                                        LOGGER.warning("readSynthsFromStream() unexpected bankType value" + bankType + " in file " + fileName + " at line " + lineCount);   
+                                        LOGGER.log(Level.WARNING, "readSynthsFromStream() unexpected bankType value{0} in file {1} at line {2}", new Object[]{bankType,
+                                            fileName, lineCount});   
                                 }
                             }
 
@@ -483,7 +499,8 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
                                     bank.addInstrument(insCopy);    // Instrument will inherit the MSB/LSB/BSM from the bank
                                 } catch (IllegalArgumentException ex)
                                 {
-                                    LOGGER.warning("readSynthsFromStream() Can't add instrument " + insCopy.getPatchName() + " in file " + fileName + " at line " + lineCount + ". Exception=" + ex.getMessage());   
+                                    LOGGER.log(Level.WARNING, "readSynthsFromStream() Can''t add instrument {0} in file {1} at line {2}. Exception={3}", new Object[]{insCopy.getPatchName(),
+                                        fileName, lineCount, ex.getMessage()});   
                                 }
                             }
                         }
@@ -503,10 +520,10 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
         // etc.
         synths.removeIf(ms -> ms.getNbInstruments() == 0);
 
-        LOGGER.fine("readSynthsFromStream() EXIT synths.size()=" + synths.size());   
+        LOGGER.log(Level.FINE, "readSynthsFromStream() EXIT synths.size()={0}", synths.size());   
         if (synths.isEmpty())
         {
-            LOGGER.warning("No synth found " + ((f == null ? "" : "in file " + f.getAbsolutePath())));   
+            LOGGER.log(Level.WARNING, "No synth found {0}", f == null ? "" : "in file " + f.getAbsolutePath());   
         }
 
         return synths;

@@ -616,7 +616,8 @@ public class RemapTableInstrumentChooser extends JDialog implements ChangeListen
         Instrument ins = tbl_Instruments.getSelectedInstrument();
         if (ins == null || !ins.getMidiAddress().isFullyDefined())
         {
-            LOGGER.fine("btn_HearActionPerformed() called but invalid ins=" + ins + " ins.getMidiAddress()=" + ins.getMidiAddress());   
+            LOGGER.log(Level.FINE, "btn_HearActionPerformed() called but invalid ins={0} ins.getMidiAddress()={1}", new Object[]{ins,
+                ins.getMidiAddress()});   
             return;
         }
 
@@ -666,7 +667,7 @@ public class RemapTableInstrumentChooser extends JDialog implements ChangeListen
             rf = RowFilter.regexFilter("(?i)" + s);
         } catch (java.util.regex.PatternSyntaxException e)
         {
-            LOGGER.warning("tf_FilterActionPerformed() invalid filter regex string e=" + e.getMessage());   
+            LOGGER.log(Level.WARNING, "tf_FilterActionPerformed() invalid filter regex string e={0}", e.getMessage());   
             return;
         }
         TableRowSorter<? extends TableModel> sorter = (TableRowSorter<? extends TableModel>) tbl_Instruments.getRowSorter();

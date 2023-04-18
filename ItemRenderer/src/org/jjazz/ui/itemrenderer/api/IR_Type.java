@@ -27,5 +27,5 @@ package org.jjazz.ui.itemrenderer.api;
  */
 public enum IR_Type
 {
-    ChordSymbol, ChordPosition, Section, TimeSignature, PositionMark, BarAnnotation
+    ChordSymbol, ChordPosition, Section, TimeSignature, PositionMark, BarAnnotationPaperNote, BarAnnotationText
 }

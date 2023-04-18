@@ -29,6 +29,7 @@ import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -122,7 +123,7 @@ public final class CreatePracticeSong extends AbstractAction implements ContextA
             newSong = createSong(song, selRange, newCls);
         } catch (UnsupportedEditException ex)
         {
-            LOGGER.warning("actionPerformed() ex=" + ex.getMessage());
+            LOGGER.log(Level.WARNING, "actionPerformed() ex={0}", ex.getMessage());
             NotifyDescriptor nd = new NotifyDescriptor.Message(ex.getMessage(), NotifyDescriptor.WARNING_MESSAGE);
             DialogDisplayer.getDefault().notify(nd);
             return;

@@ -39,7 +39,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.ui.colorsetmanager.api.ColorSetManager;
 
 /**
- * Represent a section's name.
+ * Represents a section name.
  */
 public class IR_Section extends ItemRenderer implements IR_Copiable
 {
@@ -52,7 +52,7 @@ public class IR_Section extends ItemRenderer implements IR_Copiable
     /**
      * Our graphical settings.
      */
-    private IR_SectionSettings settings;
+    private final IR_SectionSettings settings;
     /**
      * Copy mode.
      */
@@ -80,6 +80,7 @@ public class IR_Section extends ItemRenderer implements IR_Copiable
         super(item, IR_Type.Section);
         sectionString = item.getData().getName();
 
+        
         // Register settings changes
         settings = irSettings.getIR_SectionSettings();
         settings.addPropertyChangeListener(this);

@@ -95,7 +95,6 @@ public class BR_Sections extends BarRenderer implements ComponentListener, Prope
 
 
         // Explicity set the preferred size so that layout's preferredLayoutSize() is never called
-        // Use PREF_SIZE_SECTION_PANEL prefSize and listen to its changes
         setPreferredSize(getPrefSizePanelSharedInstance().getPreferredSize());
         getPrefSizePanelSharedInstance().addComponentListener(this);
         setMinimumSize(MIN_SIZE);
@@ -130,6 +129,7 @@ public class BR_Sections extends BarRenderer implements ComponentListener, Prope
             JDialog dlg = getFontMetricsDialog();
             dlg.remove(getPrefSizePanelSharedInstance());
             mapGroupKeyPrefSizePanel.remove(System.identityHashCode(getGroupKey()));
+            getPrefSizePanelSharedInstance().cleanup();
         }
     }
 
@@ -443,6 +443,11 @@ public class BR_Sections extends BarRenderer implements ComponentListener, Prope
             dlg.pack();    // Force all components to be displayable
         }
 
+        public void cleanup()
+        {
+            settings.removePropertyChangeListener(this);
+        }
+        
         /**
          * Overridden to use our own calculation instead of using FlowLayout's preferredLayoutSize().
          *

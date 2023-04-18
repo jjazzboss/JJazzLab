@@ -28,6 +28,7 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import javax.sound.midi.InvalidMidiDataException;
@@ -138,7 +139,7 @@ public class RemoteAction
 
         } catch (ParseException | InvalidMidiDataException ex)
         {
-            LOGGER.warning("loadFromPreference() Invalid save string: " + s);
+            LOGGER.log(Level.WARNING, "loadFromPreference() Invalid save string: {0}", s);
             return null;
         }
     }

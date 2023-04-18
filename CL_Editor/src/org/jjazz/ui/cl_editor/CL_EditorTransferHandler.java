@@ -324,7 +324,7 @@ public class CL_EditorTransferHandler extends TransferHandler
         {
             if (sourceBarIndex == newBarIndex)
             {
-                LOGGER.log(Level.FINE, "importData() sourceBarIndex={0}=newBarIndex", sourceBarIndex);
+                LOGGER.log(Level.FINE, "importData() sourceBarIndex==newBarIndex=={0}", sourceBarIndex);
                 return false;
             }
 
@@ -343,17 +343,16 @@ public class CL_EditorTransferHandler extends TransferHandler
                 // There is already an annotation there, just update its content
                 cls.changeItem(curAnnotation, cliBa.getData());
                 editor.selectItem(curAnnotation, true);
-                editor.setFocusOnItem(curAnnotation, IR_Type.BarAnnotation);
-            } 
-            else
+                editor.setFocusOnItem(curAnnotation, IR_Type.BarAnnotationPaperNote);
+            } else
             {
                 // Add a new annotation
                 CLI_BarAnnotation cliCopy = (CLI_BarAnnotation) cliBa.getCopy(null, newPos);
                 cls.addItem(cliCopy);
                 editor.selectItem(cliCopy, true);
-                editor.setFocusOnItem(cliCopy, IR_Type.BarAnnotation);
-            } 
-            
+                editor.setFocusOnItem(cliCopy, IR_Type.BarAnnotationPaperNote);
+            }
+
             if (info.getDropAction() == MOVE)
             {
                 // Move annotation
@@ -361,8 +360,8 @@ public class CL_EditorTransferHandler extends TransferHandler
             }
 
             um.endCEdit(editName);
-            
-            
+
+
         } else // ChordSymbols
         {
             if (info.getDropAction() == COPY)

@@ -122,7 +122,7 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
         if (e.getSource() == list_rhythmProviders)
         {
             RhythmProvider rp = list_rhythmProviders.getSelectedValue();
-            LOGGER.log(Level.FINE, "valueChanged() selected RhythmProvider=" + rp);   
+            LOGGER.log(Level.FINE, "valueChanged() selected RhythmProvider={0}", rp);   
             boolean b = false;
             if (rp != null)
             {
@@ -133,7 +133,7 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
         } else if (e.getSource() == rhythmTable.getSelectionModel())
         {
             RhythmInfo ri = rhythmTable.getSelectedRhythm();
-            LOGGER.log(Level.FINE, "valueChanged() selected Rhythm=" + ri);   
+            LOGGER.log(Level.FINE, "valueChanged() selected Rhythm={0}", ri);   
             btn_setDefaultRhythm.setEnabled(ri != null && !ri.isAdaptedRhythm());
         }
     }
@@ -525,7 +525,7 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
                 .toList();
 
         // Update the table
-        LOGGER.fine("updateRhythmTable() rp=" + rp.getInfo().getName() + " rhythms.size()=" + rhythms.size());   
+        LOGGER.log(Level.FINE, "updateRhythmTable() rp={0} rhythms.size()={1}", new Object[]{rp.getInfo().getName(), rhythms.size()});   
         rhythmTable.getModel().setRhythms(rhythms);
     }
     

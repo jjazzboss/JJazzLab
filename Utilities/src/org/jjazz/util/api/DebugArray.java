@@ -90,7 +90,7 @@ public class DebugArray<T> extends ArrayList<T>
     @Override
     public void clear()
     {
-        LOGGER.log(Level.FINE, id + ":clear()");   
+        LOGGER.log(Level.FINE, "{0}:clear()", id);   
         super.clear();
     }
 

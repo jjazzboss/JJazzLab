@@ -132,7 +132,7 @@ public class OutputSynth
         {
             // No conversion possible, use void for drums or the default at instrument
             var ins = rv.isDrums() ? GMSynth.getInstance().getVoidInstrument() : rv.getType().getDefaultInstrument();
-            LOGGER.log(Level.FINE, "findInstrument() rv preferred instrument=VoidInstrument, return ins=" + ins);   
+            LOGGER.log(Level.FINE, "findInstrument() rv preferred instrument=VoidInstrument, return ins={0}", ins);   
             return ins;
         }
 

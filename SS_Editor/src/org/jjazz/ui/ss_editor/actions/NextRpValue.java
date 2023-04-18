@@ -107,7 +107,7 @@ public final class NextRpValue extends AbstractAction implements ContextAwareAct
     {
         boolean b = selection.isEnumerableRhythmParameterSelected();
         setEnabled(b);
-        LOGGER.log(Level.FINE, "selectionChange() b=" + b);
+        LOGGER.log(Level.FINE, "selectionChange() b={0}", b);
     }
 
     @Override

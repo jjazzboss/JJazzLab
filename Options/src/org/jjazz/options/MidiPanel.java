@@ -141,7 +141,7 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
         {
             saveOutDeviceNameForCancel = EMBEDDED_SYNTH_WAS_ACTIVE_STRING;
         }
-        LOGGER.log(Level.FINE, "load() saveOutDeviceNameForCancel=" + saveOutDeviceNameForCancel);
+        LOGGER.log(Level.FINE, "load() saveOutDeviceNameForCancel={0}", saveOutDeviceNameForCancel);
 
         // Update state
         editedOutputSynth = OutputSynthManager.getInstance().getDefaultOutputSynth();
@@ -851,7 +851,7 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
             embeddedSynthProvider.setEmbeddedSynthActive(cb_usejjSynth.isSelected());
         } catch (EmbeddedSynthException ex)
         {
-            LOGGER.warning("cb_usejjSynthActionPerformed() " + ex.getMessage());
+            LOGGER.log(Level.WARNING, "cb_usejjSynthActionPerformed() {0}", ex.getMessage());
             NotifyDescriptor nd = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(nd);
         }

@@ -22,6 +22,7 @@
  */
 package org.jjazz.ui.itemrenderer;
 
+import org.jjazz.ui.itemrenderer.api.IR_AnnotationText;
 import org.jjazz.ui.itemrenderer.api.IR_Section;
 import java.util.logging.Logger;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_BarAnnotation;
@@ -43,7 +44,8 @@ public class ItemRendererFactoryImpl implements ItemRendererFactory
     private static IR_ChordPosition SAMPLE_CHORD_POSITION_RENDERER;
     private static IR_TimeSignature SAMPLE_TIME_SIGNATURE_RENDERER;
     private static IR_PositionMark SAMPLE_POSITION_MARK_RENDERER;
-    private static IR_BarAnnotation SAMPLE_BAR_ANNOTATION_RENDERER;
+    private static IR_PaperNote SAMPLE_PAPER_NOTE_RENDERER;
+    private static IR_AnnotationText SAMPLE_ANNOTATION_TEXT_RENDERER;
     private static final Logger LOGGER = Logger.getLogger(ItemRendererFactoryImpl.class.getName());
 
     public static ItemRendererFactoryImpl getInstance()
@@ -65,31 +67,24 @@ public class ItemRendererFactoryImpl implements ItemRendererFactory
     @Override
     public ItemRenderer createItemRenderer(IR_Type type, ChordLeadSheetItem<?> item, ItemRendererSettings settings)
     {
-        ItemRenderer ir;
-        switch (type)
+        ItemRenderer ir = switch (type)
         {
-            case ChordSymbol:
-                ir = new IR_ChordSymbol((CLI_ChordSymbol) item, settings);
-                break;
-            case ChordPosition:
-                ir = new IR_ChordPosition((CLI_ChordSymbol) item, settings);
-                break;
-            case Section:
-                ir = new IR_Section((CLI_Section) item, settings);
-                break;
-            case TimeSignature:
-                ir = new IR_TimeSignature((CLI_Section) item, settings);
-                break;
-            case PositionMark:
-                ir = new IR_PositionMark(item);
-                break;
-            case BarAnnotation:
-                ir = new IR_BarAnnotation((CLI_BarAnnotation) item, settings);
-                break;
-
-            default:
-                throw new IllegalArgumentException("type=" + type + " item=" + item);
-        }
+            case ChordSymbol ->
+                new IR_ChordSymbol((CLI_ChordSymbol) item, settings);
+            case ChordPosition ->
+                new IR_ChordPosition((CLI_ChordSymbol) item, settings);
+            case Section ->
+                new IR_Section((CLI_Section) item, settings);
+            case TimeSignature ->
+                new IR_TimeSignature((CLI_Section) item, settings);
+            case PositionMark ->
+                new IR_PositionMark(item);
+            case BarAnnotationPaperNote ->
+                new IR_PaperNote((CLI_BarAnnotation) item, settings);
+            case BarAnnotationText ->
+                new IR_AnnotationText((CLI_BarAnnotation) item, settings);
+            default -> throw new IllegalArgumentException("type=" + type + " item=" + item);
+        };
         return ir;
     }
 
@@ -100,50 +95,64 @@ public class ItemRendererFactoryImpl implements ItemRendererFactory
         CLI_Factory cliFactory = CLI_Factory.getDefault();
         switch (type)
         {
-            case ChordSymbol:
+            case ChordSymbol ->
+            {
                 if (SAMPLE_CHORD_SYMBOL_RENDERER == null)
                 {
                     SAMPLE_CHORD_SYMBOL_RENDERER = new IR_ChordSymbol(cliFactory.getSampleChordSymbol(), settings);
                 }
                 ir = SAMPLE_CHORD_SYMBOL_RENDERER;
-
-                break;
-            case ChordPosition:
+            }
+            case ChordPosition ->
+            {
                 if (SAMPLE_CHORD_POSITION_RENDERER == null)
                 {
                     SAMPLE_CHORD_POSITION_RENDERER = new IR_ChordPosition(cliFactory.getSampleChordSymbol(), settings);
                 }
                 ir = SAMPLE_CHORD_POSITION_RENDERER;
-                break;
-            case Section:
+            }
+            case Section ->
+            {
                 if (SAMPLE_SECTION_RENDERER == null)
                 {
                     SAMPLE_SECTION_RENDERER = new IR_Section(cliFactory.getSampleSection(), settings);
                 }
                 ir = SAMPLE_SECTION_RENDERER;
-                break;
-            case TimeSignature:
+            }
+            case TimeSignature ->
+            {
                 if (SAMPLE_TIME_SIGNATURE_RENDERER == null)
                 {
                     SAMPLE_TIME_SIGNATURE_RENDERER = new IR_TimeSignature(cliFactory.getSampleSection(), settings);
                 }
                 ir = SAMPLE_TIME_SIGNATURE_RENDERER;
-                break;
-            case PositionMark:
+            }
+            case PositionMark ->
+            {
                 if (SAMPLE_POSITION_MARK_RENDERER == null)
                 {
                     SAMPLE_POSITION_MARK_RENDERER = new IR_PositionMark(cliFactory.getSampleSection());
                 }
                 ir = SAMPLE_POSITION_MARK_RENDERER;
-                break;
-            case BarAnnotation:
-                if (SAMPLE_BAR_ANNOTATION_RENDERER == null)
+            }
+            case BarAnnotationPaperNote ->
+            {
+                if (SAMPLE_PAPER_NOTE_RENDERER == null)
                 {
-                    SAMPLE_BAR_ANNOTATION_RENDERER = new IR_BarAnnotation(cliFactory.createBarAnnotation(null, "edit me", 0), settings);
+                    SAMPLE_PAPER_NOTE_RENDERER = new IR_PaperNote(cliFactory.createBarAnnotation(null, "edit me", 0), settings);
                 }
-                ir = SAMPLE_BAR_ANNOTATION_RENDERER;
-                break;
-            default:
+                ir = SAMPLE_PAPER_NOTE_RENDERER;
+            }
+            case BarAnnotationText ->
+            {
+                if (SAMPLE_ANNOTATION_TEXT_RENDERER == null)
+                {
+                    SAMPLE_ANNOTATION_TEXT_RENDERER = new IR_AnnotationText(cliFactory.createBarAnnotation(null, "Some LYRICS!", 0),
+                            settings);
+                }
+                ir = SAMPLE_ANNOTATION_TEXT_RENDERER;
+            }
+            default ->
                 throw new IllegalArgumentException("type=" + type);
         }
         return ir;
@@ -153,21 +162,17 @@ public class ItemRendererFactoryImpl implements ItemRendererFactory
     public ItemRenderer createDraggedItemRenderer(IR_Type type, ChordLeadSheetItem<?> item, ItemRendererSettings settings)
     {
         // Use default implementations, but we could imagine special renderers for dragged items.
-        ItemRenderer ir;
-        switch (type)
+        ItemRenderer ir = switch (type)
         {
-            case ChordSymbol:
-                ir = new IR_ChordSymbol((CLI_ChordSymbol) item, settings);
-                break;
-            case Section:
-                ir = new IR_Section((CLI_Section) item, settings);
-                break;
-            case TimeSignature:
-                ir = new IR_TimeSignature((CLI_Section) item, settings);
-                break;
-            default:
-                ir = null;
-        }
+            case ChordSymbol ->
+                new IR_ChordSymbol((CLI_ChordSymbol) item, settings);
+            case Section ->
+                new IR_Section((CLI_Section) item, settings);
+            case TimeSignature ->
+                new IR_TimeSignature((CLI_Section) item, settings);
+            default ->
+                null;
+        };
         return ir;
     }
 }

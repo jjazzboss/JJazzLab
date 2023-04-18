@@ -366,7 +366,7 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
             }
         }
 
-        LOGGER.fine("getRecommendedRhythm() ts=" + ts + " sptBarIndex=" + sptBarIndex + " result r=" + r);
+        LOGGER.log(Level.FINE, "getRecommendedRhythm() ts={0} sptBarIndex={1} result r={2}", new Object[]{ts, sptBarIndex, r});
         return r;
     }
 
@@ -1015,7 +1015,7 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
                     // Have the adapted rhythm created and made available in the database
                     if (rdb.getAdaptedRhythmInstance(r, ts) == null)
                     {
-                        LOGGER.info("generateAllAdaptedRhythms() Can't get a " + ts + "-adapted rhythm for r=" + r);
+                        LOGGER.log(Level.INFO, "generateAllAdaptedRhythms() Can''t get a {0}-adapted rhythm for r={1}", new Object[]{ts, r});
                     }
                 }
             }

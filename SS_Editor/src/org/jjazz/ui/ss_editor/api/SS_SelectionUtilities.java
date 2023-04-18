@@ -140,7 +140,8 @@ final public class SS_SelectionUtilities
                 return spt1.getStartBarIndex() - spt2.getStartBarIndex();
             }
         });
-        LOGGER.log(Level.FINE, "refreshSongParts() minStartSptIndex=" + minStartSptIndex + " maxStartSptIndex=" + maxStartSptIndex + " isOneSection=" + isContiguousSptSelection);   
+        LOGGER.log(Level.FINE, "refreshSongParts() minStartSptIndex={0} maxStartSptIndex={1} isOneSection={2}", new Object[]{minStartSptIndex,
+            maxStartSptIndex, isContiguousSptSelection});   
     }
 
     private void refreshRhythmParameters(List<SongPartParameter> sptps)

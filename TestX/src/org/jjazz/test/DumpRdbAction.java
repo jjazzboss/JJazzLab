@@ -24,6 +24,7 @@ package org.jjazz.test;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.database.api.RhythmDatabase;
@@ -55,10 +56,11 @@ public final class DumpRdbAction implements ActionListener
         LOGGER.severe("Dumping rhythm database ----------");   
         for (RhythmProvider rp : rdb.getRhythmProviders())
         {
-            LOGGER.severe("\n===== RhythmProvider = " + rp.getInfo().getName() + '@' + Integer.toHexString(rp.hashCode()));   
+            LOGGER.log(Level.SEVERE, "\n===== RhythmProvider = {0}@{1}", new Object[]{rp.getInfo().getName(),
+                Integer.toHexString(rp.hashCode())});   
             for (RhythmInfo ri : rdb.getRhythms(rp))
             {
-                LOGGER.severe("  " + ri);   
+                LOGGER.log(Level.SEVERE, "  {0}", ri);   
             }
 
         }

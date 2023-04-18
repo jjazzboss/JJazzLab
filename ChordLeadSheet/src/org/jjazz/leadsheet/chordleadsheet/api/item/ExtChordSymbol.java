@@ -420,7 +420,10 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
                 try
                 {
                     ecs = get(spName, spRenderingInfo, spAltChordSymbol, spAltFilter);
-                    LOGGER.log(Level.WARNING, spOriginalName + ": Invalid chord symbol. Using '" + spName + "' instead.");
+                    LOGGER.log(Level.WARNING, "{0}: Invalid chord symbol. Using ''{1}'' instead.", new Object[]
+                    {
+                        spOriginalName, spName
+                    });
                 } catch (ParseException e)
                 {
                     // Nothing
@@ -428,7 +431,7 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
             }
             if (ecs == null)
             {
-                LOGGER.log(Level.WARNING, spName + ": Invalid chord symbol. Using 'C' ChordSymbol instead.");
+                LOGGER.log(Level.WARNING, "{0}: Invalid chord symbol. Using ''C'' ChordSymbol instead.", spName);
                 ecs = new ExtChordSymbol();
             }
 

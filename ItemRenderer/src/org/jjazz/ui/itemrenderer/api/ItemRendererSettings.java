@@ -38,7 +38,7 @@ public interface ItemRendererSettings
         ItemRendererSettings result = Lookup.getDefault().lookup(ItemRendererSettings.class);
         if (result == null)
         {
-            throw new NullPointerException("result=" + result);   
+            throw new NullPointerException("result=" + result);
         }
         return result;
     }
@@ -53,10 +53,15 @@ public interface ItemRendererSettings
         return IR_SectionSettings.getDefault();
     }
 
+    default IR_AnnotationTextSettings getIR_AnnotationTextSettings()
+    {
+        return IR_AnnotationTextSettings.getDefault();
+    }
+
     default IR_TimeSignatureSettings getIR_TimeSignatureSettings()
     {
         return IR_TimeSignatureSettings.getDefault();
-    }   
+    }
 
     void setSelectedBackgroundColor(Color color);
 

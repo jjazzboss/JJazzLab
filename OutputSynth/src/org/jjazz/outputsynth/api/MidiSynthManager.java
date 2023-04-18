@@ -32,6 +32,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -350,7 +351,7 @@ public class MidiSynthManager
                     msm.addMidiSynth(res);
                 } catch (IOException ex)
                 {
-                    LOGGER.warning("SynthFinder.getMidiSynth() can't load MidiSynth ex=" + ex.getMessage());
+                    LOGGER.log(Level.WARNING, "SynthFinder.getMidiSynth() can''t load MidiSynth ex={0}", ex.getMessage());
                 }
             }
 
@@ -409,7 +410,7 @@ public class MidiSynthManager
             }
             if (!dir.isDirectory())
             {
-                LOGGER.warning("CopyMidiSynthsTask.initializeDir() Could not access directory " + dir.getAbsolutePath() + ".");   
+                LOGGER.log(Level.WARNING, "CopyMidiSynthsTask.initializeDir() Could not access directory {0}.", dir.getAbsolutePath());   
             } else
             {
                 // Copy files 
@@ -433,7 +434,7 @@ public class MidiSynthManager
                 isEmpty = Utilities.isEmpty(dir.toPath());
             } catch (IOException ex)
             {
-                LOGGER.warning("CopyMidiSynthsTask.copyFilesOrNot() Can't check if dir. is empty. ex=" + ex.getMessage());   
+                LOGGER.log(Level.WARNING, "CopyMidiSynthsTask.copyFilesOrNot() Can''t check if dir. is empty. ex={0}", ex.getMessage());   
                 return;
             }
 
@@ -455,7 +456,8 @@ public class MidiSynthManager
 
             // Copy the default rhythms
             List<File> res = Utilities.extractZipResource(getClass(), ZIP_RESOURCE_PATH, dir.toPath(), true);
-            LOGGER.info("CopyMidiSynthsTask.copyFilesOrNot() Copied " + res.size() + " Midi synth definition files to " + dir.getAbsolutePath());   
+            LOGGER.log(Level.INFO, "CopyMidiSynthsTask.copyFilesOrNot() Copied {0} Midi synth definition files to {1}", new Object[]{res.size(),
+                dir.getAbsolutePath()});   
 
         }
 

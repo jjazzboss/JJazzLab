@@ -23,6 +23,7 @@
 package org.jjazz.songeditormanager;
 
 import java.io.File;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiUnavailableException;
 import javax.swing.JFileChooser;
@@ -191,7 +192,8 @@ class SaveUtils
             midiMix = MidiMixManager.getInstance().findMix(song);
         } catch (MidiUnavailableException ex)
         {
-            LOGGER.severe("getMidiMixSilent() Could not retrieve MidiMix for song " + song.getName() + " - ex=" + ex.getMessage());   
+            LOGGER.log(Level.SEVERE, "getMidiMixSilent() Could not retrieve MidiMix for song {0} - ex={1}", new Object[]{song.getName(),
+                ex.getMessage()});   
         }
         return midiMix;
     }

@@ -25,6 +25,7 @@ package org.jjazz.phrase.api;
 import static com.google.common.base.Preconditions.checkNotNull;
 import java.text.ParseException;
 import java.util.StringJoiner;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.util.api.FloatRange;
@@ -188,7 +189,7 @@ public class SizedPhrase extends Phrase
                 } catch (IllegalArgumentException | ParseException ex)
                 {
                     // Nothing
-                    LOGGER.warning("loadAsString() Invalid string s=" + s + ", ex=" + ex.getMessage());
+                    LOGGER.log(Level.WARNING, "loadAsString() Invalid string s={0}, ex={1}", new Object[]{s, ex.getMessage()});
                 }
             }
         }

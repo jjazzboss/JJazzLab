@@ -146,7 +146,7 @@ public final class OpenRecentFile extends AbstractAction implements Presenter.Me
 
     private void updatePreferences()
     {
-        LOGGER.log(Level.FINE, "updatePreferences() recentFiles=" + recentFiles);   
+        LOGGER.log(Level.FINE, "updatePreferences() recentFiles={0}", recentFiles);   
         if (recentFiles.isEmpty())
         {
             prefs.put(PREF_RECENT_FILES, "");

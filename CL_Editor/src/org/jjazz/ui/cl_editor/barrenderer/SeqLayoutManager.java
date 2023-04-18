@@ -28,10 +28,11 @@ import org.jjazz.ui.itemrenderer.api.ItemRenderer;
 
 /**
  * This layoutmanager simply puts the children one after the other at their preferredSize.
+ * 
+ * If not enough width, the manager makes sure each child is at least partly visible.
  */
 public class SeqLayoutManager implements LayoutManager
 {
-
     private final static int ER_GAP = 2;
 
     @Override
@@ -42,17 +43,19 @@ public class SeqLayoutManager implements LayoutManager
             throw new IllegalArgumentException("parent=" + parent);   
         }
         BarRenderer br = (BarRenderer) parent;
-        int barHeight = br.getDrawingArea().height;
-        int barLeft = br.getDrawingArea().x;
-        int barTop = br.getDrawingArea().y;
-        int x = barLeft;
+        var r = br.getDrawingArea();
+        int x = r.x;
         for (ItemRenderer ir : br.getItemRenderers())
         {
             ir.setSize(ir.getPreferredSize());
             float eventHeight = ir.getHeight();
-            int y = barTop + (int) ((barHeight - eventHeight) / 2);
-            ir.setLocation(x, y);
+            int y = r.y + (int) ((r.height - eventHeight) / 2);
+            ir.setLocation(x, y);           
             x += ir.getWidth() + ER_GAP;
+            if (x >= r.x + r.width - 3)
+            {
+                x -= ir.getWidth() - ER_GAP + 5;
+            }
         }
     }
 

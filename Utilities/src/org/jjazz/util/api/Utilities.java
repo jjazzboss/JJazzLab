@@ -216,7 +216,8 @@ public class Utilities
                 res.add(url);
             } catch (MalformedURLException ex)
             {
-                LOGGER.warning("extractHttpURLs() Invalid internet link=" + str + " in text=" + text + ". ex=" + ex.getMessage());
+                LOGGER.log(Level.WARNING, "extractHttpURLs() Invalid internet link={0} in text={1}. ex={2}", new Object[]{str, text,
+                    ex.getMessage()});
             }
         });
         s.close();
@@ -246,7 +247,8 @@ public class Utilities
                 res.add(f);
             } catch (MalformedURLException | URISyntaxException ex)
             {
-                LOGGER.warning("extractFileURIsAsFiles() Invalid file URL/URI=" + str + " in text=" + text + ", ex=" + ex.getMessage());
+                LOGGER.log(Level.WARNING, "extractFileURIsAsFiles() Invalid file URL/URI={0} in text={1}, ex={2}", new Object[]{str, text,
+                    ex.getMessage()});
             }
         });
         s.close();
@@ -586,7 +588,7 @@ public class Utilities
             throw new IllegalArgumentException("myClass=" + myClass + " zipResource=" + zipResource + " destDir=" + destDir);   
         }
 
-        LOGGER.fine("extractZipResource() -- myClass=" + myClass + " zipResource=" + zipResource + " destDir=" + destDir);   
+        LOGGER.log(Level.FINE, "extractZipResource() -- myClass={0} zipResource={1} destDir={2}", new Object[]{myClass, zipResource, destDir});   
         ArrayList<File> res = new ArrayList<>();
         try (InputStream is = myClass.getResourceAsStream(zipResource); BufferedInputStream bis = new BufferedInputStream(is); ZipInputStream zis = new ZipInputStream(
                 bis))
@@ -606,7 +608,7 @@ public class Utilities
                     // Directory, recreate if not present
                     if (!destFile.exists() && !destFile.mkdirs())
                     {
-                        LOGGER.warning("extractZipResource() can't create destination folder : " + destFile.getAbsolutePath());   
+                        LOGGER.log(Level.WARNING, "extractZipResource() can''t create destination folder : {0}", destFile.getAbsolutePath());   
                     }
                     continue;
                 }
@@ -628,8 +630,8 @@ public class Utilities
             }
         } catch (IOException ex)
         {
-            LOGGER.log(Level.SEVERE,
-                    "extractZipResource() problem extracting resource for myClass=" + myClass + " zipResource=" + zipResource + " ex=" + ex.getMessage());   
+            LOGGER.log(Level.SEVERE, "extractZipResource() problem extracting resource for myClass={0} zipResource={1} ex={2}", new Object[]{myClass,
+                zipResource, ex.getMessage()});   
         }
         return res;
     }
@@ -660,7 +662,7 @@ public class Utilities
                 b = true;
             } else
             {
-                LOGGER.log(Level.SEVERE, "copyResource() resource not found. c=" + c + " resourcePath=" + resourceFilePath);   
+                LOGGER.log(Level.SEVERE, "copyResource() resource not found. c={0} resourcePath={1}", new Object[]{c, resourceFilePath});   
             }
         } catch (IOException ex)
         {
@@ -988,13 +990,13 @@ public class Utilities
                 @Override
                 public FileVisitResult visitFileFailed(Path file, IOException ex)
                 {
-                    LOGGER.warning("visitFileFailed() file=" + file + ", ex=" + ex.getLocalizedMessage());   
+                    LOGGER.log(Level.WARNING, "visitFileFailed() file={0}, ex={1}", new Object[]{file, ex.getLocalizedMessage()});   
                     return CONTINUE;
                 }
             });
         } catch (IOException ex)
         {
-            LOGGER.warning("listFile() IOException ex=" + ex.getMessage() + ". Some files may have not been listed.");   
+            LOGGER.log(Level.WARNING, "listFile() IOException ex={0}. Some files may have not been listed.", ex.getMessage());   
         }
         return pathSet;
     }
@@ -1027,7 +1029,7 @@ public class Utilities
 
         if (errMsg != null)
         {
-            LOGGER.warning("openInBrowser() url=" + url + "  ex=" + errMsg);
+            LOGGER.log(Level.WARNING, "openInBrowser() url={0}  ex={1}", new Object[]{url, errMsg});
 
             if (!silentError)
             {
@@ -1069,7 +1071,7 @@ public class Utilities
 
         if (errMsg != null)
         {
-            LOGGER.warning("openFile() file=" + file + "  ex=" + errMsg);
+            LOGGER.log(Level.WARNING, "openFile() file={0}  ex={1}", new Object[]{file, errMsg});
 
             if (!silentError)
             {
@@ -1122,7 +1124,7 @@ public class Utilities
 
         if (errMsg != null)
         {
-            LOGGER.warning("browseFileDirectory() file=" + file + "  ex=" + errMsg);
+            LOGGER.log(Level.WARNING, "browseFileDirectory() file={0}  ex={1}", new Object[]{file, errMsg});
 
             if (!silentError)
             {
@@ -1155,8 +1157,8 @@ public class Utilities
                 // Wait a while for tasks to respond to being cancelled
                 if (!pool.awaitTermination(waitCancelTimeMs, TimeUnit.MILLISECONDS))
                 {
-                    LOGGER.warning(
-                            "shutdownAndAwaitTermination() Pool did not terminate within " + (waitTerminationTimeMs + waitCancelTimeMs) + "ms");
+                    LOGGER.log(Level.WARNING, "shutdownAndAwaitTermination() Pool did not terminate within {0}{1}ms", new Object[]{waitTerminationTimeMs,
+                        waitCancelTimeMs});
                 }
             }
         } catch (InterruptedException ie)

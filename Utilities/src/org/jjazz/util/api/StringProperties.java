@@ -41,6 +41,25 @@ public class StringProperties extends ObservableProperties<String> implements Se
         super(sp);
     }
 
+    public boolean getBoolean(String prop, boolean defaultValue)
+    {
+        String s = get(prop);
+        boolean res = defaultValue;
+        try
+        {
+            res = Boolean.parseBoolean(s);
+        } catch (NumberFormatException ex)
+        {
+            // Nothing
+        }
+        return res;
+    }
+
+    public void putBoolean(String prop, boolean value)
+    {
+        put(prop, String.valueOf(value));
+    }
+
     public int getInt(String prop, int defaultValue)
     {
         String s = get(prop);

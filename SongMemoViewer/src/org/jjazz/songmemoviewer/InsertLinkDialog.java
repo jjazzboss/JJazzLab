@@ -6,6 +6,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import javax.swing.AbstractAction;
@@ -302,7 +303,7 @@ public class InsertLinkDialog extends javax.swing.JDialog
             } catch (MalformedURLException ex)
             {
                 String msg = "Unexpected error! ex=" + ex.getMessage();
-                LOGGER.severe("btn_insertActionPerformed() " + msg);
+                LOGGER.log(Level.SEVERE, "btn_insertActionPerformed() {0}", msg);
                 NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
                 DialogDisplayer.getDefault().notify(d);
                 link = null;

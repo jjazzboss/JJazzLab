@@ -171,7 +171,7 @@ public class MidiSynth
         if (reader == null)
         {
             String msg = ResUtil.getString(MidiSynth.class, "ERR_NoSynthReaderForFile", file.getAbsolutePath());
-            LOGGER.log(Level.WARNING, "loadFromFile(file) " + msg);   
+            LOGGER.log(Level.WARNING, "loadFromFile(file) {0}", msg);   
             throw new IOException(msg);
         }
 
@@ -190,7 +190,7 @@ public class MidiSynth
         if (res == null)
         {
             String msg = ResUtil.getString(MidiSynth.class, "ERR_NoSynthFoundInFile", file.getAbsolutePath());
-            LOGGER.log(Level.WARNING, "loadFromFile(file) " + msg);   
+            LOGGER.log(Level.WARNING, "loadFromFile(file) {0}", msg);   
             throw new IOException(msg);
         }
 
@@ -622,13 +622,14 @@ public class MidiSynth
 
     public void dump()
     {
-        LOGGER.severe("DUMP synth: " + this.name + "(" + getNbInstruments() + ") ================================================");   
+        LOGGER.log(Level.SEVERE, "DUMP synth: {0}({1}) ================================================", new Object[]{this.name,
+            getNbInstruments()});   
         for (InstrumentBank<?> bank : getBanks())
         {
-            LOGGER.severe("   Bank=" + bank.getName() + " (" + bank.getSize() + ") ---------");   
+            LOGGER.log(Level.SEVERE, "   Bank={0} ({1}) ---------", new Object[]{bank.getName(), bank.getSize()});   
             for (Instrument ins : bank.getInstruments())
             {
-                LOGGER.severe(ins.toLongString() + ", " + ins.getMidiAddress());   
+                LOGGER.log(Level.SEVERE, "{0}, {1}", new Object[]{ins.toLongString(), ins.getMidiAddress()});   
             }
         }
     }
@@ -668,7 +669,7 @@ public class MidiSynth
         String[] strs = s.split("#:#");
         if (strs.length != 2)
         {
-            LOGGER.warning("loadFromString() Invalid string format : " + s);   
+            LOGGER.log(Level.WARNING, "loadFromString() Invalid string format : {0}", s);   
             return null;
         }
         String synthName = strs[0].trim();

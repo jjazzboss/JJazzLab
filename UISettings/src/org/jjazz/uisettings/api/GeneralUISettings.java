@@ -91,10 +91,10 @@ public class GeneralUISettings
 
     public static final String DEFAULT_THEME_NAME = DarkTheme.NAME;
     public static final LookAndFeelId DEFAULT_LAF_ID = LookAndFeelId.LOOK_AND_FEEL_SYSTEM_DEFAULT;  // Must be the laf of DEFAULT_THEME_NAME
-    public static final String PREF_THEME_UPON_RESTART = "ThemeUponRestart";    
-    public static final String PREF_LAF_ID_UPON_RESTART = "LafIdUponRestart";    
-    public static final String PREF_VALUE_CHANGE_WITH_MOUSE_WHEEL = "ChangeWithMouseWheel";    
-    public static final String PROP_LOCALE_UPON_RESTART = "LocaleUponRestart";  
+    public static final String PREF_THEME_UPON_RESTART = "ThemeUponRestart";
+    public static final String PREF_LAF_ID_UPON_RESTART = "LafIdUponRestart";
+    public static final String PREF_VALUE_CHANGE_WITH_MOUSE_WHEEL = "ChangeWithMouseWheel";
+    public static final String PROP_LOCALE_UPON_RESTART = "LocaleUponRestart";
     private static GeneralUISettings INSTANCE;
     private Theme currentTheme;
     private final HashMap<WeakReference<JComponent>, MouseWheelListener> mouseWheelInstalledComponents = new HashMap<>();
@@ -120,8 +120,8 @@ public class GeneralUISettings
 
     /**
      * Set the theme to be used on next application start.
-     * 
-     * 
+     *
+     *
      *
      * @param theme
      * @deprecated It's too difficult to maintain 2 themes
@@ -130,7 +130,7 @@ public class GeneralUISettings
     {
         if (theme == null)
         {
-            throw new NullPointerException("theme");   
+            throw new NullPointerException("theme");
         }
         prefs.put(PREF_THEME_UPON_RESTART, theme.getName());
         prefs.put(PREF_LAF_ID_UPON_RESTART, theme.getLookAndFeel().name());
@@ -200,7 +200,7 @@ public class GeneralUISettings
 
             // Make the copy
             Files.copy(nbConfigFile, userConfigFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-            LOGGER.info("setLocaleUponRestart() Successfully created user .conf file: " + userConfigFile.getAbsolutePath());
+            LOGGER.log(Level.INFO, "setLocaleUponRestart() Successfully created user .conf file: {0}", userConfigFile.getAbsolutePath());
         }
 
 
@@ -225,7 +225,7 @@ public class GeneralUISettings
         }
         Files.write(userConfigFile.toPath(), content.getBytes(StandardCharsets.UTF_8));
 
-        LOGGER.info("setLocaleUponRestart() Set next locale upon restart=" + code);
+        LOGGER.log(Level.INFO, "setLocaleUponRestart() Set next locale upon restart={0}", code);
 
         pcs.firePropertyChange(PROP_LOCALE_UPON_RESTART, Locale.getDefault(), locale);
     }
@@ -245,7 +245,10 @@ public class GeneralUISettings
             res = LookAndFeelId.valueOf(strLaf);
         } catch (IllegalArgumentException | NullPointerException ex)
         {
-            LOGGER.warning("getLafIdUponRestart() Invalid LAF name=" + strLaf + ". Using default LAF=" + res.name());   
+            LOGGER.log(Level.WARNING, "getLafIdUponRestart() Invalid LAF name={0}. Using default LAF={1}", new Object[]
+            {
+                strLaf, res.name()
+            });
         }
         return res;
     }
@@ -322,8 +325,8 @@ public class GeneralUISettings
     }
 
     /**
-     * Helper method to register/unregister a component and its MouseWheelListener depending on the
-     * PREF_VALUE_CHANGE_WITH_MOUSE_WHEEL value changes.
+     * Helper method to register/unregister a component and its MouseWheelListener depending on the PREF_VALUE_CHANGE_WITH_MOUSE_WHEEL value
+     * changes.
      * <p>
      *
      * @param comp
@@ -361,10 +364,10 @@ public class GeneralUISettings
             } catch (IOException | FontFormatException e)
             {
                 FONT_10 = Font.getFont("Arial-PLAIN-10");
-                LOGGER.log(Level.SEVERE, "Can't get font from " + FONT_PATH + ". Using default font instead=" + FONT_10);   
+                LOGGER.log(Level.SEVERE, "Can't get font from " + FONT_PATH + ". Using default font instead={0}", FONT_10);
             }
         }
-        assert FONT_10 != null;   
+        assert FONT_10 != null;
         return FONT_10;
     }
 
@@ -385,10 +388,11 @@ public class GeneralUISettings
             } catch (IOException | FontFormatException e)
             {
                 CONDENSED_FONT_10 = Font.getFont("Arial-PLAIN-10");
-                LOGGER.severe("Can't get font from " + CONDENSED_FONT_PATH + ". Using default font instead=" + CONDENSED_FONT_10);   
+                LOGGER.log(Level.SEVERE, "Can't get font from " + CONDENSED_FONT_PATH + ". Using default font instead={0}",
+                        CONDENSED_FONT_10);
             }
         }
-        assert CONDENSED_FONT_10 != null;   
+        assert CONDENSED_FONT_10 != null;
         return CONDENSED_FONT_10;
     }
 
@@ -452,8 +456,7 @@ public class GeneralUISettings
     /**
      * Set the current theme from the previous session "theme upon restart".
      * <p>
-     * At this stage Look & Feel has already been set up by LookAndFeelInstaller, and global Lookup ServiceProviders are
-     * available.
+     * At this stage Look & Feel has already been set up by LookAndFeelInstaller, and global Lookup ServiceProviders are available.
      */
     @OnStart
     static public class ThemeSetup implements Runnable
@@ -484,13 +487,13 @@ public class GeneralUISettings
     {
         if (currentTheme != null)
         {
-            throw new IllegalStateException("currentTheme is already set=" + currentTheme.getName() + ". themeName=" + themeName);   
+            throw new IllegalStateException("currentTheme is already set=" + currentTheme.getName() + ". themeName=" + themeName);
         }
         currentTheme = getTheme(themeName);
         if (currentTheme == null)
         {
             currentTheme = getTheme(DEFAULT_THEME_NAME);
-            assert currentTheme != null : "DEFAULT_THEME_NAME=" + DEFAULT_THEME_NAME;   
+            assert currentTheme != null : "DEFAULT_THEME_NAME=" + DEFAULT_THEME_NAME;
         }
     }
 

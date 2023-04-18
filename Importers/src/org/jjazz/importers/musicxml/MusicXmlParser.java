@@ -217,7 +217,8 @@ public final class MusicXmlParser
                 timeSignature = TimeSignature.get(upper, lower);
                 if (timeSignature == null)
                 {
-                    LOGGER.warning("parseMusicData() Invalid time signature=" + upper + "/" + lower + ". Using 4/4 instead.");   
+                    LOGGER.log(Level.WARNING, "parseMusicData() Invalid time signature={0}/{1}. Using 4/4 instead.", new Object[]{upper,
+                        lower});   
                     timeSignature = TimeSignature.FOUR_FOUR;
                 }
                 fireTimeSignatureParsed(timeSignature, curBarIndex);
@@ -282,7 +283,8 @@ public final class MusicXmlParser
             }
             if (curDivisionInBar < 0)
             {
-                LOGGER.severe("parseMusicData() invalid value for curDivisionInBar=" + curDivisionInBar + ", el=" + el + ". Resetting value to 0");   
+                LOGGER.log(Level.SEVERE, "parseMusicData() invalid value for curDivisionInBar={0}, el={1}. Resetting value to 0", new Object[]{curDivisionInBar,
+                    el});   
                 curDivisionInBar = 0;
             }
         }
@@ -371,7 +373,8 @@ public final class MusicXmlParser
             divisionPosInBar += offset;
             if (divisionPosInBar < 0)
             {
-                LOGGER.severe("parseHarmony() invalid value for divisionPosInBar=" + divisionPosInBar + ", barIndex=" + barIndex + ", elOffset=" + elOffset + ", elHarmony=" + elHarmony + ". Resetting value to 0");   
+                LOGGER.log(Level.SEVERE, "parseHarmony() invalid value for divisionPosInBar={0}, barIndex={1}, elOffset={2}, elHarmony={3}. Resetting value to 0", new Object[]{divisionPosInBar,
+                    barIndex, elOffset, elHarmony});   
                 divisionPosInBar = 0;
             }
         }
@@ -435,7 +438,8 @@ public final class MusicXmlParser
                 }
 
                 // Default
-                LOGGER.warning("parseHarmony() No chord type found for kind_value=" + strKindValue + " in element harmony=" + elHarmony.toString() + ". Using major chord instead.");   
+                LOGGER.log(Level.WARNING, "parseHarmony() No chord type found for kind_value={0} in element harmony={1}. Using major chord instead.", new Object[]{strKindValue,
+                    elHarmony.toString()});   
                 strChordType = "";
 
             }
@@ -464,7 +468,8 @@ public final class MusicXmlParser
             if (ct == null)
             {
                 ct = ctdb.getChordType(0); // Default if problem
-                LOGGER.warning("parseHarmony() Can't parse chord symbol for " + strKindText + ". Using chord kind value=" + ct.getName() + " instead.");   
+                LOGGER.log(Level.WARNING, "parseHarmony() Can''t parse chord symbol for {0}. Using chord kind value={1} instead.", new Object[]{strKindText,
+                    ct.getName()});   
             }
         }
 

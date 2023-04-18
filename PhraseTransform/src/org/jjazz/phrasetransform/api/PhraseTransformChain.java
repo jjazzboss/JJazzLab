@@ -27,6 +27,7 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringJoiner;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.songcontext.api.SongPartContext;
@@ -140,7 +141,7 @@ public class PhraseTransformChain extends ArrayList<PhraseTransform>
             PhraseTransform pt = PhraseTransform.loadFromString(str.trim());
             if (pt == null)
             {
-                LOGGER.warning("loadFromString() No PhraseTransform found for str=" + str + " (s=" + s + ")");
+                LOGGER.log(Level.WARNING, "loadFromString() No PhraseTransform found for str={0} (s={1})", new Object[]{str, s});
             } else
             {
                 res.add(pt);

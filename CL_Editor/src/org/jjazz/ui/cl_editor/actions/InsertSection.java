@@ -28,6 +28,8 @@ import java.awt.event.ActionEvent;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import static javax.swing.Action.ACCELERATOR_KEY;
+import javax.swing.KeyStroke;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.ui.cl_editor.spi.Preset;
 import org.jjazz.ui.cl_editor.api.CL_EditorTopComponent;
@@ -51,7 +53,7 @@ import org.openide.util.Utilities;
 @ActionRegistration(displayName = "not_used", lazy = false)
 @ActionReferences(
         {
-            @ActionReference(path = "Actions/Bar", position = 210),     // Right after Set end bar
+            @ActionReference(path = "Actions/BarInsert", position = 110)     
         })
 public class InsertSection extends AbstractAction implements ContextAwareAction, CL_ContextActionListener
 {
@@ -72,6 +74,7 @@ public class InsertSection extends AbstractAction implements ContextAwareAction,
         cap = CL_ContextActionSupport.getInstance(this.context);
         cap.addListener(this);
         putValue(NAME, undoText);
+        putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("T"));
         selectionChange(cap.getSelection());
     }
 

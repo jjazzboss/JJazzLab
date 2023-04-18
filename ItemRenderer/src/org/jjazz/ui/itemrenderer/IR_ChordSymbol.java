@@ -31,6 +31,7 @@ import java.awt.font.TextLayout;
 import java.beans.PropertyChangeEvent;
 import java.text.AttributedString;
 import java.util.Objects;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.Timer;
 import org.jjazz.harmony.api.ChordSymbol;
@@ -81,7 +82,7 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
     public IR_ChordSymbol(CLI_ChordSymbol item, ItemRendererSettings irSettings)
     {
         super(item, IR_Type.ChordSymbol);
-        LOGGER.fine("IR_ChordSymbol() item=" + item);   
+        LOGGER.log(Level.FINE, "IR_ChordSymbol() item={0}", item);
 
 
         // Apply settings and listen to their changes
@@ -181,7 +182,7 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
 
         // Prepare the graphics context
         Graphics2D g2 = (Graphics2D) getGraphics();
-        assert g2 != null;   
+        assert g2 != null;
         g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
@@ -220,7 +221,8 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
         // Superscript for the extension
         if (!chordSymbolExtension.isEmpty())
         {
-            attChordString.addAttribute(TextAttribute.SUPERSCRIPT, TextAttribute.SUPERSCRIPT_SUPER, chordSymbolBase.length(), chordSymbolBase.length() + chordSymbolExtension.length());
+            attChordString.addAttribute(TextAttribute.SUPERSCRIPT, TextAttribute.SUPERSCRIPT_SUPER, chordSymbolBase.length(),
+                    chordSymbolBase.length() + chordSymbolExtension.length());
         }
 
 
@@ -235,7 +237,10 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
         Dimension d = new Dimension(wFinal, hFinal);
 
 
-        LOGGER.fine("getPreferredSize()    result d=" + d + "   (insets=" + in + ")");   
+        LOGGER.log(Level.FINE, "getPreferredSize()    result d={0}   (insets={1})", new Object[]
+        {
+            d, in
+        });
 
 
         return d;
@@ -296,13 +301,13 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
                 }
                 sb.append(" - ").append(ResUtil.getString(getClass(), "IR_ChordSymbol.condition")).append("=");
                 AltDataFilter altFilter = ecs.getAlternateFilter();
-                assert altFilter != null;   
+                assert altFilter != null;
                 sb.append(altFilter.isRandom() ? ResUtil.getString(getClass(), "IR_ChordSymbol.random") : altFilter.getValues());
             }
             tt = sb.toString();
         }
 
-        
+
         setToolTipText(tt);
     }
 

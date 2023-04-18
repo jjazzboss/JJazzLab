@@ -24,6 +24,7 @@ package org.jjazz.harmony.api;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import java.text.ParseException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.util.api.ResUtil;
 
@@ -789,7 +790,7 @@ public class Note implements Comparable<Note>, Cloneable
             } catch (IllegalArgumentException ex) // Will catch NumberFormatException too
             {
                 // nothing
-                LOGGER.warning("loadAsString() Catched ex=" + ex.getMessage());
+                LOGGER.log(Level.WARNING, "loadAsString() Catched ex={0}", ex.getMessage());
             }
         }
 

@@ -22,6 +22,7 @@
  */
 package org.jjazz.ui.spteditor.api;
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.ui.spteditor.spi.SptEditorFactory;
 import org.jjazz.util.api.ResUtil;
@@ -89,7 +90,7 @@ public final class SptEditorTopComponent extends TopComponent
         {
             // Log & notify user, this is serious
             String msg = "ERROR can't create the SptEditor, please report this bug with the Log file content. err='" + t.getMessage() + "'";
-            LOGGER.severe("SptEditorTopComponent() " + msg);
+            LOGGER.log(Level.SEVERE, "SptEditorTopComponent() {0}", msg);
             Exceptions.printStackTrace(t);
             NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notifyLater(nd);

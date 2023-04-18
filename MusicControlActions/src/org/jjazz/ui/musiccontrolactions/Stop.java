@@ -28,6 +28,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
@@ -108,7 +109,7 @@ public class Stop extends BooleanStateAction implements PropertyChangeListener, 
 
         MusicController mc = MusicController.getInstance();
         MusicController.State playBackState = mc.getState();
-        LOGGER.fine("setSelected() newState=" + newState + " playBackState=" + playBackState);   
+        LOGGER.log(Level.FINE, "setSelected() newState={0} playBackState={1}", new Object[]{newState, playBackState});   
         switch (playBackState)
         {
             case PAUSED:
@@ -264,7 +265,8 @@ public class Stop extends BooleanStateAction implements PropertyChangeListener, 
     private void playbackStateChanged()
     {
         MusicController mc = MusicController.getInstance();
-        LOGGER.fine("playbackStateChanged() actionState=" + getBooleanState() + " mc.getPlaybackState()=" + mc.getState());   
+        LOGGER.log(Level.FINE, "playbackStateChanged() actionState={0} mc.getPlaybackState()={1}", new Object[]{getBooleanState(),
+            mc.getState()});   
         setEnabled(!mc.getState().equals(MusicController.State.DISABLED));
         setBooleanState(mc.getState() == MusicController.State.STOPPED);
     }

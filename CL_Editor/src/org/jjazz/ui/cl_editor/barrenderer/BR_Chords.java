@@ -121,6 +121,7 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
             JDialog dlg = getFontMetricsDialog();
             dlg.remove(getPrefSizePanelSharedInstance());
             mapGroupKeyPrefSizePanel.remove(System.identityHashCode(getGroupKey()));
+            getPrefSizePanelSharedInstance().cleanup();
         }
     }
 
@@ -193,7 +194,7 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
                 irIP = addItemRenderer(item);
                 irIP.setSelected(true);
             }
-        }else if (item instanceof CLI_BarAnnotation)
+        } else if (item instanceof CLI_BarAnnotation)
         {
             if (irIP == null)
             {
@@ -289,7 +290,7 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
         } else
         {
             // CLI_BarAnnotation
-            ir = irf.createItemRenderer(IR_Type.BarAnnotation, item, getSettings().getItemRendererSettings());
+            ir = irf.createItemRenderer(IR_Type.BarAnnotationPaperNote, item, getSettings().getItemRendererSettings());
         }
         return ir;
     }
@@ -413,6 +414,12 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
             JDialog dlg = getFontMetricsDialog();
             dlg.add(this);
             dlg.pack();    // Force all components to be displayable
+        }
+
+        public void cleanup()
+        {
+            csSettings.removePropertyChangeListener(this);
+            tsSettings.removePropertyChangeListener(this);
         }
 
         /**

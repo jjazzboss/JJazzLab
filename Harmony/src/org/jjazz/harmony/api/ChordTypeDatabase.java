@@ -269,7 +269,7 @@ public class ChordTypeDatabase
             buildAliasMap();
         } catch (BackingStoreException ex)
         {
-            LOGGER.warning("resetAliasesToDefault() problem resetting aliases : " + ex.getMessage());   
+            LOGGER.log(Level.WARNING, "resetAliasesToDefault() problem resetting aliases : {0}", ex.getMessage());   
         }
     }
 

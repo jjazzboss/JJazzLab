@@ -27,6 +27,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Properties;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
@@ -114,7 +115,8 @@ public class UpgradeManager
             prop.load(reader);
         } catch (IOException ex)
         {
-            LOGGER.warning("getPropertiesFromPrefs() problem reading file=" + f.getAbsolutePath() + ": ex=" + ex.getMessage());   
+            LOGGER.log(Level.WARNING, "getPropertiesFromPrefs() problem reading file={0}: ex={1}", new Object[]{f.getAbsolutePath(),
+                ex.getMessage()});   
             return null;
         }
 
@@ -129,7 +131,7 @@ public class UpgradeManager
      */
     public boolean duplicateOldPreferences(Preferences nbPrefs)
     {
-        LOGGER.fine("duplicateOldPreferences() -- nbPrefs=" + nbPrefs.absolutePath());   
+        LOGGER.log(Level.FINE, "duplicateOldPreferences() -- nbPrefs={0}", nbPrefs.absolutePath());   
         Properties prop = getPropertiesFromPrefs(nbPrefs);
         if (prop == null)
         {
@@ -145,7 +147,7 @@ public class UpgradeManager
             nbPrefs.flush();        // Make sure it's copied to disk now
         } catch (BackingStoreException ex)
         {
-            LOGGER.warning("duplicateOldPreferences() Can't flush copied preferences. ex=" + ex.getMessage());   
+            LOGGER.log(Level.WARNING, "duplicateOldPreferences() Can''t flush copied preferences. ex={0}", ex.getMessage());   
         }
         return true;
     }
@@ -176,11 +178,11 @@ public class UpgradeManager
 
         if (!f.exists())
         {
-            LOGGER.fine("getOldPreferencesFile Not found f=" + f.getAbsolutePath());   
+            LOGGER.log(Level.FINE, "getOldPreferencesFile Not found f={0}", f.getAbsolutePath());   
             f = null;
         } else
         {
-            LOGGER.fine("getOldPreferencesFile() FOUND f=" + f.getAbsolutePath());   
+            LOGGER.log(Level.FINE, "getOldPreferencesFile() FOUND f={0}", f.getAbsolutePath());   
         }
         return f;
     }
@@ -205,7 +207,7 @@ public class UpgradeManager
         File userDir = Places.getUserDirectory();
         if (userDir == null || !userDir.isDirectory() || userDir.getParentFile() == null)
         {
-            LOGGER.warning("getImportSourceVersion() Invalid Netbeans User Directory userDir=" + userDir);   
+            LOGGER.log(Level.WARNING, "getImportSourceVersion() Invalid Netbeans User Directory userDir={0}", userDir);   
             return importSourceVersion;
         }
 
@@ -218,11 +220,11 @@ public class UpgradeManager
 
             if (f.exists())
             {
-                LOGGER.fine("getImportSourceVersion() FOUND f=" + f.getAbsolutePath());   
+                LOGGER.log(Level.FINE, "getImportSourceVersion() FOUND f={0}", f.getAbsolutePath());   
                 importSourceVersion = oldVersion;
                 break;
             }
-            LOGGER.fine("getImportSourceVersion Not found f=" + f.getAbsolutePath());   
+            LOGGER.log(Level.FINE, "getImportSourceVersion Not found f={0}", f.getAbsolutePath());   
         }
 
         return importSourceVersion;
@@ -259,15 +261,15 @@ public class UpgradeManager
                 Object result = DialogDisplayer.getDefault().notify(d);
                 if (NotifyDescriptor.YES_OPTION != result)
                 {
-                    LOGGER.info("FreshStartUpgrader() -- importVersion=" + importVersion + ", import dismissed by user");   
+                    LOGGER.log(Level.INFO, "FreshStartUpgrader() -- importVersion={0}, import dismissed by user", importVersion);   
                     importVersion = null;
                 } else
                 {
-                    LOGGER.info("FreshStartUpgrader() -- importVersion=" + importVersion + ", import authorized by user");   
+                    LOGGER.log(Level.INFO, "FreshStartUpgrader() -- importVersion={0}, import authorized by user", importVersion);   
                 }
             } else
             {
-                LOGGER.info("FreshStartUpgrader() -- importVersion=" + importVersion);   
+                LOGGER.log(Level.INFO, "FreshStartUpgrader() -- importVersion={0}", importVersion);   
             }
 
 

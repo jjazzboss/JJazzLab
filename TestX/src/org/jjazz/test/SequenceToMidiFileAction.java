@@ -26,6 +26,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.Sequence;
@@ -100,14 +101,14 @@ public final class SequenceToMidiFileAction implements ActionListener
             int[] fileTypes = MidiSystem.getMidiFileTypes(sequence);
             for (Integer i : fileTypes)
             {
-                LOGGER.info(" supported fileType=" + i);   
+                LOGGER.log(Level.INFO, " supported fileType={0}", i);   
             }
             if (fileTypes.length == 0)
             {
                 LOGGER.info(" NO fileTypes supported for this sequence !");   
             }
 
-            LOGGER.info("writing sequence to Midi File: " + midiTempFile.getAbsolutePath());   
+            LOGGER.log(Level.INFO, "writing sequence to Midi File: {0}", midiTempFile.getAbsolutePath());   
             try
             {
                 MidiSystem.write(sequence, 1, midiTempFile);

@@ -86,6 +86,7 @@ import org.openide.awt.UndoRedo;
 import org.openide.util.NbBundle.Messages;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.ui.cl_editor.barrenderer.BR_Annotation;
 import org.jjazz.ui.cl_editor.barrenderer.spi.BarRendererProvider;
 import org.jjazz.ui.colorsetmanager.api.ColorSetManager;
 
@@ -109,7 +110,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     {
         BarRendererFactory.BR_CHORD_SYMBOL,
         BarRendererFactory.BR_CHORD_POSITION,
-        BarRendererFactory.BR_SECTION
+        BarRendererFactory.BR_SECTION,
+        BarRendererFactory.BR_ANNOTATION
     };
 
 
@@ -201,6 +203,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
             throw new IllegalArgumentException("song=" + song + " settings=" + settings + " brf=" + brf);
         }
         songModel = song;
+        songModel.getClientProperties().addPropertyChangeListener(this);
+
         this.barRendererFactory = brf;
         this.songSpecificProperties = new SongSpecificEditorProperties(songModel);
 
@@ -409,7 +413,6 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
                 }
             }
 
-
             // Now that we got something, save it
             songSpecificProperties.storeSectionQuantization(cliSection, q);
         }
@@ -477,7 +480,6 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         if (c == null)
         {
             c = ColorSetManager.getDefault().getColor(cliSection);
-            songSpecificProperties.storeSectionColor(cliSection, c);
         }
         return c;
     }
@@ -978,6 +980,12 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
                             setSectionColor(cliSection, newColor);
                         }
                     }
+                }
+            } else if (evt.getSource() == songModel.getClientProperties())
+            {
+                if (evt.getPropertyName().equals(BR_Annotation.SONG_PROP_SHOW_ANNOTATION_BAR_RENDERER))
+                {
+                    setBR_AnnotationVisible(BR_Annotation.isAnnotationBarRendererVisiblePropertyValue(songModel));
                 }
             }
         });
@@ -1612,7 +1620,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     }
 
     /**
-     * Build the default BarBoxConfig from DEFAULT_BARBOX_CONFIG + optional data from BarRendererProviders.
+     * Build the default BarBoxConfig from DEFAULT_BARBOX_CONFIG + optional data from BarRendererProviders
      */
     private BarBoxConfig getDefaultBarBoxConfig()
     {
@@ -1621,6 +1629,13 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         List<String> activeTypes = new ArrayList<>();
         Collections.addAll(allTypes, DEFAULT_BAR_RENDERER_TYPES);
         Collections.addAll(activeTypes, DEFAULT_BAR_RENDERER_TYPES);
+
+
+        // Activation of BR_Annotation depends on Song property
+        if (!BR_Annotation.isAnnotationBarRendererVisiblePropertyValue(songModel))
+        {
+            activeTypes.remove(BarRendererFactory.BR_ANNOTATION);
+        }
 
 
         var brProviders = Lookup.getDefault().lookupAll(BarRendererProvider.class);
@@ -1641,8 +1656,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         }
 
 
-        var res = new BarBoxConfig(allTypes.toArray(String[]::new));        // All active by default
-        res = res.setActive(activeTypes.toArray(String[]::new));
+        var res = new BarBoxConfig(allTypes.toArray(String[]::new));
+        res = res.getUpdatedConfig(activeTypes.toArray(String[]::new));
 
 
         return res;
@@ -1748,6 +1763,44 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
 
 
         }
+    }
+
+    private void setBR_AnnotationVisible(boolean b)
+    {
+
+
+        var bbConfig = getBarBox(0).getConfig();            // All BarBoxes share the same config
+        var activeBrs = bbConfig.getActiveBarRenderers();
+        if (b && !activeBrs.contains(BarRendererFactory.BR_ANNOTATION))
+        {
+            activeBrs.add(BarRendererFactory.BR_ANNOTATION);
+        } else if (!b && activeBrs.contains(BarRendererFactory.BR_ANNOTATION))
+        {
+            activeBrs.remove(BarRendererFactory.BR_ANNOTATION);
+        } else
+        {
+            return;
+        }
+
+        CL_SelectionUtilities selection = new CL_SelectionUtilities(selectionLookup);
+        int bar = 0;
+        if (selection.isBarSelected())
+        {
+            bar = selection.getMinBarIndex();
+        } else if (selection.isItemSelected())
+        {
+            bar = selection.getSelectedItems().get(0).getPosition().getBar();
+        }
+        selection.unselectAll(this);
+
+
+        // Change bar boxes       
+        setBarBoxConfig(bbConfig.getUpdatedConfig(activeBrs.toArray(String[]::new)));
+
+
+        // We reselect something so that the the "toggle BR_Annotation visibility" keyboard shortcut can be directly reused
+        selectBars(bar, bar, true);
+        setFocusOnBar(bar);
     }
 
     //===========================================================================

@@ -315,7 +315,7 @@ public class Instrument implements Serializable
             strs = s.split(",");        // Kept for backwards compatibility with 1.x 
             if (strs.length != 3)
             {
-                LOGGER.warning("loadFromString() Invalid string format : " + s);   
+                LOGGER.log(Level.WARNING, "loadFromString() Invalid string format : {0}", s);   
                 return null;
             }
         }

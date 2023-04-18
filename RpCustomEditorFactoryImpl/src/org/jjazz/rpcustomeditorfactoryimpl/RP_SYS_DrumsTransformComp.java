@@ -397,7 +397,7 @@ public class RP_SYS_DrumsTransformComp extends RealTimeRpEditorComponent<RP_SYS_
         LOGGER.log(Level.FINE, "setOriginalPhrase() -- p={0}", p);
         if (p == null)
         {
-            LOGGER.info("setOriginalPhrase() p=" + p);
+            LOGGER.log(Level.INFO, "setOriginalPhrase() p={0}", p);
             return;
         }
         originalPhrase = new SizedPhrase(getChannel(),

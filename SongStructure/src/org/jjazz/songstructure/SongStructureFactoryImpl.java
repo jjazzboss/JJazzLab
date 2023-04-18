@@ -24,6 +24,7 @@ package org.jjazz.songstructure;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
@@ -84,7 +85,8 @@ public class SongStructureFactoryImpl extends SongStructureFactory
             } catch (UnavailableRhythmException ex)
             {
                 // Might happen if file deleted
-                LOGGER.warning("createSgs() Can't get rhythm instance for " + ri.getName() + ". Using stub rhythm instead. ex=" + ex.getMessage());   
+                LOGGER.log(Level.WARNING, "createSgs() Can''t get rhythm instance for {0}. Using stub rhythm instead. ex={1}", new Object[]{ri.getName(),
+                    ex.getMessage()});   
                 r = rdb.getDefaultStubRhythmInstance(section.getData().getTimeSignature());  // non null
             }
 
@@ -118,7 +120,8 @@ public class SongStructureFactoryImpl extends SongStructureFactory
         } catch (UnavailableRhythmException ex)
         {
             // Might happen if file deleted
-            LOGGER.warning("createSimpleSgs() Can't get rhythm instance for " + ri.getName() + ". Using stub rhythm instead. ex=" + ex.getMessage());   
+            LOGGER.log(Level.WARNING, "createSimpleSgs() Can''t get rhythm instance for {0}. Using stub rhythm instead. ex={1}", new Object[]{ri.getName(),
+                ex.getMessage()});   
             r = rdb.getDefaultStubRhythmInstance(TimeSignature.FOUR_FOUR);  // non null
         }
         assert r != null;   

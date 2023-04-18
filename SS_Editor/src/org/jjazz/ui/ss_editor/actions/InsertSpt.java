@@ -148,7 +148,7 @@ public class InsertSpt extends AbstractAction implements ContextAwareAction, SS_
     public void selectionChange(SS_SelectionUtilities selection)
     {
         boolean b = selection.isContiguousSptSelection();
-        LOGGER.log(Level.FINE, "selectionChange() b=" + b);   
+        LOGGER.log(Level.FINE, "selectionChange() b={0}", b);   
         setEnabled(b);
     }
 }

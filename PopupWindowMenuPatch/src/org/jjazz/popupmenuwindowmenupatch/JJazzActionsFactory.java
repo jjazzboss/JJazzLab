@@ -25,6 +25,7 @@ package org.jjazz.popupmenuwindowmenupatch;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.Action;
 import org.netbeans.core.windows.actions.ActionsFactory;
@@ -66,7 +67,7 @@ public class JJazzActionsFactory extends ActionsFactory
     @Override
     public Action[] createPopupActions(TopComponent tc, Action[] actions)
     {
-        LOGGER.fine("createPopupActions() tc=" + tc + " actions.length=" + actions.length);   
+        LOGGER.log(Level.FINE, "createPopupActions() tc={0} actions.length={1}", new Object[]{tc, actions.length});   
         ArrayList<Action> newActions = new ArrayList<>();
         Collections.addAll(newActions, actions);
         LOGGER.fine("createPopupActions() Actions IN:");   
@@ -184,7 +185,7 @@ public class JJazzActionsFactory extends ActionsFactory
     @Override
     public Action[] createPopupActions(Mode mode, Action[] actions)
     {
-        LOGGER.fine("createPopupActions() mode=" + mode + " actions.length=" + actions.length);   
+        LOGGER.log(Level.FINE, "createPopupActions() mode={0} actions.length={1}", new Object[]{mode, actions.length});   
         LOGGER.fine("createPopupActions() Actions IN:");   
         logActions(actions);
         ArrayList<Action> newActions = new ArrayList<>();
@@ -261,10 +262,10 @@ public class JJazzActionsFactory extends ActionsFactory
         {
             if (a == null)
             {
-                LOGGER.fine(" a=" + a);   
+                LOGGER.log(Level.FINE, " a={0}", a);   
             } else
             {
-                LOGGER.fine(" a=" + a.getValue(Action.NAME) + " class=" + a.getClass().getSimpleName());   
+                LOGGER.log(Level.FINE, " a={0} class={1}", new Object[]{a.getValue(Action.NAME), a.getClass().getSimpleName()});   
             }
         }
     }

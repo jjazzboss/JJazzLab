@@ -158,7 +158,7 @@ public class DeleteItem extends AbstractAction implements ContextAwareAction, CL
         {
             b = true;
         }
-        LOGGER.log(Level.FINE, "selectionChange() b=" + b);   
+        LOGGER.log(Level.FINE, "selectionChange() b={0}", b);   
         setEnabled(b);
     }
 
