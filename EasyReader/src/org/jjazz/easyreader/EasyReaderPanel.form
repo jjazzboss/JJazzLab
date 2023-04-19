@@ -20,7 +20,7 @@
               <EmptySpace min="-2" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
                   <Group type="102" alignment="0" attributes="0">
-                      <EmptySpace min="6" pref="189" max="32767" attributes="0"/>
+                      <EmptySpace min="6" pref="211" max="32767" attributes="0"/>
                       <Component id="jPanel1" min="-2" max="-2" attributes="0"/>
                   </Group>
                   <Group type="102" attributes="0">
@@ -57,10 +57,10 @@
                   </Group>
                   <Component id="pnl_progressBar" alignment="1" min="-2" pref="27" max="-2" attributes="0"/>
               </Group>
-              <EmptySpace pref="7" max="32767" attributes="0"/>
+              <EmptySpace type="unrelated" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
                   <Component id="pnl_barBox" max="32767" attributes="0"/>
-                  <Component id="pnl_nextChord" pref="126" max="32767" attributes="0"/>
+                  <Component id="pnl_nextChord" pref="107" max="32767" attributes="0"/>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
               <Component id="jPanel1" min="-2" max="-2" attributes="0"/>
