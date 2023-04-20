@@ -79,7 +79,7 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
         }
         data = cs;
         setPosition(pos);
-        clientProperties = new StringProperties();
+        clientProperties = new StringProperties(this);
     }
 
     @Override

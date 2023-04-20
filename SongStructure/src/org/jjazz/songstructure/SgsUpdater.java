@@ -44,6 +44,7 @@ import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.leadsheet.chordleadsheet.api.ClsChangeListener;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
+import org.jjazz.leadsheet.chordleadsheet.api.event.ItemClientPropertyChangedEvent;
 import org.jjazz.leadsheet.chordleadsheet.api.event.SizeChangedEvent;
 import org.jjazz.songstructure.api.SongPart;
 import org.openide.util.Exceptions;
@@ -152,13 +153,16 @@ public class SgsUpdater implements ClsChangeListener
                 processSectionMoved(sme, cliSections.get(0));
             }
 
+        } else if (evt instanceof ItemClientPropertyChangedEvent e)
+        {
+            // Nothing
         }
     }
 
-    //----------------------------------------------------------------------------------------------------
-    // Private functions
-    //----------------------------------------------------------------------------------------------------  
 
+//----------------------------------------------------------------------------------------------------
+// Private functions
+//----------------------------------------------------------------------------------------------------  
     /**
      * CLI_Section was already moved.
      *

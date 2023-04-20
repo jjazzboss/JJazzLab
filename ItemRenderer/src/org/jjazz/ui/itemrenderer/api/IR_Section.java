@@ -102,7 +102,7 @@ public class IR_Section extends ItemRenderer implements IR_Copiable
     {
         Preconditions.checkArgument(ColorSetManager.getDefault().isReferenceColor(refColor), "refColor=%s", refColor);
         sectionColor = refColor;
-        repaint();
+        repaint();                        
     }
 
     public Color getSectionColor()

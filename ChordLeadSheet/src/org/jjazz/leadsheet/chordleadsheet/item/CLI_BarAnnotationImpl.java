@@ -76,7 +76,7 @@ public class CLI_BarAnnotationImpl implements CLI_BarAnnotation, WritableItem<St
 
         data = annotation;
         position = new Position(barIndex, 0);
-        clientProperties = new StringProperties();
+        clientProperties = new StringProperties(this);
     }
 
     @Override

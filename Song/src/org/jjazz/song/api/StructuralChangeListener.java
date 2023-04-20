@@ -96,16 +96,13 @@ public class StructuralChangeListener implements ClsChangeListener, SgsChangeLis
         if (event instanceof ClsActionEvent && ((ClsActionEvent) event).isActionComplete())
         {
             String actionId = ((ClsActionEvent) event).getActionId();
-            switch (actionId)
+            changed = switch (actionId)
             {
-                case "addItem":
-                case "removeItem":
-                case "setSectionName":
-                    changed = false;
-                    break;
-                default:
-                    changed = true;
-            }
+                case "addItem", "removeItem", "setSectionName", "itemClientPropertyChange" ->
+                    false;
+                default ->
+                    true;
+            };
         }
 
         if (changed)

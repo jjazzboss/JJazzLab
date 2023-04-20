@@ -133,7 +133,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
     private int tempo = 120;
     private List<String> tags = new ArrayList<>();
     private Map<String, Phrase> mapUserPhrases = new HashMap<>();
-    private final StringProperties clientProperties = new StringProperties();
+    private final StringProperties clientProperties = new StringProperties(this);
     private transient File file;
     private transient boolean saveNeeded = false;
     private boolean closed;
@@ -995,7 +995,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
         if (event instanceof ClsActionEvent ae && ae.isActionComplete())
         {
             String actionId = ae.getActionId();
-            if (!actionId.equals("setSectionName"))
+            if (!(actionId.equals("setSectionName") || actionId.equals("itemClientPropertyChange")))
             {
                 fireIsMusicallyModified(actionId, ae.getData());
             }

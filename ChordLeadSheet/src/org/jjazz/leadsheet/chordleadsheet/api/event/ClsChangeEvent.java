@@ -23,6 +23,7 @@
 package org.jjazz.leadsheet.chordleadsheet.api.event;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
@@ -43,12 +44,6 @@ public abstract class ClsChangeEvent
      */
     protected List<ChordLeadSheetItem> items;
 
-    static protected List<ChordLeadSheetItem> singletonList(ChordLeadSheetItem<?> item)
-    {
-        ArrayList<ChordLeadSheetItem> al = new ArrayList<>(1);
-        al.add(item);
-        return al;
-    }
 
     protected ClsChangeEvent(ChordLeadSheet src)
     {
@@ -66,7 +61,7 @@ public abstract class ClsChangeEvent
      */
     protected ClsChangeEvent(ChordLeadSheet src, ChordLeadSheetItem<?> item)
     {
-        this(src, singletonList(item));
+        this(src, Arrays.asList(item));
     }
 
     /**

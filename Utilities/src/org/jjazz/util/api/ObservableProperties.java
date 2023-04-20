@@ -42,18 +42,43 @@ import java.util.logging.Logger;
 public class ObservableProperties<T> implements Serializable
 {
 
-    protected Map<String, T> properties;
+    private Map<String, T> properties;
+    private Object owner;
     private transient final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(ObservableProperties.class.getSimpleName());
 
     public ObservableProperties()
     {
-
+        this(null);
     }
 
-    public ObservableProperties(ObservableProperties<T> otherProperties)
+    /**
+     * 
+     * @param owner Can be null
+     */
+    public ObservableProperties(Object owner)
+    {
+        this.owner = owner;
+    }
+
+    /**
+     * 
+     * @param owner Can be null
+     * @param otherProperties 
+     */
+    public ObservableProperties(Object owner, ObservableProperties<T> otherProperties)
     {
         set(otherProperties);
+    }
+    
+    /**
+     * The (optional) owner of this properties.
+     * 
+     * @return Can be null
+     */
+    public Object getOwner()
+    {
+        return owner;
     }
 
     /**

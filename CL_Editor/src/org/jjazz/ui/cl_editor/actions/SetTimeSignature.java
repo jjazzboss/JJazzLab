@@ -57,7 +57,7 @@ import org.openide.util.actions.Presenter;
 @ActionRegistration(displayName = "#CTL_SetTimeSignature", lazy = false)
 @ActionReferences(
         {
-            @ActionReference(path = "Actions/Section", position = 200, separatorAfter = 250)
+            @ActionReference(path = "Actions/Section", position = 200)
         })
 public final class SetTimeSignature extends AbstractAction implements Presenter.Popup
 {

@@ -42,6 +42,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.event.ClsChangeEvent;
 import org.jjazz.leadsheet.chordleadsheet.api.event.ItemAddedEvent;
 import org.jjazz.leadsheet.chordleadsheet.api.event.ItemBarShiftedEvent;
 import org.jjazz.leadsheet.chordleadsheet.api.event.ItemChangedEvent;
+import org.jjazz.leadsheet.chordleadsheet.api.event.ItemClientPropertyChangedEvent;
 import org.jjazz.leadsheet.chordleadsheet.api.event.ItemMovedEvent;
 import org.jjazz.leadsheet.chordleadsheet.api.event.ItemRemovedEvent;
 import org.jjazz.leadsheet.chordleadsheet.api.event.SectionMovedEvent;
@@ -450,6 +451,9 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
             } else if (event instanceof ItemBarShiftedEvent e)
             {
                 // No need to handle
+            } else if ((event instanceof ItemClientPropertyChangedEvent e))
+            {
+                // Nothing
             }
         };
         org.jjazz.ui.utilities.api.Utilities.invokeLaterIfNeeded(run);

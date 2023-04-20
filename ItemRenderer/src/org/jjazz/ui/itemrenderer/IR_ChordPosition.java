@@ -73,7 +73,9 @@ public class IR_ChordPosition extends ItemRenderer
     @Override
     protected void modelChanged()
     {
+        cri = ((CLI_ChordSymbol) getModel()).getData().getRenderingInfo();        
         updateToolTipText();
+        repaint();
     }
 
     @Override

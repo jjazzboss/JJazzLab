@@ -24,6 +24,8 @@ package org.jjazz.leadsheet.chordleadsheet;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import org.jjazz.undomanager.api.SimpleEdit;
 import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
@@ -32,7 +34,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.TreeSet;
 import java.util.function.Predicate;
 import java.util.logging.Level;
@@ -52,9 +53,10 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.leadsheet.chordleadsheet.api.ClsChangeListener;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Factory;
+import org.jjazz.util.api.StringProperties;
 import org.openide.util.Exceptions;
 
-public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
+public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable, PropertyChangeListener
 {
 
     /**
@@ -87,9 +89,10 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             throw new IllegalArgumentException("section=" + initSection + " size=" + size);
         }
         this.size = size;
+
         WritableItem<Section> wSection = (WritableItem<Section>) initSection;
         wSection.setContainer(this);
-        items.add(initSection);
+        addItemChecked(wSection);
     }
 
     @Override
@@ -340,6 +343,21 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             }
         }
         return sb.toString();
+    }
+
+    // ============================================================================================= 
+    // PropertyChangeListener interface
+    // =============================================================================================    
+    @Override
+    public void propertyChange(PropertyChangeEvent evt)
+    {
+        // Forward the item's client property changes
+        if (evt.getSource() instanceof StringProperties sp)
+        {
+            ChordLeadSheetItem<?> item = (ChordLeadSheetItem<?>) sp.getOwner();
+            fireAuthorizedChangeEvent(new ItemClientPropertyChangedEvent(this, item, evt.getPropertyName(), (String) evt.getOldValue()));
+            fireActionEvent(true, "itemClientPropertyChange", true, item);
+        }
     }
 
     // --------------------------------------------------------------------------------------
@@ -1168,7 +1186,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         {
             synchronized (this)
             {
-                items.removeAll(removedItems);
+                removedItems.forEach(item -> removeItemChecked(item));
             }
 
             // Create the undoable event        
@@ -1180,7 +1198,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                     LOGGER.log(Level.FINER, "removeSectionsAndItems.undoBody() removedItems={0}", removedItems);
                     synchronized (ChordLeadSheetImpl.this)
                     {
-                        items.addAll(removedItems);
+                        removedItems.forEach(item -> addItemChecked(item));
                     }
                     fireAuthorizedChangeEvent(new ItemAddedEvent(ChordLeadSheetImpl.this, removedItems));
                 }
@@ -1191,7 +1209,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                     LOGGER.log(Level.FINER, "removeSectionsAndItems.redoBody() removedItems={0}", removedItems);
                     synchronized (ChordLeadSheetImpl.this)
                     {
-                        items.removeAll(removedItems);
+                        removedItems.forEach(item -> removeItemChecked(item));
                     }
                     fireAuthorizedChangeEvent(new ItemRemovedEvent(ChordLeadSheetImpl.this, removedItems));
                 }
@@ -1451,16 +1469,25 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         fireAuthorizedChangeEvent(event);
     }
 
+    /**
+     * Perform the add: check internal state consistency + add a listener to client properties.
+     *
+     * @param item
+     */
     private synchronized void addItemChecked(ChordLeadSheetItem<?> item)
     {
         var b = items.add(item);
         assert b : "item=" + item + " items=" + items;
+
+        item.getClientProperties().addPropertyChangeListener(this);
     }
 
     private synchronized void removeItemChecked(ChordLeadSheetItem<?> item)
     {
         var b = items.remove(item);
         assert b : "item=" + item + " items=" + items;
+
+        item.getClientProperties().removePropertyChangeListener(this);
     }
 
     private synchronized <T> void changeItemDataChecked(ChordLeadSheetItem<T> item, T newData)

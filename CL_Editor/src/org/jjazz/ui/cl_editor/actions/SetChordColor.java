@@ -24,6 +24,8 @@ package org.jjazz.ui.cl_editor.actions;
 
 import java.awt.Color;
 import java.awt.event.ActionEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.JMenu;
@@ -49,13 +51,12 @@ import org.openide.util.actions.Presenter;
         {
             @ActionReference(path = "Actions/ChordSymbol", position = 2000, separatorBefore = 1999)
         })
-public final class SetChordColor extends AbstractAction implements Presenter.Popup
+public final class SetChordColor extends AbstractAction implements Presenter.Popup, PropertyChangeListener
 {
 
-    private static final Color DEFAULT_COLOR = IR_ChordSymbolSettings.getDefault().getColor();
     public static final Color[] COLORS =
     {
-        DEFAULT_COLOR,
+        IR_ChordSymbolSettings.getDefault().getColor(),
         new Color(0x026a2e),
         new Color(0xb73003),
         new Color(0x004699)
@@ -64,6 +65,11 @@ public final class SetChordColor extends AbstractAction implements Presenter.Pop
     private final String undoText = ResUtil.getString(getClass(), "CTL_SetChordColor");
     private static final Logger LOGGER = Logger.getLogger(SetChordColor.class.getSimpleName());
 
+    public SetChordColor()
+    {
+        IR_ChordSymbolSettings.getDefault().addPropertyChangeListener(this);
+    }
+    
     @Override
     public void actionPerformed(ActionEvent e)
     {
@@ -84,10 +90,23 @@ public final class SetChordColor extends AbstractAction implements Presenter.Pop
         return menu;
     }
 
-    // ============================================================================================= 
-    // Private methods
-    // =============================================================================================    
 
+
+    // ============================================================================================= 
+    // PropertyChangeListener interface
+    // =============================================================================================    
+    @Override
+    public void propertyChange(PropertyChangeEvent evt)
+    {
+        if (evt.getSource() == IR_ChordSymbolSettings.getDefault())
+        {
+            if (evt.getPropertyName().equals(IR_ChordSymbolSettings.PROP_FONT_COLOR))
+            {
+                COLORS[0] = IR_ChordSymbolSettings.getDefault().getColor();
+                menu.update();
+            }
+        }
+    }
     // ============================================================================================= 
     // Private class
     // =============================================================================================    
@@ -98,11 +117,11 @@ public final class SetChordColor extends AbstractAction implements Presenter.Pop
         {
             super(title);
 
-            prepareMenu();
+            update();
         }
 
 
-        private void prepareMenu()
+        private void update()
         {
             removeAll();
 
@@ -120,7 +139,7 @@ public final class SetChordColor extends AbstractAction implements Presenter.Pop
                     {
                         if (item instanceof CLI_ChordSymbol cliCs)
                         {
-                            Color cc = c == DEFAULT_COLOR ? null : c;
+                            Color cc = c == IR_ChordSymbolSettings.getDefault().getColor() ? null : c;
                             cliCs.getClientProperties().putColor(
                                     IR_ChordSymbolSettings.SONG_CLIENT_PROPERTY_USER_FONT_COLOR, cc);
                         }

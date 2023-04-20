@@ -824,21 +824,17 @@ public class SongEditorManager implements PropertyChangeListener
 
     private void findSongToBeActivated()
     {
-        if (mapSongEditors.isEmpty())
-        {
-            return;
-        }
 
-        final Song song = (mapSongEditors.size() == 1) ? mapSongEditors.keySet().iterator().next() : null;
-
-        // Need to wait for the new TopComponent to be selected, hence the runnable on the EDT
+        // Need to wait for the new TopComponent to be selected, or for the shutdown to complete, hence the runnable on the EDT
         Runnable r = () -> 
         {
-            Song sg;
-            if (song != null)
+            if (mapSongEditors.isEmpty())
             {
-                sg = song;
-            } else
+                return;
+            }
+            Song song = (mapSongEditors.size() == 1) ? mapSongEditors.keySet().iterator().next() : null;
+
+            if (song == null)
             {
                 // Find the currently selected ChordLeadSheet editor and get its song model
                 WindowManager wm = WindowManager.getDefault();
@@ -851,16 +847,16 @@ public class SongEditorManager implements PropertyChangeListener
                 var tc = mode.getSelectedTopComponent();
                 if (tc instanceof CL_EditorTopComponent clTc)
                 {
-                    sg = clTc.getSongModel();
+                    song = clTc.getSongModel();
                 } else if (tc instanceof PianoRollEditorTopComponent preTc)
                 {
-                    sg = preTc.getSong();
+                    song = preTc.getSong();
                 } else
                 {
                     return;
                 }
             }
-            activateSong(sg);
+            activateSong(song);
         };
         SwingUtilities.invokeLater(r);
 

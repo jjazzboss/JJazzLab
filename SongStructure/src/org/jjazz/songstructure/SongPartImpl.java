@@ -115,7 +115,7 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
         this.nbBars = nbBars;
         name = parentSection == null ? NO_NAME : parentSection.getData().getName();
         this.parentSection = parentSection;
-        this.clientProperties = new StringProperties();
+        this.clientProperties = new StringProperties(this);
 
 
         // Associate a default value to each RhythmParameter                    

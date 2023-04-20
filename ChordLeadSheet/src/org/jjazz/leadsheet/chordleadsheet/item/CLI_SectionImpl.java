@@ -80,7 +80,7 @@ public class CLI_SectionImpl implements CLI_Section, WritableItem<Section>, Seri
         }
         data = new Section(sectionName, ts);
         position = new Position(barIndex, 0);
-        clientProperties = new StringProperties();
+        clientProperties = new StringProperties(this);
     }
 
     @Override

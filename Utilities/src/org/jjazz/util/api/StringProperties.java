@@ -22,7 +22,6 @@
  */
 package org.jjazz.util.api;
 
-import com.google.common.base.Preconditions;
 import java.awt.Color;
 import java.io.Serializable;
 
@@ -35,8 +34,13 @@ public class StringProperties extends ObservableProperties<String> implements Se
     public StringProperties()
     {
     }
+    
+    public StringProperties(Object owner)
+    {
+        super(owner);
+    }
 
-    public StringProperties(StringProperties sp)
+    public StringProperties(Object owner, StringProperties sp)
     {
         super(sp);
     }
@@ -57,7 +61,7 @@ public class StringProperties extends ObservableProperties<String> implements Se
 
     public void putBoolean(String prop, Boolean value)
     {
-        put(prop,  String.valueOf(value));
+        put(prop, String.valueOf(value));
     }
 
     public int getInt(String prop, int defaultValue)
