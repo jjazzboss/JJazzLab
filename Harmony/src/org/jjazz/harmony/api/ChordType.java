@@ -989,7 +989,7 @@ final public class ChordType
     }
 
     /**
-     * @return A corresponding Chord with a default C root.
+     * @return A copy of the corresponding Chord with a default C root.
      */
     public Chord getChord()
     {

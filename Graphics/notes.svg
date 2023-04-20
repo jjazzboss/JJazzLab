@@ -11,11 +11,24 @@
    inkscape:export-ydpi="96"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg"
    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
    xmlns:cc="http://creativecommons.org/ns#"
    xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <rect
+     style="fill:none;fill-opacity:1;stroke:none;stroke-width:0.400001;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;paint-order:stroke markers fill;stop-color:#000000"
+     id="rect7593"
+     width="27.6"
+     height="27.600002"
+     x="3.0779803"
+     y="-289.99997"
+     rx="0"
+     ry="0"
+     inkscape:export-filename="D:\JeromeDocs\JJazzLab\src\JJazzLab-X\Graphics\EighthNoteIcon.png"
+     inkscape:export-xdpi="55.650002"
+     inkscape:export-ydpi="55.650002" />
   <g
      id="g14514"
      transform="translate(-165.46298,38.424925)">
@@ -134,9 +147,9 @@
      fit-margin-left="0"
      fit-margin-right="0"
      fit-margin-bottom="0"
-     inkscape:zoom="4.0000002"
-     inkscape:cx="-60.499996"
-     inkscape:cy="-25.374998"
+     inkscape:zoom="2.8284273"
+     inkscape:cx="-34.471454"
+     inkscape:cy="-198.87377"
      inkscape:window-x="-8"
      inkscape:window-y="-8"
      inkscape:window-maximized="1"
@@ -414,10 +427,10 @@
      transform="translate(-478.20977,-97.892924)"><tspan
        x="-79.734375"
        y="69.390946"
-       id="tspan96685"><tspan
+       id="tspan8502"><tspan
          dx="0 20 20 20 20"
          style="font-stretch:normal;font-family:Marl;-inkscape-font-specification:'Marl, Normal'"
-         id="tspan96683">azzss</tspan></tspan></text>
+         id="tspan8500">azzss</tspan></tspan></text>
   <path
      sodipodi:nodetypes="ccssscccc"
      id="path11058"
@@ -866,7 +879,7 @@
        transform="matrix(0.18190701,0,0,0.18190701,104.3991,64.940469)"><tspan
          x="-214"
          y="-496.60938"
-         id="tspan96687">3</tspan></text>
+         id="tspan8504">3</tspan></text>
     <path
        style="fill:none;stroke:#000000;stroke-width:0.27089px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        d="m 63.239726,-27.82351 h -9.216281 v 3.749034"
@@ -967,7 +980,7 @@
      inkscape:export-ydpi="96"><tspan
        x="-214"
        y="-496.60938"
-       id="tspan96689">3</tspan></text>
+       id="tspan8506">3</tspan></text>
   <path
      style="fill:none;stroke:#cccccc;stroke-width:0.285945;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
      d="m -78.721748,13.054089 h -3.143343 v 1.321392"
@@ -2066,7 +2079,7 @@
      transform="matrix(0.23756009,0,0,0.23756009,-194.31471,55.994483)"><tspan
        x="133.28906"
        y="-28.601562"
-       id="tspan96691">+</tspan></text>
+       id="tspan8508">+</tspan></text>
   <g
      id="g1313"
      transform="translate(-179.99373,73.924923)">
@@ -2684,7 +2697,7 @@
        inkscape:export-ydpi="96"><tspan
          x="-214"
          y="-496.60938"
-         id="tspan96693">3</tspan></text>
+         id="tspan8510">3</tspan></text>
     <path
        style="fill:none;stroke:#808080;stroke-width:0.400915;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        d="M 5.9667596,22.097086 H 1.5595668 V 20.2444"
@@ -2981,5 +2994,63 @@
            id="rect92217" /></flowRegion><flowPara
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:12px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#cccccc;fill-opacity:1"
          id="flowPara92221">3</flowPara></flowRoot>
+  </g>
+  <image
+     width="92"
+     height="40"
+     preserveAspectRatio="none"
+     xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFwAAAAoCAIAAAD8PgrYAAAAA3NCSVQICAjb4U/gAAADPklEQVRo
+ge2abU/TQBzA/33Y1q7tYGyDbkBUZCOAxEQRjYKg3wJDIED4EsbEmBg/liJiYkSikbGpoGyKe2QP
+zLnNrq6+ON2rut0eu5H+Xt36v7ve/5e767UZsbq+cXB4CK3k4YP7jx4/6ZzrVSHraNM4gy7n2soy
+AKytLA+6nJqMoQIaSOF5fune4vDwEAAMDw8t3Vvkeb79w6iABlI87lGGYco/GYbxuEfbP4wKaLN8
+OhxidX1D6zF0HHSrHz3diL58VNClqKBLUUGXooIuRQW6ao0Xz5/V0e/c/J06WnUI1aVA7RnW57Fz
+wJICAHcX5mVZRmWWZYtFSZZ/AwBNUwaDIZ8v/O2Opp5ubv2vkwvnz9nt9h6L4BTFQqEQ/PptzOMG
+gI+fDoYGXRzHxeLxZCodj58EgsGG0moMXCmyLG9tv0TlqcmJ41A4lUoBgNVqHXI59/Z9KHR79laF
+Tuw2286b3TGP2ymKP3M5r8+PpHh9fotF4DguHIm+3/NevzatrZS2brSlUgmnWnlKaoX+9FEBd/lQ
+FDU5MY7K/f0Ok8mUd4oAwDJMT49lUhn/V+0sWMaVUiqVIpEoKnNmcyKZzGR+AIDFIpAkWQ7ZbbZW
+jLLN4EpRFCWRTKKyyymmTzNooy0pCs9x5ZCiKK0YZZupebb39vZeHBm5PHWJpnGFdh24iZEkYevr
+A4CF+TkzywqCMHvzxp7XZ7EILMuiEAAQBFG1q1Q6fZrJhEJhSZIi0ShBkJIkhcIRnuMSiWTdmTSR
+GjZaURwAAJpCTRSe50VxgGUYQeBRCABIsrqUWCz++cvRvs8PALtv3xkNRlmWff4PBEF8D4XqyqLJ
+4EopFmWURi6Xn5m+8kuSNre2s9ksOryhEADYKh7eMMGZbi2l5n3hKBDgOfNxKJzNZmttq3m2mLT1
+WEGSWLfDrNY6cGeKJEnl9xqOMzscDnQYp2naZDJarVYUyuVyFTqJxU9mpq/Ksmy320xGIwAwjImi
+KJdTBAB00WAwRGOxuvNpCrhSXr3eafxmgWBQ2zc9TLCkdPv3kVohZrv5E1mLOAvvb01Hl6KCLkUF
+XYoKuhQVaPdoZ/1hphPQ/4qhgr58VNClqPAHLm0LX1kVwOYAAAAASUVORK5CYII=
+"
+     id="image1430"
+     x="29.000004"
+     y="-383.99997" />
+  <g
+     transform="matrix(5.9353133,0,0,5.9353133,10.828249,-288.10538)"
+     id="g1442"
+     style="fill:#959696;fill-opacity:1"
+     inkscape:export-filename="D:\JeromeDocs\JJazzLab\src\JJazzLab-X\Graphics\EighthNoteIcon.png"
+     inkscape:export-xdpi="55.650002"
+     inkscape:export-ydpi="55.650002">
+    <path
+       transform="matrix(0.004,0,0,-0.004,1.3162,0.03999969)"
+       d="m 0,0 c 0,-198 209,-335 209,-533 0,-71 -16,-141 -42,-207 -5,-8 -12,-12 -19,-12 -13,0 -26,11 -23,27 26,61 42,126 42,192 0,104 -95,208 -167,283 H -16 V 0 Z"
+       id="path1434"
+       inkscape:connector-curvature="0"
+       style="fill:#959696;fill-opacity:1" />
+    <rect
+       transform="translate(1.2512,1.9999997)"
+       x="-0.064999998"
+       y="-2"
+       width="0.13"
+       height="3.3122001"
+       ry="0.039999999"
+       id="rect1436"
+       style="fill:#959696;fill-opacity:1" />
+    <a
+       id="a1440"
+       transform="translate(-94.8335,-6.3453003)"
+       style="fill:#959696;fill-opacity:1">
+      <path
+         transform="matrix(0.004,0,0,-0.004,94.8335,9.8453)"
+         d="m 220,138 c 56,0 109,-29 109,-91 0,-72 -56,-121 -103,-149 -36,-21 -76,-36 -117,-36 -56,0 -109,29 -109,91 0,72 56,121 103,149 36,21 76,36 117,36 z"
+         id="path1438"
+         inkscape:connector-curvature="0"
+         style="fill:#959696;fill-opacity:1" />
+    </a>
   </g>
 </svg>
