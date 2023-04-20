@@ -58,7 +58,7 @@ public class IP_ChordSymbol implements CLI_ChordSymbol
     {
         if (item == null)
         {
-            throw new NullPointerException("item=" + item);   
+            throw new NullPointerException("item=" + item);
         }
         cli = item;
         position = cli.getPosition();
@@ -108,11 +108,11 @@ public class IP_ChordSymbol implements CLI_ChordSymbol
             pcs.firePropertyChange(PROP_ITEM_POSITION, oldPos, position);
         }
     }
-        
+
     @Override
     public StringProperties getClientProperties()
     {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        return cli.getClientProperties();
     }
 
     @Override

@@ -85,7 +85,7 @@ public class TextOverlayLayerUI extends LayerUI<JComponent>
         }
 
 
-        Graphics2D g2 = (Graphics2D) g.create();
+        Graphics2D g2 = (Graphics2D) g;
         int w = jc.getWidth();
         int h = jc.getHeight();
 
@@ -101,7 +101,6 @@ public class TextOverlayLayerUI extends LayerUI<JComponent>
         // Write text
         g2.setFont(g2.getFont().deriveFont(Font.BOLD));
         Utilities.drawStringAligned(g2, jc, text, 1);
-        g2.dispose();
     }
 
 }

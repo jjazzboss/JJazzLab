@@ -51,7 +51,7 @@ public class NoteViewDrum extends NoteView
     @Override
     public void paint(Graphics g)
     {
-        Graphics2D g2 = (Graphics2D) g.create();
+        Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
         int w = getWidth();
@@ -67,7 +67,5 @@ public class NoteViewDrum extends NoteView
         g2.fill(p);
         g2.setColor(getLineBorder().getLineColor());
         g2.draw(p);
-
-        g2.dispose();
     }
 }

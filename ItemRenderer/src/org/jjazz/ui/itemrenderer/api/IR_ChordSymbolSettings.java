@@ -25,22 +25,24 @@ package org.jjazz.ui.itemrenderer.api;
 import java.awt.Color;
 import java.awt.Font;
 import java.beans.PropertyChangeListener;
-import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo;
 import org.openide.util.Lookup;
 
 public interface IR_ChordSymbolSettings
 {
 
+    /**
+     * This is the Song client property used by ItemRenderer to let user adjust the font color.
+     */
+    public static String SONG_CLIENT_PROPERTY_USER_FONT_COLOR = "SongPropUserFontColor";
     public static String PROP_FONT = "ItemFont";
     public static String PROP_FONT_COLOR = "ItemFontColor";
-    public static String PROP_FONT_ACCENT_COLOR = "ItemFontAccentColor";
 
     public static IR_ChordSymbolSettings getDefault()
     {
         IR_ChordSymbolSettings result = Lookup.getDefault().lookup(IR_ChordSymbolSettings.class);
         if (result == null)
         {
-            throw new NullPointerException("result=" + result);   
+            throw new NullPointerException("result=" + result);
         }
         return result;
     }
@@ -71,22 +73,7 @@ public interface IR_ChordSymbolSettings
      */
     Color getColor();
 
-    /**
-     * The color to be used when rendered object has an accented chord symbol.
-     *
-     * @param accentFeature
-     * @param color If null restore the default value.
-     */
-    void setAccentColor(ChordRenderingInfo.Feature accentFeature, Color color);
-
-    /**
-     * The color to be used when rendered object has an accented chord symbol.
-     *
-     * @param accentFeature
-     * @return
-     */
-    Color getAccentColor(ChordRenderingInfo.Feature accentFeature);
-
+  
     /**
      * The font to display musical symbols like sharp and flat symbols.
      *

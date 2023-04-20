@@ -91,6 +91,11 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
         setFont(settings.getFont());
 
 
+        // Listen to color change
+        getModel().getClientProperties().addPropertyChangeListener(this);
+
+        updateForegroundColor();
+
         modelChanged();
 
     }
@@ -147,8 +152,6 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
 
 
         // Update UI
-        setForeground(cri.getAccentFeature() == null ? settings.getColor() : settings.getAccentColor(cri.getAccentFeature()));
-        optionLineColor = getForeground();
         updateToolTipText();
         revalidate();
         repaint();
@@ -256,6 +259,7 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
     public void cleanup()
     {
         super.cleanup();
+        getModel().getClientProperties().removePropertyChangeListener(this);
         settings.removePropertyChangeListener(this);
     }
 
@@ -436,11 +440,15 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
             if (e.getPropertyName().equals(IR_ChordSymbolSettings.PROP_FONT))
             {
                 setFont(settings.getFont());
-            } else if (e.getPropertyName().equals(IR_ChordSymbolSettings.PROP_FONT_COLOR)
-                    || e.getPropertyName().equals(IR_ChordSymbolSettings.PROP_FONT_ACCENT_COLOR))
+            } else if (e.getPropertyName().equals(IR_ChordSymbolSettings.PROP_FONT_COLOR))
             {
-                setForeground(cri.getAccentFeature() == null ? settings.getColor() : settings.getAccentColor(cri.getAccentFeature()));
-                optionLineColor = getForeground();
+                updateForegroundColor();
+            }
+        } else if (e.getSource() == getModel().getClientProperties())
+        {
+            if (e.getPropertyName().equals(IR_ChordSymbolSettings.SONG_CLIENT_PROPERTY_USER_FONT_COLOR))
+            {
+                updateForegroundColor();
             }
         }
     }
@@ -460,10 +468,21 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
 
     private boolean needOptionMark(ExtChordSymbol extCs, ChordRenderingInfo cri)
     {
-        return ((cri.getAccentFeature() != null && cri.hasOneFeature(Feature.CRASH, Feature.EXTENDED_HOLD_SHOT, Feature.NO_CRASH))
+        return ((cri.getAccentFeature() != null && cri.hasOneFeature(Feature.ACCENT, Feature.ACCENT_STRONGER, Feature.CRASH,
+                Feature.EXTENDED_HOLD_SHOT, Feature.NO_CRASH))
                 || cri.getScaleInstance() != null
                 || extCs.getAlternateChordSymbol() != null
                 || cri.hasOneFeature(Feature.PEDAL_BASS));
+    }
+
+    /**
+     * Update color depending on song property and settings.
+     */
+    private void updateForegroundColor()
+    {
+        Color c = getModel().getClientProperties().getColor(IR_ChordSymbolSettings.SONG_CLIENT_PROPERTY_USER_FONT_COLOR, settings.getColor());
+        optionLineColor = c;        
+        setForeground(c);   
     }
 
 }

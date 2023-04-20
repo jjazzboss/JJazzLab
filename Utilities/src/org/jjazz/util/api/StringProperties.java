@@ -55,9 +55,9 @@ public class StringProperties extends ObservableProperties<String> implements Se
         return res;
     }
 
-    public void putBoolean(String prop, boolean value)
+    public void putBoolean(String prop, Boolean value)
     {
-        put(prop, String.valueOf(value));
+        put(prop,  String.valueOf(value));
     }
 
     public int getInt(String prop, int defaultValue)
@@ -74,7 +74,7 @@ public class StringProperties extends ObservableProperties<String> implements Se
         return res;
     }
 
-    public void putInt(String prop, int value)
+    public void putInt(String prop, Integer value)
     {
         put(prop, String.valueOf(value));
     }

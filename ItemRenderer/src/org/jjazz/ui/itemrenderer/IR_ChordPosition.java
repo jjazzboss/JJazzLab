@@ -22,6 +22,7 @@
  */
 package org.jjazz.ui.itemrenderer;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -35,7 +36,6 @@ import java.beans.PropertyChangeEvent;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo.Feature;
-import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.ui.itemrenderer.api.IR_ChordSymbolSettings;
 import org.jjazz.ui.itemrenderer.api.IR_Type;
 import org.jjazz.ui.itemrenderer.api.ItemRenderer;
@@ -64,19 +64,16 @@ public class IR_ChordPosition extends ItemRenderer
         // Reuse same font color than chords
         settings = irSettings.getIR_ChordSymbolSettings();
         settings.addPropertyChangeListener(this);
-        setForeground(cri.getAccentFeature() == null ? settings.getColor() : settings.getAccentColor(cri.getAccentFeature()));
+        getModel().getClientProperties().addPropertyChangeListener(this);
+        setForeground(getColor());
+
         updateToolTipText();
     }
 
     @Override
     protected void modelChanged()
     {
-        ExtChordSymbol ecs = (ExtChordSymbol) getModel().getData();
-        cri = ((CLI_ChordSymbol) getModel()).getData().getRenderingInfo();
-        setForeground(cri.getAccentFeature() == null ? settings.getColor() : settings.getAccentColor(cri.getAccentFeature()));
         updateToolTipText();
-        revalidate();
-        repaint();
     }
 
     @Override
@@ -89,6 +86,7 @@ public class IR_ChordPosition extends ItemRenderer
     public void cleanup()
     {
         super.cleanup();
+        getModel().getClientProperties().removePropertyChangeListener(this);
         settings.removePropertyChangeListener(this);
     }
 
@@ -212,10 +210,15 @@ public class IR_ChordPosition extends ItemRenderer
         super.propertyChange(e);
         if (e.getSource() == settings)
         {
-            if (e.getPropertyName().equals(IR_ChordSymbolSettings.PROP_FONT_COLOR)
-                    || e.getPropertyName().equals(IR_ChordSymbolSettings.PROP_FONT_ACCENT_COLOR))
+            if (e.getPropertyName().equals(IR_ChordSymbolSettings.PROP_FONT_COLOR))
             {
-                setForeground(cri.getAccentFeature() == null ? settings.getColor() : settings.getAccentColor(cri.getAccentFeature()));
+                setForeground(getColor());
+            }
+        } else if (e.getSource() == getModel().getClientProperties())
+        {
+            if (e.getPropertyName().equals(IR_ChordSymbolSettings.SONG_CLIENT_PROPERTY_USER_FONT_COLOR))
+            {
+                setForeground(getColor());
             }
         }
     }
@@ -230,6 +233,12 @@ public class IR_ChordPosition extends ItemRenderer
             sb.append(" ").append(criStr);
         }
         setToolTipText(sb.toString());
+    }
+
+    private Color getColor()
+    {
+        Color c = getModel().getClientProperties().getColor(IR_ChordSymbolSettings.SONG_CLIENT_PROPERTY_USER_FONT_COLOR, settings.getColor());
+        return c;
     }
 
 }

@@ -30,12 +30,12 @@ import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import javax.swing.event.SwingPropertyChangeSupport;
-import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo.Feature;
 import org.jjazz.ui.itemrenderer.api.IR_ChordSymbolSettings;
 import org.jjazz.util.api.Utilities;
 import org.openide.util.NbPreferences;
@@ -51,8 +51,7 @@ import org.netbeans.api.annotations.common.StaticResource;
 {
     @ServiceProvider(service = IR_ChordSymbolSettings.class),
     @ServiceProvider(service = FontColorUserSettingsProvider.class)
-}
-)
+})
 public class IR_ChordSymbolSettingsImpl implements IR_ChordSymbolSettings, FontColorUserSettingsProvider, FontColorUserSettingsProvider.FCSetting
 {
 
@@ -63,7 +62,7 @@ public class IR_ChordSymbolSettingsImpl implements IR_ChordSymbolSettings, FontC
     /**
      * The Preferences of this object.
      */
-    private static Preferences prefs = NbPreferences.forModule(IR_ChordSymbolSettingsImpl.class);
+    private static final Preferences prefs = NbPreferences.forModule(IR_ChordSymbolSettingsImpl.class);
     /**
      * The listeners for changes of this object.
      */
@@ -81,7 +80,7 @@ public class IR_ChordSymbolSettingsImpl implements IR_ChordSymbolSettings, FontC
                 GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(MUSIC_FONT); // So it is available in getAvailableFontFamilyNames() etc.
             } catch (IOException | FontFormatException e)
             {
-                LOGGER.log(Level.SEVERE, "Can''t access " + MUSIC_FONT_PATH);   
+                LOGGER.log(Level.SEVERE, "Can''t access " + MUSIC_FONT_PATH);
             }
         }
     }
@@ -142,52 +141,6 @@ public class IR_ChordSymbolSettingsImpl implements IR_ChordSymbolSettings, FontC
         pcs.firePropertyChange(PROP_FONT_COLOR, old, color);
     }
 
-    @Override
-    public void setAccentColor(Feature accentFeature, Color color)
-    {
-        Color old = getAccentColor(accentFeature);
-        if (color == null)
-        {
-            prefs.remove(getAccentColorKey(accentFeature));
-            color = getAccentColor(accentFeature);
-        } else
-        {
-            prefs.putInt(getAccentColorKey(accentFeature), color.getRGB());
-        }
-        pcs.firePropertyChange(PROP_FONT_ACCENT_COLOR, old, color);
-    }
-
-    @Override
-    public Color getAccentColor(Feature accentFeature)
-    {
-        return new Color(prefs.getInt(getAccentColorKey(accentFeature), getDefaultAccentColor(accentFeature).getRGB()));
-    }
-
-    private Color getDefaultAccentColor(Feature accentFeature)
-    {
-        Color defCol;
-        switch (accentFeature)
-        {
-            case ACCENT:
-                defCol = getColor();
-                break;
-            case ACCENT_STRONGER:
-                defCol = new Color(0x9B2317);
-                break;
-            default:
-                throw new AssertionError(accentFeature.name());
-        }
-        return defCol;
-    }
-
-    private String getAccentColorKey(Feature accentFeature)
-    {
-        if (accentFeature != Feature.ACCENT && accentFeature != Feature.ACCENT_STRONGER)
-        {
-            throw new IllegalArgumentException("accentFeature");   
-        }
-        return PROP_FONT_ACCENT_COLOR + "-" + accentFeature.name();
-    }
 
     @Override
     public Font getMusicFont()
@@ -225,24 +178,7 @@ public class IR_ChordSymbolSettingsImpl implements IR_ChordSymbolSettings, FontC
     @Override
     public List<FontColorUserSettingsProvider.FCSetting> getFCSettings()
     {
-        List<FontColorUserSettingsProvider.FCSetting> res = new ArrayList<>();
-        res.add(this);
-        FontColorUserSettingsProvider.FCSetting fcs = new FontColorUserSettingsProvider.FCSettingAdapter("AccentedStrongChordSymbolId", "Chord symbol strong accent")
-        {
-            @Override
-            public Color getColor()
-            {
-                return getAccentColor(Feature.ACCENT_STRONGER);
-            }
-
-            @Override
-            public void setColor(Color c)
-            {
-                setAccentColor(Feature.ACCENT_STRONGER, c);
-            }
-        };
-        res.add(fcs);
-        return res;
+        return Arrays.asList((FontColorUserSettingsProvider.FCSetting) this);
     }
 
     // =====================================================================================

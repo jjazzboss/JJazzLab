@@ -124,7 +124,7 @@ public class PhraseBirdsEyeViewComponent extends JPanel implements PropertyChang
     {
         super.paintComponent(g);
 
-        Graphics2D g2 = (Graphics2D) g.create();
+        Graphics2D g2 = (Graphics2D) g;
         // g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         var r = Utilities.getUsableArea(this);
 
@@ -227,7 +227,6 @@ public class PhraseBirdsEyeViewComponent extends JPanel implements PropertyChang
             g2.drawString(label, x, yStr);
         }
 
-        g2.dispose();
     }
 
     /**

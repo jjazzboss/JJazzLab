@@ -415,19 +415,7 @@ public class PrintCL_EditorSettings implements CL_EditorSettings
         {
             return defaultSettings.getColor();
         }
-
-        @Override
-        public void setAccentColor(ChordRenderingInfo.Feature accentFeature, Color color)
-        {
-            // Nothing
-        }
-
-        @Override
-        public Color getAccentColor(ChordRenderingInfo.Feature accentFeature)
-        {
-            return defaultSettings.getAccentColor(accentFeature);
-        }
-
+     
         @Override
         public Font getMusicFont()
         {
