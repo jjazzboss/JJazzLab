@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
@@ -194,9 +195,9 @@ public class SourcePhrase extends Phrase
      * @param chordMode
      * @return A map with key="a source chord symbol degree" and value="a destination chord symbol degree".
      */
-    public HashMap<Degree, Degree> getDestDegrees(ExtChordSymbol ecsDest, ChordMode chordMode)
+    public Map<Degree, Degree> getDestDegrees(ExtChordSymbol ecsDest, ChordMode chordMode)
     {
-        HashMap<Degree, Degree> result = new HashMap<>();
+        Map<Degree, Degree> result = new HashMap<>();
         if (isEmpty())
         {
             return result;
@@ -268,30 +269,30 @@ public class SourcePhrase extends Phrase
      * getUsedDegrees()) of the source phrase.
      * <p>
      * Based on the use of the most important degrees of the destination chord symbol. Sizes may differ between the nb of source
-     * degrees and the nb of destination degrees. If a direct map sourceDegree=>destDegree is not possible, try to find the
+     * degrees and the nb of destination degrees. If a direct map from a sourceDegree to a destDegree is not possible, try to find the
      * "closest" note.
      * <p>
-     * 3 cases:<br>
-     * 1/ Destination chord is identical or more complex than source chord symbol (C=>C7): use the first most important degrees of
+     * Algorithm uses 3 cases:<br>
+     * 1/ Destination chord is identical or more complex than source chord symbol (C=&gt;C7): use the first most important degrees of
      * the destination chord as necessary.<br>
-     * 2/ When dest. chord is simpler than source symbol (C7M=>C): same as 1 plus one or more dest. degrees must be reused.<br>
+     * 2/ When dest. chord is simpler than source symbol (C7M=&gt;C): same as 1 plus one or more destination degrees must be reused.<br>
      * 3/ Special case if only 1 or 2 degrees in the source phrase, just reuse them.
      * <p>
      * Ex: C7M source phrase notes=C E G B<br>
-     * ecsDest=Fm9, =>4 most important notes=THIRD_OR_FOURTH, SEVENTH, EXTENSION1, FIFTH.<br>
-     * result map=[THIRD=>THIRD_FLAT, SEVENTH=>SEVENTH_FLAT, FIFTH=>FIFTH, ROOT=>NINTH]
+     * ecsDest=Fm9, =&gt;4 most important notes=THIRD_OR_FOURTH, SEVENTH, EXTENSION1, FIFTH.<br>
+     * result map=[THIRD=&gt;THIRD_FLAT, SEVENTH=&gt;SEVENTH_FLAT, FIFTH=&gt;FIFTH, ROOT=&gt;NINTH]
      * <p>
      * Ex: C source phrase notes=C E G<br>
-     * ecsDest=Fm9, =>3 most important notes=THIRD_OR_FOURTH, SEVENTH, EXTENSION1.<br>
-     * result map=[THIRD=>THIRD_FLAT, ROOT(C)=>SEVENTH_FLAT, FIFTH(G)=>NINTH] with chordMode=INVERSION_ALLOWED<br>
-     * result map=[THIRD=>THIRD_FLAT, ROOT(F)=>NINTH, FIFTH(C)=>SEVENTH_FLAT] with chordMode=NO_INVERSION
+     * ecsDest=Fm9, =&gt;3 most important notes=THIRD_OR_FOURTH, SEVENTH, EXTENSION1.<br>
+     * result map=[THIRD=&gt;THIRD_FLAT, ROOT(C)=&gt;SEVENTH_FLAT, FIFTH(G)=&gt;NINTH] with chordMode=INVERSION_ALLOWED<br>
+     * result map=[THIRD=&gt;THIRD_FLAT, ROOT(F)=&gt;NINTH, FIFTH(C)=&gt;SEVENTH_FLAT] with chordMode=NO_INVERSION
      * <p>
      * Ex: C7M source phrase notes=C E G B and ecsDest=Am<br>
-     * result map=[ROOT=>ROOT, THIRD=>THIRD_FLAT, FIFTH=>FIFTH, SEVENTH=>THIRD_FLAT] with chordMode=INVERSION_ALLOWED<br>
-     * result map=[ROOT=>ROOT, THIRD=>THIRD_FLAT, FIFTH=>FIFTH, SEVENTH=>ROOT] with chordMode=NO_INVERSION
+     * result map=[ROOT=&gt;ROOT, THIRD=&gt;THIRD_FLAT, FIFTH=&gt;FIFTH, SEVENTH=&gt;THIRD_FLAT] with chordMode=INVERSION_ALLOWED<br>
+     * result map=[ROOT=&gt;ROOT, THIRD=&gt;THIRD_FLAT, FIFTH=&gt;FIFTH, SEVENTH=&gt;ROOT] with chordMode=NO_INVERSION
      * <p>
      * Ex: C7M source phrase notes=C G and ecsDest=XX<br>
-     * result map=[ROOT=>ROOT, FIFTH=>FIFTH]
+     * result map=[ROOT=&gt;ROOT, FIFTH=&gt;FIFTH]
      * <p>
      *
      * @param ecsDest   The destination chord symbol.
@@ -299,7 +300,7 @@ public class SourcePhrase extends Phrase
      * @return The source phrase degrees and the corresponding destination degrees. A destination degree may appear more than once
      *         (see case 2/ above).
      */
-    private HashMap<Degree, Degree> getDestDegreesChordMode(ExtChordSymbol ecsDest, ChordMode chordMode)
+    private Map<Degree, Degree> getDestDegreesChordMode(ExtChordSymbol ecsDest, ChordMode chordMode)
     {
         if (ecsDest == null || chordMode.equals(ChordMode.OFF))
         {
@@ -314,7 +315,7 @@ public class SourcePhrase extends Phrase
         List<Degree> srcDegrees = getUsedDegrees();
         int nbSrcDegrees = srcDegrees.size();
         int nbDestDegrees = ctDest.getDegrees().size();
-        List<ChordType.DegreeIndex> miDestDegreeIndexes = ctDest.getMostImportantDegreeIndexes();
+        List<ChordType.DegreeIndex> miDestDegreeIndexes = new ArrayList<>(ctDest.getMostImportantDegreeIndexes());
 
         if (nbSrcDegrees <= 2)
         {

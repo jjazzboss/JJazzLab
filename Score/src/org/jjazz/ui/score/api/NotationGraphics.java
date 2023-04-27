@@ -43,8 +43,6 @@ import org.jjazz.harmony.api.Note;
  */
 public class NotationGraphics
 {
-
-
     public final static int CLEF_F = -7;
     public final static int CLEF_C = 0;
     public final static int CLEF_G = 7;
@@ -1412,13 +1410,8 @@ public class NotationGraphics
                     staffLine = 4;
                 }
             }
-            if (n.getPitch() < MIDDLE_C)
-            {
-                staffLine -= 7;
-            } else if (n.getPitch() >= MIDDLE_C + 12)
-            {
-                staffLine += 7;
-            }
+            
+            staffLine = (n.getPitch()/12 - 5) * 7 + staffLine;
         }
 
         public ScoreNote(int staffLine, int dur)

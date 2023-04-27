@@ -766,6 +766,46 @@ public class Note implements Comparable<Note>, Cloneable
     }
 
     /**
+     * Get the G-clef staff line for this note.
+     *
+     * @return 0 for the line of middle C (Midi 60) or C#, 1 for D or Db or D#, 2 for E or Eb, 3 for F or F#, etc.
+     */
+    public int getGStaffLineNumber()
+    {
+        int line = switch (pitch % 12)
+        {
+            case 0 ->       // C
+                0;
+            case 1 ->       // Db
+                isFlat() ? 1 : 0;
+            case 2 ->       // D
+                1;
+            case 3 ->       // Eb
+                isFlat() ? 2 : 1;
+            case 4 ->       // E
+                2;
+            case 5 ->       // F
+                3;
+            case 6 ->       // F#
+                isFlat() ? 4 : 3;
+            case 7 ->       // G
+                4;
+            case 8 ->       // G#
+                isFlat() ? 5 : 4;
+            case 9 ->       // A
+                5;
+            case 10 ->      // A#
+                isFlat() ? 6 : 5;
+            case 11 ->      // B
+                6;
+
+            default -> throw new IllegalStateException("pitch=" + pitch);
+        };
+        int res = (getOctave() - 5) * 7 + line;
+        return res;
+    }
+
+    /**
      * Create a Note from a String created with saveAsString().
      *
      * @param s

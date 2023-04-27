@@ -28,6 +28,7 @@ import java.util.logging.Logger;
 import org.openide.util.NbBundle.Messages;
 import static org.jjazz.harmony.api.Bundle.*;
 import org.jjazz.harmony.api.ChordType.DegreeIndex;
+import org.jjazz.harmony.api.Note.Alteration;
 
 /**
  * A jazz chord symbol.
@@ -90,7 +91,7 @@ public class ChordSymbol implements Cloneable
     {
         if ((rootDg == null) || (ct == null))
         {
-            throw new IllegalArgumentException("rootDg=" + rootDg + " bassDg=" + bassDg + " ct=" + ct);   
+            throw new IllegalArgumentException("rootDg=" + rootDg + " bassDg=" + bassDg + " ct=" + ct);
         }
         rootNote = buildStdNote(rootDg);
         bassNote = (bassDg != null) ? buildStdNote(bassDg) : rootNote;
@@ -103,7 +104,7 @@ public class ChordSymbol implements Cloneable
      * A protected constructor to alter the originalName.
      *
      * @param rootDg
-     * @param bassDg If null reuse rootDg
+     * @param bassDg       If null reuse rootDg
      * @param ct
      * @param originalName No check is performed on this originalName, so caller must be careful.
      */
@@ -112,7 +113,7 @@ public class ChordSymbol implements Cloneable
         this(rootDg, bassDg, ct);
         if (originalName == null || originalName.isBlank())
         {
-            throw new IllegalArgumentException("rootDg=" + rootDg + " bassDg=" + bassDg + " ct=" + ct + " originalName=" + originalName);   
+            throw new IllegalArgumentException("rootDg=" + rootDg + " bassDg=" + bassDg + " ct=" + ct + " originalName=" + originalName);
         }
         this.originalName = originalName;
     }
@@ -127,7 +128,7 @@ public class ChordSymbol implements Cloneable
     {
         if (str == null || str.isBlank())
         {
-            throw new IllegalArgumentException("str=\"" + str + "\"");   
+            throw new IllegalArgumentException("str=\"" + str + "\"");
         }
         str = str.trim();
 
@@ -266,9 +267,8 @@ public class ChordSymbol implements Cloneable
      * <p>
      * If this ChordSymbol uses a specific originalName, it will be reused in the returned value.
      *
-     * @param t The amount of transposition in semi-tons.
-     * @param alt If null, alteration of returned root & bass notes is unchanged. If not null use alt as root & bass notes
-     * alteration.
+     * @param t   The amount of transposition in semi-tons.
+     * @param alt If null, alteration of returned root & bass notes is unchanged. If not null use alt as root & bass notes alteration.
      * @return A new transposed ChordSymbol.
      */
     public ChordSymbol getTransposedChordSymbol(int t, Note.Alteration alt)
@@ -306,15 +306,177 @@ public class ChordSymbol implements Cloneable
     }
 
     /**
-     * @return A Chord object corresponding to this ChordSymbol
+     * Get the chord corresponding to this ChordSymbol.
+     * <p>
+     * The method chooses to use flat or sharp notes depending on the ChordSymbol, using the most "common" tonality associated to the
+     * ChordSymbol.
+     *
+     * @return
      */
     public Chord getChord()
     {
-        Chord c = chordType.getChord();
-        c.transpose(rootNote.getRelativePitch());
+        final int C = 0;
+        final int Db = 1;
+        final int D = 2;
+        final int Eb = 3;
+        final int E = 4;
+        final int F = 5;
+        final int Gb = 6;
+        final int G = 7;
+        final int Ab = 8;
+        final int A = 9;
+        final int Bb = 10;
+        final int B = 11;
+
+
+        Chord c = new Chord();      // Use flats by default        
+
+        Alteration defaultAlt = Alteration.FLAT;
+        if (name.length() >= 2 && name.charAt(1) == '#')
+        {
+            defaultAlt = Alteration.SHARP;
+            for (var n : c.getNotes())
+            {
+                // Change all notes
+                c.removeNote(n.getPitch());
+                c.add(new Note(n, Alteration.SHARP));
+            }
+        }
+
+
+        for (Degree d : chordType.getDegrees())
+        {
+            Alteration alt = defaultAlt;
+            int extensionOffset = 0;
+            switch (d)
+            {
+                case ROOT ->
+                {
+                    // Nothing 
+                }
+                case NINTH_FLAT ->
+                {
+                    extensionOffset = 12;
+                }
+                case NINTH ->
+                {
+                    extensionOffset = 12;
+                    alt = switch (rootNote.getRelativePitch())
+                    {
+                        case E, B ->
+                            Alteration.SHARP;
+                        default ->
+                            defaultAlt;
+                    };
+                }
+                case NINTH_SHARP ->
+                {
+                    extensionOffset = 12;
+                    alt = switch (rootNote.getRelativePitch())
+                    {
+                        case C, Eb, G, Bb ->
+                            Alteration.SHARP;
+                        default ->
+                            defaultAlt;
+                    };
+                }
+                case THIRD_FLAT ->
+                {
+                    // Always flat
+                }
+                case THIRD ->
+                {
+                    alt = switch (rootNote.getRelativePitch())
+                    {
+                        case D, E, A, B ->
+                            Alteration.SHARP;
+                        default ->
+                            defaultAlt;
+                    };
+                }
+                case FOURTH_OR_ELEVENTH ->
+                {
+                    // Always flat                     
+                }
+                case ELEVENTH_SHARP ->
+                {
+                    extensionOffset = 12;
+                    alt = switch (rootNote.getRelativePitch())
+                    {
+                        case C, D, E, G, A ->
+                            Alteration.SHARP;
+                        default ->
+                            defaultAlt;
+                    };
+                }
+                case FIFTH_FLAT ->
+                {
+                    // Nothing     
+                }
+                case FIFTH ->
+                {
+                    alt = switch (rootNote.getRelativePitch())
+                    {
+                        case B ->
+                            Alteration.SHARP;
+                        default ->
+                            defaultAlt;
+                    };
+                }
+                case FIFTH_SHARP ->
+                {
+                    alt = switch (rootNote.getRelativePitch())
+                    {
+                        case C, D, F, G, Bb ->
+                            Alteration.SHARP;
+                        default ->
+                            defaultAlt;
+                    };
+                }
+                case THIRTEENTH_FLAT ->
+                {
+                    extensionOffset = 12;
+                }
+                case SIXTH_OR_THIRTEENTH ->
+                {
+                    extensionOffset = 12;
+                    alt = switch (rootNote.getRelativePitch())
+                    {
+                        case E, A, B ->
+                            Alteration.SHARP;
+                        default ->
+                            defaultAlt;
+                    };
+                }
+                case SEVENTH_FLAT ->
+                {
+                    // NOthing
+                }
+                case SEVENTH ->
+                {
+                    alt = switch (rootNote.getRelativePitch())
+                    {
+                        case D, E, G, A, B ->
+                            Alteration.SHARP;
+                        default ->
+                            defaultAlt;
+                    };
+                }
+                default -> throw new AssertionError(d.name());
+
+            }
+
+
+            int pitch = d.getPitch() + rootNote.getRelativePitch() + extensionOffset;
+            c.add(new Note(pitch, 1f, 64, alt));
+        }
+
         return c;
     }
 
+    /**
+     * @return E.g. for D7 return "[D, F#, A, C]"
+     */
     /**
      * @return E.g. for D7 return "[D, F#, A, C]"
      */
@@ -334,7 +496,7 @@ public class ChordSymbol implements Cloneable
     {
         if (cs == null)
         {
-            throw new NullPointerException("cs");   
+            throw new NullPointerException("cs");
         }
         // We can use "==" equality (and not equals) because ChordTypes are immutable objects
         // that only come from the ChordType.database
@@ -354,7 +516,7 @@ public class ChordSymbol implements Cloneable
     {
         if (relPitch < 0 || relPitch > 11 || destCs == null)
         {
-            throw new IllegalArgumentException("relPitch=" + relPitch + " destCs=" + destCs);   
+            throw new IllegalArgumentException("relPitch=" + relPitch + " destCs=" + destCs);
         }
         int srcRelPitchToRoot = Note.getNormalizedRelPitch(relPitch - getRootNote().getRelativePitch());
         int destRelPitch = Note.getNormalizedRelPitch(destCs.getRootNote().getRelativePitch() + srcRelPitchToRoot);
@@ -392,7 +554,7 @@ public class ChordSymbol implements Cloneable
     {
         if (d == null)
         {
-            throw new NullPointerException("d");   
+            throw new NullPointerException("d");
         }
         int relPitch = Note.getNormalizedRelPitch(rootNote.getRelativePitch() + d.getPitch());
         return relPitch;
@@ -433,11 +595,7 @@ public class ChordSymbol implements Cloneable
         {
             return false;
         }
-        if (!Objects.equals(this.chordType, other.chordType))
-        {
-            return false;
-        }
-        return true;
+        return Objects.equals(this.chordType, other.chordType);
     }
 
     @Override

@@ -32,6 +32,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import org.jjazz.chordinspector.spi.ChordViewer;
 import org.jjazz.harmony.api.Note;
+import org.jjazz.harmony.api.Note.Alteration;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.midimix.api.MidiMix;
@@ -56,13 +57,16 @@ public class ScoreChordViewer extends javax.swing.JPanel implements ChordViewer
     private CLI_ChordSymbol model;
     private NotationGraphics ng;
     private static final Logger LOGGER = Logger.getLogger(ScoreChordViewer.class.getSimpleName());
+
     /**
      * Creates new form PianoChordViewer
      */
     public ScoreChordViewer()
     {
         ng = new NotationGraphics();
+        ng.setSize(30f);
         initComponents();
+        // setOpaque(false);
     }
 
     @Override
@@ -73,7 +77,7 @@ public class ScoreChordViewer extends javax.swing.JPanel implements ChordViewer
 
         Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        // g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);        
+        // g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         g2.setColor(Color.BLACK);
         ng.setGraphics(g2);
 
@@ -84,7 +88,7 @@ public class ScoreChordViewer extends javax.swing.JPanel implements ChordViewer
         ng.drawBarLine();
 
         // G clef
-        ng.relative(2);
+        ng.relative(1);
         ng.drawClef(NotationGraphics.CLEF_G);
 
 
@@ -95,11 +99,10 @@ public class ScoreChordViewer extends javax.swing.JPanel implements ChordViewer
 
 
         // Draw chord notes
-        ng.relative(10);
+        ng.relative(6);
         ExtChordSymbol ecs = model.getData();
         ng.startNoteGroup();
         var chord = ecs.getChord();
-        LOGGER.severe("chord="+chord.toAbsoluteNoteString());
         int t = chord.getMinPitch() < 9 ? 60 : 48;
         chord.transpose(t);
         for (Note n : chord.getNotes())
@@ -113,7 +116,31 @@ public class ScoreChordViewer extends javax.swing.JPanel implements ChordViewer
         var ssi = ecs.getRenderingInfo().getScaleInstance();
         if (ssi != null)
         {
-            var scaleRelPitches = ssi.getRelativePitches();
+            ng.relative(4);
+            Alteration alt = ecs.getName().length() > 1 && ecs.getName().charAt(1) == '#' ? Alteration.SHARP : Alteration.FLAT;
+            var notes = ssi.getNotes();
+            t = notes.get(0).getRelativePitch() < 9 ? 60 : 48;
+            Note previousNote = null;
+            for (Note n : ssi.getNotes())
+            {
+                Note nn = new Note(n.getPitch() + t, 1, 64, alt);
+                int line = nn.getGStaffLineNumber();
+                int accidental = 0;
+                if (!Note.isWhiteKey(nn.getPitch()))
+                {
+                    accidental = nn.isFlat() ? NotationGraphics.ACCIDENTAL_FLAT : NotationGraphics.ACCIDENTAL_SHARP;
+                } else if (previousNote != null
+                        && line == previousNote.getGStaffLineNumber()
+                        && !Note.isWhiteKey(previousNote.getPitch()))
+                {
+                    // Need to add a natural accidental 
+                    accidental = NotationGraphics.ACCIDENTAL_NATURAL;
+                }
+                float relAdvance = accidental==0  ? 3f: 4f;
+                ng.relative(relAdvance);
+                ng.drawNote(line - 2, 0, 0, accidental);
+                previousNote = nn;
+            }
         }
 
 

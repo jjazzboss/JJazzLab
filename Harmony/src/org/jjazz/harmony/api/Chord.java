@@ -52,6 +52,11 @@ public class Chord implements Cloneable
         }
     }
 
+    /**
+     * Get the number of notes in this Chord.
+     *
+     * @return
+     */
     public int size()
     {
         return notes.size();
@@ -403,10 +408,8 @@ public class Chord implements Cloneable
     @Override
     public boolean equals(Object obj)
     {
-        if (obj instanceof Chord)
+        if (obj instanceof Chord c)
         {
-            Chord c = (Chord) obj;
-
             return notes.equals(c.notes);
         } else
         {
@@ -415,7 +418,8 @@ public class Chord implements Cloneable
     }
 
     /**
-     * Compare the relative intervals of 2 Chords.<br>
+     * Compare the relative intervals of 2 Chords.
+     * <p>
      * E.g. [C2,E2].equalsRelative([F4,A4]) will return true.
      *
      * @param c The chord to compare to.

@@ -27,8 +27,8 @@ import org.jjazz.phrase.api.NoteEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -107,7 +107,7 @@ public class Utilities
 
 
         // Get the destination degree for each source phrase degree
-        HashMap<Degree, Degree> mapSrcDestDegrees = pSrc.getDestDegrees(ecsDest, chordMode ? ChordMode.NO_INVERSION : ChordMode.OFF);
+        Map<Degree, Degree> mapSrcDestDegrees = pSrc.getDestDegrees(ecsDest, chordMode ? ChordMode.NO_INVERSION : ChordMode.OFF);
 
 
         // Create the result phrase
@@ -193,7 +193,7 @@ public class Utilities
 
 
         // Get the destination degree for each source phrase degree
-        HashMap<Degree, Degree> mapSrcDestDegrees = pSrc.getDestDegrees(ecsDest, ChordMode.OFF);
+        Map<Degree, Degree> mapSrcDestDegrees = pSrc.getDestDegrees(ecsDest, ChordMode.OFF);
         // LOGGER.fine("fitBassPhrase2ChordSymbol() mapSrcDestDegrees=" + mapSrcDestDegrees);
 
 
@@ -258,7 +258,7 @@ public class Utilities
 
 
         // Get the destination degrees for each source phrase degree
-        HashMap<Degree, Degree> mapSrcDestDegrees = pSrc.getDestDegrees(ecsDest, ChordMode.INVERSION_ALLOWED);
+        Map<Degree, Degree> mapSrcDestDegrees = pSrc.getDestDegrees(ecsDest, ChordMode.INVERSION_ALLOWED);
         SourcePhrase pSrcWork = pSrc; // By default
 
 

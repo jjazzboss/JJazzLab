@@ -51,7 +51,7 @@ public class Scale
     {
         if (name == null || name.isEmpty() || degs == null || degs.length == 0 || degs[0] != Degree.ROOT)
         {
-            throw new IllegalArgumentException("name=" + name + " degrees=" + degs);   
+            throw new IllegalArgumentException("name=" + name + " degrees=" + degs);
         }
         this.name = name;
         this.degrees.add(Degree.ROOT);
@@ -63,7 +63,7 @@ public class Scale
             int newPitch = degs[i].getPitch();
             if (newPitch <= lastPitch)
             {
-                throw new IllegalArgumentException("Degrees must unique and ascending. name=" + name + " degs=" + degs);   
+                throw new IllegalArgumentException("Degrees must unique and ascending. name=" + name + " degs=" + degs);
             }
             this.degrees.add(degs[i]);
             this.notesInC.add(new Note(degs[i].getPitch()));
@@ -91,7 +91,7 @@ public class Scale
      * The list of ascending notes starting on the specified note.
      *
      * @param startNote
-     * @return
+     * @return Returned notes reuse startNote's duration, velocity and Alteration.
      */
     public List<Note> getNotes(Note startNote)
     {
@@ -99,11 +99,12 @@ public class Scale
         {
             return getNotes();
         }
-        ArrayList<Note> scale = new ArrayList<>();
+        List<Note> scale = new ArrayList<>();
         int pitch = startNote.getPitch();
         for (Note n : notesInC)
         {
-            scale.add(new Note(pitch + n.getPitch()));
+            scale.add(new Note(pitch + n.getPitch(), startNote.getDurationInBeats(), startNote.getVelocity(),
+                    startNote.getAlterationDisplay()));
         }
         return scale;
     }
@@ -138,7 +139,7 @@ public class Scale
     {
         if (relPitch < 0 || relPitch > 11)
         {
-            throw new IllegalArgumentException("relPitch=" + relPitch);   
+            throw new IllegalArgumentException("relPitch=" + relPitch);
         }
         for (Degree d : degrees)
         {

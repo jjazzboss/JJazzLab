@@ -24,6 +24,7 @@ package org.jjazz.harmony.api;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
@@ -64,10 +65,15 @@ final public class ChordType
         ROOT,
         THIRD_OR_FOURTH, // Can't have both in the same time
         FIFTH,
-        SIXTH_OR_SEVENTH, // can be considered also as EXTENSION0
+        SIXTH_OR_SEVENTH, 
         EXTENSION1, // 9, 11, or 13
         EXTENSION2, // 11 or 13
-        EXTENSION3  // 13
+        EXTENSION3;  // 13
+
+        public boolean isExtension()
+        {
+            return this == EXTENSION1 || this == EXTENSION2 || this == EXTENSION3;
+        }
     }
 
     /**
@@ -210,14 +216,14 @@ final public class ChordType
     }
 
     /**
-     * The ordered list of DegreeIndexes starting from SIXTH_OR_SEVENTH.
+     * The ordered list of DegreeIndexes starting from NINTH.
      *
      * @return
      */
     public List<DegreeIndex> getExtensionDegreeIndexes()
     {
         ArrayList<DegreeIndex> res = new ArrayList<>();
-        for (int i = DegreeIndex.SIXTH_OR_SEVENTH.ordinal(); i < degrees.size(); i++)
+        for (int i = DegreeIndex.EXTENSION1.ordinal(); i < degrees.size(); i++)
         {
             res.add(DegreeIndex.values()[i]);
         }
@@ -249,6 +255,8 @@ final public class ChordType
      * <p>
      * Ex: Cm9 EXTENSION1=NINTH, THIRD_OR_FOURTH=THIRD_FLAT<br>
      * Ex: F7 EXTENSION1=null<br>
+     * Ex: F13 EXTENSION1=SIXTH_OR_SIXTEENTH<br>
+     * Ex: C6 EXTENSION1=null<br>
      *
      * @param di
      * @return The degree corresponding to specified index. Can be null.
@@ -379,45 +387,34 @@ final public class ChordType
         Degree d = getDegree(relPitch);
         if (d == null)
         {
-            switch (relPitch)
+            d = switch (relPitch)
             {
-                case 0:
-                    d = ROOT;
-                    break;
-                case 1:
-                    d = NINTH_FLAT;
-                    break;
-                case 2:
-                    d = NINTH;
-                    break;
-                case 3:
-                    d = isMinor() ? THIRD_FLAT : NINTH_SHARP;
-                    break;
-                case 4:
-                    d = THIRD;
-                    break;
-                case 5:
-                    d = FOURTH_OR_ELEVENTH;
-                    break;
-                case 6:
-                    d = ELEVENTH_SHARP;     // If we're here it's not a b5 chord since all chords define 1,3,5
-                    break;
-                case 7:
-                    d = FIFTH;
-                    break;
-                case 8:
-                    d = THIRTEENTH_FLAT;    // If we're here it's not a #5 chord since all chords define 1,3,5
-                    break;
-                case 9:
-                    d = SIXTH_OR_THIRTEENTH;
-                    break;
-                case 10:
-                    d = SEVENTH_FLAT;
-                    break;
-                case 11:
-                    d = SEVENTH;
-                    break;
-            }
+                case 0 ->
+                    ROOT;
+                case 1 ->
+                    NINTH_FLAT;
+                case 2 ->
+                    NINTH;
+                case 3 ->
+                    isMinor() ? THIRD_FLAT : NINTH_SHARP;
+                case 4 ->
+                    THIRD;
+                case 5 ->
+                    FOURTH_OR_ELEVENTH;
+                case 6 ->
+                    ELEVENTH_SHARP;     // If we're here it's not a b5 chord since all chords define 1,3,5
+                case 7 ->
+                    FIFTH;
+                case 8 ->
+                    THIRTEENTH_FLAT;    // If we're here it's not a #5 chord since all chords define 1,3,5
+                case 9 ->
+                    SIXTH_OR_THIRTEENTH;
+                case 10 ->
+                    SEVENTH_FLAT;
+                case 11 ->
+                    SEVENTH;
+                default -> throw new IllegalArgumentException("relPitch=" + relPitch);
+            };
         }
         return d;
     }
@@ -428,12 +425,12 @@ final public class ChordType
      * If some notes need to be omitted, it's better to remove the less important ones first. <br>
      * Ex: C7=&gt; [THIRD_OR_FOURTH, SIXTH_OR_SEVENTH, FIFTH, ROOT] (ROOT is the less important).<br>
      * Ex: C6=&gt; [THIRD_OR_FOURTH, SIXTH_OR_SEVENTH, ROOT, FIFTH] (ROOT-SIXTH interval is important).<br>
-     * Ex: C7b5=&gt; [THIRD_OR_FOURTH, FIFTH, SEVENTH, ROOT] <br>
-     * Ex: C9M=&gt; [THIRD_OR_FOURTH, SEVENTH, EXTENSION1, FIFTH, ROOT] <br>
-     * Ex: C9M#11=&gt; [THIRD_OR_FOURTH, SEVENTH, EXTENSION1, FIFTH, ROOT, EXTENSION2]<br>
-     * Ex: C13#11(9)=&gt; [THIRD_OR_FOURTH, SEVENTH, EXTENSION1, FIFTH, ROOT, EXTENSION2, EXTENSION3]<br>
+     * Ex: C7b5=&gt; [THIRD_OR_FOURTH, FIFTH, SIXTH_OR_SEVENTH, ROOT] <br>
+     * Ex: C9M=&gt; [THIRD_OR_FOURTH, SIXTH_OR_SEVENTH, EXTENSION1, FIFTH, ROOT] <br>
+     * Ex: C9M#11=&gt; [THIRD_OR_FOURTH, SIXTH_OR_SEVENTH, EXTENSION1, FIFTH, ROOT, EXTENSION2]<br>
+     * Ex: C13#11(9)=&gt; [THIRD_OR_FOURTH, SIXTH_OR_SEVENTH, EXTENSION1, FIFTH, ROOT, EXTENSION2, EXTENSION3]<br>
      *
-     * @return
+     * @return An unmodifiable list
      */
     public List<DegreeIndex> getMostImportantDegreeIndexes()
     {
@@ -476,12 +473,14 @@ final public class ChordType
             {
                 mostImportantDegrees.add(DegreeIndex.EXTENSION3);
             }
+
+            mostImportantDegrees = Collections.unmodifiableList(mostImportantDegrees);
         }
         LOGGER.log(Level.FINE, "getMostImportantDegreeIndexes() this={0} result={1}", new Object[]
         {
             this, mostImportantDegrees
         });
-        return new ArrayList<>(mostImportantDegrees);
+        return mostImportantDegrees;
     }
 
     /**
@@ -574,9 +573,8 @@ final public class ChordType
             Degree dTmp;
             switch (d)
             {
-                case NINTH_FLAT:        // Handled below
-                case NINTH:
-                case NINTH_SHARP:
+                case NINTH_FLAT, NINTH, NINTH_SHARP ->
+                {
                     // If we are are, this chord has no 9 defined
                     // If d=#9 then this chord type is major, otherwise we would not be here
                     destDegree = Degree.NINTH;
@@ -584,14 +582,11 @@ final public class ChordType
                     {
                         destDegree = Degree.NINTH_FLAT;
                     }
-                    break;
-
-                case THIRD_FLAT:    // Handled below
-                case THIRD:
-                    // This chord type has no third defined (otherwise we wouldn't be here), then this chord must be a sus chord
+                }
+                case THIRD_FLAT, THIRD -> // This chord type has no third defined (otherwise we wouldn't be here), then this chord must be a sus chord
                     destDegree = Degree.FOURTH_OR_ELEVENTH;
-                    break;
-                case FOURTH_OR_ELEVENTH:
+                case FOURTH_OR_ELEVENTH ->
+                {
                     // 4th can only be naturally mapped to a sus4 or m11 chord type. If we're here, this chord type is different.
                     // 11th natural can only be naturally mapped to a 11, #11 or sus4. If we're here, this chord type is different.               
                     if (family == Family.MINOR || family == Family.DIMINISHED)
@@ -607,9 +602,11 @@ final public class ChordType
                     {
                         destDegree = Degree.FOURTH_OR_ELEVENTH;             // 11th OK e.g. with C7M#5 or C7#5
                     }
-                    break;
-                case ELEVENTH_SHARP:
-                    // 11th sharp can only be naturally mapped to a #11, 11 or b5. If we're here, this chord type is different.               
+                }
+
+                case ELEVENTH_SHARP ->
+                {
+                    // 11th sharp can only be naturally mapped to a #11, 11 or b5. If we're here, this chord type is different.
                     if (getDegree(5) != null)
                     {
                         destDegree = Degree.FOURTH_OR_ELEVENTH;              //  This chord type must be a sus chord
@@ -617,17 +614,13 @@ final public class ChordType
                     {
                         destDegree = getDegree(Degree.Natural.FIFTH);         // go to 5 or #5
                     }
-                    break;
-                case FIFTH_FLAT:    // Handled below
-                case FIFTH:
-                case FIFTH_SHARP:
-                    // We should never be here : all chord types have a fifth defined
+                }
+                case FIFTH_FLAT, FIFTH, FIFTH_SHARP -> // We should never be here : all chord types have a fifth defined
                     throw new IllegalStateException("We should not end up here ! d=" + d + " this=" + this + " scales=" + optScale);
-                case THIRTEENTH_FLAT:
-                    // Thirteenth natural can only be naturally mapped on b13, 13 or #5 chord types. If we're here this chord type is different.
+                case THIRTEENTH_FLAT -> // Thirteenth natural can only be naturally mapped on b13, 13 or #5 chord types. If we're here this chord type is different.
                     destDegree = getDegree(Degree.Natural.FIFTH);            // go to 5 or b5
-                    break;
-                case SIXTH_OR_THIRTEENTH:
+                case SIXTH_OR_THIRTEENTH ->
+                {
                     // Thirteenth natural can only be naturally mapped on 13, b13 or 6 chord types. If we're here this chord type is different.   
                     if (extension.equals("m7b5") || extension.equals("m9b5"))
                     {
@@ -639,9 +632,10 @@ final public class ChordType
                     {
                         destDegree = Degree.SIXTH_OR_THIRTEENTH;                       // 13th ok with all majors, minors, diminished, seventh
                     }
-                    break;
-                case SEVENTH_FLAT:
-                    // Seventh can only be naturally mapped on 7M, 7 or dim7M chords. 
+                }
+                case SEVENTH_FLAT ->
+                {
+                    // Seventh can only be naturally mapped on 7M, 7 or dim7M chords.
                     // If we're here this chord type is different: minor triad or m6, a major triad or 6, a sus triad, a dim triad or dim7.
 
                     destDegree = Degree.SEVENTH_FLAT;  // 7 by default, exceptions below
@@ -654,9 +648,9 @@ final public class ChordType
                     {
                         destDegree = Degree.SIXTH_OR_THIRTEENTH;  // In dim7 7 is actually a bb7=13
                     }
-
-                    break;
-                case SEVENTH:
+                }
+                case SEVENTH ->
+                {
                     // Seventh can only be naturally mapped on 7M, 7 or dim7M chords. 
                     // If we're here this chord type is different: minor triad or m6, a major triad or 6, a dim triad or dim7.
 
@@ -676,9 +670,8 @@ final public class ChordType
                         // if dim7 convert 7 to "diminished 7"=bb7=13
                         destDegree = getDegree(9) != null ? Degree.SIXTH_OR_THIRTEENTH : Degree.SEVENTH_FLAT;
                     }
-                    break;
-                default:
-                    throw new IllegalStateException("d=" + d + " this=" + this + " scales=" + optScale);
+                }
+                default -> throw new IllegalStateException("d=" + d + " this=" + this + " scales=" + optScale);
             }
         }
 
@@ -703,26 +696,18 @@ final public class ChordType
         Degree d = getDegree(di);
         if (d == null)
         {
-            switch (di)
+            d = switch (di)
             {
-                case ROOT:
-                case THIRD_OR_FOURTH:
-                case FIFTH:
-                    // We should not be here because all chords must have those degrees defined 
+                case ROOT, THIRD_OR_FOURTH, FIFTH -> // We should not be here because all chords must have those degrees defined 
                     throw new IllegalStateException("di=" + di);
-                case SIXTH_OR_SEVENTH:
-                    d = fitDegreeAdvanced(Degree.SEVENTH, optScale);       // 7 suits most chords...
-                    break;
-                case EXTENSION1:
-                    d = fitDegreeAdvanced(Degree.NINTH, optScale);         // 9 suits most chords
-                    break;
-                case EXTENSION2:
-                case EXTENSION3:
-                    d = fitDegreeAdvanced(Degree.SIXTH_OR_THIRTEENTH, optScale);
-                    break;
-                default:
-                    throw new IllegalStateException("di=" + di);
-            }
+                case SIXTH_OR_SEVENTH ->
+                    fitDegreeAdvanced(Degree.SEVENTH, optScale);       // 7 suits most chords...
+                case EXTENSION1 ->
+                    fitDegreeAdvanced(Degree.NINTH, optScale);         // 9 suits most chords
+                case EXTENSION2, EXTENSION3 ->
+                    fitDegreeAdvanced(Degree.SIXTH_OR_THIRTEENTH, optScale);
+                default -> throw new IllegalStateException("di=" + di);
+            };
         }
         return d;
     }
@@ -989,7 +974,7 @@ final public class ChordType
     }
 
     /**
-     * @return A copy of the corresponding Chord with a default C root.
+     * @return A copy of the corresponding Chord with a default C root and flat (if alteration is needed).
      */
     public Chord getChord()
     {
@@ -1000,9 +985,8 @@ final public class ChordType
     public boolean equals(Object o)
     {
         boolean b = false;
-        if (o instanceof ChordType)
+        if (o instanceof ChordType ct)
         {
-            ChordType ct = (ChordType) o;
             b = getDegrees().equals(ct.getDegrees());
         }
         return b;
@@ -1021,6 +1005,8 @@ final public class ChordType
     // =============================================================================================
     /**
      * Return true if d equals -1, 0, 1 or NOT_PRESENT
+     * @param d
+     * @return 
      */
     private boolean checkDegree(int d)
     {

@@ -28,8 +28,6 @@ import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
-import java.util.StringJoiner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -53,7 +51,7 @@ public class StandardScaleInstance implements Serializable
             throw new NullPointerException("scale=" + scale + " startNote=" + startNote);
         }
         this.scale = scale;
-        this.startNote = new Note(startNote.getPitch());
+        this.startNote = startNote;
     }
 
     public StandardScale getScale()
@@ -81,14 +79,24 @@ public class StandardScaleInstance implements Serializable
         return ssi;
     }
 
+    /**
+     * Get the notes that make the scale.
+     *
+     * @return
+     */
     public List<Note> getNotes()
     {
         return getScale().getNotes(startNote);
     }
 
-    public Set<Integer> getRelativePitches()
+    /**
+     * Get the relative pitches of the notes that make the scale.
+     *
+     * @return An unmodifiable list.
+     */
+    public List<Integer> getRelativePitches()
     {
-        return getNotes().stream().map(n -> n.getRelativePitch()).collect(Collectors.toSet());
+        return getNotes().stream().map(n -> n.getRelativePitch()).toList();
     }
 
     /**
@@ -181,9 +189,9 @@ public class StandardScaleInstance implements Serializable
         return destDegree;
     }
 
-    /* ---------------------------------------------------------------------
-    * Serialization
-    * --------------------------------------------------------------------- */
+    // ---------------------------------------------------------------------
+    // Serialization
+    // ---------------------------------------------------------------------
     private Object writeReplace()
     {
         return new SerializationProxy(this);
