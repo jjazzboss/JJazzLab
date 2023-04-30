@@ -48,12 +48,12 @@ import org.openide.util.NbBundle.Messages;
 //        displayName = "#CTL_ScoreAction",
 //        preferredID = "ScoreTopComponent"
 //)
-//@Messages(
-//        {
-//            "CTL_ScoreAction=Score",
-//            "CTL_ScoreTopComponent=Score Window",
-//            "HINT_ScoreTopComponent=This is a Score window"
-//        })
+@Messages(
+        {
+            "CTL_ScoreAction=Score",
+            "CTL_ScoreTopComponent=Score Window",
+            "HINT_ScoreTopComponent=This is a Score window"
+        })
 public final class ScoreTopComponent extends TopComponent
 {
 

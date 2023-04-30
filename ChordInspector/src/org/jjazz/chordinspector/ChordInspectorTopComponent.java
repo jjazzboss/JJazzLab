@@ -44,7 +44,7 @@ import org.openide.windows.WindowManager;
 )
 @TopComponent.Registration(mode = "jlnavigator", openAtStartup = false, position = 20)
 @ActionID(category = "Window", id = "org.jjazz.chordinspector.ChordInspectorTopComponent")
-@ActionReference(path = "Menu/Window", position = 7)
+@ActionReference(path = "Menu/Window", position = 10)
 @TopComponent.OpenActionRegistration(
         displayName = "#CTL_ChordInspector",
         preferredID = "ChordInspectorTopComponent"

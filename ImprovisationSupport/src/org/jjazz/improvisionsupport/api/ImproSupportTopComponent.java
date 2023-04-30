@@ -32,7 +32,6 @@ import org.jjazz.improvisionsupport.BR_ImproSupport;
 import org.jjazz.improvisionsupport.ImproSupport;
 import org.jjazz.improvisionsupport.ImproSupportPanel;
 import org.jjazz.song.api.Song;
-import org.jjazz.ui.cl_editor.api.CL_Editor;
 import org.jjazz.ui.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.util.api.ResUtil;
 import org.netbeans.api.settings.ConvertAsProperties;
@@ -56,7 +55,7 @@ import org.openide.windows.WindowManager;
 )
 @TopComponent.Registration(mode = "jlnavigator", openAtStartup = false, position = 30)
 @ActionID(category = "Window", id = "org.jjazz.improvisionsupport.api.ImproSupportTopComponent")
-@ActionReference(path = "Menu/Window", position = 30)
+@ActionReference(path = "Menu/Window", position = 25)
 @TopComponent.OpenActionRegistration(
         displayName = "#CTL_ImproSupportAction",
         preferredID = "ImproSupportTopComponent"

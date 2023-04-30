@@ -43,7 +43,7 @@ import org.openide.util.NbPreferences;
 @ActionRegistration(displayName = "#CTL_LinearizeSong", lazy = true)
 @ActionReferences(
         {
-            @ActionReference(path = "Menu/Edit", position = 2115)
+            @ActionReference(path = "Menu/Edit", position = 2130)
         })
 public class LinearizeSong implements ActionListener
 {

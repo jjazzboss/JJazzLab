@@ -48,7 +48,7 @@ import org.openide.windows.WindowManager;
 )
 @TopComponent.Registration(mode = "jlnavigator", openAtStartup = false, position = 25)
 @ActionID(category = "Window", id = "org.jjazz.chordinspector.EasyReaderTopComponent")
-@ActionReference(path = "Menu/Window", position = 11)
+@ActionReference(path = "Menu/Window", position = 20)
 @TopComponent.OpenActionRegistration(
         displayName = "#CTL_EasyReader",
         preferredID = "EasyReaderTopComponent"

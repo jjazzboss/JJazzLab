@@ -74,6 +74,7 @@ import org.openide.util.Utilities;
 @ActionReferences(
         {
             @ActionReference(path = "Actions/Bar", position = 832, separatorAfter = 850),
+            @ActionReference(path = "Menu/Edit", position = 2120)
         })
 public final class CreatePracticeSong extends AbstractAction implements ContextAwareAction, CL_ContextActionListener
 {
@@ -109,7 +110,8 @@ public final class CreatePracticeSong extends AbstractAction implements ContextA
         ChordLeadSheet cls = selection.getChordLeadSheet();
         var selectedBars = selection.getSelectedBarsWithinCls();
         assert !selectedBars.isEmpty() : "selection=" + selection;
-        IntRange selRange = new IntRange(selectedBars.get(0).getModelBarIndex(), selectedBars.get(selectedBars.size() - 1).getModelBarIndex());
+        IntRange selRange = new IntRange(selectedBars.get(0).getModelBarIndex(),
+                selectedBars.get(selectedBars.size() - 1).getModelBarIndex());
 
 
         // Create a new ChordLeadSheet from selected bars only
@@ -322,7 +324,8 @@ public final class CreatePracticeSong extends AbstractAction implements ContextA
             SongPart newSpt = spt.clone(null, newCliSection.getPosition().getBar(), newSptSize, newCliSection);
             if (RP_SYS_TempoFactor.getTempoFactorRp(newSpt.getRhythm()) == null)
             {
-                throw new UnsupportedEditException("Rhythm " + newSpt.getRhythm().getName() + " does not use the Tempo Factor rhythm parameter");
+                throw new UnsupportedEditException(
+                        "Rhythm " + newSpt.getRhythm().getName() + " does not use the Tempo Factor rhythm parameter");
             }
             addSpts.add(newSpt);
         }
@@ -338,13 +341,14 @@ public final class CreatePracticeSong extends AbstractAction implements ContextA
     {
         int startBar = selectedBars.get(0).getModelBarIndex();
         CLI_Section oldInitSection = cls.getSection(startBar);
-        ChordLeadSheet newCls = ChordLeadSheetFactory.getDefault().createEmptyLeadSheet(oldInitSection.getData().getName(), oldInitSection.getData().getTimeSignature(), selectedBars.size(), false);
+        ChordLeadSheet newCls = ChordLeadSheetFactory.getDefault().createEmptyLeadSheet(oldInitSection.getData().getName(),
+                oldInitSection.getData().getTimeSignature(), selectedBars.size(), false);
         CLI_Section newInitSection = newCls.getSection(0);
         newCls.setSectionName(newInitSection, oldInitSection.getData().getName());
 
 
         // Add possible other sections
-        selectedBars.stream().skip(1).forEach(sb ->
+        selectedBars.stream().skip(1).forEach(sb -> 
         {
             int barIndex = sb.getModelBarIndex();
             CLI_Section cliSection = cls.getSection(barIndex);

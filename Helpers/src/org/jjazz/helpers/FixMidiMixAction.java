@@ -31,8 +31,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.helpers.FixMidiMixDialog.FixChoice;
 import org.jjazz.midi.api.Instrument;
-import org.jjazz.midi.api.InstrumentMix;
-import org.jjazz.midi.api.synths.GMSynth;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
