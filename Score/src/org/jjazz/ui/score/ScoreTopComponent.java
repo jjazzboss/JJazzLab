@@ -32,28 +32,28 @@ import org.openide.util.NbBundle.Messages;
 /**
  * Top component which displays something.
  */
-@ConvertAsProperties(
-        dtd = "-//org.jjazz.ui.score//Score//EN",
-        autostore = false
-)
-@TopComponent.Description(
-        preferredID = "ScoreTopComponent",
-        //iconBase="SET/PATH/TO/ICON/HERE",
-        persistenceType = TopComponent.PERSISTENCE_ALWAYS
-)
-@TopComponent.Registration(mode = "output", openAtStartup = true)
-@ActionID(category = "Window", id = "org.jjazz.ui.score.ScoreTopComponent")
-@ActionReference(path = "Menu/Window" /*, position = 333 */)
-@TopComponent.OpenActionRegistration(
-        displayName = "#CTL_ScoreAction",
-        preferredID = "ScoreTopComponent"
-)
-@Messages(
-        {
-            "CTL_ScoreAction=Score",
-            "CTL_ScoreTopComponent=Score Window",
-            "HINT_ScoreTopComponent=This is a Score window"
-        })
+//@ConvertAsProperties(
+//        dtd = "-//org.jjazz.ui.score//Score//EN",
+//        autostore = false
+//)
+//@TopComponent.Description(
+//        preferredID = "ScoreTopComponent",
+//        //iconBase="SET/PATH/TO/ICON/HERE",
+//        persistenceType = TopComponent.PERSISTENCE_ALWAYS
+//)
+//@TopComponent.Registration(mode = "output", openAtStartup = true)
+//@ActionID(category = "Window", id = "org.jjazz.ui.score.ScoreTopComponent")
+//@ActionReference(path = "Menu/Window" /*, position = 333 */)
+//@TopComponent.OpenActionRegistration(
+//        displayName = "#CTL_ScoreAction",
+//        preferredID = "ScoreTopComponent"
+//)
+//@Messages(
+//        {
+//            "CTL_ScoreAction=Score",
+//            "CTL_ScoreTopComponent=Score Window",
+//            "HINT_ScoreTopComponent=This is a Score window"
+//        })
 public final class ScoreTopComponent extends TopComponent
 {
 
