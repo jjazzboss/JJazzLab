@@ -99,7 +99,7 @@ public class ScoreChordViewer extends javax.swing.JPanel implements ChordViewer
 
 
         // Draw chord notes
-        ng.relative(6);
+        ng.relative(8);
         ExtChordSymbol ecs = model.getData();
         ng.startNoteGroup();
         var chord = ecs.getChord();
@@ -117,9 +117,18 @@ public class ScoreChordViewer extends javax.swing.JPanel implements ChordViewer
         if (ssi != null)
         {
             ng.relative(4);
-            Alteration alt = ecs.getName().length() > 1 && ecs.getName().charAt(1) == '#' ? Alteration.SHARP : Alteration.FLAT;
+
+            // Reuse the same default accidental than chord
+            Alteration alt = chord.getNotes().stream()
+                    .filter(n -> !Note.isWhiteKey(n.getPitch()))
+                    .findFirst()
+                    .map(n -> n.getAlterationDisplay())
+                    .orElse(Alteration.FLAT);
+
+            
             var notes = ssi.getNotes();
-            t = notes.get(0).getRelativePitch() < 9 ? 60 : 48;
+            Note firstNote = chord.getNote(0);
+            t = firstNote.getPitch() - notes.get(0).getPitch();
             Note previousNote = null;
             for (Note n : ssi.getNotes())
             {
@@ -136,7 +145,7 @@ public class ScoreChordViewer extends javax.swing.JPanel implements ChordViewer
                     // Need to add a natural accidental 
                     accidental = NotationGraphics.ACCIDENTAL_NATURAL;
                 }
-                float relAdvance = accidental==0  ? 3f: 4f;
+                float relAdvance = accidental == 0 ? 3f : 4f;
                 ng.relative(relAdvance);
                 ng.drawNote(line - 2, 0, 0, accidental);
                 previousNote = nn;

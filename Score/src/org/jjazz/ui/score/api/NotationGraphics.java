@@ -1,7 +1,7 @@
 /*
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  * 
- *  Original author:  (c) 2006-2007 Karl Helgason from http://www.frinika.com. 
+ *  Original author:  (c) 2006ACCIDENTAL_DOUBLE_FLAT7 Karl Helgason from http://www.frinika.com. 
  *   
  *  JJazzLabX is free software: you can redistribute it and/or modify
  *  it under the terms of the Lesser GNU General Public License (LGPLv3) 
@@ -43,6 +43,7 @@ import org.jjazz.harmony.api.Note;
  */
 public class NotationGraphics
 {
+
     public final static int CLEF_F = -7;
     public final static int CLEF_C = 0;
     public final static int CLEF_G = 7;
@@ -317,7 +318,7 @@ public class NotationGraphics
         int[] accidentals = new int[notes.length];
         for (int i = 0; i < accidentals.length; i++)
         {
-            accidentals[i] = -100;
+            accidentals[i] = ACCIDENTAL_FLAT;
         }
         return drawKeySignature(notes, accidentals);
     }
@@ -353,23 +354,23 @@ public class NotationGraphics
             int accidental = accidentals[i];
             int note = notes[i];
 
-            if (accidental == -200)
+            if (accidental == ACCIDENTAL_DOUBLE_FLAT)
             {
                 g.drawString("" + (char) 0xE114, x * grid + cx, cy - (note * grid * 0.5f));
                 x += 1.7f;
             }
-            if (accidental == -150)
+            if (accidental == ACCIDENTAL_FLAT_AND_A_HALF)
             {
                 g.drawString("" + (char) 0xE113, x * grid + cx, cy - (note * grid * 0.5f));
                 g.drawString("" + (char) 0xE112, x * grid + cx + grid, cy - (note * grid * 0.5f));
                 x += 2.2f;
             }
-            if (accidental == -100)
+            if (accidental == ACCIDENTAL_FLAT)
             {
                 g.drawString("" + (char) 0xE112, x * grid + cx, cy - (note * grid * 0.5f));
                 x += 1.2f;
             }
-            if (accidental == -50)
+            if (accidental == ACCIDENTAL_DEMIFLAT)
             {
                 g.drawString("" + (char) 0xE113, x * grid + cx, cy - (note * grid * 0.5f));
                 x += 1.2f;
@@ -380,22 +381,22 @@ public class NotationGraphics
                 x += 1.2f;
             }
 
-            if (accidental == 50)
+            if (accidental == ACCIDENTAL_DEMISHARP)
             {
                 g.drawString("" + (char) 0xE10F, x * grid + cx, cy - (note * grid * 0.5f));
                 x += 1.2f;
             }
-            if (accidental == 100)
+            if (accidental == ACCIDENTAL_SHARP)
             {
                 g.drawString("" + (char) 0xE10E, x * grid + cx, cy - (note * grid * 0.5f));
                 x += 1.2f;
             }
-            if (accidental == 150)
+            if (accidental == ACCIDENTAL_SHARP_AND_A_HALF)
             {
                 g.drawString("" + (char) 0xE110, x * grid + cx, cy - (note * grid * 0.5f));
                 x += 1.8f;
             }
-            if (accidental == 200)
+            if (accidental == ACCIDENTAL_DOUBLE_SHARP)
             {
                 g.drawString("" + (char) 0xE116, x * grid + cx, cy - (note * grid * 0.5f));
                 x += 1.2f;
@@ -500,15 +501,15 @@ public class NotationGraphics
                 {
                     int min = note_group_list.get(0).staffLine;
                     int max = note_group_list.get(0).staffLine;
-                    for (ScoreNote notepart2 : note_group_list)
+                    for (ScoreNote sn2 : note_group_list)
                     {
-                        if (notepart2.staffLine < min)
+                        if (sn2.staffLine < min)
                         {
-                            min = notepart2.staffLine;
+                            min = sn2.staffLine;
                         }
-                        if (notepart2.staffLine > max)
+                        if (sn2.staffLine > max)
                         {
-                            max = notepart2.staffLine;
+                            max = sn2.staffLine;
                         }
                     }
                     if (scoreNote.staffLine < min)
@@ -621,16 +622,23 @@ public class NotationGraphics
         return note;
     }
 
-    private void drawNoteBase(ScoreNote notepart, int movefix)
+    /**
+     * Draw the optional ledge line, the base note + the accidental
+     *
+     * @param sn
+     * @param movefix             -1, 0 or 1 Shift the base note on the left or right
+     * @param secondAccidentalPos Use the second position for the accidental
+     */
+    private void drawNoteBase(ScoreNote sn, int movefix, boolean secondAccidentalPos)
     {
-        drawLedge(notepart.x, notepart.staffLine);
+        drawLedge(sn.x, sn.staffLine);
 
-        int note = notepart.staffLine;
-        int dur = notepart.dur;
-        int dotted = notepart.dotted;
-        int accidental = notepart.accidental;
+        int line = sn.staffLine;
+        int dur = sn.dur;
+        int dotted = sn.dotted;
+        int accidental = sn.accidental;
         float grid = getGridSize();
-        float localCx = notepart.x;
+        float localCx = sn.x;
 
         float notebasewidth = grid * 1.3f;
 
@@ -644,59 +652,113 @@ public class NotationGraphics
 
 
         Color bakcolor = null;
-        if (notepart.color != null)
+        if (sn.color != null)
         {
             bakcolor = g.getColor();
-            g.setColor(notepart.color);
+            g.setColor(sn.color);
         }
 
 
-        if (accidental == -200)
+        // Draw the accidental
+        float xf = 1.2f;
+        char c = (char) 0;
+        switch (accidental)
         {
-            g.drawString("" + (char) 0xE114, mx + localCx - grid * 1.7f, cy - (note * grid * 0.5f));
+            case ACCIDENTAL_DOUBLE_FLAT ->
+            {
+                c = (char) 0xE114;
+                xf = 1.7f;
+            }
+            case ACCIDENTAL_FLAT ->
+            {
+                c = (char) 0xE112;
+            }
+            case ACCIDENTAL_DEMIFLAT ->
+            {
+                c = (char) 0xE113;
+            }
+            case ACCIDENTAL_NATURAL ->
+            {
+                c = (char) 0xE111;
+            }
+            case ACCIDENTAL_DEMISHARP ->
+            {
+                c = (char) 0xE10F;
+            }
+            case ACCIDENTAL_SHARP ->
+            {
+                c = (char) 0xE10E;
+            }
+            case ACCIDENTAL_SHARP_AND_A_HALF ->
+            {
+                c = (char) 0xE110;
+                xf = 1.7f;
+            }
+            case ACCIDENTAL_DOUBLE_SHARP ->
+            {
+                c = (char) 0xE116;
+            }
+            default ->
+            {
+                // Nothing
+            }
         }
-        if (accidental == -150)
+        if (c != (char) 0)
         {
-            g.drawString("" + (char) 0xE113, mx + localCx - grid * 2.2f, cy - (note * grid * 0.5f));
-            g.drawString("" + (char) 0xE112, mx + localCx - grid * 1.2f, cy - (note * grid * 0.5f));
-        }
-        if (accidental == -100)
-        {
-            g.drawString("" + (char) 0xE112, mx + localCx - grid * 1.2f, cy - (note * grid * 0.5f));
-        }
-        if (accidental == -50)
-        {
-            g.drawString("" + (char) 0xE113, mx + localCx - grid * 1.2f, cy - (note * grid * 0.5f));
-        }
-        if (accidental == ACCIDENTAL_NATURAL)
-        {
-            g.drawString("" + (char) 0xE111, mx + localCx - grid * 1.2f, cy - (note * grid * 0.5f));
+            if (secondAccidentalPos)
+            {
+                xf *= 2;
+            }
+            g.drawString("" + c, mx + localCx - grid * xf, cy - (line * grid * 0.5f));
         }
 
-        if (accidental == 50)
-        {
-            g.drawString("" + (char) 0xE10F, mx + localCx - grid * 1.2f, cy - (note * grid * 0.5f));
-        }
-        if (accidental == 100)
-        {
-            g.drawString("" + (char) 0xE10E, mx + localCx - grid * 1.2f, cy - (note * grid * 0.5f));
-        }
-        if (accidental == 150)
-        {
-            g.drawString("" + (char) 0xE110, mx + localCx - grid * 1.7f, cy - (note * grid * 0.5f));
-        }
-        if (accidental == 200)
-        {
-            g.drawString("" + (char) 0xE116, mx + localCx - grid * 1.2f, cy - (note * grid * 0.5f));
-        }
 
+//
+//        if (accidental == ACCIDENTAL_DOUBLE_FLAT)
+//        {
+//            g.drawString("" + (char) 0xE114, mx + localCx - grid * 1.7f, cy - (line * grid * 0.5f));
+//        }
+//        if (accidental == ACCIDENTAL_FLAT_AND_A_HALF)
+//        {
+//            g.drawString("" + (char) 0xE113, mx + localCx - grid * 2.2f, cy - (line * grid * 0.5f));
+//            g.drawString("" + (char) 0xE112, mx + localCx - grid * 1.2f, cy - (line * grid * 0.5f));
+//        }
+//        if (accidental == ACCIDENTAL_FLAT)
+//        {
+//            g.drawString("" + (char) 0xE112, mx + localCx - grid * 1.2f, cy - (line * grid * 0.5f));
+//        }
+//        if (accidental == ACCIDENTAL_DEMIFLAT)
+//        {
+//            g.drawString("" + (char) 0xE113, mx + localCx - grid * 1.2f, cy - (line * grid * 0.5f));
+//        }
+//        if (accidental == ACCIDENTAL_NATURAL)
+//        {
+//            g.drawString("" + (char) 0xE111, mx + localCx - grid * 1.2f, cy - (line * grid * 0.5f));
+//        }
+//
+//        if (accidental == ACCIDENTAL_DEMISHARP)
+//        {
+//            g.drawString("" + (char) 0xE10F, mx + localCx - grid * 1.2f, cy - (line * grid * 0.5f));
+//        }
+//        if (accidental == ACCIDENTAL_SHARP)
+//        {
+//            g.drawString("" + (char) 0xE10E, mx + localCx - grid * 1.2f, cy - (line * grid * 0.5f));
+//        }
+//        if (accidental == ACCIDENTAL_SHARP_AND_A_HALF)
+//        {
+//            g.drawString("" + (char) 0xE110, mx + localCx - grid * 1.7f, cy - (line * grid * 0.5f));
+//        }
+//        if (accidental == ACCIDENTAL_DOUBLE_SHARP)
+//        {
+//            g.drawString("" + (char) 0xE116, mx + localCx - grid * 1.2f, cy - (line * grid * 0.5f));
+//        }
         if (movefix == 1)
         {
             mx = notebasewidth;
         }
 
 
-        g.drawString("" + getNoteHeadSymbol(dur), localCx + mx, cy - (note * grid * 0.5f));
+        g.drawString("" + getNoteHeadSymbol(dur), localCx + mx, cy - (line * grid * 0.5f));
 
         if (movefix == -1)
         {
@@ -706,7 +768,7 @@ public class NotationGraphics
         for (int i = 0; i < dotted; i++)
         {
 
-            g.drawString("" + (char) 0xE119, localCx + grid * 1.6f + mx + xx, cy - (note * grid * 0.5f));
+            g.drawString("" + (char) 0xE119, localCx + grid * 1.6f + mx + xx, cy - (line * grid * 0.5f));
             xx += grid * 0.6f;
         }
 
@@ -737,28 +799,49 @@ public class NotationGraphics
         TimePart[] parts = new TimePart[note_group_xlist.values().size()];
         note_group_xlist.values().toArray(parts);
 
+
+        // Draw the base notes, ledger and accidentals
         for (TimePart timepart : parts)
         {
             ScoreNote[] notes = new ScoreNote[timepart.notes.size()];
             timepart.notes.toArray(notes);
             Arrays.sort(notes, (ScoreNote o1, ScoreNote o2) -> o2.staffLine - o1.staffLine);
+
             ScoreNote lastpart = null;
-            for (ScoreNote notepart : timepart.notes)
+            int lastStaffLineWithAccidental = Integer.MAX_VALUE;
+            boolean useSecondPosForAccidental = false;
+
+
+            for (ScoreNote sn : timepart.notes)
             {
-                if (lastpart != null && (Math.abs(lastpart.staffLine - notepart.staffLine) == 1))
+                if (sn.accidental != 0)
                 {
-                    if (linedir == 0 || linedir == 1)
+                    if (lastStaffLineWithAccidental != Integer.MAX_VALUE && Math.abs(lastStaffLineWithAccidental - sn.staffLine) <= 4)
                     {
-                        drawNoteBase(notepart, 1);
+                        // Accidentals will be too close, use the different x position
+                        useSecondPosForAccidental = !useSecondPosForAccidental;
                     } else
                     {
-                        drawNoteBase(notepart, -1);
+                        useSecondPosForAccidental = false;
+                    }
+                    lastStaffLineWithAccidental = sn.staffLine;
+                }
+                if (lastpart != null && (Math.abs(lastpart.staffLine - sn.staffLine) == 1))
+                {
+                    // The last note is just one line apart, shift the note on the left or the right
+                    if (linedir == 0 || linedir == 1)
+                    {
+                        drawNoteBase(sn, 1, useSecondPosForAccidental);
+                    } else
+                    {
+                        drawNoteBase(sn, -1, useSecondPosForAccidental);
                     }
                 } else
                 {
-                    drawNoteBase(notepart, 0);
+                    // First note
+                    drawNoteBase(sn, 0, useSecondPosForAccidental);
                 }
-                lastpart = notepart;
+                lastpart = sn;
             }
 
         }
@@ -807,6 +890,8 @@ public class NotationGraphics
             {
                 int dur = note_group_list.get(0).dur;
                 float cxLocal = note_group_list.get(0).x;
+
+                // Draw the line + the attached "wave" (simple for eight, double for sixteenth etc.)
 
                 if (linedir == 1)
                 {
@@ -1410,8 +1495,8 @@ public class NotationGraphics
                     staffLine = 4;
                 }
             }
-            
-            staffLine = (n.getPitch()/12 - 5) * 7 + staffLine;
+
+            staffLine = (n.getPitch() / 12 - 5) * 7 + staffLine;
         }
 
         public ScoreNote(int staffLine, int dur)
