@@ -28,8 +28,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -51,12 +49,17 @@ import org.jjazz.ui.utilities.api.MidiFileDragInTransferHandler;
 import org.jjazz.util.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
-import org.openide.util.Exceptions;
 
 /**
- * Drag'n drop support to export the song or a single track as Midi file when mouse dragging from a component.
+ * Copy of MidiFileDragOutTransferHandler adapted for MacOS.
+ * 
+ * With JDK17 MacOS TransferHandler works very differently from Windows (for unknown reasons):<br>
+ * - CreateTransferable() is called several times while dragging (on Windows it's only 1 when starting dragging)<br>
+ * - exportDone() is also called several times, even when export is not supposed to be done yet! Note that exportDone() action parameter==0 for these
+ * unneeded calls, but action==2 only when a successful exportDone() is called (user has released the mouse and export was accepted by a target)<br>
+ * 
  */
-public class MidiFileDragOutTransferHandler extends TransferHandler
+public class MidiFileDragOutTransferHandlerMacOS extends TransferHandler
 {
 
     /**
@@ -69,7 +72,7 @@ public class MidiFileDragOutTransferHandler extends TransferHandler
     private final MidiMix songMidiMix;
     private Future<?> future;
     private ExecutorService executorService;
-    private static final Logger LOGGER = Logger.getLogger(MidiFileDragOutTransferHandler.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(MidiFileDragOutTransferHandlerMacOS.class.getSimpleName());
 
 
     /**
@@ -78,7 +81,7 @@ public class MidiFileDragOutTransferHandler extends TransferHandler
      * @param midiMix
      * @param rv      If null, export the whole sequence, otherwise only the rv track.
      */
-    public MidiFileDragOutTransferHandler(Song song, MidiMix midiMix, RhythmVoice rv)
+    public MidiFileDragOutTransferHandlerMacOS(Song song, MidiMix midiMix, RhythmVoice rv)
     {
         Preconditions.checkNotNull(song);
         Preconditions.checkNotNull(midiMix);

@@ -35,18 +35,19 @@ import javax.swing.ImageIcon;
 import javax.swing.TransferHandler;
 
 /**
- * Our drag'n drop support to accept external Midi files dragged into a component.
+ * Our drag'n drop support to accept external Midi files dragged into a
+ * component.
  */
 public abstract class MidiFileDragInTransferHandler extends TransferHandler
 {
+
     public static final ImageIcon DRAG_ICON = new ImageIcon(MidiFileDragInTransferHandler.class.getResource("resources/DragMidiIcon.png"));
     private static final Logger LOGGER = Logger.getLogger(MidiFileDragInTransferHandler.class.getSimpleName());
-
 
     @Override
     public boolean canImport(TransferHandler.TransferSupport support)
     {
-        LOGGER.log(Level.FINE, "MidiFileDragInTransferHandler.canImport() -- support={0}", support);
+        LOGGER.log(Level.FINE, "canImport() -- support={0}", support);
         if (!isImportEnabled() || !support.isDataFlavorSupported(DataFlavor.javaFileListFlavor))
         {
             return false;
@@ -59,7 +60,13 @@ public abstract class MidiFileDragInTransferHandler extends TransferHandler
         }
 
         // Need a single midi file
-        if (getMidiFile(support) == null)
+        // Special handling for MacOS: on Mac getMidiFile() returns null in canImport(), even if DataFlavor.javaFileListFlavor is supported.
+        // On MacOS The TransferHandler.TransferSupport parameter is initialized only when importData() is called.
+        File f = getMidiFile(support);
+        if (org.jjazz.util.api.Utilities.isMac())
+        {
+            LOGGER.fine("canImport() MacOs ignoring getMidiFile() null value");
+        } else if (f == null)
         {
             return false;
         }
@@ -72,10 +79,15 @@ public abstract class MidiFileDragInTransferHandler extends TransferHandler
     @Override
     public boolean importData(TransferHandler.TransferSupport support)
     {
+        LOGGER.log(Level.FINE, "importData() -- support={0}", support);
         // Need a single midi file
         File midiFile = getMidiFile(support);
         if (midiFile == null)
         {
+            if (!org.jjazz.util.api.Utilities.isMac())
+            {
+                LOGGER.warning("importData() Unexpected null value for midiFile");
+            }
             return false;
         }
         return importMidiFile(midiFile);
@@ -142,3 +154,5 @@ public abstract class MidiFileDragInTransferHandler extends TransferHandler
     abstract protected boolean importMidiFile(File midiFile);
 
 }
+
+

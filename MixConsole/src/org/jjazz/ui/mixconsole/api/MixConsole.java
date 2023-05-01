@@ -615,6 +615,8 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
 
         // Update the TransferHandler
         panel_mixChannels.setTransferHandler(new MidiFileDragOutTransferHandler(songModel, songMidiMix, null));
+        panel_mixChannels.setDropTarget(null);
+        
 
 
         // Add the visible channels
@@ -688,7 +690,9 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         // Set a transfer handler 
         MidiFileDragOutTransferHandler handler = new MidiFileDragOutTransferHandler(songModel, songMidiMix, rv);
         mcp.setTransferHandler(handler);
+        mcp.setDropTarget(null);
         pvp.setTransferHandler(handler);
+        pvp.setDropTarget(null);
         pvp.setToolTipText(ResUtil.getString(mcp.getClass(), "DragToExportTrack"));     // TransferHandler is set by MixConsole
 
 
@@ -818,6 +822,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
 
         // Drag out handler
         panel_mixChannels.setTransferHandler(null);
+        panel_mixChannels.setDropTarget(null);
 
 
         updateActiveState(false);
