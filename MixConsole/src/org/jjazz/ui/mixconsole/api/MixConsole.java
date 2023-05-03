@@ -80,6 +80,7 @@ import org.openide.awt.Actions;
 import org.openide.util.lookup.AbstractLookup;
 import org.openide.util.lookup.InstanceContent;
 import org.jjazz.ui.flatcomponents.api.FlatButton;
+import org.jjazz.ui.mixconsole.MidiFileDragOutTransferHandlerMacOS;
 import org.jjazz.ui.mixconsole.MixChannelPanel;
 import org.jjazz.ui.mixconsole.MixChannelPanelControllerImpl;
 import org.jjazz.ui.mixconsole.MixChannelPanelModelImpl;
@@ -132,7 +133,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
     private final MixConsoleSettings settings;
     private final MenuBar menuBar;
     private final TreeMap<Integer, ChannelPanelSet> tmapChannelPanelSets = new TreeMap<>();
-    private final MixConsoleLayoutManager layoutManager;    
+    private final MixConsoleLayoutManager layoutManager;
     private static final Logger LOGGER = Logger.getLogger(MixConsole.class.getSimpleName());
 
 
@@ -166,7 +167,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         // Use our LayoutManager to arranger MixChannelPanels and their extensions
         layoutManager = new MixConsoleLayoutManager(this, true);
         panel_mixChannels.setLayout(layoutManager);
-        
+
 
         // Our renderer to show visible rhythms
         cb_viewRhythms.setRenderer(new MyRenderer());
@@ -614,9 +615,8 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
 
 
         // Update the TransferHandler
-        panel_mixChannels.setTransferHandler(new MidiFileDragOutTransferHandler(songModel, songMidiMix, null));
-        panel_mixChannels.setDropTarget(null);
-        
+        panel_mixChannels.setTransferHandler(getOsDependentTransferHandler(songModel, songMidiMix, null));
+        panel_mixChannels.setDropTarget(null);  // Disable dropping in the component, avoid canImport() being called in the TransferHandler, see setTransferHandler() doc
 
 
         // Add the visible channels
@@ -688,11 +688,11 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
 
 
         // Set a transfer handler 
-        MidiFileDragOutTransferHandler handler = new MidiFileDragOutTransferHandler(songModel, songMidiMix, rv);
-        mcp.setTransferHandler(handler);
-        mcp.setDropTarget(null);
-        pvp.setTransferHandler(handler);
-        pvp.setDropTarget(null);
+        TransferHandler th = getOsDependentTransferHandler(songModel, songMidiMix, rv);
+        mcp.setTransferHandler(th);
+        mcp.setDropTarget(null);        // Disable dropping in the component, avoid TransferHandler.canImport() being called, see setTransferHandler() doc
+        pvp.setTransferHandler(th);
+        pvp.setDropTarget(null);        // Disable dropping in the component, avoid TransferHandler.canImport() being called, see setTransferHandler() doc
         pvp.setToolTipText(ResUtil.getString(mcp.getClass(), "DragToExportTrack"));     // TransferHandler is set by MixConsole
 
 
@@ -923,6 +923,20 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
     private boolean isChannelVisible(int channel)
     {
         return tmapChannelPanelSets.containsKey(channel);
+    }
+
+    /**
+     * Unfortunatly java drag & drop behaves surprisingly on MacOS (JDK17), see issue #348
+     *
+     * @param songModel
+     * @param songMidiMix
+     * @param rv
+     * @return
+     */
+    private TransferHandler getOsDependentTransferHandler(Song songModel, MidiMix songMidiMix, RhythmVoice rv)
+    {
+        return Utilities.isMac() ? new MidiFileDragOutTransferHandlerMacOS(songModel, songMidiMix, rv) : new MidiFileDragOutTransferHandler(
+                songModel, songMidiMix, rv);
     }
 
     // ========================================================================================================

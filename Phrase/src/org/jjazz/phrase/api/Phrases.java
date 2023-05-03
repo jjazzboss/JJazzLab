@@ -22,6 +22,7 @@
  */
 package org.jjazz.phrase.api;
 
+import com.google.common.base.Preconditions;
 import static com.google.common.base.Preconditions.checkArgument;
 import java.io.EOFException;
 import java.io.File;
@@ -34,9 +35,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.NavigableMap;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import javax.sound.midi.InvalidMidiDataException;
@@ -656,37 +655,28 @@ public class Phrases
      *
      * @param midiFile
      * @param channel
-     * @param isDrums           The drums settings of the returned phrase
+     * @param isDrums                  The drums settings of the returned phrase
      *
      * @param strictChannel
-     * @param notifyUserIfEmpty If true notify user if resulting phrase is empty
+     * @param notifyUserIfNoChannelNotes If true notify user if no relevant notes found
      * @return Can be empty
+     * @throws java.io.IOException
+     * @throws javax.sound.midi.InvalidMidiDataException
      */
-    public static Phrase importPhrase(File midiFile, int channel, boolean isDrums, boolean strictChannel, boolean notifyUserIfEmpty)
+    public static Phrase importPhrase(File midiFile, int channel, boolean isDrums, boolean strictChannel, boolean notifyUserIfNoChannelNotes) throws IOException, InvalidMidiDataException
     {
+        Preconditions.checkNotNull(midiFile);
+
         // Load file into a sequence
         Sequence sequence;
-        try
+        sequence = MidiSystem.getSequence(midiFile);    // throw exceptions, note that exception message might be null
+        if (sequence.getDivisionType() != Sequence.PPQ)
         {
-            sequence = MidiSystem.getSequence(midiFile);
-            if (sequence.getDivisionType() != Sequence.PPQ)
-            {
-                throw new InvalidMidiDataException("Midi file does not use PPQ division: midifile=" + midiFile.getAbsolutePath());
-            }
-        } catch (IOException | InvalidMidiDataException ex)
-        {
-            String msg = ResUtil.getString(Phrases.class, "InvalidMidiFile", midiFile.getAbsolutePath());
-            if (ex.getMessage() != null)
-            {
-                msg += "\n" + ex.getMessage();
-            }
-            NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
-            DialogDisplayer.getDefault().notify(d);
-            return new Phrase(channel, isDrums);
+            throw new InvalidMidiDataException("Midi file does not use PPQ division: midifile=" + midiFile.getAbsolutePath());
         }
 
-        // LOGGER.severe("importPhrase() sequence=" + MidiUtilities.toString(sequence));
 
+        // LOGGER.severe("importPhrase() sequence=" + MidiUtilities.toString(sequence));
         // Get one phrase per channel
         var phrases = getPhrases(sequence.getResolution(), sequence.getTracks());
 
@@ -710,7 +700,7 @@ public class Phrases
             }
         }
 
-        if (res.isEmpty() && notifyUserIfEmpty)
+        if (res.isEmpty() && notifyUserIfNoChannelNotes)
         {
             String msg = ResUtil.getString(Phrases.class, "NoChannelNotesInMidiFile", channel + 1, midiFile.getAbsolutePath());
             NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.WARNING_MESSAGE);

@@ -54,7 +54,7 @@ import org.openide.NotifyDescriptor;
  * Copy of MidiFileDragOutTransferHandler adapted for MacOS.
  * 
  * With JDK17 MacOS TransferHandler works very differently from Windows (for unknown reasons):<br>
- * - CreateTransferable() is called several times while dragging (on Windows it's only 1 when starting dragging)<br>
+ * - CreateTransferable() is called several times while dragging (on Windows it's called only 1 time when start dragging)<br>
  * - exportDone() is also called several times, even when export is not supposed to be done yet! Note that exportDone() action parameter==0 for these
  * unneeded calls, but action==2 only when a successful exportDone() is called (user has released the mouse and export was accepted by a target)<br>
  * 

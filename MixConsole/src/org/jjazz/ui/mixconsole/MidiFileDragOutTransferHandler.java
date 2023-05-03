@@ -28,8 +28,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -51,18 +49,14 @@ import org.jjazz.ui.utilities.api.MidiFileDragInTransferHandler;
 import org.jjazz.util.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
-import org.openide.util.Exceptions;
 
 /**
  * Drag'n drop support to export the song or a single track as Midi file when mouse dragging from a component.
+ * <p>
+ * Win and Linux only.
  */
 public class MidiFileDragOutTransferHandler extends TransferHandler
 {
-
-    /**
-     * Shared flag between instances.
-     */
-    static private boolean blockExceptionCheckOnExportDone;
 
     private final RhythmVoice rhythmVoice;
     private final Song songModel;
@@ -107,9 +101,8 @@ public class MidiFileDragOutTransferHandler extends TransferHandler
     @Override
     public Transferable createTransferable(JComponent jc)
     {
-        LOGGER.log(Level.SEVERE, "createTransferable()  jc={0}", jc.getClass());
+        LOGGER.log(Level.FINE, "createTransferable()  jc={0}", jc.getClass());
 
-        blockExceptionCheckOnExportDone = false;
         setDragImage(MidiFileDragInTransferHandler.DRAG_ICON.getImage());
 
         final File midiFile;
@@ -133,13 +126,12 @@ public class MidiFileDragOutTransferHandler extends TransferHandler
             {
                 try
                 {
-                    LOGGER.severe("Exporting sequence to " + midiFile.getAbsolutePath());
+                    LOGGER.log(Level.SEVERE, "Exporting sequence to {0}", midiFile.getAbsolutePath());
                     exportSequenceToMidiTempFile(rhythmVoice, midiFile);
-                    LOGGER.severe("Completed export   to " + midiFile.getAbsolutePath());
+                    LOGGER.log(Level.SEVERE, "Completed export   to {0}", midiFile.getAbsolutePath());
                 } catch (IOException | MusicGenerationException e)
                 {
                     // Notify right away
-                    blockExceptionCheckOnExportDone = true;              // Need to be first because exportDone might be called in parallel
                     String exceptionError = e.getMessage();
                     String msg = ResUtil.getString(getClass(), "MidiExportProblem", exceptionError);
                     NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
@@ -163,22 +155,20 @@ public class MidiFileDragOutTransferHandler extends TransferHandler
      *
      * @param c
      * @param data
-     * @param action
+     * @param action Seems to be 2 only when export was a success (0 if not export at all, 1 if export was done but failed)
      */
     @Override
     protected void exportDone(JComponent c, Transferable data, int action)
     {
         // Will be called if drag was initiated from this handler
-        LOGGER.log(Level.SEVERE, "exportDone()  c={0} action={1} future.isDone()={2} blockExceptionCheckOnExportDone={3}",
+        LOGGER.log(Level.SEVERE, "exportDone()  c={0} action={1} future.isDone()={2}",
                 new Object[]
                 {
-                    c.getClass(), action, future.isDone(), blockExceptionCheckOnExportDone
+                    c.getClass(), action, future.isDone()
                 });
 
-        if (blockExceptionCheckOnExportDone)
+        if (action != 2)
         {
-            // This avoid notifying user of "music generatino not finished yet" error if we dropped on ourselves
-            // Note that it won't prevent to have the notification when dropping on a different JJazzLab region (ed CL_Editor) which does not handle Midi file DnD.
             return;
         }
 
@@ -195,32 +185,17 @@ public class MidiFileDragOutTransferHandler extends TransferHandler
     }
 
 
-    /**
-     * Set to true so that importData is called and we can detect when we drop on ourselves.
-     *
-     * @param support
-     * @return
-     */
     @Override
     public boolean canImport(TransferHandler.TransferSupport support)
     {
-        LOGGER.severe("canImport() --");
-        return true;
+        return false;
     }
 
 
-    /**
-     * Do nothing if we drop on one of the MidiFileDragOutTransferHandler instances.
-     *
-     * @param support
-     * @return
-     */
     @Override
     public boolean importData(TransferHandler.TransferSupport support)
     {
-        LOGGER.severe("importData() -- setting blockExceptionCheckOnExportDone=true");
-        blockExceptionCheckOnExportDone = true;
-        return false;
+        throw new UnsupportedOperationException();
     }
 
 

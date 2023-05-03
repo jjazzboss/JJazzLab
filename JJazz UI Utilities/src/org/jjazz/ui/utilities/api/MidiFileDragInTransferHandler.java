@@ -35,12 +35,10 @@ import javax.swing.ImageIcon;
 import javax.swing.TransferHandler;
 
 /**
- * Our drag'n drop support to accept external Midi files dragged into a
- * component.
+ * Our drag'n drop support to accept external Midi files dragged into a component.
  */
 public abstract class MidiFileDragInTransferHandler extends TransferHandler
 {
-
     public static final ImageIcon DRAG_ICON = new ImageIcon(MidiFileDragInTransferHandler.class.getResource("resources/DragMidiIcon.png"));
     private static final Logger LOGGER = Logger.getLogger(MidiFileDragInTransferHandler.class.getSimpleName());
 
