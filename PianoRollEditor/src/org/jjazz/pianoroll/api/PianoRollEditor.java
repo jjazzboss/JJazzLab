@@ -38,6 +38,7 @@ import java.awt.event.MouseWheelListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -50,6 +51,7 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.sound.midi.InvalidMidiDataException;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
@@ -60,6 +62,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
+import javax.swing.TransferHandler;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.midi.api.DrumKit;
@@ -97,6 +100,9 @@ import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.util.api.FloatRange;
 import org.jjazz.util.api.IntRange;
 import org.jjazz.util.api.ResUtil;
+import org.openide.DialogDisplayer;
+import org.openide.NotifyDescriptor;
+import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 import org.openide.util.lookup.AbstractLookup;
 import org.openide.util.lookup.InstanceContent;
@@ -1771,6 +1777,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     private class MidiFileDragInTransferHandlerImpl extends MidiFileDragInTransferHandler
     {
 
+
         @Override
         protected boolean isImportEnabled()
         {
@@ -1780,8 +1787,44 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         @Override
         protected boolean importMidiFile(File midiFile)
         {
-            Phrase p = Phrases.importPhrase(midiFile, channel, isDrums(), false, true);
-            if (!p.isEmpty())
+
+            if (midiFile.length() == 0)
+            {
+                // HACK: when dragging from MixConsole on a big song, the music generation might take some time, and music is not ready yet
+                // when we drop in our editor. In this case the midiFile can be empty when this method is called. So we exit right away and return true 
+                // so that the MixConsole TransferHandler can display the appropriate error message,  like when user drags too fast
+                // from MixConsole to the OS.
+                // Note that midiFile is written in a different thread, so the check above is not 100% reliable.
+                // If actually midiFile does not come from JJazzLab, the only downside is that no error message will be shown.                
+                return true;
+            }
+
+
+            Phrase p = null;
+            try
+            {
+                p = Phrases.importPhrase(midiFile, channel, isDrums(), false, true);
+            } catch (IOException | InvalidMidiDataException ex)
+            {
+                LOGGER.log(Level.WARNING, "MidiFileDragInTransferHandlerImpl.importMidiFile() exception while importing midiFile={0} ex={1}",
+                        new Object[]
+                        {
+                            midiFile.getAbsolutePath(),
+                            ex.getMessage()
+                        });
+                String exMsg = ex.getMessage();
+                if (exMsg == null)
+                {
+                    exMsg = "";
+                }
+                String msg = ResUtil.getString(PianoRollEditor.class, "ErrImportingMidiFile", midiFile.getAbsolutePath(), exMsg);
+                NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
+                DialogDisplayer.getDefault().notify(d);
+                return false;
+            }
+
+
+            if (p != null && !p.isEmpty())
             {
                 unselectAll();
 
@@ -1794,7 +1837,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
 
 
                 final var nv0 = getNoteView(p.getNotes().get(0));
-                SwingUtilities.invokeLater(() -> notesPanel.scrollRectToVisible(nv0.getBounds()));     // invokeLater to make sure task is run after nv0 is layouted
+                SwingUtilities.invokeLater(() -> notesPanel.scrollRectToVisible(nv0.getBounds()));     // invokeLater to make sure task is run after nv0 is layouted                
             }
 
             return true;

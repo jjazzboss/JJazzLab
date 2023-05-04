@@ -52,20 +52,15 @@ import org.openide.NotifyDescriptor;
 
 /**
  * Copy of MidiFileDragOutTransferHandler adapted for MacOS.
- * 
+ * <p>
  * With JDK17 MacOS TransferHandler works very differently from Windows (for unknown reasons):<br>
  * - CreateTransferable() is called several times while dragging (on Windows it's called only 1 time when start dragging)<br>
- * - exportDone() is also called several times, even when export is not supposed to be done yet! Note that exportDone() action parameter==0 for these
- * unneeded calls, but action==2 only when a successful exportDone() is called (user has released the mouse and export was accepted by a target)<br>
- * 
+ * - exportDone() is also called several times, even when export is not supposed to be done yet! Note that exportDone() action parameter==0
+ * (DndConstants.NONE) for these unneeded calls or when import failed. Otherwise action==1 or 2 (COPY or MOVE).
+ * <p>
  */
 public class MidiFileDragOutTransferHandlerMacOS extends TransferHandler
 {
-
-    /**
-     * Shared flag between instances.
-     */
-    static private boolean blockExceptionCheckOnExportDone;
 
     private final RhythmVoice rhythmVoice;
     private final Song songModel;
@@ -110,9 +105,8 @@ public class MidiFileDragOutTransferHandlerMacOS extends TransferHandler
     @Override
     public Transferable createTransferable(JComponent jc)
     {
-        LOGGER.log(Level.SEVERE, "createTransferable()  jc={0}", jc.getClass());
+        LOGGER.log(Level.FINE, "createTransferable()  jc={0}", jc.getClass());
 
-        blockExceptionCheckOnExportDone = false;
         setDragImage(MidiFileDragInTransferHandler.DRAG_ICON.getImage());
 
         final File midiFile;
@@ -136,13 +130,12 @@ public class MidiFileDragOutTransferHandlerMacOS extends TransferHandler
             {
                 try
                 {
-                    LOGGER.severe("Exporting sequence to " + midiFile.getAbsolutePath());
+                    LOGGER.log(Level.SEVERE, "Exporting sequence to {0}", midiFile.getAbsolutePath());
                     exportSequenceToMidiTempFile(rhythmVoice, midiFile);
-                    LOGGER.severe("Completed export   to " + midiFile.getAbsolutePath());
+                    LOGGER.log(Level.SEVERE, "Completed export   to {0}", midiFile.getAbsolutePath());
                 } catch (IOException | MusicGenerationException e)
                 {
                     // Notify right away
-                    blockExceptionCheckOnExportDone = true;              // Need to be first because exportDone might be called in parallel
                     String exceptionError = e.getMessage();
                     String msg = ResUtil.getString(getClass(), "MidiExportProblem", exceptionError);
                     NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
@@ -163,33 +156,37 @@ public class MidiFileDragOutTransferHandlerMacOS extends TransferHandler
 
     /**
      * Check if music generation was ok.
+     * <p>
+     * On MacOS it is called many times, even when no export completed!
      *
      * @param c
      * @param data
-     * @param action
+     * @param action DnDConstants.NONE=0 / COPY=1 / MOVE=2
      */
     @Override
     protected void exportDone(JComponent c, Transferable data, int action)
     {
         // Will be called if drag was initiated from this handler
-        LOGGER.log(Level.SEVERE, "exportDone()  c={0} action={1} future.isDone()={2} blockExceptionCheckOnExportDone={3}",
+        LOGGER.log(Level.SEVERE, "exportDone()  c={0} action={1} future.isDone()={2}",
                 new Object[]
                 {
-                    c.getClass(), action, future.isDone(), blockExceptionCheckOnExportDone
+                    c.getClass(), action, future.isDone()
                 });
 
-        if (blockExceptionCheckOnExportDone)
+        // The action seems to vary depending on the import result
+        // When the receiving component does not support import (no TransferHandler if it's a Swing components), or if an import error occured, then action == DnDConstants.NONE.
+        // We use this to avoid triggering the warning below for nothing
+        if (action == 0)
         {
-            // This avoid notifying user of "music generatino not finished yet" error if we dropped on ourselves
-            // Note that it won't prevent to have the notification when dropping on a different JJazzLab region (ed CL_Editor) which does not handle Midi file DnD.
             return;
         }
 
+
+        // Check if we were not done exporting the midiFile yet
         assert future != null;
         if (!future.isDone())
         {
-            String err = ResUtil.getString(getClass(), "DragMusicGenerationNotComplete");
-            String msg = ResUtil.getString(getClass(), "MidiExportProblem", err);
+            String msg = ResUtil.getString(getClass(), "DragMusicGenerationNotComplete");
             NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(d);
             future.cancel(true);
@@ -198,32 +195,17 @@ public class MidiFileDragOutTransferHandlerMacOS extends TransferHandler
     }
 
 
-    /**
-     * Set to true so that importData is called and we can detect when we drop on ourselves.
-     *
-     * @param support
-     * @return
-     */
     @Override
     public boolean canImport(TransferHandler.TransferSupport support)
     {
-        LOGGER.severe("canImport() --");
-        return true;
+        return false;
     }
 
 
-    /**
-     * Do nothing if we drop on one of the MidiFileDragOutTransferHandler instances.
-     *
-     * @param support
-     * @return
-     */
     @Override
     public boolean importData(TransferHandler.TransferSupport support)
     {
-        LOGGER.severe("importData() -- setting blockExceptionCheckOnExportDone=true");
-        blockExceptionCheckOnExportDone = true;
-        return false;
+        throw new UnsupportedOperationException();
     }
 
 

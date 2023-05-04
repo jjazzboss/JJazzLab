@@ -24,7 +24,6 @@ package org.jjazz.phrase.api;
 
 import com.google.common.base.Preconditions;
 import static com.google.common.base.Preconditions.checkArgument;
-import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -651,12 +650,11 @@ public class Phrases
      * Parse a Midi file to extract one phrase from the specified Midi channel notes (notes can be on any track).
      * <p>
      * As a special case, if midiFile contains notes from only 1 channel and this channel is different from the channel parameter, then the
-     * method will still accept these notes to build the returned phrase, unless strictChannel is true.
+     * method will still accept these notes to build the returned phrase, unless the strictChannel parameter is true.
      *
      * @param midiFile
      * @param channel
-     * @param isDrums                  The drums settings of the returned phrase
-     *
+     * @param isDrums                    The drums settings of the returned phrase
      * @param strictChannel
      * @param notifyUserIfNoChannelNotes If true notify user if no relevant notes found
      * @return Can be empty
@@ -666,7 +664,7 @@ public class Phrases
     public static Phrase importPhrase(File midiFile, int channel, boolean isDrums, boolean strictChannel, boolean notifyUserIfNoChannelNotes) throws IOException, InvalidMidiDataException
     {
         Preconditions.checkNotNull(midiFile);
-
+        
         // Load file into a sequence
         Sequence sequence;
         sequence = MidiSystem.getSequence(midiFile);    // throw exceptions, note that exception message might be null

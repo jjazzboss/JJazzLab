@@ -126,9 +126,9 @@ public class MidiFileDragOutTransferHandler extends TransferHandler
             {
                 try
                 {
-                    LOGGER.log(Level.SEVERE, "Exporting sequence to {0}", midiFile.getAbsolutePath());
+                    LOGGER.log(Level.FINE, "Exporting sequence to {0}", midiFile.getAbsolutePath());
                     exportSequenceToMidiTempFile(rhythmVoice, midiFile);
-                    LOGGER.log(Level.SEVERE, "Completed export   to {0}", midiFile.getAbsolutePath());
+                    LOGGER.log(Level.FINE, "Completed export   to {0}", midiFile.getAbsolutePath());
                 } catch (IOException | MusicGenerationException e)
                 {
                     // Notify right away
@@ -155,28 +155,32 @@ public class MidiFileDragOutTransferHandler extends TransferHandler
      *
      * @param c
      * @param data
-     * @param action Seems to be 2 only when export was a success (0 if not export at all, 1 if export was done but failed)
+     * @param action DnDConstants.NONE=0 / COPY=1 / MOVE=2
      */
     @Override
     protected void exportDone(JComponent c, Transferable data, int action)
     {
         // Will be called if drag was initiated from this handler
-        LOGGER.log(Level.SEVERE, "exportDone()  c={0} action={1} future.isDone()={2}",
+        LOGGER.log(Level.FINE, "exportDone()  c={0} action={1} future.isDone()={2}",
                 new Object[]
                 {
                     c.getClass(), action, future.isDone()
                 });
 
-        if (action != 2)
+        // The action seems to vary depending on the import result
+        // When the receiving component does not support import (no TransferHandler if it's a Swing components), or if an import error occured, then action == DnDConstants.NONE.
+        // We use this to avoid triggering the warning below for nothing
+        if (action == 0)
         {
             return;
         }
 
+
+        // Check if we were not done exporting the midiFile yet
         assert future != null;
         if (!future.isDone())
         {
-            String err = ResUtil.getString(getClass(), "DragMusicGenerationNotComplete");
-            String msg = ResUtil.getString(getClass(), "MidiExportProblem", err);
+            String msg = ResUtil.getString(getClass(), "DragMusicGenerationNotComplete");
             NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(d);
             future.cancel(true);

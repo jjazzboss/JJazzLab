@@ -111,7 +111,7 @@ public abstract class MidiFileDragInTransferHandler extends TransferHandler
                 // Seems to happen on MacOS files==null Issue #348
                 // Looks like a known issue: https://stackoverflow.com/questions/49016784/dataflavor-javafilelistflavor-and-mac-os-x-clipboard
                 // From another SO post: it seems that the TransferSupport object is valid on Mac only when importData() is called, not
-                // when canImport() is called. TODO: need to test this on Mac to try to solve #348
+                // when canImport() is called. 
                 LOGGER.log(Level.WARNING, "getMidiFile() Unexpected value for files={0}", files);
             }
         } catch (UnsupportedFlavorException | IOException e)
