@@ -45,13 +45,13 @@ import org.openide.util.WeakListeners;
 
 /**
  * Save song action.
- * 
+ * <p>
  * Listen to the song presence in the actionGlobalContext, then listen to song's savedNeeded property to enable/disable the action.
  */
 @ActionID(
         category = "File", id = "org.jjazz.songeditormanager.api.Save"
 )
-@ActionRegistration(displayName = "#CTL_Save", lazy = false) 
+@ActionRegistration(displayName = "#CTL_Save", lazy = false)
 @ActionReferences(
         {
             @ActionReference(path = "Menu/File", position = 1500),
@@ -72,7 +72,7 @@ public final class Save extends AbstractAction implements PropertyChangeListener
         // Need this for auto icon size changing to work... (switch to saveAll24.gif) since can't be done using actionRegistration's iconBase=xx
         putValue("iconBase", "org/jjazz/songeditormanager/resources/save.png");
 
-        
+
         Lookup context = org.openide.util.Utilities.actionsGlobalContext();
         songLkpListener = le -> songPresenceChanged(le);
         songLkpResult = context.lookupResult(Song.class);
@@ -94,7 +94,10 @@ public final class Save extends AbstractAction implements PropertyChangeListener
             res = SaveUtils.saveSongAndMix(song, songFile);
         }
 
-        LOGGER.log(Level.FINE, "actionPerformed() song={0} res={1}", new Object[]{song, res});
+        LOGGER.log(Level.FINE, "actionPerformed() song={0} res={1}", new Object[]
+        {
+            song, res
+        });
 
         if (res == 0)
         {
@@ -127,6 +130,7 @@ public final class Save extends AbstractAction implements PropertyChangeListener
     // ======================================================================================================   
     private void songPresenceChanged(LookupEvent le)
     {
+        // Can be sometimes called out of the EDT
         Song newSong;
         if (le != null)
         {
@@ -158,7 +162,8 @@ public final class Save extends AbstractAction implements PropertyChangeListener
             b = song.isSaveNeeded();
         }
 
-        setEnabled(b);
+        final boolean b2 = b;
+        org.jjazz.ui.utilities.api.Utilities.invokeLaterIfNeeded(() -> setEnabled(b2));
     }
 
 }

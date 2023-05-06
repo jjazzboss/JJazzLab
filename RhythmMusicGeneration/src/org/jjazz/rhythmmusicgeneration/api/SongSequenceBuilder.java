@@ -91,7 +91,7 @@ public class SongSequenceBuilder
 
     /**
      * @see #getTempoFactorMetaMessage(float)
-     * @see #getTempoFactor(javax.sound.midi.MetaMessage) 
+     * @see #getTempoFactor(javax.sound.midi.MetaMessage)
      */
     public static final int TEMPO_FACTOR_META_EVENT_TYPE = 12;
 
@@ -127,15 +127,15 @@ public class SongSequenceBuilder
     /**
      * Call buildMapRvPhrase() then buildSongSequence().
      *
-     * @param silent If true do not show a progress dialog
+     * @param silent If true do not show a progress dialog while generating the musical phrases
      * @return
      * @throws org.jjazz.rhythm.api.MusicGenerationException
-     * @see #buildSongSequence(java.util.Map, boolean)
      * @see #buildMapRvPhrase(boolean)
+     * @see #buildSongSequence(java.util.Map, boolean)
      */
     public SongSequence buildAll(boolean silent) throws MusicGenerationException
     {
-        AllBuilderTask task = new AllBuilderTask();
+        RvPhrasesBuilderTask task = new RvPhrasesBuilderTask();
         if (silent)
         {
             task.run();
@@ -143,13 +143,12 @@ public class SongSequenceBuilder
         {
             BaseProgressUtils.showProgressDialogAndRun(task, ResUtil.getString(getClass(), "PREPARING MUSIC"));
         }
-
         if (task.musicException != null)
         {
             throw task.musicException;
         }
 
-        return task.songSequence;
+        return buildSongSequence(task.rvPhrases);
     }
 
 
@@ -203,33 +202,91 @@ public class SongSequenceBuilder
      * If songContext range start bar is &gt; 0, the Midi events are shifted to start at sequence tick 0.
      *
      * @param rvPhrases The RhythmVoice phrases such as produced by buildMapRvPhrase(boolean), must start at beat 0.
-     * @param silent    If true do not show a progress dialog
      * @return A Sequence containing accompaniment tracks for the songContext, including time signature change Midi meta events and JJazz
      *         custom Midi controller messages (MidiConst.CTRL_CHG_JJAZZ_TEMPO_FACTOR) for tempo factor changes.
-     * @throws MusicGenerationException
      * @see #buildMapRvPhrase(boolean)
      */
-    public SongSequence buildSongSequence(Map<RhythmVoice, Phrase> rvPhrases, boolean silent) throws MusicGenerationException
+    public SongSequence buildSongSequence(Map<RhythmVoice, Phrase> rvPhrases)
     {
-        SongSequenceBuilderTask task = new SongSequenceBuilderTask(rvPhrases);
-        if (silent)
+        SongSequence res = new SongSequence();
+        res.mapRvPhrase = new HashMap<>(rvPhrases);
+
+        try
         {
-            task.run();
-        } else
+            res.sequence = new Sequence(Sequence.PPQ, MidiConst.PPQ_RESOLUTION);
+        } catch (InvalidMidiDataException ex)
         {
-            BaseProgressUtils.showProgressDialogAndRun(task, ResUtil.getString(getClass(), "PREPARING MUSIC"));
+            throw new IllegalStateException("buildSequence() Can't create the initial empty sequence : " + ex.getLocalizedMessage());
         }
 
-        if (task.musicException != null)
+
+        // First track is really useful only when exporting to Midi file type 1            
+        // Contain song name, tempo factor changes, time signatures
+        Track track0 = res.sequence.createTrack();
+        MidiUtilities.addTrackNameEvent(track0, songContext.getSong().getName() + " (JJazzLab song)");
+        addTimeSignatureChanges(songContext, track0);
+        addTempoFactorChanges(songContext, track0);
+
+
+        // Other tracks : create one per RhythmVoice
+        int trackId = 1;
+        res.mapRvTrackId = new HashMap<>();
+
+
+        // Normally process only normal rhythms, but if context does not use a source rhythm of an adapted rhythm, we need to process it too
+        var contextRhythms = songContext.getUniqueRhythms();      // Contains AdaptedRhythms
+        Set<Rhythm> targetRhythms = new HashSet<>();
+        for (Rhythm r : contextRhythms)
         {
-            throw task.musicException;
+            if (r instanceof AdaptedRhythm ar)
+            {
+                Rhythm sr = ar.getSourceRhythm();
+                if (!contextRhythms.contains(sr))
+                {
+                    // Add the source rhythm if not present in context range
+                    targetRhythms.add(sr);
+                }
+            } else
+            {
+                targetRhythms.add(r);
+            }
         }
 
-        return task.songSequence;
+
+        // The final RhythmVoices to process: all targetRhythms + UserRhythmVoices
+        final List<RhythmVoice> targetRhythmVoices = new ArrayList<>();
+        targetRhythms.forEach(r -> targetRhythmVoices.addAll(r.getRhythmVoices()));
+        rvPhrases.keySet().stream()
+                .filter(rv -> rv instanceof UserRhythmVoice)
+                .forEach(rv -> targetRhythmVoices.add(rv));
+
+
+        // Create the tracks
+        for (RhythmVoice rv : targetRhythmVoices)
+        {
+
+            Track track = res.sequence.createTrack();
+            int channel = songContext.getMidiMix().getChannel(rv);
+
+            String name = buildTrackName(rv, channel);
+            MidiUtilities.addTrackNameEvent(track, name);
+
+            // Fill the track
+            Phrase p = rvPhrases.get(rv);
+            Phrases.fillTrack(p, track);
+
+            // Store the track with the RhythmVoice
+            res.mapRvTrackId.put(rv, trackId);
+            trackId++;
+        }
+
+        fixEndOfTracks(songContext, res.sequence);
+
+        return res;
     }
 
     /**
-     * Create a sequence (for the current SongContext) ready to be exported and read by an external sequencer.
+     * Update the Midi sequence so that it can be exported to external tools (sequencers, Midi editors, etc.).
      * <p>
      * Get rid of all JJazzLab-only MidiEvents and add some initialization events:<br>
      * - add copyright message<br>
@@ -241,16 +298,13 @@ public class SongSequenceBuilder
      * - add a marker for each chord symbol<br>
      *
      *
-     * @param silent
+     * @param songSequence      Must have been created using buildSongSequence() for the current SongContext
      * @param ignoreMidiMixMute If true, a track will sound even if it was muted in the context MidiMix
-     * @return
-     * @throws org.jjazz.rhythm.api.MusicGenerationException
+     * @see #buildSongSequence(java.util.Map, boolean)
      */
-    public SongSequence buildExportableSequence(boolean silent, boolean ignoreMidiMixMute) throws MusicGenerationException
+    public void makeSequenceExportable(SongSequence songSequence, boolean ignoreMidiMixMute)
     {
-
-        var songSequence = buildAll(silent);     // throws MusicGenerationException
-
+        Preconditions.checkNotNull(songSequence);
 
         Sequence sequence = songSequence.sequence;
         MidiMix midiMix = songContext.getMidiMix();
@@ -385,7 +439,8 @@ public class SongSequenceBuilder
         for (RhythmVoice rv : songSequence.mapRvTrackId.keySet())
         {
             Track track = tracks[songSequence.mapRvTrackId.get(rv)];
-            int channel = songContext.getMidiMix().getChannel(rv);
+            int channel = midiMix.getChannel(rv);
+            assert channel != -1 : "rv=" + rv + " midiMix=" + midiMix + " songSequence.mapRvTrackId=" + songSequence.mapRvTrackId;
 
             // Reset all controllers
             MidiMessage mmReset = MidiUtilities.getResetAllControllersMessage(channel);
@@ -400,8 +455,6 @@ public class SongSequenceBuilder
                 track.add(me);
             }
         }
-
-        return songSequence;
     }
 
 
@@ -503,7 +556,7 @@ public class SongSequenceBuilder
 
 
         // Merge the phrases from delegate RhythmVoices to the source phrase, then remove the delegate phrases        
-        for (var rv : res.keySet().toArray(new RhythmVoice[0]))
+        for (var rv : res.keySet().toArray(RhythmVoice[]::new))
         {
             if (rv instanceof RhythmVoiceDelegate rvd)
             {
@@ -573,85 +626,6 @@ public class SongSequenceBuilder
         return res;
     }
 
-    private SongSequence buildSongSequence(Map<RhythmVoice, Phrase> rvPhrases) throws MusicGenerationException
-    {
-        SongSequence res = new SongSequence();
-        res.mapRvPhrase = new HashMap<>(rvPhrases);
-
-        try
-        {
-            res.sequence = new Sequence(Sequence.PPQ, MidiConst.PPQ_RESOLUTION);
-        } catch (InvalidMidiDataException ex)
-        {
-            throw new MusicGenerationException("buildSequence() Can't create the initial empty sequence : " + ex.getLocalizedMessage());
-        }
-
-
-        // First track is really useful only when exporting to Midi file type 1            
-        // Contain song name, tempo factor changes, time signatures
-        Track track0 = res.sequence.createTrack();
-        MidiUtilities.addTrackNameEvent(track0, songContext.getSong().getName() + " (JJazzLab song)");
-        addTimeSignatureChanges(songContext, track0);
-        addTempoFactorChanges(songContext, track0);
-
-
-        // Other tracks : create one per RhythmVoice
-        int trackId = 1;
-        res.mapRvTrackId = new HashMap<>();
-
-
-        // Normally process only normal rhythms, but if context does not use a source rhythm of an adapted rhythm, we need to process it too
-        var contextRhythms = songContext.getUniqueRhythms();      // Contains AdaptedRhythms
-        Set<Rhythm> targetRhythms = new HashSet<>();
-        for (Rhythm r : contextRhythms)
-        {
-            if (r instanceof AdaptedRhythm ar)
-            {
-                Rhythm sr = ar.getSourceRhythm();
-                if (!contextRhythms.contains(sr))
-                {
-                    // Add the source rhythm if not present in context range
-                    targetRhythms.add(sr);
-                }
-            } else
-            {
-                targetRhythms.add(r);
-            }
-        }
-
-
-        // The final RhythmVoices to process: all targetRhythms + UserRhythmVoices
-        final List<RhythmVoice> targetRhythmVoices = new ArrayList<>();
-        targetRhythms.forEach(r -> targetRhythmVoices.addAll(r.getRhythmVoices()));
-        rvPhrases.keySet().stream()
-                .filter(rv -> rv instanceof UserRhythmVoice)
-                .forEach(rv -> targetRhythmVoices.add(rv));
-
-
-        // Create the tracks
-        for (RhythmVoice rv : targetRhythmVoices)
-        {
-
-            Track track = res.sequence.createTrack();
-            int channel = songContext.getMidiMix().getChannel(rv);
-
-            String name = buildTrackName(rv, channel);
-            MidiUtilities.addTrackNameEvent(track, name);
-
-            // Fill the track
-            Phrase p = rvPhrases.get(rv);
-            Phrases.fillTrack(p, track);
-
-            // Store the track with the RhythmVoice
-            res.mapRvTrackId.put(rv, trackId);
-            trackId++;
-        }
-
-        fixEndOfTracks(songContext, res.sequence);
-
-        return res;
-    }
-
 
     /**
      * Ask specified rhythm to generate music.
@@ -662,6 +636,8 @@ public class SongSequenceBuilder
      */
     private Map<RhythmVoice, Phrase> generateRhythmPhrases(Rhythm r) throws MusicGenerationException
     {
+        Preconditions.checkNotNull(r);
+
         if (r instanceof MusicGenerator mg)
         {
             LOGGER.log(Level.FINE, "fillRhythmTracks() calling generateMusic() for rhythm r={0} hashCode(r)={1}", new Object[]
@@ -1170,32 +1146,6 @@ public class SongSequenceBuilder
     // ====================================================================================================
 
     /**
-     * A runnable to generate all data.
-     * <p>
-     * Produced data must be retrieved from the fields. If musicException field is not null it means an exception occured.
-     */
-    private class AllBuilderTask implements Runnable
-    {
-
-        // The generated sequence from the phrases
-        private SongSequence songSequence;
-        private MusicGenerationException musicException = null;
-
-        @Override
-        public void run()
-        {
-            try
-            {
-                var rvPhrases = buildMapRvPhrase();
-                songSequence = buildSongSequence(rvPhrases);
-            } catch (MusicGenerationException ex)
-            {
-                musicException = ex;
-            }
-        }
-    }
-
-    /**
      * A runnable to generate the RhythmVoice phrases.
      * <p>
      * Produced data must be retrieved from the fields. If musicException field is not null it means an exception occured.
@@ -1213,37 +1163,6 @@ public class SongSequenceBuilder
             try
             {
                 rvPhrases = buildMapRvPhrase();
-            } catch (MusicGenerationException ex)
-            {
-                musicException = ex;
-            }
-        }
-    }
-
-    /**
-     * A runnable to generate the SongSequence.
-     * <p>
-     * Produced data must be retrieved from the fields. If musicException field is not null it means an exception occured.
-     */
-    private class SongSequenceBuilderTask implements Runnable
-    {
-
-        // The generated sequence from the phrases
-        private final Map<RhythmVoice, Phrase> rvPhrases;
-        private SongSequence songSequence;
-        private MusicGenerationException musicException = null;
-
-        public SongSequenceBuilderTask(Map<RhythmVoice, Phrase> rvPhrases)
-        {
-            this.rvPhrases = rvPhrases;
-        }
-
-        @Override
-        public void run()
-        {
-            try
-            {
-                songSequence = buildSongSequence(rvPhrases);
             } catch (MusicGenerationException ex)
             {
                 musicException = ex;

@@ -41,9 +41,8 @@ import org.openide.util.ChangeSupport;
 /**
  * A service to retrieve the musical phrases of the active song.
  * <p>
- * Phrases are regenerated each time the active song changes, except when the actibe song is playing: in this case only non-structural
- * changes are handled.
- * <p>
+ * When the active song is not playing, we use a SongMusicBuilderTask to get new Phrases each time the song changes. When song is playing,
+ * we listen to the current UpdatableSongSession to get the updated phrases (which are provided as long as there is no structural change).
  * <p>
  */
 public class ActiveSongMusicBuilder implements PropertyChangeListener, ChangeListener
@@ -103,6 +102,16 @@ public class ActiveSongMusicBuilder implements PropertyChangeListener, ChangeLis
     public MusicGenerationQueue.Result getLastResult()
     {
         return lastResult;
+    }
+
+    /**
+     * Get the active song for this ActiveSongMusicBuilder.
+     *
+     * @return Can be null
+     */
+    public Song getSong()
+    {
+        return activeSong;
     }
 
     /**
@@ -198,7 +207,7 @@ public class ActiveSongMusicBuilder implements PropertyChangeListener, ChangeLis
             {
                 var update = (UpdatableSongSession.Update) evt.getNewValue();
                 playingSongResultReceived(update);
-            }
+            } 
         }
 
 

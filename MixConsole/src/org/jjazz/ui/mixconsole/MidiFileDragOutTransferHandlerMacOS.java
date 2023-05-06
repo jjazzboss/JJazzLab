@@ -26,17 +26,13 @@ import com.google.common.base.Preconditions;
 import java.awt.datatransfer.Transferable;
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.Track;
 import javax.swing.JComponent;
 import javax.swing.TransferHandler;
+import org.jjazz.backgroundsongmusicbuilder.api.ActiveSongMusicBuilder;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.rhythm.api.MusicGenerationException;
@@ -62,12 +58,11 @@ import org.openide.NotifyDescriptor;
 public class MidiFileDragOutTransferHandlerMacOS extends TransferHandler
 {
 
+  
     private final RhythmVoice rhythmVoice;
     private final Song songModel;
     private final MidiMix songMidiMix;
-    private Future<?> future;
-    private ExecutorService executorService;
-    private static final Logger LOGGER = Logger.getLogger(MidiFileDragOutTransferHandlerMacOS.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(MidiFileDragOutTransferHandler.class.getSimpleName());
 
 
     /**
@@ -83,13 +78,12 @@ public class MidiFileDragOutTransferHandlerMacOS extends TransferHandler
         this.songModel = song;
         this.songMidiMix = midiMix;
         this.rhythmVoice = rv;
-        executorService = Executors.newSingleThreadExecutor();
     }
 
     @Override
-    public int getSourceActions(JComponent c)
+    public int getSourceActions(JComponent jc)
     {
-        LOGGER.log(Level.FINE, "getSourceActions()  c={0}", c);
+        LOGGER.log(Level.FINE, "getSourceActions()  jc={0}", jc.getName());
         int res = TransferHandler.NONE;
         // Make sure we'll be able to generate a song
         if (songModel != null && songMidiMix != null)
@@ -105,93 +99,43 @@ public class MidiFileDragOutTransferHandlerMacOS extends TransferHandler
     @Override
     public Transferable createTransferable(JComponent jc)
     {
-        LOGGER.log(Level.FINE, "createTransferable()  jc={0}", jc.getClass());
+        LOGGER.log(Level.FINE, "createTransferable()  jc={0}", jc.getName());
 
         setDragImage(MidiFileDragInTransferHandler.DRAG_ICON.getImage());
 
+
+        // Create the temp midi file
         final File midiFile;
         try
         {
-            // Create the temp file
             midiFile = File.createTempFile("JJazzMixConsoleDragOut", ".mid"); // throws IOException
             midiFile.deleteOnExit();
         } catch (IOException ex)
         {
+            LOGGER.log(Level.WARNING, "createTransferable() temporary Midi file creation exception={0}", ex.getMessage());
             NotifyDescriptor d = new NotifyDescriptor.Message(ex.getMessage(), NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(d);
             return null;
         }
 
 
-        Runnable task = new Runnable()
+        // Write the temp midi file
+        try
         {
-            @Override
-            public void run()
-            {
-                try
-                {
-                    LOGGER.log(Level.SEVERE, "Exporting sequence to {0}", midiFile.getAbsolutePath());
-                    exportSequenceToMidiTempFile(rhythmVoice, midiFile);
-                    LOGGER.log(Level.SEVERE, "Completed export   to {0}", midiFile.getAbsolutePath());
-                } catch (IOException | MusicGenerationException e)
-                {
-                    // Notify right away
-                    String exceptionError = e.getMessage();
-                    String msg = ResUtil.getString(getClass(), "MidiExportProblem", exceptionError);
-                    NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
-                    DialogDisplayer.getDefault().notify(d);
-                    LOGGER.log(Level.WARNING, "createTransferable().task.run() ex={0}", exceptionError);
-                }
-            }
-        };
-        // Generation might take a few seconds, we can't block UI, see Issue #345 
-        future = executorService.submit(task);
-
-
-        List<File> data = midiFile == null ? null : Arrays.asList(midiFile);
-        Transferable t = new FileTransferable(data);
-        return t;
-    }
-
-
-    /**
-     * Check if music generation was ok.
-     * <p>
-     * On MacOS it is called many times, even when no export completed!
-     *
-     * @param c
-     * @param data
-     * @param action DnDConstants.NONE=0 / COPY=1 / MOVE=2
-     */
-    @Override
-    protected void exportDone(JComponent c, Transferable data, int action)
-    {
-        // Will be called if drag was initiated from this handler
-        LOGGER.log(Level.SEVERE, "exportDone()  c={0} action={1} future.isDone()={2}",
-                new Object[]
-                {
-                    c.getClass(), action, future.isDone()
-                });
-
-        // The action seems to vary depending on the import result
-        // When the receiving component does not support import (no TransferHandler if it's a Swing components), or if an import error occured, then action == DnDConstants.NONE.
-        // We use this to avoid triggering the warning below for nothing
-        if (action == 0)
+            exportSequenceToMidiTempFile(rhythmVoice, midiFile);
+        } catch (IOException | MusicGenerationException ex)
         {
-            return;
-        }
-
-
-        // Check if we were not done exporting the midiFile yet
-        assert future != null;
-        if (!future.isDone())
-        {
-            String msg = ResUtil.getString(getClass(), "DragMusicGenerationNotComplete");
+            String exceptionError = ex.getMessage();
+            String msg = ResUtil.getString(getClass(), "MidiExportProblem", exceptionError);
             NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(d);
-            future.cancel(true);
+            LOGGER.log(Level.WARNING, "createTransferable() exception={0}", exceptionError);
+            return null;
         }
 
+
+        Transferable t = new FileTransferable(midiFile);
+        return t;
     }
 
 
@@ -229,6 +173,8 @@ public class MidiFileDragOutTransferHandlerMacOS extends TransferHandler
 
     /**
      * Build an exportable sequence to a midi file.
+     * <p>
+     * If song is the active song, try to reuse the last result from the ActiveSongMusicBuilder, otherwise generate the music.
      *
      * @param rv       If not null export only the rv track, otherwise all tracks.
      * @param midiFile
@@ -242,10 +188,29 @@ public class MidiFileDragOutTransferHandlerMacOS extends TransferHandler
             rv, midiFile
         });
 
-
-        // Build the sequence
         var sgContext = new SongContext(songModel, songMidiMix);
-        SongSequenceBuilder.SongSequence songSequence = new SongSequenceBuilder(sgContext).buildExportableSequence(true, false); // throws MusicGenerationException
+        var ssb = new SongSequenceBuilder(sgContext);
+        SongSequenceBuilder.SongSequence songSequence;
+
+
+        var asmb = ActiveSongMusicBuilder.getInstance();
+        var result = asmb.getLastResult();
+        if (asmb.getSong() == songModel && result != null && result.userException() == null)
+        {
+            // We can reuse the last music generation
+            songSequence = ssb.buildSongSequence(result.mapRvPhrases());
+
+        } else
+        {
+            // Need to build music, this might take some time for a large song 
+            // Don't make it silent: user must be aware we're generating music at the start of dragging
+            songSequence = ssb.buildAll(false);    // throws MusicGenerationException
+
+        }
+
+
+        // Make the sequence exportable
+        ssb.makeSequenceExportable(songSequence, false);
 
 
         // Keep only rv track if defined
@@ -279,7 +244,7 @@ public class MidiFileDragOutTransferHandlerMacOS extends TransferHandler
 
 
         // Write the midi file     
-        MidiSystem.write(songSequence.sequence, 1, midiFile);   // throws IOException
+        MidiSystem.write(songSequence.sequence, 1, midiFile);       // throws IOException
 
     }
 

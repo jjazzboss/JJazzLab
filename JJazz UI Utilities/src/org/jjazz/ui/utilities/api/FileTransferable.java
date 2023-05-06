@@ -27,12 +27,14 @@ import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * A transferable for one or more files.
+ * A transferable for one file which supports DataFlavor.javaFileListFlavor.
+ * <p>
  */
 public class FileTransferable implements Transferable
 {
@@ -41,46 +43,54 @@ public class FileTransferable implements Transferable
     {
         DataFlavor.javaFileListFlavor
     };
-    private final List<File> data;
+    private final File file;
     private static final Logger LOGGER = Logger.getLogger(FileTransferable.class.getSimpleName());
 
-
     /**
-     * Build a transferable for the specified file(s).
+     * Build a transferable for the specified file.
      *
-     * @param files Can be null.
+     * @param file Can be null
      */
-    public FileTransferable(List<File> files)
+    public FileTransferable(File file)
     {
-        this.data = files;
+        this.file = file;
     }
+
 
     @Override
     public DataFlavor[] getTransferDataFlavors()
     {
-        return data == null ? new DataFlavor[0] : dataFlavors;
+        return file == null ? new DataFlavor[0] : dataFlavors;
     }
 
     @Override
     public boolean isDataFlavorSupported(DataFlavor flavor)
     {
         LOGGER.log(Level.FINE, "isDataFlavorSupported() -- flavor={0}", flavor);
-        return data == null ? false : flavor.equals(DataFlavor.javaFileListFlavor);
+        return file == null ? false : flavor.equals(DataFlavor.javaFileListFlavor);
     }
 
+    /**
+     * Returns a list which contains only our file.
+     *
+     * @param df
+     * @return
+     * @throws UnsupportedFlavorException
+     * @throws IOException
+     */
     @Override
-    public Object getTransferData(DataFlavor df) throws UnsupportedFlavorException, IOException
+    public List<File> getTransferData(DataFlavor df) throws UnsupportedFlavorException, IOException
     {
         LOGGER.log(Level.FINE, "getTransferData()  df={0}", df);
         if (!df.equals(DataFlavor.javaFileListFlavor))
         {
-            return new UnsupportedFlavorException(df);
+            throw new UnsupportedFlavorException(df);
         }
-        if (data == null)
+        if (file == null)
         {
             throw new IOException("File not available");
         }
-        return data;
+        return Arrays.asList(file);
     }
 
 }
