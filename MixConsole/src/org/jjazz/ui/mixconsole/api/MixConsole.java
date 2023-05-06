@@ -80,7 +80,6 @@ import org.openide.awt.Actions;
 import org.openide.util.lookup.AbstractLookup;
 import org.openide.util.lookup.InstanceContent;
 import org.jjazz.ui.flatcomponents.api.FlatButton;
-import org.jjazz.ui.mixconsole.MidiFileDragOutTransferHandlerMacOS;
 import org.jjazz.ui.mixconsole.MixChannelPanel;
 import org.jjazz.ui.mixconsole.MixChannelPanelControllerImpl;
 import org.jjazz.ui.mixconsole.MixChannelPanelModelImpl;
