@@ -615,7 +615,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
 
 
         // Update the TransferHandler
-        panel_mixChannels.setTransferHandler(getOsDependentTransferHandler(songModel, songMidiMix, null));
+        panel_mixChannels.setTransferHandler(new MidiFileDragOutTransferHandler(songModel, songMidiMix, null));
         panel_mixChannels.setDropTarget(null);  // Disable dropping in the component, avoid canImport() being called in the TransferHandler, see setTransferHandler() doc
 
 
@@ -688,7 +688,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
 
 
         // Set a transfer handler 
-        TransferHandler th = getOsDependentTransferHandler(songModel, songMidiMix, rv);
+        TransferHandler th = new MidiFileDragOutTransferHandler(songModel, songMidiMix, rv);
         mcp.setTransferHandler(th);
         mcp.setDropTarget(null);        // Disable dropping in the component, avoid TransferHandler.canImport() being called, see setTransferHandler() doc
         pvp.setTransferHandler(th);
@@ -925,24 +925,10 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         return tmapChannelPanelSets.containsKey(channel);
     }
 
-    /**
-     * Unfortunatly java drag & drop behaves surprisingly on MacOS (JDK17), see issue #348
-     *
-     * @param songModel
-     * @param songMidiMix
-     * @param rv
-     * @return
-     */
-    private TransferHandler getOsDependentTransferHandler(Song songModel, MidiMix songMidiMix, RhythmVoice rv)
-    {
-        return Utilities.isMac() ? new MidiFileDragOutTransferHandlerMacOS(songModel, songMidiMix, rv) : new MidiFileDragOutTransferHandler(
-                songModel, songMidiMix, rv);
-    }
 
     // ========================================================================================================
     // Private classes
     // ========================================================================================================
-
     /**
      * The UI panels associated to a channel.
      */
