@@ -25,11 +25,14 @@ package org.jjazz.ui.musiccontrolactions;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.util.logging.Logger;
+import javax.sound.midi.MidiUnavailableException;
 import javax.swing.AbstractAction;
 import javax.swing.JFileChooser;
 import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.song.api.Song;
-import org.jjazz.ui.musiccontrolactions.api.SongExportSupport;
+import org.jjazz.backgroundsongmusicbuilder.api.SongMidiExporter;
+import org.jjazz.midimix.api.MidiMix;
+import org.jjazz.midimix.api.MidiMixManager;
 import org.jjazz.ui.utilities.api.Utilities;
 import org.jjazz.util.api.ResUtil;
 import org.openide.DialogDisplayer;
@@ -38,6 +41,7 @@ import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
+import org.openide.util.Exceptions;
 import org.openide.windows.WindowManager;
 
 /**
@@ -65,7 +69,7 @@ public class ExportToMidiFile extends AbstractAction
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        assert song != null;   
+        assert song != null;
 
         if (song.getSongStructure().getSongParts().isEmpty())
         {
@@ -114,7 +118,20 @@ public class ExportToMidiFile extends AbstractAction
         }
 
 
-        SongExportSupport.songToMidiFile(song, midiFile);
+        MidiMix midiMix = null;
+        try
+        {
+            midiMix = MidiMixManager.getInstance().findMix(song);
+        } catch (MidiUnavailableException ex)
+        {
+            // Should never happen
+            Exceptions.printStackTrace(ex);
+            return;
+        }
+
+        assert midiMix != null : "song=" + song;
+
+        SongMidiExporter.songToMidiFile(song, midiMix, midiFile, null);
 
     }
 
@@ -131,7 +148,8 @@ public class ExportToMidiFile extends AbstractAction
     {
         File f = null;
         File songFile = sg.getFile();
-        String midiFilename = (songFile == null) ? sg.getName() + ".mid" : org.jjazz.util.api.Utilities.replaceExtension(songFile.getName(), ".mid");
+        String midiFilename = (songFile == null) ? sg.getName() + ".mid" : org.jjazz.util.api.Utilities.replaceExtension(songFile.getName(),
+                ".mid");
         if (saveExportDir != null && !saveExportDir.isDirectory())
         {
             saveExportDir = null;
@@ -156,5 +174,5 @@ public class ExportToMidiFile extends AbstractAction
         return f;
     }
 
-  
+
 }

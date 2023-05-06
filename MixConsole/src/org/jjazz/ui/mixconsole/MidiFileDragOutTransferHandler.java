@@ -28,21 +28,14 @@ import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.sound.midi.MidiSystem;
-import javax.sound.midi.Track;
 import javax.swing.JComponent;
 import javax.swing.TransferHandler;
-import org.jjazz.backgroundsongmusicbuilder.api.ActiveSongMusicBuilder;
+import org.jjazz.backgroundsongmusicbuilder.api.SongMidiExporter;
 import org.jjazz.midimix.api.MidiMix;
-import org.jjazz.musiccontrol.api.PlaybackSettings;
-import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.RhythmVoice;
-import org.jjazz.rhythmmusicgeneration.api.SongSequenceBuilder;
 import org.jjazz.song.api.Song;
-import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.ui.utilities.api.FileTransferable;
 import org.jjazz.ui.utilities.api.MidiFileDragInTransferHandler;
-import org.jjazz.util.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 
@@ -102,10 +95,10 @@ public class MidiFileDragOutTransferHandler extends TransferHandler
         final File midiFile;
         try
         {
-            String baseName = songModel.getName();
+            String baseName = songModel.getName() + "-";
             if (rhythmVoice != null)
             {
-                baseName += "-" + rhythmVoice.getName();
+                baseName += rhythmVoice.getName() + "-";
             }
             midiFile = File.createTempFile(baseName, ".mid"); // throws IOException
             midiFile.deleteOnExit();
@@ -119,16 +112,8 @@ public class MidiFileDragOutTransferHandler extends TransferHandler
 
 
         // Write the temp midi file
-        try
+        if (!SongMidiExporter.songToMidiFile(songModel, songMidiMix, midiFile, rhythmVoice))
         {
-            exportSequenceToMidiTempFile(rhythmVoice, midiFile);
-        } catch (IOException | MusicGenerationException ex)
-        {
-            String exceptionError = ex.getMessage();
-            String msg = ResUtil.getString(getClass(), "MidiExportProblem", exceptionError);
-            NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
-            DialogDisplayer.getDefault().notify(d);
-            LOGGER.log(Level.WARNING, "createTransferable() exception={0}", exceptionError);
             return null;
         }
 
@@ -170,85 +155,7 @@ public class MidiFileDragOutTransferHandler extends TransferHandler
     }
 
 
-    /**
-     * Build an exportable sequence to a midi file.
-     * <p>
-     * If song is the active song, try to reuse the last result from the ActiveSongMusicBuilder, otherwise generate the music.
-     *
-     * @param rv       If not null export only the rv track, otherwise all tracks.
-     * @param midiFile
-     * @throws IOException
-     * @throws MusicGenerationException
-     */
-    private void exportSequenceToMidiTempFile(RhythmVoice rv, File midiFile) throws IOException, MusicGenerationException
-    {
-        LOGGER.log(Level.FINE, "exportSequenceToMidiTempFile() -- rv={0} midiFile={1}", new Object[]
-        {
-            rv, midiFile
-        });
-
-        var sgContext = new SongContext(songModel, songMidiMix);
-        var ssb = new SongSequenceBuilder(sgContext);
-        SongSequenceBuilder.SongSequence songSequence;
-
-
-        var asmb = ActiveSongMusicBuilder.getInstance();
-        var result = asmb.getLastResult();
-        if (asmb.getSong() == songModel && result != null && result.userException() == null)
-        {
-            // We can reuse the last music generation
-            songSequence = ssb.buildSongSequence(result.mapRvPhrases());
-
-        } else
-        {
-            // Need to build music, this might take some time for a large song 
-            // Don't make it silent: user must be aware we're generating music at the start of dragging
-            songSequence = ssb.buildAll(false);    // throws MusicGenerationException
-
-        }
-
-
-        // Make the sequence exportable
-        ssb.makeSequenceExportable(songSequence, false);
-
-
-        // Keep only rv track if defined
-        if (rv != null)
-        {
-            int trackId = songSequence.mapRvTrackId.get(rv);
-
-            // Remove all tracks except trackId, need to start from last track
-            Track[] tracks = songSequence.sequence.getTracks();
-            for (int i = tracks.length - 1; i >= 0; i--)
-            {
-                if (i != trackId)
-                {
-                    songSequence.sequence.deleteTrack(tracks[i]);
-                }
-            }
-
-        } else
-        {
-            // Add click & precount tracks
-            var ps = PlaybackSettings.getInstance();
-            if (ps.isPlaybackClickEnabled())
-            {
-                ps.addClickTrack(songSequence.sequence, sgContext);
-            }
-            if (ps.isClickPrecountEnabled())
-            {
-                ps.addPrecountClickTrack(songSequence.sequence, sgContext);      // Must be done last, shift all events
-            }
-        }
-
-
-        // Write the midi file     
-        MidiSystem.write(songSequence.sequence, 1, midiFile);       // throws IOException
-
-    }
-
     // ===============================================================================================
     // Inner classes
     // ===============================================================================================
-
 }
