@@ -122,7 +122,7 @@
                           <Component id="lbl_timeSignature" min="-2" max="-2" attributes="0"/>
                           <EmptySpace max="-2" attributes="0"/>
                           <Component id="lbl_rhythms" min="-2" max="-2" attributes="0"/>
-                          <EmptySpace pref="67" max="32767" attributes="0"/>
+                          <EmptySpace pref="71" max="32767" attributes="0"/>
                           <Component id="btn_clearFilter" min="-2" max="-2" attributes="0"/>
                           <EmptySpace max="-2" attributes="0"/>
                           <Component id="btn_Filter" min="-2" max="-2" attributes="0"/>
@@ -143,7 +143,7 @@
                                       <Component id="btn_addRhythms" alignment="0" max="32767" attributes="0"/>
                                       <Component id="btn_openFolder" max="32767" attributes="0"/>
                                   </Group>
-                                  <EmptySpace min="0" pref="66" max="32767" attributes="0"/>
+                                  <EmptySpace min="0" pref="70" max="32767" attributes="0"/>
                               </Group>
                           </Group>
                           <EmptySpace max="-2" attributes="0"/>
@@ -302,11 +302,11 @@
         </Container>
         <Component class="javax.swing.JButton" name="btn_addRhythms">
           <Properties>
-            <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-              <ResourceString bundle="org/jjazz/rhythmselectiondialog/Bundle.properties" key="RhythmSelectionDialogImpl.btn_addRhythms.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+            <Property name="text" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+              <Connection code="addSessionOnlyRhythmsAction.getValue(Action.NAME).toString()" type="code"/>
             </Property>
-            <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-              <ResourceString bundle="org/jjazz/rhythmselectiondialog/Bundle.properties" key="RhythmSelectionDialogImpl.btn_addRhythms.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+            <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+              <Connection code="addSessionOnlyRhythmsAction.getValue(Action.SHORT_DESCRIPTION).toString()" type="code"/>
             </Property>
           </Properties>
           <Events>
@@ -352,8 +352,11 @@
         </Container>
         <Component class="javax.swing.JButton" name="btn_deleteRhythm">
           <Properties>
-            <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-              <ResourceString bundle="org/jjazz/rhythmselectiondialog/Bundle.properties" key="RhythmSelectionDialogImpl.btn_deleteRhythm.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+            <Property name="text" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+              <Connection code="deleteRhythmFileAction.getValue(Action.NAME).toString()&#xd;&#xa;" type="code"/>
+            </Property>
+            <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+              <Connection code="deleteRhythmFileAction.getValue(Action.SHORT_DESCRIPTION).toString()" type="code"/>
             </Property>
             <Property name="enabled" type="boolean" value="false"/>
           </Properties>

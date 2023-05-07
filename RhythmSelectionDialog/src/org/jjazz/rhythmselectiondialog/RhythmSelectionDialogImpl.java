@@ -29,22 +29,16 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.prefs.Preferences;
-import java.util.stream.Collectors;
 import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComponent;
-import javax.swing.JFileChooser;
 import javax.swing.JRootPane;
 import javax.swing.JTable;
 import javax.swing.KeyStroke;
@@ -52,10 +46,8 @@ import javax.swing.RowFilter;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
-import org.jjazz.analytics.api.Analytics;
 import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.rhythm.api.MusicGenerationException;
@@ -67,22 +59,19 @@ import org.jjazz.rhythm.spi.RhythmProvider;
 import org.jjazz.rhythm.database.api.RhythmDatabase;
 import org.jjazz.rhythm.database.api.UnavailableRhythmException;
 import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Variation;
+import org.jjazz.rhythm.database.api.AddSessionOnlyRhythms;
+import org.jjazz.rhythm.database.api.DeleteRhythmFile;
 import org.jjazz.rhythmselectiondialog.api.RhythmTable;
 import org.jjazz.ui.ss_editor.spi.RhythmSelectionDialog;
 import org.jjazz.ui.utilities.api.Utilities;
-import org.jjazz.util.api.MultipleErrorsReport;
-import org.jjazz.util.api.MultipleErrorsReportDialog;
 import org.jjazz.util.api.ResUtil;
 import org.openide.*;
-import org.openide.util.NbPreferences;
 import org.openide.util.lookup.ServiceProvider;
-import org.openide.windows.WindowManager;
 
 @ServiceProvider(service = RhythmSelectionDialog.class)
 public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements ListSelectionListener, ActionListener
 {
-
-    private static final String PREF_HIDE_ADD_RHYTHM_INFO_DIALOG = "HideAddRhythmInfoDialog";
+    
     private TimeSignature timeSignature;
     private RhythmInfo presetRhythm;
     private RhythmProvider presetRhythmProvider;
@@ -90,16 +79,17 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
     private RhythmPreviewProvider rhythmPreviewProvider;
     private boolean previewDone;
     private boolean exitOk;
-    private File lastRhythmDir = null;
+    private final AddSessionOnlyRhythms addSessionOnlyRhythmsAction = new AddSessionOnlyRhythms();
+    private final DeleteRhythmFile deleteRhythmFileAction = new DeleteRhythmFile();
     private final HashMap<RhythmProvider, RhythmInfo> mapRpSelectedrythm = new HashMap<>();
     private final RhythmTable rhythmTable = new RhythmTable();
-    private static final Preferences prefs = NbPreferences.forModule(RhythmSelectionDialogImpl.class);
-
+    
     private static final Logger LOGGER = Logger.getLogger(RhythmSelectionDialogImpl.class.getSimpleName());
-
+    
     public RhythmSelectionDialogImpl()
     {
         initComponents();
+
 
         // Listen to ComboBox changes
         cmb_variation.addActionListener(this);
@@ -133,9 +123,9 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
                 handleTableMouseClicked(e);
             }
         });
-
+        
     }
-
+    
     @Override
     public void cleanup()
     {
@@ -145,7 +135,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         selectedRhythmProvider = null;
         presetRhythmProvider = null;
     }
-
+    
     @Override
     public void preset(RhythmInfo ri, RhythmPreviewProvider rpp)
     {
@@ -156,11 +146,11 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         LOGGER.log(Level.FINE, "preset() -- ri={0}", ri);
         exitOk = false;
         previewDone = false;
-
-
+        
+        
         cleanup();
-
-
+        
+        
         presetRhythm = ri;
         timeSignature = ri.getTimeSignature();
         rhythmPreviewProvider = rpp;
@@ -187,37 +177,37 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         int row = rhythmTable.getSelectedRow();
         assert row != -1;
         rhythmTable.scrollRectToVisible(rhythmTable.getCellRect(row, 0, true));
-
-
+        
+        
         tf_userRhythmDir.setText(FileDirectoryManager.getInstance().getUserRhythmDirectory().getAbsolutePath());
         rhythmTable.requestFocusInWindow();
     }
-
+    
     @Override
     public RhythmInfo getSelectedRhythm()
     {
         RhythmInfo ri = mapRpSelectedrythm.get(selectedRhythmProvider);
         return (ri == null) ? presetRhythm : ri;
     }
-
+    
     @Override
     public void setTitleLabel(String title)
     {
         lbl_Title.setText(title);
     }
-
+    
     @Override
     public boolean isApplyRhythmToNextSongParts()
     {
         return cb_applyRhythmToNextSpts.isSelected();
     }
-
+    
     @Override
     public boolean isUseRhythmTempo()
     {
         return cb_useRhythmTempo.isSelected();
     }
-
+    
     @Override
     public boolean isExitOk()
     {
@@ -236,18 +226,18 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ENTER"), "actionOk");
         contentPane.getActionMap().put("actionOk", new AbstractAction("OK")
         {
-
+            
             @Override
             public void actionPerformed(ActionEvent e)
             {
                 actionOK();
             }
         });
-
+        
         contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ESCAPE"), "actionCancel");
         contentPane.getActionMap().put("actionCancel", new AbstractAction("Cancel")
         {
-
+            
             @Override
             public void actionPerformed(ActionEvent e)
             {
@@ -293,16 +283,16 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         {
             return;
         }
-
+        
         LOGGER.log(Level.FINE, "valueChanged() e.getFirstIndex()={0} e.getLastIndex()={1}", new Object[]
         {
             e.getFirstIndex(), e.getLastIndex()
         });
-
+        
         if (e.getSource() == this.list_RhythmProviders)
         {
             RhythmProvider rp = list_RhythmProviders.getSelectedValue();
-
+            
             if (rp != null && selectedRhythmProvider != rp)
             {
                 if (rhythmPreviewProvider != null && previewDone)
@@ -312,14 +302,14 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
                 selectedRhythmProvider = rp;
                 updateRhythmTable(selectedRhythmProvider);
             }
-
+            
         } else if (e.getSource() == this.rhythmTable.getSelectionModel())
         {
             RhythmInfo ri = rhythmTable.getSelectedRhythm();                 // ri may be null
             mapRpSelectedrythm.put(selectedRhythmProvider, ri);
-
+            
             LOGGER.log(Level.FINE, "valueChanged() selected rhythm ri={0}", ri);
-
+            
             btn_deleteRhythm.setEnabled(ri != null && !ri.getFile().getName().equals(""));
             btn_openFolder.setEnabled(ri != null && !ri.getFile().getName().equals(""));
 
@@ -445,7 +435,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
             rhythmTable.setSelectedRhythm(ri);
         }
     }
-
+    
     private boolean rhythmProvidersListContains(RhythmProvider presetRhythmProvider)
     {
         boolean b = false;
@@ -459,137 +449,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         }
         return b;
     }
-
-    private void addRhythms()
-    {
-        RhythmDatabase rdb = RhythmDatabase.getDefault();
-
-        // Show notification first time
-        if (!prefs.getBoolean(PREF_HIDE_ADD_RHYTHM_INFO_DIALOG, false))
-        {
-            AddRhythmInfoDialog dlg = new AddRhythmInfoDialog(WindowManager.getDefault().getMainWindow(), true);
-            dlg.setLocationRelativeTo(WindowManager.getDefault().getMainWindow());
-            dlg.setVisible(true);
-            prefs.putBoolean(PREF_HIDE_ADD_RHYTHM_INFO_DIALOG, dlg.isDoNotShowAnymmore());
-        }
-
-
-        // Prepare FileChooser
-        JFileChooser chooser = Utilities.getFileChooserInstance();
-        chooser.resetChoosableFileFilters();
-        chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        chooser.setAcceptAllFileFilterUsed(false);
-        chooser.setMultiSelectionEnabled(true);
-        chooser.setCurrentDirectory(lastRhythmDir);
-        chooser.setDialogTitle(ResUtil.getString(RhythmSelectionDialogImpl.class, "CTL_AddRhythms"));
-        // Prepare the FileNameFilter
-        StringBuilder sb = new StringBuilder();
-        List<String> allExts = new ArrayList<>();
-        List<RhythmProvider> rps = rdb.getRhythmProviders();
-        for (RhythmProvider rp : rps)
-        {
-            for (String ext : rp.getSupportedFileExtensions())
-            {
-                allExts.add(ext);
-                if (sb.length() != 0)
-                {
-                    sb.append(",");
-                }
-                sb.append(".").append(ext);
-            }
-        }
-        if (allExts.isEmpty())
-        {
-            NotifyDescriptor d = new NotifyDescriptor.Message(ResUtil.getString(getClass(), "ERR_NoRhythmProviderFound."),
-                    NotifyDescriptor.ERROR_MESSAGE);
-            DialogDisplayer.getDefault().notify(d);
-            return;
-        }
-        chooser.addChoosableFileFilter(
-                new FileNameExtensionFilter(
-                        ResUtil.getString(getClass(), "RhythmFiles", sb.toString()),
-                        allExts.toArray(String[]::new)));
-
-
-        // Show filechooser
-        if (chooser.showOpenDialog(WindowManager.getDefault().getMainWindow()) != JFileChooser.APPROVE_OPTION)
-        {
-            // User cancelled
-            return;
-        }
-
-
-        List<String> rhythmFiles = Arrays.asList(chooser.getSelectedFiles()).stream().limit(10).map(f -> f.getName()).collect(
-                Collectors.toList());
-        Analytics.logEvent("Add Rhythms", Analytics.buildMap("Files", rhythmFiles));
-
-
-        // Process files
-        MultipleErrorsReport errRpt = new MultipleErrorsReport();
-        final List<RhythmDatabase.RpRhythmPair> pairs = new ArrayList<>();
-        HashSet<TimeSignature> timeSigs = new HashSet<>();
-        for (File f : chooser.getSelectedFiles())
-        {
-            lastRhythmDir = f.getParentFile();
-            String ext = org.jjazz.util.api.Utilities.getExtension(f.getName()).toLowerCase();
-            Rhythm r;
-            for (RhythmProvider rp : rps)
-            {
-                if (Arrays.asList(rp.getSupportedFileExtensions()).contains(ext))
-                {
-                    try
-                    {
-                        r = rp.readFast(f);
-                    } catch (IOException ex)
-                    {
-                        LOGGER.log(Level.WARNING, "btn_addRhythmsActionPerformed() ex={0}", ex);
-                        errRpt.individualErrorMessages.add(ex.getLocalizedMessage());
-                        continue;
-                    }
-                    pairs.add(new RhythmDatabase.RpRhythmPair(rp, r));
-                    timeSigs.add(r.getTimeSignature());
-                }
-            }
-        }
-
-
-        // Notify end-user of errors
-        if (!errRpt.individualErrorMessages.isEmpty())
-        {
-            errRpt.primaryErrorMessage = ResUtil.getString(getClass(), "ERR_RhythmFilesCouldNotBeRead",
-                    errRpt.individualErrorMessages.size());
-            errRpt.secondaryErrorMessage = "";
-            MultipleErrorsReportDialog dlg = new MultipleErrorsReportDialog(WindowManager.getDefault().getMainWindow(), ResUtil.getString(
-                    getClass(), "CTL_RhythmCreationErrors"), errRpt);
-            dlg.setVisible(true);
-        }
-
-
-        if (!pairs.isEmpty())
-        {
-            // Add to the rhythmdatabase
-            int nbActuallyAdded = rdb.addExtraRhythms(pairs);  // This will update the rhythmTable on a task put on the EDT
-            int nbAlreadyAdded = pairs.size() - nbActuallyAdded;
-
-
-            // Notify user 
-            String msg = ResUtil.getString(getClass(), "ProcessedFiles", pairs.size(), timeSigs);
-            msg += ResUtil.getString(getClass(), "NewRhythmsAdded", nbActuallyAdded);
-            msg += ResUtil.getString(getClass(), "PreExistingRhythmsSkipped", nbAlreadyAdded);
-            NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.INFORMATION_MESSAGE);
-            DialogDisplayer.getDefault().notify(d);
-
-
-            // rhythmTable will be updated later on the EDT, so we also need a task on the EDT
-            SwingUtilities.invokeLater(() -> 
-            {
-                // Set selection to the first new rhythm
-                list_RhythmProviders.setSelectedValue(pairs.get(0).rp, true);
-                rhythmTable.setSelectedRhythm(rdb.getRhythm(pairs.get(0).r.getUniqueId()));
-            });
-        }
-    }
-
+    
     private void actionOK()
     {
         exitOk = true;
@@ -599,7 +459,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         }
         setVisible(false);
     }
-
+    
     private void actionCancel()
     {
         mapRpSelectedrythm.put(selectedRhythmProvider, null);
@@ -609,7 +469,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         }
         setVisible(false);
     }
-
+    
     private void handleTableMouseClicked(MouseEvent evt)
     {
         boolean ctrl = (evt.getModifiersEx() & InputEvent.CTRL_DOWN_MASK) == InputEvent.CTRL_DOWN_MASK;
@@ -619,7 +479,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
             SwingUtilities.isLeftMouseButton(evt),
             ctrl, shift, evt.getClickCount()
         });
-
+        
         if (SwingUtilities.isLeftMouseButton(evt))
         {
             if (shift)
@@ -641,7 +501,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
             new PreviewRhythmAction().actionPerformed(null);
         }
     }
-
+    
     private void toggleRhythmPreview()
     {
         RhythmInfo ri = rhythmTable.getSelectedRhythm();
@@ -671,14 +531,14 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         {
             throw new IllegalArgumentException("ri=" + ri);
         }
-
+        
         if (rhythmPreviewProvider == null)
         {
             return false;
         }
-
+        
         previewDone = true;
-
+        
         LOGGER.log(Level.FINE, "previewRhythm() ri={0}", ri);
 
 
@@ -724,7 +584,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
             DialogDisplayer.getDefault().notify(d);
             return false;
         }
-
+        
         return true;
     }
 
@@ -742,15 +602,15 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
     {
         String newSelectedValue = null;
         RP_STD_Variation rpVariation = RP_STD_Variation.getVariationRp(r);
-
+        
         if (rhythmPreviewProvider.getPreviewedRhythm() == r)
         {
             newSelectedValue = (String) cmb_variation.getSelectedItem();
-
+            
         } else if (rpVariation != null)
         {
             cmb_variation.removeActionListener(this);
-
+            
             String oldSelectedValue = (String) cmb_variation.getSelectedItem();
             var possibleValues = rpVariation.getPossibleValues();
             cmb_variation.setModel(new DefaultComboBoxModel<>(possibleValues.toArray(String[]::new)));
@@ -761,10 +621,10 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
                 newSelectedValue = rpVariation.getDefaultValue();
             }
             cmb_variation.setSelectedItem(newSelectedValue);
-
+            
             cmb_variation.addActionListener(this);
         }
-
+        
         cmb_variation.setEnabled(rpVariation != null);
         return newSelectedValue;
     }
@@ -788,7 +648,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         }
         return rp;
     }
-
+    
     private void rhythmPreviewComplete(Rhythm r)
     {
         rhythmTable.getModel().setHighlighted(RhythmDatabase.getDefault().getRhythm(r.getUniqueId()), false);
@@ -903,8 +763,8 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         helpTextArea1.setText(org.openide.util.NbBundle.getMessage(RhythmSelectionDialogImpl.class, "RhythmSelectionDialogImpl.helpTextArea1.text")); // NOI18N
         jScrollPane3.setViewportView(helpTextArea1);
 
-        org.openide.awt.Mnemonics.setLocalizedText(btn_addRhythms, org.openide.util.NbBundle.getMessage(RhythmSelectionDialogImpl.class, "RhythmSelectionDialogImpl.btn_addRhythms.text")); // NOI18N
-        btn_addRhythms.setToolTipText(org.openide.util.NbBundle.getMessage(RhythmSelectionDialogImpl.class, "RhythmSelectionDialogImpl.btn_addRhythms.toolTipText")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(btn_addRhythms, addSessionOnlyRhythmsAction.getValue(Action.NAME).toString());
+        btn_addRhythms.setToolTipText(addSessionOnlyRhythmsAction.getValue(Action.SHORT_DESCRIPTION).toString());
         btn_addRhythms.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -924,7 +784,9 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         cmb_variation.setEnabled(false);
         jPanel2.add(cmb_variation);
 
-        org.openide.awt.Mnemonics.setLocalizedText(btn_deleteRhythm, org.openide.util.NbBundle.getMessage(RhythmSelectionDialogImpl.class, "RhythmSelectionDialogImpl.btn_deleteRhythm.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(btn_deleteRhythm, deleteRhythmFileAction.getValue(Action.NAME).toString()
+        );
+        btn_deleteRhythm.setToolTipText(deleteRhythmFileAction.getValue(Action.SHORT_DESCRIPTION).toString());
         btn_deleteRhythm.setEnabled(false);
         btn_deleteRhythm.addActionListener(new java.awt.event.ActionListener()
         {
@@ -959,7 +821,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
                         .addComponent(lbl_timeSignature)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(lbl_rhythms)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 67, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 71, Short.MAX_VALUE)
                         .addComponent(btn_clearFilter)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btn_Filter)
@@ -977,7 +839,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
                                     .addComponent(btn_deleteRhythm, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                     .addComponent(btn_addRhythms, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                     .addComponent(btn_openFolder, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                                .addGap(0, 66, Short.MAX_VALUE)))
+                                .addGap(0, 70, Short.MAX_VALUE)))
                         .addContainerGap())))
         );
         jPanel1Layout.setVerticalGroup(
@@ -1136,26 +998,27 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
 
     private void btn_addRhythmsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_addRhythmsActionPerformed
     {//GEN-HEADEREND:event_btn_addRhythmsActionPerformed
-        addRhythms();
+        addSessionOnlyRhythmsAction.actionPerformed(null);
+        var rpRhythmPair = addSessionOnlyRhythmsAction.getLastRpRhythmPair();
+        if (rpRhythmPair != null)
+        {
+            // rhythmTable will be updated later on the EDT, so we also need a task on the EDT
+            SwingUtilities.invokeLater(() -> 
+            {
+                // Set selection to the first new rhythm
+                list_RhythmProviders.setSelectedValue(rpRhythmPair.rp, true);
+                rhythmTable.setSelectedRhythm(RhythmDatabase.getDefault().getRhythm(rpRhythmPair.r.getUniqueId()));
+            });
+        }
     }//GEN-LAST:event_btn_addRhythmsActionPerformed
 
     private void btn_deleteRhythmActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_deleteRhythmActionPerformed
     {//GEN-HEADEREND:event_btn_deleteRhythmActionPerformed
         var ri = getSelectedRhythm();
-        if (ri == null || ri.getFile().getName().equals(""))
+        if (ri != null)
         {
-            return;
+            deleteRhythmFileAction.deleteRhythmFile(ri);
         }
-
-        String msg = ResUtil.getString(getClass(), "CTL_ConfirmRhythmFileDelete", ri.getFile().getAbsolutePath());
-        NotifyDescriptor d = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.YES_NO_CANCEL_OPTION);
-        Object result = DialogDisplayer.getDefault().notify(d);
-        if (NotifyDescriptor.YES_OPTION == result)
-        {
-            ri.getFile().deleteOnExit();
-            RhythmDatabase.getDefault().forceRescan(false);
-        }
-
     }//GEN-LAST:event_btn_deleteRhythmActionPerformed
 
     private void btn_openFolderActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_openFolderActionPerformed
@@ -1203,7 +1066,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
 // ===================================================================================
     private class PreviewRhythmAction extends AbstractAction
     {
-
+        
         @Override
         public void actionPerformed(ActionEvent e)
         {
@@ -1220,10 +1083,10 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
             }
         }
     }
-
+    
     private class ToggleFavoriteAction extends AbstractAction
     {
-
+        
         @Override
         public void actionPerformed(ActionEvent e)
         {
@@ -1251,5 +1114,5 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
             }
         }
     }
-
+    
 }

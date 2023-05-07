@@ -20,19 +20,16 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.rhythmselectiondialog;
+package org.jjazz.rhythm.database;
 
-import java.awt.event.ActionEvent;
-import javax.swing.AbstractAction;
-import javax.swing.JComponent;
-import javax.swing.JRootPane;
-import javax.swing.KeyStroke;
+import org.jjazz.ui.utilities.api.Utilities;
 
 /**
- * Inform user that AddRhytm if for this session only.
+ * A dialog user that AddRhytm if for this session only.
  */
 public class AddRhythmInfoDialog extends javax.swing.JDialog
 {
+
     /**
      * Creates new form AddRhythmInfoDialog
      */
@@ -40,44 +37,14 @@ public class AddRhythmInfoDialog extends javax.swing.JDialog
     {
         super(parent, modal);
         initComponents();
+
+        Utilities.installEnterKeyAction(this, () -> btn_OkActionPerformed(null));
+        Utilities.installEscapeKeyAction(this, () -> btn_OkActionPerformed(null));
     }
 
     public boolean isDoNotShowAnymmore()
     {
         return cb_doNotShowAnymore.isSelected();
-    }
-
-    /**
-     * Overridden to add global key bindings
-     *
-     * @return
-     */
-    @Override
-    protected JRootPane createRootPane()
-    {
-        JRootPane contentPane = new JRootPane();
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ENTER"), "actionOk");   
-        contentPane.getActionMap().put("actionOk", new AbstractAction("OK")
-        {
-
-            @Override
-            public void actionPerformed(ActionEvent e)
-            {
-                btn_OkActionPerformed(null);
-            }
-        });
-
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ESCAPE"), "actionCancel");   
-        contentPane.getActionMap().put("actionCancel", new AbstractAction("Cancel")
-        {
-
-            @Override
-            public void actionPerformed(ActionEvent e)
-            {
-                btn_OkActionPerformed(null);
-            }
-        });
-        return contentPane;
     }
 
     /**
