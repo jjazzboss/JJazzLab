@@ -36,9 +36,14 @@ import javax.swing.TransferHandler;
 
 /**
  * Our drag'n drop support to accept external Midi files dragged into a component.
+ * <p>
+ * Note that behaviour is different on MacOS: getSourceActions(), createTransferable(), exportDone() can be called several times during a
+ * drag operation ! (only 1 for Win/Linux). Also on MacOS the support parameter is not always fully initialized on canImport(), is is fully
+ * initialized only when importData() is called (see MidiFileDragInTransferHandler.java for example).
  */
 public abstract class MidiFileDragInTransferHandler extends TransferHandler
 {
+
     public static final ImageIcon DRAG_ICON = new ImageIcon(MidiFileDragInTransferHandler.class.getResource("resources/DragMidiIcon.png"));
     private static final Logger LOGGER = Logger.getLogger(MidiFileDragInTransferHandler.class.getSimpleName());
 
@@ -108,11 +113,11 @@ public abstract class MidiFileDragInTransferHandler extends TransferHandler
                 midiFile = files.get(0);
             } else
             {
-                // Seems to happen on MacOS files==null Issue #348
+                // Happens on MacOS files==null Issue #348
                 // Looks like a known issue: https://stackoverflow.com/questions/49016784/dataflavor-javafilelistflavor-and-mac-os-x-clipboard
                 // From another SO post: it seems that the TransferSupport object is valid on Mac only when importData() is called, not
                 // when canImport() is called. 
-                LOGGER.log(Level.WARNING, "getMidiFile() Unexpected value for files={0}", files);
+                LOGGER.log(Level.FINE, "getMidiFile() Unexpected value for files={0}", files);
             }
         } catch (UnsupportedFlavorException | IOException e)
         {
@@ -152,5 +157,3 @@ public abstract class MidiFileDragInTransferHandler extends TransferHandler
     abstract protected boolean importMidiFile(File midiFile);
 
 }
-
-

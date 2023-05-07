@@ -42,6 +42,9 @@ import org.openide.NotifyDescriptor;
 /**
  * Drag'n drop support to export the song or a single track as Midi file when mouse dragging from a component.
  * <p>
+ * Note that behaviour is different on MacOS: getSourceActions(), createTransferable(), exportDone() can be called several times during a
+ * drag operation ! (only 1 for Win/Linux). Also on MacOS the support parameter is not always fully initialized on canImport(), is is fully 
+ * initialized only when importData() is called (see MidiFileDragInTransferHandler.java for example).
  */
 public class MidiFileDragOutTransferHandler extends TransferHandler
 {
