@@ -75,7 +75,9 @@ import org.jjazz.pianoroll.NotesPanel;
 import org.jjazz.pianoroll.RulerPanel;
 import org.jjazz.pianoroll.actions.CopyNotes;
 import org.jjazz.pianoroll.actions.CutNotes;
+import org.jjazz.pianoroll.actions.DecreaseSelectionVelocity;
 import org.jjazz.pianoroll.actions.DeleteSelection;
+import org.jjazz.pianoroll.actions.IncreaseSelectionVelocity;
 import org.jjazz.pianoroll.actions.MoveSelectionLeft;
 import org.jjazz.pianoroll.actions.MoveSelectionRight;
 import org.jjazz.pianoroll.actions.PasteNotes;
@@ -1340,6 +1342,12 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         notesPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("alt RIGHT"),
                 "ResizeSelectionLonger");
         notesPanel.getActionMap().put("ResizeSelectionLonger", new ResizeSelection(this, true));
+        notesPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("alt UP"),
+                "IncreaseSelectionVelocity");
+        notesPanel.getActionMap().put("IncreaseSelectionVelocity", new IncreaseSelectionVelocity(this));
+        notesPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("alt DOWN"),
+                "DecreaseSelectionVelocity");
+        notesPanel.getActionMap().put("DecreaseSelectionVelocity", new DecreaseSelectionVelocity(this));        
         notesPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("UP"), "TransposeUp");
         notesPanel.getActionMap().put("TransposeUp", new TransposeSelectionUp(this));
         notesPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("DOWN"), "TransposeDown");
