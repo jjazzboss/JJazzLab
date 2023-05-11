@@ -1,0 +1,1340 @@
+/*
+ *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+ * 
+ *  Copyright @2019 Jerome Lelasseux. All rights reserved.
+ *
+ *  This file is part of the JJazzLabX software.
+ *   
+ *  JJazzLabX is free software: you can redistribute it and/or modify
+ *  it under the terms of the Lesser GNU General Public License (LGPLv3) 
+ *  as published by the Free Software Foundation, either version 3 of the License, 
+ *  or (at your option) any later version.
+ *
+ *  JJazzLabX is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Lesser General Public License for more details.
+ * 
+ *  You should have received a copy of the GNU Lesser General Public License
+ *  along with JJazzLabX.  If not, see <https://www.gnu.org/licenses/>
+ * 
+ *  Contributor(s): 
+ */
+package org.jjazz.yamjjazz.rhythm;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.jjazz.harmony.api.*;
+import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
+import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
+import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
+import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Factory;
+import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo;
+import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
+import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
+import org.jjazz.midi.api.DrumKit;
+import org.jjazz.midi.api.Instrument;
+import org.jjazz.midi.api.MidiUtilities;
+import org.jjazz.midi.api.keymap.KeyMapGM;
+import org.jjazz.midi.api.keymap.StandardKeyMapConverter;
+import org.jjazz.midi.api.synths.GMSynth;
+import org.jjazz.rhythm.api.Rhythm;
+import org.jjazz.rhythm.api.RhythmVoice;
+import org.jjazz.musicgeneration.AccentProcessor;
+import org.jjazz.musicgeneration.AccentProcessor.HoldShotMode;
+import org.jjazz.musicgeneration.AnticipatedChordProcessor;
+import org.jjazz.rhythm.api.RhythmVoiceDelegate;
+import org.jjazz.rhythmmusicgeneration.api.ChordSequence;
+import org.jjazz.rhythmmusicgeneration.api.SongChordSequence;
+import org.jjazz.phrase.api.Grid;
+import org.jjazz.phrase.api.NoteEvent;
+import org.jjazz.songcontext.api.SongContext;
+import org.jjazz.rhythm.api.MusicGenerationException;
+import org.jjazz.song.api.Song;
+import org.jjazz.phrase.api.Phrase;
+import org.jjazz.phrase.api.Phrases;
+import org.jjazz.phrase.api.SourcePhrase;
+import org.jjazz.phrase.api.SourcePhraseSet;
+import org.jjazz.rhythm.api.Feel;
+import org.jjazz.rhythmmusicgeneration.api.Utilities;
+import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Fill;
+import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Intensity;
+import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Variation;
+import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
+import org.jjazz.rhythmmusicgeneration.api.SongChordSequence.SplitResult;
+import org.jjazz.song.api.SongFactory;
+import org.openide.util.Exceptions;
+import org.jjazz.yamjjazz.AccType;
+import org.jjazz.yamjjazz.CtabChannelSettings;
+import org.jjazz.yamjjazz.StylePart;
+import org.jjazz.yamjjazz.StylePartType;
+import org.jjazz.yamjjazz.YamChord;
+import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.songstructure.api.SongStructure;
+import org.jjazz.util.api.FloatRange;
+import org.jjazz.util.api.IntRange;
+import org.jjazz.yamjjazz.Ctb2ChannelSettings;
+import org.jjazz.yamjjazz.Ctb2ChannelSettings.NoteTranspositionRule;
+import org.jjazz.yamjjazz.Ctb2ChannelSettings.NoteTranspositionTable;
+import static org.jjazz.yamjjazz.Ctb2ChannelSettings.RetriggerRule.NOTE_GENERATOR;
+import static org.jjazz.yamjjazz.Ctb2ChannelSettings.RetriggerRule.PITCH_SHIFT;
+import static org.jjazz.yamjjazz.Ctb2ChannelSettings.RetriggerRule.PITCH_SHIFT_TO_ROOT;
+import static org.jjazz.yamjjazz.Ctb2ChannelSettings.RetriggerRule.RETRIGGER;
+import static org.jjazz.yamjjazz.Ctb2ChannelSettings.RetriggerRule.RETRIGGER_TO_ROOT;
+import static org.jjazz.yamjjazz.Ctb2ChannelSettings.RetriggerRule.STOP;
+
+/**
+ * Use YamJJazz style tracks to render music.
+ */
+public class YamJJazzRhythmGenerator
+{
+
+    public static boolean ENABLE_DRUM_KEY_MAPPING = true;
+    private YamJJazzRhythm rhythm;
+    private SongContext contextOriginal;
+    private SongContext contextWork;
+
+    /**
+     * The Chord Sequence with all the chords.
+     */
+    private SongChordSequence songChordSequence;
+
+    protected static final Logger LOGGER = Logger.getLogger(YamJJazzRhythmGenerator.class.getSimpleName());
+
+    public YamJJazzRhythmGenerator(YamJJazzRhythm r)
+    {
+        if (r == null)
+        {
+            throw new NullPointerException("r=" + r);   //NOI18N
+        }
+        rhythm = r;
+    }
+
+    public HashMap<RhythmVoice, Phrase> generateMusic(SongContext contextOrig) throws MusicGenerationException
+    {
+        if (contextOrig == null)
+        {
+            throw new NullPointerException("contextOrig=" + contextOrig);   //NOI18N
+        }
+        contextOriginal = contextOrig;
+
+
+        // Prepare a working context because SongStructure/ChordLeadsheet might be modified by preprocessFillParameter
+        SongFactory sf = SongFactory.getInstance();
+        Song songCopy = sf.getCopyUnlinked(contextOriginal.getSong(), false);
+        preprocessFillParameter(songCopy);     // This will modify songCopy
+
+        // The working context 
+        this.contextWork = new SongContext(songCopy, contextOriginal.getMidiMix(), contextOriginal.getBarRange());
+
+        // Build the main chord sequence
+        songChordSequence = new SongChordSequence(songCopy, contextWork.getBarRange());   // Throw UserErrorGenerationException but no risk: will have a chord at beginning. Handle alternate chord symbols.       
+
+        LOGGER.log(Level.FINE, "generateMusic()-- rhythm={0} contextChordSequence={1}", new Object[]
+        {
+            rhythm.getName(), songChordSequence
+        });
+
+        // The final result to fill in
+        List<ChordSeqPhrases> chordSeqPhrases = getAllPhrasesAllChordSequences();
+
+        // Get a simplified version: merge all ChordSequences which use our rhythm
+        List<ChordSeqPhrases> chordSeqPhrasesMerged = mergeChordSequences(chordSeqPhrases);
+
+        // Perfom post process operations
+        processAnticipationsAndAccents(chordSeqPhrasesMerged);
+
+        // Apply the Intensity parameter 
+        processIntensityParameter(chordSeqPhrasesMerged);
+
+        // Post process bass line for in-bar chord symbols
+        processBassLine(chordSeqPhrasesMerged);
+
+        // Fill the resulting phrase for each RhythmVoice    
+        HashMap<RhythmVoice, Phrase> res = new HashMap<>();
+        for (RhythmVoice rv : rhythm.getRhythmVoices())       // Some can be RhythmVoiceDelegates
+        {
+            // Get or create the resulting phrase
+            Phrase pRes = res.get(rv);
+            if (pRes == null)
+            {
+                int destChannel = getChannelFromMidiMix(rv); // Manage the case of RhythmVoiceDelegate
+                pRes = new Phrase(destChannel, rv.isDrums());
+                res.put(rv, pRes);
+            }
+
+            // For each chord sequence update the resulting phrase
+            AccType at = AccType.getAccType(rv);     // The AccType corresponding to this RhythmVoice
+            for (ChordSeqPhrases csp : chordSeqPhrasesMerged)
+            {
+                ChordSequence cSeq = csp.simpleChordSequence;
+                HashMap<AccType, Phrase> map = csp.mapAccTypePhrase;
+                Phrase p = map.get(at);
+                if (p != null)
+                {
+                    pRes.add(p);
+                } else
+                {
+                    // Some AccType may not be used on all styleParts of a style.
+                    LOGGER.log(Level.FINE, "generateMusic() no phrase for at={0}", at);
+                }
+            }
+        }
+        return res;
+    }
+
+    // ===============================================================================
+    // Private methods
+    // ===============================================================================
+    /**
+     * Get all phrases (all AccTypes) for all SimpleChordSequences using our rhythm.
+     * <p>
+     * Create one SimpleChordSequence for several contiguous parts sharing the same rhythm and same style part.
+     *
+     * @return
+     * @throws org.jjazz.rhythm.api.MusicGenerationException
+     */
+    private List<ChordSeqPhrases> getAllPhrasesAllChordSequences() throws MusicGenerationException
+    {
+        LOGGER.fine("getAllPhrasesAllChordSequences()--");
+
+        List<ChordSeqPhrases> res = new ArrayList<>();
+
+        // Split the song structure in chord sequences of consecutive sections having the same rhythm and same RhythmParameter value
+        var splitResults = songChordSequence.split(rhythm, RP_STD_Variation.getVariationRp(rhythm));
+
+
+        for (SplitResult<String> splitResult : splitResults)
+        {
+            // Generate music for each chord sequence
+            SimpleChordSequence cSeq = splitResult.simpleChordSequence;
+            String rpValue = splitResult.rpValue;
+            StylePart stylePart = rhythm.getStylePart(rpValue);
+            int complexity = rhythm.getComplexityLevel(rpValue);
+            if (stylePart == null || complexity < 1)
+            {
+                LOGGER.log(Level.SEVERE,
+                        "getAllPhrasesAllChordSequences() Invalid values stylePart={0} complexity={1} rhythm={2} rpValue={3}", new Object[]
+                        {
+                            stylePart, complexity, rhythm.getName(), rpValue
+                        });
+                throw new MusicGenerationException("Invalid rhythm data for rhythm " + rhythm.getName());
+            }
+
+            HashMap<AccType, Phrase> mapAccTypePhrase = getAllAccTypesPhrasesOneChordSequence(stylePart, complexity, cSeq);
+            ChordSeqPhrases csp = new ChordSeqPhrases(cSeq, mapAccTypePhrase);
+            res.add(csp);
+        }
+        return res;
+    }
+
+    /**
+     * Get all phrases (all AccTypes) for one chord sequence.
+     * <p>
+     * If cSeq is bigger than the StylePart length (most common case), slice cSeq in smaller subsequences to be processed.
+     *
+     * @param stylePart
+     * @param complexity
+     * @param cSeq       There must be a chord on first bar/beat 0. Can be any length.
+     * @return
+     * @throws MusicGenerationException
+     */
+    private HashMap<AccType, Phrase> getAllAccTypesPhrasesOneChordSequence(StylePart stylePart, int complexity, SimpleChordSequence cSeq) throws MusicGenerationException
+    {
+        if (stylePart == null || !cSeq.hasChordAtBeginning())
+        {
+            throw new IllegalArgumentException("stylePart=" + stylePart + " cSeq=" + cSeq);   //NOI18N
+        }
+        LOGGER.log(Level.FINE, "getAllAccTypesPhrasesOneChordSequence() -- stylePart={0} cSeq={1}", new Object[]
+        {
+            stylePart, cSeq
+        });
+
+        HashMap<AccType, Phrase> res = new HashMap<>();
+
+        int cSeqEndBar = cSeq.getBarRange().to;
+        int stylePartNbBars = rhythm.getStyle().getStylePartSizeInBars(stylePart.getType());
+        if (stylePartNbBars <= 0)
+        {
+            LOGGER.log(Level.SEVERE, "getAllAccTypesPhrasesOneChordSequence() stylePartNbBars={0}  stylePart={1}", new Object[]
+            {
+                stylePartNbBars, stylePart
+            });
+            throw new MusicGenerationException(
+                    "Invalid rhythm data for rhythm " + rhythm.getName() + " / stylePart=" + stylePart.getType());
+        }
+        int nbLoops = cSeq.getBarRange().size() / stylePartNbBars;
+        nbLoops += ((cSeq.getBarRange().size() % stylePartNbBars) > 0) ? 1 : 0;    // add one more loop if there is a remainder
+
+        for (int i = 0; i < nbLoops; i++)
+        {
+            // Process one source phrase at a time
+            int startBar = cSeq.getBarRange().from + i * stylePartNbBars;
+            int endBar = Math.min(startBar + stylePartNbBars - 1, cSeqEndBar);
+            SimpleChordSequence subSeq = cSeq.subSequence(new IntRange(startBar, endBar), true);
+
+            // Get all the phrases for this short chord sequence
+            HashMap<AccType, Phrase> mapAccTypePhrase = getAllAccTypesPhrasesOneShortChordSequence(stylePart, complexity, subSeq);
+
+            // Append the phrases to the result
+            for (AccType at : mapAccTypePhrase.keySet())
+            {
+                Phrase p = mapAccTypePhrase.get(at);
+                Phrase pRes = res.get(at);
+                if (pRes == null)
+                {
+                    pRes = new Phrase(p.getChannel(), at.isDrums());
+                    res.put(at, pRes);
+                }
+                pRes.add(p);
+                // Make sure all notes are OFF at the end
+                Phrases.silenceAfter(pRes, contextWork.getSong().getSongStructure().toPositionInNaturalBeats(cSeqEndBar + 1));
+            }
+        }
+        //LOGGER.log(Level.FINE, "getAllAccTypesPhrasesOneChordSequence() res=" + res);
+        return res;
+    }
+
+    /**
+     * Get all phrases for each StylePart's AccType adjusted to a "short ChordSequence".
+     * <p>
+     * Short chordSequence means its size is equal or less than the stylePart.<br>
+     * If there are several SourcePhraseSet alternatives for the given stylePart and complexity, we select
+     *
+     * @param stylePart
+     * @param complexity
+     * @param shortcSeq  There must be a chord on first bar/beat 0. Can't be longer than a sourcePhrase length.
+     * @return
+     * @throws MusicGenerationException
+     */
+    private HashMap<AccType, Phrase> getAllAccTypesPhrasesOneShortChordSequence(StylePart stylePart, int complexity, SimpleChordSequence shortcSeq) throws MusicGenerationException
+    {
+
+        if (stylePart == null || complexity < 1 || !shortcSeq.hasChordAtBeginning() || shortcSeq.getBarRange().size() > rhythm.getStyle().getStylePartSizeInBars(
+                stylePart.getType()))
+        {
+            throw new IllegalArgumentException("stylePart=" + stylePart + " shortcSeq=" + shortcSeq);   //NOI18N
+        }
+        LOGGER.log(Level.FINE, "getAllAccTypesPhrasesOneShortChordSequence() -- stylePart={0} shortcSeq={1}", new Object[]
+        {
+            stylePart,
+            shortcSeq
+        });
+        HashMap<AccType, Phrase> mapAccTypePhrase = new HashMap<>();
+
+
+        // Pick the SourcePhraseSet to be used depending on the context
+        SpsRandomPicker srp = SpsRandomPicker.getInstance(contextWork.getSong().getSongStructure(), rhythm, stylePart, complexity);
+        SourcePhraseSet sps = srp.pick(shortcSeq.getBarRange().from);
+
+
+        // Get the phrase for each AccType = bass, chord1, drums, etc.
+        for (AccType at : stylePart.getAccTypes())
+        {
+            Phrase p = getOneAccTypePhraseOneShortChordSequence(stylePart, sps, at, shortcSeq);
+            mapAccTypePhrase.put(at, p);
+        }
+
+        return mapAccTypePhrase;
+    }
+
+    /**
+     * Get the style's source phrase for the specified style's AccType for a "short chordSequence".
+     * <p>
+     * Short chordSequence means its size is equal or less than the stylePart source phrase.
+     *
+     * @param stylePart
+     * @param sps       The SourcePhraseSet to be used.
+     * @param at
+     * @param shortcSeq Length must be less or equal to stylePart length
+     * @return A Phrase starting at cSeq's start position, and length=stylePart.nbBars
+     * @throws MusicGenerationException
+     */
+    private Phrase getOneAccTypePhraseOneShortChordSequence(StylePart stylePart, SourcePhraseSet sps, AccType at, SimpleChordSequence shortcSeq) throws MusicGenerationException
+    {
+        if (stylePart == null || sps == null || at == null || !shortcSeq.hasChordAtBeginning()
+                || shortcSeq.getBarRange().size() > rhythm.getStyle().getStylePartSizeInBars(stylePart.getType()))
+        {
+            throw new IllegalArgumentException("stylePart=" + stylePart + " sps=" + sps + " at=" + at + " cSeq=" + shortcSeq);   //NOI18N
+        }
+
+        SongStructure ss = contextWork.getSong().getSongStructure();
+        RhythmVoice rv = rhythm.getRhythmVoice(at);
+        if (rv == null)
+        {
+            LOGGER.log(Level.SEVERE, "getOneAccTypePhraseOneShortChordSequence() at={0}  stylePart={1} rhythm={2}", new Object[]
+            {
+                at, stylePart, rhythm.getName()
+            });
+
+            throw new MusicGenerationException("Invalid data for rhythm " + rhythm.getName() + " / at=" + at);
+        }
+        int destChannel = getChannelFromMidiMix(rv);
+        assert destChannel != -1 : "stylePart=" + stylePart + " rv=" + rv + " destChannel=" + destChannel + " at=" + at;   //NOI18N
+
+
+        // Take all the possible source channels, we'll do the selection when we have the destination chord
+        List<Integer> sourceChannels = stylePart.getSourceChannels(at, null, null);
+        LOGGER.log(Level.FINE, "getOneAccTypePhraseOneShortChordSequence()   at={0} sourceChannels={1}", new Object[]
+        {
+            at, sourceChannels
+        });
+
+        // The position of the chord sequence in the song structure
+        float cSeqStartPosInBeats = ss.toPositionInNaturalBeats(shortcSeq.getBarRange().from);
+        float cSeqEndPosInBeats = ss.toPositionInNaturalBeats(shortcSeq.getBarRange().to + 1);
+
+        // The resulting phrase combining all source channels
+        Phrase pRes = new Phrase(destChannel, at.isDrums());
+        //
+        // LOOP ON EACH SOURCE CHANNEL
+        //
+        for (Integer srcChannel : sourceChannels)
+        {
+            // The cTab settings for this source channel
+            final CtabChannelSettings cTab = stylePart.getCtabChannelSettings(srcChannel);
+
+
+            // Get the source phrase
+            SourcePhrase pSrc = sps.getPhrase(srcChannel);
+            if (pSrc == null)
+            {
+                // Can happen in case of inconsistency between CASM and Midi notes (channel is defined in CASM but no Midi note for this channel)
+                LOGGER.log(Level.FINE, "getOneAccTypePhraseOneShortChordSequence()   unexpected absence of phrase for srcChannel={0}",
+                        srcChannel);
+                continue;
+            }
+
+
+            // Adjust it to shortcSeq's start and length => need a copy
+            pSrc = pSrc.clone();
+            pSrc.shiftAllEvents(cSeqStartPosInBeats);
+            Phrases.silenceAfter(pSrc, cSeqEndPosInBeats);
+
+
+            LOGGER.log(Level.FINE, "getOneAccTypePhraseOneShortChordSequence() at={0} srcChannel={1} pSrc={2}", new Object[]
+            {
+                at, srcChannel, pSrc
+            });
+
+
+            // Possibly remap drum notes if source/dest. keymaps differ
+            if (at.isDrums())
+            {
+                Instrument ins = contextWork.getMidiMix().getInstrumentMix(destChannel).getInstrument();
+                DrumKit.KeyMap destMap = KeyMapGM.getInstance();    // By default
+                if (ins.isDrumKit())
+                {
+                    destMap = ins.getDrumKit().getKeyMap();
+                } else if (ins != GMSynth.getInstance().getVoidInstrument())
+                {
+                    LOGGER.log(Level.WARNING,
+                            "getOneAccTypePhraseOneShortChordSequence() non-drums instrument used for a drums channel! at={0} ins={1}, srcChannel={2}, stylePart={3}",
+                            new Object[]
+                            {
+                                at,
+                                ins, srcChannel, stylePart
+                            });
+                }
+                if (rv.getDrumKit() == null)
+                {
+                    LOGGER.log(Level.WARNING,
+                            "getOneAccTypePhraseOneShortChordSequence() non-drums rhythm voice for a drums channel! at={0} rv={1} srcChannel={2}, stylePart={3}",
+                            new Object[]
+                            {
+                                at,
+                                rv.getName(), srcChannel, stylePart
+                            });
+                } else
+                {
+                    remapDrumNotes(pSrc, rv.getDrumKit().getKeyMap(), destMap);
+                }
+            }
+
+
+            // Special case, we can directly reuse the source phrase whatever the chord sequence
+            // Typically for Drums
+            // We test only ctb2Main: logically if BYPASS/ROOT_FIXED there should be only 1 main ctb2            
+            if (cTab.ctb2Main.ntt == NoteTranspositionTable.BYPASS && cTab.ctb2Main.ntr == NoteTranspositionRule.ROOT_FIXED)
+            {
+                pRes.add(pSrc);
+                LOGGER.log(Level.FINE, "getOneAccTypePhraseOneShortChordSequence()   ByPass+RootFixed: directly reuse source phrase");
+                continue;
+            }
+
+
+            // The destination phrase for this source phrase, eg for all chord symbols
+            Phrase pDest = new Phrase(0, at.isDrums());          // channel is not important since phrase will be merged later to pRes                                      
+
+
+            // Get a complete destination phrase for each chord symbol
+            for (var destCliCs : shortcSeq)
+            {
+                ExtChordSymbol destEcs = destCliCs.getData();
+                ChordRenderingInfo cri = destEcs.getRenderingInfo();
+                YamChord yc = YamChord.get(destEcs.getChordType().getName());
+                if (yc == null)
+                {
+                    String msg = "Chord symbol " + destEcs.getChordType().getName() + " could not be converted into a Yamaha chord symbol.";
+                    LOGGER.log(Level.SEVERE, "getOneAccTypePhraseOneShortChordSequence() {0}", msg);
+                    throw new MusicGenerationException(msg);
+                }
+
+
+                // Check that srcChannel is valid for our destination ChordType/Root note
+                List<Integer> validSrcChannels = stylePart.getSourceChannels(at, destEcs.getRootNote(), yc);
+                if (!validSrcChannels.contains(srcChannel))
+                {
+                    // Skip to next chord in the sequence
+                    LOGGER.log(Level.FINE,
+                            "getOneAccTypePhraseOneShortChordSequence()      destEcs={0} yc={1} => channel does not match, skip",
+                            new Object[]
+                            {
+                                destEcs,
+                                yc
+                            });
+                    continue;
+                }
+
+
+                // Get the start and end positions for the current chord symbol            
+                float posInBeats = shortcSeq.toPositionInBeats(destCliCs.getPosition(), cSeqStartPosInBeats);
+                float nextPosInBeats = posInBeats + shortcSeq.getChordDuration(destCliCs);
+
+
+                LOGGER.log(Level.FINE,
+                        "getOneAccTypePhraseOneShortChordSequence()      destEcs={0} yc={1} posInBeats={2} nextPosInBeats={3}", new Object[]
+                        {
+                            destEcs,
+                            yc, posInBeats, nextPosInBeats
+                        });
+
+
+                // The destination phrase for one chord symbol
+                Phrase pDestOneCs = new Phrase(0, at.isDrums()); // Channel not important here since phrase will be merged into another phrase
+
+
+                // Split the source phrase in potentially 3 notes range (SFF2 support)
+                // Low range
+                if (cTab.getCtb2ChannelSettings(0) != null)
+                {
+                    // There is specific ctb2 settings for the lowest range of notes
+                    Ctb2ChannelSettings ctb2 = cTab.getCtb2ChannelSettings(0);
+                    SourcePhrase pSrcLow = pSrc.getProcessedPhrase(ne -> ne.getPitch() < cTab.getCtb2MiddeLowPitch(), ne -> ne.clone());
+                    Phrase fittedPhrase = fitSrcPhraseToChordSymbol(pSrcLow, ctb2, destEcs, cri);
+                    Phrases.limitPitch(fittedPhrase, ctb2.noteLowLimit.getPitch(), ctb2.noteHighLimit.getPitch());
+                    pDestOneCs.add(fittedPhrase);
+                }
+
+
+                // Middle/main range (always used)
+                if (cTab.isSingleCtb2())
+                {
+                    // There is only one main single ctb2 (always the case for SFF1 files)
+                    pDestOneCs = fitSrcPhraseToChordSymbol(pSrc, cTab.ctb2Main, destEcs, cri);  // We can replaceAll pDestOneCs
+                    Phrases.limitPitch(pDestOneCs, cTab.ctb2Main.noteLowLimit.getPitch(), cTab.ctb2Main.noteHighLimit.getPitch());
+                } else
+                {
+                    // There is aslo low or high range too
+                    SourcePhrase pSrcMain = pSrc.getProcessedPhrase(ne
+                            -> ne.getPitch() >= cTab.getCtb2MiddeLowPitch() && ne.getPitch() <= cTab.getCtb2MiddeHighPitch(), ne
+                            -> ne.clone());
+                    Phrase fittedPhrase = fitSrcPhraseToChordSymbol(pSrcMain, cTab.ctb2Main, destEcs, cri);
+                    Phrases.limitPitch(fittedPhrase, cTab.ctb2Main.noteLowLimit.getPitch(), cTab.ctb2Main.noteHighLimit.getPitch());
+                    pDestOneCs.add(fittedPhrase);
+                }
+
+
+                // High range
+                if (cTab.getCtb2ChannelSettings(127) != null)
+                {
+                    // There is specific ctb2 settings for the highest range of notes
+                    Ctb2ChannelSettings ctb2 = cTab.getCtb2ChannelSettings(0);
+                    SourcePhrase pSrcHigh = pSrc.getProcessedPhrase(ne -> ne.getPitch() > cTab.getCtb2MiddeHighPitch(), ne -> ne.clone());
+                    Phrase fittedPhrase = fitSrcPhraseToChordSymbol(pSrcHigh, ctb2, destEcs, cri);
+                    Phrases.limitPitch(fittedPhrase, ctb2.noteLowLimit.getPitch(), ctb2.noteHighLimit.getPitch());
+                    pDestOneCs.add(fittedPhrase);
+                }
+
+
+                // LOGGER.log(Level.FINE, "------getOneAccTypePhraseOneShortChordSequence()  pre-slice  destCliCs=" + destCliCs + " pDestOneCs=" + pDestOneCs.toString());
+                // Keep only the relevant slice
+                // If next chordsymbol is using the same source phrase, we can let the notes ring after the slice (cutRight=false): noteON transitions
+                // will be managed by fixNoteOnTransitions(). If NOT, fixNoteOnTransitions() can't be used so we need to 
+                // cut a "hard" slice (cutRight=true).
+                int cutRight = 0; // By default consider that the next chord symbol uses the same source phrase
+                if (destCliCs != shortcSeq.last())
+                {
+                    // All ChordSymbols except the last one
+                    CLI_ChordSymbol nextDestCliCs = shortcSeq.higher(destCliCs);
+                    ExtChordSymbol nextDestEcs = nextDestCliCs.getData();
+                    YamChord nextYc = YamChord.get(nextDestEcs.getChordType().getName());
+                    assert nextYc != null : "nextDestEcs=" + nextDestEcs;   //NOI18N
+                    cutRight = !stylePart.getSourceChannels(at, nextDestEcs.getRootNote(), nextYc).contains(srcChannel) ? 1 : 0;
+                }
+                pDestOneCs = Phrases.getSlice(pDestOneCs, new FloatRange(posInBeats, nextPosInBeats), true, cutRight, 0.1f);
+
+                // LOGGER.log(Level.FINE, "------getOneAccTypePhraseOneShortChordSequence()  post-slice cutRight="+cutRight+" pDestOneCs=" + pDestOneCs.toString());
+
+                // Merge in the destination phrase 
+                pDest.add(pDestOneCs);
+
+
+            }   // END  for (int i = 0; i < shortcSeq.size(); i++)
+
+
+            //LOGGER.log(Level.FINE, "getOneAccTypePhraseOneShortChordSequence()      pre-fixTransitions  pDest=" + pDest.toString());
+            // Fix transitions for notes still ON during chord changes
+            // Always use the main ctb2 RTR: not perfect since in some SFF2 files it seems there could be different RTR values for lowest/highest notes
+            fixNoteOnTransitions(pDest, shortcSeq, cTab.ctb2Main);
+
+            LOGGER.log(Level.FINE, "getOneAccTypePhraseOneShortChordSequence()      post-fixTransitions pDest={0}", pDest);
+
+            // Merge the fitted phrase for this source channel in the global result phrase
+            pRes.add(pDest);
+
+
+        } // END  for (Integer srcChannel : sourceChannels)
+
+
+        Phrases.removeOverlappedNotes(pRes);
+
+        LOGGER.log(Level.FINE, "getOneAccTypePhraseOneShortChordSequence()   pRes={0}", pRes);
+
+        return pRes;
+    }
+
+    /**
+     * Build a new phrase by adapting pSrc to destEcs, taking in account the specified parameters.
+     *
+     * @param pSrc
+     * @param ctb2
+     * @param destEcs
+     * @param cri
+     * @return NoteEvents have their client property set to the PARENT_NOTE, see the Phrases.fitXX() methods.
+     * @throws IllegalStateException
+     */
+    private Phrase fitSrcPhraseToChordSymbol(SourcePhrase pSrc, Ctb2ChannelSettings ctb2, ExtChordSymbol destEcs, ChordRenderingInfo cri) throws IllegalStateException
+    {
+        Phrase pRes;
+        if (null == ctb2.ntr)
+        {
+            // GUITAR NTR - only 3 possible values
+            switch (ctb2.ntt)
+            {
+                case ALL_PURPOSE, ARPEGGIO, STROKE -> // Use CHORD oriented processing
+                {
+                    pRes = Utilities.fitChordPhrase2ChordSymbol(pSrc, destEcs);
+                }
+//              case STROKE -> 
+//                {
+//                    // To be tested, use MELODY oriented processing !
+//                    // (in SFF1, all guitars are played in CHORD mode, so should be ARPEGGIO...)
+//                    pRes = Phrases.fitMelodyPhrase2ChordSymbol(pSrc, destEcs, true);
+//                    // Apply the chord root upper limit (must be AFTER the fitting to dest chord symbol)
+//                    if (destEcs.getRootNote().getRelativePitch() > ctb2.chordRootUpperLimit.getRelativePitch())
+//                    {
+//                        pRes = pRes.getTransposedPhrase(-12);
+//                    }
+//                 }
+                default -> throw new IllegalStateException("cTab.ntt=" + ctb2.ntt);   //NOI18N
+            }
+
+//            END if (ROOT_FIXED) / (ROOT_TRANS) / GUITAR
+        } else
+        {
+            switch (ctb2.ntr)
+            {
+                case ROOT_FIXED:
+                    // ROOT_FIXED : for chord oriented source phrases
+                    switch (ctb2.ntt)
+                    {
+                        case BYPASS:
+                            // Should have been managed above
+                            throw new IllegalStateException("cTab.ntt=" + ctb2.ntt);   //NOI18N
+                        case MELODY:
+                        case CHORD:
+                            // fitChordPhrase2ChordSymbol() sets client property PARENT_NOTE for each destination note of the returned phrase
+                            pRes = Utilities.fitChordPhrase2ChordSymbol(pSrc, destEcs);
+                            break;
+                        default:
+                            LOGGER.log(Level.WARNING, "      Unexpected ctb2.ntt value={0}", ctb2.ntt);
+                            pRes = Utilities.fitChordPhrase2ChordSymbol(pSrc, destEcs);
+                            break;
+                    }
+                    break;
+                case ROOT_TRANSPOSITION:
+                    // ROOT_TRANS : for melody oriented source phrases
+                    switch (ctb2.ntt)
+                    {
+                        case BYPASS ->
+                        {
+                            // Typically intros and endings
+                            final int pitchDelta = destEcs.getRootNote().getRelativePitch() - pSrc.getSourceChordSymbol().getRootNote().getRelativePitch();
+                            pRes = pSrc.getProcessedPhrasePitch(p -> p + pitchDelta);
+                        }
+                        case HARMONIC_MINOR_5, HARMONIC_MINOR ->
+                        {
+                            // Force the scale of the chord to be HARMONIC MINOR
+                            StandardScaleInstance scale = new StandardScaleInstance(ScaleManager.MINOR_HARMONIC, destEcs.getRootNote());
+                            ChordRenderingInfo newCri = new ChordRenderingInfo(cri, scale);
+                            destEcs = destEcs.getCopy(null, newCri, destEcs.getAlternateChordSymbol(), destEcs.getAlternateFilter());
+                            // fitMelodyPhrase2ChordSymbol() sets client property PARENT_NOTE for each destination note of the returned phrase
+                            pRes = Utilities.fitMelodyPhrase2ChordSymbol(pSrc, destEcs, false);
+                        }
+                        case MELODIC_MINOR_5, MELODIC_MINOR ->
+                        {
+                            // Force the scale of the chord to be MELODIC_MINOR MINOR
+                            StandardScaleInstance scale = new StandardScaleInstance(ScaleManager.MINOR_MELODIC, destEcs.getRootNote());
+                            ChordRenderingInfo newCri = new ChordRenderingInfo(cri, scale);
+                            destEcs = destEcs.getCopy(null, newCri, destEcs.getAlternateChordSymbol(), destEcs.getAlternateFilter());
+                            // fitMelodyPhrase2ChordSymbol() sets client property PARENT_NOTE for each destination note of the returned phrase
+                            pRes = Utilities.fitMelodyPhrase2ChordSymbol(pSrc, destEcs, false);
+                        }
+                        case NATURAL_MINOR_5, NATURAL_MINOR ->
+                        {
+                            // Force the scale of the chord to be NATURAL_MINOR
+                            StandardScaleInstance scale = new StandardScaleInstance(ScaleManager.AEOLIAN, destEcs.getRootNote());
+                            ChordRenderingInfo newCri = new ChordRenderingInfo(cri, scale);
+                            destEcs = destEcs.getCopy(null, newCri, destEcs.getAlternateChordSymbol(), destEcs.getAlternateFilter());
+                            // fitMelodyPhrase2ChordSymbol() sets client property PARENT_NOTE for each destination note of the returned phrase
+                            pRes = Utilities.fitMelodyPhrase2ChordSymbol(pSrc, destEcs, false);
+                        }
+                        case DORIAN_5, DORIAN ->
+                        {
+                            // Force the scale of the chord to be DORIAN
+                            StandardScaleInstance scale = new StandardScaleInstance(ScaleManager.DORIAN, destEcs.getRootNote());
+                            ChordRenderingInfo newCri = new ChordRenderingInfo(cri, scale);
+                            destEcs = destEcs.getCopy(null, newCri, destEcs.getAlternateChordSymbol(), destEcs.getAlternateFilter());
+                            // fitMelodyPhrase2ChordSymbol() sets client property PARENT_NOTE for each destination note of the returned phrase
+                            pRes = Utilities.fitMelodyPhrase2ChordSymbol(pSrc, destEcs, false);
+                        }
+                        case CHORD -> // Use the chord flag ON
+                        {
+                            pRes = Utilities.fitMelodyPhrase2ChordSymbol(pSrc, destEcs, true);
+                        }
+                        case MELODY ->
+                        {
+                            // fitMelodyPhrase2ChordSymbol() sets client property PARENT_NOTE for each destination note of the returned phrase
+                            if (!ctb2.bassOn)
+                            {
+                                pRes = Utilities.fitMelodyPhrase2ChordSymbol(pSrc, destEcs, false);
+                            } else
+                            {
+                                pRes = Utilities.fitBassPhrase2ChordSymbol(pSrc, destEcs);
+                            }
+                        }
+                        default -> throw new IllegalStateException("cTab.ntt=" + ctb2.ntt);   //NOI18N
+                    }   // Apply the chord root upper limit (must be AFTER the fitting to dest chord symbol)
+                    if (destEcs.getRootNote().getRelativePitch() > ctb2.chordRootUpperLimit.getRelativePitch())
+                    {
+                        pRes.processPitch(p -> p - 12);
+                    }
+                    break;
+                default:
+                    // GUITAR NTR - only 3 possible values
+                    switch (ctb2.ntt)
+                    {
+                        case ALL_PURPOSE, ARPEGGIO, STROKE -> // Use CHORD oriented processing
+                        {
+                            pRes = Utilities.fitChordPhrase2ChordSymbol(pSrc, destEcs);
+                        }
+                        default -> throw new IllegalStateException("cTab.ntt=" + ctb2.ntt);   //NOI18N
+                    }
+//                case STROKE:
+//                    // To be tested, use MELODY oriented processing ! 
+//                    // (in SFF1, all guitars are played in CHORD mode, so should be ARPEGGIO...)
+//                    pRes = Phrases.fitMelodyPhrase2ChordSymbol(pSrc, destEcs, true);
+//                    // Apply the chord root upper limit (must be AFTER the fitting to dest chord symbol)
+//                    if (destEcs.getRootNote().getRelativePitch() > ctb2.chordRootUpperLimit.getRelativePitch())
+//                    {
+//                        pRes = pRes.getTransposedPhrase(-12);
+//                    }
+//                    break;
+                // END if (ROOT_FIXED) / (ROOT_TRANS) / GUITAR            
+            }
+        }
+
+        return pRes;
+    }
+
+
+    /**
+     * Fix the transitions of notes ON in the specified phrase.
+     * <p>
+     * Detect when several notes share the same parent note. This happens when there is a chord change while a note is on in one source
+     * phrase. Parent notes must be stored in each p's NoteEvent PARENT_NOTE client property.<p>
+     * Note that the method won't work if p was built by merging two or more source phrases, since parentNotes will be different.
+     * <p>
+     * The method modifies the phrase p to apply the transition depending on the rtr setting:<br>
+     * - shorten notes<br>
+     * - create new notes<br>
+     * - create PitchBendNoteEvent (not implemented)<br>
+     *
+     * @param pDest Notes position/duration must be consistent with cSeq's bounds.
+     * @param cSeq  The chord sequence corresponding to phrase p.
+     * @param ctb2  the channel settings of the phrase
+     * @throws IllegalStateException
+     */
+    private void fixNoteOnTransitions(Phrase pDest, SimpleChordSequence cSeq, Ctb2ChannelSettings ctb2) throws IllegalStateException
+    {
+        LOGGER.log(Level.FINE, "fixNoteOnTransitions() -- pDest={0}\ncSeq={1}\nctb2.rtr={2}", new Object[]
+        {
+            pDest, cSeq, ctb2.rtr
+        });
+
+        // Used to store the parent source notes ON at current time with the last related destination note
+        HashMap<NoteEvent, NoteEvent> mapParentDestNotesOn = new HashMap<>();
+
+
+        // Prepare data
+        SongStructure ss = contextWork.getSong().getSongStructure();
+
+
+        // Test each destination note, use array as we will modify the phrase
+        for (var destNote : pDest.toArray(NoteEvent[]::new))
+        {
+
+            float posDestNote = destNote.getPositionInBeats();
+            if (!cSeq.getBeatRange(ss.toPositionInNaturalBeats(cSeq.getBarRange().from)).contains(posDestNote, true))
+            {
+                throw new IllegalStateException("destNote=" + destNote + " cSeq=" + cSeq);   //NOI18N
+            }
+
+
+            // Keep track of previous destination notes still ON as we advance in time (time = destNote position)
+            for (var it2 = mapParentDestNotesOn.keySet().iterator(); it2.hasNext();)
+            {
+                NoteEvent parentNoteOn = it2.next();
+                NoteEvent parentDestNote = mapParentDestNotesOn.get(parentNoteOn);
+                if (parentDestNote.getBeatRange().to <= posDestNote)
+                {
+                    // This dest note is OFF now, remove the association parent-destNote
+                    it2.remove();
+                }
+            }
+
+            // The parent note of the destination note
+            NoteEvent parentNote = (NoteEvent) destNote.getClientProperties().get(Phrase.PARENT_NOTE);
+            assert parentNote != null : "ne=" + destNote + " pDest=" + pDest;   //NOI18N
+
+
+            // Check if our parent note has a previous destNote ON at current time = destNote position
+            NoteEvent prevParentDestNote = mapParentDestNotesOn.get(parentNote);
+            if (prevParentDestNote == null)
+            {
+                // NO, now destNote is the current destination note for this parentNote
+                mapParentDestNotesOn.put(parentNote, destNote);
+                continue;
+
+            }
+
+            // YES, we need to apply a transition between the 2 NoteEvents
+
+            // Shorten the previous parent dest note, or even remove it if too short
+            float shortenedDuration = posDestNote - prevParentDestNote.getPositionInBeats();
+            NoteEvent shortenedPrevParentDestNote = prevParentDestNote.getCopyDur(shortenedDuration);
+
+            if (prevParentDestNote.getDurationInBeats() >= Grid.PRE_CELL_BEAT_WINDOW && shortenedDuration <= Grid.PRE_CELL_BEAT_WINDOW)
+            {
+                // Note will be shortened to a very short note. Remove it, it's now probably useless musically, and 
+                // this avoids problems later with chord hold processing when extending the duration of notes that 
+                // are in the grid pre-cell beat window.
+                LOGGER.log(Level.FINE, "  Special case, too short note, removing prevParentDestNote={0}", prevParentDestNote);
+                pDest.remove(prevParentDestNote);
+            } else
+            {
+                LOGGER.log(Level.FINE, "  Replace prevParentDestNote={0}> shortenedPrevParentDestNote={1}", new Object[]
+                {
+                    prevParentDestNote, shortenedPrevParentDestNote
+                });
+                pDest.replace(prevParentDestNote, shortenedPrevParentDestNote);
+            }
+
+
+            // Transition depends on RTR
+            switch (ctb2.rtr)
+            {
+                case STOP ->
+                {
+                    // Remove destNote since it's a STOP transition
+                    pDest.remove(destNote);
+                    LOGGER.log(Level.FINE, " STOP removed destNote={0}", destNote);
+
+                    // From here there is no more destination note for parentNote
+                    mapParentDestNotesOn.remove(parentNote);
+                }
+
+
+                case NOTE_GENERATOR, PITCH_SHIFT, RETRIGGER -> // Same as RETRIGGER
+                    // Change the current destination note for parentNote
+                    mapParentDestNotesOn.put(parentNote, destNote);
+                case PITCH_SHIFT_TO_ROOT, RETRIGGER_TO_ROOT -> // Default to retrigger for now
+                {
+                    // Change pitch of destNote to the current chord symbol's root pitch (or bass note if specified)
+                    Position pos = ss.toPosition(posDestNote);
+                    CLI_ChordSymbol destCliCs = cSeq.getChordSymbol(pos);
+                    assert destCliCs != null : "ne=" + destNote + " cSeq=" + cSeq;   //NOI18N
+                    Note n = ctb2.bassOn ? destCliCs.getData().getBassNote() : destCliCs.getData().getRootNote();
+                    int destCliCsRootPitch = destNote.getClosestPitch(n.getRelativePitch());
+                    NoteEvent newDestNote = destNote.getCopyPitch(destCliCsRootPitch);
+                    pDest.replace(destNote, newDestNote);
+
+                    LOGGER.log(Level.FINE, "  RETRIGGER_TO_ROOT replace destNote={0} > newDestNote={1}", new Object[]
+                    {
+                        destNote, newDestNote
+                    });
+
+
+                    // Change the current destination note for parentNote
+                    mapParentDestNotesOn.put(parentNote, newDestNote);
+                }
+                default -> throw new IllegalStateException("ctb2.rtr=" + ctb2.rtr);   //NOI18N
+            }
+            // Same as RETRIGGER
+            // Default to retrigger for now
+            // Default to retrigger for now
+//                    case PITCH_SHIFT:
+//                        // Remove dest note and replaceAll by a special pitch bend NoteEvent
+//                        p.removeStylePart(destNote);
+//                        // THIS DOES NOT WORK because pitch bend applies to all channel notes ! 
+//                        PitchBendEvent pbe = new PitchBendEvent(destNote, prevParentDestNote.getPitch());
+//                        p.add(pbe);
+//                        // Change the current destination note for parentNote
+//                        mapSrcDestNotesOn.put(parentNote, pbe);
+//                        break;
+//                    case PITCH_SHIFT_TO_ROOT:
+//                        // Nothing
+//                        break;
+
+        }
+
+    }
+
+
+    /**
+     * Modify the song's SongStructure and ChordLeadSheet to facilitate the processing of the RP_STD_FILL parameter.
+     * <p>
+     * Add a "fill" section on the last bar of each existing section. Exploit the RP_STD_Fill parameter: introduce "fake" Section/SongParts
+     * with Fill_In_AA-like styles parts.
+     * <p>
+     * @param song
+     */
+    private void preprocessFillParameter(Song song)
+    {
+        ChordLeadSheet cls = song.getChordLeadSheet();
+        SongStructure ss = song.getSongStructure();
+        try
+        {
+            // Add a "<sectionName>*FILL*" section and the corresponding songPart for all sections whose size >= 2 bars.
+            // For section whose size=1, just rename section with "<sectionName>*FILL*"
+            for (var section : cls.getItems(CLI_Section.class))
+            {
+                String fillSectionName = section.getData().getName() + "*FILL*";
+                int sectionSize = cls.getBarRange(section).size();
+                if (sectionSize == 1)
+                {
+                    cls.setSectionName(section, fillSectionName);
+                    continue;
+                }
+                // Add a special "fill" section on last bar
+                int fillSectionBar = section.getPosition().getBar() + sectionSize - 1;
+                CLI_Section fillSection = CLI_Factory.getDefault().createSection(cls, fillSectionName, section.getData().getTimeSignature(),
+                        fillSectionBar);
+                cls.addSection(fillSection);
+
+                // Update all impacted SongParts
+                for (SongPart spt : ss.getSongParts())
+                {
+                    if (spt.getParentSection() != section)
+                    {
+                        continue;
+                    }
+                    // Shorten the existing songpart
+                    int startBar = spt.getStartBarIndex();
+                    int nbBars = spt.getNbBars();
+                    ss.resizeSongParts(Map.of(spt, nbBars - 1));
+
+                    // Add the 1-bar SongPart
+                    SongPart fillSpt = spt.clone(null, startBar + nbBars - 1, 1, fillSection);
+                    ss.addSongParts(Arrays.asList(fillSpt));
+                }
+            }
+        } catch (UnsupportedEditException ex)
+        {
+            // If here it's a bug
+            Exceptions.printStackTrace(ex);
+        }
+
+        // Change rpComplexity value for "fill" songParts depending on the rpFill value
+        for (SongPart spt : ss.getSongParts())
+        {
+            Rhythm r = spt.getRhythm();
+            if (r.equals(rhythm) && spt.getParentSection().getData().getName().endsWith("*FILL*"))
+            {
+                YamJJazzRhythm yjr = (YamJJazzRhythm) r;
+                String rpComplexityValue = spt.getRPValue(RP_STD_Variation.getVariationRp(yjr));
+                StylePart sp = yjr.getStylePart(rpComplexityValue);
+                String rpFillValue = spt.getRPValue(RP_STD_Fill.getFillRp(yjr));
+                if (sp.getType().isMain() && needFill(rpFillValue))
+                {
+                    // Change the RP Complexity value to use the appropriate Fill or Break
+                    StylePartType breakType;
+                    if (rpFillValue.equalsIgnoreCase("break"))
+                    {
+                        // Special case for the break value
+                        breakType = StylePartType.Fill_In_BA;
+
+                    } else
+                    {
+                        breakType = sp.getType().getFill();
+                        assert breakType != null : "sp=" + sp;   //NOI18N
+                    }
+                    String newComplexityValue = "Fill In AA-1";    // Default, normally always present in all rhythms
+                    if (rhythm.getStyle().getStylePart(breakType) != null)
+                    {
+                        newComplexityValue = breakType.toString() + "-1";
+                    }
+                    ss.setRhythmParameterValue(spt, RP_STD_Variation.getVariationRp(yjr), newComplexityValue);
+                }
+            }
+        }
+    }
+
+    /**
+     * Return true if we need to add a Fill In.
+     *
+     * @param rpFillValue
+     * @return
+     */
+    private boolean needFill(String rpFillValue)
+    {
+        boolean r = false;
+        rpFillValue = rpFillValue.toLowerCase();
+        double x = Math.random();
+        if (rpFillValue.contains(RP_STD_Fill.VALUE_ALWAYS) || rpFillValue.contains(RP_STD_Fill.VALUE_BREAK))
+        {
+            r = true;
+        } else if (rpFillValue.contains(RP_STD_Fill.VALUE_RANDOM_RARE) && x <= 0.25)
+        {
+            r = true;
+        } else if (rpFillValue.contains(RP_STD_Fill.VALUE_RANDOM) && x <= 0.5)
+        {
+            r = true;
+        }
+        return r;
+    }
+
+    /**
+     * Change the velocity of notes depending on the Intensity parameter of each SongPart.
+     *
+     * @param chordSeqPhrases
+     */
+    private void processIntensityParameter(List<ChordSeqPhrases> chordSeqPhrases)
+    {
+        for (var chordSeqPhrase : chordSeqPhrases)
+        {
+            HashMap<AccType, Phrase> mapAccTypePhrase = chordSeqPhrase.mapAccTypePhrase;
+
+            for (SongPart spt : contextWork.getSongParts())
+            {
+                FloatRange frg = contextWork.getSptBeatRange(spt);
+                if (frg.isEmpty() || spt.getRhythm() != rhythm)
+                {
+                    continue;
+                }
+
+                int rpIntensityValue = spt.getRPValue(RP_STD_Intensity.getIntensityRp(rhythm));
+                int velShift = getVelocityShiftFromRpIntensity(rpIntensityValue);
+
+                for (Phrase p : mapAccTypePhrase.values())
+                {
+                    p.processNotes(ne -> frg.contains(ne.getPositionInBeats(), true), ne -> 
+                    {
+                        int v = MidiUtilities.limit(ne.getVelocity() + velShift);
+                        NoteEvent newNe = ne.getCopyVel(v);
+                        return newNe;
+                    });
+                }
+            }
+        }
+    }
+
+    /**
+     * Ensure the root/bass note is played at chord symbol change position.
+     *
+     * @param chordSeqPhrases
+     */
+    private void processBassLine(List<ChordSeqPhrases> chordSeqPhrases)
+    {
+        // Check each chord sequence
+        for (var chordSeqPhrase : chordSeqPhrases)
+        {
+            var cSeq = chordSeqPhrase.simpleChordSequence;
+            Phrase p = chordSeqPhrase.mapAccTypePhrase.get(AccType.BASS);
+            if (p == null)
+            {
+                // Some rare rhythms don't use a bass
+                continue;
+            }
+            float cSeqStartInBeats = contextWork.getSong().getSongStructure().toPositionInNaturalBeats(cSeq.getBarRange().from);
+
+
+            // Check if there is a note played at each chord symbol position
+            for (var cliCs : cSeq)
+            {
+
+                // Prepare data
+                int bassRelPitch = cliCs.getData().getBassNote().getRelativePitch();
+                float cliCsPosInBeats = cSeq.toPositionInBeats(cliCs.getPosition(), cSeqStartInBeats);
+
+
+                // Get notes around chord symbol position
+                float from = Math.max(cliCsPosInBeats - Grid.PRE_CELL_BEAT_WINDOW, 0);
+                float to = cliCsPosInBeats + 0.2f;
+                var notes = p.getNotes(ne -> true, new FloatRange(from, to), true);
+
+                // LOGGER.fine("processBassLine() cliCs=" + cliCs + " notes=" + notes);
+
+                if (notes.isEmpty() // don't want to add a note and change the rhythm pattern
+                        || notes.stream().anyMatch(ne -> ne.getRelativePitch() == bassRelPitch) // our bass note is already there
+                        || cliCs.getPosition().isFirstBarBeat()) // don't mess with 1st beat notes, this is the style choice to not start on root/bass                        
+                {
+                    // Do nothing                       
+
+                } else
+                {
+                    // Replace the pitch of the first note
+
+                    NoteEvent ne = notes.get(0);
+                    int newPitch = ne.getClosestPitch(bassRelPitch);
+                    NoteEvent newNe = ne.getCopyPitch(newPitch);
+                    p.replace(ne, newNe);
+                    LOGGER.log(Level.FINE, "processBassLine()    => replacing {0} with {1}", new Object[]
+                    {
+                        ne, newNe
+                    });
+                }
+
+            }
+
+        }
+    }
+
+    private void processAnticipationsAndAccents(List<ChordSeqPhrases> chordSeqPhrases)
+    {
+        SongStructure ss = contextWork.getSong().getSongStructure();
+        int nbCellsPerBeat = Grid.getRecommendedNbCellsPerBeat(rhythm.getTimeSignature(),
+                rhythm.getFeatures().getFeel().equals(Feel.TERNARY));
+
+        LOGGER.fine("processAnticipationsAndAccents() --");
+
+
+        for (var chordSeqPhrase : chordSeqPhrases)
+        {
+            var cSeq = chordSeqPhrase.simpleChordSequence;
+            float cSeqStartInBeats = ss.toPositionInNaturalBeats(cSeq.getBarRange().from);
+
+
+            AccentProcessor ap = new AccentProcessor(cSeq, cSeqStartInBeats, nbCellsPerBeat, contextWork.getSong().getTempo());
+            AnticipatedChordProcessor acp = new AnticipatedChordProcessor(cSeq, cSeqStartInBeats, nbCellsPerBeat);
+
+
+            HashMap<AccType, Phrase> mapAtPhrase = chordSeqPhrase.mapAccTypePhrase;
+
+
+            Phrase p = mapAtPhrase.get(AccType.RHYTHM);
+            if (p != null)
+            {
+                LOGGER.log(Level.FINE, "processAnticipationsAndAccents()  AccType.RHYTHM, channel={0}", p.getChannel());
+                DrumKit kit = rhythm.getRhythmVoice(AccType.RHYTHM).getDrumKit();
+                acp.anticipateChords_Drums(p, kit);
+                ap.processAccentDrums(p, kit);
+                ap.processHoldShotDrums(p, kit, HoldShotMode.NORMAL);
+            }
+
+
+            p = mapAtPhrase.get(AccType.BASS);
+            if (p != null)
+            {
+                acp.anticipateChords_Mono(p);
+                ap.processAccentBass(p);
+                ap.processHoldShotMono(p, HoldShotMode.NORMAL);
+            }
+
+
+            p = mapAtPhrase.get(AccType.CHORD1);
+            if (p != null)
+            {
+                acp.anticipateChords_Poly(p);
+                ap.processAccentChord(p);
+                ap.processHoldShotChord(p, HoldShotMode.NORMAL);
+            }
+
+
+            p = mapAtPhrase.get(AccType.CHORD2);
+            if (p != null)
+            {
+                acp.anticipateChords_Poly(p);
+                ap.processAccentChord(p);
+                ap.processHoldShotChord(p, HoldShotMode.NORMAL);
+            }
+
+
+            p = mapAtPhrase.get(AccType.PAD);
+            if (p != null)
+            {
+                acp.anticipateChords_Poly(p);
+                ap.processHoldShotChord(p, HoldShotMode.EXTENDED);
+            }
+
+
+            p = mapAtPhrase.get(AccType.PHRASE1);
+            if (p != null)
+            {
+                acp.anticipateChords_Mono(p);
+                ap.processHoldShotMono(p, HoldShotMode.EXTENDED);
+            }
+
+
+            p = mapAtPhrase.get(AccType.PHRASE2);
+            if (p != null)
+            {
+                acp.anticipateChords_Mono(p);
+                ap.processHoldShotMono(p, HoldShotMode.EXTENDED);
+            }
+        }
+    }
+
+    /**
+     * Merge all contiguous ChordSequences which are using our rhythm.
+     * <p>
+     *
+     * @param chordSeqPhrases
+     * @return
+     */
+    private List<ChordSeqPhrases> mergeChordSequences(List<ChordSeqPhrases> chordSeqPhrases)
+    {
+        List<ChordSeqPhrases> res = new ArrayList<>();
+        int startBar = chordSeqPhrases.get(0).simpleChordSequence.getBarRange().from;
+        int startIndex = 0;
+        for (int i = 1; i <= chordSeqPhrases.size(); i++)
+        {
+            SimpleChordSequence cSeq = i < chordSeqPhrases.size() ? chordSeqPhrases.get(i).simpleChordSequence
+                    : chordSeqPhrases.get(i - 1).simpleChordSequence;  // cSeq fake value on last iteration (just it must not be null)
+            SimpleChordSequence prevSeq = chordSeqPhrases.get(i - 1).simpleChordSequence;
+            int prevSeqLastBar = prevSeq.getBarRange().from + prevSeq.getBarRange().size() - 1;
+            if (i == chordSeqPhrases.size() || cSeq.getBarRange().from != prevSeqLastBar + 1)
+            {
+                // We finished the loop, or cSeq is not contiguous : create a longer ChordSequence with a new AccType/Phrase map
+                int nbBars = prevSeqLastBar - startBar + 1;
+                SimpleChordSequence newSeq = new SimpleChordSequence(new IntRange(startBar, startBar + nbBars - 1),
+                        rhythm.getTimeSignature());
+                HashMap<AccType, Phrase> newMap = new HashMap<>();
+                for (int j = startIndex; j < i; j++)
+                {
+                    // Merge each ChordSequence into newSeq
+                    SimpleChordSequence cSeqj = chordSeqPhrases.get(j).simpleChordSequence;
+                    newSeq.addAll(cSeqj);
+                    // Merge its AccType phrases into newMap
+                    HashMap<AccType, Phrase> mapj = chordSeqPhrases.get(j).mapAccTypePhrase;
+                    for (AccType at : mapj.keySet())
+                    {
+                        Phrase pj = mapj.get(at);
+                        Phrase pAt = newMap.get(at);
+                        if (pAt == null)
+                        {
+                            pAt = new Phrase(pj.getChannel(), at.isDrums());
+                            newMap.put(at, pAt);
+                        }
+                        pAt.add(pj);
+                    }
+                }
+                // Save the result
+                ChordSeqPhrases csp = new ChordSeqPhrases(newSeq, newMap);
+                res.add(csp);
+                startBar = cSeq.getBarRange().from;
+                startIndex = i;
+            }
+        }
+        return res;
+    }
+
+    private int getVelocityShiftFromRpIntensity(int rpValue)
+    {
+        return 3 * rpValue;
+    }
+
+    /**
+     * Manage the case of RhythmVoiceDelegate.
+     *
+     * @param rv
+     * @return
+     */
+    private int getChannelFromMidiMix(RhythmVoice rv)
+    {
+        RhythmVoice myRv = (rv instanceof RhythmVoiceDelegate) ? ((RhythmVoiceDelegate) rv).getSource() : rv;
+        int destChannel = contextWork.getMidiMix().getChannel(myRv);
+        return destChannel;
+    }
+
+    /**
+     * Remap notes of pSrc to match destKeyMap.
+     *
+     * @param pSrc
+     * @param srcKeyMap  The keymap used by pSrc
+     * @param destKeyMap The target keymap
+     */
+    private void remapDrumNotes(SourcePhrase pSrc, DrumKit.KeyMap srcKeyMap, DrumKit.KeyMap destKeyMap)
+    {
+        if (!ENABLE_DRUM_KEY_MAPPING || srcKeyMap == destKeyMap || destKeyMap.isContaining(srcKeyMap))
+        {
+            // Easy: nothing to do
+            return;
+        }
+        if (StandardKeyMapConverter.accept(srcKeyMap, destKeyMap))
+        {
+            Map<NoteEvent, NoteEvent> mapOldNew = new HashMap<>();
+            for (var ne : pSrc.toArray(NoteEvent[]::new))
+            {
+                int oldPitch = ne.getPitch();
+                int newPitch = StandardKeyMapConverter.convertKey(srcKeyMap, oldPitch, destKeyMap);
+                if (newPitch != -1 && newPitch != oldPitch)
+                {
+                    NoteEvent newNe = ne.getCopyPitch(newPitch);
+                    mapOldNew.put(ne, newNe);
+                    LOGGER.log(Level.FINE, "remapDrumNotes() pitch replaced {0} ==> {1}", new Object[]
+                    {
+                        oldPitch, newPitch
+                    });
+                }
+            }
+            pSrc.replaceAll(mapOldNew, false);
+        }
+    }
+
+
+    // =====================================================================================================================
+    // Inner classes
+    // =====================================================================================================================
+    private static class ChordSeqPhrases
+    {
+
+        public SimpleChordSequence simpleChordSequence;
+        public HashMap<AccType, Phrase> mapAccTypePhrase;
+
+        public ChordSeqPhrases(SimpleChordSequence simpleChordSequence, HashMap<AccType, Phrase> mapAccTypePhrase)
+        {
+            this.simpleChordSequence = simpleChordSequence;
+            this.mapAccTypePhrase = mapAccTypePhrase;
+        }
+
+    }
+
+}
