@@ -47,7 +47,7 @@ import org.openide.windows.WindowManager;
 )
 @TopComponent.Registration(mode = "explorer", openAtStartup = false, position = 500)
 @ActionID(category = "Window", id = "org.jjazz.songnotesviewer.api.SongNotesTopComponent")
-@ActionReference(path = "Menu/Window", position = 15, separatorAfter = 200)
+@ActionReference(path = "Menu/Tools", position = 15)
 @TopComponent.OpenActionRegistration(
         displayName = "#CTL_SongNotesAction",
         preferredID = "SongNotesTopComponent"

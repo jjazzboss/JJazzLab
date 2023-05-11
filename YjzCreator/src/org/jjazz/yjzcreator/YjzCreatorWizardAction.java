@@ -60,7 +60,7 @@ import org.openide.awt.StatusDisplayer;
  */
 @ActionID(category = "JJazz", id = "org.jjazz.yjzcreator.YjzCreatorWizardAction")
 @ActionRegistration(displayName = "#CTL_ExtStyleCreationDialogAction")
-@ActionReference(path = "Menu/Tools", position = 100, separatorAfter = 1500)
+@ActionReference(path = "Menu/Tools", position = 1400, separatorAfter = 1500)
 public final class YjzCreatorWizardAction implements ActionListener
 {
 
