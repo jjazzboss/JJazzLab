@@ -41,8 +41,8 @@ import org.openide.util.NbPreferences;
 /**
  * Manage the tasks to upgrade settings from a previous version of JJazzLab to the current version.
  * <p>
- * Find the source import JJazzLab version. Call all the UpgradeTasks found in the global Lookup upon fresh start at module
- * install (UI is not yet ready!).
+ * Find the source import JJazzLab version. Call all the UpgradeTasks found in the global Lookup upon fresh start at module install (UI is
+ * not yet ready!).
  * <p>
  */
 public class UpgradeManager
@@ -53,7 +53,7 @@ public class UpgradeManager
      */
     public static final String[] PREVIOUS_VERSIONS = new String[]
     {
-        "3.2.0", "3.1.0", "3.0.3", "3.0.2a", "3.0.2", "3.0.1", "3.0.beta1",
+        "3.2.1", "3.2.0", "3.1.0", "3.0.3", "3.0.2a", "3.0.2", "3.0.1", "3.0.beta1",
         "2.3.1", "2.3.beta", "2.2.0", "2.2.beta3", "2.2.beta2", "2.1.2a", "2.1.2", "2.1.1", "2.1.0", "2.0.1", "2.0.0"
     };
     private static final String PREF_FRESH_START = "FreshStart";
@@ -95,13 +95,14 @@ public class UpgradeManager
     }
 
     /**
-     * Get the properties object of a module Netbeans preferences from the import source version.
+     * Get the old Properties (from the directory given by getImportSourceVersion()) which corresponds to the specified current module
+     * Netbeans preferences file.
      * <p>
      *
      * @param nbPrefs The Netbeans preferences of a module
      * @return Null if not found
      */
-    public Properties getPropertiesFromPrefs(Preferences nbPrefs)
+    public Properties getOldPropertiesFromPrefs(Preferences nbPrefs)
     {
         File f = getOldPreferencesFile(nbPrefs);
         if (f == null)
@@ -110,13 +111,16 @@ public class UpgradeManager
         }
 
         Properties prop = new Properties();
-        try ( FileReader reader = new FileReader(f))
+        try (FileReader reader = new FileReader(f))
         {
             prop.load(reader);
         } catch (IOException ex)
         {
-            LOGGER.log(Level.WARNING, "getPropertiesFromPrefs() problem reading file={0}: ex={1}", new Object[]{f.getAbsolutePath(),
-                ex.getMessage()});   
+            LOGGER.log(Level.WARNING, "getPropertiesFromPrefs() problem reading file={0}: ex={1}", new Object[]
+            {
+                f.getAbsolutePath(),
+                ex.getMessage()
+            });
             return null;
         }
 
@@ -124,46 +128,18 @@ public class UpgradeManager
     }
 
     /**
-     * Copy into nbPrefs all the old preferences key/value pairs from the corresponding preferences in import source version.
-     *
-     * @param nbPrefs The Netbeans preferences of a module.
-     * @return False if preferences could not be duplicated.
-     */
-    public boolean duplicateOldPreferences(Preferences nbPrefs)
-    {
-        LOGGER.log(Level.FINE, "duplicateOldPreferences() -- nbPrefs={0}", nbPrefs.absolutePath());   
-        Properties prop = getPropertiesFromPrefs(nbPrefs);
-        if (prop == null)
-        {
-            return false;
-        }
-
-        for (String key : prop.stringPropertyNames())
-        {
-            nbPrefs.put(key, prop.getProperty(key));
-        }
-        try
-        {
-            nbPrefs.flush();        // Make sure it's copied to disk now
-        } catch (BackingStoreException ex)
-        {
-            LOGGER.log(Level.WARNING, "duplicateOldPreferences() Can''t flush copied preferences. ex={0}", ex.getMessage());   
-        }
-        return true;
-    }
-
-    /**
-     * Get the file corresponding to a module Netbeans preferences from the JJazzLab import source version.
+     * Get the old properties file (from the directory given by getImportSourceVersion()) which corresponds to the specified current module
+     * Netbeans preferences file.
      * <p>
      *
-     * @param nbPrefs The Netbeans preferences of a module.
+     * @param nbPrefs The current Netbeans preferences of a module.
      * @return Null if not found
      */
     public File getOldPreferencesFile(Preferences nbPrefs)
     {
         if (nbPrefs == null)
         {
-            throw new IllegalArgumentException("nbPrefs=" + nbPrefs);   
+            throw new IllegalArgumentException("nbPrefs=" + nbPrefs);
         }
 
         String importVersion = getImportSourceVersion();        // If non null validate the Netbeans User Dir.
@@ -178,14 +154,45 @@ public class UpgradeManager
 
         if (!f.exists())
         {
-            LOGGER.log(Level.FINE, "getOldPreferencesFile Not found f={0}", f.getAbsolutePath());   
+            LOGGER.log(Level.FINE, "getOldPreferencesFile Not found f={0}", f.getAbsolutePath());
             f = null;
         } else
         {
-            LOGGER.log(Level.FINE, "getOldPreferencesFile() FOUND f={0}", f.getAbsolutePath());   
+            LOGGER.log(Level.FINE, "getOldPreferencesFile() FOUND f={0}", f.getAbsolutePath());
         }
         return f;
     }
+
+    /**
+     * Copy into nbPrefs all the old preferences key/value pairs from the corresponding preferences found from the getImportSourceVersion()
+     * directory.
+     *
+     * @param nbPrefs The Netbeans preferences of a module.
+     * @return False if preferences could not be duplicated.
+     */
+    public boolean duplicateOldPreferences(Preferences nbPrefs)
+    {
+        LOGGER.log(Level.FINE, "duplicateOldPreferences() -- nbPrefs={0}", nbPrefs.absolutePath());
+        Properties prop = getOldPropertiesFromPrefs(nbPrefs);
+        if (prop == null)
+        {
+            return false;
+        }
+
+        for (String key : prop.stringPropertyNames())
+        {
+            nbPrefs.put(key, prop.getProperty(key));
+        }
+        try
+        {
+            nbPrefs.flush();        // Make sure it's copied to disk now
+        } catch (BackingStoreException ex)
+        {
+            LOGGER.log(Level.WARNING, "duplicateOldPreferences() Can''t flush copied preferences. ex={0}", ex.getMessage());
+        }
+        return true;
+    }
+
 
     /**
      * Get the JJazzLab version from which to import settings.
@@ -207,7 +214,7 @@ public class UpgradeManager
         File userDir = Places.getUserDirectory();
         if (userDir == null || !userDir.isDirectory() || userDir.getParentFile() == null)
         {
-            LOGGER.log(Level.WARNING, "getImportSourceVersion() Invalid Netbeans User Directory userDir={0}", userDir);   
+            LOGGER.log(Level.WARNING, "getImportSourceVersion() Invalid Netbeans User Directory userDir={0}", userDir);
             return importSourceVersion;
         }
 
@@ -220,11 +227,11 @@ public class UpgradeManager
 
             if (f.exists())
             {
-                LOGGER.log(Level.FINE, "getImportSourceVersion() FOUND f={0}", f.getAbsolutePath());   
+                LOGGER.log(Level.FINE, "getImportSourceVersion() FOUND f={0}", f.getAbsolutePath());
                 importSourceVersion = oldVersion;
                 break;
             }
-            LOGGER.log(Level.FINE, "getImportSourceVersion Not found f={0}", f.getAbsolutePath());   
+            LOGGER.log(Level.FINE, "getImportSourceVersion Not found f={0}", f.getAbsolutePath());
         }
 
         return importSourceVersion;
@@ -261,15 +268,15 @@ public class UpgradeManager
                 Object result = DialogDisplayer.getDefault().notify(d);
                 if (NotifyDescriptor.YES_OPTION != result)
                 {
-                    LOGGER.log(Level.INFO, "FreshStartUpgrader() -- importVersion={0}, import dismissed by user", importVersion);   
+                    LOGGER.log(Level.INFO, "FreshStartUpgrader() -- importVersion={0}, import dismissed by user", importVersion);
                     importVersion = null;
                 } else
                 {
-                    LOGGER.log(Level.INFO, "FreshStartUpgrader() -- importVersion={0}, import authorized by user", importVersion);   
+                    LOGGER.log(Level.INFO, "FreshStartUpgrader() -- importVersion={0}, import authorized by user", importVersion);
                 }
             } else
             {
-                LOGGER.log(Level.INFO, "FreshStartUpgrader() -- importVersion={0}", importVersion);   
+                LOGGER.log(Level.INFO, "FreshStartUpgrader() -- importVersion={0}", importVersion);
             }
 
 

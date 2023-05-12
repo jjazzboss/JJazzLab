@@ -354,33 +354,35 @@ public class FileDirectoryManager
     }
 
     /**
-     * Get the AppConfig subdir of an old JJazzLab version.
+     * Get the File object corresponding to an existing file (or subdirectory) in the AppConfig directory of an old JJazzLab version.
      * <p>
+     * For example on Windows, if oldVersion="2.0.1" and relPath="subdir/hello.properties" and this files exists, method returns the File at
+     * &lt;WindowsUserDir&gt;/AppData/Roaming/jjazzlab/2.0.1/.jjazz/subdir/hello.properties".
      *
-     * @param subDirname Ignored if null
+     * @param relPath    The relative path to the file from the old AppConfig directory. If null returns the AppConfig directory.
      * @param oldVersion E.g. "2.0.1"
-     * @return Null if not found
+     * @return Null if relPath does not corresponding to an existing file
      */
-    public File getOldAppConfigDirectory(String oldVersion, String subDirname)
+    public File getOldAppConfigFile(String oldVersion, String relPath)
     {
         if (oldVersion == null)
         {
-            throw new IllegalArgumentException("oldVersion=" + oldVersion + " subDirname=" + subDirname);
+            throw new IllegalArgumentException("oldVersion=" + oldVersion + " subDirname=" + relPath);
         }
 
         File userDir = Places.getUserDirectory();
         if (userDir == null || !userDir.isDirectory() || userDir.getParentFile() == null)
         {
-            LOGGER.log(Level.WARNING, "getOldAppConfigDirectory() Invalid Netbeans User Directory userDir={0}", userDir);
+            LOGGER.log(Level.WARNING, "getOldAppConfigFile() Invalid Netbeans User Directory userDir={0}", userDir);
             return null;
         }
 
 
         Path parentPath = userDir.getParentFile().toPath();
         Path p = parentPath.resolve(oldVersion).resolve(APP_CONFIG_PREFIX_DIR);
-        if (subDirname != null)
+        if (relPath != null)
         {
-            p = p.resolve(subDirname);
+            p = p.resolve(relPath);
         }
 
 
