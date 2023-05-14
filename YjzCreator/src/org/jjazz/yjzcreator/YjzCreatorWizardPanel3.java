@@ -23,7 +23,7 @@
 package org.jjazz.yjzcreator;
 
 import javax.swing.event.ChangeListener;
-import org.jjazz.rhythm.database.api.RhythmInfo;
+import org.jjazz.rhythmdatabase.api.RhythmInfo;
 import org.openide.WizardDescriptor;
 import org.openide.util.HelpCtx;
 

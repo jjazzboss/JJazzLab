@@ -30,13 +30,13 @@ import java.util.logging.Level;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import java.util.logging.Logger;
 import org.jjazz.harmony.api.TimeSignature;
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
+import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.synths.Family;
 import org.jjazz.phrase.api.PhraseSamples;
 import org.jjazz.rhythm.api.*;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.util.api.IntRange;
+import org.jjazz.utilities.api.IntRange;
 
 /**
  * A dummy generator that generate simple tracks for test purposes.

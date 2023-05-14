@@ -8,8 +8,8 @@ import javax.swing.ImageIcon;
 import javax.swing.JTextArea;
 import org.jjazz.base.api.AuthorizationManager;
 import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
-import org.jjazz.util.api.ResUtil;
-import org.jjazz.util.api.Utilities;
+import org.jjazz.utilities.api.ResUtil;
+import org.jjazz.utilities.api.Utilities;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -206,7 +206,7 @@ public class AboutDialog extends javax.swing.JDialog
         if (!licenseFile.exists())
         {
             // Copy the resource file to the config directory
-            if (!org.jjazz.util.api.Utilities.copyResource(getClass(), LICENSE_RESOURCE, licenseFile.toPath()))
+            if (!org.jjazz.utilities.api.Utilities.copyResource(getClass(), LICENSE_RESOURCE, licenseFile.toPath()))
             {
                 NotifyDescriptor d = new NotifyDescriptor.Message(ResUtil.getString(getClass(), "ERR_CantReadLicenceFile", LICENSE_RESOURCE),
                         NotifyDescriptor.ERROR_MESSAGE);

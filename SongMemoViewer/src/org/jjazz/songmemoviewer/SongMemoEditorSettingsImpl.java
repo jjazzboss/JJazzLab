@@ -32,11 +32,11 @@ import java.util.prefs.Preferences;
 import javax.swing.UIManager;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.songmemoviewer.api.SongMemoEditorSettings;
-import org.jjazz.util.api.Utilities;
+import org.jjazz.utilities.api.Utilities;
 import org.openide.util.NbPreferences;
 import org.openide.util.lookup.ServiceProvider;
 import org.openide.util.lookup.ServiceProviders;
-import org.jjazz.ui.utilities.api.FontColorUserSettingsProvider;
+import org.jjazz.uiutilities.api.FontColorUserSettingsProvider;
 import org.jjazz.upgrade.api.UpgradeManager;
 import org.jjazz.upgrade.api.UpgradeTask;
 

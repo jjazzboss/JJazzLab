@@ -25,12 +25,12 @@ package org.jjazz.chordinspector;
 import com.google.common.base.Preconditions;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
-import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
-import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
-import org.jjazz.ui.cl_editor.api.CL_ContextActionListener;
-import org.jjazz.ui.cl_editor.api.CL_ContextActionSupport;
-import org.jjazz.ui.cl_editor.api.CL_SelectionUtilities;
+import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
+import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
+import org.jjazz.chordleadsheet.api.item.Position;
+import org.jjazz.cl_editor.api.CL_ContextActionListener;
+import org.jjazz.cl_editor.api.CL_ContextActionSupport;
+import org.jjazz.cl_editor.api.CL_SelectionUtilities;
 import org.openide.util.Utilities;
 
 /**

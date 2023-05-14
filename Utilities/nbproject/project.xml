@@ -3,7 +3,7 @@
     <type>org.netbeans.modules.apisupport.project</type>
     <configuration>
         <data xmlns="http://www.netbeans.org/ns/nb-module-project/3">
-            <code-name-base>org.jjazz.util</code-name-base>
+            <code-name-base>org.jjazz.utilities</code-name-base>
             <suite-component/>
             <module-dependencies>
                 <dependency>
@@ -89,9 +89,7 @@
                 </test-type>
             </test-dependencies>
             <public-packages>
-                <package>com.scalified.tree</package>
-                <package>com.scalified.tree.multinode</package>
-                <package>org.jjazz.util.api</package>
+                <package>org.jjazz.utilities.api</package>
             </public-packages>
         </data>
     </configuration>

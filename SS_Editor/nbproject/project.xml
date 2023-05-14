@@ -3,7 +3,7 @@
     <type>org.netbeans.modules.apisupport.project</type>
     <configuration>
         <data xmlns="http://www.netbeans.org/ns/nb-module-project/3">
-            <code-name-base>org.jjazz.ui.ss_editor</code-name-base>
+            <code-name-base>org.jjazz.ss_editor</code-name-base>
             <suite-component/>
             <module-dependencies>
                 <dependency>
@@ -47,7 +47,7 @@
                     </run-dependency>
                 </dependency>
                 <dependency>
-                    <code-name-base>org.jjazz.leadsheet.chordleadsheet</code-name-base>
+                    <code-name-base>org.jjazz.chordleadsheet</code-name-base>
                     <build-prerequisite/>
                     <compile-dependency/>
                     <run-dependency>
@@ -103,7 +103,7 @@
                     </run-dependency>
                 </dependency>
                 <dependency>
-                    <code-name-base>org.jjazz.rhythm.database</code-name-base>
+                    <code-name-base>org.jjazz.rhythmdatabase</code-name-base>
                     <build-prerequisite/>
                     <compile-dependency/>
                     <run-dependency>
@@ -143,7 +143,7 @@
                     </run-dependency>
                 </dependency>
                 <dependency>
-                    <code-name-base>org.jjazz.ui.cl_editor</code-name-base>
+                    <code-name-base>org.jjazz.cl_editor</code-name-base>
                     <build-prerequisite/>
                     <compile-dependency/>
                     <run-dependency>
@@ -151,7 +151,7 @@
                     </run-dependency>
                 </dependency>
                 <dependency>
-                    <code-name-base>org.jjazz.ui.colorsetmanager</code-name-base>
+                    <code-name-base>org.jjazz.colorsetmanager</code-name-base>
                     <build-prerequisite/>
                     <compile-dependency/>
                     <run-dependency>
@@ -159,7 +159,7 @@
                     </run-dependency>
                 </dependency>
                 <dependency>
-                    <code-name-base>org.jjazz.ui.flatcomponents</code-name-base>
+                    <code-name-base>org.jjazz.flatcomponents</code-name-base>
                     <build-prerequisite/>
                     <compile-dependency/>
                     <run-dependency>
@@ -167,7 +167,7 @@
                     </run-dependency>
                 </dependency>
                 <dependency>
-                    <code-name-base>org.jjazz.ui.utilities</code-name-base>
+                    <code-name-base>org.jjazz.uiutilities</code-name-base>
                     <build-prerequisite/>
                     <compile-dependency/>
                     <run-dependency>
@@ -199,7 +199,7 @@
                     </run-dependency>
                 </dependency>
                 <dependency>
-                    <code-name-base>org.jjazz.util</code-name-base>
+                    <code-name-base>org.jjazz.utilities</code-name-base>
                     <build-prerequisite/>
                     <compile-dependency/>
                     <run-dependency>
@@ -290,13 +290,13 @@
                 </test-type>
             </test-dependencies>
             <public-packages>
-                <package>org.jjazz.ui.rpviewer.api</package>
-                <package>org.jjazz.ui.rpviewer.spi</package>
-                <package>org.jjazz.ui.sptviewer.api</package>
-                <package>org.jjazz.ui.sptviewer.spi</package>
-                <package>org.jjazz.ui.ss_editor.actions</package>
-                <package>org.jjazz.ui.ss_editor.api</package>
-                <package>org.jjazz.ui.ss_editor.spi</package>
+                <package>org.jjazz.ss_editor.actions</package>
+                <package>org.jjazz.ss_editor.api</package>
+                <package>org.jjazz.ss_editor.rpviewer.api</package>
+                <package>org.jjazz.ss_editor.rpviewer.spi</package>
+                <package>org.jjazz.ss_editor.spi</package>
+                <package>org.jjazz.ss_editor.sptviewer.api</package>
+                <package>org.jjazz.ss_editor.sptviewer.spi</package>
             </public-packages>
         </data>
     </configuration>

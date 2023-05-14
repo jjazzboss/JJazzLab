@@ -37,7 +37,7 @@ import java.util.logging.Logger;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.rhythm.api.Feel;
 import org.jjazz.song.api.Song;
-import org.jjazz.util.api.Utilities;
+import org.jjazz.utilities.api.Utilities;
 
 /**
  * Band In A Box file reader.

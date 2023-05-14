@@ -39,7 +39,7 @@ import java.util.logging.Logger;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.jjazz.song.api.Song;
-import org.jjazz.ui.ss_editor.api.SS_Editor;
+import org.jjazz.ss_editor.api.SS_Editor;
 
 /**
  * A printer for a SongStructure editor.

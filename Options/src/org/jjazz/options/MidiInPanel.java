@@ -34,7 +34,6 @@ import javax.sound.midi.MidiMessage;
 import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Receiver;
 import javax.sound.midi.ShortMessage;
-import javax.sound.midi.Synthesizer;
 import javax.swing.Action;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JComponent;
@@ -46,9 +45,9 @@ import org.jjazz.analytics.api.Analytics;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.midi.api.JJazzMidiSystem;
 import org.jjazz.midi.api.MidiUtilities;
-import org.jjazz.ui.musiccontrolactions.api.RemoteAction;
-import org.jjazz.ui.musiccontrolactions.api.RemoteController;
-import org.jjazz.util.api.ResUtil;
+import org.jjazz.musiccontrolactions.api.RemoteAction;
+import org.jjazz.musiccontrolactions.api.RemoteController;
+import org.jjazz.utilities.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 
@@ -526,7 +525,7 @@ final class MidiInPanel extends javax.swing.JPanel implements ListSelectionListe
 
     private void enableRemoteControlUI(boolean b)
     {
-        org.jjazz.ui.utilities.api.Utilities.setRecursiveEnabled(b, pnl_remoteControl);
+        org.jjazz.uiutilities.api.UIUtilities.setRecursiveEnabled(b, pnl_remoteControl);
         if (b)
         {
             cb_enableRemoteControlActionPerformed(null);

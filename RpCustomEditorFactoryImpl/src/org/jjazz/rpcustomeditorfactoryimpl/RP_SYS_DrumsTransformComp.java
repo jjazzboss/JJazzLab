@@ -44,8 +44,8 @@ import javax.swing.TransferHandler;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import org.jjazz.harmony.api.TimeSignature;
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
-import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
+import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
+import org.jjazz.chordleadsheet.api.item.Position;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.musiccontrol.api.MusicController;
@@ -70,8 +70,8 @@ import static org.jjazz.rpcustomeditorfactoryimpl.api.RealTimeRpEditorComponent.
 import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.songcontext.api.SongPartContext;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.ui.flatcomponents.api.FlatIntegerKnob;
-import org.jjazz.ui.utilities.api.Utilities;
+import org.jjazz.flatcomponents.api.FlatIntegerKnob;
+import org.jjazz.uiutilities.api.UIUtilities;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 
@@ -139,7 +139,7 @@ public class RP_SYS_DrumsTransformComp extends RealTimeRpEditorComponent<RP_SYS_
         lbl_allTransforms.setEnabled(b);
         lbl_arrows.setEnabled(b);
         list_transformChainSelectionChanged();
-        Utilities.setRecursiveEnabled(b, pnl_mix);
+        UIUtilities.setRecursiveEnabled(b, pnl_mix);
 
         if (uiValue != null)
         {
@@ -367,7 +367,7 @@ public class RP_SYS_DrumsTransformComp extends RealTimeRpEditorComponent<RP_SYS_
     {
         var res = new PhraseTransformChain();
 
-        List<PhraseTransform> pts = Utilities.getJListModelAsList(list_transformChainModel);
+        List<PhraseTransform> pts = UIUtilities.getJListModelAsList(list_transformChainModel);
         res.addAll(pts);
 
         // Add the drums mix transform AFTER the transformation chain: it's more natural for user
@@ -763,31 +763,31 @@ public class RP_SYS_DrumsTransformComp extends RealTimeRpEditorComponent<RP_SYS_
         pnl_mix = new javax.swing.JPanel();
         jPanel8 = new javax.swing.JPanel();
         jPanel1 = new javax.swing.JPanel();
-        knb_bassDrum = new org.jjazz.ui.flatcomponents.api.FlatIntegerKnob();
+        knb_bassDrum = new org.jjazz.flatcomponents.api.FlatIntegerKnob();
         jLabel1 = new javax.swing.JLabel();
         jPanel4 = new javax.swing.JPanel();
-        knb_hihat = new org.jjazz.ui.flatcomponents.api.FlatIntegerKnob();
+        knb_hihat = new org.jjazz.flatcomponents.api.FlatIntegerKnob();
         jLabel8 = new javax.swing.JLabel();
         jPanel5 = new javax.swing.JPanel();
-        knb_snare = new org.jjazz.ui.flatcomponents.api.FlatIntegerKnob();
+        knb_snare = new org.jjazz.flatcomponents.api.FlatIntegerKnob();
         jLabel7 = new javax.swing.JLabel();
         jPanel6 = new javax.swing.JPanel();
-        knb_toms = new org.jjazz.ui.flatcomponents.api.FlatIntegerKnob();
+        knb_toms = new org.jjazz.flatcomponents.api.FlatIntegerKnob();
         jLabel9 = new javax.swing.JLabel();
         jPanel7 = new javax.swing.JPanel();
-        knb_cymbals = new org.jjazz.ui.flatcomponents.api.FlatIntegerKnob();
+        knb_cymbals = new org.jjazz.flatcomponents.api.FlatIntegerKnob();
         jLabel10 = new javax.swing.JLabel();
         jPanel9 = new javax.swing.JPanel();
-        knb_crash = new org.jjazz.ui.flatcomponents.api.FlatIntegerKnob();
+        knb_crash = new org.jjazz.flatcomponents.api.FlatIntegerKnob();
         jLabel11 = new javax.swing.JLabel();
         jPanel10 = new javax.swing.JPanel();
-        knb_perc = new org.jjazz.ui.flatcomponents.api.FlatIntegerKnob();
+        knb_perc = new org.jjazz.flatcomponents.api.FlatIntegerKnob();
         jLabel12 = new javax.swing.JLabel();
         pnl_header = new javax.swing.JPanel();
         lbl_drumsTrack = new javax.swing.JLabel();
         filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(5, 0), new java.awt.Dimension(5, 0), new java.awt.Dimension(5, 32767));
-        tbtn_solo = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
-        flatHelpButton1 = new org.jjazz.ui.flatcomponents.api.FlatHelpButton();
+        tbtn_solo = new org.jjazz.flatcomponents.api.FlatToggleButton();
+        flatHelpButton1 = new org.jjazz.flatcomponents.api.FlatHelpButton();
 
         org.openide.awt.Mnemonics.setLocalizedText(lbl_allTransforms, org.openide.util.NbBundle.getMessage(RP_SYS_DrumsTransformComp.class, "RP_SYS_DrumsTransformComp.lbl_allTransforms.text")); // NOI18N
 
@@ -1271,7 +1271,7 @@ public class RP_SYS_DrumsTransformComp extends RealTimeRpEditorComponent<RP_SYS_
     private javax.swing.JButton btn_ptSettings;
     private javax.swing.JButton btn_remove;
     private javax.swing.Box.Filler filler1;
-    private org.jjazz.ui.flatcomponents.api.FlatHelpButton flatHelpButton1;
+    private org.jjazz.flatcomponents.api.FlatHelpButton flatHelpButton1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
@@ -1290,13 +1290,13 @@ public class RP_SYS_DrumsTransformComp extends RealTimeRpEditorComponent<RP_SYS_
     private javax.swing.JPanel jPanel9;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
-    private org.jjazz.ui.flatcomponents.api.FlatIntegerKnob knb_bassDrum;
-    private org.jjazz.ui.flatcomponents.api.FlatIntegerKnob knb_crash;
-    private org.jjazz.ui.flatcomponents.api.FlatIntegerKnob knb_cymbals;
-    private org.jjazz.ui.flatcomponents.api.FlatIntegerKnob knb_hihat;
-    private org.jjazz.ui.flatcomponents.api.FlatIntegerKnob knb_perc;
-    private org.jjazz.ui.flatcomponents.api.FlatIntegerKnob knb_snare;
-    private org.jjazz.ui.flatcomponents.api.FlatIntegerKnob knb_toms;
+    private org.jjazz.flatcomponents.api.FlatIntegerKnob knb_bassDrum;
+    private org.jjazz.flatcomponents.api.FlatIntegerKnob knb_crash;
+    private org.jjazz.flatcomponents.api.FlatIntegerKnob knb_cymbals;
+    private org.jjazz.flatcomponents.api.FlatIntegerKnob knb_hihat;
+    private org.jjazz.flatcomponents.api.FlatIntegerKnob knb_perc;
+    private org.jjazz.flatcomponents.api.FlatIntegerKnob knb_snare;
+    private org.jjazz.flatcomponents.api.FlatIntegerKnob knb_toms;
     private javax.swing.JLabel lbl_allTransforms;
     private javax.swing.JLabel lbl_arrows;
     private javax.swing.JLabel lbl_drumsTrack;
@@ -1306,7 +1306,7 @@ public class RP_SYS_DrumsTransformComp extends RealTimeRpEditorComponent<RP_SYS_
     private javax.swing.JPanel pnl_arrows;
     private javax.swing.JPanel pnl_header;
     private javax.swing.JPanel pnl_mix;
-    private org.jjazz.ui.flatcomponents.api.FlatToggleButton tbtn_solo;
+    private org.jjazz.flatcomponents.api.FlatToggleButton tbtn_solo;
     // End of variables declaration//GEN-END:variables
 
 

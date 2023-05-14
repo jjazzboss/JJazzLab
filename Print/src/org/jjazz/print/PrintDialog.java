@@ -34,16 +34,16 @@ import javax.swing.KeyStroke;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.jjazz.analytics.api.Analytics;
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
+import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
 import org.jjazz.song.api.SongUtilities;
 import org.jjazz.songeditormanager.api.SongEditorManager;
-import org.jjazz.ui.cl_editor.api.CL_Editor;
-import org.jjazz.ui.ss_editor.api.SS_Editor;
-import org.jjazz.ui.utilities.api.SingleComponentAspectRatioKeeperLayout;
-import org.jjazz.ui.utilities.api.Utilities;
+import org.jjazz.cl_editor.api.CL_Editor;
+import org.jjazz.ss_editor.api.SS_Editor;
+import org.jjazz.uiutilities.api.SingleComponentAspectRatioKeeperLayout;
+import org.jjazz.uiutilities.api.UIUtilities;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.windows.WindowManager;
@@ -286,7 +286,7 @@ public class PrintDialog extends javax.swing.JDialog implements ChangeListener
     // =========================================================================================
     private void printTargetChanged()
     {
-        Utilities.setRecursiveEnabled(rbtn_printChordLeadsheet.isSelected(), pnl_leadsheet_settings);
+        UIUtilities.setRecursiveEnabled(rbtn_printChordLeadsheet.isSelected(), pnl_leadsheet_settings);
         if (rbtn_printChordLeadsheet.isSelected())
         {
             updateLeadSheetPrinter((Integer) spn_zoomVFactor.getValue() + 50, (Integer) spn_nbColumns.getValue());

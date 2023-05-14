@@ -29,7 +29,7 @@ import java.util.prefs.Preferences;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongUtilities;
 import org.jjazz.songeditormanager.api.SongEditorManager;
-import org.jjazz.util.api.ResUtil;
+import org.jjazz.utilities.api.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
@@ -39,7 +39,7 @@ import org.openide.util.NbPreferences;
 /**
  * Get a new song with the leadsheet developped according to the song structure so that the leadsheet becomes linear.
  */
-@ActionID(category = "JJazz", id = "org.jjazz.ui.cl_editor.actions.linearizesong")
+@ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.linearizesong")
 @ActionRegistration(displayName = "#CTL_LinearizeSong", lazy = true)
 @ActionReferences(
         {

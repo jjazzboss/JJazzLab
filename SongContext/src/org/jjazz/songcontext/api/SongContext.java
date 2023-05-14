@@ -25,7 +25,7 @@ package org.jjazz.songcontext.api;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
+import org.jjazz.chordleadsheet.api.item.Position;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.rhythm.api.Rhythm;
@@ -33,9 +33,9 @@ import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.util.api.FloatRange;
-import org.jjazz.util.api.IntRange;
-import org.jjazz.util.api.LongRange;
+import org.jjazz.utilities.api.FloatRange;
+import org.jjazz.utilities.api.IntRange;
+import org.jjazz.utilities.api.LongRange;
 
 
 /**

@@ -67,23 +67,23 @@ final class ClickPanel extends javax.swing.JPanel
         jPanel1 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         lbl_lowVelocity = new javax.swing.JLabel();
-        spn_velocityHigh = new org.jjazz.ui.utilities.api.WheelSpinner();
-        spn_velocityLow = new org.jjazz.ui.utilities.api.WheelSpinner();
+        spn_velocityHigh = new org.jjazz.uiutilities.api.WheelSpinner();
+        spn_velocityLow = new org.jjazz.uiutilities.api.WheelSpinner();
         lbl_soundHigh = new javax.swing.JLabel();
         lbl_highVelocity = new javax.swing.JLabel();
         combo_soundHigh = new JComboBox<>(MidiConst.getGMPercussions());
-        spn_channel = new org.jjazz.ui.utilities.api.WheelSpinner();
+        spn_channel = new org.jjazz.uiutilities.api.WheelSpinner();
         btn_Hear = new javax.swing.JButton();
         combo_soundLow = new JComboBox<>(MidiConst.getGMPercussions());
         lbl_soundLow = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
-        helpTextArea1 = new org.jjazz.ui.utilities.api.HelpTextArea();
+        helpTextArea1 = new org.jjazz.uiutilities.api.HelpTextArea();
         jPanel2 = new javax.swing.JPanel();
         rbtn_precount_auto = new javax.swing.JRadioButton();
         rbtn_precount2 = new javax.swing.JRadioButton();
         rbtn_precount1 = new javax.swing.JRadioButton();
         jScrollPane2 = new javax.swing.JScrollPane();
-        helpTextArea2 = new org.jjazz.ui.utilities.api.HelpTextArea();
+        helpTextArea2 = new org.jjazz.uiutilities.api.HelpTextArea();
 
         jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder(org.openide.util.NbBundle.getMessage(ClickPanel.class, "ClickPanel.jPanel1.border.title"))); // NOI18N
 
@@ -403,8 +403,8 @@ final class ClickPanel extends javax.swing.JPanel
     private javax.swing.JButton btn_Hear;
     private javax.swing.JComboBox<String> combo_soundHigh;
     private javax.swing.JComboBox<String> combo_soundLow;
-    private org.jjazz.ui.utilities.api.HelpTextArea helpTextArea1;
-    private org.jjazz.ui.utilities.api.HelpTextArea helpTextArea2;
+    private org.jjazz.uiutilities.api.HelpTextArea helpTextArea1;
+    private org.jjazz.uiutilities.api.HelpTextArea helpTextArea2;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
@@ -418,8 +418,8 @@ final class ClickPanel extends javax.swing.JPanel
     private javax.swing.JRadioButton rbtn_precount1;
     private javax.swing.JRadioButton rbtn_precount2;
     private javax.swing.JRadioButton rbtn_precount_auto;
-    private org.jjazz.ui.utilities.api.WheelSpinner spn_channel;
-    private org.jjazz.ui.utilities.api.WheelSpinner spn_velocityHigh;
-    private org.jjazz.ui.utilities.api.WheelSpinner spn_velocityLow;
+    private org.jjazz.uiutilities.api.WheelSpinner spn_channel;
+    private org.jjazz.uiutilities.api.WheelSpinner spn_velocityHigh;
+    private org.jjazz.uiutilities.api.WheelSpinner spn_velocityLow;
     // End of variables declaration//GEN-END:variables
 }

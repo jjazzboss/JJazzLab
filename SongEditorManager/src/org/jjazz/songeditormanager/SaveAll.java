@@ -28,7 +28,7 @@ import java.beans.PropertyChangeListener;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import org.jjazz.songeditormanager.api.SongEditorManager;
-import org.jjazz.util.api.ResUtil;
+import org.jjazz.utilities.api.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;

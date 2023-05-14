@@ -36,7 +36,7 @@ import org.jjazz.harmony.api.Degree;
 import static org.jjazz.harmony.api.Degree.SIXTH_OR_THIRTEENTH;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.harmony.api.StandardScaleInstance;
-import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
+import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
 import static org.jjazz.phrase.api.Phrase.PARENT_NOTE;
 
 /**

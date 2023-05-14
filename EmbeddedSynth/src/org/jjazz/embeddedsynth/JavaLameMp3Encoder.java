@@ -36,8 +36,8 @@ import net.sourceforge.lame.mp3.Lame;
 import net.sourceforge.lame.mp3.MPEGMode;
 import org.jjazz.embeddedsynth.api.EmbeddedSynthException;
 import org.jjazz.embeddedsynth.api.Mp3Encoder;
-import org.jjazz.util.api.ResUtil;
-import org.jjazz.util.api.Utilities;
+import org.jjazz.utilities.api.ResUtil;
+import org.jjazz.utilities.api.Utilities;
 import org.netbeans.api.progress.BaseProgressUtils;
 
 /**

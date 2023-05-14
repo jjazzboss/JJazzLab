@@ -50,7 +50,7 @@ import org.jjazz.midi.api.device.JJazzMidiDevice;
 import org.jjazz.midi.api.device.MidiFilter.Config;
 import org.jjazz.upgrade.api.UpgradeManager;
 import org.jjazz.upgrade.api.UpgradeTask;
-import org.jjazz.util.api.ResUtil;
+import org.jjazz.utilities.api.ResUtil;
 import org.netbeans.api.progress.BaseProgressUtils;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;

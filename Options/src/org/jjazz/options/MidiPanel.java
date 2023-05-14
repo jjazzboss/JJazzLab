@@ -60,9 +60,9 @@ import org.jjazz.outputsynth.api.OutputSynth.UserSettings;
 import org.jjazz.outputsynth.api.OutputSynthManager;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.testplayerservice.spi.TestPlayer;
-import org.jjazz.ui.utilities.api.Utilities;
+import org.jjazz.uiutilities.api.UIUtilities;
 import org.jjazz.uisettings.api.GeneralUISettings;
-import org.jjazz.util.api.ResUtil;
+import org.jjazz.utilities.api.ResUtil;
 import org.openide.*;
 import org.openide.util.Exceptions;
 
@@ -318,10 +318,10 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
 
         // Enable/disable                
         cb_usejjSynth.setSelected(isEmbeddedSynthActive());
-        Utilities.setRecursiveEnabled(isEmbeddedSynthActive(), pnl_jjSynth);
+        UIUtilities.setRecursiveEnabled(isEmbeddedSynthActive(), pnl_jjSynth);
         cb_usejjSynth.setEnabled(isEmbeddedSynthAvailable());
-        Utilities.setRecursiveEnabled(!isEmbeddedSynthActive(), pnl_outDevice);
-        Utilities.setRecursiveEnabled(isNormalSynthActive(), pnl_outputSynth);
+        UIUtilities.setRecursiveEnabled(!isEmbeddedSynthActive(), pnl_outDevice);
+        UIUtilities.setRecursiveEnabled(isNormalSynthActive(), pnl_outputSynth);
         btn_test.setEnabled(isNormalSynthActive());
 
 
@@ -515,7 +515,7 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
         this.btn_test.setEnabled(false);
         this.btn_refresh.setEnabled(false);
         this.list_OutDevices.setEnabled(false);
-        Utilities.setRecursiveEnabled(false, pnl_outputSynth);
+        UIUtilities.setRecursiveEnabled(false, pnl_outputSynth);
         // tbl_instruments.setEnabled(false);
         Runnable endAction = new Runnable()
         {
@@ -526,7 +526,7 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
                 btn_test.setEnabled(true);
                 btn_refresh.setEnabled(true);
                 list_OutDevices.setEnabled(true);
-                Utilities.setRecursiveEnabled(true, pnl_outputSynth);
+                UIUtilities.setRecursiveEnabled(true, pnl_outputSynth);
                 // tbl_instruments.setEnabled(true);
             }
         };
@@ -570,12 +570,12 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
         pnl_outputSynth = new javax.swing.JPanel();
         combo_midiSynths = new JComboBox(comboModel);
         combo_sendMessageUponPlay = new JComboBox<>(UserSettings.SendModeOnUponPlay.values());
-        spn_audioLatency = new org.jjazz.ui.utilities.api.WheelSpinner();
+        spn_audioLatency = new org.jjazz.uiutilities.api.WheelSpinner();
         jLabel2 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
         btn_defaultInstruments = new javax.swing.JButton();
         jScrollPane2 = new javax.swing.JScrollPane();
-        helpTextArea1 = new org.jjazz.ui.utilities.api.HelpTextArea();
+        helpTextArea1 = new org.jjazz.uiutilities.api.HelpTextArea();
         pnl_outDevice = new javax.swing.JPanel();
         btn_refresh = new javax.swing.JButton();
         jScrollPane3 = new javax.swing.JScrollPane();
@@ -988,7 +988,7 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
     private javax.swing.JCheckBox cb_usejjSynth;
     private javax.swing.JComboBox<MidiSynth> combo_midiSynths;
     private javax.swing.JComboBox<UserSettings.SendModeOnUponPlay> combo_sendMessageUponPlay;
-    private org.jjazz.ui.utilities.api.HelpTextArea helpTextArea1;
+    private org.jjazz.uiutilities.api.HelpTextArea helpTextArea1;
     private org.jjazz.midi.api.ui.InstrumentTable instrumentTable1;
     private org.jjazz.midi.api.ui.InstrumentTable instrumentTable2;
     private javax.swing.JLabel jLabel1;
@@ -1004,7 +1004,7 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
     private javax.swing.JPanel pnl_jjSynth;
     private javax.swing.JPanel pnl_outDevice;
     private javax.swing.JPanel pnl_outputSynth;
-    private org.jjazz.ui.utilities.api.WheelSpinner spn_audioLatency;
+    private org.jjazz.uiutilities.api.WheelSpinner spn_audioLatency;
     // End of variables declaration//GEN-END:variables
 
     // ===================================================================================================================

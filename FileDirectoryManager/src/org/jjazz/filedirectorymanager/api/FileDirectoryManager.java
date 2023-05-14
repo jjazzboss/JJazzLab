@@ -31,7 +31,7 @@ import java.util.prefs.Preferences;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.upgrade.api.UpgradeManager;
 import org.jjazz.upgrade.api.UpgradeTask;
-import org.jjazz.util.api.Utilities;
+import org.jjazz.utilities.api.Utilities;
 import org.openide.modules.Places;
 import org.openide.util.NbPreferences;
 import org.openide.util.lookup.ServiceProvider;

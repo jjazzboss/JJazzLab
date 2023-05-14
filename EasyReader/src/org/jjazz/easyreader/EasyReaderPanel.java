@@ -36,21 +36,21 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
-import org.jjazz.leadsheet.chordleadsheet.api.ClsChangeListener;
-import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
-import org.jjazz.leadsheet.chordleadsheet.api.event.ClsChangeEvent;
-import org.jjazz.leadsheet.chordleadsheet.api.event.ItemAddedEvent;
-import org.jjazz.leadsheet.chordleadsheet.api.event.ItemBarShiftedEvent;
-import org.jjazz.leadsheet.chordleadsheet.api.event.ItemChangedEvent;
-import org.jjazz.leadsheet.chordleadsheet.api.event.ItemClientPropertyChangedEvent;
-import org.jjazz.leadsheet.chordleadsheet.api.event.ItemMovedEvent;
-import org.jjazz.leadsheet.chordleadsheet.api.event.ItemRemovedEvent;
-import org.jjazz.leadsheet.chordleadsheet.api.event.SectionMovedEvent;
-import org.jjazz.leadsheet.chordleadsheet.api.event.SizeChangedEvent;
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_BarAnnotation;
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
-import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
+import org.jjazz.chordleadsheet.api.ClsChangeListener;
+import org.jjazz.chordleadsheet.api.UnsupportedEditException;
+import org.jjazz.chordleadsheet.api.event.ClsChangeEvent;
+import org.jjazz.chordleadsheet.api.event.ItemAddedEvent;
+import org.jjazz.chordleadsheet.api.event.ItemBarShiftedEvent;
+import org.jjazz.chordleadsheet.api.event.ItemChangedEvent;
+import org.jjazz.chordleadsheet.api.event.ItemClientPropertyChangedEvent;
+import org.jjazz.chordleadsheet.api.event.ItemMovedEvent;
+import org.jjazz.chordleadsheet.api.event.ItemRemovedEvent;
+import org.jjazz.chordleadsheet.api.event.SectionMovedEvent;
+import org.jjazz.chordleadsheet.api.event.SizeChangedEvent;
+import org.jjazz.chordleadsheet.api.item.CLI_BarAnnotation;
+import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
+import org.jjazz.chordleadsheet.api.item.CLI_Section;
+import org.jjazz.chordleadsheet.api.item.Position;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.PlaybackListener;
 import org.jjazz.quantizer.api.Quantization;
@@ -64,14 +64,14 @@ import org.jjazz.songstructure.api.event.SptRemovedEvent;
 import org.jjazz.songstructure.api.event.SptRenamedEvent;
 import org.jjazz.songstructure.api.event.SptReplacedEvent;
 import org.jjazz.songstructure.api.event.SptResizedEvent;
-import org.jjazz.ui.cl_editor.api.CL_Editor;
-import org.jjazz.ui.cl_editor.api.CL_EditorTopComponent;
-import org.jjazz.ui.cl_editor.barbox.api.BarBox;
-import org.jjazz.ui.cl_editor.barbox.api.BarBoxConfig;
-import org.jjazz.ui.cl_editor.barbox.api.BarBoxSettings;
-import org.jjazz.ui.cl_editor.barrenderer.api.BarRendererFactory;
-import org.jjazz.ui.itemrenderer.api.IR_ChordSymbolSettings;
-import org.jjazz.ui.utilities.api.Utilities;
+import org.jjazz.cl_editor.api.CL_Editor;
+import org.jjazz.cl_editor.api.CL_EditorTopComponent;
+import org.jjazz.cl_editor.barbox.api.BarBox;
+import org.jjazz.cl_editor.barbox.api.BarBoxConfig;
+import org.jjazz.cl_editor.barbox.api.BarBoxSettings;
+import org.jjazz.cl_editor.barrenderer.api.BarRendererFactory;
+import org.jjazz.itemrenderer.api.IR_ChordSymbolSettings;
+import org.jjazz.uiutilities.api.UIUtilities;
 import org.openide.util.NbPreferences;
 
 /**
@@ -456,7 +456,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
                 // Nothing
             }
         };
-        org.jjazz.ui.utilities.api.Utilities.invokeLaterIfNeeded(run);
+        org.jjazz.uiutilities.api.UIUtilities.invokeLaterIfNeeded(run);
     }
     //------------------------------------------------------------------------------
     // SgsChangeListener interface
@@ -518,7 +518,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
                 // Nothing
             }
         };
-        Utilities.invokeLaterIfNeeded(run);
+        UIUtilities.invokeLaterIfNeeded(run);
     }
 
     // =================================================================================================
@@ -702,7 +702,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
             {
                 return;
             }
-            var r = Utilities.getUsableArea((JComponent) parent);
+            var r = UIUtilities.getUsableArea((JComponent) parent);
 
             // 2 barboxes on the top
             var prefBbHeight = barBox.getPreferredSize().height;
@@ -758,10 +758,10 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
         lbl_nextSongPart = new javax.swing.JLabel();
         filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(1, 10), new java.awt.Dimension(1, 32767));
         lbl_songPart = new javax.swing.JLabel();
-        posViewer = new org.jjazz.ui.musiccontrolactions.ui.api.PositionViewer();
+        posViewer = new org.jjazz.musiccontrolactions.api.ui.PositionViewer();
         jPanel1 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
-        slider_zoom = Utilities.buildSlider(SwingConstants.HORIZONTAL, 0.5f);
+        slider_zoom = UIUtilities.buildSlider(SwingConstants.HORIZONTAL, 0.5f);
         pnl_progressBar = new javax.swing.JPanel();
         progressBar = new javax.swing.JProgressBar();
 
@@ -874,7 +874,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
     private javax.swing.JPanel pnl_barBox;
     private javax.swing.JPanel pnl_nextChord;
     private javax.swing.JPanel pnl_progressBar;
-    private org.jjazz.ui.musiccontrolactions.ui.api.PositionViewer posViewer;
+    private org.jjazz.musiccontrolactions.api.ui.PositionViewer posViewer;
     private javax.swing.JProgressBar progressBar;
     private javax.swing.JSlider slider_zoom;
     // End of variables declaration//GEN-END:variables

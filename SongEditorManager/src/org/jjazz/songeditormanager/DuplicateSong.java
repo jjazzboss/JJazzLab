@@ -25,18 +25,18 @@ package org.jjazz.songeditormanager;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.SwingUtilities;
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
+import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
 import org.jjazz.songeditormanager.api.SongEditorManager;
-import org.jjazz.ui.cl_editor.api.CL_Editor;
-import org.jjazz.ui.cl_editor.api.CL_EditorTopComponent;
+import org.jjazz.cl_editor.api.CL_Editor;
+import org.jjazz.cl_editor.api.CL_EditorTopComponent;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 
-@ActionID(category = "File", id = "org.jjazz.ui.actions.DuplicateSong")
+@ActionID(category = "File", id = "org.jjazz.actions.DuplicateSong")
 @ActionRegistration(displayName = "#CTL_DuplicateSong", lazy = true)
 @ActionReferences(
         {

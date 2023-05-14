@@ -33,8 +33,8 @@ import java.util.logging.Logger;
 import javax.sound.midi.Sequence;
 import javax.sound.midi.Track;
 import javax.swing.event.SwingPropertyChangeSupport;
-import org.jjazz.leadsheet.chordleadsheet.api.ClsUtilities;
-import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
+import org.jjazz.chordleadsheet.api.ClsUtilities;
+import org.jjazz.chordleadsheet.api.item.Position;
 import org.jjazz.midi.api.InstrumentMix;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midimix.api.MidiMix;
@@ -50,8 +50,8 @@ import org.jjazz.rhythmmusicgeneration.api.SongSequenceBuilder;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.song.api.Song;
-import org.jjazz.util.api.IntRange;
-import org.jjazz.util.api.ResUtil;
+import org.jjazz.utilities.api.IntRange;
+import org.jjazz.utilities.api.ResUtil;
 
 /**
  * A base implementation of a PlaybackSession to render a SongContext.

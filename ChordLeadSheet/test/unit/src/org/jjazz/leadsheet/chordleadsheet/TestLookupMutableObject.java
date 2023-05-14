@@ -20,21 +20,21 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.leadsheet.chordleadsheet;
+package org.jjazz.chordleadsheet;
 
 import java.util.List;
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
+import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.openide.util.lookup.AbstractLookup;
 import org.openide.util.Lookup;
 import org.openide.util.lookup.InstanceContent;
-import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
+import org.jjazz.chordleadsheet.api.item.Position;
 import org.openide.awt.UndoRedo;
 import java.text.ParseException;
-import org.jjazz.leadsheet.chordleadsheet.item.CLI_ChordSymbolImpl;
-import org.jjazz.leadsheet.chordleadsheet.item.CLI_SectionImpl;
+import org.jjazz.chordleadsheet.item.CLI_ChordSymbolImpl;
+import org.jjazz.chordleadsheet.item.CLI_SectionImpl;
 import org.jjazz.harmony.api.TimeSignature;
-import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
-import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
+import org.jjazz.chordleadsheet.api.UnsupportedEditException;
+import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;

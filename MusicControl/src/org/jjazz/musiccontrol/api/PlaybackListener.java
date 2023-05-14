@@ -22,8 +22,8 @@
  */
 package org.jjazz.musiccontrol.api;
 
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
-import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
+import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
+import org.jjazz.chordleadsheet.api.item.Position;
 import org.jjazz.songstructure.api.SongPart;
 
 /**

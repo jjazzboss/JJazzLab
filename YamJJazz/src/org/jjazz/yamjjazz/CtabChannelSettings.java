@@ -27,7 +27,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.harmony.api.ChordType;
 import org.jjazz.harmony.api.Note;
-import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
+import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.midi.api.MidiConst;
 
 /**

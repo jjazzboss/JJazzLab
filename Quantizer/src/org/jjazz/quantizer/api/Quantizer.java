@@ -29,7 +29,7 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.prefs.Preferences;
 import org.jjazz.harmony.api.TimeSignature;
-import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
+import org.jjazz.chordleadsheet.api.item.Position;
 import static org.jjazz.quantizer.api.Quantization.BEAT;
 import static org.jjazz.quantizer.api.Quantization.HALF_BAR;
 import static org.jjazz.quantizer.api.Quantization.HALF_BEAT;
@@ -143,7 +143,7 @@ public class Quantizer
      * @param ts          The TimeSignature for the original position.
      * @param maxBarIndex The quantized position can not exceed this maximum bar index.
      * @return
-     * @see #getQuantized(org.jjazz.quantizer.api.Quantization, org.jjazz.leadsheet.chordleadsheet.api.item.Position,
+     * @see #getQuantized(org.jjazz.quantizer.api.Quantization, org.jjazz.chordleadsheet.api.item.Position,
      * org.jjazz.harmony.api.TimeSignature, int)
      * @see #isIterativeQuantizeEnabled()
      * @see #getIterativeQuantizeStrength()

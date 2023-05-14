@@ -47,7 +47,7 @@ import org.jjazz.song.spi.SongImporter;
 import org.jjazz.songeditormanager.api.SongEditorManager;
 import org.jjazz.upgrade.api.UpgradeManager;
 import org.jjazz.upgrade.api.UpgradeTask;
-import org.jjazz.util.api.ResUtil;
+import org.jjazz.utilities.api.ResUtil;
 import org.netbeans.api.progress.*;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -107,7 +107,7 @@ public final class ImportSongAction implements ActionListener
 
 
         // Initialize the file chooser
-        JFileChooser chooser = org.jjazz.ui.utilities.api.Utilities.getFileChooserInstance();
+        JFileChooser chooser = org.jjazz.uiutilities.api.UIUtilities.getFileChooserInstance();
         chooser.resetChoosableFileFilters();
         if (allExtensionsFilter != null)
         {
@@ -151,7 +151,7 @@ public final class ImportSongAction implements ActionListener
         HashMap<String, SongImporter> mapExtImporter = new HashMap<>();
         for (File f : files)
         {
-            String ext = org.jjazz.util.api.Utilities.getExtension(f.getAbsolutePath());
+            String ext = org.jjazz.utilities.api.Utilities.getExtension(f.getAbsolutePath());
             SongImporter importer = mapExtImporter.get(ext);
             if (importer == null)
             {

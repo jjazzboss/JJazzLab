@@ -34,7 +34,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.midi.api.MidiConst;
-import org.jjazz.util.api.Utilities;
+import org.jjazz.utilities.api.Utilities;
 import org.jjazz.yamjjazz.Ctb2ChannelSettings.NoteTranspositionRule;
 import org.jjazz.yamjjazz.Ctb2ChannelSettings.NoteTranspositionTable;
 

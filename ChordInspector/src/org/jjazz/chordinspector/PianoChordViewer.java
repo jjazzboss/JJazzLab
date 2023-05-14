@@ -29,14 +29,14 @@ import javax.swing.JComponent;
 import org.jjazz.chordinspector.spi.ChordViewer;
 import org.jjazz.harmony.api.Chord;
 import org.jjazz.harmony.api.Note;
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
-import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
+import org.jjazz.instrumentcomponents.keyboard.api.KeyboardComponent;
+import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
+import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.song.api.Song;
-import org.jjazz.ui.keyboardcomponent.api.KeyboardComponent;
-import org.jjazz.ui.keyboardcomponent.api.KeyboardRange;
-import org.jjazz.ui.keyboardcomponent.api.PianoKey;
+import org.jjazz.instrumentcomponents.keyboard.api.KeyboardRange;
+import org.jjazz.instrumentcomponents.keyboard.api.PianoKey;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.openide.util.lookup.ServiceProvider;
 
@@ -178,6 +178,6 @@ public class PianoChordViewer extends javax.swing.JPanel implements ChordViewer
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private org.jjazz.ui.keyboardcomponent.api.KeyboardComponent keyboard;
+    private org.jjazz.instrumentcomponents.keyboard.api.KeyboardComponent keyboard;
     // End of variables declaration//GEN-END:variables
 }

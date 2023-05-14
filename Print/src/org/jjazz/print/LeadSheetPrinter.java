@@ -45,9 +45,9 @@ import javax.swing.JScrollPane;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.jjazz.song.api.Song;
-import org.jjazz.ui.cl_editor.api.CL_Editor;
-import org.jjazz.ui.cl_editor.api.CL_EditorFactory;
-import org.jjazz.ui.utilities.api.FixedPreferredWidthPanel;
+import org.jjazz.cl_editor.api.CL_Editor;
+import org.jjazz.cl_editor.api.CL_EditorFactory;
+import org.jjazz.uiutilities.api.FixedPreferredWidthPanel;
 
 /**
  * A printer for a ChordLeadSheet editor which fits available width and breaks pages at a BarBox edge.

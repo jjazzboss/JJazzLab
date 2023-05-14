@@ -28,10 +28,10 @@ import static java.lang.Math.round;
 import java.text.DecimalFormat;
 import java.util.Objects;
 import org.jjazz.harmony.api.TimeSignature;
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
-import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
-import org.jjazz.util.api.FloatRange;
-import org.jjazz.util.api.IntRange;
+import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
+import org.jjazz.chordleadsheet.api.item.Position;
+import org.jjazz.utilities.api.FloatRange;
+import org.jjazz.utilities.api.IntRange;
 
 /**
  * A ChordSequence which has only one TimeSignature.

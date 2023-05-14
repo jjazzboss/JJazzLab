@@ -27,7 +27,7 @@ import java.util.List;
 import javax.sound.midi.MidiEvent;
 import javax.sound.midi.ShortMessage;
 import org.jjazz.midi.api.MidiConst;
-import org.jjazz.util.api.FloatRange;
+import org.jjazz.utilities.api.FloatRange;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;

@@ -45,12 +45,12 @@ import javax.swing.TransferHandler;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
-import org.jjazz.ui.colorsetmanager.api.NoteColorManager;
-import org.jjazz.ui.utilities.api.HSLColor;
-import org.jjazz.ui.utilities.api.Utilities;
+import org.jjazz.colorsetmanager.api.NoteColorManager;
+import org.jjazz.uiutilities.api.HSLColor;
+import org.jjazz.uiutilities.api.UIUtilities;
 import org.jjazz.uisettings.api.GeneralUISettings;
-import org.jjazz.util.api.FloatRange;
-import org.jjazz.util.api.IntRange;
+import org.jjazz.utilities.api.FloatRange;
+import org.jjazz.utilities.api.IntRange;
 
 /**
  * A component to show a "bird's eye view" of whole or part of a Phrase.
@@ -99,7 +99,7 @@ public class PhraseBirdsEyeViewComponent extends JPanel implements PropertyChang
     public void setLabel(String label)
     {
         this.label = label;
-        labelSize = Utilities.getStringBounds(label, FONT);
+        labelSize = UIUtilities.getStringBounds(label, FONT);
         repaint();
     }
 
@@ -126,7 +126,7 @@ public class PhraseBirdsEyeViewComponent extends JPanel implements PropertyChang
 
         Graphics2D g2 = (Graphics2D) g;
         // g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        var r = Utilities.getUsableArea(this);
+        var r = UIUtilities.getUsableArea(this);
 
 
         if (phrase != null && !phrase.isEmpty())

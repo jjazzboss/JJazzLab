@@ -22,23 +22,23 @@
  */
 package org.jjazz.songstructure.api;
 
-import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
+import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 import javax.swing.event.UndoableEditListener;
 import org.jjazz.harmony.api.TimeSignature;
-import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
-import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
-import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
+import org.jjazz.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.chordleadsheet.api.item.CLI_Section;
+import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
+import org.jjazz.chordleadsheet.api.item.Position;
 import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.RhythmParameter;
-import org.jjazz.util.api.FloatRange;
-import org.jjazz.util.api.IntRange;
+import org.jjazz.utilities.api.FloatRange;
+import org.jjazz.utilities.api.IntRange;
 
 /**
  * A SongStructure manages SongParts.

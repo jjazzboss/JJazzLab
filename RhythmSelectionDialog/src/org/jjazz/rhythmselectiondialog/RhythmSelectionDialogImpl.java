@@ -53,18 +53,18 @@ import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmParameter;
-import org.jjazz.rhythm.database.api.RhythmInfo;
-import org.jjazz.rhythm.database.api.FavoriteRhythms;
+import org.jjazz.rhythmdatabase.api.RhythmInfo;
+import org.jjazz.rhythmdatabase.api.FavoriteRhythms;
 import org.jjazz.rhythm.spi.RhythmProvider;
-import org.jjazz.rhythm.database.api.RhythmDatabase;
-import org.jjazz.rhythm.database.api.UnavailableRhythmException;
+import org.jjazz.rhythmdatabase.api.RhythmDatabase;
+import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
 import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Variation;
-import org.jjazz.rhythm.database.api.AddSessionOnlyRhythms;
-import org.jjazz.rhythm.database.api.DeleteRhythmFile;
+import org.jjazz.rhythmdatabase.api.AddSessionOnlyRhythms;
+import org.jjazz.rhythmdatabase.api.DeleteRhythmFile;
 import org.jjazz.rhythmselectiondialog.api.RhythmTable;
-import org.jjazz.ui.ss_editor.spi.RhythmSelectionDialog;
-import org.jjazz.ui.utilities.api.Utilities;
-import org.jjazz.util.api.ResUtil;
+import org.jjazz.ss_editor.spi.RhythmSelectionDialog;
+import org.jjazz.uiutilities.api.UIUtilities;
+import org.jjazz.utilities.api.ResUtil;
 import org.openide.*;
 import org.openide.util.lookup.ServiceProvider;
 
@@ -96,7 +96,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
 
 
         // Update UI
-        Utilities.installSelectAllWhenFocused(tf_filter);
+        UIUtilities.installSelectAllWhenFocused(tf_filter);
         fbtn_autoPreviewMode.addActionListener(e -> toggleRhythmPreview());
         rhythmTable.getInputMap(JTable.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0), "PreviewRhythm");
         rhythmTable.getInputMap(JTable.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_F, 0), "ToggleFavorite");
@@ -106,7 +106,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
 
         // Register for rhythmdatabase changes
         RhythmDatabase rdb = RhythmDatabase.getDefault();
-        rdb.addChangeListener(ce -> Utilities.invokeLaterIfNeeded(() -> rhythmDatabaseChanged()));
+        rdb.addChangeListener(ce -> UIUtilities.invokeLaterIfNeeded(() -> rhythmDatabaseChanged()));
 
 
         // Prepare rhythm providers JList
@@ -681,10 +681,10 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         btn_clearFilter = new javax.swing.JButton();
         lbl_timeSignature = new javax.swing.JLabel();
         jScrollPane3 = new javax.swing.JScrollPane();
-        helpTextArea1 = new org.jjazz.ui.utilities.api.HelpTextArea();
+        helpTextArea1 = new org.jjazz.uiutilities.api.HelpTextArea();
         btn_addRhythms = new javax.swing.JButton();
         jPanel2 = new javax.swing.JPanel();
-        fbtn_autoPreviewMode = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
+        fbtn_autoPreviewMode = new org.jjazz.flatcomponents.api.FlatToggleButton();
         cmb_variation = new javax.swing.JComboBox<>();
         btn_deleteRhythm = new javax.swing.JButton();
         btn_openFolder = new javax.swing.JButton();
@@ -1028,7 +1028,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         {
             return;
         }
-        org.jjazz.util.api.Utilities.browseFileDirectory(ri.getFile(), false);
+        org.jjazz.utilities.api.Utilities.browseFileDirectory(ri.getFile(), false);
 
     }//GEN-LAST:event_btn_openFolderActionPerformed
 
@@ -1043,8 +1043,8 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
     private javax.swing.JCheckBox cb_applyRhythmToNextSpts;
     private javax.swing.JCheckBox cb_useRhythmTempo;
     private javax.swing.JComboBox<String> cmb_variation;
-    private org.jjazz.ui.flatcomponents.api.FlatToggleButton fbtn_autoPreviewMode;
-    private org.jjazz.ui.utilities.api.HelpTextArea helpTextArea1;
+    private org.jjazz.flatcomponents.api.FlatToggleButton fbtn_autoPreviewMode;
+    private org.jjazz.uiutilities.api.HelpTextArea helpTextArea1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;

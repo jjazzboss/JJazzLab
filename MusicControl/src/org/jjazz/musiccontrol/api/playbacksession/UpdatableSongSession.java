@@ -51,7 +51,7 @@ import org.jjazz.phrase.api.Phrases;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.songcontext.api.SongContext;
-import org.jjazz.util.api.IntRange;
+import org.jjazz.utilities.api.IntRange;
 
 /**
  * A PlaybackSession is a BaseSongSession wrapper which enables on-the-fly updates of the playing sequence using

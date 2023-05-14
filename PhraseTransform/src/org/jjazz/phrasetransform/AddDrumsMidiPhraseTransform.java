@@ -39,9 +39,9 @@ import org.jjazz.phrasetransform.api.PhraseTransform;
 import org.jjazz.phrasetransform.api.PhraseTransforms;
 import org.jjazz.phrasetransform.api.PtProperties;
 import org.jjazz.songcontext.api.SongPartContext;
-import org.jjazz.ui.utilities.api.Utilities;
-import org.jjazz.util.api.FloatRange;
-import org.jjazz.util.api.ResUtil;
+import org.jjazz.uiutilities.api.UIUtilities;
+import org.jjazz.utilities.api.FloatRange;
+import org.jjazz.utilities.api.ResUtil;
 
 /**
  * Add drums notes from a Midi file to a Drums phrase.
@@ -167,7 +167,7 @@ public class AddDrumsMidiPhraseTransform implements PhraseTransform
     {
         String text = ResUtil.getString(getClass(), "VelocityOffset");
         GenericSettingsDialog dlg = new GenericSettingsDialog(properties, getInfo().getName(), PROP_VELOCITY_OFFSET, text, -63, 64, true);
-        Utilities.setDialogLocationRelativeTo(dlg, anchor, 0, 0.5, 0.5);
+        UIUtilities.setDialogLocationRelativeTo(dlg, anchor, 0, 0.5, 0.5);
         dlg.setVisible(true);
         dlg.dispose();
     }

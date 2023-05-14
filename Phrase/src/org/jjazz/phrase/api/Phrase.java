@@ -56,7 +56,7 @@ import javax.swing.undo.UndoableEdit;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.undomanager.api.SimpleEdit;
-import org.jjazz.util.api.FloatRange;
+import org.jjazz.utilities.api.FloatRange;
 
 /**
  * A collection of NoteEvents that are kept sorted by start position.

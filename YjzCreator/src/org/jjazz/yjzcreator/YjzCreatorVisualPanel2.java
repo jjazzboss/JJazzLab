@@ -32,11 +32,11 @@ import java.util.stream.Collectors;
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
 import org.jjazz.harmony.api.TimeSignature;
-import org.jjazz.rhythm.database.api.RhythmDatabase;
-import org.jjazz.rhythm.database.api.RhythmInfo;
+import org.jjazz.rhythmdatabase.api.RhythmDatabase;
+import org.jjazz.rhythmdatabase.api.RhythmInfo;
 import org.jjazz.rhythm.spi.RhythmProvider;
 import org.jjazz.rhythmselectiondialog.api.RhythmTable;
-import org.jjazz.util.api.ResUtil;
+import org.jjazz.utilities.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 
@@ -155,7 +155,7 @@ public final class YjzCreatorVisualPanel2 extends JPanel implements ActionListen
         jScrollPane2 = new javax.swing.JScrollPane();
         jTable1 = rhythmTable;
         jScrollPane1 = new javax.swing.JScrollPane();
-        helpTextArea1 = new org.jjazz.ui.utilities.api.HelpTextArea();
+        helpTextArea1 = new org.jjazz.uiutilities.api.HelpTextArea();
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(YjzCreatorVisualPanel2.class, "YjzCreatorVisualPanel2.jLabel1.text")); // NOI18N
 
@@ -210,7 +210,7 @@ public final class YjzCreatorVisualPanel2 extends JPanel implements ActionListen
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JComboBox<TimeSignature> cmb_timeSignature;
-    private org.jjazz.ui.utilities.api.HelpTextArea helpTextArea1;
+    private org.jjazz.uiutilities.api.HelpTextArea helpTextArea1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JScrollPane jScrollPane1;

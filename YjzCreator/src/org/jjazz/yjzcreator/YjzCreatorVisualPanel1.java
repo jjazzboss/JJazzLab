@@ -25,7 +25,7 @@ package org.jjazz.yjzcreator;
 import javax.swing.JEditorPane;
 import javax.swing.JPanel;
 import javax.swing.event.HyperlinkEvent;
-import org.jjazz.util.api.ResUtil;
+import org.jjazz.utilities.api.ResUtil;
 
 public final class YjzCreatorVisualPanel1 extends JPanel
 {
@@ -95,7 +95,7 @@ public final class YjzCreatorVisualPanel1 extends JPanel
     {//GEN-HEADEREND:event_editorPane_introHyperlinkUpdate
         if (evt.getEventType() == HyperlinkEvent.EventType.ACTIVATED)
         {
-            org.jjazz.util.api.Utilities.openInBrowser(evt.getURL(), false);
+            org.jjazz.utilities.api.Utilities.openInBrowser(evt.getURL(), false);
         }
     }//GEN-LAST:event_editorPane_introHyperlinkUpdate
 

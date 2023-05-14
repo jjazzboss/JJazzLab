@@ -37,9 +37,9 @@ import javax.swing.AbstractAction;
 import javax.swing.JComponent;
 import javax.swing.JRootPane;
 import javax.swing.KeyStroke;
-import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
-import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
+import org.jjazz.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.chordleadsheet.api.UnsupportedEditException;
+import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.MusicController.State;
 import org.jjazz.musiccontrol.api.playbacksession.UpdateProviderSongSession;
@@ -54,9 +54,9 @@ import org.jjazz.song.api.SongFactory;
 import org.jjazz.songcontext.api.SongPartContext;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructure;
-import org.jjazz.ui.rpviewer.spi.RpCustomEditor;
-import org.jjazz.util.api.IntRange;
-import org.jjazz.util.api.ResUtil;
+import org.jjazz.ss_editor.rpviewer.spi.RpCustomEditor;
+import org.jjazz.utilities.api.IntRange;
+import org.jjazz.utilities.api.ResUtil;
 import org.openide.*;
 import org.openide.util.Exceptions;
 
@@ -385,10 +385,10 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
 
         pnl_container = new javax.swing.JPanel();
         pnl_editor = new javax.swing.JPanel();
-        tbtn_compare = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
-        tbtn_hear = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
-        fbtn_ok = new org.jjazz.ui.flatcomponents.api.FlatButton();
-        fbtn_reset = new org.jjazz.ui.flatcomponents.api.FlatButton();
+        tbtn_compare = new org.jjazz.flatcomponents.api.FlatToggleButton();
+        tbtn_hear = new org.jjazz.flatcomponents.api.FlatToggleButton();
+        fbtn_ok = new org.jjazz.flatcomponents.api.FlatButton();
+        fbtn_reset = new org.jjazz.flatcomponents.api.FlatButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         addWindowListener(new java.awt.event.WindowAdapter()
@@ -610,12 +610,12 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private org.jjazz.ui.flatcomponents.api.FlatButton fbtn_ok;
-    private org.jjazz.ui.flatcomponents.api.FlatButton fbtn_reset;
+    private org.jjazz.flatcomponents.api.FlatButton fbtn_ok;
+    private org.jjazz.flatcomponents.api.FlatButton fbtn_reset;
     private javax.swing.JPanel pnl_container;
     private javax.swing.JPanel pnl_editor;
-    private org.jjazz.ui.flatcomponents.api.FlatToggleButton tbtn_compare;
-    private org.jjazz.ui.flatcomponents.api.FlatToggleButton tbtn_hear;
+    private org.jjazz.flatcomponents.api.FlatToggleButton tbtn_compare;
+    private org.jjazz.flatcomponents.api.FlatToggleButton tbtn_hear;
     // End of variables declaration//GEN-END:variables
 
 

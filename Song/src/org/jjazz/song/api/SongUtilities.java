@@ -25,15 +25,15 @@ package org.jjazz.song.api;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
-import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheetFactory;
-import org.jjazz.leadsheet.chordleadsheet.api.ClsUtilities;
-import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Factory;
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
-import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
-import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
+import org.jjazz.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.chordleadsheet.api.ChordLeadSheetFactory;
+import org.jjazz.chordleadsheet.api.ClsUtilities;
+import org.jjazz.chordleadsheet.api.UnsupportedEditException;
+import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
+import org.jjazz.chordleadsheet.api.item.CLI_Factory;
+import org.jjazz.chordleadsheet.api.item.CLI_Section;
+import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
+import org.jjazz.chordleadsheet.api.item.Position;
 import org.jjazz.songstructure.api.SongPart;
 import org.openide.util.Exceptions;
 

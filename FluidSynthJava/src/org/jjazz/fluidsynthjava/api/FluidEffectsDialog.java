@@ -43,8 +43,8 @@ import javax.swing.DefaultListModel;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
-import org.jjazz.ui.flatcomponents.api.FlatIntegerKnob;
-import org.jjazz.ui.utilities.api.Utilities;
+import org.jjazz.flatcomponents.api.FlatIntegerKnob;
+import org.jjazz.uiutilities.api.UIUtilities;
 import org.openide.util.NbPreferences;
 import org.openide.windows.WindowManager;
 
@@ -91,8 +91,8 @@ public class FluidEffectsDialog extends javax.swing.JDialog implements PropertyC
         list_rev_presets.setModel(revPresetListModel);
 
 
-        Utilities.installEnterKeyAction(this, () -> btn_OKActionPerformed(null));
-        Utilities.installEscapeKeyAction(this, () -> btn_CancelActionPerformed(null));
+        UIUtilities.installEnterKeyAction(this, () -> btn_OKActionPerformed(null));
+        UIUtilities.installEscapeKeyAction(this, () -> btn_CancelActionPerformed(null));
 
 
         updateUIComponents();
@@ -343,29 +343,29 @@ public class FluidEffectsDialog extends javax.swing.JDialog implements PropertyC
         btn_cho_store = new javax.swing.JButton();
         pnl_reverb = new javax.swing.JPanel();
         jPanel1 = new javax.swing.JPanel();
-        knob_room = new org.jjazz.ui.flatcomponents.api.FlatIntegerKnob();
+        knob_room = new org.jjazz.flatcomponents.api.FlatIntegerKnob();
         lbl_room = new javax.swing.JLabel();
         jPanel2 = new javax.swing.JPanel();
-        knob_damp = new org.jjazz.ui.flatcomponents.api.FlatIntegerKnob();
+        knob_damp = new org.jjazz.flatcomponents.api.FlatIntegerKnob();
         lbl_damp = new javax.swing.JLabel();
         jPanel3 = new javax.swing.JPanel();
-        knob_width = new org.jjazz.ui.flatcomponents.api.FlatIntegerKnob();
+        knob_width = new org.jjazz.flatcomponents.api.FlatIntegerKnob();
         lbl_width = new javax.swing.JLabel();
         jPanel4 = new javax.swing.JPanel();
-        knob_level_rev = new org.jjazz.ui.flatcomponents.api.FlatIntegerKnob();
+        knob_level_rev = new org.jjazz.flatcomponents.api.FlatIntegerKnob();
         lbl_rev_level = new javax.swing.JLabel();
         pnl_chorus = new javax.swing.JPanel();
         jPanel5 = new javax.swing.JPanel();
-        knob_nr = new org.jjazz.ui.flatcomponents.api.FlatIntegerKnob();
+        knob_nr = new org.jjazz.flatcomponents.api.FlatIntegerKnob();
         lbl_nr = new javax.swing.JLabel();
         jPanel6 = new javax.swing.JPanel();
-        knob_speed = new org.jjazz.ui.flatcomponents.api.FlatIntegerKnob();
+        knob_speed = new org.jjazz.flatcomponents.api.FlatIntegerKnob();
         lbl_speed = new javax.swing.JLabel();
         jPanel7 = new javax.swing.JPanel();
-        knob_depth = new org.jjazz.ui.flatcomponents.api.FlatIntegerKnob();
+        knob_depth = new org.jjazz.flatcomponents.api.FlatIntegerKnob();
         lbl_depth = new javax.swing.JLabel();
         jPanel8 = new javax.swing.JPanel();
-        knob_level_cho = new org.jjazz.ui.flatcomponents.api.FlatIntegerKnob();
+        knob_level_cho = new org.jjazz.flatcomponents.api.FlatIntegerKnob();
         lbl_cho_level = new javax.swing.JLabel();
         btn_rev_remove = new javax.swing.JButton();
         btn_cho_remove = new javax.swing.JButton();
@@ -831,14 +831,14 @@ public class FluidEffectsDialog extends javax.swing.JDialog implements PropertyC
     private javax.swing.JPanel jPanel8;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
-    private org.jjazz.ui.flatcomponents.api.FlatIntegerKnob knob_damp;
-    private org.jjazz.ui.flatcomponents.api.FlatIntegerKnob knob_depth;
-    private org.jjazz.ui.flatcomponents.api.FlatIntegerKnob knob_level_cho;
-    private org.jjazz.ui.flatcomponents.api.FlatIntegerKnob knob_level_rev;
-    private org.jjazz.ui.flatcomponents.api.FlatIntegerKnob knob_nr;
-    private org.jjazz.ui.flatcomponents.api.FlatIntegerKnob knob_room;
-    private org.jjazz.ui.flatcomponents.api.FlatIntegerKnob knob_speed;
-    private org.jjazz.ui.flatcomponents.api.FlatIntegerKnob knob_width;
+    private org.jjazz.flatcomponents.api.FlatIntegerKnob knob_damp;
+    private org.jjazz.flatcomponents.api.FlatIntegerKnob knob_depth;
+    private org.jjazz.flatcomponents.api.FlatIntegerKnob knob_level_cho;
+    private org.jjazz.flatcomponents.api.FlatIntegerKnob knob_level_rev;
+    private org.jjazz.flatcomponents.api.FlatIntegerKnob knob_nr;
+    private org.jjazz.flatcomponents.api.FlatIntegerKnob knob_room;
+    private org.jjazz.flatcomponents.api.FlatIntegerKnob knob_speed;
+    private org.jjazz.flatcomponents.api.FlatIntegerKnob knob_width;
     private javax.swing.JLabel lbl_cho_level;
     private javax.swing.JLabel lbl_damp;
     private javax.swing.JLabel lbl_depth;

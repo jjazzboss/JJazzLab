@@ -31,16 +31,15 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import org.jjazz.chordinspector.spi.ChordViewer;
-import org.jjazz.harmony.api.ChordSymbol;
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
+import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.song.api.Song;
-import org.jjazz.ui.guitardiagramcomponent.api.GuitarDiagramComponent;
-import org.jjazz.ui.guitardiagramcomponent.api.TGChord;
-import org.jjazz.ui.guitardiagramcomponent.api.TGChordCreatorUtil;
-import org.jjazz.ui.guitardiagramcomponent.api.TGChordSettings;
-import org.jjazz.ui.guitardiagramcomponent.api.TGChordSettings.ChordMode;
+import org.jjazz.instrumentcomponents.guitardiagram.api.GuitarDiagramComponent;
+import org.jjazz.instrumentcomponents.guitardiagram.api.TGChord;
+import org.jjazz.instrumentcomponents.guitardiagram.api.TGChordCreatorUtil;
+import org.jjazz.instrumentcomponents.guitardiagram.api.TGChordSettings;
+import org.jjazz.instrumentcomponents.guitardiagram.api.TGChordSettings.ChordMode;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.openide.util.lookup.ServiceProvider;
 
@@ -169,7 +168,7 @@ public class GuitarChordViewer extends javax.swing.JPanel implements ChordViewer
 
         jScrollPane1 = new javax.swing.JScrollPane();
         pnl_instrument = new javax.swing.JPanel();
-        fbtn_chordMode = new org.jjazz.ui.utilities.api.SmallFlatDarkLafButton();
+        fbtn_chordMode = new org.jjazz.uiutilities.api.SmallFlatDarkLafButton();
 
         pnl_instrument.setLayout(new java.awt.GridLayout(0, 3, 3, 5));
         jScrollPane1.setViewportView(pnl_instrument);
@@ -216,7 +215,7 @@ public class GuitarChordViewer extends javax.swing.JPanel implements ChordViewer
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private org.jjazz.ui.utilities.api.SmallFlatDarkLafButton fbtn_chordMode;
+    private org.jjazz.uiutilities.api.SmallFlatDarkLafButton fbtn_chordMode;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JPanel pnl_instrument;
     // End of variables declaration//GEN-END:variables

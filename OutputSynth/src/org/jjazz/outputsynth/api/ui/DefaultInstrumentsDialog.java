@@ -166,7 +166,7 @@ public class DefaultInstrumentsDialog extends javax.swing.JDialog implements Pro
         jScrollPane1 = new javax.swing.JScrollPane();
         tbl_Remap = new org.jjazz.outputsynth.api.ui.RemapTableUI();
         jScrollPane2 = new javax.swing.JScrollPane();
-        hlp_area = new org.jjazz.ui.utilities.api.HelpTextArea();
+        hlp_area = new org.jjazz.uiutilities.api.HelpTextArea();
         btn_HearRemap = new javax.swing.JButton();
         btn_changeRemappedIns = new javax.swing.JButton();
         btn_ResetInstrument = new javax.swing.JButton();
@@ -401,7 +401,7 @@ public class DefaultInstrumentsDialog extends javax.swing.JDialog implements Pro
     private javax.swing.JButton btn_Ok;
     private javax.swing.JButton btn_ResetInstrument;
     private javax.swing.JButton btn_changeRemappedIns;
-    private org.jjazz.ui.utilities.api.HelpTextArea hlp_area;
+    private org.jjazz.uiutilities.api.HelpTextArea hlp_area;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private org.jjazz.outputsynth.api.ui.RemapTableUI tbl_Remap;

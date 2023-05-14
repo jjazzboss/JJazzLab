@@ -37,14 +37,14 @@ import org.jjazz.harmony.api.Chord;
 import org.jjazz.harmony.api.ChordType;
 import org.jjazz.harmony.api.Degree;
 import org.jjazz.harmony.api.Note;
-import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo;
-import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo.Feature;
-import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
+import org.jjazz.chordleadsheet.api.item.ChordRenderingInfo;
+import org.jjazz.chordleadsheet.api.item.ChordRenderingInfo.Feature;
+import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
 import static org.jjazz.phrase.api.Phrase.PARENT_NOTE;
 import org.jjazz.phrase.api.Phrases;
 import org.jjazz.phrase.api.SourcePhrase;
 import org.jjazz.phrase.api.SourcePhrase.ChordMode;
-import static org.jjazz.util.api.Utilities.heapPermutation;
+import static org.jjazz.utilities.api.Utilities.heapPermutation;
 
 /**
  * Phrase manipulation methods.

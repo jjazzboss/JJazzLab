@@ -43,7 +43,7 @@ import org.jjazz.harmony.api.Degree;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.harmony.api.TimeSignature;
 import static org.jjazz.importers.musicxml.MusicXmlParser.XMLtoJJazzChordMap;
-import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
+import org.jjazz.chordleadsheet.api.item.Position;
 
 /**
  * Parses a MusicXML file, and fires events for <code>MusicXmlParserListener</code> interfaces when tokens are interpreted.

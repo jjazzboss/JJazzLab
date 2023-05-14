@@ -27,15 +27,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
+import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.harmony.api.TimeSignature;
-import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Factory;
-import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
-import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
+import org.jjazz.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.chordleadsheet.api.item.CLI_Factory;
+import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
+import org.jjazz.chordleadsheet.api.item.Position;
 import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.quantizer.api.Quantizer;
-import org.jjazz.util.api.ResUtil;
+import org.jjazz.utilities.api.ResUtil;
 
 /**
  * Define methods how to convert CLI_ChordSymbols from/to Strings.

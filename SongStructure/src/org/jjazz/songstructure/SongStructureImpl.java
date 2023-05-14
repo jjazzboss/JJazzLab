@@ -49,24 +49,24 @@ import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.undo.UndoableEdit;
 import org.jjazz.harmony.api.TimeSignature;
-import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
+import org.jjazz.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmParameter;
-import org.jjazz.rhythm.database.api.RhythmDatabase;
+import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.undomanager.api.SimpleEdit;
-import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
-import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
-import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
+import org.jjazz.chordleadsheet.api.UnsupportedEditException;
+import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
+import org.jjazz.chordleadsheet.api.item.Position;
 import org.jjazz.rhythm.api.AdaptedRhythm;
-import org.jjazz.rhythm.database.api.RhythmInfo;
-import org.jjazz.rhythm.database.api.UnavailableRhythmException;
+import org.jjazz.rhythmdatabase.api.RhythmInfo;
+import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SgsChangeListener;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.event.SgsActionEvent;
-import org.jjazz.util.api.FloatRange;
-import org.jjazz.util.api.IntRange;
+import org.jjazz.utilities.api.FloatRange;
+import org.jjazz.utilities.api.IntRange;
 
 public class SongStructureImpl implements SongStructure, Serializable, PropertyChangeListener
 {

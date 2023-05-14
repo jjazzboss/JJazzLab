@@ -45,8 +45,8 @@ import org.jjazz.midi.api.synths.XGSynth;
 import org.jjazz.midi.spi.MidiSynthFileReader;
 import org.jjazz.startup.spi.StartupTask;
 import org.jjazz.upgrade.api.UpgradeManager;
-import org.jjazz.util.api.ResUtil;
-import org.jjazz.util.api.Utilities;
+import org.jjazz.utilities.api.ResUtil;
+import org.jjazz.utilities.api.Utilities;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -222,7 +222,7 @@ public class MidiSynthManager
         }
 
         // Initialize the file chooser
-        JFileChooser chooser = org.jjazz.ui.utilities.api.Utilities.getFileChooserInstance();
+        JFileChooser chooser = org.jjazz.uiutilities.api.UIUtilities.getFileChooserInstance();
         chooser.resetChoosableFileFilters();
         for (FileNameExtensionFilter filter : allFilters)
         {

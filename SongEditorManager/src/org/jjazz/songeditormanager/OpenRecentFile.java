@@ -37,7 +37,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import org.jjazz.song.api.Song;
 import org.jjazz.songeditormanager.api.SongEditorManager;
-import org.jjazz.util.api.ResUtil;
+import org.jjazz.utilities.api.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;

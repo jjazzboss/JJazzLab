@@ -30,7 +30,7 @@ import java.util.logging.Logger;
 import org.jjazz.midi.api.Instrument;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.rhythm.api.RhythmVoice;
-import org.jjazz.util.api.ResUtil;
+import org.jjazz.utilities.api.ResUtil;
 import org.openide.windows.WindowManager;
 
 /**

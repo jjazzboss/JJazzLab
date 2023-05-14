@@ -47,10 +47,10 @@ import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.midi.api.synths.GM1Instrument;
-import org.jjazz.rhythm.database.api.FavoriteRhythms;
-import org.jjazz.rhythm.database.api.RhythmInfo;
-import org.jjazz.rhythm.database.api.RhythmVoiceInfo;
-import org.jjazz.util.api.ResUtil;
+import org.jjazz.rhythmdatabase.api.FavoriteRhythms;
+import org.jjazz.rhythmdatabase.api.RhythmInfo;
+import org.jjazz.rhythmdatabase.api.RhythmVoiceInfo;
+import org.jjazz.utilities.api.ResUtil;
 
 /**
  * A JTable to show a list of rhythms.

@@ -43,8 +43,8 @@ import javax.sound.midi.Transmitter;
 import javax.swing.SpinnerListModel;
 import org.jjazz.harmony.api.ChordSymbolFinder;
 import org.jjazz.harmony.api.Note;
-import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
+import org.jjazz.chordleadsheet.api.UnsupportedEditException;
+import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.midi.api.JJazzMidiSystem;
 import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.midimix.api.MidiMix;
@@ -58,14 +58,14 @@ import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.songstructure.api.SgsChangeListener;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.event.SgsChangeEvent;
-import org.jjazz.ui.keyboardcomponent.api.KeyboardComponent;
-import org.jjazz.ui.keyboardcomponent.api.KeyboardComponent.Orientation;
-import org.jjazz.ui.keyboardcomponent.api.KeyboardRange;
-import org.jjazz.ui.ss_editor.api.SS_Editor;
-import org.jjazz.ui.ss_editor.api.SS_EditorTopComponent;
-import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
+import org.jjazz.instrumentcomponents.keyboard.api.KeyboardComponent;
+import org.jjazz.instrumentcomponents.keyboard.api.KeyboardComponent.Orientation;
+import org.jjazz.instrumentcomponents.keyboard.api.KeyboardRange;
+import org.jjazz.ss_editor.api.SS_Editor;
+import org.jjazz.ss_editor.api.SS_EditorTopComponent;
+import org.jjazz.ss_editor.api.SS_SelectionUtilities;
 import org.jjazz.uisettings.api.GeneralUISettings;
-import org.jjazz.util.api.ResUtil;
+import org.jjazz.utilities.api.ResUtil;
 import org.openide.*;
 import org.openide.util.Exceptions;
 
@@ -489,10 +489,10 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
         lbl_chordSymbol = new javax.swing.JLabel();
         lbl_songPart = new javax.swing.JLabel();
         lbl_rhythm = new javax.swing.JLabel();
-        tbtn_playPause = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
+        tbtn_playPause = new org.jjazz.flatcomponents.api.FlatToggleButton();
         cb_lowerNoteIsBass = new javax.swing.JCheckBox();
-        flatHelpButton1 = new org.jjazz.ui.flatcomponents.api.FlatHelpButton();
-        spn_splitNote = new org.jjazz.ui.utilities.api.WheelSpinner();
+        flatHelpButton1 = new org.jjazz.flatcomponents.api.FlatHelpButton();
+        spn_splitNote = new org.jjazz.uiutilities.api.WheelSpinner();
         jLabel1 = new javax.swing.JLabel();
 
         kbdComponent.setPreferredSize(new java.awt.Dimension(300, 60));
@@ -615,14 +615,14 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JCheckBox cb_lowerNoteIsBass;
-    private org.jjazz.ui.flatcomponents.api.FlatHelpButton flatHelpButton1;
+    private org.jjazz.flatcomponents.api.FlatHelpButton flatHelpButton1;
     private javax.swing.JLabel jLabel1;
-    private org.jjazz.ui.keyboardcomponent.api.KeyboardComponent kbdComponent;
+    private org.jjazz.instrumentcomponents.keyboard.api.KeyboardComponent kbdComponent;
     private javax.swing.JLabel lbl_chordSymbol;
     private javax.swing.JLabel lbl_rhythm;
     private javax.swing.JLabel lbl_songPart;
-    private org.jjazz.ui.utilities.api.WheelSpinner spn_splitNote;
-    private org.jjazz.ui.flatcomponents.api.FlatToggleButton tbtn_playPause;
+    private org.jjazz.uiutilities.api.WheelSpinner spn_splitNote;
+    private org.jjazz.flatcomponents.api.FlatToggleButton tbtn_playPause;
     // End of variables declaration//GEN-END:variables
 
 

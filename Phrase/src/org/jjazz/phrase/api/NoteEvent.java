@@ -35,8 +35,8 @@ import javax.sound.midi.MidiEvent;
 import javax.sound.midi.ShortMessage;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.midi.api.MidiConst;
-import org.jjazz.util.api.FloatRange;
-import org.jjazz.util.api.ObservableProperties;
+import org.jjazz.utilities.api.FloatRange;
+import org.jjazz.utilities.api.ObservableProperties;
 import org.openide.util.Exceptions;
 
 /**

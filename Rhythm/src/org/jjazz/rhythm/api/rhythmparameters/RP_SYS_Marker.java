@@ -25,7 +25,7 @@ package org.jjazz.rhythm.api.rhythmparameters;
 import org.jjazz.rhythm.api.RP_State;
 import org.jjazz.rhythm.api.Rhythm;
 import org.openide.util.NbBundle;
-import org.jjazz.util.api.ResUtil;
+import org.jjazz.utilities.api.ResUtil;
 
 /**
  * Standard RhythmParameter: a marker for song parts, used to conditionnaly enable the optional alternate chord symbols.

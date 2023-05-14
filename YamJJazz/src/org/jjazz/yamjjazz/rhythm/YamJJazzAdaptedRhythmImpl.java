@@ -54,7 +54,7 @@ import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Mute;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_TempoFactor;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import org.jjazz.songcontext.api.SongContext;
-import org.jjazz.util.api.ResUtil;
+import org.jjazz.utilities.api.ResUtil;
 import org.jjazz.yamjjazz.AccType;
 import org.jjazz.yamjjazz.CtabChannelSettings;
 import org.jjazz.yamjjazz.Style;

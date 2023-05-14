@@ -45,8 +45,8 @@ import java.util.Objects;
 import java.util.logging.Logger;
 import javax.swing.JPanel;
 import org.jjazz.rhythm.api.TempoRange;
-import org.jjazz.ui.utilities.api.StringMetrics;
-import org.jjazz.ui.utilities.api.Utilities;
+import org.jjazz.uiutilities.api.StringMetrics;
+import org.jjazz.uiutilities.api.UIUtilities;
 import org.openide.windows.WindowManager;
 
 /**
@@ -72,8 +72,8 @@ public class CreatePracticeSongDialog extends javax.swing.JDialog
         initComponents();
 
         setLocationRelativeTo(WindowManager.getDefault().getMainWindow());
-        Utilities.installEnterKeyAction(this, () -> btn_CreateActionPerformed(null));
-        Utilities.installEscapeKeyAction(this, () -> btn_CancelActionPerformed(null));
+        UIUtilities.installEnterKeyAction(this, () -> btn_CreateActionPerformed(null));
+        UIUtilities.installEscapeKeyAction(this, () -> btn_CancelActionPerformed(null));
 
 
         configPanel = new ConfigPanel();
@@ -428,7 +428,7 @@ public class CreatePracticeSongDialog extends javax.swing.JDialog
         private void updateShapes(Config config)
         {
             // LOGGER.severe("updateShapes() -- config=" + config);
-            Rectangle r = Utilities.getUsableArea(this);
+            Rectangle r = UIUtilities.getUsableArea(this);
             float colWidth = (r.width - 2 * H_GAP - (config.nbSteps - 1) * H_GAP) / (float) config.nbSteps;
             int maxColHeight = r.height - 2 * V_GAP;
             int maxTempo = Math.round(Math.max(config.tempoEnd, config.tempoStart) * 1.1f);

@@ -32,7 +32,7 @@ import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.MidiMixManager;
 import org.jjazz.song.api.Song;
-import org.jjazz.ui.utilities.api.Utilities;
+import org.jjazz.uiutilities.api.UIUtilities;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.util.Exceptions;
@@ -62,7 +62,7 @@ class SaveUtils
      */
     static public File showSaveSongFileChooser(File presetFile)
     {
-        JFileChooser chooser = Utilities.getFileChooserInstance();
+        JFileChooser chooser = UIUtilities.getFileChooserInstance();
         FileNameExtensionFilter filter = new FileNameExtensionFilter(
                 "JJazzLab songs" + " (" + "." + FileDirectoryManager.SONG_EXTENSION + ")", FileDirectoryManager.SONG_EXTENSION);
         chooser.resetChoosableFileFilters();
@@ -85,7 +85,7 @@ class SaveUtils
             String songName = songFile.getName();
 
             // Add file extension if required
-            if (!org.jjazz.util.api.Utilities.endsWithIgnoreCase(songName, "." + FileDirectoryManager.SONG_EXTENSION))
+            if (!org.jjazz.utilities.api.Utilities.endsWithIgnoreCase(songName, "." + FileDirectoryManager.SONG_EXTENSION))
             {
                 songFile = new File(songFile.getParent(), songName + "." + FileDirectoryManager.SONG_EXTENSION);
             }
@@ -213,7 +213,7 @@ class SaveUtils
         {
             // This is the first save of the song, build the file name from song name + add extension if not already present
             String defaultName = song.getName().replace(" ", "");
-            if (!org.jjazz.util.api.Utilities.endsWithIgnoreCase(defaultName, "." + FileDirectoryManager.SONG_EXTENSION))
+            if (!org.jjazz.utilities.api.Utilities.endsWithIgnoreCase(defaultName, "." + FileDirectoryManager.SONG_EXTENSION))
             {
                 defaultName += "." + FileDirectoryManager.SONG_EXTENSION;
             }

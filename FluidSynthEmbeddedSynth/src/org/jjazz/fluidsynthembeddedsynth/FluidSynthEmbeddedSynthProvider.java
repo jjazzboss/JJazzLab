@@ -13,7 +13,7 @@ import org.jjazz.fluidsynthjava.api.FluidSynthJava;
 import org.jjazz.midi.api.JJazzMidiSystem;
 import org.jjazz.outputsynth.api.MidiSynthManager;
 import org.jjazz.outputsynth.api.OutputSynthManager;
-import org.jjazz.util.api.ResUtil;
+import org.jjazz.utilities.api.ResUtil;
 import org.netbeans.api.progress.BaseProgressUtils;
 import org.openide.util.Exceptions;
 import org.openide.util.lookup.ServiceProvider;

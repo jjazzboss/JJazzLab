@@ -20,20 +20,20 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.leadsheet.chordleadsheet;
+package org.jjazz.chordleadsheet;
 
 import java.text.ParseException;
 import java.util.List;
 import java.util.TreeSet;
 import org.jjazz.harmony.api.TimeSignature;
-import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
-import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
-import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
-import org.jjazz.leadsheet.chordleadsheet.item.CLI_SectionImpl;
-import org.jjazz.leadsheet.chordleadsheet.item.CLI_ChordSymbolImpl;
-import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
+import org.jjazz.chordleadsheet.api.UnsupportedEditException;
+import org.jjazz.chordleadsheet.api.item.CLI_Section;
+import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
+import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
+import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
+import org.jjazz.chordleadsheet.item.CLI_SectionImpl;
+import org.jjazz.chordleadsheet.item.CLI_ChordSymbolImpl;
+import org.jjazz.chordleadsheet.api.item.Position;
 import org.jjazz.undomanager.api.JJazzUndoManager;
 import static org.junit.Assert.assertTrue;
 import org.junit.*;

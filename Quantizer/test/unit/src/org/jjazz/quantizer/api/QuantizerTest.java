@@ -23,7 +23,7 @@
 package org.jjazz.quantizer.api;
 
 import org.jjazz.harmony.api.TimeSignature;
-import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
+import org.jjazz.chordleadsheet.api.item.Position;
 import static org.junit.Assert.assertEquals;
 import org.junit.*;
 

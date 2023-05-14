@@ -26,6 +26,7 @@
  */
 package org.jjazz.util.diff.api;
 
+import org.jjazz.diff.api.DiffProvider;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;

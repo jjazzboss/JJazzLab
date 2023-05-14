@@ -30,7 +30,7 @@ import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.spi.RhythmProvider;
-import org.jjazz.util.api.MultipleErrorsReport;
+import org.jjazz.utilities.api.MultipleErrorsReport;
 import org.openide.util.lookup.ServiceProvider;
 
 /**

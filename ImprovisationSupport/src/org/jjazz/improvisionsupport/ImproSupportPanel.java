@@ -140,7 +140,7 @@ public class ImproSupportPanel extends javax.swing.JPanel implements PropertyCha
         btn_generate = new javax.swing.JButton();
         cmb_improSupportMode = new javax.swing.JComboBox<>();
         jScrollPane1 = new javax.swing.JScrollPane();
-        hlp_area = new org.jjazz.ui.utilities.api.HelpTextArea();
+        hlp_area = new org.jjazz.uiutilities.api.HelpTextArea();
         cb_enable = new javax.swing.JCheckBox();
 
         org.openide.awt.Mnemonics.setLocalizedText(btn_generate, org.openide.util.NbBundle.getMessage(ImproSupportPanel.class, "ImproSupportPanel.btn_generate.text")); // NOI18N
@@ -220,7 +220,7 @@ public class ImproSupportPanel extends javax.swing.JPanel implements PropertyCha
     private javax.swing.JButton btn_generate;
     private javax.swing.JCheckBox cb_enable;
     private javax.swing.JComboBox<ImproSupport.Mode> cmb_improSupportMode;
-    private org.jjazz.ui.utilities.api.HelpTextArea hlp_area;
+    private org.jjazz.uiutilities.api.HelpTextArea hlp_area;
     private javax.swing.JScrollPane jScrollPane1;
     // End of variables declaration//GEN-END:variables
 }

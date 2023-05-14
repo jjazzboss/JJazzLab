@@ -46,9 +46,9 @@ import javax.sound.midi.Track;
 import org.jjazz.harmony.api.Chord;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.MidiUtilities;
-import org.jjazz.util.api.FloatRange;
-import org.jjazz.util.api.LongRange;
-import org.jjazz.util.api.ResUtil;
+import org.jjazz.utilities.api.FloatRange;
+import org.jjazz.utilities.api.LongRange;
+import org.jjazz.utilities.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 

@@ -39,7 +39,7 @@ import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.Phrases;
 import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.testplayerservice.spi.TestPlayer;
-import org.jjazz.util.api.IntRange;
+import org.jjazz.utilities.api.IntRange;
 import org.openide.util.lookup.ServiceProvider;
 
 /**

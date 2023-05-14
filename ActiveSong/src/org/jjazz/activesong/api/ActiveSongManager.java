@@ -43,7 +43,7 @@ import org.jjazz.outputsynth.api.OutputSynthManager;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.song.api.Song;
-import org.jjazz.util.api.ResUtil;
+import org.jjazz.utilities.api.ResUtil;
 import org.openide.util.Exceptions;
 
 /**

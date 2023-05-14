@@ -193,7 +193,7 @@
             <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="slider_zoomStateChanged"/>
           </Events>
           <AuxValues>
-            <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="Utilities.buildSlider(SwingConstants.HORIZONTAL, 0.5f)"/>
+            <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="org.jjazz.uiutilities.api.UIUtilities.buildSlider(SwingConstants.HORIZONTAL, 0.5f)"/>
           </AuxValues>
         </Component>
       </SubComponents>

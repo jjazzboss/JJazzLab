@@ -56,14 +56,14 @@ import javax.swing.event.UndoableEditListener;
 import javax.swing.undo.UndoableEdit;
 import org.jjazz.analytics.api.Analytics;
 import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
-import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
-import org.jjazz.leadsheet.chordleadsheet.api.ClsChangeListener;
-import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
-import org.jjazz.leadsheet.chordleadsheet.api.event.ClsActionEvent;
-import org.jjazz.leadsheet.chordleadsheet.api.event.ClsChangeEvent;
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
-import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo;
+import org.jjazz.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.chordleadsheet.api.ClsChangeListener;
+import org.jjazz.chordleadsheet.api.UnsupportedEditException;
+import org.jjazz.chordleadsheet.api.event.ClsActionEvent;
+import org.jjazz.chordleadsheet.api.event.ClsChangeEvent;
+import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
+import org.jjazz.chordleadsheet.api.item.CLI_Section;
+import org.jjazz.chordleadsheet.api.item.ChordRenderingInfo;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.rhythm.api.Rhythm;
@@ -74,8 +74,8 @@ import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SgsChangeListener;
 import org.jjazz.songstructure.api.event.SgsActionEvent;
 import org.jjazz.undomanager.api.SimpleEdit;
-import org.jjazz.util.api.ResUtil;
-import org.jjazz.util.api.StringProperties;
+import org.jjazz.utilities.api.ResUtil;
+import org.jjazz.utilities.api.StringProperties;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.util.Exceptions;
@@ -153,7 +153,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
      *
      * @param name A non-empty string.
      * @param cls
-     * @throws org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException
+     * @throws org.jjazz.chordleadsheet.api.UnsupportedEditException
      */
     protected Song(String name, ChordLeadSheet cls) throws UnsupportedEditException
     {

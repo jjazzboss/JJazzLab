@@ -32,10 +32,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.harmony.api.TimeSignature;
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
-import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo;
-import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo.Feature;
-import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
+import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
+import org.jjazz.chordleadsheet.api.item.ChordRenderingInfo;
+import org.jjazz.chordleadsheet.api.item.ChordRenderingInfo.Feature;
+import org.jjazz.chordleadsheet.api.item.Position;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.midi.api.MidiConst;
 import static org.jjazz.rhythmmusicgeneration.api.AccentProcessor.LOGGER;
@@ -45,8 +45,8 @@ import org.jjazz.rhythmmusicgeneration.api.GridChordContext;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
-import org.jjazz.util.api.FloatRange;
-import org.jjazz.util.api.IntRange;
+import org.jjazz.utilities.api.FloatRange;
+import org.jjazz.utilities.api.IntRange;
 
 /**
  * Phrase manipulation methods dealing with accents and anticipated chords.

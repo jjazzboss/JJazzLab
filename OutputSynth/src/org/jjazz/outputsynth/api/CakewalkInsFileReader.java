@@ -50,7 +50,7 @@ import org.openide.util.lookup.ServiceProvider;
 import org.jjazz.midi.spi.MidiSynthFileReader;
 import org.jjazz.midi.api.synths.GSDrumsInstrument;
 import org.jjazz.midi.api.synths.GSInstrument;
-import org.jjazz.util.api.ResUtil;
+import org.jjazz.utilities.api.ResUtil;
 
 /**
  * A MidiSynth provider reading Cakewalk .ins instrument definition files.

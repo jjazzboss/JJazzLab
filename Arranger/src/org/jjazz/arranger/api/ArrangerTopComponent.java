@@ -28,7 +28,7 @@ import org.jjazz.activesong.api.ActiveSongManager;
 import org.jjazz.arranger.ArrangerPanel;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.song.api.Song;
-import org.jjazz.util.api.ResUtil;
+import org.jjazz.utilities.api.ResUtil;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -40,7 +40,7 @@ import org.openide.windows.WindowManager;
  * Arranger Top component
  */
 @ConvertAsProperties(
-        dtd = "-//org.jjazz.arrangermode.api//Arranger//EN",
+        dtd = "-//org.jjazz.arranger.api//Arranger//EN",
         autostore = false
 )
 @TopComponent.Description(
@@ -49,7 +49,7 @@ import org.openide.windows.WindowManager;
         persistenceType = TopComponent.PERSISTENCE_ALWAYS
 )
 @TopComponent.Registration(mode = "jlnavigator", openAtStartup = false, position = 40)
-@ActionID(category = "Window", id = "org.jjazz.arrangermode.api.ArrangerTopComponent")
+@ActionID(category = "Window", id = "org.jjazz.arranger.api.ArrangerTopComponent")
 @ActionReference(path = "Menu/Tools", position = 30)
 @TopComponent.OpenActionRegistration(
         displayName = "#CTL_ArrangerAction",

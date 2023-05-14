@@ -27,9 +27,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import org.jjazz.harmony.api.TimeSignature;
-import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
+import org.jjazz.chordleadsheet.api.item.Position;
 import org.jjazz.songstructure.api.SongStructure;
-import org.jjazz.util.api.IntRange;
+import org.jjazz.utilities.api.IntRange;
 
 /**
  * A beat Iterator within a Song.

@@ -35,10 +35,10 @@ import javax.swing.BorderFactory;
 import javax.swing.border.Border;
 import org.jjazz.analytics.api.Analytics;
 import org.jjazz.chordinspector.spi.ChordViewer;
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Factory;
-import org.jjazz.ui.flatcomponents.api.BorderManager;
-import org.jjazz.ui.flatcomponents.api.FlatButton;
+import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
+import org.jjazz.chordleadsheet.api.item.CLI_Factory;
+import org.jjazz.flatcomponents.api.BorderManager;
+import org.jjazz.flatcomponents.api.FlatButton;
 import org.jjazz.uisettings.api.GeneralUISettings;
 import org.openide.util.*;
 

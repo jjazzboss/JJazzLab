@@ -23,7 +23,7 @@
 package org.jjazz.chordinspector;
 
 import java.util.logging.Logger;
-import org.jjazz.util.api.ResUtil;
+import org.jjazz.utilities.api.ResUtil;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;

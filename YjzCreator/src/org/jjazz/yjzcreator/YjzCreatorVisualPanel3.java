@@ -24,7 +24,7 @@ package org.jjazz.yjzcreator;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import org.jjazz.util.api.ResUtil;
+import org.jjazz.utilities.api.ResUtil;
 
 public final class YjzCreatorVisualPanel3 extends JPanel
 {
@@ -143,18 +143,18 @@ public final class YjzCreatorVisualPanel3 extends JPanel
     {
 
         jScrollPane2 = new javax.swing.JScrollPane();
-        helpTextArea1 = new org.jjazz.ui.utilities.api.HelpTextArea();
+        helpTextArea1 = new org.jjazz.uiutilities.api.HelpTextArea();
         jLabel1 = new javax.swing.JLabel();
         jPanel1 = new javax.swing.JPanel();
         lbl_resultMainC = new javax.swing.JLabel();
-        spn_nbMainA = new org.jjazz.ui.utilities.api.WheelSpinner();
+        spn_nbMainA = new org.jjazz.uiutilities.api.WheelSpinner();
         jLabel6 = new javax.swing.JLabel();
-        spn_nbMainD = new org.jjazz.ui.utilities.api.WheelSpinner();
-        spn_nbMainB = new org.jjazz.ui.utilities.api.WheelSpinner();
+        spn_nbMainD = new org.jjazz.uiutilities.api.WheelSpinner();
+        spn_nbMainB = new org.jjazz.uiutilities.api.WheelSpinner();
         jLabel4 = new javax.swing.JLabel();
         lbl_resultMainB = new javax.swing.JLabel();
         jLabel5 = new javax.swing.JLabel();
-        spn_nbMainC = new org.jjazz.ui.utilities.api.WheelSpinner();
+        spn_nbMainC = new org.jjazz.uiutilities.api.WheelSpinner();
         lbl_resultMainA = new javax.swing.JLabel();
         jLabel7 = new javax.swing.JLabel();
         lbl_resultMainD = new javax.swing.JLabel();
@@ -164,7 +164,7 @@ public final class YjzCreatorVisualPanel3 extends JPanel
         lbl_mainDsize = new javax.swing.JLabel();
         cb_includeIntroEndings = new javax.swing.JCheckBox();
         cb_includeFills = new javax.swing.JCheckBox();
-        spn_nbSrcPhrases = new org.jjazz.ui.utilities.api.WheelSpinner();
+        spn_nbSrcPhrases = new org.jjazz.uiutilities.api.WheelSpinner();
         jLabel16 = new javax.swing.JLabel();
         lbl_yjzFilename = new javax.swing.JLabel();
 
@@ -395,7 +395,7 @@ public final class YjzCreatorVisualPanel3 extends JPanel
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JCheckBox cb_includeFills;
     private javax.swing.JCheckBox cb_includeIntroEndings;
-    private org.jjazz.ui.utilities.api.HelpTextArea helpTextArea1;
+    private org.jjazz.uiutilities.api.HelpTextArea helpTextArea1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel16;
     private javax.swing.JLabel jLabel4;
@@ -413,11 +413,11 @@ public final class YjzCreatorVisualPanel3 extends JPanel
     private javax.swing.JLabel lbl_resultMainC;
     private javax.swing.JLabel lbl_resultMainD;
     private javax.swing.JLabel lbl_yjzFilename;
-    private org.jjazz.ui.utilities.api.WheelSpinner spn_nbMainA;
-    private org.jjazz.ui.utilities.api.WheelSpinner spn_nbMainB;
-    private org.jjazz.ui.utilities.api.WheelSpinner spn_nbMainC;
-    private org.jjazz.ui.utilities.api.WheelSpinner spn_nbMainD;
-    private org.jjazz.ui.utilities.api.WheelSpinner spn_nbSrcPhrases;
+    private org.jjazz.uiutilities.api.WheelSpinner spn_nbMainA;
+    private org.jjazz.uiutilities.api.WheelSpinner spn_nbMainB;
+    private org.jjazz.uiutilities.api.WheelSpinner spn_nbMainC;
+    private org.jjazz.uiutilities.api.WheelSpinner spn_nbMainD;
+    private org.jjazz.uiutilities.api.WheelSpinner spn_nbSrcPhrases;
     // End of variables declaration//GEN-END:variables
 
 }

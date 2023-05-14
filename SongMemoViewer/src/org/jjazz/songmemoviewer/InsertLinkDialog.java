@@ -14,8 +14,8 @@ import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JRootPane;
 import javax.swing.KeyStroke;
-import org.jjazz.ui.utilities.api.Utilities;
-import org.jjazz.util.api.ResUtil;
+import org.jjazz.uiutilities.api.UIUtilities;
+import org.jjazz.utilities.api.ResUtil;
 import org.openide.*;
 import org.openide.util.Exceptions;
 import org.openide.util.NbPreferences;
@@ -40,7 +40,7 @@ public class InsertLinkDialog extends javax.swing.JDialog
         super(parent, modal);
         initComponents();
 
-        Utilities.installSelectAllWhenFocused(textfield_internetLink);
+        UIUtilities.installSelectAllWhenFocused(textfield_internetLink);
     }
 
     /**
@@ -155,7 +155,7 @@ public class InsertLinkDialog extends javax.swing.JDialog
         btn_select = new javax.swing.JButton();
         textfield_internetLink = new javax.swing.JTextField();
         jScrollPane2 = new javax.swing.JScrollPane();
-        helpTextArea1 = new org.jjazz.ui.utilities.api.HelpTextArea();
+        helpTextArea1 = new org.jjazz.uiutilities.api.HelpTextArea();
         btn_cancel = new javax.swing.JButton();
         btn_insert = new javax.swing.JButton();
         btn_testLink = new javax.swing.JButton();
@@ -342,7 +342,7 @@ public class InsertLinkDialog extends javax.swing.JDialog
 
     private void btn_selectActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_selectActionPerformed
     {//GEN-HEADEREND:event_btn_selectActionPerformed
-        JFileChooser chooser = Utilities.getFileChooserInstance();
+        JFileChooser chooser = UIUtilities.getFileChooserInstance();
         chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
         chooser.setMultiSelectionEnabled(false);
         chooser.setDialogTitle(ResUtil.getString(getClass(), "InsertLinkDialog.SelectFile"));
@@ -377,14 +377,14 @@ public class InsertLinkDialog extends javax.swing.JDialog
             File file = getFileOrNotify(textfield_fileLink.getText());
             if (file != null)
             {
-                org.jjazz.util.api.Utilities.openFile(file, true);
+                org.jjazz.utilities.api.Utilities.openFile(file, true);
             }
         } else
         {
             URL url = getURLorNotifyUser(textfield_internetLink.getText());
             if (url != null)
             {
-                org.jjazz.util.api.Utilities.openInBrowser(url, true);
+                org.jjazz.utilities.api.Utilities.openInBrowser(url, true);
             }
         }
 
@@ -397,7 +397,7 @@ public class InsertLinkDialog extends javax.swing.JDialog
     private javax.swing.JButton btn_insert;
     private javax.swing.JButton btn_select;
     private javax.swing.JButton btn_testLink;
-    private org.jjazz.ui.utilities.api.HelpTextArea helpTextArea1;
+    private org.jjazz.uiutilities.api.HelpTextArea helpTextArea1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JRadioButton rbtn_external;
     private javax.swing.JRadioButton rbtn_file;

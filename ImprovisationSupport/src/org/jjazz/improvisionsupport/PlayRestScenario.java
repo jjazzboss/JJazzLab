@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.logging.Logger;
 import org.jjazz.song.api.BeatIterator;
 import org.jjazz.song.api.Song;
-import org.jjazz.util.api.IntRange;
+import org.jjazz.utilities.api.IntRange;
 
 /**
  * A play/rest scenario for a given song.

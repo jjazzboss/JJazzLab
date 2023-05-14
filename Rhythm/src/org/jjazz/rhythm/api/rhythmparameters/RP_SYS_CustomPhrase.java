@@ -8,7 +8,7 @@ import java.util.logging.Logger;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.rhythm.api.RhythmVoice;
-import org.jjazz.util.api.ResUtil;
+import org.jjazz.utilities.api.ResUtil;
 
 /**
  * A RhythmParameter to replace one or more generated Phrases by custom Phrases.

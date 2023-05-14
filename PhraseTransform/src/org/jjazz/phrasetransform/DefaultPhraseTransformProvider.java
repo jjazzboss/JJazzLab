@@ -46,8 +46,8 @@ import org.openide.util.lookup.ServiceProvider;
 import org.jjazz.phrasetransform.spi.PhraseTransformProvider;
 import org.jjazz.phrasetransform.api.PhraseTransform;
 import org.jjazz.phrasetransform.api.PhraseTransformCategory;
-import org.jjazz.util.api.FloatRange;
-import org.jjazz.util.api.ResUtil;
+import org.jjazz.utilities.api.FloatRange;
+import org.jjazz.utilities.api.ResUtil;
 import org.netbeans.api.annotations.common.StaticResource;
 
 /**

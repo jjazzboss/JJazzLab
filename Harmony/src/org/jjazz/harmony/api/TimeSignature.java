@@ -24,7 +24,7 @@ package org.jjazz.harmony.api;
 
 import java.text.ParseException;
 import java.util.logging.Logger;
-import org.jjazz.util.api.ResUtil;
+import org.jjazz.utilities.api.ResUtil;
 
 /**
  * The time signature of a bar, e.g. C or 4/4, 6/8 etc...

@@ -25,7 +25,7 @@ package org.jjazz.songcontext.api;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.song.api.Song;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.util.api.IntRange;
+import org.jjazz.utilities.api.IntRange;
 
 /**
  * A SongContext with only one SongPart.

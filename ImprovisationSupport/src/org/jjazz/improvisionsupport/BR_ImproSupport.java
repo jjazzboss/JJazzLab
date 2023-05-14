@@ -46,20 +46,20 @@ import javax.swing.event.ChangeListener;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.improvisionsupport.PlayRestScenario.DenseSparseValue;
 import org.jjazz.improvisionsupport.PlayRestScenario.PlayRestValue;
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
-import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
-import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
+import org.jjazz.chordleadsheet.api.item.CLI_Section;
+import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
+import org.jjazz.chordleadsheet.api.item.Position;
 import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.song.api.Song;
-import org.jjazz.ui.cl_editor.api.CL_Editor;
-import org.jjazz.ui.cl_editor.barrenderer.api.BarRenderer;
-import org.jjazz.ui.cl_editor.barrenderer.api.BarRendererSettings;
-import org.jjazz.ui.itemrenderer.api.ItemRenderer;
-import org.jjazz.ui.itemrenderer.api.ItemRendererFactory;
-import org.jjazz.ui.utilities.api.HSLColor;
-import org.jjazz.ui.utilities.api.StringMetrics;
+import org.jjazz.cl_editor.api.CL_Editor;
+import org.jjazz.cl_editor.barrenderer.api.BarRenderer;
+import org.jjazz.cl_editor.barrenderer.api.BarRendererSettings;
+import org.jjazz.itemrenderer.api.ItemRenderer;
+import org.jjazz.itemrenderer.api.ItemRendererFactory;
+import org.jjazz.uiutilities.api.HSLColor;
+import org.jjazz.uiutilities.api.StringMetrics;
 import org.jjazz.uisettings.api.GeneralUISettings;
-import org.jjazz.util.api.ResUtil;
+import org.jjazz.utilities.api.ResUtil;
 
 /**
  * A BarRenderer to show improvisation support info.

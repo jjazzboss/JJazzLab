@@ -10,5 +10,5 @@
 /*/*/dist/
 /*/*/nbproject/private/
 /MusicControl/build
-/Score/src/org/jjazz/ui/score/TestScore/build/
-/Score/src/org/jjazz/ui/score/TestScore/nbproject/private/
+/Score/src/org/jjazz/score/TestScore/build/
+/Score/src/org/jjazz/score/TestScore/nbproject/private/

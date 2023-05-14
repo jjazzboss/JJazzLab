@@ -22,8 +22,8 @@
  */
 package org.jjazz.songstructure.api;
 
-import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
-import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
+import org.jjazz.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.openide.util.Lookup;
 
 /**
@@ -56,7 +56,7 @@ public abstract class SongStructureFactory
      * @param cls The model to rely on to build the SongParts.
      * @param keepSgsUpdated If true sgs will remain in sync with cls changes.
      * @return
-     * @throws org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException
+     * @throws org.jjazz.chordleadsheet.api.UnsupportedEditException
      */
     abstract public SongStructure createSgs(ChordLeadSheet cls, boolean keepSgsUpdated) throws UnsupportedEditException;
 }

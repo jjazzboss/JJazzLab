@@ -32,13 +32,13 @@ import java.util.TreeSet;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 import org.jjazz.harmony.api.Note;
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Factory;
-import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo;
-import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo.Feature;
-import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
-import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
-import org.jjazz.util.api.IntRange;
+import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
+import org.jjazz.chordleadsheet.api.item.CLI_Factory;
+import org.jjazz.chordleadsheet.api.item.ChordRenderingInfo;
+import org.jjazz.chordleadsheet.api.item.ChordRenderingInfo.Feature;
+import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
+import org.jjazz.chordleadsheet.api.item.Position;
+import org.jjazz.utilities.api.IntRange;
 
 /**
  * A convenience class to analyze and manipulate a suite of chord symbols extracted from a ChordLeadSheet, possibly with different

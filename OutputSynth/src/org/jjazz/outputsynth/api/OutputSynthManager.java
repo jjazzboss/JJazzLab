@@ -40,7 +40,7 @@ import org.jjazz.midi.api.synths.GSSynth;
 import org.jjazz.midi.api.synths.XGSynth;
 import org.jjazz.upgrade.api.UpgradeManager;
 import org.jjazz.upgrade.api.UpgradeTask;
-import org.jjazz.util.api.Utilities;
+import org.jjazz.utilities.api.Utilities;
 import org.openide.util.NbPreferences;
 import org.openide.util.lookup.ServiceProvider;
 

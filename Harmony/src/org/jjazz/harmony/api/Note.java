@@ -26,7 +26,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.text.ParseException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.jjazz.util.api.ResUtil;
+import org.jjazz.utilities.api.ResUtil;
 
 /**
  * A note has a pitch, a duration (symbolic and in beats), and a velocity.

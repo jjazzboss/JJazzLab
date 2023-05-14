@@ -39,11 +39,11 @@ import javax.swing.JList;
 import javax.swing.SwingUtilities;
 import org.openide.awt.ColorComboBox;
 import org.openide.util.Lookup;
-import org.jjazz.ui.utilities.api.FontColorUserSettingsProvider;
-import org.jjazz.ui.utilities.api.FontColorUserSettingsProvider.FCSetting;
-import org.jjazz.ui.utilities.api.JFontChooser;
-import org.jjazz.util.api.ResUtil;
-import org.jjazz.util.api.Utilities;
+import org.jjazz.uiutilities.api.FontColorUserSettingsProvider;
+import org.jjazz.uiutilities.api.FontColorUserSettingsProvider.FCSetting;
+import org.jjazz.uiutilities.api.JFontChooser;
+import org.jjazz.utilities.api.ResUtil;
+import org.jjazz.utilities.api.Utilities;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 

@@ -38,7 +38,7 @@ import javax.sound.midi.MidiUnavailableException;
 import javax.swing.SwingUtilities;
 import org.jjazz.activesong.api.ActiveSongManager;
 import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
+import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.MidiMixManager;
@@ -56,13 +56,13 @@ import org.jjazz.song.api.SongCreationException;
 import org.jjazz.song.api.SongFactory;
 import org.jjazz.song.api.SongUtilities;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.ui.cl_editor.api.CL_Editor;
-import org.jjazz.ui.cl_editor.api.CL_EditorTopComponent;
-import org.jjazz.ui.ss_editor.api.SS_Editor;
-import org.jjazz.ui.ss_editor.api.SS_EditorTopComponent;
+import org.jjazz.cl_editor.api.CL_Editor;
+import org.jjazz.cl_editor.api.CL_EditorTopComponent;
+import org.jjazz.ss_editor.api.SS_Editor;
+import org.jjazz.ss_editor.api.SS_EditorTopComponent;
 import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
-import org.jjazz.util.api.ResUtil;
+import org.jjazz.utilities.api.ResUtil;
 import org.openide.util.Exceptions;
 import org.openide.windows.Mode;
 import org.openide.windows.TopComponent;
@@ -257,21 +257,21 @@ public class SongEditorManager implements PropertyChangeListener
         Runnable openLinksTask = () -> 
         {
             // Open possible links
-            for (URL url : org.jjazz.util.api.Utilities.extractHttpURLs(song.getComments()))
+            for (URL url : org.jjazz.utilities.api.Utilities.extractHttpURLs(song.getComments()))
             {
                 LOGGER.log(Level.INFO, "showSong() song={0} opening song memo internet link: {1}", new Object[]
                 {
                     song.getName(), url
                 });
-                org.jjazz.util.api.Utilities.openInBrowser(url, true);         // No user notifying
+                org.jjazz.utilities.api.Utilities.openInBrowser(url, true);         // No user notifying
             }
-            for (File file : org.jjazz.util.api.Utilities.extractFileURLsAsFiles(song.getComments()))
+            for (File file : org.jjazz.utilities.api.Utilities.extractFileURLsAsFiles(song.getComments()))
             {
                 LOGGER.log(Level.INFO, "showSong() song={0} opening song memo file link: {1}", new Object[]
                 {
                     song.getName(), file
                 });
-                org.jjazz.util.api.Utilities.openFile(file, true);              // No user notifying
+                org.jjazz.utilities.api.Utilities.openFile(file, true);              // No user notifying
             }
         };
         if (makeActive)

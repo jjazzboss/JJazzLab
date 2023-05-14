@@ -3,7 +3,7 @@
     <type>org.netbeans.modules.apisupport.project</type>
     <configuration>
         <data xmlns="http://www.netbeans.org/ns/nb-module-project/3">
-            <code-name-base>org.jjazz.ui.colorsetmanager</code-name-base>
+            <code-name-base>org.jjazz.colorsetmanager</code-name-base>
             <suite-component/>
             <module-dependencies>
                 <dependency>
@@ -15,7 +15,7 @@
                     </run-dependency>
                 </dependency>
                 <dependency>
-                    <code-name-base>org.jjazz.ui.utilities</code-name-base>
+                    <code-name-base>org.jjazz.uiutilities</code-name-base>
                     <build-prerequisite/>
                     <compile-dependency/>
                     <run-dependency>
@@ -31,7 +31,7 @@
                     </run-dependency>
                 </dependency>
                 <dependency>
-                    <code-name-base>org.jjazz.util</code-name-base>
+                    <code-name-base>org.jjazz.utilities</code-name-base>
                     <build-prerequisite/>
                     <compile-dependency/>
                     <run-dependency>
@@ -65,7 +65,7 @@
                 </test-type>
             </test-dependencies>
             <public-packages>
-                <package>org.jjazz.ui.colorsetmanager.api</package>
+                <package>org.jjazz.colorsetmanager.api</package>
             </public-packages>
         </data>
     </configuration>

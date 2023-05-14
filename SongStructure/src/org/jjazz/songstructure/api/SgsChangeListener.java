@@ -22,7 +22,7 @@
  */
 package org.jjazz.songstructure.api;
 
-import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
+import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.songstructure.api.event.SgsChangeEvent;
 
 /**

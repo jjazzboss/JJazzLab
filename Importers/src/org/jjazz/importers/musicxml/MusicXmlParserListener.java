@@ -22,7 +22,7 @@ package org.jjazz.importers.musicxml;
 
 import org.jjazz.harmony.api.Note;
 import org.jjazz.harmony.api.TimeSignature;
-import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
+import org.jjazz.chordleadsheet.api.item.Position;
 
 public interface MusicXmlParserListener
 {

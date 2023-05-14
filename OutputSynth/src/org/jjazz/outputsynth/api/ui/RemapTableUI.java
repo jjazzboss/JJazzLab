@@ -42,7 +42,7 @@ import org.jjazz.midi.api.Instrument;
 import org.jjazz.midi.api.synths.Family;
 import org.jjazz.midi.api.synths.GMSynth;
 import org.jjazz.outputsynth.api.GMRemapTable;
-import org.jjazz.util.api.ResUtil;
+import org.jjazz.utilities.api.ResUtil;
 
 /**
  * A JTable to edit a GM1RemapTable.

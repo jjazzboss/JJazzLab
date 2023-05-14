@@ -37,8 +37,8 @@ import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.jjazz.ui.utilities.api.Utilities;
-import org.jjazz.util.api.ResUtil;
+import org.jjazz.uiutilities.api.UIUtilities;
+import org.jjazz.utilities.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.windows.WindowManager;
@@ -59,7 +59,7 @@ public final class OpenSong implements ActionListener
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        JFileChooser chooser = Utilities.getFileChooserInstance();
+        JFileChooser chooser = UIUtilities.getFileChooserInstance();
         FileNameExtensionFilter filter = new FileNameExtensionFilter(ResUtil.getString(getClass(), "CTL_JJazzOpenSongs") + " (" + "." + FileDirectoryManager.SONG_EXTENSION + ")", FileDirectoryManager.SONG_EXTENSION);
         chooser.resetChoosableFileFilters();
         chooser.setFileFilter(filter);

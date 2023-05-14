@@ -16,7 +16,7 @@
 
   <Layout class="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout"/>
   <SubComponents>
-    <Component class="org.jjazz.ui.keyboardcomponent.api.KeyboardComponent" name="keyboard">
+    <Component class="org.jjazz.instrumentcomponents.keyboard.api.KeyboardComponent" name="keyboard">
       <AuxValues>
         <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new KeyboardComponent(KeyboardRange._49_KEYS)"/>
       </AuxValues>

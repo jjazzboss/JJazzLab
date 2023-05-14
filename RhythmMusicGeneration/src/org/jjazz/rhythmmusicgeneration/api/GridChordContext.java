@@ -23,10 +23,10 @@
 package org.jjazz.rhythmmusicgeneration.api;
 
 import org.jjazz.harmony.api.TimeSignature;
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
+import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.phrase.api.Grid;
-import org.jjazz.util.api.FloatRange;
-import org.jjazz.util.api.IntRange;
+import org.jjazz.utilities.api.FloatRange;
+import org.jjazz.utilities.api.IntRange;
 
 /**
  * A helper class to calculate a number of data related to one chord symbol of a chord sequence with an associated grid.

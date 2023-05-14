@@ -33,10 +33,10 @@ import org.jjazz.song.api.Song;
 import org.jjazz.songcontext.api.SongPartContext;
 import org.jjazz.songeditormanager.api.SongEditorManager;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.ui.rpviewer.spi.RpCustomEditor;
-import org.jjazz.ui.utilities.api.Utilities;
-import org.jjazz.util.api.FloatRange;
-import org.jjazz.util.api.ResUtil;
+import org.jjazz.ss_editor.rpviewer.spi.RpCustomEditor;
+import org.jjazz.uiutilities.api.UIUtilities;
+import org.jjazz.utilities.api.FloatRange;
+import org.jjazz.utilities.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.util.Exceptions;
@@ -70,8 +70,8 @@ public class RP_SYS_CustomPhraseEditor extends RpCustomEditor<RP_SYS_CustomPhras
 
         list_rhythmVoices.setCellRenderer(new RhythmVoiceRenderer());
 
-        Utilities.installEscapeKeyAction(this, () -> btn_cancelActionPerformed(null));
-        Utilities.installEnterKeyAction(this, () -> btn_editActionPerformed(null));
+        UIUtilities.installEscapeKeyAction(this, () -> btn_cancelActionPerformed(null));
+        UIUtilities.installEnterKeyAction(this, () -> btn_editActionPerformed(null));
 
     }
 

@@ -35,8 +35,8 @@ import org.openide.util.Lookup;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import org.jjazz.midi.spi.MidiSynthFileReader;
-import org.jjazz.util.api.ResUtil;
-import org.jjazz.util.api.Utilities;
+import org.jjazz.utilities.api.ResUtil;
+import org.jjazz.utilities.api.Utilities;
 
 /**
  * A MidiSynth is a collection of InstrumentBanks.

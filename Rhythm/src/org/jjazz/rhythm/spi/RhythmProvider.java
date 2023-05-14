@@ -22,7 +22,7 @@
  */
 package org.jjazz.rhythm.spi;
 
-import org.jjazz.util.api.MultipleErrorsReport;
+import org.jjazz.utilities.api.MultipleErrorsReport;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;

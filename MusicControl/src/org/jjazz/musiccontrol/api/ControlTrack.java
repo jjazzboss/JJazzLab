@@ -31,15 +31,15 @@ import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MetaMessage;
 import javax.sound.midi.MidiEvent;
 import javax.sound.midi.Track;
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
-import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
+import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
+import org.jjazz.chordleadsheet.api.item.Position;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.rhythm.api.UserErrorGenerationException;
 import org.jjazz.rhythmmusicgeneration.api.SongChordSequence;
 import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.util.api.IntRange;
+import org.jjazz.utilities.api.IntRange;
 import org.openide.util.Exceptions;
 
 /**

@@ -3,7 +3,7 @@
     <type>org.netbeans.modules.apisupport.project</type>
     <configuration>
         <data xmlns="http://www.netbeans.org/ns/nb-module-project/3">
-            <code-name-base>org.jjazz.ui.musiccontrolactions</code-name-base>
+            <code-name-base>org.jjazz.musiccontrolactions</code-name-base>
             <suite-component/>
             <module-dependencies>
                 <dependency>
@@ -31,7 +31,23 @@
                     </run-dependency>
                 </dependency>
                 <dependency>
+                    <code-name-base>org.jjazz.cl_editor</code-name-base>
+                    <build-prerequisite/>
+                    <compile-dependency/>
+                    <run-dependency>
+                        <specification-version>1.0</specification-version>
+                    </run-dependency>
+                </dependency>
+                <dependency>
                     <code-name-base>org.jjazz.filedirectorymanager</code-name-base>
+                    <build-prerequisite/>
+                    <compile-dependency/>
+                    <run-dependency>
+                        <specification-version>1.0</specification-version>
+                    </run-dependency>
+                </dependency>
+                <dependency>
+                    <code-name-base>org.jjazz.flatcomponents</code-name-base>
                     <build-prerequisite/>
                     <compile-dependency/>
                     <run-dependency>
@@ -55,7 +71,7 @@
                     </run-dependency>
                 </dependency>
                 <dependency>
-                    <code-name-base>org.jjazz.leadsheet.chordleadsheet</code-name-base>
+                    <code-name-base>org.jjazz.chordleadsheet</code-name-base>
                     <build-prerequisite/>
                     <compile-dependency/>
                     <run-dependency>
@@ -72,6 +88,14 @@
                 </dependency>
                 <dependency>
                     <code-name-base>org.jjazz.midimix</code-name-base>
+                    <build-prerequisite/>
+                    <compile-dependency/>
+                    <run-dependency>
+                        <specification-version>1.0</specification-version>
+                    </run-dependency>
+                </dependency>
+                <dependency>
+                    <code-name-base>org.jjazz.mixconsole</code-name-base>
                     <build-prerequisite/>
                     <compile-dependency/>
                     <run-dependency>
@@ -135,7 +159,7 @@
                     </run-dependency>
                 </dependency>
                 <dependency>
-                    <code-name-base>org.jjazz.ui.cl_editor</code-name-base>
+                    <code-name-base>org.jjazz.ss_editor</code-name-base>
                     <build-prerequisite/>
                     <compile-dependency/>
                     <run-dependency>
@@ -143,31 +167,7 @@
                     </run-dependency>
                 </dependency>
                 <dependency>
-                    <code-name-base>org.jjazz.ui.flatcomponents</code-name-base>
-                    <build-prerequisite/>
-                    <compile-dependency/>
-                    <run-dependency>
-                        <specification-version>1.0</specification-version>
-                    </run-dependency>
-                </dependency>
-                <dependency>
-                    <code-name-base>org.jjazz.ui.mixconsole</code-name-base>
-                    <build-prerequisite/>
-                    <compile-dependency/>
-                    <run-dependency>
-                        <specification-version>1.0</specification-version>
-                    </run-dependency>
-                </dependency>
-                <dependency>
-                    <code-name-base>org.jjazz.ui.ss_editor</code-name-base>
-                    <build-prerequisite/>
-                    <compile-dependency/>
-                    <run-dependency>
-                        <specification-version>1.0</specification-version>
-                    </run-dependency>
-                </dependency>
-                <dependency>
-                    <code-name-base>org.jjazz.ui.utilities</code-name-base>
+                    <code-name-base>org.jjazz.uiutilities</code-name-base>
                     <build-prerequisite/>
                     <compile-dependency/>
                     <run-dependency>
@@ -183,7 +183,7 @@
                     </run-dependency>
                 </dependency>
                 <dependency>
-                    <code-name-base>org.jjazz.util</code-name-base>
+                    <code-name-base>org.jjazz.utilities</code-name-base>
                     <build-prerequisite/>
                     <compile-dependency/>
                     <run-dependency>
@@ -267,8 +267,8 @@
                 </test-type>
             </test-dependencies>
             <public-packages>
-                <package>org.jjazz.ui.musiccontrolactions.api</package>
-                <package>org.jjazz.ui.musiccontrolactions.ui.api</package>
+                <package>org.jjazz.musiccontrolactions.api</package>
+                <package>org.jjazz.musiccontrolactions.api.ui</package>
             </public-packages>
         </data>
     </configuration>

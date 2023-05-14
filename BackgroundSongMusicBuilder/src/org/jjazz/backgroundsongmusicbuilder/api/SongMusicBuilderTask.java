@@ -29,7 +29,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import org.jjazz.leadsheet.chordleadsheet.api.ClsUtilities;
+import org.jjazz.chordleadsheet.api.ClsUtilities;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.musiccontrol.api.SongMusicGenerationListener;

@@ -27,10 +27,10 @@ import java.awt.Rectangle;
 import java.util.logging.Logger;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
+import org.jjazz.chordleadsheet.api.item.Position;
 import org.jjazz.song.api.BeatIterator;
 import org.jjazz.song.api.Song;
-import org.jjazz.ui.utilities.api.Utilities;
+import org.jjazz.uiutilities.api.UIUtilities;
 
 /**
  * The ruler panel.
@@ -115,7 +115,7 @@ public class RulerPanel extends JPanel
 
         BeatIterator beatIterator = new BeatIterator(song, posFrom);
 
-        Rectangle r = Utilities.getUsableArea(this);
+        Rectangle r = UIUtilities.getUsableArea(this);
         chordX = r.x;
         int beatIndex = 0;
         float beatSizeInPixels = ((float) r.width) / nbNaturalBeats;

@@ -38,8 +38,8 @@ import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.midi.api.JJazzMidiSystem;
 import org.jjazz.songeditormanager.api.StartupShutdownSongManager;
 import org.jjazz.uisettings.api.GeneralUISettings;
-import org.jjazz.ui.utilities.api.Utilities;
-import org.jjazz.util.api.ResUtil;
+import org.jjazz.uiutilities.api.UIUtilities;
+import org.jjazz.utilities.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.LifecycleManager;
 import org.openide.NotifyDescriptor;
@@ -144,7 +144,7 @@ final class GeneralPanel extends javax.swing.JPanel implements PropertyChangeLis
         cb_useRhythmFileUserDir = new javax.swing.JCheckBox();
         tf_defaultRhythmMixDir = new javax.swing.JTextField();
         jScrollPane1 = new javax.swing.JScrollPane();
-        helpTextArea1 = new org.jjazz.ui.utilities.api.HelpTextArea();
+        helpTextArea1 = new org.jjazz.uiutilities.api.HelpTextArea();
         cb_disableMouseWheelChangeValue = new javax.swing.JCheckBox();
         cmb_languages = new javax.swing.JComboBox<>();
         lbl_language = new javax.swing.JLabel();
@@ -273,7 +273,7 @@ final class GeneralPanel extends javax.swing.JPanel implements PropertyChangeLis
 
     private void btn_changeDefaultRhythmMixDirActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_changeDefaultRhythmMixDirActionPerformed
     {//GEN-HEADEREND:event_btn_changeDefaultRhythmMixDirActionPerformed
-        File f = Utilities.showDirChooser(tf_defaultRhythmMixDir.getText(), "Select a directory for rhythm's default mix files");
+        File f = UIUtilities.showDirChooser(tf_defaultRhythmMixDir.getText(), "Select a directory for rhythm's default mix files");
         FileDirectoryManager fdm = FileDirectoryManager.getInstance();
         if (f != null)
         {
@@ -359,7 +359,7 @@ final class GeneralPanel extends javax.swing.JPanel implements PropertyChangeLis
     private javax.swing.JCheckBox cb_loadLastRecentFile;
     private javax.swing.JCheckBox cb_useRhythmFileUserDir;
     private javax.swing.JComboBox<Locale> cmb_languages;
-    private org.jjazz.ui.utilities.api.HelpTextArea helpTextArea1;
+    private org.jjazz.uiutilities.api.HelpTextArea helpTextArea1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JLabel lbl_language;

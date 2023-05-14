@@ -33,8 +33,8 @@ import org.jjazz.phrasetransform.api.PtProperties;
 import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.quantizer.api.Quantizer;
 import org.jjazz.songcontext.api.SongPartContext;
-import org.jjazz.util.api.FloatRange;
-import org.jjazz.util.api.ResUtil;
+import org.jjazz.utilities.api.FloatRange;
+import org.jjazz.utilities.api.ResUtil;
 import org.netbeans.api.annotations.common.StaticResource;
 
 /**

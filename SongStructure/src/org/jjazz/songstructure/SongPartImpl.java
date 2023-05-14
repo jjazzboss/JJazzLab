@@ -37,21 +37,21 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.harmony.api.TimeSignature;
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
+import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.rhythm.api.MutableRpValue;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmParameter;
-import org.jjazz.rhythm.database.api.RhythmDatabase;
-import org.jjazz.rhythm.database.api.RhythmInfo;
-import org.jjazz.rhythm.database.api.UnavailableRhythmException;
-import org.jjazz.util.api.SmallMap;
+import org.jjazz.rhythmdatabase.api.RhythmDatabase;
+import org.jjazz.rhythmdatabase.api.RhythmInfo;
+import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
+import org.jjazz.utilities.api.SmallMap;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.util.api.ResUtil;
+import org.jjazz.utilities.api.ResUtil;
 import org.jjazz.rhythm.api.RpEnumerable;
-import org.jjazz.util.api.StringProperties;
+import org.jjazz.utilities.api.StringProperties;
 
 public class SongPartImpl implements SongPart, Serializable, ChangeListener
 {

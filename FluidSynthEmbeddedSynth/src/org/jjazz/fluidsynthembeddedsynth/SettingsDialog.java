@@ -11,8 +11,8 @@ import org.jjazz.fluidsynthjava.api.Chorus;
 import org.jjazz.fluidsynthjava.api.FluidSynthJava;
 import org.jjazz.fluidsynthjava.api.Reverb;
 import org.jjazz.outputsynth.api.OutputSynth;
-import org.jjazz.ui.flatcomponents.api.FlatIntegerKnob;
-import org.jjazz.ui.utilities.api.Utilities;
+import org.jjazz.flatcomponents.api.FlatIntegerKnob;
+import org.jjazz.uiutilities.api.UIUtilities;
 import org.openide.windows.WindowManager;
 
 /**
@@ -78,8 +78,8 @@ public class SettingsDialog extends javax.swing.JDialog implements PropertyChang
             }
         });
 
-        Utilities.installEnterKeyAction(this, () -> btn_okActionPerformed(null));
-        Utilities.installEscapeKeyAction(this, () -> btn_cancelActionPerformed(null));
+        UIUtilities.installEnterKeyAction(this, () -> btn_okActionPerformed(null));
+        UIUtilities.installEscapeKeyAction(this, () -> btn_cancelActionPerformed(null));
 
         setLocationByPlatform(true);
     }
@@ -152,11 +152,11 @@ public class SettingsDialog extends javax.swing.JDialog implements PropertyChang
         jPanel1 = new javax.swing.JPanel();
         pnl_gain = new javax.swing.JPanel();
         lbl_gain = new javax.swing.JLabel();
-        knob_gain = new org.jjazz.ui.flatcomponents.api.FlatIntegerKnob();
+        knob_gain = new org.jjazz.flatcomponents.api.FlatIntegerKnob();
         lbl_gainValue = new javax.swing.JLabel();
         jPanel2 = new javax.swing.JPanel();
         lbl_latency = new javax.swing.JLabel();
-        knob_latency = new org.jjazz.ui.flatcomponents.api.FlatIntegerKnob();
+        knob_latency = new org.jjazz.flatcomponents.api.FlatIntegerKnob();
         lbl_latencyValue = new javax.swing.JLabel();
         jPanel3 = new javax.swing.JPanel();
         combo_reverb = new JComboBox(fsEmbeddedSynth.getReverbPresets());
@@ -386,8 +386,8 @@ public class SettingsDialog extends javax.swing.JDialog implements PropertyChang
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
-    private org.jjazz.ui.flatcomponents.api.FlatIntegerKnob knob_gain;
-    private org.jjazz.ui.flatcomponents.api.FlatIntegerKnob knob_latency;
+    private org.jjazz.flatcomponents.api.FlatIntegerKnob knob_gain;
+    private org.jjazz.flatcomponents.api.FlatIntegerKnob knob_latency;
     private javax.swing.JLabel lbl_chorus;
     private javax.swing.JLabel lbl_gain;
     private javax.swing.JLabel lbl_gainValue;

@@ -39,7 +39,7 @@
                     </run-dependency>
                 </dependency>
                 <dependency>
-                    <code-name-base>org.jjazz.leadsheet.chordleadsheet</code-name-base>
+                    <code-name-base>org.jjazz.chordleadsheet</code-name-base>
                     <build-prerequisite/>
                     <compile-dependency/>
                     <run-dependency>
@@ -103,7 +103,7 @@
                     </run-dependency>
                 </dependency>
                 <dependency>
-                    <code-name-base>org.jjazz.ui.utilities</code-name-base>
+                    <code-name-base>org.jjazz.uiutilities</code-name-base>
                     <build-prerequisite/>
                     <compile-dependency/>
                     <run-dependency>
@@ -119,7 +119,7 @@
                     </run-dependency>
                 </dependency>
                 <dependency>
-                    <code-name-base>org.jjazz.util</code-name-base>
+                    <code-name-base>org.jjazz.utilities</code-name-base>
                     <build-prerequisite/>
                     <compile-dependency/>
                     <run-dependency>

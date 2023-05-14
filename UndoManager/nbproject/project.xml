@@ -7,7 +7,7 @@
             <suite-component/>
             <module-dependencies>
                 <dependency>
-                    <code-name-base>org.jjazz.util</code-name-base>
+                    <code-name-base>org.jjazz.utilities</code-name-base>
                     <build-prerequisite/>
                     <compile-dependency/>
                     <run-dependency>

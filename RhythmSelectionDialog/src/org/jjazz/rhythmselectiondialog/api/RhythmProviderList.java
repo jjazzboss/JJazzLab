@@ -32,9 +32,9 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.rhythmselectiondialog.FavoriteRhythmProvider;
-import org.jjazz.rhythm.database.api.FavoriteRhythms;
-import org.jjazz.rhythm.database.api.RhythmDatabase;
-import org.jjazz.rhythm.database.api.RhythmInfo;
+import org.jjazz.rhythmdatabase.api.FavoriteRhythms;
+import org.jjazz.rhythmdatabase.api.RhythmDatabase;
+import org.jjazz.rhythmdatabase.api.RhythmInfo;
 import org.jjazz.rhythm.spi.RhythmProvider;
 import org.openide.util.WeakListeners;
 

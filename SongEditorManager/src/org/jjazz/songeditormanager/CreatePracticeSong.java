@@ -23,8 +23,8 @@
 package org.jjazz.songeditormanager;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import org.jjazz.ui.cl_editor.api.CL_ContextActionListener;
-import org.jjazz.ui.cl_editor.api.CL_ContextActionSupport;
+import org.jjazz.cl_editor.api.CL_ContextActionListener;
+import org.jjazz.cl_editor.api.CL_ContextActionSupport;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,12 +34,12 @@ import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import static javax.swing.Action.NAME;
-import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
-import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheetFactory;
-import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
-import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
+import org.jjazz.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.chordleadsheet.api.ChordLeadSheetFactory;
+import org.jjazz.chordleadsheet.api.UnsupportedEditException;
+import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
+import org.jjazz.chordleadsheet.api.item.CLI_Section;
+import org.jjazz.chordleadsheet.api.item.Position;
 import org.jjazz.rhythm.api.TempoRange;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_TempoFactor;
 import org.jjazz.song.api.Song;
@@ -48,15 +48,15 @@ import org.jjazz.songeditormanager.CreatePracticeSongDialog.Config;
 import org.jjazz.songeditormanager.api.SongEditorManager;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructure;
-import org.jjazz.ui.cl_editor.api.CL_EditorTopComponent;
+import org.jjazz.cl_editor.api.CL_EditorTopComponent;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.jjazz.ui.cl_editor.api.CL_SelectionUtilities;
-import org.jjazz.ui.cl_editor.api.SelectedBar;
-import org.jjazz.util.api.IntRange;
-import org.jjazz.util.api.ResUtil;
+import org.jjazz.cl_editor.api.CL_SelectionUtilities;
+import org.jjazz.cl_editor.api.SelectedBar;
+import org.jjazz.utilities.api.IntRange;
+import org.jjazz.utilities.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.util.ContextAwareAction;
@@ -70,7 +70,7 @@ import org.openide.util.Utilities;
  * <p>
  */
 @ActionRegistration(displayName = "#CTL_CreatePracticeSong", lazy = false)
-@ActionID(category = "JJazz", id = "org.jjazz.ui.actions.createpracticesong")
+@ActionID(category = "JJazz", id = "org.jjazz.actions.createpracticesong")
 @ActionReferences(
         {
             @ActionReference(path = "Actions/Bar", position = 832, separatorAfter = 850),

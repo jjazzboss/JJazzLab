@@ -24,7 +24,7 @@ package org.jjazz.chordinspector.spi;
 
 import javax.swing.Icon;
 import javax.swing.JComponent;
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
+import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.song.api.Song;

@@ -27,14 +27,14 @@ import java.awt.Font;
 import java.beans.PropertyChangeListener;
 import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
-import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo;
-import org.jjazz.ui.cl_editor.spi.CL_EditorSettings;
-import org.jjazz.ui.cl_editor.barbox.api.BarBoxSettings;
-import org.jjazz.ui.cl_editor.barrenderer.api.BarRendererSettings;
-import org.jjazz.ui.itemrenderer.api.IR_ChordSymbolSettings;
-import org.jjazz.ui.itemrenderer.api.IR_SectionSettings;
-import org.jjazz.ui.itemrenderer.api.IR_TimeSignatureSettings;
-import org.jjazz.ui.itemrenderer.api.ItemRendererSettings;
+import org.jjazz.chordleadsheet.api.item.ChordRenderingInfo;
+import org.jjazz.cl_editor.spi.CL_EditorSettings;
+import org.jjazz.cl_editor.barbox.api.BarBoxSettings;
+import org.jjazz.cl_editor.barrenderer.api.BarRendererSettings;
+import org.jjazz.itemrenderer.api.IR_ChordSymbolSettings;
+import org.jjazz.itemrenderer.api.IR_SectionSettings;
+import org.jjazz.itemrenderer.api.IR_TimeSignatureSettings;
+import org.jjazz.itemrenderer.api.ItemRendererSettings;
 
 /**
  * Special CL_Editor settings only for the print version.

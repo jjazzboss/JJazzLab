@@ -29,21 +29,21 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.harmony.api.TimeSignature;
-import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Factory;
-import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
-import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
-import org.jjazz.leadsheet.chordleadsheet.api.item.VoidAltExtChordSymbol;
+import org.jjazz.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.chordleadsheet.api.item.CLI_Section;
+import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
+import org.jjazz.chordleadsheet.api.item.CLI_Factory;
+import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
+import org.jjazz.chordleadsheet.api.item.Position;
+import org.jjazz.chordleadsheet.api.item.VoidAltExtChordSymbol;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.rhythm.api.UserErrorGenerationException;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Marker;
 import org.jjazz.song.api.Song;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.util.api.FloatRange;
-import org.jjazz.util.api.IntRange;
+import org.jjazz.utilities.api.FloatRange;
+import org.jjazz.utilities.api.IntRange;
 
 /**
  * A ChordSequence built for a song, or a part of a song.

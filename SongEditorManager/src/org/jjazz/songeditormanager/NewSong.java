@@ -35,7 +35,7 @@ import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongCreationException;
 import org.jjazz.song.api.SongFactory;
 import org.jjazz.songeditormanager.api.SongEditorManager;
-import org.jjazz.util.api.ResUtil;
+import org.jjazz.utilities.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.awt.ActionID;

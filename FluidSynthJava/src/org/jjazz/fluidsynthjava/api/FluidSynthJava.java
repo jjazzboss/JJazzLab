@@ -30,7 +30,7 @@ import javax.sound.midi.ShortMessage;
 import javax.sound.midi.SysexMessage;
 import jdk.incubator.foreign.*;
 import static org.jjazz.fluidsynthjava.jextract.fluidsynth_h.*;
-import org.jjazz.util.api.Utilities;
+import org.jjazz.utilities.api.Utilities;
 import org.openide.modules.InstalledFileLocator;
 
 /**

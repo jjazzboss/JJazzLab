@@ -36,18 +36,18 @@ import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.analytics.api.Analytics;
 import org.jjazz.improvisionsupport.PlayRestScenario.DenseSparseValue;
 import org.jjazz.improvisionsupport.PlayRestScenario.PlayRestValue;
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
-import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
+import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
+import org.jjazz.chordleadsheet.api.item.CLI_Section;
+import org.jjazz.chordleadsheet.api.item.Position;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.PlaybackListener;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.StructuralChangeListener;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.ui.cl_editor.api.CL_Editor;
-import org.jjazz.ui.cl_editor.barbox.api.BarBoxConfig;
-import org.jjazz.ui.cl_editor.barrenderer.api.BarRendererFactory;
-import org.jjazz.util.api.ResUtil;
+import org.jjazz.cl_editor.api.CL_Editor;
+import org.jjazz.cl_editor.barbox.api.BarBoxConfig;
+import org.jjazz.cl_editor.barrenderer.api.BarRendererFactory;
+import org.jjazz.utilities.api.ResUtil;
 
 /**
  * A class to manage improvisation support for one CL_Editor.

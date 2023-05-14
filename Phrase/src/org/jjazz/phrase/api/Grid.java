@@ -34,8 +34,8 @@ import java.util.logging.Logger;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.midi.api.MidiUtilities;
-import org.jjazz.util.api.FloatRange;
-import org.jjazz.util.api.IntRange;
+import org.jjazz.utilities.api.FloatRange;
+import org.jjazz.utilities.api.IntRange;
 import org.openide.util.Exceptions;
 
 /**

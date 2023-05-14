@@ -33,13 +33,13 @@ import javax.swing.JComponent;
 import org.jjazz.chordinspector.spi.ChordViewer;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.harmony.api.Note.Alteration;
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
-import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
+import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
+import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.song.api.Song;
-import org.jjazz.ui.score.api.NotationGraphics;
-import org.jjazz.ui.score.api.NotationGraphics.ScoreNote;
+import org.jjazz.score.api.NotationGraphics;
+import org.jjazz.score.api.NotationGraphics.ScoreNote;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.openide.util.lookup.ServiceProvider;
 

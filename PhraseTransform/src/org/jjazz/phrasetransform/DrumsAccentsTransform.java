@@ -38,8 +38,8 @@ import org.jjazz.phrasetransform.api.PhraseTransform;
 import org.jjazz.phrasetransform.api.PhraseTransforms;
 import org.jjazz.phrasetransform.api.PtProperties;
 import org.jjazz.songcontext.api.SongPartContext;
-import org.jjazz.ui.utilities.api.Utilities;
-import org.jjazz.util.api.ResUtil;
+import org.jjazz.uiutilities.api.UIUtilities;
+import org.jjazz.utilities.api.ResUtil;
 
 /**
  * Change velocity of specific drums notes which match cyclic positions.
@@ -159,7 +159,7 @@ public class DrumsAccentsTransform implements PhraseTransform
     {
         String text = ResUtil.getString(getClass(), "AccentStrength");
         GenericSettingsDialog dlg = new GenericSettingsDialog(properties, getInfo().getName(), PROP_VELOCITY_OFFSET, text, -63, 64,true);
-        Utilities.setDialogLocationRelativeTo(dlg, anchor, 0, 0.5, 0.5);
+        UIUtilities.setDialogLocationRelativeTo(dlg, anchor, 0, 0.5, 0.5);
         dlg.setVisible(true);
         dlg.dispose();
     }

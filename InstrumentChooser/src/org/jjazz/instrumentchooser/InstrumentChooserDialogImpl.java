@@ -55,8 +55,8 @@ import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.testplayerservice.spi.TestPlayer;
 import org.jjazz.uisettings.api.GeneralUISettings;
-import org.jjazz.util.api.ResUtil;
-import org.jjazz.util.api.Utilities;
+import org.jjazz.utilities.api.ResUtil;
+import org.jjazz.utilities.api.Utilities;
 import org.openide.*;
 import org.openide.windows.WindowManager;
 
@@ -104,7 +104,7 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
                 handleTableMouseClicked(e);
             }
         });
-        org.jjazz.ui.utilities.api.Utilities.installSelectAllWhenFocused(tf_Filter);
+        org.jjazz.uiutilities.api.UIUtilities.installSelectAllWhenFocused(tf_Filter);
     }
 
     @Override
@@ -409,7 +409,7 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
         rbtn_showAll = new javax.swing.JRadioButton();
         lbl_Filtered = new javax.swing.JLabel();
         lbl_recIns = new javax.swing.JLabel();
-        spn_transposition = new org.jjazz.ui.utilities.api.WheelSpinner();
+        spn_transposition = new org.jjazz.uiutilities.api.WheelSpinner();
         lbl_transpose = new javax.swing.JLabel();
         lbl_preferredInstrument = new javax.swing.JLabel();
         lbl_outputSynthConfig = new javax.swing.JLabel();
@@ -751,7 +751,7 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
     private javax.swing.JLabel lbl_transpose;
     private javax.swing.JRadioButton rbtn_showAll;
     private javax.swing.JRadioButton rbtn_showRecommended;
-    private org.jjazz.ui.utilities.api.WheelSpinner spn_transposition;
+    private org.jjazz.uiutilities.api.WheelSpinner spn_transposition;
     private org.jjazz.midi.api.ui.InstrumentTable tbl_Instruments;
     private javax.swing.JTextField tf_Filter;
     // End of variables declaration//GEN-END:variables

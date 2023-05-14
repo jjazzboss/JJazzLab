@@ -78,7 +78,7 @@
     </DimensionLayout>
   </Layout>
   <SubComponents>
-    <Component class="org.jjazz.ui.keyboardcomponent.api.KeyboardComponent" name="kbdComponent">
+    <Component class="org.jjazz.instrumentcomponents.keyboard.api.KeyboardComponent" name="kbdComponent">
       <Properties>
         <Property name="preferredSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
           <Dimension value="[300, 60]"/>

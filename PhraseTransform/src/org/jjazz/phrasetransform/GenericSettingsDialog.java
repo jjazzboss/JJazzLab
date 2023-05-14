@@ -26,8 +26,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import org.jjazz.phrasetransform.api.PtProperties;
-import org.jjazz.ui.flatcomponents.api.FlatIntegerKnob;
-import org.jjazz.ui.utilities.api.Utilities;
+import org.jjazz.flatcomponents.api.FlatIntegerKnob;
+import org.jjazz.uiutilities.api.UIUtilities;
 import org.openide.windows.WindowManager;
 
 /**
@@ -69,8 +69,8 @@ public class GenericSettingsDialog extends javax.swing.JDialog implements Proper
         knob.setValue(ptProperties.getPropertyAsInteger(property));
         this.property = property;
 
-        Utilities.installEnterKeyAction(this, () -> exit());
-        Utilities.installEscapeKeyAction(this, () -> exit());
+        UIUtilities.installEnterKeyAction(this, () -> exit());
+        UIUtilities.installEscapeKeyAction(this, () -> exit());
         
         knob.addPropertyChangeListener(this);        
         pnl_main.setToolTipText(dialogTitle);
@@ -103,10 +103,10 @@ public class GenericSettingsDialog extends javax.swing.JDialog implements Proper
     {
 
         pnl_main = new javax.swing.JPanel();
-        fbtn_close = new org.jjazz.ui.flatcomponents.api.FlatButton();
+        fbtn_close = new org.jjazz.flatcomponents.api.FlatButton();
         jPanel2 = new javax.swing.JPanel();
         jPanel1 = new javax.swing.JPanel();
-        knob = new org.jjazz.ui.flatcomponents.api.FlatIntegerKnob();
+        knob = new org.jjazz.flatcomponents.api.FlatIntegerKnob();
         filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 5), new java.awt.Dimension(0, 5), new java.awt.Dimension(32767, 5));
         lbl_name = new javax.swing.JLabel();
 
@@ -199,11 +199,11 @@ public class GenericSettingsDialog extends javax.swing.JDialog implements Proper
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private org.jjazz.ui.flatcomponents.api.FlatButton fbtn_close;
+    private org.jjazz.flatcomponents.api.FlatButton fbtn_close;
     private javax.swing.Box.Filler filler1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
-    private org.jjazz.ui.flatcomponents.api.FlatIntegerKnob knob;
+    private org.jjazz.flatcomponents.api.FlatIntegerKnob knob;
     private javax.swing.JLabel lbl_name;
     private javax.swing.JPanel pnl_main;
     // End of variables declaration//GEN-END:variables

@@ -33,8 +33,8 @@ import org.jjazz.base.api.actions.ShowLogWindow;
 import org.jjazz.midi.api.JJazzMidiSystem;
 import org.jjazz.midi.api.device.MidiFilter;
 import org.jjazz.musiccontrol.api.MusicController;
-import org.jjazz.ui.utilities.api.Utilities;
-import org.jjazz.util.api.ResUtil;
+import org.jjazz.uiutilities.api.UIUtilities;
+import org.jjazz.utilities.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.LifecycleManager;
 import org.openide.NotifyDescriptor;
@@ -58,7 +58,7 @@ public final class AdvancedPanel extends javax.swing.JPanel
 
         initComponents();
 
-        Utilities.installSelectAllWhenFocused(tf_loggerName);
+        UIUtilities.installSelectAllWhenFocused(tf_loggerName);
 
         // TODO listen to changes in form fields and call controller.changed()
 
@@ -85,7 +85,7 @@ public final class AdvancedPanel extends javax.swing.JPanel
         btn_resetSettings = new javax.swing.JButton();
         cb_noAnalytics = new javax.swing.JCheckBox();
         jScrollPane1 = new javax.swing.JScrollPane();
-        helpTextArea = new org.jjazz.ui.utilities.api.HelpTextArea();
+        helpTextArea = new org.jjazz.uiutilities.api.HelpTextArea();
 
         panel_Debug.setBorder(javax.swing.BorderFactory.createTitledBorder(org.openide.util.NbBundle.getMessage(AdvancedPanel.class, "AdvancedPanel.panel_Debug.border.title"))); // NOI18N
 
@@ -425,7 +425,7 @@ public final class AdvancedPanel extends javax.swing.JPanel
     private javax.swing.JCheckBox cb_logMidiOut;
     private javax.swing.JComboBox<Level> cb_loggerLevel;
     private javax.swing.JCheckBox cb_noAnalytics;
-    private org.jjazz.ui.utilities.api.HelpTextArea helpTextArea;
+    private org.jjazz.uiutilities.api.HelpTextArea helpTextArea;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;

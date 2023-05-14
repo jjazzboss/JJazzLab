@@ -25,11 +25,11 @@ package org.jjazz.songstructure.api;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.beans.PropertyChangeListener;
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
+import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmParameter;
-import org.jjazz.util.api.IntRange;
-import org.jjazz.util.api.StringProperties;
+import org.jjazz.utilities.api.IntRange;
+import org.jjazz.utilities.api.StringProperties;
 
 /**
  * A song part defines how a rhythm is played for a number of bars starting at startBarIndex.

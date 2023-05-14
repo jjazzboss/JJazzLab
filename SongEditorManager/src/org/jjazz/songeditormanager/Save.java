@@ -31,8 +31,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import org.jjazz.song.api.Song;
-import org.jjazz.util.api.ResUtil;
-import org.jjazz.util.api.Utilities;
+import org.jjazz.utilities.api.ResUtil;
+import org.jjazz.utilities.api.Utilities;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
@@ -163,7 +163,7 @@ public final class Save extends AbstractAction implements PropertyChangeListener
         }
 
         final boolean b2 = b;
-        org.jjazz.ui.utilities.api.Utilities.invokeLaterIfNeeded(() -> setEnabled(b2));
+        org.jjazz.uiutilities.api.UIUtilities.invokeLaterIfNeeded(() -> setEnabled(b2));
     }
 
 }

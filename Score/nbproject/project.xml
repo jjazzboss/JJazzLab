@@ -3,7 +3,7 @@
     <type>org.netbeans.modules.apisupport.project</type>
     <configuration>
         <data xmlns="http://www.netbeans.org/ns/nb-module-project/3">
-            <code-name-base>org.jjazz.ui.score</code-name-base>
+            <code-name-base>org.jjazz.score</code-name-base>
             <suite-component/>
             <module-dependencies>
                 <dependency>
@@ -73,7 +73,7 @@
                 </dependency>
             </module-dependencies>
             <public-packages>
-                <package>org.jjazz.ui.score.api</package>
+                <package>org.jjazz.score.api</package>
             </public-packages>
         </data>
     </configuration>

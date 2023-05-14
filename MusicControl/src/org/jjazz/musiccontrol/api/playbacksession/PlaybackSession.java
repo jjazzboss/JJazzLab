@@ -27,7 +27,7 @@ import java.util.HashMap;
 import javax.sound.midi.Sequence;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.songcontext.api.SongContext;
-import org.jjazz.util.api.IntRange;
+import org.jjazz.utilities.api.IntRange;
 
 /**
  * A PlaybackSession contains the data needed by the MusicController to play music and provide related services (firing beat or

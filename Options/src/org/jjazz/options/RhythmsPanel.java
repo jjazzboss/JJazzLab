@@ -42,15 +42,15 @@ import javax.swing.event.ListSelectionListener;
 import org.jjazz.analytics.api.Analytics;
 import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.harmony.api.TimeSignature;
-import org.jjazz.rhythm.database.api.AddSessionOnlyRhythms;
-import org.jjazz.rhythm.database.api.DeleteRhythmFile;
+import org.jjazz.rhythmdatabase.api.AddSessionOnlyRhythms;
+import org.jjazz.rhythmdatabase.api.DeleteRhythmFile;
 import org.jjazz.rhythm.spi.RhythmProvider;
-import org.jjazz.rhythm.database.api.RhythmDatabase;
-import org.jjazz.rhythm.database.api.RhythmInfo;
+import org.jjazz.rhythmdatabase.api.RhythmDatabase;
+import org.jjazz.rhythmdatabase.api.RhythmInfo;
 import org.jjazz.rhythmselectiondialog.api.RhythmProviderList;
 import org.jjazz.rhythmselectiondialog.api.RhythmTable;
-import org.jjazz.ui.utilities.api.Utilities;
-import org.jjazz.util.api.ResUtil;
+import org.jjazz.uiutilities.api.UIUtilities;
+import org.jjazz.utilities.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.LifecycleManager;
 import org.openide.NotifyDescriptor;
@@ -206,7 +206,7 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
                 updateRhythmProviderList();
             }
         };
-        org.jjazz.ui.utilities.api.Utilities.invokeLaterIfNeeded(run);
+        org.jjazz.uiutilities.api.UIUtilities.invokeLaterIfNeeded(run);
     }
 
     /**
@@ -238,7 +238,7 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
         btn_rhythmProviderSettings = new javax.swing.JButton();
         lbl_timeSignature = new javax.swing.JLabel();
         jScrollPane4 = new javax.swing.JScrollPane();
-        helpTextArea1 = new org.jjazz.ui.utilities.api.HelpTextArea();
+        helpTextArea1 = new org.jjazz.uiutilities.api.HelpTextArea();
         btn_addRhythms = new javax.swing.JButton();
         btn_deleteRhythms = new javax.swing.JButton();
         btn_openFolder = new javax.swing.JButton();
@@ -447,7 +447,7 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
    {//GEN-HEADEREND:event_btn_rhythmDirActionPerformed
        FileDirectoryManager fdm = FileDirectoryManager.getInstance();
        File oldDir = fdm.getUserRhythmDirectory();
-       File newDir = Utilities.showDirChooser(tf_rhythmUserDir.getText(), ResUtil.getString(getClass(), "CTL_RhythmDirDialogTitle"));
+       File newDir = UIUtilities.showDirChooser(tf_rhythmUserDir.getText(), ResUtil.getString(getClass(), "CTL_RhythmDirDialogTitle"));
        if (newDir != null && !oldDir.equals(newDir) && newDir.isDirectory())
        {
            fdm.setUserRhythmDirectory(newDir);
@@ -516,7 +516,7 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
         var ri = rhythmTable.getSelectedRhythm();
         if (ri != null && !ri.getFile().getName().isBlank())
         {
-            org.jjazz.util.api.Utilities.browseFileDirectory(ri.getFile(), false);
+            org.jjazz.utilities.api.Utilities.browseFileDirectory(ri.getFile(), false);
         }
     }//GEN-LAST:event_btn_openFolderActionPerformed
 
@@ -649,7 +649,7 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
     private javax.swing.JButton btn_rhythmProviderSettings;
     private javax.swing.JButton btn_setDefaultRhythm;
     private javax.swing.JComboBox<TimeSignature> cmb_timeSignature;
-    private org.jjazz.ui.utilities.api.HelpTextArea helpTextArea1;
+    private org.jjazz.uiutilities.api.HelpTextArea helpTextArea1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JScrollPane jScrollPane1;

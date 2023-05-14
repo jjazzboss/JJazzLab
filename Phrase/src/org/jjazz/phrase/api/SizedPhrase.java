@@ -28,7 +28,7 @@ import java.util.StringJoiner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.harmony.api.TimeSignature;
-import org.jjazz.util.api.FloatRange;
+import org.jjazz.utilities.api.FloatRange;
 
 /**
  * A Phrase which has a size (beat range) and a time signature.

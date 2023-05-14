@@ -31,7 +31,7 @@ import java.util.Map;
 import java.util.Set;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
-import org.jjazz.util.api.ResUtil;
+import org.jjazz.utilities.api.ResUtil;
 
 /**
  * System RhythmParameter: mute one or more instruments.
