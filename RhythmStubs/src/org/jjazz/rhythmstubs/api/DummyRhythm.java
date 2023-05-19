@@ -21,7 +21,7 @@
  * Contributor(s):
  *
  */
-package org.jjazz.rhythmstubss.api;
+package org.jjazz.rhythmstubs.api;
 
 import java.beans.PropertyChangeListener;
 import java.io.File;

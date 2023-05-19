@@ -153,6 +153,8 @@ public class SongFactory implements PropertyChangeListener
         xstream.aliasPackage("org.jjazz.midi", "org.jjazz.midi.api");
         xstream.aliasPackage("org.jjazz.midimix.api", "org.jjazz.midimix.api");   // Make sure new package name is not replaced by next alias
         xstream.aliasPackage("org.jjazz.midimix", "org.jjazz.midimix.api");
+        // From 4.0 ChordLeadSheet packages were renamed from org.jjazz.leadsheet.chordleadsheet.* to org.jjazz.chordleadsheet.*
+        xstream.aliasPackage("org.jjazz.leadsheet.chordleadsheet", "org.jjazz.chordleadsheet");
 
 
         // Read file

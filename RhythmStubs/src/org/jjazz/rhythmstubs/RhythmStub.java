@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.rhythmstubss;
+package org.jjazz.rhythmstubs;
 
 import java.beans.PropertyChangeListener;
 import java.io.File;

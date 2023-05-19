@@ -20,7 +20,7 @@
  *
  *  Contributor(s):
  */
-package org.jjazz.rhythmstubss;
+package org.jjazz.rhythmstubs;
 
 import java.io.File;
 import java.io.IOException;

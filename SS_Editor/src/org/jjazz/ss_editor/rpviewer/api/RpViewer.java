@@ -348,7 +348,7 @@ public class RpViewer extends JPanel implements PropertyChangeListener, FocusLis
 
         // Optional edit button
         fbtn_edit = new FlatButton();
-        fbtn_edit.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/rpviewer/api/resources/OpenPopup.png"))); // NOI18N
+        fbtn_edit.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ss_editor/rpviewer/api/resources/OpenPopup.png"))); // NOI18N
         fbtn_edit.addActionListener(e -> showRpCustomEditDialog());
         fbtn_edit.setBorderEntered(BorderFactory.createLineBorder(Color.GRAY));
         fbtn_edit.setToolTipText(ResUtil.getString(getClass(), "TooltipRpEditCustomDialog"));

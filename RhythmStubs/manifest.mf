@@ -1,5 +1,5 @@
 Manifest-Version: 1.0
-OpenIDE-Module: org.jjazz.rhythmstubss
+OpenIDE-Module: org.jjazz.rhythmstubs
 OpenIDE-Module-Localizing-Bundle: org/jjazz/rhythmstubs/Bundle.properties
 OpenIDE-Module-Specification-Version: 1.0
 

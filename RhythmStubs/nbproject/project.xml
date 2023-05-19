@@ -3,7 +3,7 @@
     <type>org.netbeans.modules.apisupport.project</type>
     <configuration>
         <data xmlns="http://www.netbeans.org/ns/nb-module-project/3">
-            <code-name-base>org.jjazz.rhythmstubss</code-name-base>
+            <code-name-base>org.jjazz.rhythmstubs</code-name-base>
             <suite-component/>
             <module-dependencies>
                 <dependency>
@@ -90,7 +90,7 @@
                 </test-type>
             </test-dependencies>
             <public-packages>
-                <package>org.jjazz.rhythmstubss.api</package>
+                <package>org.jjazz.rhythmstubs.api</package>
             </public-packages>
         </data>
     </configuration>
