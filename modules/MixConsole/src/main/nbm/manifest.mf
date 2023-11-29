@@ -1,0 +1,6 @@
+Manifest-Version: 1.0
+AutoUpdate-Show-In-Client: true
+OpenIDE-Module-Layer: org/jjazz/mixconsole/layer.xml
+OpenIDE-Module-Localizing-Bundle: org/jjazz/mixconsole/Bundle.properties
+OpenIDE-Module-Requires: org.openide.windows.WindowManager
+

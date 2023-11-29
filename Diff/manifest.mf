@@ -1,5 +1,0 @@
-Manifest-Version: 1.0
-OpenIDE-Module: org.jjazz.diff
-OpenIDE-Module-Localizing-Bundle: org/jjazz/diff/Bundle.properties
-OpenIDE-Module-Specification-Version: 1.0
-
