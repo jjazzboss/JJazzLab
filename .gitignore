@@ -1,14 +1,7 @@
-/build/
-/dist/
-/nbproject/private/
+/target/
+/*/target/
+/modules/*/target/
+/modules/Extra/
+/libs/*/target/
+*.sf2
 
-/*/build/
-/*/dist/
-/*/nbproject/private/
-
-/*/*/build/
-/*/*/dist/
-/*/*/nbproject/private/
-/MusicControl/build
-/Score/src/org/jjazz/score/TestScore/build/
-/Score/src/org/jjazz/score/TestScore/nbproject/private/
