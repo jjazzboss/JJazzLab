@@ -1,7 +1,6 @@
 /target/
 /*/target/
 /modules/*/target/
-/modules/Extra/
 /libs/*/target/
 *.sf2
 nbactions.xml
