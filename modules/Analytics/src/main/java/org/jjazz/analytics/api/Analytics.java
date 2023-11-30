@@ -35,7 +35,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
-import java.util.stream.Collectors;
 import org.jjazz.upgrade.api.UpgradeManager;
 import org.jjazz.upgrade.api.UpgradeTask;
 import org.openide.modules.OnStop;
@@ -46,8 +45,8 @@ import org.openide.windows.OnShowing;
 /**
  * Feature usage analytics methods.
  * <p>
- * The class acts as a centralized bridge to collect all feature analytics events and pass them to AnalyticsProcessor instances
- * present in the global lookup.
+ * The class acts as a centralized bridge to collect all feature analytics events and pass them to AnalyticsProcessor instances present in
+ * the global lookup.
  * <p>
  * Properties/event names examples: "Upgrade" or "New Version"<br>
  * <p>
@@ -90,7 +89,7 @@ public class Analytics
     private Analytics()
     {
         processors = new ArrayList<>(Lookup.getDefault().lookupAll(AnalyticsProcessor.class));
-        enabled = prefs.getBoolean(PREF_ANALYTICS_ENABLED, true);
+        enabled = processors.size() > 1 && prefs.getBoolean(PREF_ANALYTICS_ENABLED, true);
     }
 
     public void setEnabled(boolean b)
@@ -307,8 +306,8 @@ public class Analytics
     /**
      * A unique and anonymous id computed when JJazzLab is run for the first time on a given computer.
      * <p>
-     * The id is stored as a user preference, so it might be deleted if Netbeans user directory is deleted. If user upgrades to a
-     * new version, the id is imported from the previous version settings.
+     * The id is stored as a user preference, so it might be deleted if Netbeans user directory is deleted. If user upgrades to a new
+     * version, the id is imported from the previous version settings.
      * <p>
      * Id is calculated from current time in milliseconds + a random number, converted to hexadecimal.
      *
@@ -359,8 +358,8 @@ public class Analytics
     /**
      * Log the application stop event.
      * <p>
-     * IMPORTANT: AnalyticsProcessors which will process the event must make sure that the processing is done quickly enough in
-     * order to NOT block the shutdown sequence.
+     * IMPORTANT: AnalyticsProcessors which will process the event must make sure that the processing is done quickly enough in order to NOT
+     * block the shutdown sequence.
      */
     @OnStop
     static public class ApplicationStop implements Runnable
@@ -389,7 +388,8 @@ public class Analytics
 
 
             String version = System.getProperty("jjazzlab.version");
-            logEvent("Upgrade", buildMap("Old Version", (oldVersion == null ? "unknown" : oldVersion), "New Version", (version == null ? "unknown" : version)));
+            logEvent("Upgrade", buildMap("Old Version", (oldVersion == null ? "unknown" : oldVersion), "New Version", (version == null
+                    ? "unknown" : version)));
         }
     }
     // =====================================================================================

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<actions>
+        <action>
+            <actionName>run</actionName>
+            <packagings>
+                <packaging>nbm-application</packaging>
+            </packagings>
+            <goals>
+                <goal>nbm:cluster-app</goal>
+                <goal>nbm:run-platform</goal>
+            </goals>
+            <properties>
+                <netbeans.run.params.ide>-J-DrunFromIde=true --locale en:US</netbeans.run.params.ide>                
+            </properties>
+        </action>
+    </actions>

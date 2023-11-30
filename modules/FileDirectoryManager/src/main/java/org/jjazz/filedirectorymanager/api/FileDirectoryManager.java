@@ -24,7 +24,6 @@ package org.jjazz.filedirectorymanager.api;
 
 import java.beans.PropertyChangeListener;
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -35,7 +34,6 @@ import org.jjazz.upgrade.api.UpgradeTask;
 import org.jjazz.utilities.api.Utilities;
 import org.openide.modules.InstalledFileLocator;
 import org.openide.modules.Places;
-import org.openide.util.Exceptions;
 import org.openide.util.NbPreferences;
 import org.openide.util.lookup.ServiceProvider;
 
