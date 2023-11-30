@@ -4,4 +4,6 @@
 /modules/Extra/
 /libs/*/target/
 *.sf2
+# nbactions.xml
+# nb-configuration.xml
 

@@ -1,0 +1,326 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   version="1.0"
+   width="20"
+   height="30"
+   id="svg2"
+   inkscape:version="1.1 (c68e22c387, 2021-05-23)"
+   sodipodi:docname="MidiIconDrag.svg"
+   inkscape:export-filename="D:\JeromeDocs\JJazzLab\src\JJazzLab-X\Graphics\NoteQuarter-20x30.png"
+   inkscape:export-xdpi="96"
+   inkscape:export-ydpi="96"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <metadata
+     id="metadata17">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     id="namedview15"
+     showgrid="false"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0"
+     inkscape:zoom="5.6568544"
+     inkscape:cx="-101.73499"
+     inkscape:cy="-16.528621"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg2"
+     showguides="true"
+     inkscape:guide-bbox="true"
+     inkscape:document-rotation="0"
+     inkscape:pagecheckerboard="0"
+     width="20px">
+    <sodipodi:guide
+       position="-48.5,-19.5"
+       orientation="0,1"
+       id="guide986"
+       inkscape:locked="false" />
+    <sodipodi:guide
+       position="-5.9220189,17.856155"
+       orientation="1,0"
+       id="guide1656" />
+  </sodipodi:namedview>
+  <defs
+     id="defs5">
+    <rect
+       x="-176.06958"
+       y="-140.18391"
+       width="90.332887"
+       height="45.785162"
+       id="rect4246" />
+    <rect
+       x="133.28963"
+       y="-63.99316"
+       width="109.60154"
+       height="62.225391"
+       id="rect9337" />
+    <rect
+       x="-214"
+       y="-532"
+       width="714"
+       height="322"
+       id="rect37224" />
+    <rect
+       x="45"
+       y="-456"
+       width="244"
+       height="128"
+       id="rect2778" />
+    <marker
+       refX="0"
+       refY="0"
+       orient="auto"
+       style="overflow:visible"
+       id="Arrow1Mstart">
+      <path
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         transform="matrix(0.4,0,0,0.4,4,0)"
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt;marker-start:none"
+         id="path3845"
+         inkscape:connector-curvature="0" />
+    </marker>
+    <marker
+       refX="0"
+       refY="0"
+       orient="auto"
+       style="overflow:visible"
+       id="Arrow2Lstart">
+      <path
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         transform="matrix(1.1,0,0,1.1,1.1,0)"
+         style="font-size:12px;fill-rule:evenodd;stroke-width:0.625;stroke-linejoin:round"
+         id="path3833"
+         inkscape:connector-curvature="0" />
+    </marker>
+    <rect
+       x="-79.734802"
+       y="-54.806629"
+       width="96"
+       height="84.154694"
+       id="rect868" />
+    <rect
+       x="-214"
+       y="-532"
+       width="714"
+       height="322"
+       id="rect40954" />
+    <rect
+       x="-214"
+       y="-532"
+       width="714"
+       height="322"
+       id="rect40974" />
+    <rect
+       x="-214"
+       y="-532"
+       width="714"
+       height="322"
+       id="rect1026" />
+    <rect
+       x="-214"
+       y="-532"
+       width="714"
+       height="322"
+       id="rect17021" />
+    <rect
+       x="-176.06958"
+       y="-140.18391"
+       width="157.13323"
+       height="45.785162"
+       id="rect891" />
+  </defs>
+  <g
+     id="g123305"
+     inkscape:export-filename="D:\JeromeDocs\JJazzLab\src\JJazzLab-X\Graphics\DragMidiIcon.png"
+     inkscape:export-xdpi="214.94"
+     inkscape:export-ydpi="214.94"
+     transform="translate(187.38329,-14.142135)">
+    <path
+       style="fill:#1a1a1a;fill-opacity:1;stroke:#ffffff;stroke-width:0.391524px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m -231.1049,16.181939 h 12.07755 l 3.42601,3.010738 v 18.929571 h -15.98805 V 16.181939 Z"
+       id="path36924" />
+    <path
+       style="fill:#817d75;fill-opacity:1;stroke:#817d75;stroke-width:0.407782px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m -216.34551,19.056519 -2.5373,0.01575 -0.006,-2.239823 z"
+       id="path24359"
+       sodipodi:nodetypes="cccc" />
+  </g>
+  <text
+     xml:space="preserve"
+     id="text866"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:condensed;font-size:40px;line-height:1.25;font-family:Impact;-inkscape-font-specification:'Impact, Condensed';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;white-space:pre;shape-inside:url(#rect868);fill:#000000;fill-opacity:1;stroke:none"
+     transform="translate(-478.20977,-97.892924)"><tspan
+       x="-79.734375"
+       y="69.390946"
+       id="tspan17630"><tspan
+         dx="0 20 20 20 20"
+         style="font-stretch:normal;font-family:Marl;-inkscape-font-specification:'Marl, Normal'"
+         id="tspan17628">azzss</tspan></tspan></text>
+  <style
+     type="text/css"
+     id="style982">
+	.st0{fill:#374149;}
+</style>
+  <g
+     id="g55009"
+     style="fill:#4eebf9;fill-opacity:1;stroke:#4eebf9;stroke-opacity:1"
+     transform="translate(1.8832975,1.6078641)"
+     inkscape:export-filename="D:\JeromeDocs\JJazzLab\src\JJazzLab-X\Graphics\DragMidiIcon.png"
+     inkscape:export-xdpi="214.94"
+     inkscape:export-ydpi="214.94">
+    <g
+       id="g32161"
+       transform="matrix(0.30408957,0,0,0.30408957,-43.552336,5.0964478)"
+       style="fill:#4eebf9;fill-opacity:1;stroke:#4eebf9;stroke-opacity:1">
+      <path
+         id="path32157"
+         style="opacity:1;fill:#4eebf9;fill-opacity:1;fill-rule:evenodd;stroke:#4eebf9;stroke-width:0.116897;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+         d="m 11.673291,26.301642 c 1.984812,-1.063742 3.042399,-2.98937 2.391834,-4.437959 -0.693933,-1.545164 -3.078479,-1.981235 -5.322644,-0.973381 -2.2441589,1.00786 -3.5023177,3.079877 -2.808384,4.625034 0.6939395,1.545164 3.0784796,1.981235 5.322644,0.973381 0.140259,-0.06299 0.284223,-0.11616 0.41655,-0.187075 z"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cssssc" />
+      <path
+         id="path32159"
+         style="fill:#4eebf9;fill-opacity:1;fill-rule:evenodd;stroke:#4eebf9;stroke-width:0.876725;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="M 13.840623,22.599881 V 2.9685056"
+         inkscape:connector-curvature="0" />
+    </g>
+    <g
+       id="g33023"
+       transform="matrix(0.30408957,0,0,0.30408957,-39.721098,4.2671646)"
+       style="fill:#4eebf9;fill-opacity:1;stroke:#4eebf9;stroke-opacity:1">
+      <path
+         id="path33019"
+         style="opacity:1;fill:#4eebf9;fill-opacity:1;fill-rule:evenodd;stroke:#4eebf9;stroke-width:0.116897;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+         d="m 11.673291,26.301642 c 1.984812,-1.063742 3.042399,-2.98937 2.391834,-4.437959 -0.693933,-1.545164 -3.078479,-1.981235 -5.322644,-0.973381 -2.2441589,1.00786 -3.5023177,3.079877 -2.808384,4.625034 0.6939395,1.545164 3.0784796,1.981235 5.322644,0.973381 0.140259,-0.06299 0.284223,-0.11616 0.41655,-0.187075 z"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cssssc" />
+      <path
+         id="path33021"
+         style="fill:#4eebf9;fill-opacity:1;fill-rule:evenodd;stroke:#4eebf9;stroke-width:0.876725;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="M 13.840623,22.599881 V 2.9685056"
+         inkscape:connector-curvature="0" />
+    </g>
+    <rect
+       style="fill:#4eebf9;fill-opacity:1;stroke:#4eebf9;stroke-width:0.0167249;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;stop-color:#000000"
+       id="rect33053"
+       width="4.004282"
+       height="0.7330817"
+       x="-39.853065"
+       y="-2.2913375"
+       transform="rotate(-11.943677)"
+       ry="0" />
+  </g>
+  <text
+     xml:space="preserve"
+     id="text4244"
+     style="font-style:normal;font-weight:normal;font-size:40px;line-height:1.25;font-family:sans-serif;white-space:pre;shape-inside:url(#rect4246);fill:#817d75;fill-opacity:1;stroke:none"
+     transform="matrix(0.14221484,0,0,0.14221484,-17.591113,36.675679)"
+     inkscape:export-filename="D:\JeromeDocs\JJazzLab\src\JJazzLab-X\Graphics\DragMidiIcon.png"
+     inkscape:export-xdpi="214.94"
+     inkscape:export-ydpi="214.94"><tspan
+       x="-176.07031"
+       y="-104.79297"
+       id="tspan17632">MIDI</tspan></text>
+  <g
+     id="g869"
+     inkscape:export-filename="D:\JeromeDocs\JJazzLab\src\JJazzLab-X\Graphics\DragMidiIconWait.png"
+     inkscape:export-xdpi="214.94"
+     inkscape:export-ydpi="214.94"
+     transform="translate(198.63329,-44.892134)">
+    <path
+       style="fill:#1a1a1a;fill-opacity:1;stroke:#ffffff;stroke-width:0.391524px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m -231.1049,16.181939 h 12.07755 l 3.42601,3.010738 v 18.929571 h -15.98805 V 16.181939 Z"
+       id="path865" />
+    <path
+       style="fill:#817d75;fill-opacity:1;stroke:#817d75;stroke-width:0.407782px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m -216.34551,19.056519 -2.5373,0.01575 -0.006,-2.239823 z"
+       id="path867"
+       sodipodi:nodetypes="cccc" />
+  </g>
+  <g
+     id="g885"
+     style="fill:#817d75;fill-opacity:1;stroke:#817d75;stroke-opacity:1"
+     transform="translate(13.133297,-29.142135)"
+     inkscape:export-filename="D:\JeromeDocs\JJazzLab\src\JJazzLab-X\Graphics\DragMidiIconWait.png"
+     inkscape:export-xdpi="214.94"
+     inkscape:export-ydpi="214.94">
+    <g
+       id="g875"
+       transform="matrix(0.30408957,0,0,0.30408957,-43.552336,5.0964478)"
+       style="fill:#817d75;fill-opacity:1;stroke:#817d75;stroke-opacity:1">
+      <path
+         id="path871"
+         style="opacity:1;fill:#817d75;fill-opacity:1;fill-rule:evenodd;stroke:#817d75;stroke-width:0.116897;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+         d="m 11.673291,26.301642 c 1.984812,-1.063742 3.042399,-2.98937 2.391834,-4.437959 -0.693933,-1.545164 -3.078479,-1.981235 -5.322644,-0.973381 -2.2441589,1.00786 -3.5023177,3.079877 -2.808384,4.625034 0.6939395,1.545164 3.0784796,1.981235 5.322644,0.973381 0.140259,-0.06299 0.284223,-0.11616 0.41655,-0.187075 z"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cssssc" />
+      <path
+         id="path873"
+         style="fill:#817d75;fill-opacity:1;fill-rule:evenodd;stroke:#817d75;stroke-width:0.876725;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="M 13.840623,22.599881 V 2.9685056"
+         inkscape:connector-curvature="0" />
+    </g>
+    <g
+       id="g881"
+       transform="matrix(0.30408957,0,0,0.30408957,-39.721098,4.2671646)"
+       style="fill:#817d75;fill-opacity:1;stroke:#817d75;stroke-opacity:1">
+      <path
+         id="path877"
+         style="opacity:1;fill:#817d75;fill-opacity:1;fill-rule:evenodd;stroke:#817d75;stroke-width:0.116897;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+         d="m 11.673291,26.301642 c 1.984812,-1.063742 3.042399,-2.98937 2.391834,-4.437959 -0.693933,-1.545164 -3.078479,-1.981235 -5.322644,-0.973381 -2.2441589,1.00786 -3.5023177,3.079877 -2.808384,4.625034 0.6939395,1.545164 3.0784796,1.981235 5.322644,0.973381 0.140259,-0.06299 0.284223,-0.11616 0.41655,-0.187075 z"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cssssc" />
+      <path
+         id="path879"
+         style="fill:#817d75;fill-opacity:1;fill-rule:evenodd;stroke:#817d75;stroke-width:0.876725;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="M 13.840623,22.599881 V 2.9685056"
+         inkscape:connector-curvature="0" />
+    </g>
+    <rect
+       style="fill:#817d75;fill-opacity:1;stroke:#817d75;stroke-width:0.0167249;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;stop-color:#000000"
+       id="rect883"
+       width="4.004282"
+       height="0.7330817"
+       x="-39.853065"
+       y="-2.2913375"
+       transform="rotate(-11.943677)"
+       ry="0" />
+  </g>
+  <text
+     xml:space="preserve"
+     id="text889"
+     style="font-style:normal;font-weight:normal;font-size:40px;line-height:1.25;font-family:sans-serif;white-space:pre;shape-inside:url(#rect891);fill:#817d75;fill-opacity:1;stroke:none;stroke-width:1.16391"
+     transform="matrix(0.12218612,0,0,0.12218612,-10.508935,2.8210344)"
+     inkscape:export-filename="D:\JeromeDocs\JJazzLab\src\JJazzLab-X\Graphics\DragMidiIconWait.png"
+     inkscape:export-xdpi="214.94"
+     inkscape:export-ydpi="214.94"><tspan
+       x="-176.07031"
+       y="-104.79297"
+       id="tspan17634">wait...</tspan></text>
+</svg>
