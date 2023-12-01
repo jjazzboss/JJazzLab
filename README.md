@@ -8,7 +8,7 @@ The objective is to generate **intelligent and interesting backing tracks**, i.e
 - non-boring (with variations)
 - easily customizable, even for complex songs
 
-*The JJazzLab UI (available in German, French, Chinese, Portuguese, Spanish, thanks to the JJazzLab community):* 
+*The JJazzLab UI (available in several languages English, German, French, Chinese, Portuguese, etc thanks to the JJazzLab community):* 
 ![JJazzLab screenshot](https://github.com/jjazzboss/JJazzLab/blob/master/graphics/JJazzLab3.0Full.png)
 
 From version 4.0 JJazzLab embeds its own customized software synth based on FluidSynth. For even better sounds, just connect JJazzLab to VST plugins via a virtual Midi cable and a VST host.
