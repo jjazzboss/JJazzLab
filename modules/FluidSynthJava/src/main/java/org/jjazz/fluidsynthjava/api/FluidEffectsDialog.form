@@ -221,7 +221,7 @@
             <Property name="axis" type="int" value="1"/>
           </Layout>
           <SubComponents>
-            <Container class="org.jjazz.ui.flatcomponents.api.FlatIntegerKnob" name="knob_room">
+            <Container class="org.jjazz.flatcomponents.api.FlatIntegerKnob" name="knob_room">
               <Properties>
                 <Property name="maxValue" type="int" value="100"/>
                 <Property name="value" type="int" value="50"/>
@@ -256,7 +256,7 @@
             <Property name="axis" type="int" value="1"/>
           </Layout>
           <SubComponents>
-            <Container class="org.jjazz.ui.flatcomponents.api.FlatIntegerKnob" name="knob_damp">
+            <Container class="org.jjazz.flatcomponents.api.FlatIntegerKnob" name="knob_damp">
               <Properties>
                 <Property name="maxValue" type="int" value="100"/>
                 <Property name="value" type="int" value="50"/>
@@ -291,7 +291,7 @@
             <Property name="axis" type="int" value="1"/>
           </Layout>
           <SubComponents>
-            <Container class="org.jjazz.ui.flatcomponents.api.FlatIntegerKnob" name="knob_width">
+            <Container class="org.jjazz.flatcomponents.api.FlatIntegerKnob" name="knob_width">
               <Properties>
                 <Property name="maxValue" type="int" value="10000"/>
                 <Property name="value" type="int" value="50"/>
@@ -326,7 +326,7 @@
             <Property name="axis" type="int" value="1"/>
           </Layout>
           <SubComponents>
-            <Container class="org.jjazz.ui.flatcomponents.api.FlatIntegerKnob" name="knob_level_rev">
+            <Container class="org.jjazz.flatcomponents.api.FlatIntegerKnob" name="knob_level_rev">
               <Properties>
                 <Property name="maxValue" type="int" value="100"/>
                 <Property name="value" type="int" value="50"/>
@@ -369,7 +369,7 @@
             <Property name="axis" type="int" value="1"/>
           </Layout>
           <SubComponents>
-            <Container class="org.jjazz.ui.flatcomponents.api.FlatIntegerKnob" name="knob_nr">
+            <Container class="org.jjazz.flatcomponents.api.FlatIntegerKnob" name="knob_nr">
               <Properties>
                 <Property name="maxValue" type="int" value="99"/>
                 <Property name="value" type="int" value="50"/>
@@ -404,7 +404,7 @@
             <Property name="axis" type="int" value="1"/>
           </Layout>
           <SubComponents>
-            <Container class="org.jjazz.ui.flatcomponents.api.FlatIntegerKnob" name="knob_speed">
+            <Container class="org.jjazz.flatcomponents.api.FlatIntegerKnob" name="knob_speed">
               <Properties>
                 <Property name="maxValue" type="int" value="500"/>
                 <Property name="minValue" type="int" value="10"/>
@@ -440,7 +440,7 @@
             <Property name="axis" type="int" value="1"/>
           </Layout>
           <SubComponents>
-            <Container class="org.jjazz.ui.flatcomponents.api.FlatIntegerKnob" name="knob_depth">
+            <Container class="org.jjazz.flatcomponents.api.FlatIntegerKnob" name="knob_depth">
               <Properties>
                 <Property name="maxValue" type="int" value="256"/>
                 <Property name="value" type="int" value="50"/>
@@ -475,7 +475,7 @@
             <Property name="axis" type="int" value="1"/>
           </Layout>
           <SubComponents>
-            <Container class="org.jjazz.ui.flatcomponents.api.FlatIntegerKnob" name="knob_level_cho">
+            <Container class="org.jjazz.flatcomponents.api.FlatIntegerKnob" name="knob_level_cho">
               <Properties>
                 <Property name="maxValue" type="int" value="1000"/>
                 <Property name="value" type="int" value="50"/>

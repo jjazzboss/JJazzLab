@@ -98,7 +98,7 @@
 
       <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
       <SubComponents>
-        <Component class="org.jjazz.ui.utilities.HelpTextArea" name="helpTextArea1">
+        <Component class="org.jjazz.uiutilities.api.HelpTextArea" name="helpTextArea1">
           <Properties>
             <Property name="columns" type="int" value="20"/>
             <Property name="rows" type="int" value="5"/>
@@ -220,7 +220,7 @@
             <Property name="text" type="java.lang.String" value="Main B-1" noResource="true"/>
           </Properties>
         </Component>
-        <Component class="org.jjazz.ui.utilities.WheelSpinner" name="spn_nbMainA">
+        <Component class="org.jjazz.uiutilities.api.WheelSpinner" name="spn_nbMainA">
           <Properties>
             <Property name="model" type="javax.swing.SpinnerModel" editor="org.netbeans.modules.form.editors2.SpinnerModelEditor">
               <SpinnerModel initial="2" maximum="10" minimum="0" numberType="java.lang.Integer" stepSize="1" type="number"/>
@@ -236,7 +236,7 @@
             <Property name="text" type="java.lang.String" value="Main C" noResource="true"/>
           </Properties>
         </Component>
-        <Component class="org.jjazz.ui.utilities.WheelSpinner" name="spn_nbMainD">
+        <Component class="org.jjazz.uiutilities.api.WheelSpinner" name="spn_nbMainD">
           <Properties>
             <Property name="model" type="javax.swing.SpinnerModel" editor="org.netbeans.modules.form.editors2.SpinnerModelEditor">
               <SpinnerModel initial="2" maximum="10" minimum="0" numberType="java.lang.Integer" stepSize="1" type="number"/>
@@ -247,7 +247,7 @@
             <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="spn_nbMainDStateChanged"/>
           </Events>
         </Component>
-        <Component class="org.jjazz.ui.utilities.WheelSpinner" name="spn_nbMainB">
+        <Component class="org.jjazz.uiutilities.api.WheelSpinner" name="spn_nbMainB">
           <Properties>
             <Property name="model" type="javax.swing.SpinnerModel" editor="org.netbeans.modules.form.editors2.SpinnerModelEditor">
               <SpinnerModel initial="2" maximum="10" minimum="0" numberType="java.lang.Integer" stepSize="1" type="number"/>
@@ -278,7 +278,7 @@
             <Property name="text" type="java.lang.String" value="Main B" noResource="true"/>
           </Properties>
         </Component>
-        <Component class="org.jjazz.ui.utilities.WheelSpinner" name="spn_nbMainC">
+        <Component class="org.jjazz.uiutilities.api.WheelSpinner" name="spn_nbMainC">
           <Properties>
             <Property name="model" type="javax.swing.SpinnerModel" editor="org.netbeans.modules.form.editors2.SpinnerModelEditor">
               <SpinnerModel initial="2" maximum="10" minimum="0" numberType="java.lang.Integer" stepSize="1" type="number"/>
@@ -356,7 +356,7 @@
         </Component>
       </SubComponents>
     </Container>
-    <Component class="org.jjazz.ui.utilities.WheelSpinner" name="spn_nbSrcPhrases">
+    <Component class="org.jjazz.uiutilities.api.WheelSpinner" name="spn_nbSrcPhrases">
       <Properties>
         <Property name="model" type="javax.swing.SpinnerModel" editor="org.netbeans.modules.form.editors2.SpinnerModelEditor">
           <SpinnerModel initial="2" maximum="20" minimum="1" numberType="java.lang.Integer" stepSize="1" type="number"/>

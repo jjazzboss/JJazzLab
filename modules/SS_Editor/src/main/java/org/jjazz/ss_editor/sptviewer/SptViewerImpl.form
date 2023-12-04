@@ -59,7 +59,7 @@
             <Property name="axis" type="int" value="1"/>
           </Layout>
           <SubComponents>
-            <Component class="org.jjazz.ui.flatcomponents.api.FlatButton" name="fbtn_sptName">
+            <Component class="org.jjazz.flatcomponents.api.FlatButton" name="fbtn_sptName">
               <Properties>
                 <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
                   <Border info="org.netbeans.modules.form.compat2.border.EmptyBorderInfo">
@@ -75,7 +75,7 @@
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="fbtn_sptNameActionPerformed"/>
               </Events>
             </Component>
-            <Container class="org.jjazz.ui.sptviewer.MultiSelectBar" name="multiSelectBar">
+            <Container class="org.jjazz.ss_editor.sptviewer.MultiSelectBar" name="multiSelectBar">
               <Properties>
                 <Property name="lineColor" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
                   <Color blue="33" green="33" red="0" type="rgb"/>
@@ -111,7 +111,7 @@
                 <AuxValue name="classDetails" type="java.lang.String" value="Box.Filler.VerticalStrut"/>
               </AuxValues>
             </Component>
-            <Component class="org.jjazz.ui.flatcomponents.api.FlatButton" name="fbtn_rhythm">
+            <Component class="org.jjazz.flatcomponents.api.FlatButton" name="fbtn_rhythm">
               <Properties>
                 <Property name="text" type="java.lang.String" value="rhythm" noResource="true"/>
                 <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">

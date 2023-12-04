@@ -154,7 +154,7 @@
         </Property>
       </Properties>
     </Component>
-    <Component class="org.jjazz.ui.musiccontrolactions.ui.api.PositionViewer" name="posViewer">
+    <Component class="org.jjazz.musiccontrolactions.api.ui.PositionViewer" name="posViewer">
       <Properties>
         <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
           <ResourceString bundle="org/jjazz/easyreader/Bundle.properties" key="EasyReaderPanel.posViewer.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>

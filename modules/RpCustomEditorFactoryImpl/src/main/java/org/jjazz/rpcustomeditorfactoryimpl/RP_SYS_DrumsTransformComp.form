@@ -305,7 +305,7 @@
                 <Property name="axis" type="int" value="1"/>
               </Layout>
               <SubComponents>
-                <Container class="org.jjazz.ui.flatcomponents.api.FlatIntegerKnob" name="knb_bassDrum">
+                <Container class="org.jjazz.flatcomponents.api.FlatIntegerKnob" name="knb_bassDrum">
                   <Properties>
                     <Property name="knobStartAngle" type="double" value="220.0"/>
                     <Property name="maxValue" type="int" value="64"/>
@@ -352,7 +352,7 @@
                 <Property name="axis" type="int" value="1"/>
               </Layout>
               <SubComponents>
-                <Container class="org.jjazz.ui.flatcomponents.api.FlatIntegerKnob" name="knb_hihat">
+                <Container class="org.jjazz.flatcomponents.api.FlatIntegerKnob" name="knb_hihat">
                   <Properties>
                     <Property name="knobStartAngle" type="double" value="220.0"/>
                     <Property name="maxValue" type="int" value="64"/>
@@ -399,7 +399,7 @@
                 <Property name="axis" type="int" value="1"/>
               </Layout>
               <SubComponents>
-                <Container class="org.jjazz.ui.flatcomponents.api.FlatIntegerKnob" name="knb_snare">
+                <Container class="org.jjazz.flatcomponents.api.FlatIntegerKnob" name="knb_snare">
                   <Properties>
                     <Property name="knobStartAngle" type="double" value="220.0"/>
                     <Property name="maxValue" type="int" value="64"/>
@@ -446,7 +446,7 @@
                 <Property name="axis" type="int" value="1"/>
               </Layout>
               <SubComponents>
-                <Container class="org.jjazz.ui.flatcomponents.api.FlatIntegerKnob" name="knb_toms">
+                <Container class="org.jjazz.flatcomponents.api.FlatIntegerKnob" name="knb_toms">
                   <Properties>
                     <Property name="knobStartAngle" type="double" value="220.0"/>
                     <Property name="maxValue" type="int" value="64"/>
@@ -493,7 +493,7 @@
                 <Property name="axis" type="int" value="1"/>
               </Layout>
               <SubComponents>
-                <Container class="org.jjazz.ui.flatcomponents.api.FlatIntegerKnob" name="knb_cymbals">
+                <Container class="org.jjazz.flatcomponents.api.FlatIntegerKnob" name="knb_cymbals">
                   <Properties>
                     <Property name="knobStartAngle" type="double" value="220.0"/>
                     <Property name="maxValue" type="int" value="64"/>
@@ -540,7 +540,7 @@
                 <Property name="axis" type="int" value="1"/>
               </Layout>
               <SubComponents>
-                <Container class="org.jjazz.ui.flatcomponents.api.FlatIntegerKnob" name="knb_crash">
+                <Container class="org.jjazz.flatcomponents.api.FlatIntegerKnob" name="knb_crash">
                   <Properties>
                     <Property name="knobStartAngle" type="double" value="220.0"/>
                     <Property name="maxValue" type="int" value="64"/>
@@ -587,7 +587,7 @@
                 <Property name="axis" type="int" value="1"/>
               </Layout>
               <SubComponents>
-                <Container class="org.jjazz.ui.flatcomponents.api.FlatIntegerKnob" name="knb_perc">
+                <Container class="org.jjazz.flatcomponents.api.FlatIntegerKnob" name="knb_perc">
                   <Properties>
                     <Property name="knobStartAngle" type="double" value="220.0"/>
                     <Property name="maxValue" type="int" value="64"/>
@@ -665,7 +665,7 @@
             <AuxValue name="classDetails" type="java.lang.String" value="Box.Filler.HorizontalStrut"/>
           </AuxValues>
         </Component>
-        <Component class="org.jjazz.ui.flatcomponents.api.FlatToggleButton" name="tbtn_solo">
+        <Component class="org.jjazz.flatcomponents.api.FlatToggleButton" name="tbtn_solo">
           <Properties>
             <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
               <Image iconType="3" name="/org/jjazz/rpcustomeditorfactoryimpl/resources/SoloOff_Icon-21x21.png"/>
@@ -683,7 +683,7 @@
         </Component>
       </SubComponents>
     </Container>
-    <Component class="org.jjazz.ui.flatcomponents.api.FlatHelpButton" name="flatHelpButton1">
+    <Component class="org.jjazz.flatcomponents.api.FlatHelpButton" name="flatHelpButton1">
       <Properties>
         <Property name="helpText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
           <ResourceString bundle="org/jjazz/rpcustomeditorfactoryimpl/Bundle.properties" key="RP_SYS_DrumsTransformComp.flatHelpButton1.helpText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>

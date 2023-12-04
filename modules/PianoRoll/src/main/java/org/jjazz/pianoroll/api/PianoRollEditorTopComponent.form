@@ -93,14 +93,14 @@
             </DimensionLayout>
           </Layout>
           <SubComponents>
-            <Component class="org.jjazz.ui.utilities.api.CollapsiblePanel" name="cpan_quantize">
+            <Component class="org.jjazz.uiutilities.api.CollapsiblePanel" name="cpan_quantize">
               <Properties>
                 <Property name="titleComponentText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
                   <ResourceString bundle="org/jjazz/pianoroll/api/Bundle.properties" key="PianoRollEditorTopComponent.cpan_quantize.titleComponentText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
                 </Property>
               </Properties>
             </Component>
-            <Component class="org.jjazz.ui.utilities.api.CollapsiblePanel" name="cpan_showTracks">
+            <Component class="org.jjazz.uiutilities.api.CollapsiblePanel" name="cpan_showTracks">
               <Properties>
                 <Property name="titleComponentText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
                   <ResourceString bundle="org/jjazz/pianoroll/api/Bundle.properties" key="PianoRollEditorTopComponent.cpan_showTracks.titleComponentText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>

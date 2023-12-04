@@ -64,7 +64,7 @@
             <AuxValue name="classDetails" type="java.lang.String" value="Box.Filler.HorizontalStrut"/>
           </AuxValues>
         </Component>
-        <Component class="org.jjazz.ui.flatcomponents.api.FlatToggleButton" name="tbtn_snap">
+        <Component class="org.jjazz.flatcomponents.api.FlatToggleButton" name="tbtn_snap">
           <Properties>
             <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
               <Image iconType="3" name="/org/jjazz/pianoroll/actions/resources/SnapOFF.png"/>
@@ -115,7 +115,7 @@
             </Property>
           </Properties>
         </Component>
-        <Component class="org.jjazz.ui.utilities.api.WheelSpinner" name="spn_velocity">
+        <Component class="org.jjazz.uiutilities.api.WheelSpinner" name="spn_velocity">
           <Properties>
             <Property name="model" type="javax.swing.SpinnerModel" editor="org.netbeans.modules.form.editors2.SpinnerModelEditor">
               <SpinnerModel initial="0" maximum="127" minimum="0" numberType="java.lang.Integer" stepSize="1" type="number"/>
@@ -196,14 +196,14 @@
             <Property name="verticalGap" type="int" value="2"/>
           </Layout>
           <SubComponents>
-            <Component class="org.jjazz.ui.flatcomponents.api.FlatButton" name="btn_playEditor">
+            <Component class="org.jjazz.flatcomponents.api.FlatButton" name="btn_playEditor">
               <Properties>
                 <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
                   <Image iconType="3" name="/org/jjazz/pianoroll/actions/resources/PlayEditor-OFF.png"/>
                 </Property>
               </Properties>
             </Component>
-            <Component class="org.jjazz.ui.flatcomponents.api.FlatToggleButton" name="tbtn_playbackAutoScroll">
+            <Component class="org.jjazz.flatcomponents.api.FlatToggleButton" name="tbtn_playbackAutoScroll">
               <Properties>
                 <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
                   <Image iconType="3" name="/org/jjazz/pianoroll/actions/resources/PlaybackAutoScrollOFF.png"/>
@@ -216,7 +216,7 @@
                 </Property>
               </Properties>
             </Component>
-            <Component class="org.jjazz.ui.flatcomponents.api.FlatToggleButton" name="tbtn_solo">
+            <Component class="org.jjazz.flatcomponents.api.FlatToggleButton" name="tbtn_solo">
               <Properties>
                 <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
                   <Image iconType="3" name="/org/jjazz/pianoroll/actions/resources/SoloOFF.png"/>
@@ -226,7 +226,7 @@
                 </Property>
               </Properties>
             </Component>
-            <Component class="org.jjazz.ui.flatcomponents.api.FlatToggleButton" name="tbtn_hearNotes">
+            <Component class="org.jjazz.flatcomponents.api.FlatToggleButton" name="tbtn_hearNotes">
               <Properties>
                 <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
                   <Image iconType="3" name="/org/jjazz/pianoroll/actions/resources/HearNoteOFF.png"/>
@@ -252,7 +252,7 @@
                 <AuxValue name="classDetails" type="java.lang.String" value="Box.Filler.HorizontalStrut"/>
               </AuxValues>
             </Component>
-            <Component class="org.jjazz.ui.flatcomponents.api.FlatHelpButton" name="fbtn_help">
+            <Component class="org.jjazz.flatcomponents.api.FlatHelpButton" name="fbtn_help">
               <Properties>
                 <Property name="helpText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
                   <ResourceString bundle="org/jjazz/pianoroll/Bundle.properties" key="ToolbarPanel.fbtn_help.helpText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
