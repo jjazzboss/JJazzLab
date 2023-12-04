@@ -1,2 +1,3 @@
-gren release -c gren.cfg --override --tags=3.2.0
+gren release --override -c misc/gren.cfg --tags=4.0-BETA1..3.2.1
+
 	 
