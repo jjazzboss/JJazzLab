@@ -72,7 +72,7 @@
         </DimensionLayout>
       </Layout>
       <SubComponents>
-        <Component class="org.jjazz.ui.flatcomponents.api.FlatButton" name="fbtn_close">
+        <Component class="org.jjazz.flatcomponents.api.FlatButton" name="fbtn_close">
           <Properties>
             <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
               <Image iconType="3" name="/org/jjazz/phrasetransform/resources/Close-10x10.png"/>
@@ -101,7 +101,7 @@
                 <Property name="axis" type="int" value="1"/>
               </Layout>
               <SubComponents>
-                <Container class="org.jjazz.ui.flatcomponents.api.FlatIntegerKnob" name="knob">
+                <Container class="org.jjazz.flatcomponents.api.FlatIntegerKnob" name="knob">
                   <Properties>
                     <Property name="knobRadius" type="double" value="10.0"/>
                     <Property name="opaque" type="boolean" value="false"/>

@@ -90,7 +90,7 @@
 
           <Layout class="org.netbeans.modules.form.compat2.layouts.DesignBorderLayout"/>
         </Container>
-        <Component class="org.jjazz.ui.flatcomponents.api.FlatToggleButton" name="tbtn_compare">
+        <Component class="org.jjazz.flatcomponents.api.FlatToggleButton" name="tbtn_compare">
           <Properties>
             <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
               <Image iconType="3" name="/org/jjazz/rpcustomeditorfactoryimpl/api/resources/CompareArrows-OFF.png"/>
@@ -109,7 +109,7 @@
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="tbtn_compareActionPerformed"/>
           </Events>
         </Component>
-        <Component class="org.jjazz.ui.flatcomponents.api.FlatToggleButton" name="tbtn_hear">
+        <Component class="org.jjazz.flatcomponents.api.FlatToggleButton" name="tbtn_hear">
           <Properties>
             <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
               <Image iconType="3" name="/org/jjazz/rpcustomeditorfactoryimpl/api/resources/SpeakerOff-24x24.png"/>
@@ -125,7 +125,7 @@
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="tbtn_hearActionPerformed"/>
           </Events>
         </Component>
-        <Component class="org.jjazz.ui.flatcomponents.api.FlatButton" name="fbtn_ok">
+        <Component class="org.jjazz.flatcomponents.api.FlatButton" name="fbtn_ok">
           <Properties>
             <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
               <Image iconType="3" name="/org/jjazz/rpcustomeditorfactoryimpl/api/resources/OK-24x24.png"/>
@@ -138,7 +138,7 @@
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="fbtn_okActionPerformed"/>
           </Events>
         </Component>
-        <Component class="org.jjazz.ui.flatcomponents.api.FlatButton" name="fbtn_reset">
+        <Component class="org.jjazz.flatcomponents.api.FlatButton" name="fbtn_reset">
           <Properties>
             <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
               <Image iconType="3" name="/org/jjazz/rpcustomeditorfactoryimpl/api/resources/Reset-24x24.png"/>

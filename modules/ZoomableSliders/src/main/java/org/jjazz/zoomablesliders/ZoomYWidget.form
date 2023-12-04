@@ -36,7 +36,7 @@
         <EventHandler event="mouseWheelMoved" listener="java.awt.event.MouseWheelListener" parameters="java.awt.event.MouseWheelEvent" handler="sliderMouseWheelMoved"/>
       </Events>
       <AuxValues>
-        <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="org.jjazz.ui.utilities.api.Utilities.buildSlider(SwingConstants.HORIZONTAL, 0.7f);"/>
+        <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="org.jjazz.uiutilities.api.Utilities.buildSlider(SwingConstants.HORIZONTAL, 0.7f);"/>
       </AuxValues>
     </Component>
   </SubComponents>

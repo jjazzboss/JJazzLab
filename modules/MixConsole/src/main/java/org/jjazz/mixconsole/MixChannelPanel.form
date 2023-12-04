@@ -38,7 +38,7 @@
     </DimensionLayout>
   </Layout>
   <SubComponents>
-    <Container class="org.jjazz.ui.flatcomponents.api.RoundedPanel" name="roundedPanel">
+    <Container class="org.jjazz.flatcomponents.api.RoundedPanel" name="roundedPanel">
       <Properties>
         <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
           <Color blue="2e" green="2e" red="2e" type="rgb"/>
@@ -119,7 +119,7 @@
             <Property name="opaque" type="boolean" value="false"/>
           </Properties>
           <SubComponents>
-            <Container class="org.jjazz.ui.flatcomponents.api.FlatLedIndicator" name="fled_midiActivity">
+            <Container class="org.jjazz.flatcomponents.api.FlatLedIndicator" name="fled_midiActivity">
               <Properties>
                 <Property name="alphaStepActivity" type="int" value="150"/>
                 <Property name="colorMax" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
@@ -224,7 +224,7 @@
               </StatementProvider>
               <Parameters>
                 <CodeExpression id="7_fled_midiActivity">
-                  <CodeVariable name="fled_midiActivity" type="8194" declaredType="org.jjazz.ui.flatcomponents.api.FlatLedIndicator"/>
+                  <CodeVariable name="fled_midiActivity" type="8194" declaredType="org.jjazz.flatcomponents.api.FlatLedIndicator"/>
                   <ExpressionOrigin>
                     <ExpressionProvider type="ComponentRef">
                       <ComponentRef name="fled_midiActivity"/>
@@ -251,7 +251,7 @@
             </CodeStatement>
           </LayoutCode>
         </Container>
-        <Component class="org.jjazz.ui.flatcomponents.api.FlatButton" name="fbtn_Settings">
+        <Component class="org.jjazz.flatcomponents.api.FlatButton" name="fbtn_Settings">
           <Properties>
             <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
               <Border info="org.netbeans.modules.form.compat2.border.EmptyBorderInfo">
@@ -260,7 +260,7 @@
             </Property>
             <Property name="horizontalAlignment" type="int" value="0"/>
             <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-              <Image iconType="3" name="/org/jjazz/ui/mixconsole/resources/Settings11x11.png"/>
+              <Image iconType="3" name="/org/jjazz/mixconsole/resources/Settings11x11.png"/>
             </Property>
             <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
               <ResourceString bundle="org/jjazz/mixconsole/Bundle.properties" key="MixChannelPanel.fbtn_Settings.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
@@ -283,17 +283,17 @@
             <Property name="verticalGap" type="int" value="0"/>
           </Layout>
           <SubComponents>
-            <Component class="org.jjazz.ui.flatcomponents.api.FlatToggleButton" name="fbtn_mute">
+            <Component class="org.jjazz.flatcomponents.api.FlatToggleButton" name="fbtn_mute">
               <Properties>
                 <Property name="alignmentX" type="float" value="0.5"/>
                 <Property name="disabledIcon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                  <Image iconType="3" name="/org/jjazz/ui/mixconsole/resources/MuteDisabled_Icon-21x21.png"/>
+                  <Image iconType="3" name="/org/jjazz/mixconsole/resources/MuteDisabled_Icon-21x21.png"/>
                 </Property>
                 <Property name="selectedIcon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                  <Image iconType="3" name="/org/jjazz/ui/mixconsole/resources/MuteOn_Icon-21x21.png"/>
+                  <Image iconType="3" name="/org/jjazz/mixconsole/resources/MuteOn_Icon-21x21.png"/>
                 </Property>
                 <Property name="unselectedIcon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                  <Image iconType="3" name="/org/jjazz/ui/mixconsole/resources/MuteOff_Icon-21x21.png"/>
+                  <Image iconType="3" name="/org/jjazz/mixconsole/resources/MuteOff_Icon-21x21.png"/>
                 </Property>
               </Properties>
               <Events>
@@ -315,18 +315,18 @@
             <Property name="verticalGap" type="int" value="0"/>
           </Layout>
           <SubComponents>
-            <Component class="org.jjazz.ui.flatcomponents.api.FlatToggleButton" name="fbtn_solo">
+            <Component class="org.jjazz.flatcomponents.api.FlatToggleButton" name="fbtn_solo">
               <Properties>
                 <Property name="horizontalAlignment" type="int" value="0"/>
                 <Property name="alignmentX" type="float" value="0.5"/>
                 <Property name="disabledIcon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                  <Image iconType="3" name="/org/jjazz/ui/mixconsole/resources/SoloDisabled_Icon-21x21.png"/>
+                  <Image iconType="3" name="/org/jjazz/mixconsole/resources/SoloDisabled_Icon-21x21.png"/>
                 </Property>
                 <Property name="selectedIcon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                  <Image iconType="3" name="/org/jjazz/ui/mixconsole/resources/SoloOn_Icon-21x21.png"/>
+                  <Image iconType="3" name="/org/jjazz/mixconsole/resources/SoloOn_Icon-21x21.png"/>
                 </Property>
                 <Property name="unselectedIcon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                  <Image iconType="3" name="/org/jjazz/ui/mixconsole/resources/SoloOff_Icon-21x21.png"/>
+                  <Image iconType="3" name="/org/jjazz/mixconsole/resources/SoloOff_Icon-21x21.png"/>
                 </Property>
               </Properties>
               <Events>
@@ -345,7 +345,7 @@
             <Property name="verticalGap" type="int" value="0"/>
           </Layout>
           <SubComponents>
-            <Container class="org.jjazz.ui.flatcomponents.api.FlatIntegerVerticalSlider" name="fslider_volume">
+            <Container class="org.jjazz.flatcomponents.api.FlatIntegerVerticalSlider" name="fslider_volume">
               <Properties>
                 <Property name="buttonColor" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
                   <Color blue="d0" green="d0" red="d0" type="rgb"/>
@@ -364,7 +364,7 @@
                 <Property name="useNullLayout" type="boolean" value="true"/>
               </Layout>
             </Container>
-            <Component class="org.jjazz.ui.mixconsole.VInstrumentButton" name="fbtn_Instrument">
+            <Component class="org.jjazz.mixconsole.VInstrumentButton" name="fbtn_Instrument">
               <Properties>
                 <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
                   <ResourceString bundle="org/jjazz/mixconsole/Bundle.properties" key="MixChannelPanel.fbtn_Instrument.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
@@ -395,7 +395,7 @@
             <Component class="javax.swing.JLabel" name="lbl_Icon">
               <Properties>
                 <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                  <Image iconType="3" name="/org/jjazz/ui/mixconsole/resources/Drums-48x48.png"/>
+                  <Image iconType="3" name="/org/jjazz/mixconsole/resources/Drums-48x48.png"/>
                 </Property>
                 <Property name="alignmentX" type="float" value="0.5"/>
                 <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
@@ -448,7 +448,7 @@
             <Property name="verticalGap" type="int" value="0"/>
           </Layout>
           <SubComponents>
-            <Component class="org.jjazz.ui.flatcomponents.api.FlatButton" name="fbtn_channelName">
+            <Component class="org.jjazz.flatcomponents.api.FlatButton" name="fbtn_channelName">
               <Properties>
                 <Property name="foreground" type="java.awt.Color" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
                   <Connection component="fbtn_Instrument" name="getForeground" type="method"/>
@@ -481,7 +481,7 @@
             <Property name="verticalGap" type="int" value="0"/>
           </Layout>
           <SubComponents>
-            <Component class="org.jjazz.ui.flatcomponents.api.FlatButton" name="fbtn_channelId">
+            <Component class="org.jjazz.flatcomponents.api.FlatButton" name="fbtn_channelId">
               <Properties>
                 <Property name="foreground" type="java.awt.Color" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
                   <Connection component="fbtn_Instrument" name="getForeground" type="method"/>
@@ -505,7 +505,7 @@
             </Component>
           </SubComponents>
         </Container>
-        <Container class="org.jjazz.ui.flatcomponents.api.FlatIntegerKnob" name="knob_panoramic">
+        <Container class="org.jjazz.flatcomponents.api.FlatIntegerKnob" name="knob_panoramic">
           <Properties>
             <Property name="opaque" type="boolean" value="false"/>
             <Property name="panoramicType" type="boolean" value="true"/>
@@ -526,7 +526,7 @@
             </DimensionLayout>
           </Layout>
         </Container>
-        <Container class="org.jjazz.ui.flatcomponents.api.FlatIntegerKnob" name="knob_chorus">
+        <Container class="org.jjazz.flatcomponents.api.FlatIntegerKnob" name="knob_chorus">
           <Properties>
             <Property name="opaque" type="boolean" value="false"/>
             <Property name="valueLineGap" type="double" value="3.0"/>
@@ -546,7 +546,7 @@
             </DimensionLayout>
           </Layout>
         </Container>
-        <Container class="org.jjazz.ui.flatcomponents.api.FlatIntegerKnob" name="knob_reverb">
+        <Container class="org.jjazz.flatcomponents.api.FlatIntegerKnob" name="knob_reverb">
           <Properties>
             <Property name="knobStartAngle" type="double" value="220.0"/>
             <Property name="opaque" type="boolean" value="false"/>

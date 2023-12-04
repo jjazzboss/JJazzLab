@@ -81,7 +81,7 @@
       <Properties>
         <Property name="columns" type="int" value="3"/>
         <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/jjazz/ui/cl_editor/editors/Bundle.properties" key="CL_BarEditorDialogImpl.jtfTimeSignature.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+          <ResourceString bundle="org/jjazz/cl_editor/editors/Bundle.properties" key="CL_BarEditorDialogImpl.jtfTimeSignature.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
         </Property>
       </Properties>
       <Events>
@@ -95,7 +95,7 @@
     <Component class="javax.swing.JTextField" name="jtfChordSymbols">
       <Properties>
         <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/jjazz/ui/cl_editor/editors/Bundle.properties" key="CL_BarEditorDialogImpl.jtfChordSymbols.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+          <ResourceString bundle="org/jjazz/cl_editor/editors/Bundle.properties" key="CL_BarEditorDialogImpl.jtfChordSymbols.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
         </Property>
       </Properties>
       <AuxValues>
@@ -114,31 +114,31 @@
     <Component class="javax.swing.JLabel" name="lbl_section">
       <Properties>
         <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/jjazz/ui/cl_editor/editors/Bundle.properties" key="CL_BarEditorDialogImpl.lbl_section.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+          <ResourceString bundle="org/jjazz/cl_editor/editors/Bundle.properties" key="CL_BarEditorDialogImpl.lbl_section.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
         </Property>
       </Properties>
     </Component>
     <Component class="javax.swing.JLabel" name="lbl_timeSig">
       <Properties>
         <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/jjazz/ui/cl_editor/editors/Bundle.properties" key="CL_BarEditorDialogImpl.lbl_timeSig.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+          <ResourceString bundle="org/jjazz/cl_editor/editors/Bundle.properties" key="CL_BarEditorDialogImpl.lbl_timeSig.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
         </Property>
       </Properties>
     </Component>
     <Component class="javax.swing.JLabel" name="lbl_annotation">
       <Properties>
         <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/jjazz/ui/cl_editor/editors/Bundle.properties" key="CL_BarEditorDialogImpl.lbl_annotation.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+          <ResourceString bundle="org/jjazz/cl_editor/editors/Bundle.properties" key="CL_BarEditorDialogImpl.lbl_annotation.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
         </Property>
       </Properties>
     </Component>
-    <Component class="org.jjazz.ui.flatcomponents.api.FlatToggleButton" name="fbtn_expand">
+    <Component class="org.jjazz.flatcomponents.api.FlatToggleButton" name="fbtn_expand">
       <Properties>
         <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-          <Image iconType="3" name="/org/jjazz/ui/cl_editor/editors/resources/arrow_collapsed.png"/>
+          <Image iconType="3" name="/org/jjazz/cl_editor/editors/resources/arrow_collapsed.png"/>
         </Property>
         <Property name="selectedIcon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-          <Image iconType="3" name="/org/jjazz/ui/cl_editor/editors/resources/arrow_expanded.png"/>
+          <Image iconType="3" name="/org/jjazz/cl_editor/editors/resources/arrow_expanded.png"/>
         </Property>
       </Properties>
       <Events>
@@ -148,7 +148,7 @@
     <Container class="javax.swing.JPanel" name="pnl_annotations">
       <Properties>
         <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/jjazz/ui/cl_editor/editors/Bundle.properties" key="CL_BarEditorDialogImpl.pnl_annotations.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+          <ResourceString bundle="org/jjazz/cl_editor/editors/Bundle.properties" key="CL_BarEditorDialogImpl.pnl_annotations.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
         </Property>
       </Properties>
 
