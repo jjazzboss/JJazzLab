@@ -39,6 +39,9 @@ import org.openide.modules.InstalledFileLocator;
 public final class FluidSynthJava
 {
 
+    private static final int MIN_FLUIDSYNTH_VERSION_MAJOR = 2;
+    private static final int MIN_FLUIDSYNTH_VERSION_MINOR = 3;
+    private static final int MIN_FLUIDSYNTH_VERSION_MICRO = 0;
     // Static variables must be declared BEFORE the static block
     // IMPORTANT: libs order must be in reverse dependency order (e.g. libfluidsynth is last)
     private static final String[] LIBS_WIN_AMD64 = new String[]
@@ -87,7 +90,7 @@ public final class FluidSynthJava
     {
         LIBRARIES_LOADED_OK = loadNativeLibraries();
     }
-    
+
     public static boolean isLibrariesLoadedOk()
     {
         return LIBRARIES_LOADED_OK;
@@ -106,8 +109,8 @@ public final class FluidSynthJava
     /**
      * Create a JavaFluidSynth object from another one.
      * <p>
-     * If jfs native resources are allocated, create the native resources initialized with the same values for: reverb, chorus,
-     * gain, soundfont file (if loaded), synth.device-id.
+     * If jfs native resources are allocated, create the native resources initialized with the same values for: reverb, chorus, gain,
+     * soundfont file (if loaded), synth.device-id.
      *
      * @param jfs               Must be already open
      * @param createAudioDriver If true create the associated audio driver
@@ -169,6 +172,13 @@ public final class FluidSynthJava
             return;
         }
 
+        if (!checkFluidSynthMinimumVersion(MIN_FLUIDSYNTH_VERSION_MAJOR, MIN_FLUIDSYNTH_VERSION_MINOR, MIN_FLUIDSYNTH_VERSION_MICRO))
+        {
+            String msg = "FluidSynth version is too old. Minimum is " + MIN_FLUIDSYNTH_VERSION_MAJOR + "." + MIN_FLUIDSYNTH_VERSION_MINOR + "." + MIN_FLUIDSYNTH_VERSION_MICRO;
+            LOGGER.log(Level.WARNING, "open() " + msg);
+            throw new FluidSynthException(msg);
+        }
+
         fluid_settings_ma = new_fluid_settings();
         fluid_synth_ma = new_fluid_synth(fluid_settings_ma);
         if (fluid_synth_ma == null)
@@ -193,11 +203,48 @@ public final class FluidSynthJava
     }
 
     /**
+     * Check that FluidSynth version is at least the specified version.
+     *
+     * @param major if min. version is "2.1.3" =&gt; 2
+     * @param minor if min. version is "2.1.3" =&gt; 1
+     * @param micro if min. version is "2.1.3" =&gt; 3
+     * @return
+     */
+    public boolean checkFluidSynthMinimumVersion(int major, int minor, int micro)
+    {
+        int maj, min, mic;
+        try (var scope = ResourceScope.newConfinedScope())
+        {
+            var major_seg = SegmentAllocator.ofScope(scope).allocate(CLinker.C_INT, 0);
+            var minor_seg = SegmentAllocator.ofScope(scope).allocate(CLinker.C_INT, 0);
+            var micro_seg = SegmentAllocator.ofScope(scope).allocate(CLinker.C_INT, 0);
+            fluid_version(major_seg, minor_seg, micro_seg);
+            maj = major_seg.toIntArray()[0];
+            min = minor_seg.toIntArray()[0];
+            mic = micro_seg.toIntArray()[0];
+        }
+        LOGGER.log(Level.INFO, "checkFluidSynthMinimumVersion() FluidSynth version={0}.{1}.{2}", new Object[]
+        {
+            maj, min, mic
+        });
+
+        boolean res = true;
+        if (maj < major)
+        {
+            res = false;
+        } else if (maj == major && (min < minor || (min == minor && mic < micro)))
+        {
+            res = false;
+        }
+        return res;
+    }
+
+    /**
      * Set the synth device Id for XG System ON compatibility.
      * <p>
-     * IMPORTANT: FluidSynth 2.3.0 (should be fixed in 2.3.1) expects a special XG System ON message (3rd byte is NOT 0001nnnn
-     * with n the deviceId), which differs from the standard one See https://github.com/FluidSynth/fluidsynth/issues/1092 Changing
-     * the deviceId to 16 is a trick to make it react to the standard XG System ON
+     * IMPORTANT: FluidSynth 2.3.0 (should be fixed in 2.3.1) expects a special XG System ON message (3rd byte is NOT 0001nnnn with n the
+     * deviceId), which differs from the standard one See https://github.com/FluidSynth/fluidsynth/issues/1092 Changing the deviceId to 16
+     * is a trick to make it react to the standard XG System ON
      */
     private void setDeviceIdForXGCompatibility()
     {
@@ -333,7 +380,7 @@ public final class FluidSynthJava
         // FluidSynth does not expect the leading 0xF0 nor the last 0xF7 
         byte[] fluidData = Arrays.copyOfRange(data, 0, data.length - 1);
 
-        try ( var scope = ResourceScope.newConfinedScope())
+        try (var scope = ResourceScope.newConfinedScope())
         {
             SegmentAllocator allocator = SegmentAllocator.ofScope(scope);
             var fluidData_ma = allocator.allocateArray(CLinker.C_CHAR, fluidData);
@@ -357,7 +404,7 @@ public final class FluidSynthJava
      */
     public boolean setSetting(String setting, String value)
     {
-        try ( var scope = ResourceScope.newConfinedScope())
+        try (var scope = ResourceScope.newConfinedScope())
         {
             var setting_seg = CLinker.toCString(setting, scope);
             var value_seg = CLinker.toCString(value, scope);
@@ -374,7 +421,7 @@ public final class FluidSynthJava
      */
     public boolean setSetting(String setting, double value)
     {
-        try ( var scope = ResourceScope.newConfinedScope())
+        try (var scope = ResourceScope.newConfinedScope())
         {
             var setting_seg = CLinker.toCString(setting, scope);
             return fluid_settings_setnum(fluid_settings_ma, setting_seg, value) == FLUID_OK();
@@ -391,7 +438,7 @@ public final class FluidSynthJava
      */
     public boolean setSetting(String setting, int value)
     {
-        try ( var scope = ResourceScope.newConfinedScope())
+        try (var scope = ResourceScope.newConfinedScope())
         {
             var setting_seg = CLinker.toCString(setting, scope);
             return fluid_settings_setint(fluid_settings_ma, setting_seg, value) == FLUID_OK();
@@ -406,7 +453,7 @@ public final class FluidSynthJava
      */
     public String getSettingString(String setting)
     {
-        try ( var scope = ResourceScope.newConfinedScope())
+        try (var scope = ResourceScope.newConfinedScope())
         {
             var setting_seg = CLinker.toCString(setting, scope);
             var value_seg = SegmentAllocator.ofScope(scope).allocate(256);
@@ -423,7 +470,7 @@ public final class FluidSynthJava
      */
     public int getSettingInt(String setting)
     {
-        try ( var scope = ResourceScope.newConfinedScope())
+        try (var scope = ResourceScope.newConfinedScope())
         {
             var setting_seg = CLinker.toCString(setting, scope);
             var value_seg = SegmentAllocator.ofScope(scope).allocate(CLinker.C_INT, 0);
@@ -441,7 +488,7 @@ public final class FluidSynthJava
      */
     public double getSettingDouble(String setting)
     {
-        try ( var scope = ResourceScope.newConfinedScope())
+        try (var scope = ResourceScope.newConfinedScope())
         {
             var setting_seg = CLinker.toCString(setting, scope);
             var value_seg = SegmentAllocator.ofScope(scope).allocate(CLinker.C_DOUBLE, 0d);
@@ -570,7 +617,7 @@ public final class FluidSynthJava
         int nr = getSettingInt("synth.chorus.nr");
         float speed = (float) getSettingDouble("synth.chorus.speed");
         int type = 0;
-        try ( var scope = ResourceScope.newConfinedScope())
+        try (var scope = ResourceScope.newConfinedScope())
         {
             var value_seg = SegmentAllocator.ofScope(scope).allocate(CLinker.C_INT, 0);
             fluid_synth_get_chorus_group_type(fluid_synth_ma, -1, value_seg);
@@ -618,7 +665,7 @@ public final class FluidSynthJava
         MemoryAddress synth_ma = synthCopy.getNativeFluidSynthInstance();
         MemoryAddress fluid_player_ma = new_fluid_player(synth_ma);
         assert fluid_player_ma != null;
-        try ( var scope = ResourceScope.newConfinedScope())
+        try (var scope = ResourceScope.newConfinedScope())
         {
             var midiPath_seg = CLinker.toCString(midiFilePath, scope);
             assert fluid_player_add(fluid_player_ma, midiPath_seg) == FLUID_OK();
@@ -779,7 +826,8 @@ public final class FluidSynthJava
             error = !loadNativeLibrariesLinuxMac();
         } else
         {
-            LOGGER.log(Level.WARNING, "loadNativeLibraries() Platform not supported os.name={0}", System.getProperty("os.name", "XX").toLowerCase(Locale.ENGLISH));
+            LOGGER.log(Level.WARNING, "loadNativeLibraries() Platform not supported os.name={0}",
+                    System.getProperty("os.name", "XX").toLowerCase(Locale.ENGLISH));
         }
 
         if (!error)
@@ -808,13 +856,16 @@ public final class FluidSynthJava
             LOGGER.warning("loadNativeLibrariesLinux() " + COMMAND_LINE_PROPERTY_FLUIDSYNTH_LIB + " is not defined");
             return false;
         }
-                
+
         try
         {
             System.load(libPath);
         } catch (SecurityException | UnsatisfiedLinkError ex)
         {
-            LOGGER.log(Level.SEVERE, "loadNativeLibrariesLinux() Can''t load native library {0}: {1}", new Object[]{libPath, ex.getMessage()});
+            LOGGER.log(Level.SEVERE, "loadNativeLibrariesLinux() Can''t load native library {0}: {1}", new Object[]
+            {
+                libPath, ex.getMessage()
+            });
             return false;
         }
 
@@ -828,8 +879,11 @@ public final class FluidSynthJava
             System.loadLibrary(LIB_NAME_MAC);
         } catch (SecurityException | UnsatisfiedLinkError ex)
         {
-            LOGGER.log(Level.SEVERE,"loadNativeLibrariesMac() Can't load native library " + LIB_NAME_MAC + " ({0}). ex={1}", new Object[]{System.mapLibraryName(LIB_NAME_MAC),
-                ex.getMessage()});
+            LOGGER.log(Level.SEVERE, "loadNativeLibrariesMac() Can't load native library " + LIB_NAME_MAC + " ({0}). ex={1}", new Object[]
+            {
+                System.mapLibraryName(LIB_NAME_MAC),
+                ex.getMessage()
+            });
             return false;
         }
 
@@ -846,8 +900,11 @@ public final class FluidSynthJava
         String[] libs = getWinFluidSynthLibs();
         if (libs.length == 0)
         {
-            LOGGER.log(Level.SEVERE, "loadNativeLibraries() No libs found for os={0} and arch={1}", new Object[]{System.getProperty("os.name"),
-                System.getProperty("os.arch")});
+            LOGGER.log(Level.SEVERE, "loadNativeLibraries() No libs found for os={0} and arch={1}", new Object[]
+            {
+                System.getProperty("os.name"),
+                System.getProperty("os.arch")
+            });
             error = true;
 
         } else
@@ -870,7 +927,10 @@ public final class FluidSynthJava
                     System.load(path);
                 } catch (SecurityException | UnsatisfiedLinkError ex)
                 {
-                    LOGGER.log(Level.SEVERE, "loadNativeLibraries() Can''t load lib={0}. Ex={1}", new Object[]{path, ex.getMessage()});
+                    LOGGER.log(Level.SEVERE, "loadNativeLibraries() Can''t load lib={0}. Ex={1}", new Object[]
+                    {
+                        path, ex.getMessage()
+                    });
                     error = true;
                     break;
                 }
