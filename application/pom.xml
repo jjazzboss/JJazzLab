@@ -4,7 +4,7 @@
     <parent>
         <groupId>org.jjazzlab</groupId>
         <artifactId>jjazzlab-parent</artifactId>
-        <version>4.0-BETA1</version>
+        <version>4.0-BETA2-SNAPSHOT</version>
     </parent>
     <artifactId>jjazzlab</artifactId>
     <packaging>nbm-application</packaging>
@@ -267,7 +267,6 @@
                     <artifactId>org-netbeans-core-netigso</artifactId>
                     <groupId>org.netbeans.api</groupId>
                 </exclusion>
-
                 <exclusion>
                     <artifactId>org-netbeans-libs-jsr223</artifactId>
                     <groupId>org.netbeans.api</groupId>
@@ -450,11 +449,20 @@
                 </exclusion>
             </exclusions>
         </dependency>
+
         <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>jjazzlab-branding</artifactId>
-            <version>${project.version}</version>
+            <!-- Since NB platform 20 -->            
+            <groupId>org.netbeans.external</groupId>
+            <artifactId>org-apache-commons-codec</artifactId>
+            <version>${netbeans.version}</version>
         </dependency>
+        <dependency>
+            <!-- Since NB platform 20 -->                        
+            <groupId>org.netbeans.external</groupId>
+            <artifactId>org-apache-commons-logging</artifactId>
+            <version>${netbeans.version}</version>
+        </dependency>
+        
         <!-- NbModuleSuite functional in RELEASE70 or later: -->
         <dependency>
             <groupId>org.netbeans.api</groupId>
@@ -463,6 +471,13 @@
             <scope>test</scope>
             <!-- beyond platform cluster, this often needs to be dropped down to compile/runtime, some other modules in IDE clusters depend on it -->
         </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>jjazzlab-branding</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+                
+        <!-- =========================================================== -->          
         <dependency> 
             <groupId>${project.groupId}</groupId> 
             <artifactId>org-jjazz-activesong</artifactId> 
