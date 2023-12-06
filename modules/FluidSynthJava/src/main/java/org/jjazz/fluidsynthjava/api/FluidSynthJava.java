@@ -21,6 +21,7 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.File;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.logging.Level;
@@ -65,10 +66,10 @@ public final class FluidSynthJava
     };
 
     private static final String COMMAND_LINE_PROPERTY_FLUIDSYNTH_LIB = "fluidsynthlib.path";
-    private static final String DEFAULT_LIB_NAME_LINUX = "fluidsynth";
     private static final String DEFAULT_LIB_FILENAME_LINUX = "libfluidsynth.so.3";
+    private static final String DEFAULT_LIB_FILENAME_MAC = "libfluidsynth.dylib";
     private static final String LIB_NAME_MAC = "fluidsynth";
-    private static final String PREF_LIB_LINUX = "PrefLibLinux";
+    private static final String PREF_LIB = "PrefLib";
 
     public static final String PROP_CHORUS = "propChorus";
     public static final String PROP_REVERB = "propReverb";
@@ -838,63 +839,55 @@ public final class FluidSynthJava
         String lib = System.getProperty(COMMAND_LINE_PROPERTY_FLUIDSYNTH_LIB, null);
         if (lib != null)
         {
-            if (quietLoadLibrary(lib))
+            if (quietLoadOrLoadLibrary(lib))
             {
-                LOGGER.info("loadNativeLibrariesLinuxMac() using loadLibrary(lib) =" + lib);
-                return true;
-            }
-            if (quietLoad(lib))
-            {
-                LOGGER.info("loadNativeLibrariesLinuxMac() using load(lib) =" + lib);
+                LOGGER.info("loadNativeLibrariesLinuxMac() using lib =" + lib);
                 return true;
             }
             LOGGER.warning("loadNativeLibrariesLinuxMac() could not load library " + lib);
-        } else
-        {
-            LOGGER.info("loadNativeLibrariesLinuxMac() " + COMMAND_LINE_PROPERTY_FLUIDSYNTH_LIB + " not defined");
         }
 
+
         // If it worked before, we saved the path as a preference
-        String prefLib = prefs.get(PREF_LIB_LINUX, null);
+        String prefLib = prefs.get(PREF_LIB, null);
         if (prefLib != null)
         {
-            if (!prefLib.trim().startsWith("/"))
+            if (quietLoadOrLoadLibrary(prefLib))
             {
-                if (quietLoadLibrary(prefLib))
-                {
-                    LOGGER.info("loadNativeLibrariesLinuxMac() using lib name=" + prefLib);
-                    return true;
-                }
-            } else if (quietLoad(prefLib))
-            {
-                LOGGER.info("loadNativeLibrariesLinuxMac() using lib path=" + prefLib);
+                LOGGER.info("loadNativeLibrariesLinuxMac() using pref lib =" + prefLib);
                 return true;
             }
         }
 
 
-        // Try using the default lib name
-        if (quietLoadLibrary((DEFAULT_LIB_NAME_LINUX)))
+        // Check various dirs
+        var libDirs = getLinuxOrMacLibDirs();
+        String libFilename = getLinuxOrMacLibFileName();
+        for (var libdir : libDirs)
         {
-            LOGGER.info("loadNativeLibrariesLinuxMac() using lib name=" + DEFAULT_LIB_NAME_LINUX);
-            prefs.put(PREF_LIB_LINUX, DEFAULT_LIB_NAME_LINUX);
-            return true;
-        }
-
-        // Try lib file name in several standard directories
-        var libdirs = Arrays.asList("/usr/lib", "/usr/lib64", "/usr/lib/x86_64-linux-gnu", "/lib");
-        for (var libdir : libdirs)
-        {
-            String libPath = libdir + "/" + DEFAULT_LIB_FILENAME_LINUX;
+            String libPath = libdir + "/" + libFilename;
             if (quietLoad(libPath))
             {
                 LOGGER.log(Level.INFO, "loadNativeLibrariesLinuxMac() using libpath={0}", libPath);
-                prefs.put(PREF_LIB_LINUX, libPath);
+                prefs.put(PREF_LIB, libPath);
                 return true;
             }
         }
 
         return false;
+    }
+
+    /**
+     * Where we might find the fluidsynth lib on the system.
+     *
+     * @return
+     */
+    private static List<String> getLinuxOrMacLibDirs()
+    {
+        var dirs = Utilities.isLinux()
+            ? Arrays.asList("/usr/lib", "/usr/lib/x86_64-linux-gnu", "/usr/lib64", "/lib")   // Should be ok for the main distros
+            : Arrays.asList("/usr/lib");      // TO BE CHECKED FOR MAC
+        return dirs;
     }
 
 
@@ -987,13 +980,30 @@ public final class FluidSynthJava
         return res;
     }
 
+    private static String getLinuxOrMacLibFileName()
+    {
+        return Utilities.isMac() ? DEFAULT_LIB_FILENAME_MAC : DEFAULT_LIB_FILENAME_LINUX;
+    }
+
+
+    static private boolean quietLoadOrLoadLibrary(String lib)
+    {
+        if (lib.startsWith("/"))
+        {
+            return quietLoad(lib);
+        } else
+        {
+            return quietLoadLibrary(lib);
+        }
+    }
+
     /**
      * Try to load a library using System.load().
      *
      * @param libPath absolute path to a library file
      * @return true if success.
      */
-    private static boolean quietLoad(String libPath)
+    static private boolean quietLoad(String libPath)
     {
         try
         {
@@ -1013,7 +1023,7 @@ public final class FluidSynthJava
      * @param libName library name (no lib prefix...)
      * @return true if success.
      */
-    private static boolean quietLoadLibrary(String libName)
+    static private boolean quietLoadLibrary(String libName)
     {
         try
         {
