@@ -150,20 +150,7 @@
         </pluginManagement>
     </build>
     
-    <profiles>
-        <profile>
-            <id>jjazzlabextra</id>
-            <activation>
-                <file>
-                    <exists>${basedir}/../JJazzLabExtra/pom.xml</exists>
-                </file>
-            </activation>                
-            <modules>
-                <module>../JJazzLabExtra</module>                
-            </modules>
-        </profile>        
-    </profiles>
-    
+          
     <modules>
         <module>application</module>
         <module>branding</module>

@@ -110,7 +110,23 @@
             <groupId>org.netbeans.api</groupId> 
             <artifactId>org-openide-windows</artifactId> 
             <version>${netbeans.version}</version>  
-        </dependency> 
+        </dependency>
+        <dependency>
+            <groupId>org.jjazzlab</groupId>
+            <artifactId>org-jjazz-uiutilities</artifactId>
+            <version>4.0-BETA2-SNAPSHOT</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>org-jjazz-guava</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>org-jjazz-upgrade</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

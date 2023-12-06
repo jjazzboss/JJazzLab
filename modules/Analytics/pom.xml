@@ -50,7 +50,13 @@
             <groupId>org.netbeans.api</groupId> 
             <artifactId>org-openide-util-lookup</artifactId> 
             <version>${netbeans.version}</version>  
-        </dependency>  
+        </dependency>
+        <dependency>
+            <groupId>com.mixpanel</groupId>
+            <artifactId>mixpanel-java</artifactId>
+            <version>1.5.2</version>
+            <type>jar</type>
+        </dependency>
     </dependencies>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
