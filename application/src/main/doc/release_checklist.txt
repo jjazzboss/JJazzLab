@@ -1,0 +1,92 @@
+RELEASE PREPARATION CHECK LIST
+
+-- CLEANUP CODE
+- Search for remaining debug-purpose "LOGGER.severe" in *.java
+
+
+-- BRANDING
+If splash screen or icons updated, make sure to add copies frame_dark.gif, frameXX_dark.gif, splash_dark.gif (See javadoc of org.​openide.​util.​ImageUtilities public static final Image loadImage(String resource, boolean localized))
+If progress line or text position has changed, copy the numerical values from JJazzLab\branding\core\core.jar\org\netbeans\core\startup\Bundle.properties
+to the other Bundle_xx_XX.properties.
+
+
+-- LOCALES 
+Update SUPPORTED_LOCALES static var in UISettings module GeneralUISettings.java
+
+
+-- Module UPGRADE
+Update PREVIOUS_VERSIONS static variable
+
+
+-- CODE SIGNING for Windows SETUP package (to be done only once per computer)
+- Make sure windows signtool is installed (download and install from Microsoft)
+- Configure InnotSetup sign tool, see JJazzLab.iss.template64 file comment for "SignTool"
+
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!ANT-BASED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+JJAZZLAB NB PROJECT
+
+-- nbprojet/private/PRIVATE.PROPERTIES
+See example at the bottom of this file: set InnoSetup path + JDK path + cygwin path + keystore password
+
+-- PROJECT.PROPERTIES
+app.version=2.1
+app.sub.version=0
+Check all LOGGING are 700, or LOGGER.severe() calls for debug purposes
+Check plugin check period
+project.properties/branding.locales must be consistent with GeneralUISettings/SUPPORTED_LOCALES
++ NBM signing properties in newly created module, see UpdateCenter.txt
+
+-- Update license file if required 
+
+-- LOCALES 
+Update SUPPORTED_LOCALES static var in UISettings module GeneralUISettings.java
+Update branding.locales in JJazzLab project.properties
+
+
+-- CODE SIGNING OF MODULES (for autoupdate)
+See UpdateCenter.txt 
+Select JJazzLab and JJazzLab-X, right-click Packages as NBMs => build/updates, then copy to updatecenter jjazzlab url
+See version 2.0.1 for example.
+For notification only: in JJazzLab right-click Packages as NBMS => copy generated only updates.xml, edit to remove content within <module_updates> and add:
+<notification url="https://www.jjazzlab.com">JJazzLab 2.1 is available!</notification>
+
+
+-- CUSTOMIZED BUILD.XML FOR
+- Need cygwin installed + cygwin extras: zip + unzip + pax
+- Replace windows icon of launcher 
+- Targets to generate our installers
+- If uncommented target can copy the NBM signing info on all suite modules (see UpdateCenter.txt)
+
+
+NBPROJECT/PRIVATE.PROPERTIES :
+# ======================================================================================
+# Release build properties to be set in nbproject/private/private.properties
+
+# Path to an executable that can compile the Inno Setup script.
+# eg. on Linux a shell script like -
+# wine C:\\Program\ Files\ \(x86\)\\Inno\ Setup\ 5\\ISCC.exe
+# Windows:
+release.windows.issc=C:/Program\ Files\ \(x86\)/Inno\ Setup\ 6/ISCC.exe
+
+# Path to directory where JDK zip files ready to be bundled can be found:
+# jdkLinux.zip jdkWin32.zip jdkWin64.zip jdkMac.zip
+# ==> Extract the JRE files (ex OpenJDK11U-jre_x64_mac_hotspot_11.0.8_10.tar.gz) using 7Zip started with administrator privilege
+# ==> Use following bash zip command to create jdkXX.zip files: zip -ryq -X- jdkWin32.zip jdk 
+# Each zip must start with a leading "jdk" directory then the bin legal conf lib... subdirectories. 
+jdk.zip.path=C:/Users/Administrateur.000/Documents/JJazzLab/JDKs
+
+# Path of cygwin BASH
+cygwin.bash=C:/cygwin64/bin/bash.exe
+
+# For nbm signing
+keystore.password=xxxxxxxx
+# ======================================================================================
+
+NBPROJECT/PLATFORM-PRIVATE.PROPERTIES:
+# ======================================================================================
+user.properties.file=C:\\Users\\Administrateur.000\\AppData\\Roaming\\NetBeans\\11.3\\build.properties
+storepass=xxxxxxx
+# ======================================================================================

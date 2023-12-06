@@ -11,16 +11,28 @@
                 
             </goals>
             <properties>
+                <netbeans.run.params.ide>-J-DrunFromIde=true</netbeans.run.params.ide>
+            </properties>
+        </action>
+        <action>
+            <actionName>CUSTOM-Run project en:US</actionName>
+            <displayName>Run project en:US</displayName>
+            <goals>
+                <goal>nbm:cluster-app</goal>
+                <goal>nbm:run-platform</goal>
+                
+                
+            </goals>
+            <properties>
                 <netbeans.run.params.ide>-J-DrunFromIde=true --locale en:US</netbeans.run.params.ide>
             </properties>
         </action>
         <action>
-            <actionName>CUSTOM-Create JJazzLab installers</actionName>
-            <displayName>Create JJazzLab installers</displayName>
+            <actionName>CUSTOM-nbpackage</actionName>
+            <displayName>nbpackage</displayName>
             <goals>
                 <goal>clean</goal>
                 <goal>install</goal>
-                
             </goals>
             <activatedProfiles>
                 <activatedProfile>deployment</activatedProfile>
