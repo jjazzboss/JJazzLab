@@ -17,7 +17,6 @@
  */
 package org.jjazz.fluidsynthjava.api;
 
-
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.File;
@@ -26,12 +25,14 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.prefs.Preferences;
 import javax.sound.midi.ShortMessage;
 import javax.sound.midi.SysexMessage;
 import jdk.incubator.foreign.*;
 import static org.jjazz.fluidsynthjava.jextract.fluidsynth_h.*;
 import org.jjazz.utilities.api.Utilities;
 import org.openide.modules.InstalledFileLocator;
+import org.openide.util.NbPreferences;
 
 /**
  * A Java wrapper of a FluidSynth instance.
@@ -40,7 +41,7 @@ public final class FluidSynthJava
 {
 
     private static final int MIN_FLUIDSYNTH_VERSION_MAJOR = 2;
-    private static final int MIN_FLUIDSYNTH_VERSION_MINOR = 3;
+    private static final int MIN_FLUIDSYNTH_VERSION_MINOR = 2;
     private static final int MIN_FLUIDSYNTH_VERSION_MICRO = 0;
     // Static variables must be declared BEFORE the static block
     // IMPORTANT: libs order must be in reverse dependency order (e.g. libfluidsynth is last)
@@ -63,8 +64,11 @@ public final class FluidSynthJava
     {
     };
 
-    private static final String COMMAND_LINE_PROPERTY_FLUIDSYNTH_LIB = "fluidsynth.lib";
+    private static final String COMMAND_LINE_PROPERTY_FLUIDSYNTH_LIB = "fluidsynthlib.path";
+    private static final String DEFAULT_LIB_NAME_LINUX = "fluidsynth";
+    private static final String DEFAULT_LIB_FILENAME_LINUX = "libfluidsynth.so.3";
     private static final String LIB_NAME_MAC = "fluidsynth";
+    private static final String PREF_LIB_LINUX = "PrefLibLinux";
 
     public static final String PROP_CHORUS = "propChorus";
     public static final String PROP_REVERB = "propReverb";
@@ -73,7 +77,6 @@ public final class FluidSynthJava
 
     private static final Logger LOGGER = Logger.getLogger(FluidSynthJava.class.getSimpleName());
 
-
     private MemoryAddress fluid_settings_ma;
     private MemoryAddress fluid_synth_ma;
     private MemoryAddress fluid_driver_ma;
@@ -81,6 +84,7 @@ public final class FluidSynthJava
     private Chorus chorus;
     private File lastLoadedSoundFontFile;
     private int lastLoadedSoundFontFileId = -1;
+    private static final Preferences prefs = NbPreferences.forModule(FluidSynthJava.class);
     private final transient PropertyChangeSupport pcs = new java.beans.PropertyChangeSupport(this);
 
     /**
@@ -96,7 +100,6 @@ public final class FluidSynthJava
         return LIBRARIES_LOADED_OK;
     }
 
-
     /**
      * Create a JavaFluidSynth object.
      * <p>
@@ -109,17 +112,16 @@ public final class FluidSynthJava
     /**
      * Create a JavaFluidSynth object from another one.
      * <p>
-     * If jfs native resources are allocated, create the native resources initialized with the same values for: reverb, chorus, gain,
-     * soundfont file (if loaded), synth.device-id.
+     * If jfs native resources are allocated, create the native resources initialized with the same values for: reverb, chorus,
+     * gain, soundfont file (if loaded), synth.device-id.
      *
-     * @param jfs               Must be already open
+     * @param jfs Must be already open
      * @param createAudioDriver If true create the associated audio driver
      * @throws org.jjazz.fluidsynthjava.api.FluidSynthException
      */
     public FluidSynthJava(FluidSynthJava jfs, boolean createAudioDriver) throws FluidSynthException
     {
         assert jfs.isOpen();
-
 
         fluid_settings_ma = new_fluid_settings();
         fluid_synth_ma = new_fluid_synth(fluid_settings_ma);
@@ -132,13 +134,11 @@ public final class FluidSynthJava
         setChorus(jfs.getChorus());
         assert setSetting("synth.device-id", jfs.getSettingInt("synth.device-id"));
 
-
         if (createAudioDriver && jfs.getNativeAudioDriverInstance() != null)
         {
             fluid_driver_ma = new_fluid_audio_driver(fluid_settings_ma, fluid_synth_ma);
             // TODO copy driver settings! 
         }
-
 
         File f = jfs.getLastLoadedSoundFontFile();
         if (f != null)
@@ -187,7 +187,6 @@ public final class FluidSynthJava
         }
 
         setDeviceIdForXGCompatibility();
-
 
         if (createAudioDriver)
         {
@@ -242,15 +241,14 @@ public final class FluidSynthJava
     /**
      * Set the synth device Id for XG System ON compatibility.
      * <p>
-     * IMPORTANT: FluidSynth 2.3.0 (should be fixed in 2.3.1) expects a special XG System ON message (3rd byte is NOT 0001nnnn with n the
-     * deviceId), which differs from the standard one See https://github.com/FluidSynth/fluidsynth/issues/1092 Changing the deviceId to 16
-     * is a trick to make it react to the standard XG System ON
+     * IMPORTANT: FluidSynth 2.3.0 (should be fixed in 2.3.1) expects a special XG System ON message (3rd byte is NOT 0001nnnn
+     * with n the deviceId), which differs from the standard one See https://github.com/FluidSynth/fluidsynth/issues/1092 Changing
+     * the deviceId to 16 is a trick to make it react to the standard XG System ON
      */
     private void setDeviceIdForXGCompatibility()
     {
         assert setSetting("synth.device-id", 16);
     }
-
 
     /**
      * Check if the default FluidSynth instance is opened.
@@ -300,7 +298,6 @@ public final class FluidSynthJava
     {
         return fluid_driver_ma;
     }
-
 
     /**
      * The last successfully loaded soundfont file.
@@ -386,9 +383,9 @@ public final class FluidSynthJava
             var fluidData_ma = allocator.allocateArray(CLinker.C_CHAR, fluidData);
             var handled_seg = SegmentAllocator.ofScope(scope).allocate(CLinker.C_INT, 0);
             fluid_synth_sysex(fluid_synth_ma,
-                    fluidData_ma,
-                    fluidData.length,
-                    MemoryAddress.NULL, MemoryAddress.NULL, handled_seg, 0);
+                fluidData_ma,
+                fluidData.length,
+                MemoryAddress.NULL, MemoryAddress.NULL, handled_seg, 0);
             int handled = handled_seg.toIntArray()[0];
         }
 
@@ -427,7 +424,6 @@ public final class FluidSynthJava
             return fluid_settings_setnum(fluid_settings_ma, setting_seg, value) == FLUID_OK();
         }
     }
-
 
     /**
      * Set a setting which use an int value on the native Settings instance.
@@ -479,7 +475,6 @@ public final class FluidSynthJava
         }
     }
 
-
     /**
      * Get a double value setting from the native Settings instance.
      *
@@ -513,7 +508,6 @@ public final class FluidSynthJava
         }
     }
 
-
     /**
      * Get the gain of the native FluidSynth instance.
      * <p>
@@ -523,7 +517,6 @@ public final class FluidSynthJava
     {
         return fluid_synth_get_gain(fluid_synth_ma);
     }
-
 
     /**
      * Set the Reverb of the native synth instance.
@@ -597,7 +590,6 @@ public final class FluidSynthJava
         return b;
     }
 
-
     /**
      * Get the Chorus of the native Synth instance.
      *
@@ -626,14 +618,13 @@ public final class FluidSynthJava
         return new Chorus(null, nr, speed, depth, type, level);
     }
 
-
     /**
      * Generate a .wav file from midiFile.
      * <p>
      * From "Fast file renderer for non-realtime MIDI file rendering" https://www.fluidsynth.org/api/FileRenderer.html.
      *
      * @param midiFile The input Midi file
-     * @param wavFile  The wav file to be created
+     * @param wavFile The wav file to be created
      * @throws org.jjazz.fluidsynthjava.api.FluidSynthException
      */
     public void generateWavFile(File midiFile, File wavFile) throws FluidSynthException
@@ -645,10 +636,8 @@ public final class FluidSynthJava
         String midiFilePath = midiFile.getAbsolutePath();
         String wavFilePath = wavFile.getAbsolutePath();
 
-
         // Create a synth copy
         FluidSynthJava synthCopy = new FluidSynthJava(this, false);
-
 
         // specify the file to store the audio to
         // make sure you compiled fluidsynth with libsndfile to get a real wave file
@@ -660,7 +649,6 @@ public final class FluidSynthJava
         // Since this is a non-realtime scenario, there is no need to pin the sample data
         assert synthCopy.setSetting("synth.lock-memory", 0);     // 1 by default                    
 
-
         // Prepare the player
         MemoryAddress synth_ma = synthCopy.getNativeFluidSynthInstance();
         MemoryAddress fluid_player_ma = new_fluid_player(synth_ma);
@@ -671,7 +659,6 @@ public final class FluidSynthJava
             assert fluid_player_add(fluid_player_ma, midiPath_seg) == FLUID_OK();
         }
         assert fluid_player_play(fluid_player_ma) == FLUID_OK();
-
 
         // Render music to file using FluidSynth's own player
         boolean error = false;
@@ -687,16 +674,13 @@ public final class FluidSynthJava
             }
         }
 
-
         // just for sure: stop the playback explicitly and wait until finished
         assert fluid_player_stop(fluid_player_ma) == FLUID_OK();
         assert fluid_player_join(fluid_player_ma) == FLUID_OK();
         delete_fluid_file_renderer(renderer_ma);
         delete_fluid_player(fluid_player_ma);
 
-
         synthCopy.close();
-
 
         if (error)
         {
@@ -704,7 +688,6 @@ public final class FluidSynthJava
         }
 
     }
-
 
     /**
      * Load a soundfont file in the native FluidSynth instance.
@@ -722,8 +705,8 @@ public final class FluidSynthJava
 
         var sfont_path_native = CLinker.toCString(f.getAbsolutePath(), ResourceScope.newImplicitScope());
         lastLoadedSoundFontFileId = fluid_synth_sfload(fluid_synth_ma,
-                sfont_path_native,
-                1); // 1: re-assign presets for all MIDI channels (equivalent to calling fluid_synth_program_reset())           
+            sfont_path_native,
+            1); // 1: re-assign presets for all MIDI channels (equivalent to calling fluid_synth_program_reset())           
 
         if (lastLoadedSoundFontFileId == FLUID_FAILED())
         {
@@ -732,7 +715,6 @@ public final class FluidSynthJava
             lastLoadedSoundFontFile = null;
             throw new FluidSynthException(msg);
         }
-
 
         LOGGER.log(Level.INFO, "loadSoundFont() SoundFont successfully loaded {0}", f.getAbsolutePath());
 
@@ -758,7 +740,6 @@ public final class FluidSynthJava
 
     }
 
-
     public void playTestNotes()
     {
 
@@ -778,12 +759,10 @@ public final class FluidSynthJava
 
     }
 
-
     public void addPropertyChangeListener(PropertyChangeListener l)
     {
         pcs.addPropertyChangeListener(l);
     }
-
 
     public void removePropertyChangeListener(PropertyChangeListener l)
     {
@@ -827,7 +806,7 @@ public final class FluidSynthJava
         } else
         {
             LOGGER.log(Level.WARNING, "loadNativeLibraries() Platform not supported os.name={0}",
-                    System.getProperty("os.name", "XX").toLowerCase(Locale.ENGLISH));
+                System.getProperty("os.name", "XX").toLowerCase(Locale.ENGLISH));
         }
 
         if (!error)
@@ -841,36 +820,83 @@ public final class FluidSynthJava
     /**
      * Load on Linux or Mac.
      * <p>
+     * Try various strategies, first using the optional COMMAND_LINE_PROPERTY_FLUIDSYNTH_LIB if set, then standard fluidsynth lib
+     * names in various standard directories.<p>
+     * ---
+     * <p>
      * Can't manage to make System.loadLibrary("fluidsynth") to work, see
      * https://stackoverflow.com/questions/74604651/system-loadlibrary-cant-find-a-shared-library-on-linux
      * <p>
-     * But System.load(path_to_fluidsynth.so.xx) works fine on linux and mac, and no need to explicitly load dependencies like on windows.
+     * But System.load(path_to_fluidsynth.so.xx) works fine on linux and mac, and no need to explicitly load dependencies like on
+     * windows.
      *
-     * @return
+     * @return true if success
      */
     private static boolean loadNativeLibrariesLinuxMac()
     {
-        String libPath = System.getProperty(COMMAND_LINE_PROPERTY_FLUIDSYNTH_LIB, null);
-        if (libPath == null)
+        // Start with command line
+        String lib = System.getProperty(COMMAND_LINE_PROPERTY_FLUIDSYNTH_LIB, null);
+        if (lib != null)
         {
-            LOGGER.warning("loadNativeLibrariesLinux() " + COMMAND_LINE_PROPERTY_FLUIDSYNTH_LIB + " is not defined");
-            return false;
-        }
-
-        try
-        {
-            System.load(libPath);
-        } catch (SecurityException | UnsatisfiedLinkError ex)
-        {
-            LOGGER.log(Level.SEVERE, "loadNativeLibrariesLinux() Can''t load native library {0}: {1}", new Object[]
+            if (quietLoadLibrary(lib))
             {
-                libPath, ex.getMessage()
-            });
-            return false;
+                LOGGER.info("loadNativeLibrariesLinuxMac() using loadLibrary(lib) =" + lib);
+                return true;
+            }
+            if (quietLoad(lib))
+            {
+                LOGGER.info("loadNativeLibrariesLinuxMac() using load(lib) =" + lib);
+                return true;
+            }
+            LOGGER.warning("loadNativeLibrariesLinuxMac() could not load library " + lib);
+        } else
+        {
+            LOGGER.info("loadNativeLibrariesLinuxMac() " + COMMAND_LINE_PROPERTY_FLUIDSYNTH_LIB + " not defined");
         }
 
-        return true;
+        // If it worked before, we saved the path as a preference
+        String prefLib = prefs.get(PREF_LIB_LINUX, null);
+        if (prefLib != null)
+        {
+            if (!prefLib.trim().startsWith("/"))
+            {
+                if (quietLoadLibrary(prefLib))
+                {
+                    LOGGER.info("loadNativeLibrariesLinuxMac() using lib name=" + prefLib);
+                    return true;
+                }
+            } else if (quietLoad(prefLib))
+            {
+                LOGGER.info("loadNativeLibrariesLinuxMac() using lib path=" + prefLib);
+                return true;
+            }
+        }
+
+
+        // Try using the default lib name
+        if (quietLoadLibrary((DEFAULT_LIB_NAME_LINUX)))
+        {
+            LOGGER.info("loadNativeLibrariesLinuxMac() using lib name=" + DEFAULT_LIB_NAME_LINUX);
+            prefs.put(PREF_LIB_LINUX, DEFAULT_LIB_NAME_LINUX);
+            return true;
+        }
+
+        // Try lib file name in several standard directories
+        var libdirs = Arrays.asList("/usr/lib", "/usr/lib64", "/usr/lib/x86_64-linux-gnu", "/lib");
+        for (var libdir : libdirs)
+        {
+            String libPath = libdir + "/" + DEFAULT_LIB_FILENAME_LINUX;
+            if (quietLoad(libPath))
+            {
+                LOGGER.log(Level.INFO, "loadNativeLibrariesLinuxMac() using libpath={0}", libPath);
+                prefs.put(PREF_LIB_LINUX, libPath);
+                return true;
+            }
+        }
+
+        return false;
     }
+
 
     private static boolean loadNativeLibrariesMac()
     {
@@ -961,5 +987,44 @@ public final class FluidSynthJava
         return res;
     }
 
+    /**
+     * Try to load a library using System.load().
+     *
+     * @param libPath absolute path to a library file
+     * @return true if success.
+     */
+    private static boolean quietLoad(String libPath)
+    {
+        try
+        {
+            System.load(libPath);
+        } catch (SecurityException | UnsatisfiedLinkError ex)
+        {
+            LOGGER.log(Level.FINE, "quietLoad() error {0}", ex.getMessage());
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Try to load a library using System.loadLibrary().
+     *
+     * @param libName library name (no lib prefix...)
+     * @return true if success.
+     */
+    private static boolean quietLoadLibrary(String libName)
+    {
+        try
+        {
+            System.loadLibrary(libName);
+        } catch (SecurityException | UnsatisfiedLinkError ex)
+        {
+            LOGGER.log(Level.FINE, "quietLoadlibrary() error {0}", ex.getMessage());
+            return false;
+        }
+
+        return true;
+    }
 
 }
