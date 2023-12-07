@@ -262,7 +262,7 @@
                                             <arg line="nbpackage/rpm.properties"/>
                                             <arg line="--input"/>
                                             <arg line="${brandingToken}-${project.version}.zip"/>
-                                        </exec>        
+                                        </exec>      
                                         (Linux DEB) 
                                         <exec dir="${project.build.directory}" osfamily="unix" executable="${nbpackage.path}" failonerror="true">
                                             <arg line="-v"/>

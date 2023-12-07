@@ -1,0 +1,24 @@
+%define _binaries_in_noarch_packages_terminate_build 0
+%define _unpackaged_files_terminate_build 0
+
+Name: ${RPM_PACKAGE}
+Version: ${RPM_VERSION}
+Release: 0
+BuildArch: ${RPM_ARCH}
+
+${RPM_SUMMARY_LINE}
+${RPM_LICENSE_LINE}
+${RPM_GROUP_LINE}
+${RPM_URL_LINE}
+${RPM_VENDOR_LINE}
+${RPM_MAINTAINER_LINE}
+${RPM_RECOMMENDS_LINE}
+
+AutoReqProv:    no
+Requires: libfluidsynth3 >= 2.1.0
+
+%description
+${RPM_DESCRIPTION}
+
+%files
+${RPM_FILES}
