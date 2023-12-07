@@ -42,7 +42,7 @@ public final class FluidSynthJava
 {
 
     private static final int MIN_FLUIDSYNTH_VERSION_MAJOR = 2;
-    private static final int MIN_FLUIDSYNTH_VERSION_MINOR = 2;
+    private static final int MIN_FLUIDSYNTH_VERSION_MINOR = 1;
     private static final int MIN_FLUIDSYNTH_VERSION_MICRO = 0;
     // Static variables must be declared BEFORE the static block
     // IMPORTANT: libs order must be in reverse dependency order (e.g. libfluidsynth is last)
@@ -856,6 +856,9 @@ public final class FluidSynthJava
             {
                 LOGGER.info("loadNativeLibrariesLinuxMac() using pref lib =" + prefLib);
                 return true;
+            } else
+            {
+                prefs.remove(PREF_LIB);
             }
         }
 
