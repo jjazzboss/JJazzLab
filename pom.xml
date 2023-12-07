@@ -45,7 +45,7 @@
         <jjazzlab.javac.fork>false</jjazzlab.javac.fork>
         <jjazzlab.javac.showDeprecation>true</jjazzlab.javac.showDeprecation>
         <jjazzlab.javac.showWarnings>true</jjazzlab.javac.showWarnings>
-        <jjazzlab.javac.xlint>-Xlint:all</jjazzlab.javac.xlint>
+        <jjazzlab.javac.xlint>-Xlint:all,-serial</jjazzlab.javac.xlint>
         <jjazzlab.surefire.plugin.version>3.1.0</jjazzlab.surefire.plugin.version>
         <jjazzlab.surefire.skipTests>true</jjazzlab.surefire.skipTests>
         <jjazzlab.forceEnglish>false</jjazzlab.forceEnglish>
