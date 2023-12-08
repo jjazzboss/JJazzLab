@@ -50,8 +50,9 @@ public class MixPanelProcessor implements AnalyticsProcessor
         worker.setPriority(Thread.NORM_PRIORITY - 1);
         worker.start();
 
-        String token = System.getProperty("run.from.ide") == null ? "a67ed8aa58b306c1336dcf74fb99b2f69f1" : null;
-        distinctId = token == null ? "null" : Analytics.getJJazzLabComputerId();
+
+        String token = System.getProperty("run.from.ide") == null ? "a67ed8aa58b306c1336dcf74fb99b2f69f1" : "0000";
+        distinctId = token.equals("0000") ? "null" : Analytics.getJJazzLabComputerId();
         LOGGER.log(Level.INFO, "MixPanelProcessor() distinctId={0}", distinctId);
 
 
@@ -179,7 +180,7 @@ public class MixPanelProcessor implements AnalyticsProcessor
 
     private String prep(String s)
     {
-        return s.substring(3);
+        return  s.substring(3);
     }
 
     /**
