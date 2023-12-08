@@ -12,6 +12,8 @@
     
     
     <properties>
+        <netbeans.run.params.ide/>  <!-- Additional options set by Netbeans IDE see customizable Build actions -->
+        <netbeans.run.params>${netbeans.run.params.ide} -J-Dnetbeans.modules.quiet=true -J--add-modules=jdk.incubator.foreign -J--enable-native-access=ALL-UNNAMED -J--enable-preview -J--add-opens=java.base/java.net=ALL-UNNAMED -J--add-opens=java.base/java.lang=ALL-UNNAMED -J--add-opens=java.desktop/javax.swing=ALL-UNNAMED -J--add-exports=java.desktop/sun.awt=ALL-UNNAMED -J--add-opens=java.base/java.util=ALL-UNNAMED</netbeans.run.params>                                       
         <all.clusters>${project.build.directory}/${brandingToken}</all.clusters>
         <skipReplaceWindowsIcon>true</skipReplaceWindowsIcon>
         <nbpackage.path/>

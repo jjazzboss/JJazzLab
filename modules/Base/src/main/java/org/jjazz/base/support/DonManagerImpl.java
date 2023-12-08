@@ -532,7 +532,7 @@ public class DonManagerImpl implements Runnable, DonManager
             String res = "";
             var impl = DonManager.getDefault();
             if (impl != null && impl.hasValidRegisteredCode())
-            {                
+            {
                 res = ResUtil.getString(getClass(), "CurrentCodeExpirationDate", impl.getRegisteredCodeExpirationDateAsString());
             }
             return res;
@@ -558,7 +558,7 @@ public class DonManagerImpl implements Runnable, DonManager
 
             if (oldVersion.charAt(0) <= '3')
             {
-                // Package name was changed in JJazzLab 4: org.jjazzlab.base => org.jjazz.config
+                // Package name was changed in JJazzLab 4: org.jjazzlab.base => org.jjazz.base
                 // We need to manually retrieve the preferences
 
 
@@ -592,6 +592,7 @@ public class DonManagerImpl implements Runnable, DonManager
                 try
                 {
                     prefs.flush();        // Make sure it's copied to disk now
+                    LOGGER.log(Level.INFO, "upgrade() imported {0} preferences from JJazzLab 3 org/jjazzlab/base", prop.stringPropertyNames().size());
                 } catch (BackingStoreException ex)
                 {
                     LOGGER.log(Level.WARNING, "upgrade() Can''t flush copied preferences. ex={0}", ex.getMessage());

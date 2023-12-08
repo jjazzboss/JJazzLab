@@ -27,13 +27,12 @@ import org.openide.util.lookup.ServiceProvider;
 public class MixPanelProcessor implements AnalyticsProcessor
 {
 
-    private final static String TOKEN_PRODUCTION = "e0aed8aa58b306c1336dcf74fb99b2f69f1";  // MixPanel project Production_EU
-    private final static String TOKEN_INTEGRATION = "b29e63ffa2720bb8b387c04d21cbd1c81b6";  // MixPanel project Integration
     private final static long INITIAL_SECONDS_TO_WAIT = 10;
     private final static long SECONDS_TO_WAIT = 180;
     private final static int MAX_NB_FLUSHED_MESSAGES_BEFORE_SHUTDOWN = 40;
     Queue<JSONObject> msgQueue;
     DeliveryThread worker;
+    private boolean enabled;
 
     private final MessageBuilder messageBuilder;
 
@@ -51,20 +50,27 @@ public class MixPanelProcessor implements AnalyticsProcessor
         worker.setPriority(Thread.NORM_PRIORITY - 1);
         worker.start();
 
-        String token = TOKEN_PRODUCTION;
-        if (System.getProperty("jjazzlab.version") == null)
-        {
-            LOGGER.info("MixPanelProcessor() Run from IDE, using MixPanel INTEGRATION token");
-            token = TOKEN_INTEGRATION;
-        }
-
-
-        distinctId = Analytics.getJJazzLabComputerId();
+        String token = System.getProperty("run.from.ide") == null ? "a67ed8aa58b306c1336dcf74fb99b2f69f1" : null;
+        distinctId = token == null ? "null" : Analytics.getJJazzLabComputerId();
         LOGGER.log(Level.INFO, "MixPanelProcessor() distinctId={0}", distinctId);
 
 
         // Prepare data to send message
         messageBuilder = new MessageBuilder(prep(token));
+
+        setEnabled(token != null);
+    }
+
+
+    public boolean isEnabled()
+    {
+        return enabled;
+    }
+
+
+    public final void setEnabled(boolean enabled)
+    {
+        this.enabled = enabled;
     }
 
     @Override
@@ -82,7 +88,7 @@ public class MixPanelProcessor implements AnalyticsProcessor
 
         } else
         {
-            msgQueue.add(msg);
+            postMessage(msg);
         }
     }
 
@@ -94,7 +100,7 @@ public class MixPanelProcessor implements AnalyticsProcessor
             eventName, properties
         });
         JSONObject msg = messageBuilder.event(distinctId, eventName, new JSONObject(properties));
-        msgQueue.add(msg);
+        postMessage(msg);
     }
 
     @Override
@@ -102,7 +108,7 @@ public class MixPanelProcessor implements AnalyticsProcessor
     {
         LOGGER.log(Level.FINE, "setProperties() properties={0}", properties);
         JSONObject msg = messageBuilder.set(distinctId, new JSONObject(properties));
-        msgQueue.add(msg);
+        postMessage(msg);
     }
 
     @Override
@@ -110,7 +116,7 @@ public class MixPanelProcessor implements AnalyticsProcessor
     {
         LOGGER.log(Level.FINE, "setPropertiesOnce() properties={0}", properties);
         JSONObject msg = messageBuilder.setOnce(distinctId, new JSONObject(properties));
-        msgQueue.add(msg);
+        postMessage(msg);
     }
 
     @Override
@@ -118,12 +124,27 @@ public class MixPanelProcessor implements AnalyticsProcessor
     {
         LOGGER.log(Level.FINE, "incrementProperties() properties={0}", properties);
         JSONObject msg = messageBuilder.increment(distinctId, properties);
-        msgQueue.add(msg);
+        postMessage(msg);
     }
+
 
     // ============================================================================================
     // Private methods
     // ============================================================================================    
+    /**
+     * Post the message if processor is enabled.
+     *
+     * @param msg
+     */
+    private void postMessage(JSONObject msg)
+    {
+        if (isEnabled())
+        {
+            msgQueue.add(msg);
+        }
+    }
+
+
     /**
      * Flush the pending events and send them with lastMessage.
      *
@@ -154,6 +175,11 @@ public class MixPanelProcessor implements AnalyticsProcessor
 
 
         logEventsImmediatly(2000, messages);
+    }
+
+    private String prep(String s)
+    {
+        return s.substring(3);
     }
 
     /**
@@ -219,10 +245,6 @@ public class MixPanelProcessor implements AnalyticsProcessor
         executor.shutdownNow();
     }
 
-    private String prep(String s)
-    {
-        return s.substring(3);
-    }
 
     // ============================================================================================
     // Private classes
@@ -235,6 +257,7 @@ public class MixPanelProcessor implements AnalyticsProcessor
 
         private MixpanelAPI mixPanelAPI;
         private boolean first = true;
+        private boolean enabled = true;
 
         public DeliveryThread()
         {
@@ -242,6 +265,11 @@ public class MixPanelProcessor implements AnalyticsProcessor
             mixPanelAPI = new MixpanelAPI("https://api-eu.mixpanel.com/track",
                     "https://api-eu.mixpanel.com/engage",
                     "https://api-eu.mixpanel.com/groups");
+        }
+
+        public void disable()
+        {
+            enabled = false;
         }
 
         @Override

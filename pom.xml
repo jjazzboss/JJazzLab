@@ -35,9 +35,6 @@
     
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>         
-
-        <netbeans.run.params.ide/>  <!-- Additional options set by Netbeans IDE see customizable Build actions -->
-        <netbeans.run.params>${netbeans.run.params.ide} -J-Dnetbeans.modules.quiet=true -J--add-modules=jdk.incubator.foreign -J--enable-native-access=ALL-UNNAMED -J--enable-preview -J--add-opens=java.base/java.net=ALL-UNNAMED -J--add-opens=java.base/java.lang=ALL-UNNAMED -J--add-opens=java.desktop/javax.swing=ALL-UNNAMED -J--add-exports=java.desktop/sun.awt=ALL-UNNAMED -J--add-opens=java.base/java.util=ALL-UNNAMED</netbeans.run.params>                               
         <netbeans.version>RELEASE200</netbeans.version>
         <brandingToken>jjazzlab</brandingToken> <!-- used for nbm:cluster-app configuration -->
         <jjazzlab.maven.compiler.plugin.version>3.11.0</jjazzlab.maven.compiler.plugin.version>
@@ -46,7 +43,6 @@
         <jjazzlab.javac.showDeprecation>true</jjazzlab.javac.showDeprecation>
         <jjazzlab.javac.showWarnings>true</jjazzlab.javac.showWarnings>
         <jjazzlab.javac.xlint>-Xlint:all,-serial</jjazzlab.javac.xlint>
-        <jjazzlab.surefire.plugin.version>3.1.0</jjazzlab.surefire.plugin.version>
         <jjazzlab.surefire.skipTests>true</jjazzlab.surefire.skipTests>
         <jjazzlab.forceEnglish>false</jjazzlab.forceEnglish>
     </properties>
@@ -127,7 +123,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>${jjazzlab.surefire.plugin.version}</version>
+                    <version>3.1.0</version>
                     <configuration>
                         <skipTests>${jjazzlab.surefire.skipTests}</skipTests>
                     </configuration>
