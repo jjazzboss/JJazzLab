@@ -41,8 +41,7 @@ import org.jjazz.utilities.api.Utilities;
 import org.netbeans.api.progress.BaseProgressUtils;
 
 /**
- * A mp3 encoder which relies on org.jjazz.embeddedsynth.lame-3.98.4.jar found here
- * https://github.com/nwaldispuehl/java-lame
+ * A mp3 encoder which relies on org.jjazz.embeddedsynth.lame-3.98.4.jar found here https://github.com/nwaldispuehl/java-lame
  */
 public class JavaLameMp3Encoder implements Mp3Encoder
 {
@@ -72,7 +71,7 @@ public class JavaLameMp3Encoder implements Mp3Encoder
 
                 } catch (IOException | UnsupportedAudioFileException ex)
                 {
-                    exception = new EmbeddedSynthException(exception.getMessage());
+                    exception = new EmbeddedSynthException(exception != null ? exception.getMessage() : "");
                 }
             }
         };
@@ -94,7 +93,7 @@ public class JavaLameMp3Encoder implements Mp3Encoder
      *
      * @param wavFile
      * @param mp3File
-     * @param bitRate E.g 128 for medium quality, 320 for high quality
+     * @param bitRate             E.g 128 for medium quality, 320 for high quality
      * @param useVariableEncoding
      * @throws IOException
      * @throws UnsupportedAudioFileException
@@ -112,7 +111,8 @@ public class JavaLameMp3Encoder implements Mp3Encoder
      */
     private byte[] encodeToMp3(AudioInputStream audioInputStream, int bitRate, boolean useVariableEncoding) throws IOException
     {
-        LameEncoder encoder = new LameEncoder(audioInputStream.getFormat(), bitRate, MPEGMode.STEREO, Lame.QUALITY_HIGHEST, useVariableEncoding);
+        LameEncoder encoder = new LameEncoder(audioInputStream.getFormat(), bitRate, MPEGMode.STEREO, Lame.QUALITY_HIGHEST,
+                useVariableEncoding);
 
         ByteArrayOutputStream mp3 = new ByteArrayOutputStream();
         byte[] inputBuffer = new byte[encoder.getPCMBufferSize()];

@@ -26,6 +26,7 @@ import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiUnavailableException;
 import javax.swing.AbstractAction;
@@ -144,6 +145,8 @@ public class ExportToAudio extends AbstractAction
             }
         }
 
+        LOGGER.log(Level.INFO, "actionPerformed() Start export audio : {0}", audioFile.getAbsolutePath());
+
 
         // Generate the Midi file
         File midiFile;
@@ -207,9 +210,10 @@ public class ExportToAudio extends AbstractAction
             }
         }
 
-        
+
         StatusDisplayer.getDefault().setStatusText(ResUtil.getString(getClass(), "ExportToAudioComplete",
                 audioFile.getAbsolutePath()));
+        LOGGER.log(Level.INFO, "actionPerformed() Export to audio complete : {0}", audioFile.getAbsolutePath());
 
 
     }
