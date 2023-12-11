@@ -23,6 +23,7 @@
 package org.jjazz.mixconsole;
 
 import org.jjazz.midimix.api.UserRhythmVoice;
+import org.jjazz.rhythm.api.RhythmVoice;
 
 /**
  * The user actions on a MixChannelPanel that can not be handled by the MixChannelPanel itself.
@@ -51,6 +52,13 @@ public interface MixChannelPanelController
      * User asked to close a MixChannelPanel.
      */
     void removeUserPhrase(UserRhythmVoice userRhythmVoice);
+
+    /**
+     * Clone a rhythm track in a new user track.
+     *
+     * @param rhythmVoice
+     */
+    void cloneRhythmTrackAsUserTrack(RhythmVoice rhythmVoice);
 
     /**
      * User wants to edit settings of our MixChannelPanel.

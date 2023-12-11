@@ -23,19 +23,10 @@
 package org.jjazz.mixconsole;
 
 import java.awt.Color;
-import java.awt.Component;
-import java.awt.Container;
 import java.awt.Dimension;
-import java.awt.Insets;
-import java.awt.LayoutManager;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import javax.swing.BorderFactory;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
-import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.jjazz.backgroundsongmusicbuilder.api.ActiveSongMusicBuilder;
@@ -47,28 +38,39 @@ import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythmmusicgeneration.api.MusicGenerationQueue;
 import org.jjazz.song.api.Song;
 import org.jjazz.songcontext.api.SongContextCopy;
-import org.jjazz.flatcomponents.api.FlatButton;
+import org.jjazz.uiutilities.api.CornerLayout;
 import org.jjazz.utilities.api.ResUtil;
 
 /**
  * A panel to represent the phrase corresponding to a RhythmVoice.
  * <p>
- * Get the phrase from the ActiveSongMusicBuilder. Add edit/close buttons for UserRhythmVoice.
+ * Get the phrase from the ActiveSongMusicBuilder. Use CornerLayout to display buttons in corners.
  */
 public class PhraseViewerPanel extends PhraseBirdsEyeViewComponent implements ChangeListener, PropertyChangeListener
 {
 
-    private static final Icon ICON_EDIT = new ImageIcon(PhraseViewerPanel.class.getResource("resources/Edit-14x14.png"));
-    private static final Icon ICON_CLOSE = new ImageIcon(PhraseViewerPanel.class.getResource("resources/Close14x14.png"));
-    private static final Color BORDER_COLOR = new Color(32, 36, 53);
+    protected static final Color BORDER_COLOR = new Color(32, 36, 53);
+    protected static final int BUTTONS_PADDING = 2;
     private RhythmVoice rhythmVoice;
     private final Song song;
-    private FlatButton fbtn_edit, fbtn_close;
     private final MixChannelPanelController controller;
     private final MidiMix midiMix;
 
 
-    public PhraseViewerPanel(Song song, MidiMix mMix, MixChannelPanelController controller, RhythmVoice rv)
+    /**
+     * Create the appropriate instance depending on rv type.
+     *
+     * @param rv
+     * @return
+     */
+    static public PhraseViewerPanel createInstance(Song song, MidiMix midiMix, MixChannelPanelController controller, RhythmVoice rv)
+    {
+        PhraseViewerPanel res = (rv instanceof UserRhythmVoice) ? new PhraseViewerPanelUser(song, midiMix, controller, rv)
+                : new PhraseViewerPanelRhythm(song, midiMix, controller, rv);
+        return res;
+    }
+
+    protected PhraseViewerPanel(Song song, MidiMix mMix, MixChannelPanelController controller, RhythmVoice rv)
     {
         this.rhythmVoice = rv;
         this.song = song;
@@ -86,7 +88,8 @@ public class PhraseViewerPanel extends PhraseBirdsEyeViewComponent implements Ch
         setOpaque(false);
         setShowVelocityMode(2);
         setBorder(BorderFactory.createLineBorder(BORDER_COLOR));
-        setLayout(new MyLayoutManager());
+        setLayout(new CornerLayout(BUTTONS_PADDING));
+        setToolTipText(ResUtil.getString(getClass(), "PhraseViewerTooltip"));       // TransferHandler is set by MixConsole
 
 
         // Refresh content if ActiveSongMusicBuilder has already a result for us (happens when user switches between songs)
@@ -95,23 +98,38 @@ public class PhraseViewerPanel extends PhraseBirdsEyeViewComponent implements Ch
         {
             musicGenerationResultReceived(result);
         }
-
-        if (this.rhythmVoice instanceof UserRhythmVoice)
-        {
-            addUserButtons();
-        }
     }
 
-
-    public void cleanup()
+    public MixChannelPanelController getController()
     {
-        ActiveSongMusicBuilder.getInstance().removeChangeListener(this);
-        midiMix.removePropertyChangeListener(this);
+        return controller;
+    }
+
+    @Override
+    public String toString()
+    {
+        return rhythmVoice.getName();
     }
 
     public RhythmVoice getRhythmVoice()
     {
         return rhythmVoice;
+    }
+
+    public Song getSong()
+    {
+        return song;
+    }
+
+    public MidiMix getMidiMix()
+    {
+        return midiMix;
+    }
+
+    public void cleanup()
+    {
+        ActiveSongMusicBuilder.getInstance().removeChangeListener(this);
+        midiMix.removePropertyChangeListener(this);
     }
 
     //=============================================================================
@@ -166,98 +184,8 @@ public class PhraseViewerPanel extends PhraseBirdsEyeViewComponent implements Ch
         }
     }
 
-    private void addUserButtons()
-    {
-        fbtn_edit = new FlatButton();
-        fbtn_edit.setIcon(ICON_EDIT);
-        fbtn_edit.addActionListener(ae -> editButtonPressed());
-        fbtn_edit.setToolTipText(ResUtil.getString(getClass(), "PhraseViewerPanel.BtnEditTooltip"));
-
-        fbtn_close = new FlatButton();
-        fbtn_close.setIcon(ICON_CLOSE);
-        fbtn_close.addActionListener(ae -> closeButtonPressed());
-        fbtn_close.setToolTipText(ResUtil.getString(getClass(), "PhraseViewerPanel.BtnCloseTooltip"));
-
-        add(fbtn_edit);
-        add(fbtn_close);
-
-
-        addMouseListener(new MouseAdapter()
-        {
-            @Override
-            public void mouseClicked(MouseEvent me)
-            {
-                if (SwingUtilities.isLeftMouseButton(me) && me.getClickCount() == 2)
-                {
-                    editButtonPressed();
-                }
-            }
-        });
-    }
-
-    private void editButtonPressed()
-    {
-        controller.editUserPhrase((UserRhythmVoice) rhythmVoice);
-    }
-
-    private void closeButtonPressed()
-    {
-        controller.removeUserPhrase((UserRhythmVoice) rhythmVoice);
-    }
 
     // ----------------------------------------------------------------------------
     // Inner classes
     // ----------------------------------------------------------------------------
-    /**
-     * Our LayoutManager to arrange the buttons.
-     */
-    private class MyLayoutManager implements LayoutManager
-    {
-
-        private static final int PADDING = 2;
-
-        @Override
-        public void layoutContainer(Container container)
-        {
-            if (fbtn_edit == null)
-            {
-                return;
-            }
-
-            Insets in = container.getInsets();
-            int y = in.top + PADDING;
-
-            fbtn_edit.setSize(fbtn_edit.getPreferredSize());
-            fbtn_close.setSize(fbtn_close.getPreferredSize());
-
-            fbtn_edit.setLocation(in.left + PADDING, y);
-            fbtn_close.setLocation(container.getWidth() - in.right - PADDING - fbtn_close.getWidth(), y);
-        }
-
-        @Override
-        public void addLayoutComponent(String name, Component comp)
-        {
-            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-        }
-
-        @Override
-        public void removeLayoutComponent(Component comp)
-        {
-            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-        }
-
-        @Override
-        public Dimension preferredLayoutSize(Container parent)
-        {
-            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-        }
-
-        @Override
-        public Dimension minimumLayoutSize(Container parent)
-        {
-            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-        }
-
-    }
-
 }
