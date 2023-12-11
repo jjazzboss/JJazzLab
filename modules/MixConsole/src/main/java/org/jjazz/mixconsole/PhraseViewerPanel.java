@@ -89,7 +89,8 @@ public class PhraseViewerPanel extends PhraseBirdsEyeViewComponent implements Ch
         setShowVelocityMode(2);
         setBorder(BorderFactory.createLineBorder(BORDER_COLOR));
         setLayout(new CornerLayout(BUTTONS_PADDING));
-        setToolTipText(ResUtil.getString(getClass(), "PhraseViewerTooltip"));       // TransferHandler is set by MixConsole
+        String text = ResUtil.getString(getClass(), "PhraseViewerTooltip") + "\n" + ResUtil.getString(getClass(), "DragToExportTrack");
+        setToolTipText(text);
 
 
         // Refresh content if ActiveSongMusicBuilder has already a result for us (happens when user switches between songs)
