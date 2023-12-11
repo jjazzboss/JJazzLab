@@ -49,7 +49,7 @@ public class FluidSynthEmbeddedSynth implements EmbeddedSynth, PropertyChangeLis
 {
 
     private static final String SOUNDFONT_FILE = "modules/soundfont/JJazzLab-SoundFont.sf2";    // SoundFont name in local config directory
-    private static final String SOUNDFONT_FILE_COMMAND_LINE_PROPERTY = "jjSynthSoundFontFile";  // Command line property to override default SOUNDFONT_FILE
+    private static final String SOUNDFONT_FILE_COMMAND_LINE_PROPERTY = "FluidSynthSoundFontFile";  // Command line property to override default SOUNDFONT_FILE
     private static final String PREF_REVERB = "PrefReverb";
     private static final String PREF_CHORUS = "PrefChorus";
     private static final String PREF_GAIN = "PrefGain";
@@ -138,7 +138,7 @@ public class FluidSynthEmbeddedSynth implements EmbeddedSynth, PropertyChangeLis
     @Override
     public String getName()
     {
-        return "jjSynth";
+        return "FluidSynth";
     }
 
     @Override
