@@ -103,45 +103,25 @@ public class AddUserTrack extends AbstractAction
         p = new Phrase(0, res == drums);
 
 
-        // Save existing user rhythmvoices to detect which one will be the new one
-        MidiMix midiMix;
-        try
-        {
-            midiMix = MidiMixManager.getInstance().findMix(song);
-        } catch (MidiUnavailableException ex)
-        {
-            // Should never happen
-            Exceptions.printStackTrace(ex);
-            return;
-        }
-
         // Perform the change
-        if (setUserPhraseAction(song, name, p))     // Returns true if success
-        {
-            // Set the PianoRollEditor
-            var userRv = midiMix.getUserRhythmVoice(name);
-            assert userRv != null : " midiMix=" + midiMix + " name=" + name;
-            SongEditorManager.getInstance().showPianoRollEditorForUserTrack(song, midiMix, userRv);
-        }
+        performAddUserPhrase(song, name, p);
 
     }
 
 
-    // ======================================================================================================
-    // Private methods
-    // ======================================================================================================
-
     /**
-     * The undoable action.
+     * Perform the undoable action: add the user phrase and opens PianoRollEditor if success.
+     * <p>
+     * The method notifies user if problem occured.
      *
      * @param song
-     * @param name
-     * @param p
-     * @return True if operation was successful
-     * @throws PropertyVetoException
+     * @param name Name of user phrase
+     * @param p    The user phrase
+     * @return true if success
      */
-    private boolean setUserPhraseAction(Song song, String name, Phrase p)
+    static public boolean performAddUserPhrase(Song song, String name, Phrase p)
     {
+        
         JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(song);
         um.startCEdit(UNDO_TEXT);
 
@@ -150,7 +130,7 @@ public class AddUserTrack extends AbstractAction
             song.setUserPhrase(name, p);
         } catch (PropertyVetoException ex)
         {
-            String msg = "Impossible to add or update user phrase " + name + ".\n" + ex.getLocalizedMessage();
+            String msg = "Impossible to add or update user phrase " + name + ": " + ex.getLocalizedMessage();
             um.handleUnsupportedEditException(UNDO_TEXT, msg);
             return false;
         } catch (Exception ex)    // Capture other programming exceptions, because method can be called from within a thread
@@ -164,7 +144,18 @@ public class AddUserTrack extends AbstractAction
 
         um.endCEdit(UNDO_TEXT);
 
+
+        // Open the PianoRollEditor
+        MidiMix midiMix = MidiMixManager.getInstance().findExistingMix(song);
+        var userRv = midiMix.getUserRhythmVoice(name);
+        assert userRv != null : " midiMix=" + midiMix + " name=" + name;
+        SongEditorManager.getInstance().showPianoRollEditorForUserTrack(song, midiMix, userRv);
+        
         return true;
     }
+
+    // ======================================================================================================
+    // Private methods
+    // ======================================================================================================
 
 }
