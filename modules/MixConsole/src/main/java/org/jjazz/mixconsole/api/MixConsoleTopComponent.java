@@ -22,6 +22,7 @@
  */
 package org.jjazz.mixconsole.api;
 
+import java.util.MissingResourceException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.utilities.api.ResUtil;
@@ -48,7 +49,7 @@ import org.openide.windows.TopComponent;
         //iconBase="SET/PATH/TO/ICON/HERE", 
         persistenceType = TopComponent.PERSISTENCE_ALWAYS
 )
-@TopComponent.Registration(mode = "explorer", openAtStartup = true, position = 1)
+@TopComponent.Registration(mode = "explorer", openAtStartup = true, position = 0)
 @ActionID(category = "Window", id = "org.jjazz.mixconsole.api.MixConsoleTopComponent")
 // @ActionReference(path = "Menu/Window", position = 120)      Useless if not closable
 @TopComponent.OpenActionRegistration(
@@ -64,8 +65,6 @@ public final class MixConsoleTopComponent extends TopComponent
 
     public MixConsoleTopComponent()
     {
-        setName(ResUtil.getString(getClass(), "CTL_MixConsoleTopComponent"));
-        setToolTipText(ResUtil.getString(getClass(), "CTL_MixConsoleTopComponentDesc"));
         putClientProperty(TopComponent.PROP_MAXIMIZATION_DISABLED, Boolean.TRUE);
         putClientProperty(TopComponent.PROP_CLOSING_DISABLED, Boolean.TRUE);
         putClientProperty(TopComponent.PROP_KEEP_PREFERRED_SIZE_WHEN_SLIDED_IN, Boolean.TRUE);
@@ -74,29 +73,50 @@ public final class MixConsoleTopComponent extends TopComponent
         putClientProperty(TopComponent.PROP_UNDOCKING_DISABLED, Boolean.FALSE);
         putClientProperty(TopComponent.PROP_SLIDING_DISABLED, Boolean.FALSE);
 
-        initComponents();
+
+        // For Issue #377 be extra careful to make sure there is no exception at this stage
+        String name = "MixConsole bug, please report";
+        String tooltip = name;
+        try
+        {
+            name = ResUtil.getString(getClass(), "CTL_MixConsoleTopComponent");
+            tooltip = ResUtil.getString(getClass(), "CTL_MixConsoleTopComponentDesc");
+        } catch (MissingResourceException ex)
+        {
+            exceptionOccuredInConstructor(ex);
+        }                
+        setName(name);
+        setToolTipText(tooltip);
+        
+                    
+        initComponents();   // only one basic line, can't fail
 
 
         try
         {
-            // Catch exception & assertion errors to make sure user is notified, and that MixConsoleTopComponent is opened.
+            // Catch exception & assertion errors to make sure user is notified, and that MixConsoleTopComponent is still created.
             // Fix Issue #261: If there is a bug in MixConsole(), MixConsoleTopComponent will not be displayed, user will exit JJazzLab and Netbeans
             // will save the window configuration (WindowManager.wswmgr) without MixConsoleTopComponent. When user restarts JJazzLab, MixConsoleTopComponent will not appear
-            // anymore, even if the bug has gone!
-            editor = new MixConsole(MixConsoleSettings.getDefault());
+            // anymore, even if the bug has gone!            
+            editor = new MixConsole(MixConsoleSettings.getDefault());  // If bug here then editor is null
             add(editor);
         } catch (Throwable t)
         {
-            // Log & notify user, this is serious
-            String msg = "ERROR can't create the MixConsole, please report this bug with the Log file content. err='" + t.getMessage() + "'";
-            LOGGER.log(Level.SEVERE, "MixConsoleTopComponent() {0}", msg);
-            Exceptions.printStackTrace(t);
-            NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
-            DialogDisplayer.getDefault().notifyLater(nd);
+            // Log & notify user, this is serious, but let MixConsole be created
+            exceptionOccuredInConstructor(t);
         }
 
 
         INSTANCE = this;
+    }
+
+    static private void exceptionOccuredInConstructor(Throwable t)
+    {
+        String msg = "ERROR can't create the MixConsole, please report this bug with the Log file content. err='" + t.getMessage() + "'";
+        LOGGER.log(Level.SEVERE, "MixConsoleTopComponent() {0}", msg);
+        Exceptions.printStackTrace(t);
+        NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
+        DialogDisplayer.getDefault().notifyLater(nd);
     }
 
     /**
@@ -122,18 +142,20 @@ public final class MixConsoleTopComponent extends TopComponent
     @Override
     public UndoRedo getUndoRedo()
     {
-        return editor.getUndoManager();
+        // Fix Issue #377: editor might be null if exception was catched in constructor
+        return editor != null ? editor.getUndoManager() : super.getUndoRedo();
     }
 
     @Override
     public Lookup getLookup()
     {
-        return editor.getLookup();
+        // Fix Issue #377: editor might be null if exception was catched in constructor
+        return editor != null ? editor.getLookup() : super.getLookup();
     }
 
     /**
-     * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of
-     * this method is always regenerated by the Form Editor.
+     * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of this
+     * method is always regenerated by the Form Editor.
      */
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents()

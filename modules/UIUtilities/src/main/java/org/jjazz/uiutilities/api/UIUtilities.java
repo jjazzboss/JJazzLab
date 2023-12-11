@@ -23,12 +23,14 @@
 package org.jjazz.uiutilities.api;
 
 import com.google.common.base.Preconditions;
+import java.awt.AWTEvent;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
 import java.awt.Insets;
@@ -41,6 +43,7 @@ import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
@@ -52,12 +55,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Consumer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.DefaultListModel;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
+import javax.swing.JLayer;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JRootPane;
@@ -72,6 +79,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.plaf.LayerUI;
 import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
 import org.openide.awt.MenuBar;
@@ -87,6 +95,7 @@ public class UIUtilities
     private static JFileChooser fileChooser;
     private static final NoAction NoActionInstance = new NoAction();
     private static final Map<Container, List<JComponent>> enabledContainers = new HashMap<Container, List<JComponent>>();
+    private static final Logger LOGGER = Logger.getLogger(UIUtilities.class.getSimpleName());
 
     public static JFileChooser getFileChooserInstance()
     {
@@ -418,12 +427,65 @@ public class UIUtilities
         });
     }
 
+
+    /**
+     * Creates a JLayer for comp so that enterExitListener is *reliably* called when mouse enters/exit comp.
+     *
+     * @param comp
+     * @param enterExitListener Called whenever mouse enters (bool=true) or exits comp's bounds.
+     * @return
+     */
+    public static JLayer<JComponent> createEnterExitComponentLayer(JComponent comp, Consumer<Boolean> enterExitListener)
+    {
+        LayerUI<JComponent> layerUI = new LayerUI<JComponent>()
+        {
+            @Override
+            public void paint(Graphics g, JComponent jc)
+            {
+                // paint the layer as is
+                super.paint(g, jc);
+            }
+
+            @Override
+            public void installUI(JComponent jc)
+            {
+                super.installUI(jc);
+                // enable mouse motion events for the layer's subcomponents
+                ((JLayer) jc).setLayerEventMask(AWTEvent.MOUSE_EVENT_MASK);
+            }
+
+            @Override
+            public void uninstallUI(JComponent jc)
+            {
+                super.uninstallUI(jc);
+                // reset the layer event mask
+                ((JLayer) jc).setLayerEventMask(0);
+            }
+
+
+            @Override
+            public void eventDispatched(AWTEvent e, JLayer<? extends JComponent> layer)
+            {
+                if (e instanceof MouseEvent me && (me.getID() == MouseEvent.MOUSE_ENTERED || me.getID() == MouseEvent.MOUSE_EXITED))
+                {
+                    Point p = SwingUtilities.convertPoint(me.getComponent(), me.getPoint(), layer);
+                    boolean inside = layer.contains(p);     // This way it works even if mouse is on another component inside the RpViewer
+                    enterExitListener.accept(inside);
+                }
+            }
+        };
+
+        // Create the layer for the component using our custom layerUI
+        var layer = new JLayer<JComponent>(comp, layerUI);
+        return layer;
+    }
+
     /**
      * Make the specified textComponent capture all ASCII printable key presses.
      * <p>
-     * Key presses are used by an editable JTextComponent to display the chars, but it does not consume the key presses. So they are
-     * transmitted up the containment hierarchy via the keybinding framework. This means a global Netbeans action might be triggered if user
-     * types a global action shortcut (eg SPACE) in the JTextComponent.<p>
+     * Key presses are used by an editable JTextComponent to display the chars, but it does not consume the key presses. So they are transmitted up the
+     * containment hierarchy via the keybinding framework. This means a global Netbeans action might be triggered if user types a global action shortcut (eg
+     * SPACE) in the JTextComponent.<p>
      * This method makes textComponent capture all ASCII printable key presses (ASCII char from 32 to 126) to avoid this behaviour.
      * <p>
      *
@@ -667,7 +729,8 @@ public class UIUtilities
      */
     public static void disableContainer(Container container)
     {
-        List<JComponent> components = getDescendantsOfType(JComponent.class, container, true);
+        List<JComponent> components = getDescendantsOfType(JComponent.class,
+                container, true);
         List<JComponent> enabledComponents = new ArrayList<>();
         enabledContainers.put(container, enabledComponents);
 
@@ -703,8 +766,8 @@ public class UIUtilities
     }
 
     /**
-     * Convenience method for searching below <code>container</code> in the component hierarchy and return nested components that are
-     * instances of class <code>clazz</code> it finds.
+     * Convenience method for searching below <code>container</code> in the component hierarchy and return nested components that are instances of class
+     * <code>clazz</code> it finds.
      * <p>
      * Returns an empty list if no such components exist in the container.
      * <p>
@@ -769,16 +832,15 @@ public class UIUtilities
     /**
      * Installs a listener to receive notification when the text of any {@code JTextComponent} is changed.
      * <p>
-     * Internally, it installs a {@link DocumentListener} on the text component's {@link Document}, and a {@link PropertyChangeListener} on
-     * the text component to detect if the {@code Document} itself is replaced.
+     * Internally, it installs a {@link DocumentListener} on the text component's {@link Document}, and a {@link PropertyChangeListener} on the text component
+     * to detect if the {@code Document} itself is replaced.
      * <p>
      * Usage: addChangeListener(someTextBox, e -> doSomething());
      * <p>
      * From Stackoverflow: https://stackoverflow.com/questions/3953208/value-change-listener-to-jtextfield
      *
      * @param text           any text component, such as a {@link JTextField} or {@link JTextArea}
-     * @param changeListener a listener to receieve {@link ChangeEvent}s when the text is changed; the source object for the events will be
-     *                       the text component
+     * @param changeListener a listener to receieve {@link ChangeEvent}s when the text is changed; the source object for the events will be the text component
      * @throws NullPointerException if either parameter is null
      */
     public static void addChangeListener(JTextComponent text, ChangeListener changeListener)
@@ -839,6 +901,7 @@ public class UIUtilities
         if (d != null)
         {
             d.addDocumentListener(dl);
+
         }
     }
 

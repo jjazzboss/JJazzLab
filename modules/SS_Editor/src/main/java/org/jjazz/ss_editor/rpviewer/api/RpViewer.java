@@ -58,7 +58,7 @@ import org.jjazz.ss_editor.rpviewer.spi.RpCustomEditorFactory;
 /**
  * A RhythmParameter viewer.
  * <p>
- * Display RP name and manage selected/focused status using background and border. Show an edit button if RhythmParameter model
+ * Displays RP name and manage selected/focused status using background and border. Shows an edit button if RhythmParameter model
  * supports a custom edit dialog.
  * <p>
  * The actual rendering and preferred size setting is delegated to a RpViewerRenderer.
@@ -480,12 +480,14 @@ public class RpViewer extends JPanel implements PropertyChangeListener, FocusLis
         }
 
         @Override
-        protected void processMouseEvent(MouseEvent e, JLayer l)
+        protected void processMouseEvent(MouseEvent e, JLayer layer)
         {
             if (e.getID() == MouseEvent.MOUSE_ENTERED || e.getID() == MouseEvent.MOUSE_EXITED)
             {
-                Point p = SwingUtilities.convertPoint(e.getComponent(), e.getPoint(), l);
-                setEditButtonVisible(l.contains(p));
+                // This way 
+                Point p = SwingUtilities.convertPoint(e.getComponent(), e.getPoint(), layer);
+                boolean inside = layer.contains(p);     // This way it works even if mouse is on another component inside the RpViewer
+                setEditButtonVisible(inside);
             }
         }
     }

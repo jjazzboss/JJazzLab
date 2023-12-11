@@ -1,0 +1,9 @@
+Package: ${DEB_PACKAGE}
+Version: ${DEB_VERSION}
+Architecture: ${DEB_ARCH}
+Maintainer: ${DEB_MAINTAINER}
+Recommends: ${DEB_RECOMMENDS}
+Priority: optional
+Description: ${DEB_DESCRIPTION}
+Depends: libfluidsynth3 (>= 2.1.0)
+

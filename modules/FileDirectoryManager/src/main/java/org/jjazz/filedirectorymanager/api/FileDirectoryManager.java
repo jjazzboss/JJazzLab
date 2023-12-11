@@ -185,7 +185,7 @@ public class FileDirectoryManager
      */
     public File getInstallationDirectory()
     {
-        File f = InstalledFileLocator.getDefault().locate("modules", "org.jjazzlab.org.jjazz.filedirectorymanager.api", false).getAbsoluteFile();
+        File f = InstalledFileLocator.getDefault().locate("modules", "org.jjazzlab.org.jjazz.filedirectorymanager", false).getAbsoluteFile();
         f = f.getParentFile().getParentFile();
         assert f != null && f.isDirectory() : "f=" + f;
         return f;

@@ -210,7 +210,7 @@ public class FluidSynthEmbeddedSynthProvider implements EmbeddedSynthProvider
 
 
         LongTask openTask = new LongTask();
-        BaseProgressUtils.showProgressDialogAndRun(openTask, ResUtil.getString(getClass(), "LoadingJJSynth"));
+        BaseProgressUtils.showProgressDialogAndRun(openTask, ResUtil.getString(getClass(), "LoadingFluidSynth"));
 
 
         if (openTask.exception instanceof EmbeddedSynthException)

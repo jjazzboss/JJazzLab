@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="200mm"
+   height="200mm"
+   viewBox="0 0 200 200"
+   version="1.1"
+   id="svg8"
+   inkscape:version="1.1 (c68e22c387, 2021-05-23)"
+   sodipodi:docname="logo-JJazzLab.svg"
+   inkscape:export-filename="D:\JeromeDocs\JJazzLab\src\JJazzLab\graphics\LogoJJazzLab-48x48.png"
+   inkscape:export-xdpi="6.0999999"
+   inkscape:export-ydpi="6.0999999"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <defs
+     id="defs2">
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath4588">
+      <rect
+         style="opacity:1;vector-effect:none;fill:none;fill-opacity:1;stroke:#1a1a1a;stroke-width:1.10000002;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+         id="rect4590"
+         width="50.781212"
+         height="44.901279"
+         x="129.09119"
+         y="115.52399" />
+    </clipPath>
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.24748738"
+     inkscape:cx="525.27932"
+     inkscape:cy="951.56369"
+     inkscape:document-units="mm"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:window-width="1920"
+     inkscape:window-height="1009"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:lockguides="true"
+     inkscape:pagecheckerboard="0" />
+  <metadata
+     id="metadata5">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(0,-97)">
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:10.58333302px;line-height:6.61458302px;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="-82.965775"
+       y="279.80206"
+       id="text3721"><tspan
+         sodipodi:role="line"
+         id="tspan3719"
+         x="-82.965775"
+         y="286.15027"
+         style="stroke-width:0.26458332" /></text>
+    <g
+       id="g1011"
+       transform="translate(-6.4935099,-0.00422966)">
+      <ellipse
+         transform="matrix(0.99947787,0.03231087,-0.34591573,0.93826558,0,0)"
+         ry="95.704422"
+         rx="67.905396"
+         cy="203.86739"
+         cx="177.10692"
+         id="ellipse4597"
+         style="fill:#1494ef;fill-opacity:1;stroke:none;stroke-width:3.22796;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         inkscape:export-filename="D:\JeromeDocs\JJazzLab\src\JJazzLab\graphics\FB200x200.png"
+         inkscape:export-xdpi="25.4"
+         inkscape:export-ydpi="25.4" />
+      <path
+         style="fill:#f9f921;fill-opacity:1;stroke:none;stroke-width:5.50979;stroke-miterlimit:4;stroke-dasharray:none"
+         d="m 71.666238,255.01134 c -9.853899,-4.12166 -14.014895,-13.78463 -9.669296,-22.45494 3.469534,-6.92229 9.026429,-9.66992 24.745646,-12.23544 3.86957,-0.63153 7.60097,-1.2924 8.292003,-1.46853 0.978348,-0.24918 1.257424,-8.43995 1.261338,-37.0127 0,0 -1.075216,-22.10934 0.257808,-35.19716 0.152094,-1.49175 2.042019,-4.09544 2.042019,-4.09544 2.048474,-2.32008 3.171474,-2.68021 10.426114,-3.343 4.47176,-0.40854 14.8567,-1.02673 23.07765,-1.37385 14.84906,-0.62692 14.96137,-0.61693 17.08233,1.52117 1.17422,1.1837 3.13105,4.61165 4.34857,7.61761 3.2024,7.90691 5.68213,11.09821 10.69047,13.75816 5.26976,2.79895 5.62213,4.00535 1.16888,4.002 -5.00678,-0.004 -39.77864,1.78915 -45.69936,2.35649 l -5.24449,0.50257 -0.28336,37.12524 c 0,0 0.65164,25.86257 -1.5526,36.66514 -0.30364,1.4881 -1.49597,4.2456 -1.49597,4.2456 -3.43508,4.70271 -7.70601,6.69325 -19.674022,9.16948 -11.394796,2.35759 -14.574746,2.39262 -19.77457,0.21783 z"
+         id="path4599"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cccccscsccssccccscccc"
+         inkscape:export-filename="D:\JeromeDocs\JJazzLab\src\JJazzLab\graphics\FB200x200.png"
+         inkscape:export-xdpi="25.4"
+         inkscape:export-ydpi="25.4" />
+    </g>
+  </g>
+</svg>

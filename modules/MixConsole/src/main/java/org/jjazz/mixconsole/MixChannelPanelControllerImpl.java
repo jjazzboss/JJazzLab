@@ -25,6 +25,7 @@ package org.jjazz.mixconsole;
 import com.google.common.base.Preconditions;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jjazz.backgroundsongmusicbuilder.api.ActiveSongMusicBuilder;
 import org.jjazz.instrumentchooser.spi.InstrumentChooserDialog;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.midi.api.Instrument;
@@ -36,11 +37,13 @@ import org.jjazz.midi.api.synths.Family;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.UserRhythmVoice;
+import org.jjazz.mixconsole.actions.AddUserTrack;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.outputsynth.api.OutputSynthManager;
+import org.jjazz.phrase.api.Phrase;
+import org.jjazz.rhythmmusicgeneration.api.MusicGenerationQueue;
 import org.jjazz.song.api.Song;
 import org.jjazz.songeditormanager.api.SongEditorManager;
-import org.jjazz.mixconsole.actions.AddUserTrack;
 import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.utilities.api.ResUtil;
@@ -150,6 +153,50 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
     }
 
     @Override
+    public void cloneRhythmTrackAsUserTrack(RhythmVoice rv)
+    {
+        // Find a name not already used
+        var usedNames = song.getUserPhraseNames();
+        String basename = rv.getName() + "-";
+        int index = 1;
+        while (usedNames.contains(basename + index))
+        {
+            index++;
+        }
+        String name = basename + index;
+
+
+        // Retrieve the phrase
+        var asmb = ActiveSongMusicBuilder.getInstance();
+        var result = asmb.getLastResult();
+        Phrase p = result.mapRvPhrases().get(rv);
+        if (p == null)
+        {
+            String msg = "Unexpected error: no phrase found for " + rv.getName() + ". Maybe retry later?";
+            NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
+            DialogDisplayer.getDefault().notify(d);
+            return;
+        }
+        Phrase p2 = new Phrase(p.getChannel(), p.isDrums());
+        p2.add(p);
+
+
+        // Add the user track
+        if (AddUserTrack.performAddUserPhrase(song, name, p2))
+        {
+            // Copy InstrumentMix from the original rhythm track and mute original track
+            var userRv = midiMix.getUserRhythmVoice(name);
+            var userRvChannel = midiMix.getChannel(userRv);
+            var rvInsMix = midiMix.getInstrumentMix(rv);
+            rvInsMix.setMute(true);
+            var userInsMix = new InstrumentMix(rvInsMix);
+            userInsMix.setMute(false);
+            midiMix.setInstrumentMix(userRvChannel, userRv, userInsMix);
+        }
+
+    }
+
+    @Override
     public void editUserPhrase(UserRhythmVoice userRhythmVoice)
     {
         SongEditorManager.getInstance().showPianoRollEditorForUserTrack(song, midiMix, userRhythmVoice);
@@ -247,12 +294,10 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
         insMix.setInstrument(ins);
     }
 
-   
 
     // ----------------------------------------------------------------------------
     // Private methods
     // ----------------------------------------------------------------------------
-
     private String buildSettingsTitle(int channel)
     {
         StringBuilder title = new StringBuilder(ResUtil.getString(getClass(), "MixChannelPanelControllerImpl.DialogTitle", channel + 1));
@@ -266,5 +311,6 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
         }
         return title.toString();
     }
+
 
 }

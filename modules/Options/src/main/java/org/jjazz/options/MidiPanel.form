@@ -54,7 +54,7 @@
           <Group type="102" attributes="0">
               <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
-                  <Component id="pnl_jjSynth" alignment="0" max="32767" attributes="0"/>
+                  <Component id="pnl_FluidSynth" alignment="0" max="32767" attributes="0"/>
                   <Group type="102" alignment="0" attributes="0">
                       <Component id="pnl_outDevice" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
@@ -70,7 +70,7 @@
       <Group type="103" groupAlignment="0" attributes="0">
           <Group type="102" attributes="0">
               <EmptySpace min="-2" max="-2" attributes="0"/>
-              <Component id="pnl_jjSynth" min="-2" max="-2" attributes="0"/>
+              <Component id="pnl_FluidSynth" min="-2" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
                   <Group type="102" attributes="0">
                       <EmptySpace min="-2" pref="21" max="-2" attributes="0"/>
@@ -345,12 +345,12 @@
         </Component>
       </SubComponents>
     </Container>
-    <Container class="javax.swing.JPanel" name="pnl_jjSynth">
+    <Container class="javax.swing.JPanel" name="pnl_FluidSynth">
       <Properties>
         <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
           <Border info="org.netbeans.modules.form.compat2.border.TitledBorderInfo">
-            <TitledBorder title="jjSynth - the JJazzLab synth">
-              <ResourceString PropertyName="titleX" bundle="org/jjazz/options/Bundle.properties" key="MidiPanel.pnl_jjSynth.border.title" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+            <TitledBorder title="FluidSynth - the JJazzLab synth">
+              <ResourceString PropertyName="titleX" bundle="org/jjazz/options/Bundle.properties" key="MidiPanel.pnl_FluidSynth.border.title" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
             </TitledBorder>
           </Border>
         </Property>
@@ -361,11 +361,11 @@
           <Group type="103" groupAlignment="0" attributes="0">
               <Group type="102" attributes="0">
                   <EmptySpace max="-2" attributes="0"/>
-                  <Component id="cb_usejjSynth" min="-2" max="-2" attributes="0"/>
+                  <Component id="cb_useFluidSynth" min="-2" max="-2" attributes="0"/>
                   <EmptySpace type="separate" max="-2" attributes="0"/>
-                  <Component id="btn_jjSynthSettings" min="-2" max="-2" attributes="0"/>
+                  <Component id="btn_FluidSynthSettings" min="-2" max="-2" attributes="0"/>
                   <EmptySpace max="32767" attributes="0"/>
-                  <Component id="btn_jjSynthDefaultInstruments" min="-2" max="-2" attributes="0"/>
+                  <Component id="btn_FluidSynthDefaultInstruments" min="-2" max="-2" attributes="0"/>
                   <EmptySpace max="-2" attributes="0"/>
               </Group>
           </Group>
@@ -375,9 +375,9 @@
               <Group type="102" alignment="0" attributes="0">
                   <EmptySpace min="-2" pref="19" max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="0" attributes="0">
-                      <Component id="btn_jjSynthDefaultInstruments" min="-2" max="-2" attributes="0"/>
-                      <Component id="btn_jjSynthSettings" min="-2" max="-2" attributes="0"/>
-                      <Component id="cb_usejjSynth" min="-2" pref="25" max="-2" attributes="0"/>
+                      <Component id="btn_FluidSynthDefaultInstruments" min="-2" max="-2" attributes="0"/>
+                      <Component id="btn_FluidSynthSettings" min="-2" max="-2" attributes="0"/>
+                      <Component id="cb_useFluidSynth" min="-2" pref="25" max="-2" attributes="0"/>
                   </Group>
                   <EmptySpace pref="22" max="32767" attributes="0"/>
               </Group>
@@ -385,38 +385,38 @@
         </DimensionLayout>
       </Layout>
       <SubComponents>
-        <Component class="javax.swing.JCheckBox" name="cb_usejjSynth">
+        <Component class="javax.swing.JCheckBox" name="cb_useFluidSynth">
           <Properties>
             <Property name="font" type="java.awt.Font" editor="org.netbeans.modules.form.editors2.FontEditor">
               <FontInfo relative="true">
-                <Font bold="true" component="cb_usejjSynth" property="font" relativeSize="true" size="0"/>
+                <Font bold="true" component="cb_useFluidSynth" property="font" relativeSize="true" size="0"/>
               </FontInfo>
             </Property>
             <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-              <ResourceString bundle="org/jjazz/options/Bundle.properties" key="MidiPanel.cb_usejjSynth.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+              <ResourceString bundle="org/jjazz/options/Bundle.properties" key="MidiPanel.cb_useFluidSynth.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
             </Property>
           </Properties>
           <Events>
-            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="cb_usejjSynthActionPerformed"/>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="cb_useFluidSynthActionPerformed"/>
           </Events>
         </Component>
-        <Component class="javax.swing.JButton" name="btn_jjSynthSettings">
+        <Component class="javax.swing.JButton" name="btn_FluidSynthSettings">
           <Properties>
             <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-              <Image iconType="3" name="/org/jjazz/options/resources/jjSynthSettingsSmall.png"/>
+              <Image iconType="3" name="/org/jjazz/options/resources/FluidSynthSettingsSmall.png"/>
             </Property>
             <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-              <ResourceString bundle="org/jjazz/options/Bundle.properties" key="MidiPanel.btn_jjSynthSettings.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+              <ResourceString bundle="org/jjazz/options/Bundle.properties" key="MidiPanel.btn_FluidSynthSettings.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
             </Property>
             <Property name="margin" type="java.awt.Insets" editor="org.netbeans.beaninfo.editors.InsetsEditor">
               <Insets value="[2, 4, 2, 4]"/>
             </Property>
           </Properties>
           <Events>
-            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btn_jjSynthSettingsActionPerformed"/>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btn_FluidSynthSettingsActionPerformed"/>
           </Events>
         </Component>
-        <Component class="javax.swing.JButton" name="btn_jjSynthDefaultInstruments">
+        <Component class="javax.swing.JButton" name="btn_FluidSynthDefaultInstruments">
           <Properties>
             <Property name="text" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
               <Connection component="btn_defaultInstruments" name="getText" type="method"/>
@@ -426,7 +426,7 @@
             </Property>
           </Properties>
           <Events>
-            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btn_jjSynthDefaultInstrumentsActionPerformed"/>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btn_FluidSynthDefaultInstrumentsActionPerformed"/>
           </Events>
         </Component>
       </SubComponents>

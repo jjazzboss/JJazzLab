@@ -32,9 +32,9 @@ public interface RpCustomEditorFactory
 {
 
     /**
-     * Try to find the relevant for the specified RhythmParameter.
+     * Try to find the relevant factory for the specified RhythmParameter.
      * <p>
-     * First, return rp if rp is an instanceof RpCustomEditorFactory. If not, scan all the instances available on the global
+     * First, return rp if rp is an instanceof RpCustomEditorFactory. If not, scan all the RpCustomEditorFactory instances available on the global
      * lookup, and return the first one which supports rp.
      *
      * @param rp
@@ -47,11 +47,11 @@ public interface RpCustomEditorFactory
             return (RpCustomEditorFactory) rp;
         }
 
-        for (var rvf : Lookup.getDefault().lookupAll(RpCustomEditorFactory.class))
+        for (var factory : Lookup.getDefault().lookupAll(RpCustomEditorFactory.class))
         {
-            if (rvf.isSupported(rp))
+            if (factory.isSupported(rp))
             {
-                return rvf;
+                return factory;
             }
         }
 
