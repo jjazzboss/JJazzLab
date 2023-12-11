@@ -957,7 +957,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable, Propert
             Exceptions.printStackTrace(ex);
         }
 
-        // Get items to be moved (don't include initiSection)
+        // Move items, except init section
         CLI_Section initSection = barIndex > 0 ? null : getSection(0);
         var itemsToBeShifted = getItems(barIndex, Integer.MAX_VALUE, ChordLeadSheetItem.class, cli -> cli != initSection);
         if (barIndex > 0 && itemsToBeShifted.isEmpty())
@@ -965,22 +965,27 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable, Propert
             // Nothing to do
             return;
         }
+        shiftItems(itemsToBeShifted, nbBars);
 
-        if (barIndex > 0)
-        {
-            shiftItems(itemsToBeShifted, nbBars);
-        } else
+        if (barIndex == 0)
         {
             // Special case: create a copy of the initial section        
             synchronized (this)
             {
+                // Rename init section                
+                String oldInitSectionName = initSection.getData().getName();
+                String newInitSectionName = "_" + oldInitSectionName;
+                while (getSection(newInitSectionName) != null)
+                {
+                    newInitSectionName = "_" + newInitSectionName;
+                }
+                this.setSectionName(initSection, newInitSectionName);
 
-                shiftItems(itemsToBeShifted, nbBars);
 
                 // Create a copy of the init section with different name
                 CLI_Factory clif = CLI_Factory.getDefault();
                 CLI_Section initSectionCopy = clif.createSection(this,
-                        "_" + initSection.getData().getName(),
+                        oldInitSectionName,
                         initSection.getData().getTimeSignature(),
                         nbBars);
                 try
@@ -1151,8 +1156,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable, Propert
     /**
      * Remove sections and items.
      * <p>
-     * Chord symbols are removed in a single undoable operation. Then sections are removed one by one using removeSection() (possible
-     * exception).
+     * Chord symbols are removed in a single undoable operation. Then sections are removed one by one using removeSection() (possible exception).
      *
      * @param allItems
      * @throws UnsupportedEditException
