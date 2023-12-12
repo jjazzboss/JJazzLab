@@ -17,6 +17,7 @@
  */
 package org.jjazz.fluidsynthjava.api;
 
+import com.google.common.base.Preconditions;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.File;
@@ -122,7 +123,7 @@ public final class FluidSynthJava
      */
     public FluidSynthJava(FluidSynthJava jfs, boolean createAudioDriver) throws FluidSynthException
     {
-        assert jfs.isOpen();
+        Preconditions.checkArgument(jfs.isOpen());
 
         fluid_settings_ma = new_fluid_settings();
         fluid_synth_ma = new_fluid_synth(fluid_settings_ma);
@@ -133,7 +134,7 @@ public final class FluidSynthJava
         setGain(jfs.getGain());
         setReverb(jfs.getReverb());
         setChorus(jfs.getChorus());
-        assert setSetting("synth.device-id", jfs.getSettingInt("synth.device-id"));
+        setSetting("synth.device-id", jfs.getSettingInt("synth.device-id"));
 
         if (createAudioDriver && jfs.getNativeAudioDriverInstance() != null)
         {
@@ -248,7 +249,7 @@ public final class FluidSynthJava
      */
     private void setDeviceIdForXGCompatibility()
     {
-        assert setSetting("synth.device-id", 16);
+        setSetting("synth.device-id", 16);
     }
 
     /**
@@ -637,34 +638,40 @@ public final class FluidSynthJava
         String midiFilePath = midiFile.getAbsolutePath();
         String wavFilePath = wavFile.getAbsolutePath();
 
+        LOGGER.log(Level.FINE, "generateWavFile() -- midiFile={0} wavFile={1}", new Object[]
+        {
+            midiFile.getAbsolutePath(), wavFile.getAbsolutePath()
+        });
+
         // Create a synth copy
         FluidSynthJava synthCopy = new FluidSynthJava(this, false);
+
 
         // specify the file to store the audio to
         // make sure you compiled fluidsynth with libsndfile to get a real wave file
         // otherwise this file will only contain raw s16 stereo PCM
-        assert synthCopy.setSetting("audio.file.name", wavFilePath);
-        assert synthCopy.setSetting("audio.file.type", "wav");
+        check(synthCopy.setSetting("audio.file.name", wavFilePath), "Can't set audio.file.name");
+        check(synthCopy.setSetting("audio.file.type", "wav"), "Can't set audio.file.type");
         // use number of samples processed as timing source, rather than the system timer
-        assert synthCopy.setSetting("player.timing-source", "sample");
+        check(synthCopy.setSetting("player.timing-source", "sample"), "Can't set player.timing-source");
         // Since this is a non-realtime scenario, there is no need to pin the sample data
-        assert synthCopy.setSetting("synth.lock-memory", 0);     // 1 by default                    
+        check(synthCopy.setSetting("synth.lock-memory", 0), "Can't set synth.lock-memory");    // 1 by default                    
 
         // Prepare the player
         MemoryAddress synth_ma = synthCopy.getNativeFluidSynthInstance();
         MemoryAddress fluid_player_ma = new_fluid_player(synth_ma);
-        assert fluid_player_ma != null;
+        check(fluid_player_ma != null, "Can't create player");
         try (var scope = ResourceScope.newConfinedScope())
         {
             var midiPath_seg = CLinker.toCString(midiFilePath, scope);
-            assert fluid_player_add(fluid_player_ma, midiPath_seg) == FLUID_OK();
+            check(fluid_player_add(fluid_player_ma, midiPath_seg) == FLUID_OK(), "Can't set Midi file as player input");
         }
-        assert fluid_player_play(fluid_player_ma) == FLUID_OK();
+        check(fluid_player_play(fluid_player_ma) == FLUID_OK(), "Can't start player");
 
         // Render music to file using FluidSynth's own player
         boolean error = false;
         MemoryAddress renderer_ma = new_fluid_file_renderer(synth_ma);
-        assert renderer_ma != null;
+        check(renderer_ma != null, "Can't create file renderer");
         while (fluid_player_get_status(fluid_player_ma) == FLUID_PLAYER_PLAYING())
         {
             // LOGGER.severe(" - playing...");
@@ -676,11 +683,10 @@ public final class FluidSynthJava
         }
 
         // just for sure: stop the playback explicitly and wait until finished
-        assert fluid_player_stop(fluid_player_ma) == FLUID_OK();
-        assert fluid_player_join(fluid_player_ma) == FLUID_OK();
+        check(fluid_player_stop(fluid_player_ma) == FLUID_OK(), "Can't stop player");
+        check(fluid_player_join(fluid_player_ma) == FLUID_OK(), "Can't join player");
         delete_fluid_file_renderer(renderer_ma);
         delete_fluid_player(fluid_player_ma);
-
         synthCopy.close();
 
         if (error)
@@ -783,6 +789,15 @@ public final class FluidSynthJava
 // =============================================================================================
 // Private methods
 // =============================================================================================    
+
+    private void check(boolean b, String exceptionText) throws FluidSynthException
+    {
+        if (!b)
+        {
+            throw new FluidSynthException(exceptionText);
+        }
+    }
+
 // =============================================================================================
 // STATIC Private methods
 // ============================================================================================= 
@@ -888,7 +903,7 @@ public final class FluidSynthJava
     private static List<String> getLinuxOrMacLibDirs()
     {
         var dirs = Utilities.isLinux()
-            ? Arrays.asList("/usr/lib", "/usr/lib/x86_64-linux-gnu", "/usr/lib64", "/lib")   // Should be ok for the main distros
+            ? Arrays.asList("/usr/lib", "/usr/lib/x86_64-linux-gnu", "/usr/lib64", "/lib") // Should be ok for the main distros
             : Arrays.asList("/usr/lib");      // TO BE CHECKED FOR MAC
         return dirs;
     }
