@@ -259,7 +259,7 @@
                                         </exec>
 
                                         (Linux RPM) 
-                                        <exec dir="${project.build.directory}" osfamily="unix" executable="${nbpackage.path}" failonerror="true">
+                                        <exec dir="${project.build.directory}" osfamily="windows" executable="${nbpackage.path}" failonerror="true">
                                             <arg line="-v"/>
                                             <arg line="--config"/>
                                             <arg line="nbpackage/rpm.properties"/>
