@@ -12,19 +12,11 @@
     
     
     <properties>
-        <netbeans.run.params.local/>  <!-- Additional params set locally -->
-        <netbeans.run.params.ide/>  <!-- Additional params set by Netbeans IDE see customizable Build actions -->
-        <netbeans.run.params>${netbeans.run.params.ide} ${netbeans.run.params.local} -J-Dnetbeans.modules.quiet=true -J--add-modules=jdk.incubator.foreign -J--enable-native-access=ALL-UNNAMED -J--enable-preview -J--add-opens=java.base/java.net=ALL-UNNAMED -J--add-opens=java.base/java.lang=ALL-UNNAMED -J--add-opens=java.desktop/javax.swing=ALL-UNNAMED -J--add-exports=java.desktop/sun.awt=ALL-UNNAMED -J--add-opens=java.base/java.util=ALL-UNNAMED</netbeans.run.params>                                       
+        <netbeans.run.params.local/>  <!-- Additional params set locally (settings.xml). If running outside Netbeans IDE, add "<dash><dash>jdkhome <path_to_jre>" -->
+        <netbeans.run.params.ide/>  <!-- Additional params set by Netbeans IDE, see customizable Build actions -->
+        <netbeans.run.params>${netbeans.run.params.ide} ${netbeans.run.params.local} -J-Dnetbeans.modules.quiet=true -J--add-modules=jdk.incubator.foreign -J--enable-native-access=ALL-UNNAMED -J--enable-preview -J--add-opens=java.base/java.net=ALL-UNNAMED -J--add-opens=java.base/java.lang=ALL-UNNAMED -J--add-opens=java.desktop/javax.swing=ALL-UNNAMED -J--add-exports=java.desktop/sun.awt=ALL-UNNAMED -J--add-opens=java.base/java.util=ALL-UNNAMED</netbeans.run.params>
         <all.clusters>${project.build.directory}/${brandingToken}</all.clusters>
-        <skipReplaceWindowsIcon>true</skipReplaceWindowsIcon>
-        <nbpackage.path/>
-        <!-- Architecture, defining which JRE is embedded -->
-        <jjazzlab.bundle.arch>x64</jjazzlab.bundle.arch>
-        <jjazzlab.bundle.jre.zip>jre-${jjazzlab.bundle.arch}.zip</jjazzlab.bundle.jre.zip>
-        <!-- JRE download locations. For more details about the parameters supported by this API, see https://api.adoptium.net/q/swagger-ui/#/Binary/getBinary -->
-        <jjazzlab.bundle.jre.macos>https://api.adoptium.net/v3/binary/latest/${jjazzlab.compiler.release}/ga/mac/${jjazzlab.bundle.arch}/jre/hotspot/normal/eclipse?project=jdk</jjazzlab.bundle.jre.macos>
-        <jjazzlab.bundle.jre.windows>https://api.adoptium.net/v3/binary/latest/${jjazzlab.compiler.release}/ga/windows/${jjazzlab.bundle.arch}/jre/hotspot/normal/eclipse?project=jdk</jjazzlab.bundle.jre.windows>
-        <jjazzlab.bundle.jre.linux>https://api.adoptium.net/v3/binary/latest/${jjazzlab.compiler.release}/ga/linux/${jjazzlab.bundle.arch}/jre/hotspot/normal/eclipse?project=jdk</jjazzlab.bundle.jre.linux>        
+        <skipReplaceWindowsIcon>true</skipReplaceWindowsIcon>       
     </properties>
     
     
@@ -99,7 +91,15 @@
         
         <profile>
             <id>deployment</id>
-            <properties>        
+            <properties>     
+                <nbpackage.path/>
+                <!-- Architecture, defining which JRE is embedded -->
+                <jjazzlab.bundle.arch>x64</jjazzlab.bundle.arch>
+                <jjazzlab.bundle.jre.zip>jre-${jjazzlab.bundle.arch}.zip</jjazzlab.bundle.jre.zip>
+                <!-- JRE download locations. For more details about the parameters supported by this API, see https://api.adoptium.net/q/swagger-ui/#/Binary/getBinary -->
+                <jjazzlab.bundle.jre.macos>https://api.adoptium.net/v3/binary/latest/${jjazzlab.compiler.release}/ga/mac/${jjazzlab.bundle.arch}/jre/hotspot/normal/eclipse?project=jdk</jjazzlab.bundle.jre.macos>
+                <jjazzlab.bundle.jre.windows>https://api.adoptium.net/v3/binary/latest/${jjazzlab.compiler.release}/ga/windows/${jjazzlab.bundle.arch}/jre/hotspot/normal/eclipse?project=jdk</jjazzlab.bundle.jre.windows>
+                <jjazzlab.bundle.jre.linux>https://api.adoptium.net/v3/binary/latest/${jjazzlab.compiler.release}/ga/linux/${jjazzlab.bundle.arch}/jre/hotspot/normal/eclipse?project=jdk</jjazzlab.bundle.jre.linux>     
             </properties>
 
             <build>

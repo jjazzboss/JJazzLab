@@ -55,7 +55,7 @@ public class PhraseViewerPanelRhythm extends PhraseViewerPanel
         fbtn_clone = new FlatButton();
         fbtn_clone.setIcon(ICON_CLONE_AS_USER_TRACK);
         fbtn_clone.addActionListener(ae -> getController().cloneRhythmTrackAsUserTrack(getRhythmVoice()));
-        fbtn_clone.setToolTipText(ResUtil.getString(getClass(), "PhraseViewerPanel.CloneAsUserTrackToolip"));
+        fbtn_clone.setToolTipText(ResUtil.getString(getClass(), "PhraseViewerPanelRhythm.CloneAsUserTrackTooltip"));
 
 
         // Prepare for the JLayer
