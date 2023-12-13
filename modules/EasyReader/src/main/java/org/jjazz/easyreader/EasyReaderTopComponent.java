@@ -116,10 +116,12 @@ public final class EasyReaderTopComponent extends TopComponent implements Proper
             if (evt.getPropertyName().equals(ActiveSongManager.PROP_ACTIVE_SONG))
             {
                 Song song = (Song) evt.getNewValue();
-                var tc = CL_EditorTopComponent.get(song.getChordLeadSheet()); // Might be null in the case of non-editable song, eg such as the temporary one created by RhythmSelectionDialog for rhythm preview
-                if (tc != null)
+                // song might be null when closing the last song
+                if (song == null)
                 {
-                    
+                    editor.setModel(null);
+                } else if (CL_EditorTopComponent.get(song.getChordLeadSheet()) != null)  // TopComponent might be null for an active non-editable song, eg such as the temporary one created by RhythmSelectionDialog for rhythm preview
+                {
                     editor.setModel(song);
                 }
             }
