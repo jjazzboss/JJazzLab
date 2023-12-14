@@ -983,9 +983,9 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
                 }
             } else if (evt.getSource() == songModel.getClientProperties())
             {
-                if (evt.getPropertyName().equals(BR_Annotation.SONG_PROP_SHOW_ANNOTATION_BAR_RENDERER))
+                if (evt.getPropertyName().equals(BR_Annotation.SONG_PROP_ANNOTATION_BAR_RENDERER_VISIBLE))
                 {
-                    setBR_AnnotationVisible(BR_Annotation.isAnnotationBarRendererVisiblePropertyValue(songModel));
+                    setBR_AnnotationVisible(BR_Annotation.isAnnotationBarRendererVisible(songModel));
                 }
             }
         });
@@ -1636,7 +1636,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
 
 
         // Activation of BR_Annotation depends on Song property
-        if (!BR_Annotation.isAnnotationBarRendererVisiblePropertyValue(songModel))
+        if (!BR_Annotation.isAnnotationBarRendererVisible(songModel))
         {
             activeTypes.remove(BarRendererFactory.BR_ANNOTATION);
         }
@@ -1772,7 +1772,6 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     private void setBR_AnnotationVisible(boolean b)
     {
 
-
         var bbConfig = getBarBox(0).getConfig();            // All BarBoxes share the same config
         var activeBrs = bbConfig.getActiveBarRenderers();
         if (b && !activeBrs.contains(BarRendererFactory.BR_ANNOTATION))
@@ -1786,6 +1785,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
             return;
         }
 
+        // Save selection
         CL_SelectionUtilities selection = new CL_SelectionUtilities(selectionLookup);
         int bar = 0;
         if (selection.isBarSelected())
@@ -1802,7 +1802,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         setBarBoxConfig(bbConfig.getUpdatedConfig(activeBrs.toArray(String[]::new)));
 
 
-        // We reselect something so that the the "toggle BR_Annotation visibility" keyboard shortcut can be directly reused
+        // Restore selection (at least 1 bar) so that the the "toggle BR_Annotation visibility" keyboard shortcut can be directly reused
         selectBars(bar, bar, true);
         setFocusOnBar(bar);
     }

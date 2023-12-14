@@ -67,7 +67,7 @@ public class EditorSettingsDialog extends javax.swing.JDialog
         Song song = editor.getSongModel();
         saveNbCols = editor.getNbColumns();
         saveNbAnnotationLines = IR_AnnotationText.getNbAnnotationLinesPropertyValue(song);
-        saveIsAnnotationBarRendererVisible = BR_Annotation.isAnnotationBarRendererVisiblePropertyValue(song);
+        saveIsAnnotationBarRendererVisible = BR_Annotation.isAnnotationBarRendererVisible(song);
 
         spn_nbCols.setValue(saveNbCols);
         spn_nbAnnotationLines.setValue(saveNbAnnotationLines);
@@ -231,7 +231,7 @@ public class EditorSettingsDialog extends javax.swing.JDialog
         // Reverse changes
         editor.setNbColumns(saveNbCols);
         IR_AnnotationText.setNbAnnotationLinesPropertyValue(editor.getSongModel(), saveNbAnnotationLines);
-        BR_Annotation.setAnnotationBarRendererVisiblePropertyValue(editor.getSongModel(), saveIsAnnotationBarRendererVisible);
+        BR_Annotation.setAnnotationBarRendererVisible(editor.getSongModel(), saveIsAnnotationBarRendererVisible);
 
         setVisible(false);
         dispose();
@@ -251,7 +251,7 @@ public class EditorSettingsDialog extends javax.swing.JDialog
     {//GEN-HEADEREND:event_cb_showBarAnnotationsStateChanged
         spn_nbAnnotationLines.setEnabled(cb_showBarAnnotations.isSelected());
         lbl_nbLines.setEnabled(spn_nbAnnotationLines.isEnabled());
-        BR_Annotation.setAnnotationBarRendererVisiblePropertyValue(editor.getSongModel(), cb_showBarAnnotations.isSelected());
+        BR_Annotation.setAnnotationBarRendererVisible(editor.getSongModel(), cb_showBarAnnotations.isSelected());
     }//GEN-LAST:event_cb_showBarAnnotationsStateChanged
 
 

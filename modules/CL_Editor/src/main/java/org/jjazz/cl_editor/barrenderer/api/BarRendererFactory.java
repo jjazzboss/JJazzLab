@@ -95,7 +95,7 @@ public interface BarRendererFactory
      * @param barIndex The barIndex and the modelBarIndex (unless barIndex is beyond ChordLeadSheet size, then modelBarIndex is set to -1)
      * @param settings
      * @param irf
-     * @param groupKey
+     * @param groupKey 
      * @return
      */
     BarRenderer createBarRenderer(CL_Editor editor, String brType, int barIndex, BarRendererSettings settings, ItemRendererFactory irf, Object groupKey);

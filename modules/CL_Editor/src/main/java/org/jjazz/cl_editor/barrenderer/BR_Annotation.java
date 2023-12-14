@@ -60,9 +60,9 @@ public class BR_Annotation extends BarRenderer implements ComponentListener
 {
 
     /**
-     * Song property used to store if annotatio BarRenderer is shown.
+     * Song property used to store if annotation BarRenderers are shown.
      */
-    public static final String SONG_PROP_SHOW_ANNOTATION_BAR_RENDERER = "SongPropShowAnnotationBarRenderer";
+    public static final String SONG_PROP_ANNOTATION_BAR_RENDERER_VISIBLE = "SongPropShowAnnotationBarRenderer";
 
     /**
      * Special shared JPanel instances per groupKey, used to calculate the preferred size for a BarRenderer subclass.
@@ -301,25 +301,25 @@ public class BR_Annotation extends BarRenderer implements ComponentListener
     }
 
     /**
-     * Check if the annotation BarRenderer is visible for the specified song.
+     * Check if annotation BarRenderers are visible for the specified song.
      *
      * @param song
      * @return
      */
-    static public boolean isAnnotationBarRendererVisiblePropertyValue(Song song)
+    static public boolean isAnnotationBarRendererVisible(Song song)
     {
-        return song.getClientProperties().getBoolean(SONG_PROP_SHOW_ANNOTATION_BAR_RENDERER, false);
+        return song.getClientProperties().getBoolean(SONG_PROP_ANNOTATION_BAR_RENDERER_VISIBLE, false);
     }
 
     /**
-     * Save the nb of annotation lines in the specified song property.
+     * Set if annotation BarRenderers are visible for the specified song.
      *
      * @param song
      * @param b
      */
-    static public void setAnnotationBarRendererVisiblePropertyValue(Song song, boolean b)
+    static public void setAnnotationBarRendererVisible(Song song, boolean b)
     {
-        song.getClientProperties().putBoolean(SONG_PROP_SHOW_ANNOTATION_BAR_RENDERER, b);
+        song.getClientProperties().putBoolean(SONG_PROP_ANNOTATION_BAR_RENDERER_VISIBLE, b);
     }
 
     // ---------------------------------------------------------------

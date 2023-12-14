@@ -44,7 +44,7 @@ public class ToggleBarAnnotationVisible extends AbstractAction
             return;
         }
         CL_Editor editor = clTc.getEditor();
-        boolean b = BR_Annotation.isAnnotationBarRendererVisiblePropertyValue(editor.getSongModel());
-        BR_Annotation.setAnnotationBarRendererVisiblePropertyValue(editor.getSongModel(), !b);
+        boolean b = BR_Annotation.isAnnotationBarRendererVisible(editor.getSongModel());
+        BR_Annotation.setAnnotationBarRendererVisible(editor.getSongModel(), !b);
     }
 }
