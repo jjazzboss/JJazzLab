@@ -27,7 +27,6 @@ import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.cl_editor.api.CL_Editor;
-import org.jjazz.cl_editor.barrenderer.BR_Annotation;
 
 public class ToggleBarAnnotationVisible extends AbstractAction
 {
@@ -44,7 +43,6 @@ public class ToggleBarAnnotationVisible extends AbstractAction
             return;
         }
         CL_Editor editor = clTc.getEditor();
-        boolean b = BR_Annotation.isAnnotationBarRendererVisible(editor.getSongModel());
-        BR_Annotation.setAnnotationBarRendererVisible(editor.getSongModel(), !b);
+        editor.setBarAnnotationVisible(!editor.isBarAnnotationVisible());
     }
 }

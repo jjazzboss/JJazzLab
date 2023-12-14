@@ -203,7 +203,6 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
             throw new IllegalArgumentException("song=" + song + " settings=" + settings + " brf=" + brf);
         }
         songModel = song;
-        songModel.getClientProperties().addPropertyChangeListener(this);
 
         this.barRendererFactory = brf;
         this.songSpecificProperties = new SongSpecificEditorProperties(songModel);
@@ -420,6 +419,97 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         return q;
     }
 
+    /**
+     * Check if bar annotations are visible.
+     *
+     * @return
+     */
+    @Override
+    public boolean isBarAnnotationVisible()
+    {
+        return songSpecificProperties.loadBarAnnotationVisible();
+    }
+
+    @Override
+    public void setBarAnnotationVisible(boolean b)
+    {
+        if (b == isBarAnnotationVisible())
+        {
+            return;
+        }
+
+        var bbConfig = getBarBoxConfig(0);            // All BarBoxes share the same config
+        var activeBrs = bbConfig.getActiveBarRenderers();
+        assert b == !activeBrs.contains(BarRendererFactory.BR_ANNOTATION) : "b=" + b + " activeBrs)" + activeBrs;
+        if (b)
+        {
+            activeBrs.add(BarRendererFactory.BR_ANNOTATION);
+        } else
+        {
+            activeBrs.remove(BarRendererFactory.BR_ANNOTATION);
+        }
+
+
+        // Save selection
+        CL_SelectionUtilities selection = new CL_SelectionUtilities(getLookup());
+        int bar = 0;
+        if (selection.isBarSelected())
+        {
+            bar = selection.getMinBarIndex();
+        } else if (selection.isItemSelected())
+        {
+            bar = selection.getSelectedItems().get(0).getPosition().getBar();
+        }
+        selection.unselectAll(this);
+
+
+        // Change state
+        songSpecificProperties.storeBarAnnotationVisible(b);
+        setBarBoxConfig(bbConfig.getUpdatedConfig(activeBrs.toArray(String[]::new)));
+
+        
+        // Restore selection (at least 1 bar) so that the the "toggle BR_Annotation visibility" keyboard shortcut can be directly reused
+        selectBars(bar, bar, true);
+        setFocusOnBar(bar);
+
+        
+        // Fire event
+        firePropertyChange(CL_Editor.PROP_BAR_ANNOTATION_VISIBLE, !b, b);
+    }
+
+
+    @Override
+    public int getBarAnnotationNbLines()
+    {
+        return songSpecificProperties.loadBarAnnotationNbLines();
+    }
+
+    @Override
+    public void setBarAnnotationNbLines(int n)
+    {
+        int nOld = getBarAnnotationNbLines();
+        if (n == nOld)
+        {
+            return;
+        }
+
+        for (var bb : getBarBoxes())
+        {
+            for (var br : bb.getBarRenderers())
+            {
+                if (br instanceof BR_Annotation bra)
+                {
+                    bra.setNbLines(n);
+                }
+            }
+        }
+
+        // Save value
+        songSpecificProperties.storeBarAnnotationNbLines(n);
+        firePropertyChange(CL_Editor.PROP_BAR_ANNOTATION_NB_LINES, nOld, n);
+    }
+
+
     @Override
     public SelectedBar getFocusedBar(boolean includeFocusedItem)
     {
@@ -566,8 +656,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     }
 
     /**
-     * Return the position (bar, beat) which corresponds to a given point in the editor. If point is in the BarBox which does not have a
-     * valid modelBar (eg after the end), barIndex is set but beat is set to 0.
+     * Return the position (bar, beat) which corresponds to a given point in the editor. If point is in the BarBox which does not have a valid modelBar (eg
+     * after the end), barIndex is set but beat is set to 0.
      *
      * @param editorPoint A point in the editor's coordinates.
      * @return Null if point does not correspond to a valid bar.
@@ -981,12 +1071,6 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
                         }
                     }
                 }
-            } else if (evt.getSource() == songModel.getClientProperties())
-            {
-                if (evt.getPropertyName().equals(BR_Annotation.SONG_PROP_ANNOTATION_BAR_RENDERER_VISIBLE))
-                {
-                    setBR_AnnotationVisible(BR_Annotation.isAnnotationBarRendererVisible(songModel));
-                }
             }
         });
     }
@@ -1313,8 +1397,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     }
 
     /**
-     * We do NOT want the height of the Panel match the height of the viewport : panel height is calculated only function of the nb of rows
-     * and row height.
+     * We do NOT want the height of the Panel match the height of the viewport : panel height is calculated only function of the nb of rows and row height.
      */
     @Override
     public boolean getScrollableTracksViewportHeight()
@@ -1431,8 +1514,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     /**
      * Return the Component index corresponding to specified BarBox index.
      * <p>
-     * This takes into account PaddingBoxes or other non-BarBox components present in the editor. BarBox is inserted after non-BarBox
-     * components.
+     * This takes into account PaddingBoxes or other non-BarBox components present in the editor. BarBox is inserted after non-BarBox components.
      *
      * @param barBoxIndex In the range [0,getBarBoxes().size()], the latter to append the BarBox at the end
      * @return
@@ -1571,8 +1653,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     /**
      * Remove the ChordLeadSheetItem from the specified bar.
      * <p>
-     * If item is a section do some cleaning: update the previous section, remove the associated UI settings (quantization, start on
-     * newline), possibly update padding boxes
+     * If item is a section do some cleaning: update the previous section, remove the associated UI settings (quantization, start on newline), possibly update
+     * padding boxes
      *
      * @param barIndex
      * @param item
@@ -1636,7 +1718,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
 
 
         // Activation of BR_Annotation depends on Song property
-        if (!BR_Annotation.isAnnotationBarRendererVisible(songModel))
+        if (!isBarAnnotationVisible())
         {
             activeTypes.remove(BarRendererFactory.BR_ANNOTATION);
         }
@@ -1764,48 +1846,9 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         if (needRevalidate)
         {
             revalidate();
-
-
         }
     }
 
-    private void setBR_AnnotationVisible(boolean b)
-    {
-
-        var bbConfig = getBarBox(0).getConfig();            // All BarBoxes share the same config
-        var activeBrs = bbConfig.getActiveBarRenderers();
-        if (b && !activeBrs.contains(BarRendererFactory.BR_ANNOTATION))
-        {
-            activeBrs.add(BarRendererFactory.BR_ANNOTATION);
-        } else if (!b && activeBrs.contains(BarRendererFactory.BR_ANNOTATION))
-        {
-            activeBrs.remove(BarRendererFactory.BR_ANNOTATION);
-        } else
-        {
-            return;
-        }
-
-        // Save selection
-        CL_SelectionUtilities selection = new CL_SelectionUtilities(selectionLookup);
-        int bar = 0;
-        if (selection.isBarSelected())
-        {
-            bar = selection.getMinBarIndex();
-        } else if (selection.isItemSelected())
-        {
-            bar = selection.getSelectedItems().get(0).getPosition().getBar();
-        }
-        selection.unselectAll(this);
-
-
-        // Change bar boxes       
-        setBarBoxConfig(bbConfig.getUpdatedConfig(activeBrs.toArray(String[]::new)));
-
-
-        // Restore selection (at least 1 bar) so that the the "toggle BR_Annotation visibility" keyboard shortcut can be directly reused
-        selectBars(bar, bar, true);
-        setFocusOnBar(bar);
-    }
 
     //===========================================================================
     // Inner classes
@@ -1884,6 +1927,5 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
             throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
         }
     }
-
 
 }

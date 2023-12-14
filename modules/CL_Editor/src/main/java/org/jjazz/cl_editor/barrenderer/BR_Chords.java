@@ -267,11 +267,10 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
     @Override
     public boolean isRegisteredItemClass(ChordLeadSheetItem<?> item)
     {
-        //  We show the bar annotation widget only if BR_Annotation is not shown.
-        return item instanceof CLI_ChordSymbol 
+        boolean b = item instanceof CLI_ChordSymbol
                 || item instanceof CLI_Section
-                || (item instanceof CLI_BarAnnotation && !BR_Annotation.isAnnotationBarRendererVisible(getEditor().getSongModel()));
-
+                || (item instanceof CLI_BarAnnotation && !getEditor().isBarAnnotationVisible());
+        return b;
     }
 
     @Override

@@ -60,11 +60,6 @@ public class BR_Annotation extends BarRenderer implements ComponentListener
 {
 
     /**
-     * Song property used to store if annotation BarRenderers are shown.
-     */
-    public static final String SONG_PROP_ANNOTATION_BAR_RENDERER_VISIBLE = "SongPropShowAnnotationBarRenderer";
-
-    /**
      * Special shared JPanel instances per groupKey, used to calculate the preferred size for a BarRenderer subclass.
      */
     private static final Map<Integer, PrefSizePanel> mapGroupKeyPrefSizePanel = new HashMap<>();
@@ -85,10 +80,6 @@ public class BR_Annotation extends BarRenderer implements ComponentListener
         super(editor, barIndex, settings, irf, groupKey);
 
 
-        // Listen to nb lines changes
-        editor.getSongModel().getClientProperties().addPropertyChangeListener(this);
-
-
         // Our layout manager
         setLayout(new SeqLayoutManager());
 
@@ -100,6 +91,18 @@ public class BR_Annotation extends BarRenderer implements ComponentListener
 
     }
 
+    public void setNbLines(int n)
+    {
+        for (ItemRenderer ir : getItemRenderers())
+        {
+            if (ir instanceof IR_AnnotationText irAt)
+            {
+                irAt.setNbLines(n);
+            }
+        }
+        getPrefSizePanelSharedInstance().setNbLines(n);
+    }
+
     /**
      * Overridden to unregister the pref size panel shared instance.
      */
@@ -109,7 +112,6 @@ public class BR_Annotation extends BarRenderer implements ComponentListener
         super.cleanup();
         getPrefSizePanelSharedInstance().removeComponentListener(this);
         getEditor().removePropertyChangeListener(this);
-        getEditor().getSongModel().getClientProperties().removePropertyChangeListener(this);
 
         // Remove only if it's the last bar of the editor
         if (getEditor().getNbBarBoxes() == 1)
@@ -220,34 +222,12 @@ public class BR_Annotation extends BarRenderer implements ComponentListener
             throw new IllegalArgumentException("item=" + item);
         }
         assert item instanceof CLI_BarAnnotation;
-        IR_AnnotationText irAt = (IR_AnnotationText) getItemRendererFactory().createItemRenderer(IR_Type.BarAnnotationText, item,
-                getSettings().getItemRendererSettings());
-        irAt.setNbLines(IR_AnnotationText.getNbAnnotationLinesPropertyValue(getEditor().getSongModel()));
+        IR_AnnotationText irAt = (IR_AnnotationText) getItemRendererFactory()
+                .createItemRenderer(IR_Type.BarAnnotationText, item, getSettings().getItemRendererSettings());
+        irAt.setNbLines(getEditor().getBarAnnotationNbLines());
         return irAt;
     }
-    //-----------------------------------------------------------------------
-    // Implementation of the PropertiesListener interface
-    //-----------------------------------------------------------------------
 
-    @Override
-    public void propertyChange(PropertyChangeEvent e)
-    {
-        Song song = getEditor().getSongModel();
-        if (e.getSource() == song.getClientProperties())
-        {
-            if (e.getPropertyName().equals(IR_AnnotationText.SONG_PROP_NB_ANNOTATION_LINES))
-            {
-                int nbLines = IR_AnnotationText.getNbAnnotationLinesPropertyValue(song);
-                for (ItemRenderer ir : getItemRenderers())
-                {
-                    if (ir instanceof IR_AnnotationText irAt)
-                    {
-                        irAt.setNbLines(nbLines);
-                    }
-                }
-            }
-        }
-    }
 
     //-----------------------------------------------------------------------
     // Implementation of the ComponentListener interface
@@ -300,27 +280,6 @@ public class BR_Annotation extends BarRenderer implements ComponentListener
         return null;
     }
 
-    /**
-     * Check if annotation BarRenderers are visible for the specified song.
-     *
-     * @param song
-     * @return
-     */
-    static public boolean isAnnotationBarRendererVisible(Song song)
-    {
-        return song.getClientProperties().getBoolean(SONG_PROP_ANNOTATION_BAR_RENDERER_VISIBLE, false);
-    }
-
-    /**
-     * Set if annotation BarRenderers are visible for the specified song.
-     *
-     * @param song
-     * @param b
-     */
-    static public void setAnnotationBarRendererVisible(Song song, boolean b)
-    {
-        song.getClientProperties().putBoolean(SONG_PROP_ANNOTATION_BAR_RENDERER_VISIBLE, b);
-    }
 
     // ---------------------------------------------------------------
     // Private methods
@@ -335,7 +294,7 @@ public class BR_Annotation extends BarRenderer implements ComponentListener
         PrefSizePanel panel = mapGroupKeyPrefSizePanel.get(System.identityHashCode(getGroupKey()));
         if (panel == null)
         {
-            panel = new PrefSizePanel(getEditor().getSongModel());
+            panel = new PrefSizePanel(this);
             mapGroupKeyPrefSizePanel.put(System.identityHashCode(getGroupKey()), panel);
         }
         return panel;
@@ -347,25 +306,21 @@ public class BR_Annotation extends BarRenderer implements ComponentListener
     /**
      * A special shared JPanel instance used to calculate the preferred size for all BR_Annotations.
      * <p>
-     * Add ItemRenderers with the tallest size. Panel is added to the "hidden" BarRenderer's JDialog to be displayable so that FontMetrics
-     * can be calculated with a Graphics object.
+     * Add ItemRenderers with the tallest size. Panel is added to the "hidden" BarRenderer's JDialog to be displayable so that FontMetrics can be calculated
+     * with a Graphics object.
      * <p>
      */
-    private class PrefSizePanel extends JPanel implements PropertyChangeListener
+    static private class PrefSizePanel extends JPanel implements PropertyChangeListener
     {
 
         int zoomVFactor;
         final IR_AnnotationText ir;
         final IR_AnnotationTextSettings settings = IR_AnnotationTextSettings.getDefault();
-        final Song song;
-        final StringProperties songProperties;
+        final BR_Annotation brAnnotation;
 
-        public PrefSizePanel(Song song)
+        public PrefSizePanel(BR_Annotation brAnnotation)
         {
-            this.song = song;
-            songProperties = song.getClientProperties();
-            songProperties.addPropertyChangeListener(this);   // Listen to nb of annotation lines changes
-
+            this.brAnnotation = brAnnotation;
 
             // FlowLayout sets children size to their preferredSize
             setLayout(new FlowLayout(FlowLayout.CENTER, 0, 0));
@@ -379,22 +334,21 @@ public class BR_Annotation extends BarRenderer implements ComponentListener
             // Add the tallest possible items
             CLI_Factory clif = CLI_Factory.getDefault();
             ChordLeadSheetItem<?> item = clif.createBarAnnotation(null, "LYRICS ALALOLALALA\nLINE2\nLINE3\nLINE4", 0);
-            ItemRendererFactory irf = getItemRendererFactory();
-            ir = (IR_AnnotationText) irf.createItemRenderer(IR_Type.BarAnnotationText, item, getSettings().getItemRendererSettings());
-            ir.setNbLines(IR_AnnotationText.getNbAnnotationLinesPropertyValue(song));
+            ItemRendererFactory irf = brAnnotation.getItemRendererFactory();
+            ir = (IR_AnnotationText) irf.createItemRenderer(IR_Type.BarAnnotationText, item, brAnnotation.getSettings().getItemRendererSettings());
+            ir.setNbLines(brAnnotation.getEditor().getBarAnnotationNbLines());
             add(ir);
 
 
             // Add the panel to a hidden dialog so it can be made displayable (getGraphics() will return a non-null value, so font-based sizes
             // can be calculated
-            JDialog dlg = getFontMetricsDialog();
+            JDialog dlg = brAnnotation.getFontMetricsDialog();
             dlg.add(this);
             dlg.pack();    // Force all components to be displayable
         }
 
         public void cleanup()
         {
-            songProperties.removePropertyChangeListener(this);
             settings.removePropertyChangeListener(this);
         }
 
@@ -436,13 +390,12 @@ public class BR_Annotation extends BarRenderer implements ComponentListener
             forceRevalidate();
         }
 
-        /**
-         * Because dialog is displayable but not visible, invalidating a component is not enough to relayout everything.
-         */
-        private void forceRevalidate()
+        public void setNbLines(int n)
         {
-            getFontMetricsDialog().pack();
+            ir.setNbLines(n);
+            forceRevalidate();
         }
+
 
         //-----------------------------------------------------------------------
         // Implementation of the PropertiesListener interface
@@ -456,14 +409,17 @@ public class BR_Annotation extends BarRenderer implements ComponentListener
                 {
                     forceRevalidate();
                 }
-            } else if (e.getSource() == songProperties)
-            {
-                if (e.getPropertyName().equals(IR_AnnotationText.SONG_PROP_NB_ANNOTATION_LINES))
-                {
-                    ir.setNbLines(IR_AnnotationText.getNbAnnotationLinesPropertyValue(song));
-                    forceRevalidate();
-                }
             }
+        }
+
+        
+        
+        /**
+         * Because dialog is displayable but not visible, invalidating a component is not enough to relayout everything.
+         */
+        private void forceRevalidate()
+        {
+            brAnnotation.getFontMetricsDialog().pack();
         }
 
     }

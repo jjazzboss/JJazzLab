@@ -26,8 +26,6 @@ import javax.swing.JComponent;
 import javax.swing.KeyStroke;
 import org.jjazz.song.api.Song;
 import org.jjazz.cl_editor.api.CL_Editor;
-import org.jjazz.cl_editor.barrenderer.BR_Annotation;
-import org.jjazz.itemrenderer.api.IR_AnnotationText;
 import org.jjazz.uiutilities.api.UIUtilities;
 import org.openide.windows.WindowManager;
 
@@ -66,8 +64,8 @@ public class EditorSettingsDialog extends javax.swing.JDialog
         // Init UI
         Song song = editor.getSongModel();
         saveNbCols = editor.getNbColumns();
-        saveNbAnnotationLines = IR_AnnotationText.getNbAnnotationLinesPropertyValue(song);
-        saveIsAnnotationBarRendererVisible = BR_Annotation.isAnnotationBarRendererVisible(song);
+        saveNbAnnotationLines = editor.getBarAnnotationNbLines();
+        saveIsAnnotationBarRendererVisible = editor.isBarAnnotationVisible();
 
         spn_nbCols.setValue(saveNbCols);
         spn_nbAnnotationLines.setValue(saveNbAnnotationLines);
@@ -230,8 +228,8 @@ public class EditorSettingsDialog extends javax.swing.JDialog
     {//GEN-HEADEREND:event_btn_cancelActionPerformed
         // Reverse changes
         editor.setNbColumns(saveNbCols);
-        IR_AnnotationText.setNbAnnotationLinesPropertyValue(editor.getSongModel(), saveNbAnnotationLines);
-        BR_Annotation.setAnnotationBarRendererVisible(editor.getSongModel(), saveIsAnnotationBarRendererVisible);
+        editor.setBarAnnotationNbLines(saveNbAnnotationLines);
+        editor.setBarAnnotationVisible(saveIsAnnotationBarRendererVisible);
 
         setVisible(false);
         dispose();
@@ -244,14 +242,14 @@ public class EditorSettingsDialog extends javax.swing.JDialog
 
     private void spn_nbAnnotationLinesStateChanged(javax.swing.event.ChangeEvent evt)//GEN-FIRST:event_spn_nbAnnotationLinesStateChanged
     {//GEN-HEADEREND:event_spn_nbAnnotationLinesStateChanged
-        IR_AnnotationText.setNbAnnotationLinesPropertyValue(editor.getSongModel(), (int) spn_nbAnnotationLines.getValue());
+        editor.setBarAnnotationNbLines((int) spn_nbAnnotationLines.getValue());
     }//GEN-LAST:event_spn_nbAnnotationLinesStateChanged
 
     private void cb_showBarAnnotationsStateChanged(javax.swing.event.ChangeEvent evt)//GEN-FIRST:event_cb_showBarAnnotationsStateChanged
     {//GEN-HEADEREND:event_cb_showBarAnnotationsStateChanged
         spn_nbAnnotationLines.setEnabled(cb_showBarAnnotations.isSelected());
         lbl_nbLines.setEnabled(spn_nbAnnotationLines.isEnabled());
-        BR_Annotation.setAnnotationBarRendererVisible(editor.getSongModel(), cb_showBarAnnotations.isSelected());
+        editor.setBarAnnotationVisible(cb_showBarAnnotations.isSelected());
     }//GEN-LAST:event_cb_showBarAnnotationsStateChanged
 
 

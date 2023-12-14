@@ -32,7 +32,7 @@ import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.colorsetmanager.api.ColorSetManager;
 
 /**
- * Handles the CL_Editor data saved as song client properties.
+ * Helper class to handle editor settings saved as song client properties.
  */
 public class SongSpecificEditorProperties
 {
@@ -88,6 +88,26 @@ public class SongSpecificEditorProperties
     public void storeSectionIsOnNewLine(CLI_Section cliSection, boolean b)
     {
         cliSection.getClientProperties().put(CL_Editor.PROP_SECTION_START_ON_NEW_LINE, b ? Boolean.toString(true) : null);
+    }
+
+    public boolean loadBarAnnotationVisible()
+    {
+        return song.getClientProperties().getBoolean(CL_Editor.PROP_BAR_ANNOTATION_VISIBLE, false);
+    }
+
+    public void storeBarAnnotationVisible(boolean b)
+    {
+        song.getClientProperties().putBoolean(CL_Editor.PROP_BAR_ANNOTATION_VISIBLE, b);
+    }
+
+    public int loadBarAnnotationNbLines()
+    {
+        return song.getClientProperties().getInt(CL_Editor.PROP_BAR_ANNOTATION_NB_LINES, 1);
+    }
+
+    public void storeBarAnnotationNbLines(int n)
+    {
+        song.getClientProperties().putInt(CL_Editor.PROP_BAR_ANNOTATION_NB_LINES, n);
     }
 
     /**

@@ -338,19 +338,20 @@ public class CL_EditorTransferHandler extends TransferHandler
 
 
             CLI_BarAnnotation curAnnotation = cls.getBarFirstItem(newBarIndex, CLI_BarAnnotation.class, cli -> true);
+            IR_Type irType = editor.isBarAnnotationVisible() ? IR_Type.BarAnnotationText : IR_Type.BarAnnotationPaperNote;
             if (curAnnotation != null)
             {
                 // There is already an annotation there, just update its content
                 cls.changeItem(curAnnotation, cliBa.getData());
-                editor.selectItem(curAnnotation, true);
-                editor.setFocusOnItem(curAnnotation, IR_Type.BarAnnotationPaperNote);
+                editor.setFocusOnItem(curAnnotation, irType);
+                editor.selectItem(curAnnotation, true);                
             } else
             {
                 // Add a new annotation
                 CLI_BarAnnotation cliCopy = (CLI_BarAnnotation) cliBa.getCopy(null, newPos);
                 cls.addItem(cliCopy);
-                editor.selectItem(cliCopy, true);
-                editor.setFocusOnItem(cliCopy, IR_Type.BarAnnotationPaperNote);
+                editor.setFocusOnItem(cliCopy, irType);
+                editor.selectItem(cliCopy, true);                
             }
 
             if (info.getDropAction() == MOVE)
@@ -384,8 +385,7 @@ public class CL_EditorTransferHandler extends TransferHandler
             }
         }
 
-        LOGGER.fine(
-                "importData() EXIT with success");
+        LOGGER.fine("importData() EXIT with success");
 
 
         return true;

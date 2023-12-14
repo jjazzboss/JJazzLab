@@ -36,19 +36,12 @@ import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.chordleadsheet.api.item.CLI_BarAnnotation;
-import org.jjazz.song.api.Song;
 
 /**
  * Represents an annotation text.
  */
 public class IR_AnnotationText extends ItemRenderer implements IR_Copiable
 {
-
-    /**
-     * Song property used to store the nb of annotation lines.
-     */
-    public static final String SONG_PROP_NB_ANNOTATION_LINES = "SongPropNbAnnotationLines";
-
     public static final int MAX_NB_LINES = 4;
     /**
      * Border size between text and edge.
@@ -94,10 +87,10 @@ public class IR_AnnotationText extends ItemRenderer implements IR_Copiable
         setForeground(settings.getColor());
     }
 
-    public void setNbLines(int nbLines)
+    public void setNbLines(int n)
     {
-        Preconditions.checkArgument(nbLines >= 1 && nbLines <= 4, "nbLines=%d", nbLines);
-        this.nbLines = nbLines;
+        Preconditions.checkArgument(n >= 1 && n <= MAX_NB_LINES, "n=%d", n);
+        this.nbLines = n;
         modelChanged();
     }
 
@@ -233,30 +226,7 @@ public class IR_AnnotationText extends ItemRenderer implements IR_Copiable
         }
     }
 
-    /**
-     * Get the nb of annotation lines for the specified song.
-     *
-     * @param song
-     * @return
-     */
-    static public int getNbAnnotationLinesPropertyValue(Song song)
-    {
-        return song.getClientProperties().getInt(SONG_PROP_NB_ANNOTATION_LINES, 2);
-    }
-
-    /**
-     * Save the nb of annotation lines in the specified song property.
-     *
-     * @param song
-     * @param nbLines Must be between 1 and 4.
-     */
-    static public void setNbAnnotationLinesPropertyValue(Song song, int nbLines)
-    {
-        Preconditions.checkArgument(nbLines >= 1 && nbLines <= 4, "nbLines=%d", nbLines);
-        song.getClientProperties().putInt(SONG_PROP_NB_ANNOTATION_LINES, nbLines);
-    }
-
-
+ 
     //-----------------------------------------------------------------------
     // Implementation of the PropertiesListener interface
     //-----------------------------------------------------------------------
