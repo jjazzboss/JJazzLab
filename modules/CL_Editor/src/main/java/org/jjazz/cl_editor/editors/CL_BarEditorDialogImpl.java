@@ -140,7 +140,7 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
 
         // Prepare the annotation components
         ta_annotation = new JTextArea();
-        ta_annotation.setRows(2);
+        ta_annotation.setRows(3);
         ta_annotation.setLineWrap(true);
         ta_annotation.setToolTipText(pnl_annotations.getToolTipText());
         lbl_annotation.setToolTipText(pnl_annotations.getToolTipText());

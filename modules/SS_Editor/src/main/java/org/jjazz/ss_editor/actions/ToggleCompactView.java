@@ -47,7 +47,6 @@ import org.openide.awt.ActionRegistration;
 @ActionRegistration(displayName = "#CTL_ToggleCompactView", lazy = false)
 @ActionReferences(
         {
-            // @ActionReference(path = "Actions/SongPart", position = 300)
             @ActionReference(path = "Shortcuts", name = "V")
         })
 public class ToggleCompactView extends AbstractAction 

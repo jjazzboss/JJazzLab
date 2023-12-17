@@ -27,8 +27,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
-import org.jjazz.analytics.api.Analytics;
-import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;
 import org.openide.windows.WindowManager;
 import org.jjazz.utilities.api.ResUtil;

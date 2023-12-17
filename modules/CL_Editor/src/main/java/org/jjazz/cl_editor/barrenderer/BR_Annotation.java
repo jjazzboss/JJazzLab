@@ -22,8 +22,11 @@
  */
 package org.jjazz.cl_editor.barrenderer;
 
+import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Graphics;
 import java.awt.Insets;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
@@ -40,25 +43,21 @@ import org.jjazz.chordleadsheet.api.item.CLI_Factory;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.chordleadsheet.api.item.Position;
 import org.jjazz.quantizer.api.Quantization;
-import org.jjazz.song.api.Song;
 import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.cl_editor.barrenderer.api.BarRenderer;
 import org.jjazz.cl_editor.barrenderer.api.BarRendererSettings;
 import org.jjazz.itemrenderer.api.IR_AnnotationText;
 import org.jjazz.itemrenderer.api.IR_AnnotationTextSettings;
-import org.jjazz.itemrenderer.api.IR_SectionSettings;
 import org.jjazz.itemrenderer.api.IR_Copiable;
 import org.jjazz.itemrenderer.api.IR_Type;
 import org.jjazz.itemrenderer.api.ItemRenderer;
 import org.jjazz.itemrenderer.api.ItemRendererFactory;
-import org.jjazz.utilities.api.StringProperties;
 
 /**
  * A BarRenderer to show an annotation.
  */
 public class BR_Annotation extends BarRenderer implements ComponentListener
 {
-
     /**
      * Special shared JPanel instances per groupKey, used to calculate the preferred size for a BarRenderer subclass.
      */
@@ -81,7 +80,7 @@ public class BR_Annotation extends BarRenderer implements ComponentListener
 
 
         // Our layout manager
-        setLayout(new SeqLayoutManager());
+        setLayout(new BorderLayout());
 
 
         // Explicity set the preferred size so that layout's preferredLayoutSize() is never called
@@ -226,6 +225,21 @@ public class BR_Annotation extends BarRenderer implements ComponentListener
                 .createItemRenderer(IR_Type.BarAnnotationText, item, getSettings().getItemRendererSettings());
         irAt.setNbLines(getEditor().getBarAnnotationNbLines());
         return irAt;
+    }
+
+    /**
+     * Overridden to draw an almost transparent background (component is not opaque).
+     *
+     * @param g
+     */
+    @Override
+    protected void paintComponent(Graphics g)
+    {
+        super.paintComponent(g);
+
+        Color c = new Color(127, 127, 127, 30);
+        g.setColor(c);
+        g.fillRect(0, 0, getWidth(), getHeight());
     }
 
 
@@ -405,15 +419,14 @@ public class BR_Annotation extends BarRenderer implements ComponentListener
         {
             if (e.getSource() == settings)
             {
-                if (e.getPropertyName().equals(IR_SectionSettings.PROP_FONT))
+                if (e.getPropertyName().equals(IR_AnnotationTextSettings.PROP_FONT))
                 {
                     forceRevalidate();
                 }
             }
         }
 
-        
-        
+
         /**
          * Because dialog is displayable but not visible, invalidating a component is not enough to relayout everything.
          */

@@ -29,9 +29,12 @@ import java.awt.Font;
 import java.awt.LayoutManager;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -80,7 +83,13 @@ import org.openide.util.NbPreferences;
 public class EasyReaderPanel extends JPanel implements PropertyChangeListener, PlaybackListener, ClsChangeListener, SgsChangeListener
 {
 
-    static final String PREF_ZOOM_Y = "PrefEasyReaderPanelZoomY";
+    private static final String PREF_ZOOM_Y = "PrefEasyReaderPanelZoomY";
+
+    private static final Pattern P_NO_SHARP = Pattern.compile("[^#].*");                // "Hello dolly"
+    private static final Pattern P_SHARP_SPT = Pattern.compile("#(\\w+)\\s+(\\w.*)");     // "#chorus Hello dolly"
+    private static final Pattern P_SHARP = Pattern.compile("#\\s+(\\w.*)");              // "# Hello dolly "
+    private static final Pattern P_SHARP_EMPTY = Pattern.compile("#\\s*$");            // "#"    
+
     private Song song;
     private final Position songPosition, clsPosition;
     private SongPart songPart;
@@ -124,8 +133,6 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
 
     /**
      * Set the song.
-     *
-     *
      *
      * @param song Can be null. The song CL_Editor must be opened.
      */
@@ -227,11 +234,15 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
 
         // Update positions
         songPosition.set(songPos);
+        songPart = song.getSongStructure().getSongPart(songPos.getBar());
         clsPosition.set(song.getSongStructure().toClsPosition(songPos));
-        LOGGER.log(Level.FINE, "beatChanged() pos={0} clsPos={1}", new Object[]
+        LOGGER.log(Level.FINE, "beatChanged() pos={0} songPart={1} clsPos={2}", new Object[]
         {
-            songPos, clsPosition
+            songPos, songPart, clsPosition
         });
+
+
+        lbl_songPart.setText(songPart.getName());
 
 
         // Process beat changed only if music is playing
@@ -252,7 +263,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
         // Update annotation on each new bar
         if (songPosition.isFirstBarBeat())
         {
-            updateAnnotation(clsPosition);
+            updateAnnotation();
         }
 
         if (playStartBar == -1)
@@ -290,12 +301,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
     @Override
     public void songPartChanged(SongPart spt)
     {
-        if (!isEnabled())
-        {
-            return;
-        }
-        songPart = spt;
-        lbl_songPart.setText(songPart.getName());
+        // We use beatChanged() for everything so that state is consistently changed (songPartChanged() can be called before or after beatChanged())
     }
 
     @Override
@@ -367,7 +373,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
                     }
                     if (item instanceof CLI_BarAnnotation && itemBar == clsPosition.getBar())
                     {
-                        updateAnnotation(clsPosition);
+                        updateAnnotation();
                     }
                 }
 
@@ -385,7 +391,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
                     }
                     if (item instanceof CLI_BarAnnotation && itemBar == clsPosition.getBar())
                     {
-                        updateAnnotation(clsPosition);
+                        updateAnnotation();
                     }
                 }
             } else if (event instanceof ItemChangedEvent e)
@@ -405,7 +411,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
                     }
                 } else if (item instanceof CLI_BarAnnotation cliBa && cliBa.getPosition().getBar() == clsPosition.getBar())
                 {
-                    updateAnnotation(clsPosition);
+                    updateAnnotation();
                 }
             } else if (event instanceof ItemMovedEvent e)
             {
@@ -485,7 +491,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
                 {
                     nextBarBox.setModelBarIndex(-1);
                 }
-
+                updateAnnotation();    // text might be impacted if using # lines
             } else if (e instanceof SptAddedEvent)
             {
                 if (barBox.getModelBarIndex() == -1)
@@ -496,7 +502,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
                 {
                     nextBarBox.setModelBarIndex(1);
                 }
-
+                updateAnnotation();    // text might be impacted if using # lines
             } else if (e instanceof SptReplacedEvent re)
             {
                 // Nothing
@@ -513,6 +519,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
                 {
                     lbl_nextSongPart.setText(buildNextSongPartString(nextSongPart));
                 }
+                updateAnnotation();    // text might be impacted if using # lines
             } else if (e instanceof RpValueChangedEvent)
             {
                 // Nothing
@@ -615,6 +622,9 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
             str += ">" + strDistantChord + nextChord.getData().getOriginalName();
         }
         lbl_nextChord.setText(str);
+
+
+        // next annotation
     }
 
     private void stopped()
@@ -625,7 +635,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
         clsPosition.reset();
         updateBarBoxes(0);
         updateNextStuff(0);
-        updateAnnotation(clsPosition);
+        updateAnnotation();
         playStartBar = -1;
     }
 
@@ -635,11 +645,20 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
         nextBarBox.showPlaybackPoint(useNextBarBox, clsPos);
     }
 
-    private void updateAnnotation(Position clsPos)
+    private void updateAnnotation()
     {
-        var cliBa = song.getChordLeadSheet().getBarFirstItem(clsPos.getBar(), CLI_BarAnnotation.class, cli -> true);
-        String text = cliBa != null ? cliBa.getData().replace("\n", "<br>") : "";
-        lbl_annotation.setText("<html>" + text + "</html>");
+        if (song == null || clsPosition == null || songPart == null)
+        {
+            return;
+        }
+        var cliBa = song.getChordLeadSheet().getBarFirstItem(clsPosition.getBar(), CLI_BarAnnotation.class, cli -> true);
+        String res = "";
+        if (cliBa != null)
+        {
+            res = extractCurrentAnnotation(songPart, cliBa.getData());
+            res = res.replace("\n", "<br>");
+        }
+        lbl_annotation.setText("<html>" + res + "</html>");
     }
 
     private void clearLabels()
@@ -681,6 +700,139 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
         }
 
         slider_zoom.setValue(value);
+    }
+
+    /**
+     * Extract from an annotation text the visible lines for the specified song part.
+     * <p>
+     * ANNOTATION EXAMPLE:<br>
+     * This line is always shown. <br>
+     * #sptName This line is shown when current song part name==sptName<br>
+     * # This line is shown the 1st time (then 3rd time etc.)<br>
+     * # This line is shown the 2nd time (then 5th time etc.)<br>
+     * # This line is shown the 3nd time (then 6th time etc.) <br>
+     * <p>
+     *
+     * @param songPart
+     * @param rawAnnotationText
+     * @return
+     */
+    private String extractCurrentAnnotation(SongPart spt, String rawAnnotationText)
+    {
+        StringBuilder sb = new StringBuilder();
+        int sptIndex = getSameParentSptIndex(spt);
+        if (sptIndex == -1)
+        {
+            // Special case, SongPart got deleted
+            return "";
+        }
+
+        var lines = Arrays.asList(rawAnnotationText.split("\\s*\n\\s*"));
+
+        LOGGER.log(Level.FINE, "extractCurrentAnnotation() ########### spt={0}", spt);
+        LOGGER.log(Level.FINE, "sptIndex={0} rawAnnotationText=\n{1}", new Object[]
+        {
+            sptIndex, rawAnnotationText
+        });
+
+
+        // Do we have a valid #sptName line ? 
+        String lineSharpSpt = lines.stream()
+                .filter(l -> 
+                {
+                    var m = P_SHARP_SPT.matcher(l);
+                    return m.matches() && m.group(1).equals(spt.getName());
+                })
+                .findAny()
+                .orElse(null);
+
+
+        if (lineSharpSpt != null)
+        {
+
+            // Show only the noSharp lines and the sharpSptName line.
+            for (String line : lines)
+            {
+                if (line.isBlank())
+                {
+                    continue;
+                }
+
+                // Show the no sharp lines in the order we process them
+                Matcher mNoSharp = P_NO_SHARP.matcher(line);
+                if (mNoSharp.matches())
+                {
+                    sb.append(line).append("\n");
+                    continue;
+                }
+
+
+                Matcher mSharpSpt = P_SHARP_SPT.matcher(line);
+                if (mSharpSpt.matches() && line == lineSharpSpt)
+                {
+                    // Show the sharpSpt line         
+                    sb.append(mSharpSpt.group(2)).append("\n");
+                    continue;
+                }
+
+            }
+        } else
+        {
+            // Handle the sharp lines
+
+            int nbSharpLines = (int) lines.stream()
+                    .filter(l -> P_SHARP.matcher(l).matches() || P_SHARP_EMPTY.matcher(l).matches())
+                    .count();
+            LOGGER.log(Level.FINE, "nbSharpLines={0}", nbSharpLines);
+
+            int lineIndex = 0;
+            for (String line : lines)
+            {
+                if (line.isBlank())
+                {
+                    continue;
+                }
+
+                // Show the no sharp lines in the order we process them
+                Matcher mNoSharp = P_NO_SHARP.matcher(line);
+                if (mNoSharp.matches())
+                {
+                    sb.append(line).append("\n");
+                    continue;
+                }
+
+                // 
+                Matcher mSharp = P_SHARP.matcher(line);
+                if (mSharp.matches())
+                {
+                    LOGGER.log(Level.FINE, "  sptIndex % nbSharpLines={0} lineIndex={1}", new Object[]
+                    {
+                        sptIndex % nbSharpLines, lineIndex
+                    });
+                    if (sptIndex % nbSharpLines == lineIndex)
+                    {
+                        sb.append(mSharp.group(1)).append("\n");
+                    }
+                    lineIndex++;
+                }
+
+            }
+        }
+
+        return sb.toString();
+    }
+
+    /**
+     * The index of songPart amongst all the SongParts which share the same parent section.
+     *
+     * @param songPart
+     * @return -1 if songPart not part of the song.
+     */
+    private int getSameParentSptIndex(SongPart songPart)
+    {
+        var spts = song.getSongStructure().getSongParts(spt -> spt.getParentSection() == songPart.getParentSection());
+        int index = spts.indexOf(songPart);
+        return index;
     }
 
     // =================================================================================================
@@ -742,8 +894,8 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
     }
 
     /**
-     * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of this
-     * method is always regenerated by the Form Editor.
+     * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of this method is always
+     * regenerated by the Form Editor.
      */
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -756,12 +908,13 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
         lbl_nextChord = new javax.swing.JLabel();
         filler2 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 5), new java.awt.Dimension(0, 5), new java.awt.Dimension(32767, 5));
         lbl_nextSongPart = new javax.swing.JLabel();
+        filler4 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 5), new java.awt.Dimension(0, 5), new java.awt.Dimension(32767, 5));
         filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(1, 10), new java.awt.Dimension(1, 32767));
         lbl_songPart = new javax.swing.JLabel();
         posViewer = new org.jjazz.musiccontrolactions.api.ui.PositionViewer();
         jPanel1 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
-        slider_zoom = UIUtilities.buildSlider(SwingConstants.HORIZONTAL, 0.5f);
+        slider_zoom = org.jjazz.uiutilities.api.UIUtilities.buildSlider(SwingConstants.HORIZONTAL, 0.5f);
         pnl_progressBar = new javax.swing.JPanel();
         progressBar = new javax.swing.JProgressBar();
 
@@ -778,6 +931,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
         org.openide.awt.Mnemonics.setLocalizedText(lbl_nextSongPart, "> Verse"); // NOI18N
         lbl_nextSongPart.setToolTipText(org.openide.util.NbBundle.getMessage(EasyReaderPanel.class, "EasyReaderPanel.lbl_nextSongPart.toolTipText")); // NOI18N
         pnl_nextChord.add(lbl_nextSongPart);
+        pnl_nextChord.add(filler4);
         pnl_nextChord.add(filler1);
 
         org.openide.awt.Mnemonics.setLocalizedText(lbl_songPart, "Verse"); // NOI18N
@@ -866,6 +1020,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
     private javax.swing.Box.Filler filler1;
     private javax.swing.Box.Filler filler2;
     private javax.swing.Box.Filler filler3;
+    private javax.swing.Box.Filler filler4;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JLabel lbl_nextChord;
