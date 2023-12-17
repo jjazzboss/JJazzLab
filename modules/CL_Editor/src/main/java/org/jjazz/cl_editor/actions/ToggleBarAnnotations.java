@@ -24,6 +24,8 @@ package org.jjazz.cl_editor.actions;
 
 import com.google.common.base.Preconditions;
 import java.awt.event.ActionEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -37,11 +39,12 @@ import org.jjazz.utilities.api.ToggleAction;
 
 /**
  * The action to show/hide bar annotations.
- * 
+ * <p>
  * There is one action per editor.
  */
-public class ToggleBarAnnotations extends ToggleAction
+public class ToggleBarAnnotations extends ToggleAction implements PropertyChangeListener
 {
+
     private static final Logger LOGGER = Logger.getLogger(ToggleBarAnnotations.class.getSimpleName());
     private final CL_Editor editor;
     private static Map<CL_Editor, ToggleBarAnnotations> MAP_EDITOR_INSTANCES = new HashMap<>();
@@ -65,7 +68,7 @@ public class ToggleBarAnnotations extends ToggleAction
         }
         return instance;
     }
-    
+
     private ToggleBarAnnotations(CL_Editor editor)
     {
         this.editor = editor;
@@ -77,13 +80,14 @@ public class ToggleBarAnnotations extends ToggleAction
         putValue(LARGE_ICON_KEY, new ImageIcon(getClass().getResource("/org/jjazz/cl_editor/actions/resources/ShowBarAnnotations-ON.png")));
         putValue("hideActionText", true);
 
-        
+
         setSelected(editor.isBarAnnotationVisible());
-                
-        
-        // Keep our map uptodate
-        MAP_EDITOR_INSTANCES.put(editor, this);        
-        editor.getSongModel().addPropertyChangeListener(Song.PROP_CLOSED, e -> MAP_EDITOR_INSTANCES.remove(this.editor));
+
+
+        editor.addPropertyChangeListener(CL_Editor.PROP_BAR_ANNOTATION_VISIBLE, this);
+        editor.getSongModel().addPropertyChangeListener(Song.PROP_CLOSED, this);
+
+
     }
 
 
@@ -92,6 +96,29 @@ public class ToggleBarAnnotations extends ToggleAction
     {
         boolean b = editor.isBarAnnotationVisible();
         editor.setBarAnnotationVisible(!b);
-        setSelected(!b);
+    }
+
+
+    // ======================================================================
+    // PropertyChangeListener interface
+    // ======================================================================
+    @Override
+    public void propertyChange(PropertyChangeEvent evt)
+    {
+        if (evt.getSource() == editor.getSongModel())
+        {
+            if (evt.getPropertyName().equals(Song.PROP_CLOSED))
+            {
+                editor.removePropertyChangeListener(this);
+                editor.getSongModel().removePropertyChangeListener(this);
+                MAP_EDITOR_INSTANCES.remove(editor);
+            }
+        } else if (evt.getSource() == editor)
+        {
+            if (evt.getPropertyName().equals(CL_Editor.PROP_BAR_ANNOTATION_VISIBLE))
+            {
+                setSelected(editor.isBarAnnotationVisible());
+            }
+        }
     }
 }

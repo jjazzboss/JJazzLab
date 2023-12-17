@@ -28,13 +28,10 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.Action;
-import javax.swing.SwingUtilities;
 import org.jjazz.activesong.api.ActiveSongManager;
 import org.jjazz.song.api.Song;
 import org.jjazz.ss_editor.SS_EditorController;
@@ -44,10 +41,7 @@ import org.openide.util.Utilities;
 import org.openide.windows.TopComponent;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.ss_editor.sptviewer.spi.SptViewerFactory;
-import org.jjazz.ss_editor.CompactViewModeController;
-import org.jjazz.ss_editor.SS_EditorImpl;
 import org.jjazz.ss_editor.SS_EditorToolBar;
-import org.jjazz.uiutilities.api.Zoomable;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.awt.Actions;
 import org.openide.windows.Mode;
@@ -78,7 +72,6 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
      * The editor's controller.
      */
     private SS_EditorMouseListener ssEditorController;
-    private CompactViewModeController compactViewController;
     /**
      * The paired TopComponent.
      */
@@ -118,7 +111,6 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
         ssEditor = SS_EditorFactory.getDefault().createEditor(songModel, SS_EditorSettings.getDefault(), SptViewerFactory.getDefault());
         ssEditorController = new SS_EditorController(ssEditor);
         ssEditor.setController(ssEditorController);
-        compactViewController = new CompactViewModeController(ssEditor);
 
 
         // Create the toolbar
@@ -266,42 +258,42 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
     {
 
         // Try to restore zoom factor X from client property, or zoom to fit width
-        Runnable r = () -> 
-        {
-            String str = songModel.getClientProperties().get(SS_EditorImpl.PROP_ZOOM_FACTOR_X, null);
-            if (str != null)
-            {
-                int zfx = -1;
-                try
-                {
-                    zfx = Integer.parseInt(str);
-                } catch (NumberFormatException e)
-                {
-                    // Nothing
-                }
-                if (zfx < 0 || zfx > 100)
-                {
-                    LOGGER.log(Level.WARNING, "SS_EditorController() Invalid zoom factor X client property={0} in song={1}",
-                            new Object[]
-                            {
-                                str,
-                                ssEditor.getSongModel().getName()
-                            });
-                } else
-                {
-                    Zoomable zoomable = ssEditor.getLookup().lookup(Zoomable.class);
-                    if (zoomable != null)
-                    {
-                        zoomable.setZoomXFactor(zfx, false);    // This will mark songModel as modified via Song.putClientProperty()
-                    }
-                }
-            } else
-            {
-                ssEditor.setZoomHFactorToFitWidth(SS_EditorTopComponent.this.getWidth());   // This will mark songModel as modified via Song.putClientProperty()
-            }
-        };
-        // If invokeLater is not used layout is not yet performed and components size are = 0 !
-        SwingUtilities.invokeLater(r);
+//        Runnable r = () -> 
+//        {
+//            String str = songModel.getClientProperties().get(SS_EditorImpl.PROP_ZOOM_FACTOR_X, null);
+//            if (str != null)
+//            {
+//                int zfx = -1;
+//                trys
+//                {
+//                    zfx = Integer.parseInt(str);
+//                } catch (NumberFormatException e)
+//                {
+//                    // Nothing
+//                }
+//                if (zfx < 0 || zfx > 100)
+//                {
+//                    LOGGER.log(Level.WARNING, "SS_EditorController() Invalid zoom factor X client property={0} in song={1}",
+//                            new Object[]
+//                            {
+//                                str,
+//                                ssEditor.getSongModel().getName()
+//                            });
+//                } else
+//                {
+//                    Zoomable zoomable = ssEditor.getLookup().lookup(Zoomable.class);
+//                    if (zoomable != null)
+//                    {
+//                        zoomable.setZoomXFactor(zfx, false);    // This will mark songModel as modified via Song.putClientProperty()
+//                    }
+//                }
+//            } else
+//            {
+//                ssEditor.setZoomHFactorToFitWidth(SS_EditorTopComponent.this.getWidth());   // This will mark songModel as modified via Song.putClientProperty()
+//            }
+//        };
+//        // If invokeLater is not used layout is not yet performed and components size are = 0 !
+//        SwingUtilities.invokeLater(r);
     }
 
     /**

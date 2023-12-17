@@ -127,6 +127,7 @@ public class CLI_BarAnnotationImpl implements CLI_BarAnnotation, WritableItem<St
         ChordLeadSheet cls = (newCls != null) ? newCls : getContainer();
         CLI_BarAnnotationImpl cli = new CLI_BarAnnotationImpl(data, barIndex);
         cli.setContainer(cls);
+        cli.getClientProperties().set(clientProperties);
         return cli;
     }
 

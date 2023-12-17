@@ -22,6 +22,7 @@
  */
 package org.jjazz.chordleadsheet.api.item;
 
+import com.google.common.base.Preconditions;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
@@ -87,6 +88,7 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
      */
     ChordLeadSheetItem<T> getCopy(ChordLeadSheet newCls, Position newPos);
 
+  
     /**
      * Return true if there can be only one single item perbar, like a time signature.
      * <p>
@@ -170,8 +172,7 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
     /**
      * Create an item right after the specified position for comparison purposes.
      * <p>
-     * For the Comparable interface, any item whose position is before (or equal if inclusive is true) to pos will be considered BEFORE the
-     * returned item.
+     * For the Comparable interface, any item whose position is before (or equal if inclusive is true) to pos will be considered BEFORE the returned item.
      *
      * @param pos
      * @param inclusive
@@ -198,8 +199,7 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
     /**
      * Create an item right before the specified position for comparison purposes.
      * <p>
-     * For the Comparable interface, any item whose position is after (or equal if inclusive is true) to pos will be considered AFTER the
-     * returned item.
+     * For the Comparable interface, any item whose position is after (or equal if inclusive is true) to pos will be considered AFTER the returned item.
      *
      * @param pos
      * @param inclusive
@@ -228,8 +228,8 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
     // ==================================================================================================
 
     /**
-     * An interface for items used only for position comparison purposes, when using the NavigableSet/SortedSet-based methods of
-     * ChordLeadSheet or ChordSequence.
+     * An interface for items used only for position comparison purposes, when using the NavigableSet/SortedSet-based methods of ChordLeadSheet or
+     * ChordSequence.
      */
     public interface ComparableItem
     {

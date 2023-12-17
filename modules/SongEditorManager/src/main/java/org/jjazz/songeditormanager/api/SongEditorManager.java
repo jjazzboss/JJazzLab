@@ -604,66 +604,6 @@ public class SongEditorManager implements PropertyChangeListener
     }
 
 
-    /**
-     * This method helps replicate song-specific editors settings (eg for CL_Editor: section start on new line/quantization) after a song
-     * was duplicated.
-     * <p>
-     * The method assumes that song duplication was done using SongUtilities methods, so copied section names follow a naming rule.
-     *
-     * @param song     The corresponding editor must be present
-     * @param songCopy The corresponding editor must be present
-     */
-    public void copySongEditorSettings(Song song, Song songCopy)
-    {
-        Preconditions.checkNotNull(song);
-        Preconditions.checkNotNull(songCopy);
-
-
-        var editors = getEditors(song);
-        var editorsCopy = getEditors(songCopy);
-        assert editors != null && editorsCopy != null : "song=" + song + " songCopy=" + songCopy;
-        var cls = song.getChordLeadSheet();
-        var clsCopy = songCopy.getChordLeadSheet();
-        CL_Editor clEditor = editors.getCL_EditorTc().getEditor();
-        CL_Editor clEditorCopy = editorsCopy.getCL_EditorTc().getEditor();
-        SS_Editor ssEditor = editors.getSS_EditorTc().getEditor();
-        SS_Editor ssEditorCopy = editorsCopy.getSS_EditorTc().getEditor();
-
-
-        // CL_Editor
-        for (var cliSectionCopy : clsCopy.getItems(CLI_Section.class))
-        {
-            var sectionNameCopy = cliSectionCopy.getData().getName();
-            var sectionName = sectionNameCopy.replaceFirst(SongUtilities.SECTION_COPY_DELIMITER_CHAR + ".*", "");
-            var cliSection = cls.getSection(sectionName);
-            if (cliSection == null)
-            {
-                continue;
-            }
-
-            // Replicate the "start on new line" value
-            if (clEditor.isSectionStartOnNewLine(cliSection))
-            {
-                clEditorCopy.setSectionStartOnNewLine(cliSectionCopy, true);
-            }
-
-            // Replicate quantization
-            var q = clEditor.getDisplayQuantizationValue(cliSection);
-            clEditorCopy.setDisplayQuantizationValue(cliSectionCopy, q);
-        }
-
-
-        // SS_Editor
-        ssEditorCopy.setZoomHFactor(ssEditor.getZoomHFactor());
-        ssEditorCopy.setZoomVFactor(ssEditor.getZoomVFactor());
-        var uniqueRhythms = song.getSongStructure().getUniqueRhythms(true, true);
-        for (var r : uniqueRhythms)
-        {
-            ssEditorCopy.setVisibleRps(r, ssEditor.getVisibleRps(r));
-        }
-
-    }
-
     public List<Song> getOpenedSongs()
     {
         return new ArrayList<>(mapSongEditors.keySet());

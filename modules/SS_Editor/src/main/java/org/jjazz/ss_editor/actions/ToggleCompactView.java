@@ -22,63 +22,106 @@
  */
 package org.jjazz.ss_editor.actions;
 
+import com.google.common.base.Preconditions;
 import java.awt.event.ActionEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
-import javax.swing.AbstractAction;
 import static javax.swing.Action.ACCELERATOR_KEY;
 import static javax.swing.Action.NAME;
 import static javax.swing.Action.SHORT_DESCRIPTION;
 import static javax.swing.Action.SMALL_ICON;
 import javax.swing.ImageIcon;
 import javax.swing.KeyStroke;
-import org.jjazz.ss_editor.CompactViewModeController;
-import org.jjazz.ss_editor.api.SS_EditorTopComponent;
+import org.jjazz.song.api.Song;
+import org.jjazz.ss_editor.api.SS_Editor;
 import org.jjazz.utilities.api.ResUtil;
-import org.openide.awt.ActionID;
-import org.openide.awt.ActionReference;
-import org.openide.awt.ActionReferences;
-import org.openide.awt.ActionRegistration;
+import org.jjazz.utilities.api.ToggleAction;
 
 /**
- * The action to switch between full/compact RP view mode.
+ * The action to switch from compact to normal view.
  * <p>
+ * There is one action per editor.
  */
-@ActionID(category = "JJazz", id = "org.jjazz.ss_editor.actions.togglecompactview")
-@ActionRegistration(displayName = "#CTL_ToggleCompactView", lazy = false)
-@ActionReferences(
-        {
-            @ActionReference(path = "Shortcuts", name = "V")
-        })
-public class ToggleCompactView extends AbstractAction 
+public class ToggleCompactView extends ToggleAction implements PropertyChangeListener
 {
 
+    private final SS_Editor editor;
     private static final Logger LOGGER = Logger.getLogger(ToggleCompactView.class.getSimpleName());
 
+    private static Map<SS_Editor, ToggleCompactView> MAP_EDITOR_INSTANCES = new HashMap<>();
 
-    private ToggleCompactView()
+    /**
+     * Get the ToggleCompactView instance associated to a given editor.
+     * <p>
+     * Create the instance if it does not already exists.
+     *
+     * @param editor
+     * @return
+     */
+    public synchronized static ToggleCompactView getInstance(SS_Editor editor)
     {
+        Preconditions.checkNotNull(editor);
+        var instance = MAP_EDITOR_INSTANCES.get(editor);
+        if (instance == null)
+        {
+            instance = new ToggleCompactView(editor);
+            MAP_EDITOR_INSTANCES.put(editor, instance);
+        }
+        return instance;
+    }
+
+    private ToggleCompactView(SS_Editor editor)
+    {
+        this.editor = editor;
         putValue(NAME, ResUtil.getString(getClass(), "CTL_ToggleCompactView"));
-        putValue(SHORT_DESCRIPTION, ResUtil.getString(getClass(), "CTL_ToggleCompactView"));
+        putValue(SHORT_DESCRIPTION, ResUtil.getString(getClass(), "CTL_ToggleCompactViewTooltip"));
         putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("V"));     // Useful only if action is used to create a menu entry
         putValue(SMALL_ICON, new ImageIcon(getClass().getResource("/org/jjazz/ss_editor/actions/resources/CompactViewMode-OFF.png")));
         putValue(LARGE_ICON_KEY, new ImageIcon(getClass().getResource("/org/jjazz/ss_editor/actions/resources/CompactViewMode-ON.png")));
+        putValue("hideActionText", true);
+
+
+        setSelected(editor.getViewMode().equals(SS_Editor.ViewMode.COMPACT));
+        
+        
+        editor.addPropertyChangeListener(SS_Editor.PROP_EDITOR_VIEW_MODE, this);
+        editor.getSongModel().addPropertyChangeListener(Song.PROP_CLOSED, this);
     }
 
 
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        SS_EditorTopComponent ssTc = SS_EditorTopComponent.getVisible();
-        if (ssTc == null)
+        var oldMode = editor.getViewMode();
+        var newMode = oldMode.equals(SS_Editor.ViewMode.NORMAL) ? SS_Editor.ViewMode.COMPACT : SS_Editor.ViewMode.NORMAL;
+        editor.setViewMode(newMode);
+    }
+
+
+    // ======================================================================
+    // PropertyChangeListener interface
+    // ======================================================================
+    @Override
+    public void propertyChange(PropertyChangeEvent evt)
+    {
+        if (evt.getSource() == editor.getSongModel())
         {
-            return;
+            if (evt.getPropertyName().equals(Song.PROP_CLOSED))
+            {
+                editor.removePropertyChangeListener(this);
+                editor.getSongModel().removePropertyChangeListener(this);
+                MAP_EDITOR_INSTANCES.remove(editor);
+            }
+        } else if (evt.getSource() == editor)
+        {
+            if (evt.getPropertyName().equals(SS_Editor.PROP_EDITOR_VIEW_MODE))
+            {
+                setSelected(editor.getViewMode().equals(SS_Editor.ViewMode.COMPACT));
+            }
         }
-
-        // Just switch between compact and full mode
-        var song = ssTc.getEditor().getSongModel();
-        boolean b = CompactViewModeController.isSongInCompactViewMode(song);
-        CompactViewModeController.setSongInCompactViewMode(song, !b);
-
     }
 
 }

@@ -191,7 +191,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
      * Store the last Quantization used for each time signature.
      */
     private final HashMap<TimeSignature, Quantization> mapTsQuantization = new HashMap<>();
-    private final SongSpecificEditorProperties songSpecificProperties;
+    private final SongSpecificCL_EditorProperties songSpecificProperties;
     private final CL_EditorZoomable editorZoomable;
     private static final Logger LOGGER = Logger.getLogger(CL_EditorImpl.class.getSimpleName());
 
@@ -205,7 +205,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         songModel = song;
 
         this.barRendererFactory = brf;
-        this.songSpecificProperties = new SongSpecificEditorProperties(songModel);
+        this.songSpecificProperties = new SongSpecificCL_EditorProperties(songModel);
 
         // Listen to settings changes
         this.settings = settings;
@@ -215,8 +215,10 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         ColorSetManager.getDefault().addPropertyChangeListener(this);
 
         // Graphical stuff
-        nbColumns = 4;
-        zoomVFactor = 50;
+        int zxf = songSpecificProperties.loadZoomXFactor();
+        nbColumns = zxf > -1 ? computeNbColsFromXZoomFactor(zxf) : 4;
+        int zyf = songSpecificProperties.loadZoomYFactor();
+        zoomVFactor = zyf > -1 ? zyf : 50;
         gridLayout = new GridLayout(0, nbColumns);   // Nb of lines adjusted to number of bars
         setLayout(gridLayout);
         setBackground(settings.getBackgroundColor());
@@ -275,7 +277,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
 
     }
 
-    public SongSpecificEditorProperties getSongSpecificEditorProperties()
+    public SongSpecificCL_EditorProperties getSongSpecificEditorProperties()
     {
         return songSpecificProperties;
     }
@@ -467,12 +469,12 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         songSpecificProperties.storeBarAnnotationVisible(b);
         setBarBoxConfig(bbConfig.getUpdatedConfig(activeBrs.toArray(String[]::new)));
 
-        
+
         // Restore selection (at least 1 bar) so that the the "toggle BR_Annotation visibility" keyboard shortcut can be directly reused
         selectBars(bar, bar, true);
         setFocusOnBar(bar);
 
-        
+
         // Fire event
         firePropertyChange(CL_Editor.PROP_BAR_ANNOTATION_VISIBLE, !b, b);
     }
@@ -606,8 +608,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         gridLayout.setColumns(nbColumns);
         updatePaddingBoxes();
         revalidate();
-        int oldFactor = computeNbColsToXFactor(oldNbColumns);
-        int newFactor = computeNbColsToXFactor(nbColumns);
+        int oldFactor = computeXZoomFactorFromNbCols(oldNbColumns);
+        int newFactor = computeXZoomFactorFromNbCols(nbColumns);
         LOGGER.log(Level.FINER, "oldFactor={0} newFactor={1}", new Object[]
         {
             oldFactor, newFactor
@@ -616,7 +618,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         firePropertyChange(PROP_NB_COLUMNS, oldNbColumns, nbColumns);
 
         // Save the zoom factor with the song as a client property        
-        songSpecificProperties.storeZoomFactor(true, newFactor);
+        songSpecificProperties.storeZoomXFactor(newFactor);
 
     }
 
@@ -646,7 +648,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         }
 
         // Save the zoom factor with the song as a client property
-        songSpecificProperties.storeZoomFactor(false, zoomVFactor);
+        songSpecificProperties.storeZoomYFactor(zoomVFactor);
     }
 
     @Override
@@ -1749,13 +1751,13 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         return res;
     }
 
-    private int computeNbColsToXFactor(int nbCols)
+    private int computeXZoomFactorFromNbCols(int nbCols)
     {
         int xFactor = (int) Math.round((16 - nbCols) * 100.0 / 15.0);
         return xFactor;
     }
 
-    private int computeXFactorToNbColumns(int xFactor)
+    private int computeNbColsFromXZoomFactor(int xFactor)
     {
         int nbCols = 16 - (int) Math.round(15.0 * xFactor / 100.0);
         return nbCols;
@@ -1884,7 +1886,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         @Override
         public int getZoomXFactor()
         {
-            int factor = computeNbColsToXFactor(nbColumns);
+            int factor = computeXZoomFactorFromNbCols(nbColumns);
             LOGGER.log(Level.FINER, "getZoomFactor() nbColumns={0} factor={1}", new Object[]
             {
                 nbColumns, factor
@@ -1895,7 +1897,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         @Override
         public void setZoomXFactor(int factor, boolean valueIsAdjusting)
         {
-            int nbCols = computeXFactorToNbColumns(factor);
+            int nbCols = computeNbColsFromXZoomFactor(factor);
             LOGGER.log(Level.FINER, "setZoomFactor() factor={0}> nbCols={1}", new Object[]
             {
                 factor, nbCols

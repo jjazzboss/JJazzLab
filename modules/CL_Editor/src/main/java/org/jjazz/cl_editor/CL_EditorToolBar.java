@@ -31,7 +31,6 @@ import org.jjazz.cl_editor.actions.ToggleBarAnnotations;
 import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.flatcomponents.api.FlatButton;
 import org.jjazz.flatcomponents.api.FlatToggleButton;
-import org.openide.awt.Actions;
 import org.openide.util.Utilities;
 
 /**

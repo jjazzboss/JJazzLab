@@ -42,7 +42,8 @@
         <jjazzlab.javac.fork>false</jjazzlab.javac.fork>
         <jjazzlab.javac.showDeprecation>true</jjazzlab.javac.showDeprecation>
         <jjazzlab.javac.showWarnings>true</jjazzlab.javac.showWarnings>
-        <jjazzlab.javac.xlint>-Xlint:all,-serial</jjazzlab.javac.xlint>
+        <!-- <jjazzlab.javac.xlint>-Xlint:all,-serial</jjazzlab.javac.xlint>  -->
+        <jjazzlab.javac.xlint></jjazzlab.javac.xlint>   <!-- temporary trick to avoid https://github.com/apache/netbeans/issues/6826  -->
         <jjazzlab.surefire.skipTests>true</jjazzlab.surefire.skipTests>
         <jjazzlab.forceEnglish>false</jjazzlab.forceEnglish>
     </properties>

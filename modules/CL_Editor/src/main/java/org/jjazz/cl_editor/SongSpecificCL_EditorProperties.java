@@ -34,16 +34,16 @@ import org.jjazz.colorsetmanager.api.ColorSetManager;
 /**
  * Helper class to handle editor settings saved as song client properties.
  */
-public class SongSpecificEditorProperties
+public class SongSpecificCL_EditorProperties
 {
 
     private static final String PROP_ZOOM_FACTOR_X = "PropClEditorZoomFactorX";
     private static final String PROP_ZOOM_FACTOR_Y = "PropClEditorZoomFactorY";
 
     private final Song song;
-    private static final Logger LOGGER = Logger.getLogger(SongSpecificEditorProperties.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(SongSpecificCL_EditorProperties.class.getSimpleName());
 
-    public SongSpecificEditorProperties(Song song)
+    public SongSpecificCL_EditorProperties(Song song)
     {
         this.song = song;
     }
@@ -149,27 +149,23 @@ public class SongSpecificEditorProperties
     }
 
     /**
-     * Save the ZoomFactor X or Y in the song client properties.
+     * Save the ZoomFactor X in the song client properties.
      *
-     * @param isZoomX If true use PROP_ZOOM_FACTOR_X, otherwise use PROP_ZOOM_FACTOR_Y
      * @param factor
      */
-    public void storeZoomFactor(boolean isZoomX, int factor)
+    public void storeZoomXFactor(int factor)
     {
-        String prop = isZoomX ? PROP_ZOOM_FACTOR_X : PROP_ZOOM_FACTOR_Y;
-        song.getClientProperties().put(prop, Integer.toString(factor));
+        song.getClientProperties().put(PROP_ZOOM_FACTOR_X, Integer.toString(factor));
     }
 
     /**
-     * Get the ZoomFactor X or Y value from song client properties.
+     * Get the ZoomFactor X from song client properties.
      *
-     * @param isZoomX If true use PROP_ZOOM_FACTOR_X, otherwise use PROP_ZOOM_FACTOR_Y
      * @return -1 if client property is not defined or invalid.
      */
-    public int loadZoomFactor(boolean isZoomX)
+    public int loadZoomXFactor()
     {
-        String prop = isZoomX ? PROP_ZOOM_FACTOR_X : PROP_ZOOM_FACTOR_Y;
-        var strValue = song.getClientProperties().get(prop, null);
+        var strValue = song.getClientProperties().get(PROP_ZOOM_FACTOR_X, null);
         int res = -1;
         if (strValue != null)
         {
@@ -182,9 +178,51 @@ public class SongSpecificEditorProperties
                 }
             } catch (NumberFormatException e)
             {
-                LOGGER.log(Level.WARNING, "loadZoomFactor() Invalid zoom factor client property={0}, value={1} in song={2}", new Object[]
+                LOGGER.log(Level.WARNING, "loadZoomXFactor() Invalid zoom factor client property={0}, value={1} in song={2}", new Object[]
                 {
-                    prop,
+                    PROP_ZOOM_FACTOR_X,
+                    strValue,
+                    song.getName()
+                });
+                res = -1;
+            }
+        }
+        return res;
+    }
+
+    /**
+     * Save the ZoomFactor Y in the song client properties.
+     *
+     * @param factor
+     */
+    public void storeZoomYFactor(int factor)
+    {
+        song.getClientProperties().put(PROP_ZOOM_FACTOR_Y, Integer.toString(factor));
+    }
+
+    /**
+     * Get the ZoomFactor Y from song client properties.
+     *
+     * @return -1 if client property is not defined or invalid.
+     */
+    public int loadZoomYFactor()
+    {
+        var strValue = song.getClientProperties().get(PROP_ZOOM_FACTOR_Y, null);
+        int res = -1;
+        if (strValue != null)
+        {
+            try
+            {
+                res = Integer.parseInt(strValue);
+                if (res < 0 || res > 100)
+                {
+                    throw new NumberFormatException();
+                }
+            } catch (NumberFormatException e)
+            {
+                LOGGER.log(Level.WARNING, "loadZoomYFactor() Invalid zoom factor client property={0}, value={1} in song={2}", new Object[]
+                {
+                    PROP_ZOOM_FACTOR_Y,
                     strValue,
                     song.getName()
                 });

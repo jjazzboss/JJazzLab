@@ -43,6 +43,9 @@ import org.openide.util.Exceptions;
 public class SongUtilities
 {
 
+    /**
+     * @see #getLinearizedSong(org.jjazz.song.api.Song, boolean) 
+     */
     static public final String SECTION_COPY_DELIMITER_CHAR = "#";
 
     /**
@@ -153,7 +156,7 @@ public class SongUtilities
      * Get a new song with the lead sheet linearized ("unfolded") according to the song structure.
      * <p>
      * Returns a song where each chord leadsheet Section represents only one SongPart. Linearized section name has the form
-     * "original_section_nameSECTION_COPY_DELIMITER_CHARnumber".
+     * "original_section_nameSECTION_COPY_DELIMITER_CHARnumber", eg "chorus#1".
      *
      * @param song
      * @param register If true register the created song
@@ -229,6 +232,7 @@ public class SongUtilities
                 String originalSectionName = parentCliSection.getData().getName();
                 String name = originalSectionName + SECTION_COPY_DELIMITER_CHAR + sectionCounter;
                 resCliSection = CLI_Factory.getDefault().createSection(newCls, name, parentCliSection.getData().getTimeSignature(), barIndex);
+                resCliSection.getClientProperties().set(parentCliSection.getClientProperties());
                 try
                 {
                     newCls.addSection(resCliSection);
@@ -271,6 +275,10 @@ public class SongUtilities
             // Should never happen since copy of existing song
             Exceptions.printStackTrace(ex);
         }
+        
+        // Copy client properties
+        newSong.getClientProperties().set(song.getClientProperties());
+        
 
         if (register)
         {

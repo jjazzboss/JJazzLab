@@ -27,10 +27,9 @@ import javax.swing.Action;
 import javax.swing.Box.Filler;
 import javax.swing.JToolBar;
 import org.jjazz.flatcomponents.api.FlatButton;
+import org.jjazz.flatcomponents.api.FlatToggleButton;
 import org.jjazz.ss_editor.actions.ToggleCompactView;
-import org.jjazz.ss_editor.actions.ToggleCompactViewButton;
 import org.jjazz.ss_editor.api.SS_Editor;
-import org.openide.awt.Actions;
 import org.openide.util.Utilities;
 
 /**
@@ -49,7 +48,7 @@ public class SS_EditorToolBar extends JToolBar
     {
         if (editor == null)
         {
-            throw new NullPointerException("editor");   
+            throw new NullPointerException("editor");
         }
         this.editor = editor;
 
@@ -71,11 +70,8 @@ public class SS_EditorToolBar extends JToolBar
 
 
         // Add song-specific actions
-        // Compact/Full view switching button
-        ToggleCompactView a = (ToggleCompactView) Actions.forID("JJazz", "org.jjazz.ss_editor.actions.togglecompactview");
-        assert a != null;
-        ToggleCompactViewButton toggleViewButton = new ToggleCompactViewButton(editor, a);
-        add(toggleViewButton);
+        FlatToggleButton ftb = new FlatToggleButton(ToggleCompactView.getInstance(editor));             // Compact/Full view switching button
+        add(ftb);
 
 
         add(FILLER_GLUE);    // At the end

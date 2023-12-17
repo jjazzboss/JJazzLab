@@ -187,21 +187,21 @@ public class CL_EditorController implements CL_EditorMouseListener
         editor.getActionMap().put("JumpToEnd", new JumpToEnd());
 
 
-        // Try to restore zoom factors
-        Zoomable zoomable = editor.getLookup().lookup(Zoomable.class);
-        if (zoomable != null)
-        {
-            int zfx = editor.getSongSpecificEditorProperties().loadZoomFactor(true);
-            if (zfx != -1)
-            {
-                zoomable.setZoomXFactor(zfx, false);
-            }
-            int zfy = editor.getSongSpecificEditorProperties().loadZoomFactor(false);
-            if (zfy != -1)
-            {
-                zoomable.setZoomYFactor(zfy, false);
-            }
-        }
+//        // Try to restore zoom factors
+//        Zoomable zoomable = editor.getLookup().lookup(Zoomable.class);
+//        if (zoomable != null)
+//        {
+//            int zfx = editor.getSongSpecificEditorProperties().loadZoomFactor(true);
+//            if (zfx != -1)
+//            {
+//                zoomable.setZoomXFactor(zfx, false);
+//            }
+//            int zfy = editor.getSongSpecificEditorProperties().loadZoomFactor(false);
+//            if (zfy != -1)
+//            {
+//                zoomable.setZoomYFactor(zfy, false);
+//            }
+//        }
 
     }
 
