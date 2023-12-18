@@ -555,53 +555,15 @@ public class DonManagerImpl implements Runnable, DonManager
                 return;
             }
 
-
+            UpgradeManager um = UpgradeManager.getInstance();
             if (oldVersion.charAt(0) <= '3')
             {
                 // Package name was changed in JJazzLab 4: org.jjazzlab.base => org.jjazz.base
-                // We need to manually retrieve the preferences
-
-
-                // Read the old file
-                var fdm = FileDirectoryManager.getInstance();
-                var oldFile = fdm.getOldAppConfigFile(oldVersion, "../config/Preferences/org/jjazzlab/base.properties");
-                if (oldFile == null)
-                {
-                    return;
-                }
-                Properties prop = new Properties();
-                try (FileReader reader = new FileReader(oldFile))
-                {
-                    prop.load(reader);
-                } catch (IOException ex)
-                {
-                    LOGGER.log(Level.WARNING, "upgrade() problem reading file={0}: ex={1}", new Object[]
-                    {
-                        oldFile.getAbsolutePath(),
-                        ex.getMessage()
-                    });
-                    return;
-                }
-
-
-                // Copy the properties
-                for (String key : prop.stringPropertyNames())
-                {
-                    prefs.put(key, prop.getProperty(key));
-                }
-                try
-                {
-                    prefs.flush();        // Make sure it's copied to disk now
-                    LOGGER.log(Level.INFO, "upgrade() imported {0} preferences from JJazzLab 3 org/jjazzlab/base", prop.stringPropertyNames().size());
-                } catch (BackingStoreException ex)
-                {
-                    LOGGER.log(Level.WARNING, "upgrade() Can''t flush copied preferences. ex={0}", ex.getMessage());
-                }
+                um.duplicateOldPreferences(prefs, "org/jjazzlab/base.properties");
 
             } else
             {
-                // We're importing from JJazzLab 4 and higher, normal
-                UpgradeManager um = UpgradeManager.getInstance();
+                // We're importing from JJazzLab 4 and higher, normal                
                 um.duplicateOldPreferences(prefs);
             }
         }
