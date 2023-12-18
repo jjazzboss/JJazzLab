@@ -271,6 +271,8 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
 
     static protected void editBarWithDialog(final CL_Editor editor, final int barIndex, final Preset preset, final ChordLeadSheet cls, String undoText)
     {
+        int preNbAnnotations = editor.getSongModel().getChordLeadSheet().getItems(CLI_BarAnnotation.class).size();
+
         Runnable run = () -> 
         {
             // Prepare dialog
@@ -351,6 +353,16 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
             }
 
             dialog.cleanup();
+
+
+            // Automatically make bar annotations visible if first annotation
+            int postNbAnnotations = editor.getSongModel().getChordLeadSheet().getItems(CLI_BarAnnotation.class).size();
+            if (!editor.isBarAnnotationVisible() && preNbAnnotations == 0 && postNbAnnotations == 1)
+            {
+                editor.setBarAnnotationVisible(true);
+            }
+
+
         };
 
         // IMPORTANT: Dialog must be shown using invokeLater(), otherwise we have the problem of random double chars
