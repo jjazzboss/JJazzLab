@@ -53,13 +53,12 @@ public class OutputSynthManager implements PropertyChangeListener
 {
 
     /**
-     * Property change event fired each time a new OutputSynth is associated to a MidiDevice OUT: oldValue=Midi device OUT name,
-     * newValue=OutputSynth.
+     * Property change event fired each time a new OutputSynth is associated to a MidiDevice OUT: oldValue=Midi device OUT name, newValue=OutputSynth.
      */
     public final static String PROP_MDOUT_OUTPUTSYNTH = "MdOut-OutputSynth";
     /**
-     * Property change event fired each time a new OutputSynth is associated to the default JJazzLab MidiDevice OUT: oldValue=old
-     * OutputSynth, newValue=new OutputSynth.
+     * Property change event fired each time a new OutputSynth is associated to the default JJazzLab MidiDevice OUT: oldValue=old OutputSynth, newValue=new
+     * OutputSynth.
      * <p>
      * The change event is also fired when default JJazzLab MidiDevice OUT changes.
      */
@@ -187,8 +186,7 @@ public class OutputSynthManager implements PropertyChangeListener
     }
 
     /**
-     * Get a new instance of a default OutputSynth which just uses the JJazzLab soundfont in GS mode (compatible with
-     * VirtualMidiSynth).
+     * Get a new instance of a default OutputSynth which just uses the JJazzLab soundfont in GS mode (compatible with VirtualMidiSynth).
      *
      * @return
      */
@@ -256,8 +254,11 @@ public class OutputSynthManager implements PropertyChangeListener
                 outSynth = OutputSynth.loadFromString(s);
             } catch (IOException ex)
             {
-                LOGGER.log(Level.WARNING, "getOutputSynth() mdOutName={0} Can''t restore OutputSynth from String s={1}. ex={2}", new Object[]{mdOutName,
-                    s, ex.getMessage()});
+                LOGGER.log(Level.WARNING, "getOutputSynth() mdOutName={0} Can''t restore OutputSynth from String s={1}. ex={2}", new Object[]
+                {
+                    mdOutName,
+                    s, ex.getMessage()
+                });
             }
         }
 
@@ -349,8 +350,11 @@ public class OutputSynthManager implements PropertyChangeListener
                 store(mdName, outSynth);
             } else
             {
-                LOGGER.log(Level.WARNING, "propertyChange() Unexpected null mdName! outSynth={0}, mapDeviceNameSynth={1}", new Object[]{outSynth,
-                    mapDeviceNameSynth});
+                LOGGER.log(Level.WARNING, "propertyChange() Unexpected null mdName! outSynth={0}, mapDeviceNameSynth={1}", new Object[]
+                {
+                    outSynth,
+                    mapDeviceNameSynth
+                });
             }
         }
     }
@@ -381,8 +385,12 @@ public class OutputSynthManager implements PropertyChangeListener
         @Override
         public void upgrade(String oldVersion)
         {
-            UpgradeManager um = UpgradeManager.getInstance();
-            um.duplicateOldPreferences(prefs);
+            // Preferences up to JJazzLab 3 are not reused in JJazzLab 4 and later
+            if (oldVersion != null && oldVersion.length() > 0 && oldVersion.charAt(0) >= '4')
+            {                
+                UpgradeManager um = UpgradeManager.getInstance();
+                um.duplicateOldPreferences(prefs);
+            }
         }
 
     }

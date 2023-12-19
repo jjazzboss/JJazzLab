@@ -208,7 +208,15 @@ public class MixConsoleSettingsImpl implements MixConsoleSettings, FontColorUser
         public void upgrade(String oldVersion)
         {
             UpgradeManager um = UpgradeManager.getInstance();
-            um.duplicateOldPreferences(prefs);
+
+            // package codebase has changed from JJazzLab 3 to JJazzLab 4: org/jjazz/ui/mixconsole => org/jjazz/mixconsole
+            if (oldVersion != null && oldVersion.length() > 0 && oldVersion.charAt(0) <= '3')
+            {
+                um.duplicateOldPreferences(prefs, "org/jjazz/ui/mixconsole.properties");
+            } else
+            {
+                um.duplicateOldPreferences(prefs);
+            }
         }
 
     }

@@ -41,7 +41,7 @@ public class ColorSetManagerImpl implements ColorSetManager
 
     // COLORS
     private final Color c1 = new Color(206, 193, 155);
-    private final Color c2 = new Color(180, 124 ,102);        
+    private final Color c2 = new Color(180, 124, 102);
     private final Color c3 = new Color(204, 149, 104);
     private final Color c4 = new Color(110, 120, 104);
     private final Color c5 = new Color(178, 155, 136);
@@ -192,7 +192,15 @@ public class ColorSetManagerImpl implements ColorSetManager
         public void upgrade(String oldVersion)
         {
             UpgradeManager um = UpgradeManager.getInstance();
-            um.duplicateOldPreferences(prefs);
+
+            // package codebase has changed from JJazzLab 3 to JJazzLab 4: org/jjazz/ui/colorsetmanager => org/jjazz/colorsetmanager
+            if (oldVersion != null && oldVersion.length() > 0 && oldVersion.charAt(0) <= '3')
+            {
+                um.duplicateOldPreferences(prefs, "org/jjazz/ui/colorsetmanager.properties");
+            } else
+            {
+                um.duplicateOldPreferences(prefs);
+            }
         }
 
     }

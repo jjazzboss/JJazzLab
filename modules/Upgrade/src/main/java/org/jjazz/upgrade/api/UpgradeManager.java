@@ -149,22 +149,25 @@ public class UpgradeManager
 
 
     /**
-     * Copy into nbPrefs all the "old" key/value pairs from the corresponding Properties file in the getImportSourceVersion() directory structure.
+     * Copy into modulePrefs all the "old" key/value pairs from the corresponding Properties file in the getImportSourceVersion() directory structure.
      * <p>
      * To be used when package codebase has not changed between 2 versions.
      *
-     * @param nbPrefs The Netbeans preferences of a module.
+     * @param modulePrefs The Netbeans preferences of a module.
      */
-    public void duplicateOldPreferences(Preferences nbPrefs)
+    public void duplicateOldPreferences(Preferences modulePrefs)
     {
-        Preconditions.checkNotNull(nbPrefs);
-        LOGGER.log(Level.FINE, "duplicateOldPreferences() -- nbPrefs={0}", nbPrefs.absolutePath());
+        Preconditions.checkNotNull(modulePrefs);
+        LOGGER.log(Level.FINE, "duplicateOldPreferences() -- modulePrefs={0}", modulePrefs.absolutePath());
 
-                
-        String relPath=getPreferencesRelativePath(nbPrefs);
-        
+
+        String relPath = getPreferencesRelativePath(modulePrefs);
+
         // Adjust relPath if needed
-        if (getVersion().charAt(0) >= '4' && getImportSourceVersion().charAt(0) <= '3')
+        String version = getVersion();
+        String importVersion = getImportSourceVersion();
+        if (version != null && !version.isEmpty() && version.charAt(0) >= '4'
+                && importVersion != null && !importSourceVersion.isEmpty() && importVersion.charAt(0) <= '3')
         {
             // Before JJazzLab 4 we used Ant, so package code base names dit not have the "org/jjazzlab/"  prefix
             // Ex: 3.2.1/config/Preferences/org/jjazz/midi.properties  =>   4.0/config/Preferences/org/jjazzlab/org/jjazz/midi.properties
@@ -173,24 +176,24 @@ public class UpgradeManager
                 relPath = relPath.substring(13);
             }
         }
-        
-        duplicateOldPreferences(nbPrefs, relPath);
+
+        duplicateOldPreferences(modulePrefs, relPath);
     }
 
     /**
-     * Copy into nbPrefs all the "old" key/value pairs from the specified file in the getImportSourceVersion() directory structure.
+     * Copy into modulePrefs all the "old" key/value pairs from the specified file in the getImportSourceVersion() directory structure.
      * <p>
      * To be used when package codebase has changed between versions.
      *
-     * @param nbPrefs              The Netbeans preferences of a module.
+     * @param modulePrefs              The Netbeans preferences of a module.
      * @param relPathToOldPrefFile Relative path from ...config/Preferences, eg "org/jjazz/rhythm/database.properties"
      */
-    public void duplicateOldPreferences(Preferences nbPrefs, String relPathToOldPrefFile)
+    public void duplicateOldPreferences(Preferences modulePrefs, String relPathToOldPrefFile)
     {
-        Preconditions.checkNotNull(nbPrefs);
-        LOGGER.log(Level.FINE, "duplicateOldPreferences() -- nbPrefs={0} relPathToOldPrefFile={1}", new Object[]
+        Preconditions.checkNotNull(modulePrefs);
+        LOGGER.log(Level.FINE, "duplicateOldPreferences() -- modulePrefs={0} relPathToOldPrefFile={1}", new Object[]
         {
-            nbPrefs.absolutePath(),
+            modulePrefs.absolutePath(),
             relPathToOldPrefFile
         });
 
@@ -208,18 +211,18 @@ public class UpgradeManager
             // Copy properties
             for (String key : oldProps.stringPropertyNames())
             {
-                prefs.put(key, oldProps.getProperty(key));
+                modulePrefs.put(key, oldProps.getProperty(key));
             }
             try
             {
-                prefs.flush();        // Make sure it's copied to disk now
+                modulePrefs.flush();        // Make sure it's copied to disk now
                 LOGGER.log(Level.INFO, "duplicateOldPreferences() imported {0} preferences from {1}:{2} to {3}:{4}", new Object[]
                 {
                     oldProps.stringPropertyNames().size(),
                     getImportSourceVersion(),
                     relPathToOldPrefFile,
                     getVersion(),
-                    getPreferencesRelativePath(nbPrefs)
+                    getPreferencesRelativePath(modulePrefs)
                 });
             } catch (BackingStoreException ex)
             {

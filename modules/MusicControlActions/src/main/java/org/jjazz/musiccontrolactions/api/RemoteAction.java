@@ -40,12 +40,15 @@ import javax.sound.midi.SysexMessage;
 import javax.swing.Action;
 import org.jjazz.midi.api.JJazzMidiSystem;
 import org.jjazz.midi.api.MidiUtilities;
+import org.jjazz.upgrade.api.UpgradeManager;
+import org.jjazz.upgrade.api.UpgradeTask;
 import org.jjazz.utilities.api.ResUtil;
 import org.netbeans.api.progress.BaseProgressUtils;
 import org.netbeans.api.progress.ProgressRunnable;
 import org.openide.awt.Actions;
 import org.openide.util.Exceptions;
 import org.openide.util.NbPreferences;
+import org.openide.util.lookup.ServiceProvider;
 
 /**
  * A remote action stores the list of MidiMessages which can trigger an action.
@@ -68,8 +71,7 @@ public class RemoteAction
      *
      * @param actionCategory Must be a valid JJazzLab/Netbeans action category.
      * @param actionId       Must be a valid JJazzLab/Netbeans action id.
-     * @throws IllegalArgumentException If parameters do not represent a valid JJazzLab action, or if the action does not have a
-     *                                  NAME property defined.
+     * @throws IllegalArgumentException If parameters do not represent a valid JJazzLab action, or if the action does not have a NAME property defined.
      */
     public RemoteAction(String actionCategory, String actionId)
     {
@@ -162,7 +164,7 @@ public class RemoteAction
         transmitter.setReceiver(receiver);
 
         // Show a progress dialog during timeOutMs
-        ProgressRunnable<?> pr = ph ->
+        ProgressRunnable<?> pr = ph -> 
         {
             try
             {
@@ -300,8 +302,7 @@ public class RemoteAction
      * Return false if RemoteAction is not enabled.
      *
      * @param mm
-     * @return True if this message comparison is the last successful comparison with each of the reference MidiMessages of this
-     *         RemoteAction.
+     * @return True if this message comparison is the last successful comparison with each of the reference MidiMessages of this RemoteAction.
      */
     public boolean check(MidiMessage mm)
     {
@@ -495,6 +496,30 @@ public class RemoteAction
         public void close()
         {
             open = false;
+        }
+
+    }
+
+
+    // =====================================================================================
+    // Upgrade Task
+    // =====================================================================================
+    @ServiceProvider(service = UpgradeTask.class)
+    static public class RestoreSettingsTask implements UpgradeTask
+    {
+
+        @Override
+        public void upgrade(String oldVersion)
+        {
+            UpgradeManager um = UpgradeManager.getInstance();
+            // package codebase has changed from JJazzLab 3 to JJazzLab 4: org/jjazz/ui/musiccontrolactions => org/jjazz/musiccontrolactions
+            if (oldVersion != null && oldVersion.length() > 0 && oldVersion.charAt(0) <= '3')
+            {
+                um.duplicateOldPreferences(prefs, "org/jjazz/ui/musiccontrolactions.properties");
+            } else
+            {
+                um.duplicateOldPreferences(prefs);
+            }
         }
 
     }

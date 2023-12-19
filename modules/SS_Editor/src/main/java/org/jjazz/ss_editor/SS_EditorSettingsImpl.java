@@ -46,6 +46,7 @@ import org.openide.util.lookup.ServiceProviders;
 )
 public class SS_EditorSettingsImpl implements SS_EditorSettings, FontColorUserSettingsProvider
 {
+
     /**
      * The Preferences of this object.
      */
@@ -150,8 +151,16 @@ public class SS_EditorSettingsImpl implements SS_EditorSettings, FontColorUserSe
         public void upgrade(String oldVersion)
         {
             UpgradeManager um = UpgradeManager.getInstance();
-            um.duplicateOldPreferences(prefs);
+            // package codebase has changed from JJazzLab 3 to JJazzLab 4: org/jjazz/ui/ss_editor => org/jjazz/ss_editor
+            if (oldVersion != null && oldVersion.length() > 0 && oldVersion.charAt(0) <= '3')
+            {
+                um.duplicateOldPreferences(prefs, "org/jjazz/ui/ss_editor.properties");
+            } else
+            {
+                um.duplicateOldPreferences(prefs);
+            }
         }
+
 
     }
 
