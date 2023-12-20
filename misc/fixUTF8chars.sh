@@ -87,7 +87,13 @@ function process ()
 	rm $tmpFile
 }
 
-
+if [ $# -eq 0 ]
+then
+	echo "USAGE: fixUTF8chars [-i] files"
+	echo "Replace faulty strings in files and send result on the standard output."
+	echo "-i: inplace replace in files"
+	exit 1
+fi
 
 
 if [ "$1" == "-i" ]

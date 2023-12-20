@@ -163,7 +163,7 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
         // SomeSystemOption.getDefaultSynth().setSomeStringProperty(someTextField.getText());
 
         // Nothing is stored: changes are performed directly
-        MidiDevice outDevice = cb_usejjSynth.isSelected() ? embeddedSynthProvider.getOutMidiDevice() : list_OutDevices.getSelectedValue();
+        MidiDevice outDevice = cb_useFluidSynth.isSelected() ? embeddedSynthProvider.getOutMidiDevice() : list_OutDevices.getSelectedValue();
         if (outDevice != null && !outDevice.getDeviceInfo().getName().equals(saveOutDeviceNameForCancel))
         {
             Analytics.setProperties(Analytics.buildMap("Midi Out", outDevice.getDeviceInfo().getName()));
@@ -310,16 +310,16 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
 
 
         // Adapt tooltip if embedded synth is not present
-        String tooltip = isEmbeddedSynthAvailable() ? ResUtil.getString(getClass(), "MidiPanel.jjSynthPanelToolTip")
-                : ResUtil.getString(getClass(), "MidiPanel.jjSynthPanelToolTipDisabled");
-        pnl_jjSynth.setToolTipText(tooltip);
-        cb_usejjSynth.setToolTipText(tooltip);
+        String tooltip = isEmbeddedSynthAvailable() ? ResUtil.getString(getClass(), "MidiPanel.FluidSynthPanelToolTip")
+                : ResUtil.getString(getClass(), "MidiPanel.FluidSynthPanelToolTipDisabled");
+        pnl_FluidSynth.setToolTipText(tooltip);
+        cb_useFluidSynth.setToolTipText(tooltip);
 
 
         // Enable/disable                
-        cb_usejjSynth.setSelected(isEmbeddedSynthActive());
-        UIUtilities.setRecursiveEnabled(isEmbeddedSynthActive(), pnl_jjSynth);
-        cb_usejjSynth.setEnabled(isEmbeddedSynthAvailable());
+        cb_useFluidSynth.setSelected(isEmbeddedSynthActive());
+        UIUtilities.setRecursiveEnabled(isEmbeddedSynthActive(), pnl_FluidSynth);
+        cb_useFluidSynth.setEnabled(isEmbeddedSynthAvailable());
         UIUtilities.setRecursiveEnabled(!isEmbeddedSynthActive(), pnl_outDevice);
         UIUtilities.setRecursiveEnabled(isNormalSynthActive(), pnl_outputSynth);
         btn_test.setEnabled(isNormalSynthActive());
@@ -581,10 +581,10 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
         jScrollPane3 = new javax.swing.JScrollPane();
         list_OutDevices = getFilteredMidiOutList();
         btn_test = new javax.swing.JButton();
-        pnl_jjSynth = new javax.swing.JPanel();
-        cb_usejjSynth = new javax.swing.JCheckBox();
-        btn_jjSynthSettings = new javax.swing.JButton();
-        btn_jjSynthDefaultInstruments = new javax.swing.JButton();
+        pnl_FluidSynth = new javax.swing.JPanel();
+        cb_useFluidSynth = new javax.swing.JCheckBox();
+        btn_FluidSynthSettings = new javax.swing.JButton();
+        btn_FluidSynthDefaultInstruments = new javax.swing.JButton();
         jLabel1 = new javax.swing.JLabel();
 
         jScrollPane1.setViewportView(midiInDeviceList1);
@@ -748,60 +748,60 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
                 .addContainerGap())
         );
 
-        pnl_jjSynth.setBorder(javax.swing.BorderFactory.createTitledBorder(org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.pnl_jjSynth.border.title"))); // NOI18N
+        pnl_FluidSynth.setBorder(javax.swing.BorderFactory.createTitledBorder(org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.pnl_FluidSynth.border.title"))); // NOI18N
 
-        cb_usejjSynth.setFont(cb_usejjSynth.getFont().deriveFont(cb_usejjSynth.getFont().getStyle() | java.awt.Font.BOLD));
-        org.openide.awt.Mnemonics.setLocalizedText(cb_usejjSynth, org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.cb_usejjSynth.text")); // NOI18N
-        cb_usejjSynth.addActionListener(new java.awt.event.ActionListener()
+        cb_useFluidSynth.setFont(cb_useFluidSynth.getFont().deriveFont(cb_useFluidSynth.getFont().getStyle() | java.awt.Font.BOLD));
+        org.openide.awt.Mnemonics.setLocalizedText(cb_useFluidSynth, org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.cb_useFluidSynth.text")); // NOI18N
+        cb_useFluidSynth.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
             {
-                cb_usejjSynthActionPerformed(evt);
+                cb_useFluidSynthActionPerformed(evt);
             }
         });
 
-        btn_jjSynthSettings.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/options/resources/jjSynthSettingsSmall.png"))); // NOI18N
-        btn_jjSynthSettings.setToolTipText(org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.btn_jjSynthSettings.toolTipText")); // NOI18N
-        btn_jjSynthSettings.setMargin(new java.awt.Insets(2, 4, 2, 4));
-        btn_jjSynthSettings.addActionListener(new java.awt.event.ActionListener()
+        btn_FluidSynthSettings.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/options/resources/FluidSynthSettingsSmall.png"))); // NOI18N
+        btn_FluidSynthSettings.setToolTipText(org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.btn_FluidSynthSettings.toolTipText")); // NOI18N
+        btn_FluidSynthSettings.setMargin(new java.awt.Insets(2, 4, 2, 4));
+        btn_FluidSynthSettings.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
             {
-                btn_jjSynthSettingsActionPerformed(evt);
+                btn_FluidSynthSettingsActionPerformed(evt);
             }
         });
 
-        org.openide.awt.Mnemonics.setLocalizedText(btn_jjSynthDefaultInstruments, btn_defaultInstruments.getText());
-        btn_jjSynthDefaultInstruments.setToolTipText(btn_defaultInstruments.getToolTipText());
-        btn_jjSynthDefaultInstruments.addActionListener(new java.awt.event.ActionListener()
+        org.openide.awt.Mnemonics.setLocalizedText(btn_FluidSynthDefaultInstruments, btn_defaultInstruments.getText());
+        btn_FluidSynthDefaultInstruments.setToolTipText(btn_defaultInstruments.getToolTipText());
+        btn_FluidSynthDefaultInstruments.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
             {
-                btn_jjSynthDefaultInstrumentsActionPerformed(evt);
+                btn_FluidSynthDefaultInstrumentsActionPerformed(evt);
             }
         });
 
-        javax.swing.GroupLayout pnl_jjSynthLayout = new javax.swing.GroupLayout(pnl_jjSynth);
-        pnl_jjSynth.setLayout(pnl_jjSynthLayout);
-        pnl_jjSynthLayout.setHorizontalGroup(
-            pnl_jjSynthLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(pnl_jjSynthLayout.createSequentialGroup()
+        javax.swing.GroupLayout pnl_FluidSynthLayout = new javax.swing.GroupLayout(pnl_FluidSynth);
+        pnl_FluidSynth.setLayout(pnl_FluidSynthLayout);
+        pnl_FluidSynthLayout.setHorizontalGroup(
+            pnl_FluidSynthLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pnl_FluidSynthLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(cb_usejjSynth)
+                .addComponent(cb_useFluidSynth)
                 .addGap(18, 18, 18)
-                .addComponent(btn_jjSynthSettings)
+                .addComponent(btn_FluidSynthSettings)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(btn_jjSynthDefaultInstruments)
+                .addComponent(btn_FluidSynthDefaultInstruments)
                 .addContainerGap())
         );
-        pnl_jjSynthLayout.setVerticalGroup(
-            pnl_jjSynthLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(pnl_jjSynthLayout.createSequentialGroup()
+        pnl_FluidSynthLayout.setVerticalGroup(
+            pnl_FluidSynthLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pnl_FluidSynthLayout.createSequentialGroup()
                 .addGap(19, 19, 19)
-                .addGroup(pnl_jjSynthLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(btn_jjSynthDefaultInstruments)
-                    .addComponent(btn_jjSynthSettings)
-                    .addComponent(cb_usejjSynth, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGroup(pnl_FluidSynthLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(btn_FluidSynthDefaultInstruments)
+                    .addComponent(btn_FluidSynthSettings)
+                    .addComponent(cb_useFluidSynth, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(22, Short.MAX_VALUE))
         );
 
@@ -815,7 +815,7 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(pnl_jjSynth, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(pnl_FluidSynth, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(pnl_outDevice, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -827,7 +827,7 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(pnl_jjSynth, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(pnl_FluidSynth, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addGap(21, 21, 21)
@@ -841,22 +841,22 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
         );
     }// </editor-fold>//GEN-END:initComponents
 
-    private void cb_usejjSynthActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cb_usejjSynthActionPerformed
-    {//GEN-HEADEREND:event_cb_usejjSynthActionPerformed
+    private void cb_useFluidSynthActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cb_useFluidSynthActionPerformed
+    {//GEN-HEADEREND:event_cb_useFluidSynthActionPerformed
         assert embeddedSynthProvider != null;
 
         // Update state
         try
         {
-            embeddedSynthProvider.setEmbeddedSynthActive(cb_usejjSynth.isSelected());
+            embeddedSynthProvider.setEmbeddedSynthActive(cb_useFluidSynth.isSelected());
         } catch (EmbeddedSynthException ex)
         {
-            LOGGER.log(Level.WARNING, "cb_usejjSynthActionPerformed() {0}", ex.getMessage());
+            LOGGER.log(Level.WARNING, "cb_useFluidSynthActionPerformed() {0}", ex.getMessage());
             NotifyDescriptor nd = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(nd);
         }
 
-    }//GEN-LAST:event_cb_usejjSynthActionPerformed
+    }//GEN-LAST:event_cb_useFluidSynthActionPerformed
 
     private void btn_testActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_testActionPerformed
     {//GEN-HEADEREND:event_btn_testActionPerformed
@@ -962,30 +962,30 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
         dialog.setVisible(true);
     }//GEN-LAST:event_btn_defaultInstrumentsActionPerformed
 
-    private void btn_jjSynthSettingsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_jjSynthSettingsActionPerformed
-    {//GEN-HEADEREND:event_btn_jjSynthSettingsActionPerformed
+    private void btn_FluidSynthSettingsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_FluidSynthSettingsActionPerformed
+    {//GEN-HEADEREND:event_btn_FluidSynthSettingsActionPerformed
         if (embeddedSynth != null)
         {
-            embeddedSynth.showSettings(btn_jjSynthSettings);
+            embeddedSynth.showSettings(btn_FluidSynthSettings);
         }
-    }//GEN-LAST:event_btn_jjSynthSettingsActionPerformed
+    }//GEN-LAST:event_btn_FluidSynthSettingsActionPerformed
 
-    private void btn_jjSynthDefaultInstrumentsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_jjSynthDefaultInstrumentsActionPerformed
-    {//GEN-HEADEREND:event_btn_jjSynthDefaultInstrumentsActionPerformed
+    private void btn_FluidSynthDefaultInstrumentsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_FluidSynthDefaultInstrumentsActionPerformed
+    {//GEN-HEADEREND:event_btn_FluidSynthDefaultInstrumentsActionPerformed
         var title = ResUtil.getString(getClass(), "MidiPanel.SetDefaultInstsFor", editedOutputSynth.getMidiSynth().getName());
         var dialog = new DefaultInstrumentsDialog(title, editedOutputSynth.getUserSettings().getGMRemapTable());
-        dialog.setLocationRelativeTo(btn_jjSynthDefaultInstruments);
+        dialog.setLocationRelativeTo(btn_FluidSynthDefaultInstruments);
         dialog.setVisible(true);
-    }//GEN-LAST:event_btn_jjSynthDefaultInstrumentsActionPerformed
+    }//GEN-LAST:event_btn_FluidSynthDefaultInstrumentsActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_defaultInstruments;
-    private javax.swing.JButton btn_jjSynthDefaultInstruments;
-    private javax.swing.JButton btn_jjSynthSettings;
+    private javax.swing.JButton btn_FluidSynthDefaultInstruments;
+    private javax.swing.JButton btn_FluidSynthSettings;
     private javax.swing.JButton btn_refresh;
     private javax.swing.JButton btn_test;
-    private javax.swing.JCheckBox cb_usejjSynth;
+    private javax.swing.JCheckBox cb_useFluidSynth;
     private javax.swing.JComboBox<MidiSynth> combo_midiSynths;
     private javax.swing.JComboBox<UserSettings.SendModeOnUponPlay> combo_sendMessageUponPlay;
     private org.jjazz.uiutilities.api.HelpTextArea helpTextArea1;
@@ -1001,7 +1001,7 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
     private javax.swing.JScrollPane jScrollPane6;
     private org.jjazz.midi.api.ui.MidiOutDeviceList list_OutDevices;
     private org.jjazz.midi.api.ui.MidiInDeviceList midiInDeviceList1;
-    private javax.swing.JPanel pnl_jjSynth;
+    private javax.swing.JPanel pnl_FluidSynth;
     private javax.swing.JPanel pnl_outDevice;
     private javax.swing.JPanel pnl_outputSynth;
     private org.jjazz.uiutilities.api.WheelSpinner spn_audioLatency;

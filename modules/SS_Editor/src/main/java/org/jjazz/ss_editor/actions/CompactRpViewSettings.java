@@ -29,7 +29,6 @@ import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
 import org.jjazz.analytics.api.Analytics;
 import org.jjazz.rhythm.api.Rhythm;
-import org.jjazz.ss_editor.CompactViewModeController;
 import org.openide.windows.WindowManager;
 import org.jjazz.ss_editor.api.SS_EditorTopComponent;
 import org.jjazz.utilities.api.ResUtil;
@@ -44,7 +43,7 @@ import org.openide.awt.ActionRegistration;
  * <p>
  */
 @ActionID(category = "JJazz", id = "org.jjazz.ss_editor.actions.compactrpviewsettings")
-@ActionRegistration(displayName = "#CTL_CompactRpViewSettings", lazy = false)  // To have the tooltip
+@ActionRegistration(displayName = "#CTL_CompactRpViewSettings", lazy = false) // To have the tooltip
 @ActionReferences(
         {
             @ActionReference(path = "Actions/SS_EditorToolBar", position = 110)
@@ -53,7 +52,8 @@ public class CompactRpViewSettings extends AbstractAction
 {
 
     private static final Logger LOGGER = Logger.getLogger(CompactRpViewSettings.class.getSimpleName());
-    private static final ImageIcon ICON = new ImageIcon(CompactRpViewSettings.class.getResource("/org/jjazz/ss_editor/actions/resources/CompactViewSettings.png"));
+    private static final ImageIcon ICON = new ImageIcon(
+            CompactRpViewSettings.class.getResource("/org/jjazz/ss_editor/actions/resources/CompactViewSettings.png"));
 
     public CompactRpViewSettings()
     {
@@ -65,21 +65,21 @@ public class CompactRpViewSettings extends AbstractAction
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        LOGGER.log(Level.FINE, "actionPerformed()");   
+        LOGGER.log(Level.FINE, "actionPerformed()");
         SS_EditorTopComponent ssTc = SS_EditorTopComponent.getActive();
         if (ssTc == null)
         {
             return;
         }
-        
+
         var editor = ssTc.getEditor();
         var song = editor.getSongModel();
         if (song.getSongStructure().getSongParts().isEmpty())
-        {           
+        {
             return;
         }
 
-        
+
         CompactRpViewSettingsDialog dlg = CompactRpViewSettingsDialog.getInstance();
         dlg.setModel(editor);
         dlg.setLocationRelativeTo(WindowManager.getDefault().getMainWindow());
@@ -91,7 +91,7 @@ public class CompactRpViewSettings extends AbstractAction
             var res = dlg.getResult();
             for (Rhythm r : res.keySet())
             {
-                CompactViewModeController.writeCompactViewModeVisibleRPs(song, r, res.get(r));
+                editor.setCompactViewRPs(r, res.get(r));
             }
 
             // Only first rhythm visible parameters

@@ -1033,27 +1033,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         return res;
     }
 
-    /**
-     * Retrieve an editor action from its ActionMap.
-     *
-     * @param actionId
-     * @return
-     * @throws IllegalArgumentException If no action found
-     */
-    public Action getAction(String actionId)
-    {
-        Action a = getActionMap().get(actionId);
-        if (a == null)
-        {
-            a = notesPanel.getActionMap().get(actionId);
-        }
-        if (a == null)
-        {
-            throw new IllegalArgumentException("unknown actionId=" + actionId);
-        }
-        return a;
-    }
-
+    
     /**
      * @return The UndoManager used by this editor.
      */

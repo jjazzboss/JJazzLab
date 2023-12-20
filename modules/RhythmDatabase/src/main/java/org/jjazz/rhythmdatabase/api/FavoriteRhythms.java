@@ -50,10 +50,10 @@ public class FavoriteRhythms
     /**
      * Used internally to store the nb of favorites
      */
-    private static final String PROP_NB_FAVORITE_RHYTHMS = "PropNbFavoriteRhythms";
-    private ArrayList<RhythmInfo> rhythms = new ArrayList<>();
-    private static Preferences prefs = NbPreferences.forModule(FavoriteRhythms.class);
-    private SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    private static final String PREF_NB_FAVORITE_RHYTHMS = "PropNbFavoriteRhythms";
+    private final ArrayList<RhythmInfo> rhythms = new ArrayList<>();
+    private static final Preferences prefs = NbPreferences.forModule(FavoriteRhythms.class);
+    private final SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(FavoriteRhythms.class.getSimpleName());
 
     public static FavoriteRhythms getInstance()
@@ -194,13 +194,13 @@ public class FavoriteRhythms
     private void updateProperties()
     {
         // Clean the previous properties (needed when the nb of rhythms has decreased)
-        int oldNbRhythms = prefs.getInt(PROP_NB_FAVORITE_RHYTHMS, 0);
+        int oldNbRhythms = prefs.getInt(PREF_NB_FAVORITE_RHYTHMS, 0);
         for (int i = 0; i < oldNbRhythms; i++)
         {
             prefs.remove(PROP_FAVORITE_RHYTHM + i);
         }
         // Save the new nb of rhythms
-        prefs.putInt(PROP_NB_FAVORITE_RHYTHMS, rhythms.size());
+        prefs.putInt(PREF_NB_FAVORITE_RHYTHMS, rhythms.size());
         // And recreate the needed properties
         int i = 0;
         for (RhythmInfo ri : rhythms)
@@ -212,7 +212,7 @@ public class FavoriteRhythms
 
     private void restoreFavoriteRhythmsFromProperties()
     {
-        int nbRhythms = prefs.getInt(PROP_NB_FAVORITE_RHYTHMS, 0);
+        int nbRhythms = prefs.getInt(PREF_NB_FAVORITE_RHYTHMS, 0);
         for (int i = 0; i < nbRhythms; i++)
         {
             // Loop on each saved rhythm

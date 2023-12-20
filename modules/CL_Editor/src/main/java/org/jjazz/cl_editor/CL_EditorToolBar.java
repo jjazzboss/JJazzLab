@@ -27,8 +27,10 @@ import java.util.List;
 import javax.swing.Action;
 import javax.swing.Box.Filler;
 import javax.swing.JToolBar;
+import org.jjazz.cl_editor.actions.ToggleBarAnnotations;
 import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.flatcomponents.api.FlatButton;
+import org.jjazz.flatcomponents.api.FlatToggleButton;
 import org.openide.util.Utilities;
 
 /**
@@ -64,13 +66,15 @@ public class CL_EditorToolBar extends JToolBar
             }
         }
 
+        Filler hardFiller = new javax.swing.Box.Filler(new java.awt.Dimension(1, 5), new java.awt.Dimension(1, 5), new java.awt.Dimension(32767, 5));
+        add(hardFiller);
 
+        
         // Add song-specific actions
-        // Compact/Full view switching button
-//        ToggleCompactView a = (ToggleCompactView) Actions.forID("JJazz", "org.jjazz.ss_editor.actions.togglecompactview");
-//        assert a != null;
-//        ToggleCompactViewButton toggleViewButton = new ToggleCompactViewButton(editor, a);
-//        add(toggleViewButton);
+        
+        // Show/hide bar annotations        
+        FlatToggleButton ftb = new FlatToggleButton(ToggleBarAnnotations.getInstance(editor));
+        add(ftb);
 
 
         add(FILLER_GLUE);    // At the end

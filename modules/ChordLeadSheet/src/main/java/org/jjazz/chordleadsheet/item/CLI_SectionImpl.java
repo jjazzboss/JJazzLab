@@ -129,6 +129,8 @@ public class CLI_SectionImpl implements CLI_Section, WritableItem<Section>, Seri
 
     /**
      * Make sure the copy has a different name.
+     * 
+     * Copy also the client properties.
      */
     @Override
     public synchronized CLI_Section getCopy(ChordLeadSheet newCls, Position newPos)
@@ -137,6 +139,7 @@ public class CLI_SectionImpl implements CLI_Section, WritableItem<Section>, Seri
         ChordLeadSheet cls = (newCls != null) ? newCls : getContainer();
         CLI_SectionImpl cli = new CLI_SectionImpl(CLI_Section.createSectionName(data.getName(), cls), data.getTimeSignature(), barIndex);
         cli.setContainer(cls);
+        cli.getClientProperties().set(clientProperties);
         return cli;
     }
 

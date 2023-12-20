@@ -3,11 +3,11 @@
    viewBox="0 0 12 12"
    version="1.1"
    id="svg4"
-   sodipodi:docname="ArrowsZoomRps.svg"
+   sodipodi:docname="EditorsSideToolbarIcons.svg"
    inkscape:version="1.1 (c68e22c387, 2021-05-23)"
    width="12"
    height="12"
-   inkscape:export-filename="D:\JeromeDocs\JJazzLab\src\JJazzLab-X\Graphics\CompactViewSettings.png"
+   inkscape:export-filename="D:\JeromeDocs\JJazzLab\src\JJazzLab\graphics\ShowBarAnnotations-OFF.png"
    inkscape:export-xdpi="128"
    inkscape:export-ydpi="128"
    shape-rendering="crispEdges"
@@ -130,12 +130,12 @@
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
      inkscape:window-width="1920"
-     inkscape:window-height="1017"
+     inkscape:window-height="1009"
      id="namedview6"
      showgrid="false"
-     inkscape:zoom="8"
-     inkscape:cx="-20.625"
-     inkscape:cy="6.1875"
+     inkscape:zoom="32"
+     inkscape:cx="0.84375"
+     inkscape:cy="4.046875"
      inkscape:window-x="-8"
      inkscape:window-y="-8"
      inkscape:window-maximized="1"
@@ -232,7 +232,7 @@
      inkscape:export-filename="D:\JeromeDocs\JJazzLab\src\JJazzLab-X\Graphics\CompactViewSettings.png"
      inkscape:export-xdpi="128"
      inkscape:export-ydpi="128"
-     transform="matrix(0.01519117,0,0,0.01519117,2.145624,2.1456128)">
+     transform="matrix(0.01519117,0,0,0.01519117,13.145624,-20.479387)">
     <g
        id="settings"
        style="fill:#808080">
@@ -305,7 +305,7 @@
      inkscape:export-xdpi="151.60117"
      inkscape:connector-curvature="0"
      id="path894"
-     d="m -3.2468407,19.788861 c 0.080052,-0.04689 0.7242017,-0.425785 1.4314399,-0.841989 0.7072388,-0.416207 1.3090054,-0.765291 1.3372587,-0.775742 0.032154,-0.01187 0.070755,-0.019 0.1031423,-0.019 0.032399,0 0.070997,0.0071 0.1031422,0.019 0.028249,0.01044 0.6221389,0.35487 1.319754,0.765376 0.6976123,0.410502 1.3417649,0.789428 1.4314458,0.842059 0.1867731,0.109608 0.2001036,0.129117 0.1120668,0.163997 L 2.540433,19.96277 H 1.8327079 0.7343553 l -0.00568,2.036684 h -2.3151387 v -2.036685 h -0.9613569 -0.7426083 l -0.050985,-0.02021 c -0.086434,-0.03426 -0.073503,-0.05526 0.094575,-0.153701 z"
+     d="m -25.996841,30.038861 c 0.08005,-0.04689 0.724202,-0.425785 1.43144,-0.841989 0.707239,-0.416207 1.309006,-0.765291 1.337259,-0.775742 0.03215,-0.01187 0.07075,-0.019 0.103142,-0.019 0.0324,0 0.071,0.0071 0.103142,0.019 0.02825,0.01044 0.622139,0.35487 1.319754,0.765376 0.697613,0.410502 1.341765,0.789428 1.431446,0.842059 0.186773,0.109608 0.200104,0.129117 0.112067,0.163997 l -0.05098,0.02021 h -0.707725 -1.098353 l -0.0057,2.036684 h -2.315138 v -2.036685 h -0.961357 -0.742609 l -0.05099,-0.02021 c -0.08643,-0.03426 -0.0735,-0.05526 0.09457,-0.153701 z"
      style="fill:#808080;fill-opacity:0.992157;stroke:#808080;stroke-width:0.0109789;stroke-opacity:0.992157"
      sodipodi:nodetypes="sscscsscccccccccsss" />
   <rect
@@ -313,15 +313,15 @@
      id="rect896"
      width="8.7309151"
      height="1.1152331"
-     x="-4.7404575"
-     y="13.223063" />
+     x="-27.490458"
+     y="23.473063" />
   <rect
      style="opacity:0.99;vector-effect:none;fill:#808080;fill-opacity:1;stroke:#818181;stroke-width:0.503864;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0.774;stroke-opacity:1"
      id="rect898"
      width="8.7309151"
      height="1.1152331"
-     x="-4.7404575"
-     y="15.848443" />
+     x="-27.490458"
+     y="26.098442" />
   <g
      id="g4127"
      transform="matrix(1.1485017,0,0,1.1485017,28.517897,16.010344)"
@@ -355,4 +355,18 @@
        x="0.2366835"
        y="8.7175503" />
   </g>
+  <rect
+     style="opacity:0.99;vector-effect:none;fill:#808080;fill-opacity:1;stroke:#818181;stroke-width:0.503864;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0.774;stroke-opacity:1"
+     id="rect19954"
+     width="8.7309151"
+     height="1.1152331"
+     x="1.6345423"
+     y="1.7543133" />
+  <rect
+     style="opacity:0.99;vector-effect:none;fill:#808080;fill-opacity:1;stroke:#818181;stroke-width:0.503864;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0.774;stroke-opacity:1"
+     id="rect19956"
+     width="8.7309151"
+     height="1.1152331"
+     x="1.6345423"
+     y="4.535943" />
 </svg>

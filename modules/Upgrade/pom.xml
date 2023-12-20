@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.jjazzlab</groupId>
         <artifactId>jjazzlab-parent</artifactId>
-        <version>4.0-BETA2-SNAPSHOT</version>
+        <version>4.0-BETA2</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
     <artifactId>org-jjazz-upgrade</artifactId>
@@ -60,7 +60,12 @@
             <groupId>org.netbeans.api</groupId> 
             <artifactId>org-openide-util-lookup</artifactId> 
             <version>${netbeans.version}</version>  
-        </dependency> 
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>org-jjazz-guava</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

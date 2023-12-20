@@ -1,4 +1,4 @@
-Internationalization INFO
+Netbeans Internationalization INFO
 
 I18N wizard Format to use (it's often reset if string has some args or not, so need to copy & paste): 
 ResUtil.getString(getClass(),"{key}", {arguments})

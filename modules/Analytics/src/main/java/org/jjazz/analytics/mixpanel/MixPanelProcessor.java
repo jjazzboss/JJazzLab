@@ -34,7 +34,7 @@ public class MixPanelProcessor implements AnalyticsProcessor
     DeliveryThread worker;
     private boolean enabled;
 
-    private final MessageBuilder messageBuilder;
+    private MessageBuilder messageBuilder;
 
     private String distinctId = null;
     private static final Logger LOGGER = Logger.getLogger(MixPanelProcessor.class.getSimpleName());
@@ -44,6 +44,18 @@ public class MixPanelProcessor implements AnalyticsProcessor
      */
     public MixPanelProcessor()
     {
+        enabled = false;
+        String token = System.getProperty("mp.token");
+        if (token == null)
+        {
+            return;
+        }
+
+        enabled = true;
+        distinctId = Analytics.getJJazzLabComputerId();
+        LOGGER.log(Level.INFO, "MixPanelProcessor() distinctId={0}", distinctId);
+
+
         // prepare the thread
         msgQueue = new ConcurrentLinkedQueue<>();
         worker = new DeliveryThread();
@@ -51,15 +63,8 @@ public class MixPanelProcessor implements AnalyticsProcessor
         worker.start();
 
 
-        String token = System.getProperty("run.from.ide") == null ? "a67ed8aa58b306c1336dcf74fb99b2f69f1" : "0000";
-        distinctId = token.equals("0000") ? "null" : Analytics.getJJazzLabComputerId();
-        LOGGER.log(Level.INFO, "MixPanelProcessor() distinctId={0}", distinctId);
-
-
         // Prepare data to send message
-        messageBuilder = new MessageBuilder(prep(token));
-
-        setEnabled(token != null);
+        messageBuilder = new MessageBuilder(fmt(token));
     }
 
 
@@ -69,14 +74,20 @@ public class MixPanelProcessor implements AnalyticsProcessor
     }
 
 
-    public final void setEnabled(boolean enabled)
+    public final void setEnabled(boolean b)
     {
-        this.enabled = enabled;
+        LOGGER.log(Level.INFO, "setEnabled() enabled=", b);
+        this.enabled = b;
     }
 
     @Override
     public void logEvent(String eventName)
     {
+        if (!enabled)
+        {
+            return;
+        }
+
         LOGGER.log(Level.FINE, "logEvent() eventName={0}", eventName);
 
 
@@ -89,63 +100,66 @@ public class MixPanelProcessor implements AnalyticsProcessor
 
         } else
         {
-            postMessage(msg);
+            msgQueue.add(msg);
         }
     }
 
     @Override
     public void logEvent(String eventName, Map<String, ?> properties)
     {
+        if (!enabled)
+        {
+            return;
+        }
         LOGGER.log(Level.FINE, "logEvent() eventName={0} properties={1}", new Object[]
         {
             eventName, properties
         });
         JSONObject msg = messageBuilder.event(distinctId, eventName, new JSONObject(properties));
-        postMessage(msg);
+        msgQueue.add(msg);
     }
 
     @Override
     public void setProperties(Map<String, ?> properties)
     {
+        if (!enabled)
+        {
+            return;
+        }
         LOGGER.log(Level.FINE, "setProperties() properties={0}", properties);
         JSONObject msg = messageBuilder.set(distinctId, new JSONObject(properties));
-        postMessage(msg);
+        msgQueue.add(msg);
     }
 
     @Override
     public void setPropertiesOnce(Map<String, ?> properties)
     {
+        if (!enabled)
+        {
+            return;
+        }
         LOGGER.log(Level.FINE, "setPropertiesOnce() properties={0}", properties);
         JSONObject msg = messageBuilder.setOnce(distinctId, new JSONObject(properties));
-        postMessage(msg);
+        msgQueue.add(msg);
     }
 
     @Override
     public void incrementProperties(Map<String, Long> properties)
     {
+        if (!enabled)
+        {
+            return;
+        }
         LOGGER.log(Level.FINE, "incrementProperties() properties={0}", properties);
         JSONObject msg = messageBuilder.increment(distinctId, properties);
-        postMessage(msg);
+        msgQueue.add(msg);
     }
 
 
     // ============================================================================================
     // Private methods
     // ============================================================================================    
-    /**
-     * Post the message if processor is enabled.
-     *
-     * @param msg
-     */
-    private void postMessage(JSONObject msg)
-    {
-        if (isEnabled())
-        {
-            msgQueue.add(msg);
-        }
-    }
-
-
+ 
     /**
      * Flush the pending events and send them with lastMessage.
      *
@@ -178,9 +192,9 @@ public class MixPanelProcessor implements AnalyticsProcessor
         logEventsImmediatly(2000, messages);
     }
 
-    private String prep(String s)
+    private String fmt(String s)
     {
-        return  s.substring(3);
+        return s.substring(3);
     }
 
     /**

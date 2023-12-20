@@ -147,7 +147,7 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
     }
 
     /**
-     * Note that we also copy the alternate data and filter.
+     * Note that we also copy the alternate data and filter, and the client properties.
      *
      * @param newCls
      * @param newPos

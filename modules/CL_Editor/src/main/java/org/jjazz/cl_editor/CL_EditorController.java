@@ -34,6 +34,7 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.KeyboardFocusManager;
 import java.awt.Point;
+import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
@@ -52,7 +53,8 @@ import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.chordleadsheet.api.item.Position;
-import org.jjazz.cl_editor.actions.ToggleBarAnnotationVisible;
+import org.jjazz.cl_editor.actions.Edit;
+import org.jjazz.cl_editor.actions.ToggleBarAnnotations;
 import org.jjazz.cl_editor.barbox.api.BarBox;
 import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.cl_editor.api.CL_EditorMouseListener;
@@ -71,7 +73,6 @@ import org.openide.util.Utilities;
  */
 public class CL_EditorController implements CL_EditorMouseListener
 {
-
     /**
      * Actions reused several times
      */
@@ -131,13 +132,12 @@ public class CL_EditorController implements CL_EditorMouseListener
         editor.getActionMap().put("AccentCrash", Actions.forID("JJazz", "org.jjazz.cl_editor.actions.accentcrash"));
         editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("X"), "ExtendHoldShot");
         editor.getActionMap().put("ExtendHoldShot", Actions.forID("JJazz", "org.jjazz.cl_editor.actions.extendholdshot"));
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(getGenericControlKeyStroke(KeyEvent.VK_L), "ToggleBarAnnotation");
-        editor.getActionMap().put("ToggleBarAnnotation", new ToggleBarAnnotationVisible());
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(getGenericControlKeyStroke(KeyEvent.VK_L), "ToggleBarAnnotations");
+        editor.getActionMap().put("ToggleBarAnnotations", ToggleBarAnnotations.getInstance(editor));
         editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("L"), "InsertBarAnnotation");
         editor.getActionMap().put("InsertBarAnnotation", Actions.forID("JJazz", "org.jjazz.cl_editor.actions.insertbarannotation"));
         editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("T"), "InsertSection");
         editor.getActionMap().put("InsertSection", Actions.forID("JJazz", "org.jjazz.cl_editor.actions.insertsection"));
-        
 
 
         // Our delegates for standard Netbeans callback actions
@@ -186,22 +186,6 @@ public class CL_EditorController implements CL_EditorMouseListener
         editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("END"), "JumpToEnd");
         editor.getActionMap().put("JumpToEnd", new JumpToEnd());
 
-
-        // Try to restore zoom factors
-        Zoomable zoomable = editor.getLookup().lookup(Zoomable.class);
-        if (zoomable != null)
-        {
-            int zfx = editor.getSongSpecificEditorProperties().loadZoomFactor(true);
-            if (zfx != -1)
-            {
-                zoomable.setZoomXFactor(zfx, false);
-            }
-            int zfy = editor.getSongSpecificEditorProperties().loadZoomFactor(false);
-            if (zfy != -1)
-            {
-                zoomable.setZoomYFactor(zfy, false);
-            }
-        }
 
     }
 
@@ -284,7 +268,9 @@ public class CL_EditorController implements CL_EditorMouseListener
             editor.setFocusOnItem(item, irType);
 
             // Edit with registered action
-            editAction.actionPerformed(null);
+            ActionEvent ae = new ActionEvent(e.getSource(), ActionEvent.ACTION_FIRST, "item");
+            editAction.actionPerformed(ae);
+            
         } else if (e.getClickCount() == 1 && SwingUtilities.isRightMouseButton(e))
         {
             // Right click                   
@@ -313,7 +299,7 @@ public class CL_EditorController implements CL_EditorMouseListener
                 popupSectionMenu.show(e.getComponent(), e.getX(), e.getY());
             } else if (item instanceof CLI_BarAnnotation)
             {
-                  if (popupBarAnnotationMenu == null)
+                if (popupBarAnnotationMenu == null)
                 {
                     List<? extends Action> actions = Utilities.actionsForPath("Actions/BarAnnotation");
                     popupBarAnnotationMenu = Utilities.actionsToPopup(actions.toArray(Action[]::new), editor);
@@ -427,7 +413,8 @@ public class CL_EditorController implements CL_EditorMouseListener
             // Edit bar using registered action
             if (barIndex < editor.getModel().getSizeInBars())
             {
-                editAction.actionPerformed(null);
+                ActionEvent ae = new ActionEvent(e.getSource(), ActionEvent.ACTION_FIRST, "bar");
+                editAction.actionPerformed(ae);
             }
         } else if (e.getClickCount() == 1 && SwingUtilities.isRightMouseButton(e))
         {

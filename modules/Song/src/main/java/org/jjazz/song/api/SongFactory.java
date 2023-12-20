@@ -240,8 +240,7 @@ public class SongFactory implements PropertyChangeListener
      * @param name
      * @param cls
      * @return
-     * @throws UnsupportedEditException Can happen if too many timesignature changes resulting in not enough Midi channels for the various
-     *                                  rhythms.
+     * @throws UnsupportedEditException Can happen if too many timesignature changes resulting in not enough Midi channels for the various rhythms.
      */
     public Song createSong(String name, ChordLeadSheet cls) throws UnsupportedEditException
     {
@@ -261,8 +260,7 @@ public class SongFactory implements PropertyChangeListener
      * @param cls
      * @param sgs  Must be kept consistent with cls changes (sgs.getParentChordLeadSheet() must be non null)
      * @return
-     * @throws UnsupportedEditException Can happen if too many timesignature changes resulting in not enough Midi channels for the various
-     *                                  rhythms.
+     * @throws UnsupportedEditException Can happen if too many timesignature changes resulting in not enough Midi channels for the various rhythms.
      */
     public Song createSong(String name, ChordLeadSheet cls, SongStructure sgs) throws UnsupportedEditException
     {
@@ -336,8 +334,9 @@ public class SongFactory implements PropertyChangeListener
     /**
      * Return a deep copy of the specified song.
      * <p>
-     * Copy only the following variables: chordleadsheet, songStructure, name, tempo, comments, tags, user phrases<br>
-     * Listeners or file are NOT copied.
+     * Copy the following variables: chordleadsheet, songStructure, name, tempo, comments, tags, user phrases, clientProperties.<br>
+     * ChordLeadSheetItem's clientProperties are copied.<br>
+     * Listeners or file are NOT copied. Returned song is not closed, even if the original song was.
      *
      * @param song
      * @param register If true register the created song
@@ -416,6 +415,11 @@ public class SongFactory implements PropertyChangeListener
             }
         }
 
+
+        // Copy client properties
+        s.getClientProperties().set(song.getClientProperties());
+
+
         s.setSaveNeeded(false);
         if (register)
         {
@@ -427,10 +431,9 @@ public class SongFactory implements PropertyChangeListener
     /**
      * Return a copy of the song where the SongStructure does NOT listen to the ChordLeadsheet changes.
      * <p>
-     * WARNING: Because SongStructure and ChordLeadsheet are not linked, changing them might result in inconsistent states. This should be
-     * used only in special cases.<p>
-     * Copy the following variables: chordleadsheet, songStructure, name, tempo, comments, tags, user phrases. Listeners or file are NOT
-     * copied.
+     * WARNING: Because SongStructure and ChordLeadsheet are not linked, changing them might result in inconsistent states. This should be used only in special
+     * cases.<p>
+     * Copy the following variables: chordleadsheet, songStructure, name, tempo, comments, tags, user phrases. Listeners or file are NOT copied.
      *
      * @param song
      * @param register If true register the created song.

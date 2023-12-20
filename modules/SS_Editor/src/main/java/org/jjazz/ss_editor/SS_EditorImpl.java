@@ -22,6 +22,7 @@
  */
 package org.jjazz.ss_editor;
 
+import com.google.common.base.Preconditions;
 import static com.google.common.base.Preconditions.checkNotNull;
 import org.jjazz.ss_editor.api.SS_SelectionUtilities;
 import java.awt.Component;
@@ -73,7 +74,6 @@ import org.jjazz.ss_editor.rpviewer.api.RpViewer;
 import org.jjazz.uiutilities.api.Zoomable;
 import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
-import org.jjazz.utilities.api.SmallMap;
 import org.openide.util.Lookup;
 import org.openide.util.lookup.AbstractLookup;
 import org.openide.util.lookup.InstanceContent;
@@ -92,8 +92,7 @@ import org.jjazz.ss_editor.api.SS_EditorMouseListener;
 public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, SgsChangeListener, MouseListener, MouseWheelListener
 {
 
-    public static final String PROP_ZOOM_FACTOR_X = "PropSsEditorZoomFactorX";
-    public static final String PROP_ZOOM_FACTOR_Y = "PropSsEditorZoomFactorY";
+
     // UI variables
     private javax.swing.JPanel panel_SongParts;
     private InsertionSptMark insertionMark;
@@ -165,6 +164,8 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
      */
     private SS_EditorSettings settings;
     private SptViewerFactory sptViewerFactory;
+    private final SongSpecificSS_EditorProperties songSpecificProperties;
+    private ViewMode viewMode;
     private static final Logger LOGGER = Logger.getLogger(SS_EditorImpl.class.getSimpleName());
 
     /**
@@ -178,7 +179,14 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         }
         this.settings = settings;
         songModel = song;
+        sgsModel = song.getSongStructure();
         sptViewerFactory = factory;
+        songSpecificProperties = new SongSpecificSS_EditorProperties(songModel);
+        this.viewMode = ViewMode.NORMAL;
+
+        // Make sure all Rhythms have a default list of visible RPs in compact view mode
+        storeVisibleRPsInCompactModeIfRequired(song.getSongStructure().getUniqueRhythms(false, true));
+
 
         // Listen to settings changes
         this.settings.addPropertyChangeListener(this);
@@ -198,9 +206,11 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         generalLookupContent.add(zoomable);
         generalLookupContent.add(getActionMap());
 
-        // Normal zoom
-        zoomHFactor = 50;
-        zoomVFactor = 50;
+        // Restore zoom
+        int zx = songSpecificProperties.loadZoomXFactor();
+        zoomHFactor = zx > -1 ? zx : 50;
+        int zy = songSpecificProperties.loadZoomYFactor();
+        zoomVFactor = zy > -1 ? zy : 50;
 
         // Global lookup = sum of both
         lookup = new ProxyLookup(selectionLookup, generalLookup);
@@ -236,7 +246,6 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         addMouseWheelListener(this);                    // For zoom operations
 
         // Listen to our models
-        sgsModel = song.getSongStructure();
         sgsModel.addSgsChangeListener(this);
 
         // Connect our undomanager to our model
@@ -297,10 +306,6 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         }
     }
 
-    protected void setCompactViewController(CompactViewModeController controller)
-    {
-
-    }
 
     @Override
     public void cleanup()
@@ -328,41 +333,6 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         lastPlaybackSpt = null;
     }
 
-    @Override
-    public void setVisibleRps(Rhythm r, List<RhythmParameter<?>> rps)
-    {
-        checkNotNull(r);
-        checkNotNull(rps);
-
-        LOGGER.log(Level.FINE, "setVisibleRps() rps={0}", rps);
-
-        var newRpsSorted = sortRhythmParameters(r, rps);
-        if (newRpsSorted.isEmpty())
-        {
-            throw new IllegalArgumentException("r=" + r + " rps=" + rps + " newRpsSorted=" + newRpsSorted);
-        }
-        var oldRps = mapRhythmVisibleRps.get(r);
-        if (newRpsSorted.equals(oldRps))
-        {
-            return;
-        }
-
-        // Store the rps
-        mapRhythmVisibleRps.put(r, newRpsSorted);
-
-
-        // Update UI
-        for (SptViewer sptv : getSptViewers())
-        {
-            if (sptv.getModel().getRhythm() == r)
-            {
-                sptv.setVisibleRps(newRpsSorted);
-            }
-        }
-
-        // Fire event
-        firePropertyChange(SS_Editor.PROP_VISIBLE_RPS, oldRps, newRpsSorted);
-    }
 
     @Override
     public void selectSongPart(SongPart spt, boolean b)
@@ -677,7 +647,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
 
 
         // Save the zoom factor with the song as a client property
-        songModel.getClientProperties().put(PROP_ZOOM_FACTOR_X, Integer.toString(factor));
+        songSpecificProperties.storeZoomXFactor(factor);
 
 
         revalidate();
@@ -709,8 +679,10 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         }
         zoomable.fireYPropertyChange(oldFactor, zoomVFactor);
 
+
         // Save the zoom factor with the song as a client property
-        songModel.getClientProperties().put(PROP_ZOOM_FACTOR_Y, Integer.toString(factor));
+        songSpecificProperties.storeZoomYFactor(factor);
+
 
         revalidate();
         repaint();
@@ -735,6 +707,62 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
             spt = ((RpViewer) c).getSptModel();
         }
         return spt;
+    }
+
+
+    @Override
+    public ViewMode getViewMode()
+    {
+        return viewMode;
+    }
+
+    @Override
+    public void setViewMode(ViewMode mode)
+    {
+        Preconditions.checkNotNull(mode);
+        ViewMode old = viewMode;
+        if (old.equals(mode))
+        {
+            return;
+        }
+
+        viewMode = mode;
+        songSpecificProperties.storeViewMode(mode);
+
+
+        boolean b = viewMode.equals(ViewMode.COMPACT);
+        var allRhythms = sgsModel.getUniqueRhythms(false, true);
+
+        for (var r : allRhythms)
+        {
+            List<RhythmParameter<?>> rps = b ? songSpecificProperties.loadCompactViewModeVisibleRPs(r) : r.getRhythmParameters();
+            if (rps.isEmpty())
+            {
+                // Might happen e.g. when duplicating a song with multiple time signatures
+            }
+            setVisibleRps(r, rps);
+        }
+
+        firePropertyChange(PROP_EDITOR_VIEW_MODE, old, mode);
+    }
+
+    @Override
+    public List<RhythmParameter<?>> getCompactViewRPs(Rhythm r)
+    {
+        return songSpecificProperties.loadCompactViewModeVisibleRPs(r);
+    }
+
+    @Override
+    public void setCompactViewRPs(Rhythm r, List<RhythmParameter<?>> rps)
+    {
+        Preconditions.checkNotNull(r);
+        Preconditions.checkNotNull(rps);
+        var old = getCompactViewRPs(r);
+        if (!old.equals(rps))
+        {
+            songSpecificProperties.storeCompactViewModeVisibleRPs(r, rps);
+            firePropertyChange(PROP_COMPACT_VIEW_MODE_VISIBLE_RPS, r, rps);
+        }
     }
 
     //------------------------------------------------------------------------------
@@ -784,7 +812,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
             {
                 e, e.getSongParts()
             });
-            
+
             if (e instanceof SptRemovedEvent)
             {
                 for (SongPart spt : e.getSongParts())
@@ -808,11 +836,21 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
                 panel_SongParts.revalidate();  // Needed to get immediate UI update
                 updateSptsVisibleRhythmAndTimeSignature();
                 updateSptMultiSelectMode();
+                storeVisibleRPsInCompactModeIfRequired(e.getSongParts().stream()
+                        .map(spt -> spt.getRhythm())
+                        .toList());
+
             } else if (e instanceof SptReplacedEvent re)
             {
                 List<SongPart> oldSpts = re.getSongParts();
                 List<SongPart> newSpts = re.getNewSpts();
                 LOGGER.log(Level.FINE, "SS_EditorImpl.songStructureChanged() SptReplacedEvent  newSpts={0}", newSpts);
+
+
+                storeVisibleRPsInCompactModeIfRequired(newSpts.stream()
+                        .map(spt -> spt.getRhythm())
+                        .toList());
+
 
                 // Save selection so we can restore it the best we can after replacing
                 SS_SelectionUtilities previousSelection = new SS_SelectionUtilities(selectionLookup);
@@ -940,7 +978,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         }
     }
     //------------------------------------------------------------------------------
-    // Private functions
+    // Private methods
     //------------------------------------------------------------------------------      
 
     private void initUIComponents()
@@ -1157,6 +1195,120 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
     }
 
     /**
+     * Update the visible RPs for a given rhythm.
+     * <p>
+     * Fire a PROP_RHYHM_VISIBLE_RPS change event.
+     *
+     * @param r
+     * @param rps
+     */
+    private void setVisibleRps(Rhythm r, List<RhythmParameter<?>> rps)
+    {
+        checkNotNull(r);
+        checkNotNull(rps);
+
+        LOGGER.log(Level.FINE, "setVisibleRps() rps={0}", rps);
+
+        var newRpsSorted = sortRhythmParameters(r, rps);
+        if (newRpsSorted.isEmpty())
+        {
+            throw new IllegalArgumentException("r=" + r + " rps=" + rps + " newRpsSorted=" + newRpsSorted);
+        }
+        var oldRps = mapRhythmVisibleRps.get(r);
+        if (newRpsSorted.equals(oldRps))
+        {
+            return;
+        }
+
+        // Store the rps
+        mapRhythmVisibleRps.put(r, newRpsSorted);
+
+
+        // Update UI
+        for (SptViewer sptv : getSptViewers())
+        {
+            if (sptv.getModel().getRhythm() == r)
+            {
+                sptv.setVisibleRps(newRpsSorted);
+            }
+        }
+
+        // Fire event
+        firePropertyChange(PROP_RHYHM_VISIBLE_RPS, r, newRpsSorted);
+    }
+
+    /**
+     * Process each rhythm to make sure the default visible RPs in compact view mode are set.
+     *
+     * @param rhythms
+     */
+    private void storeVisibleRPsInCompactModeIfRequired(List<Rhythm> rhythms)
+    {
+        for (Rhythm r : rhythms)
+        {
+            if (songSpecificProperties.loadCompactViewModeVisibleRPs(r).isEmpty())
+            {
+                // Rhythm is new, need to set its visible RPs in compact mode
+                var rps = getDefaultVisibleRpsInCompactMode(r);
+                songSpecificProperties.storeCompactViewModeVisibleRPs(r, rps);
+            }
+        }
+    }
+
+    /**
+     * Get the RhythmParameters visible by default in compact mode for the specified new rhythm.
+     * <p>
+     * Use the primary Rhythm Parameters, and others only if there are actually used in the song.
+     *
+     * @param r
+     * @return A non-empty list
+     */
+    private List<RhythmParameter<?>> getDefaultVisibleRpsInCompactMode(Rhythm r)
+    {
+        var spts = sgsModel.getSongParts();
+        var rps = r.getRhythmParameters();
+        var tmp = new ArrayList<RhythmParameter<?>>();
+
+
+        // Add primary RPs by default
+        rps.stream()
+                .filter(rp -> rp.isPrimary())
+                .forEach(tmp::add);
+
+
+        // Add non-primary only if used in the song
+        rps.stream()
+                .filter(rp -> !rp.isPrimary())
+                .filter(rp -> 
+                {
+                    return spts.stream()
+                            .filter(spt -> spt.getRhythm() == r)
+                            .anyMatch(spt -> !rp.getDefaultValue().equals(spt.getRPValue(rp)));
+                })
+                .forEach(tmp::add);
+
+
+        // Reorder
+        var res = new ArrayList<RhythmParameter<?>>();
+        for (var rp : r.getRhythmParameters())
+        {
+            if (tmp.contains(rp))
+            {
+                res.add(rp);
+            }
+        }
+
+        if (res.isEmpty())
+        {
+            LOGGER.log(Level.WARNING,
+                    "getDefaultVisibleRpsInCompactMode() no default compact-mode visible RPs for r={0}, using 1st RP as default", r);
+            res.add(r.getRhythmParameters().get(0));
+        }
+
+        return res;
+    }
+
+    /**
      * Get the first RhythmParameter from rps which is assignable from rpClass (same class or rpClass is a superclass).
      *
      * @param rps
@@ -1169,6 +1321,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
 
 
     }
+
 
     //===========================================================================
     // Private classes
@@ -1245,8 +1398,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
     }
 
     /**
-     * Make sure show the insertionPoint is turned off when dropLocation is out of the bounds of the target drop component (this editor or a
-     * SptViewer)
+     * Make sure show the insertionPoint is turned off when dropLocation is out of the bounds of the target drop component (this editor or a SptViewer)
      */
     private class DTListener implements DropTargetListener
     {

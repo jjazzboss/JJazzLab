@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.jjazzlab</groupId>
         <artifactId>jjazzlab-parent</artifactId>
-        <version>4.0-BETA2-SNAPSHOT</version>
+        <version>4.0-BETA2</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
     <artifactId>org-jjazz-embeddedsynth</artifactId>
@@ -126,7 +126,7 @@
         <dependency>
             <groupId>org.jjazzlab</groupId>
             <artifactId>org-jjazz-rhythm</artifactId>
-            <version>4.0-BETA2-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
     <properties>

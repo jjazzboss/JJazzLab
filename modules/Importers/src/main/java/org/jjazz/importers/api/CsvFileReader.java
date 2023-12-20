@@ -34,7 +34,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.jjazz.harmony.api.ChordSymbol;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.ChordLeadSheetFactory;

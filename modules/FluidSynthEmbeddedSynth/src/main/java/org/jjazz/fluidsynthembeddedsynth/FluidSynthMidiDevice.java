@@ -50,7 +50,7 @@ public class FluidSynthMidiDevice implements MidiDevice
             super(mdName, "Jerome Lelasseux", "JJazzLab embedded audio synth", "1");
         }
     }
-    public static final String NAME = "jjSynth_MD";
+    public static final String NAME = "FluidSynth_MD";
     public static final FluidSynthMidiDeviceInfo INFO = new FluidSynthMidiDeviceInfo(NAME);
     private final List<FluidSynthReceiver> receivers = new ArrayList<>();
     private boolean open;

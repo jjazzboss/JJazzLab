@@ -47,16 +47,17 @@ import org.openide.util.Lookup;
  * - editor's ActionMap<br>
  * - edited ChordLeadSheet<br>
  * - edited Song (container of the ChordLeadSheet if there is one)<br>
- * - editor's Zoomable instance<br>
+ * - editor's Zoomable instances<br>
  * - selected items or bars<p>
  * <p>
- * The editor creates BarBoxes using a BarBoxConfig based on the editor's default config, and on the BarRenderer types obtained from the
- * BarRendererProvider instances found in the global lookup.
+ * The editor creates BarBoxes using a BarBoxConfig based on the editor's default config, and on the BarRenderer types obtained from the BarRendererProvider
+ * instances found in the global lookup.
  * <p>
  */
 public abstract class CL_Editor extends JPanel implements Lookup.Provider
 {
 
+    // Property change events fired by this class
     /**
      * oldvalue=old nbCols, newValue=new nbCols.
      * <p>
@@ -81,8 +82,22 @@ public abstract class CL_Editor extends JPanel implements Lookup.Provider
      * Don't change the String value, it's also used as client property name during CLI_Section serialization since JJazzLab 4.
      */
     static public final String PROP_SECTION_START_ON_NEW_LINE = "PropSectionStartOnNewLine";
+    /**
+     * oldValue=old boolean, newValue=new boolean
+     * <p>
+     * Don't change the String value, it's also used as a client property name during Song serialization since JJazzLab 4.
+     * <p>
+     */
+    static public final String PROP_BAR_ANNOTATION_VISIBLE = "PropBarAnnotationsVisible";
+    /**
+     * oldValue=old number of liens, newValue=new number of lines
+     * <p>
+     * Don't change the String value, it's also used as a client property name during Song serialization since JJazzLab 4.
+     * <p>
+     */
+    static public final String PROP_BAR_ANNOTATION_NB_LINES = "PropBarAnnotationsNbLines";
 
-  
+
     // =====================================================================================================    
     // Methods
     // =====================================================================================================    
@@ -195,12 +210,38 @@ public abstract class CL_Editor extends JPanel implements Lookup.Provider
     abstract public BarBoxConfig getBarBoxConfig(int barIndex);
 
     /**
-     * Set the number of columns per line.
-     * <p>
-     * Fire a PROP_NB_COLUMNS change event.
+     * Check if bar annotations are visible.
      *
-     * @param nbCols A value between 1 and 16.
+     * @return
      */
+    abstract public boolean isBarAnnotationVisible();
+
+    /**
+     * Set bar annotations visible or not.
+     * <p>
+     * Fire a PROP_BAR_ANNOTATIONS_VISIBLE change event.
+     *
+     * @param b
+     */
+    abstract public void setBarAnnotationVisible(boolean b);
+
+
+    /**
+     * Get the number of lines of a bar annotation.
+     *
+     * @return
+     */
+    abstract public int getBarAnnotationNbLines();
+
+    /**
+     * Set the number of lines of a bar annotation.
+     * <p>
+     * Fire a PROP_BAR_ANNOTATIONS_NB_LINES change event.
+     *
+     * @param n A value between 1 and 10
+     */
+    abstract public void setBarAnnotationNbLines(int n);
+
     abstract public void setNbColumns(int nbCols);
 
     abstract public int getNbColumns();
@@ -215,8 +256,8 @@ public abstract class CL_Editor extends JPanel implements Lookup.Provider
     /**
      * Return the Position that correspond to a graphical point in the editor.
      * <p>
-     * If point is on a model bar try to retrieve the beat value. If point is on a non-model bar (eg past end), return only the bar, beat is
-     * set to 0. If point is somewhere else return null.
+     * If point is on a model bar try to retrieve the beat value. If point is on a non-model bar (eg past end), return only the bar, beat is set to 0. If point
+     * is somewhere else return null.
      *
      * @param editorPoint A point in the editor's coordinates.
      * @return Null if point does not correspond to a barbox
@@ -290,8 +331,7 @@ public abstract class CL_Editor extends JPanel implements Lookup.Provider
      * Set the focus on an ItemRenderer whose model is item.
      *
      * @param item
-     * @param irClass the type of ItemRenderer to focus if there is multiple ItemRenderers for one item. If null, focus on the first
-     *                ItemRenderer found.
+     * @param irClass the type of ItemRenderer to focus if there is multiple ItemRenderers for one item. If null, focus on the first ItemRenderer found.
      */
     abstract public void setFocusOnItem(ChordLeadSheetItem<?> item, IR_Type irClass);
 

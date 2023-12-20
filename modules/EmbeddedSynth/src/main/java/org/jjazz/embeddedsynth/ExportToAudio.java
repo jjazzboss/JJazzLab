@@ -59,9 +59,9 @@ import org.openide.windows.WindowManager;
 @ActionID(category = "MusicControls", id = "org.jjazz.embeddedsynth.exporttoaudio")
 @ActionRegistration(displayName = "#CTL_ExportToAudio", lazy = true)
 @ActionReferences(
-        {
-            @ActionReference(path = "Menu/File", position = 1585)
-        })
+    {
+        @ActionReference(path = "Menu/File", position = 1585)
+    })
 public class ExportToAudio extends AbstractAction
 {
 
@@ -167,6 +167,17 @@ public class ExportToAudio extends AbstractAction
             // An error occured
             return;
         }
+        if (midiFile.length() < 10)
+        {
+            String msg = ResUtil.getString(getClass(),
+                "ErrorGeneratingAudioFile",
+                audioFile.getAbsolutePath(),
+                "temporary Midi file is empty " + midiFile.getAbsolutePath());
+            LOGGER.warning("actionPerformed() " + msg);
+            NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
+            DialogDisplayer.getDefault().notify(nd);
+            return;
+        }
 
 
         // Generate the wav file
@@ -185,9 +196,14 @@ public class ExportToAudio extends AbstractAction
         try
         {
             synth.generateWavFile(midiFile, wavFile);
+            if (wavFile.length() < 10)
+            {
+                throw new EmbeddedSynthException("generated file is empty");
+            }
         } catch (EmbeddedSynthException ex)
         {
             String msg = ResUtil.getString(getClass(), "ErrorGeneratingAudioFile", wavFile.getAbsolutePath(), ex.getLocalizedMessage());
+            LOGGER.warning("actionPerformed() " + msg);
             NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(nd);
             return;
@@ -201,9 +217,14 @@ public class ExportToAudio extends AbstractAction
             try
             {
                 mp3Encoder.encode(wavFile, audioFile, false, false);
+                if (audioFile.length() == 0)
+                {
+                    throw new EmbeddedSynthException("generated file is empty");
+                }
             } catch (EmbeddedSynthException ex)
             {
                 String msg = ResUtil.getString(getClass(), "ErrorGeneratingAudioFile", audioFile.getAbsolutePath(), ex.getLocalizedMessage());
+                LOGGER.warning("actionPerformed() " + msg);
                 NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
                 DialogDisplayer.getDefault().notify(nd);
                 return;
@@ -212,8 +233,8 @@ public class ExportToAudio extends AbstractAction
 
 
         StatusDisplayer.getDefault().setStatusText(ResUtil.getString(getClass(), "ExportToAudioComplete",
-                audioFile.getAbsolutePath()));
-        LOGGER.log(Level.INFO, "actionPerformed() Export to audio complete : {0}", audioFile.getAbsolutePath());
+            audioFile.getAbsolutePath()));
+        LOGGER.log(Level.INFO, "actionPerformed() Export to audio completed : {0}", audioFile.getAbsolutePath());
 
 
     }

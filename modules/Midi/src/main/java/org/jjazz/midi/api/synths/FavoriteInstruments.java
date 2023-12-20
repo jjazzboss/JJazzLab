@@ -31,13 +31,10 @@ import java.util.prefs.Preferences;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.midi.api.Instrument;
 import org.jjazz.midi.api.MidiSynth;
-import org.jjazz.upgrade.api.UpgradeManager;
-import org.jjazz.upgrade.api.UpgradeTask;
 import org.openide.util.NbPreferences;
-import org.openide.util.lookup.ServiceProvider;
 
 /**
- * Store the favorite instruments as preferences.
+ * Store favorite instruments as preferences.
  */
 public class FavoriteInstruments
 {
@@ -214,20 +211,9 @@ public class FavoriteInstruments
 
 
     // =====================================================================================
-    // Upgrade Task
+    // Upgrade Task: provided by JJazzMidiSystem
     // =====================================================================================
-    @ServiceProvider(service = UpgradeTask.class)
-    static public class RestoreSettingsTask implements UpgradeTask
-    {
-
-        @Override
-        public void upgrade(String oldVersion)
-        {
-            UpgradeManager um = UpgradeManager.getInstance();
-            um.duplicateOldPreferences(prefs);
-        }
-
-    }
+  
 
 
 }

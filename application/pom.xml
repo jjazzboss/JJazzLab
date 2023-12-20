@@ -4,7 +4,7 @@
     <parent>
         <groupId>org.jjazzlab</groupId>
         <artifactId>jjazzlab-parent</artifactId>
-        <version>4.0-BETA2-SNAPSHOT</version>
+        <version>4.0-BETA2</version>
     </parent>
     <artifactId>jjazzlab</artifactId>
     <packaging>nbm-application</packaging>
@@ -12,18 +12,10 @@
     
     
     <properties>
-        <netbeans.run.params.ide/>  <!-- Additional options set by Netbeans IDE see customizable Build actions -->
-        <netbeans.run.params>${netbeans.run.params.ide} -J-Dnetbeans.modules.quiet=true -J--add-modules=jdk.incubator.foreign -J--enable-native-access=ALL-UNNAMED -J--enable-preview -J--add-opens=java.base/java.net=ALL-UNNAMED -J--add-opens=java.base/java.lang=ALL-UNNAMED -J--add-opens=java.desktop/javax.swing=ALL-UNNAMED -J--add-exports=java.desktop/sun.awt=ALL-UNNAMED -J--add-opens=java.base/java.util=ALL-UNNAMED</netbeans.run.params>                                       
+        <netbeans.run.params.local/>  <!-- Additional params set locally (settings.xml). If running JJazzLab outside Netbeans IDE, add "<dash><dash>jdkhome <path_to_jre>" -->
+        <netbeans.run.params.ide/>  <!-- Additional params set by Netbeans IDE, see customizable Build actions -->
+        <netbeans.run.params>${netbeans.run.params.ide} ${netbeans.run.params.local} -J-Dnetbeans.modules.quiet=true -J--add-modules=jdk.incubator.foreign -J--enable-native-access=ALL-UNNAMED -J--enable-preview -J--add-opens=java.base/java.net=ALL-UNNAMED -J--add-opens=java.base/java.lang=ALL-UNNAMED -J--add-opens=java.desktop/javax.swing=ALL-UNNAMED -J--add-exports=java.desktop/sun.awt=ALL-UNNAMED -J--add-opens=java.base/java.util=ALL-UNNAMED</netbeans.run.params>
         <all.clusters>${project.build.directory}/${brandingToken}</all.clusters>
-        <skipReplaceWindowsIcon>true</skipReplaceWindowsIcon>
-        <nbpackage.path/>
-        <!-- Architecture, defining which JRE is embedded -->
-        <jjazzlab.bundle.arch>x64</jjazzlab.bundle.arch>
-        <jjazzlab.bundle.jre.zip>jre-${jjazzlab.bundle.arch}.zip</jjazzlab.bundle.jre.zip>
-        <!-- JRE download locations. For more details about the parameters supported by this API, see https://api.adoptium.net/q/swagger-ui/#/Binary/getBinary -->
-        <jjazzlab.bundle.jre.macos>https://api.adoptium.net/v3/binary/latest/${jjazzlab.compiler.release}/ga/mac/${jjazzlab.bundle.arch}/jre/hotspot/normal/eclipse?project=jdk</jjazzlab.bundle.jre.macos>
-        <jjazzlab.bundle.jre.windows>https://api.adoptium.net/v3/binary/latest/${jjazzlab.compiler.release}/ga/windows/${jjazzlab.bundle.arch}/jre/hotspot/normal/eclipse?project=jdk</jjazzlab.bundle.jre.windows>
-        <jjazzlab.bundle.jre.linux>https://api.adoptium.net/v3/binary/latest/${jjazzlab.compiler.release}/ga/linux/${jjazzlab.bundle.arch}/jre/hotspot/normal/eclipse?project=jdk</jjazzlab.bundle.jre.linux>        
     </properties>
     
     
@@ -66,7 +58,7 @@
                 </configuration>        
                 <executions>
                     <execution>
-                        <id>default-standalone-zip</id>          <!-- enabled only in deployment profile -->
+                        <id>default-standalone-zip</id>       
                         <phase>none</phase>
                     </execution>
                 </executions>     
@@ -81,212 +73,9 @@
     </build>       
     
     
-    <profiles>      
-                              
-        <profile>
-            <id>windows</id>
-            <activation>
-                <os>
-                    <family>windows</family>
-                </os>
-            </activation>
-            <properties>        
-                <skipReplaceWindowsIcon>false</skipReplaceWindowsIcon>
-            </properties>
-        </profile>
-                
-        
-        <profile>
-            <id>deployment</id>
-            <properties>        
-            </properties>
-
-            <build>
-                <plugins>                   
-                                
-                    <!-- prepare nbpackage files -->        
-                    <plugin>
-                        <artifactId>maven-resources-plugin</artifactId>
-                        <executions>                          
-                            <execution>
-                                <id>generate-nbpackage-files</id>
-                                <phase>generate-resources</phase>
-                                <goals>
-                                    <goal>copy-resources</goal>
-                                </goals>
-                                <configuration>
-                                    <outputDirectory>${basedir}/target/nbpackage</outputDirectory>
-                                    <nonFilteredFileExtensions>
-                                        <nonFilteredFileExtension>icns</nonFilteredFileExtension>
-                                        <nonFilteredFileExtension>ico</nonFilteredFileExtension>
-                                        <nonFilteredFileExtension>template</nonFilteredFileExtension>
-                                        <nonFilteredFileExtension>exe</nonFilteredFileExtension>
-                                    </nonFilteredFileExtensions>                             
-                                    <resources>
-                                        <resource>
-                                            <directory>src/main/nbpackage</directory>
-                                            <includes>
-                                                <include>*.*</include>
-                                            </includes>                                                 
-                                            <filtering>true</filtering>
-                                        </resource>                               
-                                    </resources>
-                                    <escapeString>\</escapeString>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>                                
-                    
-                    
-                    <!-- enable install (no error since we enable standalone-zip below -->
-                    <plugin>
-                        <artifactId>maven-install-plugin</artifactId>
-                        <configuration>
-                            <skip>false</skip>                  
-                        </configuration>
-                    </plugin>       
-                    
-                    
-                    <!-- enable zip generation (*after* icon replacement, hence the install phase) because needed by nbpackage -->
-                    <plugin>
-                        <groupId>org.apache.netbeans.utilities</groupId>
-                        <artifactId>nbm-maven-plugin</artifactId>    
-                        <executions>
-                            <execution>
-                                <id>default-standalone-zip</id>
-                                <phase>install</phase>
-                            </execution>                      
-                        </executions>     
-                    </plugin>                      
-                    
-                                        
-                    
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-antrun-plugin</artifactId>
-                        <executions>
-                            <!-- Replace windows icon, must be *before* default-standalone-zip, hence the package phase -->
-                            <execution>
-                                <id>replace-windows-icon</id>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>run</goal>    
-                                </goals>
-                                <configuration>
-                                    <skip>${skipReplaceWindowsIcon}</skip>
-                                    <!-- Window specific target that replaces the icon for the launcher exe with our own icon. -->
-                                    <target name="replaceWindowsLauncherIcon" description="Replace the icon for the Windows launcher exe">                                                                                                                    
-                                        <echo message="Replacing icon of Windows launcher executable."/>                                                
-                                        <exec dir="src/main/nbpackage" executable="ReplaceVistaIcon.exe" resolveexecutable="true" osfamily="windows">
-                                            <arg line="${project.build.directory}/${brandingToken}/bin/${brandingToken}64.exe JJazzLab.ico 0"/>
-                                        </exec>
-                                        <exec dir="src/main/nbpackage" executable="ReplaceVistaIcon.exe" resolveexecutable="true" osfamily="windows">
-                                            <arg line="${project.build.directory}/${brandingToken}/bin/${brandingToken}64.exe JJazzLab.ico 1"/>
-                                        </exec>
-                                    </target>
-                                </configuration>
-                            </execution>
-
-
-                            <execution>
-                                <id>download-jre</id>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>run</goal>                                    
-                                </goals>
-                                <configuration>     
-                                    <target name="downloadJRE" description="Download JRE">
-                                        Download JRE (Mac OS X) 
-                                        <exec dir="${project.build.directory}" osfamily="mac" executable="curl" failonerror="true">
-                                            <arg line="-L"/>
-                                            <arg line="-C"/>
-                                            <arg line="-"/>
-                                            <arg line="-o"/>
-                                            <arg line="${jjazzlab.bundle.jre.zip}"/>
-                                            <arg line="${jjazzlab.bundle.jre.macos}"/>
-                                        </exec>
-
-                                        Download JRE (Windows) 
-                                        <exec dir="${project.build.directory}" osfamily="windows" executable="curl" failonerror="true">
-                                            <arg line="-L"/>
-                                            <arg line="-C"/>
-                                            <arg line="-"/>
-                                            <arg line="-o"/>
-                                            <arg line="${jjazzlab.bundle.jre.zip}"/>
-                                            <arg line="${jjazzlab.bundle.jre.windows}"/>
-                                        </exec>
-
-                                        Download JRE (Linux) 
-                                        <exec dir="${project.build.directory}" osfamily="unix" executable="curl" failonerror="true">
-                                            <arg line="-L"/>
-                                            <arg line="-C"/>
-                                            <arg line="-"/>
-                                            <arg line="-o"/>
-                                            <arg line="${jjazzlab.bundle.jre.zip}"/>
-                                            <arg line="${jjazzlab.bundle.jre.linux}"/>
-                                        </exec>                              
-                                    </target> 
-                                </configuration>
-                            </execution>
-                            
-                            
-                            <execution>
-                                <id>nbpackage</id>
-                                <phase>install</phase>
-                                <goals>
-                                    <goal>run</goal>                                    
-                                </goals>                                
-                                <configuration>     
-                                    <target name="nbpackage" description="Create the package">
-                                        (Mac)
-                                        <!--                                        <exec dir="${project.build.directory}" osfamily="mac" executable="curl" failonerror="true">
-                                            <arg line="-L"/>
-                                            <arg line="-C"/>
-                                            <arg line="-"/>
-                                            <arg line="-o"/>
-                                            <arg line="jre-${jjazzlab.bundle.arch}.zip"/>
-                                            <arg line="${jjazzlab.bundle.jre.macos}"/>
-                                        </exec>-->
-
-                                        (Windows) 
-                                        <exec dir="${project.build.directory}" osfamily="windows" executable="${nbpackage.path}" failonerror="true">
-                                            <arg line="-v"/>
-                                            <arg line="--config"/>
-                                            <arg line="nbpackage/inno.properties"/>
-                                            <arg line="--input"/>
-                                            <arg line="${brandingToken}-${project.version}.zip"/>
-                                        </exec>
-
-                                        (Linux RPM) 
-                                        <exec dir="${project.build.directory}" osfamily="unix" executable="${nbpackage.path}" failonerror="true">
-                                            <arg line="-v"/>
-                                            <arg line="--config"/>
-                                            <arg line="nbpackage/rpm.properties"/>
-                                            <arg line="--input"/>
-                                            <arg line="${brandingToken}-${project.version}.zip"/>
-                                        </exec>    
-                                          
-                                        (Linux DEB) 
-                                        <exec dir="${project.build.directory}" osfamily="unix" executable="${nbpackage.path}" failonerror="true">
-                                            <arg line="-v"/>
-                                            <arg line="--config"/>
-                                            <arg line="nbpackage/deb.properties"/>
-                                            <arg line="--input"/>
-                                            <arg line="${brandingToken}-${project.version}.zip"/>
-                                        </exec>                                                         
-                                    </target> 
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                                        
-                    
-                </plugins>
-            </build>
-        </profile>        
+    <profiles>                                           
     </profiles>
-    
-    
+        
     
     <dependencies>
                         

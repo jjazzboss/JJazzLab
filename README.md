@@ -1,7 +1,7 @@
 
 # JJazzLab
 
-JJazzLab is a Midi-based application dedicated to backing tracks generation. You type in chord symbols, select a rhythm (style), then the application generates a complete backing track with drums, bass, guitar, piano, strings, etc. 
+JJazzLab is a complete and open application dedicated to backing tracks generation. You type in chord symbols, select a rhythm (style), then the application generates a complete backing track with drums, bass, guitar, piano, strings, etc. 
 
 The objective is to generate **intelligent and interesting backing tracks**, i.e tracks which are: 
 - realistic

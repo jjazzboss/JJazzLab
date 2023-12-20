@@ -67,9 +67,8 @@ public final class DuplicateSong implements ActionListener
         newSong.setName(song.getName() + " Copy" + counter);
         newSong.setSaveNeeded(false);
         SongEditorManager sm = SongEditorManager.getInstance();
-        sm.showSong(newSong, false, false);     //  Posts an EDT task to create the editors              
+        sm.showSong(newSong, false, false);     //  This will post an EDT task to create the editors              
         counter++;
 
-        SwingUtilities.invokeLater(() -> sm.copySongEditorSettings(song, newSong));    
     }
 }

@@ -26,15 +26,5 @@
                 <netbeans.run.params.ide>-J-Drun.from.ide=true --locale en:US</netbeans.run.params.ide>
             </properties>
         </action>
-        <action>
-            <actionName>CUSTOM-nbpackage</actionName>
-            <displayName>nbpackage</displayName>
-            <goals>
-                <goal>clean</goal>
-                <goal>install</goal>
-            </goals>
-            <activatedProfiles>
-                <activatedProfile>deployment</activatedProfile>
-            </activatedProfiles>
-        </action>
+        
     </actions>

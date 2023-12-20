@@ -71,7 +71,12 @@ public class JavaLameMp3Encoder implements Mp3Encoder
 
                 } catch (IOException | UnsupportedAudioFileException ex)
                 {
-                    exception = new EmbeddedSynthException(exception != null ? exception.getMessage() : "");
+                    String msg = ex.getMessage();
+                    if (msg == null)
+                    {
+                        msg = "Unknown exception";
+                    }
+                    exception = new EmbeddedSynthException(msg);
                 }
             }
         };

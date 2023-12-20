@@ -73,6 +73,7 @@ public class MidiMixManager implements PropertyChangeListener
     {
     }
 
+
     /**
      * Get a MidiMix for the specified song in the following order.
      * <p>
@@ -87,7 +88,7 @@ public class MidiMixManager implements PropertyChangeListener
      */
     public MidiMix findMix(Song s) throws MidiUnavailableException
     {
-        LOGGER.log(Level.FINE, "findMix() -- s={0}", s);   
+        LOGGER.log(Level.FINE, "findMix() -- s={0}", s);
         // Try to get existing MidiMix in memory
         MidiMix mm = mapSongMix.get(s);
         if (mm == null)
@@ -107,8 +108,11 @@ public class MidiMixManager implements PropertyChangeListener
 
                 } catch (IOException ex)
                 {
-                    LOGGER.log(Level.WARNING, "findMix(Song) Problem reading mix file: {0} : {1}", new Object[]{mixFile.getAbsolutePath(),
-                        ex.getMessage()});   
+                    LOGGER.log(Level.WARNING, "findMix(Song) Problem reading mix file: {0} : {1}", new Object[]
+                    {
+                        mixFile.getAbsolutePath(),
+                        ex.getMessage()
+                    });
                 }
 
                 if (mm != null)
@@ -119,8 +123,11 @@ public class MidiMixManager implements PropertyChangeListener
                         mm.checkConsistency(s, true);
                     } catch (SongCreationException ex)
                     {
-                        LOGGER.log(Level.WARNING, "findMix(Song) song mix file: {0} not consistent with song, ignored. ex={1}", new Object[]{mixFile.getAbsolutePath(),
-                            ex.getMessage()});  
+                        LOGGER.log(Level.WARNING, "findMix(Song) song mix file: {0} not consistent with song, ignored. ex={1}", new Object[]
+                        {
+                            mixFile.getAbsolutePath(),
+                            ex.getMessage()
+                        });
                         mm = null;
                     }
                 }
@@ -140,6 +147,25 @@ public class MidiMixManager implements PropertyChangeListener
     }
 
     /**
+     * Find a mix which must be existing.
+     * <p>
+     * If you're not sure if a MidiMix was already created for the specified song, use findMix(Song) instead.
+     *
+     * @param s
+     * @return Can't be null
+     * @throws IllegalStateException If no mix found
+     */
+    public MidiMix findExistingMix(Song s)
+    {
+        MidiMix mm = mapSongMix.get(s);
+        if (mm == null)
+        {
+            throw new IllegalStateException("No MidiMix found for s=" + s);
+        }
+        return mm;
+    }
+
+    /**
      * Try to get a MidiMix for the specified Rhythm in the following order:
      * <p>
      * 1. Load mix from the default rhythm mix file <br>
@@ -151,7 +177,7 @@ public class MidiMixManager implements PropertyChangeListener
      */
     public MidiMix findMix(Rhythm r)
     {
-        LOGGER.log(Level.FINE, "findMix() -- r={0}", r);   
+        LOGGER.log(Level.FINE, "findMix() -- r={0}", r);
         MidiMix mm = null;
         File mixFile = r instanceof AdaptedRhythm ? null : FileDirectoryManager.getInstance().getRhythmMixFile(r.getName(), r.getFile());
         if (mixFile != null && mixFile.canRead())
@@ -162,8 +188,11 @@ public class MidiMixManager implements PropertyChangeListener
                 StatusDisplayer.getDefault().setStatusText(ResUtil.getString(getClass(), "LoadedRhythmMix", mixFile.getAbsolutePath()));
             } catch (IOException ex)
             {
-                LOGGER.log(Level.SEVERE, "findMix(rhythm) Problem reading mix file: {0} : {1}. Creating a new mix instead.", new Object[]{mixFile.getAbsolutePath(),
-                    ex.getMessage()});   
+                LOGGER.log(Level.SEVERE, "findMix(rhythm) Problem reading mix file: {0} : {1}. Creating a new mix instead.", new Object[]
+                {
+                    mixFile.getAbsolutePath(),
+                    ex.getMessage()
+                });
             }
         }
         if (mm == null)
@@ -186,7 +215,7 @@ public class MidiMixManager implements PropertyChangeListener
     public MidiMix createMix(Song sg) throws MidiUnavailableException
     {
 
-        LOGGER.log(Level.FINE, "createMix() -- sg={0}", sg);   
+        LOGGER.log(Level.FINE, "createMix() -- sg={0}", sg);
         MidiMix mm = new MidiMix(sg);
 
 
@@ -210,8 +239,8 @@ public class MidiMixManager implements PropertyChangeListener
     /**
      * Create a MidiMix for the specified rhythm.
      * <p>
-     * Create one InstrumentMix per rhythm voice, using rhythm voice's preferred instrument and settings, and preferred channel
-     * (except if several voices share the same preferred channel)
+     * Create one InstrumentMix per rhythm voice, using rhythm voice's preferred instrument and settings, and preferred channel (except if several voices share
+     * the same preferred channel)
      * .<p>
      *
      * @param r If r is
@@ -230,7 +259,7 @@ public class MidiMixManager implements PropertyChangeListener
 
                 RhythmVoiceInstrumentProvider p = RhythmVoiceInstrumentProvider.getProvider();
                 Instrument ins = p.findInstrument(rv);
-                assert ins != null : "rv=" + rv;   
+                assert ins != null : "rv=" + rv;
                 int channel = rv.getPreferredChannel();
 
                 if (mm.getInstrumentMix(channel) != null)
@@ -243,7 +272,7 @@ public class MidiMixManager implements PropertyChangeListener
                     channel = mm.findFreeChannel(rv.isDrums());
                     if (channel == -1)
                     {
-                        throw new IllegalStateException("No Midi channel available in MidiMix. r=" + r + " rhythmVoices=" + r.getRhythmVoices());   
+                        throw new IllegalStateException("No Midi channel available in MidiMix. r=" + r + " rhythmVoices=" + r.getRhythmVoices());
                     }
                 }
 
@@ -268,7 +297,7 @@ public class MidiMixManager implements PropertyChangeListener
         if (e.getSource() instanceof Song)
         {
             Song song = (Song) e.getSource();
-            assert mapSongMix.get(song) != null : "song=" + song + " mapSongMix=" + mapSongMix;   
+            assert mapSongMix.get(song) != null : "song=" + song + " mapSongMix=" + mapSongMix;
             if (e.getPropertyName().equals(Song.PROP_CLOSED))
             {
                 unregisterSong(song);

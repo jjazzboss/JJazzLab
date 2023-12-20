@@ -50,6 +50,7 @@ import org.jjazz.cl_editor.spi.Preset;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.cl_editor.api.CL_SelectionUtilities;
+import org.jjazz.cl_editor.barrenderer.BR_Annotation;
 import org.jjazz.cl_editor.spi.SectionEditorDialog;
 import org.jjazz.cl_editor.spi.ChordSymbolEditorDialog;
 import org.jjazz.undomanager.api.JJazzUndoManager;
@@ -111,21 +112,26 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
     }
 
     /**
-     * @param e If action triggered by a key press, e.getActionCommand() provide the key pressed.
+     * Perform the action.
+     * <p>
+     * If action was triggered by a key press, ae.getActionCommand() provides the key pressed. Use ae.getSource() to get component source of the action eg
+     * BarBox, BR_Chords, etc.
+     *
+     * @param ae
      */
     @Override
-    public void actionPerformed(ActionEvent e)
+    public void actionPerformed(ActionEvent ae)
     {
         CL_SelectionUtilities selection = cap.getSelection();
         final ChordLeadSheet cls = selection.getChordLeadSheet();
         final CL_Editor editor = CL_EditorTopComponent.getActive().getEditor();
         char key = (char) 0;
-        LOGGER.log(Level.FINE, "e={0}", e);   
+        LOGGER.log(Level.FINE, "ae={0}", ae);
 
         // Is it a chord note ?        
-        if (e != null && e.getActionCommand().length() == 1)
+        if (ae != null && ae.getActionCommand().length() == 1)
         {
-            char c = e.getActionCommand().toUpperCase().charAt(0);
+            char c = ae.getActionCommand().toUpperCase().charAt(0);
             if (c >= 'A' && c <= 'G')
             {
                 key = c;
@@ -167,9 +173,17 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
             }
         } else
         {
-            assert selection.isBarSelectedWithinCls() == true : "selection=" + selection;   
+            // A BarRenderer
+            assert selection.isBarSelectedWithinCls() == true : "selection=" + selection;
             int modelBarIndex = selection.getMinBarIndexWithinCls();
-            editBarWithDialog(editor, modelBarIndex, new Preset(Preset.Type.BarEdit, null, key), cls, undoText);
+
+            if (ae != null && ae.getSource() instanceof BR_Annotation)
+            {
+                editBarWithDialog(editor, modelBarIndex, new Preset(Preset.Type.AnnotationEdit, null, key), cls, undoText);
+            } else
+            {
+                editBarWithDialog(editor, modelBarIndex, new Preset(Preset.Type.BarEdit, null, key), cls, undoText);
+            }
         }
     }
 
@@ -184,7 +198,7 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
         {
             b = selection.getSelectedBarIndexesWithinCls().size() == 1;
         }
-        LOGGER.log(Level.FINE, "selectionChange() b={0}", b);   
+        LOGGER.log(Level.FINE, "selectionChange() b={0}", b);
         setEnabled(b);
     }
 
@@ -197,7 +211,7 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
     static protected void editSectionWithDialog(final SectionEditorDialog dialog, final CLI_Section sectionItem, final char key, final ChordLeadSheet cls, String undoText)
     {
         // Use specific editor if service is provided
-        Runnable run = () ->
+        Runnable run = () -> 
         {
             dialog.preset(sectionItem, key);
             dialog.setLocationRelativeTo(WindowManager.getDefault().getMainWindow());
@@ -213,7 +227,7 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
                     cls.setSectionTimeSignature(sectionItem, newSection.getTimeSignature());
                 } catch (UnsupportedEditException ex)
                 {
-                    
+
                     String msg = ResUtil.getString(Edit.class, "ERR_ChangeSection", sectionItem.getData());
                     msg += "\n" + ex.getLocalizedMessage();
                     um.handleUnsupportedEditException(undoText, msg);
@@ -229,7 +243,7 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
 
     static protected void editCSWithDialog(final ChordSymbolEditorDialog dialog, final CLI_ChordSymbol csItem, final char key, final ChordLeadSheet cls, String undoText)
     {
-        Runnable run = () ->
+        Runnable run = () -> 
         {
             // Use specific editor if service is provided
             Position pos = csItem.getPosition();
@@ -247,7 +261,7 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
             }
             dialog.cleanup();
         };
-        
+
         // IMPORTANT: Dialog must be shown using invokeLater(), otherwise we have the problem of random double chars
         // when action is triggered by a key (InputMap/ActionMap) and key is used in the dialog.      
         // See complete explanation in my question on stackoverflow:
@@ -257,7 +271,9 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
 
     static protected void editBarWithDialog(final CL_Editor editor, final int barIndex, final Preset preset, final ChordLeadSheet cls, String undoText)
     {
-        Runnable run = () ->
+        int preNbAnnotations = editor.getSongModel().getChordLeadSheet().getItems(CLI_BarAnnotation.class).size();
+
+        Runnable run = () -> 
         {
             // Prepare dialog
             final CL_BarEditorDialog dialog = CL_BarEditorDialog.getDefault();
@@ -270,11 +286,11 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
                 dialog.cleanup();
                 return;
             }
-            
+
             JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(cls);
             um.startCEdit(undoText);
-            
-            
+
+
             // Manage section change
             CLI_Section resultSection = dialog.getSection();
             if (resultSection != null)
@@ -312,20 +328,20 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
                     }
                 }
             }
-            
-            
+
+
             // Manage added/removed/changed items
             var resultAddedItems = dialog.getAddedItems();
             resultAddedItems.forEach(item -> cls.addItem(item));
-            
+
             var resultRemovedItems = dialog.getRemovedItems();
             resultRemovedItems.forEach(item -> cls.removeItem(item));
-            
+
             var mapChanged = dialog.getChangedItems();
             mapChanged.keySet().forEach(cliCs -> cls.changeItem(cliCs, mapChanged.get(cliCs)));
-            
+
             um.endCEdit(undoText);
-            
+
             // Go to next bar if something has changed
             boolean change = !resultAddedItems.isEmpty() || !resultRemovedItems.isEmpty() || !mapChanged.isEmpty();
             if (barIndex < cls.getSizeInBars() - 1 && change)
@@ -335,8 +351,18 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
                 editor.setFocusOnBar(barIndex + 1);
                 editor.selectBars(barIndex + 1, barIndex + 1, true);
             }
-            
+
             dialog.cleanup();
+
+
+            // Automatically make bar annotations visible if first annotation
+            int postNbAnnotations = editor.getSongModel().getChordLeadSheet().getItems(CLI_BarAnnotation.class).size();
+            if (!editor.isBarAnnotationVisible() && preNbAnnotations == 0 && postNbAnnotations == 1)
+            {
+                editor.setBarAnnotationVisible(true);
+            }
+
+
         };
 
         // IMPORTANT: Dialog must be shown using invokeLater(), otherwise we have the problem of random double chars

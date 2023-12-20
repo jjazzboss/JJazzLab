@@ -41,7 +41,6 @@ import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.CLI_Factory;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
-import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.chordleadsheet.api.item.Position;
 import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.cl_editor.api.CL_Editor;
@@ -268,7 +267,10 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
     @Override
     public boolean isRegisteredItemClass(ChordLeadSheetItem<?> item)
     {
-        return item instanceof CLI_ChordSymbol || item instanceof CLI_Section || item instanceof CLI_BarAnnotation;
+        boolean b = item instanceof CLI_ChordSymbol
+                || item instanceof CLI_Section
+                || (item instanceof CLI_BarAnnotation && !getEditor().isBarAnnotationVisible());
+        return b;
     }
 
     @Override
@@ -365,8 +367,8 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
     /**
      * A special shared JPanel instance used to calculate the preferred size for all BR_Chords.
      * <p>
-     * Add ItemRenderers with the tallest size. Panel is added to the "hidden" BarRenderer's JDialog to be displayable so that FontMetrics
-     * can be calculated with a Graphics object.
+     * Add ItemRenderers with the tallest size. Panel is added to the "hidden" BarRenderer's JDialog to be displayable so that FontMetrics can be calculated
+     * with a Graphics object.
      * <p>
      */
     private class PrefSizePanel extends JPanel implements PropertyChangeListener

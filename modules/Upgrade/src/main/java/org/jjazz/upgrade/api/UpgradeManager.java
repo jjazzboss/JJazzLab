@@ -22,6 +22,7 @@
  */
 package org.jjazz.upgrade.api;
 
+import com.google.common.base.Preconditions;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -41,8 +42,7 @@ import org.openide.util.NbPreferences;
 /**
  * Manage the tasks to upgrade settings from a previous version of JJazzLab to the current version.
  * <p>
- * Find the source import JJazzLab version. Call all the UpgradeTasks found in the global Lookup upon fresh start at module install (UI is
- * not yet ready!).
+ * Find the source import JJazzLab version. Call all the UpgradeTasks found in the global Lookup upon fresh start at module install (UI is not yet ready!).
  * <p>
  */
 public class UpgradeManager
@@ -86,6 +86,11 @@ public class UpgradeManager
         }
     }
 
+    public String getVersion()
+    {
+        return System.getProperty("jjazzlab.version");
+    }
+
     /**
      * @return True if it's the first run of this JJazzLab version (netbeans user dir. was cleaned)
      */
@@ -95,102 +100,135 @@ public class UpgradeManager
     }
 
     /**
-     * Get the old Properties (from the directory given by getImportSourceVersion()) which corresponds to the specified current module
-     * Netbeans preferences file.
+     * Get the old properties from a specific file in the getImportSourceVersion() directory structure.
      * <p>
      *
-     * @param nbPrefs The Netbeans preferences of a module
-     * @return Null if not found
+     * @param relPath Relative path from ...config/Preferences, eg "org/jjazz/rhythm/database.properties"
+     * @return Can be empty if file not found or read error
      */
-    public Properties getOldPropertiesFromPrefs(Preferences nbPrefs)
+    public Properties getOldPreferencesFromRelativePath(String relPath)
     {
-        File f = getOldPreferencesFile(nbPrefs);
-        if (f == null)
-        {
-            return null;
-        }
-
+        Preconditions.checkNotNull(relPath);
+        Preconditions.checkArgument(!relPath.isBlank() && relPath.charAt(0) != '/', "relPath=%s", relPath);
         Properties prop = new Properties();
-        try (FileReader reader = new FileReader(f))
-        {
-            prop.load(reader);
-        } catch (IOException ex)
-        {
-            LOGGER.log(Level.WARNING, "getPropertiesFromPrefs() problem reading file={0}: ex={1}", new Object[]
-            {
-                f.getAbsolutePath(),
-                ex.getMessage()
-            });
-            return null;
-        }
-
-        return prop;
-    }
-
-    /**
-     * Get the old properties file (from the directory given by getImportSourceVersion()) which corresponds to the specified current module
-     * Netbeans preferences file.
-     * <p>
-     *
-     * @param nbPrefs The current Netbeans preferences of a module.
-     * @return Null if not found
-     */
-    public File getOldPreferencesFile(Preferences nbPrefs)
-    {
-        if (nbPrefs == null)
-        {
-            throw new IllegalArgumentException("nbPrefs=" + nbPrefs);
-        }
 
         String importVersion = getImportSourceVersion();        // If non null validate the Netbeans User Dir.
         if (importVersion == null)
         {
-            return null;
+            return prop;
         }
 
         Path parentPath = Places.getUserDirectory().getParentFile().toPath();
-        Path p = parentPath.resolve(importVersion).resolve("config").resolve("Preferences" + nbPrefs.absolutePath() + ".properties");
+        Path p = parentPath.resolve(importVersion).resolve("config").resolve("Preferences").resolve(relPath);
         File f = p.toFile();
 
-        if (!f.exists())
+
+        if (f.exists())
         {
-            LOGGER.log(Level.FINE, "getOldPreferencesFile Not found f={0}", f.getAbsolutePath());
-            f = null;
+            try (FileReader reader = new FileReader(f))
+            {
+                prop.load(reader);
+                LOGGER.log(Level.FINE, "getOldPreferencesFromRelativePath() read f={0}", f.getAbsolutePath());
+            } catch (IOException ex)
+            {
+                LOGGER.log(Level.WARNING, "getOldPreferencesFromRelativePath() problem reading file={0}: ex={1}", new Object[]
+                {
+                    f.getAbsolutePath(),
+                    ex.getMessage()
+                });
+                prop = new Properties();
+            }
         } else
         {
-            LOGGER.log(Level.FINE, "getOldPreferencesFile() FOUND f={0}", f.getAbsolutePath());
+            LOGGER.log(Level.FINE, "getOldPreferencesFromRelativePath() File not found f={0}", f.getAbsolutePath());
         }
-        return f;
+
+
+        return prop;
+    }
+
+
+    /**
+     * Copy into modulePrefs all the "old" key/value pairs from the corresponding Properties file in the getImportSourceVersion() directory structure.
+     * <p>
+     * To be used when package codebase has not changed between 2 versions.
+     *
+     * @param modulePrefs The Netbeans preferences of a module.
+     */
+    public void duplicateOldPreferences(Preferences modulePrefs)
+    {
+        Preconditions.checkNotNull(modulePrefs);
+        LOGGER.log(Level.FINE, "duplicateOldPreferences() -- modulePrefs={0}", modulePrefs.absolutePath());
+
+
+        String relPath = getPreferencesRelativePath(modulePrefs);
+
+        // Adjust relPath if needed
+        String version = getVersion();
+        String importVersion = getImportSourceVersion();
+        if (version != null && !version.isEmpty() && version.charAt(0) >= '4'
+                && importVersion != null && !importSourceVersion.isEmpty() && importVersion.charAt(0) <= '3')
+        {
+            // Before JJazzLab 4 we used Ant, so package code base names dit not have the "org/jjazzlab/"  prefix
+            // Ex: 3.2.1/config/Preferences/org/jjazz/midi.properties  =>   4.0/config/Preferences/org/jjazzlab/org/jjazz/midi.properties
+            if (relPath.startsWith("org/jjazzlab/org/jjazz/"))
+            {
+                relPath = relPath.substring(13);
+            }
+        }
+
+        duplicateOldPreferences(modulePrefs, relPath);
     }
 
     /**
-     * Copy into nbPrefs all the old preferences key/value pairs from the corresponding preferences found from the getImportSourceVersion()
-     * directory.
+     * Copy into modulePrefs all the "old" key/value pairs from the specified file in the getImportSourceVersion() directory structure.
+     * <p>
+     * To be used when package codebase has changed between versions.
      *
-     * @param nbPrefs The Netbeans preferences of a module.
-     * @return False if preferences could not be duplicated.
+     * @param modulePrefs              The Netbeans preferences of a module.
+     * @param relPathToOldPrefFile Relative path from ...config/Preferences, eg "org/jjazz/rhythm/database.properties"
      */
-    public boolean duplicateOldPreferences(Preferences nbPrefs)
+    public void duplicateOldPreferences(Preferences modulePrefs, String relPathToOldPrefFile)
     {
-        LOGGER.log(Level.FINE, "duplicateOldPreferences() -- nbPrefs={0}", nbPrefs.absolutePath());
-        Properties prop = getOldPropertiesFromPrefs(nbPrefs);
-        if (prop == null)
+        Preconditions.checkNotNull(modulePrefs);
+        LOGGER.log(Level.FINE, "duplicateOldPreferences() -- modulePrefs={0} relPathToOldPrefFile={1}", new Object[]
         {
-            return false;
+            modulePrefs.absolutePath(),
+            relPathToOldPrefFile
+        });
+
+
+        if (getImportSourceVersion() == null)
+        {
+            LOGGER.info("duplicateOldPreferences() aborted, getImportSourceVersion() is null");
+            return;
         }
 
-        for (String key : prop.stringPropertyNames())
+
+        Properties oldProps = getOldPreferencesFromRelativePath(relPathToOldPrefFile);
+        if (!oldProps.isEmpty())
         {
-            nbPrefs.put(key, prop.getProperty(key));
+            // Copy properties
+            for (String key : oldProps.stringPropertyNames())
+            {
+                modulePrefs.put(key, oldProps.getProperty(key));
+            }
+            try
+            {
+                modulePrefs.flush();        // Make sure it's copied to disk now
+                LOGGER.log(Level.INFO, "duplicateOldPreferences() imported {0} preferences from {1}:{2} to {3}:{4}", new Object[]
+                {
+                    oldProps.stringPropertyNames().size(),
+                    getImportSourceVersion(),
+                    relPathToOldPrefFile,
+                    getVersion(),
+                    getPreferencesRelativePath(modulePrefs)
+                });
+            } catch (BackingStoreException ex)
+            {
+                LOGGER.log(Level.WARNING, "duplicateOldPreferences() Can''t flush copied preferences. ex={0}", ex.getMessage());
+            }
         }
-        try
-        {
-            nbPrefs.flush();        // Make sure it's copied to disk now
-        } catch (BackingStoreException ex)
-        {
-            LOGGER.log(Level.WARNING, "duplicateOldPreferences() Can''t flush copied preferences. ex={0}", ex.getMessage());
-        }
-        return true;
     }
 
 
@@ -240,6 +278,20 @@ public class UpgradeManager
     // =============================================================================================================
     // Private methods
     // =============================================================================================================
+
+    /**
+     * Get the relative path from ..config/Preferences corresponding to nbPrefs.
+     *
+     * @param nbPrefs
+     * @return
+     */
+    private String getPreferencesRelativePath(Preferences nbPrefs)
+    {
+        String relPath = nbPrefs.absolutePath().substring(1);
+        return relPath + ".properties";
+    }
+
+
     // =============================================================================================================
     // Internal class
     // =============================================================================================================

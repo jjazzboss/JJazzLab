@@ -65,6 +65,7 @@ import org.jjazz.ss_editor.api.SS_EditorMouseListener;
 import static org.jjazz.uiutilities.api.UIUtilities.getGenericControlKeyStroke;
 import org.jjazz.utilities.api.ResUtil;
 import org.jjazz.rhythm.api.RpEnumerable;
+import org.jjazz.ss_editor.actions.ToggleCompactView;
 
 /**
  * Controller implementation of a SS_Editor.
@@ -130,6 +131,8 @@ public class SS_EditorController implements SS_EditorMouseListener
         editor.getActionMap().put("Duplicate", Actions.forID("JJazz", "org.jjazz.ss_editor.actions.duplicatespt"));
         editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("Z"), "ResetRpValue");
         editor.getActionMap().put("ResetRpValue", Actions.forID("JJazz", "org.jjazz.ss_editor.actions.resetrpvalue"));
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("V"), "ToggleCompactView");
+        editor.getActionMap().put("ToggleCompactView", ToggleCompactView.getInstance(editor));
 
 
         // Set the delegate actions for standard Netbeans copy/cut/paste actions
