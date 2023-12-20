@@ -76,7 +76,7 @@ public class ToggleCompactView extends ToggleAction implements PropertyChangeLis
     private ToggleCompactView(SS_Editor editor)
     {
         this.editor = editor;
-        putValue(NAME, ResUtil.getString(getClass(), "CTL_ToggleCompactView"));
+        putValue(NAME, "not_used");
         putValue(SHORT_DESCRIPTION, ResUtil.getString(getClass(), "CTL_ToggleCompactViewTooltip"));
         putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("V"));     // Useful only if action is used to create a menu entry
         putValue(SMALL_ICON, new ImageIcon(getClass().getResource("/org/jjazz/ss_editor/actions/resources/CompactViewMode-OFF.png")));
