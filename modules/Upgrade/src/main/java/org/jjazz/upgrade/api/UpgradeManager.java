@@ -57,7 +57,7 @@ public class UpgradeManager
         "2.3.1", "2.3.beta", "2.2.0", "2.2.beta3", "2.2.beta2", "2.1.2a", "2.1.2", "2.1.1", "2.1.0", "2.0.1", "2.0.0"
     };
     private static final String PREF_FRESH_START = "FreshStart";
-
+    private boolean warningShown;
     private static UpgradeManager INSTANCE;
     private boolean importSourceVersionComputed;
     private String importSourceVersion;
@@ -185,7 +185,7 @@ public class UpgradeManager
      * <p>
      * To be used when package codebase has changed between versions.
      *
-     * @param modulePrefs              The Netbeans preferences of a module.
+     * @param modulePrefs          The Netbeans preferences of a module.
      * @param relPathToOldPrefFile Relative path from ...config/Preferences, eg "org/jjazz/rhythm/database.properties"
      */
     public void duplicateOldPreferences(Preferences modulePrefs, String relPathToOldPrefFile)
@@ -200,7 +200,11 @@ public class UpgradeManager
 
         if (getImportSourceVersion() == null)
         {
-            LOGGER.info("duplicateOldPreferences() aborted, getImportSourceVersion() is null");
+            if (!warningShown)
+            {
+                LOGGER.warning("duplicateOldPreferences() aborted, getImportSourceVersion() is null. This warning is shown only once.");
+                warningShown = true;
+            }
             return;
         }
 

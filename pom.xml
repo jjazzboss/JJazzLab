@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.jjazzlab</groupId>
     <artifactId>jjazzlab-parent</artifactId>
-    <version>4.0-BETA2</version>
+    <version>4.0.1</version>
     <packaging>pom</packaging>
     <name>jjazzlab</name>
     
