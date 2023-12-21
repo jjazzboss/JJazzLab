@@ -182,7 +182,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         sgsModel = song.getSongStructure();
         sptViewerFactory = factory;
         songSpecificProperties = new SongSpecificSS_EditorProperties(songModel);
-        this.viewMode = ViewMode.NORMAL;
+
 
         // Make sure all Rhythms have a default list of visible RPs in compact view mode
         storeVisibleRPsInCompactModeIfRequired(song.getSongStructure().getUniqueRhythms(false, true));
@@ -257,6 +257,18 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         generalLookupContent.add(sgsModel);
         generalLookupContent.add(songModel);
 
+
+        // Compact view mode by default
+        this.viewMode = ViewMode.COMPACT;
+        songSpecificProperties.storeViewMode(viewMode);
+        var allRhythms = sgsModel.getUniqueRhythms(false, true);
+        for (var r : allRhythms)
+        {
+            List<RhythmParameter<?>> rps = songSpecificProperties.loadCompactViewModeVisibleRPs(r);
+            mapRhythmVisibleRps.put(r, rps);
+        }
+
+        
         // Add the SongPartEditors
         for (SongPart spt : sgsModel.getSongParts())
         {
@@ -264,6 +276,8 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         }
         updateSptsVisibleRhythmAndTimeSignature();
         updateSptMultiSelectMode();
+
+
     }
 
     @Override
@@ -736,10 +750,6 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         for (var r : allRhythms)
         {
             List<RhythmParameter<?>> rps = b ? songSpecificProperties.loadCompactViewModeVisibleRPs(r) : r.getRhythmParameters();
-            if (rps.isEmpty())
-            {
-                // Might happen e.g. when duplicating a song with multiple time signatures
-            }
             setVisibleRps(r, rps);
         }
 
