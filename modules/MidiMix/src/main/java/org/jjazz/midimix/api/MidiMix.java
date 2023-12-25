@@ -1288,7 +1288,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
             mm.setFile(f);
         } catch (XStreamException e)
         {
-            LOGGER.log(Level.WARNING, "loadFromFile() XStreamException e={0}", e);   // Important in order to get the details of the XStream error   
+            LOGGER.log(Level.WARNING, "loadFromFile() XStreamException e={0}", e.getMessage());   // Important in order to get the details of the XStream error   
             throw new IOException("XStream loading error", e);         // Translate into an IOException to be handled by the Netbeans framework 
         }
         return mm;
