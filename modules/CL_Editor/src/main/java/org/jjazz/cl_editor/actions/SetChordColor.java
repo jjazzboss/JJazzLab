@@ -30,6 +30,7 @@ import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
+import org.jjazz.analytics.api.Analytics;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.cl_editor.api.CL_Editor;
@@ -144,6 +145,7 @@ public final class SetChordColor extends AbstractAction implements Presenter.Pop
                                     IR_ChordSymbolSettings.SONG_CLIENT_PROPERTY_USER_FONT_COLOR, cc);
                         }
                     }
+                    Analytics.logEvent("Set chord color");
                 });
                 add(mi);
             }

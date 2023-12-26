@@ -22,18 +22,14 @@
  */
 package org.jjazz.songeditormanager;
 
-import com.google.common.base.Preconditions;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
-import javax.swing.SwingUtilities;
-import org.jjazz.chordleadsheet.api.item.CLI_Section;
-import org.jjazz.cl_editor.api.CL_Editor;
+import org.jjazz.analytics.api.Analytics;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongUtilities;
 import org.jjazz.songeditormanager.api.SongEditorManager;
-import org.jjazz.ss_editor.api.SS_Editor;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -58,7 +54,6 @@ public class LinearizeSong implements ActionListener
     private static Preferences prefs = NbPreferences.forModule(LinearizeSong.class);
     private static final Logger LOGGER = Logger.getLogger(LinearizeSong.class.getSimpleName());
 
-
     public LinearizeSong(Song context)
     {
         this.song = context;
@@ -76,8 +71,9 @@ public class LinearizeSong implements ActionListener
         }
 
         Song newSong = SongUtilities.getLinearizedSong(song, true);
-        newSong.setName(song.getName() + "-linearized");                  
-        SongEditorManager.getInstance().showSong(newSong, true, false);     // This will post a task on the EDT to display the song            
+        newSong.setName(song.getName() + "-linearized");
+        SongEditorManager.getInstance().showSong(newSong, true, false);     // This will post a task on the EDT to display the song        
+        Analytics.logEvent("Linearize song");
     }
-        
+
 }

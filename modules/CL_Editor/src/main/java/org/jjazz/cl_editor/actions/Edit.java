@@ -35,6 +35,7 @@ import javax.swing.Action;
 import javax.swing.JDialog;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
+import org.jjazz.analytics.api.Analytics;
 import org.jjazz.chordleadsheet.api.Section;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
@@ -360,6 +361,10 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
             if (!editor.isBarAnnotationVisible() && preNbAnnotations == 0 && postNbAnnotations == 1)
             {
                 editor.setBarAnnotationVisible(true);
+            }
+            if (preNbAnnotations==0 && postNbAnnotations == 1)
+            {
+                Analytics.logEvent("Bar annotation first input");
             }
 
 

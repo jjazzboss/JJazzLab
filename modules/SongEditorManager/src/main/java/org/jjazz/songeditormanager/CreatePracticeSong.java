@@ -34,6 +34,7 @@ import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import static javax.swing.Action.NAME;
+import org.jjazz.analytics.api.Analytics;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.ChordLeadSheetFactory;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
@@ -163,6 +164,7 @@ public final class CreatePracticeSong extends AbstractAction implements ContextA
         updateSongForPractice(newSong, LAST_CONFIG.tempoStart, LAST_CONFIG.tempoEnd, LAST_CONFIG.nbSteps);
         SongEditorManager.getInstance().showSong(newSong, true, true);      // Make song appear as modified/savable
 
+        Analytics.logEvent("Create practice song");
 
     }
 

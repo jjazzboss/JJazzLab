@@ -32,6 +32,7 @@ import javax.sound.midi.MidiUnavailableException;
 import javax.swing.AbstractAction;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import org.jjazz.analytics.api.Analytics;
 import org.jjazz.backgroundsongmusicbuilder.api.SongMidiExporter;
 import org.jjazz.embeddedsynth.api.EmbeddedSynth;
 import org.jjazz.embeddedsynth.api.EmbeddedSynthException;
@@ -59,9 +60,9 @@ import org.openide.windows.WindowManager;
 @ActionID(category = "MusicControls", id = "org.jjazz.embeddedsynth.exporttoaudio")
 @ActionRegistration(displayName = "#CTL_ExportToAudio", lazy = true)
 @ActionReferences(
-    {
-        @ActionReference(path = "Menu/File", position = 1585)
-    })
+        {
+            @ActionReference(path = "Menu/File", position = 1585)
+        })
 public class ExportToAudio extends AbstractAction
 {
 
@@ -89,7 +90,6 @@ public class ExportToAudio extends AbstractAction
             return;
         }
 
-
         if (song.getSongStructure().getSongParts().isEmpty())
         {
             String msg = ResUtil.getString(getClass(), "ERR_CantExportEmptySong");
@@ -97,7 +97,6 @@ public class ExportToAudio extends AbstractAction
             DialogDisplayer.getDefault().notify(nd);
             return;
         }
-
 
         // Get the target audio file
         String songNameNoBlank = song.getName().replace(" ", "_");
@@ -120,7 +119,6 @@ public class ExportToAudio extends AbstractAction
         audioFile = chooser.getSelectedFile();
         saveExportDir = audioFile.getParentFile();
 
-
         // Check extension is valid
         boolean isMp3 = Utilities.getExtension(audioFile.getName()).equalsIgnoreCase("mp3");
         boolean isWav = Utilities.getExtension(audioFile.getName()).equalsIgnoreCase("wav");
@@ -131,7 +129,6 @@ public class ExportToAudio extends AbstractAction
             DialogDisplayer.getDefault().notify(nd);
             return;
         }
-
 
         if (audioFile.exists())
         {
@@ -146,7 +143,7 @@ public class ExportToAudio extends AbstractAction
         }
 
         LOGGER.log(Level.INFO, "actionPerformed() Start export audio : {0}", audioFile.getAbsolutePath());
-
+        Analytics.logEvent("Export audio");
 
         // Generate the Midi file
         File midiFile;
@@ -170,15 +167,14 @@ public class ExportToAudio extends AbstractAction
         if (midiFile.length() < 10)
         {
             String msg = ResUtil.getString(getClass(),
-                "ErrorGeneratingAudioFile",
-                audioFile.getAbsolutePath(),
-                "temporary Midi file is empty " + midiFile.getAbsolutePath());
+                    "ErrorGeneratingAudioFile",
+                    audioFile.getAbsolutePath(),
+                    "temporary Midi file is empty " + midiFile.getAbsolutePath());
             LOGGER.warning("actionPerformed() " + msg);
             NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(nd);
             return;
         }
-
 
         // Generate the wav file
         File wavFile = audioFile;       // Assume isWav by default
@@ -209,7 +205,6 @@ public class ExportToAudio extends AbstractAction
             return;
         }
 
-
         if (isMp3)
         {
             var mp3Encoder = Mp3EncoderProvider.getDefault();
@@ -231,14 +226,11 @@ public class ExportToAudio extends AbstractAction
             }
         }
 
-
         StatusDisplayer.getDefault().setStatusText(ResUtil.getString(getClass(), "ExportToAudioComplete",
-            audioFile.getAbsolutePath()));
+                audioFile.getAbsolutePath()));
         LOGGER.log(Level.INFO, "actionPerformed() Export to audio completed : {0}", audioFile.getAbsolutePath());
 
-
     }
-
 
     // ======================================================================
     // Private methods

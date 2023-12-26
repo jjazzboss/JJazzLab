@@ -26,13 +26,10 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.logging.Logger;
 import org.jjazz.activesong.api.ActiveSongManager;
-import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.song.api.Song;
 import org.jjazz.utilities.api.ResUtil;
 import org.netbeans.api.settings.ConvertAsProperties;
-import org.openide.awt.ActionID;
-import org.openide.awt.ActionReference;
 import org.openide.windows.TopComponent;
 import org.openide.windows.WindowManager;
 
@@ -49,15 +46,8 @@ import org.openide.windows.WindowManager;
         persistenceType = TopComponent.PERSISTENCE_ALWAYS
 )
 @TopComponent.Registration(mode = "jlnavigator", openAtStartup = false, position = 25)
-@ActionID(category = "Window", id = "org.jjazz.chordinspector.EasyReaderTopComponent")
-@ActionReference(path = "Menu/Tools", position = 20)
-@TopComponent.OpenActionRegistration(
-        displayName = "#CTL_EasyReader",
-        preferredID = "EasyReaderTopComponent"
-)
 public final class EasyReaderTopComponent extends TopComponent implements PropertyChangeListener
 {
-
     private static final Logger LOGGER = Logger.getLogger(EasyReaderTopComponent.class.getSimpleName());
     private final EasyReaderPanel editor;
 

@@ -30,6 +30,7 @@ import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
+import org.jjazz.analytics.api.Analytics;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.cl_editor.api.CL_SelectionUtilities;
@@ -128,6 +129,7 @@ public final class SetSectionColor extends AbstractAction implements Presenter.P
                     {
                         editor.setSectionColor(cliSection, c);
                     }
+                     Analytics.logEvent("Set section color");
                 });
                 add(mi);
             }

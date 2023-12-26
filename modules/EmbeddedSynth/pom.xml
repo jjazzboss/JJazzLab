@@ -79,6 +79,11 @@
         </dependency>
         <dependency>
             <groupId>org.jjazzlab</groupId>
+            <artifactId>org-jjazz-analytics</artifactId>
+            <version>${project.version}</version>
+        </dependency>        
+        <dependency>
+            <groupId>org.jjazzlab</groupId>
             <artifactId>org-jjazz-song</artifactId>
             <version>${project.version}</version>
         </dependency>  

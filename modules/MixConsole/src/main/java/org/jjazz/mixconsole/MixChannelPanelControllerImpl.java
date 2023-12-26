@@ -25,6 +25,7 @@ package org.jjazz.mixconsole;
 import com.google.common.base.Preconditions;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jjazz.analytics.api.Analytics;
 import org.jjazz.backgroundsongmusicbuilder.api.ActiveSongMusicBuilder;
 import org.jjazz.instrumentchooser.spi.InstrumentChooserDialog;
 import org.jjazz.midi.api.DrumKit;
@@ -155,6 +156,8 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
     @Override
     public void cloneRhythmTrackAsUserTrack(RhythmVoice rv)
     {
+        Analytics.logEvent("Clone as user track");
+        
         // Find a name not already used
         var usedNames = song.getUserPhraseNames();
         String basename = rv.getName() + "-";
