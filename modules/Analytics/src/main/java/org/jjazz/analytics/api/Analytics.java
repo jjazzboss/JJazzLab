@@ -45,8 +45,9 @@ import org.openide.windows.OnShowing;
 /**
  * Feature usage analytics methods.
  * <p>
- * The class acts as a centralized bridge to collect all feature analytics events and pass them to AnalyticsProcessor instances present in
- * the global lookup.
+ * The class acts as a centralized bridge to collect all feature analytics
+ * events and pass them to AnalyticsProcessor instances present in the global
+ * lookup.
  * <p>
  * Properties/event names examples: "Upgrade" or "New Version"<br>
  * <p>
@@ -55,13 +56,15 @@ public class Analytics
 {
 
     /**
-     * This event is fired by the Analytics instance upon start, with no properties.
+     * This event is fired by the Analytics instance upon start.
      */
     public static final String EVENT_START_APPLICATION = "Start Application";
     /**
-     * This event is fired by the Analytics instance upon shutdown, with no properties.
+     * This event is fired by the Analytics instance upon shutdown, with no
+     * properties.
      * <p>
-     * AnalyticsProcessors must be process the event quickly in order to not block the shutdown sequence.
+     * AnalyticsProcessors must be process the event quickly in order to not
+     * block the shutdown sequence.
      */
     public static final String EVENT_STOP_APPLICATION = "Stop Application";
 
@@ -136,7 +139,8 @@ public class Analytics
      * Generic event with properties.
      *
      * @param eventName
-     * @param properties Authorized value classes: String, Integer, Long, Float, Boolean, or a Collection of one these classes.
+     * @param properties Authorized value classes: String, Integer, Long, Float,
+     * Boolean, or a Collection of one these classes.
      */
     static public void logEvent(String eventName, Map<String, ?> properties)
     {
@@ -151,7 +155,8 @@ public class Analytics
      * Update the properties of the current JJazzLab computer.
      * <p>
      *
-     * @param properties Authorized value classes: String, Integer, Long, Float, Boolean, or a Collection of one these classes.
+     * @param properties Authorized value classes: String, Integer, Long, Float,
+     * Boolean, or a Collection of one these classes.
      * @see Analytics#getJJazzLabComputerId()
      */
     static public void setProperties(Map<String, ?> properties)
@@ -164,10 +169,12 @@ public class Analytics
     }
 
     /**
-     * Update the properties of the current JJazzLab computer only if they are not already set.
+     * Update the properties of the current JJazzLab computer only if they are
+     * not already set.
      * <p>
      *
-     * @param properties Authorized value classes: String, Integer, Long, Float, Boolean, or a Collection of one these classes.
+     * @param properties Authorized value classes: String, Integer, Long, Float,
+     * Boolean, or a Collection of one these classes.
      * @see Analytics#getJJazzLabComputerId()
      */
     static public void setPropertiesOnce(Map<String, ?> properties)
@@ -180,7 +187,8 @@ public class Analytics
     }
 
     /**
-     * Increment the properties of the current JJazzLab computer by the corresponding Long value.
+     * Increment the properties of the current JJazzLab computer by the
+     * corresponding Long value.
      *
      * @param properties
      * @see Analytics#getJJazzLabComputerId()
@@ -280,7 +288,8 @@ public class Analytics
     }
 
     /**
-     * Helper method to get the current date and time as a string in a consistent way, whatever the current locale or time zone.
+     * Helper method to get the current date and time as a string in a
+     * consistent way, whatever the current locale or time zone.
      * <p>
      * Uses UTC time and ISO format: YYYY-MM-DDTHH:MM:SS
      *
@@ -293,7 +302,8 @@ public class Analytics
     }
 
     /**
-     * Helper method to convert a collection of objects to a list of the corresponding strings.
+     * Helper method to convert a collection of objects to a list of the
+     * corresponding strings.
      *
      * @param c
      * @return
@@ -304,12 +314,15 @@ public class Analytics
     }
 
     /**
-     * A unique and anonymous id computed when JJazzLab is run for the first time on a given computer.
+     * A unique and anonymous id computed when JJazzLab is run for the first
+     * time on a given computer.
      * <p>
-     * The id is stored as a user preference, so it might be deleted if Netbeans user directory is deleted. If user upgrades to a new
-     * version, the id is imported from the previous version settings.
+     * The id is stored as a user preference, so it might be deleted if Netbeans
+     * user directory is deleted. If user upgrades to a new version, the id is
+     * imported from the previous version settings.
      * <p>
-     * Id is calculated from current time in milliseconds + a random number, converted to hexadecimal.
+     * Id is calculated from current time in milliseconds + a random number,
+     * converted to hexadecimal.
      *
      * @return
      */
@@ -346,9 +359,9 @@ public class Analytics
             setProperties(buildMap("OS Name", name, "OS Version", version, "OS Arch.", arch));
             setProperties(buildMap("Country", Locale.getDefault().getCountry(), "Language", Locale.getDefault().getLanguage()));
 
-
             // Log
-            logEvent(EVENT_START_APPLICATION);
+            String jjazzLabVersion = UpgradeManager.getInstance().getVersion();
+            logEvent(EVENT_START_APPLICATION, buildMap("Version", jjazzLabVersion == null ? "null" : jjazzLabVersion));
             incrementProperties("Nb Start Application", 1);
             setPropertiesOnce(buildMap("First Start Application", toStdDateTimeString()));
         }
@@ -358,8 +371,9 @@ public class Analytics
     /**
      * Log the application stop event.
      * <p>
-     * IMPORTANT: AnalyticsProcessors which will process the event must make sure that the processing is done quickly enough in order to NOT
-     * block the shutdown sequence.
+     * IMPORTANT: AnalyticsProcessors which will process the event must make
+     * sure that the processing is done quickly enough in order to NOT block the
+     * shutdown sequence.
      */
     @OnStop
     static public class ApplicationStop implements Runnable
@@ -385,7 +399,6 @@ public class Analytics
             // Copy the PREF_JJAZZLAB_COMPUTER_ID preference if present
             UpgradeManager um = UpgradeManager.getInstance();
             um.duplicateOldPreferences(prefs);
-
 
             String version = System.getProperty("jjazzlab.version");
             logEvent("Upgrade", buildMap("Old Version", (oldVersion == null ? "unknown" : oldVersion), "New Version", (version == null

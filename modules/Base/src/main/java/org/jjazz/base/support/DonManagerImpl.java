@@ -58,11 +58,6 @@ public class DonManagerImpl implements Runnable, DonManager
     public void run()
     {
         int nbRuns = getNbRuns();
-        if (System.getProperty("jjazzlab.version") == null)
-        {
-            // Run from IDE
-            return;
-        }
         if (nbRuns >= NO_NOTIF_THRESHOLD)
         {
             // We had a valid code, check expiration date
