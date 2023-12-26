@@ -29,6 +29,9 @@ import org.jjazz.embeddedsynth.api.EmbeddedSynthException;
 import org.jjazz.embeddedsynth.spi.EmbeddedSynthProvider;
 import org.jjazz.midi.api.JJazzMidiSystem;
 import org.jjazz.upgrade.api.UpgradeManager;
+import org.jjazz.utilities.api.ResUtil;
+import org.openide.DialogDisplayer;
+import org.openide.NotifyDescriptor;
 import org.openide.modules.OnStart;
 import org.openide.util.*;
 
@@ -40,6 +43,7 @@ public class StartupEmbeddedSynthInitTask implements Runnable
 {
 
     private static final String PREF_EMBEDDED_SYNTH_ACTIVATED = "PrefEmbeddedSynthActivated";
+    private static final String PREF_FLUIDSYNTH_DISABLED_WARNING_SHOWN = "PrefFluidSynthDisabledWarningShown";
     private static final Preferences prefs = NbPreferences.forModule(JJazzMidiSystem.class);
     private static final Logger LOGGER = Logger.getLogger(StartupEmbeddedSynthInitTask.class.getSimpleName());
 
@@ -47,9 +51,11 @@ public class StartupEmbeddedSynthInitTask implements Runnable
     public void run()
     {
 
+        var um = UpgradeManager.getInstance();
         var provider = EmbeddedSynthProvider.getDefaultProvider();
         if (provider == null || !provider.isEnabled())
         {
+            showOnceNoFluidSynthWarning();
             return;
         } else
         {
@@ -57,7 +63,7 @@ public class StartupEmbeddedSynthInitTask implements Runnable
             provider.addPropertyChangeListener(e -> prefs.putBoolean(PREF_EMBEDDED_SYNTH_ACTIVATED, (Boolean) e.getNewValue()));
         }
 
-        boolean activate = UpgradeManager.getInstance().isFreshStart() || prefs.getBoolean(PREF_EMBEDDED_SYNTH_ACTIVATED, false);
+        boolean activate = um.isFreshStart() || prefs.getBoolean(PREF_EMBEDDED_SYNTH_ACTIVATED, false);
 
         if (activate)
         {
@@ -67,8 +73,19 @@ public class StartupEmbeddedSynthInitTask implements Runnable
             } catch (EmbeddedSynthException ex)
             {
                 LOGGER.log(Level.WARNING, "run() Can''t activate embedded synth: {0}", ex.getMessage());
+                showOnceNoFluidSynthWarning();
             }
         }
     }
 
+    private void showOnceNoFluidSynthWarning()
+    {
+        if (!prefs.getBoolean(PREF_FLUIDSYNTH_DISABLED_WARNING_SHOWN, false))
+        {
+            String msg = ResUtil.getString(getClass(), "FluidSynthNotAvailable");
+            NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
+            DialogDisplayer.getDefault().notify(d);
+            prefs.putBoolean(PREF_FLUIDSYNTH_DISABLED_WARNING_SHOWN, true);
+        }
+    }
 }
