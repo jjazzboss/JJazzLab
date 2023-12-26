@@ -92,7 +92,7 @@ public class Analytics
     private Analytics()
     {
         processors = new ArrayList<>(Lookup.getDefault().lookupAll(AnalyticsProcessor.class));
-        enabled = processors.size() > 1 && prefs.getBoolean(PREF_ANALYTICS_ENABLED, true);
+        enabled = processors.size() >= 1 && prefs.getBoolean(PREF_ANALYTICS_ENABLED, true);
     }
 
     public void setEnabled(boolean b)

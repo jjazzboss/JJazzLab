@@ -272,7 +272,6 @@ public class MixPanelProcessor implements AnalyticsProcessor
 
         private MixpanelAPI mixPanelAPI;
         private boolean first = true;
-        private boolean enabled = true;
 
         public DeliveryThread()
         {
@@ -280,11 +279,6 @@ public class MixPanelProcessor implements AnalyticsProcessor
             mixPanelAPI = new MixpanelAPI("https://api-eu.mixpanel.com/track",
                     "https://api-eu.mixpanel.com/engage",
                     "https://api-eu.mixpanel.com/groups");
-        }
-
-        public void disable()
-        {
-            enabled = false;
         }
 
         @Override
