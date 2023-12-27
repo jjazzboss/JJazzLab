@@ -70,6 +70,7 @@ public class StartupEmbeddedSynthInitTask implements Runnable
             try
             {
                 provider.setEmbeddedSynthActive(true);
+                prefs.putBoolean(PREF_FLUIDSYNTH_DISABLED_WARNING_SHOWN, false);
             } catch (EmbeddedSynthException ex)
             {
                 LOGGER.log(Level.WARNING, "run() Can''t activate embedded synth: {0}", ex.getMessage());
