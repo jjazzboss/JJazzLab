@@ -120,7 +120,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
         // https://web.archive.org/web/20170314072532/https://blogs.oracle.com/geertjan/entry/creating_a_new_mode_in        
         Mode mode = WindowManager.getDefault().findMode(PianoRollEditorTopComponent.MODE);
         assert mode != null;
-        assert mode.dockInto(this);
+        mode.dockInto(this);
 
 
         this.song = sg;
