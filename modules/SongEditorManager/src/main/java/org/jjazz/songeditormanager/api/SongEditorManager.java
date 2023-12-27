@@ -740,12 +740,12 @@ public class SongEditorManager implements PropertyChangeListener
         {
             // If we're here, it means SS_EditorTc was closed first
             assert !ssTc.isOpened();
-            assert editors.getCL_EditorTc().close();
+            editors.getCL_EditorTc().close();
         } else
         {
             // If we're here, it means CL_EditorTc was closed first            
             assert ssTc.isOpened();
-            assert ssTc.close();
+            ssTc.close();
         }
 
 
