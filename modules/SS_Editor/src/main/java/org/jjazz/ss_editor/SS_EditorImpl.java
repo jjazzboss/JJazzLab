@@ -772,6 +772,11 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         {
             songSpecificProperties.storeCompactViewModeVisibleRPs(r, rps);
             firePropertyChange(PROP_COMPACT_VIEW_MODE_VISIBLE_RPS, r, rps);
+            
+            if (getViewMode().equals(viewMode.COMPACT))
+            {
+                setVisibleRps(r, rps);
+            }
         }
     }
 

@@ -94,7 +94,7 @@ public class CompactRpViewSettings extends AbstractAction
                 editor.setCompactViewRPs(r, res.get(r));
             }
 
-            // Only first rhythm visible parameters
+            // Only the first rhythm visible parameter
             Analytics.logEvent("Compact View Settings", Analytics.buildMap("Visible Rps", Analytics.toStrList(res.values().iterator().next())));
 
         }
