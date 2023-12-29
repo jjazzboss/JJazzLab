@@ -41,8 +41,8 @@ import org.openide.util.ChangeSupport;
 /**
  * A service to retrieve the musical phrases of the active song.
  * <p>
- * When the active song is not playing, we use a SongMusicBuilderTask to get new Phrases each time the song changes. When song is playing,
- * we listen to the current UpdatableSongSession to get the updated phrases (which are provided as long as there is no structural change).
+ * When the active song is not playing, we use a SongMusicBuilderTask to get new Phrases each time the song changes. When song is playing, we listen to the
+ * current UpdatableSongSession to get the updated phrases (which are provided as long as there is no structural change).
  * <p>
  */
 public class ActiveSongMusicBuilder implements PropertyChangeListener, ChangeListener
@@ -54,12 +54,13 @@ public class ActiveSongMusicBuilder implements PropertyChangeListener, ChangeLis
     };
 
     private static ActiveSongMusicBuilder INSTANCE;
-    private MusicGenerationQueue.Result lastResult;
+    private volatile MusicGenerationQueue.Result lastResult;
     private SongMusicBuilderTask songMusicBuilderTask;
     private UpdatableSongSession updatableSongSession;
     private Song activeSong;
     private MidiMix activeMidiMix;
     private Mode mode;
+    private boolean enabled;
     private final ChangeSupport cs = new ChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(ActiveSongMusicBuilder.class.getSimpleName());
 
@@ -78,7 +79,7 @@ public class ActiveSongMusicBuilder implements PropertyChangeListener, ChangeLis
     private ActiveSongMusicBuilder()
     {
         this.mode = Mode.OFF;
-
+        this.enabled = true;
 
         var asm = ActiveSongManager.getInstance();
         asm.addPropertyListener(this);
@@ -95,13 +96,24 @@ public class ActiveSongMusicBuilder implements PropertyChangeListener, ChangeLis
     }
 
     /**
-     * Get the last music generation result.
+     * Get the last music generation result available.
+     * <p>
      *
      * @return Can be null.
      */
     public MusicGenerationQueue.Result getLastResult()
     {
         return lastResult;
+    }
+
+    /**
+     * Check if ActiveSongMusicBuilder is directly being generating music that will produce a new Result.
+     * 
+     * @return True if song is not playing and music is being generated because there was a song change.
+     */
+    public boolean isDirectlyGeneratingMusic()
+    {
+        return songMusicBuilderTask!= null && songMusicBuilderTask.isGeneratingMusic();
     }
 
     /**
@@ -113,6 +125,38 @@ public class ActiveSongMusicBuilder implements PropertyChangeListener, ChangeLis
     {
         return activeSong;
     }
+
+    /**
+     * Change the ActiveSongMusicBuilder state.
+     * <p>
+     * When disabled the ActiveSongMusicBuilder does nothing. Convenient for debugging in specific cases.
+     *
+     * @param b
+     */
+    synchronized public void setEnabled(boolean b)
+    {
+        if (enabled == b)
+        {
+            return;
+        }
+        enabled = b;
+        LOGGER.info("setEnabled() b=" + b);
+        if (!enabled)
+        {
+            setState(Mode.OFF, null, null, null);
+        }
+    }
+
+    /**
+     * Get state (true by default).
+     *
+     * @return
+     */
+    synchronized public boolean isEnabled()
+    {
+        return enabled;
+    }
+
 
     /**
      * Register a listener to be notified each time a new result is available.
@@ -135,8 +179,12 @@ public class ActiveSongMusicBuilder implements PropertyChangeListener, ChangeLis
     // PropertyChangeListener implementation
     // ==========================================================================================================
     @Override
-    public void propertyChange(PropertyChangeEvent evt)
+    synchronized public void propertyChange(PropertyChangeEvent evt)
     {
+        if (!enabled)
+        {
+            return;
+        }
 
         var asm = ActiveSongManager.getInstance();
         var mc = MusicController.getInstance();
@@ -207,7 +255,7 @@ public class ActiveSongMusicBuilder implements PropertyChangeListener, ChangeLis
             {
                 var update = (UpdatableSongSession.Update) evt.getNewValue();
                 playingSongResultReceived(update);
-            } 
+            }
         }
 
 

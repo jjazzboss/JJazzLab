@@ -41,8 +41,8 @@ import org.openide.util.ChangeSupport;
 /**
  * A task to regenerate song music Phrases each time the song changes.
  * <p>
- * The task uses a SongMusicGenerationListener to use only relevant song changes, and a MusicGenerationQueue to handle rapid successive song
- * changes efficiently.
+ * The task uses a SongMusicGenerationListener to use only relevant song changes, and a MusicGenerationQueue to handle rapid successive song changes
+ * efficiently.
  * <p>
  * A ChangeEvent is fired when a new result is available via getLastResult().
  */
@@ -148,6 +148,16 @@ public class SongMusicBuilderTask implements ChangeListener, PropertyChangeListe
     public MusicGenerationQueue.Result getLastResult()
     {
         return lastResult;
+    }
+
+    /**
+     * Check if task is being generating music to produce a future Result.
+     *
+     * @return
+     */
+    public boolean isGeneratingMusic()
+    {
+        return musicGenerationQueue.isGeneratingMusic();
     }
 
     /**
