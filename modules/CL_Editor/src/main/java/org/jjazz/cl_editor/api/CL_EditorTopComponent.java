@@ -144,7 +144,7 @@ public final class CL_EditorTopComponent extends TopComponent implements Propert
         {
             actions.add(null);   // Separator         
         }
-        Collections.addAll(actions, super.getActions()); // Get the standard builtin actions Close, Close All, Close Other      
+        Collections.addAll(actions, super.getActions()); // Get the standard builtin actions Close, Close All, Close Other             
         return actions.toArray(new Action[0]);
     }
 
