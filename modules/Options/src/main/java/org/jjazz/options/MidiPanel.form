@@ -94,9 +94,7 @@
       <Properties>
         <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
           <Border info="org.netbeans.modules.form.compat2.border.TitledBorderInfo">
-            <TitledBorder title="Ouput Synth for VirtualMIDISynth #1">
-              <ResourceString PropertyName="titleX" bundle="org/jjazz/options/Bundle.properties" key="MidiPanel.pnl_outputSynth.border.title" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-            </TitledBorder>
+            <TitledBorder title="Output Synth for : "/>
           </Border>
         </Property>
       </Properties>
@@ -349,7 +347,7 @@
       <Properties>
         <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
           <Border info="org.netbeans.modules.form.compat2.border.TitledBorderInfo">
-            <TitledBorder title="FluidSynth - the JJazzLab synth">
+            <TitledBorder title="FluidSynth - JJazzLab embedded synth">
               <ResourceString PropertyName="titleX" bundle="org/jjazz/options/Bundle.properties" key="MidiPanel.pnl_FluidSynth.border.title" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
             </TitledBorder>
           </Border>

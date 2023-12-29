@@ -263,6 +263,7 @@ public class AddRhythmsAction extends AbstractAction
 
         public AccessoryComponent()
         {
+            cb_SessionOnly.setToolTipText(ResUtil.getString(getClass(), "CurrentSessionOnlyTooltip"));
             add(cb_SessionOnly);
         }
     }
