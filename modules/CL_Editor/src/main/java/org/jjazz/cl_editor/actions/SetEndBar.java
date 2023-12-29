@@ -49,7 +49,7 @@ import org.openide.util.Utilities;
 @ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.setendbar")
 @ActionReferences(
         {
-            @ActionReference(path = "Actions/Bar", position = 200),
+            @ActionReference(path = "Actions/Bar", position = 205),
         })
 public final class SetEndBar extends AbstractAction implements ContextAwareAction, CL_ContextActionListener
 {

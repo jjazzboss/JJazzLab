@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.jjazzlab</groupId>
         <artifactId>jjazzlab-parent</artifactId>
-        <version>4.0.1</version>
+        <version>4.0.2</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
     <artifactId>org-jjazz-embeddedsynth</artifactId>
