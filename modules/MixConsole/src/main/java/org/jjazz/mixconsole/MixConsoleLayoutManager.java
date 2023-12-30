@@ -74,8 +74,8 @@ public class MixConsoleLayoutManager implements LayoutManager
                 int y = yMin;
 
                 // MixChannelPanel
-                var mcp = panelSet.mixChannelPanel;
-                Dimension pd = mcp.getPreferredSize();
+                var mcp = panelSet.mixChannelPanel;         // mcp might be null !? Can't see how possible. Not reproduced. See fix for Issue #396
+                Dimension pd = mcp.getPreferredSize();      
                 mcp.setSize(pd);
                 mcp.setLocation(x, y);
                 y += mcp.getHeight() + V_PADDING;

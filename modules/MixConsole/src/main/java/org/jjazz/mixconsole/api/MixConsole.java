@@ -131,7 +131,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
     private final WeakHashMap<Song, Rhythm> mapVisibleRhythm;
     private final MixConsoleSettings settings;
     private final MenuBar menuBar;
-    private final TreeMap<Integer, ChannelPanelSet> tmapChannelPanelSets = new TreeMap<>();
+    private final TreeMap<Integer, ChannelPanelSet> tmapChannelPanelSets;
     private final MixConsoleLayoutManager layoutManager;
     private static final Logger LOGGER = Logger.getLogger(MixConsole.class.getSimpleName());
 
@@ -143,6 +143,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
             throw new IllegalArgumentException("settings=" + settings);
         }
 
+        tmapChannelPanelSets = new TreeMap<>();
 
         // Listen to settings change events
         this.settings = settings;
@@ -674,16 +675,17 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         // Main panel                
         MixChannelPanelModelImpl mcpModel = new MixChannelPanelModelImpl(songMidiMix, channel);
         MixChannelPanel mcp = new MixChannelPanel(mcpModel, mcpController, settings);
-
-
         panelSet.mixChannelPanel = mcp;
-        panel_mixChannels.add(mcp);         // Our layout manager will place it ordered by channel
 
 
         // Birds-eye-view panel
         var pvp = PhraseViewerPanel.createInstance(songModel, songMidiMix, mcpController, rv);
         panelSet.phraseViewerPanel = pvp;
-        panel_mixChannels.add(pvp);         // Our layout manager will place it
+        
+        
+        // Add the 2 components
+        panel_mixChannels.add(mcp);         // Our layout manager will place it ordered by channel        
+        panel_mixChannels.add(pvp);       
 
 
         // Set a transfer handler 
@@ -940,11 +942,6 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         public RhythmVoice rhythmVoice;
         public MixChannelPanel mixChannelPanel;
         public PhraseViewerPanel phraseViewerPanel;
-
-        public boolean isEmpty()
-        {
-            return mixChannelPanel == null && phraseViewerPanel == null;
-        }
     }
 
     private class MyRenderer extends DefaultListCellRenderer
