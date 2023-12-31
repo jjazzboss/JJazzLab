@@ -638,7 +638,7 @@ public class MidiSynth
      * Save this MidiSynth as a string so that it can be retrieved by loadFromString().
      * <p>
      *
-     * @return A string "Name, FilePath". FilePath can be "NOT_SET" if no file associated. If
+     * @return A string "Name#:#FilePath". FilePath equals "NOT_SET" if no file associated.
      * @see loadFromString(String)
      */
     public String saveAsString()

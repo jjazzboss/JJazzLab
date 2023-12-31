@@ -119,10 +119,11 @@ public class MidiSynthManager
         midiSynths.add(GM2Synth.getInstance());
         midiSynths.add(XGSynth.getInstance());
         midiSynths.add(GSSynth.getInstance());
-        midiSynths.add(loadFromResource(getClass(), JJAZZLAB_SOUNDFONT_GM2_SYNTH_PATH));
-        midiSynths.add(loadFromResource(getClass(), JJAZZLAB_SOUNDFONT_XG_SYNTH_PATH));
-        midiSynths.add(loadFromResource(getClass(), JJAZZLAB_SOUNDFONT_GS_SYNTH_PATH));
-        midiSynths.add(loadFromResource(getClass(), YAMAHA_REF_SYNTH_PATH));
+        midiSynths.add(loadFromResource(getClass(), YAMAHA_REF_SYNTH_PATH));        
+//        midiSynths.add(loadFromResource(getClass(), JJAZZLAB_SOUNDFONT_GM2_SYNTH_PATH));
+//        midiSynths.add(loadFromResource(getClass(), JJAZZLAB_SOUNDFONT_XG_SYNTH_PATH));
+//        midiSynths.add(loadFromResource(getClass(), JJAZZLAB_SOUNDFONT_GS_SYNTH_PATH));
+
     }
 
 
