@@ -22,6 +22,7 @@
  */
 package org.jjazz.rhythmmusicgeneration.api;
 
+import com.google.common.base.Preconditions;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -46,11 +47,10 @@ import org.openide.util.ChangeSupport;
 /**
  * A thread to handle successive incoming music generation requests.
  * <p>
- * If several music generation requests arrive while a music generation task is already running, only the last request is kept. When
- * generation task is done, a new music generation task is started with that last request.
+ * If several music generation requests arrive while a music generation task is already running, only the last request is kept. When generation task is done, a
+ * new music generation task is started with that last request.
  * <p>
- * A ChangeEvent is fired when a music generation task is complete and a result is available. Note that ChangeEvent is fired outside of the
- * Swing EDT.
+ * A ChangeEvent is fired when a music generation task is complete and a result is available. Note that ChangeEvent is fired outside of the Swing EDT.
  */
 public class MusicGenerationQueue implements Runnable
 {
@@ -67,7 +67,6 @@ public class MusicGenerationQueue implements Runnable
             {
 
     }
-
 
     private ExecutorService executorService;
     private ScheduledExecutorService generationExecutorService;
@@ -101,6 +100,7 @@ public class MusicGenerationQueue implements Runnable
      */
     public void add(SongContext sgContext)
     {
+        Preconditions.checkNotNull(sgContext);
         lastAddedSongContext = sgContext;
         writeThreadSharedSongContext(sgContext);
     }
@@ -108,6 +108,17 @@ public class MusicGenerationQueue implements Runnable
     public SongContext getLastAddedSongContext()
     {
         return lastAddedSongContext;
+    }
+
+    /**
+     * Check if queue is being generating music to produce a future Result.
+     *
+     * @return
+     */
+    public boolean isGeneratingMusic()
+    {
+        boolean idle = !running || lastAddedSongContext == null || (lastResult != null && lastResult.songContext == lastAddedSongContext);
+        return !idle;
     }
 
     public boolean isRunning()
@@ -131,6 +142,7 @@ public class MusicGenerationQueue implements Runnable
         }
     }
 
+
     /**
      * Wait this time from the first received change before triggering an update.
      * <p>
@@ -146,8 +158,7 @@ public class MusicGenerationQueue implements Runnable
     /**
      * The minimum delay between 2 consecutive updates.
      * <p>
-     * This avoids too many sequencer changes in a short period of time, which can cause audio issues with notes muted/unmuted too many
-     * times.
+     * This avoids too many sequencer changes in a short period of time, which can cause audio issues with notes muted/unmuted too many times.
      * <p>
      * @return
      */
@@ -212,6 +223,13 @@ public class MusicGenerationQueue implements Runnable
     }
 
 
+    /**
+     * Be notified when a new result is available.
+     * <p>
+     * Note that listener will be called from a distinct thread.
+     *
+     * @param listener
+     */
     public void addChangeListener(ChangeListener listener)
     {
         cs.addChangeListener(listener);
@@ -283,7 +301,8 @@ public class MusicGenerationQueue implements Runnable
 
         } else
         {
-            // There is a generation task but not started yet (wait preUpdateBufferTimeMs), try to update it
+            // There is a generation task : because not started yet (wait preUpdateBufferTimeMs) or generating music
+            // Try to update it
             if (generationTask.changeContext(sgContext))
             {
                 // LOGGER.fine("handleContext() changed context of current generation task");
@@ -325,7 +344,7 @@ public class MusicGenerationQueue implements Runnable
     // Inner classes
     // =============================================================================================
     /**
-     * A task which creates the update and sleeps postUpdateSleepTime before notifying that the update is ready.
+     * A task which creates the update and sleeps postUpdateSleepTime after notifying that the update is ready.
      */
     private class UpdateGenerationTask implements Runnable
     {
@@ -339,8 +358,8 @@ public class MusicGenerationQueue implements Runnable
          * <p>
          *
          * @param sgContext           This must be an immutable instance (e.g. song must not be modified in parallel)
-         * @param postUpdateSleepTime This delay avoids to have too many sequencer changes in a short period of time, which can cause audio
-         *                            issues with notes muted/unmuted too many times.
+         * @param postUpdateSleepTime This delay avoids to have too many sequencer changes in a short period of time, which can cause audio issues with notes
+         *                            muted/unmuted too many times.
          */
         UpdateGenerationTask(SongContext sgContext, int postUpdateSleepTime)
         {

@@ -34,14 +34,13 @@ import java.util.logging.Logger;
 import javax.sound.midi.MidiUnavailableException;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
-import org.jjazz.activesong.api.ActiveSongManager;
+import org.jjazz.activesong.spi.ActiveSongManager;
 import org.jjazz.analytics.api.Analytics;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.MidiMixManager;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.musiccontrol.api.playbacksession.UpdateProviderSongSession;
-import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession;
 import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSessionOnePlay;
 import org.jjazz.songcontext.api.SongContext;
@@ -96,7 +95,7 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
         MusicController.getInstance().addPropertyChangeListener(this);
 
         // Listen to the Midi active song changes
-        ActiveSongManager.getInstance().addPropertyListener(this);
+        ActiveSongManager.getDefault().addPropertyListener(this);
 
         // Listen to the current Song changes
         lookupResult = Utilities.actionsGlobalContext().lookupResult(Song.class);
@@ -166,15 +165,17 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
                         MidiMix midiMix = MidiMixManager.getInstance().findMix(currentSong);      // Can raise MidiUnavailableException
                         SongContext context = new SongContext(currentSong, midiMix);
 
+                        
                         // Check that all listeners are OK to start playback     
                         PlaybackSettings.getInstance().firePlaybackStartVetoableChange(context);  // can raise PropertyVetoException
 
 
                         // Prepare the session
                         UpdateProviderSongSession dynSession = UpdateProviderSongSession.getSession(context);
-                        session = new UpdatableSongSessionOnePlay(dynSession);                        
+                        session = UpdatableSongSession.getSession(dynSession);
                         mc.setPlaybackSession(session, false);  // Can generate MusicGenerationException
 
+                        
                         // Start sequencer
                         mc.play(0);
 
@@ -287,7 +288,7 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
             {
                 playbackStateChanged();
             }
-        } else if (evt.getSource() == ActiveSongManager.getInstance())
+        } else if (evt.getSource() == ActiveSongManager.getDefault())
         {
             if (evt.getPropertyName() == ActiveSongManager.PROP_ACTIVE_SONG)
             {
@@ -327,7 +328,7 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
 
     private void currentSongChanged()
     {
-        Song activeSong = ActiveSongManager.getInstance().getActiveSong();
+        Song activeSong = ActiveSongManager.getDefault().getActiveSong();
         boolean b = (currentSong != null && currentSong == activeSong);
         setEnabled(b);
     }

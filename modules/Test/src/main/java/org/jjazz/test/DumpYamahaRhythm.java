@@ -38,16 +38,16 @@ import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.util.NbBundle;
 
-@ActionID(category = "Test", id = "org.jjazz.test.dumpyamaharhythm")
-@ActionRegistration(displayName = "#CTL_DumpYamahaRhythm", lazy = true)
-@ActionReferences(
-        {
-           @ActionReference(path = "Actions/SongPart", position = 676)      // Add to popupmenu
-        })
-@NbBundle.Messages(
-        {
-           "CTL_DumpYamahaRhythm=[DEBUG] Dump Yamaha Rhythm CASM"
-        })
+//@ActionID(category = "Test", id = "org.jjazz.test.dumpyamaharhythm")
+//@ActionRegistration(displayName = "#CTL_DumpYamahaRhythm", lazy = true)
+//@ActionReferences(
+//        {
+//           @ActionReference(path = "Actions/SongPart", position = 676)      // Add to popupmenu
+//        })
+//@NbBundle.Messages(
+//        {
+//           "CTL_DumpYamahaRhythm=[DEBUG] Dump Yamaha Rhythm CASM"
+//        })
 public class DumpYamahaRhythm implements ActionListener
 {
    private SongPart context;

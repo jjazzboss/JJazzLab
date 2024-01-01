@@ -54,16 +54,13 @@ import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.utilities.api.IntRange;
 
 /**
- * A PlaybackSession is a BaseSongSession wrapper which enables on-the-fly updates of the playing sequence using
- * {@link updateSequence(Update)}.
+ * An UpdatableSongSession is a BaseSongSession wrapper which enables on-the-fly updates of the playing sequence using {@link updateSequence(Update)}.
  * <p>
- * Authorized udpates are notes+control track changes which do not change the Sequence size. Only user phrase modification or removal is
- * supported.
+ * Authorized udpates are notes+control track changes which do not change the Sequence size. Only user phrase modification or removal is supported.
  * <p>
  * The class uses buffer tracks and mute/unmute tracks to enable on-the-fly sequence changes.
  * <p>
- * If the BaseSongSession is an instance of UpdateProvider, the UpdatableSongSession listens to updates availability and automatically apply
- * the updates.
+ * If the BaseSongSession is an instance of UpdateProvider, the UpdatableSongSession listens to updates availability and automatically apply the updates.
  */
 public class UpdatableSongSession implements PropertyChangeListener, PlaybackSession, ControlTrackProvider, SongContextProvider, EndOfPlaybackActionProvider
 {
@@ -145,8 +142,7 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
          * Check if this UpdateProvider can still provide updates.
          *
          *
-         * @return True upon this object's creation, but might become false if UpdateProvider is "too" dirty and not able anymore to provide
-         *         updates.
+         * @return True upon this object's creation, but might become false if UpdateProvider is "too" dirty and not able anymore to provide updates.
          * @see PlaybackSession#isDirty()
          */
         boolean isUpdateProvisionEnabled();
@@ -179,11 +175,9 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
     /**
      * Create or reuse a session for the specified parameters.
      * <p>
-     * Sessions are cached: if an existing session already exists for the same parameters then return it, otherwise a new session is
-     * created.
+     * Sessions are cached: if an existing session already exists for the same parameters then return it, otherwise a new session is created.
      * <p>
-     * @param session Must be in the NEW or GENERATED state. If it is an UpdateProvider instance automatically apply the updates when
-     *                available.
+     * @param session Must be in the NEW or GENERATED state. If it is an UpdateProvider instance automatically apply the updates when available.
      * @return
      */
     static public UpdatableSongSession getSession(BaseSongSession session)
@@ -261,8 +255,8 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
 
 
     /**
-     * Get the sequence which contains the original song tracks plus additional empty tracks to allow "double buffering modification" via
-     * muting/unmuting tracks.
+     * Get the sequence which contains the original song tracks plus additional empty tracks to allow "double buffering modification" via muting/unmuting
+     * tracks.
      * <p>
      * The total number of tracks is 2 * getNbPlayingTracks().
      *
@@ -298,8 +292,8 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
     /**
      * Check is this session is enabled.
      * <p>
-     * The session is enabled by default upon creation. It might be automatically disabled when our base song session is an UpdateProvider
-     * which can not provide updates anymore.
+     * The session is enabled by default upon creation. It might be automatically disabled when our base song session is an UpdateProvider which can not provide
+     * updates anymore.
      *
      * @return
      */
@@ -327,9 +321,8 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
     /**
      * Update the sequence with the specified parameter.
      * <p>
-     * Update RhythmVoice tracks for which there is an actual change. Changes are first applied to muted "buffer tracks", then we switch the
-     * mute status between the buffer and the playing tracks. The transition might be noticeable if notes were still ringing when tracks
-     * mute state is switched.
+     * Update RhythmVoice tracks for which there is an actual change. Changes are first applied to muted "buffer tracks", then we switch the mute status between
+     * the buffer and the playing tracks. The transition might be noticeable if notes were still ringing when tracks mute state is switched.
      * <p>
      * Fire a PROP_UPDATED_RECEIVED change event.
      * <p>
@@ -338,8 +331,7 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
      *
      *
      * @param update
-     * @throws IllegalArgumentException If a MidiEvent tick position is beyond getOriginalSequenceSize(), or if session is not in the
-     *                                  GENERATED state.
+     * @throws IllegalArgumentException If a MidiEvent tick position is beyond getOriginalSequenceSize(), or if session is not in the GENERATED state.
      */
     public void updateSequence(Update update)
     {

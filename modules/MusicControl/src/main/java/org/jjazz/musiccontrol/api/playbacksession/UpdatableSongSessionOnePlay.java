@@ -30,8 +30,7 @@ import org.jjazz.musiccontrol.api.MusicController;
 /**
  * A special UpdatableSongSession, which accepts an UpdateProvider as base session, and which closes itself after being played.
  * <p>
- * This prevents the session to be automatically updated after session is played (this is introduced to let the ActiveSongMusicBuilder
- * takes care of music generation when playback is stopped).
+ * This prevents the session to be automatically updated after session is played. 
  */
 public class UpdatableSongSessionOnePlay extends UpdatableSongSession
 {
@@ -55,6 +54,12 @@ public class UpdatableSongSessionOnePlay extends UpdatableSongSession
     {
         super.close();
         MusicController.getInstance().removePropertyChangeListener(this);
+    }
+    
+        @Override
+    public String toString()
+    {
+        return "UpdatableSongSessionOnePlay=[" + super.toString() + "]";
     }
 
     // ==========================================================================================================
