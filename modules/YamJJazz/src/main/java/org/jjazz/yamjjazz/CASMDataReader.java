@@ -279,21 +279,20 @@ public class CASMDataReader
         {
             throw new FormatNotSupportedException(logName + " - Invalid middle-lowest note value in Ctb2: " + middleLowPitch);
         }
-        cTab.setCtb2MiddleLowPitch(middleLowPitch);
+        cTab.setCtb2MiddleLowPitch(middleLowPitch);         // This will also create cTab.ctb2Low if required
         int middleHighPitch = readUByte(in);
         if (middleHighPitch > 127)
         {
             throw new FormatNotSupportedException(logName + " - Invalid middle-highest note value in Ctb2: " + middleHighPitch);
         }
-        cTab.setCtb2MiddleHighPitch(middleHighPitch);
+        cTab.setCtb2MiddleHighPitch(middleHighPitch);       // This will also create cTab.ctb2High if required
+        
 
         // Parse each ctb2 subpart
-        Ctb2ChannelSettings ctb2Low = cTab.getCtb2ChannelSettings(0);    // Can be null       
-        parseCtb2Subpart(in, ctb2Low);
-        Ctb2ChannelSettings ctb2Main = cTab.ctb2Main;           // Can't be null     
-        parseCtb2Subpart(in, ctb2Main);
-        Ctb2ChannelSettings ctb2High = cTab.getCtb2ChannelSettings(127);    // Can be null       
-        parseCtb2Subpart(in, ctb2High);
+        parseCtb2Subpart(in, cTab.ctb2Low);     
+        parseCtb2Subpart(in, cTab.ctb2Main);
+        parseCtb2Subpart(in, cTab.ctb2High);
+        
 
         // Skip the final 7 "unknown bytes" at the end of the ctb2 section
         in.skip(7);

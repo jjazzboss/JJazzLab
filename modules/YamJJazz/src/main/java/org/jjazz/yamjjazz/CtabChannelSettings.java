@@ -31,8 +31,8 @@ import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.midi.api.MidiConst;
 
 /**
- * Corresponds to data in the Ctab structure or ctb2 structure (first part only, 2nd ctb2 part is in the ct2Low/Main/High fields)
- * in the style file, associated to one channel.
+ * Corresponds to data in the Ctab structure or ctb2 structure (first part only, 2nd ctb2 part is in the ct2Low/Main/High fields) in the style file, associated
+ * to one channel.
  * <p>
  * For simplification fields are public and can be filled directly by the user, or via the helper methods.<p>
  */
@@ -50,9 +50,9 @@ public class CtabChannelSettings
     public YamChord sourceChordType;
     private int ctb2MiddleLowPitch = 0; // Not used if SFF1
     private int ctb2MiddleHighPitch = 127;// Not used if SFF1
-    private Ctb2ChannelSettings ctb2Low = null;
+    public Ctb2ChannelSettings ctb2Low = null;
     public final Ctb2ChannelSettings ctb2Main = new Ctb2ChannelSettings();      // Used for SFF1 or SFF2
-    private Ctb2ChannelSettings ctb2High = null;
+    public Ctb2ChannelSettings ctb2High = null;
 
     private static final Logger LOGGER = Logger.getLogger(CtabChannelSettings.class.getSimpleName());
 
@@ -81,31 +81,18 @@ public class CtabChannelSettings
         return channel;
     }
 
-    /**
-     * Get the Ctb2ChannelSettings for the specified pitch.
-     *
-     * @param pitch
-     * @return
-     */
-    public Ctb2ChannelSettings getCtb2ChannelSettings(int pitch)
-    {
-        if (pitch < ctb2MiddleLowPitch)
-        {
-            assert ctb2Low != null : "pitch=" + pitch + " ctb2MiddleLowPitch=" + ctb2MiddleLowPitch;   //NOI18N
-            return ctb2Low;
-        } else if (pitch > ctb2MiddleHighPitch)
-        {
-            assert ctb2High != null : "pitch=" + pitch + " ctb2MiddleHighPitch=" + ctb2MiddleHighPitch;   //NOI18N
-            return ctb2High;
-        }
-        return ctb2Main;
-    }
-
     public int getCtb2MiddeLowPitch()
     {
         return ctb2MiddleLowPitch;
     }
 
+    /**
+     * Set the middle low pitch.
+     * <p>
+     * This also creates ctb2Low if required.
+     *
+     * @param b1
+     */
     public void setCtb2MiddleLowPitch(int b1)
     {
         ctb2MiddleLowPitch = b1;
@@ -124,7 +111,7 @@ public class CtabChannelSettings
      */
     public boolean isSingleCtb2()
     {
-        return ctb2MiddleLowPitch == 0 && ctb2MiddleHighPitch == 127;
+        return ctb2Low == null && ctb2High == null;
     }
 
     public int getCtb2MiddeHighPitch()
@@ -132,6 +119,13 @@ public class CtabChannelSettings
         return ctb2MiddleHighPitch;
     }
 
+    /**
+     * Set the middle high pitch.
+     * <p>
+     * This also creates ctb2High if required.
+     *
+     * @param b1
+     */
     public void setCtb2MiddleHighPitch(int b1)
     {
         ctb2MiddleHighPitch = b1;
@@ -400,11 +394,21 @@ public class CtabChannelSettings
 
     public void dump()
     {
-        LOGGER.log(Level.INFO, "----CHANNEL SETTINGS (CTAB) channel={0} accType={1} name={2}", new Object[]{channel, accType, name});
+        LOGGER.log(Level.INFO, "----CHANNEL SETTINGS (CTAB) channel={0} accType={1} name={2}", new Object[]
+        {
+            channel, accType, name
+        });
         LOGGER.log(Level.INFO, "  mutedNotes={0}", mutedNotes);
         LOGGER.log(Level.INFO, "  autoStart={0}", autoStart);
         LOGGER.log(Level.INFO, "  mutedChords={0}", mutedChords);
-        LOGGER.log(Level.INFO, "  sourceChordNote={0} sourceChordType={1}", new Object[]{sourceChordNote, sourceChordType});
+        LOGGER.log(Level.INFO, "  sourceChordNote={0} sourceChordType={1}", new Object[]
+        {
+            sourceChordNote, sourceChordType
+        });
+        LOGGER.log(Level.INFO, "  ctb2MiddleLowPitch={0} ctb2MiddleHighPitch={1}", new Object[]
+        {
+            ctb2MiddleLowPitch, ctb2MiddleHighPitch
+        });
         if (ctb2Low != null)
         {
             LOGGER.info("   -- CTB2 LOW");

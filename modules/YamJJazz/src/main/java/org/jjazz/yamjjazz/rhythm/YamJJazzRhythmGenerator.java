@@ -458,10 +458,9 @@ public class YamJJazzRhythmGenerator
             }
 
 
-            // Special case, we can directly reuse the source phrase whatever the chord sequence
-            // Typically for Drums
-            // We test only ctb2Main: logically if BYPASS/ROOT_FIXED there should be only 1 main ctb2            
-            if (cTab.ctb2Main.ntt == NoteTranspositionTable.BYPASS && cTab.ctb2Main.ntr == NoteTranspositionRule.ROOT_FIXED)
+            // Special shortcut case, we can directly reuse the source phrase whatever the chord sequence
+            // Typically for Drums on SFF1 files
+            if (cTab.isSingleCtb2() && cTab.ctb2Main.ntt == NoteTranspositionTable.BYPASS && cTab.ctb2Main.ntr == NoteTranspositionRule.ROOT_FIXED)
             {
                 pRes.add(pSrc);
                 LOGGER.log(Level.FINE, "getOneAccTypePhraseOneShortChordSequence()   ByPass+RootFixed: directly reuse source phrase");
@@ -522,14 +521,24 @@ public class YamJJazzRhythmGenerator
 
                 // Split the source phrase in potentially 3 notes range (SFF2 support)
                 // Low range
-                if (cTab.getCtb2ChannelSettings(0) != null)
+                if (cTab.ctb2Low != null)
                 {
                     // There is specific ctb2 settings for the lowest range of notes
-                    Ctb2ChannelSettings ctb2 = cTab.getCtb2ChannelSettings(0);
+                    LOGGER.log(Level.FINE, "getOneAccTypePhraseOneShortChordSequence() Processing SFF2 ctb2 low range at={0}", at);
+                    Ctb2ChannelSettings ctb2 = cTab.ctb2Low;
                     SourcePhrase pSrcLow = pSrc.getProcessedPhrase(ne -> ne.getPitch() < cTab.getCtb2MiddeLowPitch(), ne -> ne.clone());
-                    Phrase fittedPhrase = fitSrcPhraseToChordSymbol(pSrcLow, ctb2, destEcs, cri);
-                    Phrases.limitPitch(fittedPhrase, ctb2.noteLowLimit.getPitch(), ctb2.noteHighLimit.getPitch());
-                    pDestOneCs.add(fittedPhrase);
+
+                    if (ctb2.ntt == NoteTranspositionTable.BYPASS && ctb2.ntr == NoteTranspositionRule.ROOT_FIXED)
+                    {
+                        // Special case, we can directly reuse the source phrase whatever the chord sequence    
+                        pDestOneCs.add(pSrcLow);
+                        LOGGER.log(Level.FINE, "   ByPass+RootFixed: directly reusing source phrase");
+                    } else
+                    {
+                        Phrase fittedPhrase = fitSrcPhraseToChordSymbol(pSrcLow, ctb2, destEcs, cri);
+                        Phrases.limitPitch(fittedPhrase, ctb2.noteLowLimit.getPitch(), ctb2.noteHighLimit.getPitch());
+                        pDestOneCs.add(fittedPhrase);
+                    }
                 }
 
 
@@ -541,25 +550,47 @@ public class YamJJazzRhythmGenerator
                     Phrases.limitPitch(pDestOneCs, cTab.ctb2Main.noteLowLimit.getPitch(), cTab.ctb2Main.noteHighLimit.getPitch());
                 } else
                 {
-                    // There is aslo low or high range too
-                    SourcePhrase pSrcMain = pSrc.getProcessedPhrase(ne
-                            -> ne.getPitch() >= cTab.getCtb2MiddeLowPitch() && ne.getPitch() <= cTab.getCtb2MiddeHighPitch(), ne
-                            -> ne.clone());
-                    Phrase fittedPhrase = fitSrcPhraseToChordSymbol(pSrcMain, cTab.ctb2Main, destEcs, cri);
-                    Phrases.limitPitch(fittedPhrase, cTab.ctb2Main.noteLowLimit.getPitch(), cTab.ctb2Main.noteHighLimit.getPitch());
-                    pDestOneCs.add(fittedPhrase);
+                    // There is also a low or high range too
+                    LOGGER.log(Level.FINE, "getOneAccTypePhraseOneShortChordSequence() Processing SFF2 ctb2 middle range at={0}", at);
+                    Ctb2ChannelSettings ctb2 = cTab.ctb2Main;
+                    SourcePhrase pSrcMain = pSrc.getProcessedPhrase(ne -> ne.getPitch() >= cTab.getCtb2MiddeLowPitch()
+                            && ne.getPitch() <= cTab.getCtb2MiddeHighPitch(),
+                            ne -> ne.clone());
+
+                    if (ctb2.ntt == NoteTranspositionTable.BYPASS && ctb2.ntr == NoteTranspositionRule.ROOT_FIXED)
+                    {
+                        // Special case, we can directly reuse the source phrase whatever the chord sequence    
+                        pDestOneCs.add(pSrcMain);
+                        LOGGER.log(Level.FINE, "   ByPass+RootFixed: directly reusing source phrase");
+                    } else
+                    {
+                        Phrase fittedPhrase = fitSrcPhraseToChordSymbol(pSrcMain, ctb2, destEcs, cri);
+                        Phrases.limitPitch(fittedPhrase, ctb2.noteLowLimit.getPitch(), ctb2.noteHighLimit.getPitch());
+                        pDestOneCs.add(fittedPhrase);
+                    }
                 }
 
 
                 // High range
-                if (cTab.getCtb2ChannelSettings(127) != null)
+                if (cTab.ctb2High != null)
                 {
                     // There is specific ctb2 settings for the highest range of notes
-                    Ctb2ChannelSettings ctb2 = cTab.getCtb2ChannelSettings(0);
+                    LOGGER.log(Level.FINE, "getOneAccTypePhraseOneShortChordSequence() Processing SFF2 ctb2 high range at={0}", at);
+                    Ctb2ChannelSettings ctb2 = cTab.ctb2High;
                     SourcePhrase pSrcHigh = pSrc.getProcessedPhrase(ne -> ne.getPitch() > cTab.getCtb2MiddeHighPitch(), ne -> ne.clone());
-                    Phrase fittedPhrase = fitSrcPhraseToChordSymbol(pSrcHigh, ctb2, destEcs, cri);
-                    Phrases.limitPitch(fittedPhrase, ctb2.noteLowLimit.getPitch(), ctb2.noteHighLimit.getPitch());
-                    pDestOneCs.add(fittedPhrase);
+
+                    if (ctb2.ntt == NoteTranspositionTable.BYPASS && ctb2.ntr == NoteTranspositionRule.ROOT_FIXED)
+                    {
+                        // Special case, we can directly reuse the source phrase whatever the chord sequence    
+                        pDestOneCs.add(pSrcHigh);
+                        LOGGER.log(Level.FINE, "   ByPass+RootFixed: directly reusing source phrase");
+                    } else
+                    {
+                        Phrase fittedPhrase = fitSrcPhraseToChordSymbol(pSrcHigh, ctb2, destEcs, cri);
+                        Phrases.limitPitch(fittedPhrase, ctb2.noteLowLimit.getPitch(), ctb2.noteHighLimit.getPitch());
+                        pDestOneCs.add(fittedPhrase);
+                    }
+
                 }
 
 
@@ -768,8 +799,8 @@ public class YamJJazzRhythmGenerator
     /**
      * Fix the transitions of notes ON in the specified phrase.
      * <p>
-     * Detect when several notes share the same parent note. This happens when there is a chord change while a note is on in one source
-     * phrase. Parent notes must be stored in each p's NoteEvent PARENT_NOTE client property.<p>
+     * Detect when several notes share the same parent note. This happens when there is a chord change while a note is on in one source phrase. Parent notes
+     * must be stored in each p's NoteEvent PARENT_NOTE client property.<p>
      * Note that the method won't work if p was built by merging two or more source phrases, since parentNotes will be different.
      * <p>
      * The method modifies the phrase p to apply the transition depending on the rtr setting:<br>
@@ -921,8 +952,8 @@ public class YamJJazzRhythmGenerator
     /**
      * Modify the song's SongStructure and ChordLeadSheet to facilitate the processing of the RP_STD_FILL parameter.
      * <p>
-     * Add a "fill" section on the last bar of each existing section. Exploit the RP_STD_Fill parameter: introduce "fake" Section/SongParts
-     * with Fill_In_AA-like styles parts.
+     * Add a "fill" section on the last bar of each existing section. Exploit the RP_STD_Fill parameter: introduce "fake" Section/SongParts with Fill_In_AA-like
+     * styles parts.
      * <p>
      * @param song
      */
