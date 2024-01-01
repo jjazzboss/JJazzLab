@@ -266,8 +266,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     /**
      * Associate an optional song to the editor.
      * <p>
-     * Put the song in the editor's lookup. Song undo manager is used. The ruler can show the chord symbols and listen to chord symbols
-     * changes.<p>
+     * Put the song in the editor's lookup. Song undo manager is used. The ruler can show the chord symbols and listen to chord symbols changes.<p>
      * <p>
      * This method can be called only once.
      *
@@ -299,8 +298,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
      * The channel is used e.g. when "hear preview" or "solo mode" is activated, or when notes are imported from a dragged Midi file.
      *
      * @return
-     * @see #setModel(int, org.jjazz.util.api.FloatRange, org.jjazz.phrase.api.Phrase, int, java.util.NavigableMap,
-     * org.jjazz.midi.api.DrumKit.KeyMap)
+     * @see #setModel(int, org.jjazz.util.api.FloatRange, org.jjazz.phrase.api.Phrase, int, java.util.NavigableMap, org.jjazz.midi.api.DrumKit.KeyMap)
      */
     public int getChannel()
     {
@@ -321,8 +319,8 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     /**
      * Optional view-only phrases shown faded in the background of the editor.
      * <p>
-     * The specified phrases are shown faded in the background in order to facilite the editing of the Phrase model. E.g. if the edited
-     * phrase is a bass line, you can use this method to make the corresponding drums phrase also visible.
+     * The specified phrases are shown faded in the background in order to facilite the editing of the Phrase model. E.g. if the edited phrase is a bass line,
+     * you can use this method to make the corresponding drums phrase also visible.
      *
      * @param mapChannelPhrases A name associated to a Phrase.
      */
@@ -359,8 +357,8 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
      * @param p              The phrase model
      * @param beatRange      The edited part of the phrase model
      * @param phraseStartBar The start bar corresponding to beatRange.from
-     * @param rulerStartBar  The start bar displayed on the ruler corresponding to beatRange.from. Usually it has the same value than
-     *                       phraseStartBar, but it can be different to make the edited range appear at a different bar range.
+     * @param rulerStartBar  The start bar displayed on the ruler corresponding to beatRange.from. Usually it has the same value than phraseStartBar, but it can
+     *                       be different to make the edited range appear at a different bar range.
      * @param channel        The Midi channel of the edited Phrase (p.getChannel() is ignored).
      * @param mapPosTs       The position of each time signature. Must have at least 1 entry at beatRange.from position or before.
      * @param kMap           If null means it's a melodic phrase
@@ -1033,7 +1031,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         return res;
     }
 
-    
+
     /**
      * @return The UndoManager used by this editor.
      */
@@ -1146,7 +1144,11 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
             PianoRollEditor.this.selectNotes(rangeNotes, false);
             for (var ne : rangeNotes)
             {
-                unregisterNoteView(notesPanel.getNoteView(ne));
+                var nv = notesPanel.getNoteView(ne);        // Might be null in corner cases !? Issue #399
+                if (nv != null)
+                {
+                    unregisterNoteView(nv);
+                }
                 notesPanel.removeNoteView(ne);
             }
         }
@@ -1154,6 +1156,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
 
     private void registerNoteView(NoteView nv)
     {
+        Preconditions.checkNotNull(nv);
         nv.addMouseListener(editToolProxyMouseListener);
         nv.addMouseListener(genericMouseListener);
         nv.addMouseMotionListener(editToolProxyMouseListener);
@@ -1166,6 +1169,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
 
     private void unregisterNoteView(NoteView nv)
     {
+        Preconditions.checkNotNull(nv);
         nv.removeMouseListener(editToolProxyMouseListener);
         nv.removeMouseListener(genericMouseListener);
         nv.removeMouseMotionListener(editToolProxyMouseListener);
@@ -1327,7 +1331,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         notesPanel.getActionMap().put("IncreaseSelectionVelocity", new IncreaseSelectionVelocity(this));
         notesPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("alt DOWN"),
                 "DecreaseSelectionVelocity");
-        notesPanel.getActionMap().put("DecreaseSelectionVelocity", new DecreaseSelectionVelocity(this));        
+        notesPanel.getActionMap().put("DecreaseSelectionVelocity", new DecreaseSelectionVelocity(this));
         notesPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("UP"), "TransposeUp");
         notesPanel.getActionMap().put("TransposeUp", new TransposeSelectionUp(this));
         notesPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("DOWN"), "TransposeDown");
