@@ -32,7 +32,7 @@ import java.util.logging.Logger;
 import javax.sound.midi.MidiUnavailableException;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import org.jjazz.activesong.api.ActiveSongManager;
+import org.jjazz.activesong.spi.ActiveSongManager;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.midimix.api.MidiMix;
@@ -118,7 +118,7 @@ public class PlayFromHere extends AbstractAction
         }
 
         // Song must be active !
-        ActiveSongManager asm = ActiveSongManager.getInstance();
+        ActiveSongManager asm = ActiveSongManager.getDefault();
         if (asm.getActiveSong() != song)
         {
             String msg = ResUtil.getString(getClass(), "ERR_NotActive");
@@ -188,7 +188,7 @@ public class PlayFromHere extends AbstractAction
             PlaybackSettings.getInstance().firePlaybackStartVetoableChange(context);  // can raise PropertyVetoException
 
             var dynSession = UpdateProviderSongSession.getSession(context);
-            session = new UpdatableSongSessionOnePlay(dynSession);
+            session = UpdatableSongSession.getSession(dynSession);
             mc.setPlaybackSession(session, false);  // Can generate MusicGenerationException
             mc.play(playFromBar);
             

@@ -34,7 +34,7 @@ import java.util.logging.Logger;
 import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Sequence;
 import javax.sound.midi.Sequencer;
-import org.jjazz.activesong.api.ActiveSongManager;
+import org.jjazz.activesong.spi.ActiveSongManager;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
@@ -92,7 +92,7 @@ public class RhythmPreviewProviderImpl implements RhythmSelectionDialog.RhythmPr
         }
         originalSong = sg;
         originalSpt = spt;
-        previouslyActivatedSong = ActiveSongManager.getInstance().getActiveSong();
+        previouslyActivatedSong = ActiveSongManager.getDefault().getActiveSong();
     }
 
     @Override
@@ -114,7 +114,7 @@ public class RhythmPreviewProviderImpl implements RhythmSelectionDialog.RhythmPr
         }
 
         // Reactivate song
-        var asm = ActiveSongManager.getInstance();
+        var asm = ActiveSongManager.getDefault();
         MidiMix mm = null;
         try
         {
@@ -176,7 +176,7 @@ public class RhythmPreviewProviderImpl implements RhythmSelectionDialog.RhythmPr
         // Activate the song to initialize Midi instruments
         Song song = sgContext.getSong();
         MidiMix mm = sgContext.getMidiMix();
-        ActiveSongManager asm = ActiveSongManager.getInstance();
+        ActiveSongManager asm = ActiveSongManager.getDefault();
         asm.setActive(song, mm);
 
 
@@ -305,7 +305,7 @@ public class RhythmPreviewProviderImpl implements RhythmSelectionDialog.RhythmPr
 
         private PreviewSession(SongContext sgContext, int loopCount, ActionListener endOfPlaybackAction)
         {
-            super(sgContext, true, false, false, true, loopCount, endOfPlaybackAction);
+            super(sgContext, true, false, false, true, loopCount, endOfPlaybackAction, false);
         }
 
         @Override

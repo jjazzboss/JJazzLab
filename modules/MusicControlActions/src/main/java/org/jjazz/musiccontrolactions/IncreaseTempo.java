@@ -24,7 +24,7 @@ package org.jjazz.musiccontrolactions;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import org.jjazz.activesong.api.ActiveSongManager;
+import org.jjazz.activesong.spi.ActiveSongManager;
 import org.jjazz.rhythm.api.TempoRange;
 import org.jjazz.song.api.Song;
 import org.jjazz.undomanager.api.JJazzUndoManager;
@@ -56,7 +56,7 @@ public final class IncreaseTempo implements ActionListener
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        if (ActiveSongManager.getInstance().getActiveSong() == song)
+        if (ActiveSongManager.getDefault().getActiveSong() == song)
         {
             int tempo = song.getTempo() + 5;
             if (TempoRange.checkTempo(tempo))

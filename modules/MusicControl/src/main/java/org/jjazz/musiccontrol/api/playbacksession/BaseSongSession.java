@@ -33,12 +33,14 @@ import java.util.logging.Logger;
 import javax.sound.midi.Sequence;
 import javax.sound.midi.Track;
 import javax.swing.event.SwingPropertyChangeSupport;
+import org.jjazz.activesong.spi.ActiveSongBackgroundMusicBuilder;
 import org.jjazz.chordleadsheet.api.ClsUtilities;
 import org.jjazz.chordleadsheet.api.item.Position;
 import org.jjazz.midi.api.InstrumentMix;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.musiccontrol.api.ControlTrack;
+import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
 import static org.jjazz.musiccontrol.api.playbacksession.PlaybackSession.PROP_LOOP_COUNT;
 import static org.jjazz.musiccontrol.api.playbacksession.PlaybackSession.PROP_MUTED_TRACKS;
@@ -56,7 +58,8 @@ import org.jjazz.utilities.api.ResUtil;
 /**
  * A base implementation of a PlaybackSession to render a SongContext.
  * <p>
- * Music generation uses the SongSequenceBuilder and then adds control/click/precount tracks, taking into account drums rerouting.
+ * Music generation uses the SongSequenceBuilder (and optionnaly ActiveSongBackgroundMusicBuilder) then adds control/click/precount tracks, taking into account
+ * drums rerouting.
  * <p>
  * Once generated the session listens to the following changes: <br>
  * - Song tempo, song closing<br>
@@ -71,6 +74,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     public static final int PLAYBACK_SETTINGS_LOOP_COUNT = -1298;
     private State state = State.NEW;
     private boolean isDirty;
+    private final boolean isUseActiveSongBackgroundMusicBuilder;
     private SongContext songContext;
     private Sequence sequence;
     private ControlTrack controlTrack;
@@ -101,11 +105,14 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
      * @param enableControlTrack
      * @param loopCount
      * @param endOfPlaybackAction
+     * @param useActiveSongBackgroundMusicBuilder If true use ActiveSongBackgroundMusicBuilder when possible to speed up music generation
      */
     public BaseSongSession(SongContext sgContext,
             boolean enablePlaybackTransposition, boolean enableClickTrack, boolean enablePrecountTrack, boolean enableControlTrack,
             int loopCount,
-            ActionListener endOfPlaybackAction)
+            ActionListener endOfPlaybackAction,
+            boolean useActiveSongBackgroundMusicBuilder
+    )
     {
         if (sgContext == null)
         {
@@ -118,8 +125,9 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
         this.isControlTrackIncluded = enableControlTrack;
         this.loopCount = loopCount;
         this.endOfPlaybackAction = endOfPlaybackAction;
-
+        this.isUseActiveSongBackgroundMusicBuilder = useActiveSongBackgroundMusicBuilder;
     }
+
 
     @Override
     public BaseSongSession getFreshCopy(SongContext sgContext)
@@ -131,9 +139,18 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
                 isPrecountTrackIncluded(),
                 isControlTrackIncluded(),
                 getLoopCount(),
-                getEndOfPlaybackAction());
+                getEndOfPlaybackAction(),
+                isUseActiveSongBackgroundMusicBuilder()
+        );
         return res;
     }
+
+
+    public boolean isUseActiveSongBackgroundMusicBuilder()
+    {
+        return isUseActiveSongBackgroundMusicBuilder;
+    }
+
 
     @Override
     public synchronized State getState()
@@ -155,7 +172,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
      *
      * @param silent
      * @throws MusicGenerationException
-     * @throws IllegalStateException    if state is not NEW
+     * @throws IllegalStateException    If state is not NEW
      */
     @Override
     public void generate(boolean silent) throws MusicGenerationException
@@ -171,14 +188,9 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
         SongContext workContext = getContextCopy(songContext, transpose);
 
 
-        // Build the sequence
-        SongSequenceBuilder seqBuilder = new SongSequenceBuilder(workContext);
-        SongSequenceBuilder.SongSequence songSeq = seqBuilder.buildAll(silent); // Can raise MusicGenerationException
-        if (songSeq == null)
-        {
-            // If unexpected error, assertion error etc.
-            throw new MusicGenerationException(ResUtil.getString(getClass(), "ERR_BuildSeqError"));
-        }
+        // Generate music
+        var songSeq = generateSongSequence(workContext, silent, isUseActiveSongBackgroundMusicBuilder);
+
 
         // Retrieve the data
         sequence = songSeq.sequence;
@@ -235,7 +247,6 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
         setState(State.GENERATED);
 
     }
-
 
     /**
      * We don't listen to any change on the underlying context data: always return false.
@@ -590,5 +601,48 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     // ==========================================================================================================
     // Private methods
     // ==========================================================================================================
+
+    /**
+     *
+     * @param sgContext
+     * @param silent
+     * @param useBackgroundMusicBuilder
+     * @return
+     * @throws MusicGenerationException
+     */
+    private SongSequenceBuilder.SongSequence generateSongSequence(SongContext sgContext, boolean silent, boolean useBackgroundMusicBuilder) throws MusicGenerationException
+    {
+        SongSequenceBuilder.SongSequence res;
+        SongSequenceBuilder seqBuilder = new SongSequenceBuilder(sgContext);
+
+        
+        // Reuse ActiveSongBackgroundMusicBuilder result when possible
+        var backgroundMusicBuilder = ActiveSongBackgroundMusicBuilder.getDefault();
+        var lastResult = backgroundMusicBuilder.getLastResult();
+        if (useBackgroundMusicBuilder
+                && !MusicController.getInstance().getState().equals(MusicController.State.STOPPED)
+                && !backgroundMusicBuilder.isDirectlyGeneratingMusic()
+                && sgContext.equals(lastResult)
+                && lastResult.userException() == null)
+        {
+            // Build sequence directly from phrases
+            var mapRvPhrases = lastResult.mapRvPhrases();
+            res = seqBuilder.buildSongSequence(mapRvPhrases);   // Can raise MusicGenerationException
+
+        } else
+        {
+            // Build from scratch
+            res = seqBuilder.buildAll(silent); // Can raise MusicGenerationException
+        }
+        
+        // Robustness, if unexpected error, assertion error etc.
+        if (res == null)
+        {
+            throw new MusicGenerationException(ResUtil.getString(getClass(), "ERR_BuildSeqError"));
+        }
+
+
+        return res;
+    }
 
 }

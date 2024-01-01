@@ -36,7 +36,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiUnavailableException;
 import javax.swing.SwingUtilities;
-import org.jjazz.activesong.api.ActiveSongManager;
+import org.jjazz.activesong.spi.ActiveSongManager;
 import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.midi.api.DrumKit;
@@ -233,7 +233,7 @@ public class SongEditorManager implements PropertyChangeListener
 
 
             // Try to make it active if requested
-            var asm = ActiveSongManager.getInstance();
+            var asm = ActiveSongManager.getDefault();
             if (makeActive && asm.isActivable(song) == null)
             {
                 // To avoid problem (Issue #109 Tempo sometimes not right after 1st song auto-loaded), make sure activation
@@ -307,7 +307,7 @@ public class SongEditorManager implements PropertyChangeListener
 
                 if (makeActive)
                 {
-                    var asm = ActiveSongManager.getInstance();
+                    var asm = ActiveSongManager.getDefault();
                     if (asm.isActivable(s) == null)
                     {
                         try
@@ -813,7 +813,7 @@ public class SongEditorManager implements PropertyChangeListener
 
     private void activateSong(Song song)
     {
-        ActiveSongManager am = ActiveSongManager.getInstance();
+        ActiveSongManager am = ActiveSongManager.getDefault();
         if (am.isActivable(song) == null)
         {
             MidiMix mm = null;

@@ -54,7 +54,7 @@ import javax.swing.JRootPane;
 import javax.swing.SwingUtilities;
 import javax.swing.TransferHandler;
 import javax.swing.undo.UndoManager;
-import org.jjazz.activesong.api.ActiveSongManager;
+import org.jjazz.activesong.spi.ActiveSongManager;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.midi.api.InstrumentMix;
 import org.jjazz.midi.api.JJazzMidiSystem;
@@ -150,7 +150,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         settings.addPropertyChangeListener(this);
 
         // Listen to active song and midimix changes
-        ActiveSongManager.getInstance().addPropertyListener(this);
+        ActiveSongManager.getDefault().addPropertyListener(this);
 
         // Listen to closed song events to cleanup our data
         SongEditorManager.getInstance().addPropertyChangeListener(this);
@@ -229,7 +229,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
     {
         removeAllChannels();
         settings.removePropertyChangeListener(this);
-        ActiveSongManager.getInstance().removePropertyListener(this);
+        ActiveSongManager.getDefault().removePropertyListener(this);
         SongEditorManager.getInstance().removePropertyChangeListener(this);
         songLkpListener = null;
         resetModel();
@@ -542,7 +542,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
                 }
                 mapVisibleRhythm.remove(closedSong);
             }
-        } else if (e.getSource() == ActiveSongManager.getInstance())
+        } else if (e.getSource() == ActiveSongManager.getDefault())
         {
             if (e.getPropertyName().equals(ActiveSongManager.PROP_ACTIVE_SONG))
             {
@@ -601,7 +601,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
 
 
         // Restore enabled state depe
-        MidiMix activeMix = ActiveSongManager.getInstance().getActiveMidiMix();
+        MidiMix activeMix = ActiveSongManager.getDefault().getActiveMidiMix();
         updateActiveState(activeMix == songMidiMix);
 
 
@@ -790,7 +790,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
             cb_viewRhythms.setModel(cbModel);
             Rhythm selectedRhythm = (getVisibleRhythm() == null) ? RHYTHM_ALL : getVisibleRhythm();
             cb_viewRhythms.setSelectedItem(selectedRhythm);
-            cb_viewRhythms.setEnabled(ActiveSongManager.getInstance().getActiveMidiMix() == songMidiMix);
+            cb_viewRhythms.setEnabled(ActiveSongManager.getDefault().getActiveMidiMix() == songMidiMix);
             cb_viewRhythms.addActionListener(this);
             if (cb_viewRhythms.getParent() == null)
             {

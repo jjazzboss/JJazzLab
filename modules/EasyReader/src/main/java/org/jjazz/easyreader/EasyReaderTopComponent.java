@@ -25,7 +25,7 @@ package org.jjazz.easyreader;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.logging.Logger;
-import org.jjazz.activesong.api.ActiveSongManager;
+import org.jjazz.activesong.spi.ActiveSongManager;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.song.api.Song;
 import org.jjazz.utilities.api.ResUtil;
@@ -72,7 +72,7 @@ public final class EasyReaderTopComponent extends TopComponent implements Proper
     public void componentClosed()
     {
         editor.cleanup();
-        var asm = ActiveSongManager.getInstance();
+        var asm = ActiveSongManager.getDefault();
         asm.removePropertyListener(this);
 
     }
@@ -81,7 +81,7 @@ public final class EasyReaderTopComponent extends TopComponent implements Proper
     public void componentOpened()
     {
         // Keep editor up to date
-        var asm = ActiveSongManager.getInstance();
+        var asm = ActiveSongManager.getDefault();
         editor.setModel(asm.getActiveSong());
         asm.addPropertyListener(this);
     }
@@ -101,7 +101,7 @@ public final class EasyReaderTopComponent extends TopComponent implements Proper
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
-        if (evt.getSource() == ActiveSongManager.getInstance())
+        if (evt.getSource() == ActiveSongManager.getDefault())
         {
             if (evt.getPropertyName().equals(ActiveSongManager.PROP_ACTIVE_SONG))
             {

@@ -29,7 +29,7 @@ import java.beans.PropertyChangeListener;
 import javax.swing.BorderFactory;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import org.jjazz.backgroundsongmusicbuilder.api.ActiveSongMusicBuilder;
+import org.jjazz.activesong.spi.ActiveSongBackgroundMusicBuilder;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.UserRhythmVoice;
 import org.jjazz.phrase.api.Phrase;
@@ -79,8 +79,8 @@ public class PhraseViewerPanel extends PhraseBirdsEyeViewComponent implements Ch
 
         midiMix.addPropertyChangeListener(this);
 
-        var asmb = ActiveSongMusicBuilder.getInstance();
-        asmb.addChangeListener(this);
+        var asbmb = ActiveSongBackgroundMusicBuilder.getDefault();
+        asbmb.addChangeListener(this);
 
 
         setPreferredSize(new Dimension(50, 50));        // width will be ignored by MixConsole layout manager        
@@ -94,7 +94,7 @@ public class PhraseViewerPanel extends PhraseBirdsEyeViewComponent implements Ch
 
 
         // Refresh content if ActiveSongMusicBuilder has already a result for us (happens when user switches between songs)
-        var result = asmb.getLastResult();
+        var result = asbmb.getLastResult();
         if (result != null && result.songContext() instanceof SongContextCopy scc && scc.getOriginalSong() == song)
         {
             musicGenerationResultReceived(result);
@@ -129,7 +129,7 @@ public class PhraseViewerPanel extends PhraseBirdsEyeViewComponent implements Ch
 
     public void cleanup()
     {
-        ActiveSongMusicBuilder.getInstance().removeChangeListener(this);
+        ActiveSongBackgroundMusicBuilder.getDefault().removeChangeListener(this);
         midiMix.removePropertyChangeListener(this);
     }
 
@@ -139,7 +139,7 @@ public class PhraseViewerPanel extends PhraseBirdsEyeViewComponent implements Ch
     @Override
     public void stateChanged(ChangeEvent e)
     {
-        musicGenerationResultReceived(ActiveSongMusicBuilder.getInstance().getLastResult());
+        musicGenerationResultReceived(ActiveSongBackgroundMusicBuilder.getDefault().getLastResult());
     }
 
     //-----------------------------------------------------------------------

@@ -23,6 +23,7 @@
 package org.jjazz.harmony.api;
 
 import java.util.*;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -156,8 +157,8 @@ public class Chord implements Cloneable
      * then result chord=Ab1,Eb3,C4<p>
      * Ex: if this=C1,C2,G3,E4 and relPitches=Ab0,Eb0,C0 (3,7,5 degrees of Fm7) and startBelow=false<br>
      * then result chord=Ab1,Ab2,Eb4,C5<p>
-     * Normally the resulting chord has the same size than this chord. However if we reach the upper pitch limit (127) during the
-     * calculation this can result in a smallest chord (because 2 notes end up having the same pitch).
+     * Normally the resulting chord has the same size than this chord. However if we reach the upper pitch limit (127) during the calculation this can result in
+     * a smallest chord (because 2 notes end up having the same pitch).
      *
      * @param relPitches A list of relative pitch [0-11]. Size must be equal to this chord's number of unique notes.
      * @param startBelow If true the first (lowest) note is created equals or below the first note of this chord.
@@ -165,6 +166,9 @@ public class Chord implements Cloneable
      */
     public Chord computeParallelChord(List<Integer> relPitches, boolean startBelow)
     {
+        LOGGER.log(Level.FINE, "computeParallelChord() -- relPitches={0}", relPitches);
+
+
         Chord result = new Chord();
 
         if (relPitches.size() != getRelativePitchChord().size())
@@ -188,17 +192,16 @@ public class Chord implements Cloneable
             HashMap<Integer, Integer> mapSave = new HashMap<>();
             mapSave.put(n0.getRelativePitch(), destRelPitch);
 
-            // The octave intervals between this chord notes 
-            List<Integer> skipNexts = computeSkipNexts();
+            // The octave intervals between this chord's individual notes 
+            List<Integer> skipOctaves = computeSkipOctaves();
 
             // Other notes
             int destPitchIndex = 1;
-            for (int i = 1; i < skipNexts.size(); i++)
+            for (int i = 1; i < skipOctaves.size(); i++)
             {
                 Note n = getNote(i);
-                destRelPitch = mapSave.get(n.getRelativePitch()) == null ? relPitches.get(destPitchIndex++) : mapSave.get(
-                        n.getRelativePitch());
-                for (int j = 0; j <= skipNexts.get(i); j++)
+                destRelPitch = mapSave.get(n.getRelativePitch()) == null ? relPitches.get(destPitchIndex++) : mapSave.get(n.getRelativePitch());
+                for (int j = 0; j <= skipOctaves.get(i); j++)
                 {
                     destPitch = lastNote.getUpperPitch(destRelPitch, false);
                     lastNote = new Note(destPitch);
@@ -519,20 +522,20 @@ public class Chord implements Cloneable
     // Private methods
     // ========================================================================================================
     /**
-     * Compute the SkipNext value for each chord note.
+     * Compute the SkipOctave value for each chord note.
      * <p>
-     * SkipNext value=how many "next" notes should we skip to go from one note to the upper next note ?<br>
+     * SkipOctave value=how many octaves should we skip to go from one chord note to the next chord note ?<br>
      * If 0, take the immediate next upper note. If 1, take the note after immediate upper note. Etc.
      * <p>
      * Example: if chord = C1 E1 G2 F3, then:<br>
-     * SkipStep[0]=0 (always 0 for lowest note)<br>
-     * SkipStep[1]=0 (C1->E1, immediate next note)<br>
-     * SkipStep[2]=1 (E1->G2, G2 is after the immediate next note G1)<br>
-     * SkipStep[3]=0 (G2->F3, immediate next note)<br>
+     * SkipOctave[0]=0 (always 0 for lowest note)<br>
+     * SkipOctave[1]=0 (C1->E1, immediate next note)<br>
+     * SkipOctave[2]=1 (E1->G2, G2 is after the immediate next note G1)<br>
+     * SkipOctave[3]=0 (G2->F3, immediate next note)<br>
      *
      * @return Size equals the number of unique pitch in p.
      */
-    private List<Integer> computeSkipNexts()
+    private List<Integer> computeSkipOctaves()
     {
         ArrayList<Integer> res = new ArrayList<>();
         int lastPitch = -1;

@@ -30,7 +30,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JComponent;
 import javax.swing.TransferHandler;
-import org.jjazz.backgroundsongmusicbuilder.api.SongMidiExporter;
+import org.jjazz.musiccontrol.api.SongMidiExporter;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.song.api.Song;

@@ -27,7 +27,7 @@ import java.awt.event.ActionEvent;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import static javax.swing.Action.NAME;
-import org.jjazz.activesong.api.ActiveSongManager;
+import org.jjazz.activesong.spi.ActiveSongManager;
 import org.jjazz.midi.api.InstrumentMix;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.mixconsole.api.MixConsole;
@@ -62,7 +62,7 @@ public class SwitchAllMute extends AbstractAction
     {
         MixConsole mixConsole = MixConsoleTopComponent.getInstance().getEditor();
         MidiMix songMidiMix = mixConsole.getMidiMix();
-        if (songMidiMix == null || songMidiMix != ActiveSongManager.getInstance().getActiveMidiMix())
+        if (songMidiMix == null || songMidiMix != ActiveSongManager.getDefault().getActiveMidiMix())
         {
             return;
         }

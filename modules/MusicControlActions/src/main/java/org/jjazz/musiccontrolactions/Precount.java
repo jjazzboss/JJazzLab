@@ -30,7 +30,7 @@ import java.beans.PropertyChangeListener;
 import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
-import org.jjazz.activesong.api.ActiveSongManager;
+import org.jjazz.activesong.spi.ActiveSongManager;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.musiccontrol.api.PlaybackSettings.PrecountMode;
 import org.jjazz.song.api.Song;
@@ -75,7 +75,7 @@ public class Precount extends BooleanStateAction implements PropertyChangeListen
         setSelected(cm.isClickPrecountEnabled());
 
         // Listen to the Midi active song changes
-        ActiveSongManager.getInstance().addPropertyListener(this);
+        ActiveSongManager.getDefault().addPropertyListener(this);
 
         // Listen to the current Song changes
         lookupResult = Utilities.actionsGlobalContext().lookupResult(Song.class);
@@ -185,7 +185,7 @@ public class Precount extends BooleanStateAction implements PropertyChangeListen
             {
                 updateUI(cm.getClickPrecountMode());
             }
-        } else if (evt.getSource() == ActiveSongManager.getInstance())
+        } else if (evt.getSource() == ActiveSongManager.getDefault())
         {
             if (evt.getPropertyName().equals(ActiveSongManager.PROP_ACTIVE_SONG))
             {
@@ -210,7 +210,7 @@ public class Precount extends BooleanStateAction implements PropertyChangeListen
 
     private void currentSongChanged()
     {
-        Song activeSong = ActiveSongManager.getInstance().getActiveSong();
+        Song activeSong = ActiveSongManager.getDefault().getActiveSong();
         boolean b = (currentSong != null) && (currentSong == activeSong);
         setEnabled(b);
     }

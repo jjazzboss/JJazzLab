@@ -154,7 +154,6 @@
         <module>modules/ActiveSong</module>
         <module>modules/Analytics</module>
         <module>modules/Arranger</module>
-        <module>modules/BackgroundSongMusicBuilder</module>
         <module>modules/Base</module>
         <module>modules/Biab</module>
         <module>modules/CL_Editor</module>

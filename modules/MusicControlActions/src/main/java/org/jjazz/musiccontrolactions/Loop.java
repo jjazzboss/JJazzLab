@@ -30,7 +30,7 @@ import java.util.logging.Logger;
 import javax.sound.midi.Sequencer;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
-import org.jjazz.activesong.api.ActiveSongManager;
+import org.jjazz.activesong.spi.ActiveSongManager;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.song.api.Song;
@@ -77,7 +77,7 @@ public class Loop extends BooleanStateAction implements PropertyChangeListener, 
         PlaybackSettings.getInstance().addPropertyChangeListener(this);
 
         // Listen to the Midi active song changes
-        ActiveSongManager.getInstance().addPropertyListener(this);
+        ActiveSongManager.getDefault().addPropertyListener(this);
 
         // Listen to the current Song changes
         lookupResult = Utilities.actionsGlobalContext().lookupResult(Song.class);
@@ -167,7 +167,7 @@ public class Loop extends BooleanStateAction implements PropertyChangeListener, 
                 int nbLoops = (int) evt.getNewValue();
                 setBooleanState(nbLoops == Sequencer.LOOP_CONTINUOUSLY);
             }
-        } else if (evt.getSource() == ActiveSongManager.getInstance())
+        } else if (evt.getSource() == ActiveSongManager.getDefault())
         {
             if (evt.getPropertyName().equals(ActiveSongManager.PROP_ACTIVE_SONG))
             {
@@ -192,7 +192,7 @@ public class Loop extends BooleanStateAction implements PropertyChangeListener, 
 
     private void currentSongChanged()
     {
-        Song activeSong = ActiveSongManager.getInstance().getActiveSong();
+        Song activeSong = ActiveSongManager.getDefault().getActiveSong();
         boolean b = (currentSong != null) && (currentSong == activeSong);
         setEnabled(b);
     }

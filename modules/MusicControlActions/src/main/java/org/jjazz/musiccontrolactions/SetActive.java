@@ -30,7 +30,7 @@ import java.util.logging.Logger;
 import javax.sound.midi.MidiUnavailableException;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
-import org.jjazz.activesong.api.ActiveSongManager;
+import org.jjazz.activesong.spi.ActiveSongManager;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.MidiMixManager;
 import org.jjazz.song.api.Song;
@@ -78,7 +78,7 @@ public class SetActive extends BooleanStateAction implements PropertyChangeListe
         putValue("hideActionText", true);
 
         // Listen to the Midi active song changes
-        ActiveSongManager.getInstance().addPropertyListener(this);
+        ActiveSongManager.getDefault().addPropertyListener(this);
 
         // Listen to the current Song changes
         lookupResult = Utilities.actionsGlobalContext().lookupResult(Song.class);
@@ -139,7 +139,7 @@ public class SetActive extends BooleanStateAction implements PropertyChangeListe
         if (b)
         {
             // Check song is activable before validating the state change
-            String err = ActiveSongManager.getInstance().isActivable(currentSong);
+            String err = ActiveSongManager.getDefault().isActivable(currentSong);
             if (err != null)
             {
                 // We don't change the state but still we need to fire a true=>false propertychange event to tell
@@ -150,11 +150,11 @@ public class SetActive extends BooleanStateAction implements PropertyChangeListe
                 return;
             } else
             {
-                ActiveSongManager.getInstance().setActive(currentSong, currentMidiMix);
+                ActiveSongManager.getDefault().setActive(currentSong, currentMidiMix);
             }
         } else
         {
-            ActiveSongManager.getInstance().setActive(null, null);
+            ActiveSongManager.getDefault().setActive(null, null);
 
             // Nothing : don't try to activate another open song
 
@@ -186,7 +186,7 @@ public class SetActive extends BooleanStateAction implements PropertyChangeListe
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
-        if (evt.getSource() == ActiveSongManager.getInstance())
+        if (evt.getSource() == ActiveSongManager.getDefault())
         {
             if (evt.getPropertyName().equals(ActiveSongManager.PROP_ACTIVE_SONG))
             {
@@ -209,7 +209,7 @@ public class SetActive extends BooleanStateAction implements PropertyChangeListe
     private void updateEnabledAndSelected()
     {
         setEnabled(currentSong != null);
-        Song activeSong = ActiveSongManager.getInstance().getActiveSong();
+        Song activeSong = ActiveSongManager.getDefault().getActiveSong();
         boolean b = (currentSong != null) && (currentSong == activeSong);
         setBooleanState(b);
     }

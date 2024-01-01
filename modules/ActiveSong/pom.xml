@@ -17,8 +17,9 @@
                 <groupId>org.apache.netbeans.utilities</groupId>
                 <artifactId>nbm-maven-plugin</artifactId>
                 <configuration>
-                    <publicPackages>                      
+                    <publicPackages>
                         <publicPackage>org.jjazz.activesong.api</publicPackage>
+                        <publicPackage>org.jjazz.activesong.spi</publicPackage>
                     </publicPackages>
                 </configuration>
                 <extensions>true</extensions>
@@ -34,35 +35,10 @@
             </plugin>
         </plugins>
     </build>
-    <dependencies>      
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-chordleadsheet</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-midi</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
+    <dependencies>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
             <artifactId>org-jjazz-midimix</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-musiccontrol</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-outputsynth</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-rhythm</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
@@ -76,21 +52,6 @@
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-songcontext</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-songstructure</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-utilities</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
             <groupId>org.netbeans.api</groupId> 
             <artifactId>org-openide-awt</artifactId> 
             <version>${netbeans.version}</version>  
@@ -99,7 +60,12 @@
             <groupId>org.netbeans.api</groupId> 
             <artifactId>org-openide-util</artifactId> 
             <version>${netbeans.version}</version>  
-        </dependency> 
+        </dependency>
+        <dependency>
+            <groupId>org.netbeans.api</groupId>
+            <artifactId>org-openide-util-lookup</artifactId>
+            <version>${netbeans.version}</version>
+        </dependency>
     </dependencies>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

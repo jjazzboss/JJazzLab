@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 import javax.swing.Action;
-import org.jjazz.activesong.api.ActiveSongManager;
+import org.jjazz.activesong.spi.ActiveSongManager;
 import org.jjazz.song.api.Song;
 import org.jjazz.ss_editor.SS_EditorController;
 import org.openide.awt.UndoRedo;
@@ -97,7 +97,7 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
         songModel.addPropertyChangeListener(this);
 
         // Listen to active song changes
-        ActiveSongManager.getInstance().addPropertyListener(this);
+        ActiveSongManager.getDefault().addPropertyListener(this);
 
         putClientProperty(TopComponent.PROP_MAXIMIZATION_DISABLED, Boolean.TRUE);
         putClientProperty(TopComponent.PROP_CLOSING_DISABLED, Boolean.FALSE);
@@ -351,7 +351,7 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
         // Model changes can be generated outside the EDT      
         Runnable run = () -> 
         {
-            ActiveSongManager asm = ActiveSongManager.getInstance();
+            ActiveSongManager asm = ActiveSongManager.getDefault();
             if (evt.getSource() == songModel)
             {
                 if (evt.getPropertyName().equals(Song.PROP_NAME))
@@ -377,7 +377,7 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
     // -------------------------------------------------------------------------------------  
     private void updateTabName()
     {
-        boolean isActive = ActiveSongManager.getInstance().getActiveSong() == songModel;
+        boolean isActive = ActiveSongManager.getDefault().getActiveSong() == songModel;
         String name = isActive ? songModel.getName() + " [ON]" : songModel.getName();
         if (songModel.isSaveNeeded())
         {

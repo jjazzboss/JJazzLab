@@ -25,8 +25,8 @@ package org.jjazz.mixconsole;
 import com.google.common.base.Preconditions;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jjazz.activesong.spi.ActiveSongBackgroundMusicBuilder;
 import org.jjazz.analytics.api.Analytics;
-import org.jjazz.backgroundsongmusicbuilder.api.ActiveSongMusicBuilder;
 import org.jjazz.instrumentchooser.spi.InstrumentChooserDialog;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.midi.api.Instrument;
@@ -170,7 +170,7 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
 
 
         // Retrieve the phrase
-        var asmb = ActiveSongMusicBuilder.getInstance();
+        var asmb = ActiveSongBackgroundMusicBuilder.getDefault();
         var result = asmb.getLastResult();
         Phrase p = result.mapRvPhrases().get(rv);
         if (p == null)

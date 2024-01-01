@@ -33,7 +33,7 @@ import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import org.jjazz.backgroundsongmusicbuilder.api.ActiveSongMusicBuilder;
+import org.jjazz.activesong.spi.ActiveSongBackgroundMusicBuilder;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.pianoroll.api.PianoRollEditor;
@@ -64,7 +64,7 @@ public class GhostPhraseManager implements PropertyChangeListener, ChangeListene
 
 
         // Get notified of new song phrases
-        var asmb = ActiveSongMusicBuilder.getInstance();
+        var asmb = ActiveSongBackgroundMusicBuilder.getDefault();
         asmb.addChangeListener(this);
         lastResult = asmb.getLastResult();          // Might be null, but important to get some data if PianoRollEditor is created after bsmb produced a result
 
@@ -97,7 +97,7 @@ public class GhostPhraseManager implements PropertyChangeListener, ChangeListene
     {
         topComponent.getMidiMix().removePropertyChangeListener(this);
         ghostPhrasesPanel.removePropertyChangeListener(this);
-        ActiveSongMusicBuilder.getInstance().removeChangeListener(this);
+        ActiveSongBackgroundMusicBuilder.getDefault().removeChangeListener(this);
 
     }
 
@@ -177,7 +177,7 @@ public class GhostPhraseManager implements PropertyChangeListener, ChangeListene
     @Override
     public void stateChanged(ChangeEvent evt)
     {
-        musicGenerationResultReceived(ActiveSongMusicBuilder.getInstance().getLastResult());
+        musicGenerationResultReceived(ActiveSongBackgroundMusicBuilder.getDefault().getLastResult());
     }
 
     //=============================================================================

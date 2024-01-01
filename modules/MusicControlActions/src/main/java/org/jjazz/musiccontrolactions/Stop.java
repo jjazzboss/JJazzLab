@@ -32,7 +32,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
-import org.jjazz.activesong.api.ActiveSongManager;
+import org.jjazz.activesong.spi.ActiveSongManager;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.song.api.Song;
 import org.jjazz.flatcomponents.api.FlatToggleButton;
@@ -84,7 +84,7 @@ public class Stop extends BooleanStateAction implements PropertyChangeListener, 
         MusicController.getInstance().addPropertyChangeListener(this);
 
         // Listen to the Midi active song changes
-        ActiveSongManager.getInstance().addPropertyListener(this);
+        ActiveSongManager.getDefault().addPropertyListener(this);
 
         // Listen to the current Song changes
         lookupResult = Utilities.actionsGlobalContext().lookupResult(Song.class);
@@ -203,7 +203,7 @@ public class Stop extends BooleanStateAction implements PropertyChangeListener, 
             {
                 playbackStateChanged();
             }
-        } else if (evt.getSource() == ActiveSongManager.getInstance())
+        } else if (evt.getSource() == ActiveSongManager.getDefault())
         {
             if (evt.getPropertyName() == ActiveSongManager.PROP_ACTIVE_SONG)
             {
@@ -250,7 +250,7 @@ public class Stop extends BooleanStateAction implements PropertyChangeListener, 
     private void currentSongChanged()
     {
         MusicController mc = MusicController.getInstance();
-        Song activeSong = ActiveSongManager.getInstance().getActiveSong();
+        Song activeSong = ActiveSongManager.getDefault().getActiveSong();
         boolean b = (currentSong != null && currentSong == activeSong);
         setEnabled(b);
     }

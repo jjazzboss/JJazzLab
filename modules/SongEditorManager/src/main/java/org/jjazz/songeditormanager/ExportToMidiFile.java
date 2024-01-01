@@ -28,7 +28,7 @@ import java.util.logging.Logger;
 import javax.sound.midi.MidiUnavailableException;
 import javax.swing.AbstractAction;
 import javax.swing.JFileChooser;
-import org.jjazz.backgroundsongmusicbuilder.api.SongMidiExporter;
+import org.jjazz.musiccontrol.api.SongMidiExporter;
 import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.song.api.Song;
 import org.jjazz.midimix.api.MidiMix;

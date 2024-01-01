@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 import javax.swing.Action;
-import org.jjazz.activesong.api.ActiveSongManager;
+import org.jjazz.activesong.spi.ActiveSongManager;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.song.api.Song;
 import org.jjazz.cl_editor.CL_EditorController;
@@ -97,7 +97,7 @@ public final class CL_EditorTopComponent extends TopComponent implements Propert
         putClientProperty(TopComponent.PROP_SLIDING_DISABLED, Boolean.TRUE);
 
         // Listen to active song changes
-        ActiveSongManager.getInstance().addPropertyListener(this);
+        ActiveSongManager.getDefault().addPropertyListener(this);
 
         // Create our editor
         clEditor = CL_EditorFactory.getDefault().createEditor(songModel);
@@ -301,7 +301,7 @@ public final class CL_EditorTopComponent extends TopComponent implements Propert
     public void componentClosed()
     {
         songModel.removePropertyChangeListener(this);
-        ActiveSongManager.getInstance().removePropertyListener(this);
+        ActiveSongManager.getDefault().removePropertyListener(this);
         clEditor.cleanup();
     }
    
@@ -328,7 +328,7 @@ public final class CL_EditorTopComponent extends TopComponent implements Propert
             @Override
             public void run()
             {
-                ActiveSongManager asm = ActiveSongManager.getInstance();
+                ActiveSongManager asm = ActiveSongManager.getDefault();
                 if (evt.getSource() == songModel)
                 {
                     if (evt.getPropertyName().equals(Song.PROP_NAME))
@@ -355,7 +355,7 @@ public final class CL_EditorTopComponent extends TopComponent implements Propert
     // -------------------------------------------------------------------------------------  
     private void updateTabName()
     {
-        boolean isActive = ActiveSongManager.getInstance().getActiveSong() == songModel;
+        boolean isActive = ActiveSongManager.getDefault().getActiveSong() == songModel;
         String name = isActive ? songModel.getName() + " [ON]" : songModel.getName();
         if (songModel.isSaveNeeded())
         {

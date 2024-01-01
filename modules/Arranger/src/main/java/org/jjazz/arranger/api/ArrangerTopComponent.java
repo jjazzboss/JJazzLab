@@ -24,7 +24,7 @@ package org.jjazz.arranger.api;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import org.jjazz.activesong.api.ActiveSongManager;
+import org.jjazz.activesong.spi.ActiveSongManager;
 import org.jjazz.arranger.ArrangerPanel;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.song.api.Song;
@@ -81,7 +81,7 @@ public final class ArrangerTopComponent extends TopComponent implements Property
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
-        if (evt.getSource() == ActiveSongManager.getInstance())
+        if (evt.getSource() == ActiveSongManager.getDefault())
         {
             if (evt.getPropertyName().equals(ActiveSongManager.PROP_ACTIVE_SONG))
             {
@@ -96,7 +96,7 @@ public final class ArrangerTopComponent extends TopComponent implements Property
         arrangerPanel.opened();
 
         // Listen to active song changes
-        var asm = ActiveSongManager.getInstance();
+        var asm = ActiveSongManager.getDefault();
         asm.addPropertyListener(this);
         arrangerPanel.setModel(asm.getActiveSong(), asm.getActiveMidiMix());
     }
@@ -105,7 +105,7 @@ public final class ArrangerTopComponent extends TopComponent implements Property
     public void componentClosed()
     {
         arrangerPanel.closing();
-        ActiveSongManager.getInstance().removePropertyListener(this);
+        ActiveSongManager.getDefault().removePropertyListener(this);
     }
 
 

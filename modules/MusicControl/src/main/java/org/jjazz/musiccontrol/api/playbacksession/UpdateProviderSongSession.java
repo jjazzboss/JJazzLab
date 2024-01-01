@@ -32,7 +32,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
-import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.UserRhythmVoice;
 import org.jjazz.musiccontrol.api.ControlTrack;
@@ -165,7 +164,7 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
         super(sgContext,
                 enablePlaybackTransposition,
                 includeClickTrack, includePrecountTrack, includeControlTrack,
-                loopCount, endOfPlaybackAction);
+                loopCount, endOfPlaybackAction, true);
 
         isUpdateControlEnabled = enableUpdateControl;
         userErrorExceptionHandler = e -> StatusDisplayer.getDefault().setStatusText(e.getLocalizedMessage());

@@ -27,7 +27,7 @@ import java.beans.PropertyChangeListener;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
-import org.jjazz.activesong.api.ActiveSongManager;
+import org.jjazz.activesong.spi.ActiveSongManager;
 import org.jjazz.chordleadsheet.api.item.Position;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.PlaybackListenerAdapter;
@@ -86,7 +86,7 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
 
 
         // Listen to the active MidiMix changes
-        ActiveSongManager.getInstance().addPropertyListener(this);
+        ActiveSongManager.getDefault().addPropertyListener(this);
 
 
         // Listen to the current Song changes
@@ -139,7 +139,7 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
             {
                 playbackStateChanged();
             }
-        } else if (evt.getSource() == ActiveSongManager.getInstance())
+        } else if (evt.getSource() == ActiveSongManager.getDefault())
         {
             if (evt.getPropertyName().equals(ActiveSongManager.PROP_ACTIVE_SONG))
             {
@@ -165,7 +165,7 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
         currentSongChanged();    // Enable/Disable components       
 
 
-        Song activeSong = ActiveSongManager.getInstance().getActiveSong();
+        Song activeSong = ActiveSongManager.getDefault().getActiveSong();
         boolean b = (currentSong != null) && (currentSong == activeSong);
 
 
@@ -190,7 +190,7 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
 
     private void currentSongChanged()
     {
-        Song activeSong = ActiveSongManager.getInstance().getActiveSong();
+        Song activeSong = ActiveSongManager.getDefault().getActiveSong();
         boolean b = (currentSong != null) && (currentSong == activeSong);
         posViewer.setEnabled(b);
         spn_Tempo.setEnabled(b);

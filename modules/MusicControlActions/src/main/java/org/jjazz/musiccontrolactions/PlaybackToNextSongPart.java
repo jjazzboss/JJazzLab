@@ -33,7 +33,7 @@ import javax.sound.midi.Sequencer;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
-import org.jjazz.activesong.api.ActiveSongManager;
+import org.jjazz.activesong.spi.ActiveSongManager;
 import org.jjazz.chordleadsheet.api.item.Position;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.MusicController.State;
@@ -87,7 +87,7 @@ public class PlaybackToNextSongPart extends AbstractAction implements PropertyCh
         MusicController.getInstance().addPropertyChangeListener(this);
 
         // Listen to the Midi active song changes
-        ActiveSongManager.getInstance().addPropertyListener(this);
+        ActiveSongManager.getDefault().addPropertyListener(this);
 
         // Listen to the current Song changes
         lookupResult = Utilities.actionsGlobalContext().lookupResult(Song.class);
@@ -210,7 +210,7 @@ public class PlaybackToNextSongPart extends AbstractAction implements PropertyCh
             {
                 updateEnabledState();
             }
-        } else if (evt.getSource() == ActiveSongManager.getInstance())
+        } else if (evt.getSource() == ActiveSongManager.getDefault())
         {
             if (evt.getPropertyName() == ActiveSongManager.PROP_ACTIVE_SONG)
             {
@@ -247,7 +247,7 @@ public class PlaybackToNextSongPart extends AbstractAction implements PropertyCh
     private void updateEnabledState()
     {
         MusicController mc = MusicController.getInstance();
-        Song activeSong = ActiveSongManager.getInstance().getActiveSong();
+        Song activeSong = ActiveSongManager.getDefault().getActiveSong();
         boolean b = (currentSong != null && currentSong == activeSong);
         b &= !mc.isArrangerPlaying() && (mc.getState().equals(MusicController.State.PLAYING) || mc.getState().equals(MusicController.State.PAUSED));
         setEnabled(b);

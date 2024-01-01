@@ -27,7 +27,7 @@ import java.beans.PropertyChangeListener;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
-import org.jjazz.activesong.api.ActiveSongManager;
+import org.jjazz.activesong.spi.ActiveSongManager;
 import org.jjazz.improvisionsupport.BR_ImproSupport;
 import org.jjazz.improvisionsupport.ImproSupport;
 import org.jjazz.improvisionsupport.ImproSupportPanel;
@@ -88,7 +88,7 @@ public final class ImproSupportTopComponent extends TopComponent implements Prop
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
-        if (evt.getSource() == ActiveSongManager.getInstance())
+        if (evt.getSource() == ActiveSongManager.getDefault())
         {
             if (evt.getPropertyName().equals(ActiveSongManager.PROP_ACTIVE_SONG))
             {
@@ -109,7 +109,7 @@ public final class ImproSupportTopComponent extends TopComponent implements Prop
         improSupportPanel.opened();
 
         // Listen to active song changes
-        var asm = ActiveSongManager.getInstance();
+        var asm = ActiveSongManager.getDefault();
         asm.addPropertyListener(this);
         activeSongChanged(asm.getActiveSong());
     }
@@ -119,7 +119,7 @@ public final class ImproSupportTopComponent extends TopComponent implements Prop
     {
         improSupportPanel.closing();
 
-        var asm = ActiveSongManager.getInstance();
+        var asm = ActiveSongManager.getDefault();
         asm.removePropertyListener(this);
     }
 

@@ -55,12 +55,6 @@
             <groupId>${project.groupId}</groupId> 
             <artifactId>org-jjazz-utilities</artifactId> 
             <version>${project.version}</version>  
-        </dependency>       
-        <dependency>
-            <groupId>org.jjazzlab</groupId>
-            <artifactId>org-jjazz-backgroundsongmusicbuilder</artifactId>
-            <version>${project.version}</version>
-            <type>jar</type>
         </dependency>
         <dependency>
             <groupId>org.jjazzlab</groupId>
@@ -131,6 +125,11 @@
         <dependency>
             <groupId>org.jjazzlab</groupId>
             <artifactId>org-jjazz-rhythm</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>org-jjazz-musiccontrol</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

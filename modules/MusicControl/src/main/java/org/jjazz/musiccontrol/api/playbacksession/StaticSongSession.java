@@ -104,8 +104,7 @@ public class StaticSongSession extends BaseSongSession
     private StaticSongSession(SongContext sgContext, boolean enablePlaybackTransposition, boolean enableClickTrack,
             boolean enablePrecountTrack, boolean enableControlTrack, int loopCount, ActionListener endOfPlaybackAction)
     {
-        super(sgContext, enablePlaybackTransposition, enableClickTrack, enablePrecountTrack, enableControlTrack, loopCount,
-                endOfPlaybackAction);
+        super(sgContext, enablePlaybackTransposition, enableClickTrack, enablePrecountTrack, enableControlTrack, loopCount, endOfPlaybackAction, true);
     }
 
     @Override

@@ -306,7 +306,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
                 false,
                 Sequencer.LOOP_CONTINUOUSLY,
                 null);
-        session = new UpdatableSongSessionOnePlay(dynSession);
+        session = UpdatableSongSession.getSession(dynSession);
 
 
         // Play

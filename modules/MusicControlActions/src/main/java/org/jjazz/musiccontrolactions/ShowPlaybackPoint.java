@@ -30,7 +30,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
-import org.jjazz.activesong.api.ActiveSongManager;
+import org.jjazz.activesong.spi.ActiveSongManager;
 import org.jjazz.chordleadsheet.api.item.Position;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.PlaybackListenerAdapter;
@@ -115,7 +115,7 @@ public class ShowPlaybackPoint extends BooleanStateAction implements PropertyCha
         });
 
         // Listen to the Midi active song changes
-        ActiveSongManager.getInstance().addPropertyListener(this);
+        ActiveSongManager.getDefault().addPropertyListener(this);
 
         // Listen to the current Song changes
         lookupResult = Utilities.actionsGlobalContext().lookupResult(Song.class);
@@ -200,7 +200,7 @@ public class ShowPlaybackPoint extends BooleanStateAction implements PropertyCha
                 updateShowing();
                 updateEnabled();
             }
-        } else if (evt.getSource() == ActiveSongManager.getInstance())
+        } else if (evt.getSource() == ActiveSongManager.getDefault())
         {
             if (evt.getPropertyName().equals(ActiveSongManager.PROP_ACTIVE_SONG))
             {
@@ -251,7 +251,7 @@ public class ShowPlaybackPoint extends BooleanStateAction implements PropertyCha
 
     private void currentSongClosed()
     {
-        Song activeSong = ActiveSongManager.getInstance().getActiveSong();
+        Song activeSong = ActiveSongManager.getDefault().getActiveSong();
         LOGGER.log(Level.FINE, "currentSongClosed() currentSong={0} activeSong={1}", new Object[]
         {
             currentSong.getName(),
@@ -276,7 +276,7 @@ public class ShowPlaybackPoint extends BooleanStateAction implements PropertyCha
      */
     private void updateEnabled()
     {
-        Song activeSong = ActiveSongManager.getInstance().getActiveSong();
+        Song activeSong = ActiveSongManager.getDefault().getActiveSong();
         boolean currentIsActive = (currentSong != null) && (currentSong == activeSong);
         MusicController.State state = MusicController.getInstance().getState();
         switch (state)

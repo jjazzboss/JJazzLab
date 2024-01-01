@@ -33,7 +33,7 @@ import javax.swing.AbstractAction;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import org.jjazz.analytics.api.Analytics;
-import org.jjazz.backgroundsongmusicbuilder.api.SongMidiExporter;
+import org.jjazz.musiccontrol.api.SongMidiExporter;
 import org.jjazz.embeddedsynth.api.EmbeddedSynth;
 import org.jjazz.embeddedsynth.api.EmbeddedSynthException;
 import org.jjazz.embeddedsynth.spi.EmbeddedSynthProvider;

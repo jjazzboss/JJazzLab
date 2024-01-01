@@ -31,7 +31,7 @@ import javax.swing.Action;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.KeyStroke;
-import org.jjazz.activesong.api.ActiveSongManager;
+import org.jjazz.activesong.spi.ActiveSongManager;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
@@ -80,7 +80,7 @@ public class PlayEditor extends AbstractAction
     {
 
         // Song must be active !
-        ActiveSongManager asm = ActiveSongManager.getInstance();
+        ActiveSongManager asm = ActiveSongManager.getDefault();
         if (asm.getActiveSong() != topComponent.getSong())
         {
             String msg = ResUtil.getString(getClass(), "PlayEditor.ERR_NotActive");
@@ -106,7 +106,7 @@ public class PlayEditor extends AbstractAction
 
             // Create the session
             var dynSession = UpdateProviderSongSession.getSession(context);
-            session = new UpdatableSongSessionOnePlay(dynSession);
+            session = UpdatableSongSession.getSession(dynSession);
             mc.setPlaybackSession(session, false); // can raise MusicGenerationException            
 
             // Play it

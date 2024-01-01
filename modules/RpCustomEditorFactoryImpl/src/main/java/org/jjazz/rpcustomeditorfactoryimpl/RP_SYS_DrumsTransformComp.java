@@ -177,7 +177,7 @@ public class RP_SYS_DrumsTransformComp extends RealTimeRpEditorComponent<RP_SYS_
         Runnable task = () -> 
         {
             SongContext workContext = RealTimeRpEditorDialog.buildPreviewContext(songPartContext, rp, rp.getDefaultValue());
-            BaseSongSession tmpSession = new BaseSongSession(workContext, false, false, false, false, 0, null);
+            BaseSongSession tmpSession = new BaseSongSession(workContext, false, false, false, false, 0, null, false);
             try
             {
                 tmpSession.generate(true);          // This can block for some time, possibly a few seconds on slow computers/complex rhythms              
