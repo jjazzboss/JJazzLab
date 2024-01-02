@@ -113,21 +113,25 @@ public class WheelSpinner extends JSpinner implements MouseWheelListener
         });
 
 
-        // We need those buttons for mouseWheelMoved()
+        // !! THIS HACK IS L&F DEPENDENT - Works on Netbeans flatlaf Dark !!
+        // We need those buttons for mouseWheelMoved() and isChangeFromManualEdit()
         for (Component c : getComponents())
         {
             if (c instanceof JButton jbtn)
             {
-                if ("Spinner.nextButton".equals(jbtn.getName()))
+                if ("Spinner.nextButton".equals(jbtn.getName()))        // Might be inexistent for some L&F
                 {
                     btnNextArrow = jbtn;
-                } else if ("Spinner.previousButton".equals(jbtn.getName()))
+                } else if ("Spinner.previousButton".equals(jbtn.getName()))    // Might be inexistent for some L&F
                 {
                     btnPrevArrow = jbtn;
                 }
             }
         }
-        assert btnNextArrow != null && btnPrevArrow != null;
+        if (btnNextArrow == null || btnPrevArrow == null)
+        {
+            LOGGER.warning("WheelSpinner() next/prev buttons not found");
+        }
     }
 
     /**
@@ -299,6 +303,8 @@ public class WheelSpinner extends JSpinner implements MouseWheelListener
 
     /**
      * Check if the last ChangeEvent resulted from a manual edit (user typed value), or an increment/decrement action (e.g. using the up/down buttons).
+     * <p>
+     * Note: this may not work on all L&F, works at least on Netbeans flatlaf dark.
      *
      * @return
      */
@@ -370,11 +376,14 @@ public class WheelSpinner extends JSpinner implements MouseWheelListener
 
         // We need to use the actions so that isChangeFromManualEdit() works when change comes from mouse wheel
         Action action = getActionMap().get(e.getWheelRotation() < 0 ? AccessibleAction.INCREMENT : AccessibleAction.DECREMENT);
-        var src = e.getWheelRotation() < 0 ? btnNextArrow : btnPrevArrow;
-        ActionEvent ae = new ActionEvent(src, ActionEvent.ACTION_FIRST, src.getActionCommand());
-        for (int i = 0; i < steps; i++)
+        var src = e.getWheelRotation() < 0 ? btnNextArrow : btnPrevArrow;       // btn might be null in some L&F
+        if (src != null)
         {
-            action.actionPerformed(ae);
+            ActionEvent ae = new ActionEvent(src, ActionEvent.ACTION_FIRST, src.getActionCommand());
+            for (int i = 0; i < steps; i++)
+            {
+                action.actionPerformed(ae);
+            }
         }
     }
 
