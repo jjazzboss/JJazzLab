@@ -54,8 +54,8 @@ import org.openide.util.Exceptions;
 /**
  * A JSpinner with mousewheel support, and some convenience methods.
  * <p>
- * Supports only SpinnerListModel and SpinnerNumberModel. Mouse-wheel support is enabled according to GeneralUISettings. If model
- * is a SpinnerNumberModel prevent insertion of anything except digit.
+ * Supports only SpinnerListModel and SpinnerNumberModel. Mouse-wheel support is enabled according to GeneralUISettings. If model is a SpinnerNumberModel
+ * prevent insertion of anything except digit.
  */
 public class WheelSpinner extends JSpinner implements MouseWheelListener
 {
@@ -87,8 +87,8 @@ public class WheelSpinner extends JSpinner implements MouseWheelListener
         // setBlockKeyEventForwarding(true);
 
         // Support for ctrl+UP/DOWN arrow (up/down arrow is supported by default by JSpinner if editor is editable)
-        getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, InputEvent.CTRL_DOWN_MASK), "actionIncreaseBig");   
-        getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, InputEvent.CTRL_DOWN_MASK), "actionDecreaseBig");   
+        getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, InputEvent.CTRL_DOWN_MASK), "actionIncreaseBig");
+        getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, InputEvent.CTRL_DOWN_MASK), "actionDecreaseBig");
         getActionMap().put("actionIncreaseBig", new AbstractAction()
         {
             @Override
@@ -118,10 +118,10 @@ public class WheelSpinner extends JSpinner implements MouseWheelListener
         {
             if (c instanceof JButton jbtn)
             {
-                if (jbtn.getName().equals("Spinner.nextButton"))
+                if ("Spinner.nextButton".equals(jbtn.getName()))
                 {
                     btnNextArrow = jbtn;
-                } else if (jbtn.getName().equals("Spinner.previousButton"))
+                } else if ("Spinner.previousButton".equals(jbtn.getName()))
                 {
                     btnPrevArrow = jbtn;
                 }
@@ -133,8 +133,8 @@ public class WheelSpinner extends JSpinner implements MouseWheelListener
     /**
      * Block/unblock key event forwarding for printable keys.
      * <p>
-     * Key presses are not consumed by JSpinner , they are also processed by the keybinding framework. The Only way is to capture
-     * all the keys... /* see https://docs.oracle.com/javase/tutorial/uiswing/misc/keybinding.html
+     * Key presses are not consumed by JSpinner , they are also processed by the keybinding framework. The Only way is to capture all the keys... /* see
+     * https://docs.oracle.com/javase/tutorial/uiswing/misc/keybinding.html
      *
      * @param b
      */
@@ -144,8 +144,8 @@ public class WheelSpinner extends JSpinner implements MouseWheelListener
         String actionName = b ? "noAction" : "donotexist";
         for (char c = 32; c <= 126; c++)
         {
-            getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(c, 0), actionName);   
-            getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(c, InputEvent.SHIFT_DOWN_MASK), actionName);   
+            getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(c, 0), actionName);
+            getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(c, InputEvent.SHIFT_DOWN_MASK), actionName);
         }
         getActionMap().put("noAction", new NoAction());
     }
@@ -167,7 +167,7 @@ public class WheelSpinner extends JSpinner implements MouseWheelListener
     {
         if (!(model instanceof SpinnerListModel) && !(model instanceof SpinnerNumberModel))
         {
-            throw new IllegalArgumentException("model=" + model);   
+            throw new IllegalArgumentException("model=" + model);
         }
         super.setModel(model);
 
@@ -298,8 +298,7 @@ public class WheelSpinner extends JSpinner implements MouseWheelListener
     }
 
     /**
-     * Check if the last ChangeEvent resulted from a manual edit (user typed value), or an increment/decrement action (e.g. using
-     * the up/down buttons).
+     * Check if the last ChangeEvent resulted from a manual edit (user typed value), or an increment/decrement action (e.g. using the up/down buttons).
      *
      * @return
      */
