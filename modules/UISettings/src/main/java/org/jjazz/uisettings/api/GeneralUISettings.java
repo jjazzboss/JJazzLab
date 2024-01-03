@@ -22,6 +22,7 @@
  */
 package org.jjazz.uisettings.api;
 
+import com.google.common.base.Preconditions;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontFormatException;
@@ -36,7 +37,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -51,8 +51,11 @@ import javax.swing.border.Border;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.analytics.api.Analytics;
 import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
+import org.jjazz.utilities.api.ResUtil;
 import org.netbeans.api.annotations.common.StaticResource;
-import org.openide.modules.OnStart;
+import org.openide.DialogDisplayer;
+import org.openide.LifecycleManager;
+import org.openide.NotifyDescriptor;
 import org.openide.modules.Places;
 import org.openide.util.*;
 
@@ -61,6 +64,11 @@ import org.openide.util.*;
  */
 public class GeneralUISettings
 {
+
+    /**
+     * newValue=new locale
+     */
+    public static final String PROP_LOCALE_UPON_RESTART = "LocaleUponRestart";
 
     /**
      * The list of currently supported locales by the application.
@@ -76,13 +84,27 @@ public class GeneralUISettings
         new Locale("ja", "JP")
     };
 
-    /**
-     * The supported Look & Feels.
-     */
-    public enum LookAndFeelId
+    protected enum LookAndFeelId
     {
-        LOOK_AND_FEEL_SYSTEM_DEFAULT, LOOK_AND_FEEL_FLAT_DARK_LAF
+        LOOK_AND_FEEL_FLAT_LIGHT_LAF("com.formdev.flatlaf.FlatLightLaf"), LOOK_AND_FEEL_FLAT_DARK_LAF("com.formdev.flatlaf.FlatDarkLaf");
+        private final String path;
+
+        LookAndFeelId(String path)
+        {
+            this.path = path;
+        }
+
+        String getPath()
+        {
+            return path;
+        }
     }
+
+    private static final Theme DEFAULT_THEME = new DarkTheme();
+    // We don't use @ServiceProvider to get available themes because LookAndFeelInstaller needs Theme instances very early in the startup sequence, before global Lookup ServiceProviders are available.
+    private static final List<Theme> AVAILABLE_THEMES = Arrays.asList(DEFAULT_THEME, new LightTheme()); // Must contain DEFAULT_THEME
+
+
     @StaticResource(relative = true)
     private static final String CONDENSED_FONT_PATH = "resources/RobotoCondensed-Regular.ttf";
     private static Font CONDENSED_FONT_10;
@@ -91,14 +113,11 @@ public class GeneralUISettings
     private static Font FONT_10;
     private static final String JJAZZLAB_CONFIG_FILE_NAME = "jjazzlab.conf";
 
-    public static final String DEFAULT_THEME_NAME = DarkTheme.NAME;
-    public static final LookAndFeelId DEFAULT_LAF_ID = LookAndFeelId.LOOK_AND_FEEL_SYSTEM_DEFAULT;  // Must be the laf of DEFAULT_THEME_NAME
-    public static final String PREF_THEME_UPON_RESTART = "ThemeUponRestart";
-    public static final String PREF_LAF_ID_UPON_RESTART = "LafIdUponRestart";
-    public static final String PREF_VALUE_CHANGE_WITH_MOUSE_WHEEL = "ChangeWithMouseWheel";
-    public static final String PROP_LOCALE_UPON_RESTART = "LocaleUponRestart";
+
+    private static final String PREF_THEME_UPON_RESTART = "ThemeUponRestart";
+    private static final String PREF_VALUE_CHANGE_WITH_MOUSE_WHEEL = "ChangeWithMouseWheel";
     private static GeneralUISettings INSTANCE;
-    private Theme currentTheme;
+    private final Theme sessionTheme;
     private final HashMap<WeakReference<JComponent>, MouseWheelListener> mouseWheelInstalledComponents = new HashMap<>();
     private static final Preferences prefs = NbPreferences.forModule(GeneralUISettings.class);
     private final SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
@@ -118,24 +137,46 @@ public class GeneralUISettings
 
     private GeneralUISettings()
     {
+        String name = prefs.get(PREF_THEME_UPON_RESTART, null);
+        sessionTheme = getTheme(name, DEFAULT_THEME);
+
+        Analytics.setProperties(Analytics.buildMap("Theme", sessionTheme.getName()));
     }
 
     /**
-     * Set the theme to be used on next application start.
+     * Get the available themes.
      *
-     *
-     *
-     * @param theme
-     * @deprecated It's too difficult to maintain 2 themes
+     * @return
      */
-    protected void setThemeUponRestart(Theme theme)
+    static public List<Theme> getThemes()
     {
-        if (theme == null)
-        {
-            throw new NullPointerException("theme");
-        }
-        prefs.put(PREF_THEME_UPON_RESTART, theme.getName());
-        prefs.put(PREF_LAF_ID_UPON_RESTART, theme.getLookAndFeel().name());
+        return AVAILABLE_THEMES;
+    }
+
+    /**
+     * Get the Theme with specified name.
+     *
+     * @param name
+     * @param def
+     * @return Return def if no theme matching name.
+     */
+    static public Theme getTheme(String name, Theme def)
+    {
+        Theme res = getThemes().stream().
+                filter(t -> t.getName().equals(name))
+                .findAny()
+                .orElse(def);
+        return res;
+    }
+
+    /**
+     * Get the theme used for this session.
+     *
+     * @return Can't be null
+     */
+    public Theme getSessionTheme()
+    {
+        return sessionTheme;
     }
 
     /**
@@ -145,7 +186,54 @@ public class GeneralUISettings
      */
     public String getThemeNameUponRestart()
     {
-        return prefs.get(PREF_THEME_UPON_RESTART, DEFAULT_THEME_NAME);
+        return prefs.get(PREF_THEME_UPON_RESTART, DEFAULT_THEME.getName());
+    }
+
+    /**
+     * Set the theme to be used on next application start.
+     * <p>
+     * This will restart the application. User is asked to confirm unless silent is true.
+     *
+     * @param theme
+     * @param silent
+     */
+    public void setThemeUponRestart(Theme theme, boolean silent)
+    {
+        Preconditions.checkArgument(getThemes().contains(theme), "theme=%s", theme.getName());
+
+        if (theme == sessionTheme)
+        {
+            return;
+        }
+
+        if (!silent)
+        {
+            if (theme != DEFAULT_THEME)
+            {
+                String msg = ResUtil.getString(getClass(), "CTL_UseNonDefaultTheme", theme.getName());
+                NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.WARNING_MESSAGE);
+                DialogDisplayer.getDefault().notify(nd);
+            }
+
+            String msg = ResUtil.getString(getClass(), "CTL_ConfirmRestartToChangeTheme");
+            NotifyDescriptor d = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.OK_CANCEL_OPTION);
+            Object result = DialogDisplayer.getDefault().notify(d);
+            if (NotifyDescriptor.OK_OPTION != result)
+            {
+                return;
+            }
+        }
+
+
+        prefs.put(PREF_THEME_UPON_RESTART, theme.getName());
+
+        if (org.openide.util.Utilities.isWindows())
+        {
+            // For some reason does not work on Linux and Mac
+            LifecycleManager.getDefault().markForRestart();
+        }
+        LifecycleManager.getDefault().exit();
+
     }
 
     /**
@@ -164,7 +252,7 @@ public class GeneralUISettings
         {
             throw new IllegalArgumentException("Invalid locale=" + locale);
         }
-     
+
 
         // Make sure <nbUserDir>/etc exists
         File nbUserDir = Places.getUserDirectory();
@@ -219,74 +307,12 @@ public class GeneralUISettings
         pcs.firePropertyChange(PROP_LOCALE_UPON_RESTART, Locale.getDefault(), locale);
     }
 
-    /**
-     * Get the LAF to be used on next application start.
-     *
-     * @return
-     * @deprecated It's too difficult to maintain 2 themes...
-     */
-    protected LookAndFeelId getLafIdUponRestart()
-    {
-        LookAndFeelId res = DEFAULT_LAF_ID;
-        String strLaf = prefs.get(PREF_LAF_ID_UPON_RESTART, DEFAULT_LAF_ID.name());
-        try
-        {
-            res = LookAndFeelId.valueOf(strLaf);
-        } catch (IllegalArgumentException | NullPointerException ex)
-        {
-            LOGGER.log(Level.WARNING, "getLafIdUponRestart() Invalid LAF name={0}. Using default LAF={1}", new Object[]
-            {
-                strLaf, res.name()
-            });
-        }
-        return res;
-    }
-
-    /**
-     * Get the available themes found in the global Lookup.
-     *
-     * @return
-     */
-    public List<Theme> getAvailableThemes()
-    {
-        return new ArrayList<>(Lookup.getDefault().lookupAll(Theme.class));
-    }
-
-    /**
-     * Get the Theme with specified name.
-     *
-     * @param themeName
-     * @return Null if not found.
-     */
-    public Theme getTheme(String themeName)
-    {
-        Theme res = null;
-        for (Theme t : getAvailableThemes())
-        {
-            if (t.getName().equals(themeName))
-            {
-                res = t;
-                break;
-            }
-        }
-        return res;
-    }
-
-    /**
-     * Get the theme used for this session.
-     *
-     * @return
-     */
-    public Theme getCurrentTheme()
-    {
-        return currentTheme;
-    }
 
     /**
      * Users with trackpad or "touch motion" mouse like the Apple Magic mouse should set this to false.
      * <p>
-     * Because these devices don't have a "unitary" scroll unit, therefore usually values change much too fast with these devices.
-     * Register/unregister all installed components via installChangeValueWithMouseWheelSupport().
+     * Because these devices don't have a "unitary" scroll unit, therefore usually values change much too fast with these devices. Register/unregister all
+     * installed components via installChangeValueWithMouseWheelSupport().
      * <p>
      * Fire a PREF_VALUE_CHANGE_WITH_MOUSE_WHEEL change event.
      *
@@ -314,8 +340,7 @@ public class GeneralUISettings
     }
 
     /**
-     * Helper method to register/unregister a component and its MouseWheelListener depending on the PREF_VALUE_CHANGE_WITH_MOUSE_WHEEL value
-     * changes.
+     * Helper method to register/unregister a component and its MouseWheelListener depending on the PREF_VALUE_CHANGE_WITH_MOUSE_WHEEL value changes.
      * <p>
      *
      * @param comp
@@ -402,7 +427,7 @@ public class GeneralUISettings
 
     public static final boolean isDarkTheme()
     {
-        return getInstance().getCurrentTheme().getName().equals(DarkTheme.NAME);
+        return getInstance().getSessionTheme().getName().equals(DarkTheme.NAME);
     }
 
     //=============================================================================
@@ -411,81 +436,41 @@ public class GeneralUISettings
     public Icon getIcon(String key)
     {
         // currentTheme might be null when using the Netbeans Matisse UI builder!!! This avoids a NullPointerException
-        return currentTheme == null ? null : currentTheme.getUIDefaults().getIcon(key);
+        return sessionTheme == null ? null : sessionTheme.getUIDefaults().getIcon(key);
     }
 
     public Color getColor(String key)
     {
-        return currentTheme == null ? null : currentTheme.getUIDefaults().getColor(key);
+        return sessionTheme == null ? null : sessionTheme.getUIDefaults().getColor(key);
     }
 
     public Font getFont(String key)
     {
-        return currentTheme == null ? null : currentTheme.getUIDefaults().getFont(key);
+        return sessionTheme == null ? null : sessionTheme.getUIDefaults().getFont(key);
     }
 
     public boolean getBoolean(String key)
     {
-        return currentTheme == null ? null : currentTheme.getUIDefaults().getBoolean(key);
+        return sessionTheme == null ? null : sessionTheme.getUIDefaults().getBoolean(key);
     }
 
     public Border getBorder(String key)
     {
-        return currentTheme == null ? null : currentTheme.getUIDefaults().getBorder(key);
+        return sessionTheme == null ? null : sessionTheme.getUIDefaults().getBorder(key);
     }
 
     public int getInt(String key)
     {
-        return currentTheme == null ? null : currentTheme.getUIDefaults().getInt(key);
+        return sessionTheme == null ? null : sessionTheme.getUIDefaults().getInt(key);
     }
 
     //=============================================================================
     // Inner classes
     //=============================================================================    
-    /**
-     * Set the current theme from the previous session "theme upon restart".
-     * <p>
-     * At this stage Look & Feel has already been set up by LookAndFeelInstaller, and global Lookup ServiceProviders are available.
-     */
-    @OnStart
-    static public class ThemeSetup implements Runnable
-    {
-
-        @Override
-        public void run()
-        {
-            getInstance().setCurrentTheme(prefs.get(PREF_THEME_UPON_RESTART, DEFAULT_THEME_NAME));
-
-            // Log current theme
-            Analytics.setProperties(Analytics.buildMap("Theme", getInstance().getCurrentTheme().getName()));
-        }
-
-    }
 
     //=============================================================================
     // Private methods
     //=============================================================================
-    /**
-     * Set the theme to be used for the current session.
-     * <p>
-     * Can be called only once.
-     *
-     * @param theme
-     */
-    private void setCurrentTheme(String themeName)
-    {
-        if (currentTheme != null)
-        {
-            throw new IllegalStateException("currentTheme is already set=" + currentTheme.getName() + ". themeName=" + themeName);
-        }
-        currentTheme = getTheme(themeName);
-        if (currentTheme == null)
-        {
-            currentTheme = getTheme(DEFAULT_THEME_NAME);
-            assert currentTheme != null : "DEFAULT_THEME_NAME=" + DEFAULT_THEME_NAME;
-        }
-    }
-
     /**
      * add/remove MouseWheelListener for all installed components depending on isEnabled.
      *

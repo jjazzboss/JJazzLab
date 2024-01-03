@@ -25,13 +25,11 @@ package org.jjazz.uisettings.api;
 import javax.swing.UIDefaults;
 
 /**
- * A set of colors/fonts/borders etc. to customize application appearance.
+ * A set of colors/fonts/borders etc and L&F to customize application appearance.
  * <p>
- * A theme is linked to a given Look & Feel.
  */
 public interface Theme
 {
-
     /**
      * The name of the theme.
      *
@@ -53,5 +51,6 @@ public interface Theme
      */
     GeneralUISettings.LookAndFeelId getLookAndFeel();
     
-
+    @Override
+    String toString();
 }

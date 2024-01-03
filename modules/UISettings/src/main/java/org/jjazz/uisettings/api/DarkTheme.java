@@ -25,17 +25,18 @@ package org.jjazz.uisettings.api;
 import java.awt.Color;
 import javax.swing.ImageIcon;
 import javax.swing.UIDefaults;
+import org.jjazz.uisettings.api.GeneralUISettings.LookAndFeelId;
 import org.netbeans.api.annotations.common.StaticResource;
-import org.openide.util.lookup.ServiceProvider;
 
 /**
  * A JJazzLab theme using dark colors.
  */
-@ServiceProvider(service = Theme.class)
 public class DarkTheme implements Theme
 {
 
+    public static LookAndFeelId LAF_ID = LookAndFeelId.LOOK_AND_FEEL_FLAT_DARK_LAF;
     public static String NAME = "Dark Theme";
+
     @StaticResource(relative = true)
     private static final String HELP_ICON_PATH = "resources/HelpIcon16x16.png";
 //    private static final String SPEAKER_ICON_DISABLED_PATH = "resources/SpeakerDisabledDarkTheme-20x20.png";
@@ -79,6 +80,12 @@ public class DarkTheme implements Theme
     @Override
     public GeneralUISettings.LookAndFeelId getLookAndFeel()
     {
-        return GeneralUISettings.LookAndFeelId.LOOK_AND_FEEL_FLAT_DARK_LAF;
+        return LAF_ID;
+    }
+
+    @Override
+    public String toString()
+    {
+        return getName();
     }
 }

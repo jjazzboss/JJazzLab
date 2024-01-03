@@ -44,30 +44,11 @@ public class LookAndFeelInstaller extends ModuleInstall
         //
         // IMPORTANT: global lookup ServiceProviders are not yet available at this early stage
         //
-        var uis = GeneralUISettings.getInstance();
-        GeneralUISettings.LookAndFeelId lafId = uis.getLafIdUponRestart();
 
-        LOGGER.log(Level.INFO, "validate() Installing Look & Feel: {0}", lafId.name());   
-
-        switch (lafId)
-        {
-            case LOOK_AND_FEEL_SYSTEM_DEFAULT:
-            // NbPreferences.root().node("laf").remove("laf");
-            // break;
-
-            case LOOK_AND_FEEL_FLAT_DARK_LAF:
-                // Code from Netbeans mailing list, see PraxisLive application 
-                // IMPORTANT NB 12.5: need to add **both** FlatLaf NB modules as dependencies, including the non-API one FlatLaf Look & Feel, otherwise
-                // some settings are NOT correctly set (e.g. white background in the Options panel)
-                Preferences prefs = NbPreferences.root().node("laf");
-                if (prefs.get("laf", "").isBlank())
-                {
-                    prefs.put("laf", "com.formdev.flatlaf.FlatDarkLaf");                    
-                }
-                break;
-            default:
-                throw new AssertionError(lafId.name());
-
-        }
+        var theme = GeneralUISettings.getInstance().getSessionTheme();
+        var lafId = theme.getLookAndFeel().getPath();
+        LOGGER.log(Level.INFO, "validate() Installing Look & Feel: {0}", lafId);
+        Preferences prefs = NbPreferences.root().node("laf");
+        prefs.put("laf", lafId);
     }
 }
