@@ -21,6 +21,8 @@ import com.google.common.base.Preconditions;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -67,11 +69,13 @@ public final class FluidSynthJava
     };
 
     private static final String COMMAND_LINE_PROPERTY_FLUIDSYNTH_LIB = "fluidsynthlib.path";
-    private static final String DEFAULT_LIB_FILENAME_LINUX = "libfluidsynth.so.3";
-    private static final String DEFAULT_LIB_FILENAME_MAC = "libfluidsynth.3.dylib";
+    private static final List<String> LIB_FILENAMES_LINUX = Arrays.asList("libfluidsynth.so", "libfluidsynth.so.3", "libfluidsynth.so.2");
+    private static final List<String> LIB_FILENAMES_MAC = Arrays.asList("libfluidsynth.dylib", "libfluidsynth.3.dylib", "libfluidsynth.2.dylib");
     private static final List<String> LIB_DIRS_LINUX = Arrays.asList("/usr/lib", "/usr/lib/x86_64-linux-gnu", "/usr/lib64", "/lib");
-    // Expect fluidsynth is the shared lib dir of the 3 package managers homebrew, fink (/opt/sw/lib), and MacPorts (opt/local/lib)
-    private static final List<String> LIB_DIRS_MAC = Arrays.asList("/usr/lib", "/opt/homebrew/lib", "/opt/sw/lib", "/opt/local/lib");
+    // Expect fluidsynth in the shared lib dir of the 3 MacOS package managers homebrew, fink (/opt/sw/lib), and MacPorts (/opt/local/lib)
+    // homebrew uses different dirs depending on Intel or ARM processor: Intel=/usr/local/lib, M1=/opt/homebrew/lib.
+    // 'brew --prefix' command shows prefix
+    private static final List<String> LIB_DIRS_MAC = Arrays.asList("/usr/local/lib", "/opt/homebrew/lib", "/opt/sw/lib", "/opt/local/lib");
     private static final String LIB_NAME_MAC = "fluidsynth";
     private static final String PREF_LIB = "PrefLib";
 
@@ -117,11 +121,10 @@ public final class FluidSynthJava
     /**
      * Create a JavaFluidSynth object from another one.
      * <p>
-     * If jfs native resources are allocated, create the native resources
-     * initialized with the same values for: reverb, chorus, gain, soundfont
-     * file (if loaded), synth.device-id.
+     * If jfs native resources are allocated, create the native resources initialized with the same values for: reverb, chorus, gain, soundfont file (if
+     * loaded), synth.device-id.
      *
-     * @param jfs Must be already open
+     * @param jfs               Must be already open
      * @param createAudioDriver If true create the associated audio driver
      * @throws org.jjazz.fluidsynthjava.api.FluidSynthException
      */
@@ -247,11 +250,9 @@ public final class FluidSynthJava
     /**
      * Set the synth device Id for XG System ON compatibility.
      * <p>
-     * IMPORTANT: FluidSynth 2.3.0 (should be fixed in 2.3.1) expects a special
-     * XG System ON message (3rd byte is NOT 0001nnnn with n the deviceId),
-     * which differs from the standard one See
-     * https://github.com/FluidSynth/fluidsynth/issues/1092 Changing the
-     * deviceId to 16 is a trick to make it react to the standard XG System ON
+     * IMPORTANT: FluidSynth 2.3.0 (should be fixed in 2.3.1) expects a special XG System ON message (3rd byte is NOT 0001nnnn with n the deviceId), which
+     * differs from the standard one See https://github.com/FluidSynth/fluidsynth/issues/1092 Changing the deviceId to 16 is a trick to make it react to the
+     * standard XG System ON
      */
     private void setDeviceIdForXGCompatibility()
     {
@@ -373,9 +374,7 @@ public final class FluidSynthJava
     /**
      * Send a SysexMessage to the native FluidSynth instance.
      * <p>
-     * For XG ON sysex message to works, synth.device-id must be 16 (up to
-     * FluidSynth 2.3.0) ! See
-     * https://github.com/FluidSynth/fluidsynth/issues/1092
+     * For XG ON sysex message to works, synth.device-id must be 16 (up to FluidSynth 2.3.0) ! See https://github.com/FluidSynth/fluidsynth/issues/1092
      *
      * @param sm
      */
@@ -630,11 +629,10 @@ public final class FluidSynthJava
     /**
      * Generate a .wav file from midiFile.
      * <p>
-     * From "Fast file renderer for non-realtime MIDI file rendering"
-     * https://www.fluidsynth.org/api/FileRenderer.html.
+     * From "Fast file renderer for non-realtime MIDI file rendering" https://www.fluidsynth.org/api/FileRenderer.html.
      *
      * @param midiFile The input Midi file
-     * @param wavFile The wav file to be created
+     * @param wavFile  The wav file to be created
      * @throws org.jjazz.fluidsynthjava.api.FluidSynthException
      */
     public void generateWavFile(File midiFile, File wavFile) throws FluidSynthException
@@ -842,16 +840,14 @@ public final class FluidSynthJava
     /**
      * Load on Linux or Mac.
      * <p>
-     * Try various strategies, first using the optional
-     * COMMAND_LINE_PROPERTY_FLUIDSYNTH_LIB if set, then standard fluidsynth lib
-     * names in various standard directories.<p>
+     * Try various strategies, first using the optional COMMAND_LINE_PROPERTY_FLUIDSYNTH_LIB if set, then standard fluidsynth lib names in various standard
+     * directories.<p>
      * ---
      * <p>
      * Can't manage to make System.loadLibrary("fluidsynth") to work, see
      * https://stackoverflow.com/questions/74604651/system-loadlibrary-cant-find-a-shared-library-on-linux
      * <p>
-     * But System.load(path_to_fluidsynth.so.xx) works fine on linux and mac,
-     * and no need to explicitly load dependencies like on windows.
+     * But System.load(path_to_fluidsynth.so.xx) works fine on linux and mac, and no need to explicitly load dependencies like on windows.
      *
      * @return true if success
      */
@@ -883,32 +879,28 @@ public final class FluidSynthJava
             }
         }
 
-        // Check various dirs
+        // Check various dirs/filenames
         var libDirs = getLinuxOrMacLibDirs();
-        String libFilename = getLinuxOrMacLibFileName();
-        for (var libdir : libDirs)
+        var libFilenames = getLinuxOrMacLibFilenames();
+        for (var libFilename : libFilenames)
         {
-            String libPath = libdir + "/" + libFilename;
-            if (quietLoad(libPath))
+            for (var libDir : libDirs)
             {
-                LOGGER.log(Level.INFO, "loadNativeLibrariesLinuxMac() using libpath={0}", libPath);
-                prefs.put(PREF_LIB, libPath);
-                return true;
+                if (!Files.isDirectory(Path.of(libDir)))
+                {
+                    continue;
+                }
+                String libPath = libDir + "/" + libFilename;
+                if (quietLoad(libPath))
+                {
+                    LOGGER.log(Level.INFO, "loadNativeLibrariesLinuxMac() using libPath={0}", libPath);
+                    prefs.put(PREF_LIB, libPath);
+                    return true;
+                }
             }
         }
 
         return false;
-    }
-
-    /**
-     * Where we might find the fluidsynth lib on the system.
-     *
-     * @return
-     */
-    private static List<String> getLinuxOrMacLibDirs()
-    {
-        var dirs = Utilities.isLinux() ? LIB_DIRS_LINUX : LIB_DIRS_MAC;
-        return dirs;
     }
 
 
@@ -981,8 +973,7 @@ public final class FluidSynthJava
     }
 
     /**
-     * Get the relative path for the required FluidSynth libs in *reverse*
-     * dependency order.
+     * Get the relative path for the required FluidSynth libs in *reverse* dependency order.
      * <p>
      *
      * @return Empty if no relevant libraries found.
@@ -1002,9 +993,20 @@ public final class FluidSynthJava
         return res;
     }
 
-    private static String getLinuxOrMacLibFileName()
+    /**
+     * Where we might find the fluidsynth lib on the system.
+     *
+     * @return
+     */
+    private static List<String> getLinuxOrMacLibDirs()
     {
-        return Utilities.isMac() ? DEFAULT_LIB_FILENAME_MAC : DEFAULT_LIB_FILENAME_LINUX;
+        var dirs = Utilities.isMac() ? LIB_DIRS_MAC : LIB_DIRS_LINUX;
+        return dirs;
+    }
+
+    private static List<String> getLinuxOrMacLibFilenames()
+    {
+        return Utilities.isMac() ? LIB_FILENAMES_MAC : LIB_FILENAMES_LINUX;
     }
 
     static private boolean quietLoadOrLoadLibrary(String lib)
