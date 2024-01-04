@@ -28,6 +28,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.UnsupportedAudioFileException;
@@ -36,9 +38,7 @@ import org.jjazz.embeddedsynth.lame.mp3.Lame;
 import org.jjazz.embeddedsynth.lame.mp3.MPEGMode;
 import org.jjazz.embeddedsynth.api.EmbeddedSynthException;
 import org.jjazz.embeddedsynth.api.Mp3Encoder;
-import org.jjazz.utilities.api.ResUtil;
 import org.jjazz.utilities.api.Utilities;
-import org.netbeans.api.progress.BaseProgressUtils;
 
 /**
  * A mp3 encoder which relies on org.jjazz.embeddedsynth.lame-3.98.4.jar found here https://github.com/nwaldispuehl/java-lame
@@ -48,6 +48,7 @@ public class JavaLameMp3Encoder implements Mp3Encoder
 
     private static final int MP3_GOOD_QUALITY_BITRATE = 320;
     private static final int MP3_LOW_QUALITY_BITRATE = 128;
+    private static final Logger LOGGER = Logger.getLogger(JavaLameMp3Encoder.class.getSimpleName());
 
     @Override
     public void encode(File inFile, File mp3File, boolean lowQuality, boolean useVariableEncoding) throws EmbeddedSynthException
@@ -57,42 +58,28 @@ public class JavaLameMp3Encoder implements Mp3Encoder
             throw new EmbeddedSynthException("File format not supported: " + inFile.getName());
         }
 
-        class ProcessTask implements Runnable
+        try
         {
+            wavToMp3(inFile, mp3File, lowQuality ? MP3_LOW_QUALITY_BITRATE : MP3_GOOD_QUALITY_BITRATE, useVariableEncoding);
 
-            private EmbeddedSynthException exception = null;
-
-            @Override
-            public void run()
+        } catch (IOException | UnsupportedAudioFileException ex)
+        {
+            LOGGER.log(Level.WARNING, "encode() inFile={0} ex={1}", new Object[]
             {
-                try
-                {
-                    wavToMp3(inFile, mp3File, lowQuality ? MP3_LOW_QUALITY_BITRATE : MP3_GOOD_QUALITY_BITRATE, useVariableEncoding);
-
-                } catch (IOException | UnsupportedAudioFileException ex)
-                {
-                    String msg = ex.getMessage();
-                    if (msg == null)
-                    {
-                        msg = "Unknown exception";
-                    }
-                    exception = new EmbeddedSynthException(msg);
-                }
+                inFile, ex
+            });
+            String msg = ex.getMessage();
+            if (msg == null)
+            {
+                msg = "Unknown exception";
             }
-        };
-        ProcessTask task = new ProcessTask();
-        BaseProgressUtils.showProgressDialogAndRun(task, ResUtil.getString(getClass(), "GeneratingAudioFile", mp3File.getAbsolutePath()));
-
-        if (task.exception != null)
-        {
-            throw task.exception;
+            throw new EmbeddedSynthException(msg);
         }
-
     }
-
     // ============================================================================================================
     // Private methods
     // ============================================================================================================
+
     /**
      * Convert a WAV file to a MP3 file.
      *
