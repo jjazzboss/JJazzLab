@@ -156,8 +156,8 @@ public class ExportToAudio extends AbstractAction
         if (separateTracks)
         {
             // audioFile will be the first midi track to export
-            int minChannel = midiMix.getUsedChannels().get(0);
-            String fileName0 = buidTrackFilename(audioFileName, midiMix.getRhythmVoice(minChannel), audioFileExt);
+            RhythmVoice rv = getFirstNonMutedRv(midiMix);
+            String fileName0 = buidTrackFilename(audioFileName, rv, audioFileExt);
             audioFile = new File(audioFileDir, fileName0);
         }
 
@@ -201,16 +201,20 @@ public class ExportToAudio extends AbstractAction
         List<MidiMix> midiMixes = Arrays.asList(midiMix);           // By default export the whole song as is
         if (separateTracks)
         {
-            // Create for each used channel a one-non-muted-channel mix
+            // Create for each non-muted channel a specific mix
             midiMixes = new ArrayList<>();
             for (int channel : midiMix.getUsedChannels())
             {
-                var newMidiMix = midiMix.getDeepCopy();
-                for (int newChannel : newMidiMix.getUsedChannels())
+                if (!midiMix.getInstrumentMix(channel).isMute())
                 {
-                    newMidiMix.getInstrumentMix(newChannel).setMute(newChannel != channel);
+                    var newMidiMix = midiMix.getDeepCopy();
+                    for (int newChannel : newMidiMix.getUsedChannels())
+                    {
+                        newMidiMix.getInstrumentMix(newChannel).setMute(newChannel != channel);
+
+                    }
+                    midiMixes.add(newMidiMix);
                 }
-                midiMixes.add(newMidiMix);
             }
         }
 
