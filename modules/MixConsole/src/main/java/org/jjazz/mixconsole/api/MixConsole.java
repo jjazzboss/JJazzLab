@@ -172,6 +172,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         // Our renderer to show visible rhythms
         cb_viewRhythms.setRenderer(new MyRenderer());
 
+        
         // Connect to standard actions
         // fbtn_muteAll.setAction(Actions.forID("MixConsole", "org.jjazz.mixconsole.actions.mastermuteall"));   
         fbtn_panic.setAction(Actions.forID("MixConsole", "org.jjazz.mixconsole.actions.panic"));

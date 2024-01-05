@@ -24,9 +24,12 @@ package org.jjazz.mixconsole;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import javax.swing.BorderFactory;
+import javax.swing.SwingUtilities;
+import javax.swing.TransferHandler;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.jjazz.activesong.spi.ActiveSongBackgroundMusicBuilder;
@@ -99,6 +102,16 @@ public class PhraseViewerPanel extends PhraseBirdsEyeViewComponent implements Ch
         {
             musicGenerationResultReceived(result);
         }
+
+        // Activate transfer handler if mouse drag initiated
+        addMouseMotionListener(new java.awt.event.MouseMotionAdapter()
+        {
+            @Override
+            public void mouseDragged(java.awt.event.MouseEvent evt)
+            {
+                handleMouseDrag(evt);
+            }
+        });
     }
 
     public MixChannelPanelController getController()
@@ -170,6 +183,16 @@ public class PhraseViewerPanel extends PhraseBirdsEyeViewComponent implements Ch
     // ----------------------------------------------------------------------------
     // Private methods
     // ----------------------------------------------------------------------------
+
+    protected void handleMouseDrag(MouseEvent e)
+    {
+        TransferHandler th = getTransferHandler();  // set in MixConsole
+        if (th != null && SwingUtilities.isLeftMouseButton(e))
+        {
+            th.exportAsDrag(PhraseViewerPanel.this, e, TransferHandler.COPY);
+            // Note that from now on our various mouse drag listeners won't be called anymore until DnD export operation is over
+        }
+    }
 
     private void musicGenerationResultReceived(MusicGenerationQueue.Result result)
     {

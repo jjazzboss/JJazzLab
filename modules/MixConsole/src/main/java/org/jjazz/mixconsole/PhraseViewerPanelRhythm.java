@@ -27,7 +27,9 @@ import java.util.function.Consumer;
 import java.util.logging.Logger;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.JLayer;
 import javax.swing.JPanel;
+import javax.swing.TransferHandler;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.song.api.Song;
@@ -41,8 +43,10 @@ import org.jjazz.utilities.api.ResUtil;
  */
 public class PhraseViewerPanelRhythm extends PhraseViewerPanel
 {
+
     private static final Icon ICON_CLONE_AS_USER_TRACK = new ImageIcon(PhraseViewerPanelRhythm.class.getResource("resources/CloneTrack-10x10.png"));
     private final JPanel supportPanel;        // Needed to use JLayer
+    private final JLayer layer;
     private final FlatButton fbtn_clone;
     private boolean buttonShown;
     private static final Logger LOGGER = Logger.getLogger(PhraseViewerPanelRhythm.class.getSimpleName());
@@ -58,7 +62,7 @@ public class PhraseViewerPanelRhythm extends PhraseViewerPanel
         fbtn_clone.setToolTipText(ResUtil.getString(getClass(), "PhraseViewerPanelRhythm.CloneAsUserTrackTooltip"));
 
 
-        // Prepare for the JLayer
+        // Prepare for the JLayer to show the button when hovering over the component
         // We can't directly associate a JLayer to "this" JPanel object, so we add a support panel on which JLayer will be used
         supportPanel = new JPanel();
         supportPanel.setLayout(new CornerLayout(BUTTONS_PADDING));  // Reuse layout of parent class
@@ -88,12 +92,25 @@ public class PhraseViewerPanelRhythm extends PhraseViewerPanel
                 }
             }
         };
-        var layer = UIUtilities.createEnterExitComponentLayer(supportPanel, enterExitConsumer);
+        layer = UIUtilities.createEnterExitComponentLayer(supportPanel, enterExitConsumer);
 
 
         // Now add the JLayer so that it takes all the place
         setLayout(new BorderLayout());
         add(layer, BorderLayout.CENTER);
+
+
+        // Because of the JLayer we need to redo stuff done in PhraseViewerPanel here
+        supportPanel.addMouseMotionListener(new java.awt.event.MouseMotionAdapter()
+        {
+            @Override
+            public void mouseDragged(java.awt.event.MouseEvent evt)
+            {
+                handleMouseDrag(evt);
+            }
+        });
+        supportPanel.setToolTipText(getToolTipText());
+
     }
 
 

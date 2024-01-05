@@ -294,7 +294,7 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
 
     private void startDragOut(MouseEvent evt)
     {
-        TransferHandler th = getTransferHandler();
+        TransferHandler th = getTransferHandler();  // set in MixConsole
         if (th != null && SwingUtilities.isLeftMouseButton(evt))
         {
             th.exportAsDrag(this, evt, TransferHandler.COPY);
