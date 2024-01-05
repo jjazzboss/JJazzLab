@@ -44,6 +44,12 @@ import org.openide.util.NbPreferences;
 public final class FluidSynthJava
 {
 
+    // FluidSynth API has changed from 2.2.0 (hence version bump of libfluidsynth2=>libfluidsynth3).
+    // Because FluidSynthJava (as of Jan 2024) is designed for libfluidsynth3 (2.3.0), we should request min version 2.2.0.
+    // However some Linux users do not have easy access to 2.2.0, and it occurs that most of fluidsynth API used by JJazzLab
+    // is compatible with Fluidsynth 2.1 (libfluidsynth2), except for the effects. So we leave the min requirement=2.1.0, but 
+    // the fluidsynth settings dialog (which use libfluidsynth3 specific API) should be disabled when fluidsynth 2.1 is used.
+    // See https://jjazzlab.freeforums.net/thread/567/ubuntu-20-04-installation-errors?page=1&scrollTo=2232
     private static final int MIN_FLUIDSYNTH_VERSION_MAJOR = 2;
     private static final int MIN_FLUIDSYNTH_VERSION_MINOR = 1;
     private static final int MIN_FLUIDSYNTH_VERSION_MICRO = 0;
@@ -181,10 +187,13 @@ public final class FluidSynthJava
             return;
         }
 
+        String version = getFluidSynthVersion();
+        LOGGER.log(Level.INFO, "open() FluidSynth version={0}", version);
+
         if (!checkFluidSynthMinimumVersion(MIN_FLUIDSYNTH_VERSION_MAJOR, MIN_FLUIDSYNTH_VERSION_MINOR, MIN_FLUIDSYNTH_VERSION_MICRO))
         {
             String msg = "FluidSynth version is too old. Minimum is " + MIN_FLUIDSYNTH_VERSION_MAJOR + "." + MIN_FLUIDSYNTH_VERSION_MINOR + "." + MIN_FLUIDSYNTH_VERSION_MICRO;
-            LOGGER.log(Level.WARNING, "open() " + msg);
+            LOGGER.log(Level.WARNING, "open() {0}", msg);
             throw new FluidSynthException(msg);
         }
 
@@ -211,14 +220,11 @@ public final class FluidSynthJava
     }
 
     /**
-     * Check that FluidSynth version is at least the specified version.
+     * A 3-part string like "2.2.1"
      *
-     * @param major if min. version is "2.1.3" =&gt; 2
-     * @param minor if min. version is "2.1.3" =&gt; 1
-     * @param micro if min. version is "2.1.3" =&gt; 3
      * @return
      */
-    public boolean checkFluidSynthMinimumVersion(int major, int minor, int micro)
+    public String getFluidSynthVersion()
     {
         int maj, min, mic;
         try (var scope = ResourceScope.newConfinedScope())
@@ -231,10 +237,32 @@ public final class FluidSynthJava
             min = minor_seg.toIntArray()[0];
             mic = micro_seg.toIntArray()[0];
         }
-        LOGGER.log(Level.INFO, "checkFluidSynthMinimumVersion() FluidSynth version={0}.{1}.{2}", new Object[]
+        return maj + "." + min + "." + mic;
+    }
+
+    /**
+     * Check that FluidSynth version is at least the specified version.
+     *
+     * @param major if min. version is "2.1.3" =&gt; 2
+     * @param minor if min. version is "2.1.3" =&gt; 1
+     * @param micro if min. version is "2.1.3" =&gt; 3
+     * @return
+     */
+    public boolean checkFluidSynthMinimumVersion(int major, int minor, int micro)
+    {
+        String version = getFluidSynthVersion();
+        String[] strs = version.split("\\.");
+        int maj, min, mic;
+        try
         {
-            maj, min, mic
-        });
+            maj = Integer.parseInt(strs[0]);
+            min = Integer.parseInt(strs[1]);
+            mic = Integer.parseInt(strs[2]);
+        } catch (NumberFormatException e)
+        {
+            LOGGER.log(Level.WARNING, "checkFluidSynthMinimumVersion() can''t parse version maj.min.mic: {0}", e.getMessage());
+            return false;
+        }
 
         boolean res = true;
         if (maj < major)
@@ -244,6 +272,7 @@ public final class FluidSynthJava
         {
             res = false;
         }
+        
         return res;
     }
 
