@@ -58,10 +58,10 @@ public class UpgradeManager
         "2.3.1", "2.3.beta", "2.2.0", "2.2.beta3", "2.2.beta2", "2.1.2a", "2.1.2", "2.1.1", "2.1.0", "2.0.1", "2.0.0"
     };
     private static final String PREF_FRESH_START = "FreshStart";
+    private static final String NOT_SET = "NotSet";
     private boolean warningShown;
     private static UpgradeManager INSTANCE;
-    private boolean importSourceVersionComputed;
-    private String importSourceVersion;
+    private String importSourceVersion = NOT_SET;
     private final boolean isFreshStart;
     private static Preferences prefs = NbPreferences.forModule(UpgradeManager.class);
     private static final Logger LOGGER = Logger.getLogger(UpgradeManager.class.getSimpleName());
@@ -203,7 +203,7 @@ public class UpgradeManager
         {
             if (!warningShown)
             {
-                LOGGER.warning("duplicateOldPreferences() aborted, getImportSourceVersion() is null. This warning is shown only once.");
+                LOGGER.info("duplicateOldPreferences() aborted because getImportSourceVersion() is null. This message is shown only once.");
                 warningShown = true;
             }
             return;
@@ -246,12 +246,11 @@ public class UpgradeManager
      */
     public String getImportSourceVersion()
     {
-        if (importSourceVersionComputed)
+        if (!NOT_SET.equals(importSourceVersion))
         {
             return importSourceVersion;
         }
 
-        importSourceVersionComputed = true;
         importSourceVersion = null;
 
         File userDir = Places.getUserDirectory();
@@ -284,6 +283,11 @@ public class UpgradeManager
     // Private methods
     // =============================================================================================================
 
+    private void resetImportSourceVersion()
+    {
+        importSourceVersion = null;
+    }
+
     /**
      * Get the relative path from ..config/Preferences corresponding to nbPrefs.
      *
@@ -314,33 +318,34 @@ public class UpgradeManager
             }
 
 
-            String importVersion = um.getImportSourceVersion();     // May be null
+            String version = um.getImportSourceVersion();     // May be null
 
 
             // If not null ask user confirmation before importing
-            if (importVersion != null)
+            if (version != null)
             {
-                String msg = ResUtil.getString(getClass(), "CTL_ConfirmImportSettings", importVersion);
+                String msg = ResUtil.getString(getClass(), "CTL_ConfirmImportSettings", version);
                 NotifyDescriptor d = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.YES_NO_OPTION);
                 Object result = DialogDisplayer.getDefault().notify(d);
                 if (NotifyDescriptor.YES_OPTION != result)
                 {
-                    LOGGER.log(Level.INFO, "FreshStartUpgrader() -- importVersion={0}, import dismissed by user", importVersion);
-                    importVersion = null;
+                    LOGGER.log(Level.INFO, "FreshStartUpgrader() -- importVersion={0}, import dismissed by user", version);
+                    version = null;
+                    um.resetImportSourceVersion();
                 } else
                 {
-                    LOGGER.log(Level.INFO, "FreshStartUpgrader() -- importVersion={0}, import authorized by user", importVersion);
+                    LOGGER.log(Level.INFO, "FreshStartUpgrader() -- importVersion={0}, import authorized by user", version);
                 }
             } else
             {
-                LOGGER.log(Level.INFO, "FreshStartUpgrader() -- importVersion={0}", importVersion);
+                LOGGER.log(Level.INFO, "FreshStartUpgrader() -- importVersion={0}", version);
             }
 
 
             // Call the upgrade tasks
             for (var task : Lookup.getDefault().lookupAll(UpgradeTask.class))
             {
-                task.upgrade(importVersion);
+                task.upgrade(version);
             }
         }
     }
