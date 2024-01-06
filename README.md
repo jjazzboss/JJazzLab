@@ -11,7 +11,7 @@ The objective is to generate **intelligent and interesting backing tracks**, i.e
 *The JJazzLab UI (available in several languages English, German, French, Chinese, Portuguese, etc thanks to the JJazzLab community):* 
 ![JJazzLab screenshot](https://github.com/jjazzboss/JJazzLab/blob/master/graphics/JJazzLab3.0Full.png)
 
-From version 4.0 JJazzLab embeds its own customized software synth based on FluidSynth. For even better sounds, just connect JJazzLab to VST plugins via a virtual Midi cable and a VST host.
+From version 4.0 JJazzLab embeds its own customized software synth based on [FluidSynth](https://www.fluidsynth.org/). For even better sounds, just connect JJazzLab to VST plugins via a virtual Midi cable and a VST host.
 
 ## Videos
 
@@ -19,13 +19,9 @@ Check out the demos of the [JJazzLab YouTube channel](https://www.youtube.com/ch
 
 ## An open architecture
 
-![JJazzLab architecture](https://github.com/jjazzboss/JJazzLab/blob/master/graphics/JJazzLab-architecture.jpg)
-
 JJazzLab is based on the [Apache Netbeans Platform](https://netbeans.org/features/platform/features.html) which provides a reliable and extensible application architecture via plugins.
 
 Developers can easily add music generation capabilities or try new ideas, without taking care of all the "plumbing".
-
-For more information visit the [Developer's guide](https://jjazzlab.gitbook.io/developer-guide/).
 
 ## Download 
 
@@ -33,7 +29,7 @@ Visit [www.jjazzlab.com](https://www.jjazzlab.com) for ready-to-use installers f
 
 ## License
 
-Lesser GPL v3 (LGPL v3), see LICENCE file.
+Lesser GPL v2 (LGPL v2.1)
 
 ## User guide
 
