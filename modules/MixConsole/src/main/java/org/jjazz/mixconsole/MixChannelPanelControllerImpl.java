@@ -42,7 +42,6 @@ import org.jjazz.mixconsole.actions.AddUserTrack;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.outputsynth.api.OutputSynthManager;
 import org.jjazz.phrase.api.Phrase;
-import org.jjazz.rhythmmusicgeneration.api.MusicGenerationQueue;
 import org.jjazz.song.api.Song;
 import org.jjazz.songeditormanager.api.SongEditorManager;
 import org.jjazz.undomanager.api.JJazzUndoManager;
@@ -156,8 +155,7 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
     @Override
     public void cloneRhythmTrackAsUserTrack(RhythmVoice rv)
     {
-        Analytics.logEvent("Clone as user track");
-        
+
         // Find a name not already used
         var usedNames = song.getUserPhraseNames();
         String basename = rv.getName() + "-";
@@ -195,6 +193,7 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
             var userInsMix = new InstrumentMix(rvInsMix);
             userInsMix.setMute(false);
             midiMix.setInstrumentMix(userRvChannel, userRv, userInsMix);
+            Analytics.logEvent("Clone as user track");
         }
 
     }

@@ -179,7 +179,7 @@ public class ExportToAudio extends AbstractAction
         {
             audioFile.getAbsolutePath(), separateTracks
         });
-        Analytics.logEvent("Export audio");
+        Analytics.logEvent("Export audio", Analytics.buildMap("separateTracks", separateTracks));
 
 
         // Prepare temporary files

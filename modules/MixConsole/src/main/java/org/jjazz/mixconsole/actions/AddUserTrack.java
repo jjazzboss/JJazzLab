@@ -26,10 +26,10 @@ import java.awt.event.ActionEvent;
 import java.beans.PropertyVetoException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.sound.midi.MidiUnavailableException;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
+import org.jjazz.analytics.api.Analytics;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.MidiMixManager;
 import org.jjazz.phrase.api.Phrase;
@@ -106,6 +106,7 @@ public class AddUserTrack extends AbstractAction
         // Perform the change
         performAddUserPhrase(song, name, p);
 
+        Analytics.logEvent("Add user track");
     }
 
 
