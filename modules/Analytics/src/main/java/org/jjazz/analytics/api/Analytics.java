@@ -27,6 +27,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import org.jjazz.analytics.spi.AnalyticsProcessor;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.HashMap;
@@ -35,6 +36,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
+import org.jjazz.analytics.mixpanel.MixPanelProcessor;
 import org.jjazz.upgrade.api.UpgradeManager;
 import org.jjazz.upgrade.api.UpgradeTask;
 import org.openide.modules.OnStop;
@@ -74,7 +76,7 @@ public class Analytics
     private static Analytics INSTANCE;
     private final List<AnalyticsProcessor> processors;
     private boolean enabled;
-    private static Preferences prefs = NbPreferences.forModule(Analytics.class);
+    private static final Preferences prefs = NbPreferences.forModule(Analytics.class);
     private static final Logger LOGGER = Logger.getLogger(Analytics.class.getSimpleName());
 
     public static Analytics getInstance()
@@ -91,8 +93,8 @@ public class Analytics
 
     private Analytics()
     {
-        processors = new ArrayList<>(Lookup.getDefault().lookupAll(AnalyticsProcessor.class));
-        enabled = processors.size() >= 0 && prefs.getBoolean(PREF_ANALYTICS_ENABLED, true);
+        processors = Arrays.asList(new MixPanelProcessor());
+        enabled = processors.size() > 0 && prefs.getBoolean(PREF_ANALYTICS_ENABLED, true);
     }
 
     public void setEnabled(boolean b)

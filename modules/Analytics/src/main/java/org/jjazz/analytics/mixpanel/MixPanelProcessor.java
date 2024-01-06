@@ -18,12 +18,10 @@ import java.util.logging.Logger;
 import org.jjazz.analytics.api.Analytics;
 import org.jjazz.analytics.spi.AnalyticsProcessor;
 import org.json.JSONObject;
-import org.openide.util.lookup.ServiceProvider;
 
 /**
  * A processor using MixPanel.
  */
-@ServiceProvider(service = AnalyticsProcessor.class)
 public class MixPanelProcessor implements AnalyticsProcessor
 {
 
