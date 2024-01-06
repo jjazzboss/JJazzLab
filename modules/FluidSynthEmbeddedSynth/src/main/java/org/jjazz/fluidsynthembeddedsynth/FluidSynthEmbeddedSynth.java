@@ -151,16 +151,7 @@ public class FluidSynthEmbeddedSynth implements EmbeddedSynth, PropertyChangeLis
 
     @Override
     public void showSettings(Component c)
-    {
-        if (!fluidSynth.checkFluidSynthMinimumVersion(2, 2, 0))
-        {
-            // See https://jjazzlab.freeforums.net/thread/567/ubuntu-20-04-installation-errors?page=1&scrollTo=2232
-            String msg = "Settings dialog is not compatible with FluidSynth " + fluidSynth.getFluidSynthVersion() + ". You should upgrade to FluidSynth 2.2.0 or later.";
-            NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
-            DialogDisplayer.getDefault().notify(nd);
-            return;
-        }
-        
+    {       
         var dialog = new SettingsDialog(this);
         dialog.setLocationRelativeTo(c);
         dialog.setVisible(true);

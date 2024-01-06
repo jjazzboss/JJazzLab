@@ -44,14 +44,11 @@ import org.openide.util.NbPreferences;
 public final class FluidSynthJava
 {
 
-    // FluidSynth API has changed from 2.2.0 (hence version bump of libfluidsynth2=>libfluidsynth3).
-    // Because FluidSynthJava (as of Jan 2024) is designed for libfluidsynth3 (2.3.0), we should request min version 2.2.0.
-    // However some Linux users do not have easy access to 2.2.0, and it occurs that most of fluidsynth API used by JJazzLab
-    // is compatible with Fluidsynth 2.1 (libfluidsynth2), except for the effects. So we leave the min requirement=2.1.0, but 
-    // the fluidsynth settings dialog (which use libfluidsynth3 specific API) should be disabled when fluidsynth 2.1 is used.
-    // See https://jjazzlab.freeforums.net/thread/567/ubuntu-20-04-installation-errors?page=1&scrollTo=2232
+    // JJazzLab code was designed with FluidSynth 2.3.0 which corresponds to FluidSynth API version 3 (libfluidsynth3), which 
+    // is in use since 2.2.0 (2.1.x used libfluidsynth2).
+    // See https://jjazzlab.freeforums.net/thread/567/ubuntu-20-04-installation-errors?page=1&scrollTo=2232    
     private static final int MIN_FLUIDSYNTH_VERSION_MAJOR = 2;
-    private static final int MIN_FLUIDSYNTH_VERSION_MINOR = 1;
+    private static final int MIN_FLUIDSYNTH_VERSION_MINOR = 2;
     private static final int MIN_FLUIDSYNTH_VERSION_MICRO = 0;
     // Static variables must be declared BEFORE the static block
     // IMPORTANT: libs order must be in reverse dependency order (e.g. libfluidsynth is last)
@@ -75,9 +72,9 @@ public final class FluidSynthJava
     };
 
     private static final String COMMAND_LINE_PROPERTY_FLUIDSYNTH_LIB = "fluidsynthlib.path";
-    private static final List<String> LIB_FILENAMES_LINUX = Arrays.asList("libfluidsynth.so", "libfluidsynth.so.3", "libfluidsynth.so.2");
-    private static final List<String> LIB_FILENAMES_MAC = Arrays.asList("libfluidsynth.dylib", "libfluidsynth.3.dylib", "libfluidsynth.2.dylib");
-    private static final List<String> LIB_DIRS_LINUX = Arrays.asList("/usr/lib", "/usr/lib/x86_64-linux-gnu", "/usr/lib64", "/lib");
+    private static final List<String> LIB_FILENAMES_LINUX = Arrays.asList("libfluidsynth.so.3", "libfluidsynth.so");
+    private static final List<String> LIB_FILENAMES_MAC = Arrays.asList("libfluidsynth.3.dylib", "libfluidsynth.dylib");
+    private static final List<String> LIB_DIRS_LINUX = Arrays.asList("/usr/lib/x86_64-linux-gnu", "/usr/lib", "/usr/lib64", "/usr/local/lib", "/lib");
     // Expect fluidsynth in the shared lib dir of the 3 MacOS package managers homebrew, fink (/opt/sw/lib), and MacPorts (/opt/local/lib)
     // homebrew uses different dirs depending on Intel or ARM processor: Intel=/usr/local/lib, M1=/opt/homebrew/lib.
     // 'brew --prefix' command shows prefix
@@ -272,7 +269,7 @@ public final class FluidSynthJava
         {
             res = false;
         }
-        
+
         return res;
     }
 
