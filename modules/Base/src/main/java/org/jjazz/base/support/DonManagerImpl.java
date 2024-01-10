@@ -2,8 +2,6 @@ package org.jjazz.base.support;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import com.google.common.io.BaseEncoding;
-import java.io.FileReader;
-import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
@@ -13,13 +11,11 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
-import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
+import org.jjazz.analytics.api.Analytics;
 import org.jjazz.base.spi.AboutDialogInfoProvider;
-import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.upgrade.api.UpgradeManager;
 import org.jjazz.upgrade.api.UpgradeTask;
 import org.jjazz.utilities.api.ResUtil;
@@ -71,11 +67,13 @@ public class DonManagerImpl implements Runnable, DonManager
                 // Expired, reset everything
                 removeRegisteredCodePreferences();
                 nbRuns = FIRST_NOTIF_NB_RUN_THRESHOLD;
+                Analytics.logEvent("Code expired");
             }
         }
 
         nbRuns++;
         prefs.put(PREF_NB_RUNS, encodeInt(nbRuns));
+        Analytics.setProperties(Analytics.buildMap("Code validity", false));
 
 
         if (nbRuns < FIRST_NOTIF_NB_RUN_THRESHOLD)
@@ -128,8 +126,6 @@ public class DonManagerImpl implements Runnable, DonManager
         }
 
 
-        // LOGGER.fine("registerDonationCode() code=" + code + " email=" + email);
-        // LOGGER.fine("registerDonationCode() code2=" + code2);
         String strs[] = code2.split(":");
         if (strs.length != 4)
         {
@@ -221,6 +217,8 @@ public class DonManagerImpl implements Runnable, DonManager
             code_dateNbDays2020,
             code_expirationDateNbDaysFrom2020
         });
+        Analytics.logEvent("Code registered");
+        Analytics.setProperties(Analytics.buildMap("Code validity", true, "Code amount", code_amountEuro));        
     }
 
     /**
