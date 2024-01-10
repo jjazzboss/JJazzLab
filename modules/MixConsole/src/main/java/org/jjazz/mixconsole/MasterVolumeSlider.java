@@ -28,15 +28,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.midi.api.JJazzMidiSystem;
 import org.jjazz.flatcomponents.api.FlatIntegerHorizontalSlider;
-import static org.jjazz.mixconsole.Bundle.CTL_MasterToolTip;
-import org.openide.util.NbBundle.Messages;
+import org.jjazz.utilities.api.ResUtil;
 
 /**
  * An horizontal slider for master volume.
  * <p>
  * Connects directly to the JJazzMidiSystem model.
  */
-@Messages("CTL_MasterToolTip=Master Midi Volume")
 public class MasterVolumeSlider extends FlatIntegerHorizontalSlider implements PropertyChangeListener
 {
 
@@ -97,7 +95,7 @@ public class MasterVolumeSlider extends FlatIntegerHorizontalSlider implements P
     @Override
     protected void updateToolTipText()
     {
-        this.setToolTipText(CTL_MasterToolTip() + " x" + getStringValueAsVolumeFactor());
+        this.setToolTipText(ResUtil.getString(getClass(), "CTL_MasterToolTip") + " x" + getStringValueAsVolumeFactor());
     }
 
     // ----------------------------------------------------------------------------

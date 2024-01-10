@@ -117,6 +117,11 @@ abstract public class RhythmSelectionDialog extends JDialog
         void stop();
     }
 
+    /**
+     * Return the default implementation found in the global lookup.
+     * 
+     * @return can't be null
+     */
     public static RhythmSelectionDialog getDefault()
     {
         RhythmSelectionDialog result = Lookup.getDefault().lookup(RhythmSelectionDialog.class);

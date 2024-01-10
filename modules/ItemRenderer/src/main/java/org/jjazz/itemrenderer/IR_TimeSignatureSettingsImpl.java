@@ -30,12 +30,12 @@ import java.util.List;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import javax.swing.event.SwingPropertyChangeSupport;
-import static org.jjazz.itemrenderer.Bundle.CTL_TimeSignature;
 import org.jjazz.itemrenderer.api.IR_TimeSignatureSettings;
 import org.jjazz.uiutilities.api.FontColorUserSettingsProvider;
 import org.jjazz.uisettings.api.GeneralUISettings;
 import org.jjazz.upgrade.api.UpgradeManager;
 import org.jjazz.upgrade.api.UpgradeTask;
+import org.jjazz.utilities.api.ResUtil;
 import org.jjazz.utilities.api.Utilities;
 import org.openide.util.NbBundle.Messages;
 import org.openide.util.NbPreferences;
@@ -47,11 +47,6 @@ import org.openide.util.lookup.ServiceProviders;
     @ServiceProvider(service = IR_TimeSignatureSettings.class),
     @ServiceProvider(service = FontColorUserSettingsProvider.class)
 }
-)
-@Messages(
-        {
-            "CTL_TimeSignature=Time signature"
-        }
 )
 public class IR_TimeSignatureSettingsImpl implements IR_TimeSignatureSettings, FontColorUserSettingsProvider, FontColorUserSettingsProvider.FCSetting
 {
@@ -98,7 +93,7 @@ public class IR_TimeSignatureSettingsImpl implements IR_TimeSignatureSettings, F
     @Override
     public String getDisplayName()
     {
-        return CTL_TimeSignature();
+        return ResUtil.getString(getClass(), "CTL_TimeSignature");
     }
 
     @Override

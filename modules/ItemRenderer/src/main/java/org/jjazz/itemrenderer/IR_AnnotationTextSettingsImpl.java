@@ -30,12 +30,12 @@ import java.util.List;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import javax.swing.event.SwingPropertyChangeSupport;
-import static org.jjazz.itemrenderer.Bundle.CTL_AnnotationText;
 import org.jjazz.itemrenderer.api.IR_AnnotationTextSettings;
 import org.jjazz.uiutilities.api.FontColorUserSettingsProvider;
 import org.jjazz.uisettings.api.GeneralUISettings;
 import org.jjazz.upgrade.api.UpgradeManager;
 import org.jjazz.upgrade.api.UpgradeTask;
+import org.jjazz.utilities.api.ResUtil;
 import org.jjazz.utilities.api.Utilities;
 import org.openide.util.NbBundle;
 import org.openide.util.NbPreferences;
@@ -46,13 +46,7 @@ import org.openide.util.lookup.ServiceProviders;
 {
     @ServiceProvider(service = IR_AnnotationTextSettings.class),
     @ServiceProvider(service = FontColorUserSettingsProvider.class)
-}
-)
-@NbBundle.Messages(
-        {
-            "CTL_AnnotationText=Bar annotation text"
-        }
-)
+})
 public class IR_AnnotationTextSettingsImpl implements IR_AnnotationTextSettings, FontColorUserSettingsProvider, FontColorUserSettingsProvider.FCSetting
 {
 
@@ -75,7 +69,7 @@ public class IR_AnnotationTextSettingsImpl implements IR_AnnotationTextSettings,
     @Override
     public String getDisplayName()
     {
-        return CTL_AnnotationText();
+        return ResUtil.getString(getClass(), "CTL_AnnotationText");
     }
 
     @Override
@@ -104,7 +98,7 @@ public class IR_AnnotationTextSettingsImpl implements IR_AnnotationTextSettings,
     @Override
     public Color getColor()
     {
-        return new Color(prefs.getInt(PROP_FONT_COLOR, new Color(0,0,153).getRGB()));
+        return new Color(prefs.getInt(PROP_FONT_COLOR, new Color(0, 0, 153).getRGB()));
     }
 
     @Override

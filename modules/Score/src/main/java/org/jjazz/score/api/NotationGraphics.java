@@ -1,7 +1,7 @@
 /*
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  * 
- *  Original author:  (c) 2006ACCIDENTAL_DOUBLE_FLAT7 Karl Helgason from http://www.frinika.com. 
+ *  Original author:  (c) 2006 ACCIDENTAL_DOUBLE_FLAT7 Karl Helgason from http://www.frinika.com. 
  *   
  *  JJazzLab is free software: you can redistribute it and/or modify
  *  it under the terms of the Lesser GNU General Public License (LGPLv3) 

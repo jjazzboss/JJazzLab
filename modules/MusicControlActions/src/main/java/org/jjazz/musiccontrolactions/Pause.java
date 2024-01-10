@@ -45,7 +45,6 @@ import org.openide.util.HelpCtx;
 import org.openide.util.Lookup;
 import org.openide.util.LookupEvent;
 import org.openide.util.LookupListener;
-import org.openide.util.NbBundle;
 import org.openide.util.Utilities;
 import org.openide.util.actions.BooleanStateAction;
 
@@ -57,10 +56,6 @@ import org.openide.util.actions.BooleanStateAction;
 @ActionReferences(
         {
             // 
-        })
-@NbBundle.Messages(
-        {
-
         })
 public class Pause extends BooleanStateAction implements PropertyChangeListener, LookupListener
 {

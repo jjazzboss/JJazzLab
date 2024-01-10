@@ -30,14 +30,13 @@ import java.util.List;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import javax.swing.event.SwingPropertyChangeSupport;
-import static org.jjazz.itemrenderer.Bundle.CTL_Section;
 import org.jjazz.itemrenderer.api.IR_SectionSettings;
 import org.jjazz.uiutilities.api.FontColorUserSettingsProvider;
 import org.jjazz.uisettings.api.GeneralUISettings;
 import org.jjazz.upgrade.api.UpgradeManager;
 import org.jjazz.upgrade.api.UpgradeTask;
+import org.jjazz.utilities.api.ResUtil;
 import org.jjazz.utilities.api.Utilities;
-import org.openide.util.NbBundle;
 import org.openide.util.NbPreferences;
 import org.openide.util.lookup.ServiceProvider;
 import org.openide.util.lookup.ServiceProviders;
@@ -46,13 +45,7 @@ import org.openide.util.lookup.ServiceProviders;
 {
     @ServiceProvider(service = IR_SectionSettings.class),
     @ServiceProvider(service = FontColorUserSettingsProvider.class)
-}
-)
-@NbBundle.Messages(
-        {
-            "CTL_Section=Section"
-        }
-)
+})
 public class IR_SectionSettingsImpl implements IR_SectionSettings, FontColorUserSettingsProvider, FontColorUserSettingsProvider.FCSetting
 {
 
@@ -75,7 +68,7 @@ public class IR_SectionSettingsImpl implements IR_SectionSettings, FontColorUser
     @Override
     public String getDisplayName()
     {
-        return CTL_Section();
+        return ResUtil.getString(getClass(), "CTL_Section");
     }
 
     @Override

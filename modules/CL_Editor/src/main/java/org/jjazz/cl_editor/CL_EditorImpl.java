@@ -93,10 +93,6 @@ import org.jjazz.colorsetmanager.api.ColorSetManager;
 /**
  * A chordleadsheet editor using BarBox objects to render bars.
  */
-@Messages(
-        {
-            "CTL_SaveCancelled=Save cancelled by user"
-        })
 public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, ClsChangeListener, Scrollable, MouseListener, MouseWheelListener, MouseMotionListener
 {
 

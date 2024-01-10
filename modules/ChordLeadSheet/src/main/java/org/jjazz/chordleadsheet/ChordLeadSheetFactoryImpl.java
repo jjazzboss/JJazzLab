@@ -26,7 +26,6 @@ import java.text.ParseException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.harmony.api.TimeSignature;
-import static org.jjazz.chordleadsheet.Bundle.ERR_CreateSampleLeadSheet12;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.ChordLeadSheetFactory;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
@@ -38,13 +37,7 @@ import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.chordleadsheet.api.item.Position;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
-import org.openide.util.NbBundle;
 
-@NbBundle.Messages(
-        {
-            "ERR_CreateSampleLeadSheet12=Problem creating chord leadsheet"
-
-        })
 public class ChordLeadSheetFactoryImpl implements ChordLeadSheetFactory
 {
 
@@ -124,7 +117,7 @@ public class ChordLeadSheetFactoryImpl implements ChordLeadSheetFactory
                     new Position(11, 3f)));
         } catch (ParseException | UnsupportedEditException ex)
         {
-            String msg = ERR_CreateSampleLeadSheet12() + ".\n" + ex.getLocalizedMessage();
+            String msg = "Error creating sample leadsheet.\n" + ex.getLocalizedMessage();
             LOGGER.log(Level.WARNING, "createSampleLeadSheet12bars() {0}", msg);   
             NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(d);

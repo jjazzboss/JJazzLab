@@ -30,24 +30,19 @@ import javax.swing.event.ChangeListener;
 import org.jjazz.midi.api.InstrumentBank;
 import org.jjazz.midi.api.Instrument;
 import org.jjazz.midi.api.MidiSynth;
-import static org.jjazz.midi.api.synths.Bundle.CTL_Favorites;
-import org.openide.util.NbBundle;
+import org.jjazz.utilities.api.ResUtil;
 
 /**
  * A special synth that just mirrors the favorite instruments in a bank.
  * <p>
  * Fire a stateChanged event upon added/removed favorite instrument.
  */
-@NbBundle.Messages(
-        {
-            "CTL_Favorites=Favorites"
-        })
 public class FavoriteMidiSynth extends MidiSynth implements PropertyChangeListener
 {
 
     private static FavoriteMidiSynth INSTANCE;
-    private FavoriteBank bank;
-    private ArrayList<ChangeListener> listeners = new ArrayList<>();
+    private final FavoriteBank bank;
+    private final ArrayList<ChangeListener> listeners = new ArrayList<>();
 
     public static FavoriteMidiSynth getInstance()
     {
@@ -63,7 +58,7 @@ public class FavoriteMidiSynth extends MidiSynth implements PropertyChangeListen
 
     private FavoriteMidiSynth()
     {
-        super(CTL_Favorites(), "JJazz");
+        super(ResUtil.getString(FavoriteMidiSynth.class, "CTL_Favorites"), "JJazz");
         bank = new FavoriteBank(this);
         addBank(bank);
         FavoriteInstruments fi = FavoriteInstruments.getInstance();

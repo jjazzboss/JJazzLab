@@ -34,17 +34,12 @@ import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.awt.StatusDisplayer;
-import org.openide.util.NbBundle;
 
 @ActionID(category = "MixConsole", id = "org.jjazz.mixconsole.actions.sendgmon")
 @ActionRegistration(displayName = "#CTL_SendGmOn", lazy = true)
 @ActionReferences(
         {
             @ActionReference(path = "Actions/MixConsole/MenuBar/Midi", position = 300, separatorBefore=299)
-        })
-@NbBundle.Messages(
-        {
-
         })
 public class SendGmOn extends AbstractAction
 {

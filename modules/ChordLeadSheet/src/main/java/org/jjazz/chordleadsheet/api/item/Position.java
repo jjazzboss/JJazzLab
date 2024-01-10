@@ -29,10 +29,7 @@ import java.text.ParseException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.harmony.api.TimeSignature;
-import static org.jjazz.chordleadsheet.api.item.Bundle.CTL_InvalidValue;
-import static org.jjazz.chordleadsheet.api.item.Bundle.CTL_MissingEnclosingChars;
-import static org.jjazz.chordleadsheet.api.item.Bundle.CTL_NegativeValue;
-import org.openide.util.NbBundle.Messages;
+import org.jjazz.utilities.api.ResUtil;
 
 /**
  * A position in a leadsheet.
@@ -40,8 +37,8 @@ import org.openide.util.NbBundle.Messages;
 public final class Position implements Comparable<Position>, Serializable
 {
 
-    public static final String PROP_BAR = "PropBar";    
-    public static final String PROP_BEAT = "PropBeat";    
+    public static final String PROP_BAR = "PropBar";
+    public static final String PROP_BEAT = "PropBeat";
     /**
      * Separator char, e.g ':' in "[8:2.5])".
      */
@@ -80,7 +77,7 @@ public final class Position implements Comparable<Position>, Serializable
     {
         if ((beat < 0) || (bar < 0))
         {
-            throw new IllegalArgumentException("b=" + beat + " bar=" + bar);   
+            throw new IllegalArgumentException("b=" + beat + " bar=" + bar);
         }
         this.bar = bar;
         this.beat = beat;
@@ -90,7 +87,7 @@ public final class Position implements Comparable<Position>, Serializable
     {
         if (beat < 0)
         {
-            throw new IllegalArgumentException("beat=" + beat);   
+            throw new IllegalArgumentException("beat=" + beat);
         }
         float old = this.beat;
 //        this.beat = Note.roundForMusic(beat);
@@ -103,13 +100,13 @@ public final class Position implements Comparable<Position>, Serializable
     {
         if (bar < 0)
         {
-            throw new IllegalArgumentException("bar=" + bar);   
+            throw new IllegalArgumentException("bar=" + bar);
         }
         int old = this.bar;
         this.bar = bar;
         pcs.firePropertyChange(PROP_BAR, old, this.bar);
     }
-    
+
     /**
      * Set bar and beat to 0.
      */
@@ -267,7 +264,7 @@ public final class Position implements Comparable<Position>, Serializable
     {
         if (tsFrom == null || tsTo == null || beat >= tsFrom.getNbNaturalBeats())
         {
-            throw new IllegalArgumentException("this=" + this + " tsFrom=" + tsFrom + " tsTo=" + tsTo);   
+            throw new IllegalArgumentException("this=" + this + " tsFrom=" + tsFrom + " tsTo=" + tsTo);
         }
 
 
@@ -282,8 +279,8 @@ public final class Position implements Comparable<Position>, Serializable
         } else if (beat == tsFrom.getHalfBarBeat(true))
         {
             newPos.setBeat(tsTo.getHalfBarBeat(true));
-        } 
-        
+        }
+
         if ((newPos.getBeat() - lastBeat) >= 1)
         {
             newPos.setBeat(lastBeat);
@@ -484,27 +481,25 @@ public final class Position implements Comparable<Position>, Serializable
      *
      * @throws ParseException If syntax error in string.
      */
-    @Messages(
-            {
-                "CTL_InvalidValue=Invalid position string",
-                "CTL_MissingEnclosingChars=Missing enclosing chars",
-                "CTL_NegativeValue=Negative value not allowed"
-            })
     public void valueOf(String userString, int defaultBar) throws ParseException
     {
         int newBar = bar;
         float newBeat = beat;
         if ((userString == null) || (defaultBar < 0))
         {
-            throw new IllegalArgumentException("str=" + userString + " defaultBar=" + defaultBar);   
+            throw new IllegalArgumentException("str=" + userString + " defaultBar=" + defaultBar);
         }
 
         // Remove brackets
         String s1 = userString.trim();
         if (s1.indexOf(START_CHAR) != 0 || s1.indexOf(END_CHAR) != s1.length() - 1)
         {
-            throw new ParseException(userString + " : " + CTL_MissingEnclosingChars() + " " + START_CHAR + END_CHAR, 0);
+            throw new ParseException(userString + " : " + ResUtil.getString(getClass(), "CTL_MissingEnclosingChars", START_CHAR + END_CHAR), 0);
         }
+        String errInvalidValue = ResUtil.getString(getClass(), "CTL_InvalidValue");
+        String errNegativeValue = ResUtil.getString(getClass(), "CTL_NegativeValue");
+
+
         String s = s1.substring(1, s1.length() - 1);
         int indSep = s.indexOf(SEPARATOR_CHAR);
         if (indSep == -1)
@@ -518,12 +513,12 @@ public final class Position implements Comparable<Position>, Serializable
                 newBeat = Float.parseFloat(strBeat);
             } catch (NumberFormatException e)
             {
-                throw new ParseException(userString + " : " + CTL_InvalidValue() + " " + e.getLocalizedMessage(), 0);
+                throw new ParseException(userString + " : " + errInvalidValue + " " + e.getLocalizedMessage(), 0);
             }
 
             if (newBeat < 0)
             {
-                throw new ParseException(userString + " : " + CTL_NegativeValue(), 0);
+                throw new ParseException(userString + " : " + errNegativeValue, 0);
             }
         } else
         {
@@ -533,12 +528,12 @@ public final class Position implements Comparable<Position>, Serializable
                 newBar = Integer.parseInt(s.substring(0, indSep));
             } catch (NumberFormatException e)
             {
-                throw new ParseException(userString + " : " + CTL_InvalidValue() + " " + e.getLocalizedMessage(), 0);
+                throw new ParseException(userString + " : " + errInvalidValue + " " + e.getLocalizedMessage(), 0);
             }
 
             if (newBar < 0)
             {
-                throw new ParseException(userString + " : " + CTL_NegativeValue(), 0);
+                throw new ParseException(userString + " : " + errNegativeValue, 0);
             }
             String strBeat = s.substring(indSep + 1).replace(',', '.');
             try
@@ -546,12 +541,12 @@ public final class Position implements Comparable<Position>, Serializable
                 newBeat = Float.parseFloat(strBeat);
             } catch (NumberFormatException e)
             {
-                throw new ParseException(userString + " : " + CTL_InvalidValue() + " " + e.getLocalizedMessage(), indSep + 1);
+                throw new ParseException(userString + " : " + errInvalidValue + " " + e.getLocalizedMessage(), indSep + 1);
             }
 
             if (newBeat < 0)
             {
-                throw new ParseException(userString + " : " + CTL_NegativeValue(), indSep + 1);
+                throw new ParseException(userString + " : " + errNegativeValue, indSep + 1);
             }
         }
 
@@ -613,7 +608,7 @@ public final class Position implements Comparable<Position>, Serializable
                 pos.valueOf(spPos, 0);
             } catch (ParseException ex)
             {
-                LOGGER.log(Level.SEVERE, "Can't read position " + spPos + ", using position(0,0) instead", ex);   
+                LOGGER.log(Level.SEVERE, "Can't read position " + spPos + ", using position(0,0) instead", ex);
                 pos = new Position(0, 0);
             }
             return pos;

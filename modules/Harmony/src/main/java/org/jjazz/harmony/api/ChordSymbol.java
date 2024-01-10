@@ -25,10 +25,9 @@ package org.jjazz.harmony.api;
 import java.text.ParseException;
 import java.util.Objects;
 import java.util.logging.Logger;
-import org.openide.util.NbBundle.Messages;
-import static org.jjazz.harmony.api.Bundle.*;
 import org.jjazz.harmony.api.ChordType.DegreeIndex;
 import org.jjazz.harmony.api.Note.Alteration;
+import org.jjazz.utilities.api.ResUtil;
 
 /**
  * A jazz chord symbol.
@@ -38,11 +37,6 @@ import org.jjazz.harmony.api.Note.Alteration;
  * This is an immutable class.
  * <p>
  */
-@Messages(
-        {
-            "CTL_InvalidChordSymbol=Invalid chord symbol",
-        }
-)
 public class ChordSymbol implements Cloneable
 {
 
@@ -51,8 +45,8 @@ public class ChordSymbol implements Cloneable
      */
     private String originalName;
     /**
-     * The "official" name of the chord as recognized by JJazz. It may differ from originalName used a ChordType alias. E.g.
-     * originalName="EMIN7" and name="Em7".
+     * The "official" name of the chord as recognized by JJazz. It may differ from originalName used a ChordType alias. E.g. originalName="EMIN7" and
+     * name="Em7".
      */
     private String name;
 
@@ -148,11 +142,13 @@ public class ChordSymbol implements Cloneable
                 bassNote = buildStdNote(new Note(originalName.substring(bass_index + 1)));
             } catch (ParseException e)
             {
-                throw new ParseException(CTL_InvalidChordSymbol() + ": " + originalName + ". " + e.getLocalizedMessage(), 0);
+                throw new ParseException(ResUtil.getString(getClass(), "CTL_InvalidChordSymbol") + ": " + originalName + ". " + e.getLocalizedMessage(), 0);
             }
             // continue with bass degree removed
             sb.delete(bass_index, sb.length());
         }
+
+        String errorInvalid = ResUtil.getString(getClass(), "CTL_InvalidChordSymbol");
 
         // Get the root note
         try
@@ -160,7 +156,7 @@ public class ChordSymbol implements Cloneable
             rootNote = buildStdNote(new Note(sb.toString()));
         } catch (ParseException e)
         {
-            throw new ParseException(CTL_InvalidChordSymbol() + ": " + originalName + ". " + e.getLocalizedMessage(), 0);
+            throw new ParseException(errorInvalid + ": " + originalName + ". " + e.getLocalizedMessage(), 0);
         }
 
         // Remove the root note
@@ -182,7 +178,7 @@ public class ChordSymbol implements Cloneable
         if (chordType == null)
         {
             // Chord type not recognized
-            throw new ParseException(CTL_InvalidChordSymbol() + ": " + originalName, 0);
+            throw new ParseException(errorInvalid + ": " + originalName, 0);
         } else
         {
             name = computeName();
@@ -308,8 +304,7 @@ public class ChordSymbol implements Cloneable
     /**
      * Get the chord corresponding to this ChordSymbol.
      * <p>
-     * The method chooses to use flat or sharp notes depending on the ChordSymbol, using the most "common" tonality associated to the
-     * ChordSymbol.
+     * The method chooses to use flat or sharp notes depending on the ChordSymbol, using the most "common" tonality associated to the ChordSymbol.
      *
      * @return
      */

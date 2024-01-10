@@ -42,24 +42,16 @@ import org.openide.util.NbBundle.Messages;
 //@ActionID(category = "Window", id = "org.jjazz.score.ScoreTopComponent")
 //@ActionReference(path = "Menu/Window" /*, position = 333 */)
 //@TopComponent.OpenActionRegistration(
-//        displayName = "#CTL_ScoreAction",
+//        displayName = "Score TEST",
 //        preferredID = "ScoreTopComponent"
 //)
-@Messages(
-        {
-            "CTL_ScoreAction=Score",
-            "CTL_ScoreTopComponent=Score Window",
-            "HINT_ScoreTopComponent=This is a Score window"
-        })
 public final class ScoreTopComponent extends TopComponent
 {
 
     public ScoreTopComponent()
     {
         initComponents();
-        setName(Bundle.CTL_ScoreTopComponent());
-        setToolTipText(Bundle.HINT_ScoreTopComponent());
-
+        setName("Score test window");       
         add(new TestScore());
     }
 

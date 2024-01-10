@@ -24,7 +24,6 @@ package org.jjazz.rhythm.api.rhythmparameters;
 
 import org.jjazz.rhythm.api.RP_State;
 import org.jjazz.rhythm.api.Rhythm;
-import org.openide.util.NbBundle;
 import org.jjazz.utilities.api.ResUtil;
 
 /**
@@ -33,10 +32,6 @@ import org.jjazz.utilities.api.ResUtil;
  * Possible values are Theme, Theme2..Theme4, Solo, Solo2...Solo4.<br>
  * This RP is not primary and can't be customized: it's a shared instance.
  */
-@NbBundle.Messages(
-        {
-
-        })
 public class RP_SYS_Marker extends RP_State
 {
 

@@ -24,83 +24,61 @@ package org.jjazz.harmony.api;
 
 import java.util.ArrayList;
 import java.util.List;
-import static org.jjazz.harmony.api.Bundle.*;
-import org.openide.util.NbBundle;
 
-@NbBundle.Messages(
-        {
-            "CTL_MAJOR=Major",
-            "CTL_DORIAN=Dorian",
-            "CTL_PHRYGIAN=Phrygian",
-            "CTL_LYDIAN=Lydian",
-            "CTL_MIXOLYDIAN=Mixolydian",
-            "CTL_AEOLIAN=Aeolian",
-            "CTL_LOCRIAN=Locrian",
-            "CTL_MINOR_HARMONIC=Minor Harmonic",
-            "CTL_MINOR_MELODIC=Minor Melodic",
-            "CTL_ALTERED=Altered",
-            "CTL_LYDIAN_b7=Lydian b7",
-            "CTL_DIMINISHED_WHOLE_HALF=Diminished whole-half",
-            "CTL_DIMINISHED_HALF_WHOLE=Diminished half-whole",
-            "CTL_WHOLE_TONE=Whole Tone",
-            "CTL_PENTATONIC_MAJOR=Pentatonic Major",
-            "CTL_PENTATONIC_MINOR=Pentatonic Minor",
-            "CTL_BLUES=Blues"
-        })
 public class ScaleManager
 {
 
     private static ScaleManager INSTANCE;
 
-    static public final StandardScale MAJOR = new StandardScale(CTL_MAJOR(),
+    static public final StandardScale MAJOR = new StandardScale("Major",
             Degree.ROOT, Degree.NINTH, Degree.THIRD, Degree.FOURTH_OR_ELEVENTH, Degree.FIFTH, Degree.SIXTH_OR_THIRTEENTH, Degree.SEVENTH);
 
-    static public final StandardScale DORIAN = new StandardScale(CTL_DORIAN(),
+    static public final StandardScale DORIAN = new StandardScale("Dorian",
             Degree.ROOT, Degree.NINTH, Degree.THIRD_FLAT, Degree.FOURTH_OR_ELEVENTH, Degree.FIFTH, Degree.SIXTH_OR_THIRTEENTH, Degree.SEVENTH_FLAT
     );
-    static public final StandardScale PHRYGIAN = new StandardScale(CTL_PHRYGIAN(),
+    static public final StandardScale PHRYGIAN = new StandardScale("Phrygian",
             Degree.ROOT, Degree.NINTH_FLAT, Degree.THIRD_FLAT, Degree.FOURTH_OR_ELEVENTH, Degree.FIFTH, Degree.THIRTEENTH_FLAT, Degree.SEVENTH_FLAT
     );
-    static public final StandardScale LYDIAN = new StandardScale(CTL_LYDIAN(),
+    static public final StandardScale LYDIAN = new StandardScale("Lydian",
             Degree.ROOT, Degree.NINTH, Degree.THIRD, Degree.ELEVENTH_SHARP, Degree.FIFTH, Degree.SIXTH_OR_THIRTEENTH, Degree.SEVENTH
     );
-    static public final StandardScale MIXOLYDIAN = new StandardScale(CTL_MIXOLYDIAN(),
+    static public final StandardScale MIXOLYDIAN = new StandardScale("Mixolydian",
             Degree.ROOT, Degree.NINTH, Degree.THIRD, Degree.FOURTH_OR_ELEVENTH, Degree.FIFTH, Degree.SIXTH_OR_THIRTEENTH, Degree.SEVENTH_FLAT
     );
-    static public final StandardScale AEOLIAN = new StandardScale(CTL_AEOLIAN(),
+    static public final StandardScale AEOLIAN = new StandardScale("Aeolian",
             Degree.ROOT, Degree.NINTH, Degree.THIRD_FLAT, Degree.FOURTH_OR_ELEVENTH, Degree.FIFTH, Degree.THIRTEENTH_FLAT, Degree.SEVENTH_FLAT
     );
-    static public final StandardScale LOCRIAN = new StandardScale(CTL_LOCRIAN(),
+    static public final StandardScale LOCRIAN = new StandardScale("Locrian",
             Degree.ROOT, Degree.NINTH_FLAT, Degree.THIRD_FLAT, Degree.FOURTH_OR_ELEVENTH, Degree.FIFTH_FLAT, Degree.THIRTEENTH_FLAT, Degree.SEVENTH_FLAT
     );
-    static public final StandardScale MINOR_HARMONIC = new StandardScale(CTL_MINOR_HARMONIC(),
+    static public final StandardScale MINOR_HARMONIC = new StandardScale("Minor harmornic",
             Degree.ROOT, Degree.NINTH, Degree.THIRD_FLAT, Degree.FOURTH_OR_ELEVENTH, Degree.FIFTH, Degree.THIRTEENTH_FLAT, Degree.SEVENTH
     );
-    static public final StandardScale MINOR_MELODIC = new StandardScale(CTL_MINOR_MELODIC(),
+    static public final StandardScale MINOR_MELODIC = new StandardScale("Minor melodic",
             Degree.ROOT, Degree.NINTH, Degree.THIRD_FLAT, Degree.FOURTH_OR_ELEVENTH, Degree.FIFTH, Degree.SIXTH_OR_THIRTEENTH, Degree.SEVENTH
     );
-    static public final StandardScale ALTERED = new StandardScale(CTL_ALTERED(),
+    static public final StandardScale ALTERED = new StandardScale("Altered",
             Degree.ROOT, Degree.NINTH_FLAT, Degree.NINTH_SHARP, Degree.THIRD, Degree.FIFTH_FLAT, Degree.THIRTEENTH_FLAT, Degree.SEVENTH_FLAT
     );
-    static public final StandardScale LYDIAN_b7 = new StandardScale(CTL_LYDIAN_b7(),
+    static public final StandardScale LYDIAN_b7 = new StandardScale("Lydian b7",
             Degree.ROOT, Degree.NINTH, Degree.THIRD, Degree.ELEVENTH_SHARP, Degree.FIFTH, Degree.SIXTH_OR_THIRTEENTH, Degree.SEVENTH_FLAT
     );
-    static public final StandardScale DIMINISHED_WHOLE_HALF = new StandardScale(CTL_DIMINISHED_WHOLE_HALF(),
+    static public final StandardScale DIMINISHED_WHOLE_HALF = new StandardScale("Diminished whole-half",
             Degree.ROOT, Degree.NINTH, Degree.THIRD_FLAT, Degree.FOURTH_OR_ELEVENTH, Degree.FIFTH_FLAT, Degree.FIFTH_SHARP, Degree.SIXTH_OR_THIRTEENTH, Degree.SEVENTH
     );
-    static public final StandardScale DIMINISHED_HALF_WHOLE = new StandardScale(CTL_DIMINISHED_HALF_WHOLE(),
+    static public final StandardScale DIMINISHED_HALF_WHOLE = new StandardScale("Diminished half-whole",
             Degree.ROOT, Degree.NINTH_FLAT, Degree.THIRD_FLAT, Degree.THIRD, Degree.ELEVENTH_SHARP, Degree.FIFTH, Degree.SIXTH_OR_THIRTEENTH, Degree.SEVENTH_FLAT
     );
-    static public final StandardScale WHOLE_TONE = new StandardScale(CTL_WHOLE_TONE(),
+    static public final StandardScale WHOLE_TONE = new StandardScale("Whole tone",
             Degree.ROOT, Degree.NINTH, Degree.THIRD, Degree.FIFTH_FLAT, Degree.THIRTEENTH_FLAT, Degree.SEVENTH_FLAT
     );
-    static public final StandardScale PENTATONIC_MAJOR = new StandardScale(CTL_PENTATONIC_MAJOR(),
+    static public final StandardScale PENTATONIC_MAJOR = new StandardScale("Pentatonic major",
             Degree.ROOT, Degree.NINTH, Degree.THIRD, Degree.FIFTH, Degree.SIXTH_OR_THIRTEENTH
     );
-    static public final StandardScale PENTATONIC_MINOR = new StandardScale(CTL_PENTATONIC_MINOR(),
+    static public final StandardScale PENTATONIC_MINOR = new StandardScale("Pentatonic minor",
             Degree.ROOT, Degree.NINTH, Degree.THIRD_FLAT, Degree.FOURTH_OR_ELEVENTH, Degree.FIFTH, Degree.SEVENTH_FLAT
     );
-    static public final StandardScale BLUES = new StandardScale(CTL_BLUES(),
+    static public final StandardScale BLUES = new StandardScale("Blues",
             Degree.ROOT, Degree.THIRD_FLAT, Degree.FOURTH_OR_ELEVENTH, Degree.FIFTH_FLAT, Degree.FIFTH, Degree.SEVENTH_FLAT
     );
 
