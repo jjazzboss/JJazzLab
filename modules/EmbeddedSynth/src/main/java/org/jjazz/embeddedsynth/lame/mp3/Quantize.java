@@ -58,9 +58,9 @@ public class Quantize {
 
   /**
    * mt 6/99
-   * <p/>
+   * <p>
    * initializes cod_info, scalefac and xrpow
-   * <p/>
+   * <p>
    * returns 0 if all energies in xr are zero, else 1
    */
   private float init_xrpow_core(final GrInfo cod_info, float xrpow[],
@@ -116,7 +116,7 @@ public class Quantize {
   /**
    * Gabriel Bouvigne feb/apr 2003<BR>
    * Analog silence detection in partitionned sfb21 or sfb12 for short blocks
-   * <p/>
+   * <p>
    * From top to bottom of sfb, changes to 0 coeffs which are below ath. It
    * stops on the first coeff higher than ath.
    */
@@ -284,7 +284,7 @@ public class Quantize {
 
   /**
    * author/date??
-   * <p/>
+   * <p>
    * binary step size search used by outer_loop to get a quantizer step size
    * to start with
    */
@@ -416,7 +416,7 @@ public class Quantize {
 
   /**
    * author/date??
-   * <p/>
+   * <p>
    * Function: Returns zero if there is a scalefac which has not been
    * amplified. Otherwise it returns one.
    */
@@ -437,7 +437,7 @@ public class Quantize {
 
   /**
    * author/date??
-   * <p/>
+   * <p>
    * several different codes to decide which quantization is better
    */
   private double get_klemm_noise(final float[] distort, final GrInfo gi) {
@@ -540,26 +540,26 @@ public class Quantize {
 
   /**
    * author/date??
-   * <p/>
+   * <p>
    * <PRE>
    * Amplify the scalefactor bands that violate the masking threshold.
    * See ISO 11172-3 Section C.1.5.4.3.5
-   * <p/>
+   * <p>
    * distort[] = noise/masking
    * distort[] > 1   ==> noise is not masked
    * distort[] < 1   ==> noise is masked
    * max_dist = maximum value of distort[]
-   * <p/>
+   * <p>
    * Three algorithms:
    * noise_shaping_amp
    * 0             Amplify all bands with distort[]>1.
-   * <p/>
+   * <p>
    * 1             Amplify all bands with distort[] >= max_dist^(.5);
    * ( 50% in the db scale)
-   * <p/>
+   * <p>
    * 2             Amplify first band with distort[] >= max_dist;
-   * <p/>
-   * <p/>
+   * <p>
+   * <p>
    * For algorithms 0 and 1, if max_dist < 1, then amplify all bands
    * with distort[] >= .95*max_dist.  This is to make sure we always
    * amplify at least one band.
@@ -641,7 +641,7 @@ public class Quantize {
 
   /**
    * Takehiro Tominaga 2000-xx-xx
-   * <p/>
+   * <p>
    * turns on scalefac scale and adjusts scalefactors
    */
   private void inc_scalefac_scale(final GrInfo cod_info, float xrpow[]) {
@@ -670,7 +670,7 @@ public class Quantize {
 
   /**
    * Takehiro Tominaga 2000-xx-xx
-   * <p/>
+   * <p>
    * increases the subblock gain and adjusts scalefactors
    */
   private boolean inc_subblock_gain(final LameInternalFlags gfc,
@@ -753,7 +753,7 @@ public class Quantize {
    * <PRE>
    * Takehiro Tominaga /date??
    * Robert Hegemann 2000-09-06: made a function of it
-   * <p/>
+   * <p>
    * amplifies scalefactor bands,
    * - if all are already amplified returns 0
    * - if some bands are amplified too much:
@@ -822,14 +822,14 @@ public class Quantize {
    * Function: The outer iteration loop controls the masking conditions
    * of all scalefactorbands. It computes the best scalefac and
    * global gain. This module calls the inner iteration loop
-   * <p/>
+   * <p>
    * mt 5/99 completely rewritten to allow for bit reservoir control,
    * mid/side channels with L/R or mid/side masking thresholds,
    * and chooses best quantization instead of last quantization when
    * no distortion free quantization can be found.
-   * <p/>
+   * <p>
    * added VBR support mt 5/99
-   * <p/>
+   * <p>
    * some code shuffle rh 9/00
    * </PRE>
    *
@@ -1023,7 +1023,7 @@ public class Quantize {
 
   /**
    * Robert Hegemann 2000-09-06
-   * <p/>
+   * <p>
    * update reservoir status after FINAL quantization/bitrate
    */
   public final void iteration_finish_one(final LameInternalFlags gfc,
@@ -1142,7 +1142,7 @@ public class Quantize {
 
   /**
    * Robert Hegemann 2000-09-05
-   * <p/>
+   * <p>
    * calculates * how many bits are available for analog silent granules * how
    * many bits to use for the lowest allowed bitrate * how many bits each
    * bitrate would provide
@@ -1175,11 +1175,11 @@ public class Quantize {
   /**
    * <PRE>
    * 2000-09-04 Robert Hegemann
-   * <p/>
+   * <p>
    * * converts LR to MS coding when necessary
    * * calculates allowed/adjusted quantization noise amounts
    * * detects analog silent frames
-   * <p/>
+   * <p>
    * some remarks:
    * - lower masking depending on Quality setting
    * - quality control together with adjusted ATH MDCT scaling
@@ -1342,7 +1342,7 @@ public class Quantize {
 
   /**
    * calculates target bits for ABR encoding
-   * <p/>
+   * <p>
    * mt 2000/05/31
    */
   public final void calc_target_bits(final LameGlobalFlags gfp, float pe[][],

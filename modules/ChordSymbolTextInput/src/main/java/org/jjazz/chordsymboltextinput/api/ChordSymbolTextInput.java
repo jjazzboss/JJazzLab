@@ -115,9 +115,9 @@ public class ChordSymbolTextInput
 
     /**
      * Create CLI_ChordSymbols from a string containing chord symbols of one bar.
-     * <p/>
+     * <p>
      * Examples of valid specification strings : "C6(1) F7(3) Em7(4.5)" : Add chord C6 on beat 0, F7 on beat 2 and Em7 on beat 3.5.
-     * <p/>
+     * <p>
      * There are special cases if chord symbols are specified without absolute positioning. These examples are based on a 4/4 bar : "C7" :
      * add C7 on first beat. "C7 F7" : add C7 on first beat and F7 on half of the bar, e.g. like "C7(1) F7(3)". "C7 F7 Gb7" : add C7 on
      * first beat, F7 on half of the bar, Gb7 on last beat. Other nb of chord symbols : add the chords at regular intervals in the bar.

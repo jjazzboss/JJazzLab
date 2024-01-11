@@ -17,9 +17,9 @@ final class LongBlockConstrain implements VBRQuantize.alloc_sf_f {
 
   /**
    * ***************************************************************
-   * <p/>
+   * <p>
    * long block scalefacs
-   * <p/>
+   * <p>
    * ****************************************************************
    */
 

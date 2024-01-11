@@ -33,7 +33,8 @@
                         <phase>package</phase>
                     </execution>               
                 </executions>
-            </plugin>
+            </plugin>                       
+            
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>

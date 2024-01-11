@@ -45,21 +45,21 @@ public class Takehiro {
       4, 8, 4, 8};
   /**
    * number of bits used to encode scalefacs.
-   * <p/>
+   * <p>
    * 18*slen1_tab[i] + 18*slen2_tab[i]
    */
   private static final int scale_short[] = {0, 18, 36, 54, 54, 36, 54, 72,
       54, 72, 90, 72, 90, 108, 108, 126};
   /**
    * number of bits used to encode scalefacs.
-   * <p/>
+   * <p>
    * 17*slen1_tab[i] + 18*slen2_tab[i]
    */
   private static final int scale_mixed[] = {0, 18, 36, 54, 51, 35, 53, 71,
       52, 70, 88, 69, 87, 105, 104, 122};
   /**
    * number of bits used to encode scalefacs.
-   * <p/>
+   * <p>
    * 11*slen1_tab[i] + 10*slen2_tab[i]
    */
   private static final int scale_long[] = {0, 10, 20, 30, 33, 21, 31, 41, 32, 42,
@@ -114,12 +114,12 @@ public class Takehiro {
    * Takes into account the fact that we are quantizing xr . ix, but we want
    * ix^4/3 to be as close as possible to x^4/3. (taking the nearest int would
    * mean ix is as close as possible to xr, which is different.)
-   * <p/>
+   * <p>
    * From Segher Boessenkool <segher@eastsite.nl> 11/1999
-   * <p/>
+   * <p>
    * 09/2000: ASM code removed in favor of IEEE754 hack by Takehiro Tominaga.
    * If you need the ASM code, check CVS circa Aug 2000.
-   * <p/>
+   * <p>
    * 01/2004: Optimizations by Gabriel Bouvigne
    */
   private void quantize_lines_xrpow_01(int l, float istep, final float[] xr,
@@ -138,10 +138,10 @@ public class Takehiro {
    * XRPOW_FTOI is a macro to convert floats to ints.<BR>
    * if XRPOW_FTOI(x) = nearest_int(x), then QUANTFAC(x)=adj43asm[x]<BR>
    * ROUNDFAC= -0.0946<BR>
-   * <p/>
+   * <p>
    * if XRPOW_FTOI(x) = floor(x), then QUANTFAC(x)=asj43[x]<BR>
    * ROUNDFAC=0.4054<BR>
-   * <p/>
+   * <p>
    * Note: using floor() or (int) is extremely slow. On machines where the
    * TAKEHIRO_IEEE754_HACK code above does not work, it is worthwile to write
    * some ASM for XRPOW_FTOI().
@@ -481,7 +481,7 @@ public class Takehiro {
   /**
    * Choose the Huffman table that will encode ix[begin..end] with the fewest
    * bits.
-   * <p/>
+   * <p>
    * Note: This code contains knowledge about the sizes and characteristics of
    * the Huffman tables as defined in the IS (Table B.7), and will not work
    * with any arbitrary tables.
@@ -1038,7 +1038,7 @@ public class Takehiro {
   /**
    * Also counts the number of bits to encode the scalefacs but for MPEG 2
    * Lower sampling frequencies (24, 22.05 and 16 kHz.)
-   * <p/>
+   * <p>
    * This is reverse-engineered from section 2.4.3.2 of the MPEG2 IS,
    * "Audio Decoding Layer III"
    */

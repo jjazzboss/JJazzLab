@@ -178,7 +178,7 @@ public class PsyModel {
    * According to tonality, values are going from 0dB (TMN) to 9.3dB (NMT).<BR>
    * After additive masking computation, 8dB are added, so final values are
    * going from 8dB to 17.3dB
-   * <p/>
+   * <p>
    * pow(10, -0.0..-0.6)
    */
   private static final float tab[] = {1.0f, 0.79433f, 0.63096f, 0.63096f,
@@ -260,23 +260,23 @@ public class PsyModel {
   /**
    * <PRE>
    * L3psycho_anal.  Compute psycho acoustics.
-   * <p/>
+   * <p>
    * Data returned to the calling program must be delayed by one
    * granule.
-   * <p/>
+   * <p>
    * This is done in two places.
    * If we do not need to know the blocktype, the copying
    * can be done here at the top of the program: we copy the data for
    * the last granule (computed during the last call) before it is
    * overwritten with the new data.  It looks like this:
-   * <p/>
+   * <p>
    * 0. static psymodel_data
    * 1. calling_program_data = psymodel_data
    * 2. compute psymodel_data
-   * <p/>
+   * <p>
    * For data which needs to know the blocktype, the copying must be
    * done at the end of this loop, and the old values must be saved:
-   * <p/>
+   * <p>
    * 0. static psymodel_data_old
    * 1. compute psymodel_data
    * 2. compute possible block type of this granule
@@ -583,7 +583,7 @@ public class PsyModel {
 
   /**
    * Adjust M/S maskings if user set "msfix"
-   * <p/>
+   * <p>
    * Naoki Shibata 2000
    */
   private void ns_msfix(final LameInternalFlags gfc, float msfix,
@@ -636,7 +636,7 @@ public class PsyModel {
 
   /**
    * short block threshold calculation (part 2)
-   * <p/>
+   * <p>
    * partition band bo_s[sfb] is at the transition from scalefactor band sfb
    * to the next one sfb+1; enn and thmm have to be split between them
    */

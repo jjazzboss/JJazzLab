@@ -35,7 +35,7 @@ import java.util.Arrays;
  * <LI>bytes total number of bytes in the bitstream
  * <LI>toc table of contents
  * </UL>
- * <p/>
+ * <p>
  * toc (table of contents) gives seek points for random access.<BR>
  * The ith entry determines the seek point for i-percent duration.<BR>
  * seek point in bytes = (toc[i]/256.0) * total_bitstream_bytes<BR>
@@ -263,7 +263,7 @@ public class VBRTag {
 
   /**
    * Construct the MP3 header using the settings of the global flags.
-   * <p/>
+   * <p>
    * <img src="1000px-Mp3filestructure.svg.png">
    *
    * @param gfp    global flags

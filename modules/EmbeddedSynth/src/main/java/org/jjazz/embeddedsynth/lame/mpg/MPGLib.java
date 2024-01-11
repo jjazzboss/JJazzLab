@@ -274,14 +274,14 @@ public class MPGLib {
     int enc_padding;
     /**
      * Header of current frame has been parsed.
-     * <p/>
+     * <p>
      * Note: Header_parsed, side_parsed and data_parsed must be all set
      * before the full frame has been parsed.
      */
     boolean header_parsed;
     /**
      * Header of sideinfo of current frame has been parsed.
-     * <p/>
+     * <p>
      * Note: Header_parsed, side_parsed and data_parsed must be all set
      * before the full frame has been parsed.
      */

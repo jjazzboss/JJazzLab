@@ -400,7 +400,7 @@ public class GetAudio {
 
   /**
    * reads the PCM samples from a file to the buffer
-   * <p/>
+   * <p>
    * SEMANTICS: Reads #samples_read# number of shorts from #musicin#
    * filepointer into #sample_buffer[]#. Returns the number of samples read.
    */
@@ -449,7 +449,7 @@ public class GetAudio {
 
   /**
    * Read Microsoft Wave headers
-   * <p/>
+   * <p>
    * By the time we get here the first 32-bits of the file have already been
    * read, and we're pretty sure that we're looking at a WAV file.
    */
@@ -607,7 +607,7 @@ public class GetAudio {
 
   /**
    * Read Audio Interchange File Format (AIFF) headers.
-   * <p/>
+   * <p>
    * By the time we get here the first 32 bits of the file have already been
    * read, and we're pretty sure that we're looking at an AIFF file.
    */
@@ -754,7 +754,7 @@ public class GetAudio {
    * file or AIFF without rewinding, since rewind doesn't work on pipes and
    * there's a good chance we're reading from stdin (otherwise we'd probably
    * be using libsndfile).
-   * <p/>
+   * <p>
    * When this function returns, the file offset will be positioned at the
    * beginning of the sound data.
    */

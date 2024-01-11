@@ -87,8 +87,27 @@
                             <arg>${jjazzlab.javac.xlint}</arg>
                         </compilerArgs>
                     </configuration>
-                </plugin>                            
+                </plugin>                                                                  
                 
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-javadoc-plugin</artifactId>
+                    <version>3.6.3</version>
+                    <configuration>                            
+                        <excludePackageNames>org.jjazz.embeddedsynth.lame.*</excludePackageNames>
+                        <show>public</show>
+                        <nohelp>false</nohelp>
+                        <detectLinks>false</detectLinks>
+                        <detectOfflineLinks>true</detectOfflineLinks>   
+                        <quiet>false</quiet>
+                        <doclint>none</doclint>
+                        <release>${jjazzlab.compiler.release}</release>   
+                        <sourceFileIncludes>
+                            <include>org/jjazz/**/api/**/*.java</include>
+                            <include>org/jjazz/**/spi/**/*.java</include>
+                        </sourceFileIncludes>
+                    </configuration>                                                          
+                </plugin>                      
                 
                 <plugin>
                     <!-- Jar plugin, required for NBM -->                    
@@ -108,11 +127,6 @@
                 </plugin>      
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-dependency-analyzer</artifactId>
-                    <version>1.13.2</version>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-resources-plugin</artifactId>
                     <version>3.3.1</version>
                 </plugin>    
@@ -121,11 +135,7 @@
                     <artifactId>maven-antrun-plugin</artifactId>
                     <version>3.1.0</version>
                 </plugin>     
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-javadoc-plugin</artifactId>
-                    <version>3.6.3</version>
-                </plugin>                                           
+                                         
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
@@ -152,55 +162,48 @@
         </pluginManagement>
     </build>
     
+        
     <profiles>
         
-        <!-- Profile to create Javadoc -->
+        <!-- Profile to create Javadoc : use mvn -Pcreate-javadoc javadoc:aggregate -->
         <profile>
             <id>create-javadoc</id>
             <build>
-                <plugins>
-                
-                    <!-- Javadoc settings -->
+                <plugins>                
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-javadoc-plugin</artifactId>
-                        <configuration>
-                            <show>private</show>
-                            <nohelp>true</nohelp>
+                        <version>3.6.3</version>
+                        <executions>
+                            <execution>
+                                <id>attach-javadocs</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>attach-aggregate-javadoc</id>
+                                <goals>
+                                    <goal>aggregate-jar</goal>
+                                </goals>
+                                <inherited>false</inherited>
+                            </execution>
+                        </executions>
+                        <configuration>                            
+                            <excludePackageNames>org.jjazz.embeddedsynth.lame.*</excludePackageNames>
+                            <show>public</show>
+                            <nohelp>false</nohelp>
                             <detectLinks>false</detectLinks>
                             <detectOfflineLinks>true</detectOfflineLinks>   
                             <quiet>false</quiet>
                             <doclint>none</doclint>
-                            <source>17</source>
-                        </configuration>
-                        <executions>
-                            <execution> 
-                                <id>attach-javadocs</id>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>jar</goal>
-                                </goals> 
-                            </execution>
-                            <!-- Aggregate Javadoc, attached in gephi-app -->
-                            <execution>
-                                <id>aggregate</id>
-                                <phase>site</phase>
-                                <inherited>false</inherited>
-                                <goals>
-                                    <goal>aggregate-jar</goal>
-                                </goals>
-                                <configuration>
-                                    <show>public</show>
-                                    <doctitle>Gephi ${project.version} API Index</doctitle>
-                                    <subpackages>org.gephi.datalab.api:org.gephi.datalab.spi:org.gephi.datalab.spi.columns:org.gephi.datalab.spi.columns.merge:org.gephi.datalab.spi.edges:org.gephi.datalab.spi.general:org.gephi.datalab.spi.nodes:org.gephi.datalab.spi.rows.merge:org.gephi.datalab.spi.values:org.gephi.filters.api:org.gephi.filters.spi:org.gephi.graph.api:org.gephi.graph.api.types:org.gephi.graph.spi:org.gephi.io.exporter.api:org.gephi.io.exporter.spi:org.gephi.io.generator.api:org.gephi.io.generator.spi:org.gephi.io.importer.api:org.gephi.io.importer.spi:org.gephi.io.processor.spi:org.gephi.layout.api:org.gephi.layout.spi:org.gephi.perspective.api:org.gephi.perspective.spi:org.gephi.preview.api:org.gephi.preview.spi:org.gephi.preview.types:org.gephi.project.api:org.gephi.project.spi:org.gephi.appearance.api:org.gephi.appearance.spi:org.gephi.statistics.api:org.gephi.statistics.spi:org.gephi.timeline.api:org.gephi.tools.api:org.gephi.tools.spi:org.gephi.utils.longtask.api:org.gephi.utils.longtask.spi:org.gephi.utils.progress</subpackages>
-                                    <nohelp>true</nohelp>
-                                    <detectLinks>false</detectLinks>
-                                    <detectOfflineLinks>true</detectOfflineLinks>
-                                    <sourcepath>modules/LongTaskAPI/src/main/java;modules/DataLaboratoryAPI/src/main/java;modules/FiltersAPI/src/main/java;modules/GraphAPI/src/main/java;modules/ExportAPI/src/main/java;modules/GeneratorAPI/src/main/java;modules/ImportAPI/src/main/java;modules/LayoutAPI/src/main/java;modules/PerspectiveAPI/src/main/java;modules/PreviewAPI/src/main/java;modules/ProjectAPI/src/main/java;modules/AppearanceAPI/src/main/java;modules/StatisticsAPI/src/main/java;modules/TimelineAPI/src/main/java;modules/ToolsAPI/src/main/java;modules/VisualizationAPI/src/main/java;${project.build.directory}/graphstore-sources</sourcepath>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
+                            <release>${jjazzlab.compiler.release}</release>   
+                            <sourceFileIncludes>
+                                <include>org/jjazz/**/api/**/*.java</include>
+                                <include>org/jjazz/**/spi/**/*.java</include>
+                            </sourceFileIncludes>
+                        </configuration>                                                          
+                    </plugin>        
                 </plugins>
             </build>
         </profile>

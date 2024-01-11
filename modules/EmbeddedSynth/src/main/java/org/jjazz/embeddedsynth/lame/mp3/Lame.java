@@ -528,9 +528,9 @@ public class Lame {
   /**
    * Used to find table index when we need bitrate-based values determined
    * using tables
-   * <p/>
+   * <p>
    * bitrate in kbps
-   * <p/>
+   * <p>
    * Gabriel Bouvigne 2002-11-03
    */
   public final int nearestBitrateFullIndex(final int bitrate) {
@@ -571,7 +571,7 @@ public class Lame {
 
   /**
    * map frequency to a valid MP3 sample frequency
-   * <p/>
+   * <p>
    * Robert Hegemann 2000-07-01
    */
   private int map2MP3Frequency(final int freq) {
@@ -679,7 +679,7 @@ public class Lame {
 
   /**
    * Greatest common divisor.
-   * <p/>
+   * <p>
    * Joint work of Euclid and M. Hendry
    */
   private int gcd(final int i, final int j) {
@@ -838,24 +838,24 @@ public class Lame {
    * *****************************************************************
    * initialize internal params based on data in gf (globalflags struct filled
    * in by calling program)
-   * <p/>
+   * <p>
    * OUTLINE:
-   * <p/>
+   * <p>
    * We first have some complex code to determine bitrate, output samplerate
    * and mode. It is complicated by the fact that we allow the user to set
    * some or all of these parameters, and need to determine best possible
    * values for the rest of them:
-   * <p/>
+   * <p>
    * 1. set some CPU related flags 2. check if we are mono.mono, stereo.mono
    * or stereo.stereo 3. compute bitrate and output samplerate: user may have
    * set compression ratio user may have set a bitrate user may have set a
    * output samplerate 4. set some options which depend on output samplerate
    * 5. compute the actual compression ratio 6. set mode based on compression
    * ratio
-   * <p/>
+   * <p>
    * The remaining code is much simpler - it just sets options based on the
    * mode & compression ratio:
-   * <p/>
+   * <p>
    * set allow_diff_short based on mode select lowpass filter based on
    * compression ratio & mode set the bitrate index, and min/max bitrates for
    * VBR modes disable VBR tag if it is not appropriate initialize the
@@ -863,13 +863,13 @@ public class Lame {
    * channels, CRC, out_samplerate) write an id3v2 tag into the bitstream
    * write VBR tag into the bitstream set mpeg1/2 flag estimate the number of
    * frames (based on a lot of data)
-   * <p/>
+   * <p>
    * now we set more flags: nspsytune: see code VBR modes see code CBR/ABR see
    * code
-   * <p/>
+   * <p>
    * Finally, we set the algorithm flags based on the gfp.quality value
    * lame_init_qval(gfp);
-   * <p/>
+   * <p>
    * ******************************************************************
    */
   public final int initParams() {
@@ -1762,16 +1762,16 @@ public class Lame {
    * <PRE>
    * THE MAIN LAME ENCODING INTERFACE
    * mt 3/00
-   * <p/>
+   * <p>
    * input pcm data, output (maybe) mp3 frames.
    * This routine handles all buffering, resampling and filtering for you.
    * The required mp3buffer_size can be computed from num_samples,
    * samplerate and encoding rate, but here is a worst case estimate:
-   * <p/>
+   * <p>
    * mp3buffer_size in bytes = 1.25*num_samples + 7200
-   * <p/>
+   * <p>
    * return code = number of bytes output in mp3buffer.  can be 0
-   * <p/>
+   * <p>
    * NOTE: this routine uses LAME's internal PCM data representation,
    * 'sample_t'.  It should not be used by any application.
    * applications should use lame_encode_buffer(),
@@ -2256,18 +2256,18 @@ public class Lame {
    * <PRE>
    * histogram of used bitrate indexes:
    * One has to weight them to calculate the average bitrate in kbps
-   * <p/>
+   * <p>
    * bitrate indices:
    * there are 14 possible bitrate indices, 0 has the special meaning
    * "free format" which is not possible to mix with VBR and 15 is forbidden
    * anyway.
-   * <p/>
+   * <p>
    * stereo modes:
    * 0: LR   number of left-right encoded frames
    * 1: LR-I number of left-right and intensity encoded frames
    * 2: MS   number of mid-side encoded frames
    * 3: MS-I number of mid-side and intensity encoded frames
-   * <p/>
+   * <p>
    * 4: number of encoded frames
    * </PRE>
    */

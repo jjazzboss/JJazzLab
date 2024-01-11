@@ -40,7 +40,7 @@ public class QuantizePVT {
    * minimum possible number of
    * -cod_info.global_gain + ((scalefac[] + (cod_info.preflag ? pretab[sfb] : 0))
    * << (cod_info.scalefac_scale + 1)) + cod_info.subblock_gain[cod_info.window[sfb]] * 8;
-   * <p/>
+   * <p>
    * for long block, 0+((15+3)<<2) = 18*4 = 72
    * for short block, 0+(15<<2)+7*8 = 15*4+56 = 116
    * </CODE>
@@ -62,7 +62,7 @@ public class QuantizePVT {
    * The following table is used to implement the scalefactor partitioning for
    * MPEG2 as described in section 2.4.3.2 of the IS. The indexing corresponds
    * to the way the tables are presented in the IS:
-   * <p/>
+   * <p>
    * [table_number][row_in_table][column of nr_of_sfb]
    */
   public final int nr_of_sfb_block[][][] = new int[][][]{
@@ -174,23 +174,23 @@ public class QuantizePVT {
   /**
    * <PRE>
    * compute the ATH for each scalefactor band cd range: 0..96db
-   * <p/>
+   * <p>
    * Input: 3.3kHz signal 32767 amplitude (3.3kHz is where ATH is smallest =
    * -5db) longblocks: sfb=12 en0/bw=-11db max_en0 = 1.3db shortblocks: sfb=5
    * -9db 0db
-   * <p/>
+   * <p>
    * Input: 1 1 1 1 1 1 1 -1 -1 -1 -1 -1 -1 -1 (repeated) longblocks: amp=1
    * sfb=12 en0/bw=-103 db max_en0 = -92db amp=32767 sfb=12 -12 db -1.4db
-   * <p/>
+   * <p>
    * Input: 1 1 1 1 1 1 1 -1 -1 -1 -1 -1 -1 -1 (repeated) shortblocks: amp=1
    * sfb=5 en0/bw= -99 -86 amp=32767 sfb=5 -9 db 4db
-   * <p/>
-   * <p/>
+   * <p>
+   * <p>
    * MAX energy of largest wave at 3.3kHz = 1db AVE energy of largest wave at
    * 3.3kHz = -11db Let's take AVE: -11db = maximum signal in sfb=12. Dynamic
    * range of CD: 96db. Therefor energy of smallest audible wave in sfb=12 =
    * -11 - 96 = -107db = ATH at 3.3kHz.
-   * <p/>
+   * <p>
    * ATH formula for this wave: -5db. To adjust to LAME scaling, we need ATH =
    * ATH_formula - 103 (db) ATH = ATH * 2.5e-10 (ener)
    * </PRE>
@@ -520,7 +520,7 @@ public class QuantizePVT {
   /**
    * Calculate the allowed distortion for each scalefactor band, as determined
    * by the psychoacoustic model. xmin(sb) = ratio(sb) * en(sb) / bw(sb)
-   * <p/>
+   * <p>
    * returns number of sfb's with energy > ATH
    */
   public final int calc_xmin(final LameGlobalFlags gfp,
@@ -834,9 +834,9 @@ public class QuantizePVT {
 
   /**
    * updates plotting data
-   * <p/>
+   * <p>
    * Mark Taylor 2000-??-??
-   * <p/>
+   * <p>
    * Robert Hegemann: moved noise/distortion calc into it
    */
   private void set_pinfo(final LameGlobalFlags gfp,
@@ -948,7 +948,7 @@ public class QuantizePVT {
 
   /**
    * updates plotting data for a whole frame
-   * <p/>
+   * <p>
    * Robert Hegemann 2000-10-21
    */
   public final void set_frame_pinfo(final LameGlobalFlags gfp,

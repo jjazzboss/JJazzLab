@@ -17,9 +17,9 @@ final class ShortBlockConstrain implements VBRQuantize.alloc_sf_f {
 
   /**
    * ***************************************************************
-   * <p/>
+   * <p>
    * short block scalefacs
-   * <p/>
+   * <p>
    * ****************************************************************
    */
 

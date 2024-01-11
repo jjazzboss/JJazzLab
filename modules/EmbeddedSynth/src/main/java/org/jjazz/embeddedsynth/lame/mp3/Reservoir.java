@@ -29,11 +29,11 @@ package org.jjazz.embeddedsynth.lame.mp3;
  * the reservoir, and checks to make sure main_data_begin was set properly by
  * the formatter<BR>
  * Background information:
- * <p/>
+ * <p>
  * This is the original text from the ISO standard. Because of sooo many bugs
  * and irritations correcting comments are added in brackets []. A '^W' means
  * you should remove the last word.
- * <p/>
+ * <p>
  * <PRE>
  * 1. The following rule can be used to calculate the maximum
  * number of bits used for one granule [^W frame]:<BR>
@@ -41,9 +41,9 @@ package org.jjazz.embeddedsynth.lame.mp3;
  * per stereo signal [^W^W^W], 48 kHz) the frames must be of
  * [^W^W^W are designed to have] constant length, i.e.
  * one buffer [^W^W the frame] length is:<BR>
- * <p/>
+ * <p>
  * 320 kbps * 1152/48 kHz = 7680 bit = 960 byte
- * <p/>
+ * <p>
  * This value is used as the maximum buffer per channel [^W^W] at
  * lower bitrates [than 320 kbps]. At 64 kbps mono or 128 kbps
  * stereo the main granule length is 64 kbps * 576/48 kHz = 768 bit

@@ -247,7 +247,7 @@ public class VBRQuantize {
 
   /**
    * calc_short_block_vbr_sf(), calc_long_block_vbr_sf()
-   * <p/>
+   * <p>
    * a variation for vbr-mtrh
    *
    * @author Mark Taylor 2000-??-??
@@ -322,7 +322,7 @@ public class VBRQuantize {
 
   /**
    * quantize xr34 based on scalefactors
-   * <p/>
+   * <p>
    * block_xr34
    *
    * @author Mark Taylor 2000-??-??

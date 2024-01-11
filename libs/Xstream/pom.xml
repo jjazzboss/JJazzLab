@@ -53,7 +53,7 @@
                         <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
                     </archive>
                 </configuration>
-            </plugin>                             
+            </plugin>                                     
         </plugins>
     </build>
     <dependencies>

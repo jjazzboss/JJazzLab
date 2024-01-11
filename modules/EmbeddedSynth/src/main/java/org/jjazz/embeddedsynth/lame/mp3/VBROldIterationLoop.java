@@ -4,7 +4,7 @@ package org.jjazz.embeddedsynth.lame.mp3;
  * tries to find out how many bits are needed for each granule and channel
  * to get an acceptable quantization. An appropriate bitrate will then be
  * choosed for quantization. rh 8/99
- * <p/>
+ * <p>
  * Robert Hegemann 2000-09-06 rewrite
  *
  * @author Ken

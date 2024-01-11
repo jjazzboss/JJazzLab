@@ -30,7 +30,7 @@ public class LameInternalFlags {
    * pointer to this struct. It is very unlikely that a pointer to
    * lame_global_flags has the same 32 bits in it's structure (large and other
    * special properties, for instance prime).
-   * <p/>
+   * <p>
    * To test that the structure is right and initialized, use: if ( gfc .
    * Class_ID == LAME_ID ) ... Other remark: If you set a flag to 0 for uninit
    * data and 1 for init data, the right test should be "if (flag == 1)" and

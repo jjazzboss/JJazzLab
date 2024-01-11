@@ -210,7 +210,7 @@ public class LameGlobalFlags {
   private int inSampleRate;
   /**
    * Output: Sampling rate in Hz (default=44100 - 44.1 kHz)
-   * <p/>
+   * <p>
    * Default: LAME picks best value at least not used for MP3 decoding:
    * Remember 44.1 kHz MP3s and AC97
    */
@@ -235,7 +235,7 @@ public class LameGlobalFlags {
   private boolean writeId3tagAutomatic;
   /**
    * bit rate (constant bit rate).
-   * <p/>
+   * <p>
    * Note: set either bit rate>0 or compression ratio>0, LAME will compute the
    * value of the variable not set. Default is compression_ratio = 11.025
    */
@@ -390,7 +390,7 @@ public class LameGlobalFlags {
 
   /**
    * true (default) writes ID3 tags, false not.
-   * <p/>
+   * <p>
    * Turn off automatic writing of ID3 tag data into mp3 stream we have to
    * call it before 'Lame.initParams', because that function would spit out
    * ID3v2 tag data.

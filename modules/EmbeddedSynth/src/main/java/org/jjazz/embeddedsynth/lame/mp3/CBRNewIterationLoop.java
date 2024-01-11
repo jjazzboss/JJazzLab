@@ -2,7 +2,7 @@ package org.jjazz.embeddedsynth.lame.mp3;
 
 /**
  * author/date??
- * <p/>
+ * <p>
  * encodes one frame of MP3 data with constant bitrate
  *
  * @author Ken

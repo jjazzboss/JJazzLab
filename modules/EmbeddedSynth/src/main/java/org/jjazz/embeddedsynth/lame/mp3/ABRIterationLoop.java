@@ -2,7 +2,7 @@ package org.jjazz.embeddedsynth.lame.mp3;
 
 /**
  * encode a frame with a desired average bitrate
- * <p/>
+ * <p>
  * mt 2000/05/31
  *
  * @author Ken

@@ -29,19 +29,19 @@ package org.jjazz.embeddedsynth.lame.mp3;
 public class Encoder {
   /**
    * ENCDELAY The encoder delay.
-   * <p/>
+   * <p>
    * Minimum allowed is MDCTDELAY (see below)
-   * <p/>
+   * <p>
    * The first 96 samples will be attenuated, so using a value less than 96
    * will result in corrupt data for the first 96-ENCDELAY samples.
-   * <p/>
+   * <p>
    * suggested: 576 set to 1160 to sync with FhG.
    */
   public static final int ENCDELAY = 576;
   /**
    * make sure there is at least one complete frame after the last frame
    * containing real data
-   * <p/>
+   * <p>
    * Using a value of 288 would be sufficient for a a very sophisticated
    * decoder that can decode granule-by-granule instead of frame by frame. But
    * lets not assume this, and assume the decoder will not decode frame N
@@ -115,7 +115,7 @@ public class Encoder {
    * Mode Extention:
    * When we are in stereo mode, there are 4 possible methods to store these
    * two channels. The stereo modes -m? are using a subset of them.
-   * <p/>
+   * <p>
    * -ms: MPG_MD_LR_LR
    * -mj: MPG_MD_LR_LR and MPG_MD_MS_LR
    * -mf: MPG_MD_MS_LR
@@ -129,59 +129,59 @@ public class Encoder {
   /**
    * <PRE>
    * encodeframe()           Layer 3
-   * <p/>
+   * <p>
    * encode a single frame
-   * <p/>
-   * <p/>
+   * <p>
+   * <p>
    * lame_encode_frame()
-   * <p/>
-   * <p/>
+   * <p>
+   * <p>
    * gr 0            gr 1
    * inbuf:           |--------------|--------------|--------------|
-   * <p/>
-   * <p/>
+   * <p>
+   * <p>
    * Polyphase (18 windows, each shifted 32)
    * gr 0:
    * window1          <----512---.
    * window18                 <----512---.
-   * <p/>
+   * <p>
    * gr 1:
    * window1                         <----512---.
    * window18                                <----512---.
-   * <p/>
-   * <p/>
-   * <p/>
+   * <p>
+   * <p>
+   * <p>
    * MDCT output:  |--------------|--------------|--------------|
-   * <p/>
+   * <p>
    * FFT's                    <---------1024---------.
    * <---------1024-------.
-   * <p/>
-   * <p/>
-   * <p/>
+   * <p>
+   * <p>
+   * <p>
    * inbuf = buffer of PCM data size=MP3 framesize
    * encoder acts on inbuf[ch][0], but output is delayed by MDCTDELAY
    * so the MDCT coefficints are from inbuf[ch][-MDCTDELAY]
-   * <p/>
+   * <p>
    * psy-model FFT has a 1 granule delay, so we feed it data for the
    * next granule.
    * FFT is centered over granule:  224+576+224
    * So FFT starts at:   576-224-MDCTDELAY
-   * <p/>
+   * <p>
    * MPEG2:  FFT ends at:  BLKSIZE+576-224-MDCTDELAY      (1328)
    * MPEG1:  FFT ends at:  BLKSIZE+2*576-224-MDCTDELAY    (1904)
-   * <p/>
+   * <p>
    * MPEG2:  polyphase first window:  [0..511]
    * 18th window:   [544..1055]          (1056)
    * MPEG1:            36th window:   [1120..1631]         (1632)
    * data needed:  512+framesize-32
-   * <p/>
+   * <p>
    * A close look newmdct.c shows that the polyphase filterbank
    * only uses data from [0..510] for each window.  Perhaps because the window
    * used by the filterbank is zero for the last point, so Takehiro's
    * code doesn't bother to compute with it.
-   * <p/>
+   * <p>
    * FFT starts at 576-224-MDCTDELAY (304)  = 576-FFTOFFSET
-   * <p/>
+   * <p>
    * </PRE>
    */
 
@@ -204,7 +204,7 @@ public class Encoder {
 
   /**
    * auto-adjust of ATH, useful for low volume Gabriel Bouvigne 3 feb 2001
-   * <p/>
+   * <p>
    * modifies some values in gfp.internal_flags.ATH (gfc.ATH)
    */
   private void adjust_ATH(final LameInternalFlags gfc) {
@@ -288,11 +288,11 @@ public class Encoder {
   /**
    * <PRE>
    * some simple statistics
-   * <p/>
+   * <p>
    * bitrate index 0: free bitrate . not allowed in VBR mode
    * : bitrates, kbps depending on MPEG version
    * bitrate index 15: forbidden
-   * <p/>
+   * <p>
    * mode_ext:
    * 0:  LR
    * 1:  LR-i

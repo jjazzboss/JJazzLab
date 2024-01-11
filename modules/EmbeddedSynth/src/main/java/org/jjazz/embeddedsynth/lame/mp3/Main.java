@@ -106,11 +106,11 @@ public class Main {
 
   /**
    * the simple lame decoder
-   * <p/>
+   * <p>
    * After calling lame_init(), Lame.initParams() and init_infile(), call
    * this routine to read the input MP3 file and output .wav data to the
    * specified file pointer
-   * <p/>
+   * <p>
    * lame_decoder will ignore the first 528 samples, since these samples
    * represent the mpglib delay (and are all 0). skip = number of additional
    * samples to skip, to (for example) compensate for the encoder delay

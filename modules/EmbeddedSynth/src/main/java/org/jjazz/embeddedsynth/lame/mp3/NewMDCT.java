@@ -496,9 +496,9 @@ public class NewMDCT {
 
   /**
    * new IDCT routine written by Takehiro TOMINAGA
-   * <p/>
+   * <p>
    * PURPOSE: Overlapping window on PCM samples<BR>
-   * <p/>
+   * <p>
    * SEMANTICS:<BR>
    * 32 16-bit pcm samples are scaled to fractional 2's complement and
    * concatenated to the end of the window buffer #x#. The updated window
@@ -903,7 +903,7 @@ public class NewMDCT {
    * short length. This leads to 12 coefficents in the time and 6 in the
    * frequency domain. In this case the results are stored side by side in the
    * vector out[].
-   * <p/>
+   * <p>
    * New layer3
    */
   private void mdct_short(final float[] inout, int inoutPos) {

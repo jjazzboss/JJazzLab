@@ -41,7 +41,7 @@ public class Presets {
   /**
    * <PRE>
    * Switch mappings for ABR mode
-   * <p/>
+   * <p>
    * kbps  quant q_s safejoint nsmsfix st_lrm  st_s  ns-bass scale   msk ath_lwr ath_curve  interch , sfscale
    * </PRE>
    */

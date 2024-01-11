@@ -64,7 +64,7 @@ public class LameEncoder {
   public static final int BITRATE_AUTO = -1;
   /**
    * Constant bit rate.
-   * <p/>
+   * <p>
    * Note:
    * In VBR mode, bit rate is ignored.
    */
