@@ -88,7 +88,7 @@ public class ChordRenderingInfo implements Serializable
          */
         EXTENDED_HOLD_SHOT,
         /**
-         * Make sure there is not crash cymbal.
+         * Make sure there is no crash cymbal.
          * <p>
          * IMPORTANT: Exclusive with NO_CRASH
          */
