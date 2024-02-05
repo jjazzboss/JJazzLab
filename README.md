@@ -25,7 +25,7 @@ Developers can easily add music generation capabilities or try new ideas, withou
 
 ## Download 
 
-Visit [www.jjazzlab.com](https://www.jjazzlab.com) for ready-to-use installers for Win, Linux and Mac.
+Visit [www.jjazzlab.org](https://www.jjazzlab.org) for ready-to-use installers for Win, Linux and Mac.
 
 ## License
 
@@ -41,5 +41,5 @@ Lesser GPL v2 (LGPL v2.1)
 
 ## Contact
 
-For more information use the Contact page at [www.jjazzlab.com](https://www.jjazzlab.com)
+For more information use the Contact page at [www.jjazzlab.org](https://www.jjazzlab.org)
 

@@ -22,7 +22,7 @@ We do not tolerate harassment of community members in any form.
 
 Be careful in the words that you choose. Remember that sexist, racist, and other exclusionary jokes can be offensive to those around you. 
 
-Participants asked to stop any harassing behavior are expected to comply immediately. Community members violating these rules may be sanctioned or removed from community spaces. If you are being harassed, notice that someone else is being harassed, or have any other concerns, please get in touch at jl@jjazzlab.com.
+Participants asked to stop any harassing behavior are expected to comply immediately. Community members violating these rules may be sanctioned or removed from community spaces. If you are being harassed, notice that someone else is being harassed, or have any other concerns, please get in touch at jl@jjazzlab.org.
 
 ## Did you find a bug?
 
@@ -38,6 +38,6 @@ as much relevant information as possible in order to reproduce the unexpected be
     
 ## Contact
 
-If you have any question use the Contact page at [www.jjazzlab.com](https://www.jjazzlab.com).
+If you have any question use the Contact page at [www.jjazzlab.org](https://www.jjazzlab.org).
 
 
