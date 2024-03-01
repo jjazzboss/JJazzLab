@@ -17,6 +17,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.analytics.api.Analytics;
 import org.jjazz.analytics.spi.AnalyticsProcessor;
+import org.jjazz.utilities.api.Utilities;
 import org.json.JSONObject;
 
 /**
@@ -28,6 +29,7 @@ public class MixPanelProcessor implements AnalyticsProcessor
     private final static long INITIAL_SECONDS_TO_WAIT = 10;
     private final static long SECONDS_TO_WAIT = 180;
     private final static int MAX_NB_FLUSHED_MESSAGES_BEFORE_SHUTDOWN = 40;
+    private static final String MP_TOKEN = "ed8aa58b306c1336dcf74fb99b2f69f1";
     Queue<JSONObject> msgQueue;
     DeliveryThread worker;
     private boolean enabled;
@@ -42,9 +44,7 @@ public class MixPanelProcessor implements AnalyticsProcessor
      */
     public MixPanelProcessor()
     {
-        enabled = false;
-        String token = System.getProperty("mp.token");
-        if (token == null)
+        if (Utilities.isRunFromNetbeansIDE())
         {
             return;
         }
@@ -62,7 +62,7 @@ public class MixPanelProcessor implements AnalyticsProcessor
 
 
         // Prepare data to send message
-        messageBuilder = new MessageBuilder(fmt(token));
+        messageBuilder = new MessageBuilder(MP_TOKEN);
     }
 
 
@@ -157,7 +157,6 @@ public class MixPanelProcessor implements AnalyticsProcessor
     // ============================================================================================
     // Private methods
     // ============================================================================================    
- 
     /**
      * Flush the pending events and send them with lastMessage.
      *
@@ -188,11 +187,6 @@ public class MixPanelProcessor implements AnalyticsProcessor
 
 
         logEventsImmediatly(2000, messages);
-    }
-
-    private String fmt(String s)
-    {
-        return s.substring(3);
     }
 
     /**

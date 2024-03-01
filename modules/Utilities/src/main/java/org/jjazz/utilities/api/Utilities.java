@@ -128,6 +128,10 @@ public class Utilities
         }
     }
 
+    public static boolean isRunFromNetbeansIDE()
+    {
+        return System.getProperty("run.from.ide") != null;
+    }
 
     public static boolean isWindows()
     {
@@ -448,8 +452,7 @@ public class Utilities
     /**
      * Return a string based on s whose length can't exceed maxLength, with "..." at the end if s was truncated.
      * <p>
-     * If s length is &lt;= maxSize then return s. Otherwise return the first chars and append ".." or "...", in order to have
-     * length=maxSize.<p>
+     * If s length is &lt;= maxSize then return s. Otherwise return the first chars and append ".." or "...", in order to have length=maxSize.<p>
      * Example: return "Clav..." for s="Clavinet" and maxLength=7
      *
      * @param s
@@ -870,12 +873,11 @@ public class Utilities
     /**
      * Gets the base location of the given class. Manage all OS variations and possible problems in characters...
      * <p>
-     * If the class is directly on the file system (e.g., "/path/to/my/package/MyClass.class") then it will return the base directory (e.g.,
-     * "file:/path/to").
+     * If the class is directly on the file system (e.g., "/path/to/my/package/MyClass.class") then it will return the base directory (e.g., "file:/path/to").
      * </p>
      * <p>
-     * If the class is within a JAR file (e.g., "/path/to/my-jar.jar!/my/package/MyClass.class") then it will return the path to the JAR
-     * (e.g., "file:/path/to/my-jar.jar").
+     * If the class is within a JAR file (e.g., "/path/to/my-jar.jar!/my/package/MyClass.class") then it will return the path to the JAR (e.g.,
+     * "file:/path/to/my-jar.jar").
      * </p>
      *
      * @param c The class whose location is desired.
@@ -941,8 +943,7 @@ public class Utilities
     /**
      * Converts the given {@link URL} to its corresponding {@link File}.
      * <p>
-     * This method is similar to calling {@code new File(url.toURI())} except that it also handles "jar:file:" U Sgs, returning the path to
-     * the JAR file.
+     * This method is similar to calling {@code new File(url.toURI())} except that it also handles "jar:file:" U Sgs, returning the path to the JAR file.
      * </p>
      *
      * @param url The URL to convert.

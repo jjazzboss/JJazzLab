@@ -33,7 +33,6 @@ import org.openide.windows.OnShowing;
 /**
  * Execute StartupTasks when UI is ready, one at a time, by ascending getPriority() order.
  * <p>
- * <p>
  */
 public class StartupManager
 {
@@ -55,7 +54,6 @@ public class StartupManager
 
     private StartupManager()
     {
-
     }
 
     @OnShowing
@@ -68,11 +66,14 @@ public class StartupManager
             // Get all tasks sorted by priority
             var res = new ArrayList<>(Lookup.getDefault().lookupAll(StartupTask.class));
             Collections.sort(res, (t1, t2) -> Integer.compare(t1.getPriority(), t2.getPriority()));
-            
-            
+
+
             for (var task : res)
             {
-                LOGGER.log(Level.INFO, "Launcher.run() Starting task: {0} priority={1}", new Object[]{task.getName(), task.getPriority()});   
+                LOGGER.log(Level.INFO, "Launcher.run() Starting task: {0} priority={1}", new Object[]
+                {
+                    task.getName(), task.getPriority()
+                });
                 task.run();
             }
         }

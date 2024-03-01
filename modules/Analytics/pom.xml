@@ -41,6 +41,11 @@
             <artifactId>org-jjazz-upgrade</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
+        <dependency>
+            <groupId>org.jjazzlab</groupId>
+            <artifactId>org-jjazz-utilities</artifactId>
+            <version>${project.version}</version>
+        </dependency>        
         <dependency> 
             <groupId>org.netbeans.api</groupId> 
             <artifactId>org-openide-util</artifactId> 
@@ -57,6 +62,7 @@
             <version>1.5.2</version>
             <type>jar</type>
         </dependency>
+
     </dependencies>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
