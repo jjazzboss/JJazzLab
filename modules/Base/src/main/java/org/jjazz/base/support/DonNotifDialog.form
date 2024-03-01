@@ -83,7 +83,7 @@
                 <Font bold="true" component="btn_donateLink" property="font" relativeSize="true" size="1"/>
               </FontInfo>
             </Property>
-            <Property name="text" type="java.lang.String" value="&lt;HTML&gt;&lt;u&gt;www.jjazzlab.com/en/donate&lt;/u&gt;&lt;/HTML&gt;" noResource="true"/>
+            <Property name="text" type="java.lang.String" value="&lt;HTML&gt;&lt;u&gt;www.jjazzlab.org/en/donate&lt;/u&gt;&lt;/HTML&gt;" noResource="true"/>
             <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
               <ResourceString bundle="org/jjazz/base/support/Bundle.properties" key="DonNotifDialog.btn_donateLink.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
             </Property>

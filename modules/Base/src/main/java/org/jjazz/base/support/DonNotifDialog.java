@@ -103,7 +103,7 @@ public class DonNotifDialog extends javax.swing.JDialog
         });
 
         btn_donateLink.setFont(btn_donateLink.getFont().deriveFont(btn_donateLink.getFont().getStyle() | java.awt.Font.BOLD, btn_donateLink.getFont().getSize()+1));
-        org.openide.awt.Mnemonics.setLocalizedText(btn_donateLink, "<HTML><u>www.jjazzlab.com/en/donate</u></HTML>"); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(btn_donateLink, "<HTML><u>www.jjazzlab.org/en/donate</u></HTML>"); // NOI18N
         btn_donateLink.setToolTipText(org.openide.util.NbBundle.getMessage(DonNotifDialog.class, "DonNotifDialog.btn_donateLink.toolTipText")); // NOI18N
         btn_donateLink.addActionListener(new java.awt.event.ActionListener()
         {

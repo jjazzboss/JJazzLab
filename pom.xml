@@ -11,8 +11,8 @@
     <url>https://github.com/jjazzboss/jjazzlab</url>
     <licenses>
         <license>
-            <name>GNU LESSER GENERAL PUBLIC LICENSE Version 3.0</name>
-            <url>https://www.gnu.org/licenses/lgpl-3.0.en.html#license-text</url>
+            <name>GNU LESSER GENERAL PUBLIC LICENSE Version 2.1</name>
+            <url>https://www.gnu.org/licenses/lgpl-2.1.en.html#license-text</url>
         </license>
     </licenses>
     
@@ -26,8 +26,8 @@
                 <role>developer</role>
             </roles>
             <organization>JJazzLab</organization>
-            <organizationUrl>https://www.jjazzlab.com</organizationUrl>            
-            <email>jl@jjazzlab.com</email>
+            <organizationUrl>https://www.jjazzlab.org</organizationUrl>            
+            <email>jl@jjazzlab.org</email>
             <timezone>Europe/Paris</timezone>
         </developer>
     </developers>

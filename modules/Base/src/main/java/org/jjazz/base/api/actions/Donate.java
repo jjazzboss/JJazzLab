@@ -38,7 +38,7 @@ import org.openide.util.Exceptions;
 public final class Donate implements ActionListener
 {
 
-    private static final String DONATE_URL = "https://www.jjazzlab.com/en/donate";
+    private static final String DONATE_URL = "https://www.jjazzlab.org/en/donate";
 
     @Override
     public void actionPerformed(ActionEvent e)
