@@ -46,6 +46,7 @@ public class MixPanelProcessor implements AnalyticsProcessor
     {
         if (Utilities.isRunFromNetbeansIDE())
         {
+            LOGGER.log(Level.INFO, "MixPanelProcessor() disabled");
             return;
         }
 
