@@ -28,7 +28,6 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.midi.api.DrumKit.KeyMap;
-import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.phrasetransform.api.PhraseTransformCategory;
 import org.jjazz.phrasetransform.api.PhraseTransform;

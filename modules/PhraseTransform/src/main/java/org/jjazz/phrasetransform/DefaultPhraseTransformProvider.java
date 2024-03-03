@@ -38,7 +38,6 @@ import org.jjazz.midi.api.DrumKit;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.phrase.api.CyclicPositions;
 import org.jjazz.phrase.api.Phrase;
-import org.jjazz.phrase.api.PhraseSamples;
 import org.jjazz.phrase.api.Phrases;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.phrasetransform.api.DrumsMixTransform;

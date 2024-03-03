@@ -64,7 +64,8 @@ public class PhraseTransformManagerImpl implements PhraseTransformManager
         {
             refresh();
         }
-        return new ArrayList<>(transforms);
+        var res = transforms.stream().map(t -> t.getCopy()).toList();
+        return res;
     }
 
 

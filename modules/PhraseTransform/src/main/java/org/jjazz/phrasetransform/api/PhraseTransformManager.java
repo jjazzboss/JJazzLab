@@ -22,9 +22,9 @@
  */
 package org.jjazz.phrasetransform.api;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.phrasetransform.PhraseTransformManagerImpl;
 import org.jjazz.songcontext.api.SongPartContext;
@@ -43,8 +43,7 @@ public interface PhraseTransformManager
     /**
      * Use the first implementation present in the global lookup.
      * <p>
-     * If nothing found, use the default implementation which relies on all PhraseTransformProvider implementations found in the
-     * global lookup.
+     * If nothing found, use the default implementation which relies on all PhraseTransformProvider implementations found in the global lookup.
      *
      * @return
      */
@@ -64,18 +63,19 @@ public interface PhraseTransformManager
     public void refresh();
 
     /**
-     * Get all the available PhraseTransforms.
+     * Get new instances of all the available PhraseTransforms.
      *
-     * @return
+     * @return An unmodifiable list.
      */
     public List<PhraseTransform> getPhraseTransforms();
 
 
     /**
-     * Get a specified PhraseTransform instance.
+     * Get a new instance of a specific PhraseTransform.
      *
      * @param uniqueId
      * @return Can be null
+     * @see PhraseTransform.Info#getUniqueId()
      */
     public default PhraseTransform getPhraseTransform(String uniqueId)
     {
@@ -83,14 +83,14 @@ public interface PhraseTransformManager
                 .filter(pt -> pt.getInfo().getUniqueId().equals(uniqueId))
                 .findAny()
                 .orElse(null);
-        return res;
+        return res != null ? res.getCopy() : res;
     }
 
     /**
      * Get the PhraseTransforms which match the specified category.
      *
      * @param category
-     * @return
+     * @return An unmodifiable list
      */
     default public List<PhraseTransform> getPhraseTransforms(PhraseTransformCategory category)
     {
@@ -105,13 +105,12 @@ public interface PhraseTransformManager
      * @param inPhrase
      * @param context
      * @param exclude0score if true PhraseTransforms with a fit score==0 are ignored.
-     * @return First PhraseTransform is the most adapted to the specified parameters (highest fit score, last PhraseTransform is
-     * the less adapted.
+     * @return First PhraseTransform is the most adapted to the specified parameters (highest fit score, last PhraseTransform is the less adapted.
      * @see PhraseTransform#getFitScore(org.jjazz.phrase.api.SizedPhrase, org.jjazz.midi.api.Instrument)
      */
     default public List<PhraseTransform> getRecommendedPhraseTransforms(SizedPhrase inPhrase, SongPartContext context, boolean exclude0score)
     {
-        var pts = getPhraseTransforms();
+        var pts = new ArrayList<>(getPhraseTransforms());
 
 
         // Compute score for all transforms

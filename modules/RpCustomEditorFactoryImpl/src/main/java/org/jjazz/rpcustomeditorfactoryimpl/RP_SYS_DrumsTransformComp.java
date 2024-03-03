@@ -687,11 +687,11 @@ public class RP_SYS_DrumsTransformComp extends RealTimeRpEditorComponent<RP_SYS_
                     if (dl.isInsert())
                     {
                         // Add
-                        listModel.add(dl.getIndex(), srcPt.getCopy());
+                        listModel.add(dl.getIndex(), srcPt);
                     } else
                     {
                         // Replace existing
-                        listModel.set(dl.getIndex(), srcPt.getCopy());
+                        listModel.set(dl.getIndex(), srcPt);
                     }
                 } catch (Exception ex)
                 {
@@ -1220,7 +1220,7 @@ public class RP_SYS_DrumsTransformComp extends RealTimeRpEditorComponent<RP_SYS_
             var pt = list_availableTransforms.getSelectedValue();
             if (pt != null)
             {
-                list_transformChainModel.addElement(pt.getCopy());
+                list_transformChainModel.addElement(pt);
             }
         }
     }//GEN-LAST:event_list_availableTransformsMouseClicked
