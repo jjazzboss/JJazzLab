@@ -144,7 +144,7 @@ public class ChordSymbol implements Cloneable
             {
                 throw new ParseException(errorInvalidCs + ": " + originalName, slashIndex);
             }
-            originalName = str.substring(0, 1).toUpperCase() + str.substring(1, slashIndex)
+            originalName = str.substring(0, 1).toUpperCase() + str.substring(1, slashIndex) 
                     + "/"
                     + strBass.substring(0, 1).toUpperCase() + strBass.substring(1);
         } else
