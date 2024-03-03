@@ -258,17 +258,16 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         generalLookupContent.add(songModel);
 
 
-        // Compact view mode by default
-        this.viewMode = ViewMode.COMPACT;
-        songSpecificProperties.storeViewMode(viewMode);
+        // Restore view mode
+        viewMode = songSpecificProperties.loadViewMode();
         var allRhythms = sgsModel.getUniqueRhythms(false, true);
         for (var r : allRhythms)
         {
-            List<RhythmParameter<?>> rps = songSpecificProperties.loadCompactViewModeVisibleRPs(r);
+            List<RhythmParameter<?>> rps = viewMode.equals(ViewMode.COMPACT) ? songSpecificProperties.loadCompactViewModeVisibleRPs(r) : r.getRhythmParameters();
             mapRhythmVisibleRps.put(r, rps);
         }
 
-        
+
         // Add the SongPartEditors
         for (SongPart spt : sgsModel.getSongParts())
         {
@@ -744,12 +743,12 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         songSpecificProperties.storeViewMode(mode);
 
 
-        boolean b = viewMode.equals(ViewMode.COMPACT);
+        boolean compact = viewMode.equals(ViewMode.COMPACT);
         var allRhythms = sgsModel.getUniqueRhythms(false, true);
 
         for (var r : allRhythms)
         {
-            List<RhythmParameter<?>> rps = b ? songSpecificProperties.loadCompactViewModeVisibleRPs(r) : r.getRhythmParameters();
+            List<RhythmParameter<?>> rps = compact ? songSpecificProperties.loadCompactViewModeVisibleRPs(r) : r.getRhythmParameters();
             setVisibleRps(r, rps);
         }
 
@@ -772,7 +771,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         {
             songSpecificProperties.storeCompactViewModeVisibleRPs(r, rps);
             firePropertyChange(PROP_COMPACT_VIEW_MODE_VISIBLE_RPS, r, rps);
-            
+
             if (getViewMode().equals(viewMode.COMPACT))
             {
                 setVisibleRps(r, rps);

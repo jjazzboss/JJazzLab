@@ -30,7 +30,6 @@ import java.util.logging.Logger;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.song.api.Song;
-import org.jjazz.ss_editor.api.SS_Editor;
 import org.jjazz.ss_editor.api.SS_Editor.ViewMode;
 
 /**
@@ -61,14 +60,14 @@ public class SongSpecificSS_EditorProperties
 
     public ViewMode loadViewMode()
     {
-        String s = song.getClientProperties().get(PROP_VIEW_MODE, ViewMode.NORMAL.name());
-        ViewMode res = ViewMode.NORMAL;
+        String s = song.getClientProperties().get(PROP_VIEW_MODE, ViewMode.COMPACT.name());
+        ViewMode res = ViewMode.COMPACT;
         try
         {
             res = ViewMode.valueOf(s);
         } catch (IllegalArgumentException e)
         {
-
+            // Ignore
         }
         return res;
     }
