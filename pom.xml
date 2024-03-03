@@ -35,7 +35,7 @@
     
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>         
-        <netbeans.version>RELEASE200</netbeans.version>
+        <netbeans.version>RELEASE210</netbeans.version>
         <brandingToken>jjazzlab</brandingToken> <!-- used for nbm:cluster-app configuration -->
         <jjazzlab.maven.compiler.plugin.version>3.11.0</jjazzlab.maven.compiler.plugin.version>
         <jjazzlab.compiler.release>17</jjazzlab.compiler.release>
