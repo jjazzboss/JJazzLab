@@ -114,8 +114,10 @@ public class ChordSymbol implements Cloneable
 
     /**
      * Construct a ChordSymbol from a string.
+     * <p>
+     * All notes are made uppercase. Unusual notes Cb/B#/E#/Fb are renamed to B/C/F/E. Bass note is removed if identical to root note.
      *
-     * @param str A string like "Cm7", "Abmaj7", "Bm7b5", "G#MAJ7", "C/F"
+     * @param str A string like "Cm7", "Abmaj7", "Bm7b5", "G#MAJ7", "cm/eb"
      * @throws ParseException
      */
     public ChordSymbol(String str) throws ParseException
@@ -124,31 +126,50 @@ public class ChordSymbol implements Cloneable
         {
             throw new IllegalArgumentException("str=\"" + str + "\"");
         }
-        str = str.trim();
+        final String errorInvalidCs = ResUtil.getString(getClass(), "CTL_InvalidChordSymbol");
 
-        // Save the original name of the chord symbol, making sure first letter is uppercase
-        originalName = str.substring(0, 1).toUpperCase() + str.substring(1);
 
-        int bass_index;
+        // Rename unusual notes
+        str = str.replaceAll("[Cc]b", "B").replaceAll("[Bb]#", "C").replaceAll("[Ee]#", "F").replaceAll("[Ff]b", "E").trim();
+
+
+        int slashIndex = str.lastIndexOf('/');
+
+
+        // Save the original name of the chord symbol, making sure notes are uppercase
+        if (slashIndex != -1)
+        {
+            String strBass = str.substring(slashIndex + 1);
+            if (strBass.isBlank() || strBass.length() > 2 || (strBass.length() == 2 && strBass.charAt(1) != 'b' && strBass.charAt(1) != '#'))
+            {
+                throw new ParseException(errorInvalidCs + ": " + originalName, slashIndex);
+            }
+            originalName = str.substring(0, 1).toUpperCase() + str.substring(1, slashIndex)
+                    + "/"
+                    + strBass.substring(0, 1).toUpperCase() + strBass.substring(1);
+        } else
+        {
+            originalName = str.substring(0, 1).toUpperCase() + str.substring(1);
+        }
+
+
         StringBuilder sb = new StringBuilder(originalName);
 
         // Get the optional bass note
-        bass_index = originalName.lastIndexOf('/');
-        if (bass_index != -1)
+        if (slashIndex != -1)
         {
             // There is a bass degree e.g. "Am7/D"
             try
             {
-                bassNote = buildStdNote(new Note(originalName.substring(bass_index + 1)));
+                bassNote = buildStdNote(new Note(originalName.substring(slashIndex + 1)));
             } catch (ParseException e)
             {
-                throw new ParseException(ResUtil.getString(getClass(), "CTL_InvalidChordSymbol") + ": " + originalName + ". " + e.getLocalizedMessage(), 0);
+                throw new ParseException(errorInvalidCs + ": " + originalName + ". " + e.getLocalizedMessage(), 0);
             }
             // continue with bass degree removed
-            sb.delete(bass_index, sb.length());
+            sb.delete(slashIndex, sb.length());
         }
 
-        String errorInvalid = ResUtil.getString(getClass(), "CTL_InvalidChordSymbol");
 
         // Get the root note
         try
@@ -156,7 +177,7 @@ public class ChordSymbol implements Cloneable
             rootNote = buildStdNote(new Note(sb.toString()));
         } catch (ParseException e)
         {
-            throw new ParseException(errorInvalid + ": " + originalName + ". " + e.getLocalizedMessage(), 0);
+            throw new ParseException(errorInvalidCs + ": " + originalName + ". " + e.getLocalizedMessage(), 0);
         }
 
         // Remove the root note
@@ -172,16 +193,22 @@ public class ChordSymbol implements Cloneable
             bassNote = rootNote;
         }
 
-        // Fint the ChordType of the chord
+        // Find the ChordType of the chord
         chordType = ChordTypeDatabase.getInstance().getChordType(sb.toString());
-
         if (chordType == null)
         {
             // Chord type not recognized
-            throw new ParseException(errorInvalid + ": " + originalName, 0);
+            throw new ParseException(errorInvalidCs + ": " + originalName, 0);
         } else
         {
             name = computeName();
+        }
+
+
+        // Update originalName in the case bassNote is specified but identical to rootNote
+        if (originalName.contains("/") && bassNote.equals(rootNote))
+        {
+            originalName = originalName.replaceFirst("/.*", "");
         }
     }
 
@@ -234,7 +261,7 @@ public class ChordSymbol implements Cloneable
     /**
      * Return the name used at creation if the ChordType(String) constructor has been used.
      * <p>
-     * It may differ from the getName() if an chord type alias was used. First char is always upper case.
+     * It may differ from the getName() if a chord type alias was used. First char is always upper case.
      *
      * @return
      */
@@ -261,7 +288,7 @@ public class ChordSymbol implements Cloneable
     /**
      * Get a transposed ChordSymbol.
      * <p>
-     * If this ChordSymbol uses a specific originalName, it will be reused in the returned value.
+     * The originalName is also updated.
      *
      * @param t   The amount of transposition in semi-tons.
      * @param alt If null, alteration of returned root & bass notes is unchanged. If not null use alt as root & bass notes alteration.
@@ -272,13 +299,22 @@ public class ChordSymbol implements Cloneable
         Note root = alt == null ? rootNote : new Note(rootNote, alt);
         Note bass = alt == null ? bassNote : new Note(bassNote, alt);
         Note transposedRoot = root.getTransposedWithinOctave(t);
-        ChordSymbol cs = new ChordSymbol(transposedRoot, bass.getTransposedWithinOctave(t), chordType);
+        Note transposedBass = bass.getTransposedWithinOctave(t);
+        ChordSymbol cs = new ChordSymbol(transposedRoot, transposedBass, chordType);
 
-        // If current chord symbol has a special original name, reuse it
+        // Need to update originalName as well if chord alias is used
         if (!name.equals(originalName))
         {
-            String strEnd = originalName.substring(rootNote.toRelativeNoteString().length());
-            cs.originalName = transposedRoot.toRelativeNoteString() + strEnd;
+            if (rootNote.equals(bassNote))
+            {
+                // No bass note
+                String strEnd = originalName.substring(rootNote.toRelativeNoteString().length());
+                cs.originalName = transposedRoot.toRelativeNoteString() + strEnd;
+            } else
+            {
+                String strEnd = originalName.replaceFirst("/.*", "").substring(rootNote.toRelativeNoteString().length());
+                cs.originalName = transposedRoot.toRelativeNoteString() + strEnd + "/" + transposedBass.toRelativeNoteString();
+            }
         }
 
         return cs;
