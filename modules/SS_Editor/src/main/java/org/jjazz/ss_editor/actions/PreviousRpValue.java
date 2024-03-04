@@ -29,6 +29,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import static javax.swing.Action.ACCELERATOR_KEY;
 import static javax.swing.Action.NAME;
+import javax.swing.KeyStroke;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.ss_editor.api.SS_SelectionUtilities;
 import org.jjazz.songstructure.api.SongPartParameter;
@@ -43,9 +44,9 @@ import org.openide.util.Utilities;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ss_editor.api.SS_ContextActionListener;
-import static org.jjazz.uiutilities.api.UIUtilities.getGenericControlKeyStroke;
 import org.jjazz.utilities.api.ResUtil;
 import org.jjazz.rhythm.api.RpEnumerable;
+import static org.jjazz.uiutilities.api.UIUtilities.getGenericControlKeyStroke;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ss_editor.actions.previousrpvalue")
 @ActionRegistration(displayName = "#CTL_PreviousRpValue", lazy = false)
@@ -56,6 +57,7 @@ import org.jjazz.rhythm.api.RpEnumerable;
 public final class PreviousRpValue extends AbstractAction implements ContextAwareAction, SS_ContextActionListener
 {
 
+    public static final KeyStroke KEYSTROKE = getGenericControlKeyStroke(KeyEvent.VK_DOWN);
     private Lookup context;
     private SS_ContextActionSupport cap;
     private String undoText = ResUtil.getString(getClass(), "CTL_PreviousRpValue");
@@ -71,7 +73,7 @@ public final class PreviousRpValue extends AbstractAction implements ContextAwar
         cap = SS_ContextActionSupport.getInstance(this.context);
         cap.addListener(this);
         putValue(NAME, undoText);                          // For popupmenu 
-        putValue(ACCELERATOR_KEY, getGenericControlKeyStroke(KeyEvent.VK_DOWN));    // For popupmenu
+        putValue(ACCELERATOR_KEY, KEYSTROKE);    // For popupmenu
     }
 
     @SuppressWarnings(

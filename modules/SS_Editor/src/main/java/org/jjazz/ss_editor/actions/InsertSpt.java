@@ -24,6 +24,7 @@ package org.jjazz.ss_editor.actions;
 
 import org.jjazz.ss_editor.api.SS_ContextActionSupport;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
@@ -51,6 +52,7 @@ import org.openide.windows.WindowManager;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ss_editor.api.SS_ContextActionListener;
+import static org.jjazz.uiutilities.api.UIUtilities.getGenericControlKeyStroke;
 import org.jjazz.utilities.api.ResUtil;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ss_editor.actions.insertspt")
@@ -62,6 +64,7 @@ import org.jjazz.utilities.api.ResUtil;
 public class InsertSpt extends AbstractAction implements ContextAwareAction, SS_ContextActionListener
 {
 
+    public static final KeyStroke KEYSTROKE = KeyStroke.getKeyStroke("I");
     private Lookup context;
     private SS_ContextActionSupport cap;
     private String undoText = ResUtil.getString(getClass(), "CTL_InsertSpt");
@@ -78,7 +81,7 @@ public class InsertSpt extends AbstractAction implements ContextAwareAction, SS_
         cap = SS_ContextActionSupport.getInstance(this.context);
         cap.addListener(this);
         putValue(NAME, undoText);
-        putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("I"));
+        putValue(ACCELERATOR_KEY, KEYSTROKE);
         selectionChange(cap.getSelection());
     }
 
@@ -99,7 +102,7 @@ public class InsertSpt extends AbstractAction implements ContextAwareAction, SS_
         cls = sgs.getParentChordLeadSheet();
         if (cls == null)
         {
-            throw new IllegalStateException("sgs=" + sgs);   
+            throw new IllegalStateException("sgs=" + sgs);
         }
 
 
@@ -114,7 +117,7 @@ public class InsertSpt extends AbstractAction implements ContextAwareAction, SS_
         {
             // Perform change
             CLI_Section parentSection = dlg.getParentSection();
-            assert parentSection != null;   
+            assert parentSection != null;
 
 
             // Create the new song part
@@ -148,7 +151,7 @@ public class InsertSpt extends AbstractAction implements ContextAwareAction, SS_
     public void selectionChange(SS_SelectionUtilities selection)
     {
         boolean b = selection.isContiguousSptSelection();
-        LOGGER.log(Level.FINE, "selectionChange() b={0}", b);   
+        LOGGER.log(Level.FINE, "selectionChange() b={0}", b);
         setEnabled(b);
     }
 }

@@ -54,7 +54,7 @@ import org.jjazz.utilities.api.ResUtil;
         })
 public final class ResetRpValue extends AbstractAction implements ContextAwareAction, SS_ContextActionListener
 {
-
+    public static final KeyStroke KEYSTROKE = KeyStroke.getKeyStroke("Z");
     private Lookup context;
     private SS_ContextActionSupport cap;
     private String undoText = ResUtil.getString(getClass(), "CTL_ResetRpValue");
@@ -71,7 +71,7 @@ public final class ResetRpValue extends AbstractAction implements ContextAwareAc
         cap = SS_ContextActionSupport.getInstance(this.context);
         cap.addListener(this);
         putValue(NAME, undoText);                          // For popupmenu 
-        putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("Z"));      // For popupmenu
+        putValue(ACCELERATOR_KEY, KEYSTROKE);      // For popupmenu
     }
 
     @SuppressWarnings(

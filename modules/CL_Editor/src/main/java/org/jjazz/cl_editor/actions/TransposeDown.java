@@ -28,6 +28,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.KeyStroke;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
@@ -52,7 +53,7 @@ import org.openide.util.Utilities;
         })
 public final class TransposeDown extends AbstractAction implements ContextAwareAction, CL_ContextActionListener
 {
-
+    public static final KeyStroke KEYSTROKE = getGenericControlKeyStroke(KeyEvent.VK_DOWN);    
     private final String undoText = ResUtil.getString(getClass(), "CTL_TransposeDown");
     private Lookup context;
     private CL_ContextActionSupport cap;
@@ -73,7 +74,7 @@ public final class TransposeDown extends AbstractAction implements ContextAwareA
 
         // As lazy=false above, need to set action properties to have the correct display in the menu
         putValue(NAME, undoText);
-        putValue(ACCELERATOR_KEY, getGenericControlKeyStroke(KeyEvent.VK_DOWN));
+        putValue(ACCELERATOR_KEY, KEYSTROKE);
 
 
         // Update enabled state

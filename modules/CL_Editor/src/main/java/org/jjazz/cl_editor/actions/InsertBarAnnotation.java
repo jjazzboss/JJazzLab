@@ -58,6 +58,7 @@ import org.openide.util.Utilities;
 public class InsertBarAnnotation extends AbstractAction implements ContextAwareAction, CL_ContextActionListener
 {
 
+    public static final KeyStroke KEYSTROKE = KeyStroke.getKeyStroke("alt L");
     private Lookup context;
     private CL_ContextActionSupport cap;
     private final String undoText = ResUtil.getString(getClass(), "CTL_InsertBarAnnotation");
@@ -74,7 +75,7 @@ public class InsertBarAnnotation extends AbstractAction implements ContextAwareA
         cap = CL_ContextActionSupport.getInstance(this.context);
         cap.addListener(this);
         putValue(NAME, undoText);
-        putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("L"));
+        putValue(ACCELERATOR_KEY, KEYSTROKE);
         selectionChange(cap.getSelection());
     }
 

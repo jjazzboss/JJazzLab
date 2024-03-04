@@ -24,6 +24,7 @@ package org.jjazz.ss_editor.actions;
 
 import org.jjazz.ss_editor.api.SS_ContextActionSupport;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -72,6 +73,7 @@ import org.openide.NotifyDescriptor;
 public class EditRhythm extends AbstractAction implements ContextAwareAction, SS_ContextActionListener
 {
 
+    public static final KeyStroke KEYSTROKE = KeyStroke.getKeyStroke("R");
     static private boolean dialogShown = false;
     private Lookup context;
     private SS_ContextActionSupport cap;
@@ -89,7 +91,7 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
         cap = SS_ContextActionSupport.getInstance(this.context);
         cap.addListener(this);
         putValue(NAME, undoText);
-        putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("R"));
+        putValue(ACCELERATOR_KEY, KEYSTROKE);
         selectionChange(cap.getSelection());
     }
 
@@ -114,7 +116,7 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
      */
     static public void changeRhythm(final List<SongPart> selectedSpts)
     {
-        LOGGER.log(Level.FINE, "changeRhythm() -- selectedSpts={0}", selectedSpts);   
+        LOGGER.log(Level.FINE, "changeRhythm() -- selectedSpts={0}", selectedSpts);
 
 
         List<SongPart> selSpts = new ArrayList<>(selectedSpts);               // Copy to avoid concurrent modifications
@@ -133,7 +135,7 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
             previewer.setContext(song, selSpt0);
         } catch (MidiUnavailableException ex)
         {
-            LOGGER.log(Level.WARNING, "changeRhythm() Can''t set context ex={0}. RhythmPreviewProvider disabled.", ex.getMessage());   
+            LOGGER.log(Level.WARNING, "changeRhythm() Can''t set context ex={0}. RhythmPreviewProvider disabled.", ex.getMessage());
             previewer = null;
         }
         var rdb = RhythmDatabase.getDefault();
@@ -162,14 +164,14 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
 
         // Get the new rhythm
         RhythmInfo newRhythmInfo = dlg.getSelectedRhythm();
-        LOGGER.log(Level.FINE, "changeRhythm() selected newRhythm={0}", newRhythmInfo);   
+        LOGGER.log(Level.FINE, "changeRhythm() selected newRhythm={0}", newRhythmInfo);
         Rhythm newRhythm;
         try
         {
             newRhythm = rdb.getRhythmInstance(newRhythmInfo);
         } catch (UnavailableRhythmException ex)
         {
-            LOGGER.log(Level.WARNING, "changeRhythm() can''t get Rhythm instance from RhythmInfo={0}", newRhythmInfo);   
+            LOGGER.log(Level.WARNING, "changeRhythm() can''t get Rhythm instance from RhythmInfo={0}", newRhythmInfo);
             NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(d);
             return;
@@ -185,7 +187,7 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
         // Change tempo if required
         int newTempo = newRhythm.getPreferredTempo();
         int oldTempo = song.getTempo();
-        if (dlg.isUseRhythmTempo() && newTempo!=oldTempo)
+        if (dlg.isUseRhythmTempo() && newTempo != oldTempo)
         {
             song.setTempo(newTempo);
 
@@ -204,7 +206,7 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
                     song.setTempo(newTempo);
                 }
             };
-            
+
             // Directly notify UndoManager
             um.undoableEditHappened(new UndoableEditEvent(song, edit));
         }
@@ -272,7 +274,7 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
     {
         boolean b;
         b = !selection.isEmpty();
-        LOGGER.log(Level.FINE, "selectionChange() b={0}", b);   
+        LOGGER.log(Level.FINE, "selectionChange() b={0}", b);
         setEnabled(b);
     }
 

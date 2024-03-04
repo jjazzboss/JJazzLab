@@ -49,7 +49,7 @@ import org.openide.windows.WindowManager;
         })
 public class InsertBar extends AbstractAction implements ContextAwareAction, CL_ContextActionListener
 {
-
+public static final KeyStroke KEYSTROKE = KeyStroke.getKeyStroke("I");
     private Lookup context;
     private CL_ContextActionSupport cap;
     private int insertModelBarIndex;
@@ -68,7 +68,7 @@ public class InsertBar extends AbstractAction implements ContextAwareAction, CL_
         cap = CL_ContextActionSupport.getInstance(this.context);
         cap.addListener(this);
         putValue(NAME, undoText);
-        putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("I"));
+        putValue(ACCELERATOR_KEY, KEYSTROKE);
         selectionChange(cap.getSelection());
     }
 

@@ -23,7 +23,6 @@
 package org.jjazz.cl_editor.actions;
 
 import java.awt.event.ActionEvent;
-import java.awt.event.ItemEvent;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -63,7 +62,7 @@ import org.openide.util.actions.Presenter;
         })
 public final class ExtendHoldShot extends AbstractAction implements ContextAwareAction, CL_ContextActionListener, Presenter.Popup, ClsChangeListener
 {
-
+    public static final KeyStroke KEYSTROKE = KeyStroke.getKeyStroke("X");
     private CL_ContextActionSupport cap;
     private final Lookup context;
     private JCheckBoxMenuItem cbMenuItem;
@@ -82,7 +81,7 @@ public final class ExtendHoldShot extends AbstractAction implements ContextAware
         cap = CL_ContextActionSupport.getInstance(this.context);
         cap.addListener(this);
         putValue(NAME, undoText);
-        putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("X"));
+        putValue(ACCELERATOR_KEY, KEYSTROKE);
         selectionChange(cap.getSelection());
     }
 

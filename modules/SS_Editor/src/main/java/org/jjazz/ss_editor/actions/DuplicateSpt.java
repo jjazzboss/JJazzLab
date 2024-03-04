@@ -24,6 +24,7 @@ package org.jjazz.ss_editor.actions;
 
 import org.jjazz.ss_editor.api.SS_ContextActionSupport;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -48,6 +49,7 @@ import org.openide.windows.WindowManager;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ss_editor.api.SS_ContextActionListener;
+import static org.jjazz.uiutilities.api.UIUtilities.getGenericControlKeyStroke;
 import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.utilities.api.ResUtil;
 
@@ -59,7 +61,7 @@ import org.jjazz.utilities.api.ResUtil;
         })
 public class DuplicateSpt extends AbstractAction implements ContextAwareAction, SS_ContextActionListener
 {
-
+    public static final KeyStroke KEYSTROKE = KeyStroke.getKeyStroke("D");
     private Lookup context;
     private SS_ContextActionSupport cap;
     private String undoText = ResUtil.getString(getClass(), "CTL_DuplicateSpt");
@@ -76,7 +78,7 @@ public class DuplicateSpt extends AbstractAction implements ContextAwareAction, 
         cap = SS_ContextActionSupport.getInstance(this.context);
         cap.addListener(this);
         putValue(NAME, undoText);
-        putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("D"));
+        putValue(ACCELERATOR_KEY,KEYSTROKE );
         selectionChange(cap.getSelection());
     }
 

@@ -24,6 +24,7 @@ package org.jjazz.cl_editor.actions;
 
 import com.google.common.base.Preconditions;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.HashMap;
@@ -33,6 +34,7 @@ import javax.swing.ImageIcon;
 import javax.swing.KeyStroke;
 import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.song.api.Song;
+import static org.jjazz.uiutilities.api.UIUtilities.getGenericControlKeyStroke;
 import org.jjazz.utilities.api.ResUtil;
 import org.jjazz.utilities.api.ToggleAction;
 
@@ -44,7 +46,7 @@ import org.jjazz.utilities.api.ToggleAction;
  */
 public class ToggleBarAnnotations extends ToggleAction implements PropertyChangeListener
 {
-
+    public static final KeyStroke KEYSTROKE = getGenericControlKeyStroke(KeyEvent.VK_L);
     private static final Logger LOGGER = Logger.getLogger(ToggleBarAnnotations.class.getSimpleName());
     private final CL_Editor editor;
     private static Map<CL_Editor, ToggleBarAnnotations> MAP_EDITOR_INSTANCES = new HashMap<>();
@@ -75,7 +77,7 @@ public class ToggleBarAnnotations extends ToggleAction implements PropertyChange
 
         putValue(NAME, "ToggleBarAnnotationsNotUsed");
         putValue(SHORT_DESCRIPTION, ResUtil.getString(getClass(), "ToggleBarAnnotationsTooltip"));
-        putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("V"));     // Useful only if action is used to create a menu entry
+        putValue(ACCELERATOR_KEY, KEYSTROKE);     // Useful only if action is used to create a menu entry
         putValue(SMALL_ICON, new ImageIcon(getClass().getResource("/org/jjazz/cl_editor/actions/resources/ShowBarAnnotations-OFF.png")));
         putValue(LARGE_ICON_KEY, new ImageIcon(getClass().getResource("/org/jjazz/cl_editor/actions/resources/ShowBarAnnotations-ON.png")));
         putValue("hideActionText", true);

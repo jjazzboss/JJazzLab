@@ -30,6 +30,7 @@ import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import static javax.swing.Action.ACCELERATOR_KEY;
 import static javax.swing.Action.NAME;
+import javax.swing.KeyStroke;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
@@ -55,14 +56,14 @@ import org.jjazz.utilities.api.ResUtil;
         })
 public class AppendSpt extends AbstractAction
 {
-
+    public static final KeyStroke KEYSTROKE = getGenericControlKeyStroke(KeyEvent.VK_I);
     private String undoText = ResUtil.getString(getClass(), "CTL_AppendSpt");
     private static final Logger LOGGER = Logger.getLogger(AppendSpt.class.getSimpleName());
 
     public AppendSpt()
     {
         putValue(NAME, undoText);
-        putValue(ACCELERATOR_KEY, getGenericControlKeyStroke(KeyEvent.VK_I));
+        putValue(ACCELERATOR_KEY, KEYSTROKE);
     }
 
     @Override

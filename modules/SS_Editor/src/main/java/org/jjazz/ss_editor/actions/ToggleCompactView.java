@@ -47,7 +47,7 @@ import org.jjazz.utilities.api.ToggleAction;
  */
 public class ToggleCompactView extends ToggleAction implements PropertyChangeListener
 {
-
+    public static final KeyStroke KEYSTROKE = KeyStroke.getKeyStroke("V");
     private final SS_Editor editor;
     private static final Logger LOGGER = Logger.getLogger(ToggleCompactView.class.getSimpleName());
 
@@ -78,7 +78,7 @@ public class ToggleCompactView extends ToggleAction implements PropertyChangeLis
         this.editor = editor;
         putValue(NAME, "not_used");
         putValue(SHORT_DESCRIPTION, ResUtil.getString(getClass(), "CTL_ToggleCompactViewTooltip"));
-        putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("V"));     // Useful only if action is used to create a menu entry
+        putValue(ACCELERATOR_KEY, KEYSTROKE);     // Useful only if action is used to create a menu entry
         putValue(SMALL_ICON, new ImageIcon(getClass().getResource("/org/jjazz/ss_editor/actions/resources/CompactViewMode-OFF.png")));
         putValue(LARGE_ICON_KEY, new ImageIcon(getClass().getResource("/org/jjazz/ss_editor/actions/resources/CompactViewMode-ON.png")));
         putValue("hideActionText", true);

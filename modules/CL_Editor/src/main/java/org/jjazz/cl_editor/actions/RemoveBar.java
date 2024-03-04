@@ -52,7 +52,7 @@ import org.openide.util.Utilities;
         })
 public class RemoveBar extends AbstractAction implements ContextAwareAction, CL_ContextActionListener
 {
-
+    public static final KeyStroke KEYSTROKE = KeyStroke.getKeyStroke("shift DELETE");
     private Lookup context;
     private CL_ContextActionSupport cap;
     private final String undoText = ResUtil.getString(getClass(), "CTL_RemoveBar");
@@ -70,7 +70,7 @@ public class RemoveBar extends AbstractAction implements ContextAwareAction, CL_
         cap = CL_ContextActionSupport.getInstance(this.context);
         cap.addListener(this);
         putValue(NAME, undoText);
-        putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("shift DELETE"));
+        putValue(ACCELERATOR_KEY, KEYSTROKE);
         LOGGER.log(Level.FINE, "RemoveBar(context) context={0}", context);
         selectionChange(cap.getSelection());
     }

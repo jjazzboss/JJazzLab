@@ -57,7 +57,7 @@ import org.openide.util.Utilities;
         })
 public class InsertSection extends AbstractAction implements ContextAwareAction, CL_ContextActionListener
 {
-
+    public static final KeyStroke KEYSTROKE = KeyStroke.getKeyStroke("T");
     private Lookup context;
     private CL_ContextActionSupport cap;
     private final String undoText = ResUtil.getString(getClass(), "CTL_InsertSection");
@@ -74,7 +74,7 @@ public class InsertSection extends AbstractAction implements ContextAwareAction,
         cap = CL_ContextActionSupport.getInstance(this.context);
         cap.addListener(this);
         putValue(NAME, undoText);
-        putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("T"));
+        putValue(ACCELERATOR_KEY, KEYSTROKE);
         selectionChange(cap.getSelection());
     }
 

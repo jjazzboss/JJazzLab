@@ -30,6 +30,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import static javax.swing.Action.ACCELERATOR_KEY;
 import static javax.swing.Action.NAME;
+import javax.swing.KeyStroke;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.openide.awt.ActionID;
@@ -53,7 +54,7 @@ import org.openide.util.Utilities;
         })
 public final class SetEndBar extends AbstractAction implements ContextAwareAction, CL_ContextActionListener
 {
-
+    public static final KeyStroke KEYSTROKE = getGenericControlKeyStroke(KeyEvent.VK_E);
     private Lookup context;
     private CL_ContextActionSupport cap;
     private final String undoText = ResUtil.getString(getClass(), "CTL_SetEndBar");
@@ -70,7 +71,7 @@ public final class SetEndBar extends AbstractAction implements ContextAwareActio
         cap = CL_ContextActionSupport.getInstance(this.context);
         cap.addListener(this);
         putValue(NAME, undoText);
-        putValue(ACCELERATOR_KEY, getGenericControlKeyStroke(KeyEvent.VK_E));
+        putValue(ACCELERATOR_KEY, KEYSTROKE);
         selectionChange(cap.getSelection());
     }
 

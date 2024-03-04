@@ -62,7 +62,7 @@ import org.openide.util.actions.Presenter;
         })
 public final class AccentStronger extends AbstractAction implements ContextAwareAction, CL_ContextActionListener, Presenter.Popup, ClsChangeListener
 {
-
+public static final KeyStroke KEYSTROKE = KeyStroke.getKeyStroke("S");
     private CL_ContextActionSupport cap;
     private final Lookup context;
     private final String undoText = ResUtil.getString(getClass(), "CTL_AccentStronger");
@@ -81,7 +81,7 @@ public final class AccentStronger extends AbstractAction implements ContextAware
         cap = CL_ContextActionSupport.getInstance(this.context);
         cap.addListener(this);
         putValue(NAME, undoText);
-        putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("S"));
+        putValue(ACCELERATOR_KEY, KEYSTROKE);
         selectionChange(cap.getSelection());
     }
 

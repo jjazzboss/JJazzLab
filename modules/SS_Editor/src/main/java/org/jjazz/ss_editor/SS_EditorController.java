@@ -27,9 +27,7 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.KeyboardFocusManager;
 import java.awt.Point;
-import java.awt.Toolkit;
 import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.util.ArrayList;
@@ -62,9 +60,16 @@ import org.openide.util.Utilities;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ss_editor.api.SS_EditorMouseListener;
-import static org.jjazz.uiutilities.api.UIUtilities.getGenericControlKeyStroke;
 import org.jjazz.utilities.api.ResUtil;
 import org.jjazz.rhythm.api.RpEnumerable;
+import org.jjazz.ss_editor.actions.AppendSpt;
+import org.jjazz.ss_editor.actions.DuplicateSpt;
+import org.jjazz.ss_editor.actions.EditRhythm;
+import org.jjazz.ss_editor.actions.InsertSpt;
+import org.jjazz.ss_editor.actions.NextRpValue;
+import org.jjazz.ss_editor.actions.PreviousRpValue;
+import org.jjazz.ss_editor.actions.PasteAppend;
+import org.jjazz.ss_editor.actions.ResetRpValue;
 import org.jjazz.ss_editor.actions.ToggleCompactView;
 
 /**
@@ -113,25 +118,23 @@ public class SS_EditorController implements SS_EditorMouseListener
 
 
         // Actions created by annotations (equivalent to org.openide.awt.Actions.context())
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(getGenericControlKeyStroke(KeyEvent.VK_DOWN),
-                "PreviousRpValue");
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(PreviousRpValue.KEYSTROKE, "PreviousRpValue");
         editor.getActionMap().put("PreviousRpValue", Actions.forID("JJazz", "org.jjazz.ss_editor.actions.previousrpvalue"));
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(getGenericControlKeyStroke(KeyEvent.VK_UP), "NextRpValue");
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(NextRpValue.KEYSTROKE, "NextRpValue");
         editor.getActionMap().put("NextRpValue", Actions.forID("JJazz", "org.jjazz.ss_editor.actions.nextrpvalue"));
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("I"), "InsertSpt");
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(InsertSpt.KEYSTROKE, "InsertSpt");
         editor.getActionMap().put("InsertSpt", Actions.forID("JJazz", "org.jjazz.ss_editor.actions.insertspt"));
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(getGenericControlKeyStroke(KeyEvent.VK_I), "AppendSpt");
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(AppendSpt.KEYSTROKE, "AppendSpt");
         editor.getActionMap().put("AppendSpt", Actions.forID("JJazz", "org.jjazz.ss_editor.actions.appendspt"));
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_I,
-                Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx() | InputEvent.SHIFT_DOWN_MASK), "PasteAppend");
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(PasteAppend.KEYSTROKE, "PasteAppend");
         editor.getActionMap().put("PasteAppend", Actions.forID("JJazz", "org.jjazz.ss_editor.actions.pasteappend"));
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("R"), "EditRhythm");
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(EditRhythm.KEYSTROKE, "EditRhythm");
         editor.getActionMap().put("EditRhythm", Actions.forID("JJazz", "org.jjazz.ss_editor.actions.editrhythm"));
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("D"), "Duplicate");
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(DuplicateSpt.KEYSTROKE, "Duplicate");
         editor.getActionMap().put("Duplicate", Actions.forID("JJazz", "org.jjazz.ss_editor.actions.duplicatespt"));
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("Z"), "ResetRpValue");
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(ResetRpValue.KEYSTROKE, "ResetRpValue");
         editor.getActionMap().put("ResetRpValue", Actions.forID("JJazz", "org.jjazz.ss_editor.actions.resetrpvalue"));
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("V"), "ToggleCompactView");
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(ToggleCompactView.KEYSTROKE, "ToggleCompactView");
         editor.getActionMap().put("ToggleCompactView", ToggleCompactView.getInstance(editor));
 
 

@@ -54,7 +54,7 @@ import org.openide.util.Utilities;
         })
 public final class NextPlayStyle extends AbstractAction implements ContextAwareAction, CL_ContextActionListener
 {
-
+    public static final KeyStroke KEYSTROKE = KeyStroke.getKeyStroke("P");
     private CL_ContextActionSupport cap;
     private final Lookup context;
     private final String undoText = ResUtil.getString(getClass(), "CTL_NextPlayStyle");
@@ -70,7 +70,7 @@ public final class NextPlayStyle extends AbstractAction implements ContextAwareA
         cap = CL_ContextActionSupport.getInstance(this.context);
         cap.addListener(this);
         putValue(NAME, undoText);
-        putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("P"));
+        putValue(ACCELERATOR_KEY, KEYSTROKE);
         selectionChange(cap.getSelection());
     }
 

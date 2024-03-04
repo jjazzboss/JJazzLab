@@ -31,6 +31,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import static javax.swing.Action.ACCELERATOR_KEY;
 import static javax.swing.Action.NAME;
+import javax.swing.KeyStroke;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.ss_editor.api.SS_SelectionUtilities;
 import org.jjazz.songstructure.api.SongPartParameter;
@@ -58,6 +59,7 @@ import org.jjazz.rhythm.api.RpEnumerable;
 public final class NextRpValue extends AbstractAction implements ContextAwareAction, SS_ContextActionListener
 {
 
+    public static final KeyStroke KEYSTROKE = getGenericControlKeyStroke(KeyEvent.VK_UP);
     private Lookup context;
     private SS_ContextActionSupport cap;
     private String undoText = ResUtil.getString(getClass(), "CTL_NextRpValue");
@@ -74,7 +76,7 @@ public final class NextRpValue extends AbstractAction implements ContextAwareAct
         cap = SS_ContextActionSupport.getInstance(this.context);
         cap.addListener(this);
         putValue(NAME, ResUtil.getString(getClass(), "CTL_NextRpValue"));                          // For popupmenu display only
-        putValue(ACCELERATOR_KEY, getGenericControlKeyStroke(KeyEvent.VK_UP));    // For popupmenu display only
+        putValue(ACCELERATOR_KEY, KEYSTROKE);    // For popupmenu display only
     }
 
     @SuppressWarnings(
@@ -87,7 +89,10 @@ public final class NextRpValue extends AbstractAction implements ContextAwareAct
         SS_SelectionUtilities selection = cap.getSelection();
         SongStructure sgs = selection.getModel();
         assert sgs != null : "selection=" + selection;
-        LOGGER.log(Level.FINE, "actionPerformed() sgs={0} selection={1}", new Object[]{sgs, selection});
+        LOGGER.log(Level.FINE, "actionPerformed() sgs={0} selection={1}", new Object[]
+        {
+            sgs, selection
+        });
         JJazzUndoManagerFinder.getDefault().get(sgs).startCEdit(undoText);
         for (SongPartParameter sptp : selection.getSelectedSongPartParameters())
         {

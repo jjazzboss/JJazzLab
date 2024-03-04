@@ -50,6 +50,7 @@ import org.openide.util.Utilities;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ss_editor.api.SS_ContextActionListener;
+import static org.jjazz.uiutilities.api.UIUtilities.getGenericControlKeyStroke;
 import org.jjazz.utilities.api.ResUtil;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ss_editor.actions.pasteappend")
@@ -61,6 +62,8 @@ import org.jjazz.utilities.api.ResUtil;
 public class PasteAppend extends AbstractAction implements ContextAwareAction, SS_ContextActionListener, ChangeListener
 {
 
+    public static final KeyStroke KEYSTROKE = KeyStroke.getKeyStroke(KeyEvent.VK_I,
+            Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx() | InputEvent.SHIFT_DOWN_MASK);
     private Lookup context;
     private SS_ContextActionSupport cap;
     private String undoText = ResUtil.getString(getClass(), "CTL_PasteAppend");
@@ -76,7 +79,7 @@ public class PasteAppend extends AbstractAction implements ContextAwareAction, S
         cap = SS_ContextActionSupport.getInstance(this.context);
         cap.addListener(this);
         putValue(NAME, undoText);
-        putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_I, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx() | InputEvent.SHIFT_DOWN_MASK));
+        putValue(ACCELERATOR_KEY, KEYSTROKE);
         setEnabled(false);
         SongPartCopyBuffer buffer = SongPartCopyBuffer.getInstance();
         buffer.addChangeListener(this);
