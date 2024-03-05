@@ -167,7 +167,7 @@ public class ChordRenderingInfo implements Serializable
      *
      *
      * @param features If null use the default value.
-     * @param scale Can be null if no scale defined.
+     * @param scale    Can be null if no scale defined.
      * @throws IllegalArgumentException If the features object is not consistent, e.g. SHOT and HOLD can't both be used.
      */
     public ChordRenderingInfo(EnumSet<Feature> features, StandardScaleInstance scale)
@@ -339,17 +339,24 @@ public class ChordRenderingInfo implements Serializable
     /**
      * A string representation for UI.
      * <p>
-     * Ex: "[CRASH] - Phrygian(C)", or "Phrygian(C)", or "[CRASH]". <br>
-     * Return an empty string if no features and no scale.
+     * Ex: "[Accent, Crash] - Phrygian(C)", or "Phrygian(C)". <br>
+     * <p>
+     * Display only meaningful info, eg. do not show Hold/Shot/Extended/Crash/NoCrash if no accent.
      *
-     * @return
+     * @return Can be an empty string
      */
     public String toUserString()
     {
-        StringBuilder sb = new StringBuilder();
-        if (!features.isEmpty())
+        var f = getFeatures();
+        if (getAccentFeature() == null)
         {
-            sb.append(features);
+            // Make sure to remove the accent-specific stuff
+            f.removeAll(EnumSet.of(Feature.CRASH, Feature.NO_CRASH, Feature.EXTENDED_HOLD_SHOT, Feature.HOLD, Feature.SHOT));
+        }
+        StringBuilder sb = new StringBuilder();
+        if (!f.isEmpty())
+        {
+            sb.append(f);
         }
         if (scaleInstance != null)
         {
@@ -366,11 +373,11 @@ public class ChordRenderingInfo implements Serializable
     {
         if (features.contains(Feature.HOLD) && features.contains(Feature.SHOT))
         {
-            throw new IllegalArgumentException("features=" + features);   
+            throw new IllegalArgumentException("features=" + features);
         }
         if (features.contains(Feature.CRASH) && features.contains(Feature.NO_CRASH))
         {
-            throw new IllegalArgumentException("features=" + features);   
+            throw new IllegalArgumentException("features=" + features);
         }
         int count = 0;
         for (Feature f : features)
@@ -380,7 +387,7 @@ public class ChordRenderingInfo implements Serializable
                 count++;
                 if (count > 1)
                 {
-                    throw new IllegalArgumentException("features=" + features);   
+                    throw new IllegalArgumentException("features=" + features);
                 }
             }
         }
@@ -474,7 +481,7 @@ public class ChordRenderingInfo implements Serializable
                         spFeatures = EnumSet.of(Feature.ACCENT, Feature.SHOT);
                         break;
                     default:
-                        LOGGER.log(Level.WARNING, "readResolve() Invalid value for spPlayStyle={0}. Ignored.", spPlayStyleV1);   
+                        LOGGER.log(Level.WARNING, "readResolve() Invalid value for spPlayStyle={0}. Ignored.", spPlayStyleV1);
                 }
                 if (!spAnticipate)
                 {

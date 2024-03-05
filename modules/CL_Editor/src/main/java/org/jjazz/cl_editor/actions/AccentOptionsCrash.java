@@ -123,7 +123,7 @@ public final class AccentOptionsCrash extends AbstractAction implements ContextA
 
         boolean b = selection.getSelectedChordSymbols().stream()
                 .map(cliCs -> cliCs.getData().getRenderingInfo())
-                .anyMatch(cri -> cri.hasOneFeature(Feature.ACCENT, Feature.ACCENT_STRONGER));
+                .allMatch(cri -> cri.hasOneFeature(Feature.ACCENT, Feature.ACCENT_STRONGER));
         setEnabled(b);
 
         if (dynMenuItem != null)

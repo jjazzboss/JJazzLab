@@ -121,7 +121,7 @@ public final class AccentOptionsStronger extends AbstractAction implements Conte
 
         boolean b = selection.getSelectedChordSymbols().stream()
                 .map(cliCs -> cliCs.getData().getRenderingInfo())
-                .anyMatch(cri -> cri.hasOneFeature(Feature.ACCENT, Feature.ACCENT_STRONGER));
+                .allMatch(cri -> cri.hasOneFeature(Feature.ACCENT, Feature.ACCENT_STRONGER));
         setEnabled(b);
         updateMenuItem();
     }
