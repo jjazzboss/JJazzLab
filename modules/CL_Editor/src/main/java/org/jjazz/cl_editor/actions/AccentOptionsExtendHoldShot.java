@@ -54,28 +54,29 @@ import org.openide.util.Lookup;
 import org.openide.util.Utilities;
 import org.openide.util.actions.Presenter;
 
-@ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.accentstronger")
-@ActionRegistration(displayName = "#CTL_AccentStronger", lazy = false)
+@ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.extendholdshot")
+@ActionRegistration(displayName = "not_used", lazy = false)
 @ActionReferences(
         {
-            @ActionReference(path = "Actions/ChordSymbolAccent", position = 100)
+            @ActionReference(path = "Actions/ChordSymbolInterpretation", position = 400)
         })
-public final class AccentStronger extends AbstractAction implements ContextAwareAction, CL_ContextActionListener, Presenter.Popup, ClsChangeListener
+public final class AccentOptionsExtendHoldShot extends AbstractAction implements ContextAwareAction, CL_ContextActionListener, Presenter.Popup, ClsChangeListener
 {
-public static final KeyStroke KEYSTROKE = KeyStroke.getKeyStroke("S");
+
+    public static final KeyStroke KEYSTROKE = KeyStroke.getKeyStroke("X");
     private CL_ContextActionSupport cap;
     private final Lookup context;
-    private final String undoText = ResUtil.getString(getClass(), "CTL_AccentStronger");
-    private ChordLeadSheet currentCls;
     private JCheckBoxMenuItem cbMenuItem;
-    private static final Logger LOGGER = Logger.getLogger(AccentStronger.class.getSimpleName());
+    private final String undoText = ResUtil.getString(getClass(), "CTL_AccentExtendHoldShot");
+    private ChordLeadSheet currentCls;
+    private static final Logger LOGGER = Logger.getLogger(AccentOptionsExtendHoldShot.class.getSimpleName());
 
-    public AccentStronger()
+    public AccentOptionsExtendHoldShot()
     {
         this(Utilities.actionsGlobalContext());
     }
 
-    public AccentStronger(Lookup context)
+    public AccentOptionsExtendHoldShot(Lookup context)
     {
         this.context = context;
         cap = CL_ContextActionSupport.getInstance(this.context);
@@ -88,26 +89,14 @@ public static final KeyStroke KEYSTROKE = KeyStroke.getKeyStroke("S");
     @Override
     public void actionPerformed(ActionEvent ev)
     {
+        // Called via controller/keyboard shortcut
         CL_SelectionUtilities selection = cap.getSelection();
-        ChordLeadSheet cls = selection.getChordLeadSheet();
-
-
-        JJazzUndoManagerFinder.getDefault().get(cls).startCEdit(undoText);
-
-
-        for (CLI_ChordSymbol item : selection.getSelectedChordSymbols())
+        if (selection.isChordSymbolSelected())
         {
-            ExtChordSymbol ecs = item.getData();
-            ChordRenderingInfo cri = ecs.getRenderingInfo();
-            if (cri.hasOneFeature(Feature.ACCENT, Feature.ACCENT_STRONGER))
-            {
-                ChordRenderingInfo newCri = next(cri);
-                ExtChordSymbol newCs = ecs.getCopy(null, newCri, ecs.getAlternateChordSymbol(), ecs.getAlternateFilter());
-                item.getContainer().changeItem(item, newCs);
-            }
+            var cliCs0 = selection.getSelectedChordSymbols().get(0);
+            boolean b = cliCs0.getData().getRenderingInfo().hasOneFeature(Feature.EXTENDED_HOLD_SHOT);
+            setExtended(!b);
         }
-
-        JJazzUndoManagerFinder.getDefault().get(cls).endCEdit(undoText);
     }
 
     @Override
@@ -129,44 +118,23 @@ public static final KeyStroke KEYSTROKE = KeyStroke.getKeyStroke("S");
         }
 
 
-        boolean b = selection.getSelectedItems().stream()
-                .filter(item -> item instanceof CLI_ChordSymbol)
-                .map(item -> (CLI_ChordSymbol) item)
-                .anyMatch(cliCs -> cliCs.getData().getRenderingInfo().hasOneFeature(Feature.ACCENT, Feature.ACCENT_STRONGER));
+        boolean b = selection.getSelectedChordSymbols().stream()
+                .map(cliCs -> cliCs.getData().getRenderingInfo())
+                .anyMatch(cri -> cri.hasOneFeature(Feature.ACCENT, Feature.ACCENT_STRONGER));
         setEnabled(b);
-        
         updateMenuItem();
     }
 
     @Override
     public Action createContextAwareInstance(Lookup context)
     {
-        return new AccentStronger(context);
+        return new AccentOptionsExtendHoldShot(context);
     }
 
     @Override
     public void sizeChanged(int oldSize, int newSize)
     {
         // Nothing
-    }
-
-    // ============================================================================================= 
-    // Presenter.Popup
-    // =============================================================================================   
-    @Override
-    public JMenuItem getPopupPresenter()
-    {
-        if (cbMenuItem == null)
-        {
-            cbMenuItem = new JCheckBoxMenuItem(ResUtil.getString(getClass(), "CTL_AccentStronger"));
-            cbMenuItem.setAccelerator(KeyStroke.getKeyStroke('S'));
-            cbMenuItem.addActionListener(evt -> setAccent(cbMenuItem.isSelected()));
-            cbMenuItem.putClientProperty("CheckBoxMenuItem.doNotCloseOnMouseClick", true);
-        }
-
-        updateMenuItem();
-
-        return cbMenuItem;
     }
 
     // ============================================================================================= 
@@ -188,10 +156,31 @@ public static final KeyStroke KEYSTROKE = KeyStroke.getKeyStroke("S");
         }
     }
 
-    private void setAccent(boolean stronger)
+    // ============================================================================================= 
+    // Presenter.Popup
+    // =============================================================================================   
+    @Override
+    public JMenuItem getPopupPresenter()
+    {
+        if (cbMenuItem == null)
+        {
+            cbMenuItem = new JCheckBoxMenuItem(undoText);
+            cbMenuItem.setAccelerator(KEYSTROKE);
+            cbMenuItem.addActionListener(evt -> setExtended(cbMenuItem.isSelected()));
+            cbMenuItem.putClientProperty("CheckBoxMenuItem.doNotCloseOnMouseClick", true);
+        }
+
+        updateMenuItem();
+
+        return cbMenuItem;
+    }
+
+
+    private void setExtended(boolean extended)
     {
         CL_SelectionUtilities selection = cap.getSelection();
         ChordLeadSheet cls = selection.getChordLeadSheet();
+
 
         JJazzUndoManagerFinder.getDefault().get(cls).startCEdit(undoText);
 
@@ -201,46 +190,20 @@ public static final KeyStroke KEYSTROKE = KeyStroke.getKeyStroke("S");
             ChordRenderingInfo cri = ecs.getRenderingInfo();
             var features = cri.getFeatures();
 
-            if (stronger && features.contains(Feature.ACCENT))
+            if (extended)
             {
-                features.remove(Feature.ACCENT);
-                features.add(Feature.ACCENT_STRONGER);
-                ChordRenderingInfo newCri = new ChordRenderingInfo(features, cri.getScaleInstance());
-                ExtChordSymbol newCs = ecs.getCopy(null, newCri, ecs.getAlternateChordSymbol(), ecs.getAlternateFilter());
-                item.getContainer().changeItem(item, newCs);
-
-            } else if (!stronger && features.contains(Feature.ACCENT_STRONGER))
+                features.add(Feature.EXTENDED_HOLD_SHOT);
+            } else
             {
-                features.remove(Feature.ACCENT_STRONGER);
-                features.add(Feature.ACCENT);
-                ChordRenderingInfo newCri = new ChordRenderingInfo(features, cri.getScaleInstance());
-                ExtChordSymbol newCs = ecs.getCopy(null, newCri, ecs.getAlternateChordSymbol(), ecs.getAlternateFilter());
-                item.getContainer().changeItem(item, newCs);
-
+                features.remove(Feature.EXTENDED_HOLD_SHOT);
             }
+
+            ChordRenderingInfo newCri = new ChordRenderingInfo(features, cri.getScaleInstance());
+            ExtChordSymbol newCs = ecs.getCopy(null, newCri, ecs.getAlternateChordSymbol(), ecs.getAlternateFilter());
+            item.getContainer().changeItem(item, newCs);
         }
 
         JJazzUndoManagerFinder.getDefault().get(cls).endCEdit(undoText);
-    }
-
-    private ChordRenderingInfo next(ChordRenderingInfo cri)
-    {
-        var features = cri.getFeatures();
-
-        if (cri.hasOneFeature(Feature.ACCENT))
-        {
-            features.remove(Feature.ACCENT);
-            features.add(Feature.ACCENT_STRONGER);
-
-        } else if (cri.hasOneFeature(Feature.ACCENT_STRONGER))
-        {
-            features.remove(Feature.ACCENT_STRONGER);
-            features.add(Feature.ACCENT);
-        }
-
-        ChordRenderingInfo newCri = new ChordRenderingInfo(features, cri.getScaleInstance());
-
-        return newCri;
     }
 
     private void updateMenuItem()
@@ -249,15 +212,13 @@ public static final KeyStroke KEYSTROKE = KeyStroke.getKeyStroke("S");
         {
             return;
         }
-
-        // Update the checkbox: select it if only all chord symbols have a Stronger Accent
+        // Update the checkbox: select it if only all chord symbols use Extend
         CL_SelectionUtilities selection = cap.getSelection();
-        boolean allStronger = selection.getSelectedItems().stream()
-                .filter(item -> item instanceof CLI_ChordSymbol)
-                .map(item -> (CLI_ChordSymbol)item)
-                .allMatch(cliCs -> cliCs.getData().getRenderingInfo().hasOneFeature(Feature.ACCENT_STRONGER));
-        cbMenuItem.setSelected(allStronger);
-        
+        boolean b = selection.getSelectedChordSymbols().stream()
+                .map(cliCs -> cliCs.getData().getRenderingInfo())
+                .allMatch(cri -> cri.hasOneFeature(Feature.EXTENDED_HOLD_SHOT));
+        cbMenuItem.setSelected(b);
         cbMenuItem.setEnabled(isEnabled());
     }
+
 }

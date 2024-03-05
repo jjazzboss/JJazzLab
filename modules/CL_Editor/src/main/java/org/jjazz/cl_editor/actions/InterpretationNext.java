@@ -46,25 +46,26 @@ import org.openide.util.ContextAwareAction;
 import org.openide.util.Lookup;
 import org.openide.util.Utilities;
 
-@ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.nextplaystyle")
-@ActionRegistration(displayName = "#CTL_NextPlayStyle", lazy = false)
+@ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.interpretationnext")
+@ActionRegistration(displayName = "#CTL_InterpretationNext", lazy = false)
 @ActionReferences(
         {
-            @ActionReference(path = "Actions/ChordSymbol", position = 450)
+            // @ActionReference(path = "Actions/ChordSymbol", position = 450)
+                @ActionReference(path = "Actions/ChordSymbolInterpretation", position = 5, separatorAfter=6)
         })
-public final class NextPlayStyle extends AbstractAction implements ContextAwareAction, CL_ContextActionListener
+public final class InterpretationNext extends AbstractAction implements ContextAwareAction, CL_ContextActionListener
 {
     public static final KeyStroke KEYSTROKE = KeyStroke.getKeyStroke("P");
     private CL_ContextActionSupport cap;
     private final Lookup context;
-    private final String undoText = ResUtil.getString(getClass(), "CTL_NextPlayStyle");
+    private final String undoText = ResUtil.getString(getClass(), "CTL_InterpretationNext");
 
-    public NextPlayStyle()
+    public InterpretationNext()
     {
         this(Utilities.actionsGlobalContext());
     }
 
-    public NextPlayStyle(Lookup context)
+    public InterpretationNext(Lookup context)
     {
         this.context = context;
         cap = CL_ContextActionSupport.getInstance(this.context);
@@ -105,7 +106,7 @@ public final class NextPlayStyle extends AbstractAction implements ContextAwareA
     @Override
     public Action createContextAwareInstance(Lookup context)
     {
-        return new NextPlayStyle(context);
+        return new InterpretationNext(context);
     }
 
     @Override

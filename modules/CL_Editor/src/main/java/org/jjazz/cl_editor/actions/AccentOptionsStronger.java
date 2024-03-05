@@ -54,28 +54,30 @@ import org.openide.util.Lookup;
 import org.openide.util.Utilities;
 import org.openide.util.actions.Presenter;
 
-@ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.extendholdshot")
-@ActionRegistration(displayName = "#CTL_ExtendHoldShot", lazy = false)
+@ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.accentstronger")
+@ActionRegistration(displayName = "not_used", lazy = false)
 @ActionReferences(
         {
-            @ActionReference(path = "Actions/ChordSymbolAccent", position = 400)
+            @ActionReference(path = "Actions/ChordSymbolInterpretation", position = 150)
         })
-public final class ExtendHoldShot extends AbstractAction implements ContextAwareAction, CL_ContextActionListener, Presenter.Popup, ClsChangeListener
+public final class AccentOptionsStronger extends AbstractAction implements ContextAwareAction, CL_ContextActionListener, Presenter.Popup, ClsChangeListener
 {
-    public static final KeyStroke KEYSTROKE = KeyStroke.getKeyStroke("X");
+
+    public static final KeyStroke KEYSTROKE = KeyStroke.getKeyStroke("S");
+
     private CL_ContextActionSupport cap;
     private final Lookup context;
-    private JCheckBoxMenuItem cbMenuItem;
-    private final String undoText = ResUtil.getString(getClass(), "CTL_ExtendHoldShot");
+    private final String undoText = ResUtil.getString(getClass(), "CTL_AccentStronger");
     private ChordLeadSheet currentCls;
-    private static final Logger LOGGER = Logger.getLogger(ExtendHoldShot.class.getSimpleName());
+    private JCheckBoxMenuItem cbMenuItem;
+    private static final Logger LOGGER = Logger.getLogger(AccentOptionsStronger.class.getSimpleName());
 
-    public ExtendHoldShot()
+    public AccentOptionsStronger()
     {
         this(Utilities.actionsGlobalContext());
     }
 
-    public ExtendHoldShot(Lookup context)
+    public AccentOptionsStronger(Lookup context)
     {
         this.context = context;
         cap = CL_ContextActionSupport.getInstance(this.context);
@@ -88,26 +90,14 @@ public final class ExtendHoldShot extends AbstractAction implements ContextAware
     @Override
     public void actionPerformed(ActionEvent ev)
     {
+        // Called via controller/keyboard shortcut
         CL_SelectionUtilities selection = cap.getSelection();
-        ChordLeadSheet cls = selection.getChordLeadSheet();
-
-
-        JJazzUndoManagerFinder.getDefault().get(cls).startCEdit(undoText);
-
-
-        for (CLI_ChordSymbol item : selection.getSelectedChordSymbols())
+        if (selection.isChordSymbolSelected())
         {
-            ExtChordSymbol ecs = item.getData();
-            ChordRenderingInfo cri = ecs.getRenderingInfo();
-            if (cri.hasOneFeature(Feature.HOLD, Feature.SHOT))
-            {
-                ChordRenderingInfo newCri = next(cri);
-                ExtChordSymbol newCs = ecs.getCopy(null, newCri, ecs.getAlternateChordSymbol(), ecs.getAlternateFilter());
-                item.getContainer().changeItem(item, newCs);
-            }
+            var cliCs0 = selection.getSelectedChordSymbols().get(0);
+            boolean b = cliCs0.getData().getRenderingInfo().hasOneFeature(Feature.ACCENT_STRONGER);
+            setAccent(!b);
         }
-
-        JJazzUndoManagerFinder.getDefault().get(cls).endCEdit(undoText);
     }
 
     @Override
@@ -129,13 +119,9 @@ public final class ExtendHoldShot extends AbstractAction implements ContextAware
         }
 
 
-        boolean b = false;
-        if (selection.isItemSelected())
-        {
-            b = selection.getSelectedItems().stream()
-                    .filter(item -> item instanceof CLI_ChordSymbol)
-                    .anyMatch(item -> ((CLI_ChordSymbol) item).getData().getRenderingInfo().hasOneFeature(Feature.HOLD, Feature.SHOT));
-        }
+        boolean b = selection.getSelectedChordSymbols().stream()
+                .map(cliCs -> cliCs.getData().getRenderingInfo())
+                .anyMatch(cri -> cri.hasOneFeature(Feature.ACCENT, Feature.ACCENT_STRONGER));
         setEnabled(b);
         updateMenuItem();
     }
@@ -143,13 +129,32 @@ public final class ExtendHoldShot extends AbstractAction implements ContextAware
     @Override
     public Action createContextAwareInstance(Lookup context)
     {
-        return new ExtendHoldShot(context);
+        return new AccentOptionsStronger(context);
     }
 
     @Override
     public void sizeChanged(int oldSize, int newSize)
     {
         // Nothing
+    }
+
+    // ============================================================================================= 
+    // Presenter.Popup
+    // =============================================================================================   
+    @Override
+    public JMenuItem getPopupPresenter()
+    {
+        if (cbMenuItem == null)
+        {
+            cbMenuItem = new JCheckBoxMenuItem(undoText);
+            cbMenuItem.setAccelerator(KEYSTROKE);
+            cbMenuItem.addActionListener(evt -> setAccent(cbMenuItem.isSelected()));
+            cbMenuItem.putClientProperty("CheckBoxMenuItem.doNotCloseOnMouseClick", true);
+        }
+
+        updateMenuItem();
+
+        return cbMenuItem;
     }
 
     // ============================================================================================= 
@@ -171,48 +176,10 @@ public final class ExtendHoldShot extends AbstractAction implements ContextAware
         }
     }
 
-    // ============================================================================================= 
-    // Presenter.Popup
-    // =============================================================================================   
-    @Override
-    public JMenuItem getPopupPresenter()
-    {
-        if (cbMenuItem == null)
-        {
-            cbMenuItem = new JCheckBoxMenuItem(ResUtil.getString(getClass(), "CTL_ExtendHoldShot"));
-            cbMenuItem.setAccelerator(KeyStroke.getKeyStroke('X'));
-            cbMenuItem.addActionListener(evt -> setExtended(cbMenuItem.isSelected()));
-            cbMenuItem.putClientProperty("CheckBoxMenuItem.doNotCloseOnMouseClick", true);
-        }
-
-        updateMenuItem();
-
-        return cbMenuItem;
-    }
-
-    private ChordRenderingInfo next(ChordRenderingInfo cri)
-    {
-        var features = cri.getFeatures();
-
-        if (!cri.hasOneFeature(Feature.EXTENDED_HOLD_SHOT))
-        {
-            features.add(Feature.EXTENDED_HOLD_SHOT);
-
-        } else
-        {
-            features.remove(Feature.EXTENDED_HOLD_SHOT);
-        }
-
-        ChordRenderingInfo newCri = new ChordRenderingInfo(features, cri.getScaleInstance());
-
-        return newCri;
-    }
-
-    private void setExtended(boolean extended)
+    private void setAccent(boolean stronger)
     {
         CL_SelectionUtilities selection = cap.getSelection();
         ChordLeadSheet cls = selection.getChordLeadSheet();
-
 
         JJazzUndoManagerFinder.getDefault().get(cls).startCEdit(undoText);
 
@@ -220,23 +187,25 @@ public final class ExtendHoldShot extends AbstractAction implements ContextAware
         {
             ExtChordSymbol ecs = item.getData();
             ChordRenderingInfo cri = ecs.getRenderingInfo();
-            var features = cri.getFeatures();
-
-            if (extended && !features.contains(Feature.EXTENDED_HOLD_SHOT))
+            if (!cri.hasOneFeature(Feature.ACCENT, Feature.ACCENT_STRONGER))
             {
-                features.add(Feature.EXTENDED_HOLD_SHOT);
-                ChordRenderingInfo newCri = new ChordRenderingInfo(features, cri.getScaleInstance());
-                ExtChordSymbol newCs = ecs.getCopy(null, newCri, ecs.getAlternateChordSymbol(), ecs.getAlternateFilter());
-                item.getContainer().changeItem(item, newCs);
-
-            } else if (!extended && features.contains(Feature.EXTENDED_HOLD_SHOT))
-            {
-                features.remove(Feature.EXTENDED_HOLD_SHOT);
-                ChordRenderingInfo newCri = new ChordRenderingInfo(features, cri.getScaleInstance());
-                ExtChordSymbol newCs = ecs.getCopy(null, newCri, ecs.getAlternateChordSymbol(), ecs.getAlternateFilter());
-                item.getContainer().changeItem(item, newCs);
-
+                continue;
             }
+
+            var features = cri.getFeatures();            
+            if (stronger)
+            {
+                features.add(Feature.ACCENT_STRONGER);
+                features.remove(Feature.ACCENT);
+            } else
+            {
+                features.add(Feature.ACCENT);
+                features.remove(Feature.ACCENT_STRONGER);
+            }
+
+            ChordRenderingInfo newCri = new ChordRenderingInfo(features, cri.getScaleInstance());
+            ExtChordSymbol newCs = ecs.getCopy(null, newCri, ecs.getAlternateChordSymbol(), ecs.getAlternateFilter());
+            item.getContainer().changeItem(item, newCs);
         }
 
         JJazzUndoManagerFinder.getDefault().get(cls).endCEdit(undoText);
@@ -248,14 +217,13 @@ public final class ExtendHoldShot extends AbstractAction implements ContextAware
         {
             return;
         }
-        // Update the checkbox: select it if only all chord symbols use Extend
+
+        // Update the checkbox: select it if only all chord symbols have a Stronger Accent
         CL_SelectionUtilities selection = cap.getSelection();
-        boolean accentNormal = selection.getSelectedItems().stream()
-                .filter(item -> item instanceof CLI_ChordSymbol)
-                .map(item -> (CLI_ChordSymbol) item)
-                .anyMatch(cliCs -> !cliCs.getData().getRenderingInfo().hasOneFeature(Feature.EXTENDED_HOLD_SHOT));
-        cbMenuItem.setSelected(!accentNormal);
+        boolean b = selection.getSelectedChordSymbols().stream()
+                .allMatch(cliCs -> cliCs.getData().getRenderingInfo().hasOneFeature(Feature.ACCENT_STRONGER));
+        cbMenuItem.setSelected(b);
+
         cbMenuItem.setEnabled(isEnabled());
     }
-
 }

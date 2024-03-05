@@ -71,11 +71,11 @@ final public class CL_SelectionUtilities
         if (!items.isEmpty() && !selectedBars.isEmpty())
         {
             throw new IllegalStateException("items=" + items + " selectedBars=" + selectedBars);
-        }   
-        
+        }
+
         Collections.sort(items);
         Collections.sort(selectedBars);
-        
+
     }
 
     /**
@@ -149,6 +149,16 @@ final public class CL_SelectionUtilities
     public boolean isEmpty()
     {
         return !isItemSelected() && !isBarSelected();
+    }
+
+    public boolean isChordSymbolSelected()
+    {
+        return !items.isEmpty() && items.get(0) instanceof CLI_ChordSymbol;
+    }
+
+    public boolean isSectionSelected()
+    {
+        return !items.isEmpty() && items.get(0) instanceof CLI_Section;
     }
 
     public boolean isItemSelected()
