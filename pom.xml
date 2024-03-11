@@ -271,7 +271,6 @@
         <module>core/Xstream</module>
         <module>core/Guava</module>
         <module>engines/YamJJazz</module>
-        <module>engines/YjzCreator</module>
     </modules>
     
     
