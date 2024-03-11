@@ -1,0 +1,333 @@
+@startuml
+annotation java.lang.Override
+annotation java.lang.SuppressWarnings
+annotation org.netbeans.api.annotations.common.StaticResource
+annotation org.openide.util.lookup.ServiceProvider
+class com.google.common.base.Preconditions
+class java.awt.Color
+class java.awt.Component
+class java.awt.Font
+class java.awt.event.ActionEvent
+class java.awt.event.InputEvent
+class java.awt.event.MouseAdapter
+class java.awt.event.MouseEvent
+class java.awt.event.WindowAdapter
+class java.awt.event.WindowEvent
+class java.beans.PropertyChangeEvent
+class java.beans.PropertyChangeSupport
+class java.io.BufferedReader
+class java.io.File
+class java.io.IOException
+class java.io.InputStream
+class java.io.InputStreamReader
+class java.util.ArrayList
+class java.util.Arrays
+class java.util.HashMap
+class java.util.List
+class java.util.Objects
+class java.util.StringJoiner
+class java.util.function.Predicate
+class java.util.logging.Level
+class java.util.logging.Logger
+class java.util.prefs.Preferences
+class java.util.regex.Matcher
+class java.util.regex.Pattern
+class javax.sound.midi.MidiDevice
+class javax.swing.AbstractAction
+class javax.swing.BorderFactory
+class javax.swing.JComponent
+class javax.swing.JDialog
+class javax.swing.JFileChooser
+class javax.swing.JLabel
+class javax.swing.JRootPane
+class javax.swing.JTable
+class javax.swing.KeyStroke
+class javax.swing.RowFilter
+class javax.swing.SwingUtilities
+class javax.swing.event.ChangeEvent
+class javax.swing.event.ListSelectionEvent
+class javax.swing.filechooser.FileNameExtensionFilter
+class javax.swing.table.AbstractTableModel
+class javax.swing.table.DefaultTableCellRenderer
+class javax.swing.table.TableCellRenderer
+class javax.swing.table.TableColumnModel
+class javax.swing.table.TableModel
+class javax.swing.table.TableRowSorter
+class org.jjazz.analytics.api.Analytics
+class org.jjazz.filedirectorymanager.api.FileDirectoryManager
+class org.jjazz.midi.api.DrumKit
+class org.jjazz.midi.api.Instrument
+class org.jjazz.midi.api.InstrumentBank
+class org.jjazz.midi.api.InstrumentMix
+class org.jjazz.midi.api.JJazzMidiSystem
+class org.jjazz.midi.api.MidiAddress
+class org.jjazz.midi.api.MidiAddress.BankSelectMethod
+class org.jjazz.midi.api.MidiConst
+class org.jjazz.midi.api.MidiSynth
+class org.jjazz.midi.api.MidiUtilities
+class org.jjazz.midi.api.keymap.KeyMapGM
+class org.jjazz.midi.api.keymap.KeyMapGSGM2
+class org.jjazz.midi.api.keymap.KeyMapXG
+class org.jjazz.midi.api.synths.Family
+class org.jjazz.midi.api.synths.FavoriteMidiSynth
+class org.jjazz.midi.api.synths.GM1Instrument
+class org.jjazz.midi.api.synths.GM2Synth
+class org.jjazz.midi.api.synths.GMSynth
+class org.jjazz.midi.api.synths.GSDrumsInstrument
+class org.jjazz.midi.api.synths.GSInstrument
+class org.jjazz.midi.api.synths.GSSynth
+class org.jjazz.midi.api.synths.StandardInstrumentConverter
+class org.jjazz.midi.api.synths.XGSynth
+class org.jjazz.midi.api.ui.InstrumentTable
+class org.jjazz.midi.spi.KeyMapProvider
+class org.jjazz.midimix.api.MidiMix
+class org.jjazz.midimix.api.UserRhythmVoice
+class org.jjazz.outputsynth.api.CakewalkInsFileReader
+class org.jjazz.outputsynth.api.DefaultRhythmVoiceInstrumentProviderImpl
+class org.jjazz.outputsynth.api.GMRemapTable
+class org.jjazz.outputsynth.api.GMRemapTable.InvalidMappingException
+class org.jjazz.outputsynth.api.MidiSynthManager
+class org.jjazz.outputsynth.api.OS_YamahaRef
+class org.jjazz.outputsynth.api.OutputSynth
+class org.jjazz.outputsynth.api.OutputSynthManager
+class org.jjazz.outputsynth.api.ui.DefaultInstrumentsDialog
+class org.jjazz.outputsynth.api.ui.RemapTableInstrumentChooser
+class org.jjazz.outputsynth.api.ui.RemapTableUI
+class org.jjazz.rhythm.api.MusicGenerationException
+class org.jjazz.rhythm.api.RhythmVoice
+class org.jjazz.startup.spi.StartupTask
+class org.jjazz.testplayerservice.spi.TestPlayer
+class org.jjazz.uisettings.api.GeneralUISettings
+class org.jjazz.upgrade.api.UpgradeManager
+class org.jjazz.upgrade.api.UpgradeTask
+class org.jjazz.utilities.api.ResUtil
+class org.jjazz.utilities.api.Utilities
+class org.openide.DialogDisplayer
+class org.openide.NotifyDescriptor
+class org.openide.util.Exceptions
+class org.openide.util.Lookup
+class org.openide.util.NbPreferences
+class org.openide.windows.WindowManager
+interface java.beans.PropertyChangeListener
+interface java.io.Serializable
+interface javax.swing.event.ChangeListener
+interface javax.swing.event.ListSelectionListener
+interface org.jjazz.midi.spi.MidiSynthFileReader
+interface org.jjazz.midimix.spi.RhythmVoiceInstrumentProvider
+org.jjazz.outputsynth.api.CakewalkInsFileReader ..> java.lang.Override
+org.jjazz.outputsynth.api.CakewalkInsFileReader ..> org.openide.util.lookup.ServiceProvider
+org.jjazz.outputsynth.api.CakewalkInsFileReader ..> java.io.BufferedReader
+org.jjazz.outputsynth.api.CakewalkInsFileReader ..> java.io.File
+org.jjazz.outputsynth.api.CakewalkInsFileReader ..> java.io.IOException
+org.jjazz.outputsynth.api.CakewalkInsFileReader ..> java.io.InputStream
+org.jjazz.outputsynth.api.CakewalkInsFileReader ..> java.io.InputStreamReader
+org.jjazz.outputsynth.api.CakewalkInsFileReader ..> java.util.ArrayList
+org.jjazz.outputsynth.api.CakewalkInsFileReader ..> java.util.Arrays
+org.jjazz.outputsynth.api.CakewalkInsFileReader ..> java.util.HashMap
+org.jjazz.outputsynth.api.CakewalkInsFileReader ..> java.util.List
+org.jjazz.outputsynth.api.CakewalkInsFileReader ..> java.util.logging.Level
+org.jjazz.outputsynth.api.CakewalkInsFileReader ..> java.util.logging.Logger
+org.jjazz.outputsynth.api.CakewalkInsFileReader ..> java.util.regex.Matcher
+org.jjazz.outputsynth.api.CakewalkInsFileReader ..> java.util.regex.Pattern
+org.jjazz.outputsynth.api.CakewalkInsFileReader ..> javax.swing.filechooser.FileNameExtensionFilter
+org.jjazz.outputsynth.api.CakewalkInsFileReader ..> org.jjazz.midi.api.DrumKit
+org.jjazz.outputsynth.api.CakewalkInsFileReader ..> org.jjazz.midi.api.Instrument
+org.jjazz.outputsynth.api.CakewalkInsFileReader ..> org.jjazz.midi.api.InstrumentBank
+org.jjazz.outputsynth.api.CakewalkInsFileReader ..> org.jjazz.midi.api.MidiAddress
+org.jjazz.outputsynth.api.CakewalkInsFileReader ..> org.jjazz.midi.api.MidiAddress.BankSelectMethod
+org.jjazz.outputsynth.api.CakewalkInsFileReader ..> org.jjazz.midi.api.MidiSynth
+org.jjazz.outputsynth.api.CakewalkInsFileReader ..> org.jjazz.midi.api.keymap.KeyMapGM
+org.jjazz.outputsynth.api.CakewalkInsFileReader ..> org.jjazz.midi.api.synths.GM1Instrument
+org.jjazz.outputsynth.api.CakewalkInsFileReader ..> org.jjazz.midi.api.synths.GMSynth
+org.jjazz.outputsynth.api.CakewalkInsFileReader ..> org.jjazz.midi.api.synths.GSDrumsInstrument
+org.jjazz.outputsynth.api.CakewalkInsFileReader ..> org.jjazz.midi.api.synths.GSInstrument
+org.jjazz.outputsynth.api.CakewalkInsFileReader ..> org.jjazz.midi.spi.KeyMapProvider
+org.jjazz.outputsynth.api.CakewalkInsFileReader ..> org.jjazz.utilities.api.ResUtil
+org.jjazz.outputsynth.api.CakewalkInsFileReader --|> org.jjazz.midi.spi.MidiSynthFileReader
+org.jjazz.outputsynth.api.DefaultRhythmVoiceInstrumentProviderImpl ..> java.lang.Override
+org.jjazz.outputsynth.api.DefaultRhythmVoiceInstrumentProviderImpl ..> org.openide.util.lookup.ServiceProvider
+org.jjazz.outputsynth.api.DefaultRhythmVoiceInstrumentProviderImpl ..> org.jjazz.midi.api.Instrument
+org.jjazz.outputsynth.api.DefaultRhythmVoiceInstrumentProviderImpl ..> org.jjazz.midimix.api.UserRhythmVoice
+org.jjazz.outputsynth.api.DefaultRhythmVoiceInstrumentProviderImpl ..> org.jjazz.rhythm.api.RhythmVoice
+org.jjazz.outputsynth.api.DefaultRhythmVoiceInstrumentProviderImpl --|> org.jjazz.midimix.spi.RhythmVoiceInstrumentProvider
+org.jjazz.outputsynth.api.GMRemapTable ..> com.google.common.base.Preconditions
+org.jjazz.outputsynth.api.GMRemapTable ..> java.beans.PropertyChangeSupport
+org.jjazz.outputsynth.api.GMRemapTable ..> java.io.IOException
+org.jjazz.outputsynth.api.GMRemapTable ..> java.util.HashMap
+org.jjazz.outputsynth.api.GMRemapTable ..> java.util.Objects
+org.jjazz.outputsynth.api.GMRemapTable ..> java.util.StringJoiner
+org.jjazz.outputsynth.api.GMRemapTable ..> java.util.logging.Logger
+org.jjazz.outputsynth.api.GMRemapTable ..> org.jjazz.midi.api.Instrument
+org.jjazz.outputsynth.api.GMRemapTable ..> org.jjazz.midi.api.MidiSynth
+org.jjazz.outputsynth.api.GMRemapTable ..> org.jjazz.midi.api.keymap.KeyMapGM
+org.jjazz.outputsynth.api.GMRemapTable ..> org.jjazz.midi.api.synths.Family
+org.jjazz.outputsynth.api.GMRemapTable ..> org.jjazz.midi.api.synths.GM1Instrument
+org.jjazz.outputsynth.api.GMRemapTable ..> java.beans.PropertyChangeListener
+org.jjazz.outputsynth.api.GMRemapTable --|> java.io.Serializable
+org.jjazz.outputsynth.api.MidiSynthManager ..> java.lang.Override
+org.jjazz.outputsynth.api.MidiSynthManager ..> org.netbeans.api.annotations.common.StaticResource
+org.jjazz.outputsynth.api.MidiSynthManager ..> org.openide.util.lookup.ServiceProvider
+org.jjazz.outputsynth.api.MidiSynthManager ..> com.google.common.base.Preconditions
+org.jjazz.outputsynth.api.MidiSynthManager ..> java.beans.PropertyChangeSupport
+org.jjazz.outputsynth.api.MidiSynthManager ..> java.io.File
+org.jjazz.outputsynth.api.MidiSynthManager ..> java.io.IOException
+org.jjazz.outputsynth.api.MidiSynthManager ..> java.io.InputStream
+org.jjazz.outputsynth.api.MidiSynthManager ..> java.util.ArrayList
+org.jjazz.outputsynth.api.MidiSynthManager ..> java.util.List
+org.jjazz.outputsynth.api.MidiSynthManager ..> java.util.function.Predicate
+org.jjazz.outputsynth.api.MidiSynthManager ..> java.util.logging.Level
+org.jjazz.outputsynth.api.MidiSynthManager ..> java.util.logging.Logger
+org.jjazz.outputsynth.api.MidiSynthManager ..> javax.swing.JFileChooser
+org.jjazz.outputsynth.api.MidiSynthManager ..> javax.swing.filechooser.FileNameExtensionFilter
+org.jjazz.outputsynth.api.MidiSynthManager ..> org.jjazz.filedirectorymanager.api.FileDirectoryManager
+org.jjazz.outputsynth.api.MidiSynthManager ..> org.jjazz.midi.api.MidiSynth
+org.jjazz.outputsynth.api.MidiSynthManager ..> org.jjazz.midi.api.synths.GM2Synth
+org.jjazz.outputsynth.api.MidiSynthManager ..> org.jjazz.midi.api.synths.GMSynth
+org.jjazz.outputsynth.api.MidiSynthManager ..> org.jjazz.midi.api.synths.GSSynth
+org.jjazz.outputsynth.api.MidiSynthManager ..> org.jjazz.midi.api.synths.XGSynth
+org.jjazz.outputsynth.api.MidiSynthManager ..> org.jjazz.startup.spi.StartupTask
+org.jjazz.outputsynth.api.MidiSynthManager ..> org.jjazz.upgrade.api.UpgradeManager
+org.jjazz.outputsynth.api.MidiSynthManager ..> org.jjazz.utilities.api.ResUtil
+org.jjazz.outputsynth.api.MidiSynthManager ..> org.jjazz.utilities.api.Utilities
+org.jjazz.outputsynth.api.MidiSynthManager ..> org.openide.DialogDisplayer
+org.jjazz.outputsynth.api.MidiSynthManager ..> org.openide.NotifyDescriptor
+org.jjazz.outputsynth.api.MidiSynthManager ..> org.openide.util.Lookup
+org.jjazz.outputsynth.api.MidiSynthManager ..> org.openide.windows.WindowManager
+org.jjazz.outputsynth.api.MidiSynthManager ..> java.beans.PropertyChangeListener
+org.jjazz.outputsynth.api.MidiSynthManager ..> org.jjazz.midi.spi.MidiSynthFileReader
+org.jjazz.outputsynth.api.OS_YamahaRef ..> org.jjazz.midi.api.Instrument
+org.jjazz.outputsynth.api.OS_YamahaRef ..> org.jjazz.midi.api.MidiAddress
+org.jjazz.outputsynth.api.OS_YamahaRef ..> org.jjazz.midi.api.MidiSynth
+org.jjazz.outputsynth.api.OS_YamahaRef --|> org.jjazz.outputsynth.api.OutputSynth
+org.jjazz.outputsynth.api.OutputSynth ..> java.lang.Override
+org.jjazz.outputsynth.api.OutputSynth ..> com.google.common.base.Preconditions
+org.jjazz.outputsynth.api.OutputSynth ..> java.beans.PropertyChangeSupport
+org.jjazz.outputsynth.api.OutputSynth ..> java.io.IOException
+org.jjazz.outputsynth.api.OutputSynth ..> java.util.HashMap
+org.jjazz.outputsynth.api.OutputSynth ..> java.util.List
+org.jjazz.outputsynth.api.OutputSynth ..> java.util.logging.Level
+org.jjazz.outputsynth.api.OutputSynth ..> java.util.logging.Logger
+org.jjazz.outputsynth.api.OutputSynth ..> org.jjazz.midi.api.DrumKit
+org.jjazz.outputsynth.api.OutputSynth ..> org.jjazz.midi.api.Instrument
+org.jjazz.outputsynth.api.OutputSynth ..> org.jjazz.midi.api.InstrumentBank
+org.jjazz.outputsynth.api.OutputSynth ..> org.jjazz.midi.api.InstrumentMix
+org.jjazz.outputsynth.api.OutputSynth ..> org.jjazz.midi.api.MidiSynth
+org.jjazz.outputsynth.api.OutputSynth ..> org.jjazz.midi.api.MidiUtilities
+org.jjazz.outputsynth.api.OutputSynth ..> org.jjazz.midi.api.synths.GM1Instrument
+org.jjazz.outputsynth.api.OutputSynth ..> org.jjazz.midi.api.synths.GMSynth
+org.jjazz.outputsynth.api.OutputSynth ..> org.jjazz.midi.api.synths.StandardInstrumentConverter
+org.jjazz.outputsynth.api.OutputSynth ..> org.jjazz.midimix.api.MidiMix
+org.jjazz.outputsynth.api.OutputSynth ..> org.jjazz.midimix.api.UserRhythmVoice
+org.jjazz.outputsynth.api.OutputSynth ..> org.jjazz.rhythm.api.RhythmVoice
+org.jjazz.outputsynth.api.OutputSynth ..> java.beans.PropertyChangeListener
+org.jjazz.outputsynth.api.OutputSynthManager ..> java.lang.Override
+org.jjazz.outputsynth.api.OutputSynthManager ..> org.openide.util.lookup.ServiceProvider
+org.jjazz.outputsynth.api.OutputSynthManager ..> com.google.common.base.Preconditions
+org.jjazz.outputsynth.api.OutputSynthManager ..> java.beans.PropertyChangeEvent
+org.jjazz.outputsynth.api.OutputSynthManager ..> java.beans.PropertyChangeSupport
+org.jjazz.outputsynth.api.OutputSynthManager ..> java.io.IOException
+org.jjazz.outputsynth.api.OutputSynthManager ..> java.util.HashMap
+org.jjazz.outputsynth.api.OutputSynthManager ..> java.util.logging.Level
+org.jjazz.outputsynth.api.OutputSynthManager ..> java.util.logging.Logger
+org.jjazz.outputsynth.api.OutputSynthManager ..> java.util.prefs.Preferences
+org.jjazz.outputsynth.api.OutputSynthManager ..> javax.sound.midi.MidiDevice
+org.jjazz.outputsynth.api.OutputSynthManager ..> org.jjazz.midi.api.JJazzMidiSystem
+org.jjazz.outputsynth.api.OutputSynthManager ..> org.jjazz.midi.api.synths.GM2Synth
+org.jjazz.outputsynth.api.OutputSynthManager ..> org.jjazz.midi.api.synths.GMSynth
+org.jjazz.outputsynth.api.OutputSynthManager ..> org.jjazz.midi.api.synths.GSSynth
+org.jjazz.outputsynth.api.OutputSynthManager ..> org.jjazz.midi.api.synths.XGSynth
+org.jjazz.outputsynth.api.OutputSynthManager ..> org.jjazz.upgrade.api.UpgradeManager
+org.jjazz.outputsynth.api.OutputSynthManager ..> org.jjazz.upgrade.api.UpgradeTask
+org.jjazz.outputsynth.api.OutputSynthManager ..> org.jjazz.utilities.api.Utilities
+org.jjazz.outputsynth.api.OutputSynthManager ..> org.openide.util.NbPreferences
+org.jjazz.outputsynth.api.OutputSynthManager --|> java.beans.PropertyChangeListener
+org.jjazz.outputsynth.api.ui.DefaultInstrumentsDialog ..> java.lang.Override
+org.jjazz.outputsynth.api.ui.DefaultInstrumentsDialog ..> java.lang.SuppressWarnings
+org.jjazz.outputsynth.api.ui.DefaultInstrumentsDialog ..> java.awt.event.InputEvent
+org.jjazz.outputsynth.api.ui.DefaultInstrumentsDialog ..> java.awt.event.MouseAdapter
+org.jjazz.outputsynth.api.ui.DefaultInstrumentsDialog ..> java.awt.event.MouseEvent
+org.jjazz.outputsynth.api.ui.DefaultInstrumentsDialog ..> java.awt.event.WindowAdapter
+org.jjazz.outputsynth.api.ui.DefaultInstrumentsDialog ..> java.awt.event.WindowEvent
+org.jjazz.outputsynth.api.ui.DefaultInstrumentsDialog ..> java.beans.PropertyChangeEvent
+org.jjazz.outputsynth.api.ui.DefaultInstrumentsDialog ..> java.util.logging.Level
+org.jjazz.outputsynth.api.ui.DefaultInstrumentsDialog ..> java.util.logging.Logger
+org.jjazz.outputsynth.api.ui.DefaultInstrumentsDialog --|> javax.swing.JDialog
+org.jjazz.outputsynth.api.ui.DefaultInstrumentsDialog ..> javax.swing.SwingUtilities
+org.jjazz.outputsynth.api.ui.DefaultInstrumentsDialog ..> org.jjazz.analytics.api.Analytics
+org.jjazz.outputsynth.api.ui.DefaultInstrumentsDialog ..> org.jjazz.midi.api.Instrument
+org.jjazz.outputsynth.api.ui.DefaultInstrumentsDialog ..> org.jjazz.midi.api.JJazzMidiSystem
+org.jjazz.outputsynth.api.ui.DefaultInstrumentsDialog ..> org.jjazz.midi.api.MidiConst
+org.jjazz.outputsynth.api.ui.DefaultInstrumentsDialog ..> org.jjazz.midi.api.synths.GM1Instrument
+org.jjazz.outputsynth.api.ui.DefaultInstrumentsDialog ..> org.jjazz.outputsynth.api.GMRemapTable
+org.jjazz.outputsynth.api.ui.DefaultInstrumentsDialog ..> org.jjazz.outputsynth.api.GMRemapTable.InvalidMappingException
+org.jjazz.outputsynth.api.ui.DefaultInstrumentsDialog ..> org.jjazz.rhythm.api.MusicGenerationException
+org.jjazz.outputsynth.api.ui.DefaultInstrumentsDialog ..> org.jjazz.testplayerservice.spi.TestPlayer
+org.jjazz.outputsynth.api.ui.DefaultInstrumentsDialog ..> org.openide.DialogDisplayer
+org.jjazz.outputsynth.api.ui.DefaultInstrumentsDialog ..> org.openide.NotifyDescriptor
+org.jjazz.outputsynth.api.ui.DefaultInstrumentsDialog ..> org.openide.util.Exceptions
+org.jjazz.outputsynth.api.ui.DefaultInstrumentsDialog ..> org.openide.windows.WindowManager
+org.jjazz.outputsynth.api.ui.DefaultInstrumentsDialog --|> java.beans.PropertyChangeListener
+org.jjazz.outputsynth.api.ui.RemapTableInstrumentChooser ..> java.lang.Override
+org.jjazz.outputsynth.api.ui.RemapTableInstrumentChooser ..> java.lang.SuppressWarnings
+org.jjazz.outputsynth.api.ui.RemapTableInstrumentChooser ..> com.google.common.base.Preconditions
+org.jjazz.outputsynth.api.ui.RemapTableInstrumentChooser ..> java.awt.event.ActionEvent
+org.jjazz.outputsynth.api.ui.RemapTableInstrumentChooser ..> java.awt.event.InputEvent
+org.jjazz.outputsynth.api.ui.RemapTableInstrumentChooser ..> java.awt.event.MouseAdapter
+org.jjazz.outputsynth.api.ui.RemapTableInstrumentChooser ..> java.awt.event.MouseEvent
+org.jjazz.outputsynth.api.ui.RemapTableInstrumentChooser ..> java.util.ArrayList
+org.jjazz.outputsynth.api.ui.RemapTableInstrumentChooser ..> java.util.Arrays
+org.jjazz.outputsynth.api.ui.RemapTableInstrumentChooser ..> java.util.List
+org.jjazz.outputsynth.api.ui.RemapTableInstrumentChooser ..> java.util.logging.Level
+org.jjazz.outputsynth.api.ui.RemapTableInstrumentChooser ..> java.util.logging.Logger
+org.jjazz.outputsynth.api.ui.RemapTableInstrumentChooser ..> javax.swing.AbstractAction
+org.jjazz.outputsynth.api.ui.RemapTableInstrumentChooser ..> javax.swing.JComponent
+org.jjazz.outputsynth.api.ui.RemapTableInstrumentChooser --|> javax.swing.JDialog
+org.jjazz.outputsynth.api.ui.RemapTableInstrumentChooser ..> javax.swing.JRootPane
+org.jjazz.outputsynth.api.ui.RemapTableInstrumentChooser ..> javax.swing.KeyStroke
+org.jjazz.outputsynth.api.ui.RemapTableInstrumentChooser ..> javax.swing.RowFilter
+org.jjazz.outputsynth.api.ui.RemapTableInstrumentChooser ..> javax.swing.SwingUtilities
+org.jjazz.outputsynth.api.ui.RemapTableInstrumentChooser ..> javax.swing.event.ChangeEvent
+org.jjazz.outputsynth.api.ui.RemapTableInstrumentChooser ..> javax.swing.event.ListSelectionEvent
+org.jjazz.outputsynth.api.ui.RemapTableInstrumentChooser ..> javax.swing.table.TableModel
+org.jjazz.outputsynth.api.ui.RemapTableInstrumentChooser ..> javax.swing.table.TableRowSorter
+org.jjazz.outputsynth.api.ui.RemapTableInstrumentChooser ..> org.jjazz.midi.api.DrumKit
+org.jjazz.outputsynth.api.ui.RemapTableInstrumentChooser ..> org.jjazz.midi.api.Instrument
+org.jjazz.outputsynth.api.ui.RemapTableInstrumentChooser ..> org.jjazz.midi.api.JJazzMidiSystem
+org.jjazz.outputsynth.api.ui.RemapTableInstrumentChooser ..> org.jjazz.midi.api.MidiConst
+org.jjazz.outputsynth.api.ui.RemapTableInstrumentChooser ..> org.jjazz.midi.api.keymap.KeyMapGM
+org.jjazz.outputsynth.api.ui.RemapTableInstrumentChooser ..> org.jjazz.midi.api.keymap.KeyMapGSGM2
+org.jjazz.outputsynth.api.ui.RemapTableInstrumentChooser ..> org.jjazz.midi.api.keymap.KeyMapXG
+org.jjazz.outputsynth.api.ui.RemapTableInstrumentChooser ..> org.jjazz.midi.api.synths.FavoriteMidiSynth
+org.jjazz.outputsynth.api.ui.RemapTableInstrumentChooser ..> org.jjazz.midi.api.synths.GM1Instrument
+org.jjazz.outputsynth.api.ui.RemapTableInstrumentChooser ..> org.jjazz.midi.api.ui.InstrumentTable
+org.jjazz.outputsynth.api.ui.RemapTableInstrumentChooser ..> org.jjazz.outputsynth.api.GMRemapTable
+org.jjazz.outputsynth.api.ui.RemapTableInstrumentChooser ..> org.jjazz.rhythm.api.MusicGenerationException
+org.jjazz.outputsynth.api.ui.RemapTableInstrumentChooser ..> org.jjazz.testplayerservice.spi.TestPlayer
+org.jjazz.outputsynth.api.ui.RemapTableInstrumentChooser ..> org.jjazz.uisettings.api.GeneralUISettings
+org.jjazz.outputsynth.api.ui.RemapTableInstrumentChooser ..> org.jjazz.utilities.api.ResUtil
+org.jjazz.outputsynth.api.ui.RemapTableInstrumentChooser ..> org.jjazz.utilities.api.Utilities
+org.jjazz.outputsynth.api.ui.RemapTableInstrumentChooser ..> org.openide.windows.WindowManager
+org.jjazz.outputsynth.api.ui.RemapTableInstrumentChooser --|> javax.swing.event.ChangeListener
+org.jjazz.outputsynth.api.ui.RemapTableInstrumentChooser --|> javax.swing.event.ListSelectionListener
+org.jjazz.outputsynth.api.ui.RemapTableUI ..> java.lang.Override
+org.jjazz.outputsynth.api.ui.RemapTableUI ..> java.awt.Color
+org.jjazz.outputsynth.api.ui.RemapTableUI ..> java.awt.Component
+org.jjazz.outputsynth.api.ui.RemapTableUI ..> java.awt.Font
+org.jjazz.outputsynth.api.ui.RemapTableUI ..> java.beans.PropertyChangeEvent
+org.jjazz.outputsynth.api.ui.RemapTableUI ..> java.util.logging.Logger
+org.jjazz.outputsynth.api.ui.RemapTableUI ..> javax.swing.BorderFactory
+org.jjazz.outputsynth.api.ui.RemapTableUI ..> javax.swing.JComponent
+org.jjazz.outputsynth.api.ui.RemapTableUI ..> javax.swing.JLabel
+org.jjazz.outputsynth.api.ui.RemapTableUI --|> javax.swing.JTable
+org.jjazz.outputsynth.api.ui.RemapTableUI ..> javax.swing.table.AbstractTableModel
+org.jjazz.outputsynth.api.ui.RemapTableUI ..> javax.swing.table.DefaultTableCellRenderer
+org.jjazz.outputsynth.api.ui.RemapTableUI ..> javax.swing.table.TableCellRenderer
+org.jjazz.outputsynth.api.ui.RemapTableUI ..> javax.swing.table.TableColumnModel
+org.jjazz.outputsynth.api.ui.RemapTableUI ..> org.jjazz.midi.api.Instrument
+org.jjazz.outputsynth.api.ui.RemapTableUI ..> org.jjazz.midi.api.synths.Family
+org.jjazz.outputsynth.api.ui.RemapTableUI ..> org.jjazz.midi.api.synths.GM1Instrument
+org.jjazz.outputsynth.api.ui.RemapTableUI ..> org.jjazz.midi.api.synths.GMSynth
+org.jjazz.outputsynth.api.ui.RemapTableUI ..> org.jjazz.outputsynth.api.GMRemapTable
+org.jjazz.outputsynth.api.ui.RemapTableUI ..> org.jjazz.utilities.api.ResUtil
+org.jjazz.outputsynth.api.ui.RemapTableUI ..> java.beans.PropertyChangeListener
+@enduml
