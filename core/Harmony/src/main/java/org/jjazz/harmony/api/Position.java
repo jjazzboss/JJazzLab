@@ -586,7 +586,14 @@ public final class Position implements Comparable<Position>, Serializable
         throw new InvalidObjectException("Serialization proxy required");
     }
 
-    private static class SerializationProxy implements Serializable
+    /**
+     * Position serialization.
+     * 
+     * Class had to be made public when Position was moved from ChordLeadSheet to Harmony module, in order to enable XStream aliasing of the old
+     * Position.SerializationProxy when loading old .sng files, see SongFactory.java.
+     */
+
+    public static class SerializationProxy implements Serializable
     {
 
         private static final long serialVersionUID = 7987126309001277L;

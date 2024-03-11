@@ -44,6 +44,7 @@ import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.ChordLeadSheetFactory;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
+import org.jjazz.harmony.api.Position;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructureFactory;
@@ -148,6 +149,8 @@ public class SongFactory implements PropertyChangeListener
 
         XStream xstream = Utilities.getSecuredXStreamInstance();
         xstream.alias("Song", Song.class);
+        // From 4.0.3 Position class was moved to Harmony module to enable module simplification        
+        xstream.alias("org.jjazz.chordleadsheet.api.item.Position$SerializationProxy", Position.SerializationProxy.class);        
         // From 3.0 all public packages are renamed with api or spi somewhere in the path
         // Need package aliasing required to be able to load old sng/mix files
         xstream.aliasPackage("org.jjazz.harmony.api", "org.jjazz.harmony.api"); // Make sure new package name is not replaced by next alias
@@ -158,7 +161,6 @@ public class SongFactory implements PropertyChangeListener
         xstream.aliasPackage("org.jjazz.midimix", "org.jjazz.midimix.api");
         // From 4.0 ChordLeadSheet packages were renamed from org.jjazz.leadsheet.chordleadsheet.* to org.jjazz.chordleadsheet.*
         xstream.aliasPackage("org.jjazz.leadsheet.chordleadsheet", "org.jjazz.chordleadsheet");
-
 
         // Read file
         try (var fis = new FileInputStream(f))
