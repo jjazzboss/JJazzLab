@@ -32,14 +32,18 @@ import java.beans.PropertyChangeSupport;
 import java.beans.PropertyVetoException;
 import java.beans.VetoableChangeListener;
 import java.beans.VetoableChangeSupport;
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
 import java.io.OutputStreamWriter;
+import java.io.Reader;
 import java.io.Serializable;
 import java.io.Writer;
 import java.util.ArrayList;
@@ -64,6 +68,7 @@ import org.jjazz.chordleadsheet.api.event.ClsChangeEvent;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.ChordRenderingInfo;
+import org.jjazz.harmony.api.Position;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.rhythm.api.Rhythm;
@@ -76,9 +81,13 @@ import org.jjazz.songstructure.api.event.SgsActionEvent;
 import org.jjazz.undomanager.api.SimpleEdit;
 import org.jjazz.utilities.api.ResUtil;
 import org.jjazz.utilities.api.StringProperties;
+import org.jjazz.utilities.api.Utilities;
+import org.jjazz.xstream.api.XStreamInstancesManager;
+import org.jjazz.xstream.spi.XStreamConfigurator;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.util.Exceptions;
+import org.openide.util.lookup.ServiceProvider;
 
 /**
  * The song object.
@@ -122,8 +131,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
      * OldValue=the property name or ClsActionEvent/SgsActionEvent actionId that triggered the musical change.<br>
      * NewValue=the optional associated data
      * <p>
-     * Use PROP_MODIFIED_OR_SAVED_OR_RESET to get notified of any song change, including non-musical ones like tempo change, phrase name
-     * change, etc.
+     * Use PROP_MODIFIED_OR_SAVED_OR_RESET to get notified of any song change, including non-musical ones like tempo change, phrase name change, etc.
      */
     public static final String PROP_MUSIC_GENERATION = "SongMusicGeneration";
     private SongStructure songStructure;
@@ -196,8 +204,8 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
     /**
      * Rename a user phrase.
      * <p>
-     * Fire a PROP_VETOABLE_PHRASE_NAME change event (actually this property change event should never been vetoed, but this allows caller
-     * to use a single vetoable listener for all user phrase events).
+     * Fire a PROP_VETOABLE_PHRASE_NAME change event (actually this property change event should never been vetoed, but this allows caller to use a single
+     * vetoable listener for all user phrase events).
      *
      * @param name    Must be the name of an existing phrase
      * @param newName
@@ -271,10 +279,9 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
     /**
      * Set the user phrase for the specified name.
      * <p>
-     * If a user phrase was already associated to name, it's replaced. Fire a VeotableChange PROP_VETOABLE_USER_PHRASE if no phrase is
-     * replaced, otherwise use PROP_VETOABLE_USER_PHRASE_CONTENT. Actually the possibility of a veto is only when a new phrase is added
-     * (e.g. if MidiMix does not have an available Midi channel). Other user phrase PROP_ events for simplicity only (one listener
-     * required).
+     * If a user phrase was already associated to name, it's replaced. Fire a VeotableChange PROP_VETOABLE_USER_PHRASE if no phrase is replaced, otherwise use
+     * PROP_VETOABLE_USER_PHRASE_CONTENT. Actually the possibility of a veto is only when a new phrase is added (e.g. if MidiMix does not have an available Midi
+     * channel). Other user phrase PROP_ events for simplicity only (one listener required).
      * <p>
      * This song will listen to p's changes and fire a PROP_MODIFIED_OR_SAVED_OR_RESET change event when a non-adjusting change is made.
      * <p>
@@ -799,14 +806,56 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
     }
 
     /**
+     * Load a Song from a file.
+     * <p>
+     * Song's getFile() will return f. <br>
+     * Song's getName() will return f.getName(). <br>
+     * <p>
+     * The returned song is registered by the SongFactory instance.
+     *
+     * @param f
+     * @return
+     * @throws org.jjazz.song.api.SongCreationException
+     */
+    static public Song loadFromFile(File f) throws SongCreationException
+    {
+        if (f == null)
+        {
+            throw new IllegalArgumentException("f=" + f);
+        }
+        Song song = null;
+
+        // Read file
+        try (var fis = new FileInputStream(f))
+        {
+            XStream xstream = XStreamInstancesManager.getInstance().getSongLoadInstance();
+            Reader r = new BufferedReader(new InputStreamReader(fis, "UTF-8"));        // Needed to support special/accented chars
+            song = (Song) xstream.fromXML(r);
+
+        } catch (XStreamException | IOException e)
+        {
+            throw new SongCreationException(e);
+        }
+
+        // Update song
+        song.setFile(f);
+        song.setName(Song.removeSongExtension(f.getName()));
+        song.setSaveNeeded(false);
+
+        SongFactory.getInstance().registerSong(song);
+        Analytics.logEvent("Open Song");
+        Analytics.incrementProperties("Nb Open Song", 1);
+
+        return song;
+    }
+
+    /**
      * Save this song to a file (XML format).
      * <p>
-     * Song's file and name is set to f and f's name. Fire a PROP_MODIFIED_OR_SAVED_OR_RESET property change event with oldValue=true and
-     * newValue=false.
+     * Song's file and name is set to f and f's name. Fire a PROP_MODIFIED_OR_SAVED_OR_RESET property change event with oldValue=true and newValue=false.
      *
      * @param songFile
-     * @param isCopy   Indicate that the save operation if for a copy, ie just perform the save operation and do nothing else (song name is
-     *                 not set, etc.)
+     * @param isCopy   Indicate that the save operation if for a copy, ie just perform the save operation and do nothing else (song name is not set, etc.)
      * @throws java.io.IOException
      * @see getFile()
      */
@@ -828,8 +877,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
 
         try (FileOutputStream fos = new FileOutputStream(songFile))
         {
-            XStream xstream = new XStream();
-            xstream.alias("Song", Song.class);
+            XStream xstream = XStreamInstancesManager.getInstance().getSongSaveInstance();
             Writer w = new BufferedWriter(new OutputStreamWriter(fos, "UTF-8"));        // Needed to support special/accented chars
             xstream.toXML(this, w);
             if (!isCopy)
@@ -1131,6 +1179,40 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
 
 
     // --------------------------------------------------------------------- 
+    // Inner classes
+    // ---------------------------------------------------------------------
+    @ServiceProvider(service = XStreamConfigurator.class)
+    public static class XStreamConfig implements XStreamConfigurator
+    {
+
+        @Override
+        public void configure(InstanceId instanceId, XStream xstream)
+        {
+            switch (instanceId)
+            {
+                case SONG_LOAD, SONG_SAVE ->
+                {
+                    xstream.alias("Song", Song.class);
+                    xstream.alias("SongSP", Song.SerializationProxy.class);
+                    xstream.useAttributeFor(SerializationProxy.class, "spName");
+                    xstream.useAttributeFor(SerializationProxy.class, "spTempo");
+                }
+
+                case MIDIMIX_LOAD ->
+                {
+                    // Nothing
+                }
+                case MIDIMIX_SAVE ->
+                {
+                    // Nothing
+                }
+                default -> throw new AssertionError(instanceId.name());
+            }
+        }
+
+    }
+
+    // --------------------------------------------------------------------- 
     // Serialization
     // ---------------------------------------------------------------------
     private Object writeReplace()
@@ -1146,11 +1228,18 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
     }
 
 
+    /**
+     * Serialization proxy.
+     * <p>
+     * spVERSION 2 and 3 changes saved fields, see below.<br>
+     * spVERSION 4 (JJazzLab 4.0.3) introduces several aliases to get rid of hard-coded qualified class names (XStreamConfig class introduction) 
+     */
     private static class SerializationProxy implements Serializable
     {
 
         private static final long serialVersionUID = 571097826016222L;
-        private int spVERSION = 3;   // Do not make final!
+
+        private int spVERSION = 4;   // Do not make final!
         private String spName;
         private String spComments;
         private int spTempo;
@@ -1231,12 +1320,12 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
         /**
          * Import the old spVERSION 2 song properties.
          * <p>
-         * Up to spVERSION 2, all song editor settings were saved as Song client properties. From spVERSION 3 (JJazzLab 4) some of these
-         * settings are directly saved with the related model object. This is the case for section quantification and startOnNewLine
-         * settings, which are now saved as CLI_Section client properties.
+         * Up to spVERSION 2, all song editor settings were saved as Song client properties. From spVERSION 3 (JJazzLab 4) some of these settings are directly
+         * saved with the related model object. This is the case for section quantification and startOnNewLine settings, which are now saved as CLI_Section
+         * client properties.
          * <p>
-         * IMPORTANT: this is a hack, make sure that CL_Editor PROP_* string values are consistent with what's here (we can't depend on
-         * CL_Editor because of circular dependency).
+         * IMPORTANT: this is a hack, make sure that CL_Editor PROP_* string values are consistent with what's here (we can't depend on CL_Editor because of
+         * circular dependency).
          *
          * @param newSong
          */

@@ -22,6 +22,7 @@
  */
 package org.jjazz.songstructure;
 
+import com.thoughtworks.xstream.XStream;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import org.jjazz.songstructure.api.event.RpValueChangedEvent;
@@ -67,6 +68,12 @@ import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.event.SgsActionEvent;
 import org.jjazz.utilities.api.FloatRange;
 import org.jjazz.utilities.api.IntRange;
+import org.jjazz.xstream.spi.XStreamConfigurator;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_LOAD;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_SAVE;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_LOAD;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_SAVE;
+import org.openide.util.lookup.ServiceProvider;
 
 public class SongStructureImpl implements SongStructure, Serializable, PropertyChangeListener
 {
@@ -272,9 +279,9 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
      * UnsupportedEditException.
      * <p>
      * Example: We have spt1=rhythm0, spt2=rhythm0, spt3=rhythm1. There are enough Midi channels for both rhythms.<br>
-     * We want to change rhythm of both spt1 and spt2. If we do one spt at a time, after the first replacement on spt0 we'll have 3 rhythms
-     * and possibly our listeners will trigger an UnsupportedEditException (if not enough Midi channels), though there should be no problem
-     * since we want to change both spt1 AND spt2 !
+     * We want to change rhythm of both spt1 and spt2. If we do one spt at a time, after the first replacement on spt0 we'll have 3 rhythms and possibly our
+     * listeners will trigger an UnsupportedEditException (if not enough Midi channels), though there should be no problem since we want to change both spt1 AND
+     * spt2 !
      *
      * @param oldSpts
      * @param newSpts
@@ -366,7 +373,10 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
             }
         }
 
-        LOGGER.log(Level.FINE, "getRecommendedRhythm() ts={0} sptBarIndex={1} result r={2}", new Object[]{ts, sptBarIndex, r});
+        LOGGER.log(Level.FINE, "getRecommendedRhythm() ts={0} sptBarIndex={1} result r={2}", new Object[]
+        {
+            ts, sptBarIndex, r
+        });
         return r;
     }
 
@@ -1015,7 +1025,10 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
                     // Have the adapted rhythm created and made available in the database
                     if (rdb.getAdaptedRhythmInstance(r, ts) == null)
                     {
-                        LOGGER.log(Level.INFO, "generateAllAdaptedRhythms() Can''t get a {0}-adapted rhythm for r={1}", new Object[]{ts, r});
+                        LOGGER.log(Level.INFO, "generateAllAdaptedRhythms() Can''t get a {0}-adapted rhythm for r={1}", new Object[]
+                        {
+                            ts, r
+                        });
                     }
                 }
             }
@@ -1336,6 +1349,38 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
         }
     }
 
+    /**
+     * This enables XStream instance configuration even for private classes or classes from non-public packages of Netbeans modules.
+     */
+    @ServiceProvider(service = XStreamConfigurator.class)
+    public static class XStreamConfig implements XStreamConfigurator
+    {
+
+        @Override
+        public void configure(XStreamConfigurator.InstanceId instanceId, XStream xstream)
+        {
+            switch (instanceId)
+            {
+                case SONG_LOAD, SONG_SAVE ->
+                {
+                    // From 4.0.3 new alias for better XML readibility
+                    xstream.alias("SongStructureImpl", SongStructureImpl.class);
+                    xstream.alias("SongStructureImplSP", SongStructureImpl.SerializationProxy.class);
+
+                }
+
+                case MIDIMIX_LOAD ->
+                {
+                    // Nothing
+                }
+                case MIDIMIX_SAVE ->
+                {
+                    // Nothing
+                }
+                default -> throw new AssertionError(instanceId.name());
+            }
+        }
+    }
 
     // -----------------------------------------------------------------------
     // Serialization
@@ -1345,19 +1390,21 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
         return new SerializationProxy(this);
     }
 
-    private void readObject(ObjectInputStream stream) throws InvalidObjectException
+    private void readObject(ObjectInputStream stream) throws InvalidObjectException            
     {
         throw new InvalidObjectException("Serialization proxy required");
     }
 
     /**
      * Need to restore each item's container. Allow to be independent of future chordleadsheet internal data structure changes.
+     * <p>
+     * spVERSION 2 (JJazzLab 4.0.3) introduces several aliases to get rid of hard-coded qualified class names (XStreamConfig class introduction).<br>
      */
     private static class SerializationProxy implements Serializable
     {
 
         private static final long serialVersionUID = -76876542017265L;
-        private final int spVERSION = 1;
+        private final int spVERSION = 2;
         private final ArrayList<SongPart> spSpts;
         private final ChordLeadSheet spParentCls;
         private final boolean spKeepUpdated;

@@ -24,6 +24,7 @@ package org.jjazz.phrase.api;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import com.google.common.collect.HashBiMap;
+import com.thoughtworks.xstream.XStream;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.InvalidObjectException;
@@ -57,6 +58,12 @@ import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.undomanager.api.SimpleEdit;
 import org.jjazz.utilities.api.FloatRange;
+import org.jjazz.xstream.spi.XStreamConfigurator;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_LOAD;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_SAVE;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_LOAD;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_SAVE;
+import org.openide.util.lookup.ServiceProvider;
 
 /**
  * A collection of NoteEvents that are kept sorted by start position.
@@ -242,8 +249,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
     /**
      * Move NoteEvents.
      * <p>
-     * Same as removing the old one + adding copy at new position , except it only fires a PROP_NOTES_MOVED or PROP_NOTES_MOVED_ADJUSTING
-     * change event.
+     * Same as removing the old one + adding copy at new position , except it only fires a PROP_NOTES_MOVED or PROP_NOTES_MOVED_ADJUSTING change event.
      *
      * @param mapNoteNewPos A map where keys=NoteEvents and values=new positions
      * @param isAdjusting   If true fire a PROP_NOTES_MOVED_ADJUSTING instead of PROP_NOTES_MOVED
@@ -427,8 +433,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
     /**
      * Transform the notes which satisfy the specified tester.
      * <p>
-     * Once the mapper has produced a new NoteEvent, the old one is removed and the new one is added. Fire the PROP_NOTES_REPLACED change
-     * event.
+     * Once the mapper has produced a new NoteEvent, the old one is removed and the new one is added. Fire the PROP_NOTES_REPLACED change event.
      *
      * @param tester Process the NoteEvent which satisfy this tester.
      * @param mapper Transform each NoteEvent.
@@ -1385,6 +1390,39 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
             }
         };
         return res;
+    }
+
+    /**
+     * This enables XStream instance configuration even for private classes or classes from non-public packages of Netbeans modules.
+     */
+    @ServiceProvider(service = XStreamConfigurator.class)
+    public static class XStreamConfig implements XStreamConfigurator
+    {
+
+        @Override
+        public void configure(XStreamConfigurator.InstanceId instanceId, XStream xstream)
+        {
+            switch (instanceId)
+            {
+                case SONG_LOAD, SONG_SAVE ->
+                {
+                    // From 4.0.3 new alias for better XML readibility
+                    xstream.alias("Phrase", Phrase.class);
+                    xstream.alias("PhraseSP", SerializationProxy.class);
+                    xstream.useAttributeFor(SerializationProxy.class, "spVERSION");
+                }
+
+                case MIDIMIX_LOAD ->
+                {
+                    // Nothing
+                }
+                case MIDIMIX_SAVE ->
+                {
+                    // Nothing
+                }
+                default -> throw new AssertionError(instanceId.name());
+            }
+        }
     }
 
 

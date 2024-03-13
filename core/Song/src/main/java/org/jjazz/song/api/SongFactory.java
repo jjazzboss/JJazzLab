@@ -23,32 +23,21 @@
 package org.jjazz.song.api;
 
 import com.google.common.base.Preconditions;
-import com.thoughtworks.xstream.XStream;
-import com.thoughtworks.xstream.XStreamException;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyVetoException;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.WeakHashMap;
 import java.util.logging.Logger;
-import org.jjazz.analytics.api.Analytics;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.ChordLeadSheetFactory;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
-import org.jjazz.harmony.api.Position;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructureFactory;
-import org.jjazz.utilities.api.Utilities;
 import org.openide.util.Exceptions;
 
 /**
@@ -127,64 +116,7 @@ public class SongFactory implements PropertyChangeListener
         }
         return name;
     }
-
-    /**
-     * Get a Song object from a file.
-     * <p>
-     * Song's getFile() will return f. <br>
-     * Song's getName() will return f.getName(). <br>
-     *
-     * @param f
-     * @return
-     * @throws org.jjazz.song.api.SongCreationException
-     */
-    public Song createFromFile(File f) throws SongCreationException
-    {
-        if (f == null)
-        {
-            throw new IllegalArgumentException("f=" + f);
-        }
-        Song song = null;
-
-
-        XStream xstream = Utilities.getSecuredXStreamInstance();
-        xstream.alias("Song", Song.class);
-        // From 4.0.3 Position class was moved to Harmony module to enable module simplification        
-        xstream.alias("org.jjazz.chordleadsheet.api.item.Position$SerializationProxy", Position.SerializationProxy.class);        
-        // From 3.0 all public packages are renamed with api or spi somewhere in the path
-        // Need package aliasing required to be able to load old sng/mix files
-        xstream.aliasPackage("org.jjazz.harmony.api", "org.jjazz.harmony.api"); // Make sure new package name is not replaced by next alias
-        xstream.aliasPackage("org.jjazz.harmony", "org.jjazz.harmony.api");
-        xstream.aliasPackage("org.jjazz.midi.api", "org.jjazz.midi.api");   // Make sure new package name is not replaced by next alias
-        xstream.aliasPackage("org.jjazz.midi", "org.jjazz.midi.api");
-        xstream.aliasPackage("org.jjazz.midimix.api", "org.jjazz.midimix.api");   // Make sure new package name is not replaced by next alias
-        xstream.aliasPackage("org.jjazz.midimix", "org.jjazz.midimix.api");
-        // From 4.0 ChordLeadSheet packages were renamed from org.jjazz.leadsheet.chordleadsheet.* to org.jjazz.chordleadsheet.*
-        xstream.aliasPackage("org.jjazz.leadsheet.chordleadsheet", "org.jjazz.chordleadsheet");
-
-        // Read file
-        try (var fis = new FileInputStream(f))
-        {
-            Reader r = new BufferedReader(new InputStreamReader(fis, "UTF-8"));        // Needed to support special/accented chars
-            song = (Song) xstream.fromXML(r);
-        } catch (XStreamException | IOException e)
-        {
-            throw new SongCreationException(e);
-        }
-
-        // Update song
-        song.setFile(f);
-        song.setName(Song.removeSongExtension(f.getName()));
-        song.setSaveNeeded(false);
-        registerSong(song);
-
-
-        Analytics.logEvent("Open Song");
-        Analytics.incrementProperties("Nb Open Song", 1);
-
-        return song;
-    }
-
+    
     /**
      * Remove a song from the list returned by getRegisteredSong().
      *

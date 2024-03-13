@@ -23,6 +23,7 @@
 package org.jjazz.chordleadsheet.item;
 
 import com.google.common.base.Preconditions;
+import com.thoughtworks.xstream.XStream;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.beans.PropertyChangeListener;
@@ -36,6 +37,12 @@ import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.item.CLI_BarAnnotation;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.utilities.api.StringProperties;
+import org.jjazz.xstream.spi.XStreamConfigurator;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_LOAD;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_SAVE;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_LOAD;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_SAVE;
+import org.openide.util.lookup.ServiceProvider;
 
 /**
  * An item for a bar annotation.
@@ -256,6 +263,39 @@ public class CLI_BarAnnotationImpl implements CLI_BarAnnotation, WritableItem<St
         }
     }
 
+  /**
+     * This enables XStream instance configuration even for private classes or classes from non-public packages of Netbeans modules.
+     */
+    @ServiceProvider(service = XStreamConfigurator.class)
+    public static class XStreamConfig implements XStreamConfigurator
+    {
+
+        @Override
+        public void configure(XStreamConfigurator.InstanceId instanceId, XStream xstream)
+        {
+            switch (instanceId)
+            {
+                case SONG_LOAD, SONG_SAVE ->
+                {
+                    // From 4.0.3 new alias for better XML readibility
+                    xstream.alias("CLI_BarAnnotationImpl", CLI_BarAnnotationImpl.class);
+                    xstream.alias("CLI_BarAnnotationImplSP", CLI_BarAnnotationImpl.SerializationProxy.class);
+
+                }
+
+                case MIDIMIX_LOAD ->
+                {
+                    // Nothing
+                }
+                case MIDIMIX_SAVE ->
+                {
+                    // Nothing
+                }
+                default -> throw new AssertionError(instanceId.name());
+            }
+        }
+    }    
+    
     /* ---------------------------------------------------------------------
      * Serialization
      * --------------------------------------------------------------------- */
@@ -269,11 +309,16 @@ public class CLI_BarAnnotationImpl implements CLI_BarAnnotation, WritableItem<St
         throw new InvalidObjectException("Serialization proxy required");
     }
 
+    /**
+     * Serialization proxy.
+     * <p>
+     * spVERSION 2 (JJazzLab 4.0.3) introduces several aliases to get rid of hard-coded qualified class names (XStreamConfig class introduction).
+     */    
     private static class SerializationProxy implements Serializable
     {
 
         private static final long serialVersionUID = -9872601287001L;
-        private int spVERSION = 1;      // Do not make final!
+        private int spVERSION = 2;      // Do not make final!
         private String spAnnotation;    
         private int spBarIndex;
         private StringProperties spClientProperties;

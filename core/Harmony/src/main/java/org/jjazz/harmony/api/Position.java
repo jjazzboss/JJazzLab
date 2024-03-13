@@ -22,6 +22,7 @@
  */
 package org.jjazz.harmony.api;
 
+import com.thoughtworks.xstream.XStream;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.*;
@@ -29,6 +30,12 @@ import java.text.ParseException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.utilities.api.ResUtil;
+import org.jjazz.xstream.spi.XStreamConfigurator;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_LOAD;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_SAVE;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_LOAD;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_SAVE;
+import org.openide.util.lookup.ServiceProvider;
 
 /**
  * A bar/beat position.
@@ -573,31 +580,80 @@ public final class Position implements Comparable<Position>, Serializable
         pcs.removePropertyChangeListener(listener);
     }
 
-    /* --------------------------------------------------------------------- Serialization
-    * --------------------------------------------------------------------- */
+    // --------------------------------------------------------------------- 
+    // Inner classes
+    // ---------------------------------------------------------------------
+
+    /**
+     * This enables XStream instance configuration even for private classes or classes from non-public packages of Netbeans modules.
+     */
+    @ServiceProvider(service = XStreamConfigurator.class)
+    public static class XStreamConfig implements XStreamConfigurator
+    {
+
+        @Override
+        public void configure(XStreamConfigurator.InstanceId instanceId, XStream xstream)
+        {
+            switch (instanceId)
+            {
+                case SONG_LOAD, SONG_SAVE ->
+                {
+                    // From 4.0.3 Position was moved from ChordLeadSheet to Harmony package                                   
+                    xstream.alias("org.jjazz.chordleadsheet.api.item.Position$SerializationProxy", SerializationProxy.class);   
+                    // There has been a package rename too
+                    xstream.alias("org.jjazz.leadsheet.chordleadsheet.api.item.Position$SerializationProxy", SerializationProxy.class);   
+
+                    
+                    // From 4.0.3 new alias for better XML readibility                    
+                    xstream.alias("Position", Position.class);
+                    xstream.alias("PositionSP", SerializationProxy.class);
+                    xstream.useAttributeFor(SerializationProxy.class, "spVERSION");
+                    xstream.useAttributeFor(SerializationProxy.class, "spPos");
+
+                    
+                    // From 3.0 all public packages are renamed with api or spi somewhere in the path
+                    // Need package aliasing required to be able to load old sng/mix files
+                    xstream.aliasPackage("org.jjazz.harmony.api", "org.jjazz.harmony.api"); // Make sure new package name is not replaced by next alias
+                    xstream.aliasPackage("org.jjazz.harmony", "org.jjazz.harmony.api"); // Load only
+
+                }
+
+                case MIDIMIX_LOAD ->
+                {
+                    // Nothing
+                }
+                case MIDIMIX_SAVE ->
+                {
+                    // Nothing
+                }
+                default -> throw new AssertionError(instanceId.name());
+            }
+        }
+    }
+
+    // --------------------------------------------------------------------- 
+    // Serialization
+    // ---------------------------------------------------------------------
     private Object writeReplace()
     {
         return new SerializationProxy(this);
     }
 
-    private void readObject(ObjectInputStream stream)
-            throws InvalidObjectException
+    private void readObject(ObjectInputStream stream) throws InvalidObjectException
     {
         throw new InvalidObjectException("Serialization proxy required");
     }
 
-    /**
-     * Position serialization.
-     * 
-     * Class had to be made public when Position was moved from ChordLeadSheet to Harmony module, in order to enable XStream aliasing of the old
-     * Position.SerializationProxy when loading old .sng files, see SongFactory.java.
+     /**
+     * Serialization proxy
+     * <p>
+     * spVERSION 2 (JJazzLab 4.0.3) introduces aliases to get rid of hard-coded qualified class names (XStreamConfig class introduction).<br>
      */
-
-    public static class SerializationProxy implements Serializable
+    private static class SerializationProxy implements Serializable
     {
 
         private static final long serialVersionUID = 7987126309001277L;
-        private int spVERSION = 1;      // Do not make final!
+        private int spVERSION = 2;      // Do not make final!
         private String spPos;
 
         private SerializationProxy(Position pos)

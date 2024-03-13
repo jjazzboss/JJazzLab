@@ -59,11 +59,6 @@
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-colorsetmanager</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
             <artifactId>org-jjazz-uiutilities</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
@@ -91,7 +86,12 @@
             <groupId>org.netbeans.api</groupId> 
             <artifactId>org-openide-util</artifactId> 
             <version>${netbeans.version}</version>  
-        </dependency> 
+        </dependency>
+        <dependency>
+            <groupId>org.jjazzlab</groupId>
+            <artifactId>org-jjazz-xstream</artifactId>
+            <version>4.0.3-SNAPSHOT</version>
+        </dependency>
     </dependencies>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

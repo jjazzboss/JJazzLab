@@ -77,11 +77,6 @@
             <version>${project.version}</version>            
         </dependency>
         <dependency>
-            <groupId>org.jjazzlab</groupId>
-            <artifactId>org-jjazz-xstream</artifactId>
-            <version>${project.version}</version>            
-        </dependency>
-        <dependency>
             <groupId>org.netbeans.api</groupId>
             <artifactId>org-netbeans-api-progress</artifactId>
             <version>${netbeans.version}</version>

@@ -23,6 +23,7 @@
 package org.jjazz.chordleadsheet.api.item;
 
 import com.google.common.base.Preconditions;
+import com.thoughtworks.xstream.XStream;
 import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
@@ -39,6 +40,12 @@ import org.jjazz.harmony.api.Degree;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.harmony.api.SymbolicDuration;
 import org.jjazz.chordleadsheet.api.item.ChordRenderingInfo.Feature;
+import org.jjazz.xstream.spi.XStreamConfigurator;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_LOAD;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_SAVE;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_LOAD;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_SAVE;
+import org.openide.util.lookup.ServiceProvider;
 
 /**
  * An extended chord symbol with additionnal features:
@@ -117,8 +124,7 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
      * @param ct
      * @param rInfo
      * @param altChordSymbol Optional alternate chord symbol. If not null altFilter must be also non-null.
-     * @param altFilter      Optional filter to enable the use of the alternate chord symbol. If not null altChordSymbol must be also
-     *                       non-null.
+     * @param altFilter      Optional filter to enable the use of the alternate chord symbol. If not null altChordSymbol must be also non-null.
      */
     public ExtChordSymbol(Note rootDg, Note bassDg, ChordType ct, ChordRenderingInfo rInfo, AltExtChordSymbol altChordSymbol, AltDataFilter altFilter)
     {
@@ -138,8 +144,8 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
     /**
      * Create a ChordSymbol from a chord string specification, with a standard RenderingInfo and no alternate chord symbol.
      * <p>
-     * If string contains a '/', use ChordRenderingInfo.BassLineModifier.PEDAL_BASS as bassLineModifier. If string is "NC" returns the
-     * special NCExtChordSymbol instance.
+     * If string contains a '/', use ChordRenderingInfo.BassLineModifier.PEDAL_BASS as bassLineModifier. If string is "NC" returns the special NCExtChordSymbol
+     * instance.
      *
      * @param s Eg 'C7' or 'NC'
      * @return
@@ -156,8 +162,7 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
      * @param s              Eg 'C7' or 'NC'
      * @param rInfo          Can't be null
      * @param altChordSymbol Optional alternate chord symbol. If not null altFilter must be also non-null.
-     * @param altFilter      Optional filter to enable the use of the alternate chord symbol. If not null altChordSymbol must be also
-     *                       non-null.
+     * @param altFilter      Optional filter to enable the use of the alternate chord symbol. If not null altChordSymbol must be also non-null.
      * @return
      *
      * @throws ParseException
@@ -371,6 +376,41 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
     // --------------------------------------------------------------------- 
     // Private methods
     // ---------------------------------------------------------------------    
+
+    /**
+     * This enables XStream instance configuration even for private classes or classes from non-public packages of Netbeans modules.
+     */
+    @ServiceProvider(service = XStreamConfigurator.class)
+    public static class XStreamConfig implements XStreamConfigurator
+    {
+
+        @Override
+        public void configure(XStreamConfigurator.InstanceId instanceId, XStream xstream)
+        {
+            switch (instanceId)
+            {
+                case SONG_LOAD, SONG_SAVE ->
+                {
+                    // From 4.0.3 new alias for better XML readibility
+                    xstream.alias("ExtChordSymbol", ExtChordSymbol.class);
+                    xstream.alias("ExtChordSymbolSP", ExtChordSymbol.SerializationProxy.class);
+                    xstream.useAttributeFor(ExtChordSymbol.SerializationProxy.class, "spName");
+                    xstream.useAttributeFor(ExtChordSymbol.SerializationProxy.class, "spOriginalName");
+                }
+
+                case MIDIMIX_LOAD ->
+                {
+                    // Nothing
+                }
+                case MIDIMIX_SAVE ->
+                {
+                    // Nothing
+                }
+                default -> throw new AssertionError(instanceId.name());
+            }
+        }
+    }
+
     // --------------------------------------------------------------------- 
     // Serialization
     // ---------------------------------------------------------------------
@@ -385,11 +425,17 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
         throw new InvalidObjectException("Serialization proxy required");
     }
 
+    /**
+     * Serialization proxy.
+     * <p>  
+     * spVERSION 2 changes some saved fields, see below.<br>
+     * spVERSION 3 (JJazzLab 4.0.3) introduces several aliases to get rid of hard-coded qualified class names (XStreamConfig class introduction).
+     */
     private static class SerializationProxy implements Serializable
     {
 
         private static final long serialVersionUID = -6112620289882L;
-        private int spVERSION = 2;      // Do not make final!
+        private int spVERSION = 3;      // Do not make final!
         private String spName;
         private String spOriginalName;        // from VERSION 2 only
         private ChordRenderingInfo spRenderingInfo;

@@ -85,7 +85,7 @@ public final class NewSong implements ActionListener
         {
             try
             {
-                song = sf.createFromFile(songTemplateFile);    // Possible SongCreationException here
+                song = Song.loadFromFile(songTemplateFile);    // Possible SongCreationException here
 
 
                 // SongEditorManager will create the MidiMix, using the associated template file or
@@ -103,9 +103,9 @@ public final class NewSong implements ActionListener
             } catch (SongCreationException | MidiUnavailableException ex)
             {
                 song = null; // Because non null if it's a MidiUnavailableException
-                String msg = ResUtil.getString(NewSong.class,"ERR_CantCreateSongFromTemplate", songTemplateFile.getAbsolutePath());
+                String msg = ResUtil.getString(NewSong.class, "ERR_CantCreateSongFromTemplate", songTemplateFile.getAbsolutePath());
                 msg += ": " + ex.getLocalizedMessage();
-                LOGGER.log(Level.WARNING, "createSongFromTemplate() {0}", msg);   
+                LOGGER.log(Level.WARNING, "createSongFromTemplate() {0}", msg);
                 NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
                 DialogDisplayer.getDefault().notify(nd);
             }

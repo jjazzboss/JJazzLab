@@ -22,6 +22,7 @@
  */
 package org.jjazz.chordleadsheet.item;
 
+import com.thoughtworks.xstream.XStream;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.beans.PropertyChangeListener;
@@ -37,6 +38,12 @@ import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.utilities.api.StringProperties;
+import org.jjazz.xstream.spi.XStreamConfigurator;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_LOAD;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_SAVE;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_LOAD;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_SAVE;
+import org.openide.util.lookup.ServiceProvider;
 
 public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtChordSymbol>, Serializable
 {
@@ -53,8 +60,8 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
     /**
      * The container of this item.
      * <p>
-     * Need to be transient otherwise this introduces circularities in the objects graph that prevent ChordLeadSheetImpl's proxy
-     * serialization to work. This field must be restored by its container at deserialization.
+     * Need to be transient otherwise this introduces circularities in the objects graph that prevent ChordLeadSheetImpl's proxy serialization to work. This
+     * field must be restored by its container at deserialization.
      */
     private transient ChordLeadSheet container = null;
     /**
@@ -272,6 +279,39 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
         }
     }
 
+    /**
+     * This enables XStream instance configuration even for private classes or classes from non-public packages of Netbeans modules.
+     */
+    @ServiceProvider(service = XStreamConfigurator.class)
+    public static class XStreamConfig implements XStreamConfigurator
+    {
+
+        @Override
+        public void configure(XStreamConfigurator.InstanceId instanceId, XStream xstream)
+        {
+            switch (instanceId)
+            {
+                case SONG_LOAD, SONG_SAVE ->
+                {
+                    // From 4.0.3 new alias for better XML readibility
+                    xstream.alias("CLI_ChordSymbolImpl", CLI_ChordSymbolImpl.class);
+                    xstream.alias("CLI_ChordSymbolSP", CLI_ChordSymbolImpl.SerializationProxy.class);
+                   
+                }
+
+                case MIDIMIX_LOAD ->
+                {
+                    // Nothing
+                }
+                case MIDIMIX_SAVE ->
+                {
+                    // Nothing
+                }
+                default -> throw new AssertionError(instanceId.name());
+            }
+        }
+    }
+
     // --------------------------------------------------------------------- 
     // Serialization
     // ---------------------------------------------------------------------
@@ -285,12 +325,17 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
         throw new InvalidObjectException("Serialization proxy required");
     }
 
-
+    /**
+     * Serialization proxy.
+     * <p>
+     * spVERSION 2 changes some saved fields, see below.<br>
+     * spVERSION 3 (JJazzLab 4.0.3) introduces several aliases to get rid of hard-coded qualified class names (XStreamConfig class introduction).
+     */
     private static class SerializationProxy implements Serializable
     {
 
         private static final long serialVersionUID = 909000172651524L;
-        private int spVERSION = 2;          // Do not make final!
+        private int spVERSION = 3;          // Do not make final!
         private ExtChordSymbol spChord;
         private Position spPos;
         private StringProperties spClientProperties;  // From spVERSION 2        

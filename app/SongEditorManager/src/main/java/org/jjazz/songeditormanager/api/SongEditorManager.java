@@ -328,8 +328,7 @@ public class SongEditorManager implements PropertyChangeListener
         // File is NOT opened yet
 
         // Read song from file
-        SongFactory sf = SongFactory.getInstance();
-        Song song = sf.createFromFile(f);       // Possible SongCreationException here
+        Song song = Song.loadFromFile(f);       // Possible SongCreationException here
 
 
         // Fix the MidiMix if needed

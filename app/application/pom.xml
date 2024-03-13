@@ -351,11 +351,6 @@
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-chordsymboltextinput</artifactId> 
-            <version>${project.version}</version> 
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
             <artifactId>org-jjazz-easyreader</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
@@ -412,11 +407,6 @@
         <dependency> 
             <groupId>${project.groupId}</groupId> 
             <artifactId>org-jjazz-uisettings</artifactId> 
-            <version>${project.version}</version> 
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-helpers</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
@@ -586,11 +576,6 @@
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-colorsetmanager</artifactId> 
-            <version>${project.version}</version> 
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
             <artifactId>org-jjazz-itemrenderer</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
@@ -607,11 +592,6 @@
         <dependency> 
             <groupId>${project.groupId}</groupId> 
             <artifactId>org-jjazz-utilities</artifactId> 
-            <version>${project.version}</version> 
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-diff</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
@@ -637,11 +617,6 @@
         <dependency> 
             <groupId>${project.groupId}</groupId> 
             <artifactId>org-jjazz-yamjjazz</artifactId> 
-            <version>${project.version}</version> 
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-yjzcreator</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 

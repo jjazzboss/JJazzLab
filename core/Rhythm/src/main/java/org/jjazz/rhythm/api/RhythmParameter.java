@@ -95,7 +95,7 @@ public interface RhythmParameter<E>
      * Try to convert the specified RhythmParameter value to a string.
      *
      * @param value
-     * @return Can be null if value is invalid or RhytmParameter does not have this capability.
+     * @return Can be null if value is invalid.
      * @see loadFromString(String)
      */
     String saveAsString(E value);

@@ -22,6 +22,7 @@
  */
 package org.jjazz.harmony.api;
 
+import com.thoughtworks.xstream.XStream;
 import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
@@ -31,6 +32,12 @@ import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import org.jjazz.xstream.spi.XStreamConfigurator;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_LOAD;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_SAVE;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_LOAD;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_SAVE;
+import org.openide.util.lookup.ServiceProvider;
 
 /**
  * A standard scale (e.g. Mixolydian) with a start note (e.g. Eb).
@@ -189,6 +196,42 @@ public class StandardScaleInstance implements Serializable
         return destDegree;
     }
 
+
+    /**
+     * This enables XStream instance configuration even for private classes or classes from non-public packages of Netbeans modules.
+     */
+    @ServiceProvider(service = XStreamConfigurator.class)
+    public static class XStreamConfig implements XStreamConfigurator
+    {
+
+        @Override
+        public void configure(XStreamConfigurator.InstanceId instanceId, XStream xstream)
+        {
+            switch (instanceId)
+            {
+                case SONG_LOAD, SONG_SAVE ->
+                {
+                    // From 4.0.3 new alias for better XML readibility                    
+                    xstream.alias("StdScaleInstance", StandardScaleInstance.class);
+                    xstream.alias("StdScaleInstanceSP", SerializationProxy.class);
+                    xstream.useAttributeFor(SerializationProxy.class, "spVERSION");
+                    xstream.useAttributeFor(SerializationProxy.class, "spStdScaleIndex");
+                    xstream.useAttributeFor(SerializationProxy.class, "spStartNotePitch");
+                }
+
+                case MIDIMIX_LOAD ->
+                {
+                    // Nothing
+                }
+                case MIDIMIX_SAVE ->
+                {
+                    // Nothing
+                }
+                default -> throw new AssertionError(instanceId.name());
+            }
+        }
+    }
+
     // ---------------------------------------------------------------------
     // Serialization
     // ---------------------------------------------------------------------
@@ -204,12 +247,14 @@ public class StandardScaleInstance implements Serializable
 
     /**
      * Store the index of the std scale and the pitch of the note.
+     * <p>
+     * spVERSION2: introduces xstream aliases (see XSTreamConfig) for better XML readibility/size
      */
     private static class SerializationProxy implements Serializable
     {
 
         private static final long serialVersionUID = -3012901129L;
-        private int spVERSION = 1;  // Do not make final!
+        private int spVERSION = 2;  // Do not make final!
         private int spStdScaleIndex;
         private int spStartNotePitch;
 

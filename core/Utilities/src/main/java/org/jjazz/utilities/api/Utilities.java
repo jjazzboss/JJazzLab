@@ -23,7 +23,6 @@
 package org.jjazz.utilities.api;
 
 import com.google.common.base.Preconditions;
-import com.thoughtworks.xstream.XStream;
 import java.awt.Desktop;
 import java.awt.Font;
 import java.beans.PropertyChangeEvent;
@@ -426,21 +425,7 @@ public class Utilities
         return filename.substring(0, index) + ext;
     }
 
-    /**
-     * Get a secured XStream instance for unmarshalling which only accepts org.jjazz.** objects.
-     *
-     * @return
-     */
-    public static XStream getSecuredXStreamInstance()
-    {
-        XStream xstream = new XStream();
-        XStream.setupDefaultSecurity(xstream);
-        xstream.allowTypesByWildcard(new String[]
-        {
-            "org.jjazz.**"
-        });
-        return xstream;
-    }
+  
 
     /**
      * Get the string of all the collection elements in brackets [], but limited to maxLength.

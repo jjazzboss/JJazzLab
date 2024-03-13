@@ -22,6 +22,7 @@
  */
 package org.jjazz.chordleadsheet.item;
 
+import com.thoughtworks.xstream.XStream;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.beans.PropertyChangeListener;
@@ -38,6 +39,12 @@ import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.utilities.api.StringProperties;
+import org.jjazz.xstream.spi.XStreamConfigurator;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_LOAD;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_SAVE;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_LOAD;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_SAVE;
+import org.openide.util.lookup.ServiceProvider;
 
 /**
  * An item for a section.
@@ -56,8 +63,8 @@ public class CLI_SectionImpl implements CLI_Section, WritableItem<Section>, Seri
 
     private StringProperties clientProperties;
     /**
-     * The container of this item. Need to be transient otherwise this introduces circularities in the objects graph that prevent
-     * ChordLeadSheetImpl's proxyserialization to work. This field must be restored by its container at deserialization.
+     * The container of this item. Need to be transient otherwise this introduces circularities in the objects graph that prevent ChordLeadSheetImpl's
+     * proxyserialization to work. This field must be restored by its container at deserialization.
      */
     private transient ChordLeadSheet container = null;
 
@@ -129,7 +136,7 @@ public class CLI_SectionImpl implements CLI_Section, WritableItem<Section>, Seri
 
     /**
      * Make sure the copy has a different name.
-     * 
+     * <p>
      * Copy also the client properties.
      */
     @Override
@@ -268,6 +275,44 @@ public class CLI_SectionImpl implements CLI_Section, WritableItem<Section>, Seri
         }
     }
 
+
+    /**
+     * This enables XStream instance configuration even for private classes or classes from non-public packages of Netbeans modules.
+     */
+    @ServiceProvider(service = XStreamConfigurator.class)
+    public static class XStreamConfig implements XStreamConfigurator
+    {
+
+        @Override
+        public void configure(XStreamConfigurator.InstanceId instanceId, XStream xstream)
+        {
+            switch (instanceId)
+            {
+                case SONG_LOAD, SONG_SAVE ->
+                {
+                    // From 4.0.3 new aliases for better XML readibility
+                    xstream.alias("CLI_SectionImpl", CLI_SectionImpl.class);
+                    xstream.alias("CLI_SectionImplSP", SerializationProxy.class);
+                    xstream.useAttributeFor(SerializationProxy.class, "spName");                    
+                    xstream.useAttributeFor(SerializationProxy.class, "spBarIndex");                    
+                    xstream.useAttributeFor(SerializationProxy.class, "spTs");                    
+
+                }
+
+                case MIDIMIX_LOAD ->
+                {
+                    // Nothing
+                }
+                case MIDIMIX_SAVE ->
+                {
+                    // Nothing
+                }
+                default -> throw new AssertionError(instanceId.name());
+            }
+        }
+    }
+
+
     /* ---------------------------------------------------------------------
      * Serialization
      * --------------------------------------------------------------------- */
@@ -281,11 +326,17 @@ public class CLI_SectionImpl implements CLI_Section, WritableItem<Section>, Seri
         throw new InvalidObjectException("Serialization proxy required");
     }
 
+    /**
+     * Serialization proxy.
+     * <p>
+     * spVERSION 2 changes saved fields, see below.<br>
+     * spVERSION 3 (JJazzLab 4.0.3) introduces several aliases to get rid of hard-coded qualified class names (XStreamConfig class introduction).
+     */
     private static class SerializationProxy implements Serializable
     {
 
         private static final long serialVersionUID = 5519610279173982L;
-        private int spVERSION = 2;      // Do not make final!
+        private int spVERSION = 3;      // Do not make final!
         private String spName;
         private TimeSignature spTs;
         private int spBarIndex;

@@ -56,6 +56,7 @@ import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.undo.UndoableEdit;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
+import org.jjazz.chordleadsheet.item.CLI_SectionImpl;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.midi.api.Instrument;
 import org.jjazz.midi.api.synths.GM1Instrument;
@@ -86,8 +87,15 @@ import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.undomanager.api.SimpleEdit;
 import org.jjazz.utilities.api.ResUtil;
 import org.jjazz.utilities.api.Utilities;
+import org.jjazz.xstream.api.XStreamInstancesManager;
+import org.jjazz.xstream.spi.XStreamConfigurator;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_LOAD;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_SAVE;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_LOAD;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_SAVE;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
+import org.openide.util.lookup.ServiceProvider;
 
 /**
  * A set of up to 16 InstrumentMixes, 1 per Midi channel with 1 RhythmVoice associated.
@@ -1137,7 +1145,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
 
         try (FileOutputStream fos = new FileOutputStream(f))
         {
-            XStream xstream = new XStream();
+            XStream xstream = XStreamInstancesManager.getInstance().getMidiMixSaveInstance();
             xstream.alias("MidiMix", MidiMix.class);
             Writer w = new BufferedWriter(new OutputStreamWriter(fos, "UTF-8"));        // Needed to support special/accented chars
             xstream.toXML(this, w);
@@ -1274,7 +1282,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
 
         try (var fis = new FileInputStream(f))
         {
-            XStream xstream = Utilities.getSecuredXStreamInstance();
+            XStream xstream = XStreamInstancesManager.getInstance().getMidiMixLoadInstance();
             // From 3.0 all public packages are renamed with api or spi somewhere in the path
             // Need package aliasing required to be able to load old sng/mix files            
             xstream.aliasPackage("org.jjazz.harmony.api", "org.jjazz.harmony.api");     // Make sure new package name is not replaced by next alias
@@ -2119,6 +2127,43 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
         return r;
     }
 
+
+    /**
+     * This enables XStream instance configuration even for private classes or classes from non-public packages of Netbeans modules.
+     */
+    @ServiceProvider(service = XStreamConfigurator.class)
+    public static class XStreamConfig implements XStreamConfigurator
+    {
+
+        @Override
+        public void configure(XStreamConfigurator.InstanceId instanceId, XStream xstream)
+        {
+            switch (instanceId)
+            {
+                case SONG_LOAD, SONG_SAVE ->
+                {
+                    // Nothing
+                }
+                case MIDIMIX_LOAD, MIDIMIX_SAVE ->
+                {
+                    // From 4.0.3 new alias for better XML readibility
+                    xstream.alias("MidiMix", MidiMix.class);
+                    xstream.alias("MidiMixSP", MidiMix.SerializationProxy.class);
+
+                    
+                    // From 3.0 all public packages are renamed with api or spi somewhere in the path
+                    // Need package aliasing required to be able to load old sng/mix files
+                    xstream.aliasPackage("org.jjazz.midi.api", "org.jjazz.midi.api");   // Make sure new package name is not replaced by next alias
+                    xstream.aliasPackage("org.jjazz.midi", "org.jjazz.midi.api");
+                    xstream.aliasPackage("org.jjazz.midimix.api", "org.jjazz.midimix.api");   // Make sure new package name is not replaced by next alias
+                    xstream.aliasPackage("org.jjazz.midimix", "org.jjazz.midimix.api");
+                }
+                default -> throw new AssertionError(instanceId.name());
+            }
+        }
+    }
+
+
     // ---------------------------------------------------------------------
     // Serialization
     // --------------------------------------------------------------------- 
@@ -2139,14 +2184,16 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      * A RhythmVoice depends on system dependent rhythm, therefore it must be stored in a special way: just save rhythm serial id + RhythmVoice name, and it
      * will be reconstructed at deserialization.
      * <p>
-     * MidiMix is saved with Drums rerouting disabled and all solo status OFF, but all Mute status are saved.
+     * MidiMix is saved with Drums rerouting disabled and all solo status OFF, but all Mute status are saved.<p>
+     * spVERSION 2 changes saved fields see below<br>
+     * spVERSION 3 (JJazzLab 4.0.3) introduces aliases to get rid of hard-coded qualified class names (XStreamConfig class introduction) 
      */
     private static class SerializationProxy implements Serializable
     {
 
         private static final long serialVersionUID = -344448971122L;
         private static final String SP_USER_CHANNEL_RHYTHM_ID = "SpUserChannelRhythmID";
-        private int spVERSION = 2;      // Do not make final!
+        private int spVERSION = 3;      // Do not make final!
         private InstrumentMix[] spInsMixes;
         private RvStorage[] spKeys;
         // spDelegates introduced with JJazzLab 2.1 => not used anymore with spVERSION=2        

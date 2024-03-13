@@ -17,29 +17,10 @@
                 <artifactId>nbm-maven-plugin</artifactId>
                 <extensions>true</extensions>
                 <configuration>
-                    <publicPackages>                      
-                        <publicPackage>com.thoughtworks.xstream</publicPackage>
-                        <publicPackage>com.thoughtworks.xstream.annotations</publicPackage>
-                        <publicPackage>com.thoughtworks.xstream.converters</publicPackage>
-                        <publicPackage>com.thoughtworks.xstream.converters.basic</publicPackage>
-                        <publicPackage>com.thoughtworks.xstream.converters.collections</publicPackage>
-                        <publicPackage>com.thoughtworks.xstream.converters.enums</publicPackage>
-                        <publicPackage>com.thoughtworks.xstream.converters.extended</publicPackage>
-                        <publicPackage>com.thoughtworks.xstream.converters.javabean</publicPackage>
-                        <publicPackage>com.thoughtworks.xstream.converters.reflection</publicPackage>
-                        <publicPackage>com.thoughtworks.xstream.core</publicPackage>
-                        <publicPackage>com.thoughtworks.xstream.core.util</publicPackage>
-                        <publicPackage>com.thoughtworks.xstream.io</publicPackage>
-                        <publicPackage>com.thoughtworks.xstream.io.binary</publicPackage>
-                        <publicPackage>com.thoughtworks.xstream.io.copy</publicPackage>
-                        <publicPackage>com.thoughtworks.xstream.io.json</publicPackage>
-                        <publicPackage>com.thoughtworks.xstream.io.naming</publicPackage>
-                        <publicPackage>com.thoughtworks.xstream.io.path</publicPackage>
-                        <publicPackage>com.thoughtworks.xstream.io.xml</publicPackage>
-                        <publicPackage>com.thoughtworks.xstream.io.xml.xppdom</publicPackage>
-                        <publicPackage>com.thoughtworks.xstream.mapper</publicPackage>
-                        <publicPackage>com.thoughtworks.xstream.persistence</publicPackage>
-                        <publicPackage>com.thoughtworks.xstream.security</publicPackage>
+                    <publicPackages>
+                        <publicPackage>com.thoughtworks.xstream.*</publicPackage>
+                        <publicPackage>org.jjazz.xstream.api</publicPackage>
+                        <publicPackage>org.jjazz.xstream.spi</publicPackage>
                         <publicPackage>org.xmlpull.mxp1</publicPackage>
                         <publicPackage>org.xmlpull.v1</publicPackage>
                     </publicPackages>
@@ -61,6 +42,17 @@
             <groupId>com.thoughtworks.xstream</groupId>
             <artifactId>xstream</artifactId>
             <version>1.4.20</version>
+        </dependency>
+        <dependency>
+            <groupId>org.netbeans.api</groupId>
+            <artifactId>org-openide-modules</artifactId>
+            <version>${netbeans.version}</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>org.netbeans.api</groupId>
+            <artifactId>org-openide-util-lookup</artifactId>
+            <version>${netbeans.version}</version>
         </dependency>
     </dependencies>
     <properties>

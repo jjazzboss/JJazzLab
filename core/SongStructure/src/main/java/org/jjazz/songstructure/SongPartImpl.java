@@ -22,6 +22,7 @@
  */
 package org.jjazz.songstructure;
 
+import com.thoughtworks.xstream.XStream;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.beans.PropertyChangeListener;
@@ -30,6 +31,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -50,8 +52,13 @@ import org.openide.NotifyDescriptor;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.utilities.api.ResUtil;
-import org.jjazz.rhythm.api.RpEnumerable;
 import org.jjazz.utilities.api.StringProperties;
+import org.jjazz.xstream.spi.XStreamConfigurator;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_LOAD;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_SAVE;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_LOAD;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_SAVE;
+import org.openide.util.lookup.ServiceProvider;
 
 public class SongPartImpl implements SongPart, Serializable, ChangeListener
 {
@@ -426,6 +433,43 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
     // -------------------------------------------------------------------------------------------
     // Private methods
     // -------------------------------------------------------------------------------------------
+    /**
+     * This enables XStream instance configuration even for private classes or classes from non-public packages of Netbeans modules.
+     */
+    @ServiceProvider(service = XStreamConfigurator.class)
+    public static class XStreamConfig implements XStreamConfigurator
+    {
+
+        @Override
+        public void configure(XStreamConfigurator.InstanceId instanceId, XStream xstream)
+        {
+            switch (instanceId)
+            {
+                case SONG_LOAD, SONG_SAVE ->
+                {
+                    // From 4.0.3 new alias for better XML readibility
+                    xstream.alias("SongPartImpl", SongPartImpl.class);
+                    xstream.alias("SongPartImplSP", SerializationProxy.class);
+                    xstream.useAttributeFor(SerializationProxy.class, "spName");
+                    xstream.useAttributeFor(SerializationProxy.class, "spStartBarIndex");
+                    xstream.useAttributeFor(SerializationProxy.class, "spNbBars");
+                    xstream.useAttributeFor(SerializationProxy.class, "spRhythmId");
+                    xstream.useAttributeFor(SerializationProxy.class, "spRhythmTs");                    
+                    
+                }
+
+                case MIDIMIX_LOAD ->
+                {
+                    // Nothing
+                }
+                case MIDIMIX_SAVE ->
+                {
+                    // Nothing
+                }
+                default -> throw new AssertionError(instanceId.name());
+            }
+        }
+    }
 
     // --------------------------------------------------------------------- 
     // Serialization
@@ -444,8 +488,12 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
 
 
     /**
-     * Can not save RhythmParameters instances: they will change because the Rhythm are not serialized but recreated from the local
-     * database.
+     * Can not save RhythmParameters instances: they will change because the Rhythm are not serialized but recreated from the local database.
+     * <p>
+     * spVERSION 2 changes saved fields.<br>
+     * spVERSION 3 (JJazzLab 4.0.3) introduces several aliases to get rid of hard-coded full class names (XStreamConfig class introduction), discards
+     * the spMapRpIdDisplayName and spMapRpIdPercentageValue maps, replace legacy SmallMap by HashMap<br>
+     * <p>
      */
     private static class SerializationProxy implements Serializable
     {
@@ -456,7 +504,7 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
          */
         private static final transient List<String> saveUnavailableRhythmIds = new ArrayList<>();
 
-        private int spVERSION = 2;  // Do not make final!
+        private int spVERSION = 3;  // Do not make final!
         private String spRhythmId;
         private String spRhythmName;
         private TimeSignature spRhythmTs;
@@ -464,10 +512,14 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
         private String spName;
         private int spNbBars;
         private CLI_Section spParentSection;
-        private SmallMap<String, String> spMapRpIdValue = new SmallMap<>();
-        private SmallMap<String, String> spMapRpIdDisplayName = new SmallMap<>();        // Used to find a matching RP when rpId does not work
-        private SmallMap<String, Double> spMapRpIdPercentageValue = new SmallMap<>();   // Used as backup when RP's valueToString() does not work
+        // from spVERSION 3 replaced by spHashMapRpIdValue
+        private SmallMap<String, String> spMapRpIdValue;
+        // Discarded (made transient) from spVERSION 3
+        private transient SmallMap<String, String> spMapRpIdDisplayName = new SmallMap<>();       // Used to find a matching RP when rpId does not work.
+        // Discarded (made transient) from spVERSION 3        
+        private transient SmallMap<String, Double> spMapRpIdPercentageValue = new SmallMap<>();   // Used as backup when RP's valueToString() does not work. 
         private StringProperties spClientProperties;      // From spVERSION 2
+        private HashMap<String, String> spHashMapRpIdValue = new HashMap<>();  // From spVERSION 3
 
         @SuppressWarnings(
                 {
@@ -486,14 +538,18 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
             for (RhythmParameter rp : spt.getRhythm().getRhythmParameters())
             {
                 Object value = spt.getRPValue(rp);
-                double percentage = rp instanceof RpEnumerable ? ((RpEnumerable) rp).calculatePercentage(value) : -1;
-                spMapRpIdPercentageValue.putValue(rp.getId(), percentage);
-                spMapRpIdDisplayName.putValue(rp.getId(), rp.getDisplayName());
                 String strValue = rp.saveAsString(value);
-                if (strValue != null)
+                if (strValue == null)
                 {
-                    spMapRpIdValue.putValue(rp.getId(), strValue);
+                    Object defValue = rp.getDefaultValue();
+                    LOGGER.log(Level.WARNING, "SerializationProxy() Invalid value {0} for rp={1}, using default value {2} instead", new Object[]
+                    {
+                        value, rp,
+                        defValue
+                    });
+                    strValue = rp.saveAsString(defValue);
                 }
+                spHashMapRpIdValue.put(rp.getId(), strValue);
             }
 
             // From spVERSION 2
@@ -533,40 +589,44 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
                     {
                         ri, ex2.getMessage()
                     });
-                    r = rdb.getDefaultStubRhythmInstance(spRhythmTs);   // Can't be null
+                    r = rdb.getDefaultStubRhythmInstance(spRhythmTs);    // Can't be null
                 }
                 errRhythm = ResUtil.getString(getClass(), "ERR_RhythmNotFound") + ": " + spRhythmName + ". " + ResUtil.getString(getClass(),
                         "ERR_UsingReplacementRhythm") + ": " + r.getName();
             }
             assert r != null;
 
+
             // Recreate a SongPart
             SongPartImpl newSpt = new SongPartImpl(r, spStartBarIndex, spNbBars, spParentSection);
             newSpt.setName(spName);
+           
+            
+            if (spVERSION < 3)
+            {
+                // Need to transfer the old SmallMap spMapRpIdValue content                
+                assert spMapRpIdValue!=null;
+                spHashMapRpIdValue = new HashMap<>();                
+                for (var k: spMapRpIdValue.getKeys())
+                {
+                    spHashMapRpIdValue.put(k, spMapRpIdValue.getValue(k));
+                }                
+            }
+            
 
             // Update new rhythm parameters with saved values 
-            for (String savedRpId : spMapRpIdPercentageValue.getKeys())
+            for (String rpId : spHashMapRpIdValue.keySet())
             {
-                // Reuse the old rp value if there is a matchig rp in the destination rhythm
-                String savedRpDisplayName = spMapRpIdDisplayName.getValue(savedRpId);
-                RhythmParameter newRp = findMatchingRp(r.getRhythmParameters(), savedRpId, savedRpDisplayName);
+                RhythmParameter newRp = r.getRhythmParameters().stream().filter(rp -> rp.getId().equals(rpId)).findAny().orElse(null);
                 if (newRp != null)
                 {
-                    // Try to reuse the string value if available, otherwise use percentage value if RP is enumerable
                     Object newValue = null;
-                    String savedRpStringValue = spMapRpIdValue.getValue(savedRpId);
+                    String savedRpStringValue = spHashMapRpIdValue.get(rpId);
                     if (savedRpStringValue != null)
                     {
                         newValue = newRp.loadFromString(savedRpStringValue);      // newValue can still be null after this
                     }
-                    if (newValue == null && newRp instanceof RpEnumerable)
-                    {
-                        double savedRpPercentageValue = spMapRpIdPercentageValue.getValue(savedRpId);
-                        if (savedRpPercentageValue >= 0 && savedRpPercentageValue <= 1)
-                        {
-                            newValue = ((RpEnumerable) newRp).calculateValue(savedRpPercentageValue);
-                        }
-                    }
+
                     if (newValue == null)
                     {
                         LOGGER.log(Level.WARNING,
@@ -578,10 +638,13 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
                                 });
                         newValue = newRp.getDefaultValue();
                     }
+
+                    // Assign the value
                     newSpt.setRPValue(newRp, newValue);
+
                 } else if (!saveUnavailableRhythmIds.contains(spRhythmId))
                 {
-                    String msg = "- '" + savedRpId + "' original rhythm parameter value can not be reused by new rhythm '" + r.getName() + "'";
+                    String msg = "readResolve() Saved rhythm parameter " + rpId + " not found in rhythm " + r.getName();
                     LOGGER.log(Level.WARNING, msg);
                 }
             }
@@ -603,8 +666,7 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
                     newSpt.getClientProperties().set(spClientProperties);
                 } else
                 {
-                    LOGGER.log(Level.WARNING, "SerializationProxy.readResolve() Unexpected null value for spClientProperties. spName={0}",
-                            spName);
+                    LOGGER.log(Level.WARNING, "readResolve() Unexpected null value for spClientProperties. spName={0}", spName);
                 }
             }
 
@@ -612,33 +674,6 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
             return newSpt;
         }
 
-        /**
-         * Find a RP in rps who can match the specified parameters.
-         * <p>
-         * First try to match rpId, then rpDisplayName (ignoring case).
-         *
-         * @param rps
-         * @param rpId
-         * @param rpDisplayName
-         * @return
-         */
-        private RhythmParameter<?> findMatchingRp(List<RhythmParameter<?>> rps, String rpId, String rpDisplayName)
-        {
-            for (RhythmParameter<?> rp : rps)
-            {
-                if (rp.getId().equals(rpId))
-                {
-                    return rp;
-                }
-            }
-            for (RhythmParameter<?> rp : rps)
-            {
-                if (rp.getDisplayName().equalsIgnoreCase(rpDisplayName))
-                {
-                    return rp;
-                }
-            }
-            return null;
-        }
+
     }
 }

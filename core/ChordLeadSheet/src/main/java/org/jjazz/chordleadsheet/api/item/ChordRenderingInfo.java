@@ -22,6 +22,7 @@
  */
 package org.jjazz.chordleadsheet.api.item;
 
+import com.thoughtworks.xstream.XStream;
 import java.io.IOException;
 import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
@@ -33,6 +34,12 @@ import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.harmony.api.StandardScaleInstance;
+import org.jjazz.xstream.spi.XStreamConfigurator;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_LOAD;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_SAVE;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_LOAD;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_SAVE;
+import org.openide.util.lookup.ServiceProvider;
 
 /**
  * Music rendering info associated to a chord.
@@ -394,6 +401,40 @@ public class ChordRenderingInfo implements Serializable
         return features;
     }
 
+    /**
+     * This enables XStream instance configuration even for private classes or classes from non-public packages of Netbeans modules.
+     */
+    @ServiceProvider(service = XStreamConfigurator.class)
+    public static class XStreamConfig implements XStreamConfigurator
+    {
+
+        @Override
+        public void configure(XStreamConfigurator.InstanceId instanceId, XStream xstream)
+        {
+            switch (instanceId)
+            {
+                case SONG_LOAD, SONG_SAVE ->
+                {
+                    // From 4.0.3 new alias for better XML readibility
+                    xstream.alias("ChordRenderingInfo", ChordRenderingInfo.class);
+                    xstream.alias("ChordRenderingInfoSP", SerializationProxy.class);
+                    xstream.alias("Feature", Feature.class);                                        
+
+                }
+
+                case MIDIMIX_LOAD ->
+                {
+                    // Nothing
+                }
+                case MIDIMIX_SAVE ->
+                {
+                    // Nothing
+                }
+                default -> throw new AssertionError(instanceId.name());
+            }
+        }
+    }
+
     // --------------------------------------------------------------------- 
     //    Serialization
     // ---------------------------------------------------------------------
@@ -408,14 +449,16 @@ public class ChordRenderingInfo implements Serializable
     }
 
     /**
-     * Proxy to read old versions.
+     * Serialization proxy.
      * <p>
+     * spVERSION 2 changes some saved fields, see below.<br>
+     * spVERSION 3 (JJazzLab 4.0.3) introduces several aliases to get rid of hard-coded qualified class names (XStreamConfig class introduction).
      */
     private static class SerializationProxy implements Serializable
     {
 
         private static final long serialVersionUID = -655298712991L;
-        private int spVERSION = 2;    // Must be FIRST field !      Do not make final!  
+        private int spVERSION = 3;    // Must be FIRST field !      Do not make final!  
 
         // ==================================================================================
         // V1 format: 

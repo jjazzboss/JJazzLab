@@ -24,6 +24,7 @@ package org.jjazz.chordleadsheet;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import com.thoughtworks.xstream.XStream;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import org.jjazz.undomanager.api.SimpleEdit;
@@ -54,7 +55,13 @@ import org.jjazz.chordleadsheet.api.ClsChangeListener;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.chordleadsheet.api.item.CLI_Factory;
 import org.jjazz.utilities.api.StringProperties;
+import org.jjazz.xstream.spi.XStreamConfigurator;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_LOAD;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_SAVE;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_LOAD;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_SAVE;
 import org.openide.util.Exceptions;
+import org.openide.util.lookup.ServiceProvider;
 
 public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable, PropertyChangeListener
 {
@@ -1599,6 +1606,43 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable, Propert
 
     }
 
+    /**
+     * This enables XStream instance configuration even for private classes or classes from non-public packages of Netbeans modules.
+     * <p>
+     */
+    @ServiceProvider(service = XStreamConfigurator.class)
+    public static class XStreamConfig implements XStreamConfigurator
+    {
+
+        @Override
+        public void configure(XStreamConfigurator.InstanceId instanceId, XStream xstream)
+        {
+            switch (instanceId)
+            {
+                case SONG_LOAD, SONG_SAVE ->
+                {
+                    // From 4.0.3 new alias for better XML readibility
+                    xstream.alias("ChordLeadSheetImpl", ChordLeadSheetImpl.class);
+                    xstream.alias("ChordLeadSheetImplSP", SerializationProxy.class);
+
+
+                    // From 4.0 ChordLeadSheet packages were renamed from org.jjazz.leadsheet.chordleadsheet.* to org.jjazz.chordleadsheet.*
+                    xstream.aliasPackage("org.jjazz.leadsheet.chordleadsheet", "org.jjazz.chordleadsheet");
+                }
+
+                case MIDIMIX_LOAD ->
+                {
+                    // Nothing
+                }
+                case MIDIMIX_SAVE ->
+                {
+                    // Nothing
+                }
+                default -> throw new AssertionError(instanceId.name());
+            }
+        }
+    }
+
     // --------------------------------------------------------------------- 
     //  Serialization
     // --------------------------------------------------------------------- */
@@ -1615,13 +1659,14 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable, Propert
     /**
      * Need to restore each item's container.
      * <p>
-     * Allow to be independent of future chordleadsheet internal data structure changes.
+     * Allow to be independent of future chordleadsheet internal data structure changes.<p>
+     * spVERSION 2 (JJazzLab 4.0.3) introduces several aliases to get rid of hard-coded qualified class names (XStreamConfig class introduction).<br>
      */
     private static class SerializationProxy implements Serializable
     {
 
         private static final long serialVersionUID = 2879716323116L;
-        private final int spVERSION = 1;
+        private final int spVERSION = 2;
         private final ArrayList<ChordLeadSheetItem> spItems;
         private final int spSize;
 

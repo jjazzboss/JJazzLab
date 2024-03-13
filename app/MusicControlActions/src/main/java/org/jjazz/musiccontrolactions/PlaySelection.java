@@ -40,7 +40,6 @@ import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.musiccontrol.api.playbacksession.UpdateProviderSongSession;
 import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession;
-import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSessionOnePlay;
 import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.song.api.Song;
@@ -187,7 +186,7 @@ public class PlaySelection extends AbstractAction
             session = UpdatableSongSession.getSession(dynSession);
             mc.setPlaybackSession(session, false);      // Can raise MusicGenerationException
             mc.play(rg.from);
-            
+
         } catch (MusicGenerationException | PropertyVetoException | MidiUnavailableException ex)
         {
             if (session != null)

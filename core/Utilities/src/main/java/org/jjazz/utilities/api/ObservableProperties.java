@@ -53,7 +53,7 @@ public class ObservableProperties<T> implements Serializable
     }
 
     /**
-     * 
+     *
      * @param owner Can be null
      */
     public ObservableProperties(Object owner)
@@ -62,18 +62,19 @@ public class ObservableProperties<T> implements Serializable
     }
 
     /**
-     * 
-     * @param owner Can be null
-     * @param otherProperties 
+     *
+     * @param owner           Can be null
+     * @param otherProperties
      */
     public ObservableProperties(Object owner, ObservableProperties<T> otherProperties)
     {
         set(otherProperties);
+        this.owner = owner;
     }
-    
+
     /**
      * The (optional) owner of this properties.
-     * 
+     *
      * @return Can be null
      */
     public Object getOwner()

@@ -34,7 +34,7 @@ public class StringProperties extends ObservableProperties<String> implements Se
     public StringProperties()
     {
     }
-    
+
     public StringProperties(Object owner)
     {
         super(owner);
@@ -42,7 +42,7 @@ public class StringProperties extends ObservableProperties<String> implements Se
 
     public StringProperties(Object owner, StringProperties sp)
     {
-        super(sp);
+        super(owner, sp);
     }
 
     public boolean getBoolean(String prop, boolean defaultValue)
@@ -93,4 +93,5 @@ public class StringProperties extends ObservableProperties<String> implements Se
     {
         putInt(prop, value != null ? value.getRGB() : null);
     }
+
 }
