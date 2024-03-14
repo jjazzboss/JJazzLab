@@ -20,7 +20,7 @@
  *
  *  Contributor(s):
  */
-package org.jjazz.importers;
+package org.jjazz.songeditormanager;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -69,13 +69,13 @@ import org.openide.windows.WindowManager;
         {
             @ActionReference(path = "Menu/File", position = 10),
         })
-public final class ImportSongAction implements ActionListener
+public final class ImportSong implements ActionListener
 {
 
     public static final String PREF_LAST_IMPORT_DIRECTORY = "LastImportDirectory";    
-    private static Preferences prefs = NbPreferences.forModule(ImportSongAction.class);
+    private static Preferences prefs = NbPreferences.forModule(ImportSong.class);
     private final ResourceBundle bundle = ResUtil.getBundle(getClass());
-    private static final Logger LOGGER = Logger.getLogger(ImportSongAction.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(ImportSong.class.getSimpleName());
 
     @Override
     public void actionPerformed(ActionEvent e)

@@ -20,7 +20,7 @@
  *
  *  Contributor(s):
  */
-package org.jjazz.embeddedsynth;
+package org.jjazz.songeditormanager;
 
 import java.awt.event.ActionEvent;
 import java.io.File;
@@ -31,7 +31,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.sound.sampled.UnsupportedAudioFileException;
 import javax.swing.AbstractAction;
 import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
@@ -64,7 +63,7 @@ import org.openide.windows.WindowManager;
 /**
  * Export song to a midi file.
  */
-@ActionID(category = "MusicControls", id = "org.jjazz.embeddedsynth.exporttoaudio")
+@ActionID(category = "File", id = "org.jjazz.songeditormanager.exporttoaudio")
 @ActionRegistration(displayName = "#CTL_ExportToAudio", lazy = true)
 @ActionReferences(
         {

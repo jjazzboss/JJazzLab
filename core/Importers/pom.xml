@@ -34,22 +34,7 @@
             </plugin>
         </plugins>
     </build>
-    <dependencies>      
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-activesong</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-analytics</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-filedirectorymanager</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
+    <dependencies>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
             <artifactId>org-jjazz-harmony</artifactId> 
@@ -58,21 +43,6 @@
         <dependency> 
             <groupId>${project.groupId}</groupId> 
             <artifactId>org-jjazz-chordleadsheet</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-midi</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-midimix</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-musiccontrol</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
@@ -87,22 +57,7 @@
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-songeditormanager</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
             <artifactId>org-jjazz-songstructure</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-uiutilities</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-upgrade</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
@@ -112,44 +67,13 @@
         </dependency>  
         <dependency> 
             <groupId>org.netbeans.api</groupId> 
-            <artifactId>org-netbeans-api-progress</artifactId> 
-            <version>${netbeans.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>org.netbeans.api</groupId> 
-            <artifactId>org-netbeans-api-progress-nb</artifactId> 
-            <version>${netbeans.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>org.netbeans.api</groupId> 
-            <artifactId>org-openide-awt</artifactId> 
-            <version>${netbeans.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>org.netbeans.api</groupId> 
-            <artifactId>org-openide-dialogs</artifactId> 
-            <version>${netbeans.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>org.netbeans.api</groupId> 
             <artifactId>org-openide-util</artifactId> 
             <version>${netbeans.version}</version>  
         </dependency>  
-        <dependency> 
-            <groupId>org.netbeans.api</groupId> 
-            <artifactId>org-openide-util-lookup</artifactId> 
-            <version>${netbeans.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>org.netbeans.api</groupId> 
-            <artifactId>org-openide-windows</artifactId> 
-            <version>${netbeans.version}</version>  
-        </dependency>
         <dependency>
             <groupId>xom</groupId>
             <artifactId>xom</artifactId>
             <version>1.3.8</version>
-            
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>

@@ -177,6 +177,11 @@
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
+            <groupId>${project.groupId}</groupId> 
+            <artifactId>org-jjazz-embeddedsynth</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>          
+        <dependency> 
             <groupId>org.netbeans.api</groupId> 
             <artifactId>org-netbeans-modules-sendopts</artifactId> 
             <version>${netbeans.version}</version>  
@@ -220,6 +225,11 @@
             <groupId>org.netbeans.api</groupId> 
             <artifactId>org-openide-windows</artifactId> 
             <version>${netbeans.version}</version>  
+        </dependency>
+        <dependency>
+            <groupId>org.netbeans.api</groupId>
+            <artifactId>org-netbeans-api-progress</artifactId>
+            <version>${netbeans.version}</version>
         </dependency>
     </dependencies>
     <properties>

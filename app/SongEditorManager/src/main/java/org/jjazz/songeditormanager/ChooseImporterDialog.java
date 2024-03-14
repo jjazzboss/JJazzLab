@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.importers;
+package org.jjazz.songeditormanager;
 
 import java.awt.Component;
 import java.awt.event.ActionEvent;

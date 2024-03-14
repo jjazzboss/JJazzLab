@@ -47,7 +47,7 @@ import org.openide.windows.WindowManager;
 /**
  * Export song to a midi file.
  */
-@ActionID(category = "MusicControls", id = "org.jjazz.musiccontrolactions.exporttomidifile")
+@ActionID(category = "File", id = "org.jjazz.musiccontrolactions.exporttomidifile")
 @ActionRegistration(displayName = "#CTL_ExportToMidiFile", lazy = true)
 @ActionReferences(
         {
