@@ -96,12 +96,12 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
     MidiPanel(MidiOptionsPanelController controller)
     {
         this.controller = controller;
-        
-        
-        comboModel = new ComboMidiSynthModel();              
+
+
+        comboModel = new ComboMidiSynthModel();
         initComponents();       // Use comboModel        
         ((TitledBorder) pnl_outputSynth.getBorder()).setTitle(ResUtil.getString(getClass(), "MidiPanel.OutputSynthFor", "    "));
-        
+
 
         updateMapDeviceSynth();
 
@@ -1034,7 +1034,10 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
 
         public void addMidiSynth(MidiSynth mSynth)
         {
-            insertElementAt(mSynth, getSize() - 1); // Add before the FAKE_MULTISYNTH
+            if (mSynth != embeddedSynth.getOutputSynth().getMidiSynth())
+            {
+                insertElementAt(mSynth, getSize() - 1); // Add before the FAKE_MULTISYNTH
+            }
         }
 
         public void removeMidiSynth(MidiSynth mSynth)

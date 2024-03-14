@@ -115,7 +115,7 @@
             </Property>
           </Properties>
         </Component>
-        <Component class="org.jjazz.uiutilities.api.WheelSpinner" name="spn_velocity">
+        <Component class="org.jjazz.flatcomponents.api.WheelSpinner" name="spn_velocity">
           <Properties>
             <Property name="model" type="javax.swing.SpinnerModel" editor="org.netbeans.modules.form.editors2.SpinnerModelEditor">
               <SpinnerModel initial="0" maximum="127" minimum="0" numberType="java.lang.Integer" stepSize="1" type="number"/>

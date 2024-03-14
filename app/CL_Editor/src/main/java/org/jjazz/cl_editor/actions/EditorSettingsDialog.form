@@ -79,7 +79,7 @@
     </DimensionLayout>
   </Layout>
   <SubComponents>
-    <Component class="org.jjazz.uiutilities.api.WheelSpinner" name="spn_nbCols">
+    <Component class="org.jjazz.flatcomponents.api.WheelSpinner" name="spn_nbCols">
       <Properties>
         <Property name="model" type="javax.swing.SpinnerModel" editor="org.netbeans.modules.form.editors2.SpinnerModelEditor">
           <SpinnerModel initial="4" maximum="16" minimum="1" numberType="java.lang.Integer" stepSize="1" type="number"/>
@@ -118,7 +118,7 @@
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btn_okActionPerformed"/>
       </Events>
     </Component>
-    <Component class="org.jjazz.uiutilities.api.WheelSpinner" name="spn_nbAnnotationLines">
+    <Component class="org.jjazz.flatcomponents.api.WheelSpinner" name="spn_nbAnnotationLines">
       <Properties>
         <Property name="model" type="javax.swing.SpinnerModel" editor="org.netbeans.modules.form.editors2.SpinnerModelEditor">
           <SpinnerModel initial="2" maximum="4" minimum="1" numberType="java.lang.Integer" stepSize="1" type="number"/>

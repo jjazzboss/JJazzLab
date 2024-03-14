@@ -50,7 +50,7 @@
         </Container>
       </SubComponents>
     </Container>
-    <Component class="org.jjazz.uiutilities.api.SmallFlatDarkLafButton" name="fbtn_chordMode">
+    <Component class="org.jjazz.flatcomponents.api.SmallFlatDarkLafButton" name="fbtn_chordMode">
       <Properties>
         <Property name="text" type="java.lang.String" value="Most common chords" noResource="true"/>
         <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">

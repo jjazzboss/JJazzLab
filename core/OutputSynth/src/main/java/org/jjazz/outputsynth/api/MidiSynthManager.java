@@ -119,10 +119,10 @@ public class MidiSynthManager
         midiSynths.add(GM2Synth.getInstance());
         midiSynths.add(XGSynth.getInstance());
         midiSynths.add(GSSynth.getInstance());
-        midiSynths.add(loadFromResource(getClass(), YAMAHA_REF_SYNTH_PATH));        
-//        midiSynths.add(loadFromResource(getClass(), JJAZZLAB_SOUNDFONT_GM2_SYNTH_PATH));
-//        midiSynths.add(loadFromResource(getClass(), JJAZZLAB_SOUNDFONT_XG_SYNTH_PATH));
-//        midiSynths.add(loadFromResource(getClass(), JJAZZLAB_SOUNDFONT_GS_SYNTH_PATH));
+        midiSynths.add(loadFromResource(getClass(), YAMAHA_REF_SYNTH_PATH));
+        midiSynths.add(loadFromResource(getClass(), JJAZZLAB_SOUNDFONT_GS_SYNTH_PATH));
+        midiSynths.add(loadFromResource(getClass(), JJAZZLAB_SOUNDFONT_GM2_SYNTH_PATH));
+        midiSynths.add(loadFromResource(getClass(), JJAZZLAB_SOUNDFONT_XG_SYNTH_PATH));
 
     }
 
@@ -259,17 +259,17 @@ public class MidiSynthManager
     {
         MidiSynth res;
         InputStream is = clazz.getResourceAsStream(insResourcePath);
-        assert is != null : "insResourcePath=" + insResourcePath;   
+        assert is != null : "insResourcePath=" + insResourcePath;
         MidiSynthFileReader r = MidiSynthFileReader.getReader("ins");
-        assert r != null;   
+        assert r != null;
         try
         {
             List<MidiSynth> synths = r.readSynthsFromStream(is, null);
-            assert synths.size() == 1;   
+            assert synths.size() == 1;
             res = synths.get(0);
         } catch (IOException ex)
         {
-            throw new IllegalStateException("Unexpected error", ex);   
+            throw new IllegalStateException("Unexpected error", ex);
         }
         return res;
     }
@@ -366,8 +366,7 @@ public class MidiSynthManager
     /**
      * Copy the default Midi files in the app config directory.
      * <p>
-     * Could be an UpgradeTask since it should be executed only upon fresh start. But we use a StartupTask because a user dialog
-     * might be used.
+     * Could be an UpgradeTask since it should be executed only upon fresh start. But we use a StartupTask because a user dialog might be used.
      */
     @ServiceProvider(service = StartupTask.class)
     public static class CopyMidiSynthsTask implements StartupTask
@@ -411,7 +410,7 @@ public class MidiSynthManager
             }
             if (!dir.isDirectory())
             {
-                LOGGER.log(Level.WARNING, "CopyMidiSynthsTask.initializeDir() Could not access directory {0}.", dir.getAbsolutePath());   
+                LOGGER.log(Level.WARNING, "CopyMidiSynthsTask.initializeDir() Could not access directory {0}.", dir.getAbsolutePath());
             } else
             {
                 // Copy files 
@@ -422,8 +421,8 @@ public class MidiSynthManager
         /**
          * If dir is not empty ask user confirmation to replace files.
          * <p>
-         * Normally dir will be empty for a real fresh start. But if user deleted its user settings and has changed some Midi
-         * synth definition file, better to ask him if it's OK to copy the files over.
+         * Normally dir will be empty for a real fresh start. But if user deleted its user settings and has changed some Midi synth definition file, better to
+         * ask him if it's OK to copy the files over.
          *
          * @param dir Must exist.
          */
@@ -435,7 +434,7 @@ public class MidiSynthManager
                 isEmpty = Utilities.isEmpty(dir.toPath());
             } catch (IOException ex)
             {
-                LOGGER.log(Level.WARNING, "CopyMidiSynthsTask.copyFilesOrNot() Can''t check if dir. is empty. ex={0}", ex.getMessage());   
+                LOGGER.log(Level.WARNING, "CopyMidiSynthsTask.copyFilesOrNot() Can''t check if dir. is empty. ex={0}", ex.getMessage());
                 return;
             }
 
@@ -446,7 +445,8 @@ public class MidiSynthManager
                 {
                     "OK", ResUtil.getString(getClass(), "MidiSynthManager.Skip")
                 };
-                NotifyDescriptor d = new NotifyDescriptor(msg, ResUtil.getString(getClass(), "MidiSynthManager.FirstTimeInit"), 0, NotifyDescriptor.QUESTION_MESSAGE, options, "OK");
+                NotifyDescriptor d = new NotifyDescriptor(msg, ResUtil.getString(getClass(), "MidiSynthManager.FirstTimeInit"), 0,
+                        NotifyDescriptor.QUESTION_MESSAGE, options, "OK");
                 Object result = DialogDisplayer.getDefault().notify(d);
 
                 if (!result.equals("OK"))
@@ -457,8 +457,11 @@ public class MidiSynthManager
 
             // Copy the default rhythms
             List<File> res = Utilities.extractZipResource(getClass(), ZIP_RESOURCE_PATH, dir.toPath(), true);
-            LOGGER.log(Level.INFO, "CopyMidiSynthsTask.copyFilesOrNot() Copied {0} Midi synth definition files to {1}", new Object[]{res.size(),
-                dir.getAbsolutePath()});   
+            LOGGER.log(Level.INFO, "CopyMidiSynthsTask.copyFilesOrNot() Copied {0} Midi synth definition files to {1}", new Object[]
+            {
+                res.size(),
+                dir.getAbsolutePath()
+            });
 
         }
 

@@ -144,7 +144,7 @@
         </Property>
       </Properties>
     </Component>
-    <Component class="org.jjazz.uiutilities.api.WheelSpinner" name="spn_splitNote">
+    <Component class="org.jjazz.flatcomponents.api.WheelSpinner" name="spn_splitNote">
       <Properties>
         <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
           <ResourceString bundle="org/jjazz/arranger/Bundle.properties" key="ArrangerPanel.spn_splitNote.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
