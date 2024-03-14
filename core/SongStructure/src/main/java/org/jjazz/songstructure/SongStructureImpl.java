@@ -1363,7 +1363,7 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
             {
                 case SONG_LOAD, SONG_SAVE ->
                 {
-                    // From 4.0.3 new alias for better XML readibility
+                    // From 4.0.3 new aliases to get rid of fully qualified class names in .sng files
                     xstream.alias("SongStructureImpl", SongStructureImpl.class);
                     xstream.alias("SongStructureImplSP", SongStructureImpl.SerializationProxy.class);
 

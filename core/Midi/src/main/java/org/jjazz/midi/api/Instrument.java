@@ -22,6 +22,7 @@
  */
 package org.jjazz.midi.api;
 
+import com.thoughtworks.xstream.XStream;
 import org.jjazz.midi.api.synths.GM1Bank;
 import org.jjazz.midi.api.synths.GM1Instrument;
 import java.io.InvalidObjectException;
@@ -35,6 +36,12 @@ import org.jjazz.midi.api.synths.GM2Bank;
 import org.jjazz.midi.api.synths.GMSynth;
 import org.jjazz.midi.api.synths.GSBank;
 import org.jjazz.midi.api.synths.XGBank;
+import org.jjazz.xstream.spi.XStreamConfigurator;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_LOAD;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_SAVE;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_LOAD;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_SAVE;
+import org.openide.util.lookup.ServiceProvider;
 
 /**
  * The data used to select via MIDI an instrument on a synthesizer.
@@ -50,8 +57,7 @@ public class Instrument implements Serializable
     private static final Logger LOGGER = Logger.getLogger(Instrument.class.getSimpleName());
 
     /**
-     * Constructor with bank=null, drumKit=null, and a MidiAddress(pc=programChange, bankLSB=-1, bankMSB=-1,
-     * bankSelectMethod=null).
+     * Constructor with bank=null, drumKit=null, and a MidiAddress(pc=programChange, bankLSB=-1, bankMSB=-1, bankSelectMethod=null).
      *
      * @param programChange
      * @param patchName
@@ -62,8 +68,7 @@ public class Instrument implements Serializable
     }
 
     /**
-     * Constructor with bank=null, drumKit=kit, a MidiAddress(pc=programChange, bankLSB=-1, bankMSB=-1, bankSelectMethod=null),
-     * and no GM1Instrument substitute.
+     * Constructor with bank=null, drumKit=kit, a MidiAddress(pc=programChange, bankLSB=-1, bankMSB=-1, bankSelectMethod=null), and no GM1Instrument substitute.
      *
      * @param programChange
      * @param patchName
@@ -77,8 +82,8 @@ public class Instrument implements Serializable
     /**
      * Create an instrument.
      * <p>
-     * If bank is non-null and ma is not fully defined (see MidiAddress.isFullyDefined()), then a new MidiAddress is created which
-     * replaces the undefined values by the bank default values.
+     * If bank is non-null and ma is not fully defined (see MidiAddress.isFullyDefined()), then a new MidiAddress is created which replaces the undefined values
+     * by the bank default values.
      *
      *
      * @param patchName  The patchName of the patch, e.g. "Grand Piano"
@@ -91,7 +96,7 @@ public class Instrument implements Serializable
     {
         if (patchName == null || patchName.trim().isEmpty() || ma == null || (kit != null && substitute != null))
         {
-            throw new IllegalArgumentException("patchName=" + patchName + " bank=" + bank + " ma=" + ma + " kit=" + kit + " substitute=" + substitute);   
+            throw new IllegalArgumentException("patchName=" + patchName + " bank=" + bank + " ma=" + ma + " kit=" + kit + " substitute=" + substitute);
         }
         this.patchName = patchName;
         this.bank = bank;
@@ -114,8 +119,8 @@ public class Instrument implements Serializable
      * <p>
      * It is the responsibility of the specified bank to add the Instrument.
      * <p>
-     * If this object's MidiAddress has undefined bankMSB or bankLSB or bankSelectMethod, then a new MidiAddress is created which
-     * replaces the undefined values by the bank default values.
+     * If this object's MidiAddress has undefined bankMSB or bankLSB or bankSelectMethod, then a new MidiAddress is created which replaces the undefined values
+     * by the bank default values.
      *
      * @param bank A non null value, the InstrumentBank this Instrument belongs to, e.g. GM1Bank.
      */
@@ -123,11 +128,12 @@ public class Instrument implements Serializable
     {
         if (this.bank != null)
         {
-            throw new IllegalStateException("Instrument=" + this.toLongString() + " - can't set bank to " + bank.getName() + ", bank is already set to " + this.bank.getName());   
+            throw new IllegalStateException(
+                    "Instrument=" + this.toLongString() + " - can't set bank to " + bank.getName() + ", bank is already set to " + this.bank.getName());
         }
         if (bank == null)
         {
-            throw new IllegalArgumentException("bank=" + bank);   
+            throw new IllegalArgumentException("bank=" + bank);
         }
         this.bank = bank;
         if (!address.isFullyDefined())
@@ -255,8 +261,7 @@ public class Instrument implements Serializable
     {
         return patchName;
     }
-    
-    
+
 
     /**
      * Longer version.
@@ -284,9 +289,9 @@ public class Instrument implements Serializable
     {
         if (getBank() == null || getBank().getMidiSynth() == null)
         {
-            throw new IllegalStateException("getBank()=" + getBank());   
+            throw new IllegalStateException("getBank()=" + getBank());
         }
-        LOGGER.log(Level.FINE, "saveAsString() this={0} bank={1} midiSynth={2}", new Object[]   
+        LOGGER.log(Level.FINE, "saveAsString() this={0} bank={1} midiSynth={2}", new Object[]
         {
             this, getBank().getName(), getBank().getMidiSynth().getName()
         });
@@ -307,7 +312,7 @@ public class Instrument implements Serializable
     {
         if (s == null)
         {
-            throw new NullPointerException("s");   
+            throw new NullPointerException("s");
         }
         String[] strs = s.split("#_#");
         if (strs.length != 3)
@@ -315,7 +320,7 @@ public class Instrument implements Serializable
             strs = s.split(",");        // Kept for backwards compatibility with 1.x 
             if (strs.length != 3)
             {
-                LOGGER.log(Level.WARNING, "loadFromString() Invalid string format : {0}", s);   
+                LOGGER.log(Level.WARNING, "loadFromString() Invalid string format : {0}", s);
                 return null;
             }
         }
@@ -336,6 +341,44 @@ public class Instrument implements Serializable
         return ins;
     }
 
+    /**
+     * This enables XStream instance configuration even for private classes or classes from non-public packages of Netbeans modules.
+     */
+    @ServiceProvider(service = XStreamConfigurator.class)
+    public static class XStreamConfig implements XStreamConfigurator
+    {
+
+        @Override
+        public void configure(XStreamConfigurator.InstanceId instanceId, XStream xstream)
+        {
+            switch (instanceId)
+            {
+                case SONG_LOAD, SONG_SAVE ->
+                {
+                    // Nothing
+                }
+
+                case MIDIMIX_LOAD, MIDIMIX_SAVE ->
+                {
+                    if (instanceId.equals(MIDIMIX_LOAD))
+                    {
+                        // From 3.0 all public packages are renamed with api or spi somewhere in the path
+                        // Need package aliasing required to be able to load old sng/mix files
+                        xstream.aliasPackage("org.jjazz.midi", "org.jjazz.midi.api");
+                    }
+
+                    // From 4.0.3 new aliases to get rid of fully qualified class names in .sng files                    
+                    xstream.alias("Instrument", Instrument.class);
+                    xstream.alias("InstrumentSP", SerializationProxy.class);
+                    xstream.useAttributeFor(SerializationProxy.class, "spVERSION");
+                    xstream.useAttributeFor(SerializationProxy.class, "spPatchname");
+                    xstream.useAttributeFor(SerializationProxy.class, "spSaveString");
+                }
+                default -> throw new AssertionError(instanceId.name());
+            }
+        }
+    }
+
     // --------------------------------------------------------------------- 
     // Serialization
     // --------------------------------------------------------------------- 
@@ -354,12 +397,14 @@ public class Instrument implements Serializable
      * If Instrument's bank is null serialization will fail.
      * <p>
      * Do not directly serialize Instrument instances because we need to reuse instances provided by the local InstrumentBanks.
+     * <p>
+     * spVERSION 2 introduces new XStream aliases (see XStreamConfig)
      */
     public static class SerializationProxy implements Serializable
     {
 
         private static final long serialVersionUID = 2792087126L;
-        private int spVERSION = 1;          // Do not make final!
+        private int spVERSION = 2;          // Do not make final!
         private String spSaveString;
         private String spPatchname;
 
@@ -367,7 +412,7 @@ public class Instrument implements Serializable
         {
             if (ins.getBank() == null || ins.getBank().getMidiSynth() == null)
             {
-                throw new IllegalStateException("ins=" + ins + " ins.getBank()=" + ins.getBank());   
+                throw new IllegalStateException("ins=" + ins + " ins.getBank()=" + ins.getBank());
             }
             spSaveString = ins.saveAsString();
             spPatchname = ins.getPatchName();       // Robustness, if spSaveString not usable
@@ -384,7 +429,7 @@ public class Instrument implements Serializable
                 {
                     ins = gm1Bank.getInstrument(0);
                 }
-                LOGGER.log(Level.WARNING, "readResolve() Can not retrieve Instrument from string={0}, using instead GM1 Instrument={1}", new Object[]   
+                LOGGER.log(Level.WARNING, "readResolve() Can not retrieve Instrument from string={0}, using instead GM1 Instrument={1}", new Object[]
                 {
                     spSaveString, ins.getPatchName()
                 });

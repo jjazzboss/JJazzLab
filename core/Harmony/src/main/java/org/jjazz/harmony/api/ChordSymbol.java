@@ -676,51 +676,5 @@ public class ChordSymbol implements Cloneable
         return new Note(n.getRelativePitch(), 1, 64, n.getAlterationDisplay());
     }
 
-    // --------------------------------------------------------------------- 
-    // Serialization
-    // ---------------------------------------------------------------------
-//    private Object writeReplace()
-//    {
-//        return new SerializationProxy(this);
-//    }
-//
-//    private void readObject(ObjectInputStream stream)
-//            throws InvalidObjectException
-//    {
-//        throw new InvalidObjectException("Serialization proxy required");
-//    }
-//
-//    private static class SerializationProxy implements Serializable
-//    {
-//
-//        private static final long serialVersionUID = 199237687633L;
-//        private final int spVERSION = 2;
-//        private final String spName;   
-//        private final String spOriginalName;
-//        // XStream can't deserialize the ° char : little hack to avoid the issue
-//        private static final String DOT_REPLACEMENT = "_UpperDot_";
-//
-//        private SerializationProxy(ChordSymbol cs)
-//        {
-//            spName = cs.getOriginalName().replace("°", DOT_REPLACEMENT);
-//            spOriginalName = cs.getOriginalName().replace("°", DOT_REPLACEMENT);
-//        }
-//
-//        private Object readResolve() throws ObjectStreamException
-//        {
-//            String s = spOriginalName == null ? spName.replace(DOT_REPLACEMENT, "°") : spOriginalName.replace(DOT_REPLACEMENT, "°");
-//            ChordSymbol cs;
-//            try
-//            {
-//                cs = new ChordSymbol(s);
-//            } catch (ParseException e)
-//            {
-//                LOGGER.log(Level.WARNING, spName + ": Invalid chord symbol, " + e.getLocalizedMessage() + ". Using 'C' ChordSymbol instead.");
-//                cs = new ChordSymbol();
-//            }
-//
-//
-//            return cs;
-//        }
-//    }
+  
 }

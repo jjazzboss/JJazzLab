@@ -56,7 +56,6 @@ import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.undo.UndoableEdit;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
-import org.jjazz.chordleadsheet.item.CLI_SectionImpl;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.midi.api.Instrument;
 import org.jjazz.midi.api.synths.GM1Instrument;
@@ -2146,17 +2145,18 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
                 }
                 case MIDIMIX_LOAD, MIDIMIX_SAVE ->
                 {
-                    // From 4.0.3 new alias for better XML readibility
+                    if (instanceId.equals(MIDIMIX_LOAD))
+                    {
+                        // From 3.0 all public packages are renamed with api or spi somewhere in the path
+                        // Need package aliasing required to be able to load old sng/mix files
+                        xstream.aliasPackage("org.jjazz.midimix", "org.jjazz.midimix.api");
+                    }
+
+                    // From 4.0.3 new aliases to get rid of fully qualified class names in .sng files
                     xstream.alias("MidiMix", MidiMix.class);
                     xstream.alias("MidiMixSP", MidiMix.SerializationProxy.class);
+                    xstream.alias("RvStorage", MidiMix.SerializationProxy.RvStorage.class);
 
-                    
-                    // From 3.0 all public packages are renamed with api or spi somewhere in the path
-                    // Need package aliasing required to be able to load old sng/mix files
-                    xstream.aliasPackage("org.jjazz.midi.api", "org.jjazz.midi.api");   // Make sure new package name is not replaced by next alias
-                    xstream.aliasPackage("org.jjazz.midi", "org.jjazz.midi.api");
-                    xstream.aliasPackage("org.jjazz.midimix.api", "org.jjazz.midimix.api");   // Make sure new package name is not replaced by next alias
-                    xstream.aliasPackage("org.jjazz.midimix", "org.jjazz.midimix.api");
                 }
                 default -> throw new AssertionError(instanceId.name());
             }
@@ -2186,7 +2186,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      * <p>
      * MidiMix is saved with Drums rerouting disabled and all solo status OFF, but all Mute status are saved.<p>
      * spVERSION 2 changes saved fields see below<br>
-     * spVERSION 3 (JJazzLab 4.0.3) introduces aliases to get rid of hard-coded qualified class names (XStreamConfig class introduction) 
+     * spVERSION 3 (JJazzLab 4.0.3) introduces aliases to get rid of hard-coded qualified class names (XStreamConfig class introduction)
      */
     private static class SerializationProxy implements Serializable
     {

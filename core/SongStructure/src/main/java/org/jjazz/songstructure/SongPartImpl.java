@@ -447,7 +447,7 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
             {
                 case SONG_LOAD, SONG_SAVE ->
                 {
-                    // From 4.0.3 new alias for better XML readibility
+                    // From 4.0.3 new aliases to get rid of fully qualified class names in .sng files
                     xstream.alias("SongPartImpl", SongPartImpl.class);
                     xstream.alias("SongPartImplSP", SerializationProxy.class);
                     xstream.useAttributeFor(SerializationProxy.class, "spName");

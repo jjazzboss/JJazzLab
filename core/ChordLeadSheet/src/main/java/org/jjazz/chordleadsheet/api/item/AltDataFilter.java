@@ -22,6 +22,7 @@
  */
 package org.jjazz.chordleadsheet.api.item;
 
+import com.thoughtworks.xstream.XStream;
 import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
@@ -29,6 +30,13 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import org.jjazz.harmony.api.StandardScaleInstance;
+import org.jjazz.xstream.spi.XStreamConfigurator;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_LOAD;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_SAVE;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_LOAD;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_SAVE;
+import org.openide.util.lookup.ServiceProvider;
 
 /**
  * A filter used to decide whether the alternate data of a CLI_ChordSymbol should be used.
@@ -66,7 +74,7 @@ public class AltDataFilter implements Serializable
     {
         if (values == null || values.isEmpty())
         {
-            throw new IllegalArgumentException("values=" + values);   
+            throw new IllegalArgumentException("values=" + values);
         }
 
         this.values = new ArrayList<>(values);
@@ -82,7 +90,7 @@ public class AltDataFilter implements Serializable
     {
         if (r == null)
         {
-            throw new IllegalArgumentException("r=" + r);   
+            throw new IllegalArgumentException("r=" + r);
         }
         random = r;
         values = null;
@@ -154,7 +162,7 @@ public class AltDataFilter implements Serializable
     {
         if (str == null)
         {
-            throw new NullPointerException("str");   
+            throw new NullPointerException("str");
         }
         if (random != null)
         {
@@ -163,6 +171,39 @@ public class AltDataFilter implements Serializable
         } else
         {
             return values.contains(str);
+        }
+    }
+
+
+    /**
+     * This enables XStream instance configuration even for private classes or classes from non-public packages of Netbeans modules.
+     */
+    @ServiceProvider(service = XStreamConfigurator.class)
+    public static class XStreamConfig implements XStreamConfigurator
+    {
+
+        @Override
+        public void configure(XStreamConfigurator.InstanceId instanceId, XStream xstream)
+        {
+            switch (instanceId)
+            {
+                case SONG_LOAD, SONG_SAVE ->
+                {
+                    // From 4.0.3 new aliases to get rid of fully qualified class names in .sng files                    
+                    xstream.alias("AltDataFilter", AltDataFilter.class);
+                    xstream.alias("AltDataFilterSP", SerializationProxy.class);
+                }
+
+                case MIDIMIX_LOAD ->
+                {
+                    // Nothing
+                }
+                case MIDIMIX_SAVE ->
+                {
+                    // Nothing
+                }
+                default -> throw new AssertionError(instanceId.name());
+            }
         }
     }
 
@@ -179,11 +220,16 @@ public class AltDataFilter implements Serializable
         throw new InvalidObjectException("Serialization proxy required");
     }
 
+    /**
+     * Serialization proxy.
+     * <p>
+     * spVERSION 2 introduces new XStream aliases (see XStreamConfig)
+     */
     private static class SerializationProxy implements Serializable
     {
 
         private static final long serialVersionUID = 12973626811L;
-        private int spVERSION = 1;      // Do not make final!
+        private int spVERSION = 2;      // Do not make final!
         private List<String> spValues;
         private Random spRandom;
 

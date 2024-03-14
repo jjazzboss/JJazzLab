@@ -22,6 +22,7 @@
  */
 package org.jjazz.chordleadsheet.api.item;
 
+import com.thoughtworks.xstream.XStream;
 import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
@@ -29,6 +30,12 @@ import java.io.Serializable;
 import org.jjazz.harmony.api.ChordSymbol;
 import org.jjazz.harmony.api.ChordTypeDatabase;
 import org.jjazz.harmony.api.Note;
+import org.jjazz.xstream.spi.XStreamConfigurator;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_LOAD;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_SAVE;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_LOAD;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_SAVE;
+import org.openide.util.lookup.ServiceProvider;
 
 /**
  * A special "NC" chord symbol for No Chord.
@@ -113,6 +120,40 @@ public class NCExtChordSymbol extends ExtChordSymbol implements Serializable
     }
 
 
+    /**
+     * This enables XStream instance configuration even for private classes or classes from non-public packages of Netbeans modules.
+     */
+    @ServiceProvider(service = XStreamConfigurator.class)
+    public static class XStreamConfig implements XStreamConfigurator
+    {
+
+        @Override
+        public void configure(XStreamConfigurator.InstanceId instanceId, XStream xstream)
+        {
+            switch (instanceId)
+            {
+                case SONG_LOAD, SONG_SAVE ->
+                {
+                    // From 4.0.3 new aliases to get rid of fully qualified class names in .sng files                    
+                    xstream.alias("NCExtChordSymbol", NCExtChordSymbol.class);
+                    xstream.alias("NCExtChordSymbolSP", SerializationProxy.class);
+                    xstream.useAttributeFor(SerializationProxy.class, "spVERSION");
+                    xstream.useAttributeFor(SerializationProxy.class, "spName");
+                }
+
+                case MIDIMIX_LOAD ->
+                {
+                    // Nothing
+                }
+                case MIDIMIX_SAVE ->
+                {
+                    // Nothing
+                }
+                default -> throw new AssertionError(instanceId.name());
+            }
+        }
+    }
+    
     // --------------------------------------------------------------------- 
     // Serialization
     // ---------------------------------------------------------------------
@@ -126,10 +167,15 @@ public class NCExtChordSymbol extends ExtChordSymbol implements Serializable
         throw new InvalidObjectException("Serialization proxy required");
     }
 
+    /**
+     * Serialization proxy.
+     * 
+     * spVERSION 2 introduces new XStream aliases (see XStreamConfig)
+     */    
     private static class SerializationProxy implements Serializable
     {
 
-        private int spVERSION = 1;      // Do not make final!
+        private int spVERSION = 2;      // Do not make final!
         private static final long serialVersionUID = -118977269L;
         private  String spName;
         private  ChordRenderingInfo spRenderingInfo;

@@ -22,6 +22,7 @@
  */
 package org.jjazz.rhythm.api;
 
+import com.thoughtworks.xstream.XStream;
 import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
@@ -30,6 +31,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
+import org.jjazz.phrase.api.Phrase;
+import org.jjazz.xstream.spi.XStreamConfigurator;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_LOAD;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_SAVE;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_LOAD;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_SAVE;
+import org.openide.util.lookup.ServiceProvider;
 
 /**
  * A range of tempo.
@@ -80,7 +88,7 @@ public final class TempoRange implements Cloneable, Serializable
     {
         if (!checkTempo(min) || !checkTempo(max) || min > max || name == null)
         {
-            throw new IllegalArgumentException(" min=" + min + " max=" + max + " name=" + name);   
+            throw new IllegalArgumentException(" min=" + min + " max=" + max + " name=" + name);
         }
         this.min = min;
         this.max = max;
@@ -159,8 +167,8 @@ public final class TempoRange implements Cloneable, Serializable
      * Compute a percentage that say how similar are this object's tempo bounds with tr's tempo bounds.
      * <p>
      * Return value = (tempo range of the intersection of both objects)/(tempo range of the union of both objects) <br>
-     * Examples: this = [60,80], tr=[90,100] =&gt; return value = 0 this = [60,80], tr=[70,90] =&gt; return value = 10/30 = 0.33 this =
-     * [60,80], tr=[58,85] =&gt; return value = 20/27 = 0.74 this = [60,80], tr=[60,80] =&gt; return value = 20/20 = 1
+     * Examples: this = [60,80], tr=[90,100] =&gt; return value = 0 this = [60,80], tr=[70,90] =&gt; return value = 10/30 = 0.33 this = [60,80], tr=[58,85]
+     * =&gt; return value = 20/27 = 0.74 this = [60,80], tr=[60,80] =&gt; return value = 20/20 = 1
      *
      * @param tr TempoRange
      * @return A value between 0 and 1.
@@ -171,7 +179,7 @@ public final class TempoRange implements Cloneable, Serializable
         float union = 1;
         if (tr == null)
         {
-            throw new NullPointerException("tr=" + tr);   
+            throw new NullPointerException("tr=" + tr);
         }
         if (min <= tr.min && max >= tr.min)
         {
@@ -198,6 +206,42 @@ public final class TempoRange implements Cloneable, Serializable
         }
     }
 
+    /**
+     * This enables XStream instance configuration even for private classes or classes from non-public packages of Netbeans modules.
+     */
+    @ServiceProvider(service = XStreamConfigurator.class)
+    public static class XStreamConfig implements XStreamConfigurator
+    {
+
+        @Override
+        public void configure(XStreamConfigurator.InstanceId instanceId, XStream xstream)
+        {
+            switch (instanceId)
+            {
+                case SONG_LOAD, SONG_SAVE ->
+                {
+                    // From 4.0.3 new aliases to get rid of fully qualified class names in .sng files
+                    xstream.alias("TempoRange", TempoRange.class);
+                    xstream.alias("TempoRangeSP", SerializationProxy.class);
+                    xstream.useAttributeFor(SerializationProxy.class, "spVERSION");
+                    xstream.useAttributeFor(SerializationProxy.class, "spMin");
+                    xstream.useAttributeFor(SerializationProxy.class, "spMax");
+                    xstream.useAttributeFor(SerializationProxy.class, "spName");
+                }
+
+                case MIDIMIX_LOAD ->
+                {
+                    // Nothing
+                }
+                case MIDIMIX_SAVE ->
+                {
+                    // Nothing
+                }
+                default -> throw new AssertionError(instanceId.name());
+            }
+        }
+    }
+
     // --------------------------------------------------------------------- 
     // Serialization
     // ---------------------------------------------------------------------
@@ -211,11 +255,16 @@ public final class TempoRange implements Cloneable, Serializable
         throw new InvalidObjectException("Serialization proxy required");
     }
 
+    /**
+     * Serialization proxy.
+     * <p>
+     * spVERSION2 introduces XStream aliases (XStreamConfig)
+     */
     private static class SerializationProxy implements Serializable
     {
 
         private static final long serialVersionUID = 37861L;
-        private int spVERSION = 1;          // Do not make final!
+        private int spVERSION = 2;          // Do not make final!
         private final int spMin;
         private final int spMax;
         private final String spName;

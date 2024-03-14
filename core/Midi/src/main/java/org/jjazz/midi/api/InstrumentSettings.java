@@ -22,6 +22,7 @@
  */
 package org.jjazz.midi.api;
 
+import com.thoughtworks.xstream.XStream;
 import java.beans.PropertyChangeListener;
 import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
@@ -33,6 +34,12 @@ import java.util.List;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiMessage;
 import javax.swing.event.SwingPropertyChangeSupport;
+import org.jjazz.xstream.spi.XStreamConfigurator;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_LOAD;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_SAVE;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_LOAD;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_SAVE;
+import org.openide.util.lookup.ServiceProvider;
 
 /**
  * The variables which impact the way an Instrument is rendered.
@@ -422,7 +429,37 @@ public class InstrumentSettings implements Serializable
     {
         return "(v=" + volume + " t=" + transposition + " r=" + reverb + " c=" + chorus + " p=" + panoramic + ")";
     }
+ /**
+     * This enables XStream instance configuration even for private classes or classes from non-public packages of Netbeans modules.
+     */
+    @ServiceProvider(service = XStreamConfigurator.class)
+    public static class XStreamConfig implements XStreamConfigurator
+    {
 
+        @Override
+        public void configure(XStreamConfigurator.InstanceId instanceId, XStream xstream)
+        {
+            switch (instanceId)
+            {
+                case SONG_LOAD, SONG_SAVE ->
+                {
+                    // Nothing
+                }
+
+                case MIDIMIX_LOAD, MIDIMIX_SAVE ->
+                {
+                    // From 4.0.3 new aliases to get rid of fully qualified class names in .sng files                    
+                    xstream.alias("InstrumentSettings", InstrumentSettings.class);
+                    xstream.alias("InstrumentSettingsSP", SerializationProxy.class);
+                    xstream.useAttributeFor(SerializationProxy.class, "spVERSION");
+                    xstream.useAttributeFor(SerializationProxy.class, "spVolume");
+                    xstream.useAttributeFor(SerializationProxy.class, "spTransposition");
+                    xstream.useAttributeFor(SerializationProxy.class, "spVelocityShift");
+                }
+                default -> throw new AssertionError(instanceId.name());
+            }
+        }
+    }
     // --------------------------------------------------------------------- 
     // Serialization
     // ---------------------------------------------------------------------
@@ -436,11 +473,16 @@ public class InstrumentSettings implements Serializable
         throw new InvalidObjectException("Serialization proxy required");
     }
 
+    /**
+     * Serialization proxy.
+     * 
+     * spVERSION 2 introduces new XStream aliases (see XStreamConfig)
+     */
     private static class SerializationProxy implements Serializable
     {
 
         private static final long serialVersionUID = -297226301726L;
-        private int spVERSION = 1;      // Do not make final!
+        private int spVERSION = 2;      // Do not make final!
         private int spTransposition;
         private int spVelocityShift;
         private int spVolume;

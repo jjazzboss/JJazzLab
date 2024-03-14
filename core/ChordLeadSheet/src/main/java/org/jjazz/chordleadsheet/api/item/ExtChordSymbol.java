@@ -391,11 +391,11 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
             {
                 case SONG_LOAD, SONG_SAVE ->
                 {
-                    // From 4.0.3 new alias for better XML readibility
+                    // From 4.0.3 new aliases to get rid of fully qualified class names in .sng files
                     xstream.alias("ExtChordSymbol", ExtChordSymbol.class);
-                    xstream.alias("ExtChordSymbolSP", ExtChordSymbol.SerializationProxy.class);
-                    xstream.useAttributeFor(ExtChordSymbol.SerializationProxy.class, "spName");
-                    xstream.useAttributeFor(ExtChordSymbol.SerializationProxy.class, "spOriginalName");
+                    xstream.alias("ExtChordSymbolSP", SerializationProxy.class);
+                    xstream.useAttributeFor(SerializationProxy.class, "spName");
+                    xstream.useAttributeFor(SerializationProxy.class, "spOriginalName");
                 }
 
                 case MIDIMIX_LOAD ->

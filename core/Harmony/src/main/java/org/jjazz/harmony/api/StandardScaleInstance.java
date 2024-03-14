@@ -211,7 +211,14 @@ public class StandardScaleInstance implements Serializable
             {
                 case SONG_LOAD, SONG_SAVE ->
                 {
-                    // From 4.0.3 new alias for better XML readibility                    
+                    if (instanceId.equals(SONG_LOAD))
+                    {
+                        // From 3.0 all public packages are renamed with api or spi somewhere in the path
+                        xstream.alias("org.jjazz.harmony.StandardScaleInstance", StandardScaleInstance.class);
+                    }
+
+
+                    // From 4.0.3 new aliases to get rid of fully qualified class names in .sng files          
                     xstream.alias("StdScaleInstance", StandardScaleInstance.class);
                     xstream.alias("StdScaleInstanceSP", SerializationProxy.class);
                     xstream.useAttributeFor(SerializationProxy.class, "spVERSION");

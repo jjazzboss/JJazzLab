@@ -22,6 +22,7 @@
  */
 package org.jjazz.chordleadsheet.api.item;
 
+import com.thoughtworks.xstream.XStream;
 import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
@@ -30,7 +31,13 @@ import java.text.ParseException;
 import org.jjazz.harmony.api.ChordSymbol;
 import org.jjazz.harmony.api.ChordTypeDatabase;
 import org.jjazz.harmony.api.Note;
+import org.jjazz.xstream.spi.XStreamConfigurator;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_LOAD;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_SAVE;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_LOAD;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_SAVE;
 import org.openide.util.Exceptions;
+import org.openide.util.lookup.ServiceProvider;
 
 /**
  * A special instance used as the "void" alternate chord symbol.
@@ -71,7 +78,38 @@ public class VoidAltExtChordSymbol extends AltExtChordSymbol implements Serializ
     {
         return "VoidAltExtChordSymbolInstance";
     }
+  /**
+     * This enables XStream instance configuration even for private classes or classes from non-public packages of Netbeans modules.
+     */
+    @ServiceProvider(service = XStreamConfigurator.class)
+    public static class XStreamConfig implements XStreamConfigurator
+    {
 
+        @Override
+        public void configure(XStreamConfigurator.InstanceId instanceId, XStream xstream)
+        {
+            switch (instanceId)
+            {
+                case SONG_LOAD, SONG_SAVE ->
+                {
+                    // From 4.0.3 new aliases to get rid of fully qualified class names in .sng files                    
+                    xstream.alias("VoidAltExtChordSymbol", VoidAltExtChordSymbol.class);
+                    xstream.alias("VoidAltExtChordSymbolSP", SerializationProxy.class);
+                    xstream.useAttributeFor(SerializationProxy.class, "spName");
+                }
+
+                case MIDIMIX_LOAD ->
+                {
+                    // Nothing
+                }
+                case MIDIMIX_SAVE ->
+                {
+                    // Nothing
+                }
+                default -> throw new AssertionError(instanceId.name());
+            }
+        }
+    }
     // --------------------------------------------------------------------- 
     // Serialization
     // ---------------------------------------------------------------------

@@ -598,26 +598,21 @@ public final class Position implements Comparable<Position>, Serializable
             {
                 case SONG_LOAD, SONG_SAVE ->
                 {
-                    // From 4.0.3 Position was moved from ChordLeadSheet to Harmony package                                   
-                    xstream.alias("org.jjazz.chordleadsheet.api.item.Position$SerializationProxy", SerializationProxy.class);   
-                    // There has been a package rename too
-                    xstream.alias("org.jjazz.leadsheet.chordleadsheet.api.item.Position$SerializationProxy", SerializationProxy.class);   
+                    if (instanceId.equals(SONG_LOAD))
+                    {
+                        // From 4.0.3 Position was moved from ChordLeadSheet module to Harmony module
+                        xstream.alias("org.jjazz.chordleadsheet.api.item.Position$SerializationProxy", SerializationProxy.class);
+                        // At some point the "leadsheet" part was dropped in the package name
+                        xstream.alias("org.jjazz.leadsheet.chordleadsheet.api.item.Position$SerializationProxy", SerializationProxy.class);
+                    }
 
-                    
-                    // From 4.0.3 new alias for better XML readibility                    
+
+                    // From 4.0.3 new aliases to get rid of fully qualified class names in .sng files          
                     xstream.alias("Position", Position.class);
                     xstream.alias("PositionSP", SerializationProxy.class);
                     xstream.useAttributeFor(SerializationProxy.class, "spVERSION");
                     xstream.useAttributeFor(SerializationProxy.class, "spPos");
-
-                    
-                    // From 3.0 all public packages are renamed with api or spi somewhere in the path
-                    // Need package aliasing required to be able to load old sng/mix files
-                    xstream.aliasPackage("org.jjazz.harmony.api", "org.jjazz.harmony.api"); // Make sure new package name is not replaced by next alias
-                    xstream.aliasPackage("org.jjazz.harmony", "org.jjazz.harmony.api"); // Load only
-
                 }
-
                 case MIDIMIX_LOAD ->
                 {
                     // Nothing
@@ -644,7 +639,7 @@ public final class Position implements Comparable<Position>, Serializable
         throw new InvalidObjectException("Serialization proxy required");
     }
 
-     /**
+    /**
      * Serialization proxy
      * <p>
      * spVERSION 2 (JJazzLab 4.0.3) introduces aliases to get rid of hard-coded qualified class names (XStreamConfig class introduction).<br>

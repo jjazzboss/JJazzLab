@@ -23,6 +23,7 @@
  */
 package org.jjazz.midi.api.synths;
 
+import com.thoughtworks.xstream.XStream;
 import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
@@ -38,7 +39,13 @@ import org.jjazz.midi.api.InstrumentBank;
 import org.jjazz.midi.api.MidiAddress;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.MidiUtilities;
+import org.jjazz.xstream.spi.XStreamConfigurator;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_LOAD;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_SAVE;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_LOAD;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_SAVE;
 import org.openide.util.Exceptions;
+import org.openide.util.lookup.ServiceProvider;
 
 /**
  * A special class for GS instruments.
@@ -164,6 +171,36 @@ public class GSInstrument extends Instrument implements Serializable
         return messages;
     }
 
+    /**
+     * This enables XStream instance configuration even for private classes or classes from non-public packages of Netbeans modules.
+     */
+    @ServiceProvider(service = XStreamConfigurator.class)
+    public static class XStreamConfig implements XStreamConfigurator
+    {
+
+        @Override
+        public void configure(XStreamConfigurator.InstanceId instanceId, XStream xstream)
+        {
+            switch (instanceId)
+            {
+                case SONG_LOAD, SONG_SAVE ->
+                {
+                    // Nothing
+                }
+
+                case MIDIMIX_LOAD, MIDIMIX_SAVE ->
+                {
+                    // From 4.0.3 new aliases to get rid of fully qualified class names in .sng files                    
+                    xstream.alias("GSInstrument", GSInstrument.class);
+                    xstream.alias("GSInstrumentSP", SerializationProxy.class);
+                    xstream.useAttributeFor(SerializationProxy.class, "spVERSION");
+                    xstream.useAttributeFor(SerializationProxy.class, "spSaveString");
+                }
+                default -> throw new AssertionError(instanceId.name());
+            }
+        }
+    }
+    
     // --------------------------------------------------------------------- 
     // Serialization
     // --------------------------------------------------------------------- 
@@ -187,12 +224,14 @@ public class GSInstrument extends Instrument implements Serializable
      * ==> BAD! writeReplace() should juste use "return new Instrument.SerializationProxy(this);", no need for our own
      * SerializationProxy !!! But too late to change because user .mix files now contain GSInstrument.SerializationProxy
      * instances. If we change, the .mix will not be readable again.
+     * 
+     * spVERSION 2 introduces alias XStreamConfig
      */
     private static class SerializationProxy implements Serializable
     {
 
         private static final long serialVersionUID = 872001761L;
-        private int spVERSION = 1;      // Do not make final!
+        private int spVERSION = 2;      // Do not make final!
         private String spSaveString;
 
         private SerializationProxy(GSInstrument ins)

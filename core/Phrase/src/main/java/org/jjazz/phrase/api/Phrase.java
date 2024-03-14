@@ -1406,7 +1406,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
             {
                 case SONG_LOAD, SONG_SAVE ->
                 {
-                    // From 4.0.3 new alias for better XML readibility
+                    // From 4.0.3 new aliases to get rid of fully qualified class names in .sng files
                     xstream.alias("Phrase", Phrase.class);
                     xstream.alias("PhraseSP", SerializationProxy.class);
                     xstream.useAttributeFor(SerializationProxy.class, "spVERSION");
@@ -1452,13 +1452,15 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
 
     /**
      * Rely on loadFromString()/saveAsString() methods.
+     * 
+     * spVERSION2 introduces XStream aliases (XStreamConfig)
      */
     private static class SerializationProxy implements Serializable
     {
 
         private static final long serialVersionUID = -1823649110L;
 
-        private int spVERSION = 1;          // Do not make final!
+        private int spVERSION = 2;          // Do not make final!
         private final String spSaveString;
 
         private SerializationProxy(Phrase p)

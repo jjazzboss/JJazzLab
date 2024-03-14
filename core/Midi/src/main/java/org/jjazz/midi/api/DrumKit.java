@@ -23,6 +23,7 @@
  */
 package org.jjazz.midi.api;
 
+import com.thoughtworks.xstream.XStream;
 import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
@@ -36,6 +37,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.midi.api.keymap.KeyMapGM;
 import org.jjazz.midi.spi.KeyMapProvider;
+import org.jjazz.xstream.spi.XStreamConfigurator;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_LOAD;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_SAVE;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_LOAD;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_SAVE;
+import org.openide.util.lookup.ServiceProvider;
 
 /**
  * The main parameters of a drum kit instrument: a drum/key map and its ambiance type.
@@ -93,8 +100,8 @@ public class DrumKit implements Serializable
         /**
          * True if this KeyMap contains otherKeyMap.
          * <p>
-         * E.g. the GM2 KeyMap contains the GM keymap (but not the other way around): a GM-keymap-based rhythm can be played on a
-         * GM2-keymap-based drums instrument. Should return true if this keymap==otherKeyMap.
+         * E.g. the GM2 KeyMap contains the GM keymap (but not the other way around): a GM-keymap-based rhythm can be played on a GM2-keymap-based drums
+         * instrument. Should return true if this keymap==otherKeyMap.
          *
          * @param otherKeyMap
          * @return
@@ -241,6 +248,37 @@ public class DrumKit implements Serializable
         return true;
     }
 
+    /**
+     * This enables XStream instance configuration even for private classes or classes from non-public packages of Netbeans modules.
+     */
+    @ServiceProvider(service = XStreamConfigurator.class)
+    public static class XStreamConfig implements XStreamConfigurator
+    {
+
+        @Override
+        public void configure(XStreamConfigurator.InstanceId instanceId, XStream xstream)
+        {
+            switch (instanceId)
+            {
+                case SONG_LOAD, SONG_SAVE ->
+                {
+                    // Nothing
+                }
+
+                case MIDIMIX_LOAD, MIDIMIX_SAVE ->
+                {
+                    // From 4.0.3 new aliases to get rid of fully qualified class names in .sng files                    
+                    xstream.alias("DrumKit", DrumKit.class);
+                    xstream.alias("DrumKitSP", SerializationProxy.class);
+                    xstream.useAttributeFor(SerializationProxy.class, "spVERSION");
+                    xstream.useAttributeFor(SerializationProxy.class, "spType");
+                    xstream.useAttributeFor(SerializationProxy.class, "spKeyMapName");
+                }
+                default -> throw new AssertionError(instanceId.name());
+            }
+        }
+    }
+
     // --------------------------------------------------------------------- 
     // Serialization
     // ---------------------------------------------------------------------
@@ -257,16 +295,18 @@ public class DrumKit implements Serializable
     }
 
     /**
-     * RhythmVoices must be stored in a simplified way in order to avoid storing rhythm stuff which depend on InstrumentBanks which are
-     * themselves system dependent.
+     * RhythmVoices must be stored in a simplified way in order to avoid storing rhythm stuff which depend on InstrumentBanks which are themselves system
+     * dependent.
      * <p>
      * Also need to do some cleaning: mapInstruments can contain useless entries if some songparts have been removed .
+     * <p>
+     * spVERSION 2 introduces XStream aliases (XStreamConfig)
      */
     private static class SerializationProxy implements Serializable
     {
 
         private static final long serialVersionUID = -10218260387192L;
-        private int spVERSION = 1;      // Do not make final!
+        private int spVERSION = 2;      // Do not make final!
         private Type spType;
         private String spKeyMapName;
 

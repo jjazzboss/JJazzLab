@@ -293,7 +293,7 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
             {
                 case SONG_LOAD, SONG_SAVE ->
                 {
-                    // From 4.0.3 new alias for better XML readibility
+                    // From 4.0.3 new aliases to get rid of fully qualified class names in .sng files
                     xstream.alias("CLI_ChordSymbolImpl", CLI_ChordSymbolImpl.class);
                     xstream.alias("CLI_ChordSymbolSP", CLI_ChordSymbolImpl.SerializationProxy.class);
                    

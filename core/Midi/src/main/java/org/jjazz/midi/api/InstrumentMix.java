@@ -22,6 +22,7 @@
  */
 package org.jjazz.midi.api;
 
+import com.thoughtworks.xstream.XStream;
 import java.beans.PropertyChangeListener;
 import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
@@ -32,6 +33,12 @@ import java.util.Collections;
 import java.util.List;
 import javax.sound.midi.MidiMessage;
 import javax.swing.event.SwingPropertyChangeSupport;
+import org.jjazz.xstream.spi.XStreamConfigurator;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_LOAD;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_SAVE;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_LOAD;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_SAVE;
+import org.openide.util.lookup.ServiceProvider;
 
 /**
  * An Instrument with its InstrumentSettings.
@@ -41,10 +48,10 @@ import javax.swing.event.SwingPropertyChangeSupport;
 public class InstrumentMix implements Serializable
 {
 
-    public static final String PROP_INSTRUMENT = "PropInstrument";    
-    public static final String PROP_INSTRUMENT_ENABLED = "PropInstrumentEnabled";    
-    public static final String PROP_MUTE = "PropMute";    
-    public static final String PROP_SOLO = "PropSolo";    
+    public static final String PROP_INSTRUMENT = "PropInstrument";
+    public static final String PROP_INSTRUMENT_ENABLED = "PropInstrumentEnabled";
+    public static final String PROP_MUTE = "PropMute";
+    public static final String PROP_SOLO = "PropSolo";
 
     private Instrument instrument;
     private InstrumentSettings settings;
@@ -58,7 +65,7 @@ public class InstrumentMix implements Serializable
         setInstrument(instrument);
         if (settings == null)
         {
-            throw new NullPointerException("instrument=" + instrument + " settings=" + settings);   
+            throw new NullPointerException("instrument=" + instrument + " settings=" + settings);
         }
         this.settings = settings;
         this.settings.setContainer(this);
@@ -75,7 +82,7 @@ public class InstrumentMix implements Serializable
     {
         if (im == null)
         {
-            throw new NullPointerException("im");   
+            throw new NullPointerException("im");
         }
         setMute(im.isMute());
         setSolo(im.isSolo());
@@ -104,7 +111,7 @@ public class InstrumentMix implements Serializable
     {
         if (instrument == null)
         {
-            throw new NullPointerException("instrument");   
+            throw new NullPointerException("instrument");
         }
         Instrument old = this.instrument;
         this.instrument = instrument;
@@ -233,6 +240,37 @@ public class InstrumentMix implements Serializable
         return mute;
     }
 
+    /**
+     * This enables XStream instance configuration even for private classes or classes from non-public packages of Netbeans modules.
+     */
+    @ServiceProvider(service = XStreamConfigurator.class)
+    public static class XStreamConfig implements XStreamConfigurator
+    {
+
+        @Override
+        public void configure(XStreamConfigurator.InstanceId instanceId, XStream xstream)
+        {
+            switch (instanceId)
+            {
+                case SONG_LOAD, SONG_SAVE ->
+                {
+                    // Nothing
+                }
+
+                case MIDIMIX_LOAD, MIDIMIX_SAVE ->
+                {
+                    // From 4.0.3 new aliases to get rid of fully qualified class names in .sng files                    
+                    xstream.alias("InstrumentMix", InstrumentMix.class);
+                    xstream.alias("InstrumentMixSP", SerializationProxy.class);
+                    xstream.useAttributeFor(SerializationProxy.class, "spVERSION");
+                    xstream.useAttributeFor(SerializationProxy.class, "spInsEnabled");
+                    xstream.useAttributeFor(SerializationProxy.class, "spMute");
+                }
+                default -> throw new AssertionError(instanceId.name());
+            }
+        }
+    }
+
     // ---------------------------------------------------------------------
     // Serialization
     // --------------------------------------------------------------------- 
@@ -250,12 +288,14 @@ public class InstrumentMix implements Serializable
 
     /**
      * Need to reassign the InstrumentSettings container.
+     * <p>
+     * spVERSION 2 introduces new XStream aliases (see XStreamConfig)
      */
     private static class SerializationProxy implements Serializable
     {
 
         private static final long serialVersionUID = -201729371001L;
-        private int spVERSION = 1;      // Do not make final!
+        private int spVERSION = 2;      // Do not make final!
         private Instrument spIns;
         private InstrumentSettings spInsSettings;
         private boolean spInsEnabled;

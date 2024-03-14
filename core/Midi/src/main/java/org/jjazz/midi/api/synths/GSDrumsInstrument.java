@@ -23,6 +23,7 @@
  */
 package org.jjazz.midi.api.synths;
 
+import com.thoughtworks.xstream.XStream;
 import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
@@ -38,7 +39,13 @@ import org.jjazz.midi.api.InstrumentBank;
 import org.jjazz.midi.api.MidiAddress;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.MidiUtilities;
+import org.jjazz.xstream.spi.XStreamConfigurator;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_LOAD;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_SAVE;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_LOAD;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_SAVE;
 import org.openide.util.Exceptions;
+import org.openide.util.lookup.ServiceProvider;
 
 /**
  * A special class for GS drums instruments.
@@ -52,8 +59,8 @@ public class GSDrumsInstrument extends Instrument implements Serializable
      * GS Sysex messages to turn channel X into a drums channel.
      * <p>
      * https://www.pgmusic.com/forums/ubbthreads.php?ubb=showflat&Number=490421 http://www.synthfont.com/SysEx.txt <br>
-     * "The following SysEx messages will allow you to set channel 9 or 11 to drums (in addition to channel 10). This will work
-     * for Roland GS compatible devices such as the Roland VSC and Roland SD-20. <br>
+     * "The following SysEx messages will allow you to set channel 9 or 11 to drums (in addition to channel 10). This will work for Roland GS compatible devices
+     * such as the Roland VSC and Roland SD-20. <br>
      * Set channel 9 to drums: F0 41 10 42 12 40 19 15 02 10 F7 <br>
      * Set channel 11 to drums: F0 41 10 42 12 40 1A 15 02 0F F7 <br>
      * http://www.grandgent.com/tom/scug/drummaps.txt
@@ -124,7 +131,7 @@ public class GSDrumsInstrument extends Instrument implements Serializable
         super(patchName, bank, ma, kit, substitute);
         if (!ma.getBankSelectMethod().equals(MidiAddress.BankSelectMethod.PC_ONLY))
         {
-            throw new IllegalArgumentException("patchName=" + patchName + " bank=" + bank + " ma=" + ma);   
+            throw new IllegalArgumentException("patchName=" + patchName + " bank=" + bank + " ma=" + ma);
         }
     }
 
@@ -146,7 +153,7 @@ public class GSDrumsInstrument extends Instrument implements Serializable
     {
         if (!MidiConst.checkMidiChannel(channel))
         {
-            throw new IllegalArgumentException("channel=" + channel);   
+            throw new IllegalArgumentException("channel=" + channel);
         }
 
         MidiMessage[] messages = new MidiMessage[2];
@@ -164,11 +171,40 @@ public class GSDrumsInstrument extends Instrument implements Serializable
         }
         messages[0] = sysMsg;
         messages[1] = msgs[0];
-        LOGGER.log(Level.FINE, "getMidiMessages() Sending SysEx messages to set drums mode on channel {0}", channel);   
+        LOGGER.log(Level.FINE, "getMidiMessages() Sending SysEx messages to set drums mode on channel {0}", channel);
         return messages;
     }
 
-    
+    /**
+     * This enables XStream instance configuration even for private classes or classes from non-public packages of Netbeans modules.
+     */
+    @ServiceProvider(service = XStreamConfigurator.class)
+    public static class XStreamConfig implements XStreamConfigurator
+    {
+
+        @Override
+        public void configure(XStreamConfigurator.InstanceId instanceId, XStream xstream)
+        {
+            switch (instanceId)
+            {
+                case SONG_LOAD, SONG_SAVE ->
+                {
+                    // Nothing
+                }
+
+                case MIDIMIX_LOAD, MIDIMIX_SAVE ->
+                {
+                    // From 4.0.3 new aliases to get rid of fully qualified class names in .sng files                    
+                    xstream.alias("GSDrumsInstrument", GSDrumsInstrument.class);
+                    xstream.alias("GSDrumsInstrumentSP", SerializationProxy.class);
+                    xstream.useAttributeFor(SerializationProxy.class, "spVERSION");
+                    xstream.useAttributeFor(SerializationProxy.class, "spSaveString");
+                }
+                default -> throw new AssertionError(instanceId.name());
+            }
+        }
+    }
+
     // --------------------------------------------------------------------- 
     // Serialization
     // --------------------------------------------------------------------- 
@@ -185,19 +221,21 @@ public class GSDrumsInstrument extends Instrument implements Serializable
 
     /**
      * Rely on Instrument serialization mechanism.
+     * 
+     * spVERSION 2 introduces alias XStreamConfig
      */
     private static class SerializationProxy implements Serializable
     {
 
         private static final long serialVersionUID = -9269L;
-        private int spVERSION = 1;      // Do not make final!
+        private int spVERSION = 2;      // Do not make final!
         private String spSaveString;
 
         private SerializationProxy(GSDrumsInstrument ins)
         {
             if (ins.getBank() == null || ins.getBank().getMidiSynth() == null)
             {
-                throw new IllegalStateException("ins=" + ins + " ins.getBank()=" + ins.getBank());   
+                throw new IllegalStateException("ins=" + ins + " ins.getBank()=" + ins.getBank());
             }
             spSaveString = ins.saveAsString();
         }
@@ -213,5 +251,5 @@ public class GSDrumsInstrument extends Instrument implements Serializable
         }
     }
 
-    
+
 }

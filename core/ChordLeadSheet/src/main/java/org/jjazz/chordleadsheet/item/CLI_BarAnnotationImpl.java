@@ -35,6 +35,7 @@ import java.util.logging.Logger;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.item.CLI_BarAnnotation;
+import org.jjazz.chordleadsheet.api.item.NCExtChordSymbol;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.utilities.api.StringProperties;
 import org.jjazz.xstream.spi.XStreamConfigurator;
@@ -277,9 +278,11 @@ public class CLI_BarAnnotationImpl implements CLI_BarAnnotation, WritableItem<St
             {
                 case SONG_LOAD, SONG_SAVE ->
                 {
-                    // From 4.0.3 new alias for better XML readibility
+                    // From 4.0.3 new aliases to get rid of fully qualified class names in .sng files
                     xstream.alias("CLI_BarAnnotationImpl", CLI_BarAnnotationImpl.class);
-                    xstream.alias("CLI_BarAnnotationImplSP", CLI_BarAnnotationImpl.SerializationProxy.class);
+                    xstream.alias("CLI_BarAnnotationImplSP", SerializationProxy.class);
+                    xstream.useAttributeFor(SerializationProxy.class, "spVERSION");
+                    xstream.useAttributeFor(SerializationProxy.class, "spBarIndex");
 
                 }
 
