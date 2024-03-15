@@ -1034,7 +1034,7 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
 
         public void addMidiSynth(MidiSynth mSynth)
         {
-            if (mSynth != embeddedSynth.getOutputSynth().getMidiSynth())
+            if (embeddedSynth==null || mSynth != embeddedSynth.getOutputSynth().getMidiSynth())
             {
                 insertElementAt(mSynth, getSize() - 1); // Add before the FAKE_MULTISYNTH
             }
