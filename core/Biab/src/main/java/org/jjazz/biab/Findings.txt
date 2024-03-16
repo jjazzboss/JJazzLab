@@ -1,0 +1,110 @@
+/*
+ *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+ * 
+ *  Copyright @2019 Jerome Lelasseux. All rights reserved.
+ *
+ *  This file is part of the JJazzLab software.
+ *   
+ *  JJazzLab is free software: you can redistribute it and/or modify
+ *  it under the terms of the Lesser GNU General Public License (LGPLv3) 
+ *  as published by the Free Software Foundation, either version 3 of the License, 
+ *  or (at your option) any later version.
+ *
+ *  JJazzLab is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ *  GNU Lesser General Public License for more details.
+ * 
+ *  You should have received a copy of the GNU Lesser General Public License
+ *  along with JJazzLab.  If not, see <https://www.gnu.org/licenses/>
+ * 
+ *  Contributor(s): 
+ */
+VOIR CODE SOURCE
+
+PRINCIPE GENERAL:
+Value définie si >0 (il peut y avoir d'autres données spécifiques dernières si défini), autrement le byte qui suit le 0 est le nombre de beat/bar/? à avancer.
+
+
+SERIES ROOT ID beat 0-1019 
+
+Ensuite
+
+- Overall LOOP (true=1, false=00 01)
+- chorus start
+- chorus end
+- chorus nb repeats
+- vary style in middle chorus (true=1, false=00 01)
+- tag jump (true=1, false=00 01)
+- tag begin bar
+- tag after bar
+- tag end bar
+
+SOME BYTES: bar relative stuff tempo changes, nb beats, etc. see .doc.
+
+AFTER STYLE NAMES
+"...<nbLetter>mystyle.STY"
+Après la dernière lettre du style: possible XX non null par exemple 58 ou 08 ou 0a, varie si "force simple arrangement=true" ou "Generate 2 bars ending=false" => IGNORER
+
+Ensuite série 00 FF : unknown
+
+Puis série melody track + style saved patches
+
+beats 0x00-0x0c : unknown
+ 
+beat 0x0d: (nb de notes+1) si melody track LSB
+beat 0x0e: idem MSB1
+beat 0x0f: ? unknown maybe MSB2 (if more than 65536 notes??)
+beat 0x10 bass   GM program change
+beat 0x11 piano idem
+beat 0x12 drums idem
+beat 0x13 guit idem 
+beat 0x14 soloist idem 
+beat 0x15 string idem 
+beat 0x16 melody idem 
+beat 0x17 thru idem
+
+beats 0x18-0x1C : unknown 
+
+CHORD PUSHS
+Début de la série chord push au beat 0x1D=29, correspond au chord-beat 0 (réf tableau des chords du début de fichier)
+Si value 01 Push 1/8, 02 Push 1/16 
+Durée de la série = 1024 beats (pas 1020!)
+
+Ensuite 
+
+ Série REST/HOLD/SHOTS 
+ début de la série à beat 29+1024=1053  (correspond au chord-beat 0) pour une durée de 1020 beats
+Codage value:
+1F : shot ALL INST
+3F : rest ALL INST
+3E : rest ALL INST except Bass
+3D : rest ALL INST except Drums
+37 : rest ALL INST except Guit
+2F : rest ALL INST except Strings
+3C : rest ALL INST except Drums+Bass
+5F : hold ALL INST
+5b : hold ALL INST except Piano
+db : hold ALL INST except Piano, excluded instruments must rest
+bits 7-0=   excludedInstShouldRest-b6-b5-strings-guit-piano-drums-bass
+b6-b5=00=shot
+b6-b5=01=rest
+b6-b5=10=hold
+
+Ensuite
+
+ALLOW PUSH/RESTS series
+début de la série à beat 1053+1020=2073
+0: allow Push in middle chorus
+1: allow rest in middle chorus
+2: allow rest in last chorus
+3: generate 2 bar ending
+4: force song to simple arrangement
+5: unknown 
+6: unknown
+7: allow rest in first chorus
+
+
+
+
+

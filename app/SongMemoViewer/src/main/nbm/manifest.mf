@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+AutoUpdate-Show-In-Client: true
+OpenIDE-Module-Localizing-Bundle: org/jjazz/songmemoviewer/Bundle.properties
+OpenIDE-Module-Requires: org.openide.windows.WindowManager
+

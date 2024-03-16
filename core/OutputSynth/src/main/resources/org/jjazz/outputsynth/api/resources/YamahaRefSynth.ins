@@ -1,0 +1,4050 @@
+; -----------------------------------------------------------------------------
+; Modified by J. Lelasseux for JJazzLab.
+;
+; Added JJazzLab extensions:
+; - For drums instruments: 0=Live!DrumsStandardKit1 {{DrumKit=STANDARD, XG}}. param1 must be a DrumKit.Type value, param2 must be a value corresponding to a DrumKit.KeyMap.getName().
+; - For voice instruments: 12=New Marimba {{SubGM1=12}}. Value is the GM1 program change.
+; - For banks: {{ GM_BANK }} {{ GM2_BANK }} {{ XG_BANK }} 
+;
+; -----------------------------
+; --
+; --   Ver.  1.07 on 8.02.2014
+; --   Yamaha tyros_kbds.ins Cakewalk Instrument Definitions for Tyros, Tyros2, Tyros3, Tyros4, Tyros5
+; --   Heiko Plate    E-Mail: HeikoPlate@gmx.de
+; --   Volker Zimmer  E-Mail: info@onemansound.de
+; --   Uwe Wolke      E-Mail: info@uwes-musik.com, uwolke@gmx.de
+; --   Michael Kruger E-Mail: dromeusik@gmail.com (Premium Voices T3/T4)
+; --   Kari V  @ www.psrtutorial.com/forum (Tyros 5)
+;
+; --- P A T C H   B R O W S E R   S P E C I A L  F U N C T I O N ---
+; Please use the following shortcuts for searching categories inside the
+; Patch Browser:
+;
+; Piano = Piano Voices, E.Piano Voices
+; Bass = Bass Voices
+; Brass = Brass Voices
+; Strings = String Voices
+; Guitar = Guitar Voices, Ukulele, Harp etc.
+; Pad = Pad Voices
+; Synth = Synthy Voices, Lead Synthesizer Voices
+; Choir = Choir Voices, Voice Voices
+; Woodwind = Saxophone Voices, Oboe Voices, English Horn Voices, Flute Voices, Clarinet Voices
+; Tru&Tro = Trumpet Voices, Trombone Voices, Tuba Voices, Horn Voices
+; Organ = Organ Voices
+; Perc = Percusive Voices
+; Accordion = Accordion Voices, Harmonica Voices
+; Sfx = Single Sfx Effects
+; Kit = Drumkits
+; Drumsound = Single Drum Voices
+;
+; Mega = Mega Voices
+; Artic = Articulation, Super Articulation Voices, Super Articulation 2 Voices
+;
+; {XG} =  XG Voices
+; {GM2} = GM2 Voices
+; =   Tyros Panel Voices
+; {TP3} = Tyros 3 Premium Voices (usable on Tyros 4, too)
+; {TP4} = Tyros 4 Premium Voices
+;
+; -----------------------------------------------------------------------------
+.Patch Names
+
+
+; -------------------------- XG Voices -----------------------------------
+
+[GM1 & XG Bank 0]
+0=Aco Grand Piano 
+1=Bright Aco Piano 
+2=E. Grand Piano 
+3=Honkytonk Piano 
+4=E. Piano 1 
+5=E. Piano 2 
+6=Harpsichord            
+7=Clavi                  
+8=Celesta                
+9=Glockenspiel           
+10=Music Box             
+11=Vibraphone            
+12=Marimba               
+13=Xylophone             
+14=Tubular Bells         
+15=Dulcimer              
+16=Drawbar Organ 
+17=Perc. Organ 
+18=Rock Organ 
+19=Church Organ 
+20=Reed Organ 
+21=Accordion 
+22=Harmonica             
+23=Tango Accordion 
+24=Nylon Guitar 
+25=Steel Guitar 
+26=Jazz Guitar 
+27=Clean Guitar 
+28=Muted Guitar 
+29=Overdriven Guitar 
+30=Distortion Guitar 
+31=Guitar Harmonics 
+32=Aco Bass 
+33=Finger Bass 
+34=Pick Bass 
+35=Fretless Bass 
+36=Slap Bass 1 
+37=Slap Bass 2 
+38=Synth Bass 1 
+39=Synth Bass 2 
+40=Violin                
+41=Viola                 
+42=Cello                 
+43=Contrabass            
+44=Tremolo Strings  
+45=Pizzicato Strings  
+46=Orchestral Harp       
+47=Timpani               
+48=Strings Ens. 1 
+49=Strings Ens. 2 
+50=Synth Strings 1 
+51=Synth Strings 2 
+52=Choir Aahs  
+53=Voice Oohs            
+54=Synth Voice           
+55=Orchestra Hit         
+56=Trumpet               
+57=Trombone              
+58=Tuba                  
+59=Muted Trumpet         
+60=French Horn           
+61=Brass Section 
+62=Synth Brass 1 
+63=Synth Brass 2 
+64=Soprano Sax 
+65=Alto Sax 
+66=Tenor Sax 
+67=Baritone Sax 
+68=Oboe                  
+69=English Horn          
+70=Bassoon               
+71=Clarinet              
+72=Piccolo               
+73=Flute                 
+74=Recorder              
+75=Pan Flute             
+76=Blown Bottle          
+77=Shakuhachi            
+78=Whistle               
+79=Ocarina               
+80=Square Lead           
+81=Sawtooth Lead         
+82=Calliope Lead         
+83=Chiff Lead            
+84=Charang Lead          
+85=Voice Lead            
+86=Fifths Lead           
+87=Bass & Lead 
+88=New Age Pad 
+89=Warm Pad 
+90=Polysynth Pad 
+91=Choir Pad 
+92=Bowed Pad 
+93=Metallic Pad 
+94=Halo Pad 
+95=Sweep Pad 
+96=Rain                  
+97=Sound Track           
+98=Crystal               
+99=Atmosphere            
+100=Brightness           
+101=Goblins              
+102=Echoes               
+103=Sci-Fi               
+104=Sitar                
+105=Banjo                
+106=Shamisen             
+107=Koto                 
+108=Kalimba              
+109=Bagpipe              
+110=Fiddle               
+111=Shanai               
+112=Tinkle Bell          
+113=Agogo                
+114=Steel Drums          
+115=Woodblock            
+116=Taiko Drum           
+117=Melodic Tom          
+118=Synth Drum           
+119=Reverse Cymbal       
+120=Fret Noise           
+121=Breath Noise         
+122=Seashore             
+123=Bird Tweet           
+124=Telephone Ring       
+125=Helicopter           
+126=Applause             
+127=Gunshot              
+
+[XG Bank 1 ]
+0=Grand Piano KSP 
+1=Bright Aco Piano KSP 
+2=E. Grand Piano KSP 
+3=Honkytonk Piano KSP 
+4=E. Piano 1 KSP 
+5=E. Piano 2 KSP 
+6=Harpsichord KSP        
+7=Clavi KSP              
+11=Vibraphone KSP        
+12=Marimba KSP           
+
+[XG Bank 100]
+112=Rama Cymbal          
+
+[XG Bank 101]
+112=Asian Bells          
+
+[XG Bank 12 ]
+39=Sequenced Bass 
+62=Quack Brass 
+98=Synth Drum Comp       
+
+[XG Bank 14 ]
+98=Popcorn               
+102=Echo Pan             
+
+[XG Bank 16 ]
+24=Nylon Guitar 2 
+25=Steel Guitar 2 
+52=Choir Aahs 2 
+56=Trumpet 2             
+58=Tuba 2                
+87=Big & Low             
+89=Thick Pad 
+
+[XG Bank 17]
+56=Bright Trumpet        
+89=Soft Pad 
+
+[XG Bank 18 ]
+0=Mellow Grand Piano 
+4=Mellow E. Piano 1 
+26=Mellow Guitar 
+33=Finger Dark           
+38=Synth Bass 1 Dark 
+39=Click Synth Bass      
+57=Trombone 2            
+63=Soft Brass 
+80=Hollow                
+81=Dynamic Sawtooth      
+89=Sine Pad 
+98=Tiny Bells            
+99=Warm Atmosphere       
+
+[XG Bank 19]
+39=Synth Bass 2 Dark 
+80=Shroud                
+81=Digital Sawtooth      
+99=Hollow Release        
+
+[XG Bank 20 ]
+38=Fast Resonant Bass 
+62=Resonant Synth Brass 
+81=Big Lead              
+95=Shwimmer              
+
+[XG Bank 24 ]
+17=70's Perc. Organ 1 
+38=Acid Bass 
+48=Arco Strings 
+62=Poly Brass 
+81=Heavy Synth 
+85=Synth Aahs            
+
+[XG Bank 25 ]
+6=Harpsichord 2          
+24=Nylon Guitar 3 
+81=Waspy Synth 
+
+[XG Bank 27 ]
+7=Clavi Wah              
+33=Flange Bass 
+36=Resonant Slap         
+50=Resonant Strings      
+62=Synth Brass 3 
+95=Converge              
+97=Prologue              
+
+[XG Bank 28 ]
+34=Muted Pick Bass 
+105=Muted Banjo          
+
+[XG Bank 3 ]
+48=Stereo Strings 
+49=Stereo Slow Strings 
+52=Stereo Choir 
+
+[XG Bank 32 ]
+2=Det. CP80              
+4=Chorus E. Piano 1 
+5=Chorus E. Piano 2 
+16=Det. Drawbar Organ 
+17=Det. Perc. Organ 
+19=Church Organ 3 
+21=Accordion It 
+22=Harmonica 2           
+26=Jazz Amp              
+27=Chorus Guitar 
+35=Fretless Bass 2 
+36=Punch Thumb Bass 
+39=Smooth Synth Bass 
+52=Mellow Choir 
+56=Warm Trumpet          
+60=French Horn 2         
+62=Jump Brass 
+104=Det. Sitar           
+
+[XG Bank 33 ]
+5=DX E. Piano Hard 
+16=60's Drawbar Organ 1 
+17=Light Organ 
+35=Fretless Bass 3 
+
+[XG Bank 34 ]
+5=DX Legend              
+16=60's Drawbar Organ 2 
+35=Fretless Bass 4 
+
+[XG Bank 35 ]
+6=Harpsichord 3          
+15=Dulcimer 2            
+16=70's Drawbar Organ 1 
+19=Church Organ 2 
+25=12-String Guitar 
+38=Clavi Bass 
+48=60's Strings 
+55=Orchestra Hit 2       
+61=Trumpet&Tromb. Sect.  
+86=Big Five              
+98=Round Glockenspiel    
+104=Sitar 2              
+
+[XG Bank 36 ]
+16=Drawbar Organ 2 
+
+[XG Bank 37 ]
+16=60's Drawbar Organ 3 
+17=Perc. Organ 2 
+60=Horn Orchestra        
+
+[XG Bank 38 ]
+16=Even Bar Organ 
+
+[XG Bank 40 ]
+0=Piano Strings 
+2=E. Grand Piano 1 Lay.  
+4=E. Piano Hard 
+5=DX Phase E. Piano 
+16=Organ "16+2""2/3" 
+19=Notre Dame            
+20=Puff Organ 
+25=Nylon & Steel Guitar 
+28=Funk Guitar 1 
+30=Feedback Guitar 
+32=Jazz Rhythm           
+33=Bass & Dist.E.Guitar 
+38=Techno Synth Bass 
+39=Modular Synth Bass 
+44=Suspense Strings 
+46=Yang Chin             
+48=Orchestra             
+49=Warm Strings 
+52=Choir Strings 
+54=Synth Voice 2         
+61=Brass Section 2 
+63=Synth Brass 4 
+65=Sax Section 
+66=Breathy Tenor Sax 
+81=Pulse Sawtooth        
+98=Glockenspiel Chimes   
+99=Nylon E. Piano 
+
+[XG Bank 41]
+0=Dream 
+2=Lay. E. Grand 2        
+5=DX+Analog E. Piano 
+25=Steel Guitar Body 
+28=Muted Steel Guitar 
+30=Feedback Guitar 2 
+39=DX Bass 
+48=Orchestra 2           
+49=Kingdom               
+54=Choral                
+61=High Brass 
+63=Choir Brass 
+66=Soft Tenor Sax 
+81=Dr. Lead              
+98=Clear Bells           
+
+[XG Bank 42]
+5=DX Koto E. Piano 
+48=Tremolo Orchestra     
+61=Mellow Brass 
+98=Chorus Bells          
+
+[XG Bank 43 ]
+24=Velo Guitar Harmonics 
+28=Funk Guitar 2 
+29=Guitar Pinch 
+33=Finger Slap Bass 
+37=Velocity Switch Slap  
+65=Hyper Alto Sax 
+
+[XG Bank 45 ]
+4=Velo Xfade E. Piano 1
+5=Velo Xfade E. Piano 2
+11=Hard Vibraphone       
+28=Jazz Man              
+32=Velo Xfade Upr. Bass
+33=Finger Bass 2 
+48=Velocity Strings 
+62=Analog Velocity Brass 1
+63=Analog Velocity Brass 2
+81=Velocity Lead         
+96=Clavi Pad 
+
+[XG Bank 6 ]
+39=Mellow Synth Bass 
+61=French Horn Solo      
+80=Square Lead 2         
+81=Sawtooth Lead 2       
+
+[XG Bank 64 ]
+4=60's E. Piano 1 
+7=Pulse Clavi            
+10=Orgel                 
+12=Sine Marimba          
+16=Organ Bass 
+18=Rotary Organ 
+19=Organ Flute 
+23=Tango Accordion 2 
+38=Orbiter               
+39=X Wire Bass 
+49=70's Strings 
+50=Synth Strings 4 
+54=Analog Voice          
+55=Impact                
+62=Analog Brass 1 
+63=Analog Brass 2 
+66=Tenor Sax 2 
+80=Mellow                
+83=Rubby                 
+84=Distorted Lead        
+85=Vox Lead              
+87=Fat & Perky           
+88=Fantasy 2             
+89=Horn Pad 
+90=Poly Pad 80 
+91=Heaven 2              
+92=Glacier               
+93=Tine Pad 
+95=Polar Pad 
+96=Harmo Rain            
+97=Ancestral             
+98=Synth Mallet 
+99=Nylon Harp            
+100=Fantasy Bells        
+101=Goblins Synth        
+102=Echo Bells           
+103=Starz                
+111=Shanai 2             
+117=Melodic Tom 2        
+118=Analog Tom           
+
+[XG Bank 65]
+7=Pierce Clavi           
+16=70's Drawbar Organ 2 
+18=Slow Rotary           
+19=Tremolo Organ Flute 
+31=Guitar Feedback 
+33=Modulated Bass 
+38=Square Bass 
+49=String Ens. 3         
+50=Synth Strings 5 
+80=Solo Sine             
+82=Pure Lead             
+84=Wire Lead             
+87=Soft Whirl            
+89=Rotary Strings 
+90=Click Pad 
+92=Glass Pad 
+93=Pan Pad 
+96=African Wind          
+98=Soft Crystal          
+99=Harp Vox              
+101=Creeper              
+102=Big Pan              
+117=Real Tom             
+118=Electronic Perc      
+
+[XG Bank 66]
+16=Cheezy Organ 
+18=Fast Rotary           
+31=Guitar Harmonics 2 
+38=Rubber Bass 
+80=Sine Lead             
+90=Analog Pad 
+91=Itopia                
+95=Celestial             
+96=Carib                 
+98=Loud Glockenspiel     
+99=Atmosphere Pad 
+101=Ring Pad 
+102=Synth Piano 
+117=Rock Tom             
+
+
+[XG Bank 67]
+16=Drawbar Organ 3 
+90=Square Pad            
+91=CC Pad                
+98=Christmas Bells       
+99=Planet                
+101=Ritual               
+102=Creation             
+
+[XG Bank 68]
+98=Vibraphone Bells      
+101=To Heaven            
+102=Star Dust            
+
+[XG Bank 69]
+98=Digital Bells         
+102=Resonant & Panning   
+
+[XG Bank 70]
+98=Air Bells             
+101=Night                
+
+[XG Bank 71]
+98=Bell Harp             
+101=Glisten              
+
+[XG Bank 72]
+98=Gamelimba             
+
+[XG Bank 8 ]
+40=Slow Violin           
+44=Slow Tremolo          
+48=Slow Strings 
+49=Legato Strings 
+80=LM Square             
+81=Thick Sawtooth        
+102=Echoes 2             
+
+[XG Bank 96]
+14=Church Bells          
+15=Cimbalom              
+24=Ukulele               
+25=Mandolin              
+35=Synth Fretless        
+38=Hammer                
+81=Sequenced Analog      
+100=Smokey               
+101=Bell Choir           
+104=Tambra               
+105=Rabab                
+107=Taisho Koto          
+111=Pungi                
+112=Bonang               
+115=Castanets            
+116=Gran Cassa           
+
+[XG Bank 97]
+12=Balimba               
+14=Carillon              
+15=Santur                
+35=Smooth Fretless       
+104=Tamboura             
+105=Gopichant            
+107=Kanoon               
+111=Hichiriki            
+112=Altair               
+114=Glass Percussion     
+
+[XG Bank 98]
+12=Log Drums             
+105=Oud                  
+112=Gamelan Gongs        
+114=Thai Bells           
+
+[XG Bank 99]
+112=St.Gamelan Gongs     
+
+
+; -------------------------- GM2 Voices -----------------------------------
+
+[GM2 Bank 0]
+0=Aco Grand Piano 
+1=Bright Aco Piano 
+2=E. Grand Piano 
+3=Honkytonk Piano 
+4=E. Piano Rhodes 
+5=Chorused E. Piano 
+6=Harpsichord           
+7=Clavinet              
+8=Celesta               
+9=Glockenspiel          
+10=Music Box            
+11=Vibraphone           
+12=Marimba              
+13=Xylophone            
+14=Tubular Bells        
+15=Dulcimer             
+16=Hammond Organ 
+17=Perc. Organ 
+18=Rock Organ 
+19=Church Organ 
+20=Reed Organ 
+21=Accordion 
+22=Harmonica            
+23=Tango Accordion 
+24=Nylon Guitar 
+25=Steel Guitar 
+26=Jazz Guitar 
+27=Clean Guitar 
+28=Muted Guitar 
+29=Overdriven Guitar 
+30=Distortion Guitar 
+31=Guitar Harmonics 
+32=Aco Bass 
+33=Finger Bass 
+34=Pick Bass 
+35=Fretless Bass 
+36=Slap Bass 1 
+37=Slap Bass 2 
+38=Synth Bass 1 
+39=Synth Bass 2 
+40=Violin               
+41=Viola                
+42=Cello                
+43=Contrabass           
+44=Tremolo Strings      
+45=Pizzicato Strings    
+46=Orchestral Harp      
+47=Timpani              
+48=String Ens. 1        
+49=String Ens. 2        
+50=Synth Strings 1      
+51=Synth Strings 2      
+52=Choir Aahs 
+53=Voice Oohs           
+54=Synth Voice          
+55=Orchestra Hit        
+56=Trumpet              
+57=Trombone             
+58=Tuba                 
+59=Muted Trumpet        
+60=French Horn          
+61=Brass Section 
+62=Synth Brass 1 
+63=Synth Brass 2 
+64=Soprano Sax          
+65=Alto Sax             
+66=Tenor Sax            
+67=Baritone Sax         
+68=Oboe                 
+69=English Horn         
+70=Bassoon              
+71=Clarinet             
+72=Piccolo              
+73=Flute                
+74=Recorder             
+75=Pan Flute            
+76=Bottle Blow          
+77=Shakuhachi           
+78=Whistle              
+79=Ocarina              
+80=Square Lead          
+81=Sawtooth Lead        
+82=Calliope Lead        
+83=Chiff Lead           
+84=Charang Lead         
+85=Voice Lead           
+86=Fifths Lead          
+87=Bass & Lead          
+88=New Age Pad 
+89=Warm Pad 
+90=Polysynth Pad 
+91=Choir Pad 
+92=Bowed Pad 
+93=Metallic Pad 
+94=Halo Pad 
+95=Sweep Pad 
+96=Rain                 
+97=Soundtrack           
+98=Crystal              
+99=Atmosphere           
+100=Brightness          
+101=Goblins             
+102=Echo Drops          
+103=Sci-Fi              
+104=Sitar               
+105=Banjo               
+106=Shamisen            
+107=Koto                
+108=Kalimba             
+109=Bagpipe             
+110=Fiddle              
+111=Shanai              
+112=Tinkle Bell         
+113=Agogo               
+114=Steel Drums         
+115=Woodblock           
+116=Taiko Drum          
+117=Melodic Tom         
+118=Synth Drum          
+119=Reverse Cymbal      
+120=Guitar Fret Noise   
+121=Breath Noise        
+122=Seashore            
+123=Bird Tweet          
+124=Telephone 1         
+125=Helicopter          
+126=Applause            
+127=Gunshot             
+
+[GM2 Bank 1]
+0=Aco Piano w 
+1=Bright Aco Piano d 
+2=E. Grand Piano w 
+3=Honkytonk Piano w 
+4=Det. E. Piano 1 
+5=Det. E. Piano 2 
+6=Harpsi. oct-mix       
+7=Pulse Clavi           
+11=Vibraphone w         
+12=Marimba w            
+14=Church Bell          
+16=Det. Drawbar Organ
+17=Det. Perc. Organ 
+19=Church Organ Oct. 
+20=Puff Organ 
+21=Accordion 2 
+24=Ukulele              
+25=12-String Guitar 
+26=Pedal Steel Guitar 
+27=Det. Clean Guitar 
+28=Funky Guitar 
+29=Guitar Pinch 
+30=Feedback Guitar 
+31=Guitar Feedback 
+33=Finger Slap Bass 
+38=Warm Synth Bass 
+39=Synth Bass 4 
+40=Slow Violin          
+46=Yang Chin            
+48=Strings & Brass 
+50=Synth Strings 3 
+52=Choir Aahs 2 
+53=Humming              
+54=Analog Voice         
+55=Bass Hit Plus        
+56=Soft Trumpet         
+57=Trombone 2           
+59=Muted Trumpet 2      
+60=Warm French Horn     
+61=Brass Section 2 
+62=Synth Brass 3 
+63=Synth Brass 4 
+80=Simple Square        
+81=Simple Sawtooth      
+84=Wire Lead            
+87=Soft Wurl Piano 
+89=Sine Pad 
+91=Itopia               
+98=Synth Mallet 
+102=Echo Bell           
+104=Sitar 2             
+107=Taisho Koto         
+115=Castanets           
+116=Concert Bass Drum   
+117=Melodic Tom 2       
+118=Analog Tom          
+120=Gtr.Cutting Noise   
+121=Flute Key Click     
+122=Rain                
+123=Dog                 
+124=Telephone Ring 2    
+125=Car Engine          
+126=Laughing            
+127=Machine Gun         
+
+[GM2 Bank 2]
+0=Aco Piano d 
+4=E. Piano 1 v 
+5=E. Piano 2 v 
+6=Harpsichord w         
+14=Church Bell          
+16=Italian 60's Organ 
+17=Perc. Organ2 
+19=Det. Church Organ 
+24=Nylon Guitar ket-off 
+25=Mandolin             
+27=Mid Tone Guitar 
+28=Muted Guitar v 
+30=Distortion Rhythm    
+38=Synth Bass 3 
+39=Rubber Bass 
+48=60's Strings 
+55=6th Hit              
+57=Bright Trombone      
+62=Analog Brass 1 
+63=Analog Brass 2 
+80=Simple Sine          
+81=Sawtooth + Pulse     
+102=Echo Pan            
+118=E. Drum             
+120=Bass String Slap    
+122=Thunder             
+123=Horse Gallop        
+124=Door Creaking       
+125=Car Stop            
+126=Screaming           
+127=Lasergun            
+
+[GM2 Bank 3]
+4=60's E. Piano 
+5=E. Piano Legend 
+6=Harpsi. Key-off       
+16=Drawbar Organ 2 
+24=Nylon Guitar 2 
+25=Steel Guitar Body 
+28=Jazz Man             
+38=Clavi Bass 
+39=Attack Pulse         
+55=Euro Hit             
+62=Jump Brass 
+81=Double Sawtooth      
+122=Wind                
+123=Bird Tweet 2        
+124=Door Slamming       
+125=Car Pass            
+126=Punch               
+127=Explosion           
+
+[GM2 Bank 4]
+5=E. Piano Phase 
+38=Hammer               
+81=Sequenced Analog     
+122=Stream              
+124=Scratch             
+125=Car Crash           
+126=Heart Beat          
+
+[GM2 Bank 5]
+122=Bouble              
+124=Wind Chime          
+125=Siren               
+126=Footsteps           
+
+[GM2 Bank 6]
+125=Train               
+
+[GM2 Bank 7]
+125=Jetplane            
+
+[GM2 Bank 8]
+125=Starship            
+
+[GM2 Bank 9]
+125=Burst Noise         
+
+
+; -------------------------- Tyros 5 Voices -----------------------------------
+; Don't need to define {{SubGM1=xx}} because these voices use the GM1 program changes.
+
+
+; ------------------------
+[Tyros5 Bank 0]
+2=Live! MIDIGrand
+3=Live! CocktailPiano
+4=Magnetics
+5=Cool! SweetDX
+9=Glockenspiel
+12=Marimba
+13=Xylophone
+15=Zither2
+16=Cool! Organ-a-Gogo
+17=Cool! WhiterBarsFast
+18=Cool! AllBarsOutFast
+19=Live! Tutti
+21=Cassotto
+26=Cool! SlideJazz
+27=Cool! Slapback
+28=Cool! VintageMute
+32=BallroomBass
+34=Cool! VintagePickMute
+38=MoonBass
+39=LoBass
+44=Live! RealTremolo
+46=MellowHarp
+49=SymphonicUnison
+50=MediumTunePad
+51=PremiumPad
+57=Sweet! BrightTrombone
+58=Tuba
+59=Sweet! MutedCornet
+60=Live! OrchHorns
+61=Live! PopHnsDynamic
+62=ThinthBrass
+65=Sweet! AltoSax2
+67=BaritoneSax
+68=Sweet! OrchOboe
+70=Sweet! OrchBassoon
+71=Live! OrchClarinet
+73=Sweet! OrchFlute
+80=SubLead
+81=MouthLead
+84=Regular_BleepLead
+87=TalkModLead
+88=Regular_AmbientPad
+89=VPSoft
+90=HPFDance
+91=BreathPad
+92=WhisperGallery
+93=EarlyDigital
+94=MorningDew
+95=TranceMW
+97=SazFeeze
+99=NylonPad
+100=HeavenBell
+101=PercPad
+103=PitchFall
+104=Sitar
+105=Banjo
+106=SynthSticks
+122=Live! SeaShore
+125=Live! Helicopter
+126=Live! Applause1
+127=Live! GunShot
+; ------------------------
+[Tyros5 Bank 1]
+0=Live! MIDIGrandSyn
+2=Live! MIDIGrandPad
+3=Natural! CocktailPiano
+5=Cool! MidnightDX
+11=Sweet! Vibraphone
+15=Zither1
+17=Cool! WhiterBarsSlow
+18=Cool! AllBarsOutSlow
+19=Live! GrandJeu
+21=Clari8'&4'
+26=LoungeGuitar
+32=AcousticBass
+33=Cool! VintageRound
+34=VintagePick
+38=KickBass
+39=DarkBass
+44=Live! RealTremoloSfz
+46=OrchestralHarp
+49=TheatreOrch
+50=SoftEnsemble
+51=80sPad
+60=Live! SymphonyHorns1
+61=Live! SwingHnsWarm
+62=BrassProfit
+68=Clarinet&Oboe
+70=OrchWoodwind
+71=Clarinet&Flutes
+73=AltoFlutes
+81=PWMLead
+84=DetunedVintage
+87=Xtune
+88=NobleMan
+89=VaporPad
+90=TranceSeq3
+94=Aerosphere
+95=SpaceRider
+97=EasternAir
+99=FlyingHarmonics
+101=CrossPhase
+104=Nomad
+122=TrancyNoise
+126=Live! Applause2
+; ------------------------
+[Tyros5 Bank 2]
+0=Live! PianoOrchestra
+2=Natural! MIDIGrand
+3=Natural! Grand1Octave
+5=Cool! BalladBells
+18=Cool! AllBarsPhase
+19=Live! FondsEtAnches
+21=FullRegister
+30=Cool! StereoRock
+32=SoftAcBass
+33=Cool! VintageFlat
+34=Cool! VintageDyno
+38=ClubBass
+39=FatPulse
+46=Hackbrett
+50=ButterStrings
+51=LightPad
+60=Live! SymphonyHorns2
+61=Live! SwingHnsMute
+62=SlowPWMBrass
+68=DoubleReeds
+71=GermanClarinet
+73=Flutes&Oboes
+81=FlangeFilter
+84=LektroCodes
+87=DigitalSeq
+88=PearlsPad
+89=DarkFatSaw
+90=ResonantClavi
+94=WarpedWaves
+95=HotSwell
+97=Tric-Trac
+99=NylonHeaven
+101=SixthSense
+; ------------------------
+[Tyros5 Bank 3]
+0=Live! AmbientPiano
+2=Natural! MIDIGrandPad
+3=Natural! Grand2Octave
+5=Cool! DreamDX
+18=Cool! FullRocker2
+19=Live! OrganoPleno
+21=Cajun
+33=Cool! VintageMute
+38=DeepPoint
+39=TightBass
+50=BrightPopPad
+51=AnaDayz
+56=Live! OrchTrumpets
+57=Live! OrchTrombones
+60=Live! StoppedHorns
+61=Live! PopHnsAccent
+62=ClubLead
+80=WazzoSaw
+81=VinalogSaw
+87=AnalogSeq
+88=GalaxyPad
+89=DarkLight
+90=BritePadClassic
+91=HeavenPad
+94=SoundPictures
+95=DouxFlange
+99=PianoSweeper
+101=MidnightSpecial
+; ------------------------
+[Tyros5 Bank 4]
+0=Live! RockPiano
+19=Diapason
+27=CoolWahGuitar
+38=Competitor
+39=SquareBass
+49=Live! RealStrings f
+50=OctStrings
+51=FaaatComp
+52=Live! BeeVibrato
+56=Live! OrchTrumptsFast
+57=Live! OrchTrombsFast
+60=Live! OrchHornsFast
+61=Live! PopHnsDynShake
+62=ResonanceComp
+80=WildPWM
+81=Attack
+84=ShortUnison
+87=TranceSeq1
+88=NightMotion
+89=NewAtmosphere
+90=BrightPadTrance
+91=HybridLines
+94=Spectralis
+95=DeepMotion
+101=WaterGames
+; ------------------------
+[Tyros5 Bank 5]
+0=Live! PopGrand
+17=Tibia Full
+19=Claribel8&Flute4
+21=FullRegBass
+27=Cool! SlideFinger
+38=1o1Sub
+39=SubCutBass
+49=Live! RealStrings mf
+51=DanceChords
+61=Live! PopHnsCresc
+62=BrassyLead
+80=SoftSquare
+81=TrancePerc
+84=BriteDecay
+87=TranceSeq2
+88=Bellsphere
+89=RainyDay
+90=BrightFatSaw
+94=SpectrumPad
+101=MyGeneration
+; ------------------------
+[Tyros5 Bank 6]
+17=Tibia 8
+19=LieblichGedackt
+21=CajunBass
+27=Cool! SlideWarm
+38=LittleBassSynth
+39=MiniSub
+48=Live! RealSpiccato
+49=Live! RealStrings p
+51=ChillinChords
+61=Live! BalladBrass
+62=FastPWMBrass
+81=PWMPercussion
+84=TekkTune
+87=PercSeqFS
+88=BalladComp
+89=Atmo5th
+94=MysticPad
+95=Live! PadVoices
+101=All or Nothing
+; ------------------------
+[Tyros5 Bank 7]
+4=Cool! SuitcaseSoft
+17=Vox 8
+19=SoftReeds
+27=Cool! SlidePick
+38=TeknoBass
+39=BalladBass
+51=FatSawHook
+52=Live! GospelHey
+81=PunchLead
+84=StaccMelody
+87=PercSeqFM1
+88=BrightPadBell
+101=Digisweeper
+; ------------------------
+[Tyros5 Bank 8]
+0=Natural! MIDIGrandSyn
+4=Cool! VintageEP
+16=Tibia 16&4
+27=Cool! SlidePickAmp
+38=PercPunch
+52=Live! BoysChoirAah
+53=Live! BoysChoirOoh
+61=Live! SymphonyHorns3
+81=DetunedSawOct
+84=PitchyPatch
+87=PercSeqFM2
+88=StackBell
+101=MetallicRain
+; ------------------------
+[Tyros5 Bank 9]
+0=Natural! AmbientPiano
+4=Cool! SuitcaseBallad
+16=Tibia 8&4
+25=Live! SlideSpanishGtr
+38=TranceBass
+50=UnisonStrings
+51=NextGeneration
+52=Live! Haa
+61=Live! OrchTpts&Tbns1
+81=DancyHook
+84=SoftChordsyn
+87=PercSeqHipa
+88=NiceBell
+101=TheFog
+; ------------------------
+[Tyros5 Bank 10]
+0=Natural! RockPiano
+4=Cool! SuitcasePhaser
+5=Cool! TX-EPBright
+16=Vox&Tibia
+25=Live! SteelAcoustic
+38=DynoAcidBass
+50=MedDetStrings
+52=Live! Wah
+61=Live! OrchTpts&Tbns2
+81=ChorusSawLead
+84=ChordBuddy
+88=NewHeaven
+90=NastySaw
+101=Randomizer
+; ------------------------
+[Tyros5 Bank 11]
+0=Natural! PopGrand
+4=Cool! SuitcaseDrive
+5=Cool! TX-EPMellow
+25=Live! ChickenPickGtr
+38=FatSineRes
+61=Live! OrchHornPad
+81=PercSeqSaw
+84=TuneComp
+88=FantasyBells
+90=GrowlingHook
+101=Atlantis
+; ------------------------
+[Tyros5 Bank 12]
+0=Natural! PianoOrchestra
+4=Cool! SuitcaseTremolo
+5=Cool! TX-EPWarm
+25=Live! SteelGtrTwin1
+52=Live! Baa
+53=Live! GospelHmm
+61=Live! OrchBrassOct
+81=SimpleComp
+84=ArpeggioLine
+88=OrganBells
+90=Yipping
+; ------------------------
+[Tyros5 Bank 13]
+0=Natural! UprightPiano
+1=Natural! PopUpright
+3=Natural! HonkyTonk
+4=Cool! SuitcaseJazz
+25=Live! SteelGtrTwin2
+52=Live! Daa
+53=Live! GospelWow
+61=Live! OrchHorns&Tbns
+81=Chordmaster
+88=ItopiaBells
+90=Mr.Unstable
+; ------------------------
+[Tyros5 Bank 14]
+0=Natural! 70sBalladPiano
+1=Natural! SaloonUpright
+3=Natural! Upright1octave
+4=Cool! SuitcaseWarmth
+61=Live! CollieryBand
+81=TechGlide
+88=SpectrumTheme
+90=Persecutor
+; ------------------------
+[Tyros5 Bank 15]
+0=Natural! ChillOutPiano
+3=Natural! Upright2octave
+4=Cool! VintageEPDrive
+52=Live! AccompAah
+53=Live! AccompOoh
+61=Live! SymphnyHrsFast
+81=FusionLead
+88=BreathBells
+90=LoonyGirl
+; ------------------------
+[Tyros5 Bank 16]
+4=Cool! SuitcaseHard
+18=TheatrePedal1
+53=Live! Doo
+81=SoftSaw
+88=SkyBells
+90=HardTeeth
+; ------------------------
+[Tyros5 Bank 17]
+18=TheatrePedal2
+53=Live! Ooh
+81=VeloMaster
+88=AiryHarp
+90=Cyclist
+; ------------------------
+[Tyros5 Bank 18]
+53=Live! Yoo
+87=DeepSubMW
+88=Sinesphere
+90=TenPercent
+; ------------------------
+[Tyros5 Bank 19]
+18=HomeOrgTromb
+87=ModernPop
+88=Pianosphere
+90=Crowds
+; ------------------------
+[Tyros5 Bank 20]
+18=HomeOrgClari
+81=1984Synth
+87=MultiSawBass
+88=AmbientTheme
+90=Gemini
+; ------------------------
+[Tyros5 Bank 21]
+18=HomeOrgCello
+87=BriteDubBass
+88=ReflectingZone
+90=Regular_HandsUp!
+; ------------------------
+[Tyros5 Bank 22]
+18=HomeOrgE.Horn
+87=Pulse&Saw
+88=HybridPad
+90=StraightRaver
+; ------------------------
+[Tyros5 Bank 23]
+18=HomeOrgCornet
+87=TwentyFive
+90=TranceArtist
+; ------------------------
+[Tyros5 Bank 24]
+18=HomeOrgViolin
+87=PunchySquare
+88=SoftStepper
+90=PunchyChordz
+; ------------------------
+[Tyros5 Bank 25]
+18=HomeOrgKinura
+87=Softwood
+88=PWMPicks
+90=TrancyChordz
+; ------------------------
+[Tyros5 Bank 26]
+18=SeasideOrgan
+87=PunchyDX
+88=SquareStepz
+; ------------------------
+[Tyros5 Bank 27]
+87=DarkSeqBass
+88=DynaSequence
+; ------------------------
+[Tyros5 Bank 28]
+17=Chrysoglott
+18=Tibia&Vox
+87=PumpingSaw
+88=TriPicks
+; ------------------------
+[Tyros5 Bank 29]
+17=TheatreOrgGlock
+18=OpenTibias
+87=PumpingSquare
+88=Cracky
+; ------------------------
+[Tyros5 Bank 30]
+17=TheatreOrgXylo
+18=GambaCeleste
+; ------------------------
+[Tyros5 Bank 31]
+17=TheatrOrgChime
+18=FullTheatre1
+; ------------------------
+[Tyros5 Bank 32]
+16=Cool! 60sCombo1
+17=TheatreOrgHarp
+18=FullTheatre2
+; ------------------------
+[Tyros5 Bank 33]
+16=Cool! 60sCombo2
+17=EuroAccomp1
+18=FullTheatre3
+; ------------------------
+[Tyros5 Bank 34]
+16=Cool! 60sCombo3
+17=EuroAccomp2
+18=FluteAccomp
+; ------------------------
+[Tyros5 Bank 35]
+16=Cool! 60sCombo4
+17=EuroAccomp3
+18=StringsAccomp
+; ------------------------
+[Tyros5 Bank 36]
+18=ChrysoglottAcc
+; ------------------------
+[Tyros5 Bank 37]
+18=HomeAccomp1
+; ------------------------
+[Tyros5 Bank 38]
+18=HomeAccomp2
+; ------------------------
+[Tyros5 Bank 104]
+17=VintageAccomp5
+; ------------------------
+[Tyros5 Bank 105]
+17=VintageAccomp4
+61=Live! Sforzando
+; ------------------------
+[Tyros5 Bank 106]
+17=VintageAccomp3
+61=Live! BrassDynamics
+; ------------------------
+[Tyros5 Bank 107]
+17=VintageAccomp2
+27=Cool! ChorusSolid
+61=Live! SforzandoFall
+; ------------------------
+[Tyros5 Bank 108]
+17=VintageAccomp1
+27=Cool! SlapSolid
+61=Live! Brass f
+66=Live! BigBandOctave
+; ------------------------
+[Tyros5 Bank 109]
+17=Cool! TwoChannels
+27=Cool! BalladSolid
+61=Live! AccentBrass
+66=Live! BigBandUnison
+; ------------------------
+[Tyros5 Bank 110]
+17=Cool! RotarySwitch
+27=Cool! SlideSolid
+61=Live! Brass mf
+66=Live! BigBandSaxes
+; ------------------------
+[Tyros5 Bank 111]
+16=Cool! EvenBars
+17=Cool! Hold It Fast
+18=Cool! R&B Tremolo
+27=Cool! TremoloSolid
+61=Live! Brass p
+66=Sweet! GrowlSax
+; ------------------------
+[Tyros5 Bank 112]
+0=Live! GrandPiano              ; This one not on Tyros but on some PSR
+1=Live! BrightPiano
+2=MIDIGrand
+3=HonkyTonk
+4=FunkEP
+5=DX Modern
+6=Live! Harpsichord
+7=Clavi
+8=Celesta
+9=Glockenspiel
+10=MusicBox
+11=Vibraphone
+12=Marimba
+13=Xylophone
+14=TubularBells
+15=Dulcimer
+16=JazzOrgan1
+17=ClickOrgan
+18=RockOrgan1
+19=PipeOrgan
+20=ReedOrgan
+21=Musette
+22=Sweet! Harmonica
+23=BallroomAcc
+25=FolkGuitar
+27=Cool! CleanGuitar
+28=MutedGuitar
+29=OverdriveGtr
+30=DistortionGtr
+32=AcousticBass
+33=MellowFinger
+34=PickBass
+35=Cool! FretlessBass
+36=SlapBass
+37=FunkBass
+38=ResoBass
+39=AnalogBass
+40=SoloViolin
+41=Viola
+42=Cello
+43=Contrabass
+44=TremoloStrings
+45=Pizzicato
+46=Harp
+47=Timpani
+48=Strings
+49=ChamberStrings
+50=Regular_SynthStrings1
+51=AnalogStrings
+52=Choir
+53=VoxHumana
+54=AirChoir
+55=OrchestraHit
+56=SoloTrumpet
+57=SoloTrombone
+58=Tuba2
+59=MutedTrumpet
+60=Live! FrenchHorns
+61=BrassSection
+62=SynthBrass
+63=AnalogBrass
+64=SopranoSax
+65=AltoSax
+66=TenorSax
+67=BaritoneSax
+68=Oboe
+69=EnglishHorn
+70=Bassoon
+71=Clarinet
+72=Piccolo
+73=Flute
+74=Recorder
+75=EthnicFlute
+77=Shakuhachi
+78=Whistle
+79=Ocarina
+80=SquareLead
+81=SawLead
+83=AeroLead
+84=Portatone
+86=DanceHook
+87=UnderHeim
+88=Fantasia
+89=Area51
+90=PopPad
+91=XenonPad
+92=DX Pad
+94=Equinox
+95=Wave2001
+97=FarEast
+98=Stardust
+99=Atmosphere
+101=Skydiver
+104=Sitar2
+105=Banjo2
+106=Shamisen
+107=Koto
+108=Kalimba
+109=Bagpipe
+110=Fiddle
+114=SteelDrums
+; ------------------------
+[Tyros5 Bank 113]
+0=Live! GrandPiano
+2=CP80Stage
+3=Live! OctavePiano1
+4=Cool! TremoloEP
+5=HyperTines
+6=Live! GrandHarpsi
+7=WahClavi
+11=JazzVibes
+16=JazzOrgan2
+17=DanceOrgan
+18=RockOrgan3
+19=ChapelOrgan1
+21=TuttiAccordion
+22=ModernHarp
+23=Bandoneon
+24=Spanish Gtr                      ; Not on Tyros but on PSR
+25=Live! 12StringGtr
+26=OctaveGuitar
+27=TremoloGuitar
+28=FunkGuitar
+29=FeedbackGtr
+30=CrunchGuitar
+33=AlpBass
+34=Cool! DynoPickBass
+35=SuperFretless
+36=FusionBass
+37=DX FunkBass
+38=HiQBass
+40=Sweet! Violin
+44=Live! TremoloStrings
+45=Live! Pizzicato
+46=Hackbrett2
+48=OrchStrings
+49=SlowStrings
+50=SynthStrings2
+51=OberStrings
+53=GothicVox
+54=Voices
+56=FlugelHorn
+57=TbnSection
+58=BaritoneHorn
+59=BallroomBrass
+60=Hybrihorn
+61=BigBandBrass
+62=80sBrass
+63=OberBrass
+64=Sweet! SopranoSax
+65=Breathy Alto
+66=WoodwindsEns
+67=Rock Baritone
+68=Sweet! Oboe
+71=Melodic Clarinet
+73=PanFlute
+75=Sweet! PanFlute
+80=HipLead
+81=BigLead
+83=ProLead
+84=Adrenaline
+86=OctaveHook
+87=Impact
+88=Symbiont
+89=DarkMoon
+90=BrightSawPad
+94=Insomnia
+95=BrightOber
+97=Mystery
+98=SunBell
+99=CyberPad
+101=Bubblespace
+; ------------------------
+[Tyros5 Bank 114]
+0=Live! WarmGrand
+2=BalladStack
+3=Live! OctavePiano2
+4=Cool! GalaxyEP
+5=VenusEP
+7=StereoClavi
+11=Vibes&Flutes
+16=Tibia 16&4 Acmp
+17=Tibia Full Acmp
+18=PurpleOrgan
+19=ChapelOrgan2
+21=SoftAccordion
+22=BluesHarp
+23=TangoAccordion
+25=Sweet! Mandolin
+27=DeepChorus
+28=Cool! ElectricGtr
+29=LeadGuitar
+30=HeavyStack
+32=Bass&Cymbal
+33=Cool! ElectricBass
+34=RockBass
+38=HardBass
+39=SubBass
+48=Symphonic
+49=Regular_StringQuartet
+52=HahChoir
+57=MellowTrombone
+58=BaritoneHit
+59=Sweet! MutedTrumpet
+60=Hybripad
+61=FullHorns
+62=TechnoBrass
+63=SoftAnalog
+65=Sweet! AltoSax1
+71=Sweet! Clarinet
+73=Sweet! Flute
+80=MiniLead
+81=Blaster
+84=Paraglide
+87=CryingLead
+88=Stargate
+89=Dunes
+90=GloriousPhase
+93=GlassPad
+94=Solaris
+95=HipaStrings
+98=AngelVibes
+99=Mediterrain
+101=Sirius
+; ------------------------
+[Tyros5 Bank 115]
+0=Live! ConcertGrand
+3=BallroomOrgan
+4=Regular_PolarisEP
+5=ModernEP
+7=PhaseClavi
+16=DrawbarOrgan2
+17=Regular_MellowDraw
+18=Cool! FullRocker
+19=ChapelOrgan3
+21=SmallAccordion
+23=TangoBass
+24=Live!_ClassicalGtr
+25=CampfireGtr
+26=Cool! JazzGuitar
+27=PedalSteel
+28=VintageMutedGt
+29=VintageAmp
+30=Cool! PowerLead
+33=Cool! HalfMute
+38=ClickBass
+39=80sSynthBass
+48=ConcertoStrings
+49=Marcato
+52=UuhChoir
+56=Sweet! Trumpet
+57=SoftTrombone
+60=Live! SymphonyHorns
+61=HighBrass
+62=FunkyAnalog
+63=OberHorns
+66=BrassCombo
+71=Moonlight
+73=Sweet! ClassicalFlute
+80=VinylLead
+81=Analogon
+84=Skyline
+88=GoldenAge
+89=NeoWarmPad
+90=BigOctavePad
+93=DigitalPad
+94=Ionosphere
+95=OberSweep
+101=S&H Groove
+; ------------------------
+[Tyros5 Bank 116]
+4=VintageEP
+5=NewTines
+16=BrightDraw
+17=60sOrgan
+18=RotaryDrive
+21=Accordion
+24=Live! DynamicNylon
+25=Live! DynamicSteel
+26=Cool! JazzSoloGtr
+27=BrightClean
+28=Cool! FunkGuitar
+29=RockGuitar
+30=VodooLead
+38=HouseBass
+39=DrySynthBass
+48=BowStrings
+49=Live! Orchestra
+52=Live! GospelVoices
+56=JazzTrumpet
+57=Trombone
+60=Regular_BreathBrass
+61=MellowBrass
+62=Live! OctaveBrass
+63=FatSynthBrass
+66=Live! SaxSection
+73=FluteEnsemble
+80=HiBias
+81=FireWire
+84=Tekkline
+88=TimeTravel
+89=Disclosure
+94=HahPad
+95=Messenger
+101=VeloAshrami
+; ------------------------
+[Tyros5 Bank 117]
+4=StageEP
+5=SuperDX
+16=Cool! JazzOrgan
+18=Cool! RotorOrgan
+21=Steirisch
+24=Live! SlideNylon
+25=Live! SteelGuitar
+26=DXJazzGuitar
+27=60sClean
+28=Cool! SlideClean
+29=Cool! BluesGuitar
+30=PowerChord
+38=PunchyBass
+39=TB Bass
+48=Live! Strings p
+49=Live! Strings
+52=Live! Mmh
+57=Sweet! Trombone
+60=Live! SoftHorns
+61=SmallBrass
+62=Live! PopBrass
+66=Sweet! TenorSax
+80=HopLead
+81=Warp
+84=TechLead
+88=Millennium
+89=MelodyMaker
+95=MellowPad
+101=EveningStars
+; ------------------------
+[Tyros5 Bank 118]
+4=Cool! SuitcaseEP
+5=JazzChorus
+16=EuroOrgan
+17=ElectricOrgan
+18=Cool! Organ
+21=MasterAccord
+24=Live! HardFlamenco
+25=Live! SlideSteel
+26=AlohaGuitar
+27=SolidGuitar
+28=Cool! DynamicMute
+38=BigDrone
+48=Live! Strings mf
+49=Orch&Horns
+52=Live! Humming
+56=Sweet! FlugelHorn
+57=SmoothTrombone
+60=Live! SoftTrombones
+61=PopBrass
+62=Live! HyperBrass
+66=GrowlSax
+80=TinyLead
+81=EarlyLead
+84=HipaLead
+88=SweetHeaven
+89=BigTune
+95=DarkPad
+101=PsychoPad
+; ------------------------
+[Tyros5 Bank 119]
+4=Cool! ElectricPiano
+5=SmoothTine
+16=GospelOrgan
+17=PercOrgan
+18=RockOrgan2
+21=FrenchMusette
+24=Live! NylonMute
+25=18String
+26=SmoothLead
+27=Electric12Str
+28=Cool! MutedGuitar
+48=Live! Strings f
+49=Orch&Flute
+56=Sweet! Cornet
+60=Live! SymphonyBrass
+61=MellowHorns
+62=HybridComp
+66=BalladSection
+80=SoftR&B
+81=Fargo
+88=BellHeaven
+89=Regular_SuperDarkPad
+95=AnalogSwell
+; ------------------------
+[Tyros5 Bank 120]
+4=PhaseEP
+5=ChorusBell
+16=JazzOrgan3
+17=DrawbarOrgan1
+21=JazzAccordion
+25=Live! SteelMute
+27=VintageTrem
+30=MetalMaster
+48=Live! Spiccato
+49=Tutti
+56=Sweet! MellowTrumpet
+60=Live! SmallBrass
+61=BrightBrass
+62=SoftVeloBrass
+66=SaxyMood
+80=PopLead
+81=WireLead
+88=PanHeaven
+89=AnalogPad
+; ------------------------
+[Tyros5 Bank 121]
+5=Cool! SparkleStack
+16=Cool! CurvedBars
+21=AccordionBass
+27=SolidChord
+48=Live! StringFalls
+49=Orch&Oboe
+56=Sweet! SilverTrumpet
+61=BigBrass
+62=Live! PowerBrass
+66=Live! SaxSectionSoft
+80=TranceLead
+81=FunkyLead
+88=DreamHeaven
+89=DarkAngelPad
+; ------------------------
+[Tyros5 Bank 122]
+0=Natural! ConcertGrand
+16=Tibia 8&4 Acmp
+17=Tibia 8 Acmp
+21=MasterBass
+27=WahGuitar
+49=Live! Allegro
+56=Sweet! GoldenTrumpet
+61=TrumpetEns
+66=Live! SaxSectionHard
+80=PanLead
+81=Oxygen
+88=ProHeaven
+89=LitePad
+; ------------------------
+[Tyros5 Bank 123]
+5=Cool! DXDynamics
+16=Kinura 8
+17=Vox 8 Acmp
+21=MusetteBass
+27=VintageOpen
+48=Live! MovieStrings
+49=Live! DiscoStrings1
+56=Live! BrassBand
+61=SoftBrass
+66=Live! SaxAppeal
+80=Regular_PercSquare
+81=Matrix
+88=Sunbeam
+; ------------------------
+[Tyros5 Bank 124]
+5=Cool! BalladDX
+16=TheatreOrgTpt
+17=Trumpet 16&8
+27=ChorusGuitar
+48=Live! DynamicStrings
+49=Live! DiscoStrings2
+61=NaturalBrass
+66=SaxStack
+80=SoftMini
+81=Robolead
+88=StringBells
+; ------------------------
+[Tyros5 Bank 125]
+16=Vox&Tibia Acmp
+17=Tpt&Kinura
+27=Cool! VintageLead
+61=Sforzando
+66=Sweet! JazzTenor
+80=BrightMini
+81=TrumpetSaw
+88=CrystalEyes
+; ------------------------
+[Tyros5 Bank 126]
+16=OrganFlutes OrganFlutes
+17=Cool! JazzSlow
+18=SweetTheatre
+27=VintageStrum
+61=BrassHit
+66=Sweet! BalladTenor
+80=OrbitSine
+81=AttackSaw
+88=Padbells
+; ------------------------
+[Tyros5 Bank 127]
+16=Cool! VintageFast
+17=Cool! JazzFast
+18=FullTheatre
+61=Live! DynamicBrass
+66=Sweet! PopTenor
+81=PunchyHook
+; ------------------- MEGA VOICES ------------------------------
+; SubGM1 of these voices are REFINED
+[Tyros5 MV Bank 0]
+0=MegaVoice NylonGuitar     {{SubGM1=24}}
+1=MegaVoice SteelGuitar      {{SubGM1=25}}
+2=MegaVoice HiStringGt       {{SubGM1=25}}
+3=MegaVoice CleanGuitar      {{SubGM1=27}}
+4=MegaVoice OverdriveGt      {{SubGM1=29}}
+5=MegaVoice DistortionGt     {{SubGM1=30}}
+6=MegaVoice JazzGuitar       {{SubGM1=26}}
+16=MegaVoice AcousticBass    {{SubGM1=32}}
+17=MegaVoice ElectricBass    {{SubGM1=33}}
+18=MegaVoice PickBass        {{SubGM1=34}}
+19=MegaVoice FretlessBass    {{SubGM1=35}}
+48=MegaVoice SmallStrings    {{SubGM1=49}}
+49=MegaVoice LargeStrings    {{SubGM1=50}}
+51=MegaVoice MaleChoir       {{SubGM1=52}}
+54=MegaVoice GospelChoir     {{SubGM1=53}}
+56=MegaVoice Brass           {{SubGM1=61}}
+64=MegaVoice Trumpet         {{SubGM1=56}}
+82=MegaVoice TenorSax        {{SubGM1=66}}
+100=MegaVoice PopHaa         {{SubGM1=52}}
+101=MegaVoice PopDaa         {{SubGM1=52}}
+102=MegaVoice PopBaa         {{SubGM1=52}}
+103=MegaVoice PopShoo        {{SubGM1=52}}
+105=MegaVoice PopHoo         {{SubGM1=52}}
+106=MegaVoice PopDoo         {{SubGM1=52}}
+107=MegaVoice PopBee         {{SubGM1=52}}
+110=MegaVoice PopHee         {{SubGM1=52}}
+115=MegaVoice PopHaa Legato2         {{SubGM1=53}}
+120=MegaVoice PopHoo Legato2         {{SubGM1=53}}
+125=MegaVoice PopHee Legato2         {{SubGM1=53}}
+[Tyros5 MV Bank 1]
+1=MegaVoice SteelAcoustic    {{SubGM1=25}}
+2=MegaVoice 12StringGtr     {{SubGM1=25}}
+3=MegaVoice SolidGuitar1    {{SubGM1=29}}
+17=MegaVoice VintageRound   {{SubGM1=33}}
+18=MegaVoice VintagePick    {{SubGM1=34}}
+48=MegaVoice ClassicalStrings       {{SubGM1=48}}
+49=MegaVoice RealStrings   {{SubGM1=48}}
+56=MegaVoice PopHorns1     {{SubGM1=63}}
+[Tyros5 MV Bank 2]
+1=MegaVoice SteelAcGtrSlap           {{SubGM1=25}}
+3=MegaVoice SolidGuitar2    {{SubGM1=28}}
+17=MegaVoice VintageFlat    {{SubGM1=33}}
+56=MegaVoice PopHorns2      {{SubGM1=62}}
+[Tyros5 MV Bank 3]
+0=MegaVoice FlamencoGuitar          {{SubGM1=24}}
+3=MegaVoice SingleCoil      {{SubGM1=29}}
+[Tyros5 MV Bank 4]
+0=MegaVoice SpanishMedium   {{SubGM1=24}}
+3=MegaVoice FingerGuitar    {{SubGM1=24}}
+[Tyros5 MV Bank 5]
+0=MegaVoice SpanishHard     {{SubGM1=24}}
+1=MegaVoice SteelGtrTwin1   {{SubGM1=25}}
+3=MegaVoice FingerSlapGtr   {{SubGM1=24}}
+[Tyros5 MV Bank 6]
+1=MegaVoice SteelGtrTwin2   {{SubGM1=25}}
+3=MegaVoice VintagePick     {{SubGM1=27}}
+[Tyros5 MV Bank 7]
+1=MegaVoice 12StringTwin1   {{SubGM1=25}}
+3=MegaVoice VintageSlap     {{SubGM1=27}}
+[Tyros5 MV Bank 8]
+1=MegaVoice 12StringTwin2   {{SubGM1=25}}
+3=MegaVoice SlapAmpGt       {{SubGM1=28}}
+; ------------------- ARTICULATION VOICES ------------------------------
+; SubGM1 of these voices need to be refined !
+[Tyros5 S.Articulation Bank 32]
+0=S.Art! ConcertGuitar     {{SubGM1=25}} {{SubGM1=24}}
+1=S.Art! SteelGuitar       {{SubGM1=25}} {{SubGM1=25}}
+3=S.Art! WarmElectric       {{SubGM1=25}}
+4=S.Art! HeavyRock          {{SubGM1=30}}
+5=S.Art! GuitarHero         {{SubGM1=29}}
+6=S.Art! JazzClean          {{SubGM1=26}}
+16=S.Art! AcousticBass     {{SubGM1=33}}
+17=S.Art! VintageRound     {{SubGM1=33}}
+18=S.Art! VintageMute      {{SubGM1=33}}
+19=S.Art!_FretlessBass      {{SubGM1=33}}
+29=S.Art! WhiterBars       {{SubGM1=16}}
+30=S.Art! AllBarsOut       {{SubGM1=16}}
+39=S.Art! Haa      {{SubGM1=52}}
+40=S.Art! Ooh      {{SubGM1=52}}
+43=S.Art! Real1stViolins   {{SubGM1=48}}
+44=S.Art! Real2ndViolins   {{SubGM1=48}}
+45=S.Art! RealViolas       {{SubGM1=48}}
+46=S.Art! RealCellos       {{SubGM1=48}}
+47=S.Art! RealC.Basses     {{SubGM1=48}}
+48=S.Art! StudioStrings    {{SubGM1=48}}
+49=S.Art! ConcertStrings   {{SubGM1=48}}
+51=S.Art! BoysChoirOoh     {{SubGM1=52}}
+54=S.Art! GospelHmm        {{SubGM1=52}}
+55=S.Art! ShooBeeDooBah1   {{SubGM1=52}}
+56=S.Art! BrassShake       {{SubGM1=62}}
+60=S.Art! SoftHorns        {{SubGM1=62}}
+64=S.Art! Trumpet  {{SubGM1=62}}
+66=S.Art! AltoSax  {{SubGM1=73}}
+68=S.Art! OrchOboe         {{SubGM1=73}}
+73=S.Art! OrchFlute        {{SubGM1=73}}
+82=S.Art! Saxophone        {{SubGM1=73}}
+112=S.Art! Harpsichord     {{SubGM1=0}}
+113=S.Art! JazzRotary      {{SubGM1=16}}
+120=S.Art! MagicBell
+122=S.Art! BPFBuzz         {{SubGM1=33}}
+123=S.Art! SquareStackMW   {{SubGM1=80}}
+[Tyros5 S.Articulation Bank 33]
+0=S.Art! FlamencoGtr       {{SubGM1=25}}
+1=S.Art! FolkGuitar        {{SubGM1=25}}
+3=S.Art! WarmSolid         {{SubGM1=26}}
+4=S.Art! Feedbacker        {{SubGM1=26}}
+5=S.Art! CrunchGtr         {{SubGM1=26}}
+6=S.Art! SemiAcoustic      {{SubGM1=26}}
+16=S.Art! SoftAcBass       {{SubGM1=33}}
+17=S.Art! VintageFlat      {{SubGM1=33}}
+20=S.Art! Clavi    {{SubGM1=2}}
+29=S.Art! ProgRockOrgan    {{SubGM1=16}}
+39=S.Art! HaaVibrato       {{SubGM1=52}}
+40=S.Art! OohVibrato       {{SubGM1=52}}
+43=S.Art! Classic1stVln    {{SubGM1=48}}
+44=S.Art! Classic2ndVln    {{SubGM1=48}}
+45=S.Art! ClassicViola     {{SubGM1=48}}
+46=S.Art! ClassicCello     {{SubGM1=48}}
+48=S.Art! Spiccato         {{SubGM1=48}}
+49=S.Art! RealStrings      {{SubGM1=48}}
+51=S.Art! BoysChoirAah     {{SubGM1=52}}
+54=S.Art! GospelWow        {{SubGM1=52}}
+56=S.Art! BrassShake2      {{SubGM1=62}}
+60=S.Art! WarmHorns        {{SubGM1=62}}
+64=S.Art! SilverTrumpet    {{SubGM1=62}}
+82=S.Art! RockSax  {{SubGM1=73}}
+113=S.Art! RockRotary      {{SubGM1=16}}
+122=S.Art! WobbleMW        {{SubGM1=33}}
+123=S.Art! FourStackMW     {{SubGM1=80}}
+[Tyros5 S.Articulation Bank 34]
+0=S.Art! NylonGuitar       {{SubGM1=25}}
+1=S.Art! SpanishGuitar     {{SubGM1=25}}
+3=S.Art! CleanSolid        {{SubGM1=26}}
+4=S.Art! BluesWarm         {{SubGM1=26}}
+5=S.Art! RockLegend        {{SubGM1=26}}
+20=S.Art! ClaviFunk        {{SubGM1=2}}
+29=S.Art! ClassicBars      {{SubGM1=16}}
+39=S.Art! HaaBoys  {{SubGM1=52}}
+40=S.Art! OohBoys  {{SubGM1=52}}
+43=S.Art! Classic1stVlns   {{SubGM1=48}}
+44=S.Art! Classic2ndVlns   {{SubGM1=48}}
+45=S.Art! ClassicViolas    {{SubGM1=48}}
+46=S.Art! ClassicCellos    {{SubGM1=48}}
+47=S.Art! StringQuartet    {{SubGM1=48}}
+48=S.Art! TremoloBowing    {{SubGM1=48}}
+49=S.Art! BalladStrings    {{SubGM1=48}}
+51=S.Art! BoysChoirMW      {{SubGM1=52}}
+54=S.Art! GospelHey        {{SubGM1=52}}
+56=S.Art! BrassFalls f     {{SubGM1=62}}
+60=S.Art! MutedHorns       {{SubGM1=62}}
+64=S.Art! GoldenTrumpet    {{SubGM1=62}}
+66=S.Art! SoftAlto         {{SubGM1=73}}
+82=S.Art! RockSax2         {{SubGM1=73}}
+122=S.Art! RampBassMW      {{SubGM1=33}}
+123=S.Art! CoolHiPaMW      {{SubGM1=80}}
+[Tyros5 S.Articulation Bank 35]
+0=S.Art! ElectroAcoustic   {{SubGM1=25}}
+1=S.Art! FlamencoGuitar    {{SubGM1=25}}
+3=S.Art! CleanElectric     {{SubGM1=26}}
+4=S.Art! BluesBright       {{SubGM1=26}}
+5=S.Art! RockHero  {{SubGM1=26}}
+6=S.Art! SmoothJazzGtr     {{SubGM1=26}}
+39=S.Art! HaaGirls         {{SubGM1=52}}
+40=S.Art! OohBoysVibrato   {{SubGM1=52}}
+48=S.Art! TremoloBowing2   {{SubGM1=48}}
+49=S.Art! BallroomStrings  {{SubGM1=48}}
+51=S.Art! SoftChoirOoh     {{SubGM1=52}}
+54=S.Art! WowHeyHmm        {{SubGM1=52}}
+55=S.Art! ShooBeeDynamic   {{SubGM1=52}}
+56=S.Art! BrassFalls mf    {{SubGM1=62}}
+64=S.Art! TrumpetShake     {{SubGM1=62}}
+82=S.Art! BigBandSax       {{SubGM1=73}}
+122=S.Art! SquarePluckMW   {{SubGM1=33}}
+123=S.Art! NuLineMW        {{SubGM1=80}}
+[Tyros5 S.Articulation Bank 36]
+1=S.Art! SpanishElectAc    {{SubGM1=25}}
+3=S.Art! PedalSteel        {{SubGM1=26}}
+4=S.Art! BluesSlapSlide    {{SubGM1=26}}
+5=S.Art! VintageRock       {{SubGM1=26}}
+20=S.Art! ClaviDrive       {{SubGM1=2}}
+40=S.Art! OohGirls         {{SubGM1=52}}
+48=S.Art! ClassicalStrings         {{SubGM1=48}}
+51=S.Art! SoftChoirAah     {{SubGM1=52}}
+54=S.Art! GospelMW1        {{SubGM1=52}}
+55=S.Art! BaDaYah  {{SubGM1=52}}
+56=S.Art! SmoothBrass      {{SubGM1=62}}
+64=S.Art! TrumpetShake2    {{SubGM1=62}}
+82=S.Art! SectionSaxes     {{SubGM1=73}}
+123=S.Art! WheelTechMW     {{SubGM1=80}}
+[Tyros5 S.Articulation Bank 37]
+1=S.Art! SteelAcoustic     {{SubGM1=25}}
+3=S.Art! HalfDrive         {{SubGM1=26}}
+4=S.Art! BluesyFingers     {{SubGM1=26}}
+5=S.Art! VintageBlues      {{SubGM1=26}}
+40=S.Art! OohGirlsVibrato  {{SubGM1=52}}
+48=S.Art! TheatreStrings   {{SubGM1=48}}
+51=S.Art! ForteChoirOoh    {{SubGM1=52}}
+54=S.Art! GospelMW2        {{SubGM1=52}}
+56=S.Art! BigBandBrass     {{SubGM1=62}}
+64=S.Art! BigBandTrumpet   {{SubGM1=62}}
+82=S.Art! SectionSaxesOct  {{SubGM1=73}}
+123=S.Art! RedoublingMW    {{SubGM1=80}}
+[Tyros5 S.Articulation Bank 38]
+1=S.Art! ChickPickSwitch   {{SubGM1=25}}
+3=S.Art! 70sSolidGtr       {{SubGM1=26}}
+4=S.Art! CleanFingers      {{SubGM1=26}}
+5=S.Art! StageLead         {{SubGM1=26}}
+6=S.Art! JazzVintage       {{SubGM1=26}}
+39=S.Art! Wah      {{SubGM1=52}}
+40=S.Art! Doo      {{SubGM1=52}}
+51=S.Art! ForteChoirAah    {{SubGM1=52}}
+56=S.Art! AccentFalls      {{SubGM1=62}}
+64=S.Art! TrumpetFall      {{SubGM1=62}}
+82=S.Art! SoftSaxes1       {{SubGM1=73}}
+[Tyros5 S.Articulation Bank 39]
+1=S.Art! 12StringGtrTwin   {{SubGM1=25}}
+3=S.Art! SingleCoilClean   {{SubGM1=26}}
+4=S.Art! RoughFingers      {{SubGM1=26}}
+5=S.Art! OverdriveWah      {{SubGM1=26}}
+6=S.Art! JazzArtist        {{SubGM1=26}}
+39=S.Art! WahVibrato       {{SubGM1=52}}
+40=S.Art! DooVibrato       {{SubGM1=52}}
+48=S.Art! WarmStrings      {{SubGM1=48}}
+55=S.Art! HooWah   {{SubGM1=52}}
+82=S.Art! SoftSaxes2       {{SubGM1=73}}
+[Tyros5 S.Articulation Bank 40]
+1=S.Art! 12StringStrum     {{SubGM1=25}}
+3=S.Art!_VintageAmp         {{SubGM1=26}}
+4=S.Art! CtryPickDrive     {{SubGM1=26}}
+5=S.Art! GrungeGuitar      {{SubGM1=26}}
+39=S.Art! SoftWah  {{SubGM1=52}}
+40=S.Art! DooBoys  {{SubGM1=52}}
+48=S.Art! BigStrings       {{SubGM1=48}}
+49=S.Art! RealStrings f    {{SubGM1=48}}
+55=S.Art! PopEnsemble      {{SubGM1=52}}
+[Tyros5 S.Articulation Bank 41]
+3=S.Art! VintageAmp        {{SubGM1=26}}
+4=S.Art! CtryPickVintage   {{SubGM1=26}}
+5=S.Art! ClassicStack      {{SubGM1=26}}
+39=S.Art! Baa      {{SubGM1=52}}
+40=S.Art! DooGirls         {{SubGM1=52}}
+48=S.Art! LushStrings      {{SubGM1=48}}
+49=S.Art! RealStrings mf   {{SubGM1=48}}
+55=S.Art! LatinVocals      {{SubGM1=52}}
+56=S.Art! WarmHnsSection   {{SubGM1=62}}
+[Tyros5 S.Articulation Bank 42]
+3=S.Art! FingerChorus      {{SubGM1=26}}
+5=S.Art! PureVintage       {{SubGM1=26}}
+39=S.Art! BaaVibrato       {{SubGM1=52}}
+40=S.Art! Yoo      {{SubGM1=52}}
+48=S.Art! ChamberStrings   {{SubGM1=48}}
+49=S.Art! RealStrings p    {{SubGM1=48}}
+55=S.Art! ScatVocalists    {{SubGM1=52}}
+56=S.Art! BrightHnsSection         {{SubGM1=62}}
+[Tyros5 S.Articulation Bank 43]
+3=S.Art! FingerAmp         {{SubGM1=26}}
+5=S.Art! VintageDistFull   {{SubGM1=26}}
+40=S.Art! YooVibrato       {{SubGM1=52}}
+48=S.Art! RealStringPad    {{SubGM1=48}}
+49=S.Art! RomanceStrings   {{SubGM1=48}}
+55=S.Art! BaroqueScat      {{SubGM1=52}}
+56=S.Art! PopHnsMellow     {{SubGM1=62}}
+[Tyros5 S.Articulation Bank 44]
+3=S.Art! CountryPick       {{SubGM1=26}}
+5=S.Art! VintageDistSolo   {{SubGM1=26}}
+56=S.Art! PopHnsBright     {{SubGM1=62}}
+[Tyros5 S.Articulation Bank 45]
+3=S.Art! BrightChorus      {{SubGM1=26}}
+5=S.Art! VintDistStage     {{SubGM1=26}}
+39=S.Art! Daa      {{SubGM1=52}}
+55=S.Art! JazzSingersShoo  {{SubGM1=52}}
+56=S.Art! PopHnsMWCresc    {{SubGM1=62}}
+[Tyros5 S.Articulation Bank 46]
+3=S.Art! BalladDelay       {{SubGM1=26}}
+5=S.Art! VintageDriveWah   {{SubGM1=26}}
+39=S.Art! DaaVibrato       {{SubGM1=52}}
+55=S.Art! JazzSingersDwee  {{SubGM1=52}}
+56=S.Art! HornsFallDoitSw  {{SubGM1=62}}
+[Tyros5 S.Articulation Bank 47]
+3=S.Art! VintagePure       {{SubGM1=26}}
+5=S.Art! VintageHeavy      {{SubGM1=26}}
+55=S.Art! ShooBeeDooBah2   {{SubGM1=52}}
+56=S.Art! HornsFallsSw     {{SubGM1=62}}
+[Tyros5 S.Articulation Bank 48]
+3=S.Art! VintageSlap       {{SubGM1=26}}
+5=S.Art! VintShortDelay    {{SubGM1=26}}
+55=S.Art! DoBeDoBe         {{SubGM1=52}}
+56=S.Art! PopHnsMWSwell    {{SubGM1=62}}
+[Tyros5 S.Articulation Bank 49]
+3=S.Art! FunkSlap  {{SubGM1=26}}
+5=S.Art! VintWarmDrive     {{SubGM1=26}}
+40=S.Art! AahOoh Auto      {{SubGM1=52}}
+55=S.Art! BoysChoirOoAa    {{SubGM1=52}}
+[Tyros5 S.Articulation Bank 50]
+3=S.Art! FingerBright      {{SubGM1=26}}
+5=S.Art! SoloKing  {{SubGM1=26}}
+55=S.Art! ScatLegato       {{SubGM1=52}}
+[Tyros5 S.Articulation Bank 51]
+3=S.Art! FingerSlapSlide   {{SubGM1=26}}
+5=S.Art! BigCombo  {{SubGM1=26}}
+55=S.Art! YaBaDaBa         {{SubGM1=52}}
+[Tyros5 S.Articulation Bank 52]
+3=S.Art! PedalSteelAmp     {{SubGM1=26}}
+5=S.Art! OldiesGuitar      {{SubGM1=26}}
+55=S.Art! DoWeYoBe         {{SubGM1=52}}
+[Tyros5 S.Articulation Bank 53]
+3=S.Art! LiteChorus        {{SubGM1=26}}
+5=S.Art! RhythmKing        {{SubGM1=26}}
+55=S.Art! WhtShouldWeDo    {{SubGM1=52}}
+[Tyros5 S.Articulation Bank 54]
+3=S.Art! VintageSpring     {{SubGM1=26}}
+5=S.Art! JazzCombo         {{SubGM1=26}}
+55=S.Art! WhoAreYou        {{SubGM1=52}}
+[Tyros5 S.Articulation Bank 55]
+3=S.Art! BluesyNight       {{SubGM1=26}}
+55=S.Art! ShooBaDooBa      {{SubGM1=52}}
+[Tyros5 S.Articulation Bank 56]
+3=S.Art! ShadowedGuitar    {{SubGM1=26}}
+55=S.Art! HooWee Auto      {{SubGM1=52}}
+[Tyros5 S.Articulation Bank 64]
+48=S.Art2! JazzViolin      {{SubGM1=48}}
+64=S.Art2! MuteTrumpet     {{SubGM1=62}}
+65=S.Art2! JazzTrumpet     {{SubGM1=62}}
+74=S.Art2! ClassicalFlute  {{SubGM1=73}}
+80=S.Art2! BreathySax      {{SubGM1=73}}
+84=S.Art2! PopSoprano      {{SubGM1=73}}
+92=S.Art2! BalladClarinet  {{SubGM1=73}}
+104=S.Art2! Harmonica      {{SubGM1=21}}
+108=S.Art2! IrishPipeAir   {{SubGM1=73}}
+[Tyros5 S.Articulation Bank 65]
+48=S.Art2! CelticViolin    {{SubGM1=48}}
+65=S.Art2! ClassicTrumpet  {{SubGM1=62}}
+73=S.Art2! Trombone        {{SubGM1=62}}
+74=S.Art2! JazzFlute       {{SubGM1=73}}
+80=S.Art2! JazzSax         {{SubGM1=73}}
+84=S.Art2! BalladSoprano   {{SubGM1=73}}
+92=S.Art2! Clarinet        {{SubGM1=73}}
+104=S.Art2! BluesHarp      {{SubGM1=21}}
+108=S.Art2! IrishPipeDance         {{SubGM1=73}}
+[Tyros5 S.Articulation Bank 66]
+65=S.Art2!_Trumpet  {{SubGM1=62}}
+80=S.Art2! TenorSax        {{SubGM1=73}}
+92=S.Art2! RomanceClarinet         {{SubGM1=73}}
+[Tyros5 S.Articulation Bank 67]
+65=S.Art2! BigBandTrumpet  {{SubGM1=62}}
+[Tyros5 Ensemble Bank 32]
+39=S.Art! Haa      {{SubGM1=52}}
+40=S.Art! Ooh      {{SubGM1=52}}
+43=S.Art! Real1stViolins   {{SubGM1=48}}
+44=S.Art! Real2ndViolins   {{SubGM1=48}}
+45=S.Art! RealViolas       {{SubGM1=48}}
+46=S.Art! RealCellos       {{SubGM1=48}}
+47=S.Art! RealC.Basses     {{SubGM1=48}}
+51=S.Art! ChoirOoh         {{SubGM1=52}}
+64=S.Art! Trumpet  {{SubGM1=62}}
+66=S.Art! AltoSax  {{SubGM1=73}}
+68=S.Art! OrchOboe         {{SubGM1=73}}
+73=S.Art! OrchFlute        {{SubGM1=73}}
+82=S.Art! Saxophone        {{SubGM1=73}}
+[Tyros5 Ensemble Bank 33]
+6=S.Art! SemiAcoustic      {{SubGM1=2}}
+43=S.Art! Classic1stVln    {{SubGM1=48}}
+44=S.Art!_Classic2ndVln     {{SubGM1=48}}
+45=S.Art! ClassicViola     {{SubGM1=48}}
+46=S.Art! ClassicCello     {{SubGM1=48}}
+51=S.Art! ChoirAah         {{SubGM1=52}}
+[Tyros5 Ensemble Bank 34]
+39=S.Art! HaaBoys  {{SubGM1=52}}
+40=S.Art! OohBoys  {{SubGM1=52}}
+43=S.Art! Classic1stVlns   {{SubGM1=48}}
+44=S.Art! Classic2ndVlns   {{SubGM1=48}}
+45=S.Art! ClassicViolas    {{SubGM1=48}}
+46=S.Art! ClassicCellos    {{SubGM1=48}}
+[Tyros5 Ensemble Bank 35]
+39=S.Art! HaaGirls         {{SubGM1=52}}
+51=S.Art! SoftChoirOoh     {{SubGM1=52}}
+[Tyros5 Ensemble Bank 36]
+40=S.Art! OohGirls         {{SubGM1=52}}
+51=S.Art! SoftChoirAah     {{SubGM1=52}}
+[Tyros5 Ensemble Bank 37]
+51=S.Art! ForteChoirOoh    {{SubGM1=52}}
+64=S.Art! BigBandTrumpet   {{SubGM1=62}}
+[Tyros5 Ensemble Bank 38]
+39=S.Art! Wah      {{SubGM1=52}}
+40=S.Art! Doo      {{SubGM1=52}}
+51=S.Art! ForteChoirAah    {{SubGM1=52}}
+[Tyros5 Ensemble Bank 40]
+40=S.Art! DooBoys  {{SubGM1=52}}
+[Tyros5 Ensemble Bank 41]
+39=S.Art! Baa      {{SubGM1=52}}
+40=S.Art! DooGirls         {{SubGM1=52}}
+[Tyros5 Ensemble Bank 42]
+40=S.Art! Yoo      {{SubGM1=52}}
+[Tyros5 Ensemble Bank 45]
+39=S.Art! Daa      {{SubGM1=52}}
+[Tyros5 Ensemble Bank 64]
+48=S.Art2! JazzViolin      {{SubGM1=48}}
+64=S.Art2! MuteTrumpet     {{SubGM1=62}}
+65=S.Art2! JazzTrumpet     {{SubGM1=62}}
+74=S.Art2! ClassicalFlute  {{SubGM1=73}}
+84=S.Art2! EnsSopranoSax   {{SubGM1=73}}
+104=S.Art2! Harmonica      {{SubGM1=2}}
+[Tyros5 Ensemble Bank 65]
+48=S.Art2! CelticViolin    {{SubGM1=48}}
+65=S.Art2! ClassicTrumpet  {{SubGM1=62}}
+73=S.Art2! EnsTrombone     {{SubGM1=62}}
+74=S.Art2! JazzFlute       {{SubGM1=73}}
+80=S.Art2! JazzSax         {{SubGM1=73}}
+84=S.Art2! BalladSoprano   {{SubGM1=73}}
+92=S.Art2! Clarinet        {{SubGM1=73}}
+[Tyros5 Ensemble Bank 66]
+65=S.Art2! EnsTrumpet1     {{SubGM1=62}}
+80=S.Art2! EnsTenorSax     {{SubGM1=73}}
+[Tyros5 Ensemble Bank 67]
+65=S.Art2! EnsTrumpet2     {{SubGM1=62}}
+[Tyros5 Ensemble Bank 80]
+84=S.Art2! EnsSopranoGR    {{SubGM1=73}}
+[Tyros5 Ensemble Bank 81]
+73=S.Art2! EnsTromboneSK   {{SubGM1=62}}
+[Tyros5 Ensemble Bank 82]
+65=S.Art2! EnsTrumpet1SK   {{SubGM1=62}}
+80=S.Art2! EnsTenorSaxGR   {{SubGM1=73}}
+[Tyros5 Ensemble Bank 83]
+65=S.Art2! EnsTrumpet2SK   {{SubGM1=62}}
+[Tyros5 Ensemble Bank 84]
+80=S.Art2! EnsTenorSaxSK   {{SubGM1=73}}
+; ---------------- ORGAN WORLD VOICES -------------------------
+; SubGM1 of the below voices need to be refined !
+[Tyros5 Organ World Bank 0]
+1=OrganFlutes HomeOrgBallad         {{SubGM1=16}}
+2=OrganFlutes EuroPerc      {{SubGM1=16}}
+[Tyros5 Organ World Bank 1]
+0=OrganFlutes USDSmile      {{SubGM1=16}}
+1=OrganFlutes Sixteen&Odds          {{SubGM1=16}}
+2=OrganFlutes BalladEuro    {{SubGM1=16}}
+[Tyros5 Organ World Bank 2]
+0=OrganFlutes OrganPops     {{SubGM1=16}}
+1=OrganFlutes HomeTheatre   {{SubGM1=16}}
+2=OrganFlutes EuroReeds     {{SubGM1=16}}
+[Tyros5 Organ World Bank 3]
+0=OrganFlutes RockOrgan     {{SubGM1=17}
+1=OrganFlutes HomeOrganJazz         {{SubGM1=17}}
+2=OrganFlutes EvenWarmth    {{SubGM1=16}}
+[Tyros5 Organ World Bank 4]
+0=OrganFlutes GospelTruth   {{SubGM1=16}}
+1=OrganFlutes HollowTibias          {{SubGM1=16}}
+2=OrganFlutes BrightEuro    {{SubGM1=16}}
+[Tyros5 Organ World Bank 5]
+0=OrganFlutes FunkOrgan     {{SubGM1=16}}
+1=OrganFlutes HomeOrganEvens        {{SubGM1=16}}
+2=OrganFlutes EuroPops      {{SubGM1=16}}
+[Tyros5 Organ World Bank 6]
+0=OrganFlutes ClariBars     {{SubGM1=16}}
+1=OrganFlutes HomeOrgWarmth         {{SubGM1=16}}
+2=OrganFlutes FullEuro      {{SubGM1=16}}
+[Tyros5 Organ World Bank 7]
+0=OrganFlutes JazzSquabble          {{SubGM1=16}}
+1=OrganFlutes HomeFullOrgan         {{SubGM1=16}}
+2=OrganFlutes EuroMelodic   {{SubGM1=16}}
+; --------------- ENSEMBLE VOICES --------------------
+; SubGM1 of these voices need to be refined !
+[Tyros5 Ensemble.2 Bank 0]
+9=Glockenspiel     {{SubGM1=9}}
+13=Xylophone       {{SubGM1=13}}
+44=Live! RealTremolo       {{SubGM1=51}}
+57=Sweet! BrightTrombone   {{SubGM1=62}}
+58=Tuba    {{SubGM1=62}}
+59=Sweet! MutedCornet      {{SubGM1=62}}
+60=Live! OrchHorns         {{SubGM1=62}}
+67=BaritoneSax     {{SubGM1=62}}
+70=Sweet! OrchBassoon      {{SubGM1=62}}
+71=Live! OrchClarinet      {{SubGM1=62}}
+127=NoAssign       {{SubGM1=0}}
+[Tyros5 Ensemble.2 Bank 1]
+19=Live! GrandJeu  {{SubGM1=4}}
+46=OrchestralHarp  {{SubGM1=51}}
+73=AltoFlutes      {{SubGM1=62}}
+[Tyros5 Ensemble.2 Bank 2]
+71=GermanClarinet  {{SubGM1=62}}
+[Tyros5 Ensemble.2 Bank 3]
+56=Live! OrchTrumpets      {{SubGM1=62}}
+57=Live! OrchTrombones     {{SubGM1=62}}
+[Tyros5 Ensemble.2 Bank 4]
+56=Live! OrchTrumptsFast   {{SubGM1=62}}
+57=Live! OrchTrombsFast    {{SubGM1=62}}
+60=Live! OrchHornsFast     {{SubGM1=62}}
+[Tyros5 Ensemble.2 Bank 6]
+19=LieblichGedackt         {{SubGM1=4}}
+48=Live! RealSpiccato      {{SubGM1=51}}
+[Tyros5 Ensemble.2 Bank 112]
+47=Timpani         {{SubGM1=47}}
+72=Piccolo         {{SubGM1=62}}
+[Tyros5 Ensemble.2 Bank 113]
+45=Live! Pizzicato         {{SubGM1=51}}
+[Tyros5 Ensemble.2 Bank 114]
+59=Sweet! MutedTrumpet     {{SubGM1=62}}
+[Tyros5 Ensemble.2 Bank 116]
+66=Live! SaxSection        {{SubGM1=62}}
+[Tyros5 Ensemble.2 Bank 117]
+21=Steirisch       {{SubGM1=4}}
+57=Sweet! Trombone         {{SubGM1=62}}
+[Tyros5 Ensemble.2 Bank 118]
+21=MasterAccord    {{SubGM1=21}}
+56=Sweet! FlugelHorn       {{SubGM1=62}}
+[Tyros5 Ensemble.2 Bank 119]
+56=Sweet! Cornet   {{SubGM1=62}}
+;----------------PSR additional voices for compatibility-------------------
+
+
+;----------------Drumkits Tyros5-------------------
+[Drum Kits Tyros5]
+0=Live!DrumsStandardKit1 {{DrumKit=STANDARD, XG}}
+1=Live!DrumsStandardKit2 {{DrumKit=STANDARD, XG}}
+4=DrumsHitKit {{DrumKit=STANDARD, XG}}
+8=DrumsRoomKit {{DrumKit=ROOM, XG}}
+16=DrumsRockKit {{DrumKit=POWER, XG}}
+24=DrumsElectroKit {{DrumKit=ELECTRONIC, XG}}
+25=DrumsAnalogKit {{DrumKit=ANALOG, XG}}
+27=DrumsDanceKit {{DrumKit=ELECTRONIC, XG}}
+32=DrumsJazzKit {{DrumKit=JAZZ, XG}}
+40=Live!DrumsBrushKit {{DrumKit=BRUSH, XG}}
+41=Live!DrumsRealBrushes {{DrumKit=BRUSH, XG}}
+48=Live!DrumsSymphonyKit {{DrumKit=ORCHESTRA, XG}}
+56=DrumsHipHopKit {{DrumKit=ELECTRONIC, XG}}
+57=DrumsBreakKit {{DrumKit=ELECTRONIC, XG}}
+58=DrumsAnalogT8Kit {{DrumKit=ANALOG, XG}}
+59=DrumsAnalogT9Kit {{DrumKit=ANALOG, XG}}
+60=DrumsHouseKit {{DrumKit=ELECTRONIC, XG}}
+61=DrumsDrumMachine {{DrumKit=ELECTRONIC, XG}}
+86=Live!DrumsStudioKit {{DrumKit=STANDARD, XG}}
+87=Live!DrumsPowerKit1 {{DrumKit=POWER, XG}}
+88=Live!DrumsPowerKit2 {{DrumKit=POWER, XG}}
+89=Live!DrumsAcousticKit {{DrumKit=STANDARD, XG}}
+90=Live!DrumsRockKit {{DrumKit=POWER, XG}}
+91=Live!DrumsRealDrums {{DrumKit=STANDARD, XG}}
+;------------------------
+[Drums SFX Tyros5]
+0=SFX KitSFX Kit1 {{DrumKit=SFX, XG}}
+1=SFX KitSFX Kit2 {{DrumKit=SFX, XG}}
+2=SFX Live!NewSFXKit1 {{DrumKit=SFX, XG}}
+3=SFX Live!NewSFXKit2 {{DrumKit=SFX, XG}}
+8=SFX NoiseKit {{DrumKit=SFX, XG}}
+35=SFX KitArabicKit {{DrumKit=SFX, XG}}
+40=Live!SFXCubanKit   {{DrumKit=SFX, XG_POPLATIN}}
+43=Live!SFXPopLatinKit {{DrumKit=SFX, XG_POPLATIN}}
+44=Live!SFXPopLatinKit2  {{DrumKit=SFX, XG_POPLATIN}}
+49=Live!SFXCymbalKit  {{DrumKit=SFX, XG}}    ; need different values!
+67=Live!SFXTurkishKit {{DrumKit=SFX, XG}}   ; need different values!
+109=SFX Live!VocalEffectsKit {{DrumKit=SFX, XG}}   ; need different values!
+110=SFX Live!GospelAdLibs {{DrumKit=SFX, XG}}          ; need different values!
+; -----------------------Note Names Tyros3&4&5---------------------------------------------
+[Live!DrumsStandardKit1]
+BasedOn=Standard Kit 1
+[Live!DrumsStandardKit2]
+BasedOn=Standard Kit 1
+31=Snare Soft 2
+34=Open Rim Shot H Short
+36=Kick Short
+37=Side Stick Light
+39=Snare Short
+40=Snare Tight H
+[DrumsHitKit]
+BasedOn=Standard Kit 1
+31=Snare Electro
+33=Kick Tight L
+34=Snare Pitched
+35=Kick Wet
+36=Kick Tight H
+37=Stick Ambient
+38=Snare Ambient
+40=Snare Tight 2
+41=Hybrid Tom 1
+42=Hi-Hat Closed 2
+43=Hybrid Tom 2
+44=Hi-Hat Pedal 2
+45=Hybrid Tom 3
+46=Hi-Hat Open 2
+47=Hybrid Tom 4
+48=Hybrid Tom 5
+50=Hybrid Tom 6
+54=Tambourine Light
+[DrumsRoomKit]
+BasedOn=Standard Kit 1
+38=Snare Snappy
+40=Snare Tight Snappy
+41=Tom Room 1
+43=Tom Room 2
+45=Tom Room 3
+47=Tom Room 4
+48=Tom Room 5
+50=Tom Room 6
+[DrumsRockKit]
+BasedOn=Standard Kit 1
+31=Snare Noisy
+35=Kick 2
+36=Kick Gate
+38=Snare Rock
+40=Snare Rock Tight
+41=Tom Rock 1
+43=Tom Rock 2
+45=Tom Rock 3
+47=Tom Rock 4
+48=Tom Rock 5
+50=Tom Rock 6
+[DrumsElectroKit]
+BasedOn=Standard Kit 1
+28=Elec  Reverse Cymbal
+30=Elec  Hi Q 2
+31=Elec  Snare Snappy Electro
+33=Elec  Kick 3
+35=Elec  Kick Gate
+36=Elec  Kick Gate Heavy
+38=Elec  Snare Noisy 2
+40=Elec  Snare Noisy 3
+41=Elec  Tom Electro 1
+43=Elec  Tom Electro 2
+45=Elec  Tom Electro 3
+47=Elec  Tom Electro 4
+48=Elec  Tom Electro 5
+50=Elec  Tom Electro 6
+78=Elec  Scratch H2
+79=Elec  Scratch L2
+[DrumsAnalogKit]
+BasedOn=Standard Kit 1
+28=Reverse Cymbal
+30=Hi Q2
+31=Snare Noisy 4
+33=Kick 3
+35=Kick Analog Short
+36=Kick Analog
+37=Side Stick Analog
+38=Snare Analog
+40=Snare Analog 2
+41=Tom Analog 1
+42=Hi-Hat Closed Analog
+43=Tom Analog 2
+44=Hi-Hat Closed Analog 2
+45=Tom Analog 3
+46=Hi-Hat Open Analog
+47=Tom Analog 4
+48=Tom Analog 5
+49=Crash Analog
+50=Tom Analog 6
+56=Cowbell Analog
+62=Conga Analog H
+63=Conga Analog M
+64=Conga Analog L
+70=Maracas 2
+75=Claves 2
+78=Scratch H 2
+79=Scratch L 2
+[DrumsDanceKit]
+BasedOn=Standard Kit 1
+13=Kick Dance 1
+14=Kick Dance 2
+15=Hi Q
+16=Wihp Slap
+17=Scratch Dance 1
+18=Scratch Dance 2
+21=Dance Perc 1
+22=Reverse Dance 1
+23=Dance Perc 2
+24=Hi Q Dance 1
+25=Snare Analog 3
+26=Vinyl Noise
+27=Snare Analog 4
+28=Reverse Cymbal
+29=Reverse Dance 2
+30=Hi Q 2
+31=Snare Techno
+32=Snare Dance 1
+33=Kick Techno Q
+34=Rim Gate
+35=Kick Techno L
+36=Kick Techno
+37=Side Stick Analog
+38=Snare Clap
+39=Dance Clap
+40=Snare Dry
+41=Tom Analog 1
+42=Hi-Hat Closed 3
+43=Tom Analog 2
+44=Hi-Hat Closed Analog 3
+45=Tom Analog 3
+46=Hi-Hat Open 3
+47=Tom Analog 4
+48=Tom Analog 5
+49=Crash Analog
+50=Tom Analog 6
+54=Tambourine Analog
+56=Cowbell Dance
+58=Vibraslap Analog
+59=Ride Analog
+60=Bongo Analog H
+61=Bongo Analog L
+62=Conga Analog H
+63=Conga Analog M
+64=Conga Analog L
+70=Maracas 2
+75=Claves 2
+76=Dance Perc 3
+77=Dance Perc 4
+78=Dance Breath 1
+79=Dance Breath 2
+[DrumsJazzKit]
+BasedOn=Standard Kit 1
+31=Snare Jazz H
+36=Kick Jazz
+37=Side Stick Light
+38=Snare Jazz L
+40=Snare Jazz M
+[Live!DrumsBrushKit]
+BasedOn=Standard Kit 1
+31=Brush Slap 2
+34=Open Rim Shot Light
+36=Kick Jazz
+37=Side Stick Light
+38=Brush Slap 3
+40=Brush Tap 2
+41=Tom Brush 1
+43=Tom Brush 2
+45=Tom Brush 3
+47=Tom Brush 4
+48=Tom Brush 5
+50=Tom Brush 6
+[Live!DrumsRealBrushes]
+BasedOn=Standard Kit 1
+23=Vintage Tip
+24=Vintage Swirl 1
+25=Vintage Slap 1
+26=Vintage Swirl 2
+27=Vintage Slap 2
+28=Vintage Tap Swirl
+29=Vintage Slap Swirl
+30=Vintage Swirl 3
+31=Vintage Slap 3
+33=Kick Soft L
+34=Open Rim Shot Real Brushes
+35=Kick Soft H
+36=Kick Jazz Ambience
+37=Stick Brushe
+38=Vintage Slap 4
+39=Clap Power
+40=Vintage Slap 5
+41=Tom Real Brushes 1
+42=Hi-Hat Closed Real Brushes
+43=Tom Real Brushes 2
+44=Hi-Hat Pedal Real Brushes
+45=Tom Real Brushes 3
+46=Hi-Hat Open Real Brushes
+47=Tom Real Brushes 4
+48=Tom Real Brushes 5
+49=Crash Cymbal Real Brushes
+50=Tom Real Brushes 6
+51=Ride Cymbal Real Brushes
+52=CHINE CYM Real Brushes
+53=Ride Cup Real Brushes
+55=Splash Cymbal Real Brushes
+57=Crash Cymbal Real Brushes
+59=Ride Cup Real Brushes
+[Live!DrumsSymphonyKit]
+BasedOn=Standard Kit 1
+33=Sym  Kick Soft 2
+35=Sym  Gran Cassa
+36=Sym  Gran Cassa Mute
+38=Sym  Band Snare
+40=Sym  Band Snare 2
+49=Sym  Hand Cymbal
+51=Sym  Hand Cymbal Short
+57=Sym  Hand Cymbal 2
+59=Sym  Hand Cymbal 2 Short
+[DrumsHipHopKit]
+BasedOn=Standard Kit 1
+19=Hi-Hat Closed T8 2
+20=Tom T8 3
+21=Hi-Hato Open T8 2
+22=Tom T8 6
+23=Crah T8
+24=Triangle Mute
+25=Triangle Open
+26=Bell Tree
+27=Tambourine RX5
+28=Tambourine RX5 2
+29=Kick HipHop 9
+30=Hi-Hat closed Tek
+31=Kick Gate
+32=Hi-Hat Open Lo-Fi
+33=Kick Gran Casa Open
+34=Hi-Hat Reverse Drum&Bass
+35=Kick HipHop 1
+36=Kick Analog CR
+37=Snare Analog Sm Rim
+38=Snare HipHop 1
+39=Snare Clappy
+40=Snare HipHop 2
+41=Floor Tom 1
+42=Hi-Hat Closed Hip
+43=Low Tom
+44=Hi-Hat Pedal Hip
+45=Mid Tom L
+46=Hi-Hat Open Hip
+47=High Tom
+48=Ride Cymbal 3
+49=Crash Cymbal 3
+50=Shaker 2
+51=Scratch Bass Drum Forward
+52=Scratch Bass Drum Reverse
+53=Kick HipHop 2
+54=Snare HipHop Rim 2
+55=HipHop Clap 2
+56=HipHop Snap 1
+57=Snare HipHop 3
+58=Electric Clap 2
+59=Kick Hip Deep
+60=Kick HipHop 3
+61=Snare HipHop Rim 3
+62=Snare HipHop 5
+63=Electric Clap 1
+64=Handbell H
+65=Kick HopHop 4
+66=HipHop Clap 3
+67=HipHop Snap 2
+68=Snare HipHop Rim 5
+69=HipHop flex 1
+70=HipHop flex 2
+71=Shaker 2
+72=Kick HipHop 5
+73=Snare HipHop Rim 4
+74=Snare HipHop 6
+75=Snare HipHop 11
+76=Kick HipHop 10
+77=Snare HipHop 7
+78=HipHop Clap 5
+79=Conga H Tip
+80=Conga H Heel
+81=Conga H Open
+82=Conga L Open 1
+83=Conga L Open 2
+84=Kick HipHop8
+85=HipHop Clap 6
+86=Snare T8 1
+87=Snare T8 1H
+88=HipHop Clap 7
+89=Tom T8 1
+90=Hi-Hat Closed T8 2
+91=Tom T8 2
+[DrumsBreakKit]
+BasedOn=Standard Kit 1
+20=Snare Break 8
+21=Snare Break 9
+22=Hi-Hat Closed Break 1
+23=Hi-Hat Closed Break 2
+24=Kick Break Deep
+25=Snare Hip
+26=Snare Lo-Fi
+27=Snare Clappy
+28=Snare LdwH Mono
+29=Snare Rock Roll
+30=Snare Gate 1
+31=Snare Mid
+32=Snare Break Rim
+33=Kick Break Heavy
+34=Snare Hip Rim 4
+35=Kick Break 2
+36=Kick Break 1
+37=Snare Hip Rim 1
+38=Snare Break 3
+39=Snare Break 1
+40=Snare Break 2
+41=Tom Break 1
+42=Hi-Hat Closed Rock Soft
+43=Tom Break 22
+44=Hi-Hat Pedal Rock
+45=Tom Break 3
+46=Hi-Hat Half Open Rock
+47=Tom Break 4
+48=Tom Break 5
+49=Crash Cymbal 2
+50=Tom Break 6
+51=Ride Cymbal 3
+52=Chinese Cymbal 2
+53=Ride Cymbal Cup 2
+54=Tambourine 1 Hit
+55=Crash Cymbal 3
+56=Cowbell 1
+57=Crash Cymbal 2
+58=Cowbell RX11
+59=Ride Cymbal 2
+60=Bongo H
+61=Bongo L
+62=Conga H Tip
+63=Conga H Open Slap
+64=Conga H Open
+65=Bongo 2 H
+66=Bongo 2 L
+67=Conga Open
+68=Agogo L
+69=Cabasa
+70=Maracas Slur
+71=Timbale H
+72=Timbale L
+73=Scratch H 2
+74=Scratch Down
+75=Clave
+76=Wood Block H
+77=Wood Block L
+78=Scratch L
+79=Scratch L 2
+80=Triangle Mute
+81=Triangle Open
+82=Kick Break 3
+83=Kick Break 4
+84=Kick Break 5
+85=Kick Break 6
+86=Kick Break 7
+87=Hi-Hat Closed Break 3
+88=Snare Break 4
+89=Snare Break 5
+90=Snare Break 6
+91=Snare Break 7
+[DrumsAnalogT8Kit]
+BasedOn=Standard Kit 1
+19=Snare Hammer
+20=Kick ZapHard
+21=Snare Garg L
+22=Kick TekPower
+23=Kick Slimy
+24=Kick T8 1
+25=Snare Analog CR
+26=Snare T8 4
+27=Snare Clap Analog
+28=Snare T8 3
+29=Tom T8 5
+30=Snare T8 5
+31=Kick T8 3
+32=Snare T8 4
+33=Kick T8 2
+34=Snare T8 3
+35=T8 Kick Bass
+36=Kick T8 1
+37=Snare T8 Rim
+38=Snare T8 2
+39=Clap T9
+40=Snare T8 1
+41=Tom T8 1
+42=Hi-Hat Closed T8
+43=Tom T8 2
+44=Hi-Hat Pedal T8
+45=Tom T8 3
+46=Hi-Hat Open T8
+47=Tom T8 4
+48=Tom T8 6
+49=Crash T8
+50=Tom T8 7
+51=Ride T9
+52=Chinese Cymbal 2
+53=Ride Cymbal Cup 2
+54=Tambourine RX 5
+55=Splash Cymbal
+56=Cowbell T8
+57=Crash Cymbal 4
+58=Vibraslap
+59=Ride Cymbal 3
+60=Conga T8 5
+61=Conga T8 4
+62=Conga T8 3
+63=Conga T8 2
+64=Conga T8 1
+65=Timbale H
+66=Timbale L
+67=Glass H
+68=Glass L
+69=Cabasa
+70=Maracas T8
+71=FxGun 2
+72=FxGun 1
+73=Analog Shaker H
+74=Analog Shaker L
+75=Clave T8
+76=Hi Q 1
+77=Hi Q 2
+78=Scratch L
+79=Scratch L 2
+80=Triangle Mute
+81=Triangle Open
+82=Analog Shaker
+83=Sleigh Bell
+84=Bell Tree
+85=Snare Hip 1
+86=Snare Hip 2
+87=Snare Hip Gate
+88=Snare Break 1
+89=Kick Blip
+90=Snare FX 1
+91=Kick FxHammer
+[DrumsAnalogT9Kit]
+BasedOn=Standard Kit 1
+19=Snare Drums&Bass 1
+20=Kick Break 2
+21=Snare Distortion
+22=Kick TekPower
+23=Kick Distortion RM
+24=Kick T9 2
+25=Snare Analog CR
+26=Snare T9 5
+27=Clap Analog Sm
+28=Snare T9 Gate
+29=Snare Rock Roll
+30=Snare T9 3
+31=Snare T9 4
+32=Snare T9 Gate
+33=Kick T9 4
+34=Snare T9 5
+35=Kick T9 1
+36=Kick T9 3
+37=Snare T9 Rim
+38=Snare T9 1
+39=Clap T9
+40=Snare T9 2
+41=Tom T9 1
+42=Hi-Hat Closed T9
+43=Tom T9 2
+44=Hi-Hat Pedal T9
+45=Tom T9 3
+46=Hi-Hat Open T9
+47=Tom T9 4
+48=Tom T9 5
+49=Crash T9
+50=Tom T9 6
+51=Ride T9
+52=Chinese Cymbal 2
+53=Ride Cymbal Cup 2
+54=Tambourine RX5
+55=Crash Cymbal 3
+56=Cowbell 1
+57=Crash Cymbal 4
+58=Cowbell T8
+59=Ride Cymbal 3
+60=Conga T8 5
+61=Conga T8 4
+62=Conga Tip
+63=Conga Open Slap
+64=Conga Open
+65=Timbale H
+66=Timbale L
+67=Analog Click
+68=Conga T8 1
+69=Cabasa
+70=Maracas Slur
+71=FxGun 2
+72=FxGun 1
+73=Scratch H 2
+74=Scratch Down
+75=Hi Q 3
+76=Hi Q 1
+77=Hi Q 2
+78=Scratch L
+79=Scratch L 2
+80=Triangle Mute
+81=Triangle Open
+82=Analog Shaker
+83=Sleigh Bell
+84=Bell Tree
+85=Snare Piccolo
+86=Snare T8 5
+87=Snare Rock Roll Distortion
+88=Snare Brush Mute
+89=Kick Blip Hard
+90=Snare Jungle 1
+91=Kick Sustain
+[DrumsHouseKit]
+13=W Kick
+14=Disco FX
+15=White Noise Down 1
+16=Pink Noise Down 1
+17=White Noise Down 2
+18=Pink Noise Down 2
+19=White Noise Up 2
+20=White Noise Up 1
+21=Pink Noise Up
+22=White Noise Up Release
+23=Pink Noise Up Release
+24=Kick T9 4
+25=Snare T8 Rim
+26=Snare T8 5
+27=Hand Clap
+28=Snare Garg L
+29=Snare Roll
+30=Snare T9 3
+31=Snare T8 1
+32=Snare T9 5
+33=Kick T9 1
+34=Snare T9 Gate
+35=Kick T9 2
+36=Kick T9 5
+37=Snare T9 Rim
+38=Snare T9 1
+39=Clap T9
+40=Snare T9 2
+41=Tom T9 1
+42=Hi-Hat Closed T8
+43=Tom T9 2
+44=Hi-Hat Pedal T9
+45=Tom T9 3
+46=Hi-Hat Open T9
+47=Tom T9 4
+48=Tom T9 5
+49=Crash T9
+50=Tom T9 6
+51=Ride T9
+52=Crash Cymbal 4
+53=Ride Cymbal Cup 2
+54=Tambourine Hit
+55=Crash Cymbal 3
+56=Cowbell 1
+57=Crash Cymbal 2
+58=Cowbell T8
+59=Ride Cymbal 3
+60=Bongo H Open 1 finger
+61=Bongo L Open 3 finger
+62=Conga High Tip
+63=Conga High Slap Open
+64=Conga High Open 2
+65=Timbale H
+66=Timbale L
+67=Agogo H
+68=Agogo L
+69=Cabasa 1
+70=Maracas Slur
+71=Vox Drum L
+72=Vox Drum H
+73=Guiro Short
+74=Guiro Long
+75=Claves
+76=Wood Block H
+77=Wood Block L
+78=Cuica H
+79=Cuica L
+80=Triangle Mute
+81=Triangle Open
+82=Analog Shaker
+83=Sleigh Bell
+84=Wind Chime
+85=Snare Break Roll
+86=Noise Burst
+87=Vox Bell
+88=Snare R&B 1
+89=Vox Alk
+90=Udu High
+91=Filter Kick
+[DrumsDrumMachine]
+BasedOn=Standard Kit 1
+19=Snare Drum&Bass 1
+20=Kick Break 2
+21=Snare Distortion
+22=Kick TekPower
+23=Kick Distortion RM
+24=Bass Drum Hard Long
+25=Bass Drum TekPower
+26=Bass Drum Distortion 5
+27=Bass Drum Distortion 3
+28=Bass Drum Distortion 1
+29=Bass Drum Drum&Bass 1
+30=Bass Drum Bilp
+31=Bass Drum Analog Sm
+32=Kick T8 2
+33=Kick T8 3
+34=Kick T9 HD 3
+35=Kick T9 2
+36=Kick T9 4
+37=Snare T9 Rim
+38=Snare T9 1
+39=Clap T9
+40=Snare T9 4
+41=Tom T9 1
+42=Hi-Hat Closed T9
+43=Tom T9 2
+44=Hi-Hat Pedal T9
+45=Tom T9 3
+46=Hi-Hat Open T9
+47=Tom T9 4
+48=Tom T9 5
+49=Crash T9
+50=Conga T8 1
+51=Ride T9
+52=Conga T8 2
+53=Analog Click
+54=Clave T8 1
+55=Maracas T8
+56=Tambourine Analog CR
+57=Analog Shaker
+58=Cowbell T9
+59=Cowbell Analog CR
+60=Snare T8 1
+61=Snare T8 2
+62=Snare T8 3
+63=Snare Analog CR
+64=Snare Jungle 1
+65=Snare D&B 1
+66=Snare Hip 1
+67=Snare R&B 1
+68=Snare R&B 2
+69=Snare Hip 1
+70=Snare Wood
+71=Snare Timbre
+72=Hit-Hat Closed T8 1
+73=Hit-Hat Open T8 1
+74=Hit-Hat Closed T8 2
+75=Hit-Hat Open T8 2
+76=Hit-Hat Pedal Acoustic
+77=Hit-Hat Closed Acoustic
+78=Hit-Hat Open Acoustic
+79=Hit-Hat Closed Lo-Fi
+80=Hit-Hat Open Lo-Fi
+81=Hit-Hat Closed Syn
+82=Hit-Hat Open Syn
+83=Analog Shaker
+84=Tambourine RX5
+85=Tambourine RX5
+86=Electric Cow
+87=Conga T8 3
+88=Electric Triangel
+89=Clave T8 2
+90=Analog Shaker
+91=Electric Clap 1
+[Live!DrumsStudioKit]
+BasedOn=Standard Kit 1
+31=Snare Studio L
+33=Kick Amb H
+34=Open Rim Shot
+35=Kick Amb L
+36=Kick Studio
+37=Side Stick
+38=Snare Studio M
+39=Hand Clap
+40=Snare Studio L
+[Live!DrumsPowerKit1]
+BasedOn=Standard Kit 1
+31=Snare Soft Power 1
+33=Kick Amb+
+34=Open Rim Power 1
+35=Kick Power Open
+36=Kick Power Closed
+37=Side Stick Power
+38=Snare Power
+39=Hand Clap Power
+40=Snare Rough
+41=Tom Power 1
+42=Hi-Hat Closed Power
+43=Tom Power 2
+44=Hi-Hat Pedal Power
+45=Tom Power 3
+46=Hi-Hat Open Power
+47=Tom Power 4
+48=Tom Power 5
+49=Crash Cymbal Acoustic 1
+50=Tom Power 6
+51=Ride Cymbal Acoustic 1
+52=Chinese Cymbal Acoustic
+53=Ride Cymbal Acoustic
+55=Splash Cymbal Acoustic
+57=Crash Cymbal Acoustic 2
+59=Ride Cymbal Acoustic 2
+[Live!DrumsPowerKit2]
+BasedOn=Standard Kit 1
+31=Snare Soft Power 2
+33=Kick Amb+
+34=Open Rim Power 2
+35=Kick Power Open
+36=Kick Power Closed
+37=Side Stick Power
+38=Snare Power Snappy
+39=Hand Clap Power
+40=Snare Loose
+41=Tom Power 1
+42=Hi-Hat Closed Power+Edge
+43=Tom Power 2
+44=Hi-Hat Pedal Power
+45=Tom Power 3
+46=Hi-Hat Open Power
+47=Tom Power 4
+48=Tom Power 5
+49=Crash Cymbal Acoustic 1
+50=Tom Power 6
+51=Ride Cymbal Acoustic 1
+52=Chinese Cymbal Acoustic
+53=Ride Cymbal Acoustic
+55=Splash Cymbal Acoustic
+57=Crash Cymbal Acoustic 2
+59=Ride Cymbal Acoustic 2
+[Live!DrumsAcousticKit]
+BasedOn=Standard Kit 1
+29=Snare Roll Acoustic
+31=Snare Soft Acoustic
+33=Kick Soft Acoustic
+34=Rim Acoustic
+35=Kick Close Acoustic
+36=Kick Open Acoustic
+37=Stick Acoustic
+38=Snare Acoustic
+39=Hand Clap Power
+40=Snare Rough Acoustic
+41=Tom Acoustic 1
+42=Hi-Hat Closed Acoustic
+43=Tom Acoustic 2
+44=Hi-Hat Pedal Acoustic
+45=Tom Acoustic 3
+46=Hi-Hat Open Acoustic
+47=Tom Acoustic 4
+48=Tom Acoustic 5
+49=Crash Cymbal Acoustic 1
+50=Tom Acoustic 6
+51=Ride Cymbal Acoustic 1
+52=Chinese Cymbal Acoustic
+53=Ride Cymbal Acoustic
+55=Splash Cymbal Acoustic
+57=Crash Cymbal Acoustic 2
+59=Ride Cymbal Acoustic 2
+[Live!DrumsRockKit]
+BasedOn=Standard Kit 1
+29=Snare Roll Rock
+31=Snare Soft Rock
+33=Kick Soft Rock
+34=Rim Rock
+35=Kick Rock Heavy
+36=Kick Rock
+37=Stick Rock
+38=Snare Rock
+39=Hand Clap Power
+40=Snare Dry Rock
+41=Tom Rock 1
+42=Hi-Hat Closed Rock
+43=Tom Rock 2
+44=Hi-Hat Pedal Rock
+45=Tom Rock 3
+46=Hi-Hat Open Rock
+47=Tom Rock 4
+48=Tom Rock 5
+49=Crash Cymbal Acoustic 1
+50=Tom Rock 6
+51=Ride Cymbal Acoustic 1
+52=Chinese Cymbal Acoustic
+53=Ride Cymbal Acoustic
+55=Splash Cymbal Acoustic
+57=Crash Cymbal Acoustic 2
+59=Ride Cymbal Acoustic 2
+[Live!DrumsRealDrums]
+BasedOn=Standard Kit 1
+26=Brush Swirl 2
+29=Snare Roll Rock
+31=SnareTight
+33=Kick Genuine
+34=Rim Real
+35=Kick Real 1
+36=Kick Real 2
+37=Stick Real
+38=Snare Real 1
+39=Clap Power
+40=Snare Real 2
+41=Tom Real 1
+42=Hi-Hat Closed Real
+43=Tom Real 2
+44=Hi-Hat Pedal Real
+45=Tom Real 3
+46=Hi-Hat Open Real
+47=Tom Real 4
+48=Tom Real 5
+49=Crash Cymbal Real 1
+50=Tom Real 6
+51=Ride Cymbal Real 1
+52=CHINE CYM Real
+53=Ride Cup Real
+55=Splash Cymbal Real
+57=Crash Cymbal Real 2
+59=Ride Cymbal Real 2
+[SFX KitSFX Kit1]
+36=Cutting Noise
+37=Cutting Noise 2
+39=String Slap
+52=Flute Key Click
+68=Shower
+69=Thunder
+70=Wind
+71=Stream
+72=Bubble
+73=Feed
+84=Dog
+85=Horse
+86=Bird Tweet 2
+90=Ghost
+91=Maou
+[SFX KitSFX Kit2]
+36=Phone Call
+37=Door Squeak
+38=Door Slam
+39=Scratch Cut
+40=Scratch H 3
+41=Wind Chime
+42=Telephone Ring 2
+52=Car Engine Ignition
+53=Car Tires Squeal
+54=Car Passing
+55=Car Crash
+56=Siren
+57=Train
+58=Jet Plane
+59=Starship
+60=Burst
+61=Roller Coaster
+62=Submarine
+68=Laugh
+69=Scream
+70=Punch
+71=Heart Beat
+72=Foot Steps
+84=Machine Gun
+85=Laser Gun
+86=Explosion
+87=Firework
+[SFX Live!NewSFXKit1]
+36=Cutting Noise
+37=Cutting Noise 2
+39=String Slap
+52=Flute Key Click
+68=Shower 2
+69=Thunder 2
+70=Wind 2
+71=Stream 2
+72=Bubble 2
+73=Feed
+84=Dog
+85=Horse
+86=Bird Tweet 2
+90=Ghost
+91=Maou
+[SFX Live!NewSFXKit2]
+36=Phone Call 2
+37=Door Squeak 2
+38=Door Slam 2
+39=Scratch Cut
+40=Scratch H 3
+41=Wind Chime
+42=Telephone Ring 2
+52=Car Engine Ignition
+53=Car Tires Squeal
+54=Car Passing
+55=Car Crash
+56=Siren 2
+57=Train 2
+58=Jet Plane 2
+59=Starship
+60=Burst
+61=Roller Coaster
+62=Submarine
+68=Laugh
+69=Scream 2
+70=Punch 2
+71=Heart Beat
+72=Foot Steps 2
+84=Machine Gun 2
+85=Laser Gun
+86=Explosion 2
+87=Firework
+[SFX NoiseKit]
+36=White Noise
+37=Pink Noise
+38=White Noise Down 1
+39=Pink Noise Down 1
+40=White Noise Down 2
+41=Pink Noise Down 2
+42=White Noise Up 2
+43=White Noise Up 1
+44=Pink Noise Up
+45=White Noise Up Release
+46=Pink Noise Up Release
+47=White Noise Up LFO
+48=Pink Noise Up LFO
+[SFX KitArabicKit]
+BasedOn=Standard Kit 1
+24=Nakarazan Dom
+25=Cabasa
+26=Nakarazan Edge
+27=Hager Dom
+28=Hager Edge
+29=Bongo H
+30=Bongo L
+31=Conga H Mute
+32=Conga H Open
+33=Conga L
+34=Zagrouda H
+35=Zagrouda L
+36=Kick Soft
+38=Snare Soft
+39=Arabic Hand Clap
+40=Snare
+52=Crash Cymbal 2
+53=Duhulla Dom
+55=Duhulla Tak
+57=Duhulla Sak
+58=Claves
+59=Doff Dom
+60=Katem Dom
+61=Katem Tak
+62=Katem Sak
+63=Katem Tak
+64=Doff Tak
+65=Tabla Dom
+66=Tabla Tak1
+67=Tabla Tik
+68=Tabla Tak2
+69=Tabla Sak
+70=Tabla Roll of Edge
+71=Tabla Flam
+72=Sagat 1
+73=Tabel Dom
+74=Sagat 3
+75=Tabel Tak
+76=Sagat 2
+77=Rik Dom
+78=Rik Tak 2
+79=Rik Finger 1
+80=Rik Tak 1
+81=Rik Finger 2
+82=Rik Brass Tremolo
+83=Rik Sak
+84=Rik Tik
+[Live!SFXCubanKit]
+22=Conga H Tip
+23=Conga H Heel
+24=Conga H Open
+25=Conga H Mute
+26=Conga H Slap Open
+27=Conga H Slap
+28=Conga H Slap Mute
+29=Conga L Tip
+30=Conga L Heel
+31=Conga L Open
+32=Conga L Mute
+33=Conga L Slap Open
+34=Conga L Slap
+35=Conga L Slide
+36=Bongo H Open 1 Finger
+37=Bongo H Open 3 Finger
+38=Bongo H Rim
+39=Bongo H Tip
+40=Bongo H Heel
+41=Bongo H Slap
+42=Bongo L Open 1 Finger
+43=Bongo L Open 3 Finger
+44=Bongo L Rim
+45=Bongo L Tip
+46=Bongo L Heel
+47=Bongo L Slap
+48=Bongo Timbale L Open
+53=Paila L
+54=Timbale H Open
+59=Paila H
+60=Cowbell Top
+64=Guiro Short
+65=Guiro Long
+68=Tambourine
+72=Maracas
+73=Shaker
+74=Cabasa
+[Live!SFXPopLatinKit]
+13=Cajon Low
+14=Cajon Slap
+15=Cajon Tip
+16=Claves High
+17=Claves Low
+18=Hand Clap
+20=Finger Snap
+21=Castanet
+22=Conga H Tip
+23=Conga H Heel
+24=Conga H Open
+25=Conga H Mute
+26=Conga H Slap Open
+27=Conga H Slap
+28=Conga H Slap Mute
+29=Conga L Tip
+30=Conga L Heel
+31=Conga L Open
+32=Conga L Mute
+33=Conga L Slap Open
+34=Conga L Slap
+35=Conga L Slide
+36=Bongo H Open 1 Finger
+37=Bongo H Open 3 Finger
+38=Bongo H Rim
+39=Bongo H Tip
+40=Bongo H Heel
+41=Bongo H Slap
+42=Bongo L Open 1 Finger
+43=Bongo L Open 3 Finger
+44=Bongo L Rim
+45=Bongo L Tip
+46=Bongo L Heel
+47=Bongo L Slap
+48=Timbale L Open
+53=Paila L
+54=Timbale H Open
+59=Paila H
+60=Cowbell Top
+61=Cowbell 1
+62=Cowbell 2
+63=Cowbell 3
+64=Guiro Short
+65=Guiro Long
+66=Metal Guiro Short
+67=Metal Guiro Long
+68=Tambourine
+69=Tambourine Open
+70=Tambourine Mute
+71=Tambourine Tip
+72=Maracas
+73=Shaker
+74=Cabasa
+75=Cuica Mute
+76=Cuica Open
+77=Cowbell High 1
+78=Cowbell High 2
+79=Shekere
+80=Shekere Tone
+81=Triangle Mute
+82=Triangle Open
+84=Bell Tree
+[Live!SFXTurkishKit]
+13=Asma Davul Left Side
+14=Asma Davul Right Side
+15=Asma Davul Side Body
+16=Asma Davul Both Sides
+17=Koltuk Davul Open Flam
+18=Koltuk Davul Teke Open
+19=Koltuk Davul Tek Open
+20=Koltuk Davul Dum
+21=Dendir Teke Open Flam
+22=Bendir Teke Dead
+23=Bendir Tek Dead
+24=Bendir Teke
+25=Bendir Tek
+26=Bendir Slap
+27=Bendir Dum
+28=Zil Right Close
+29=Zil Right Open
+30=Zil Left Close
+31=Zil Left Open
+32=Tef Teke Flam
+33=Tef Tek Mute
+34=Tef Teke Damped
+35=Tef Tek Mute Medium
+36=Tef Dum Mute
+37=Tef Cymbal
+38=Tef Cymbal Mute
+39=Tef Tremolo
+40=Tef Shake 1
+41=Tef Shake 2
+42=Tef Tek Flam
+43=Tef Full Open
+44=Tef Take Open Short
+45=Tef Tek Open Short
+46=Tef Tek Open
+47=Tef Dum Open
+48=Hollo Finger Dead
+49=Hollo Slap
+50=Hollo Drum
+51=Kasik
+52=Kasik Flam
+53=Bass Darbuka Tek Dead
+54=Bass Darbuka Tek Flam
+55=Bass Darbuka Teke
+56=Bass Darbuka Teke Other Finger
+57=Bass Darbuka Teke Index Finger
+58=Bass Darbuka Tek
+59=Bass Darbuka Slap
+60=Bass Darbuka Slap Medium
+61=Bass Darbuka Dum
+62=Darbuka Roll Close
+63=Darbuka Roll Open
+64=Darbuka Teke Damped Flam
+65=Darbuka Tek Dead
+66=Darbuka Tek Damped
+67=Darbuka Teke Open Flam
+68=Darbuka Teke Open
+69=Darbuka Teke Other Finger 1
+70=Darbuka Teke Indes Finger 1
+71=Darbuka Tek 1
+72=darbuka Teke Other Finger 2
+73=Darbuka Teke Indes Finger 2
+74=Darbuka Tek 2
+75=Darbuka Slap Medium
+76=Darbuka Slap
+77=Darbuka Dum
+78=Bongo Tek Roll
+79=Bongo Flam
+80=Bongo Tek Flam
+81=Bongo Tek
+82=Bongo Slap
+83=Bongo Flam Hi
+84=Bongo Dum
+[SFX Live!VocalEffectsKit]
+36=Male "Ha" 01
+37=Fermale "Ha" 01
+38=Male "Ha" 02
+39=Male "Ha" 03
+40=Male "Bh" 01
+41=Fermale "Bh" 01
+42=Male "Kh" 01
+43=Fermale "Kh" 01
+44=Male "Ph" 01
+45=Fermale "Ph" 01
+46=Male "Th" 01
+47=Fermale "Th" 01
+48=Male "Bh" 02
+49=Fermale "Bh" 02
+50=Male "Kh" 02
+51=Fermale "Kh" 02
+52=Male "Ph" 02
+53=Fermale "Ph" 02
+54=Male "Th" 02
+55=Fermale "Th" 02
+56=Male "Ha" 04
+57=Fermale "Ha" 02
+58=Male "Ha" 05
+59=Male "Ha" 06
+60=Male "Bh" 03
+61=Fermale "Bh" 03
+62=Male "Kh" 03
+63=Fermale "Kh" 03
+64=Male "Ph" 03
+65=Fermale "Ph" 03
+66=Male "Th" 03
+67=Fermale "Th" 03
+68=Male "Bh" 04
+69=Fermale "Bh" 04
+70=Male "Kh" 04
+71=Fermale "Kh" 04
+72=Male "Ph" 04
+73=Fermale "Ph" 04
+74=Male "Th" 04
+75=Fermale "Th" 04
+[SFX Live!GospelAdLibs]
+48=C'mon
+49=Hoo!
+50=Aha!
+51=Oh Yeah
+52=Yayayayayah
+53=Put Your Hands Together
+54=C'mon Now
+55=Heeey
+56=Everybody Now
+57=Clap Your Hands, Everybody C'mon
+58=With All Your Soul
+59=Stand Up On Your Feet
+60=Uhh Yeah
+61=Aaoh
+62=Come On!
+63=Yeah!
+64=Alright Now!
+65=One
+66=Two
+67=Three
+68=Four
+69=One!
+70=Two!
+71=Three!
+72=Four!
+73=Five!
+74=Six!
+75=Seven!
+76=Eight!
+77=Clap!
+78=Gospel Clap 1
+79=Gospel Clap 2
+; ----------------------- Note Names for new Tyros5 kits -----------------------
+[Live!SFXPopLatinKit2]
+13=Cajon Low
+14=Cajon Slap
+15=Cajon Tip
+16=Claves High
+17=Claves Low
+18=Hand Clap
+20=Finger Snap
+21=Castanet
+22=Conga H Tip
+23=Conga H Heel
+24=Conga H Open
+25=Conga H Mute
+26=Conga H Slap Open
+27=Conga H Slap
+28=Conga H Slap Mute
+29=Conga L Tip
+30=Conga L Heel
+31=Conga L Open
+32=Conga L Mute
+33=Conga L Slap Open
+34=Conga L Slap
+35=Conga L Slide
+36=Bongo H Open 1 finger
+37=Bongo H Open 3 finger
+38=Bongo H Rim
+39=Bongo H Tip
+40=Bongo H Heel
+41=Bongo H Slap
+42=Bongo L Open 1 finger
+43=Bongo L Open 3 finger
+44=Bongo L Rim
+45=Bongo L Tip
+46=Bongo L Heel
+47=Bongo L Slap
+48=Timbale L Open
+53=Paila L
+54=Timbale H Open
+55=Hand Clap Mute 1
+56=Hand Clap Mute 2
+57=Hand Clap Open 1
+58=Hand Clap Open 2
+59=Paila H
+60=Cowbell Top
+61=Cowbell 1
+62=Cowbell 2
+63=Cowbell 3
+64=Guiro Short
+65=Guiro Long
+66=Metal Guiro Short
+67=Metal Guiro Long
+68=Tambourine
+69=Tambourim Open
+70=Tambourim Mute
+71=Tambourim Tip
+72=Maracas
+73=Shaker
+74=Cabasa
+75=Cuica Mute
+76=Cuica Open
+77=Cowbell High 1
+78=Cowbell High 2
+79=Shekere
+80=Shekere Tone
+81=Triangle Mute
+82=Triangle Open
+[Live!SFXCymbalKit]
+36=Kick A
+37=Timbale A
+38=Chinese Cymbal A
+39=Crash Cymbal A
+40=Ride Cymbal A
+41=Splash Cymbal A
+44=Crash Cymbal B1
+45=Crash Cymbal B2
+46=Ride Cymbal B
+49=Crash Cymbal C
+50=Ride Cymbal C
+51=Brush Ride Cymbal C
+52=Brush Sizzle Cymbal C
+55=Crash Cymbal D1
+56=Crash Cymbal D2
+57=Crash Cymbal D3
+58=Ride Cymbal D
+59=Splash Cymbal D
+62=Crash Cymbal E1
+63=Crash Cymbal E2
+64=Ride Cymbal E
+65=Hi-Hat Half Open E
+; ----------------------------------------------------------------------
+.Controller Names
+[Tyros Controllers]
+0=0 Bank Select MSB
+1=1 Modulation
+5=5 Portamento Time
+6=6 Data Entry MSB
+7=7 Main Volume
+10=10 Panpot
+11=11 Expression
+32=32 Bank Select LSB
+38=38 Data Entry LSB
+64=64 Sustain
+65=65 Portamento
+66=66 Sostenuto
+67=67 Soft Pedal
+71=71 Harmonic Content
+72=72 Release Time
+73=73 Attack Time
+74=74 Brightness
+75=75 Decay Time
+76=76 Vibrato Rate
+77=77 Vibrato Depth
+78=78 Vibrato Delay
+84=84 Portamento Control
+91=91 Reverb Send Level
+92=92 Tremolo Depth
+93=93 Chorus Send Level
+94=94 Variation Send Level
+96=96 RPN Increment
+97=97 RPN Decrement
+98=98 NRPN LSB
+99=99 NRPN MSB
+100=100 RPN LSB
+101=101 RPN MSB
+120=120 All Sound Off
+121=121 Reset All Controllers
+123=123 All Notes Off
+124=124 OMNI Off
+125=125 OMNI On
+126=126 Mono
+127=127 Poly
+; ----------------------------------------------------------------------
+.Instrument Definitions
+[Tyros5 Synth]
+Control=Tyros Controllers
+RPN=Standard RPN
+NRPN=NRPN Tyros
+Patch[0]=GM1 & XG Bank 0   {{ XG_BANK }} 
+Patch[1]=XG Bank 1   
+Patch[3]=XG Bank 3
+Patch[6]=XG Bank 6
+Patch[8]=XG Bank 8
+Patch[12]=XG Bank 12
+Patch[14]=XG Bank 14
+Patch[16]=XG Bank 16
+Patch[17]=XG Bank 17
+Patch[18]=XG Bank 18
+Patch[19]=XG Bank 19
+Patch[20]=XG Bank 20
+Patch[24]=XG Bank 24
+Patch[25]=XG Bank 25
+Patch[27]=XG Bank 27
+Patch[28]=XG Bank 28
+Patch[32]=XG Bank 32
+Patch[33]=XG Bank 33
+Patch[34]=XG Bank 34
+Patch[35]=XG Bank 35
+Patch[36]=XG Bank 36
+Patch[37]=XG Bank 37
+Patch[38]=XG Bank 38
+Patch[40]=XG Bank 40
+Patch[41]=XG Bank 41
+Patch[42]=XG Bank 42
+Patch[43]=XG Bank 43
+Patch[45]=XG Bank 45
+Patch[64]=XG Bank 64
+Patch[65]=XG Bank 65
+Patch[66]=XG Bank 66
+Patch[67]=XG Bank 67
+Patch[68]=XG Bank 68
+Patch[69]=XG Bank 69
+Patch[70]=XG Bank 70
+Patch[71]=XG Bank 71
+Patch[72]=XG Bank 72
+Patch[96]=XG Bank 96
+Patch[97]=XG Bank 97
+Patch[98]=XG Bank 98
+Patch[99]=XG Bank 99
+Patch[100]=XG Bank 100
+Patch[101]=XG Bank 101
+Patch[13312]=Tyros5 Bank 0
+Patch[13313]=Tyros5 Bank 1
+Patch[13314]=Tyros5 Bank 2
+Patch[13315]=Tyros5 Bank 3
+Patch[13316]=Tyros5 Bank 4
+Patch[13317]=Tyros5 Bank 5
+Patch[13318]=Tyros5 Bank 6
+Patch[13319]=Tyros5 Bank 7
+Patch[13320]=Tyros5 Bank 8
+Patch[13321]=Tyros5 Bank 9
+Patch[13322]=Tyros5 Bank 10
+Patch[13323]=Tyros5 Bank 11
+Patch[13324]=Tyros5 Bank 12
+Patch[13325]=Tyros5 Bank 13
+Patch[13326]=Tyros5 Bank 14
+Patch[13327]=Tyros5 Bank 15
+Patch[13328]=Tyros5 Bank 16
+Patch[13329]=Tyros5 Bank 17
+Patch[13330]=Tyros5 Bank 18
+Patch[13331]=Tyros5 Bank 19
+Patch[13332]=Tyros5 Bank 20
+Patch[13333]=Tyros5 Bank 21
+Patch[13334]=Tyros5 Bank 22
+Patch[13335]=Tyros5 Bank 23
+Patch[13336]=Tyros5 Bank 24
+Patch[13337]=Tyros5 Bank 25
+Patch[13338]=Tyros5 Bank 26
+Patch[13339]=Tyros5 Bank 27
+Patch[13340]=Tyros5 Bank 28
+Patch[13341]=Tyros5 Bank 29
+Patch[13342]=Tyros5 Bank 30
+Patch[13343]=Tyros5 Bank 31
+Patch[13344]=Tyros5 Bank 32
+Patch[13345]=Tyros5 Bank 33
+Patch[13346]=Tyros5 Bank 34
+Patch[13347]=Tyros5 Bank 35
+Patch[13348]=Tyros5 Bank 36
+Patch[13349]=Tyros5 Bank 37
+Patch[13350]=Tyros5 Bank 38
+Patch[104]=Tyros5 Bank 104
+Patch[105]=Tyros5 Bank 105
+Patch[106]=Tyros5 Bank 106
+Patch[107]=Tyros5 Bank 107
+Patch[108]=Tyros5 Bank 108
+Patch[109]=Tyros5 Bank 109
+Patch[110]=Tyros5 Bank 110
+Patch[111]=Tyros5 Bank 111
+Patch[112]=Tyros5 Bank 112
+Patch[113]=Tyros5 Bank 113
+Patch[114]=Tyros5 Bank 114
+Patch[115]=Tyros5 Bank 115
+Patch[116]=Tyros5 Bank 116
+Patch[117]=Tyros5 Bank 117
+Patch[118]=Tyros5 Bank 118
+Patch[119]=Tyros5 Bank 119
+Patch[120]=Tyros5 Bank 120
+Patch[121]=Tyros5 Bank 121
+Patch[122]=Tyros5 Bank 122
+Patch[123]=Tyros5 Bank 123
+Patch[124]=Tyros5 Bank 124
+Patch[125]=Tyros5 Bank 125
+Patch[126]=Tyros5 Bank 126
+Patch[127]=Tyros5 Bank 127
+Patch[1024]=Tyros5 MV Bank 0
+Patch[1025]=Tyros5 MV Bank 1
+Patch[1026]=Tyros5 MV Bank 2
+Patch[1027]=Tyros5 MV Bank 3
+Patch[1028]=Tyros5 MV Bank 4
+Patch[1029]=Tyros5 MV Bank 5
+Patch[1030]=Tyros5 MV Bank 6
+Patch[1031]=Tyros5 MV Bank 7
+Patch[1032]=Tyros5 MV Bank 8
+Patch[1056]=Tyros5 S.Articulation Bank 32
+Patch[1057]=Tyros5 S.Articulation Bank 33
+Patch[1058]=Tyros5 S.Articulation Bank 34
+Patch[1059]=Tyros5 S.Articulation Bank 35
+Patch[1060]=Tyros5 S.Articulation Bank 36
+Patch[1061]=Tyros5 S.Articulation Bank 37
+Patch[1062]=Tyros5 S.Articulation Bank 38
+Patch[1063]=Tyros5 S.Articulation Bank 39
+Patch[1064]=Tyros5 S.Articulation Bank 40
+Patch[1065]=Tyros5 S.Articulation Bank 41
+Patch[1066]=Tyros5 S.Articulation Bank 42
+Patch[1067]=Tyros5 S.Articulation Bank 43
+Patch[1068]=Tyros5 S.Articulation Bank 44
+Patch[1069]=Tyros5 S.Articulation Bank 45
+Patch[1070]=Tyros5 S.Articulation Bank 46
+Patch[1071]=Tyros5 S.Articulation Bank 47
+Patch[1072]=Tyros5 S.Articulation Bank 48
+Patch[1073]=Tyros5 S.Articulation Bank 49
+Patch[1074]=Tyros5 S.Articulation Bank 50
+Patch[1075]=Tyros5 S.Articulation Bank 51
+Patch[1076]=Tyros5 S.Articulation Bank 52
+Patch[1077]=Tyros5 S.Articulation Bank 53
+Patch[1078]=Tyros5 S.Articulation Bank 54
+Patch[1079]=Tyros5 S.Articulation Bank 55
+Patch[1080]=Tyros5 S.Articulation Bank 56
+Patch[1088]=Tyros5 S.Articulation Bank 64
+Patch[1089]=Tyros5 S.Articulation Bank 65
+Patch[1090]=Tyros5 S.Articulation Bank 66
+Patch[1091]=Tyros5 S.Articulation Bank 67
+Patch[1184]=Tyros5 Ensemble Bank 32
+Patch[1185]=Tyros5 Ensemble Bank 33
+Patch[1186]=Tyros5 Ensemble Bank 34
+Patch[1187]=Tyros5 Ensemble Bank 35
+Patch[1188]=Tyros5 Ensemble Bank 36
+Patch[1189]=Tyros5 Ensemble Bank 37
+Patch[1190]=Tyros5 Ensemble Bank 38
+Patch[1192]=Tyros5 Ensemble Bank 40
+Patch[1193]=Tyros5 Ensemble Bank 41
+Patch[1194]=Tyros5 Ensemble Bank 42
+Patch[1197]=Tyros5 Ensemble Bank 45
+Patch[1216]=Tyros5 Ensemble Bank 64
+Patch[1217]=Tyros5 Ensemble Bank 65
+Patch[1218]=Tyros5 Ensemble Bank 66
+Patch[1219]=Tyros5 Ensemble Bank 67
+Patch[1232]=Tyros5 Ensemble Bank 80
+Patch[1233]=Tyros5 Ensemble Bank 81
+Patch[1234]=Tyros5 Ensemble Bank 82
+Patch[1235]=Tyros5 Ensemble Bank 83
+Patch[1236]=Tyros5 Ensemble Bank 84
+Patch[13952]=Tyros5 Ensemble.2 Bank 0
+Patch[13953]=Tyros5 Ensemble.2 Bank 1
+Patch[13954]=Tyros5 Ensemble.2 Bank 2
+Patch[13955]=Tyros5 Ensemble.2 Bank 3
+Patch[13956]=Tyros5 Ensemble.2 Bank 4
+Patch[13958]=Tyros5 Ensemble.2 Bank 6
+Patch[14064]=Tyros5 Ensemble.2 Bank 112
+Patch[14065]=Tyros5 Ensemble.2 Bank 113
+Patch[14066]=Tyros5 Ensemble.2 Bank 114
+Patch[14068]=Tyros5 Ensemble.2 Bank 116
+Patch[14069]=Tyros5 Ensemble.2 Bank 117
+Patch[14070]=Tyros5 Ensemble.2 Bank 118
+Patch[14071]=Tyros5 Ensemble.2 Bank 119
+Patch[15488]=GM2 Bank 0   {{ GM2_BANK }}
+Patch[15489]=GM2 Bank 1
+Patch[15490]=GM2 Bank 2
+Patch[15491]=GM2 Bank 3
+Patch[15492]=GM2 Bank 4
+Patch[15493]=GM2 Bank 5
+Patch[15494]=GM2 Bank 6
+Patch[15495]=GM2 Bank 7
+Patch[15496]=GM2 Bank 8
+Patch[15497]=GM2 Bank 9
+Patch[1280]=Tyros5 Organ World Bank 0
+Patch[1281]=Tyros5 Organ World Bank 1
+Patch[1282]=Tyros5 Organ World Bank 2
+Patch[1283]=Tyros5 Organ World Bank 3
+Patch[1284]=Tyros5 Organ World Bank 4
+Patch[1285]=Tyros5 Organ World Bank 5
+Patch[1286]=Tyros5 Organ World Bank 6
+Patch[1287]=Tyros5 Organ World Bank 7
+;Patch[7936]=Tyros5 Custom Drum Bank
+;Patch[8064]=Tyros5 Custom Voice Bank
+Patch[16128]=Drums SFX Tyros5
+Patch[16256]=Drum Kits Tyros5
+
+
+; ------------------------------
+Key[16128,0]=SFX KitSFX Kit1
+Key[16128,1]=SFX KitSFX Kit2
+Key[16128,2]=SFX Live!NewSFXKit1
+Key[16128,3]=SFX Live!NewSFXKit2
+Key[16128,8]=SFX NoiseKit
+Key[16128,35]=SFX KitArabicKit
+Key[16128,40]=Live!SFXCubanKit
+Key[16128,43]=Live!SFXPopLatinKit
+Key[16128,44]=Live!SFXPopLatinKit2
+Key[16128,49]=Live!SFXCymbalKit
+Key[16128,67]=Live!SFXTurkishKit
+Key[16128,109]=SFX Live!VocalEffectsKit
+Key[16128,110]=SFX Live!GospelAdLibs
+Key[16256,0]=Live!DrumsStandardKit1
+Key[16256,1]=Live!DrumsStandardKit2
+Key[16256,4]=DrumsHitKit
+Key[16256,8]=DrumsRoomKit
+Key[16256,16]=DrumsRockKit
+Key[16256,24]=DrumsElectroKit
+Key[16256,25]=DrumsAnalogKit
+Key[16256,27]=DrumsDanceKit
+Key[16256,32]=DrumsJazzKit
+Key[16256,40]=Live!DrumsBrushKit
+Key[16256,41]=Live!DrumsRealBrushes
+Key[16256,48]=Live!DrumsSymphonyKit
+Key[16256,56]=DrumsHipHopKit
+Key[16256,57]=DrumsBreakKit
+Key[16256,58]=DrumsAnalogT8Kit
+Key[16256,59]=DrumsAnalogT9Kit
+Key[16256,60]=DrumsHouseKit
+Key[16256,61]=DrumsDrumMachine
+Key[16256,86]=Live!DrumsStudioKit
+Key[16256,87]=Live!DrumsPowerKit1
+Key[16256,88]=Live!DrumsPowerKit2
+Key[16256,89]=Live!DrumsAcousticKit
+Key[16256,90]=Live!DrumsRockKit
+Key[16256,91]=Live!DrumsRealDrums
+Drum[15360,*]=1
+Drum[15360,56]=0
+Drum[16256,*]=1
+Drum[16128,*]=1

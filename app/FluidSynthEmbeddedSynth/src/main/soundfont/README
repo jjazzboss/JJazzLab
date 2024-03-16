@@ -1,0 +1,1 @@
+Because of their large size, soundfont files are ignored by the JJazzLab git config. So you need to manually place file "JJazzLab-SoundFont.sf2" in this directory for the build system to use it for FluidSynth.

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE filesystem PUBLIC "-//NetBeans//DTD Filesystem 1.2//EN" "http://www.netbeans.org/dtds/filesystem-1_2.dtd">
+<filesystem>  
+    <folder name="Actions">
+        <folder name="Bar">
+            <!--            <file name="j-openide-actions-CutAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/JJazz/org-jjazz-ui-CutAction.instance"/>
+                <attr name="position" intvalue="1000"/>
+            </file>            
+            <file name="org-openide-actions-CopyAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/Edit/org-openide-actions-CopyAction.instance"/>
+                <attr name="position" intvalue="1100"/>
+            </file>
+            <file name="org-openide-actions-PasteAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/Edit/org-openide-actions-PasteAction.instance"/>
+                <attr name="position" intvalue="1200"/>
+            </file>          -->
+        </folder>    
+        <folder name="ChordSymbol">
+            <!--            <file name="org-openide-actions-CutAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/Edit/org-openide-actions-CutAction.instance"/>
+                <attr name="position" intvalue="1000"/>
+            </file>            -->
+            <!--            <file name="org-openide-actions-CopyAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/Edit/org-openide-actions-CopyAction.instance"/>
+                <attr name="position" intvalue="1100"/>
+            </file>
+            <file name="org-openide-actions-PasteAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/Edit/org-openide-actions-PasteAction.instance"/>
+                <attr name="position" intvalue="1200"/>
+            </file>          -->
+        </folder>   
+        <folder name="Section">
+            <!--            <file name="org-openide-actions-CutAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/Edit/org-openide-actions-CutAction.instance"/>
+                <attr name="position" intvalue="1000"/>
+            </file>            
+            <file name="org-openide-actions-CopyAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/Edit/org-openide-actions-CopyAction.instance"/>
+                <attr name="position" intvalue="1100"/>
+            </file>
+            <file name="org-openide-actions-PasteAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/Edit/org-openide-actions-PasteAction.instance"/>
+                <attr name="position" intvalue="1200"/>
+            </file>          -->
+        </folder>         
+    </folder>           
+</filesystem>
