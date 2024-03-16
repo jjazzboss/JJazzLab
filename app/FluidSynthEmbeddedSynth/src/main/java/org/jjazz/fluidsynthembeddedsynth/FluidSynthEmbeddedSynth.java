@@ -39,8 +39,6 @@ import org.jjazz.fluidsynthjava.api.FluidSynthJava;
 import org.jjazz.fluidsynthjava.api.Reverb;
 import org.jjazz.outputsynth.api.OutputSynth;
 import org.jjazz.utilities.api.ResUtil;
-import org.openide.DialogDisplayer;
-import org.openide.NotifyDescriptor;
 import org.openide.modules.InstalledFileLocator;
 import org.openide.util.NbPreferences;
 

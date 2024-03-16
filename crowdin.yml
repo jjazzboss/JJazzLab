@@ -1,5 +1,10 @@
 files:
-  - source: /**/Bundle.properties
+  - source: 
+    - /app/**/Bundle.properties
+    - /core/**/Bundle.properties
+    - /engines/**/Bundle.properties
     ignore:
-      - /libs/**/Bundle.properties 
+      - /app/Test/**/Bundle.properties 
+      - /app/application/**/Bundle.properties 
+      - /app/branding/**/Bundle.properties
     translation: /**/Bundle_%locale_with_underscore%.properties
