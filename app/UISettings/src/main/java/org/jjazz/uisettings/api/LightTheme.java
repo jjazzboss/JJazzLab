@@ -52,8 +52,8 @@ public class LightTheme implements Theme
 //        value = tbl -> new ImageIcon(getClass().getResource(SPEAKER_ICON_DISABLED_PATH));
 //        uiDefaults.put("speaker.icon.disabled", value);   // Better to return null: let the L&F create the disabled icon
         uiDefaults.put("background.white", new Color(255, 255, 240));
-        uiDefaults.put("mixconsole.background", new Color(200, 199, 204));
-        uiDefaults.put("mixchannel.background", new Color(241, 240, 240));
+        uiDefaults.put("mixconsole.background", new Color(153, 153, 153));
+        uiDefaults.put("mixchannel.background", new Color(236, 231, 231));
         uiDefaults.put("bar.selected.background", new Color(209, 238, 246));
         uiDefaults.put("item.selected.background", new Color(128, 212, 235));
         uiDefaults.put("default.focused.border.color", new Color(16, 65, 242));

@@ -57,14 +57,15 @@ import org.jjazz.rhythm.api.RhythmVoice;
 import static org.jjazz.rhythm.api.RhythmVoice.Type.DRUMS;
 import static org.jjazz.rhythm.api.RhythmVoice.Type.PERCUSSION;
 import org.jjazz.mixconsole.api.MixConsoleTopComponent;
+import org.jjazz.uisettings.api.GeneralUISettings;
+import org.jjazz.uiutilities.api.HSLColor;
 import org.jjazz.utilities.api.ResUtil;
 import org.netbeans.api.annotations.common.StaticResource;
 
 /**
  * Model based on a channel/InstrumentMix data belonging to a MidiMix.
  * <p>
- * Listen to InstrumentMix model changes and notify listeners. UI updates are propagated on the InstrumentMix model and possibly to the
- * enclosing MidiMix.
+ * Listen to InstrumentMix model changes and notify listeners. UI updates are propagated on the InstrumentMix model and possibly to the enclosing MidiMix.
  * <p>
  */
 public class MixChannelPanelModelImpl implements MixChannelPanelModel, PropertyChangeListener
@@ -80,7 +81,7 @@ public class MixChannelPanelModelImpl implements MixChannelPanelModel, PropertyC
     private String channelName;
     private String channelNameTooltip;
     private String iconTooltip;
-    private Icon icon;
+    private ImageIcon icon;
     private Color channelColor = Color.LIGHT_GRAY;
     private final transient SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
     private RhythmVoice rhythmVoice;
@@ -173,8 +174,8 @@ public class MixChannelPanelModelImpl implements MixChannelPanelModel, PropertyC
     /**
      * Set volume of the channel.
      * <p>
-     * If volume was changed using mouse with SHIFT pressed, then we apply the volume delta change to other channels as well, unless one
-     * channel reaches min or max volume.
+     * If volume was changed using mouse with SHIFT pressed, then we apply the volume delta change to other channels as well, unless one channel reaches min or
+     * max volume.
      *
      * @param oldValue
      * @param newValue
@@ -354,7 +355,7 @@ public class MixChannelPanelModelImpl implements MixChannelPanelModel, PropertyC
     }
 
     @Override
-    public Icon getIcon()
+    public ImageIcon getIcon()
     {
         return icon;
     }
@@ -532,45 +533,47 @@ public class MixChannelPanelModelImpl implements MixChannelPanelModel, PropertyC
         return sb.toString();
     }
 
-    private Icon getIcon(RhythmVoice rv)
+    private ImageIcon getIcon(RhythmVoice rv)
     {
-        assert rv!=null;
+        assert rv != null;
+        ImageIcon res = null;
         
         if (rv instanceof UserRhythmVoice)
         {
-            return new ImageIcon(getClass().getResource(USER_ICON_PATH));
+            res = new ImageIcon(getClass().getResource(USER_ICON_PATH));
+        } else
+        {
+            res = switch (rv.getType())
+            {
+                case DRUMS ->
+                    new ImageIcon(getClass().getResource("resources/Drums-48x48.png"));
+                case PERCUSSION ->
+                    new ImageIcon(getClass().getResource("resources/Percu-48x48.png"));
+                default ->
+                {
+                    // VOICE
+                    yield switch (rv.getPreferredInstrument().getSubstitute().getFamily())
+                    {
+                        case Guitar ->
+                            new ImageIcon(getClass().getResource("resources/Guitar-48x48.png"));
+                        case Piano, Organ, Synth_Lead ->
+                            new ImageIcon(getClass().getResource("resources/Keyboard-48x48.png"));
+                        case Bass ->
+                            new ImageIcon(getClass().getResource("resources/Bass-48x48.png"));
+                        case Brass, Reed ->
+                            new ImageIcon(getClass().getResource("resources/HornSection-48x48.png"));
+                        case Strings, Synth_Pad, Ensemble ->
+                            new ImageIcon(getClass().getResource("resources/Strings-48x48.png"));
+                        case Percussive ->
+                            new ImageIcon(getClass().getResource("resources/Percu-48x48.png"));
+                        default ->
+                            new ImageIcon(getClass().getResource("resources/Notes-48x48.png")); // Ethnic, Sound_Effects, Synth_Effects, Pipe, Chromatic_Percussion:
+                    };
+                }
+            };
         }
 
-
-        return switch (rv.getType())
-        {
-            case DRUMS ->
-                new ImageIcon(getClass().getResource("resources/Drums-48x48.png"));
-            case PERCUSSION ->
-                new ImageIcon(getClass().getResource("resources/Percu-48x48.png"));
-            default ->
-            {
-                // VOICE
-                yield switch (rv.getPreferredInstrument().getSubstitute().getFamily())
-                {
-                    case Guitar ->
-                        new ImageIcon(getClass().getResource("resources/Guitar-48x48.png"));
-                    case Piano, Organ, Synth_Lead ->
-                        new ImageIcon(getClass().getResource("resources/Keyboard-48x48.png"));
-                    case Bass ->
-                        icon = new ImageIcon(getClass().getResource("resources/Bass-48x48.png"));
-                    case Brass, Reed ->
-                        icon = new ImageIcon(getClass().getResource("resources/HornSection-48x48.png"));
-                    case Strings, Synth_Pad, Ensemble ->
-                        icon = new ImageIcon(getClass().getResource("resources/Strings-48x48.png"));
-                    case Percussive ->
-                        icon = new ImageIcon(getClass().getResource("resources/Percu-48x48.png"));
-                    default ->
-                        icon = new ImageIcon(getClass().getResource("resources/Notes-48x48.png")); // Ethnic, Sound_Effects, Synth_Effects, Pipe, Chromatic_Percussion:
-                };
-            }
-        };
-
+        return res;
     }
 
 

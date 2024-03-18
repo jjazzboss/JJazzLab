@@ -26,6 +26,7 @@ import java.awt.Color;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeListener;
 import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import org.jjazz.midi.api.Instrument;
 
 /**
@@ -55,7 +56,7 @@ public interface MixChannelPanelModel
     static final String PROP_CHANNEL_NAME = "PropChannelName";    
     static final String PROP_ICON = "PropIcon";    
     static final String PROP_CHANNEL_NAME_TOOLTIP = "PropChannelNameTooltip";    
-    static final String PROP_ICON_TOOLTIP = "PropIconTooltip";    
+    static final String PROP_ICON_TOOLTIP = "PropIconTooltip";       
 
     void addPropertyChangeListener(PropertyChangeListener l);
 
@@ -111,7 +112,7 @@ public interface MixChannelPanelModel
 
     String getIconTooltip();
 
-    Icon getIcon();
+    ImageIcon getIcon();
 
     Color getChannelColor();
     

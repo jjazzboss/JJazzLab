@@ -41,6 +41,7 @@ import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythmmusicgeneration.api.MusicGenerationQueue;
 import org.jjazz.song.api.Song;
 import org.jjazz.songcontext.api.SongContextCopy;
+import org.jjazz.uisettings.api.GeneralUISettings;
 import org.jjazz.uiutilities.api.CornerLayout;
 import org.jjazz.utilities.api.ResUtil;
 
@@ -52,7 +53,7 @@ import org.jjazz.utilities.api.ResUtil;
 public class PhraseViewerPanel extends PhraseBirdsEyeViewComponent implements ChangeListener, PropertyChangeListener
 {
 
-    protected static final Color BORDER_COLOR = new Color(32, 36, 53);
+    protected static final Color BORDER_COLOR = GeneralUISettings.adaptColorToLightThemeIfRequired(new Color(32, 36, 53), 40);
     protected static final int BUTTONS_PADDING = 2;
     private RhythmVoice rhythmVoice;
     private final Song song;

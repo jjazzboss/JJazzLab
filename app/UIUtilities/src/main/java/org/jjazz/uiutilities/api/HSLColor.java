@@ -23,17 +23,22 @@
 package org.jjazz.uiutilities.api;
 
 import java.awt.Color;
+import java.awt.Image;
+import java.awt.Toolkit;
+import java.awt.image.FilteredImageSource;
+import java.awt.image.ImageFilter;
+import java.awt.image.ImageProducer;
+import java.awt.image.RGBImageFilter;
 
 /**
- * The HSLColor class provides methods to manipulate HSL (Hue, Saturation Luminance) values to create a corresponding Color object
- * using the RGB ColorSpace.
+ * The HSLColor class provides methods to manipulate HSL (Hue, Saturation Luminance) values to create a corresponding Color object using the RGB ColorSpace.
  * <p>
- * The HUE is the color, the Saturation is the purity of the color (with respect to grey) and Luminance is the brightness of the
- * color (with respect to black and white)
+ * The HUE is the color, the Saturation is the purity of the color (with respect to grey) and Luminance is the brightness of the color (with respect to black
+ * and white)
  * <p>
- * The Hue is specified as an angle between 0 - 360 degrees where red is 0, green is 120 and blue is 240. In between you have the
- * colors of the rainbow. Saturation is specified as a percentage between 0 - 100 where 100 is fully saturated and 0 approaches
- * gray. Luminance is specified as a percentage between 0 - 100 where 0 is black and 100 is white.
+ * The Hue is specified as an angle between 0 - 360 degrees where red is 0, green is 120 and blue is 240. In between you have the colors of the rainbow.
+ * Saturation is specified as a percentage between 0 - 100 where 100 is fully saturated and 0 approaches gray. Luminance is specified as a percentage between 0
+ * - 100 where 0 is black and 100 is white.
  * <p>
  * In particular the HSL color space makes it easier change the Tone or Shade of a color by adjusting the luminance value.
  */
@@ -71,9 +76,9 @@ public class HSLColor
     /**
      * Create a HSLColor object using individual HSL values.
      *
-     * @param h the Hue value in degrees between 0 - 360
-     * @param s the Saturation percentage between 0 - 100
-     * @param l the Lumanance percentage between 0 - 100
+     * @param h     the Hue value in degrees between 0 - 360
+     * @param s     the Saturation percentage between 0 - 100
+     * @param l     the Lumanance percentage between 0 - 100
      * @param alpha the alpha value between 0 - 1
      */
     public HSLColor(float h, float s, float l, float alpha)
@@ -99,7 +104,7 @@ public class HSLColor
     /**
      * Create a HSLColor object using an an array containing the individual HSL values.
      *
-     * @param hsl array containing HSL values
+     * @param hsl   array containing HSL values
      * @param alpha the alpha value between 0 - 1
      */
     public HSLColor(float[] hsl, float alpha)
@@ -136,8 +141,7 @@ public class HSLColor
     }
 
     /**
-     * Create a RGB Color object based on this HSLColor with a different Saturation value. The percent specified is an absolute
-     * value.
+     * Create a RGB Color object based on this HSLColor with a different Saturation value. The percent specified is an absolute value.
      *
      * @param percent - the Saturation value between 0 - 100
      * @return the RGB Color object
@@ -328,7 +332,7 @@ public class HSLColor
      *
      * @param c
      * @param luminanceOffset The value in the range [-100; 100] to be added to c's luminance. The resulting luminance is maintained in the [0-100] range.
-     * @return  
+     * @return
      */
     public static Color changeLuminance(Color c, int luminanceOffset)
     {
@@ -338,6 +342,30 @@ public class HSLColor
         lum = Math.min(100, lum);
         lum = Math.max(0, lum);
         return hsl.adjustLuminance(lum);
+    }
+
+    /**
+     * Get a new image by adjusting the luminance of the image.
+     * <p>
+     * A positive/negative luminanceOffset will make colors brighter/darker.
+     *
+     * @param im
+     * @param luminanceOffset The value in the range [-100; 100] to be added to c's luminance. The resulting luminance is maintained in the [0-100] range.
+     * @return
+     */
+    public static Image changeLuminance(Image im, int luminanceOffset)
+    {
+        ImageFilter filter = new RGBImageFilter()
+        {
+            @Override
+            public final int filterRGB(int x, int y, int rgba)
+            {
+                return changeLuminance(new Color(rgba, true), luminanceOffset).getRGB();
+            }
+        };
+
+        ImageProducer ip = new FilteredImageSource(im.getSource(), filter);
+        return Toolkit.getDefaultToolkit().createImage(ip);
     }
 
     /**
@@ -363,7 +391,7 @@ public class HSLColor
      * S (Saturation) is specified as a percentage in the range 1 - 100. <br>
      * L (Lumanance) is specified as a percentage in the range 1 - 100.<br>
      *
-     * @param hsl an array containing the 3 HSL values
+     * @param hsl   an array containing the 3 HSL values
      * @param alpha the alpha value between 0 - 1
      *
      * @return the RGB Color object
@@ -390,9 +418,9 @@ public class HSLColor
     /**
      * Convert HSL values to a RGB Color.
      * <p>
-     * @param h Hue is specified as degrees in the range 0 - 360.<br>
-     * @param s Saturation is specified as a percentage in the range 1 - 100.<br>
-     * @param l Lumanance is specified as a percentage in the range 1 - 100.<br>
+     * @param h     Hue is specified as degrees in the range 0 - 360.<br>
+     * @param s     Saturation is specified as a percentage in the range 1 - 100.<br>
+     * @param l     Lumanance is specified as a percentage in the range 1 - 100.<br>
      * @param alpha the alpha value between 0 - 1<br>
      *
      * @return the RGB Color object
@@ -402,19 +430,19 @@ public class HSLColor
         if (s < 0.0f || s > 100.0f)
         {
             String message = "Color parameter outside of expected range - Saturation";
-            throw new IllegalArgumentException(message);   
+            throw new IllegalArgumentException(message);
         }
 
         if (l < 0.0f || l > 100.0f)
         {
             String message = "Color parameter outside of expected range - Luminance";
-            throw new IllegalArgumentException(message);   
+            throw new IllegalArgumentException(message);
         }
 
         if (alpha < 0.0f || alpha > 1.0f)
         {
             String message = "Color parameter outside of expected range - Alpha";
-            throw new IllegalArgumentException(message);   
+            throw new IllegalArgumentException(message);
         }
 
         //  Formula needs all values between 0 - 1.

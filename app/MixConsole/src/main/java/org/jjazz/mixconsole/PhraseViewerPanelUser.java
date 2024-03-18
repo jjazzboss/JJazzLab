@@ -27,7 +27,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import javax.swing.BorderFactory;
 import javax.swing.border.LineBorder;
-import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.SwingUtilities;
 import org.jjazz.midimix.api.MidiMix;
@@ -35,6 +34,7 @@ import org.jjazz.midimix.api.UserRhythmVoice;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.song.api.Song;
 import org.jjazz.flatcomponents.api.FlatButton;
+import org.jjazz.uisettings.api.GeneralUISettings;
 import org.jjazz.uiutilities.api.CornerLayout;
 import org.jjazz.uiutilities.api.HSLColor;
 import org.jjazz.utilities.api.ResUtil;
@@ -45,31 +45,25 @@ import org.jjazz.utilities.api.ResUtil;
 public class PhraseViewerPanelUser extends PhraseViewerPanel
 {
 
-    private static final Icon ICON_EDIT = new ImageIcon(PhraseViewerPanelUser.class.getResource("resources/Edit-14x14.png"));
-    private static final Icon ICON_CLOSE = new ImageIcon(PhraseViewerPanelUser.class.getResource("resources/Close14x14.png"));
-    private FlatButton fbtn_edit, fbtn_close;
+    private static final ImageIcon ICON_EDIT = new ImageIcon(PhraseViewerPanelUser.class.getResource("resources/Edit-14x14.png"));
+    private static final ImageIcon ICON_CLOSE = new ImageIcon(PhraseViewerPanelUser.class.getResource("resources/Close14x14.png"));
+    private final FlatButton fbtn_edit;
+    private final FlatButton fbtn_close;
 
 
     public PhraseViewerPanelUser(Song song, MidiMix mMix, MixChannelPanelController controller, RhythmVoice rv)
     {
         super(song, mMix, controller, rv);
 
-        // Slightly change the border color
-        if (getBorder() instanceof LineBorder lb)
-        {
-            Color c = HSLColor.changeLuminance(lb.getLineColor(), 10);
-            setBorder(BorderFactory.createLineBorder(c, lb.getThickness(), lb.getRoundedCorners()));
-        }
-
 
         // Add buttons
         fbtn_edit = new FlatButton();
-        fbtn_edit.setIcon(ICON_EDIT);
+        fbtn_edit.setIcon(GeneralUISettings.adaptIconToLightThemeIfRequired(ICON_EDIT, -20));
         fbtn_edit.addActionListener(ae -> editButtonPressed());
         fbtn_edit.setToolTipText(ResUtil.getString(getClass(), "PhraseViewerPanel.BtnEditTooltip"));
 
         fbtn_close = new FlatButton();
-        fbtn_close.setIcon(ICON_CLOSE);
+        fbtn_close.setIcon(GeneralUISettings.adaptIconToLightThemeIfRequired(ICON_CLOSE, -20));
         fbtn_close.addActionListener(ae -> closeButtonPressed());
         fbtn_close.setToolTipText(ResUtil.getString(getClass(), "PhraseViewerPanel.BtnCloseTooltip"));
 

@@ -33,6 +33,7 @@ import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.song.api.Song;
 import org.jjazz.flatcomponents.api.FlatButton;
+import org.jjazz.uisettings.api.GeneralUISettings;
 import org.jjazz.uiutilities.api.CornerLayout;
 import org.jjazz.uiutilities.api.UIUtilities;
 import org.jjazz.utilities.api.ResUtil;
@@ -43,7 +44,7 @@ import org.jjazz.utilities.api.ResUtil;
 public class PhraseViewerPanelRhythm extends PhraseViewerPanel
 {
 
-    private static final Icon ICON_CLONE_AS_USER_TRACK = new ImageIcon(PhraseViewerPanelRhythm.class.getResource("resources/CloneTrack-10x10.png"));
+    private static final ImageIcon ICON_CLONE_AS_USER_TRACK = new ImageIcon(PhraseViewerPanelRhythm.class.getResource("resources/CloneTrack-10x10.png"));
     private final JPanel supportPanel;        // Needed to use JLayer
     private final JLayer layer;
     private final FlatButton fbtn_clone;
@@ -56,7 +57,7 @@ public class PhraseViewerPanelRhythm extends PhraseViewerPanel
 
         // Prepare the button
         fbtn_clone = new FlatButton();
-        fbtn_clone.setIcon(ICON_CLONE_AS_USER_TRACK);
+        fbtn_clone.setIcon(GeneralUISettings.adaptIconToLightThemeIfRequired(ICON_CLONE_AS_USER_TRACK, -30));
         fbtn_clone.addActionListener(ae -> getController().cloneRhythmTrackAsUserTrack(getRhythmVoice()));
         fbtn_clone.setToolTipText(ResUtil.getString(getClass(), "PhraseViewerPanelRhythm.CloneAsUserTrackTooltip"));
 

@@ -46,11 +46,13 @@ import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import java.util.regex.Pattern;
 import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.border.Border;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.analytics.api.Analytics;
 import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
+import org.jjazz.uiutilities.api.HSLColor;
 import org.jjazz.utilities.api.ResUtil;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.openide.DialogDisplayer;
@@ -101,6 +103,7 @@ public class GeneralUISettings
     }
 
     private static final Theme DEFAULT_THEME = new DarkTheme();
+
     // We don't use @ServiceProvider to get available themes because LookAndFeelInstaller needs Theme instances very early in the startup sequence, before global Lookup ServiceProviders are available.
     private static final List<Theme> AVAILABLE_THEMES = Arrays.asList(DEFAULT_THEME, new LightTheme()); // Must contain DEFAULT_THEME
 
@@ -408,6 +411,43 @@ public class GeneralUISettings
         }
         assert CONDENSED_FONT_10 != null;
         return CONDENSED_FONT_10;
+    }
+
+
+    /**
+     * Adjust color darker if LightTheme is used.
+     *
+     * @param darkThemeColor
+     * @param luminanceOffset [-100;100] Use a negative value to make image darker
+     * @return
+     * @see HSLColor#changeLuminance(java.awt.Color, int)
+     */
+    public static Color adaptColorToLightThemeIfRequired(Color darkThemeColor, int luminanceOffset)
+    {
+        Color res = darkThemeColor;
+        if (!GeneralUISettings.isDarkTheme())
+        {
+            res = HSLColor.changeLuminance(darkThemeColor, luminanceOffset);
+        }
+        return res;
+    }
+
+    /**
+     * Adjust icon if LightTheme is used.
+     *
+     * @param darkThemeIcon
+     * @param luminanceOffset [-100;100] Use a negative value to make image darker, positive for a brighter image
+     * @return
+     * @see HSLColor#changeLuminance(java.awt.Image, int)
+     */
+    public static ImageIcon adaptIconToLightThemeIfRequired(ImageIcon darkThemeIcon, int luminanceOffset)
+    {
+        ImageIcon res = darkThemeIcon;
+        if (!GeneralUISettings.isDarkTheme())
+        {
+            res = new ImageIcon(HSLColor.changeLuminance(darkThemeIcon.getImage(), luminanceOffset));
+        }
+        return res;
     }
 
     public synchronized void addPropertyChangeListener(PropertyChangeListener listener)

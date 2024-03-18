@@ -547,6 +547,7 @@ public class UIUtilities
         return Color.getHSBColor(hsb[0], hsb[1], hsb[2]);
     }
 
+   
     /**
      * Change the font size of a menuBar and its submenus.
      *
