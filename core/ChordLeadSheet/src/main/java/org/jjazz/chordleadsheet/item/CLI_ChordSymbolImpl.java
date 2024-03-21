@@ -96,6 +96,10 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
         {
             ChordLeadSheet old = container;
             container = cls;
+            if (cls != null && getPosition().getBar() >= cls.getSizeInBars())
+            {
+                throw new IllegalArgumentException("this=" + this + " cls=" + cls);
+            }
             pcs.firePropertyChange(PROP_CONTAINER, old, container);
         }
     }
@@ -296,7 +300,7 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
                     // From 4.0.3 new aliases to get rid of fully qualified class names in .sng files
                     xstream.alias("CLI_ChordSymbolImpl", CLI_ChordSymbolImpl.class);
                     xstream.alias("CLI_ChordSymbolSP", CLI_ChordSymbolImpl.SerializationProxy.class);
-                   
+
                 }
 
                 case MIDIMIX_LOAD ->

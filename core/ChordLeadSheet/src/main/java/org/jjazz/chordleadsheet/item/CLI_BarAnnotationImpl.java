@@ -94,6 +94,10 @@ public class CLI_BarAnnotationImpl implements CLI_BarAnnotation, WritableItem<St
         {
             ChordLeadSheet old = container;
             container = cls;
+            if (cls != null && getPosition().getBar() >= cls.getSizeInBars())
+            {
+                throw new IllegalArgumentException("this=" + this + " cls=" + cls);
+            }            
             pcs.firePropertyChange(PROP_CONTAINER, old, container);
         }
     }

@@ -97,6 +97,10 @@ public class CLI_SectionImpl implements CLI_Section, WritableItem<Section>, Seri
         {
             ChordLeadSheet old = container;
             container = cls;
+            if (cls != null && getPosition().getBar() >= cls.getSizeInBars())
+            {
+                throw new IllegalArgumentException("this=" + this + " cls=" + cls);
+            }
             pcs.firePropertyChange(PROP_CONTAINER, old, container);
         }
     }
@@ -293,9 +297,9 @@ public class CLI_SectionImpl implements CLI_Section, WritableItem<Section>, Seri
                     // From 4.0.3 new aliases for better XML readibility
                     xstream.alias("CLI_SectionImpl", CLI_SectionImpl.class);
                     xstream.alias("CLI_SectionImplSP", SerializationProxy.class);
-                    xstream.useAttributeFor(SerializationProxy.class, "spName");                    
-                    xstream.useAttributeFor(SerializationProxy.class, "spBarIndex");                    
-                    xstream.useAttributeFor(SerializationProxy.class, "spTs");                    
+                    xstream.useAttributeFor(SerializationProxy.class, "spName");
+                    xstream.useAttributeFor(SerializationProxy.class, "spBarIndex");
+                    xstream.useAttributeFor(SerializationProxy.class, "spTs");
 
                 }
 

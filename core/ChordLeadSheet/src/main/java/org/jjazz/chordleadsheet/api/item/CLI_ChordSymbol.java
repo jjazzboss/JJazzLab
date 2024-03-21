@@ -22,6 +22,7 @@
  */
 package org.jjazz.chordleadsheet.api.item;
 
+import com.google.common.base.Preconditions;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.beans.PropertyChangeListener;
@@ -65,7 +66,7 @@ public interface CLI_ChordSymbol extends ChordLeadSheetItem<ExtChordSymbol>
      * <p>
      * @param str        As produced by ChordSymboInput.toString(CLI_ChordSymbol).
      * @param defaultPos Used when position data is missing in str.
-     * @param cls        The container for this CLI_ChordSymbol.
+     * @param cls        The container for this CLI_ChordSymbol. Can be null.
      * @return
      * @throws ParseException
      */
@@ -124,17 +125,22 @@ public interface CLI_ChordSymbol extends ChordLeadSheetItem<ExtChordSymbol>
      * If more chords place them at regular intervals.
      *
      * @param str
-     * @param barIndex
-     * @param cls
+     * @param ts       Can be null if cls is non-null. If specified and cls is non-null, must be consistent with cls and time signature at barIndex.
+     * @param cls      Can be null if ts is non-null.
+     * @param barIndex Must be consistent with cls (if cls is specified)
      * @param swing    If true for example for 3/4 time signature place half-beat chord symbols at 1.666 (5/3) instead of 1.5
      * @return
      * @throws ParseException When thrown, GetErrorOffset() represents the faulty chord symbol index.
      */
-    public static List<CLI_ChordSymbol> toCLI_ChordSymbolsNoPosition(String str, int barIndex, ChordLeadSheet cls, boolean swing) throws ParseException
+    public static List<CLI_ChordSymbol> toCLI_ChordSymbolsNoPosition(String str, TimeSignature ts, ChordLeadSheet cls, int barIndex, boolean swing) throws ParseException
     {
-        if ((barIndex < 0) || str == null || cls == null || barIndex >= cls.getSizeInBars())
+        Preconditions.checkNotNull(str);
+        Preconditions.checkArgument(barIndex >= 0);
+        if ((cls == null && ts == null)
+                || (cls != null && barIndex >= cls.getSizeInBars())
+                || (cls != null && ts != null && !ts.equals(cls.getSection(barIndex).getData().getTimeSignature())))
         {
-            throw new IllegalArgumentException("str=" + str + " barIndex=" + barIndex + " cls=" + cls);
+            throw new IllegalArgumentException("str=" + str + " ts=" + ts + " cls=" + cls + " barIndex=" + barIndex + " swing=" + swing);
         }
 
         ArrayList<CLI_ChordSymbol> newItems = new ArrayList<>();
@@ -146,7 +152,12 @@ public interface CLI_ChordSymbol extends ChordLeadSheetItem<ExtChordSymbol>
         }
         String[] rawStrings = s.split("\\s+");
 
-        TimeSignature ts = cls.getSection(barIndex).getData().getTimeSignature();
+        if (ts == null)
+        {
+            assert cls != null;
+            ts = cls.getSection(barIndex).getData().getTimeSignature();
+        }
+
         Position pos;
         int errorChordIndex = 0;
 

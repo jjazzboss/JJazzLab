@@ -76,7 +76,7 @@ public class CL_EditorTransferHandler extends TransferHandler
     public int getSourceActions(JComponent c)
     {
         LOGGER.log(Level.FINE, "getSourceActions()  c{0}", c);
-        if (c instanceof ItemRenderer ir)
+        if (c instanceof ItemRenderer ir) 
         {
             ChordLeadSheetItem<?> cli = ir.getModel();
             if ((cli instanceof CLI_Section) && cli.getPosition().getBar() == 0)

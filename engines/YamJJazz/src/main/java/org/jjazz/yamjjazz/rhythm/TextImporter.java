@@ -28,25 +28,24 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import org.jjazz.importers.api.CsvFileReader;
+import org.jjazz.importers.api.TextReader;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.spi.SongImporter;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.util.lookup.ServiceProvider;
 
 @ServiceProvider(service = SongImporter.class)
-public class CsvImporter implements SongImporter
+public class TextImporter implements SongImporter
 {
 
-    private final FileNameExtensionFilter FILTER = new FileNameExtensionFilter(ResUtil.getString(getClass(), "CTL_CSVFiles") + " (.csv)",
-            "csv");
-    protected static final Logger LOGGER = Logger.getLogger(CsvImporter.class.getName());
+    private final FileNameExtensionFilter FILTER = new FileNameExtensionFilter(ResUtil.getString(getClass(), "CTL_TextFiles") + " (.txt)", "txt");
+    protected static final Logger LOGGER = Logger.getLogger(TextImporter.class.getName());
 
 
     @Override
     public String getId()
     {
-        return ResUtil.getString(getClass(), "CTL_CSVImporter");
+        return ResUtil.getString(getClass(), "CTL_TextImporter");
     }
 
     @Override
@@ -58,7 +57,7 @@ public class CsvImporter implements SongImporter
     @Override
     public Song importFromFile(File f) throws IOException
     {
-        CsvFileReader reader = new CsvFileReader(f);
+        TextReader reader = new TextReader(f);
         Song song = reader.readSong();
         postProcessSong(song);
         return song;

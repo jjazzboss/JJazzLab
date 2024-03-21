@@ -49,7 +49,7 @@ public interface CLI_Factory
     /**
      * Create a Section.
      *
-     * @param cls         Can be null.
+     * @param cls         Can be null. If not null, its size must be consistent with barIndex.
      * @param sectionName
      * @param ts
      * @param barIndex
@@ -60,7 +60,7 @@ public interface CLI_Factory
     /**
      * Create a CLI_ChordSymbol.
      *
-     * @param cls Can be null.
+     * @param cls Can be null. If not null, its size must be consistent with pos.
      * @param ecs
      * @param pos
      * @return
@@ -79,6 +79,14 @@ public interface CLI_Factory
      */
     CLI_ChordSymbol createChordSymbol(String chordSymbol, Position pos) throws ParseException;
 
+    /**
+     * Create a CLI_BarAnnotation at specified bar.
+     *
+     * @param cls        Can be null. If not null, its size must be consistent with bar.
+     * @param annotation
+     * @param bar
+     * @return
+     */
     CLI_BarAnnotation createBarAnnotation(ChordLeadSheet cls, String annotation, int bar);
 
     CLI_Section getSampleSection();
