@@ -80,27 +80,35 @@ public enum TimeSignature
      * Get the TimeSignature object represented by a string representation as the one returned by toString(), e.g. "3/4".
      *
      * @param s The string representation
-     * @throws ParseException If syntax error encountered in the string.
-     * @return TimeSignature Null if no valid time signature could be constructed.
+     * @throws ParseException If no valid time signature could be constructed
+     * @return
      */
     static public TimeSignature parse(String s) throws ParseException
     {
-        String[] strs = s.trim().split("\\s*/\\s*");
+        String[] strs = s.trim().split("/");
+        if (strs.length != 2)
+        {
+            throw new ParseException("Invalid time signature: " + s, 0);
+        }
+
+        TimeSignature res;
 
         int up, low;
         try
         {
-            if (strs.length != 2)
+            up = Integer.parseInt(strs[0]);
+            low = Integer.parseInt(strs[1]);
+            res = get(up, low);
+            if (res == null)
             {
                 throw new NumberFormatException();
             }
-            up = Integer.parseInt(strs[0]);
-            low = Integer.parseInt(strs[1]);
         } catch (NumberFormatException e)
         {
             throw new ParseException(ResUtil.getString(TimeSignature.class, "TimeSignature.ERR_Syntax", s), 0);
         }
-        return get(up, low);
+
+        return res;
     }
 
     /**

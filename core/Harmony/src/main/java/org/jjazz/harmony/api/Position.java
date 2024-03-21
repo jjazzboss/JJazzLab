@@ -315,6 +315,16 @@ public final class Position implements Comparable<Position>, Serializable
     }
 
     /**
+     * Get the position corresponding to bar+1 and beat=0.
+     *
+     * @return
+     */
+    public Position getNextBar()
+    {
+        return new Position(bar + 1, 0);
+    }
+
+    /**
      * Get the next integer beat position in the specified TimeSignature context.
      *
      * @param ts
