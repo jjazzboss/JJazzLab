@@ -313,7 +313,7 @@ public class SongChordSequence extends ChordSequence
                 // Add the ChordSymbol to this ChordSequence
                 if (newEcs != VoidAltExtChordSymbol.getInstance())
                 {
-                    CLI_ChordSymbol newCliCs = clif.createChordSymbol(cls, newEcs, newPos);
+                    CLI_ChordSymbol newCliCs = clif.createChordSymbol(newEcs, newPos);
                     cSeq.add(newCliCs);
                 }
             }

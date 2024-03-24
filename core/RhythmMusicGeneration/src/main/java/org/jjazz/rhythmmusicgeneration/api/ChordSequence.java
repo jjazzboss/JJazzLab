@@ -279,7 +279,7 @@ public class ChordSequence extends TreeSet<CLI_ChordSymbol> implements Comparabl
         Position newPos = new Position(barRange.from, 0);
         ChordRenderingInfo newCri = new ChordRenderingInfo((EnumSet<Feature>) null, ecs.getRenderingInfo().getScaleInstance());
         ExtChordSymbol newEcs = ecs.getCopy(null, newCri, null, null);
-        CLI_ChordSymbol res = CLI_Factory.getDefault().createChordSymbol(cliCs.getContainer(), newEcs, newPos);
+        CLI_ChordSymbol res = CLI_Factory.getDefault().createChordSymbol(newEcs, newPos);
         return res;
     }
 

@@ -505,6 +505,10 @@ public class YamJJazzRhythmGenerator
                 // Get the start and end positions for the current chord symbol            
                 float posInBeats = shortcSeq.toPositionInBeats(destCliCs.getPosition(), cSeqStartPosInBeats);
                 float nextPosInBeats = posInBeats + shortcSeq.getChordDuration(destCliCs);
+                if (posInBeats == nextPosInBeats)
+                {
+                    throw new MusicGenerationException("Several chord symbols can not share the same position: " + destCliCs);
+                }
 
 
                 LOGGER.log(Level.FINE,
@@ -976,8 +980,8 @@ public class YamJJazzRhythmGenerator
                 }
                 // Add a special "fill" section on last bar
                 int fillSectionBar = section.getPosition().getBar() + sectionSize - 1;
-                CLI_Section fillSection = CLI_Factory.getDefault().createSection(cls, fillSectionName, section.getData().getTimeSignature(),
-                        fillSectionBar);
+                CLI_Section fillSection = CLI_Factory.getDefault().createSection(fillSectionName, section.getData().getTimeSignature(),
+                        fillSectionBar, null);
                 cls.addSection(fillSection);
 
                 // Update all impacted SongParts

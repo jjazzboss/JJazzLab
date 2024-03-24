@@ -231,7 +231,7 @@ public class SongUtilities
                 // Create it
                 String originalSectionName = parentCliSection.getData().getName();
                 String name = originalSectionName + SECTION_COPY_DELIMITER_CHAR + sectionCounter;
-                resCliSection = CLI_Factory.getDefault().createSection(newCls, name, parentCliSection.getData().getTimeSignature(), barIndex);
+                resCliSection = CLI_Factory.getDefault().createSection(name, parentCliSection.getData().getTimeSignature(), barIndex, null);
                 resCliSection.getClientProperties().set(parentCliSection.getClientProperties());
                 try
                 {
@@ -252,7 +252,7 @@ public class SongUtilities
             {
                 var pos = cliCs.getPosition();
                 int resBar = barIndex + pos.getBar() - parentCliSection.getPosition().getBar();
-                var cliCsCopy = cliCs.getCopy(newCls, new Position(resBar, pos.getBeat()));
+                var cliCsCopy = cliCs.getCopy(new Position(resBar, pos.getBeat()));
                 newCls.addItem(cliCsCopy);
             }
 

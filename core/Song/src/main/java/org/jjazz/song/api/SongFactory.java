@@ -116,7 +116,7 @@ public class SongFactory implements PropertyChangeListener
         }
         return name;
     }
-    
+
     /**
      * Remove a song from the list returned by getRegisteredSong().
      *
@@ -319,7 +319,10 @@ public class SongFactory implements PropertyChangeListener
         for (SongPart spt : song.getSongStructure().getSongParts())
         {
             CLI_Section newParentSection = newCls.getSection(spt.getParentSection().getData().getName());
-            assert newParentSection != null : "spt=" + spt;
+            assert newParentSection != null :
+                    "spt.getStartBarIndex()=" + spt.getStartBarIndex()
+                    + " spt.getParentSection()=" + spt.getParentSection()
+                    + "  newCls-sections=" + newCls.getItems(CLI_Section.class);
             SongPart sptCopy = spt.clone(spt.getRhythm(), spt.getStartBarIndex(), spt.getNbBars(), newParentSection);
             newSpts.add(sptCopy);
         }

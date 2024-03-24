@@ -429,7 +429,7 @@ public class BR_Sections extends BarRenderer implements ComponentListener, Prope
 
             // Add the tallest possible items
             CLI_Factory clif = CLI_Factory.getDefault();
-            ChordLeadSheetItem<?> item = clif.createSection(null, "SECTIONNAME", TimeSignature.TWELVE_EIGHT, 0);
+            ChordLeadSheetItem<?> item = clif.createSection("SECTIONNAME", TimeSignature.TWELVE_EIGHT, 0, null);
             ItemRendererFactory irf = getItemRendererFactory();
             ItemRenderer ir = irf.createItemRenderer(IR_Type.Section, item, getSettings().getItemRendererSettings());
             irs.add(ir);

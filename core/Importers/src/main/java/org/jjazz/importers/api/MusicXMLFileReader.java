@@ -240,7 +240,7 @@ public class MusicXMLFileReader
             {
                 // Need to introduce a new section
                 sectionChar++;
-                cliSection = CLI_Factory.getDefault().createSection(cls, String.valueOf(sectionChar), ts, barIndex);
+                cliSection = CLI_Factory.getDefault().createSection(String.valueOf(sectionChar), ts, barIndex, null);
                 try
                 {
                     cls.addSection(cliSection);
@@ -300,7 +300,7 @@ public class MusicXMLFileReader
                         });
                 return;
             }
-            CLI_ChordSymbol cliCs = CLI_Factory.getDefault().createChordSymbol(cls, ecs, pos);
+            CLI_ChordSymbol cliCs = CLI_Factory.getDefault().createChordSymbol(ecs, pos);
             cls.addItem(cliCs);
             if (firstChordPos == null)
             {

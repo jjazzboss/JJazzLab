@@ -56,7 +56,7 @@ public class CLI_FactoryImpl implements CLI_Factory
     private CLI_FactoryImpl()
     {
         SECTION_SAMPLE = new CLI_SectionImpl("SAMPLE-SECTION", TimeSignature.FOUR_FOUR, 0);
-        
+
         try
         {
             CHORD_SYMBOL_SAMPLE = createChordSymbol("C#M7#11", new Position(0, 0));
@@ -67,18 +67,17 @@ public class CLI_FactoryImpl implements CLI_Factory
     }
 
     @Override
-    public CLI_Section createSection(ChordLeadSheet cls, String sectionName, TimeSignature ts, int barIndex)
+    public CLI_Section createSection(String sectionName, TimeSignature ts, int barIndex, ChordLeadSheet cls)
     {
-        CLI_SectionImpl cli = new CLI_SectionImpl(sectionName, ts, barIndex);
-        cli.setContainer(cls);
+        var newSectionName = CLI_Section.createSectionName(sectionName, cls);
+        CLI_SectionImpl cli = new CLI_SectionImpl(newSectionName, ts, barIndex);
         return cli;
     }
 
     @Override
-    public CLI_ChordSymbol createChordSymbol(ChordLeadSheet cls, ExtChordSymbol ecs, Position pos)
+    public CLI_ChordSymbol createChordSymbol(ExtChordSymbol ecs, Position pos)
     {
         CLI_ChordSymbolImpl cli = new CLI_ChordSymbolImpl(ecs, pos);
-        cli.setContainer(cls);
         return cli;
     }
 
@@ -104,10 +103,9 @@ public class CLI_FactoryImpl implements CLI_Factory
 
 
     @Override
-    public CLI_BarAnnotation createBarAnnotation(ChordLeadSheet cls, String text, int bar)
+    public CLI_BarAnnotation createBarAnnotation(String text, int bar)
     {
         var cli = new CLI_BarAnnotationImpl(text, bar);
-        cli.setContainer(cls);
         return cli;
     }
 }

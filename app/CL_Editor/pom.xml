@@ -130,6 +130,12 @@
             <artifactId>org-jjazz-utilities</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
+        <dependency>
+            <groupId>org.jjazzlab</groupId>
+            <artifactId>org-jjazz-importers</artifactId>
+            <version>${project.version}</version>
+            <type>jar</type>
+        </dependency>        
         <dependency> 
             <groupId>org.netbeans.api</groupId> 
             <artifactId>org-netbeans-api-annotations-common</artifactId> 
@@ -179,7 +185,7 @@
             <groupId>org.netbeans.api</groupId> 
             <artifactId>org-openide-windows</artifactId> 
             <version>${netbeans.version}</version>  
-        </dependency> 
+        </dependency>
     </dependencies>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

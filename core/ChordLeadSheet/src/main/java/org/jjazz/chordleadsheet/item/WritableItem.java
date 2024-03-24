@@ -33,5 +33,13 @@ public interface WritableItem<T> extends ChordLeadSheetItem<T>
 
     public void setData(T data);
 
+    /**
+     * Set an optional container for this item.
+     * <p>
+     * No consistency check is performed: caller is responsible to make sure this item is consistent with cls (e.g. position is within cls bounds, section does
+     * not have a name clash, ...).
+     *
+     * @param cls Can be null.
+     */
     public void setContainer(ChordLeadSheet cls);
 }

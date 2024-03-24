@@ -335,23 +335,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable, Propert
         return "ChordLeadSheet section0=" + getSection(0).getData().getName() + " size=" + getSizeInBars();
     }
 
-    public String toDumpString()
-    {
-        StringBuilder sb = new StringBuilder();
-        sb.append(toString());
-        for (ChordLeadSheetItem<?> item : items)
-        {
-            if (item instanceof CLI_Section)
-            {
-                sb.append('\n').append(" ").append(item.getData()).append(item.getPosition()).append(" : ");
-            } else
-            {
-                sb.append(item.getData()).append(item.getPosition()).append(" ");
-            }
-        }
-        return sb.toString();
-    }
-
+ 
     // ============================================================================================= 
     // PropertyChangeListener interface
     // =============================================================================================    
@@ -498,7 +482,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable, Propert
 
         // Adjust position if required
         oldPos = wItem.getPosition();
-        newAdjustedPos = oldPos.limitToTimeSignature(getSection(barIndex).getData().getTimeSignature());
+        newAdjustedPos = oldPos.getAdjusted(getSection(barIndex).getData().getTimeSignature());
         wItem.setPosition(newAdjustedPos);
 
 
@@ -827,7 +811,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable, Propert
         });
 
         final Position oldPos = item.getPosition();
-        final Position newAdjustedPos = newPos.limitToTimeSignature(getSection(newPos.getBar()).getData().getTimeSignature());
+        final Position newAdjustedPos = newPos.getAdjusted(getSection(newPos.getBar()).getData().getTimeSignature());
         if (oldPos.equals(newAdjustedPos))
         {
             return;
@@ -991,10 +975,10 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable, Propert
 
                 // Create a copy of the init section with different name
                 CLI_Factory clif = CLI_Factory.getDefault();
-                CLI_Section initSectionCopy = clif.createSection(this,
-                        oldInitSectionName,
+                CLI_Section initSectionCopy = clif.createSection(oldInitSectionName,
                         initSection.getData().getTimeSignature(),
-                        nbBars);
+                        nbBars, 
+                        this);
                 try
                 {
                     addSection(initSectionCopy);
@@ -1272,7 +1256,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable, Propert
                 continue;
             }
             Position oldPos = item.getPosition();
-            Position newPos = oldPos.getConvertedPosition(oldTs, newTs);
+            Position newPos = oldPos.getConverted(oldTs, newTs);
             if (!newPos.equals(oldPos))
             {
                 moveItem(item, newPos, false);

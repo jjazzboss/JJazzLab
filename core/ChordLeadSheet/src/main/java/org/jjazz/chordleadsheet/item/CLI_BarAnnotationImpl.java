@@ -94,10 +94,6 @@ public class CLI_BarAnnotationImpl implements CLI_BarAnnotation, WritableItem<St
         {
             ChordLeadSheet old = container;
             container = cls;
-            if (cls != null && getPosition().getBar() >= cls.getSizeInBars())
-            {
-                throw new IllegalArgumentException("this=" + this + " cls=" + cls);
-            }            
             pcs.firePropertyChange(PROP_CONTAINER, old, container);
         }
     }
@@ -133,12 +129,10 @@ public class CLI_BarAnnotationImpl implements CLI_BarAnnotation, WritableItem<St
     }
 
     @Override
-    public synchronized CLI_BarAnnotation getCopy(ChordLeadSheet newCls, Position newPos)
+    public synchronized CLI_BarAnnotation getCopy(Position newPos)
     {
         int barIndex = (newPos != null) ? newPos.getBar() : position.getBar();
-        ChordLeadSheet cls = (newCls != null) ? newCls : getContainer();
         CLI_BarAnnotationImpl cli = new CLI_BarAnnotationImpl(data, barIndex);
-        cli.setContainer(cls);
         cli.getClientProperties().set(clientProperties);
         return cli;
     }

@@ -37,11 +37,13 @@ import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.chordleadsheet.api.item.CLI_BarAnnotation;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
+import org.jjazz.chordleadsheet.api.item.CLI_Factory;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.cl_editor.api.CL_SelectionUtilities;
 import org.jjazz.cl_editor.barbox.api.BarBox;
+import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.itemrenderer.api.IR_Type;
 import org.jjazz.itemrenderer.api.ItemRenderer;
 import org.jjazz.undomanager.api.JJazzUndoManager;
@@ -243,8 +245,8 @@ public class CL_EditorTransferHandler extends TransferHandler
                 String editName = ResUtil.getString(getClass(), "COPY SECTION");
                 um.startCEdit(editName);
 
-
-                CLI_Section sectionCopy = (CLI_Section) cliSection.getCopy(null, newPos);
+                CLI_Section sectionCopy = cliSection.getCopy(newPos, cls);  // Adjust section name if required
+                
                 String errMsg = ResUtil.getString(getClass(), "IMPOSSIBLE TO COPY SECTION", cliSection.getData());
 
                 if (curSection.getPosition().getBar() == newBarIndex)
@@ -348,7 +350,7 @@ public class CL_EditorTransferHandler extends TransferHandler
             } else
             {
                 // Add a new annotation
-                CLI_BarAnnotation cliCopy = (CLI_BarAnnotation) cliBa.getCopy(null, newPos);
+                CLI_BarAnnotation cliCopy = (CLI_BarAnnotation) cliBa.getCopy(newPos);
                 cls.addItem(cliCopy);
                 editor.setFocusOnItem(cliCopy, irType);
                 editor.selectItem(cliCopy, true);                
@@ -371,7 +373,7 @@ public class CL_EditorTransferHandler extends TransferHandler
                 CL_SelectionUtilities selection = new CL_SelectionUtilities(editor.getLookup());
                 selection.unselectAll(editor);
                 um.startCEdit(editName);
-                ChordLeadSheetItem<?> itemCopy = sourceItem.getCopy(null, newPos);
+                ChordLeadSheetItem<?> itemCopy = sourceItem.getCopy(newPos);
                 cls.addItem(itemCopy);
                 editor.setFocusOnItem(itemCopy, IR_Type.ChordSymbol);
                 editor.selectItem(itemCopy, true);

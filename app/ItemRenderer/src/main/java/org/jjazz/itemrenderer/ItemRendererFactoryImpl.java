@@ -139,7 +139,7 @@ public class ItemRendererFactoryImpl implements ItemRendererFactory
             {
                 if (SAMPLE_PAPER_NOTE_RENDERER == null)
                 {
-                    SAMPLE_PAPER_NOTE_RENDERER = new IR_PaperNote(cliFactory.createBarAnnotation(null, "edit me", 0), settings);
+                    SAMPLE_PAPER_NOTE_RENDERER = new IR_PaperNote(cliFactory.createBarAnnotation("edit me", 0), settings);
                 }
                 ir = SAMPLE_PAPER_NOTE_RENDERER;
             }
@@ -147,7 +147,7 @@ public class ItemRendererFactoryImpl implements ItemRendererFactory
             {
                 if (SAMPLE_ANNOTATION_TEXT_RENDERER == null)
                 {
-                    SAMPLE_ANNOTATION_TEXT_RENDERER = new IR_AnnotationText(cliFactory.createBarAnnotation(null, "Some LYRICS!", 0),
+                    SAMPLE_ANNOTATION_TEXT_RENDERER = new IR_AnnotationText(cliFactory.createBarAnnotation("Some LYRICS!", 0),
                             settings);
                 }
                 ir = SAMPLE_ANNOTATION_TEXT_RENDERER;

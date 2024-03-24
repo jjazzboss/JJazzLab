@@ -95,14 +95,15 @@ public class SongPartCopyBuffer
             sptMinStartBarIndex = Math.min(sptMinStartBarIndex, spt.getStartBarIndex());
             sptMaxStartBarIndex = Math.max(sptMaxStartBarIndex, spt.getStartBarIndex());
 
-            // Prepare parentsection copye
+            // Prepare parentsection copy
             CLI_Section parentSection = spt.getParentSection();
             CLI_Section sectionClone = null;
             if (parentSection != null)
             {
                 CLI_Factory clif = CLI_Factory.getDefault();
-                sectionClone = clif.createSection(parentSection.getContainer(), parentSection.getData().getName(),
-                        parentSection.getData().getTimeSignature(), parentSection.getPosition().getBar());
+                sectionClone = clif.createSection(parentSection.getData().getName(),
+                        parentSection.getData().getTimeSignature(), parentSection.getPosition().getBar(),
+                        parentSection.getContainer());
             }
 
             // Add a copy of the song part with a copy of the parent section

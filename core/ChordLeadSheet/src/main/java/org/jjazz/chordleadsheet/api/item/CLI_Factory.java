@@ -49,23 +49,22 @@ public interface CLI_Factory
     /**
      * Create a Section.
      *
-     * @param cls         Can be null. If not null, its size must be consistent with barIndex.
      * @param sectionName
      * @param ts
      * @param barIndex
+     * @param cls         Can be null. If not null, adapt sectionName if required to avoid name clash with another section in cls.
      * @return
      */
-    CLI_Section createSection(ChordLeadSheet cls, String sectionName, TimeSignature ts, int barIndex);
+    CLI_Section createSection(String sectionName, TimeSignature ts, int barIndex, ChordLeadSheet cls);
 
     /**
      * Create a CLI_ChordSymbol.
      *
-     * @param cls Can be null. If not null, its size must be consistent with pos.
      * @param ecs
      * @param pos
      * @return
      */
-    CLI_ChordSymbol createChordSymbol(ChordLeadSheet cls, ExtChordSymbol ecs, Position pos);
+    CLI_ChordSymbol createChordSymbol(ExtChordSymbol ecs, Position pos);
 
     /**
      * Create a CLI_ChordSymbol from a string specification.
@@ -82,12 +81,11 @@ public interface CLI_Factory
     /**
      * Create a CLI_BarAnnotation at specified bar.
      *
-     * @param cls        Can be null. If not null, its size must be consistent with bar.
      * @param annotation
      * @param bar
      * @return
      */
-    CLI_BarAnnotation createBarAnnotation(ChordLeadSheet cls, String annotation, int bar);
+    CLI_BarAnnotation createBarAnnotation(String annotation, int bar);
 
     CLI_Section getSampleSection();
 

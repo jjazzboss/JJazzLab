@@ -347,7 +347,7 @@ public class BR_Annotation extends BarRenderer implements ComponentListener
 
             // Add the tallest possible items
             CLI_Factory clif = CLI_Factory.getDefault();
-            ChordLeadSheetItem<?> item = clif.createBarAnnotation(null, "LYRICS ALALOLALALA\nLINE2\nLINE3\nLINE4", 0);
+            ChordLeadSheetItem<?> item = clif.createBarAnnotation("LYRICS ALALOLALALA\nLINE2\nLINE3\nLINE4", 0);
             ItemRendererFactory irf = brAnnotation.getItemRendererFactory();
             ir = (IR_AnnotationText) irf.createItemRenderer(IR_Type.BarAnnotationText, item, brAnnotation.getSettings().getItemRendererSettings());
             ir.setNbLines(brAnnotation.getEditor().getBarAnnotationNbLines());

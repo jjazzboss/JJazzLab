@@ -88,6 +88,7 @@ import org.jjazz.song.api.SongFactory;
 public class TextReader
 {
 
+    static private final String TEXT_DATASOURCE = "TextBuffer";
     private final List<String> lines = new ArrayList<>();
     private final String dataSource;  // used for error messages
     private final Pattern pTitle = Pattern.compile("^title\\s*=\\s*(\\S.+)", Pattern.CASE_INSENSITIVE);
@@ -109,7 +110,7 @@ public class TextReader
     public TextReader(String text)
     {
         Preconditions.checkNotNull(text);
-        this.dataSource = "TextBuffer";
+        this.dataSource = TEXT_DATASOURCE;
         for (var line : text.split("\\R+"))
         {
             lines.add(line);
@@ -121,7 +122,7 @@ public class TextReader
      * <p>
      * Construct a Song from the textual elements.
      *
-     * @return
+     * @return Can be null if no valid input was found
      */
     public Song readSong()
     {
@@ -136,6 +137,7 @@ public class TextReader
         List<CLI_ChordSymbol> lastBarChords = new ArrayList<>();
         int barIndex = 0;
         int lineCount = 0;
+        boolean isDataValid = false;
 
 
         for (var line : lines)
@@ -196,7 +198,7 @@ public class TextReader
 
             } else if (mBeatBasedChord.find())
             {
-
+                isDataValid = true;
                 int bar = 0;
                 float beat = 0;
                 ExtChordSymbol ecs = null;
@@ -221,7 +223,7 @@ public class TextReader
                 {
                     bar -= beatBarBase;
                     beat -= beatBarBase;
-                    var cliCs = CLI_Factory.getDefault().createChordSymbol(null, ecs, new Position(bar, beat));
+                    var cliCs = CLI_Factory.getDefault().createChordSymbol(ecs, new Position(bar, beat));
                     cliChordSymbols.add(cliCs);
                     if (bar >= barSize)
                     {
@@ -232,6 +234,7 @@ public class TextReader
 
             } else if (mTimeBasedChord.find())
             {
+                isDataValid = true;
                 float posInSeconds = 0;
                 ExtChordSymbol ecs = null;
                 try
@@ -257,7 +260,7 @@ public class TextReader
                     int bar = (int) (posInSeconds / oneBarDurInSeconds);
                     float barPosInSeconds = bar * oneBarDurInSeconds;
                     float beat = (posInSeconds - barPosInSeconds) / oneBeatDurInSeconds;
-                    var cliCs = CLI_Factory.getDefault().createChordSymbol(null, ecs, new Position(bar, beat));
+                    var cliCs = CLI_Factory.getDefault().createChordSymbol(ecs, new Position(bar, beat));
                     cliChordSymbols.add(cliCs);
                     if (bar >= barSize)
                     {
@@ -268,6 +271,7 @@ public class TextReader
 
             } else if (mGridBasedLine.find())
             {
+                isDataValid = true;
                 // for split to create the right nb of bars, remove first '|' and possibly last '|' if only trailing spaces 
                 String lineGrid = line.substring(1).replaceFirst("\\|\\s*$", "");
                 String[] strBars = lineGrid.split("\\|");
@@ -288,7 +292,7 @@ public class TextReader
                         curBarChords = new ArrayList<>();
                         for (var cliCs : lastBarChords)
                         {
-                            var newCliCs = (CLI_ChordSymbol) cliCs.getCopy(null, cliCs.getPosition().getMovedPosition(1, 0));
+                            var newCliCs = (CLI_ChordSymbol) cliCs.getCopy(cliCs.getPosition().getMoved(1, 0));
                             curBarChords.add(newCliCs);
                             cliChordSymbols.add(newCliCs);
                         }
@@ -311,8 +315,8 @@ public class TextReader
                                     ts0 = ts;
                                 } else
                                 {
-                                    String name = "A" + (extraSections.size() + 1);
-                                    var cliSection = CLI_Factory.getDefault().createSection(null, name, ts, barIndex);
+                                    String name = "T" + (extraSections.size() + 1);
+                                    var cliSection = CLI_Factory.getDefault().createSection(name, ts, barIndex, null);
                                     extraSections.add(cliSection);
                                 }
                                 timeSignature = ts;
@@ -351,10 +355,16 @@ public class TextReader
             }
         }
 
+        if (!isDataValid)
+        {
+            return null;
+        }
+
 
         // Create the song object from the collected data
         barSize = Math.max(barSize, barIndex);
-        ChordLeadSheet cls = ChordLeadSheetFactory.getDefault().createEmptyLeadSheet("A", ts0, barSize, false);
+        String sName = dataSource == TEXT_DATASOURCE ? "T" : "A";
+        ChordLeadSheet cls = ChordLeadSheetFactory.getDefault().createEmptyLeadSheet(sName, ts0, barSize, false);
         SongFactory sf = SongFactory.getInstance();
         Song song = null;
         try
@@ -433,7 +443,7 @@ public class TextReader
                 sb.append(ts);
             }
             sb.append(" ");
-            
+
             // Add chords
             for (var cliCs : cls.getItems(bar, bar, CLI_ChordSymbol.class))
             {
@@ -453,6 +463,7 @@ public class TextReader
 
         return sb.toString();
     }
+
 
     // ==========================================================================================
     // Private methods

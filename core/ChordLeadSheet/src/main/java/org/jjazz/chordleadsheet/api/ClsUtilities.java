@@ -50,7 +50,7 @@ public class ClsUtilities
         for (CLI_ChordSymbol oldCli : cls.getItems(CLI_ChordSymbol.class))
         {
             ExtChordSymbol newEcs = oldCli.getData().getTransposedChordSymbol(transposition, Note.Alteration.FLAT);
-            CLI_ChordSymbol newCli = CLI_Factory.getDefault().createChordSymbol(cls, newEcs, oldCli.getPosition());
+            CLI_ChordSymbol newCli = CLI_Factory.getDefault().createChordSymbol(newEcs, oldCli.getPosition());
             cls.removeItem(oldCli);
             cls.addItem(newCli);
         }

@@ -111,7 +111,7 @@ public interface CLI_ChordSymbol extends ChordLeadSheetItem<ExtChordSymbol>
 
 
         // Build the CLI_ChordSymbol
-        CLI_ChordSymbol cli = CLI_Factory.getDefault().createChordSymbol(cls, ecs, newPos);
+        CLI_ChordSymbol cli = CLI_Factory.getDefault().createChordSymbol(ecs, newPos);
         return cli;
     }
 
@@ -438,7 +438,7 @@ public interface CLI_ChordSymbol extends ChordLeadSheetItem<ExtChordSymbol>
         }
 
         @Override
-        public CLI_ChordSymbol getCopy(ChordLeadSheet newCls, Position newPos)
+        public CLI_ChordSymbol getCopy(Position newPos)
         {
             throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
         }

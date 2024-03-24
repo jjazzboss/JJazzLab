@@ -22,6 +22,10 @@
  */
 package org.jjazz.cl_editor.actions;
 
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.ClipboardOwner;
+import java.awt.datatransfer.Transferable;
 import org.jjazz.cl_editor.api.CL_ContextActionListener;
 import org.jjazz.cl_editor.api.CL_ContextActionSupport;
 import java.awt.event.ActionEvent;
@@ -35,11 +39,11 @@ import static javax.swing.Action.NAME;
 import static javax.swing.Action.SMALL_ICON;
 import javax.swing.Icon;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
-import org.jjazz.cl_editor.api.CopyBuffer;
+import org.jjazz.cl_editor.api.ItemsTransferable;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
+import org.jjazz.cl_editor.api.BarsTransferable;
 import org.jjazz.cl_editor.api.CL_SelectionUtilities;
 import static org.jjazz.uiutilities.api.UIUtilities.getGenericControlKeyStroke;
-import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.actions.CopyAction;
 import org.openide.awt.ActionID;
@@ -60,7 +64,7 @@ import org.openide.util.actions.SystemAction;
             @ActionReference(path = "Actions/Bar", position = 1100),
             @ActionReference(path = "Actions/BarAnnotation", position = 1010)
         })
-public class Copy extends AbstractAction implements ContextAwareAction, CL_ContextActionListener
+public class Copy extends AbstractAction implements ContextAwareAction, CL_ContextActionListener, ClipboardOwner
 {
 
     private final String undoText = ResUtil.getString(getClass(), "CTL_Copy");
@@ -100,22 +104,31 @@ public class Copy extends AbstractAction implements ContextAwareAction, CL_Conte
     {
         CL_SelectionUtilities selection = cap.getSelection();
         ChordLeadSheet cls = selection.getChordLeadSheet();
-        JJazzUndoManagerFinder.getDefault().get(cls).startCEdit(undoText);
-        CopyBuffer copyBuffer = CopyBuffer.getInstance();
+        Transferable t = null;
         List<ChordLeadSheetItem> items = new ArrayList<>();
+
+        // Prepare the transferable
         if (selection.isBarSelectedWithinCls())
         {
             for (Integer modelBarIndex : selection.getSelectedBarIndexesWithinCls())
             {
                 items.addAll(cls.getItems(modelBarIndex, modelBarIndex, ChordLeadSheetItem.class));
             }
-            copyBuffer.barModeCopy(items, selection.getMinBarIndexWithinCls(), selection.getMaxBarIndexWithinCls());
+            var data = new BarsTransferable.Data(selection.getBarRangeWithinCls(), items);
+            t = new BarsTransferable(data);
+
         } else if (selection.isItemSelected())
         {
             items.addAll(selection.getSelectedItems());
-            copyBuffer.itemModeCopy(items);
+            var data = new ItemsTransferable.Data(items);
+            t = new ItemsTransferable(data);
         }
-        JJazzUndoManagerFinder.getDefault().get(cls).endCEdit(undoText);
+
+
+        // Store into clipboard
+        assert t != null;
+        var clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+        clipboard.setContents(t, this);
     }
 
     @Override
@@ -133,6 +146,16 @@ public class Copy extends AbstractAction implements ContextAwareAction, CL_Conte
     public void sizeChanged(int oldSize, int newSize)
     {
         selectionChange(cap.getSelection());
+    }
+
+
+    // =========================================================================================================
+    // ClipboardOwner
+    // =========================================================================================================    
+    @Override
+    public void lostOwnership(Clipboard clipboard, Transferable contents)
+    {
+        // Nothing
     }
 
 }

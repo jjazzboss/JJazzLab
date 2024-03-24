@@ -370,7 +370,7 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
             }
 
             // Finally update the result
-            resultSection = CLI_Factory.getDefault().createSection(model, strSection, ts, barIndex);
+            resultSection = CLI_Factory.getDefault().createSection(strSection, ts, barIndex, null);
 
         }
 
@@ -446,7 +446,7 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
             if (modelBarAnnotation == null && !strAnnotation.isBlank())
             {
                 // Add an item
-                var cliBa = CLI_Factory.getDefault().createBarAnnotation(model, strAnnotation, barIndex);
+                var cliBa = CLI_Factory.getDefault().createBarAnnotation(strAnnotation, barIndex);
                 resultAddedItems.add(cliBa);
             } else if (modelBarAnnotation != null && strAnnotation.isBlank())
             {

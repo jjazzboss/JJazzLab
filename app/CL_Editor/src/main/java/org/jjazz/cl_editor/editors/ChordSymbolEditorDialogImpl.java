@@ -1142,7 +1142,7 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
         }
         CLI_Factory clif = CLI_Factory.getDefault();
         Position position = model.getPosition();
-        CLI_ChordSymbol altCli = clif.createChordSymbol(null, altChordSymbol, position);
+        CLI_ChordSymbol altCli = clif.createChordSymbol(altChordSymbol, position);
         String msg = ResUtil.getString(getClass(), "ChordSymbolEditorDialogImpl.AltChordSymbolFor", model.getData().getName());
         ALT_INSTANCE.preset(msg, altCli, (char) 0, false);
         ALT_INSTANCE.setLocation(getLocation().x + 40, getLocation().y + 40);

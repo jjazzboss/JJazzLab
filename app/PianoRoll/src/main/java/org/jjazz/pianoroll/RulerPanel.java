@@ -253,7 +253,7 @@ public class RulerPanel extends javax.swing.JPanel implements ClsChangeListener,
                 if (oneBeatPixelSize > 14 || (pos.getBar() != lastBar && pos.isFirstBarBeat()))
                 {
                     // Draw the chord symbol
-                    var posOffsetted = pos.getMovedPosition(-barOffset, 0); // Convert to phraseStartBar
+                    var posOffsetted = pos.getMoved(-barOffset, 0); // Convert to phraseStartBar
                     var posInBeats = editor.toPositionInBeats(posOffsetted);
                     int x = editor.getXFromPosition(posInBeats);
                     int y = yBottomChordSymbolLane - 1;

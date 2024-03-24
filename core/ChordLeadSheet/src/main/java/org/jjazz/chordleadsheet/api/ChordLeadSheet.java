@@ -35,8 +35,8 @@ import org.jjazz.utilities.api.IntRange;
 /**
  * The model for a chord leadsheet.
  * <p>
- * The leadsheet is made of sections (a name + a time signature) and items like chord symbols. Implementation must fire the relevant
- * ClsChangeEvents when a method mutates the chord leadsheet.
+ * The leadsheet is made of sections (a name + a time signature) and items like chord symbols. Implementation must fire the relevant ClsChangeEvents when a
+ * method mutates the chord leadsheet.
  * <p>
  * Regarding sections:<br>
  * - The first bar must always contain a section <br>
@@ -72,8 +72,7 @@ public interface ChordLeadSheet
      *
      * @param section
      * @throws IllegalArgumentException If section already exists at specified position or invalid section.
-     * @throws UnsupportedEditException If a ChordLeadSheet change listener does not authorize this edit. Exception is thrown before any
-     *                                  change is done.
+     * @throws UnsupportedEditException If a ChordLeadSheet change listener does not authorize this edit. Exception is thrown before any change is done.
      */
     void addSection(CLI_Section section) throws UnsupportedEditException;
 
@@ -83,8 +82,7 @@ public interface ChordLeadSheet
      * The section on bar 0 can not be removed. Trailing items' position might be adjusted if it results in a time signature change.
      *
      * @param section
-     * @throws UnsupportedEditException If a ChordLeadSheet change listener does not authorize this edit. Exception is thrown before any
-     *                                  change is done.
+     * @throws UnsupportedEditException If a ChordLeadSheet change listener does not authorize this edit. Exception is thrown before any change is done.
      */
     void removeSection(CLI_Section section) throws UnsupportedEditException;
 
@@ -105,21 +103,18 @@ public interface ChordLeadSheet
      * @param section The section to be changed.
      * @param ts
      * @throws IllegalArgumentException If section does not belong to this leadsheet.
-     * @throws UnsupportedEditException If a ChordLeadSheet change listener does not authorize this edit. Exception is thrown before any
-     *                                  change is done.
+     * @throws UnsupportedEditException If a ChordLeadSheet change listener does not authorize this edit. Exception is thrown before any change is done.
      */
     void setSectionTimeSignature(CLI_Section section, TimeSignature ts) throws UnsupportedEditException;
 
     /**
      * Move a section to a new position.
      * <p>
-     * New position must be free of a section. Section on first bar can not be moved. Some items position might be adjusted to the new bar's
-     * TimeSignature.
+     * New position must be free of a section. Section on first bar can not be moved. Some items position might be adjusted to the new bar's TimeSignature.
      *
      * @param section     The section to be moved
      * @param newBarIndex The bar index section will be moved to
-     * @throws UnsupportedEditException If a ChordLeadSheet change listener does not authorize this edit. Exception is thrown before any
-     *                                  change is done.
+     * @throws UnsupportedEditException If a ChordLeadSheet change listener does not authorize this edit. Exception is thrown before any change is done.
      * @throws IllegalArgumentException If new position is not valid.
      */
     void moveSection(CLI_Section section, int newBarIndex) throws UnsupportedEditException;
@@ -168,13 +163,12 @@ public interface ChordLeadSheet
     /**
      * Delete bars and items from barIndexFrom to barIndexTo (inclusive).
      * <p>
-     * Bars after the deleted bars are shifted accordingly. Trailing items positions might be adjusted if it results in a time signature
-     * change.
+     * Bars after the deleted bars are shifted accordingly. Trailing items positions might be adjusted if it results in a time signature change.
      *
      * @param barIndexFrom
      * @param barIndexTo
-     * @throws UnsupportedEditException If a ChordLeadSheet change listener does not authorize this edit. IMPORTANT:some undoable changes
-     *                                  might have been done before exception is thrown, caller will need to rollback them.
+     * @throws UnsupportedEditException If a ChordLeadSheet change listener does not authorize this edit. IMPORTANT:some undoable changes might have been done
+     *                                  before exception is thrown, caller will need to rollback them.
      */
     void deleteBars(int barIndexFrom, int barIndexTo) throws UnsupportedEditException;
 
@@ -475,8 +469,7 @@ public interface ChordLeadSheet
      * Set the size of the ChordLeadSheet.
      *
      * @param size The numbers of bars, must be &gt;= 1 and &lt; MAX_SIZE.
-     * @throws UnsupportedEditException If a ChordLeadSheet change listener does not authorize this edit. Exception is thrown before any
-     *                                  change is done.
+     * @throws UnsupportedEditException If a ChordLeadSheet change listener does not authorize this edit. Exception is thrown before any change is done.
      */
     void setSizeInBars(int size) throws UnsupportedEditException;
 
@@ -508,4 +501,25 @@ public interface ChordLeadSheet
      */
     void removeUndoableEditListener(UndoableEditListener l);
 
+
+    /**
+     * Get a string showing the complete chord leadsheet.
+     * @return 
+     */
+    public default String toDebugString()
+    {
+        StringBuilder sb = new StringBuilder();
+        sb.append(toString());
+        for (var item : getItems())
+        {
+            if (item instanceof CLI_Section)
+            {
+                sb.append('\n').append(" ").append(item.getData()).append(item.getPosition()).append(" : ");
+            } else
+            {
+                sb.append(item.getData()).append(item.getPosition()).append(" ");
+            }
+        }
+        return sb.toString();
+    }
 }

@@ -32,6 +32,7 @@ import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
+import org.jjazz.utilities.api.IntRange;
 import org.openide.util.Lookup;
 
 /**
@@ -232,6 +233,38 @@ final public class CL_SelectionUtilities
             }
         }
         return res;
+    }
+
+    /**
+     * The selected bar range within the chord leadsheet.
+     *
+     * @return Can be null if selection empty or outside the chord leadsheet.
+     */
+    public IntRange getBarRangeWithinCls()
+    {
+        int min = getMinBarIndexWithinCls();
+        int max = getMaxBarIndexWithinCls();
+        if (min < 0 || max < 0)
+        {
+            return null;
+        }
+        return new IntRange(min, max);
+    }
+
+    /**
+     * The selected bar range within the chord leadsheet.
+     *
+     * @return Can be null if selection empty
+     */
+    public IntRange getBarRange()
+    {
+        int min = getMinBarIndex();
+        int max = getMaxBarIndex();
+        if (min < 0 || max < 0)
+        {
+            return null;
+        }
+        return new IntRange(min, max);
     }
 
     /**

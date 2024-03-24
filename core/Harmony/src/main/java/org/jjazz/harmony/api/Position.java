@@ -248,7 +248,7 @@ public final class Position implements Comparable<Position>, Serializable
      * @param ts
      * @return
      */
-    public Position limitToTimeSignature(TimeSignature ts)
+    public Position getAdjusted(TimeSignature ts)
     {
         Position newPos = new Position(this);
         float lastBeat = ts.getNbNaturalBeats() - 1;
@@ -266,7 +266,7 @@ public final class Position implements Comparable<Position>, Serializable
      * @param tsTo
      * @return
      */
-    public Position getConvertedPosition(TimeSignature tsFrom, TimeSignature tsTo)
+    public Position getConverted(TimeSignature tsFrom, TimeSignature tsTo)
     {
         if (tsFrom == null || tsTo == null || beat >= tsFrom.getNbNaturalBeats())
         {
@@ -303,7 +303,7 @@ public final class Position implements Comparable<Position>, Serializable
      * @return
      * @throws IllegalArgumentException If resulting bar or beat is a negative value.
      */
-    public Position getMovedPosition(int barOffset, float beatOffset)
+    public Position getMoved(int barOffset, float beatOffset)
     {
         int barNew = this.bar + barOffset;
         float beatNew = this.beat + beatOffset;
@@ -319,7 +319,7 @@ public final class Position implements Comparable<Position>, Serializable
      *
      * @return
      */
-    public Position getNextBar()
+    public Position getNextBarStart()
     {
         return new Position(bar + 1, 0);
     }

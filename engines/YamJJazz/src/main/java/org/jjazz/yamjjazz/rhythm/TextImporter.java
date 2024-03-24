@@ -30,6 +30,7 @@ import java.util.logging.Logger;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import org.jjazz.importers.api.TextReader;
 import org.jjazz.song.api.Song;
+import org.jjazz.song.api.SongCreationException;
 import org.jjazz.song.spi.SongImporter;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.util.lookup.ServiceProvider;
@@ -55,10 +56,14 @@ public class TextImporter implements SongImporter
     }
 
     @Override
-    public Song importFromFile(File f) throws IOException
+    public Song importFromFile(File f) throws IOException, SongCreationException
     {
         TextReader reader = new TextReader(f);
         Song song = reader.readSong();
+        if (song == null)
+        {
+            throw new SongCreationException("Error importing song");
+        }
         postProcessSong(song);
         return song;
     }

@@ -158,7 +158,7 @@ public class SongBuilder
             char c = 'B';
             for (Integer barIndex : barIndexes)
             {
-                section = clif.createSection(cls, "Intro-" + c, reader.timeSignature, barIndex);
+                section = clif.createSection("Intro-" + c, reader.timeSignature, barIndex, null);
                 addSection(song, section, "Intro");
                 if (reader.mapBiabBarMarker.get(barIndex) != null)
                 {
@@ -177,7 +177,7 @@ public class SongBuilder
         // Chorus section
         if (introSize > 0)
         {
-            section = clif.createSection(cls, "Chorus-A", reader.timeSignature, clsCurrentBar);
+            section = clif.createSection("Chorus-A", reader.timeSignature, clsCurrentBar, null);
             addSection(song, section, "Chorus1");
         } else
         {
@@ -202,7 +202,7 @@ public class SongBuilder
         char c = 'B';
         for (Integer barIndex : barIndexes)
         {
-            section = clif.createSection(cls, "Chorus-" + c, reader.timeSignature, barIndex);
+            section = clif.createSection("Chorus-" + c, reader.timeSignature, barIndex, null);
             addSection(song, section, "Chorus1");
             addInitChord(cls, section);
             if (reader.mapBiabBarMarker.get(barIndex) != null)
@@ -224,7 +224,7 @@ public class SongBuilder
         // Optional last chorus section, shorter because of the tag jump
         if (reader.chorusNbRepeats > 1 && lastChorusSize < oneChorusSize)
         {
-            section = clif.createSection(cls, "Last Chorus-A", reader.timeSignature, clsCurrentBar);
+            section = clif.createSection("Last Chorus-A", reader.timeSignature, clsCurrentBar, null);
             addSection(song, section, "Last Chorus");
             for (CLI_ChordSymbol cliCs : getChordSymbols(cls, reader.timeSignature, reader.chorusStart - 1, lastChorusEnd - 1, clsCurrentBar, ChorusType.LAST))
             {
@@ -242,7 +242,7 @@ public class SongBuilder
             c = 'B';
             for (Integer barIndex : barIndexes)
             {
-                section = clif.createSection(cls, "Last Chorus-" + c, reader.timeSignature, oneChorusSize + barIndex);
+                section = clif.createSection("Last Chorus-" + c, reader.timeSignature, oneChorusSize + barIndex, null);
                 addSection(song, section, "Last Chorus");
                 addInitChord(cls, section);
                 if (reader.mapBiabBarMarker.get(barIndex) != null)
@@ -262,7 +262,7 @@ public class SongBuilder
         // Tag destination
         if (tagDestSize > 0)
         {
-            section = clif.createSection(cls, "Coda-A", reader.timeSignature, clsCurrentBar);
+            section = clif.createSection("Coda-A", reader.timeSignature, clsCurrentBar, null);
             addSection(song, section, "Coda");
             for (CLI_ChordSymbol cliCs : getChordSymbols(cls, reader.timeSignature, reader.tagBeginBar - 1, reader.tagEndBar - 1, clsCurrentBar, ChorusType.OUT))
             {
@@ -279,7 +279,7 @@ public class SongBuilder
             c = 'B';
             for (Integer barIndex : barIndexes)
             {
-                section = clif.createSection(cls, "Coda-" + c, reader.timeSignature, clsCurrentBar + 1 + barIndex - reader.tagBeginBar);
+                section = clif.createSection("Coda-" + c, reader.timeSignature, clsCurrentBar + 1 + barIndex - reader.tagBeginBar, null);
                 addSection(song, section, "Coda");
                 addInitChord(cls, section);
                 if (reader.mapBiabBarMarker.get(barIndex) != null)
@@ -299,7 +299,7 @@ public class SongBuilder
         // End 
         if (endSize > 0)
         {
-            section = clif.createSection(cls, "End-A", reader.timeSignature, clsCurrentBar);
+            section = clif.createSection("End-A", reader.timeSignature, clsCurrentBar, null);
             addSection(song, section, "End");
             int endBiabStartBar = (tagDestSize > 0 ? reader.tagEndBar : reader.chorusEnd) + 1; // zeroBased 1
             int endBiabLastBar = endBiabStartBar + endSize - 1;     // zeroBased 1
@@ -318,7 +318,7 @@ public class SongBuilder
             c = 'B';
             for (Integer barIndex : barIndexes)
             {
-                section = clif.createSection(cls, "End-" + c, reader.timeSignature, clsCurrentBar + 1 + barIndex - endBiabStartBar);
+                section = clif.createSection("End-" + c, reader.timeSignature, clsCurrentBar + 1 + barIndex - endBiabStartBar, null);
                 addSection(song, section, "End");
                 addInitChord(cls, section);
                 if (reader.mapBiabBarMarker.get(barIndex) != null)
@@ -462,7 +462,7 @@ public class SongBuilder
 
 
                 // Create the chord symbol
-                CLI_ChordSymbol cliCs = clif.createChordSymbol(cls, ecs, pos);
+                CLI_ChordSymbol cliCs = clif.createChordSymbol(ecs, pos);
                 res.add(cliCs);
                 // LOGGER.fine("getChordSymbols()      cliCs=" + cliCs);
             }
@@ -553,7 +553,7 @@ public class SongBuilder
             assert !chordSymbols.isEmpty() : "section=" + section + ", cls=" + cls;   //NOI18N
             ExtChordSymbol lastEcs = chordSymbols.get(chordSymbols.size() - 1).getData();
             ExtChordSymbol cs = lastEcs.getCopy(null, new ChordRenderingInfo(), null, null);
-            CLI_ChordSymbol newCs = CLI_Factory.getDefault().createChordSymbol(cls, cs, pos);
+            CLI_ChordSymbol newCs = CLI_Factory.getDefault().createChordSymbol(cs, pos);
             cls.addItem(newCs);
         }
     }

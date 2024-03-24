@@ -169,7 +169,7 @@ public class PlaybackAutoScroll extends ToggleAction implements PropertyChangeLi
             }
 
             var barOffset = editor.getRulerStartBar() - editor.getPhraseStartBar();
-            editor.showPlaybackPoint(editor.toPositionInBeats(newPos.getMovedPosition(-barOffset, 0)));
+            editor.showPlaybackPoint(editor.toPositionInBeats(newPos.getMoved(-barOffset, 0)));
         }
 
     }

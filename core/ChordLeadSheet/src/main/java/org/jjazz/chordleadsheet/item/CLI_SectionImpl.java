@@ -97,10 +97,6 @@ public class CLI_SectionImpl implements CLI_Section, WritableItem<Section>, Seri
         {
             ChordLeadSheet old = container;
             container = cls;
-            if (cls != null && getPosition().getBar() >= cls.getSizeInBars())
-            {
-                throw new IllegalArgumentException("this=" + this + " cls=" + cls);
-            }
             pcs.firePropertyChange(PROP_CONTAINER, old, container);
         }
     }
@@ -138,18 +134,18 @@ public class CLI_SectionImpl implements CLI_Section, WritableItem<Section>, Seri
         return true;
     }
 
-    /**
-     * Make sure the copy has a different name.
-     * <p>
-     * Copy also the client properties.
-     */
     @Override
-    public synchronized CLI_Section getCopy(ChordLeadSheet newCls, Position newPos)
+    public synchronized CLI_Section getCopy(Position newPos)
+    {
+        return getCopy(newPos, null);
+    }
+
+    @Override
+    public synchronized CLI_Section getCopy(Position newPos, ChordLeadSheet cls)
     {
         int barIndex = (newPos != null) ? newPos.getBar() : position.getBar();
-        ChordLeadSheet cls = (newCls != null) ? newCls : getContainer();
-        CLI_SectionImpl cli = new CLI_SectionImpl(CLI_Section.createSectionName(data.getName(), cls), data.getTimeSignature(), barIndex);
-        cli.setContainer(cls);
+        var name = CLI_Section.createSectionName(getData().getName(), cls);   // Make sure name is unique in cls
+        CLI_SectionImpl cli = new CLI_SectionImpl(name, data.getTimeSignature(), barIndex);
         cli.getClientProperties().set(clientProperties);
         return cli;
     }

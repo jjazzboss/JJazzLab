@@ -71,9 +71,9 @@ public class IP_ChordSymbol implements CLI_ChordSymbol
     }
 
     @Override
-    public ChordLeadSheetItem<ExtChordSymbol> getCopy(ChordLeadSheet cls, Position newPos)
+    public ChordLeadSheetItem<ExtChordSymbol> getCopy(Position newPos)
     {
-        return cli.getCopy(cls, newPos);
+        return cli.getCopy(newPos);
     }
 
     @Override

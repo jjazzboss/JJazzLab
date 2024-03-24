@@ -22,12 +22,15 @@
  */
 package org.jjazz.cl_editor.actions;
 
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.ClipboardOwner;
+import java.awt.datatransfer.Transferable;
 import org.jjazz.cl_editor.api.CL_ContextActionListener;
 import org.jjazz.cl_editor.api.CL_ContextActionSupport;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -36,13 +39,15 @@ import static javax.swing.Action.SMALL_ICON;
 import javax.swing.Icon;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
-import org.jjazz.cl_editor.api.CopyBuffer;
+import org.jjazz.cl_editor.api.ItemsTransferable;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
+import org.jjazz.cl_editor.api.BarsTransferable;
 import org.jjazz.cl_editor.api.CL_SelectionUtilities;
 import static org.jjazz.uiutilities.api.UIUtilities.getGenericControlKeyStroke;
 import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
+import org.jjazz.utilities.api.IntRange;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.actions.CutAction;
 import org.openide.awt.ActionID;
@@ -61,9 +66,9 @@ import org.openide.util.actions.SystemAction;
             @ActionReference(path = "Actions/Section", position = 1000),
             @ActionReference(path = "Actions/ChordSymbol", position = 1000, separatorBefore = 950),
             @ActionReference(path = "Actions/Bar", position = 1000),
-            @ActionReference(path = "Actions/BarAnnotation", position = 1000, separatorBefore=999)
+            @ActionReference(path = "Actions/BarAnnotation", position = 1000, separatorBefore = 999)
         })
-public class Cut extends AbstractAction implements ContextAwareAction, CL_ContextActionListener
+public class Cut extends AbstractAction implements ContextAwareAction, CL_ContextActionListener, ClipboardOwner
 {
 
     private Lookup context;
@@ -103,13 +108,15 @@ public class Cut extends AbstractAction implements ContextAwareAction, CL_Contex
     {
         CL_SelectionUtilities selection = cap.getSelection();
         ChordLeadSheet cls = selection.getChordLeadSheet();
-        CopyBuffer copyBuffer = CopyBuffer.getInstance();
+        Transferable t = null;
         List<ChordLeadSheetItem> items = new ArrayList<>();
 
+        
         JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(cls);
         um.startCEdit(undoText);
 
 
+        // Prepare the transferable        
         if (selection.isBarSelectedWithinCls())
         {
             for (Integer modelBarIndex : selection.getSelectedBarIndexesWithinCls())
@@ -118,14 +125,14 @@ public class Cut extends AbstractAction implements ContextAwareAction, CL_Contex
             }
 
 
-            int minBarIndex = selection.getMinBarIndexWithinCls();
-            int maxBarIndex = selection.getMaxBarIndexWithinCls();
+            IntRange barRange = selection.getBarRangeWithinCls();
+            assert barRange != null;
+            var data = new BarsTransferable.Data(barRange, items);
+            t = new BarsTransferable(data);
 
-
-            copyBuffer.barModeCopy(items, maxBarIndex, maxBarIndex);
             try
             {
-                cls.deleteBars(minBarIndex, maxBarIndex);
+                cls.deleteBars(barRange.from, barRange.to);
             } catch (UnsupportedEditException ex)
             {
                 String msg = "Impossible to cut bars.\n" + ex.getLocalizedMessage();
@@ -135,7 +142,9 @@ public class Cut extends AbstractAction implements ContextAwareAction, CL_Contex
         } else if (selection.isItemSelected())
         {
             items.addAll(selection.getSelectedItems());
-            copyBuffer.itemModeCopy(items);
+
+            var data = new ItemsTransferable.Data(items);
+            t = new ItemsTransferable(data);
 
 
             // Remove the items
@@ -164,6 +173,13 @@ public class Cut extends AbstractAction implements ContextAwareAction, CL_Contex
         }
 
 
+        // Store into clipboard
+        assert t != null;
+        var clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+        clipboard.setContents(t, this);
+        
+        
+
         um.endCEdit(undoText);
     }
 
@@ -183,4 +199,16 @@ public class Cut extends AbstractAction implements ContextAwareAction, CL_Contex
     {
         selectionChange(cap.getSelection());
     }
+    
+
+    // =========================================================================================================
+    // ClipboardOwner
+    // =========================================================================================================    
+    @Override
+    public void lostOwnership(Clipboard clipboard, Transferable contents)
+    {
+        // Nothing
+    }
+    
+    
 }

@@ -53,7 +53,7 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
      * oldValue=old position, newValue=new position.
      */
     public static String PROP_ITEM_POSITION = "ItemPosition";
-    // static final Logger LOGGER = Logger.getLogger(ChordLeadSheetItem.class.getSimpleName());
+
 
     /**
      * Get the ChordLeadSheet this object belongs to.
@@ -80,15 +80,14 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
     /**
      * Get a copy of this item at a specified position.
      * <p>
-     * Client properties are also copied.
+     * Client properties are also copied. Returned copy has its ChordLeadSheet container set to null.
      *
-     * @param newCls If null, the copy will have the same container that this object.
      * @param newPos If null, the copy will have the same position that this object.
-     * @return
+     * @return 
      */
-    ChordLeadSheetItem<T> getCopy(ChordLeadSheet newCls, Position newPos);
+    ChordLeadSheetItem<T> getCopy(Position newPos);
+    
 
-  
     /**
      * Return true if there can be only one single item perbar, like a time signature.
      * <p>
@@ -273,7 +272,7 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
         }
 
         @Override
-        public ChordLeadSheetItem<Object> getCopy(ChordLeadSheet newCls, Position newPos)
+        public ChordLeadSheetItem<Object> getCopy(Position newPos)
         {
             throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
         }

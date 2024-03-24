@@ -399,7 +399,7 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
             {
                 Exceptions.printStackTrace(ex);
             }
-            item2 = clif.createSection(null, "SECTIONNAME", TimeSignature.TWELVE_EIGHT, 0);
+            item2 = clif.createSection("SECTIONNAME", TimeSignature.TWELVE_EIGHT, 0, null);
 
             ItemRenderer ir;
             ItemRendererFactory irf = getItemRendererFactory();

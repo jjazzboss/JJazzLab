@@ -176,7 +176,7 @@ public class ImprovisorFileReader
                         // It's a new section within the leadsheet       
                         sectionIndex++;
                         CLI_Factory clif = CLI_Factory.getDefault();
-                        CLI_Section section = clif.createSection(cls, String.valueOf(sectionIndex), ts, barIndex);
+                        CLI_Section section = clif.createSection(String.valueOf(sectionIndex), ts, barIndex, null);
                         try
                         {
                             cls.setSizeInBars(barIndex + 1);
@@ -406,7 +406,7 @@ public class ImprovisorFileReader
             }
             Position pos = new Position(barIndex, i * beatStep);
             ExtChordSymbol ecs = new ExtChordSymbol(cs, new ChordRenderingInfo(), null, null);
-            CLI_ChordSymbol cliCs = clif.createChordSymbol(cls, ecs, pos);
+            CLI_ChordSymbol cliCs = clif.createChordSymbol(ecs, pos);
             cls.addItem(cliCs);
             i++;
         }

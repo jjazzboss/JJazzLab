@@ -96,10 +96,6 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
         {
             ChordLeadSheet old = container;
             container = cls;
-            if (cls != null && getPosition().getBar() >= cls.getSizeInBars())
-            {
-                throw new IllegalArgumentException("this=" + this + " cls=" + cls);
-            }
             pcs.firePropertyChange(PROP_CONTAINER, old, container);
         }
     }
@@ -160,16 +156,13 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
     /**
      * Note that we also copy the alternate data and filter, and the client properties.
      *
-     * @param newCls
      * @param newPos
      * @return
      */
     @Override
-    public synchronized CLI_ChordSymbol getCopy(ChordLeadSheet newCls, Position newPos)
+    public synchronized CLI_ChordSymbol getCopy(Position newPos)
     {
         CLI_ChordSymbolImpl cli = new CLI_ChordSymbolImpl(data, (newPos != null) ? newPos : position);
-        ChordLeadSheet cls = (newCls != null) ? newCls : getContainer();
-        cli.setContainer(cls);
         cli.getClientProperties().set(clientProperties);
         return cli;
     }
