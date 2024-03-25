@@ -5,6 +5,7 @@
         <groupId>org.jjazzlab</groupId>
         <artifactId>jjazzlab-parent</artifactId>
         <version>4.0.3-SNAPSHOT</version>
+        <relativePath>../../pom.xml</relativePath>
     </parent>
     <artifactId>jjazzlab</artifactId>
     <packaging>nbm-application</packaging>

@@ -48,10 +48,12 @@ import org.jjazz.song.api.SongFactory;
 /**
  * Read chord symbols from a multi-line text.
  * <p>
- * There are 3 possible formats to specify chords, GRID-BASED, BEAT-BASED or TIME-BASED.
+ * There are 3 possible formats to specify chords, GRID-BASED, BEAT-BASED or
+ * TIME-BASED.
  * <p>
  * GRID-BASED="|4/4 chord1 chord2 | chord3 | chord4|"<br>
- * Use % in a bar to repeat the same chords from the previous bar. Bars can start with an optional time signature. <br>
+ * Use % in a bar to repeat the same chords from the previous bar. Bars can
+ * start with an optional time signature. <br>
  * Example:<br>
  * | C | F7 Eb7 | % | Db7 | <br>
  * | C | &nbsp;&nbsp; |3/4 Fm7 | Bb7 |<br>
@@ -67,7 +69,8 @@ import org.jjazz.song.api.SongFactory;
  * .
  * ..<p>
  * TIME-BASED="pos_in_seconds, chord_symbol"   <br>
- * The time signature and tempo must be set first so that pos_in_seconds can be converted into bar/beat. If not set, the default values are 4/4 and 120bpm.
+ * The time signature and tempo must be set first so that pos_in_seconds can be
+ * converted into bar/beat. If not set, the default values are 4/4 and 120bpm.
  * <p>
  * Example:<br>
  * timeSignature=3/4<br>
@@ -81,7 +84,8 @@ import org.jjazz.song.api.SongFactory;
  * <p>
  * OTHER FORMAT INFORMATION:<br>
  * // Put comment after // <br>
- * "title=My song name" : if specified the created song will use this title as name.<br>
+ * "title=My song name" : if specified the created song will use this title as
+ * name.<br>
  * "useBase1" : if specified the bar/beat positions start at 1.<br>
  * Accepted delimiter characters are ',', ';' or space or tab
  */
@@ -167,7 +171,8 @@ public class TextReader
                 title = mTitle.group(1);
 
 
-            } else if (mTimeSignature.find())
+            }
+            else if (mTimeSignature.find())
             {
                 int upper = readUIntFromString(mTimeSignature.group(1), 4, lineCount);
                 int lower = readUIntFromString(mTimeSignature.group(2), 4, lineCount);
@@ -182,7 +187,8 @@ public class TextReader
                 }
 
 
-            } else if (mTempo.find())
+            }
+            else if (mTempo.find())
             {
                 int tmp = readUIntFromString(mTempo.group(1), 120, lineCount);
                 if (tmp >= 20 && tmp <= 400)
@@ -191,12 +197,14 @@ public class TextReader
                 }
 
 
-            } else if (mUseBase1.find())
+            }
+            else if (mUseBase1.find())
             {
                 beatBarBase = 1;
 
 
-            } else if (mBeatBasedChord.find())
+            }
+            else if (mBeatBasedChord.find())
             {
                 isDataValid = true;
                 int bar = 0;
@@ -211,7 +219,8 @@ public class TextReader
                         throw new NumberFormatException("bar and beat must be >= " + beatBarBase);
                     }
                     ecs = ExtChordSymbol.get(mBeatBasedChord.group(3));
-                } catch (NumberFormatException | ParseException ex)
+                }
+                catch (NumberFormatException | ParseException ex)
                 {
                     LOGGER.log(Level.WARNING, "readSong()() source={0}, invalid line[{1}]={2}, exception={3}", new Object[]
                     {
@@ -232,7 +241,8 @@ public class TextReader
                 }
 
 
-            } else if (mTimeBasedChord.find())
+            }
+            else if (mTimeBasedChord.find())
             {
                 isDataValid = true;
                 float posInSeconds = 0;
@@ -245,7 +255,8 @@ public class TextReader
                         throw new NumberFormatException("pos_in_seconds must ve >= 0");
                     }
                     ecs = ExtChordSymbol.get(mTimeBasedChord.group(2));
-                } catch (NumberFormatException | ParseException ex)
+                }
+                catch (NumberFormatException | ParseException ex)
                 {
                     LOGGER.log(Level.WARNING, "readSong()() source={0}, invalid line[{1}]={2}, exception={3}", new Object[]
                     {
@@ -269,7 +280,8 @@ public class TextReader
                 }
 
 
-            } else if (mGridBasedLine.find())
+            }
+            else if (mGridBasedLine.find())
             {
                 isDataValid = true;
                 // for split to create the right nb of bars, remove first '|' and possibly last '|' if only trailing spaces 
@@ -286,7 +298,8 @@ public class TextReader
                         // Nothing
 
 
-                    } else if (strBar.equals("%"))
+                    }
+                    else if (strBar.equals("%"))
                     {
                         // Special case %, reuse previous chords
                         curBarChords = new ArrayList<>();
@@ -299,7 +312,8 @@ public class TextReader
                         lastBarChords = curBarChords;
 
 
-                    } else
+                    }
+                    else
                     {
                         // Standard case, there is some text in this bar
 
@@ -313,7 +327,8 @@ public class TextReader
                                 if (barIndex == 0)
                                 {
                                     ts0 = ts;
-                                } else
+                                }
+                                else
                                 {
                                     String name = "T" + (extraSections.size() + 1);
                                     var cliSection = CLI_Factory.getDefault().createSection(name, ts, barIndex, null);
@@ -325,7 +340,8 @@ public class TextReader
                             // remove time signature string for chord parsing
                             strBar = strBar.substring(strTs.length());
 
-                        } catch (ParseException ex)
+                        }
+                        catch (ParseException ex)
                         {
                             // Do nothing, it might be just a chord
                         }
@@ -337,7 +353,8 @@ public class TextReader
                             curBarChords = CLI_ChordSymbol.toCLI_ChordSymbolsNoPosition(strBar, timeSignature, null, barIndex, false);
                             cliChordSymbols.addAll(curBarChords);
                             lastBarChords = curBarChords;
-                        } catch (ParseException ex)
+                        }
+                        catch (ParseException ex)
                         {
                             lastBarChords = new ArrayList<>();
                             LOGGER.log(Level.WARNING, "readSong()() source={0}, invalid line[{1}]={2}, exception={3}", new Object[]
@@ -370,7 +387,8 @@ public class TextReader
         try
         {
             song = sf.createSong(title, cls);
-        } catch (UnsupportedEditException ex)
+        }
+        catch (UnsupportedEditException ex)
         {
             throw new IllegalStateException(ex.getMessage());   // Should never happen
         }
@@ -378,12 +396,13 @@ public class TextReader
 
 
         // Add the extra sections if any
-        extraSections.forEach(cliSection -> 
+        extraSections.forEach(cliSection ->
         {
             try
             {
                 cls.addSection(cliSection);
-            } catch (UnsupportedEditException ex)
+            }
+            catch (UnsupportedEditException ex)
             {
                 LOGGER.log(Level.WARNING, "readSong()() source={0}, impossible to add section {1}: {2}", new Object[]
                 {
@@ -406,7 +425,8 @@ public class TextReader
         try
         {
             res = Integer.parseUnsignedInt(strUInt);
-        } catch (NumberFormatException ex)
+        }
+        catch (NumberFormatException ex)
         {
             LOGGER.log(Level.WARNING, "readUIntFromString() source={0}, line {1}, ex={2}", new Object[]
             {
@@ -418,7 +438,8 @@ public class TextReader
     }
 
     /**
-     * Get a (possibly multiline) string representing the chord leadsheet e.g. "|4/4 C7 | Dm6 G7 | Ab7M | G7#5|".
+     * Get a (possibly multiline) string representing the chord leadsheet e.g.
+     * "|4/4 C7 | Dm6 G7 | Ab7M | G7#5|".
      *
      * @param cls
      * @param nbBarsPerLine
@@ -445,16 +466,23 @@ public class TextReader
             sb.append(" ");
 
             // Add chords
+            boolean noChords = true;
             for (var cliCs : cls.getItems(bar, bar, CLI_ChordSymbol.class))
             {
                 sb.append(cliCs.getData().getOriginalName()).append(" ");
+                noChords = false;
+            }
+            if (noChords)
+            {
+                sb.append("  ");
             }
 
             if (bar == cls.getSizeInBars() - 1)
             {
                 // Last bar
                 sb.append("|");
-            } else if ((bar % nbBarsPerLine) == nbBarsPerLine - 1)
+            }
+            else if ((bar % nbBarsPerLine) == nbBarsPerLine - 1)
             {
                 sb.append("|\n");
             }

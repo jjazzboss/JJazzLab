@@ -47,7 +47,6 @@ import org.jjazz.cl_editor.api.ItemsTransferable;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.cl_editor.api.BarsTransferable;
-import org.jjazz.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.cl_editor.api.CL_SelectionUtilities;
 import org.jjazz.importers.api.TextReader;
 import org.jjazz.song.api.Song;
@@ -63,20 +62,22 @@ import org.openide.awt.ActionRegistration;
 import org.openide.util.ContextAwareAction;
 import org.openide.util.Lookup;
 import org.openide.util.Utilities;
+import org.openide.util.WeakListeners;
 import org.openide.util.actions.SystemAction;
 
 /**
- * Paste items chordsymbols or sections, possibly across songs, also manage the case of pasting a copied string representing a song.
+ * Paste items chordsymbols or sections, possibly across songs, also manage the
+ * case of pasting a copied string representing a song.
  */
 @ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.paste")
 @ActionRegistration(displayName = "#CTL_Paste", lazy = false)
 @ActionReferences(
-        {
-            @ActionReference(path = "Actions/Section", position = 1200),
-            @ActionReference(path = "Actions/ChordSymbol", position = 1200),
-            @ActionReference(path = "Actions/Bar", position = 1200),
-            @ActionReference(path = "Actions/BarAnnotation", position = 1020)
-        })
+    {
+        @ActionReference(path = "Actions/Section", position = 1200),
+        @ActionReference(path = "Actions/ChordSymbol", position = 1200),
+        @ActionReference(path = "Actions/Bar", position = 1200),
+        @ActionReference(path = "Actions/BarAnnotation", position = 1020)
+    })
 public class Paste extends AbstractAction implements ContextAwareAction, CL_ContextActionListener, FlavorListener
 {
 
@@ -93,8 +94,6 @@ public class Paste extends AbstractAction implements ContextAwareAction, CL_Cont
 
     private Paste(Lookup context)
     {
-        LOGGER.severe("DEBUG Paste() context=" + context);
-
         this.context = context;
         cap = CL_ContextActionSupport.getInstance(this.context);
         cap.addListener(this);
@@ -103,11 +102,12 @@ public class Paste extends AbstractAction implements ContextAwareAction, CL_Cont
         putValue(SMALL_ICON, icon);
         putValue(ACCELERATOR_KEY, getGenericControlKeyStroke(KeyEvent.VK_V));
 
-
         // Listen to clipboard contents changes        
+        // Use WeakListener because no simple way to know when to remove listener
         var clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-        clipboard.addFlavorListener(this);
-        
+        FlavorListener weakListener = WeakListeners.create(FlavorListener.class, this, clipboard);
+        clipboard.addFlavorListener(weakListener);
+
 
         CL_SelectionUtilities selection = cap.getSelection();
         selectionChange(selection);
@@ -120,10 +120,10 @@ public class Paste extends AbstractAction implements ContextAwareAction, CL_Cont
     }
 
     @SuppressWarnings(
-            {
-                "rawtypes",
-                "unchecked"
-            })
+        {
+            "rawtypes",
+            "unchecked"
+        })
     @Override
     public void actionPerformed(ActionEvent e)
     {
@@ -143,7 +143,8 @@ public class Paste extends AbstractAction implements ContextAwareAction, CL_Cont
         try
         {
             data = Toolkit.getDefaultToolkit().getSystemClipboard().getData(df);
-        } catch (Exception ex)
+        }
+        catch (Exception ex)
         {
             LOGGER.log(Level.WARNING, "actionPerformed() getSystemClipboard().getData() exception={0}", ex.getMessage());
             return;
@@ -165,12 +166,14 @@ public class Paste extends AbstractAction implements ContextAwareAction, CL_Cont
             nbInsertBars = dataBars.getBarRange().size();
 
 
-        } else if (df == ItemsTransferable.DATA_FLAVOR)
+        }
+        else if (df == ItemsTransferable.DATA_FLAVOR)
         {
             ItemsTransferable.Data dataItems = (ItemsTransferable.Data) data;
             items = dataItems.getItemsCopy(targetBarIndex);
 
-        } else if (df == DataFlavor.stringFlavor)
+        }
+        else if (df == DataFlavor.stringFlavor)
         {
             String text = (String) data;
             TextReader tr = new TextReader(text);
@@ -178,13 +181,14 @@ public class Paste extends AbstractAction implements ContextAwareAction, CL_Cont
             if (song != null)
             {
                 var cls = song.getChordLeadSheet();
-                for (var item: cls.getItems())
+                for (var item : cls.getItems())
                 {
                     items.add(item.getCopy(item.getPosition().getMoved(targetBarIndex, 0)));
-                }                                
+                }
                 nbInsertBars = cls.getSizeInBars();
             }
-        } else
+        }
+        else
         {
             throw new IllegalStateException("df=" + df);
         }
@@ -199,7 +203,8 @@ public class Paste extends AbstractAction implements ContextAwareAction, CL_Cont
                 try
                 {
                     targetCls.setSizeInBars(targetBarIndex + nbInsertBars);
-                } catch (UnsupportedEditException ex)
+                }
+                catch (UnsupportedEditException ex)
                 {
                     // Should never happen when resizing bigger
                     String msg = "Impossible to resize.\n" + ex.getLocalizedMessage();
@@ -207,7 +212,8 @@ public class Paste extends AbstractAction implements ContextAwareAction, CL_Cont
                     um.handleUnsupportedEditException(undoText, msg);
                     return;
                 }
-            } else
+            }
+            else
             {
                 // Insert bars
                 targetCls.insertBars(targetBarIndex, nbInsertBars);
@@ -237,20 +243,23 @@ public class Paste extends AbstractAction implements ContextAwareAction, CL_Cont
                         {
                             // There is no section on target bar
                             targetCls.addSection(newSection);
-                        } else
+                        }
+                        else
                         {
                             // There is a section on target bar, directly update existing section
                             targetCls.setSectionName(curSection, newSection.getData().getName());
                             targetCls.setSectionTimeSignature(curSection, newSection.getData().getTimeSignature());
                         }
-                    } catch (UnsupportedEditException ex)
+                    }
+                    catch (UnsupportedEditException ex)
                     {
                         String msg = ResUtil.getString(getClass(), "Err_Paste", newSection);
                         msg += "\n" + ex.getLocalizedMessage();
                         um.handleUnsupportedEditException(undoText, msg);
                         return;
                     }
-                } else
+                }
+                else
                 {
                     // Simple
                     targetCls.addItem(item);
@@ -273,10 +282,12 @@ public class Paste extends AbstractAction implements ContextAwareAction, CL_Cont
             if (df == BarsTransferable.DATA_FLAVOR || df == DataFlavor.stringFlavor)
             {
                 b = selection.isBarSelected();
-            } else if (df == ItemsTransferable.DATA_FLAVOR)
+            }
+            else if (df == ItemsTransferable.DATA_FLAVOR)
             {
                 b = selection.isBarSelectedWithinCls();
-            } else
+            }
+            else
             {
                 // Nothing interesting for us
                 // Do nothing
@@ -316,7 +327,8 @@ public class Paste extends AbstractAction implements ContextAwareAction, CL_Cont
         try
         {
             dataFlavors = Arrays.asList(Toolkit.getDefaultToolkit().getSystemClipboard().getAvailableDataFlavors());
-        } catch (IllegalStateException e)
+        }
+        catch (IllegalStateException e)
         {
             // If clipboard is unavailable
             // Do nothing
