@@ -36,7 +36,7 @@ import javax.swing.AbstractAction;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import org.jjazz.song.api.Song;
-import org.jjazz.songeditormanager.api.SongEditorManager;
+import org.jjazz.editors.spi.SongEditorManager;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -73,7 +73,7 @@ public final class OpenRecentFile extends AbstractAction implements Presenter.Me
 
     public OpenRecentFile()
     {
-        SongEditorManager.getInstance().addPropertyChangeListener(this);
+        SongEditorManager.getDefault().addPropertyChangeListener(this);
 
         // Initialize the file list
         recentFiles = new ArrayList<>();
@@ -204,7 +204,7 @@ public final class OpenRecentFile extends AbstractAction implements Presenter.Me
         LOGGER.log(Level.FINE, "propertyChange() evt={0}", evt);   
         
         
-        if (evt.getSource() == SongEditorManager.getInstance())
+        if (evt.getSource() == SongEditorManager.getDefault())
         {
             if (evt.getPropertyName().equals(SongEditorManager.PROP_SONG_OPENED)
                     || evt.getPropertyName().equals(SongEditorManager.PROP_SONG_SAVED))

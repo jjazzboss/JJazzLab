@@ -24,42 +24,50 @@ package org.jjazz.cl_editor;
 
 import java.awt.Component;
 import java.awt.Point;
+import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
+import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
 import javax.swing.TransferHandler;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.chordleadsheet.api.item.CLI_BarAnnotation;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
-import org.jjazz.chordleadsheet.api.item.CLI_Factory;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.cl_editor.api.CL_SelectionUtilities;
 import org.jjazz.cl_editor.barbox.api.BarBox;
-import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.itemrenderer.api.IR_Type;
 import org.jjazz.itemrenderer.api.ItemRenderer;
+import org.jjazz.song.api.Song;
+import org.jjazz.song.api.SongCreationException;
+import org.jjazz.song.spi.SongImporter;
 import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.utilities.api.ResUtil;
+import org.jjazz.utilities.api.Utilities;
+import org.openide.DialogDisplayer;
+import org.openide.NotifyDescriptor;
 import org.openide.util.Exceptions;
 
 /**
- * Drag n Drop Transfer handler for ItemRenderers within a single ChordLeadSheet.
+ * Enable ItemRenderers dragging within a chord leadsheet, and open/import song feature by dragging a file in.
  * <p>
- * Drag n Drop between different songs is not supported.
  */
 public class CL_EditorTransferHandler extends TransferHandler
 {
 
     private CL_Editor editor;
+    private final static DummySongImporter SPECIAL_SONG_IMPORTER_INSTANCE = new DummySongImporter();
     private static final Logger LOGGER = Logger.getLogger(CL_EditorTransferHandler.class.getSimpleName());
 
     public CL_EditorTransferHandler(CL_Editor ed)
@@ -78,15 +86,14 @@ public class CL_EditorTransferHandler extends TransferHandler
     public int getSourceActions(JComponent c)
     {
         LOGGER.log(Level.FINE, "getSourceActions()  c{0}", c);
-        if (c instanceof ItemRenderer ir) 
+        int res = TransferHandler.NONE;
+
+        if (c instanceof ItemRenderer ir)
         {
             ChordLeadSheetItem<?> cli = ir.getModel();
-            if ((cli instanceof CLI_Section) && cli.getPosition().getBar() == 0)
-            {
-                return TransferHandler.COPY;
-            }
+            res = (cli instanceof CLI_Section) && cli.getPosition().getBar() == 0 ? TransferHandler.COPY : TransferHandler.COPY_OR_MOVE;
         }
-        return TransferHandler.COPY_OR_MOVE;
+        return res;
     }
 
     /**
@@ -102,7 +109,8 @@ public class CL_EditorTransferHandler extends TransferHandler
         if (c instanceof ItemRenderer ir)
         {
             return ir.getModel();
-        } else
+        }
+        else
         {
             return null;
         }
@@ -126,65 +134,38 @@ public class CL_EditorTransferHandler extends TransferHandler
         editor.showInsertionPoint(false, getTransferredItem(data), null, true);
     }
 
+    /**
+     * Accept ItemRenderers or files.
+     *
+     * @param info
+     * @return
+     */
     @Override
     public boolean canImport(TransferSupport info)
     {
         LOGGER.log(Level.FINE, "canImport() -- info.getComponent()={0}", info.getComponent());
 
+        boolean b = false;
 
-        // Check data flavor
-        if (!info.isDataFlavorSupported(CLI_ChordSymbol.DATA_FLAVOR)
-                && !info.isDataFlavorSupported(CLI_Section.DATA_FLAVOR)
-                && !info.isDataFlavorSupported(CLI_BarAnnotation.DATA_FLAVOR))
+        if (info.isDataFlavorSupported(DataFlavor.javaFileListFlavor))
         {
-            LOGGER.fine("canImport() return false: unsupported DataFlavor");
-            return false;
+            b = canImportFile(info) != null;
+        }
+        else if (info.isDataFlavorSupported(CLI_ChordSymbol.DATA_FLAVOR)
+            || info.isDataFlavorSupported(CLI_Section.DATA_FLAVOR)
+            || info.isDataFlavorSupported(CLI_BarAnnotation.DATA_FLAVOR))
+        {
+            b = canImportItemRenderer(info);
         }
 
-
-        // Check target location
-        Position newPos = getDropPosition(info);
-        if (newPos == null)
+        if (!b)
         {
-            LOGGER.fine("canImport() return false: drop position not managed");
-            return false;
+            LOGGER.log(Level.FINE, "canImport() returns false: unsupported DataFlavor transferable={0}", info.getTransferable());
         }
 
-
-        // Don't allow cross-chordleadsheet import
-        ChordLeadSheetItem<?> sourceItem = getTransferredItem(info.getTransferable());
-        assert sourceItem != null;
-        if (sourceItem.getContainer() != editor.getModel())
-        {
-            LOGGER.fine("canImport() return false: cross-chordleadsheet drag n drop not managed");
-            return false;
-        }
-
-
-        // Check if the source actions (a bitwise-OR of supported actions)
-        // contains the COPY or MOVE action
-        boolean copySupported = (COPY & info.getSourceDropActions()) == COPY;
-        boolean moveSupported = (MOVE & info.getSourceDropActions()) == MOVE;
-        if (!copySupported && !moveSupported)
-        {
-            LOGGER.fine("canImport() copy or move not supported");
-            return false;
-        }
-        if (!moveSupported)
-        {
-            info.setDropAction(COPY);
-        } else if (!copySupported)
-        {
-            info.setDropAction(MOVE);
-        }
-
-
-        // Show the insertion point
-        editor.showInsertionPoint(true, sourceItem, newPos, (info.getDropAction() & COPY) == COPY);
-
-
-        return true;
+        return b;
     }
+
 
     @Override
     public boolean importData(TransferSupport info)
@@ -205,6 +186,65 @@ public class CL_EditorTransferHandler extends TransferHandler
             return false;
         }
 
+        boolean b = false;
+        if (info.isDataFlavorSupported(DataFlavor.javaFileListFlavor))
+        {
+            b = importDataFile(info);
+        }
+        else
+        {
+            b = importDataItem(info);
+        }
+        return b;
+    }
+
+
+    // ==================================================================================
+    // Private methods
+    // ==================================================================================
+    private boolean importDataFile(TransferSupport info)
+    {
+
+        SongImporter importer = canImportFile(info);
+        if (importer == null)
+        {
+            return false;
+        }
+        File file;
+        try
+        {
+            file = ((List<File>) info.getTransferable().getTransferData(DataFlavor.javaFileListFlavor)).get(0);
+        }
+        catch (UnsupportedFlavorException | IOException ex)
+        {
+            return false;
+        }
+
+        Song song = null;
+        try
+        {
+            song = (importer == SPECIAL_SONG_IMPORTER_INSTANCE) ? Song.loadFromFile(file) : importer.importFromFile(file);
+        }
+        catch (SongCreationException | IOException ex)
+        {
+            LOGGER.log(Level.WARNING, "importDataFile() Error loading dragged-in file {0}: {1}", new Object[]
+            {
+                file.getAbsolutePath(), ex.getMessage()
+            });
+            String msg = ResUtil.getString(getClass(), "ErrLoadingDraggedInFile", file.getAbsolutePath(), ex.getLocalizedMessage());
+            NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
+            DialogDisplayer.getDefault().notify(d);
+        }
+        
+        
+        
+
+
+        return song != null;
+    }
+
+    private boolean importDataItem(TransferSupport info)
+    {
         // Fetch the Transferable and its data
         ChordLeadSheetItem<?> sourceItem = getTransferredItem(info.getTransferable());
         assert sourceItem != null;
@@ -246,7 +286,7 @@ public class CL_EditorTransferHandler extends TransferHandler
                 um.startCEdit(editName);
 
                 CLI_Section sectionCopy = cliSection.getCopy(newPos, cls);  // Adjust section name if required
-                
+
                 String errMsg = ResUtil.getString(getClass(), "IMPOSSIBLE TO COPY SECTION", cliSection.getData());
 
                 if (curSection.getPosition().getBar() == newBarIndex)
@@ -256,7 +296,8 @@ public class CL_EditorTransferHandler extends TransferHandler
                     {
                         cls.setSectionName(curSection, sectionCopy.getData().getName());
                         cls.setSectionTimeSignature(curSection, sectionCopy.getData().getTimeSignature());
-                    } catch (UnsupportedEditException ex)
+                    }
+                    catch (UnsupportedEditException ex)
                     {
                         errMsg += "\n" + ex.getLocalizedMessage();
                         um.handleUnsupportedEditException(editName, errMsg);
@@ -264,13 +305,15 @@ public class CL_EditorTransferHandler extends TransferHandler
                     }
                     editor.selectItem(curSection, true);
                     editor.setFocusOnItem(curSection, IR_Type.Section);
-                } else
+                }
+                else
                 {
                     try
                     {
                         // No section there, easy just copy
                         cls.addSection(sectionCopy);
-                    } catch (UnsupportedEditException ex)
+                    }
+                    catch (UnsupportedEditException ex)
                     {
                         errMsg += "\n" + ex.getLocalizedMessage();
                         um.handleUnsupportedEditException(editName, errMsg);
@@ -280,7 +323,8 @@ public class CL_EditorTransferHandler extends TransferHandler
                     editor.setFocusOnItem(sectionCopy, IR_Type.Section);
                 }
                 um.endCEdit(editName);
-            } else
+            }
+            else
             {
                 // Move mode
                 String editName = ResUtil.getString(getClass(), "MOVE SECTION");
@@ -296,7 +340,8 @@ public class CL_EditorTransferHandler extends TransferHandler
                         cls.removeSection(cliSection);
                         cls.setSectionName(curSection, cliSection.getData().getName());
                         cls.setSectionTimeSignature(curSection, cliSection.getData().getTimeSignature());
-                    } catch (UnsupportedEditException ex)
+                    }
+                    catch (UnsupportedEditException ex)
                     {
                         // Section is just moved, it was OK before and it should be OK after the move.
                         errMsg += "\n" + ex.getLocalizedMessage();
@@ -305,13 +350,15 @@ public class CL_EditorTransferHandler extends TransferHandler
                     }
                     editor.selectItem(curSection, true);
                     editor.setFocusOnItem(curSection, IR_Type.Section);
-                } else
+                }
+                else
                 {
                     try
                     {
                         // No section there, we can move
                         cls.moveSection(cliSection, newBarIndex);
-                    } catch (UnsupportedEditException ex)
+                    }
+                    catch (UnsupportedEditException ex)
                     {
                         errMsg += "\n" + ex.getLocalizedMessage();
                         um.handleUnsupportedEditException(editName, errMsg);
@@ -322,7 +369,8 @@ public class CL_EditorTransferHandler extends TransferHandler
                 }
                 um.endCEdit(editName);
             }
-        } else if (sourceItem instanceof CLI_BarAnnotation cliBa)
+        }
+        else if (sourceItem instanceof CLI_BarAnnotation cliBa)
         {
             if (sourceBarIndex == newBarIndex)
             {
@@ -346,14 +394,15 @@ public class CL_EditorTransferHandler extends TransferHandler
                 // There is already an annotation there, just update its content
                 cls.changeItem(curAnnotation, cliBa.getData());
                 editor.setFocusOnItem(curAnnotation, irType);
-                editor.selectItem(curAnnotation, true);                
-            } else
+                editor.selectItem(curAnnotation, true);
+            }
+            else
             {
                 // Add a new annotation
                 CLI_BarAnnotation cliCopy = (CLI_BarAnnotation) cliBa.getCopy(newPos);
                 cls.addItem(cliCopy);
                 editor.setFocusOnItem(cliCopy, irType);
-                editor.selectItem(cliCopy, true);                
+                editor.selectItem(cliCopy, true);
             }
 
             if (info.getDropAction() == MOVE)
@@ -365,7 +414,8 @@ public class CL_EditorTransferHandler extends TransferHandler
             um.endCEdit(editName);
 
 
-        } else // ChordSymbols
+        }
+        else // ChordSymbols
         {
             if (info.getDropAction() == COPY)
             {
@@ -378,7 +428,8 @@ public class CL_EditorTransferHandler extends TransferHandler
                 editor.setFocusOnItem(itemCopy, IR_Type.ChordSymbol);
                 editor.selectItem(itemCopy, true);
                 um.endCEdit(editName);
-            } else
+            }
+            else
             {
                 String editName = ResUtil.getString(getClass(), "MOVE ITEM");
                 um.startCEdit(editName);
@@ -393,9 +444,91 @@ public class CL_EditorTransferHandler extends TransferHandler
         return true;
     }
 
-    // ==================================================================================
-    // Private methods
-    // ==================================================================================
+    /**
+     * Check if the file transferable is openable or importable.
+     *
+     * If yes returns the SongImporter instance that can import it. If it's a standard Song file (.sng), returns the dummy
+     * SPECIAL_SONG_IMPORT_INSTANCE.
+     *
+     * @param info Should contain a DataFlavor.javaFileListFlavor
+     * @return Null if can't import this file.
+     */
+    private SongImporter canImportFile(TransferSupport info)
+    {
+        SongImporter res = null;
+        try
+        {
+            var files = (List<File>) info.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);     // throws Exception
+            if (files.size() == 1)
+            {
+                String ext = Utilities.getExtension(files.get(0).getName());
+                if (ext.equalsIgnoreCase("sng"))
+                {
+                    res = SPECIAL_SONG_IMPORTER_INSTANCE;
+                }
+                else
+                {
+                    var allImporters = SongImporter.getImporters();
+                    var importers = SongImporter.getMatchingImporters(allImporters, ext);
+                    res = importers.isEmpty() ? null : importers.get(0);
+                }
+            }
+        }
+        catch (UnsupportedFlavorException | IOException ex)
+        {
+            // Nothing
+        }
+
+        return res;
+    }
+
+    private boolean canImportItemRenderer(TransferSupport info)
+    {
+        // Check target location
+        Position newPos = getDropPosition(info);
+        if (newPos == null)
+        {
+            LOGGER.fine("canImport() return false: drop position not managed");
+            return false;
+        }
+
+
+        // Don't allow cross-chordleadsheet import
+        ChordLeadSheetItem<?> sourceItem = getTransferredItem(info.getTransferable());
+        assert sourceItem != null;
+        if (sourceItem.getContainer() != editor.getModel())
+        {
+            LOGGER.fine("canImport() return false: cross-chordleadsheet drag n drop not managed");
+            return false;
+        }
+
+
+        // Check if the source actions (a bitwise-OR of supported actions)
+        // contains the COPY or MOVE action
+        boolean copySupported = (COPY & info.getSourceDropActions()) == COPY;
+        boolean moveSupported = (MOVE & info.getSourceDropActions()) == MOVE;
+        if (!copySupported && !moveSupported)
+        {
+            LOGGER.fine("canImport() copy or move not supported");
+            return false;
+        }
+        if (!moveSupported)
+        {
+            info.setDropAction(COPY);
+        }
+        else if (!copySupported)
+        {
+            info.setDropAction(MOVE);
+        }
+
+
+        // Show the insertion point
+        editor.showInsertionPoint(true, sourceItem, newPos, (info.getDropAction() & COPY) == COPY);
+
+
+        return true;
+    }
+
     private ChordLeadSheetItem<?> getTransferredItem(Transferable t)
     {
         ChordLeadSheetItem<?> res = null;
@@ -404,14 +537,17 @@ public class CL_EditorTransferHandler extends TransferHandler
             if (t.isDataFlavorSupported(CLI_ChordSymbol.DATA_FLAVOR))
             {
                 res = (ChordLeadSheetItem<?>) t.getTransferData(CLI_ChordSymbol.DATA_FLAVOR);
-            } else if (t.isDataFlavorSupported(CLI_Section.DATA_FLAVOR))
+            }
+            else if (t.isDataFlavorSupported(CLI_Section.DATA_FLAVOR))
             {
                 res = (ChordLeadSheetItem<?>) t.getTransferData(CLI_Section.DATA_FLAVOR);
-            } else if (t.isDataFlavorSupported(CLI_BarAnnotation.DATA_FLAVOR))
+            }
+            else if (t.isDataFlavorSupported(CLI_BarAnnotation.DATA_FLAVOR))
             {
                 res = (ChordLeadSheetItem<?>) t.getTransferData(CLI_BarAnnotation.DATA_FLAVOR);
             }
-        } catch (UnsupportedFlavorException | IOException ex)
+        }
+        catch (UnsupportedFlavorException | IOException ex)
         {
             // Should never happen
             Exceptions.printStackTrace(ex);
@@ -455,5 +591,29 @@ public class CL_EditorTransferHandler extends TransferHandler
         }
         Position newPos = bb.getPositionFromPoint(p);
         return newPos;
+    }
+
+
+    private static class DummySongImporter implements SongImporter
+    {
+
+        @Override
+        public String getId()
+        {
+            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        }
+
+        @Override
+        public List<FileNameExtensionFilter> getSupportedFileTypes()
+        {
+            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        }
+
+        @Override
+        public Song importFromFile(File f) throws IOException, SongCreationException
+        {
+            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        }
+
     }
 }

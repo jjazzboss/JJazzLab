@@ -29,7 +29,7 @@ import java.util.prefs.Preferences;
 import org.jjazz.analytics.api.Analytics;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongUtilities;
-import org.jjazz.songeditormanager.api.SongEditorManager;
+import org.jjazz.editors.spi.SongEditorManager;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -72,7 +72,7 @@ public class LinearizeSong implements ActionListener
 
         Song newSong = SongUtilities.getLinearizedSong(song, true);
         newSong.setName(song.getName() + "-linearized");
-        SongEditorManager.getInstance().showSong(newSong, true, false);     // This will post a task on the EDT to display the song        
+        SongEditorManager.getDefault().showSong(newSong, true, false);     // This will post a task on the EDT to display the song        
         Analytics.logEvent("Linearize song");
     }
 

@@ -218,6 +218,7 @@
         <module>app/Base</module>
         <module>app/CL_Editor</module>
         <module>app/ChordInspector</module>
+        <module>app/Editors</module>
         <module>app/EasyReader</module>
         <module>app/FluidSynthEmbeddedSynth</module>
         <module>app/FluidSynthJava</module>

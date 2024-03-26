@@ -20,38 +20,45 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.cl_editor;
+package org.jjazz.editors.spi;
 
-import org.jjazz.song.api.Song;
-import org.jjazz.cl_editor.api.CL_Editor;
-import org.jjazz.cl_editor.api.CL_EditorFactory;
 import org.jjazz.cl_editor.spi.CL_EditorSettings;
+import org.jjazz.song.api.Song;
+import org.jjazz.cl_editor.CL_EditorFactoryImpl;
 import org.jjazz.cl_editor.barrenderer.api.BarRendererFactory;
+import org.openide.util.Lookup;
 
-public class CL_EditorFactoryImpl implements CL_EditorFactory
+public interface CL_EditorFactory
 {
 
-    static private CL_EditorFactoryImpl INSTANCE;
-
-    static public CL_EditorFactoryImpl getInstance()
+    static public CL_EditorFactory getDefault()
     {
-        synchronized (CL_EditorFactoryImpl.class)
+        CL_EditorFactory clef = Lookup.getDefault().lookup(CL_EditorFactory.class);
+        if (clef == null)
         {
-            if (INSTANCE == null)
-            {
-                INSTANCE = new CL_EditorFactoryImpl();
-            }
+            clef = CL_EditorFactoryImpl.getInstance();
         }
-        return INSTANCE;
+        return clef;
     }
 
-    private CL_EditorFactoryImpl()
+    /**
+     * Create an editor with the default settings.
+     *
+     * @param song
+     * @return
+     */
+    default CL_Editor createEditor(Song song)
     {
+        return createEditor(song, CL_EditorSettings.getDefault(), BarRendererFactory.getDefault());
     }
 
-    @Override
-    public CL_Editor createEditor(Song song, CL_EditorSettings settings, BarRendererFactory brf)
-    {
-        return new CL_EditorImpl(song, settings, brf);
-    }
+    /**
+     * Create an editor with the specified settings.
+     *
+     * @param song
+     * @param settings
+     * @param brf
+     * @return
+     */
+    CL_Editor createEditor(Song song, CL_EditorSettings settings, BarRendererFactory brf);
 }

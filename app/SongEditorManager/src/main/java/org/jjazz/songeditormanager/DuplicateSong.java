@@ -26,7 +26,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
-import org.jjazz.songeditormanager.api.SongEditorManager;
+import org.jjazz.editors.spi.SongEditorManager;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
@@ -62,7 +62,7 @@ public final class DuplicateSong implements ActionListener
         Song newSong = sf.getCopy(song, true);
         newSong.setName(song.getName() + " Copy" + counter);
         newSong.setSaveNeeded(false);
-        SongEditorManager sm = SongEditorManager.getInstance();
+        SongEditorManager sm = SongEditorManager.getDefault();
         sm.showSong(newSong, false, false);     //  This will post an EDT task to create the editors              
         counter++;
 

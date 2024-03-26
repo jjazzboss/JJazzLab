@@ -66,7 +66,7 @@ import org.jjazz.midimix.api.MidiMixManager;
 import org.jjazz.midimix.api.UserRhythmVoice;
 import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythmstubs.api.DummyRhythm;
-import org.jjazz.songeditormanager.api.SongEditorManager;
+import org.jjazz.editors.spi.SongEditorManager;
 import org.openide.util.Lookup;
 import org.openide.util.LookupEvent;
 import org.openide.util.LookupListener;
@@ -153,7 +153,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         ActiveSongManager.getDefault().addPropertyListener(this);
 
         // Listen to closed song events to cleanup our data
-        SongEditorManager.getInstance().addPropertyChangeListener(this);
+        SongEditorManager.getDefault().addPropertyChangeListener(this);
 
         // A dummy rhythm used by the visible rhythms combobox when all song rhythms are visible
         RHYTHM_ALL = new DummyRhythm(ResUtil.getString(getClass(), "MixConsole.CTL_DummyRhythmAll"), TimeSignature.FOUR_FOUR);
@@ -231,7 +231,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         removeAllChannels();
         settings.removePropertyChangeListener(this);
         ActiveSongManager.getDefault().removePropertyListener(this);
-        SongEditorManager.getInstance().removePropertyChangeListener(this);
+        SongEditorManager.getDefault().removePropertyChangeListener(this);
         songLkpListener = null;
         resetModel();
     }
@@ -532,7 +532,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
                 {
                 }
             }
-        } else if (e.getSource() == SongEditorManager.getInstance())
+        } else if (e.getSource() == SongEditorManager.getDefault())
         {
             if (e.getPropertyName().equals(SongEditorManager.PROP_SONG_CLOSED))
             {

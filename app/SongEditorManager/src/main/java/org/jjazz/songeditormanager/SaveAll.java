@@ -27,7 +27,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
-import org.jjazz.songeditormanager.api.SongEditorManager;
+import org.jjazz.editors.spi.SongEditorManager;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -52,14 +52,14 @@ public final class SaveAll extends AbstractAction implements PropertyChangeListe
 //        Icon icon = SystemAction.get(SaveAction.class).getIcon();
 //        putValue(SMALL_ICON, icon);
 
-        var sem = SongEditorManager.getInstance();
+        var sem = SongEditorManager.getDefault();
         sem.addPropertyChangeListener(this);
     }
 
     @Override
     public void actionPerformed(ActionEvent ev)
     {
-        var sem = SongEditorManager.getInstance();
+        var sem = SongEditorManager.getDefault();
         int nbSavedFiles = 0;
         for (var song : sem.getOpenedSongs())
         {
@@ -90,7 +90,7 @@ public final class SaveAll extends AbstractAction implements PropertyChangeListe
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
-        var sem = SongEditorManager.getInstance();
+        var sem = SongEditorManager.getDefault();
         if (evt.getSource() == sem)
         {
             if (evt.getPropertyName().equals(SongEditorManager.PROP_SONG_CLOSED)

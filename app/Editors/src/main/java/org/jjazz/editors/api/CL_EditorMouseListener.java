@@ -20,38 +20,28 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.cl_editor;
+package org.jjazz.editors.api;
 
-import org.jjazz.song.api.Song;
-import org.jjazz.cl_editor.api.CL_Editor;
-import org.jjazz.cl_editor.api.CL_EditorFactory;
-import org.jjazz.cl_editor.spi.CL_EditorSettings;
-import org.jjazz.cl_editor.barrenderer.api.BarRendererFactory;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
+import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
+import org.jjazz.itemrenderer.api.IR_Type;
 
-public class CL_EditorFactoryImpl implements CL_EditorFactory
+/**
+ * A listener for mouse events of interest.
+ */
+public interface CL_EditorMouseListener
 {
 
-    static private CL_EditorFactoryImpl INSTANCE;
+    public void itemClicked(MouseEvent e, ChordLeadSheetItem<?> item, IR_Type irType);
 
-    static public CL_EditorFactoryImpl getInstance()
-    {
-        synchronized (CL_EditorFactoryImpl.class)
-        {
-            if (INSTANCE == null)
-            {
-                INSTANCE = new CL_EditorFactoryImpl();
-            }
-        }
-        return INSTANCE;
-    }
+    public void itemWheelMoved(MouseWheelEvent e, ChordLeadSheetItem<?> item, IR_Type irType);
 
-    private CL_EditorFactoryImpl()
-    {
-    }
+    public void barClicked(MouseEvent e, int barIndex);
 
-    @Override
-    public CL_Editor createEditor(Song song, CL_EditorSettings settings, BarRendererFactory brf)
-    {
-        return new CL_EditorImpl(song, settings, brf);
-    }
+    public void barDragged(MouseEvent e, int barIndex);
+
+    public void barReleased(MouseEvent e, int barIndex);
+
+    public void editorWheelMoved(MouseWheelEvent e);
 }

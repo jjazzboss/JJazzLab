@@ -22,6 +22,7 @@
  */
 package org.jjazz.songeditormanager.api;
 
+import org.jjazz.editors.spi.SongEditorManager;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -162,7 +163,7 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
                         {
                             // Directly open the file and activate it
                             boolean last = fileName == fileNames[fileNames.length - 1];
-                            SongEditorManager.getInstance().showSong(file, last, true);
+                            SongEditorManager.getDefault().showSong(file, last, true);
                         } catch (SongCreationException ex)
                         {
                             LOGGER.log(Level.WARNING, "process() Problem opening song file: {0}. ex={1}", new Object[]{file.getAbsolutePath(),
@@ -195,7 +196,7 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
     @Override
     public Boolean call() throws Exception
     {
-        SongEditorManager sem = SongEditorManager.getInstance();
+        SongEditorManager sem = SongEditorManager.getDefault();
 
 
         // Ask user confirmation if there are still files to be saved
@@ -275,7 +276,7 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
             var instance = StartupShutdownSongManager.getInstance();
             if (!instance.cmdLineFilesToOpen.isEmpty())
             {
-                var sem = SongEditorManager.getInstance();
+                var sem = SongEditorManager.getDefault();
 
                 for (File f : instance.cmdLineFilesToOpen)
                 {
@@ -326,7 +327,7 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
                         boolean last = (i == max - 1);
                         try
                         {
-                            SongEditorManager.getInstance().showSong(f, last, true);
+                            SongEditorManager.getDefault().showSong(f, last, true);
                         } catch (SongCreationException ex)
                         {
                             LOGGER.log(Level.WARNING, "openRecentFilesUponStartup.run() Problem opening song file: {0}. ex={1}", new Object[]{f.getAbsolutePath(),

@@ -43,7 +43,7 @@ import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
 import org.jjazz.song.api.SongCreationException;
 import org.jjazz.song.spi.SongImporter;
-import org.jjazz.songeditormanager.api.SongEditorManager;
+import org.jjazz.editors.spi.SongEditorManager;
 import org.jjazz.upgrade.api.UpgradeManager;
 import org.jjazz.upgrade.api.UpgradeTask;
 import org.jjazz.utilities.api.ResUtil;
@@ -80,7 +80,7 @@ public final class ImportSong implements ActionListener
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        final List<SongImporter> importers = getAllImporters();
+        final List<SongImporter> importers = SongImporter.getImporters();
         if (importers.isEmpty())
         {
             NotifyDescriptor d = new NotifyDescriptor.Message(bundle.getString("ErrNoImporterFound"), NotifyDescriptor.ERROR_MESSAGE);
@@ -155,7 +155,7 @@ public final class ImportSong implements ActionListener
             if (importer == null)
             {
                 // No association yet, search the compatible importers
-                List<SongImporter> fImporters = getMatchingImporters(importers, ext);
+                List<SongImporter> fImporters = SongImporter.getMatchingImporters(importers, ext);
                 if (fImporters.isEmpty())
                 {
                     // Extension not managed by any SongImporter
@@ -238,7 +238,7 @@ public final class ImportSong implements ActionListener
                 SongFactory.getInstance().registerSong(song);
 
                 boolean last = (f == songFiles.get(songFiles.size() - 1));
-                SongEditorManager.getInstance().showSong(song, last, true);
+                SongEditorManager.getDefault().showSong(song, last, true);
             }
         }
     }
@@ -246,44 +246,7 @@ public final class ImportSong implements ActionListener
     // ================================================================================================
     // Private methods
     // ================================================================================================
-    private List<SongImporter> getAllImporters()
-    {
-        ArrayList<SongImporter> providers = new ArrayList<>();
-        for (SongImporter p : Lookup.getDefault().lookupAll(SongImporter.class))
-        {
-            providers.add(p);
-        }
-        return providers;
-    }
-
-    /**
-     * Select the importers which accept fileExtesion.
-     *
-     * @param importers
-     * @param fileExtension
-     * @return
-     */
-    private List<SongImporter> getMatchingImporters(List<SongImporter> importers, String fileExtension)
-    {
-        ArrayList<SongImporter> res = new ArrayList<>();
-        for (SongImporter importer : importers)
-        {
-            for (FileNameExtensionFilter f : importer.getSupportedFileTypes())
-            {
-                for (String ext : f.getExtensions())
-                {
-                    if (ext.toLowerCase().equals(fileExtension.toLowerCase()))
-                    {
-                        if (!res.contains(importer))
-                        {
-                            res.add(importer);
-                        }
-                    }
-                }
-            }
-        }
-        return res;
-    }
+ 
 
     /**
      *

@@ -22,12 +22,15 @@
  */
 package org.jjazz.song.spi;
 
+import com.google.common.base.Preconditions;
 import org.jjazz.song.api.SongCreationException;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import org.jjazz.song.api.Song;
+import org.openide.util.Lookup;
 
 /**
  * An interface for objects able to import a song object from a file.
@@ -36,18 +39,66 @@ public interface SongImporter
 {
 
     /**
+     * Get all available SongImporters instances present in the global lookup.
+     *
+     * @return
+     */
+    public static List<SongImporter> getImporters()
+    {
+        ArrayList<SongImporter> providers = new ArrayList<>();
+        for (SongImporter p : Lookup.getDefault().lookupAll(SongImporter.class))
+        {
+            providers.add(p);
+        }
+        return providers;
+    }
+
+    /**
+     * Select the importers which accept the specified file extension.
+     *
+     * @param importers
+     * @param fileExtension e.g. "sng"
+     * @return
+     */
+    public static List<SongImporter> getMatchingImporters(List<SongImporter> importers, String fileExtension)
+    {
+        Preconditions.checkNotNull(importers);
+        Preconditions.checkNotNull(fileExtension);
+
+        ArrayList<SongImporter> res = new ArrayList<>();
+
+        for (SongImporter importer : importers)
+        {
+            for (FileNameExtensionFilter f : importer.getSupportedFileTypes())
+            {
+                for (String ext : f.getExtensions())
+                {
+                    if (ext.toLowerCase().equals(fileExtension.toLowerCase()))
+                    {
+                        if (!res.contains(importer))
+                        {
+                            res.add(importer);
+                        }
+                    }
+                }
+            }
+        }
+        return res;
+    }
+
+    /**
      * A unique id or name for the importer.
      *
      * @return
      */
-    public String getId();
+    String getId();
 
     /**
      * Get the list of file types which can be read by this object.
      *
      * @return Can't be empty.
      */
-    public List<FileNameExtensionFilter> getSupportedFileTypes();
+    List<FileNameExtensionFilter> getSupportedFileTypes();
 
     /**
      * Try to build a Song object from the specified file.
@@ -58,6 +109,7 @@ public interface SongImporter
      * @throws java.io.IOException
      * @throws org.jjazz.song.api.SongCreationException
      */
-    public Song importFromFile(File f) throws IOException, SongCreationException;
+    Song importFromFile(File f) throws IOException, SongCreationException;
+
 
 }

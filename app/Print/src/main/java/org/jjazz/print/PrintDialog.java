@@ -39,7 +39,7 @@ import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
 import org.jjazz.song.api.SongUtilities;
-import org.jjazz.songeditormanager.api.SongEditorManager;
+import org.jjazz.editors.spi.SongEditorManager;
 import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.ss_editor.api.SS_Editor;
 import org.jjazz.uiutilities.api.SingleComponentAspectRatioKeeperLayout;
@@ -117,7 +117,7 @@ public class PrintDialog extends javax.swing.JDialog implements ChangeListener
 
 
         // Create/update our LeadSheetPrinter pageable
-        var res = SongEditorManager.getInstance().getEditors(refSong);
+        var res = SongEditorManager.getDefault().getSongEditorSet(refSong);
         actualClEditor = res.getCL_EditorTc().getEditor();
         actualSsEditor = res.getSS_EditorTc().getEditor();
         int zoomVFactor = actualClEditor.getZoomVFactor();

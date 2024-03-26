@@ -46,7 +46,7 @@ import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_TempoFactor;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
 import org.jjazz.songeditormanager.CreatePracticeSongDialog.Config;
-import org.jjazz.songeditormanager.api.SongEditorManager;
+import org.jjazz.editors.spi.SongEditorManager;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;
@@ -162,7 +162,7 @@ public final class CreatePracticeSong extends AbstractAction implements ContextA
 
         // Update and display newSong      
         updateSongForPractice(newSong, LAST_CONFIG.tempoStart, LAST_CONFIG.tempoEnd, LAST_CONFIG.nbSteps);
-        SongEditorManager.getInstance().showSong(newSong, true, true);      // Make song appear as modified/savable
+        SongEditorManager.getDefault().showSong(newSong, true, true);      // Make song appear as modified/savable
 
         Analytics.logEvent("Create practice song");
 

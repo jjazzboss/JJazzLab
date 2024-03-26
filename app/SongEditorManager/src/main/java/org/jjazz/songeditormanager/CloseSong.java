@@ -25,7 +25,7 @@ package org.jjazz.songeditormanager;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import org.jjazz.song.api.Song;
-import org.jjazz.songeditormanager.api.SongEditorManager;
+import org.jjazz.editors.spi.SongEditorManager;
 import org.openide.awt.ActionID; 
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
@@ -57,6 +57,6 @@ public final class CloseSong implements ActionListener
     @Override
     public void actionPerformed(ActionEvent ev)
     {
-        SongEditorManager.getInstance().closeSong(context, false);
+        SongEditorManager.getDefault().closeSong(context, false);
     }
 }

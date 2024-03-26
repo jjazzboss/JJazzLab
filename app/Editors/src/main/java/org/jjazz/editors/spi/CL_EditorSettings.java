@@ -20,38 +20,38 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.cl_editor;
+package org.jjazz.editors.spi;
 
-import org.jjazz.song.api.Song;
-import org.jjazz.cl_editor.api.CL_Editor;
-import org.jjazz.cl_editor.api.CL_EditorFactory;
-import org.jjazz.cl_editor.spi.CL_EditorSettings;
-import org.jjazz.cl_editor.barrenderer.api.BarRendererFactory;
+import java.awt.Color;
+import java.beans.PropertyChangeListener;
+import org.jjazz.cl_editor.barbox.api.BarBoxSettings;
+import org.openide.util.Lookup;
 
-public class CL_EditorFactoryImpl implements CL_EditorFactory
+public interface CL_EditorSettings
 {
 
-    static private CL_EditorFactoryImpl INSTANCE;
+    public static String PROP_BACKGROUND_COLOR = "BackgroundColor";
 
-    static public CL_EditorFactoryImpl getInstance()
+    public static CL_EditorSettings getDefault()
     {
-        synchronized (CL_EditorFactoryImpl.class)
+        CL_EditorSettings result = Lookup.getDefault().lookup(CL_EditorSettings.class);
+        if (result == null)
         {
-            if (INSTANCE == null)
-            {
-                INSTANCE = new CL_EditorFactoryImpl();
-            }
+            throw new NullPointerException("result=" + result);   
         }
-        return INSTANCE;
+        return result;
+    }
+    
+    default BarBoxSettings getBarBoxSettings()
+    {
+        return BarBoxSettings.getDefault();
     }
 
-    private CL_EditorFactoryImpl()
-    {
-    }
+    Color getBackgroundColor();
 
-    @Override
-    public CL_Editor createEditor(Song song, CL_EditorSettings settings, BarRendererFactory brf)
-    {
-        return new CL_EditorImpl(song, settings, brf);
-    }
+    void setBackgroundColor(Color color);
+
+    void addPropertyChangeListener(PropertyChangeListener listener);
+
+    void removePropertyChangeListener(PropertyChangeListener listener);
 }

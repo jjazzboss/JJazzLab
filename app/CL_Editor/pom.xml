@@ -128,13 +128,12 @@
         <dependency> 
             <groupId>${project.groupId}</groupId> 
             <artifactId>org-jjazz-utilities</artifactId> 
-            <version>${project.version}</version>  
+            <version>${project.version}</version>
         </dependency>  
         <dependency>
             <groupId>org.jjazzlab</groupId>
             <artifactId>org-jjazz-importers</artifactId>
             <version>${project.version}</version>
-            <type>jar</type>
         </dependency>        
         <dependency> 
             <groupId>org.netbeans.api</groupId> 

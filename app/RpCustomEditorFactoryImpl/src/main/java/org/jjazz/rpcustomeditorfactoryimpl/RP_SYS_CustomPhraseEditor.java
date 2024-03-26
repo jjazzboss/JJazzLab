@@ -27,7 +27,7 @@ import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhrase;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhraseValue;
 import org.jjazz.song.api.Song;
 import org.jjazz.songcontext.api.SongPartContext;
-import org.jjazz.songeditormanager.api.SongEditorManager;
+import org.jjazz.editors.spi.SongEditorManager;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ss_editor.rpviewer.spi.RpCustomEditor;
 import org.jjazz.uiutilities.api.UIUtilities;
@@ -323,7 +323,7 @@ public class RP_SYS_CustomPhraseEditor extends RpCustomEditor<RP_SYS_CustomPhras
         var spt = songPartContext.getSongPart();
 
 
-        SongEditorManager.getInstance().showPianoRollEditorForSptCustomPhrase(song, midiMix, spt, rv, p);
+        SongEditorManager.getDefault().showPianoRollEditorForSptCustomPhrase(song, midiMix, spt, rv, p);
 
     }
 

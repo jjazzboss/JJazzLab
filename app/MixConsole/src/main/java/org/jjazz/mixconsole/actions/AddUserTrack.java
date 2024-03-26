@@ -34,7 +34,7 @@ import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.MidiMixManager;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.song.api.Song;
-import org.jjazz.songeditormanager.api.SongEditorManager;
+import org.jjazz.editors.spi.SongEditorManager;
 import org.jjazz.mixconsole.api.MixConsole;
 import org.jjazz.mixconsole.api.MixConsoleTopComponent;
 import org.jjazz.undomanager.api.JJazzUndoManager;
@@ -150,7 +150,7 @@ public class AddUserTrack extends AbstractAction
         MidiMix midiMix = MidiMixManager.getInstance().findExistingMix(song);
         var userRv = midiMix.getUserRhythmVoice(name);
         assert userRv != null : " midiMix=" + midiMix + " name=" + name;
-        SongEditorManager.getInstance().showPianoRollEditorForUserTrack(song, midiMix, userRv);
+        SongEditorManager.getDefault().showPianoRollEditorForUserTrack(song, midiMix, userRv);
         
         return true;
     }
