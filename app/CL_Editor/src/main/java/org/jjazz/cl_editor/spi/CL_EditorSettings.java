@@ -24,7 +24,6 @@ package org.jjazz.cl_editor.spi;
 
 import java.awt.Color;
 import java.beans.PropertyChangeListener;
-import org.jjazz.cl_editor.barbox.api.BarBoxSettings;
 import org.openide.util.Lookup;
 
 public interface CL_EditorSettings

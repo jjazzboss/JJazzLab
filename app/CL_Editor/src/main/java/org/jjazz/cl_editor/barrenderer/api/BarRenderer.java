@@ -22,6 +22,7 @@
  */
 package org.jjazz.cl_editor.barrenderer.api;
 
+import org.jjazz.cl_editor.spi.BarRendererSettings;
 import java.awt.*;
 import java.beans.*;
 import java.util.*;

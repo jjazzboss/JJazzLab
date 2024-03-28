@@ -70,3 +70,4 @@ nb-configuration.xml
 /app/PopupWindowMenuPatch/target/
 /app/application/target/
 /core/FlatComponents/target/
+/app/CL_EditorImpl/target/

@@ -34,7 +34,7 @@ import org.jjazz.midimix.api.MidiMixManager;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongCreationException;
 import org.jjazz.song.api.SongFactory;
-import org.jjazz.editors.spi.SongEditorManager;
+import org.jjazz.songeditormanager.spi.SongEditorManager;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;

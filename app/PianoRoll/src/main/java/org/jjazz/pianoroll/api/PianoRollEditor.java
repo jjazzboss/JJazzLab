@@ -94,7 +94,7 @@ import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.song.api.Song;
 import org.jjazz.instrumentcomponents.keyboard.api.KeyboardComponent;
 import org.jjazz.instrumentcomponents.keyboard.api.KeyboardRange;
-import org.jjazz.uiutilities.api.MidiFileDragInTransferHandler;
+import org.jjazz.uiutilities.api.SingleFileDragInTransferHandler;
 import static org.jjazz.uiutilities.api.UIUtilities.getGenericControlKeyStroke;
 import org.jjazz.uiutilities.api.Zoomable;
 import org.jjazz.undomanager.api.JJazzUndoManager;
@@ -352,7 +352,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     /**
      * Set the edited model.
      * <p>
-     * Fire a PROP_MODEL_PHRASE change event if p is different from existing model.
+     * Can fire PROP_MODEL_PHRASE and PROP_MODEL_CHANNEL change events.
      *
      * @param p              The phrase model
      * @param beatRange      The edited part of the phrase model
@@ -1766,9 +1766,8 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     /**
      * Handle a Midi file dragged into the notesPanel
      */
-    private class MidiFileDragInTransferHandlerImpl extends MidiFileDragInTransferHandler
+    private class MidiFileDragInTransferHandlerImpl extends SingleFileDragInTransferHandler
     {
-
 
         @Override
         protected boolean isImportEnabled()
@@ -1777,7 +1776,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         }
 
         @Override
-        protected boolean importMidiFile(File midiFile)
+        protected boolean importFile(File midiFile)
         {
 
             if (midiFile.length() == 0)
@@ -1833,6 +1832,12 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
             }
 
             return true;
+        }
+
+        @Override
+        protected Collection<String> getAcceptedFileExtensions()
+        {
+            return Arrays.asList("mid");
         }
     }
 }

@@ -28,26 +28,25 @@ import javax.swing.JDialog;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
-import org.jjazz.cl_editor.editors.CL_BarEditorDialogImpl;
 import org.openide.util.*;
 import org.openide.windows.WindowManager;
 
 /**
  * A JDialog used to edit a ChordLeadSheet bar.
  * <p>
- * The Dialog should not directly change the model, it should just return the proposed changes. The calling application will
- * update the model (if dialog returned OK) and manage the undo/redo aspects.
+ * The Dialog should not directly change the model, it should just return the proposed changes. The calling application will update the model (if dialog
+ * returned OK) and manage the undo/redo aspects.
  * <p>
  */
 public abstract class CL_BarEditorDialog extends JDialog
 {
-
+    
     public static CL_BarEditorDialog getDefault()
     {
         CL_BarEditorDialog o = Lookup.getDefault().lookup(CL_BarEditorDialog.class);
         if (o == null)
         {
-            o = CL_BarEditorDialogImpl.getInstance();
+            throw new IllegalArgumentException("No CL_BarEditorDialog instance found");
         }
         return o;
     }
@@ -64,9 +63,9 @@ public abstract class CL_BarEditorDialog extends JDialog
      * Preset the dialog before using it.
      *
      * @param preset
-     * @param cls ChordLeadSheet
+     * @param cls      ChordLeadSheet
      * @param barIndex
-     * @param swing If true the bar is in swing mode, eg half-bar position for a 3/4 rhythm is 5/3=1.666...
+     * @param swing    If true the bar is in swing mode, eg half-bar position for a 3/4 rhythm is 5/3=1.666...
      */
     abstract public void preset(Preset preset, ChordLeadSheet cls, int barIndex, boolean swing);
 
@@ -105,7 +104,7 @@ public abstract class CL_BarEditorDialog extends JDialog
 
     /**
      * Cleanup references to preset data and dialog results.
-     *
+     * <p>
      */
     abstract public void cleanup();
 }

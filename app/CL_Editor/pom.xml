@@ -1,4 +1,3 @@
-
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
@@ -45,25 +44,9 @@
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-analytics</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-base</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-flatcomponents</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
             <groupId>${project.groupId}</groupId>
             <artifactId>org-jjazz-guava</artifactId>
             <version>${project.version}</version>
-            
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
@@ -87,22 +70,7 @@
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-rhythm</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-rhythmdatabase</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
             <artifactId>org-jjazz-song</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-songstructure</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
@@ -117,16 +85,6 @@
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-undomanager</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-upgrade</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
             <artifactId>org-jjazz-utilities</artifactId> 
             <version>${project.version}</version>
         </dependency>  
@@ -137,17 +95,7 @@
         </dependency>        
         <dependency> 
             <groupId>org.netbeans.api</groupId> 
-            <artifactId>org-netbeans-api-annotations-common</artifactId> 
-            <version>${netbeans.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>org.netbeans.api</groupId> 
             <artifactId>org-netbeans-modules-settings</artifactId> 
-            <version>${netbeans.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>org.netbeans.api</groupId> 
-            <artifactId>org-openide-actions</artifactId> 
             <version>${netbeans.version}</version>  
         </dependency>  
         <dependency> 
@@ -158,11 +106,6 @@
         <dependency> 
             <groupId>org.netbeans.api</groupId> 
             <artifactId>org-openide-dialogs</artifactId> 
-            <version>${netbeans.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>org.netbeans.api</groupId> 
-            <artifactId>org-openide-filesystems</artifactId> 
             <version>${netbeans.version}</version>  
         </dependency>  
         <dependency> 

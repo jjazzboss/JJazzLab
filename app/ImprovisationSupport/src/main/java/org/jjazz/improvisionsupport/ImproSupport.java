@@ -46,7 +46,7 @@ import org.jjazz.song.api.StructuralChangeListener;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.cl_editor.barbox.api.BarBoxConfig;
-import org.jjazz.cl_editor.barrenderer.api.BarRendererFactory;
+import org.jjazz.cl_editor.spi.BarRendererFactory;
 import org.jjazz.utilities.api.ResUtil;
 
 /**

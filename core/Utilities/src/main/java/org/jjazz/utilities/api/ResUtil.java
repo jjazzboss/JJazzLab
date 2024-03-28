@@ -22,7 +22,6 @@
  */
 package org.jjazz.utilities.api;
 
-import java.util.ArrayList;
 import java.util.ResourceBundle;
 import java.util.logging.Logger;
 
@@ -38,7 +37,7 @@ public class ResUtil
     /**
      * Retrieve the resource string from key.
      * <p>
-     * Assume that the resource bundle is in aClass.getPackageName()+"/Bundle".
+     * Assume that the resource bundle is in aClass.getPackageName()+"/Bundle*".
      *
      * @param cl
      * @param key
@@ -47,7 +46,7 @@ public class ResUtil
      */
     static public String getString(Class<?> cl, String key, Object... params)
     {
-        
+
         ResourceBundle bundle = getBundle(cl);
         String s = bundle.getString(key);
         String res = java.text.MessageFormat.format(s, params);   // Return OK even if é è IF ONLY it's not a lazy=true declarations
@@ -67,4 +66,18 @@ public class ResUtil
         return ResourceBundle.getBundle(cl.getPackageName().replace('.', '/') + "/Bundle", cl.getModule());
     }
 
+    /**
+     * Get a translated string for common messages which are used at several places in the application.
+     * <p>
+     * See file resources/org/jjazz/utilities/api/Bundle.properties for the available common strings.
+     *
+     * @param key
+     * @param params Optional parameters to be used if the resource string is a compound message
+     * @return Can't be null
+     */
+    static public String getCommonString(String key, Object... params)
+    {
+        String res = getString(ResUtil.class, key, params);
+        return (res == null) ? "<" + key + ">" : res;
+    }
 }

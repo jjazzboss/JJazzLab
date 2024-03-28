@@ -25,15 +25,14 @@ package org.jjazz.cl_editor.spi;
 import javax.swing.JDialog;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
-import org.jjazz.cl_editor.editors.ChordSymbolEditorDialogImpl;
 import org.openide.util.Lookup;
 import org.openide.windows.WindowManager;
 
 /**
  * An editor dialog for a chord symbol.
  * <p>
- * The Dialog should not directly change the model, it should just return the proposed changes. The calling application will
- * update the model if OK and manage the undo/redo aspects.
+ * The Dialog should not directly change the model, it should just return the proposed changes. The calling application will update the model if OK and manage
+ * the undo/redo aspects.
  */
 public abstract class ChordSymbolEditorDialog extends JDialog
 {
@@ -48,7 +47,7 @@ public abstract class ChordSymbolEditorDialog extends JDialog
         ChordSymbolEditorDialog o = Lookup.getDefault().lookup(ChordSymbolEditorDialog.class);
         if (o == null)
         {
-            o = ChordSymbolEditorDialogImpl.getInstance();
+            throw new IllegalArgumentException("No ChordSymbolEditorDialog instance found");
         }
         return o;
     }
@@ -64,9 +63,9 @@ public abstract class ChordSymbolEditorDialog extends JDialog
     /**
      * Prepare the dialog before being used.
      *
-     * @param title Dialog title
+     * @param title           Dialog title
      * @param item
-     * @param key If different from 0 it represents the pressed key which triggered this dialog.
+     * @param key             If different from 0 it represents the pressed key which triggered this dialog.
      * @param enableAlternate Enable the edition of the alternate chord symbol
      */
     abstract public void preset(String title, CLI_ChordSymbol item, char key, boolean enableAlternate);

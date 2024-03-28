@@ -29,7 +29,7 @@ import java.util.prefs.Preferences;
 import org.jjazz.analytics.api.Analytics;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongUtilities;
-import org.jjazz.editors.spi.SongEditorManager;
+import org.jjazz.songeditormanager.spi.SongEditorManager;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;

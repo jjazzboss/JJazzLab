@@ -35,7 +35,7 @@ import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.song.api.Song;
 import org.jjazz.cl_editor.barbox.api.BarBoxConfig;
-import org.jjazz.cl_editor.barrenderer.api.BarRendererFactory;
+import org.jjazz.cl_editor.spi.BarRendererFactory;
 import org.jjazz.itemrenderer.api.IR_Type;
 import org.openide.awt.UndoRedo;
 import org.openide.util.Lookup;

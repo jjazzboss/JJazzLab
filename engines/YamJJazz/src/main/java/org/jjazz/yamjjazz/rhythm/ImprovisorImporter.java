@@ -410,7 +410,7 @@ public class ImprovisorImporter implements SongImporter
             RhythmInfo ri = rdb.getRhythm(id);
             if (ri == null)
             {
-                LOGGER.log(Level.WARNING, "initMap() No rhythm found for rhythmId: {0}", id);
+                LOGGER.log(Level.FINE, "initMap() No rhythm found for rhythmId: {0}", id);
                 map.remove(key);
             }
         }

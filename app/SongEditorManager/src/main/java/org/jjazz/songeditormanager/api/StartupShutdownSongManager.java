@@ -22,7 +22,6 @@
  */
 package org.jjazz.songeditormanager.api;
 
-import org.jjazz.editors.spi.SongEditorManager;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,6 +37,7 @@ import javax.swing.SwingUtilities;
 import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongCreationException;
+import org.jjazz.songeditormanager.spi.SongEditorManager;
 import org.jjazz.startup.spi.StartupTask;
 import org.jjazz.upgrade.api.UpgradeManager;
 import org.jjazz.upgrade.api.UpgradeTask;

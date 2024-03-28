@@ -46,7 +46,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.jjazz.song.api.Song;
 import org.jjazz.cl_editor.api.CL_Editor;
-import org.jjazz.cl_editor.api.CL_EditorFactory;
+import org.jjazz.cl_editor.spi.CL_EditorFactory;
 import org.jjazz.flatcomponents.api.FixedPreferredWidthPanel;
 
 /**

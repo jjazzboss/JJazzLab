@@ -30,11 +30,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 import javax.swing.Action;
+import javax.swing.JToolBar;
 import org.jjazz.activesong.spi.ActiveSongManager;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.cl_editor.spi.CL_EditorFactory;
 import org.jjazz.song.api.Song;
-import org.jjazz.cl_editor.CL_EditorController;
-import org.jjazz.cl_editor.CL_EditorToolBar;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.awt.UndoRedo;
@@ -66,24 +66,16 @@ public final class CL_EditorTopComponent extends TopComponent implements Propert
      * The ChordLeadSheet editor.
      */
     private CL_Editor clEditor;
-    private CL_EditorToolBar clToolBar;
-    /**
-     * The editor's controller.
-     */
-    private CL_EditorController clEditorController;
+    private JToolBar clToolBar;
     private boolean silentClose;
 
-    /**
-     * The paired TopComponent.
-     */
-    private TopComponent pairedTc;
     private static final Logger LOGGER = Logger.getLogger(CL_EditorTopComponent.class.getSimpleName());
 
     public CL_EditorTopComponent(Song song)
     {
         if (song == null || song.getChordLeadSheet() == null)
         {
-            throw new IllegalArgumentException("song=" + song);   
+            throw new IllegalArgumentException("song=" + song);
         }
         songModel = song;
         songModel.addPropertyChangeListener(this);
@@ -100,26 +92,22 @@ public final class CL_EditorTopComponent extends TopComponent implements Propert
         ActiveSongManager.getDefault().addPropertyListener(this);
 
         // Create our editor
-        clEditor = CL_EditorFactory.getDefault().createEditor(songModel);
+        var clef = CL_EditorFactory.getDefault();
+        clEditor = clef.createEditor(songModel);
+        clToolBar = clef.createEditorToolbar(clEditor);
 
-        // Our controller
-        clEditorController = new CL_EditorController(clEditor);     // This will update our songModel via Song.putClientProperty() by updating the zoom factors 
-        clEditor.setEditorMouseListener(clEditorController);
 
-        
-        clToolBar = new CL_EditorToolBar(clEditor);
-        
         initComponents();
 
-        
+
         updateTabName();
-        
-        
+
+
         // Note: since NB 17 (?), these actions also need to be in the TopComponent ActionMap,  in addition to the ActionMap in Lookup (see CL_EditorController.java)
         getActionMap().put("cut-to-clipboard", Actions.forID("JJazz", "org.jjazz.cl_editor.actions.cut"));
         getActionMap().put("copy-to-clipboard", Actions.forID("JJazz", "org.jjazz.cl_editor.actions.copy"));
         getActionMap().put("paste-from-clipboard", Actions.forID("JJazz", "org.jjazz.cl_editor.actions.paste"));
-        
+
     }
 
     @Override
@@ -153,54 +141,35 @@ public final class CL_EditorTopComponent extends TopComponent implements Propert
     {
         return TopComponent.PERSISTENCE_NEVER;
     }
-    
+
     /**
      * Close the TopComponent without asking for user confirmation.
      */
     public void closeSilent()
     {
-        silentClose=true;
+        silentClose = true;
         close();
     }
 
     @Override
     public boolean canClose()
     {
-        if (silentClose)
-        {
-            return true;
-        }
 
-        if (pairedTc != null && !pairedTc.isOpened())
+        if (!silentClose && songModel.isSaveNeeded())
         {
-            // SS_Editor was closed first, just let this TopComponent be closed
-            return true;
-        }
-
-        
-        if (songModel.isSaveNeeded())
-        {
-            String msg = songModel.getName() + " : " + ResUtil.getString(getClass(), "CTL_CL_ConfirmClose");
+            String msg = songModel.getName() + " : " + ResUtil.getCommonString("CTL_CL_ConfirmClose");
             NotifyDescriptor nd = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.OK_CANCEL_OPTION);
             Object result = DialogDisplayer.getDefault().notify(nd);
             if (result != NotifyDescriptor.OK_OPTION)
             {
                 return false;
             }
+            songModel.setSaveNeeded(false); // To not make other song editors (eg SS_EditorTopComponent) also ask for user confirmation
         }
+
         return true;
     }
 
-    /**
-     * Bind this TopComponent to another TopComponent. Show/Close operations initiated on this TopComponent will be replicated on
-     * the paired TopComponent.
-     *
-     * @param tc
-     */
-    public void setPairedTopComponent(TopComponent tc)
-    {
-        pairedTc = tc;
-    }
 
     public CL_Editor getEditor()
     {
@@ -232,8 +201,7 @@ public final class CL_EditorTopComponent extends TopComponent implements Propert
     /**
      * Return the visible CL_EditorTopComponent within its window mode.
      * <p>
-     * The visible SS_EditorTopComponent might not be the active one (for example if it's the corresponding SS_EditorTopComponent
-     * which is active)
+     * The visible SS_EditorTopComponent might not be the active one (for example if it's the corresponding SS_EditorTopComponent which is active)
      *
      * @return Can be null if no SS_EditorTopComponent within its window mode.
      */
@@ -267,8 +235,8 @@ public final class CL_EditorTopComponent extends TopComponent implements Propert
     }
 
     /**
-     * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of
-     * this method is always regenerated by the Form Editor.
+     * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of this method is always
+     * regenerated by the Form Editor.
      */
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents()
@@ -304,7 +272,7 @@ public final class CL_EditorTopComponent extends TopComponent implements Propert
         ActiveSongManager.getDefault().removePropertyListener(this);
         clEditor.cleanup();
     }
-   
+
 
 //    void writeProperties(java.util.Properties p)
 //    {

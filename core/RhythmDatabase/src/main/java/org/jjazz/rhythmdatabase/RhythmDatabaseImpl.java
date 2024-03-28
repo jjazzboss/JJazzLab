@@ -106,11 +106,11 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
      * The initialization task.
      */
     protected volatile RequestProcessor.Task initTask;
-    private boolean unitTestMode;
+    private final boolean unitTestMode;
     /**
      * Used to store the default rhythms
      */
-    private static Preferences prefs = NbPreferences.forModule(RhythmDatabaseImpl.class);
+    private static final Preferences prefs = NbPreferences.forModule(RhythmDatabaseImpl.class);
 
     private final ArrayList<ChangeListener> listeners = new ArrayList<>();
     private static final Logger LOGGER = Logger.getLogger(RhythmDatabaseImpl.class.getSimpleName());

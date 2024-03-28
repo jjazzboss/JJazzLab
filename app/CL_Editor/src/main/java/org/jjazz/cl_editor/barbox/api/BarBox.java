@@ -22,6 +22,7 @@
  */
 package org.jjazz.cl_editor.barbox.api;
 
+import org.jjazz.cl_editor.spi.BarBoxSettings;
 import com.google.common.base.Preconditions;
 import java.awt.Component;
 import java.awt.Point;
@@ -43,7 +44,7 @@ import org.jjazz.harmony.api.Position;
 import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.cl_editor.barrenderer.api.BarRenderer;
-import org.jjazz.cl_editor.barrenderer.api.BarRendererFactory;
+import org.jjazz.cl_editor.spi.BarRendererFactory;
 import org.jjazz.cl_editor.barrenderer.api.BeatBasedBarRenderer;
 import org.jjazz.itemrenderer.api.IR_Type;
 import org.jjazz.itemrenderer.api.ItemRenderer;

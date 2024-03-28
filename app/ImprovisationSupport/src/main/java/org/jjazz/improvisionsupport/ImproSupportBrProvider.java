@@ -26,8 +26,8 @@ import java.util.HashMap;
 import java.util.Map;
 import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.cl_editor.barrenderer.api.BarRenderer;
-import org.jjazz.cl_editor.barrenderer.api.BarRendererSettings;
-import org.jjazz.cl_editor.barrenderer.spi.BarRendererProvider;
+import org.jjazz.cl_editor.spi.BarRendererSettings;
+import org.jjazz.cl_editor.spi.BarRendererProvider;
 import org.jjazz.itemrenderer.api.ItemRendererFactory;
 import org.openide.util.lookup.ServiceProvider;
 

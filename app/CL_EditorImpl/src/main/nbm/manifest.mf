@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+OpenIDE-Module-Localizing-Bundle: org/jjazz/cl_editorimpl/Bundle.properties
+OpenIDE-Module-Layer: org/jjazz/cl_editorimpl/layer.xml
+

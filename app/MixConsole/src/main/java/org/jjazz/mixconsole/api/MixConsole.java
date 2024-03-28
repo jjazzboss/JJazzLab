@@ -22,7 +22,7 @@
  */
 package org.jjazz.mixconsole.api;
 
-import org.jjazz.mixconsole.MidiFileDragOutTransferHandler;
+import org.jjazz.mixconsole.MixConsoleTransferHandler;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -66,7 +66,6 @@ import org.jjazz.midimix.api.MidiMixManager;
 import org.jjazz.midimix.api.UserRhythmVoice;
 import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythmstubs.api.DummyRhythm;
-import org.jjazz.editors.spi.SongEditorManager;
 import org.openide.util.Lookup;
 import org.openide.util.LookupEvent;
 import org.openide.util.LookupListener;
@@ -85,6 +84,7 @@ import org.jjazz.mixconsole.MixChannelPanelControllerImpl;
 import org.jjazz.mixconsole.MixChannelPanelModelImpl;
 import org.jjazz.mixconsole.PhraseViewerPanel;
 import org.jjazz.mixconsole.MixConsoleLayoutManager;
+import org.jjazz.songeditormanager.spi.SongEditorManager;
 import org.jjazz.utilities.api.ResUtil;
 import org.netbeans.api.options.OptionsDisplayer;
 import org.openide.awt.MenuBar;
@@ -616,8 +616,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
 
 
         // Update the TransferHandler
-        panel_mixChannels.setTransferHandler(new MidiFileDragOutTransferHandler(songModel, songMidiMix, null));
-        panel_mixChannels.setDropTarget(null);  // Disable dropping in the component, avoid canImport() being called in the TransferHandler, see setTransferHandler() doc
+        panel_mixChannels.setTransferHandler(new MixConsoleTransferHandler(songModel, songMidiMix, null));
 
 
         // Add the visible channels
@@ -690,11 +689,9 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
 
 
         // Set a transfer handler 
-        TransferHandler th = new MidiFileDragOutTransferHandler(songModel, songMidiMix, rv);
+        TransferHandler th = new MixConsoleTransferHandler(songModel, songMidiMix, rv);
         mcp.setTransferHandler(th);
-        mcp.setDropTarget(null);        // Disable dropping in the component, avoid TransferHandler.canImport() being called, see setTransferHandler() doc
         pvp.setTransferHandler(th);
-        pvp.setDropTarget(null);        // Disable dropping in the component, avoid TransferHandler.canImport() being called, see setTransferHandler() doc
 
 
         updateChannelColors();
@@ -823,7 +820,6 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
 
         // Drag out handler
         panel_mixChannels.setTransferHandler(null);
-        panel_mixChannels.setDropTarget(null);
 
 
         updateActiveState(false);

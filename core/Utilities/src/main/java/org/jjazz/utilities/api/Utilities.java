@@ -370,6 +370,8 @@ public class Utilities
     }
 
     /**
+     * @param str
+     * @param ext
      * @return True if str ends with ext, ignoring case.
      */
     public static boolean endsWithIgnoreCase(String str, String ext)
@@ -396,7 +398,7 @@ public class Utilities
             extension = fileName.substring(i + 1);
         }
         return extension;
-    }
+    }       
 
     /**
      * Replace the path extension (the trailing ".something") of filename by ext.
@@ -425,7 +427,6 @@ public class Utilities
         return filename.substring(0, index) + ext;
     }
 
-  
 
     /**
      * Get the string of all the collection elements in brackets [], but limited to maxLength.

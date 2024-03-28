@@ -27,7 +27,11 @@ import org.jjazz.song.api.SongCreationException;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import org.jjazz.song.api.Song;
 import org.openide.util.Lookup;
@@ -51,6 +55,25 @@ public interface SongImporter
             providers.add(p);
         }
         return providers;
+    }
+
+
+    /**
+     * Get the file extensions supported by all SongImporter instances.
+     *
+     * @return
+     */
+    public static Collection<String> getAllSupportedFileExtensions()
+    {
+        Set<String> res = new HashSet<>();
+        for (SongImporter importer : getImporters())
+        {
+            for (FileNameExtensionFilter filter : importer.getSupportedFileTypes())
+            {
+                Collections.addAll(res, filter.getExtensions());
+            }
+        }
+        return res;
     }
 
     /**

@@ -43,7 +43,7 @@ import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
 import org.jjazz.song.api.SongCreationException;
 import org.jjazz.song.spi.SongImporter;
-import org.jjazz.editors.spi.SongEditorManager;
+import org.jjazz.songeditormanager.spi.SongEditorManager;
 import org.jjazz.upgrade.api.UpgradeManager;
 import org.jjazz.upgrade.api.UpgradeTask;
 import org.jjazz.utilities.api.ResUtil;
@@ -72,7 +72,7 @@ import org.openide.windows.WindowManager;
 public final class ImportSong implements ActionListener
 {
 
-    public static final String PREF_LAST_IMPORT_DIRECTORY = "LastImportDirectory";    
+    public static final String PREF_LAST_IMPORT_DIRECTORY = "LastImportDirectory";
     private static Preferences prefs = NbPreferences.forModule(ImportSong.class);
     private final ResourceBundle bundle = ResUtil.getBundle(getClass());
     private static final Logger LOGGER = Logger.getLogger(ImportSong.class.getSimpleName());
@@ -90,19 +90,9 @@ public final class ImportSong implements ActionListener
 
 
         // Prepare a special filter that shows all accepted extensions
-        FileNameExtensionFilter allExtensionsFilter = null;
-        HashSet<String> allExtensions = new HashSet<>();
-        for (SongImporter importer : importers)
-        {
-            for (FileNameExtensionFilter filter : importer.getSupportedFileTypes())
-            {
-                Collections.addAll(allExtensions, filter.getExtensions());
-            }
-        }
-        if (allExtensions.size() > 1)
-        {
-            allExtensionsFilter = new FileNameExtensionFilter(bundle.getString("ALL IMPORTABLE FILES"), allExtensions.toArray(new String[0]));
-        }
+        var allExtensions = SongImporter.getAllSupportedFileExtensions();
+        FileNameExtensionFilter allExtensionsFilter = allExtensions.isEmpty() ? null
+                : new FileNameExtensionFilter(bundle.getString("ALL IMPORTABLE FILES"), allExtensions.toArray(new String[0]));
 
 
         // Initialize the file chooser
@@ -160,7 +150,7 @@ public final class ImportSong implements ActionListener
                 {
                     // Extension not managed by any SongImporter
                     String msg = ResUtil.getString(getClass(), "FILE TYPE IS NOT SUPPORTED", f.getAbsolutePath());
-                    LOGGER.log(Level.WARNING, "actionPerformed() {0}", msg);   
+                    LOGGER.log(Level.WARNING, "actionPerformed() {0}", msg);
                     NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
                     DialogDisplayer.getDefault().notify(nd);
                     return;
@@ -215,12 +205,15 @@ public final class ImportSong implements ActionListener
             Song song = null;
             try
             {
-                LOGGER.log(Level.INFO, "importFiles() -- importerId={0} Importing file {1}", new Object[]{importer.getId(),
-                    f.getAbsolutePath()});   
+                LOGGER.log(Level.INFO, "importFiles() -- importerId={0} Importing file {1}", new Object[]
+                {
+                    importer.getId(),
+                    f.getAbsolutePath()
+                });
                 song = importer.importFromFile(f);
             } catch (SongCreationException | IOException ex)
             {
-                LOGGER.log(Level.WARNING, "importFiles() ex={0}", ex.getMessage());   
+                LOGGER.log(Level.WARNING, "importFiles() ex={0}", ex.getMessage());
                 NotifyDescriptor nd = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
                 DialogDisplayer.getDefault().notify(nd);
                 continue;
@@ -228,7 +221,10 @@ public final class ImportSong implements ActionListener
 
             if (song == null)
             {
-                LOGGER.log(Level.WARNING, "importFiles() song=null, importer={0} f={1}", new Object[]{importer.getId(), f.getAbsolutePath()});   
+                LOGGER.log(Level.WARNING, "importFiles() song=null, importer={0} f={1}", new Object[]
+                {
+                    importer.getId(), f.getAbsolutePath()
+                });
                 NotifyDescriptor nd = new NotifyDescriptor.Message(bundle.getString("ERR_UnexpectedError"), NotifyDescriptor.ERROR_MESSAGE);
                 DialogDisplayer.getDefault().notify(nd);
             } else
@@ -246,7 +242,6 @@ public final class ImportSong implements ActionListener
     // ================================================================================================
     // Private methods
     // ================================================================================================
- 
 
     /**
      *

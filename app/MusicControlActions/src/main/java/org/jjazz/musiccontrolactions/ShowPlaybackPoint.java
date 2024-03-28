@@ -35,9 +35,9 @@ import org.jjazz.harmony.api.Position;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.PlaybackListenerAdapter;
 import org.jjazz.song.api.Song;
-import org.jjazz.editors.spi.SongEditorManager;
 import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.flatcomponents.api.FlatToggleButton;
+import org.jjazz.songeditormanager.spi.SongEditorManager;
 import org.jjazz.ss_editor.api.SS_Editor;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReferences;
@@ -340,8 +340,9 @@ public class ShowPlaybackPoint extends BooleanStateAction implements PropertyCha
         if (currentCL_Editor == null)
         {
             MusicController mc = MusicController.getInstance();
-            currentCL_Editor = SongEditorManager.getDefault().getSongEditorSet(currentSong).getCL_EditorTc().getEditor();
-            currentRL_Editor = SongEditorManager.getDefault().getSongEditorSet(currentSong).getSS_EditorTc().getEditor();
+            var sem = SongEditorManager.getDefault();
+            currentCL_Editor = sem.getSongEditorSet(currentSong).getCL_EditorTc().getEditor();
+            currentRL_Editor = sem.getSongEditorSet(currentSong).getSS_EditorTc().getEditor();
             newSgsPos.set(mc.getCurrentBeatPosition());
             Position newClsPos = convertToClsPosition(newSgsPos);
             if (newClsPos != null)

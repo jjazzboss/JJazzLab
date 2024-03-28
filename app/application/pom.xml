@@ -622,6 +622,11 @@
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
+            <artifactId>org-jjazz-cl_editorimpl</artifactId> 
+            <version>${project.version}</version> 
+        </dependency>           
+        <dependency> 
+            <groupId>${project.groupId}</groupId> 
             <artifactId>org-jjazz-popupmenuwindowmenupatch</artifactId> 
             <version>${project.version}</version> 
         </dependency>       
