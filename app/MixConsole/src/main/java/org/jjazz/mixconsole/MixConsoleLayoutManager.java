@@ -47,9 +47,9 @@ public class MixConsoleLayoutManager implements LayoutManager
 
 
     /**
-     * 
+     *
      * @param mixConsole
-     * @param isVertical 
+     * @param isVertical
      */
     public MixConsoleLayoutManager(MixConsole mixConsole, boolean isVertical)
     {
@@ -74,15 +74,15 @@ public class MixConsoleLayoutManager implements LayoutManager
                 int y = yMin;
 
                 // MixChannelPanel
-                var mcp = panelSet.mixChannelPanel;         // mcp might be null !? Can't see how possible. Not reproduced. See fix for Issue #396
-                Dimension pd = mcp.getPreferredSize();      
+                var mcp = panelSet.mixChannelPanel();       
+                Dimension pd = mcp.getPreferredSize();
                 mcp.setSize(pd);
                 mcp.setLocation(x, y);
                 y += mcp.getHeight() + V_PADDING;
 
 
                 // PhraseViewerPanel below
-                var mcpv = panelSet.phraseViewerPanel;
+                var mcpv = panelSet.phraseViewerPanel();
                 pd = mcpv.getPreferredSize();
                 mcpv.setSize(mcp.getWidth(), pd.height);
                 mcpv.setLocation(x, y);
@@ -101,7 +101,7 @@ public class MixConsoleLayoutManager implements LayoutManager
                 int y = yMin;
 
                 // MixChannelPanel
-                var mcp = panelSet.mixChannelPanel;
+                var mcp = panelSet.mixChannelPanel();
                 Dimension pd = mcp.getPreferredSize();
                 mcp.setSize(pd);
                 mcp.setLocation(x, y);
@@ -123,7 +123,7 @@ public class MixConsoleLayoutManager implements LayoutManager
                 float yf = yMax;
                 for (var panelSet : mixConsole.getChannelPanelSets().values())     // Sorted by channel
                 {
-                    var pvp = panelSet.phraseViewerPanel;
+                    var pvp = panelSet.phraseViewerPanel();
                     int channelHeight = Math.max((h - ((nbChannels - 1) * V_PADDING)) / nbChannels, pvp.getMinimumSize().height);
                     pvp.setSize(w, channelHeight);
                     pvp.setLocation(x, Math.round(yf));
@@ -173,10 +173,10 @@ public class MixConsoleLayoutManager implements LayoutManager
 
             for (var panelSet : mixConsole.getChannelPanelSets().values())     // Sorted by channel
             {
-                Dimension pd = panelSet.mixChannelPanel.getPreferredSize();
+                Dimension pd = panelSet.mixChannelPanel().getPreferredSize();
                 w += H_PADDING + pd.width;
 
-                int h = pd.height + V_PADDING + panelSet.phraseViewerPanel.getPreferredSize().height;
+                int h = pd.height + V_PADDING + panelSet.phraseViewerPanel().getPreferredSize().height;
 
                 hMax = Math.max(h, hMax);
             }
@@ -191,10 +191,10 @@ public class MixConsoleLayoutManager implements LayoutManager
 
             for (var panelSet : mixConsole.getChannelPanelSets().values())     // Sorted by channel
             {
-                Dimension pd = panelSet.mixChannelPanel.getPreferredSize();
+                Dimension pd = panelSet.mixChannelPanel().getPreferredSize();
                 w += H_PADDING + pd.width;
 
-                int h = pd.height + V_PADDING + panelSet.phraseViewerPanel.getPreferredSize().height;
+                int h = pd.height + V_PADDING + panelSet.phraseViewerPanel().getPreferredSize().height;
                 hMax = Math.max(h, hMax);
             }
 

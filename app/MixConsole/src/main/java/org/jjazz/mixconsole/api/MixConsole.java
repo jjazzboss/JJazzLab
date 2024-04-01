@@ -105,6 +105,15 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
 {
 
     /**
+     * The UI panels associated to a channel.
+     */
+    public record ChannelPanelSet(RhythmVoice rhythmVoice, MixChannelPanel mixChannelPanel, PhraseViewerPanel phraseViewerPanel)
+            {
+
+    }
+
+
+    /**
      * Colors used to distinguish channels from different rhythms.
      */
     private static final Color[] CHANNEL_COLORS =
@@ -172,7 +181,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         // Our renderer to show visible rhythms
         cb_viewRhythms.setRenderer(new MyRenderer());
 
-        
+
         // Connect to standard actions
         // fbtn_muteAll.setAction(Actions.forID("MixConsole", "org.jjazz.mixconsole.actions.mastermuteall"));   
         fbtn_panic.setAction(Actions.forID("MixConsole", "org.jjazz.mixconsole.actions.panic"));
@@ -656,16 +665,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
 
     private void addChannel(int channel)
     {
-        var panelSet = getChannelPanelSet(channel);
-        if (panelSet == null)
-        {
-            panelSet = new ChannelPanelSet();
-            tmapChannelPanelSets.put(channel, panelSet);
-        }
-
-
         RhythmVoice rv = songMidiMix.getRhythmVoice(channel);
-        panelSet.rhythmVoice = rv;
 
 
         // The channel controller
@@ -675,17 +675,20 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         // Main panel                
         MixChannelPanelModelImpl mcpModel = new MixChannelPanelModelImpl(songMidiMix, channel);
         MixChannelPanel mcp = new MixChannelPanel(mcpModel, mcpController, settings);
-        panelSet.mixChannelPanel = mcp;
 
 
         // Birds-eye-view panel
         var pvp = PhraseViewerPanel.createInstance(songModel, songMidiMix, mcpController, rv);
-        panelSet.phraseViewerPanel = pvp;
+
+                
+        var panelSet = new ChannelPanelSet(rv, mcp, pvp);        
+        tmapChannelPanelSets.put(channel, panelSet);
+
         
-        
+
         // Add the 2 components
         panel_mixChannels.add(mcp);         // Our layout manager will place it ordered by channel        
-        panel_mixChannels.add(pvp);       
+        panel_mixChannels.add(pvp);
 
 
         // Set a transfer handler 
@@ -928,19 +931,11 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
 
 
     // ========================================================================================================
+    // Inner classes
+    // ========================================================================================================
+    // ========================================================================================================
     // Private classes
     // ========================================================================================================
-    /**
-     * The UI panels associated to a channel.
-     */
-    static public class ChannelPanelSet
-    {
-
-        public RhythmVoice rhythmVoice;
-        public MixChannelPanel mixChannelPanel;
-        public PhraseViewerPanel phraseViewerPanel;
-    }
-
     private class MyRenderer extends DefaultListCellRenderer
     {
 
