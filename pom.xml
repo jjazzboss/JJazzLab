@@ -38,6 +38,7 @@
         <netbeans.version>RELEASE210</netbeans.version>
         <brandingToken>jjazzlab</brandingToken> <!-- used for nbm:cluster-app configuration -->
         <jjazzlab.maven.compiler.plugin.version>3.11.0</jjazzlab.maven.compiler.plugin.version>
+        <jjazzlab.fluidsynthjava.plugin.version>1.0.0</jjazzlab.fluidsynthjava.plugin.version>
         <jjazzlab.compiler.release>17</jjazzlab.compiler.release>
         <jjazzlab.javac.fork>false</jjazzlab.javac.fork>
         <jjazzlab.javac.showDeprecation>true</jjazzlab.javac.showDeprecation>
@@ -220,8 +221,6 @@
         <module>app/CL_EditorImpl</module>        
         <module>app/ChordInspector</module>
         <module>app/EasyReader</module>
-        <module>app/FluidSynthEmbeddedSynth</module>
-        <module>app/FluidSynthJava</module>
         <module>app/ImprovisationSupport</module>
         <module>app/InstrumentChooser</module>
         <module>app/InstrumentComponents</module>
@@ -272,7 +271,8 @@
         <module>core/Utilities</module>
         <module>core/Xstream</module>
         <module>core/Guava</module>
-        <module>engines/YamJJazz</module>
+        <module>plugins/FluidSynthEmbeddedSynth</module>        
+        <module>plugins/YamJJazz</module>
     </modules>
     
     
