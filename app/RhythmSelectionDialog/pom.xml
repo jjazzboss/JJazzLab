@@ -9,7 +9,7 @@
         <relativePath>../../pom.xml</relativePath>
     </parent>
     <artifactId>org-jjazz-rhythmselectiondialog</artifactId>
-	<name>RhythmSelectionDialog</name>
+    <name>RhythmSelectionDialog</name>
     <packaging>nbm</packaging>
     <build>
         <plugins>
@@ -17,9 +17,11 @@
                 <groupId>org.apache.netbeans.utilities</groupId>
                 <artifactId>nbm-maven-plugin</artifactId>
                 <configuration>
-                    <publicPackages>                      
-                     <publicPackage>org.jjazz.rhythmselectiondialog.api</publicPackage>
-</publicPackages>
+                    <publicPackages>
+                        <publicPackage>org.jjazz.rhythmselectiondialog.api</publicPackage>
+                        <publicPackage>org.jjazz.rhythmselectiondialog.api.ui</publicPackage>
+                        <publicPackage>org.jjazz.rhythmselectiondialog.spi</publicPackage>
+                    </publicPackages>
                 </configuration>
                 <extensions>true</extensions>
             </plugin>
@@ -35,7 +37,117 @@
         </plugins>
     </build>
     <dependencies>      
-     <dependency> <groupId>${project.groupId}</groupId> <artifactId>org-jjazz-activesong</artifactId> <version>${project.version}</version>  </dependency>  <dependency> <groupId>${project.groupId}</groupId> <artifactId>org-jjazz-analytics</artifactId> <version>${project.version}</version>  </dependency>  <dependency> <groupId>${project.groupId}</groupId> <artifactId>org-jjazz-chordleadsheet</artifactId> <version>${project.version}</version>  </dependency>  <dependency> <groupId>${project.groupId}</groupId> <artifactId>org-jjazz-cl_editor</artifactId> <version>${project.version}</version>  </dependency>  <dependency> <groupId>${project.groupId}</groupId> <artifactId>org-jjazz-filedirectorymanager</artifactId> <version>${project.version}</version>  </dependency>  <dependency> <groupId>${project.groupId}</groupId> <artifactId>org-jjazz-flatcomponents</artifactId> <version>${project.version}</version>  </dependency>  <dependency> <groupId>${project.groupId}</groupId> <artifactId>org-jjazz-harmony</artifactId> <version>${project.version}</version>  </dependency>  <dependency> <groupId>${project.groupId}</groupId> <artifactId>org-jjazz-midi</artifactId> <version>${project.version}</version>  </dependency>  <dependency> <groupId>${project.groupId}</groupId> <artifactId>org-jjazz-midimix</artifactId> <version>${project.version}</version>  </dependency>  <dependency> <groupId>${project.groupId}</groupId> <artifactId>org-jjazz-musiccontrol</artifactId> <version>${project.version}</version>  </dependency>  <dependency> <groupId>${project.groupId}</groupId> <artifactId>org-jjazz-outputsynth</artifactId> <version>${project.version}</version>  </dependency>  <dependency> <groupId>${project.groupId}</groupId> <artifactId>org-jjazz-rhythm</artifactId> <version>${project.version}</version>  </dependency>  <dependency> <groupId>${project.groupId}</groupId> <artifactId>org-jjazz-rhythmdatabase</artifactId> <version>${project.version}</version>  </dependency>  <dependency> <groupId>${project.groupId}</groupId> <artifactId>org-jjazz-rhythmmusicgeneration</artifactId> <version>${project.version}</version>  </dependency>  <dependency> <groupId>${project.groupId}</groupId> <artifactId>org-jjazz-song</artifactId> <version>${project.version}</version>  </dependency>  <dependency> <groupId>${project.groupId}</groupId> <artifactId>org-jjazz-songcontext</artifactId> <version>${project.version}</version>  </dependency>  <dependency> <groupId>${project.groupId}</groupId> <artifactId>org-jjazz-songstructure</artifactId> <version>${project.version}</version>  </dependency>  <dependency> <groupId>${project.groupId}</groupId> <artifactId>org-jjazz-ss_editor</artifactId> <version>${project.version}</version>  </dependency>  <dependency> <groupId>${project.groupId}</groupId> <artifactId>org-jjazz-uiutilities</artifactId> <version>${project.version}</version>  </dependency>  <dependency> <groupId>${project.groupId}</groupId> <artifactId>org-jjazz-utilities</artifactId> <version>${project.version}</version>  </dependency>  <dependency> <groupId>org.netbeans.api</groupId> <artifactId>org-netbeans-libs-flatlaf</artifactId> <version>${netbeans.version}</version>  </dependency>  <dependency> <groupId>org.netbeans.api</groupId> <artifactId>org-openide-awt</artifactId> <version>${netbeans.version}</version>  </dependency>  <dependency> <groupId>org.netbeans.api</groupId> <artifactId>org-openide-dialogs</artifactId> <version>${netbeans.version}</version>  </dependency>  <dependency> <groupId>org.netbeans.api</groupId> <artifactId>org-openide-util</artifactId> <version>${netbeans.version}</version>  </dependency>  <dependency> <groupId>org.netbeans.api</groupId> <artifactId>org-openide-util-lookup</artifactId> <version>${netbeans.version}</version>  </dependency>  <dependency> <groupId>org.netbeans.api</groupId> <artifactId>org-openide-util-ui</artifactId> <version>${netbeans.version}</version>  </dependency>  <dependency> <groupId>org.netbeans.api</groupId> <artifactId>org-openide-windows</artifactId> <version>${netbeans.version}</version>  </dependency> </dependencies>
+        <dependency> 
+            <groupId>${project.groupId}</groupId> 
+            <artifactId>org-jjazz-activesong</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>  
+        <dependency> 
+            <groupId>${project.groupId}</groupId> 
+            <artifactId>org-jjazz-chordleadsheet</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>  
+        <dependency> 
+            <groupId>${project.groupId}</groupId> 
+            <artifactId>org-jjazz-filedirectorymanager</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>  
+        <dependency> 
+            <groupId>${project.groupId}</groupId> 
+            <artifactId>org-jjazz-flatcomponents</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>  
+        <dependency> 
+            <groupId>${project.groupId}</groupId> 
+            <artifactId>org-jjazz-harmony</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>  
+        <dependency> 
+            <groupId>${project.groupId}</groupId> 
+            <artifactId>org-jjazz-midi</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>  
+        <dependency> 
+            <groupId>${project.groupId}</groupId> 
+            <artifactId>org-jjazz-midimix</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>  
+        <dependency> 
+            <groupId>${project.groupId}</groupId> 
+            <artifactId>org-jjazz-musiccontrol</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>  
+        <dependency> 
+            <groupId>${project.groupId}</groupId> 
+            <artifactId>org-jjazz-outputsynth</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>  
+        <dependency> 
+            <groupId>${project.groupId}</groupId> 
+            <artifactId>org-jjazz-rhythm</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>  
+        <dependency> 
+            <groupId>${project.groupId}</groupId> 
+            <artifactId>org-jjazz-rhythmdatabase</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>  
+        <dependency> 
+            <groupId>${project.groupId}</groupId> 
+            <artifactId>org-jjazz-song</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>  
+        <dependency> 
+            <groupId>${project.groupId}</groupId> 
+            <artifactId>org-jjazz-songcontext</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>  
+        <dependency> 
+            <groupId>${project.groupId}</groupId> 
+            <artifactId>org-jjazz-songstructure</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>  
+        <dependency> 
+            <groupId>${project.groupId}</groupId> 
+            <artifactId>org-jjazz-ss_editor</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>  
+        <dependency> 
+            <groupId>${project.groupId}</groupId> 
+            <artifactId>org-jjazz-uiutilities</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>  
+        <dependency> 
+            <groupId>${project.groupId}</groupId> 
+            <artifactId>org-jjazz-utilities</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>  
+        <dependency> 
+            <groupId>org.netbeans.api</groupId> 
+            <artifactId>org-openide-awt</artifactId> 
+            <version>${netbeans.version}</version>  
+        </dependency>  
+        <dependency> 
+            <groupId>org.netbeans.api</groupId> 
+            <artifactId>org-openide-dialogs</artifactId> 
+            <version>${netbeans.version}</version>  
+        </dependency>  
+        <dependency> 
+            <groupId>org.netbeans.api</groupId> 
+            <artifactId>org-openide-util</artifactId> 
+            <version>${netbeans.version}</version>  
+        </dependency>  
+        <dependency> 
+            <groupId>org.netbeans.api</groupId> 
+            <artifactId>org-openide-windows</artifactId> 
+            <version>${netbeans.version}</version>  
+        </dependency>
+        <dependency>
+            <groupId>org.netbeans.api</groupId>
+            <artifactId>org-openide-util-lookup</artifactId>
+            <version>RELEASE210</version>
+        </dependency>
+    </dependencies>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>

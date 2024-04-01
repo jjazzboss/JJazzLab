@@ -29,7 +29,7 @@ import org.jjazz.song.api.Song;
 import org.jjazz.songcontext.api.SongPartContext;
 import org.jjazz.songeditormanager.spi.SongEditorManager;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.ss_editor.rpviewer.spi.RpCustomEditor;
+import org.jjazz.ss_editor.rpviewer.api.RpCustomEditor;
 import org.jjazz.uiutilities.api.UIUtilities;
 import org.jjazz.utilities.api.FloatRange;
 import org.jjazz.utilities.api.ResUtil;

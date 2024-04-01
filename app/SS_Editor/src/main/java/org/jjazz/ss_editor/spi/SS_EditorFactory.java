@@ -22,23 +22,38 @@
  */
 package org.jjazz.ss_editor.spi;
 
+import javax.swing.JToolBar;
+import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.song.api.Song;
 import org.jjazz.ss_editor.sptviewer.spi.SptViewerFactory;
-import org.jjazz.ss_editor.SS_EditorFactoryImpl;
 import org.jjazz.ss_editor.api.SS_Editor;
 import org.openide.util.Lookup;
 
 public interface SS_EditorFactory
 {
+
+    /**
+     * Get the default implementation found in the global lookup.
+     *
+     * @return
+     */
     public static SS_EditorFactory getDefault()
     {
         SS_EditorFactory rlef = Lookup.getDefault().lookup(SS_EditorFactory.class);
         if (rlef == null)
         {
-            rlef = SS_EditorFactoryImpl.getInstance();
+            throw new IllegalArgumentException("No instance found in global lookup");
         }
         return rlef;
     }
-
+    
     SS_Editor createEditor(Song song, SS_EditorSettings settings, SptViewerFactory factory);
+    
+      /**
+     * Create the side editor toolbar.
+     *
+     * @param editor
+     * @return
+     */
+    JToolBar createEditorToolbar(SS_Editor editor);
 }

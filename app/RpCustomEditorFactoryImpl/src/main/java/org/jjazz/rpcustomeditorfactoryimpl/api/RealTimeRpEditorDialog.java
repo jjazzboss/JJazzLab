@@ -54,7 +54,7 @@ import org.jjazz.song.api.SongFactory;
 import org.jjazz.songcontext.api.SongPartContext;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructure;
-import org.jjazz.ss_editor.rpviewer.spi.RpCustomEditor;
+import org.jjazz.ss_editor.rpviewer.api.RpCustomEditor;
 import org.jjazz.utilities.api.IntRange;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.*;

@@ -47,8 +47,8 @@ import org.jjazz.rhythmdatabase.api.DeleteRhythmFile;
 import org.jjazz.rhythm.spi.RhythmProvider;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmdatabase.api.RhythmInfo;
-import org.jjazz.rhythmselectiondialog.api.RhythmProviderList;
-import org.jjazz.rhythmselectiondialog.api.RhythmTable;
+import org.jjazz.rhythmselectiondialog.api.ui.RhythmProviderJList;
+import org.jjazz.rhythmselectiondialog.api.ui.RhythmJTable;
 import org.jjazz.uiutilities.api.UIUtilities;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.DialogDisplayer;
@@ -61,8 +61,8 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
     
     private final RhythmsOptionsPanelController controller;
     private TimeSignature selectedTimeSignature;
-    private final RhythmTable rhythmTable = new RhythmTable();
-    private final RhythmProviderList rhythmProviderList = new RhythmProviderList();
+    private final RhythmJTable rhythmTable = new RhythmJTable();
+    private final RhythmProviderJList rhythmProviderList = new RhythmProviderJList();
     private final AddRhythmsAction addRhythmsAction = new AddRhythmsAction();
     private final DeleteRhythmFile deleteRhythmFileAction = new DeleteRhythmFile();
     
@@ -88,7 +88,7 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
 
         // Listen to selection changes
         list_rhythmProviders.addListSelectionListener(this);
-        ((RhythmProviderList) list_rhythmProviders).setTimeSignatureFilter(selectedTimeSignature);
+        ((RhythmProviderJList) list_rhythmProviders).setTimeSignatureFilter(selectedTimeSignature);
         rhythmTable.getSelectionModel().addListSelectionListener(this);
         cmb_timeSignature.addActionListener(this);
         
@@ -163,7 +163,7 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
             }
             selectedTimeSignature = ts;
             updateDefaultRhythmField();
-            ((RhythmProviderList) list_rhythmProviders).setTimeSignatureFilter(selectedTimeSignature);
+            ((RhythmProviderJList) list_rhythmProviders).setTimeSignatureFilter(selectedTimeSignature);
 
             // Select default rhythm if there is one         
             RhythmDatabase rdb = RhythmDatabase.getDefault();

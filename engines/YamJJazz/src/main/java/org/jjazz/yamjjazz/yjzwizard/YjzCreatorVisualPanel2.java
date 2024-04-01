@@ -35,7 +35,7 @@ import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmdatabase.api.RhythmInfo;
 import org.jjazz.rhythm.spi.RhythmProvider;
-import org.jjazz.rhythmselectiondialog.api.RhythmTable;
+import org.jjazz.rhythmselectiondialog.api.ui.RhythmJTable;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -43,7 +43,7 @@ import org.openide.NotifyDescriptor;
 public final class YjzCreatorVisualPanel2 extends JPanel implements ActionListener
 {
 
-    private final RhythmTable rhythmTable = new RhythmTable();
+    private final RhythmJTable rhythmTable = new RhythmJTable();
     private final RhythmProvider stdYamahaRhythmProvider;
     private static final Logger LOGGER = Logger.getLogger(YjzCreatorVisualPanel2.class.getSimpleName());
 
@@ -87,7 +87,7 @@ public final class YjzCreatorVisualPanel2 extends JPanel implements ActionListen
 
     }
 
-    public RhythmTable getRhythmTable()
+    public RhythmJTable getRhythmTable()
     {
         return rhythmTable;
     }

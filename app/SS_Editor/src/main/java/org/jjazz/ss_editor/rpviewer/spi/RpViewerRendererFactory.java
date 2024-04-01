@@ -22,6 +22,7 @@
  */
 package org.jjazz.ss_editor.rpviewer.spi;
 
+import org.jjazz.ss_editor.rpviewer.api.RpViewerSettings;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.song.api.Song;
 import org.jjazz.songstructure.api.SongPart;

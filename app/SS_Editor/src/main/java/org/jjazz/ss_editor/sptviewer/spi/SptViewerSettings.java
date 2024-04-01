@@ -26,7 +26,7 @@ import java.awt.Color;
 import java.awt.Font;
 import java.beans.PropertyChangeListener;
 import javax.swing.border.Border;
-import org.jjazz.ss_editor.rpviewer.spi.RpViewerSettings;
+import org.jjazz.ss_editor.rpviewer.api.RpViewerSettings;
 import org.openide.util.Lookup;
 
 /**

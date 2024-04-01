@@ -235,6 +235,7 @@
         <module>app/RhythmSelectionDialog</module>
         <module>app/RpCustomEditorFactoryImpl</module>
         <module>app/SS_Editor</module>
+        <module>app/SS_EditorImpl</module>        
         <module>app/Score</module>
         <module>app/SongEditorManager</module>
         <module>app/SongMemoViewer</module>

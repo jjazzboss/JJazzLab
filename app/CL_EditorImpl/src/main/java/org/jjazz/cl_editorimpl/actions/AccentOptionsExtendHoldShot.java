@@ -58,7 +58,7 @@ import org.openide.util.actions.Presenter;
 @ActionRegistration(displayName = "not_used", lazy = false)
 @ActionReferences(
         {
-            @ActionReference(path = "Actions/ChordSymbolInterpretation", position = 400)
+            @ActionReference(path = "Actions/ChordSymbolInterpretation", position = 401)
         })
 public final class AccentOptionsExtendHoldShot extends AbstractAction implements ContextAwareAction, CL_ContextActionListener, Presenter.Popup, ClsChangeListener
 {

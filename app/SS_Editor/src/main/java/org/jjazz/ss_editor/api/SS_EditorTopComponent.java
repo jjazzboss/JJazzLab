@@ -32,16 +32,15 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 import javax.swing.Action;
+import javax.swing.JToolBar;
 import org.jjazz.activesong.spi.ActiveSongManager;
 import org.jjazz.song.api.Song;
-import org.jjazz.ss_editor.SS_EditorController;
 import org.openide.awt.UndoRedo;
 import org.openide.util.Lookup;
 import org.openide.util.Utilities;
 import org.openide.windows.TopComponent;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.ss_editor.sptviewer.spi.SptViewerFactory;
-import org.jjazz.ss_editor.SS_EditorToolBar;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -70,11 +69,7 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
      * The SongStructure editor.
      */
     private SS_Editor ssEditor;
-    /**
-     * The editor's controller.
-     */
-    private SS_EditorMouseListener ssEditorController;
-    private SS_EditorToolBar ssToolBar;
+    private JToolBar ssToolBar;
     private boolean silentClose;
 
     private static final Logger LOGGER = Logger.getLogger(SS_EditorTopComponent.class.getName());
@@ -106,13 +101,13 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
         putClientProperty(TopComponent.PROP_SLIDING_DISABLED, Boolean.TRUE);
 
         // Create our editor
-        ssEditor = SS_EditorFactory.getDefault().createEditor(songModel, SS_EditorSettings.getDefault(), SptViewerFactory.getDefault());
-        ssEditorController = new SS_EditorController(ssEditor);
-        ssEditor.setController(ssEditorController);
+        var ssef = SS_EditorFactory.getDefault();
+        ssEditor = ssef.createEditor(songModel, SS_EditorSettings.getDefault(), SptViewerFactory.getDefault());
+
 
 
         // Create the toolbar
-        ssToolBar = new SS_EditorToolBar(ssEditor);
+        ssToolBar = ssef.createEditorToolbar(ssEditor);
 
         initComponents();
 
@@ -332,6 +327,8 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
 //        String version = p.getProperty("version");
 //        // TO DO read your settings according to their version
 //    }
+    
+    
     @Override
     public void propertyChange(final PropertyChangeEvent evt)
     {

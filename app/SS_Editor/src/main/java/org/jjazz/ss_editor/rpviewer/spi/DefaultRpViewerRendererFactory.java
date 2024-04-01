@@ -22,18 +22,18 @@
  */
 package org.jjazz.ss_editor.rpviewer.spi;
 
+import org.jjazz.ss_editor.rpviewer.api.RpViewerSettings;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.song.api.Song;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.ss_editor.rpviewer.DefaultRpRendererFactoryImpl;
 import org.openide.util.Lookup;
 import org.jjazz.ss_editor.rpviewer.api.RpViewerRenderer;
 
 /**
  * The default RpViewerRenderer factory.
  * <p>
- * This factory must handle the default JJazzLab RhythmParameters (RP_State, RP_Integer, RP_StringSet, etc.), and provide a
- * default renderer for unknown RhythmParameters.
+ * This factory must handle the default JJazzLab RhythmParameters (RP_State, RP_Integer, RP_StringSet, etc.), and provide a default renderer for unknown
+ * RhythmParameters.
  * <p>
  */
 public interface DefaultRpViewerRendererFactory extends RpViewerRendererFactory
@@ -48,9 +48,8 @@ public interface DefaultRpViewerRendererFactory extends RpViewerRendererFactory
     }
 
     /**
-     * The default RpViewerRendererFactory.
+     * Get the default implementation from the global lookup.
      * <p>
-     * If an instance is available in the global lookup, return it, otherwise return a default implementation.
      *
      * @return
      */
@@ -59,7 +58,7 @@ public interface DefaultRpViewerRendererFactory extends RpViewerRendererFactory
         DefaultRpViewerRendererFactory result = Lookup.getDefault().lookup(DefaultRpViewerRendererFactory.class);
         if (result == null)
         {
-            result = DefaultRpRendererFactoryImpl.getInstance();
+            throw new IllegalStateException("No instance found in global lookup");
         }
         return result;
     }
@@ -75,5 +74,5 @@ public interface DefaultRpViewerRendererFactory extends RpViewerRendererFactory
      * @return
      */
     RpViewerRenderer getRpViewerRenderer(Song song, SongPart spt, RhythmParameter<?> rp, Type type, RpViewerSettings settings);
-
+    
 }

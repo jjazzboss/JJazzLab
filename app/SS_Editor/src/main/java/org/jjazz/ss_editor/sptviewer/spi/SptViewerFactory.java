@@ -23,7 +23,6 @@
 package org.jjazz.ss_editor.sptviewer.spi;
 
 import org.jjazz.song.api.Song;
-import org.jjazz.ss_editor.sptviewer.SptViewerFactoryImpl;
 import org.openide.util.Lookup;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ss_editor.sptviewer.api.SptViewer;
@@ -35,12 +34,17 @@ import org.jjazz.ss_editor.rpviewer.spi.DefaultRpViewerRendererFactory;
 public interface SptViewerFactory
 {
 
+    /**
+     * Get the default implementation found in the global lookup.
+     *
+     * @return
+     */
     public static SptViewerFactory getDefault()
     {
         SptViewerFactory rpef = Lookup.getDefault().lookup(SptViewerFactory.class);
         if (rpef == null)
         {
-            rpef = SptViewerFactoryImpl.getInstance();
+            throw new IllegalArgumentException("No instance found in global lookup");
         }
         return rpef;
     }

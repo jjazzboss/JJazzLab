@@ -22,6 +22,7 @@
  */
 package org.jjazz.ss_editor.rpviewer.spi;
 
+import org.jjazz.ss_editor.rpviewer.api.RpCustomEditor;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.openide.util.Lookup;
 

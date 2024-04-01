@@ -41,7 +41,6 @@ import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.songstructure.api.SongPartParameter;
 import org.jjazz.ss_editor.api.SS_Editor;
 import org.jjazz.song.api.Song;
-import org.jjazz.ss_editor.actions.EditRhythm;
 import org.jjazz.spteditor.api.SptEditorSettings;
 import org.openide.util.Lookup;
 import org.openide.util.LookupListener;
@@ -58,6 +57,7 @@ import org.jjazz.utilities.api.ResUtil;
 import org.jjazz.spteditor.spi.RpEditorComponentFactory;
 import org.jjazz.spteditor.spi.DefaultRpEditorComponentFactory;
 import org.jjazz.spteditor.spi.RpEditorComponent;
+import org.jjazz.ss_editorimpl.api.EditRhythm;
 
 public class SptEditorImpl extends SptEditor implements PropertyChangeListener
 {
@@ -252,7 +252,6 @@ public class SptEditorImpl extends SptEditor implements PropertyChangeListener
 
     private void btn_RhythmActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_RhythmActionPerformed
     {//GEN-HEADEREND:event_btn_RhythmActionPerformed
-
         EditRhythm.changeRhythm(songParts);
     }//GEN-LAST:event_btn_RhythmActionPerformed
 
