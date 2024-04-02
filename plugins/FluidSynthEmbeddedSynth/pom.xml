@@ -42,7 +42,12 @@
             </plugin>
         </plugins>
     </build>
-    <dependencies>      
+    <dependencies>              
+        <dependency> 
+            <groupId>org.jjazzlab</groupId> 
+            <artifactId>org-jjazz-fluidsynthjava</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>                 
         <dependency> 
             <groupId>${project.groupId}</groupId> 
             <artifactId>org-jjazz-embeddedsynth</artifactId> 
@@ -52,13 +57,7 @@
             <groupId>${project.groupId}</groupId> 
             <artifactId>org-jjazz-flatcomponents</artifactId> 
             <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>org.jjazzlab</groupId> 
-            <artifactId>org-jjazz-fluidsynthjava</artifactId> 
-            <version>${jjazzlab.fluidsynthjava.plugin.version}</version>  
-            <type>nbm</type>
-        </dependency>  
+        </dependency>   
         <dependency> 
             <groupId>${project.groupId}</groupId>
             <artifactId>org-jjazz-guava</artifactId>
