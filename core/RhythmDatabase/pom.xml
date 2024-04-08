@@ -17,8 +17,9 @@
                 <groupId>org.apache.netbeans.utilities</groupId>
                 <artifactId>nbm-maven-plugin</artifactId>
                 <configuration>
-                    <publicPackages>                      
+                    <publicPackages>
                         <publicPackage>org.jjazz.rhythmdatabase.api</publicPackage>
+                        <publicPackage>org.jjazz.rhythmdatabase.spi</publicPackage>
                     </publicPackages>
                 </configuration>
                 <extensions>true</extensions>

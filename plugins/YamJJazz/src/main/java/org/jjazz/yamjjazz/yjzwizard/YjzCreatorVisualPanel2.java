@@ -28,7 +28,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.List;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
 import org.jjazz.harmony.api.TimeSignature;
@@ -95,7 +94,7 @@ public final class YjzCreatorVisualPanel2 extends JPanel implements ActionListen
     @Override
     public String getName()
     {
-        return ResUtil.getString(getClass(),"BASE YAMAHA STYLE");
+        return ResUtil.getString(getClass(), "BASE_YAMAHA_STYLE");
     }
 
     // -----------------------------------------------------------------------------------
@@ -126,7 +125,7 @@ public final class YjzCreatorVisualPanel2 extends JPanel implements ActionListen
         RhythmDatabase rdb = RhythmDatabase.getDefault();
         List<RhythmInfo> rhythms = rdb.getRhythms(stdYamahaRhythmProvider)
                 .stream()
-                .filter(r -> r.getTimeSignature().equals(ts))
+                .filter(r -> r.timeSignature().equals(ts))
                 .toList();
 
         // Update the table

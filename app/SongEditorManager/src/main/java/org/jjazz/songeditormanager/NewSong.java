@@ -30,7 +30,7 @@ import java.util.logging.Logger;
 import javax.sound.midi.MidiUnavailableException;
 import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.midimix.api.MidiMix;
-import org.jjazz.midimix.api.MidiMixManager;
+import org.jjazz.midimix.spi.MidiMixManager;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongCreationException;
 import org.jjazz.song.api.SongFactory;
@@ -80,7 +80,7 @@ public final class NewSong implements ActionListener
         String name = sf.getNewSongName("NewSong");
 
 
-        File songTemplateFile = FileDirectoryManager.getInstance().getNewSongTemplateSongFile();
+        File songTemplateFile = getNewSongTemplateSongFile();
         if (songTemplateFile.exists())
         {
             try
@@ -92,7 +92,7 @@ public final class NewSong implements ActionListener
                 // creating a new one if no template file.
                 // Need to do this because we'll reset the song's file after, so SongEditorManager will not be able anymore
                 // to retrieve a MidiMix from the template file.
-                MidiMixManager mmm = MidiMixManager.getInstance();
+                MidiMixManager mmm = MidiMixManager.getDefault();
                 MidiMix mm = mmm.findMix(song);       // Possible MidiUnavailableException here
                 mm.setFile(null);  // Do like it was created from scratch
 
@@ -117,6 +117,15 @@ public final class NewSong implements ActionListener
         }
 
         return song;
+    }
+
+
+    static public File getNewSongTemplateSongFile()
+    {
+        FileDirectoryManager fdm = FileDirectoryManager.getInstance();
+        File dir = fdm.getAppConfigDirectory(null);
+        File f = new File(dir, SaveAsNewSongTemplate.TEMPLATE_SONG_NAME + "." + Song.SONG_EXTENSION);
+        return f;
     }
 
 }

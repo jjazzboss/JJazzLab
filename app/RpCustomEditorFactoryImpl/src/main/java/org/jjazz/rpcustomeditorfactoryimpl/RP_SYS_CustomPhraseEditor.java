@@ -15,7 +15,7 @@ import javax.swing.JList;
 import javax.swing.SwingUtilities;
 import org.jjazz.midi.api.Instrument;
 import org.jjazz.midimix.api.MidiMix;
-import org.jjazz.midimix.api.MidiMixManager;
+import org.jjazz.midimix.spi.MidiMixManager;
 import org.jjazz.musiccontrol.api.playbacksession.BaseSongSession;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.rhythm.api.MusicGenerationException;
@@ -313,7 +313,7 @@ public class RP_SYS_CustomPhraseEditor extends RpCustomEditor<RP_SYS_CustomPhras
         MidiMix midiMix = null;
         try
         {
-            midiMix = MidiMixManager.getInstance().findMix(song);
+            midiMix = MidiMixManager.getDefault().findMix(song);
         } catch (MidiUnavailableException ex)
         {
             // Should never happen

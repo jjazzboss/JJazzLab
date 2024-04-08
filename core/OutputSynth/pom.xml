@@ -38,11 +38,6 @@
     <dependencies>      
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-analytics</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
             <artifactId>org-jjazz-filedirectorymanager</artifactId> 
             <version>${project.version}</version>  
         </dependency>    
@@ -63,22 +58,7 @@
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-songstructure</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-testplayerservice</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
             <artifactId>org-jjazz-uiutilities</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-uisettings</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
@@ -91,25 +71,10 @@
             <artifactId>org-jjazz-utilities</artifactId> 
             <version>${project.version}</version>  
         </dependency>         
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>org-jjazz-flatcomponents</artifactId>
-            <version>${project.version}</version>
-        </dependency>        
         <dependency> 
             <groupId>${project.groupId}</groupId> 
             <artifactId>org-jjazz-startup</artifactId> 
             <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>org.netbeans.api</groupId> 
-            <artifactId>org-netbeans-api-annotations-common</artifactId> 
-            <version>${netbeans.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>org.netbeans.api</groupId> 
-            <artifactId>org-netbeans-api-progress</artifactId> 
-            <version>${netbeans.version}</version>  
         </dependency>  
         <dependency> 
             <groupId>org.netbeans.api</groupId> 

@@ -98,12 +98,12 @@
 
       <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
       <SubComponents>
-        <Component class="org.jjazz.uiutilities.api.HelpTextArea" name="helpTextArea1">
+        <Component class="org.jjazz.flatcomponents.api.HelpTextArea" name="helpTextArea1">
           <Properties>
             <Property name="columns" type="int" value="20"/>
             <Property name="rows" type="int" value="5"/>
             <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-              <ResourceString bundle="org/jjazz/yjzcreator/Bundle.properties" key="YjzCreatorVisualPanel3.helpTextArea1.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+              <ResourceString bundle="org/jjazz/yamjjazz/yjzwizard/Bundle.properties" key="YjzCreatorVisualPanel3.helpTextArea1.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
             </Property>
           </Properties>
         </Component>
@@ -112,7 +112,7 @@
     <Component class="javax.swing.JLabel" name="jLabel1">
       <Properties>
         <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/jjazz/yjzcreator/Bundle.properties" key="YjzCreatorVisualPanel3.jLabel1.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+          <ResourceString bundle="org/jjazz/yamjjazz/yjzwizard/Bundle.properties" key="YjzCreatorVisualPanel3.jLabel1.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
         </Property>
       </Properties>
     </Component>
@@ -121,7 +121,7 @@
         <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
           <Border info="org.netbeans.modules.form.compat2.border.TitledBorderInfo">
             <TitledBorder title="Target variations">
-              <ResourceString PropertyName="titleX" bundle="org/jjazz/yjzcreator/Bundle.properties" key="YjzCreatorVisualPanel3.jPanel1.border.title" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+              <ResourceString PropertyName="titleX" bundle="org/jjazz/yamjjazz/yjzwizard/Bundle.properties" key="YjzCreatorVisualPanel3.jPanel1.border.title" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
             </TitledBorder>
           </Border>
         </Property>
@@ -220,7 +220,7 @@
             <Property name="text" type="java.lang.String" value="Main B-1" noResource="true"/>
           </Properties>
         </Component>
-        <Component class="org.jjazz.uiutilities.api.WheelSpinner" name="spn_nbMainA">
+        <Component class="org.jjazz.flatcomponents.api.WheelSpinner" name="spn_nbMainA">
           <Properties>
             <Property name="model" type="javax.swing.SpinnerModel" editor="org.netbeans.modules.form.editors2.SpinnerModelEditor">
               <SpinnerModel initial="2" maximum="10" minimum="0" numberType="java.lang.Integer" stepSize="1" type="number"/>
@@ -236,7 +236,7 @@
             <Property name="text" type="java.lang.String" value="Main C" noResource="true"/>
           </Properties>
         </Component>
-        <Component class="org.jjazz.uiutilities.api.WheelSpinner" name="spn_nbMainD">
+        <Component class="org.jjazz.flatcomponents.api.WheelSpinner" name="spn_nbMainD">
           <Properties>
             <Property name="model" type="javax.swing.SpinnerModel" editor="org.netbeans.modules.form.editors2.SpinnerModelEditor">
               <SpinnerModel initial="2" maximum="10" minimum="0" numberType="java.lang.Integer" stepSize="1" type="number"/>
@@ -247,7 +247,7 @@
             <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="spn_nbMainDStateChanged"/>
           </Events>
         </Component>
-        <Component class="org.jjazz.uiutilities.api.WheelSpinner" name="spn_nbMainB">
+        <Component class="org.jjazz.flatcomponents.api.WheelSpinner" name="spn_nbMainB">
           <Properties>
             <Property name="model" type="javax.swing.SpinnerModel" editor="org.netbeans.modules.form.editors2.SpinnerModelEditor">
               <SpinnerModel initial="2" maximum="10" minimum="0" numberType="java.lang.Integer" stepSize="1" type="number"/>
@@ -278,7 +278,7 @@
             <Property name="text" type="java.lang.String" value="Main B" noResource="true"/>
           </Properties>
         </Component>
-        <Component class="org.jjazz.uiutilities.api.WheelSpinner" name="spn_nbMainC">
+        <Component class="org.jjazz.flatcomponents.api.WheelSpinner" name="spn_nbMainC">
           <Properties>
             <Property name="model" type="javax.swing.SpinnerModel" editor="org.netbeans.modules.form.editors2.SpinnerModelEditor">
               <SpinnerModel initial="2" maximum="10" minimum="0" numberType="java.lang.Integer" stepSize="1" type="number"/>
@@ -337,26 +337,26 @@
         <Component class="javax.swing.JCheckBox" name="cb_includeIntroEndings">
           <Properties>
             <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-              <ResourceString bundle="org/jjazz/yjzcreator/Bundle.properties" key="YjzCreatorVisualPanel3.cb_includeIntroEndings.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+              <ResourceString bundle="org/jjazz/yamjjazz/yjzwizard/Bundle.properties" key="YjzCreatorVisualPanel3.cb_includeIntroEndings.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
             </Property>
             <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-              <ResourceString bundle="org/jjazz/yjzcreator/Bundle.properties" key="YjzCreatorVisualPanel3.cb_includeIntroEndings.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+              <ResourceString bundle="org/jjazz/yamjjazz/yjzwizard/Bundle.properties" key="YjzCreatorVisualPanel3.cb_includeIntroEndings.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
             </Property>
           </Properties>
         </Component>
         <Component class="javax.swing.JCheckBox" name="cb_includeFills">
           <Properties>
             <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-              <ResourceString bundle="org/jjazz/yjzcreator/Bundle.properties" key="YjzCreatorVisualPanel3.cb_includeFills.text" replaceFormat="org.openide.util.NbBundle.getBundle({sourceFileName}.class).getString(&quot;{key}&quot;)"/>
+              <ResourceString bundle="org/jjazz/yamjjazz/yjzwizard/Bundle.properties" key="YjzCreatorVisualPanel3.cb_includeFills.text" replaceFormat="org.openide.util.NbBundle.getBundle({sourceFileName}.class).getString(&quot;{key}&quot;)"/>
             </Property>
             <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-              <ResourceString bundle="org/jjazz/yjzcreator/Bundle.properties" key="YjzCreatorVisualPanel3.cb_includeFills.toolTipText" replaceFormat="org.openide.util.NbBundle.getBundle({sourceFileName}.class).getString(&quot;{key}&quot;)"/>
+              <ResourceString bundle="org/jjazz/yamjjazz/yjzwizard/Bundle.properties" key="YjzCreatorVisualPanel3.cb_includeFills.toolTipText" replaceFormat="org.openide.util.NbBundle.getBundle({sourceFileName}.class).getString(&quot;{key}&quot;)"/>
             </Property>
           </Properties>
         </Component>
       </SubComponents>
     </Container>
-    <Component class="org.jjazz.uiutilities.api.WheelSpinner" name="spn_nbSrcPhrases">
+    <Component class="org.jjazz.flatcomponents.api.WheelSpinner" name="spn_nbSrcPhrases">
       <Properties>
         <Property name="model" type="javax.swing.SpinnerModel" editor="org.netbeans.modules.form.editors2.SpinnerModelEditor">
           <SpinnerModel initial="2" maximum="20" minimum="1" numberType="java.lang.Integer" stepSize="1" type="number"/>
@@ -366,10 +366,10 @@
     <Component class="javax.swing.JLabel" name="jLabel16">
       <Properties>
         <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/jjazz/yjzcreator/Bundle.properties" key="YjzCreatorVisualPanel3.jLabel16.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+          <ResourceString bundle="org/jjazz/yamjjazz/yjzwizard/Bundle.properties" key="YjzCreatorVisualPanel3.jLabel16.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
         </Property>
         <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/jjazz/yjzcreator/Bundle.properties" key="YjzCreatorVisualPanel3.jLabel16.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+          <ResourceString bundle="org/jjazz/yamjjazz/yjzwizard/Bundle.properties" key="YjzCreatorVisualPanel3.jLabel16.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
         </Property>
       </Properties>
     </Component>

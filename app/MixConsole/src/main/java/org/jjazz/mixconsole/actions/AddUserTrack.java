@@ -31,7 +31,7 @@ import javax.swing.Action;
 import javax.swing.ImageIcon;
 import org.jjazz.analytics.api.Analytics;
 import org.jjazz.midimix.api.MidiMix;
-import org.jjazz.midimix.api.MidiMixManager;
+import org.jjazz.midimix.spi.MidiMixManager;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.song.api.Song;
 import org.jjazz.mixconsole.api.MixConsole;
@@ -147,7 +147,7 @@ public class AddUserTrack extends AbstractAction
 
 
         // Open the PianoRollEditor
-        MidiMix midiMix = MidiMixManager.getInstance().findExistingMix(song);
+        MidiMix midiMix = MidiMixManager.getDefault().findExistingMix(song);
         var userRv = midiMix.getUserRhythmVoice(name);
         assert userRv != null : " midiMix=" + midiMix + " name=" + name;
         SongEditorManager.getDefault().showPianoRollEditorForUserTrack(song, midiMix, userRv);

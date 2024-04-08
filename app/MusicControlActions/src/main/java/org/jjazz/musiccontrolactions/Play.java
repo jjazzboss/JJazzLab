@@ -37,7 +37,7 @@ import javax.swing.ImageIcon;
 import org.jjazz.activesong.spi.ActiveSongManager;
 import org.jjazz.analytics.api.Analytics;
 import org.jjazz.midimix.api.MidiMix;
-import org.jjazz.midimix.api.MidiMixManager;
+import org.jjazz.midimix.spi.MidiMixManager;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.musiccontrol.api.playbacksession.UpdateProviderSongSession;
@@ -162,7 +162,7 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
                     UpdatableSongSession session = null;
                     try
                     {
-                        MidiMix midiMix = MidiMixManager.getInstance().findMix(currentSong);      // Can raise MidiUnavailableException
+                        MidiMix midiMix = MidiMixManager.getDefault().findMix(currentSong);      // Can raise MidiUnavailableException
                         SongContext context = new SongContext(currentSong, midiMix);
 
                         

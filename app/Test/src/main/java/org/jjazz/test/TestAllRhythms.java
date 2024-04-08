@@ -100,7 +100,7 @@ public final class TestAllRhythms implements ActionListener
             {
                 LOGGER.log(Level.SEVERE, "-- ri={0} file={1}", new Object[]   
                 {
-                    ri.getName(), ri.getFile().getAbsolutePath()
+                    ri.name(), ri.file().getAbsolutePath()
                 });
                 Rhythm r;
                 try

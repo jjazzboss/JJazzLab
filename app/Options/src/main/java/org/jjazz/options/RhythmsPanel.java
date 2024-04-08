@@ -42,11 +42,11 @@ import javax.swing.event.ListSelectionListener;
 import org.jjazz.analytics.api.Analytics;
 import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.harmony.api.TimeSignature;
-import org.jjazz.rhythmdatabase.api.AddRhythmsAction;
-import org.jjazz.rhythmdatabase.api.DeleteRhythmFile;
 import org.jjazz.rhythm.spi.RhythmProvider;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmdatabase.api.RhythmInfo;
+import org.jjazz.rhythmdatabaseimpl.api.AddRhythmsAction;
+import org.jjazz.rhythmdatabaseimpl.api.DeleteRhythmFile;
 import org.jjazz.rhythmselectiondialog.api.ui.RhythmProviderJList;
 import org.jjazz.rhythmselectiondialog.api.ui.RhythmJTable;
 import org.jjazz.uiutilities.api.UIUtilities;
@@ -505,8 +505,8 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
             SwingUtilities.invokeLater(() -> 
             {
                 // Set selection to the first new rhythm
-                list_rhythmProviders.setSelectedValue(rpRhythmPair.rp, true);
-                rhythmTable.setSelectedRhythm(RhythmDatabase.getDefault().getRhythm(rpRhythmPair.r.getUniqueId()));
+                list_rhythmProviders.setSelectedValue(rpRhythmPair.rp(), true);
+                rhythmTable.setSelectedRhythm(RhythmDatabase.getDefault().getRhythm(rpRhythmPair.r().getUniqueId()));
             });
         }
     }//GEN-LAST:event_btn_addRhythmsActionPerformed
@@ -514,9 +514,9 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
     private void btn_openFolderActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_openFolderActionPerformed
     {//GEN-HEADEREND:event_btn_openFolderActionPerformed
         var ri = rhythmTable.getSelectedRhythm();
-        if (ri != null && !ri.getFile().getName().isBlank())
+        if (ri != null && !ri.file().getName().isBlank())
         {
-            org.jjazz.utilities.api.Utilities.browseFileDirectory(ri.getFile(), false);
+            org.jjazz.utilities.api.Utilities.browseFileDirectory(ri.file(), false);
         }
     }//GEN-LAST:event_btn_openFolderActionPerformed
 
@@ -618,7 +618,7 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
         RhythmDatabase rdb = RhythmDatabase.getDefault();
         List<RhythmInfo> rhythms = rdb.getRhythms(rp)
                 .stream()
-                .filter(r -> r.getTimeSignature().equals(selectedTimeSignature))
+                .filter(r -> r.timeSignature().equals(selectedTimeSignature))
                 .toList();
 
         // Update the table
@@ -633,7 +633,7 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
     {
         RhythmDatabase rdb = RhythmDatabase.getDefault();
         RhythmInfo ri = rdb.getDefaultRhythm(selectedTimeSignature);    // Can't be null
-        String s = ri.getName();
+        String s = ri.name();
         String t = "Rhythm Provider: " + rdb.getRhythmProvider(ri).getInfo().getName();
         tf_defaultRhythm.setText(s);
         tf_defaultRhythm.setToolTipText(t);

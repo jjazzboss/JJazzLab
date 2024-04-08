@@ -67,7 +67,7 @@ public class ReloadSongMix extends AbstractAction
             return;
         }
         Song song = songMidiMix.getSong();
-        File songMixFile = FileDirectoryManager.getInstance().getSongMixFile(song.getFile());
+        File songMixFile = MidiMix.getSongMixFile(song.getFile());
         if (songMixFile == null)
         {
             String msg = "Song mix file is not created yet.";

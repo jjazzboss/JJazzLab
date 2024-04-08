@@ -41,7 +41,7 @@ import org.jjazz.activesong.spi.ActiveSongManager;
 import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.midimix.api.MidiMix;
-import org.jjazz.midimix.api.MidiMixManager;
+import org.jjazz.midimix.spi.MidiMixManager;
 import org.jjazz.midimix.api.UserRhythmVoice;
 import org.jjazz.outputsynth.api.OutputSynthManager;
 import org.jjazz.phrase.api.Phrase;
@@ -126,7 +126,7 @@ public class SongEditorManagerImpl implements SongEditorManager, PropertyChangeL
                 var asm = ActiveSongManager.getDefault();
                 if (makeActive && asm.isActivable(song) == null)
                 {
-                    MidiMix mm = MidiMixManager.getInstance().findExistingMix(s);
+                    MidiMix mm = MidiMixManager.getDefault().findExistingMix(s);
                     SwingUtilities.invokeLater(() -> asm.setActive(s, mm));
                 }
                 return;
@@ -138,7 +138,7 @@ public class SongEditorManagerImpl implements SongEditorManager, PropertyChangeL
         MidiMix midiMix;
         try
         {
-            midiMix = MidiMixManager.getInstance().findMix(song);
+            midiMix = MidiMixManager.getDefault().findMix(song);
         } catch (MidiUnavailableException ex)
         {
             // Should never be there
@@ -302,7 +302,7 @@ public class SongEditorManagerImpl implements SongEditorManager, PropertyChangeL
         // Fix the MidiMix if needed
         try
         {
-            var mm = MidiMixManager.getInstance().findMix(song);
+            var mm = MidiMixManager.getDefault().findMix(song);
             OutputSynthManager.getInstance().getDefaultOutputSynth().fixInstruments(mm, true);
         } catch (MidiUnavailableException ex)
         {
@@ -791,7 +791,7 @@ public class SongEditorManagerImpl implements SongEditorManager, PropertyChangeL
             MidiMix mm = null;
             try
             {
-                mm = MidiMixManager.getInstance().findMix(song);
+                mm = MidiMixManager.getDefault().findMix(song);
             } catch (MidiUnavailableException ex)
             {
                 LOGGER.log(Level.WARNING, "activateSong() Could not find MidiMix for song {0}.\n{1}", new Object[]

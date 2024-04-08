@@ -30,7 +30,6 @@ import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JComponent;
@@ -48,7 +47,6 @@ import org.jjazz.cl_editor.api.CL_SelectionUtilities;
 import org.jjazz.cl_editor.barbox.api.BarBox;
 import org.jjazz.itemrenderer.api.IR_Type;
 import org.jjazz.itemrenderer.api.ItemRenderer;
-import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongCreationException;
 import org.jjazz.song.spi.SongImporter;
 import org.jjazz.songeditormanager.spi.SongEditorManager;
@@ -56,7 +54,6 @@ import org.jjazz.uiutilities.api.SingleFileDragInTransferHandler;
 import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.utilities.api.ResUtil;
-import org.jjazz.utilities.api.Utilities;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.util.Exceptions;
@@ -295,12 +292,12 @@ public class CL_EditorTransferHandler extends TransferHandler
             CLI_Section curSection = cls.getSection(newBarIndex);
             if (info.getDropAction() == COPY)
             {
-                String editName = ResUtil.getString(getClass(), "COPY SECTION");
+                String editName = ResUtil.getString(getClass(), "COPY_SECTION");
                 um.startCEdit(editName);
 
                 CLI_Section sectionCopy = cliSection.getCopy(newPos, cls);  // Adjust section name if required
 
-                String errMsg = ResUtil.getString(getClass(), "IMPOSSIBLE TO COPY SECTION", cliSection.getData());
+                String errMsg = ResUtil.getString(getClass(), "IMPOSSIBLE_TO_COPY_SECTION", cliSection.getData());
 
                 if (curSection.getPosition().getBar() == newBarIndex)
                 {
@@ -336,8 +333,8 @@ public class CL_EditorTransferHandler extends TransferHandler
             } else
             {
                 // Move mode
-                String editName = ResUtil.getString(getClass(), "MOVE SECTION");
-                String errMsg = ResUtil.getString(getClass(), "IMPOSSIBLE TO MOVE SECTION", cliSection.getData());
+                String editName = ResUtil.getString(getClass(), "MOVE_SECTION");
+                String errMsg = ResUtil.getString(getClass(), "IMPOSSIBLE_TO_MOVE_SECTION", cliSection.getData());
 
                 um.startCEdit(editName);
 
@@ -422,7 +419,7 @@ public class CL_EditorTransferHandler extends TransferHandler
         {
             if (info.getDropAction() == COPY)
             {
-                String editName = ResUtil.getString(getClass(), "COPY ITEM");
+                String editName = ResUtil.getString(getClass(), "COPY_ITEM");
                 CL_SelectionUtilities selection = new CL_SelectionUtilities(editor.getLookup());
                 selection.unselectAll(editor);
                 um.startCEdit(editName);
@@ -433,7 +430,7 @@ public class CL_EditorTransferHandler extends TransferHandler
                 um.endCEdit(editName);
             } else
             {
-                String editName = ResUtil.getString(getClass(), "MOVE ITEM");
+                String editName = ResUtil.getString(getClass(), "MOVE_ITEM");
                 um.startCEdit(editName);
                 cls.moveItem(sourceItem, newPos);  // The editor will take care about the selection
                 um.endCEdit(editName);

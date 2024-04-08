@@ -100,7 +100,7 @@ public class SaveRhythmDefaultMix extends AbstractAction
         // Save each rhythm
         for (Rhythm r : savedRhythms)
         {
-            File f = FileDirectoryManager.getInstance().getRhythmMixFile(r.getName(), r.getFile());
+            File f = MidiMix.getRhythmMixFile(r.getName(), r.getFile());
             MidiMix rhythmMix = new MidiMix();
             try
             {
@@ -116,7 +116,7 @@ public class SaveRhythmDefaultMix extends AbstractAction
         }
         if (!savedFiles.isEmpty())
         {
-            StatusDisplayer.getDefault().setStatusText(ResUtil.getString(getClass(), "SAVED RHYTHM DEFAULT MIX", savedFiles));
+            StatusDisplayer.getDefault().setStatusText(ResUtil.getString(getClass(), "SAVED_RHYTHM_DEFAULT_MIX", savedFiles));
         }
         
         Analytics.logEvent("Save As Default Rhythm Mix");

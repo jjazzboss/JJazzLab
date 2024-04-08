@@ -40,7 +40,7 @@ public final class YjzCreatorVisualPanel3 extends JPanel
     @Override
     public String getName()
     {
-        return ResUtil.getString(getClass(), "CREATION PARAMETERS");
+        return ResUtil.getString(getClass(), "CREATION_PARAMETERS");
     }
 
     public void setNbMain(int nbMainA, int nbMainB, int nbMainC, int nbMainD)

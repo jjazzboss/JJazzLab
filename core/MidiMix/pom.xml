@@ -45,7 +45,7 @@
             <groupId>${project.groupId}</groupId> 
             <artifactId>org-jjazz-filedirectorymanager</artifactId> 
             <version>${project.version}</version>  
-        </dependency>    
+        </dependency>         
         <dependency> 
             <groupId>${project.groupId}</groupId> 
             <artifactId>org-jjazz-harmony</artifactId> 
@@ -88,27 +88,12 @@
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-upgrade</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
             <artifactId>org-jjazz-utilities</artifactId> 
             <version>${project.version}</version>  
         </dependency>    
         <dependency> 
             <groupId>org.netbeans.api</groupId> 
-            <artifactId>org-openide-awt</artifactId> 
-            <version>${netbeans.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>org.netbeans.api</groupId> 
             <artifactId>org-openide-dialogs</artifactId> 
-            <version>${netbeans.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>org.netbeans.api</groupId> 
-            <artifactId>org-openide-util</artifactId> 
             <version>${netbeans.version}</version>  
         </dependency>  
         <dependency> 

@@ -60,7 +60,7 @@ public final class OpenSong implements ActionListener
     public void actionPerformed(ActionEvent e)
     {
         JFileChooser chooser = UIUtilities.getFileChooserInstance();
-        FileNameExtensionFilter filter = new FileNameExtensionFilter(ResUtil.getString(getClass(), "CTL_JJazzOpenSongs") + " (" + "." + FileDirectoryManager.SONG_EXTENSION + ")", FileDirectoryManager.SONG_EXTENSION);
+        FileNameExtensionFilter filter = new FileNameExtensionFilter(ResUtil.getString(getClass(), "CTL_JJazzOpenSongs") + " (" + "." + Song.SONG_EXTENSION + ")", Song.SONG_EXTENSION);
         chooser.resetChoosableFileFilters();
         chooser.setFileFilter(filter);
         chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);

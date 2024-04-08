@@ -62,7 +62,7 @@ import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.song.api.Song;
 import org.jjazz.midimix.api.MidiMix;
-import org.jjazz.midimix.api.MidiMixManager;
+import org.jjazz.midimix.spi.MidiMixManager;
 import org.jjazz.midimix.api.UserRhythmVoice;
 import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythmstubs.api.DummyRhythm;
@@ -587,7 +587,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
 
         try
         {
-            songMidiMix = MidiMixManager.getInstance().findMix(song);
+            songMidiMix = MidiMixManager.getDefault().findMix(song);
         } catch (MidiUnavailableException ex)
         {
             String msg = ResUtil.getString(getClass(), "CTL_NoMidiMixFound", song.getName());
@@ -968,7 +968,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
                 }
             });
             updateText();
-            setToolTipText(ResUtil.getString(getClass(), "CURRENT MIDI OUT DEVICE"));
+            setToolTipText(ResUtil.getString(getClass(), "CURRENT_MIDI_OUT_DEVICE"));
             addActionListener(e -> showMidiOptionPanel());
         }
 

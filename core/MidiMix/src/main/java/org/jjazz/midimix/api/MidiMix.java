@@ -56,6 +56,7 @@ import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.undo.UndoableEdit;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
+import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.midi.api.Instrument;
 import org.jjazz.midi.api.synths.GM1Instrument;
@@ -64,6 +65,7 @@ import org.jjazz.midi.api.InstrumentSettings;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.synths.Family;
 import org.jjazz.midi.api.synths.GMSynth;
+import org.jjazz.midimix.spi.MidiMixManager;
 import org.jjazz.midimix.spi.RhythmVoiceInstrumentProvider;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.rhythm.api.AdaptedRhythm;
@@ -1199,6 +1201,71 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
         return insMixes;
     }
 
+
+    /**
+     * Add a user phrase channel for the specified phrase name.
+     *
+     * @param userPhraseName
+     * @throws MidiUnavailableException
+     */
+    public void addUserChannel(String userPhraseName) throws MidiUnavailableException
+    {
+        int channel = getUsedChannels().contains(UserRhythmVoice.DEFAULT_USER_PHRASE_CHANNEL) ? findFreeChannel(false)
+                : UserRhythmVoice.DEFAULT_USER_PHRASE_CHANNEL;
+        if (channel == -1)
+        {
+            String msg = ResUtil.getString(getClass(), "ERR_NotEnoughChannels");
+            throw new MidiUnavailableException(msg);
+        }
+
+        Phrase p = song.getUserPhrase(userPhraseName);
+        assert p != null : "userPhraseName=" + userPhraseName;
+
+
+        // Update the MidiMix
+        RhythmVoiceInstrumentProvider insProvider = RhythmVoiceInstrumentProvider.getProvider();
+        UserRhythmVoice urv;
+        Instrument ins;
+
+        if (!p.isDrums())
+        {
+            // Directly use a RhythmVoiceInstrumentProvider to get the melodic instrument
+            urv = new UserRhythmVoice(userPhraseName);
+            ins = insProvider.findInstrument(urv);
+        } else
+        {
+            // Try to reuse the same drums instrument than in the current song
+            var rvDrums = getRhythmVoice(MidiConst.CHANNEL_DRUMS);
+            if (rvDrums == null)
+            {
+                // Unusual, but there might be another drums channel
+                rvDrums = getRhythmVoices().stream()
+                        .filter(rv -> rv.isDrums())
+                        .findAny()
+                        .orElse(null);
+            }
+            if (rvDrums != null)
+            {
+                ins = getInstrumentMix(rvDrums).getInstrument();
+                DrumKit kit = ins.getDrumKit();     // Might be null if ins is the VoidInstrument from the GM bank
+                urv = new UserRhythmVoice(userPhraseName, kit != null ? kit : new DrumKit());
+            } else
+            {
+                urv = new UserRhythmVoice(userPhraseName, new DrumKit());
+                ins = insProvider.findInstrument(urv);
+            }
+        }
+
+        var insMix = new InstrumentMix(ins, new InstrumentSettings());
+        setInstrumentMix(channel, urv, insMix);
+
+        if (p.isDrums() && ins == GMSynth.getInstance().getVoidInstrument() && channel != MidiConst.CHANNEL_DRUMS)
+        {
+            // Special case, better to activate drums rerouting
+            setDrumsReroutedChannel(true, channel);
+        }
+    }
+
     public void addUndoableEditListener(UndoableEditListener l)
     {
         if (l == null)
@@ -1263,6 +1330,52 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
             }
         }
         return sb.toString();
+    }
+
+    /**
+     * Get the song mix File object for a specified song file.
+     * <p>
+     * SongMix file will be located in the same directory than songFile.
+     *
+     * @param songFile
+     * @return Return a new file identical to songFile except the extension. If songFile is null returns null.
+     */
+    static public File getSongMixFile(File songFile)
+    {
+        if (songFile == null)
+        {
+            return null;
+        }
+        String songMixName = Utilities.replaceExtension(songFile.getName(), MIX_FILE_EXTENSION);
+        return new File(songFile.getParent(), songMixName);
+    }
+
+    /**
+     * Get the rhythm mix File object for the specified rhythm.
+     * <p>
+     *
+     * @param dir Directory of the returned file
+     * @param rhythmName
+     * @param rhythmFile Can be empty (no file) but can not be null.
+     * @return
+     */
+    static public File getRhythmMixFile(String dir, String rhythmName, File rhythmFile)
+    {
+        if (rhythmName == null || rhythmName.isEmpty() || rhythmFile == null)
+        {
+            throw new IllegalArgumentException("rhythmName=" + rhythmName + " rhythmFile=" + rhythmName);
+        }
+        String rhythmMixFileName;
+        if (rhythmFile.getName().isEmpty())
+        {
+            // No file
+            rhythmMixFileName = rhythmName.replace(" ", "") + "." + MIX_FILE_EXTENSION;
+        } else
+        {
+            rhythmMixFileName = Utilities.replaceExtension(rhythmFile.getName(), MIX_FILE_EXTENSION);
+        }
+        File f = new File(dir, rhythmMixFileName);
+        return f;
     }
 
     /**
@@ -1820,7 +1933,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
 
         assert !(r instanceof AdaptedRhythm) : "r=" + r;
 
-        MidiMix mm = MidiMixManager.getInstance().findMix(r);
+        MidiMix mm = MidiMixManager.getDefault().findMix(r);
         if (!getUniqueRhythms().isEmpty())
         {
             // Adapt mm to sound like the InstrumentMixes of r0           
@@ -1971,69 +2084,6 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
         }
     }
 
-    /**
-     * Add a user phrase channel for the specified phrase name.
-     *
-     * @param userPhraseName
-     * @throws MidiUnavailableException
-     */
-    protected void addUserChannel(String userPhraseName) throws MidiUnavailableException
-    {
-        int channel = getUsedChannels().contains(UserRhythmVoice.DEFAULT_USER_PHRASE_CHANNEL) ? findFreeChannel(false)
-                : UserRhythmVoice.DEFAULT_USER_PHRASE_CHANNEL;
-        if (channel == -1)
-        {
-            String msg = ResUtil.getString(getClass(), "ERR_NotEnoughChannels");
-            throw new MidiUnavailableException(msg);
-        }
-
-        Phrase p = song.getUserPhrase(userPhraseName);
-        assert p != null : "userPhraseName=" + userPhraseName;
-
-
-        // Update the MidiMix
-        RhythmVoiceInstrumentProvider insProvider = RhythmVoiceInstrumentProvider.getProvider();
-        UserRhythmVoice urv;
-        Instrument ins;
-
-        if (!p.isDrums())
-        {
-            // Directly use a RhythmVoiceInstrumentProvider to get the melodic instrument
-            urv = new UserRhythmVoice(userPhraseName);
-            ins = insProvider.findInstrument(urv);
-        } else
-        {
-            // Try to reuse the same drums instrument than in the current song
-            var rvDrums = getRhythmVoice(MidiConst.CHANNEL_DRUMS);
-            if (rvDrums == null)
-            {
-                // Unusual, but there might be another drums channel
-                rvDrums = getRhythmVoices().stream()
-                        .filter(rv -> rv.isDrums())
-                        .findAny()
-                        .orElse(null);
-            }
-            if (rvDrums != null)
-            {
-                ins = getInstrumentMix(rvDrums).getInstrument();
-                DrumKit kit = ins.getDrumKit();     // Might be null if ins is the VoidInstrument from the GM bank
-                urv = new UserRhythmVoice(userPhraseName, kit != null ? kit : new DrumKit());
-            } else
-            {
-                urv = new UserRhythmVoice(userPhraseName, new DrumKit());
-                ins = insProvider.findInstrument(urv);
-            }
-        }
-
-        var insMix = new InstrumentMix(ins, new InstrumentSettings());
-        setInstrumentMix(channel, urv, insMix);
-
-        if (p.isDrums() && ins == GMSynth.getInstance().getVoidInstrument() && channel != MidiConst.CHANNEL_DRUMS)
-        {
-            // Special case, better to activate drums rerouting
-            setDrumsReroutedChannel(true, channel);
-        }
-    }
 
     /**
      * Remove the user phrase channel with specific name.

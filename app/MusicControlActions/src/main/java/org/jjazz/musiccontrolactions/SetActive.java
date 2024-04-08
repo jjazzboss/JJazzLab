@@ -32,7 +32,7 @@ import javax.swing.Action;
 import javax.swing.ImageIcon;
 import org.jjazz.activesong.spi.ActiveSongManager;
 import org.jjazz.midimix.api.MidiMix;
-import org.jjazz.midimix.api.MidiMixManager;
+import org.jjazz.midimix.spi.MidiMixManager;
 import org.jjazz.song.api.Song;
 import org.jjazz.flatcomponents.api.FlatToggleButton;
 import org.jjazz.utilities.api.ResUtil;
@@ -108,7 +108,7 @@ public class SetActive extends BooleanStateAction implements PropertyChangeListe
             currentSong = newSong;
             try
             {
-                currentMidiMix = MidiMixManager.getInstance().findMix(currentSong);
+                currentMidiMix = MidiMixManager.getDefault().findMix(currentSong);
             } catch (MidiUnavailableException ex)
             {
                 // We should never be here

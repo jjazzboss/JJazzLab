@@ -367,7 +367,7 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
                 LOGGER.log(Level.WARNING, "getRecommendedRhythm() Can''t get rhythm instance for {0}. Using stub rhythm instead. ex={1}",
                         new Object[]
                         {
-                            ri.getName(), ex.getMessage()
+                            ri.name(), ex.getMessage()
                         });
                 r = rdb.getDefaultStubRhythmInstance(ts);  // non null
             }

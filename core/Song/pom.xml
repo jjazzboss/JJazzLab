@@ -42,20 +42,9 @@
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-base</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-filedirectorymanager</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
             <groupId>${project.groupId}</groupId>
             <artifactId>org-jjazz-guava</artifactId>
             <version>${project.version}</version>
-            
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 

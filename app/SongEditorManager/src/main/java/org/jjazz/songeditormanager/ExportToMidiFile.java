@@ -32,7 +32,7 @@ import org.jjazz.musiccontrol.api.SongMidiExporter;
 import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.song.api.Song;
 import org.jjazz.midimix.api.MidiMix;
-import org.jjazz.midimix.api.MidiMixManager;
+import org.jjazz.midimix.spi.MidiMixManager;
 import org.jjazz.uiutilities.api.UIUtilities;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.DialogDisplayer;
@@ -115,7 +115,7 @@ public class ExportToMidiFile extends AbstractAction
         MidiMix midiMix = null;
         try
         {
-            midiMix = MidiMixManager.getInstance().findMix(song);
+            midiMix = MidiMixManager.getDefault().findMix(song);
         } catch (MidiUnavailableException ex)
         {
             // Should never happen

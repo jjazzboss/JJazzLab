@@ -38,7 +38,7 @@ import org.jjazz.phrasetransform.api.PhraseTransform;
 public class PhraseTransformListCellRenderer extends DefaultListCellRenderer
 {
 
-    private boolean useCategory;
+    private final boolean useCategory;
 
     public PhraseTransformListCellRenderer(boolean useCategory)
     {

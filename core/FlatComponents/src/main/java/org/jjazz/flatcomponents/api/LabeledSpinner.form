@@ -45,7 +45,7 @@
         <Property name="text" type="java.lang.String" value="label" noResource="true"/>
       </Properties>
     </Component>
-    <Component class="org.jjazz.uiutilities.api.WheelSpinner" name="wheelSpinner1">
+    <Component class="org.jjazz.flatcomponents.api.WheelSpinner" name="wheelSpinner1">
     </Component>
   </SubComponents>
 </Form>

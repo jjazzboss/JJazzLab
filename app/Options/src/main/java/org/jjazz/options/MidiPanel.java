@@ -22,7 +22,7 @@
  */
 package org.jjazz.options;
 
-import org.jjazz.outputsynth.api.ui.DefaultInstrumentsDialog;
+import org.jjazz.options.defaultinstrumentsdialog.DefaultInstrumentsDialog;
 import java.awt.Component;
 import java.awt.Font;
 import java.beans.PropertyChangeEvent;

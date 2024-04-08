@@ -45,9 +45,6 @@ public class FileDirectoryManager
 
     public static final String APP_CONFIG_PREFIX_DIR = ".jjazz";
     public static final String JJAZZLAB_USER_DIR = "JJazzLab";
-    public static final String TEMPLATE_SONG_NAME = "NewSongTemplate";
-    public static final String MIX_FILE_EXTENSION = "mix";
-    public static final String SONG_EXTENSION = "sng";
     public static final String PROP_LAST_SONG_DIRECTORY = "PropLastSongDirectory";
     public static final String PROP_RHYTHM_USER_DIRECTORY = "PropRhythmUserDirectory";
     public static final String PROP_RHYTHM_MIX_DIRECTORY = "PropRhythmMixDirectory";
@@ -57,12 +54,12 @@ public class FileDirectoryManager
     /**
      * The Preferences of this object.
      */
-    private static Preferences prefs = NbPreferences.forModule(FileDirectoryManager.class);
+    private static final Preferences prefs = NbPreferences.forModule(FileDirectoryManager.class);
 
     /**
      * The listeners for changes of this object.
      */
-    private SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    private final SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(FileDirectoryManager.class.getSimpleName());
 
     public static FileDirectoryManager getInstance()
@@ -77,67 +74,7 @@ public class FileDirectoryManager
         return INSTANCE;
     }
 
-    /**
-     * Build the song mix File object for specified song file.
-     * <p>
-     * SongMix file will be located in the same directory than songFile.
-     *
-     * @param songFile
-     * @return Return a new file identical to songFile except the extension. If songFile is null returns null.
-     */
-    public File getSongMixFile(File songFile)
-    {
-        if (songFile == null)
-        {
-            return null;
-        }
-        String songMixName = Utilities.replaceExtension(songFile.getName(), MIX_FILE_EXTENSION);
-        return new File(songFile.getParent(), songMixName);
-    }
-
-    /**
-     * Get the rhythm mix File object for the specified rhythm.
-     * <p>
-     *
-     * @param rhythmName
-     * @param rhythmFile Can be empty (no file) but can not null.
-     * @return
-     */
-    public File getRhythmMixFile(String rhythmName, File rhythmFile)
-    {
-        if (rhythmName == null || rhythmName.isEmpty() || rhythmFile == null)
-        {
-            throw new IllegalArgumentException("rhythmName=" + rhythmName + " rhythmFile=" + rhythmName);
-        }
-        String rhythmMixFileName;
-        if (rhythmFile.getName().isEmpty())
-        {
-            // No file
-            rhythmMixFileName = rhythmName.replace(" ", "") + "." + MIX_FILE_EXTENSION;
-        } else
-        {
-            rhythmMixFileName = Utilities.replaceExtension(rhythmFile.getName(), MIX_FILE_EXTENSION);
-        }
-        File f = new File(getRhythmMixDirectory(), rhythmMixFileName);
-        return f;
-    }
-
-    public File getNewSongTemplateMixFile()
-    {
-        FileDirectoryManager fdm = FileDirectoryManager.getInstance();
-        File dir = fdm.getAppConfigDirectory(null);
-        File f = new File(dir, TEMPLATE_SONG_NAME + "." + FileDirectoryManager.MIX_FILE_EXTENSION);
-        return f;
-    }
-
-    public File getNewSongTemplateSongFile()
-    {
-        FileDirectoryManager fdm = FileDirectoryManager.getInstance();
-        File dir = fdm.getAppConfigDirectory(null);
-        File f = new File(dir, TEMPLATE_SONG_NAME + "." + FileDirectoryManager.SONG_EXTENSION);
-        return f;
-    }
-
+ 
     /**
      * The directory user.home/DEFAULT_USER_DIR.
      * <p>

@@ -85,7 +85,7 @@ public class SongStructureFactoryImpl extends SongStructureFactory
             } catch (UnavailableRhythmException ex)
             {
                 // Might happen if file deleted
-                LOGGER.log(Level.WARNING, "createSgs() Can''t get rhythm instance for {0}. Using stub rhythm instead. ex={1}", new Object[]{ri.getName(),
+                LOGGER.log(Level.WARNING, "createSgs() Can''t get rhythm instance for {0}. Using stub rhythm instead. ex={1}", new Object[]{ri.name(),
                     ex.getMessage()});   
                 r = rdb.getDefaultStubRhythmInstance(section.getData().getTimeSignature());  // non null
             }
@@ -120,7 +120,7 @@ public class SongStructureFactoryImpl extends SongStructureFactory
         } catch (UnavailableRhythmException ex)
         {
             // Might happen if file deleted
-            LOGGER.log(Level.WARNING, "createSimpleSgs() Can''t get rhythm instance for {0}. Using stub rhythm instead. ex={1}", new Object[]{ri.getName(),
+            LOGGER.log(Level.WARNING, "createSimpleSgs() Can''t get rhythm instance for {0}. Using stub rhythm instead. ex={1}", new Object[]{ri.name(),
                 ex.getMessage()});   
             r = rdb.getDefaultStubRhythmInstance(TimeSignature.FOUR_FOUR);  // non null
         }

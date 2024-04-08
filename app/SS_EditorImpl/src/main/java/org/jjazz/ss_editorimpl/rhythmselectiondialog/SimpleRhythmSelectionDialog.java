@@ -70,7 +70,7 @@ public class SimpleRhythmSelectionDialog extends RhythmSelectionDialog implement
         cleanup();
 
         selectedRhythm = ri;
-        timeSignature = selectedRhythm.getTimeSignature();
+        timeSignature = selectedRhythm.timeSignature();
         updateRhythmInfo(selectedRhythm);
 
         // Populate the list of rhythms for this TimeSignature
@@ -109,25 +109,25 @@ public class SimpleRhythmSelectionDialog extends RhythmSelectionDialog implement
         }
         StringBuilder sb = new StringBuilder();
         TableModel tm = this.tbl_props.getModel();
-        TempoRange tr = ri.getFeatures().getTempoRange();
+        TempoRange tr = ri.rhythmFeatures().getTempoRange();
         tm.setValueAt("Description", 0, 0);
-        tm.setValueAt(ri.getDescription(), 0, 1);
+        tm.setValueAt(ri.description(), 0, 1);
 
         tm.setValueAt("Tags", 1, 0);
-        for (String tag : ri.getTags())
+        for (String tag : ri.tags())
         {
             sb.append(tag).append(" ");
         }
         tm.setValueAt(sb.toString(), 1, 1);
 
         tm.setValueAt("Preferred tempo", 2, 0);
-        tm.setValueAt(ri.getPreferredTempo(), 2, 1);
+        tm.setValueAt(ri.preferredTempo(), 2, 1);
 
         tm.setValueAt("Preferred tempo", 3, 0);
         tm.setValueAt(tr.getName() + " [" + tr.getMin() + "~" + tr.getMax() + "]", 3, 1);
 
         tm.setValueAt("File", 4, 0);
-        tm.setValueAt(ri.getFile().getAbsolutePath(), 4, 1);
+        tm.setValueAt(ri.file().getAbsolutePath(), 4, 1);
 //        {
 //            sb.append(rv.getName()).append(" ");
 //        }
@@ -142,13 +142,13 @@ public class SimpleRhythmSelectionDialog extends RhythmSelectionDialog implement
 //        tm.setValueAt(sb.toString(), 5, 1);
 
         tm.setValueAt("Version", 6, 0);
-        tm.setValueAt(ri.getVersion(), 6, 1);
+        tm.setValueAt(ri.version(), 6, 1);
 
         tm.setValueAt("Vendor", 7, 0);
-        tm.setValueAt(ri.getAuthor(), 7, 1);
+        tm.setValueAt(ri.author(), 7, 1);
 
         tm.setValueAt("Feel", 8, 0);
-        tm.setValueAt(ri.getFeatures().getFeel(), 8, 1);
+        tm.setValueAt(ri.rhythmFeatures().getFeel(), 8, 1);
     }
 
     @Override

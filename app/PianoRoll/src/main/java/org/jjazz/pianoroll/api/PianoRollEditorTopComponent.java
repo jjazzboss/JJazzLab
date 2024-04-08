@@ -41,7 +41,7 @@ import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.midimix.api.MidiMix;
-import org.jjazz.midimix.api.MidiMixManager;
+import org.jjazz.midimix.spi.MidiMixManager;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.pianoroll.QuantizePanel;
 import org.jjazz.pianoroll.GhostPhrasesPanel;
@@ -126,7 +126,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
         setDisplayName(getDefaultTabName(song));
         try
         {
-            midiMix = MidiMixManager.getInstance().findMix(song);
+            midiMix = MidiMixManager.getDefault().findMix(song);
         } catch (MidiUnavailableException ex)
         {
             // Should never happen

@@ -30,7 +30,7 @@ import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.midimix.api.MidiMix;
-import org.jjazz.midimix.api.MidiMixManager;
+import org.jjazz.midimix.spi.MidiMixManager;
 import org.jjazz.song.api.Song;
 import org.jjazz.uiutilities.api.UIUtilities;
 import org.openide.DialogDisplayer;
@@ -64,7 +64,7 @@ class SaveUtils
     {
         JFileChooser chooser = UIUtilities.getFileChooserInstance();
         FileNameExtensionFilter filter = new FileNameExtensionFilter(
-                "JJazzLab songs" + " (" + "." + FileDirectoryManager.SONG_EXTENSION + ")", FileDirectoryManager.SONG_EXTENSION);
+                "JJazzLab songs" + " (" + "." + Song.SONG_EXTENSION + ")", Song.SONG_EXTENSION);
         chooser.resetChoosableFileFilters();
         chooser.setMultiSelectionEnabled(false);
         chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
@@ -85,9 +85,9 @@ class SaveUtils
             String songName = songFile.getName();
 
             // Add file extension if required
-            if (!org.jjazz.utilities.api.Utilities.endsWithIgnoreCase(songName, "." + FileDirectoryManager.SONG_EXTENSION))
+            if (!org.jjazz.utilities.api.Utilities.endsWithIgnoreCase(songName, "." + Song.SONG_EXTENSION))
             {
-                songFile = new File(songFile.getParent(), songName + "." + FileDirectoryManager.SONG_EXTENSION);
+                songFile = new File(songFile.getParent(), songName + "." + Song.SONG_EXTENSION);
             }
 
             if (songFile.exists())
@@ -165,7 +165,7 @@ class SaveUtils
             String mixString = "";
             try
             {
-                MidiMix mm = MidiMixManager.getInstance().findMix(song);
+                MidiMix mm = MidiMixManager.getDefault().findMix(song);
                 mixString = ", " + mm.getFile().getAbsolutePath();
             } catch (MidiUnavailableException ex)
             {
@@ -189,7 +189,7 @@ class SaveUtils
         MidiMix midiMix = null;
         try
         {
-            midiMix = MidiMixManager.getInstance().findMix(song);
+            midiMix = MidiMixManager.getDefault().findMix(song);
         } catch (MidiUnavailableException ex)
         {
             LOGGER.log(Level.SEVERE, "getMidiMixSilent() Could not retrieve MidiMix for song {0} - ex={1}", new Object[]{song.getName(),
@@ -213,9 +213,9 @@ class SaveUtils
         {
             // This is the first save of the song, build the file name from song name + add extension if not already present
             String defaultName = song.getName().replace(" ", "");
-            if (!org.jjazz.utilities.api.Utilities.endsWithIgnoreCase(defaultName, "." + FileDirectoryManager.SONG_EXTENSION))
+            if (!org.jjazz.utilities.api.Utilities.endsWithIgnoreCase(defaultName, "." + Song.SONG_EXTENSION))
             {
-                defaultName += "." + FileDirectoryManager.SONG_EXTENSION;
+                defaultName += "." + Song.SONG_EXTENSION;
             }
             defaultFile = new File(defaultName);
         }

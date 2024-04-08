@@ -108,10 +108,10 @@ public class PreviewPanel extends JPanel
             printable.print(g2d, pageFormat, pageIndex);
         } catch (IndexOutOfBoundsException e)
         {
-            g2d.drawString(ResUtil.getString(getClass(),"PAGE INDEX OUT OF RANGE"), 10, 30);
+            g2d.drawString(ResUtil.getString(getClass(), "PAGE_INDEX_OUT_OF_RANGE"), 10, 30);
         } catch (PrinterException e)
         {
-            g2d.drawString(ResUtil.getString(getClass(),"PRINTER ERROR"), 10, 30);
+            g2d.drawString(ResUtil.getString(getClass(), "PRINTER_ERROR"), 10, 30);
         }
         g2d.dispose();
 

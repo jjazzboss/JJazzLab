@@ -98,6 +98,7 @@ import org.openide.util.lookup.ServiceProvider;
 public class Song implements Serializable, ClsChangeListener, SgsChangeListener, PropertyChangeListener
 {
 
+    public static final String SONG_EXTENSION = "sng";
     public static final String PROP_NAME = "PROP_NAME";
     public static final String PROP_COMMENTS = "PROP_COMMENTS";
     public static final String PROP_TAGS = "PROP_TAGS";
@@ -780,7 +781,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
         boolean b = true;
         if (f.exists() && !f.canWrite())
         {
-            String msg = ResUtil.getString(getClass(), "CAN NOT OVERWRITE", f.getName());
+            String msg = ResUtil.getString(getClass(), "CAN_NOT_OVERWRITE", f.getName());
             LOGGER.log(Level.WARNING, "saveToFileNotify() {0}", msg);
             NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.WARNING_MESSAGE);
             DialogDisplayer.getDefault().notify(nd);
@@ -991,7 +992,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
 
     static protected String removeSongExtension(String str)
     {
-        String ext = "." + FileDirectoryManager.SONG_EXTENSION;
+        String ext = "." + SONG_EXTENSION;
         int indexExt = str.toLowerCase().lastIndexOf(ext.toLowerCase());
         if (indexExt == -1)
         {
@@ -1232,7 +1233,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
      * Serialization proxy.
      * <p>
      * spVERSION 2 and 3 changes saved fields, see below.<br>
-     * spVERSION 4 (JJazzLab 4.0.3) introduces several aliases to get rid of hard-coded qualified class names (XStreamConfig class introduction) 
+     * spVERSION 4 (JJazzLab 4.0.3) introduces several aliases to get rid of hard-coded qualified class names (XStreamConfig class introduction)
      */
     private static class SerializationProxy implements Serializable
     {

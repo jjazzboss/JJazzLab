@@ -123,7 +123,7 @@ public class RhythmProviderJList extends JList<RhythmProvider> implements Change
             var frp = FavoriteRhythmProvider.getInstance();
 
             List<RhythmInfo> rhythms = (rp == frp) ? frp.getBuiltinRhythmInfos() : rdb.getRhythms(rp);
-            int size = tsFilter == null ? rhythms.size() : (int) rhythms.stream().filter(r -> r.getTimeSignature().equals(tsFilter)).count();
+            int size = tsFilter == null ? rhythms.size() : (int) rhythms.stream().filter(r -> r.timeSignature().equals(tsFilter)).count();
 
             setText(rpi.getName() + " (" + size + ")");
             setToolTipText(rpi.getDescription() + " - version " + rpi.getVersion());

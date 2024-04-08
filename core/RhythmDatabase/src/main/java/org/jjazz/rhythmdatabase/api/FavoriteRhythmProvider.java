@@ -76,8 +76,7 @@ public class FavoriteRhythmProvider implements RhythmProvider
     @Override
     public Info getInfo()
     {
-        return new RhythmProvider.Info("FavoriteRhythmProviderId", ResUtil.getString(getClass(), "FAVORITE RHYTHMS"), ResUtil.getString(getClass(),
-                "FAVORITE RHYTHMS FROM ALL RHYTHM PROVIDERS"), "JL", "1");
+        return new RhythmProvider.Info("FavoriteRhythmProviderId", ResUtil.getString(getClass(), "FAVORITE_RHYTHMS"), ResUtil.getString(getClass(), "FAVORITE_RHYTHMS_FROM_ALL_RHYTHM_PROVIDERS"), "JL", "1");
     }
 
     /**

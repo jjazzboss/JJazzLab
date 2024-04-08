@@ -149,7 +149,7 @@ public final class ImportSong implements ActionListener
                 if (fImporters.isEmpty())
                 {
                     // Extension not managed by any SongImporter
-                    String msg = ResUtil.getString(getClass(), "FILE TYPE IS NOT SUPPORTED", f.getAbsolutePath());
+                    String msg = ResUtil.getString(getClass(), "FILE_TYPE_IS_NOT_SUPPORTED", f.getAbsolutePath());
                     LOGGER.log(Level.WARNING, "actionPerformed() {0}", msg);
                     NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
                     DialogDisplayer.getDefault().notify(nd);

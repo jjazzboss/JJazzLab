@@ -223,22 +223,24 @@
         <module>app/ImprovisationSupport</module>
         <module>app/InstrumentChooser</module>
         <module>app/InstrumentComponents</module>
-        <module>app/ItemRenderer</module>
+        <module>app/ItemRenderer</module>		
+        <module>app/MidiMixManagerImpl</module>        
         <module>app/MixConsole</module>
         <module>app/MusicControlActions</module>
         <module>app/Options</module>
         <module>app/PianoRoll</module>
         <module>app/PopupWindowMenuPatch</module>
         <module>app/Print</module>        
+        <module>app/RhythmDatabaseImpl</module>        
         <module>app/RhythmSelectionDialog</module>
         <module>app/RpCustomEditorFactoryImpl</module>
         <module>app/SS_Editor</module>
-        <module>app/SS_EditorImpl</module>        
+        <module>app/SS_EditorImpl</module>                
         <module>app/Score</module>
         <module>app/SongEditorManager</module>
         <module>app/SongMemoViewer</module>
         <module>app/SptEditor</module>
-        <module>app/Startup</module>
+        <module>app/StartupManager</module>        
         <module>app/Test</module>
         <module>app/UISettings</module>
         <module>app/UIUtilities</module>

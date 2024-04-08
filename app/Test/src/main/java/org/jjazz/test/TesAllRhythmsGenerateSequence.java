@@ -31,7 +31,7 @@ import javax.sound.midi.MidiUnavailableException;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.midimix.api.MidiMix;
-import org.jjazz.midimix.api.MidiMixManager;
+import org.jjazz.midimix.spi.MidiMixManager;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmmusicgeneration.api.SongSequenceBuilder;
@@ -88,7 +88,7 @@ public final class TesAllRhythmsGenerateSequence implements ActionListener
             song = s;
             try
             {
-                midiMix = MidiMixManager.getInstance().findMix(song);      // Can raise MidiUnavailableException         
+                midiMix = MidiMixManager.getDefault().findMix(song);      // Can raise MidiUnavailableException         
             } catch (MidiUnavailableException ex)
             {
                 Exceptions.printStackTrace(ex);
@@ -108,7 +108,7 @@ public final class TesAllRhythmsGenerateSequence implements ActionListener
             {
                 LOGGER.log(Level.SEVERE, "-- ri={0} file={1}", new Object[]   
                 {
-                    ri.getName(), ri.getFile().getAbsolutePath()
+                    ri.name(), ri.file().getAbsolutePath()
                 });
                 Rhythm r;
                 try

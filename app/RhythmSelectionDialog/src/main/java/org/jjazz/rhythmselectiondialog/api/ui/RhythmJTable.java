@@ -49,7 +49,6 @@ import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.midi.api.synths.GM1Instrument;
 import org.jjazz.rhythmdatabase.api.FavoriteRhythms;
 import org.jjazz.rhythmdatabase.api.RhythmInfo;
-import org.jjazz.rhythmdatabase.api.RhythmVoiceInfo;
 import org.jjazz.utilities.api.ResUtil;
 
 /**
@@ -177,9 +176,9 @@ public class RhythmJTable extends JTable implements PropertyChangeListener
         {
             if (rhythms == null)
             {
-                throw new NullPointerException("rhythms");   
+                throw new NullPointerException("rhythms");
             }
-            LOGGER.log(Level.FINE, "setRhythms() rhythms.size()={0}", rhythms.size());   
+            LOGGER.log(Level.FINE, "setRhythms() rhythms.size()={0}", rhythms.size());
             this.rhythms = new ArrayList<>(rhythms);
             this.rhythms.sort(new RhythmComparator());
 
@@ -198,12 +197,15 @@ public class RhythmJTable extends JTable implements PropertyChangeListener
          * Show specified rhythm as highlighted (e.g. use a different font colour).
          *
          * @param ri
-         * @param b Highlighted state
+         * @param b  Highlighted state
          */
         public void setHighlighted(RhythmInfo ri, boolean b)
         {
             int mIndex = model.getRhythms().indexOf(ri);
-            LOGGER.log(Level.FINE, "setHighlighted() ri={0} b={1} mIndex={2}", new Object[]{ri, b, mIndex});   
+            LOGGER.log(Level.FINE, "setHighlighted() ri={0} b={1} mIndex={2}", new Object[]
+            {
+                ri, b, mIndex
+            });
 
             if (mIndex == -1)
             {
@@ -246,7 +248,7 @@ public class RhythmJTable extends JTable implements PropertyChangeListener
                 case COL_DIR:
                     return String.class;
                 default:
-                    throw new IllegalStateException("columnIndex=" + col);   
+                    throw new IllegalStateException("columnIndex=" + col);
             }
         }
 
@@ -275,7 +277,7 @@ public class RhythmJTable extends JTable implements PropertyChangeListener
                     s = "#   ";
                     break;
                 default:
-                    throw new IllegalStateException("columnIndex=" + columnIndex);   
+                    throw new IllegalStateException("columnIndex=" + columnIndex);
             }
             return s;
         }
@@ -303,29 +305,28 @@ public class RhythmJTable extends JTable implements PropertyChangeListener
             switch (col)
             {
                 case COL_TEMPO:
-                    return ri.getPreferredTempo();
-                    
+                    return ri.preferredTempo();
+
                 case COL_DIR:
-                    
                     // Show the file path relative to the user rhythm directory
-                    if (ri.getFile() == null || "".equals(ri.getFile().getPath()))
+                    if (ri.file() == null || "".equals(ri.file().getPath()))
                     {
                         // Not file based
                         return " - ";
-                    } 
-                    
-                    
-                    Path pUserRhythmDir = FileDirectoryManager.getInstance().getUserRhythmDirectory().toPath();                    
-                    Path pFile = ri.getFile().toPath();
+                    }
+
+
+                    Path pUserRhythmDir = FileDirectoryManager.getInstance().getUserRhythmDirectory().toPath();
+                    Path pFile = ri.file().toPath();
                     if (!pFile.startsWith(pUserRhythmDir))
                     {
                         // File-based but builtin rhythm: don't show path
                         return ResUtil.getString(getClass(), "DefaultRhythmsPath");
                     }
-                                  
-                    
+
+
                     // User-defined file-based, show path relative to user rhythm directory
-                    Path pParentFile = ri.getFile().getParentFile().toPath();
+                    Path pParentFile = ri.file().getParentFile().toPath();
                     String s = null;
                     try
                     {
@@ -333,26 +334,29 @@ public class RhythmJTable extends JTable implements PropertyChangeListener
                         s = "./" + relPath.toString();
                     } catch (IllegalArgumentException ex)
                     {
-                        LOGGER.log(Level.WARNING, "getValueAt() Can''t relativize pFile={0} to pDir={1}", new Object[]{pParentFile,
-                            pUserRhythmDir});   
+                        LOGGER.log(Level.WARNING, "getValueAt() Can''t relativize pFile={0} to pDir={1}", new Object[]
+                        {
+                            pParentFile,
+                            pUserRhythmDir
+                        });
                         s = pParentFile.toString();
                     }
                     return s;
-                    
+
                 case COL_NB_VOICES:
-                    return ri.getRhythmVoiceInfos().size();
-                    
+                    return ri.rvInfos().size();
+
                 case COL_NAME:
-                    return ri.getName();
-                    
+                    return ri.name();
+
                 case COL_FEEL:
-                    return ri.getFeatures().getFeel().toString();
-                    
+                    return ri.rhythmFeatures().getFeel().toString();
+
                 case COL_ID:
                     return row + 1;
-                    
+
                 default:
-                    throw new IllegalStateException("col=" + col);   
+                    throw new IllegalStateException("col=" + col);
             }
         }
 
@@ -365,12 +369,12 @@ public class RhythmJTable extends JTable implements PropertyChangeListener
             @Override
             public int compare(RhythmInfo ri1, RhythmInfo ri2)
             {
-                File pf1 = ri1.getFile().getParentFile();   // Can be null for builtin rhythms
-                File pf2 = ri2.getFile().getParentFile();   // Can be null for builtin rhythms 
+                File pf1 = ri1.file().getParentFile();   // Can be null for builtin rhythms
+                File pf2 = ri2.file().getParentFile();   // Can be null for builtin rhythms 
                 if ((pf1 == null && pf2 == null) || (pf1 != null && pf1.equals(pf2)))
                 {
                     // Sort by name if same directory
-                    return ri1.getName().compareTo(ri2.getName());
+                    return ri1.name().compareTo(ri2.name());
                 } else if (pf1 == null)
                 {
                     return -1;
@@ -473,7 +477,7 @@ public class RhythmJTable extends JTable implements PropertyChangeListener
                     // Nothing
                     break;
                 default:
-                    throw new IllegalStateException("col=" + colIndex);   
+                    throw new IllegalStateException("col=" + colIndex);
             }
         }
     }
@@ -487,23 +491,21 @@ public class RhythmJTable extends JTable implements PropertyChangeListener
     private String getInstrumentsString(RhythmInfo ri)
     {
         List<String> list = new ArrayList<>();
-        for (RhythmVoiceInfo rvi : ri.getRhythmVoiceInfos())
+        for (RhythmInfo.RvInfo rvi : ri.rvInfos())
         {
-            switch (rvi.getType())
+            switch (rvi.type())
             {
-                case DRUMS:
-                    list.add("drums");
-                    break;
-                case PERCUSSION:
-                    list.add("perc.");
-                    break;
-                default:    // VOICE     
-                    GM1Instrument substitute = rvi.getPreferredInstrument().getSubstitute();
-                    list.add(substitute == null ? "?????" : substitute.getFamily().getShortName());
+                case DRUMS -> list.add("drums");
+                case PERCUSSION -> list.add("perc.");
+                default ->
+                {
+                    // VOICE     
+                    GM1Instrument substitute = rvi.gmSubstitute();
+                    list.add(substitute == null ? rvi.type().toString() : substitute.getFamily().getShortName());
+                }
             }
         }
         return list.toString();
-
 
     }
 
@@ -520,23 +522,23 @@ public class RhythmJTable extends JTable implements PropertyChangeListener
             {
                 return lbl;
             }
-            
-            
+
+
             int modelRow = table.convertRowIndexToModel(row);
             RhythmInfo ri = model.getRhythms().get(modelRow);
-            File f = ri.getFile();
-            
+            File f = ri.file();
+
             switch (col)
             {
                 case Model.COL_NB_VOICES:
                     lbl.setToolTipText(RhythmJTable.this.getInstrumentsString(ri));
                     break;
-                    
+
                 case Model.COL_NAME:
                     String s = f == null ? "" : ", " + ResUtil.getString(getClass(), "COL_NameToolTip", f.getName());
-                    lbl.setToolTipText(ResUtil.getString(getClass(), "COL_DescToolTip", ri.getDescription() + s));
+                    lbl.setToolTipText(ResUtil.getString(getClass(), "COL_DescToolTip", ri.description() + s));
                     break;
-                    
+
                 case Model.COL_DIR:
                     lbl.setToolTipText(ResUtil.getString(getClass(), "COL_DirTooltip"));
 //                    // Left dots and the right part of the string visible in the cell

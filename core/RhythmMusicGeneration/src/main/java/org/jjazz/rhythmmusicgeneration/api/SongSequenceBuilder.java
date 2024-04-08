@@ -141,7 +141,7 @@ public class SongSequenceBuilder
             task.run();
         } else
         {
-            BaseProgressUtils.showProgressDialogAndRun(task, ResUtil.getString(getClass(), "PREPARING MUSIC"));
+            BaseProgressUtils.showProgressDialogAndRun(task, ResUtil.getString(getClass(), "PREPARING_MUSIC"));
         }
         if (task.musicException != null)
         {
@@ -180,7 +180,7 @@ public class SongSequenceBuilder
             task.run();
         } else
         {
-            BaseProgressUtils.showProgressDialogAndRun(task, ResUtil.getString(getClass(), "PREPARING MUSIC"));
+            BaseProgressUtils.showProgressDialogAndRun(task, ResUtil.getString(getClass(), "PREPARING_MUSIC"));
         }
 
         if (task.musicException != null)

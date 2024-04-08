@@ -31,7 +31,7 @@ import javax.swing.AbstractAction;
 import org.jjazz.analytics.api.Analytics;
 import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.midimix.api.MidiMix;
-import org.jjazz.midimix.api.MidiMixManager;
+import org.jjazz.midimix.spi.MidiMixManager;
 import org.jjazz.song.api.Song;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.awt.ActionID;
@@ -52,7 +52,8 @@ import org.openide.awt.StatusDisplayer;
 public class SaveAsNewSongTemplate extends AbstractAction
 {
 
-    private Song song;
+    public static final String TEMPLATE_SONG_NAME = "NewSongTemplate";
+    private final Song song;
 
     private static final Logger LOGGER = Logger.getLogger(SaveAsNewSongTemplate.class.getSimpleName());
 
@@ -64,10 +65,9 @@ public class SaveAsNewSongTemplate extends AbstractAction
     @Override
     public void actionPerformed(ActionEvent ae)
     {
-        assert song != null;   
-        FileDirectoryManager fdm = FileDirectoryManager.getInstance();
+        assert song != null;
         String fileNames = "";
-        File songFile = fdm.getNewSongTemplateSongFile();
+        File songFile = NewSong.getNewSongTemplateSongFile();
 
         if (song.saveToFileNotify(songFile, true))
         {
@@ -77,7 +77,7 @@ public class SaveAsNewSongTemplate extends AbstractAction
         MidiMix midiMix = getMidiMixSilent(song);
         if (midiMix != null)
         {
-            File mixFile = fdm.getNewSongTemplateMixFile();
+            File mixFile = getNewSongTemplateMixFile();
             if (midiMix.saveToFileNotify(mixFile, true))
             {
                 fileNames += mixFile.getAbsolutePath();
@@ -87,8 +87,8 @@ public class SaveAsNewSongTemplate extends AbstractAction
         {
             StatusDisplayer.getDefault().setStatusText(ResUtil.getString(getClass(), "CTL_SavedTemplates", fileNames));
         }
-        
-        
+
+
         Analytics.logEvent("Save As Song Template");
     }
 
@@ -107,12 +107,24 @@ public class SaveAsNewSongTemplate extends AbstractAction
         MidiMix midiMix = null;
         try
         {
-            midiMix = MidiMixManager.getInstance().findMix(song);
+            midiMix = MidiMixManager.getDefault().findMix(song);
         } catch (MidiUnavailableException ex)
         {
-            LOGGER.log(Level.SEVERE, "getMidiMixSilent() Could not retrieve MidiMix for song {0} - ex={1}", new Object[]{song.getName(),
-                ex.getMessage()});   
+            LOGGER.log(Level.SEVERE, "getMidiMixSilent() Could not retrieve MidiMix for song {0} - ex={1}", new Object[]
+            {
+                song.getName(),
+                ex.getMessage()
+            });
         }
         return midiMix;
+    }
+
+
+    private File getNewSongTemplateMixFile()
+    {
+        FileDirectoryManager fdm = FileDirectoryManager.getInstance();
+        File dir = fdm.getAppConfigDirectory(null);
+        File f = new File(dir, TEMPLATE_SONG_NAME + "." + MidiMix.MIX_FILE_EXTENSION);
+        return f;
     }
 }

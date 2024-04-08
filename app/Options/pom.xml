@@ -117,6 +117,11 @@
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
+            <artifactId>org-jjazz-rhythmdatabaseimpl</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>          
+        <dependency> 
+            <groupId>${project.groupId}</groupId> 
             <artifactId>org-jjazz-rhythmmusicgeneration</artifactId> 
             <version>${project.version}</version>  
         </dependency>  

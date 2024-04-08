@@ -147,12 +147,12 @@ public class BiabImporter implements SongImporter
 
         RhythmInfo ri = ourRhythms
                 .stream()
-                .max(Comparator.comparingInt(rInfo -> rf.getMatchingScore(rInfo.getFeatures())))
+                .max(Comparator.comparingInt(rInfo -> rf.getMatchingScore(rInfo.rhythmFeatures())))
                 .orElse(null);
         int score = 0;
         if (ri != null)
         {
-            score = ri.getFeatures().getMatchingScore(rf);
+            score = ri.rhythmFeatures().getMatchingScore(rf);
         }
 
         Rhythm r = null;

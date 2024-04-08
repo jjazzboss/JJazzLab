@@ -41,7 +41,7 @@ import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.midimix.api.MidiMix;
-import org.jjazz.midimix.api.MidiMixManager;
+import org.jjazz.midimix.spi.MidiMixManager;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.RhythmPreviewer;
 import org.jjazz.musiccontrol.api.playbacksession.BaseSongSession;
@@ -117,7 +117,7 @@ public class RhythmPreviewerImpl implements RhythmPreviewer
         MidiMix mm = null;
         try
         {
-            mm = previouslyActivatedSong == null ? null : MidiMixManager.getInstance().findMix(previouslyActivatedSong);
+            mm = previouslyActivatedSong == null ? null : MidiMixManager.getDefault().findMix(previouslyActivatedSong);
         } catch (MidiUnavailableException ex)
         {
             LOGGER.log(Level.SEVERE, "cleanup() ex={0}", ex.getMessage());
@@ -213,7 +213,7 @@ public class RhythmPreviewerImpl implements RhythmPreviewer
         {
             Song song = buildPreviewSong(originalSong, originalSpt, r, rpValues);
             song.setTempo(useRhythmTempo ? r.getPreferredTempo() : originalSong.getTempo());
-            MidiMix mm = MidiMixManager.getInstance().findMix(song);        // Possible exception here
+            MidiMix mm = MidiMixManager.getDefault().findMix(song);        // Possible exception here
             OutputSynth outputSynth = OutputSynthManager.getInstance().getDefaultOutputSynth();
             outputSynth.fixInstruments(mm, true);
             sgContext = new SongContext(song, mm);

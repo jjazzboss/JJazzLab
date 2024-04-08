@@ -45,7 +45,7 @@ import org.jjazz.embeddedsynth.spi.EmbeddedSynthProvider;
 import org.jjazz.embeddedsynth.spi.Mp3EncoderProvider;
 import org.jjazz.song.api.Song;
 import org.jjazz.midimix.api.MidiMix;
-import org.jjazz.midimix.api.MidiMixManager;
+import org.jjazz.midimix.spi.MidiMixManager;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.utilities.api.ResUtil;
 import org.jjazz.utilities.api.Utilities;
@@ -108,7 +108,7 @@ public class ExportToAudio extends AbstractAction
         }
 
 
-        MidiMix midiMix = MidiMixManager.getInstance().findExistingMix(song);
+        MidiMix midiMix = MidiMixManager.getDefault().findExistingMix(song);
         int nbNonMutedChannels = (int) midiMix.getInstrumentMixes().stream().filter(im -> !im.isMute()).count();
         if (nbNonMutedChannels == 0)
         {

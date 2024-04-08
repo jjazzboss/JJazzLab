@@ -309,12 +309,12 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         // Check state
         switch (state)
         {
-            case DISABLED -> throw new MusicGenerationException(ResUtil.getString(getClass(), "PLAYBACK IS DISABLED"));
+            case DISABLED -> throw new MusicGenerationException(ResUtil.getString(getClass(), "PLAYBACK_IS_DISABLED"));
             case STOPPED ->
             {
             }
             case PAUSED -> stop();
-            case PLAYING -> throw new MusicGenerationException(ResUtil.getString(getClass(), "A SONG IS ALREADY PLAYING"));
+            case PLAYING -> throw new MusicGenerationException(ResUtil.getString(getClass(), "A_SONG_IS_ALREADY_PLAYING"));
             default -> throw new AssertionError(state.name());
         }
 
@@ -390,11 +390,11 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         // Check state
         switch (state)
         {
-            case DISABLED -> throw new MusicGenerationException(ResUtil.getString(getClass(), "PLAYBACK IS DISABLED"));
+            case DISABLED -> throw new MusicGenerationException(ResUtil.getString(getClass(), "PLAYBACK_IS_DISABLED"));
             case STOPPED, PAUSED ->
             {
             }
-            case PLAYING -> throw new MusicGenerationException(ResUtil.getString(getClass(), "A SONG IS ALREADY PLAYING"));
+            case PLAYING -> throw new MusicGenerationException(ResUtil.getString(getClass(), "A_SONG_IS_ALREADY_PLAYING"));
             default -> throw new AssertionError(state.name());
         }
 
@@ -465,7 +465,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     {
         if (state == State.DISABLED)
         {
-            throw new MusicGenerationException(ResUtil.getString(getClass(), "PLAYBACK IS DISABLED"));
+            throw new MusicGenerationException(ResUtil.getString(getClass(), "PLAYBACK_IS_DISABLED"));
         } else if (!state.equals(State.PAUSED))
         {
             return;

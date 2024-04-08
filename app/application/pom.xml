@@ -432,6 +432,11 @@
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
+            <artifactId>org-jjazz-midimixmanagerimpl</artifactId> 
+            <version>${project.version}</version> 
+        </dependency>  		
+        <dependency> 
+            <groupId>${project.groupId}</groupId> 
             <artifactId>org-jjazz-musiccontrol</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
@@ -522,7 +527,7 @@
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-startup</artifactId> 
+            <artifactId>org-jjazz-startupmanager</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
@@ -570,6 +575,11 @@
             <artifactId>org-jjazz-rhythmdatabase</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
+        <dependency> 
+            <groupId>${project.groupId}</groupId> 
+            <artifactId>org-jjazz-rhythmdatabaseimpl</artifactId> 
+            <version>${project.version}</version> 
+        </dependency>         
         <dependency> 
             <groupId>${project.groupId}</groupId> 
             <artifactId>org-jjazz-song</artifactId> 

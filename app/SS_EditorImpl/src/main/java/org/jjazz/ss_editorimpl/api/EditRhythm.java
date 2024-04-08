@@ -152,7 +152,7 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
         var rdb = RhythmDatabase.getDefault();
         RhythmInfo ri = rdb.getRhythm(rSelSpt0.getUniqueId());
         dlg.preset(ri, previewer);
-        dlg.setTitleText("Select a " + ri.getTimeSignature() + " rhythm");
+        dlg.setTitleText("Select a " + ri.timeSignature() + " rhythm");
         if (!dialogShown)
         {
             dlg.setLocationRelativeTo(WindowManager.getDefault().getMainWindow());

@@ -152,7 +152,7 @@ public final class YjzCreatorWizardAction implements ActionListener
      */
     public static File getBaseFileCopy(RhythmInfo baseRhythm)
     {
-        String ext = Utilities.getExtension(baseRhythm.getFile().getName());
+        String ext = Utilities.getExtension(baseRhythm.file().getName());
         File yjzFile = getExtendedFile(baseRhythm);
         String yjzPathNoExt = Utilities.replaceExtension(yjzFile.getAbsolutePath(), "");
         return new File(yjzPathNoExt + "." + ext);
@@ -170,7 +170,7 @@ public final class YjzCreatorWizardAction implements ActionListener
     {
         File res;
         FileDirectoryManager fdm = FileDirectoryManager.getInstance();
-        String baseFilename = baseRhythm.getFile().getName();
+        String baseFilename = baseRhythm.file().getName();
         String nameNoExt = Utilities.replaceExtension(baseFilename, "");
         String filename = nameNoExt + "-ext." + YamJJazzRhythmProvider.FILE_EXTENSION;
         int index = 1;
@@ -222,10 +222,10 @@ public final class YjzCreatorWizardAction implements ActionListener
         // Copy the renamed base style
         try
         {
-            Files.copy(baseRhythmInfo.getFile().toPath(), baseCopyFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(baseRhythmInfo.file().toPath(), baseCopyFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException ex)
         {
-            String msg = ResUtil.getString(getClass(),"ERR_UnableToCopy", new Object[] {baseRhythmInfo.getFile().toPath(), baseCopyFile.toPath()});
+            String msg = ResUtil.getString(getClass(),"ERR_UnableToCopy", new Object[] {baseRhythmInfo.file().toPath(), baseCopyFile.toPath()});
             msg += " : " + ex.getLocalizedMessage();
             LOGGER.warning(msg);
             NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);

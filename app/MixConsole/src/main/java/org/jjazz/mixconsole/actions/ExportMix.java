@@ -80,7 +80,7 @@ public class ExportMix extends AbstractAction
     static protected File showSaveMixFileChooser(File presetFile)
     {
         JFileChooser chooser = UIUtilities.getFileChooserInstance();
-        FileNameExtensionFilter filter = new FileNameExtensionFilter(ResUtil.getString(ExportMix.class, "CTL_MixFiles") + " (" + "." + FileDirectoryManager.MIX_FILE_EXTENSION + ")", FileDirectoryManager.MIX_FILE_EXTENSION);
+        FileNameExtensionFilter filter = new FileNameExtensionFilter(ResUtil.getString(ExportMix.class, "CTL_MixFiles") + " (" + "." + MidiMix.MIX_FILE_EXTENSION + ")", MidiMix.MIX_FILE_EXTENSION);
         chooser.resetChoosableFileFilters();
         chooser.setMultiSelectionEnabled(false);
         chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
@@ -102,9 +102,9 @@ public class ExportMix extends AbstractAction
             String mixFileName = mixFile.getName();
 
             // Add extension if required
-            if (!org.jjazz.utilities.api.Utilities.endsWithIgnoreCase(mixFileName, "." + FileDirectoryManager.MIX_FILE_EXTENSION))
+            if (!org.jjazz.utilities.api.Utilities.endsWithIgnoreCase(mixFileName, "." + MidiMix.MIX_FILE_EXTENSION))
             {
-                mixFile = new File(mixFile.getParent(), mixFileName + "." + FileDirectoryManager.MIX_FILE_EXTENSION);
+                mixFile = new File(mixFile.getParent(), mixFileName + "." + MidiMix.MIX_FILE_EXTENSION);
             }
 
             if (mixFile.exists())

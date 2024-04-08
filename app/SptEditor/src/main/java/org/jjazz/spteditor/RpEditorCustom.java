@@ -33,7 +33,7 @@ import javax.sound.midi.MidiUnavailableException;
 import javax.swing.JButton;
 import javax.swing.SwingUtilities;
 import org.jjazz.midimix.api.MidiMix;
-import org.jjazz.midimix.api.MidiMixManager;
+import org.jjazz.midimix.spi.MidiMixManager;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.song.api.Song;
 import org.jjazz.songcontext.api.SongPartContext;
@@ -119,7 +119,7 @@ public class RpEditorCustom extends RpEditorComponent
         MidiMix mm = null;
         try
         {
-            mm = MidiMixManager.getInstance().findMix(songModel);
+            mm = MidiMixManager.getDefault().findMix(songModel);
         } catch (MidiUnavailableException ex)
         {
             // Should never happen 

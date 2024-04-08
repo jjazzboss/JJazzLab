@@ -128,7 +128,7 @@ public class ImportMix extends AbstractAction
     static protected File showLoadDialog()
     {
         JFileChooser chooser = UIUtilities.getFileChooserInstance();
-        FileNameExtensionFilter filter = new FileNameExtensionFilter(ResUtil.getString(ImportMix.class, "CTL_MixFiles") + " (" + "." + FileDirectoryManager.MIX_FILE_EXTENSION + ")", FileDirectoryManager.MIX_FILE_EXTENSION);
+        FileNameExtensionFilter filter = new FileNameExtensionFilter(ResUtil.getString(ImportMix.class, "CTL_MixFiles") + " (" + "." + MidiMix.MIX_FILE_EXTENSION + ")", MidiMix.MIX_FILE_EXTENSION);
         chooser.resetChoosableFileFilters();
         chooser.setMultiSelectionEnabled(false);
         chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);

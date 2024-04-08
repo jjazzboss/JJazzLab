@@ -48,7 +48,7 @@ public class FixMidiMixDialog extends javax.swing.JDialog
 
     protected FixMidiMixDialog()
     {
-        super(WindowManager.getDefault().getMainWindow(), ResUtil.getString(FixMidiMixDialog.class, "MIDI CONFIGURATION PROBLEMS"), true);
+        super(WindowManager.getDefault().getMainWindow(), ResUtil.getString(FixMidiMixDialog.class, "MIDI_CONFIGURATION_PROBLEMS"), true);
         choice = FixChoice.CANCEL;
         initComponents();
         setLocationRelativeTo(WindowManager.getDefault().getMainWindow());

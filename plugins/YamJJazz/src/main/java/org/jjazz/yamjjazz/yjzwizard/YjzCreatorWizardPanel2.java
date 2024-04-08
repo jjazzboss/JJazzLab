@@ -70,7 +70,7 @@ public class YjzCreatorWizardPanel2 implements WizardDescriptor.Panel<WizardDesc
     public boolean isValid()
     {
         RhythmInfo ri = component.getRhythmTable().getSelectedRhythm();
-        return ri != null && !ri.isAdaptedRhythm() && ri.getFile() != null && ri.getRhythmProviderId().equals("YamahaRhythmProviderID");
+        return ri != null && !ri.isAdaptedRhythm() && ri.file() != null && ri.rhythmProviderId().equals("YamahaRhythmProviderID");
     }
 
     @Override

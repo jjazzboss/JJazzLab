@@ -163,7 +163,7 @@ public class YjzFileBuilder
 
 
         // Time signature MidiEvent 
-        me = new MidiEvent(MidiUtilities.getTimeSignatureMessage(baseRhythmInfo.getTimeSignature()), 0);
+        me = new MidiEvent(MidiUtilities.getTimeSignatureMessage(baseRhythmInfo.timeSignature()), 0);
         track0.add(me);
 
 

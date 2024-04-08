@@ -58,10 +58,10 @@ import org.jjazz.rhythm.spi.RhythmProvider;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
 import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Variation;
-import org.jjazz.rhythmdatabase.api.AddRhythmsAction;
-import org.jjazz.rhythmdatabase.api.DeleteRhythmFile;
 import org.jjazz.rhythmdatabase.api.FavoriteRhythmProvider;
 import org.jjazz.musiccontrol.api.RhythmPreviewer;
+import org.jjazz.rhythmdatabaseimpl.api.AddRhythmsAction;
+import org.jjazz.rhythmdatabaseimpl.api.DeleteRhythmFile;
 import org.jjazz.rhythmselectiondialog.api.RhythmSelectionDialog;
 import org.jjazz.rhythmselectiondialog.api.ui.RhythmJTable;
 import org.jjazz.rhythmselectiondialog.api.ui.RhythmProviderJList;
@@ -152,7 +152,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         
         
         presetRhythm = ri;
-        timeSignature = ri.getTimeSignature();
+        timeSignature = ri.timeSignature();
         rhythmPreviewProvider = rpp;
         fbtn_autoPreviewMode.setSelected(false);
         fbtn_autoPreviewMode.setEnabled(rhythmPreviewProvider != null);
@@ -310,8 +310,8 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
             
             LOGGER.log(Level.FINE, "valueChanged() selected rhythm ri={0}", ri);
             
-            btn_deleteRhythm.setEnabled(ri != null && !ri.getFile().getName().equals(""));
-            btn_openFolder.setEnabled(ri != null && !ri.getFile().getName().equals(""));
+            btn_deleteRhythm.setEnabled(ri != null && !ri.file().getName().equals(""));
+            btn_openFolder.setEnabled(ri != null && !ri.file().getName().equals(""));
 
             // Manage rhythm preview
             if (rhythmPreviewProvider != null)
@@ -416,7 +416,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         List<RhythmInfo> rhythms = (rp == frp) ? frp.getBuiltinRhythmInfos() : rdb.getRhythms(rp);
         rhythms = rhythms
                 .stream()
-                .filter(r -> r.getTimeSignature().equals(timeSignature))
+                .filter(r -> r.timeSignature().equals(timeSignature))
                 .toList();
 
 
@@ -1006,8 +1006,8 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
             SwingUtilities.invokeLater(() -> 
             {
                 // Set selection to the first new rhythm
-                list_RhythmProviders.setSelectedValue(rpRhythmPair.rp, true);
-                rhythmTable.setSelectedRhythm(RhythmDatabase.getDefault().getRhythm(rpRhythmPair.r.getUniqueId()));
+                list_RhythmProviders.setSelectedValue(rpRhythmPair.rp(), true);
+                rhythmTable.setSelectedRhythm(RhythmDatabase.getDefault().getRhythm(rpRhythmPair.r().getUniqueId()));
             });
         }
     }//GEN-LAST:event_btn_addRhythmsActionPerformed
@@ -1024,11 +1024,11 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
     private void btn_openFolderActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_openFolderActionPerformed
     {//GEN-HEADEREND:event_btn_openFolderActionPerformed
         var ri = getSelectedRhythm();
-        if (ri == null || ri.getFile().getName().equals(""))
+        if (ri == null || ri.file().getName().equals(""))
         {
             return;
         }
-        org.jjazz.utilities.api.Utilities.browseFileDirectory(ri.getFile(), false);
+        org.jjazz.utilities.api.Utilities.browseFileDirectory(ri.file(), false);
 
     }//GEN-LAST:event_btn_openFolderActionPerformed
 

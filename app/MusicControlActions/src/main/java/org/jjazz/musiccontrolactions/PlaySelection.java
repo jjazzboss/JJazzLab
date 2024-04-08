@@ -35,7 +35,7 @@ import org.jjazz.activesong.spi.ActiveSongManager;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.midimix.api.MidiMix;
-import org.jjazz.midimix.api.MidiMixManager;
+import org.jjazz.midimix.spi.MidiMixManager;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.musiccontrol.api.playbacksession.UpdateProviderSongSession;
@@ -175,7 +175,7 @@ public class PlaySelection extends AbstractAction
         UpdatableSongSession session = null;
         try
         {
-            MidiMix midiMix = MidiMixManager.getInstance().findMix(song);      // Can raise MidiUnavailableException
+            MidiMix midiMix = MidiMixManager.getDefault().findMix(song);      // Can raise MidiUnavailableException
             SongContext context = new SongContext(song, midiMix, rg);
 
             // Check that all listeners are OK to start playback     

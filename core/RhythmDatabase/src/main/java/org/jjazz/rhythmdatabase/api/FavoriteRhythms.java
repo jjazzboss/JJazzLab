@@ -168,11 +168,11 @@ public class FavoriteRhythms
             throw new NullPointerException("ts");   
         }
         ArrayList<RhythmInfo> res = new ArrayList<>();
-        for (RhythmInfo r : rhythms)
+        for (RhythmInfo ri : rhythms)
         {
-            if (r.getTimeSignature().equals(ts))
+            if (ri.timeSignature().equals(ts))
             {
-                res.add(r);
+                res.add(ri);
             }
         }
         return res;
@@ -205,7 +205,7 @@ public class FavoriteRhythms
         int i = 0;
         for (RhythmInfo ri : rhythms)
         {
-            prefs.put(PROP_FAVORITE_RHYTHM + i, ri.getUniqueId());
+            prefs.put(PROP_FAVORITE_RHYTHM + i, ri.rhythmUniqueId());
             i++;
         }
     }

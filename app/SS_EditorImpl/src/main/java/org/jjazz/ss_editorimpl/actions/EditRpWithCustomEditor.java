@@ -35,7 +35,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import static javax.swing.Action.NAME;
 import org.jjazz.midimix.api.MidiMix;
-import org.jjazz.midimix.api.MidiMixManager;
+import org.jjazz.midimix.spi.MidiMixManager;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.ss_editor.api.SS_SelectionUtilities;
 import org.jjazz.songstructure.api.SongPartParameter;
@@ -111,7 +111,7 @@ public final class EditRpWithCustomEditor extends AbstractAction implements Cont
             MidiMix mm = null;
             try
             {
-                mm = MidiMixManager.getInstance().findMix(song);
+                mm = MidiMixManager.getDefault().findMix(song);
             } catch (MidiUnavailableException ex)
             {
                 // Should never happen 
