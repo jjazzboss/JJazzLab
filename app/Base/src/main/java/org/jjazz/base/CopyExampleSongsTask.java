@@ -20,7 +20,7 @@
  *
  *  Contributor(s):
  */
-package org.jjazz.song;
+package org.jjazz.base;
 
 import java.io.File;
 import java.io.IOException;
@@ -43,7 +43,7 @@ import org.openide.util.lookup.ServiceProvider;
  * Can't use @OnStart or UpgradeTask because on Linux the NotifyDialogs are hidden behind the splash screen!
  */
 @ServiceProvider(service = StartupTask.class)
-public class ExampleSongs implements StartupTask
+public class CopyExampleSongsTask implements StartupTask
 {
 
     public static final int PRIORITY = 1000;
@@ -51,7 +51,7 @@ public class ExampleSongs implements StartupTask
     @StaticResource(relative = true)
     public static final String ZIP_RESOURCE_PATH = "resources/ExampleSongs.zip";
     public static final String DIR_NAME = "ExampleSongs";
-    private static final Logger LOGGER = Logger.getLogger(ExampleSongs.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(CopyExampleSongsTask.class.getSimpleName());
 
     @Override
     public boolean run()

@@ -31,6 +31,7 @@ import java.util.WeakHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiUnavailableException;
+import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.midi.api.Instrument;
 import org.jjazz.midi.api.InstrumentMix;
 import org.jjazz.midimix.api.MidiMix;
@@ -166,7 +167,8 @@ public class MidiMixManagerImpl implements MidiMixManager, PropertyChangeListene
         Objects.requireNonNull(r);
         LOGGER.log(Level.FINE, "findMix() -- r={0}", r);
         MidiMix mm = null;
-        File mixFile = r instanceof AdaptedRhythm ? null : MidiMix.getRhythmMixFile(r.getName(), r.getFile());
+        File mixFile = r instanceof AdaptedRhythm ? null : MidiMix.getRhythmMixFile(r.getName(), r.getFile(),
+                FileDirectoryManager.getInstance().getUserRhythmDirectory());
         if (mixFile != null && mixFile.canRead())
         {
             try
@@ -237,7 +239,7 @@ public class MidiMixManagerImpl implements MidiMixManager, PropertyChangeListene
     @Override
     public MidiMix createMix(Rhythm r)
     {
-        Objects.requireNonNull(r);        
+        Objects.requireNonNull(r);
         LOGGER.log(Level.FINE, "createMix() -- r={0}", r);
 
         MidiMix mm = new MidiMix();

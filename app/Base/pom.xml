@@ -46,6 +46,11 @@
             <artifactId>org-jjazz-embeddedsynth</artifactId> 
             <version>${project.version}</version>  
         </dependency>          
+        <dependency> 
+            <groupId>${project.groupId}</groupId> 
+            <artifactId>org-jjazz-startupmanager</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>  
         <dependency>
             <groupId>org.jjazzlab</groupId>
             <artifactId>org-jjazz-midi</artifactId>

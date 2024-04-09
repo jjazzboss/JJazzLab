@@ -35,6 +35,7 @@ import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import javax.swing.SwingUtilities;
 import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
+import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongCreationException;
 import org.jjazz.songeditormanager.spi.SongEditorManager;
@@ -213,7 +214,7 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
                 String strFile = s.getName();
                 if (s.getFile() != null)
                 {
-                    File songMixFile = FileDirectoryManager.getInstance().getSongMixFile(s.getFile());
+                    File songMixFile = MidiMix.getSongMixFile(s.getFile());
                     strFile = s.getFile().getAbsolutePath()+", "+songMixFile.getAbsolutePath();                    
                 }
                 msg.append("  ").append(strFile).append("\n");

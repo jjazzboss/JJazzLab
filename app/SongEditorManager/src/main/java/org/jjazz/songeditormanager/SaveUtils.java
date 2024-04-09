@@ -23,7 +23,6 @@
 package org.jjazz.songeditormanager;
 
 import java.io.File;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiUnavailableException;
 import javax.swing.JFileChooser;
@@ -112,6 +111,7 @@ class SaveUtils
      * <p>
      *
      * @param song
+     * @param songFile
      * @return SAVE_CODE_OK, SAVE_CODE_ERROR_SONGMIX or SAVE_CODE_ERROR_SONGFILE
      */
     static public int saveSongAndMix(Song song, File songFile)
@@ -125,10 +125,10 @@ class SaveUtils
         int resMix;
 
         // Save Mix
-        MidiMix songMix = getMidiMixSilent(song);
+        MidiMix songMix = MidiMixManager.getDefault().findExistingMix(song);
         if (songMix != null)
         {
-            File songMixFile = fdm.getSongMixFile(songFile);
+            File songMixFile = MidiMix.getSongMixFile(songFile);
             resMix = songMix.saveToFileNotify(songMixFile, false) ? SAVE_CODE_OK : SAVE_CODE_ERROR_SONGMIX;
         } else
         {
@@ -177,26 +177,7 @@ class SaveUtils
         return res;
     }
 
-    /**
-     * Get the MidiMix object from the song.
-     * <p>
-     *
-     * @param song
-     * @return Can be null if problem
-     */
-    static public MidiMix getMidiMixSilent(Song song)
-    {
-        MidiMix midiMix = null;
-        try
-        {
-            midiMix = MidiMixManager.getDefault().findMix(song);
-        } catch (MidiUnavailableException ex)
-        {
-            LOGGER.log(Level.SEVERE, "getMidiMixSilent() Could not retrieve MidiMix for song {0} - ex={1}", new Object[]{song.getName(),
-                ex.getMessage()});   
-        }
-        return midiMix;
-    }
+   
 
     /**
      * Get the file to be used for the specified song.

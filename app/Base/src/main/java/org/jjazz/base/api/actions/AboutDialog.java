@@ -122,8 +122,7 @@ public class AboutDialog extends javax.swing.JDialog
         text += "Nb.native.filechooser: " + System.getProperty("nb.native.filechooser", "?") + "\n";
         text += "JJazzLab user dir: " + fdm.getJJazzLabUserDirectory() + "\n";
         text += "JJazzLab rhythm user dir: " + fdm.getUserRhythmDirectory() + "\n";
-        text += "JJazzLab app config dir: " + fdm.getAppConfigDirectory(null) + "\n";
-        text += "JJazzLab rhythm mix dir: " + fdm.getRhythmMixDirectory() + "\n";
+        text += "JJazzLab app config dir: " + fdm.getAppConfigDirectory(null) +"\n";
 
         textArea.setText(text);
         textArea.setCaretPosition(0);

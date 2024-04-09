@@ -174,7 +174,7 @@
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-startup</artifactId> 
+            <artifactId>org-jjazz-startupmanager</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 

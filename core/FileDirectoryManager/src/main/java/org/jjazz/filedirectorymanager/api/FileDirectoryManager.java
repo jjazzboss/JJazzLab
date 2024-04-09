@@ -31,7 +31,6 @@ import java.util.prefs.Preferences;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.upgrade.api.UpgradeManager;
 import org.jjazz.upgrade.api.UpgradeTask;
-import org.jjazz.utilities.api.Utilities;
 import org.openide.modules.InstalledFileLocator;
 import org.openide.modules.Places;
 import org.openide.util.NbPreferences;
@@ -47,8 +46,6 @@ public class FileDirectoryManager
     public static final String JJAZZLAB_USER_DIR = "JJazzLab";
     public static final String PROP_LAST_SONG_DIRECTORY = "PropLastSongDirectory";
     public static final String PROP_RHYTHM_USER_DIRECTORY = "PropRhythmUserDirectory";
-    public static final String PROP_RHYTHM_MIX_DIRECTORY = "PropRhythmMixDirectory";
-    public static final String PROP_USE_RHYTHM_USER_DIR_FOR_RHYTHM_DEFAULT_MIX = "PropUseRhythmUserDirForRhythmDefaultMix";
 
     private static FileDirectoryManager INSTANCE;
     /**
@@ -178,71 +175,6 @@ public class FileDirectoryManager
             old, dir
         });
         pcs.firePropertyChange(PROP_RHYTHM_USER_DIRECTORY, old, dir);
-    }
-
-    /**
-     * Get the directory used for rhythm's default mix files.
-     * <p>
-     * If isUseRhyhtmUserDirAsRhythmDefaultMixDir() is true use the same default value than getUserRhythmDirectory().
-     *
-     * @return Can't be null.
-     */
-    public File getRhythmMixDirectory()
-    {
-        if (isUseRhyhtmUserDirAsRhythmDefaultMixDir())
-        {
-            return getUserRhythmDirectory();
-        }
-        String s = prefs.get(PROP_RHYTHM_MIX_DIRECTORY, getUserRhythmDirectory().getAbsolutePath());
-        File f = new File(s);
-        if (!f.isDirectory())
-        {
-            f = getUserRhythmDirectory();
-            if (!f.isDirectory())
-            {
-                LOGGER.log(Level.SEVERE, "getRhythmMixDirectory() No valid rhythm mix directory found : {0}", f.getAbsolutePath());
-            }
-        }
-        LOGGER.log(Level.FINE, "getRhythmMixDirectory() f={0}", f);
-        return f;
-
-    }
-
-    /**
-     * Set the user directory where to find rhythm default mix files.
-     *
-     * @param dir
-     */
-    public void setRhythmMixDirectory(File dir)
-    {
-        if (dir == null || !dir.isDirectory())
-        {
-            throw new IllegalArgumentException("dir=" + dir);
-        }
-        File old = getRhythmMixDirectory();
-        prefs.put(PROP_RHYTHM_MIX_DIRECTORY, dir.getAbsolutePath());
-        LOGGER.log(Level.FINE, "setRhythmMixDirectory() old={0} new={1}", new Object[]
-        {
-            old, dir
-        });
-        pcs.firePropertyChange(PROP_RHYTHM_MIX_DIRECTORY, old, dir);
-    }
-
-    public boolean isUseRhyhtmUserDirAsRhythmDefaultMixDir()
-    {
-        return prefs.getBoolean(PROP_USE_RHYTHM_USER_DIR_FOR_RHYTHM_DEFAULT_MIX, true);
-    }
-
-    /**
-     * If b is true getRhythmMixDirectory() will return the same value as getUserRhythmDirectory().
-     *
-     * @param b
-     */
-    public void setUseRhyhtmUserDirAsRhythmDefaultMixDir(boolean b)
-    {
-        boolean old = isUseRhyhtmUserDirAsRhythmDefaultMixDir();
-        prefs.putBoolean(PROP_USE_RHYTHM_USER_DIR_FOR_RHYTHM_DEFAULT_MIX, b);
-        pcs.firePropertyChange(PROP_USE_RHYTHM_USER_DIR_FOR_RHYTHM_DEFAULT_MIX, old, b);
     }
 
     /**

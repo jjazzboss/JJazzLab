@@ -56,7 +56,6 @@ import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.undo.UndoableEdit;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
-import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.midi.api.Instrument;
 import org.jjazz.midi.api.synths.GM1Instrument;
@@ -1353,18 +1352,29 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
     /**
      * Get the rhythm mix File object for the specified rhythm.
      * <p>
+     * Rhythm mix file will be located in the same directory than rhythmFile if rhythmFile's parent directory is defined. Otherwise create file in defaultDir.
      *
-     * @param dir Directory of the returned file
      * @param rhythmName
      * @param rhythmFile Can be empty (no file) but can not be null.
+     * @param defaultDir
      * @return
      */
-    static public File getRhythmMixFile(String dir, String rhythmName, File rhythmFile)
+    static public File getRhythmMixFile(String rhythmName, File rhythmFile, File defaultDir)
     {
-        if (rhythmName == null || rhythmName.isEmpty() || rhythmFile == null)
+        Preconditions.checkNotNull(rhythmName);
+        Preconditions.checkNotNull(rhythmFile);
+        Preconditions.checkNotNull(defaultDir);
+        if (rhythmName.isEmpty())
         {
-            throw new IllegalArgumentException("rhythmName=" + rhythmName + " rhythmFile=" + rhythmName);
+            throw new IllegalArgumentException("rhythmName=" + rhythmName + " rhythmFile=" + rhythmName + " defaultDir=" + defaultDir);
         }
+
+        File rhythmFileParent = rhythmFile.getParentFile();
+        if (rhythmFileParent != null)
+        {
+            defaultDir = rhythmFileParent;
+        }
+
         String rhythmMixFileName;
         if (rhythmFile.getName().isEmpty())
         {
@@ -1374,7 +1384,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
         {
             rhythmMixFileName = Utilities.replaceExtension(rhythmFile.getName(), MIX_FILE_EXTENSION);
         }
-        File f = new File(dir, rhythmMixFileName);
+        File f = new File(defaultDir, rhythmMixFileName);
         return f;
     }
 
