@@ -49,6 +49,8 @@ public class MidiSynth
 {
 
     /**
+     * A service provider to get MidiSynth instances.
+     * <p>
      * Required by the MidiSynth serialization process : an implementation must be available in the global lookup.
      */
     public interface Finder
@@ -64,7 +66,7 @@ public class MidiSynth
             Finder finder = Lookup.getDefault().lookup(Finder.class);
             if (finder == null)
             {
-                throw new IllegalStateException("Can't find a MidiSynth.Finder instance in the global lookup");   
+                throw new IllegalStateException("Can't find a MidiSynth.Finder instance in the global lookup");
             }
             return finder;
         }
@@ -74,8 +76,8 @@ public class MidiSynth
          * Search for a MidiSynth instance from the specified parameters.
          *
          * @param synthName The MidiSynth name containing the bank. Can't be null.
-         * @param synthFile The file associated to synthName. Can be null if no file. If synthFile has no parent directory, search
-         *                  the default directory for MidiSynth definition files (e.g. .ins files).
+         * @param synthFile The file associated to synthName. Can be null if no file. If synthFile has no parent directory, search the default directory for
+         *                  MidiSynth definition files (e.g. .ins files).
          * @return Null if no MidiSynth found
          */
         MidiSynth getMidiSynth(String synthName, File synthFile);
@@ -102,7 +104,7 @@ public class MidiSynth
     {
         if (name == null || name.trim().isEmpty() || manufacturer == null)
         {
-            throw new IllegalArgumentException("name=" + name + " manufacturer=" + manufacturer);   
+            throw new IllegalArgumentException("name=" + name + " manufacturer=" + manufacturer);
         }
         this.name = name.replaceAll(",", "");
         this.manufacturer = manufacturer;
@@ -171,7 +173,7 @@ public class MidiSynth
         if (reader == null)
         {
             String msg = ResUtil.getString(MidiSynth.class, "ERR_NoSynthReaderForFile", file.getAbsolutePath());
-            LOGGER.log(Level.WARNING, "loadFromFile(file) {0}", msg);   
+            LOGGER.log(Level.WARNING, "loadFromFile(file) {0}", msg);
             throw new IOException(msg);
         }
 
@@ -190,12 +192,12 @@ public class MidiSynth
         if (res == null)
         {
             String msg = ResUtil.getString(MidiSynth.class, "ERR_NoSynthFoundInFile", file.getAbsolutePath());
-            LOGGER.log(Level.WARNING, "loadFromFile(file) {0}", msg);   
+            LOGGER.log(Level.WARNING, "loadFromFile(file) {0}", msg);
             throw new IOException(msg);
         }
 
         res.file = file;
-        
+
         return res;
     }
 
@@ -340,8 +342,8 @@ public class MidiSynth
      * Get all the drums/percussion instruments which match the specified DrumKit.
      *
      * @param kit
-     * @param tryHarder If true and no instrument matched the specified kit, then try again but with a more flexible matching
-     *                  algorithm. Default implementation starts a second search using kit.Type.STANDARD.
+     * @param tryHarder If true and no instrument matched the specified kit, then try again but with a more flexible matching algorithm. Default implementation
+     *                  starts a second search using kit.Type.STANDARD.
      * @return Can be empty.
      */
     public List<Instrument> getDrumsInstruments(DrumKit kit, boolean tryHarder)
@@ -441,10 +443,9 @@ public class MidiSynth
      * Set the base MidiAddress used to directly access the first instrument (Program Change=0) of the GM bank of this MidiSynth.
      * <p>
      * <p>
-     * GM standard does not define a GM bank select messages. The "old" way to access the GM sounds is to first send a Sysex
-     * message "Set GM Mode ON" then a Program Change message. But as most synths now have many banks, it's usually possible to
-     * directly access the GM sounds using bank select messages. This method lets you specify the GM bank select mechanism used by
-     * this synth.
+     * GM standard does not define a GM bank select messages. The "old" way to access the GM sounds is to first send a Sysex message "Set GM Mode ON" then a
+     * Program Change message. But as most synths now have many banks, it's usually possible to directly access the GM sounds using bank select messages. This
+     * method lets you specify the GM bank select mechanism used by this synth.
      * <p>
      * Examples:<br>
      * - On most Yamaha synths the GM bank can be directly accessed using LSB=0 and MSB=0.<br>
@@ -464,7 +465,8 @@ public class MidiSynth
         // Check consistency
         if ((isGM2compatible || isXGcompatible || isGScompatible) && (ma.getBankMSB() > 0 || ma.getBankLSB() > 0))
         {
-            throw new IllegalStateException("Can't have a GM2/XG/GS compatible MidiSynth with a GM bank base address which is not MSB=LSB=0, this=" + this + " ma=" + ma);
+            throw new IllegalStateException(
+                    "Can't have a GM2/XG/GS compatible MidiSynth with a GM bank base address which is not MSB=LSB=0, this=" + this + " ma=" + ma);
         }
     }
 
@@ -473,12 +475,10 @@ public class MidiSynth
      * <p>
      * IMPORTANT: value is meaningless if this MidiSynth is not GM-compatible.
      * <p>
-     * This method is required because synths can have a GM bank anywhere, eg the JV-1080 synth has its GM Bank Midi address at
-     * MSB=83, LSB=3.
+     * This method is required because synths can have a GM bank anywhere, eg the JV-1080 synth has its GM Bank Midi address at MSB=83, LSB=3.
      *
      *
-     * @return Can't be null. If not explicitly set, return by default new MidiAddress(0, 0, 0,
-     *         MidiAddress.BankSelectMethod.MSB_LSB).
+     * @return Can't be null. If not explicitly set, return by default new MidiAddress(0, 0, 0, MidiAddress.BankSelectMethod.MSB_LSB).
      * @see #setGM1BankBaseMidiAddress(MidiAddress)
      */
     public MidiAddress getGM1BankBaseMidiAddress()
@@ -495,7 +495,8 @@ public class MidiSynth
      */
     public MidiAddress getGM1BankMidiAddress(int programChange)
     {
-        return isGMcompatible ? new MidiAddress(programChange, gmBankBaseMidiAddress.getBankMSB(), gmBankBaseMidiAddress.getBankLSB(), gmBankBaseMidiAddress.getBankSelectMethod())
+        return isGMcompatible ? new MidiAddress(programChange, gmBankBaseMidiAddress.getBankMSB(), gmBankBaseMidiAddress.getBankLSB(),
+                gmBankBaseMidiAddress.getBankSelectMethod())
                 : null;
     }
 
@@ -524,7 +525,7 @@ public class MidiSynth
     {
         if (bank == null)
         {
-            throw new NullPointerException("bank");   
+            throw new NullPointerException("bank");
         }
         float count = 0;
         int nbInstruments = 0;
@@ -622,14 +623,23 @@ public class MidiSynth
 
     public void dump()
     {
-        LOGGER.log(Level.SEVERE, "DUMP synth: {0}({1}) ================================================", new Object[]{this.name,
-            getNbInstruments()});   
+        LOGGER.log(Level.SEVERE, "DUMP synth: {0}({1}) ================================================", new Object[]
+        {
+            this.name,
+            getNbInstruments()
+        });
         for (InstrumentBank<?> bank : getBanks())
         {
-            LOGGER.log(Level.SEVERE, "   Bank={0} ({1}) ---------", new Object[]{bank.getName(), bank.getSize()});   
+            LOGGER.log(Level.SEVERE, "   Bank={0} ({1}) ---------", new Object[]
+            {
+                bank.getName(), bank.getSize()
+            });
             for (Instrument ins : bank.getInstruments())
             {
-                LOGGER.log(Level.SEVERE, "{0}, {1}", new Object[]{ins.toLongString(), ins.getMidiAddress()});   
+                LOGGER.log(Level.SEVERE, "{0}, {1}", new Object[]
+                {
+                    ins.toLongString(), ins.getMidiAddress()
+                });
             }
         }
     }
@@ -646,7 +656,7 @@ public class MidiSynth
         LOGGER.log(Level.FINE, "saveAsString() MidiSynth={0}, getFile()={1}", new Object[]
         {
             getName(), getFile()
-        });   
+        });
         String strFile = getFile() == null ? "NOT_SET" : getFile().getAbsolutePath();
         return getName() + "#:#" + strFile;
     }
@@ -664,12 +674,12 @@ public class MidiSynth
     {
         if (s == null)
         {
-            throw new NullPointerException("s");   
+            throw new NullPointerException("s");
         }
         String[] strs = s.split("#:#");
         if (strs.length != 2)
         {
-            LOGGER.log(Level.WARNING, "loadFromString() Invalid string format : {0}", s);   
+            LOGGER.log(Level.WARNING, "loadFromString() Invalid string format : {0}", s);
             return null;
         }
         String synthName = strs[0].trim();

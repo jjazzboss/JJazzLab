@@ -21,7 +21,7 @@
  * Contributor(s): 
  *
  */
-package org.jjazz.outputsynth.api;
+package org.jjazz.synthmanager.api;
 
 import com.google.common.base.Preconditions;
 import java.beans.PropertyChangeListener;

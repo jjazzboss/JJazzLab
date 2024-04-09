@@ -52,7 +52,6 @@ import org.jjazz.midi.api.JJazzMidiSystem;
 import org.jjazz.musiccontrol.api.playbacksession.EndOfPlaybackActionProvider;
 import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.musiccontrol.api.playbacksession.SongContextProvider;
-import org.jjazz.outputsynth.api.OutputSynthManager;
 import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythmmusicgeneration.api.SongChordSequence;
@@ -63,6 +62,7 @@ import org.jjazz.musiccontrol.api.playbacksession.ControlTrackProvider;
 import org.jjazz.outputsynth.api.OutputSynth;
 import org.jjazz.rhythmmusicgeneration.api.SongSequenceBuilder;
 import org.jjazz.song.api.Song;
+import org.jjazz.outputsynth.spi.OutputSynthManager;
 
 /**
  * Control the music playback of a PlaybackSession.
@@ -186,7 +186,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
 
 
         // Listen to default OutputSynth changes, in order to listen to its AudioLatency changes
-        var osm = OutputSynthManager.getInstance();
+        var osm = OutputSynthManager.getDefault();
         osm.addPropertyChangeListener(OutputSynthManager.PROP_DEFAULT_OUTPUTSYNTH, this);
         var outSynth = osm.getDefaultOutputSynth();
         if (outSynth != null)
@@ -800,7 +800,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
 
 
         // Always enabled changes
-        if (e.getSource() == OutputSynthManager.getInstance())
+        if (e.getSource() == OutputSynthManager.getDefault())
         {
             if (e.getPropertyName().equals(OutputSynthManager.PROP_DEFAULT_OUTPUTSYNTH))
             {

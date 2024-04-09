@@ -40,7 +40,6 @@ import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.UserRhythmVoice;
 import org.jjazz.mixconsole.actions.AddUserTrack;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
-import org.jjazz.outputsynth.api.OutputSynthManager;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.song.api.Song;
 import org.jjazz.songeditormanager.spi.SongEditorManager;
@@ -50,6 +49,7 @@ import org.jjazz.utilities.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.awt.StatusDisplayer;
+import org.jjazz.outputsynth.spi.OutputSynthManager;
 
 /**
  * Controller of a MixChannelPanel + associated PhraseViewerPanel.
@@ -233,7 +233,7 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
         InstrumentMix insMix = midiMix.getInstrumentMix(channel);
         RhythmVoice rv = midiMix.getRhythmVoice(channel);
         InstrumentChooserDialog dlg = InstrumentChooserDialog.getDefault();
-        dlg.preset(OutputSynthManager.getInstance().getDefaultOutputSynth(), rv, insMix.getInstrument(),
+        dlg.preset(OutputSynthManager.getDefault().getDefaultOutputSynth(), rv, insMix.getInstrument(),
                 insMix.getSettings().getTransposition(), channel);
         dlg.setVisible(true);
 

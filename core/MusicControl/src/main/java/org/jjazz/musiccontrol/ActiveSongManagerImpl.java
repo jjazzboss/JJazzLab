@@ -37,7 +37,6 @@ import org.jjazz.midi.api.JJazzMidiSystem;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.musiccontrol.api.playbacksession.SongContextProvider;
-import org.jjazz.outputsynth.api.OutputSynthManager;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.song.api.Song;
@@ -47,6 +46,7 @@ import org.jjazz.activesong.spi.ActiveSongManager;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.openide.util.lookup.ServiceProvider;
+import org.jjazz.outputsynth.spi.OutputSynthManager;
 
 @ServiceProvider(service = ActiveSongManager.class)
 public class ActiveSongManagerImpl implements PropertyChangeListener, VetoableChangeListener, ActiveSongManager
@@ -68,7 +68,7 @@ public class ActiveSongManagerImpl implements PropertyChangeListener, VetoableCh
         JJazzMidiSystem.getInstance().addPropertyChangeListener(this);
 
         // Listen to OutputSynth changes
-        OutputSynthManager.getInstance().addPropertyChangeListener(this);
+        OutputSynthManager.getDefault().addPropertyChangeListener(this);
 
         // Listen to pre-playback events
         PlaybackSettings.getInstance().addPlaybackStartVetoableListener(this);
@@ -276,7 +276,7 @@ public class ActiveSongManagerImpl implements PropertyChangeListener, VetoableCh
             {
                 if (sendMidiMessagePolicy.contains(SendMidiMessagePolicy.PLAY))
                 {
-                    OutputSynthManager.getInstance().getDefaultOutputSynth().getUserSettings().sendModeOnUponPlaySysexMessages();
+                    OutputSynthManager.getDefault().getDefaultOutputSynth().getUserSettings().sendModeOnUponPlaySysexMessages();
                     sendAllMidiMixMessages();
                 }
             }
@@ -353,7 +353,7 @@ public class ActiveSongManagerImpl implements PropertyChangeListener, VetoableCh
                     sendAllMidiMixMessages();
                 }
             }
-        } else if (evt.getSource() == OutputSynthManager.getInstance())
+        } else if (evt.getSource() == OutputSynthManager.getDefault())
         {
             if (evt.getPropertyName().equals(OutputSynthManager.PROP_DEFAULT_OUTPUTSYNTH))
             {

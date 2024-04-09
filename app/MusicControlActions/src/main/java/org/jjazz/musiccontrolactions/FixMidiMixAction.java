@@ -35,9 +35,9 @@ import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.outputsynth.api.OutputSynth;
-import org.jjazz.outputsynth.api.OutputSynthManager;
 import org.jjazz.songcontext.api.SongContext;
 import org.openide.windows.OnShowing;
+import org.jjazz.outputsynth.spi.OutputSynthManager;
 
 /**
  * Listen to pre-playback events, show the FixMidiMixDialog and fix the instruments if needed.
@@ -89,7 +89,7 @@ public class FixMidiMixAction implements VetoableChangeListener, Runnable
 
 
         MidiMix midiMix = context.getMidiMix();
-        OutputSynth outputSynth = OutputSynthManager.getInstance().getDefaultOutputSynth();
+        OutputSynth outputSynth = OutputSynthManager.getDefault().getDefaultOutputSynth();
         if (outputSynth == null)
         {
             return;

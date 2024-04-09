@@ -43,7 +43,6 @@ import org.jjazz.midi.api.DrumKit;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.spi.MidiMixManager;
 import org.jjazz.midimix.api.UserRhythmVoice;
-import org.jjazz.outputsynth.api.OutputSynthManager;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.pianoroll.api.PianoRollEditorTopComponent;
@@ -69,6 +68,7 @@ import org.openide.util.lookup.ServiceProvider;
 import org.openide.windows.Mode;
 import org.openide.windows.TopComponent;
 import org.openide.windows.WindowManager;
+import org.jjazz.outputsynth.spi.OutputSynthManager;
 
 
 @ServiceProvider(service = SongEditorManager.class)
@@ -303,7 +303,7 @@ public class SongEditorManagerImpl implements SongEditorManager, PropertyChangeL
         try
         {
             var mm = MidiMixManager.getDefault().findMix(song);
-            OutputSynthManager.getInstance().getDefaultOutputSynth().fixInstruments(mm, true);
+            OutputSynthManager.getDefault().getDefaultOutputSynth().fixInstruments(mm, true);
         } catch (MidiUnavailableException ex)
         {
             Exceptions.printStackTrace(ex);

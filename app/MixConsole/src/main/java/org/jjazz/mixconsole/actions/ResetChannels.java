@@ -33,7 +33,6 @@ import org.jjazz.midi.api.InstrumentMix;
 import org.jjazz.midi.api.InstrumentSettings;
 import org.jjazz.midimix.api.UserRhythmVoice;
 import org.jjazz.outputsynth.api.OutputSynth;
-import org.jjazz.outputsynth.api.OutputSynthManager;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.song.api.Song;
@@ -46,6 +45,7 @@ import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.awt.StatusDisplayer;
+import org.jjazz.outputsynth.spi.OutputSynthManager;
 
 @ActionID(category = "MixConsole", id = "org.jjazz.mixconsole.actions.resetchannels")
 @ActionRegistration(displayName = "#CTL_ResetChannels", lazy = true)
@@ -114,7 +114,7 @@ public class ResetChannels extends AbstractAction
     static public void resetInstrument(InstrumentMix insMix, RhythmVoice rv)
     {
         Instrument ins;
-        OutputSynth outSynth = OutputSynthManager.getInstance().getDefaultOutputSynth();
+        OutputSynth outSynth = OutputSynthManager.getDefault().getDefaultOutputSynth();
         if (!(rv instanceof UserRhythmVoice))
         {
             ins = outSynth.findInstrument(rv);

@@ -50,7 +50,6 @@ import org.openide.util.lookup.ServiceProvider;
 import org.jjazz.midi.spi.MidiSynthFileReader;
 import org.jjazz.midi.api.synths.GSDrumsInstrument;
 import org.jjazz.midi.api.synths.GSInstrument;
-import org.jjazz.utilities.api.ResUtil;
 
 /**
  * A MidiSynth provider reading Cakewalk .ins instrument definition files.
@@ -78,7 +77,7 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
 
     public static final String NAME = "InsFileSynthProvider";
     private static final Logger LOGGER = Logger.getLogger(CakewalkInsFileReader.class.getSimpleName());
-    private final FileNameExtensionFilter FILTER = new FileNameExtensionFilter(ResUtil.getString(getClass(), "CTL_CakewalkInstFiles"), "ins");
+    private final FileNameExtensionFilter FILTER = new FileNameExtensionFilter("Cakewalk instrument files (.ins)", "ins");
 
     public CakewalkInsFileReader()
     {

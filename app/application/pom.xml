@@ -447,6 +447,11 @@
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
+            <artifactId>org-jjazz-synthmanager</artifactId> 
+            <version>${project.version}</version> 
+        </dependency>  		
+        <dependency> 
+            <groupId>${project.groupId}</groupId> 
             <artifactId>org-jjazz-print</artifactId> 
             <version>${project.version}</version> 
         </dependency>  

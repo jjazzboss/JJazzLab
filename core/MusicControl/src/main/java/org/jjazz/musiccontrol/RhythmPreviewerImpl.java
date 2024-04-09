@@ -46,7 +46,6 @@ import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.RhythmPreviewer;
 import org.jjazz.musiccontrol.api.playbacksession.BaseSongSession;
 import org.jjazz.outputsynth.api.OutputSynth;
-import org.jjazz.outputsynth.api.OutputSynthManager;
 import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.Rhythm;
@@ -58,6 +57,7 @@ import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructure;
 import org.openide.util.Exceptions;
 import org.openide.util.lookup.ServiceProvider;
+import org.jjazz.outputsynth.spi.OutputSynthManager;
 
 /**
  * A RhythmPreviewer instance which plays one song part using the MusicController/PlaybackSession mechanism.
@@ -214,7 +214,7 @@ public class RhythmPreviewerImpl implements RhythmPreviewer
             Song song = buildPreviewSong(originalSong, originalSpt, r, rpValues);
             song.setTempo(useRhythmTempo ? r.getPreferredTempo() : originalSong.getTempo());
             MidiMix mm = MidiMixManager.getDefault().findMix(song);        // Possible exception here
-            OutputSynth outputSynth = OutputSynthManager.getInstance().getDefaultOutputSynth();
+            OutputSynth outputSynth = OutputSynthManager.getDefault().getDefaultOutputSynth();
             outputSynth.fixInstruments(mm, true);
             sgContext = new SongContext(song, mm);
         } catch (UnsupportedEditException | MidiUnavailableException ex)

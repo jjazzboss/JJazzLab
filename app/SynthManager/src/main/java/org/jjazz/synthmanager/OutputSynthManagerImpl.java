@@ -21,7 +21,7 @@
  * Contributor(s): 
  *
  */
-package org.jjazz.outputsynth.api;
+package org.jjazz.synthmanager;
 
 import com.google.common.base.Preconditions;
 import java.beans.PropertyChangeEvent;
@@ -38,59 +38,28 @@ import org.jjazz.midi.api.synths.GM2Synth;
 import org.jjazz.midi.api.synths.GMSynth;
 import org.jjazz.midi.api.synths.GSSynth;
 import org.jjazz.midi.api.synths.XGSynth;
+import org.jjazz.outputsynth.api.OutputSynth;
+import org.jjazz.synthmanager.api.MidiSynthManager;
 import org.jjazz.upgrade.api.UpgradeManager;
 import org.jjazz.upgrade.api.UpgradeTask;
 import org.jjazz.utilities.api.Utilities;
 import org.openide.util.NbPreferences;
 import org.openide.util.lookup.ServiceProvider;
+import org.jjazz.outputsynth.spi.OutputSynthManager;
 
-/**
- * Management of the OutputSynth instances.
- * <p>
- * Keep an OutputSynth instance for each available MidiOut device.
- */
-public class OutputSynthManager implements PropertyChangeListener
+
+public class OutputSynthManagerImpl implements PropertyChangeListener, OutputSynthManager
 {
 
-    /**
-     * Property change event fired each time a new OutputSynth is associated to a MidiDevice OUT: oldValue=Midi device OUT name, newValue=OutputSynth.
-     */
-    public final static String PROP_MDOUT_OUTPUTSYNTH = "MdOut-OutputSynth";
-    /**
-     * Property change event fired each time a new OutputSynth is associated to the default JJazzLab MidiDevice OUT: oldValue=old OutputSynth, newValue=new
-     * OutputSynth.
-     * <p>
-     * The change event is also fired when default JJazzLab MidiDevice OUT changes.
-     */
-    public final static String PROP_DEFAULT_OUTPUTSYNTH = "PropDefaultOutputSynth";
 
-    private static OutputSynthManager INSTANCE;
     private final HashMap<String, OutputSynth> mapDeviceNameSynth = new HashMap<>();
     private final OutputSynth defaultGMoutputSynth;
-    private static final Preferences prefs = NbPreferences.forModule(OutputSynthManager.class);
+    private static final Preferences prefs = NbPreferences.forModule(OutputSynthManagerImpl.class);
     private final transient PropertyChangeSupport pcs = new java.beans.PropertyChangeSupport(this);
-    private static final Logger LOGGER = Logger.getLogger(OutputSynthManager.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(OutputSynthManagerImpl.class.getSimpleName());
 
-    /**
-     * Get the OutputSynthManager instance.
-     * <p>
-     * Upon creation the OutputSynthManager preloads all the OutputSynth associated to each available OUT MidiDevice.
-     *
-     * @return
-     */
-    public static OutputSynthManager getInstance()
-    {
-        synchronized (OutputSynthManager.class)
-        {
-            if (INSTANCE == null)
-            {
-                INSTANCE = new OutputSynthManager();
-            }
-        }
-        return INSTANCE;
-    }
 
-    private OutputSynthManager()
+    public OutputSynthManagerImpl()
     {
 
         defaultGMoutputSynth = new OutputSynth(GMSynth.getInstance());
@@ -111,6 +80,7 @@ public class OutputSynthManager implements PropertyChangeListener
      * <p>
      * Should be called if the list of available OUT MidiDevices has changed.
      */
+    @Override
     public final void refresh()
     {
         LOGGER.fine("refresh() -- ");
@@ -129,6 +99,7 @@ public class OutputSynthManager implements PropertyChangeListener
      *
      * @return
      */
+    @Override
     public OutputSynth getNewGMOuputSynth()
     {
         var res = new OutputSynth(GMSynth.getInstance());
@@ -216,6 +187,7 @@ public class OutputSynthManager implements PropertyChangeListener
      *
      * @return Can't be null
      */
+    @Override
     public OutputSynth getDefaultOutputSynth()
     {
         OutputSynth res = defaultGMoutputSynth;
@@ -233,6 +205,7 @@ public class OutputSynthManager implements PropertyChangeListener
      * @param mdOutName A Midi device OUT name, can't be null or empty
      * @return Can't be null.
      */
+    @Override
     public OutputSynth getOutputSynth(String mdOutName)
     {
         Preconditions.checkNotNull(mdOutName);
@@ -280,6 +253,7 @@ public class OutputSynthManager implements PropertyChangeListener
      * @param mdOutName Can't be null
      * @param outSynth  Can't be null
      */
+    @Override
     public void setOutputSynth(String mdOutName, OutputSynth outSynth)
     {
         Preconditions.checkNotNull(mdOutName);
@@ -314,21 +288,25 @@ public class OutputSynthManager implements PropertyChangeListener
     }
 
 
+    @Override
     public void addPropertyChangeListener(PropertyChangeListener l)
     {
         pcs.addPropertyChangeListener(l);
     }
 
+    @Override
     public void addPropertyChangeListener(String propName, PropertyChangeListener l)
     {
         pcs.addPropertyChangeListener(propName, l);
     }
 
+    @Override
     public void removePropertyChangeListener(PropertyChangeListener l)
     {
         pcs.removePropertyChangeListener(l);
     }
 
+    @Override
     public void removePropertyChangeListener(String propName, PropertyChangeListener l)
     {
         pcs.removePropertyChangeListener(propName, l);

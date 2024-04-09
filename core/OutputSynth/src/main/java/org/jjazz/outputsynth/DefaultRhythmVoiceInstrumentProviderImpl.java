@@ -21,13 +21,14 @@
  * Contributor(s): 
  *
  */
-package org.jjazz.outputsynth.api;
+package org.jjazz.outputsynth;
 
 import org.jjazz.midi.api.Instrument;
 import org.jjazz.midimix.api.UserRhythmVoice;
 import org.jjazz.midimix.spi.RhythmVoiceInstrumentProvider;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.openide.util.lookup.ServiceProvider;
+import org.jjazz.outputsynth.spi.OutputSynthManager;
 
 /**
  * Default implementation of this service provider
@@ -46,7 +47,7 @@ public class DefaultRhythmVoiceInstrumentProviderImpl implements RhythmVoiceInst
     public Instrument findInstrument(RhythmVoice rv)
     {
         Instrument ins;
-        var outSynth = OutputSynthManager.getInstance().getDefaultOutputSynth();
+        var outSynth = OutputSynthManager.getDefault().getDefaultOutputSynth();
 
         if ((rv instanceof UserRhythmVoice) && !rv.isDrums())
         {

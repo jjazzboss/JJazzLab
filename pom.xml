@@ -241,6 +241,7 @@
         <module>app/SongMemoViewer</module>
         <module>app/SptEditor</module>
         <module>app/StartupManager</module>        
+		<module>app/SynthManager</module>        		
         <module>app/Test</module>
         <module>app/UISettings</module>
         <module>app/UIUtilities</module>

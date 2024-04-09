@@ -59,7 +59,6 @@ import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.UserRhythmVoice;
 import org.jjazz.outputsynth.api.OutputSynth;
-import org.jjazz.outputsynth.api.OutputSynthManager;
 import org.jjazz.phrase.api.Phrases;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.phrasetransform.api.rps.RP_SYS_DrumsTransform;
@@ -81,6 +80,7 @@ import org.jjazz.utilities.api.FloatRange;
 import org.jjazz.utilities.api.IntRange;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.util.Exceptions;
+import org.jjazz.outputsynth.spi.OutputSynthManager;
 
 /**
  * Methods to convert a Song into Phrases and Midi sequence.
@@ -397,7 +397,7 @@ public class SongSequenceBuilder
 
 
         // Add XX mode ON initialization message
-        OutputSynth os = OutputSynthManager.getInstance().getDefaultOutputSynth();
+        OutputSynth os = OutputSynthManager.getDefault().getDefaultOutputSynth();
         SysexMessage sxm = switch (os.getUserSettings().getSendModeOnUponPlay())
         {
             case GM ->
