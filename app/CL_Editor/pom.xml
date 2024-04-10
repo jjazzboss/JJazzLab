@@ -75,11 +75,6 @@
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-uisettings</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
             <artifactId>org-jjazz-uiutilities</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
@@ -87,16 +82,6 @@
             <groupId>${project.groupId}</groupId> 
             <artifactId>org-jjazz-utilities</artifactId> 
             <version>${project.version}</version>
-        </dependency>  
-        <dependency>
-            <groupId>org.jjazzlab</groupId>
-            <artifactId>org-jjazz-importers</artifactId>
-            <version>${project.version}</version>
-        </dependency>        
-        <dependency> 
-            <groupId>org.netbeans.api</groupId> 
-            <artifactId>org-netbeans-modules-settings</artifactId> 
-            <version>${netbeans.version}</version>  
         </dependency>  
         <dependency> 
             <groupId>org.netbeans.api</groupId> 

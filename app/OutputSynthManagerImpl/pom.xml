@@ -7,8 +7,8 @@
         <version>4.0.3-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
-    <artifactId>org-jjazz-synthmanager</artifactId>
-    <name>SynthManager</name>
+    <artifactId>org-jjazz-outputsynthmanagerimpl</artifactId>
+    <name>OutputSynthManagerImpl</name>
     <packaging>nbm</packaging>
     <build>
         <plugins>
@@ -46,17 +46,7 @@
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-midimix</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
             <artifactId>org-jjazz-outputsynth</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>          
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-rhythm</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
@@ -81,11 +71,6 @@
         </dependency>  
         <dependency> 
             <groupId>org.netbeans.api</groupId> 
-            <artifactId>org-openide-awt</artifactId> 
-            <version>${netbeans.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>org.netbeans.api</groupId> 
             <artifactId>org-openide-dialogs</artifactId> 
             <version>${netbeans.version}</version>  
         </dependency>  
@@ -103,11 +88,6 @@
             <groupId>org.netbeans.api</groupId> 
             <artifactId>org-openide-windows</artifactId> 
             <version>${netbeans.version}</version>  
-        </dependency>
-        <dependency>
-            <groupId>org.jjazzlab</groupId>
-            <artifactId>org-jjazz-xstream</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>

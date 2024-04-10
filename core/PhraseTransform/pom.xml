@@ -76,17 +76,7 @@
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-song</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
             <artifactId>org-jjazz-songcontext</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-songstructure</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
@@ -106,17 +96,7 @@
         </dependency>  
         <dependency> 
             <groupId>org.netbeans.api</groupId> 
-            <artifactId>org-netbeans-api-annotations-common</artifactId> 
-            <version>${netbeans.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>org.netbeans.api</groupId> 
             <artifactId>org-openide-awt</artifactId> 
-            <version>${netbeans.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>org.netbeans.api</groupId> 
-            <artifactId>org-openide-util</artifactId> 
             <version>${netbeans.version}</version>  
         </dependency>  
         <dependency> 

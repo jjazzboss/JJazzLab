@@ -42,11 +42,6 @@
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-base</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
             <groupId>${project.groupId}</groupId>
             <artifactId>org-jjazz-guava</artifactId>
             <version>${project.version}</version>
@@ -161,21 +156,6 @@
             <groupId>${project.groupId}</groupId> 
             <artifactId>org-jjazz-utilities</artifactId> 
             <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>org.netbeans.api</groupId> 
-            <artifactId>org-netbeans-api-annotations-common</artifactId> 
-            <version>${netbeans.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>org.netbeans.api</groupId> 
-            <artifactId>org-netbeans-modules-settings</artifactId> 
-            <version>${netbeans.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>org.netbeans.api</groupId> 
-            <artifactId>org-openide-actions</artifactId> 
-            <version>${netbeans.version}</version>  
         </dependency>  
         <dependency> 
             <groupId>org.netbeans.api</groupId> 

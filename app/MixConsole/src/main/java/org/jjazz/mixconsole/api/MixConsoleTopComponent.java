@@ -24,12 +24,9 @@ package org.jjazz.mixconsole.api;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.MissingResourceException;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.TransferHandler;
 import org.jjazz.song.api.SongCreationException;
 import org.jjazz.song.spi.SongImporter;
 import org.jjazz.songeditormanager.spi.SongEditorManager;

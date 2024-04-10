@@ -47,21 +47,6 @@
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-base</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-chordleadsheet</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-filedirectorymanager</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
             <artifactId>org-jjazz-flatcomponents</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
@@ -108,17 +93,7 @@
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-pianoroll</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
             <artifactId>org-jjazz-rhythm</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-rhythmdatabase</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
@@ -153,9 +128,9 @@
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-ss_editor</artifactId> 
+            <artifactId>org-jjazz-filedirectorymanager</artifactId> 
             <version>${project.version}</version>  
-        </dependency>  
+        </dependency>          
         <dependency> 
             <groupId>${project.groupId}</groupId> 
             <artifactId>org-jjazz-uisettings</artifactId> 
@@ -183,22 +158,7 @@
         </dependency>  
         <dependency> 
             <groupId>org.netbeans.api</groupId> 
-            <artifactId>org-netbeans-api-annotations-common</artifactId> 
-            <version>${netbeans.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>org.netbeans.api</groupId> 
-            <artifactId>org-netbeans-api-progress</artifactId> 
-            <version>${netbeans.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>org.netbeans.api</groupId> 
             <artifactId>org-netbeans-modules-options-api</artifactId> 
-            <version>${netbeans.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>org.netbeans.api</groupId> 
-            <artifactId>org-netbeans-modules-settings</artifactId> 
             <version>${netbeans.version}</version>  
         </dependency>  
         <dependency> 
@@ -223,11 +183,6 @@
         </dependency>  
         <dependency> 
             <groupId>org.netbeans.api</groupId> 
-            <artifactId>org-openide-nodes</artifactId> 
-            <version>${netbeans.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>org.netbeans.api</groupId> 
             <artifactId>org-openide-util</artifactId> 
             <version>${netbeans.version}</version>  
         </dependency>  
@@ -246,6 +201,11 @@
             <artifactId>org-openide-windows</artifactId> 
             <version>${netbeans.version}</version>  
         </dependency> 
+        <dependency>
+            <groupId>org.netbeans.api</groupId>
+            <artifactId>org-netbeans-modules-settings</artifactId>
+            <version>${netbeans.version}</version>
+        </dependency>        
     </dependencies>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

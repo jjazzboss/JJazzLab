@@ -32,7 +32,9 @@ import org.jjazz.midi.api.MidiSynth;
 import org.jjazz.midi.api.synths.GM2Synth;
 import org.jjazz.midi.api.synths.GMSynth;
 import org.jjazz.midi.api.synths.XGSynth;
-import org.jjazz.outputsynth.api.OS_YamahaRef;
+import org.jjazz.midi.spi.MidiSynthManager;
+import org.jjazz.outputsynth.api.OutputSynth;
+import org.jjazz.outputsynth.spi.OutputSynthManager;
 
 /**
  * Find a Yamaha specific instrument from the Midi address and AccType found in Yamaha styles.
@@ -42,6 +44,8 @@ public class YamahaInstrumentFinder
 {
 
     private static YamahaInstrumentFinder INSTANCE;
+    private final MidiSynth yamahaRefSynth;
+
     private static final Logger LOGGER = Logger.getLogger(YamahaInstrumentFinder.class.getSimpleName());
 
     public static YamahaInstrumentFinder getInstance()
@@ -58,6 +62,7 @@ public class YamahaInstrumentFinder
 
     private YamahaInstrumentFinder()
     {
+        yamahaRefSynth = OutputSynthManager.getDefault().getStandardOutputSynth(OutputSynthManager.STD_YAMAHA_TYROS_REF).getMidiSynth();
     }
 
     /**
@@ -72,8 +77,7 @@ public class YamahaInstrumentFinder
      * @param address
      * @param at
      * @param logPrefix A prefix used in the log messages.
-     * @return Can't be null. If not a drums/percussion, instrument will have a GM1 substitute instrument defined. Instrument has
-     *         always a Bank/Synth defined.
+     * @return Can't be null. If not a drums/percussion, instrument will have a GM1 substitute instrument defined. Instrument has always a Bank/Synth defined.
      */
     public Instrument findInstrument(MidiAddress address, AccType at, String logPrefix)
     {
@@ -92,7 +96,7 @@ public class YamahaInstrumentFinder
         });
 
         // Get an instrument from our reference synth
-        ins = getYamahaRefSynth().getInstrument(address);
+        ins = yamahaRefSynth.getInstrument(address);
 
         LOGGER.log(Level.FINE, "findInstrument() {0}    refMidiSynth.getInstrument(address)={1}", new Object[]
         {
@@ -213,14 +217,11 @@ public class YamahaInstrumentFinder
         return ins;
     }
 
-    private MidiSynth getYamahaRefSynth()
-    {
-        return OS_YamahaRef.getInstance().getYamahaRefSynth();
-    }
 
     private Instrument getDefaultDrumsInstrument()
     {
-        return OS_YamahaRef.getInstance().getDefaultDrumsInstrument();
+        return yamahaRefSynth.getInstrument(new MidiAddress(0, 127, 0, MidiAddress.BankSelectMethod.MSB_LSB));
     }
+
 
 }

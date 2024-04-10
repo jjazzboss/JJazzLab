@@ -24,13 +24,13 @@ package org.jjazz.fluidsynthembeddedsynth;
 
 import java.util.logging.Logger;
 import org.jjazz.midi.api.MidiSynth;
-import org.jjazz.outputsynth.api.MidiSynthManager;
 import org.jjazz.outputsynth.api.OutputSynth;
 import org.netbeans.api.annotations.common.StaticResource;
+import org.jjazz.midi.spi.MidiSynthManager;
+import org.jjazz.outputsynth.spi.OutputSynthManager;
 
 /**
- * The builtin OutputSynth for our embedded synth (based on
- * OS_JJazzLabSoundFont_XG since FluidSynth can handle XG bank select).
+ * The builtin OutputSynth for our embedded synth (based on OS_JJazzLabSoundFont_XG since FluidSynth can handle XG bank select).
  */
 public class OS_FluidSynthEmbedded extends OutputSynth
 {
@@ -56,15 +56,5 @@ public class OS_FluidSynthEmbedded extends OutputSynth
     {
         super(MidiSynthManager.loadFromResource(OS_FluidSynthEmbedded.class, INS_PATH));
         getUserSettings().setSendModeOnUponPlay(UserSettings.SendModeOnUponPlay.XG);
-    }
-
-    /**
-     * The synth associated to the JJazzLab soundfont.
-     *
-     * @return
-     */
-    public final MidiSynth getJJazzLabSoundFontSynth()
-    {
-        return MidiSynthManager.getInstance().getMidiSynth(MidiSynthManager.JJAZZLAB_SOUNDFONT_XG_SYNTH_NAME);
     }
 }

@@ -21,7 +21,7 @@
  * Contributor(s): 
  *
  */
-package org.jjazz.synthmanager;
+package org.jjazz.outputsynthmanagerimpl;
 
 import com.google.common.base.Preconditions;
 import java.beans.PropertyChangeEvent;
@@ -34,20 +34,23 @@ import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import javax.sound.midi.MidiDevice;
 import org.jjazz.midi.api.JJazzMidiSystem;
+import org.jjazz.midi.api.MidiSynth;
 import org.jjazz.midi.api.synths.GM2Synth;
 import org.jjazz.midi.api.synths.GMSynth;
 import org.jjazz.midi.api.synths.GSSynth;
 import org.jjazz.midi.api.synths.XGSynth;
 import org.jjazz.outputsynth.api.OutputSynth;
-import org.jjazz.synthmanager.api.MidiSynthManager;
 import org.jjazz.upgrade.api.UpgradeManager;
 import org.jjazz.upgrade.api.UpgradeTask;
 import org.jjazz.utilities.api.Utilities;
 import org.openide.util.NbPreferences;
 import org.openide.util.lookup.ServiceProvider;
 import org.jjazz.outputsynth.spi.OutputSynthManager;
+import org.jjazz.midi.spi.MidiSynthManager;
+import org.jjazz.outputsynth.api.OutputSynth.UserSettings.SendModeOnUponPlay;
 
 
+@ServiceProvider(service = OutputSynthManager.class)
 public class OutputSynthManagerImpl implements PropertyChangeListener, OutputSynthManager
 {
 
@@ -86,98 +89,12 @@ public class OutputSynthManagerImpl implements PropertyChangeListener, OutputSyn
         LOGGER.fine("refresh() -- ");
         for (var mdOut : JJazzMidiSystem.getInstance().getOutDeviceList())
         {
-            var outSynth = getOutputSynth(mdOut.getDeviceInfo().getName());
+            var outSynth = getMidiDeviceOutputSynth(mdOut.getDeviceInfo().getName());
             LOGGER.log(Level.FINE, "refresh() mdOut={0} outSynth{1}", new Object[]
             {
                 mdOut.getDeviceInfo().getName(), outSynth
             });
         }
-    }
-
-    /**
-     * Get a new instance of a default OutputSynth which just uses the GMSynth.
-     *
-     * @return
-     */
-    @Override
-    public OutputSynth getNewGMOuputSynth()
-    {
-        var res = new OutputSynth(GMSynth.getInstance());
-        res.getUserSettings().setSendModeOnUponPlay(OutputSynth.UserSettings.SendModeOnUponPlay.GM);
-        return res;
-    }
-
-    /**
-     * Get a new instance of a default OutputSynth which just uses the GM2Synth.
-     *
-     * @return
-     */
-    public OutputSynth getNewGM2OuputSynth()
-    {
-        var res = new OutputSynth(GM2Synth.getInstance());
-        res.getUserSettings().setSendModeOnUponPlay(OutputSynth.UserSettings.SendModeOnUponPlay.GM2);
-        return res;
-    }
-
-
-    /**
-     * Get a new instance of a default OutputSynth which just uses the XGSynth.
-     *
-     * @return
-     */
-    public OutputSynth getNewXGOuputSynth()
-    {
-        var res = new OutputSynth(XGSynth.getInstance());
-        res.getUserSettings().setSendModeOnUponPlay(OutputSynth.UserSettings.SendModeOnUponPlay.XG);
-        return res;
-    }
-
-    /**
-     * Get a new instance of a default OutputSynth which just uses the GSSynth.
-     *
-     * @return
-     */
-    public OutputSynth getNewGSOuputSynth()
-    {
-        var res = new OutputSynth(GSSynth.getInstance());
-        res.getUserSettings().setSendModeOnUponPlay(OutputSynth.UserSettings.SendModeOnUponPlay.GS);
-        return res;
-    }
-
-    /**
-     * Get a new instance of a default OutputSynth which just uses the JJazzLab soundfont in XG mode (compatible with FluidSynth).
-     *
-     * @return
-     */
-    public OutputSynth getNewJazzLabSoundFontXGOuputSynth()
-    {
-        var res = new OutputSynth(MidiSynthManager.getInstance().getMidiSynth(MidiSynthManager.JJAZZLAB_SOUNDFONT_XG_SYNTH_NAME));
-        res.getUserSettings().setSendModeOnUponPlay(OutputSynth.UserSettings.SendModeOnUponPlay.XG);
-        return res;
-    }
-
-    /**
-     * Get a new instance of a default OutputSynth which just uses the JJazzLab soundfont in GS mode (compatible with VirtualMidiSynth).
-     *
-     * @return
-     */
-    public OutputSynth getNewJazzLabSoundFontGSOuputSynth()
-    {
-        var res = new OutputSynth(MidiSynthManager.getInstance().getMidiSynth(MidiSynthManager.JJAZZLAB_SOUNDFONT_GS_SYNTH_NAME));
-        res.getUserSettings().setSendModeOnUponPlay(OutputSynth.UserSettings.SendModeOnUponPlay.GS);
-        return res;
-    }
-
-    /**
-     * Get a new instance of a default OutputSynth which just uses the Tyros 5 synth.
-     *
-     * @return
-     */
-    public OutputSynth getNewYamahaRefOuputSynth()
-    {
-        var res = new OutputSynth(MidiSynthManager.getInstance().getMidiSynth(MidiSynthManager.YAMAHA_REF_SYNTH_NAME));
-        res.getUserSettings().setSendModeOnUponPlay(OutputSynth.UserSettings.SendModeOnUponPlay.OFF);
-        return res;
     }
 
     /**
@@ -194,7 +111,7 @@ public class OutputSynthManagerImpl implements PropertyChangeListener, OutputSyn
         var mdOut = JJazzMidiSystem.getInstance().getDefaultOutDevice();
         if (mdOut != null)
         {
-            res = getOutputSynth(mdOut.getDeviceInfo().getName());
+            res = getMidiDeviceOutputSynth(mdOut.getDeviceInfo().getName());
         }
         return res;
     }
@@ -206,7 +123,7 @@ public class OutputSynthManagerImpl implements PropertyChangeListener, OutputSyn
      * @return Can't be null.
      */
     @Override
-    public OutputSynth getOutputSynth(String mdOutName)
+    public OutputSynth getMidiDeviceOutputSynth(String mdOutName)
     {
         Preconditions.checkNotNull(mdOutName);
         Preconditions.checkArgument(!mdOutName.isBlank());
@@ -238,11 +155,11 @@ public class OutputSynthManagerImpl implements PropertyChangeListener, OutputSyn
         if (outSynth == null)
         {
             // Create a default OutputSynth
-            outSynth = getNewGMOuputSynth();
+            outSynth = getStandardOutputSynth(STD_GM);
         }
 
         // Associate the created OutputSynth to mdOut
-        setOutputSynth(mdOutName, outSynth);
+        setMidiDeviceOutputSynth(mdOutName, outSynth);
 
         return outSynth;
     }
@@ -254,7 +171,7 @@ public class OutputSynthManagerImpl implements PropertyChangeListener, OutputSyn
      * @param outSynth  Can't be null
      */
     @Override
-    public void setOutputSynth(String mdOutName, OutputSynth outSynth)
+    public void setMidiDeviceOutputSynth(String mdOutName, OutputSynth outSynth)
     {
         Preconditions.checkNotNull(mdOutName);
         Preconditions.checkArgument(!mdOutName.isBlank());
@@ -287,6 +204,59 @@ public class OutputSynthManagerImpl implements PropertyChangeListener, OutputSyn
 
     }
 
+    @Override
+    public OutputSynth getStandardOutputSynth(String stdName)
+    {
+        MidiSynth synth = null;
+        SendModeOnUponPlay mode = null;
+        switch (stdName)
+        {
+            case OutputSynthManager.STD_GM ->
+            {
+                synth = GMSynth.getInstance();
+                mode = SendModeOnUponPlay.GM;
+            }
+            case OutputSynthManager.STD_GM2 ->
+            {
+                synth = GM2Synth.getInstance();
+                mode = SendModeOnUponPlay.GM2;
+            }
+            case OutputSynthManager.STD_GS ->
+            {
+                synth = GSSynth.getInstance();
+                mode = SendModeOnUponPlay.GS;
+            }
+            case OutputSynthManager.STD_XG ->
+            {
+                synth = XGSynth.getInstance();
+                mode = SendModeOnUponPlay.XG;
+            }
+            case OutputSynthManager.STD_JJAZZLAB_SOUNDFONT_GS ->
+            {
+                synth = MidiSynthManager.getDefault().getMidiSynth(MidiSynthManagerImpl.JJAZZLAB_SOUNDFONT_GS_SYNTH_NAME);
+                mode = SendModeOnUponPlay.GS;
+            }
+            case OutputSynthManager.STD_JJAZZLAB_SOUNDFONT_XG ->
+            {
+                synth = MidiSynthManager.getDefault().getMidiSynth(MidiSynthManagerImpl.JJAZZLAB_SOUNDFONT_XG_SYNTH_NAME);
+                mode = SendModeOnUponPlay.XG;
+            }
+            case OutputSynthManager.STD_YAMAHA_TYROS_REF ->
+            {
+                synth = MidiSynthManager.getDefault().getMidiSynth(MidiSynthManagerImpl.YAMAHA_REF_SYNTH_NAME);
+                mode = SendModeOnUponPlay.OFF;
+            }
+            default ->
+            {
+                return null;
+            }
+        }
+
+        var res = new OutputSynth(synth);
+        res.getUserSettings().setSendModeOnUponPlay(mode);
+
+        return res;
+    }
 
     @Override
     public void addPropertyChangeListener(PropertyChangeListener l)
@@ -342,8 +312,8 @@ public class OutputSynthManagerImpl implements PropertyChangeListener, OutputSyn
     // ===============================================================================
     private void midiOutChanged(MidiDevice oldMd, MidiDevice newMd)
     {
-        var oldSynth = oldMd == null ? null : getOutputSynth(oldMd.getDeviceInfo().getName());
-        var newSynth = newMd == null ? null : getOutputSynth(newMd.getDeviceInfo().getName());
+        var oldSynth = oldMd == null ? null : getMidiDeviceOutputSynth(oldMd.getDeviceInfo().getName());
+        var newSynth = newMd == null ? null : getMidiDeviceOutputSynth(newMd.getDeviceInfo().getName());
         pcs.firePropertyChange(PROP_DEFAULT_OUTPUTSYNTH, oldSynth, newSynth);   // newSynth might be null !
     }
 
@@ -365,7 +335,7 @@ public class OutputSynthManagerImpl implements PropertyChangeListener, OutputSyn
         {
             // Preferences up to JJazzLab 3 are not reused in JJazzLab 4 and later
             if (oldVersion != null && oldVersion.length() > 0 && oldVersion.charAt(0) >= '4')
-            {                
+            {
                 UpgradeManager um = UpgradeManager.getInstance();
                 um.duplicateOldPreferences(prefs);
             }

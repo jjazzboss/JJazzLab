@@ -23,7 +23,6 @@
 package org.jjazz.ss_editor.spi;
 
 import javax.swing.JToolBar;
-import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.song.api.Song;
 import org.jjazz.ss_editor.sptviewer.spi.SptViewerFactory;
 import org.jjazz.ss_editor.api.SS_Editor;

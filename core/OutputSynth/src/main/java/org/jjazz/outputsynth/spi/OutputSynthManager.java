@@ -25,14 +25,28 @@
 package org.jjazz.outputsynth.spi;
 
 import java.beans.PropertyChangeListener;
+import org.jjazz.midi.api.Instrument;
+import org.jjazz.midimix.api.UserRhythmVoice;
+import org.jjazz.midimix.spi.RhythmVoiceInstrumentProvider;
 import org.jjazz.outputsynth.api.OutputSynth;
+import org.jjazz.rhythm.api.RhythmVoice;
 import org.openide.util.Lookup;
+import org.openide.util.lookup.ServiceProvider;
 
 /**
  * A manager for OutputSynth instances.
  */
 public interface OutputSynthManager
 {
+
+    // Some standard output synth names
+    public static String STD_GM = "GM";
+    public static String STD_GM2 = "GM2";
+    public static String STD_XG = "XG";
+    public static String STD_GS = "GS";
+    public static String STD_JJAZZLAB_SOUNDFONT_GS = "JJazzLabSoundFontGS";
+    public static String STD_JJAZZLAB_SOUNDFONT_XG = "JJazzLabSoundFontXG";
+    public static String STD_YAMAHA_TYROS_REF = "YamahaTyrosRef";
 
     /**
      * Property change event fired each time a new OutputSynth is associated to the default JJazzLab MidiDevice OUT: oldValue=old OutputSynth, newValue=new
@@ -68,6 +82,14 @@ public interface OutputSynthManager
      */
     OutputSynth getDefaultOutputSynth();
 
+    /**
+     * Get a new instance of a standard OutputSynth.
+     *
+     * @param stdName The name of the standard output synth, eg "GM".
+     * @return Can be null
+     */
+    OutputSynth getStandardOutputSynth(String stdName);
+
 
     /**
      * Get the OutputSynth associated to the specified output MidiDevice.
@@ -75,7 +97,7 @@ public interface OutputSynthManager
      * @param mdOutName A Midi device OUT name, can't be null or empty
      * @return Can't be null.
      */
-    OutputSynth getOutputSynth(String mdOutName);
+    OutputSynth getMidiDeviceOutputSynth(String mdOutName);
 
     /**
      * Associate outSynth to the specified midi OUT device name.
@@ -83,14 +105,7 @@ public interface OutputSynthManager
      * @param mdOutName Can't be null
      * @param outSynth  Can't be null
      */
-    void setOutputSynth(String mdOutName, OutputSynth outSynth);
-
-    /**
-     * Get a new instance of a default OutputSynth which just uses the GMSynth.
-     *
-     * @return
-     */
-    OutputSynth getNewGMOuputSynth();
+    void setMidiDeviceOutputSynth(String mdOutName, OutputSynth outSynth);
 
     /**
      * Scan all the OUT MidiDevices and make sure each MidiDevice is associated to an OutputSynth.
@@ -108,4 +123,40 @@ public interface OutputSynthManager
     void removePropertyChangeListener(String propName, PropertyChangeListener l);
 
 
+    // ===============================================================================================
+    // Inner classes
+    // ===============================================================================================    
+    /**
+     * Implement the RhythmVoiceInstrumentProvider service using the default OutputSynth provided by the OutputSynthManager.
+     */
+    @ServiceProvider(service = RhythmVoiceInstrumentProvider.class)
+    static public class DefaultRhythmVoiceInstrumentProviderImpl implements RhythmVoiceInstrumentProvider
+    {
+
+        @Override
+        public String getId()
+        {
+            return RhythmVoiceInstrumentProvider.DEFAULT_ID;
+        }
+
+        @Override
+        public Instrument findInstrument(RhythmVoice rv)
+        {
+            Instrument ins;
+            var outSynth = OutputSynthManager.getDefault().getDefaultOutputSynth();
+
+            if ((rv instanceof UserRhythmVoice) && !rv.isDrums())
+            {
+                ins = outSynth.getUserSettings().getUserMelodicInstrument();
+            } else
+            {
+                ins = outSynth.findInstrument(rv);
+
+            }
+
+            return ins;
+        }
+
+
+    }
 }

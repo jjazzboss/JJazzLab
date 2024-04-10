@@ -38,11 +38,6 @@
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>org-jjazz-harmony</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
             <artifactId>org-jjazz-chordleadsheet</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -59,16 +54,6 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>org-jjazz-rhythm</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>org-jjazz-rhythmdatabase</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>org-jjazz-rhythmmusicgeneration</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

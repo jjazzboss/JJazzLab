@@ -40,11 +40,6 @@
             <groupId>${project.groupId}</groupId> 
             <artifactId>org-jjazz-chordleadsheet</artifactId> 
             <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-filedirectorymanager</artifactId> 
-            <version>${project.version}</version>  
         </dependency>         
         <dependency> 
             <groupId>${project.groupId}</groupId> 

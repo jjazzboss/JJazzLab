@@ -447,7 +447,7 @@
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-synthmanager</artifactId> 
+            <artifactId>org-jjazz-outputsynthmanagerimpl</artifactId> 
             <version>${project.version}</version> 
         </dependency>  		
         <dependency> 

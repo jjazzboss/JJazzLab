@@ -31,11 +31,6 @@
     <dependencies>
         <dependency>
             <groupId>org.jjazzlab</groupId>
-            <artifactId>org-jjazz-midimix</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.jjazzlab</groupId>
             <artifactId>org-jjazz-rhythm</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -108,11 +103,6 @@
         <dependency>
             <groupId>org.netbeans.api</groupId>
             <artifactId>org-openide-awt</artifactId>
-            <version>${netbeans.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.netbeans.api</groupId>
-            <artifactId>org-netbeans-api-annotations-common</artifactId>
             <version>${netbeans.version}</version>
         </dependency>
         <dependency>

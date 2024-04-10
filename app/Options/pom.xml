@@ -46,11 +46,6 @@
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-cl_editor</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
             <artifactId>org-jjazz-embeddedsynth</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
@@ -78,11 +73,6 @@
         <dependency> 
             <groupId>${project.groupId}</groupId> 
             <artifactId>org-jjazz-midi</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-midimix</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
@@ -119,11 +109,6 @@
             <groupId>${project.groupId}</groupId> 
             <artifactId>org-jjazz-rhythmdatabaseimpl</artifactId> 
             <version>${project.version}</version>  
-        </dependency>          
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-rhythmmusicgeneration</artifactId> 
-            <version>${project.version}</version>  
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
@@ -133,16 +118,6 @@
         <dependency> 
             <groupId>${project.groupId}</groupId> 
             <artifactId>org-jjazz-songeditormanager</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-songstructure</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-ss_editor</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
@@ -167,22 +142,7 @@
         </dependency>  
         <dependency> 
             <groupId>org.netbeans.api</groupId> 
-            <artifactId>org-netbeans-api-progress</artifactId> 
-            <version>${netbeans.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>org.netbeans.api</groupId> 
-            <artifactId>org-netbeans-libs-flatlaf</artifactId> 
-            <version>${netbeans.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>org.netbeans.api</groupId> 
             <artifactId>org-netbeans-modules-options-api</artifactId> 
-            <version>${netbeans.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>org.netbeans.api</groupId> 
-            <artifactId>org-netbeans-modules-sendopts</artifactId> 
             <version>${netbeans.version}</version>  
         </dependency>  
         <dependency> 
@@ -193,11 +153,6 @@
         <dependency> 
             <groupId>org.netbeans.api</groupId> 
             <artifactId>org-openide-dialogs</artifactId> 
-            <version>${netbeans.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>org.netbeans.api</groupId> 
-            <artifactId>org-openide-modules</artifactId> 
             <version>${netbeans.version}</version>  
         </dependency>  
         <dependency> 

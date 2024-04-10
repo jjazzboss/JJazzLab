@@ -220,6 +220,7 @@
         <module>app/CL_EditorImpl</module>        
         <module>app/ChordInspector</module>
         <module>app/EasyReader</module>
+        <module>app/FileDirectoryManager</module>		
         <module>app/ImprovisationSupport</module>
         <module>app/InstrumentChooser</module>
         <module>app/InstrumentComponents</module>
@@ -240,8 +241,7 @@
         <module>app/SongEditorManager</module>
         <module>app/SongMemoViewer</module>
         <module>app/SptEditor</module>
-        <module>app/StartupManager</module>        
-		<module>app/SynthManager</module>        		
+        <module>app/StartupManager</module>        		
         <module>app/Test</module>
         <module>app/UISettings</module>
         <module>app/UIUtilities</module>
@@ -251,7 +251,6 @@
         <module>core/Biab</module>
         <module>core/ChordLeadSheet</module>
         <module>core/EmbeddedSynth</module>
-        <module>core/FileDirectoryManager</module>
         <module>core/FlatComponents</module>        
         <module>core/Harmony</module>
         <module>core/Importers</module>
@@ -275,6 +274,7 @@
         <module>core/Guava</module>
         <module>plugins/FluidSynthEmbeddedSynth</module>        
         <module>plugins/YamJJazz</module>
+        <module>app/OutputSynthManagerImpl</module>
     </modules>
     
     

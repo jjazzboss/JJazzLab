@@ -21,14 +21,13 @@
  * Contributor(s): 
  *
  */
-package org.jjazz.synthmanager.api;
+package org.jjazz.outputsynthmanagerimpl;
 
 import com.google.common.base.Preconditions;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
@@ -44,6 +43,7 @@ import org.jjazz.midi.api.synths.GSSynth;
 import org.jjazz.midi.api.synths.XGSynth;
 import org.jjazz.midi.spi.MidiSynthFileReader;
 import org.jjazz.startup.spi.StartupTask;
+import static org.jjazz.midi.spi.MidiSynthManager.loadFromResource;
 import org.jjazz.upgrade.api.UpgradeManager;
 import org.jjazz.utilities.api.ResUtil;
 import org.jjazz.utilities.api.Utilities;
@@ -53,23 +53,13 @@ import org.openide.NotifyDescriptor;
 import org.openide.util.Lookup;
 import org.openide.util.lookup.ServiceProvider;
 import org.openide.windows.WindowManager;
+import org.jjazz.midi.spi.MidiSynthManager;
 
 
-/**
- * Manager the list of MidiSynths used during a JJazzLab session.
- */
-public class MidiSynthManager
+
+@ServiceProvider(service=MidiSynthManager.class)
+public class MidiSynthManagerImpl implements MidiSynthManager
 {
-
-    /**
-     * Property change event fired when a MidiSynth is added or removed.
-     * <p>
-     * If added: oldValue=null, newValue=added MidiSynth<br>
-     * If removed: oldValue=removed MidiSynth, newValue=null<br>
-     */
-    public static String PROP_MIDISYNTH_LIST = "PropSynthList";
-
-
     // Some builtin MidiSynth names retrieved from a .ins file
     public static String JJAZZLAB_SOUNDFONT_GM2_SYNTH_NAME = "JJazzLab SoundFont (GM2)";
     public static String JJAZZLAB_SOUNDFONT_GS_SYNTH_NAME = "JJazzLab SoundFont (GS)";
@@ -86,34 +76,14 @@ public class MidiSynthManager
 
 
     private static final String MIDISYNTH_FILES_DEST_DIRNAME = "MidiSynthFiles";
-    private static MidiSynthManager INSTANCE;
 
     private File lastSynthDir;
     private final List<MidiSynth> midiSynths = new ArrayList<>();
-    private static final Logger LOGGER = Logger.getLogger(MidiSynthManager.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(MidiSynthManagerImpl.class.getSimpleName());
     private transient final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
 
-    /**
-     * Get the instance.
-     * <p>
-     * Upon creation the MidiSynthManager contains at least the GM/GM2/XG/GS MidiSynths.
-     *
-     * @return
-     */
-    public static MidiSynthManager getInstance()
-    {
-        synchronized (MidiSynthManager.class)
-        {
-            if (INSTANCE == null)
-            {
-                INSTANCE = new MidiSynthManager();
-            }
-        }
-        return INSTANCE;
-    }
-
-    private MidiSynthManager()
+    public MidiSynthManagerImpl()
     {
         midiSynths.add(GMSynth.getInstance());
         midiSynths.add(GM2Synth.getInstance());
@@ -127,13 +97,7 @@ public class MidiSynthManager
     }
 
 
-    /**
-     * Add the specified MidiSynth.
-     * <p>
-     *
-     * @param midiSynth
-     * @return True if midiSynth was successfully added, false if midiSynth was already referenced by the MidiSynthManager.
-     */
+    @Override
     public boolean addMidiSynth(MidiSynth midiSynth)
     {
         Preconditions.checkNotNull(midiSynth);
@@ -148,12 +112,7 @@ public class MidiSynthManager
         return false;
     }
 
-    /**
-     * Remove the specified MidiSynth.
-     * <p>
-     * @param midiSynth
-     * @return
-     */
+    @Override
     public boolean removeMidiSynth(MidiSynth midiSynth)
     {
         boolean res = midiSynths.remove(midiSynth);
@@ -164,24 +123,13 @@ public class MidiSynthManager
         return res;
     }
 
-    /**
-     * The list of MidiSynths.
-     * <p>
-     *
-     * @return Can be empty.
-     */
+    @Override
     public List<MidiSynth> getMidiSynths()
     {
         return new ArrayList<>(midiSynths);
     }
 
-    /**
-     * The list of MidiSynths which match the specified criteria.
-     * <p>
-     *
-     * @param tester
-     * @return An unmodifiable list, which can be empty.
-     */
+    @Override
     public List<MidiSynth> getMidiSynths(Predicate<MidiSynth> tester)
     {
         return midiSynths
@@ -190,12 +138,7 @@ public class MidiSynthManager
                 .toList();
     }
 
-    /**
-     * Search a MidiSynth with the specified name.
-     *
-     * @param name
-     * @return Can be null.
-     */
+    @Override
     public MidiSynth getMidiSynth(String name)
     {
         return midiSynths
@@ -206,13 +149,7 @@ public class MidiSynthManager
     }
 
 
-    /**
-     * Show a dialog to select a MidiSynth definition file.
-     * <p>
-     * Use the file extensions managed by the MidiSynthFileReaders found in the global lookup.
-     *
-     * @return The selected file. Null if user cancelled or no selection.
-     */
+    @Override
     public File showSelectSynthFileDialog()
     {
         // Collect all file extensions managed by the MidiSynthFileReaders
@@ -247,38 +184,14 @@ public class MidiSynthManager
         return synthFile;
     }
 
-    /**
-     * Read one MidiSynth from an JJazzLab internal .ins resource file.
-     *
-     * @param clazz
-     * @param insResourcePath Resource path relative to clazz. Must contain only 1 MidiSynth
-     * @return Can't be null
-     * @throws IllegalStateException If resource could not be read
-     */
-    public static MidiSynth loadFromResource(Class clazz, String insResourcePath)
-    {
-        MidiSynth res;
-        InputStream is = clazz.getResourceAsStream(insResourcePath);
-        assert is != null : "insResourcePath=" + insResourcePath;
-        MidiSynthFileReader r = MidiSynthFileReader.getReader("ins");
-        assert r != null;
-        try
-        {
-            List<MidiSynth> synths = r.readSynthsFromStream(is, null);
-            assert synths.size() == 1;
-            res = synths.get(0);
-        } catch (IOException ex)
-        {
-            throw new IllegalStateException("Unexpected error", ex);
-        }
-        return res;
-    }
+  
 
     /**
      * Add PropertyChangeListener.
      *
      * @param listener
      */
+    @Override
     public void addPropertyChangeListener(PropertyChangeListener listener)
     {
         pcs.addPropertyChangeListener(listener);
@@ -289,6 +202,7 @@ public class MidiSynthManager
      *
      * @param listener
      */
+    @Override
     public void removePropertyChangeListener(PropertyChangeListener listener)
     {
         pcs.removePropertyChangeListener(listener);
@@ -320,45 +234,7 @@ public class MidiSynthManager
         return rDir;
     }
 
-    // ===============================================================================
-    // Inner classes
-    // ===============================================================================
-
-    @ServiceProvider(service = MidiSynth.Finder.class)
-    static public class SynthFinder implements MidiSynth.Finder
-    {
-
-        /**
-         * Search the MidiSynthManager instance.
-         *
-         * @param synthName
-         * @param synthFile
-         * @return
-         */
-        @Override
-        public MidiSynth getMidiSynth(String synthName, File synthFile)
-        {
-            Preconditions.checkNotNull(synthName);
-
-            var msm = MidiSynthManager.getInstance();
-            MidiSynth res = msm.getMidiSynth(synthName);
-
-            if (res == null && synthFile != null)
-            {
-                try
-                {
-                    // Not created yet, load it and add it to the database
-                    res = MidiSynth.loadFromFile(synthFile);    // throws IOException
-                    msm.addMidiSynth(res);
-                } catch (IOException ex)
-                {
-                    LOGGER.log(Level.WARNING, "SynthFinder.getMidiSynth() can''t load MidiSynth ex={0}", ex.getMessage());
-                }
-            }
-
-            return res;
-        }
-    }
+   
     // =====================================================================================
     // Startup Task
     // =====================================================================================

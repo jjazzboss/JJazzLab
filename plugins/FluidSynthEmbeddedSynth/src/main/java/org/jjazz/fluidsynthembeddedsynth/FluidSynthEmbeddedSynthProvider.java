@@ -33,12 +33,12 @@ import org.jjazz.embeddedsynth.api.EmbeddedSynthException;
 import org.jjazz.embeddedsynth.spi.EmbeddedSynthProvider;
 import org.jjazz.fluidsynthjava.api.FluidSynthJava;
 import org.jjazz.midi.api.JJazzMidiSystem;
-import org.jjazz.outputsynth.api.MidiSynthManager;
 import org.jjazz.utilities.api.ResUtil;
 import org.netbeans.api.progress.BaseProgressUtils;
 import org.openide.util.Exceptions;
 import org.openide.util.lookup.ServiceProvider;
 import org.jjazz.outputsynth.spi.OutputSynthManager;
+import org.jjazz.midi.spi.MidiSynthManager;
 
 @ServiceProvider(service = EmbeddedSynthProvider.class)
 public class FluidSynthEmbeddedSynthProvider implements EmbeddedSynthProvider
@@ -103,8 +103,8 @@ public class FluidSynthEmbeddedSynthProvider implements EmbeddedSynthProvider
 
 
             // Connect to the JazzLab application
-            MidiSynthManager.getInstance().addMidiSynth(embeddedSynth.getOutputSynth().getMidiSynth());
-            OutputSynthManager.getDefault().setOutputSynth(midiDevice.getDeviceInfo().getName(), embeddedSynth.getOutputSynth());
+            MidiSynthManager.getDefault().addMidiSynth(embeddedSynth.getOutputSynth().getMidiSynth());
+            OutputSynthManager.getDefault().setMidiDeviceOutputSynth(midiDevice.getDeviceInfo().getName(), embeddedSynth.getOutputSynth());
 
 
             // Use our special MidiDevice

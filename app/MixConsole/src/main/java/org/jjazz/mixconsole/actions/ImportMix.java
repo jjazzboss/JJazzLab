@@ -32,7 +32,6 @@ import javax.swing.AbstractAction;
 import static javax.swing.Action.NAME;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.uiutilities.api.UIUtilities;
 import org.jjazz.utilities.api.ResUtil;
 import org.jjazz.analytics.api.Analytics;
