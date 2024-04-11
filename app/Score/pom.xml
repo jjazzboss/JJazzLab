@@ -8,7 +8,7 @@
         <version>4.0.3-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
-    <artifactId>org-jjazz-score</artifactId>
+    <artifactId>score</artifactId>
     <name>Score</name>
     <packaging>nbm</packaging>
     <build>
@@ -37,7 +37,7 @@
     <dependencies>          
         <dependency>
             <groupId>org.jjazzlab</groupId>
-            <artifactId>org-jjazz-harmony</artifactId>
+            <artifactId>harmony</artifactId>
             <version>${project.version}</version>
             
         </dependency>

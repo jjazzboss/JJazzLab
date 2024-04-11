@@ -28,18 +28,20 @@ import java.util.prefs.Preferences;
 import org.jjazz.embeddedsynth.api.EmbeddedSynthException;
 import org.jjazz.embeddedsynth.spi.EmbeddedSynthProvider;
 import org.jjazz.midi.api.JJazzMidiSystem;
+import org.jjazz.startup.spi.OnShowingTask;
 import org.jjazz.upgrade.api.UpgradeManager;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
-import org.openide.modules.OnStart;
 import org.openide.util.*;
+import org.openide.util.lookup.ServiceProvider;
 
 /**
  * Manage the fresh startup case and restore EmbeddedSynth active state upon application restarts.
  */
-@OnStart
-public class StartupEmbeddedSynthInitTask implements Runnable
+
+@ServiceProvider(service = OnShowingTask.class)
+public class StartupEmbeddedSynthInitTask implements OnShowingTask
 {
 
     private static final String PREF_EMBEDDED_SYNTH_ACTIVATED = "PrefEmbeddedSynthActivated";
@@ -56,7 +58,6 @@ public class StartupEmbeddedSynthInitTask implements Runnable
         if (provider == null || !provider.isEnabled())
         {
             showOnceNoFluidSynthWarning();
-            return;
         } else
         {
             // Save the EmbeddedSynth active status
@@ -75,8 +76,10 @@ public class StartupEmbeddedSynthInitTask implements Runnable
             {
                 LOGGER.log(Level.WARNING, "run() Can''t activate embedded synth: {0}", ex.getMessage());
                 showOnceNoFluidSynthWarning();
+                
             }
         }
+
     }
 
     private void showOnceNoFluidSynthWarning()
@@ -88,5 +91,17 @@ public class StartupEmbeddedSynthInitTask implements Runnable
             DialogDisplayer.getDefault().notify(d);
             prefs.putBoolean(PREF_FLUIDSYNTH_DISABLED_WARNING_SHOWN, true);
         }
+    }
+
+    @Override
+    public int getPriority()
+    {
+        return 75;
+    }
+
+    @Override
+    public String getName()
+    {
+        return "StartupEmbeddedSynthInitTask";
     }
 }

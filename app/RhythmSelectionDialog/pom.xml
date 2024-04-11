@@ -8,7 +8,7 @@
         <version>4.0.3-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
-    <artifactId>org-jjazz-rhythmselectiondialog</artifactId>
+    <artifactId>rhythmselectiondialog</artifactId>
     <name>RhythmSelectionDialog</name>
     <packaging>nbm</packaging>
     <build>
@@ -39,37 +39,42 @@
     <dependencies>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-filedirectorymanager</artifactId> 
+            <artifactId>filedirectorymanager</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-harmony</artifactId> 
+            <artifactId>harmony</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-midi</artifactId> 
+            <artifactId>midi</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>  
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>rhythmdatabaseimpl</artifactId>
+            <version>${project.version}</version>
+        </dependency>        
+        <dependency> 
+            <groupId>${project.groupId}</groupId> 
+            <artifactId>musiccontrol</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-musiccontrol</artifactId> 
+            <artifactId>rhythm</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-rhythm</artifactId> 
+            <artifactId>rhythmdatabase</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-rhythmdatabase</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-utilities</artifactId> 
+            <artifactId>utilities</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 

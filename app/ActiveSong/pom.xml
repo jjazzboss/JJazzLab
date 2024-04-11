@@ -8,7 +8,7 @@
         <version>4.0.3-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
-    <artifactId>org-jjazz-activesong</artifactId>
+    <artifactId>activesong</artifactId>
     <name>ActiveSong</name>
     <packaging>nbm</packaging>
     <build>
@@ -38,17 +38,17 @@
     <dependencies>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-midimix</artifactId> 
+            <artifactId>midimix</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-rhythmmusicgeneration</artifactId> 
+            <artifactId>rhythmmusicgeneration</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-song</artifactId> 
+            <artifactId>song</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 

@@ -235,7 +235,7 @@ public class YamahaRhythmProvider implements RhythmProvider
     private File[] getDefaultRhythmFiles()
     {
         File[] res;
-        File dir = InstalledFileLocator.getDefault().locate(DEFAULT_FILES_DEST_DIRNAME, "org.jjazzlab.org.jjazz.yamjjazz", false);
+        File dir = InstalledFileLocator.getDefault().locate(DEFAULT_FILES_DEST_DIRNAME, "org.jjazzlab.yamjjazz", false);
 
 
         if (dir == null || !dir.isDirectory())

@@ -32,12 +32,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
+import org.jjazz.startup.spi.OnStartTask;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.*;
 import org.openide.modules.OnStart;
 import org.openide.modules.Places;
 import org.openide.util.Lookup;
 import org.openide.util.NbPreferences;
+import org.openide.util.lookup.ServiceProvider;
 
 /**
  * Manage the tasks to upgrade settings from a previous version of JJazzLab to the current version.
@@ -53,7 +55,7 @@ public class UpgradeManager
      */
     public static final String[] PREVIOUS_VERSIONS = new String[]
     {
-        "4.0.1",
+        "4.0.2", "4.0.1",
         "3.2.1", "3.2.0", "3.1.0", "3.0.3", "3.0.2a", "3.0.2", "3.0.1", "3.0.beta1",
         "2.3.1", "2.3.beta", "2.2.0", "2.2.beta3", "2.2.beta2", "2.1.2a", "2.1.2", "2.1.1", "2.1.0", "2.0.1", "2.0.0"
     };
@@ -164,19 +166,32 @@ public class UpgradeManager
 
         String relPath = getPreferencesRelativePath(modulePrefs);
 
+
         // Adjust relPath if needed
+        // Note that with Maven, module node is made from codename base, i.e. groupId/artefactId , converting '-'s into '/'s.
         String version = getVersion();
         String importVersion = getImportSourceVersion();
-        if (version != null && !version.isEmpty() && version.charAt(0) >= '4'
-                && importVersion != null && !importSourceVersion.isEmpty() && importVersion.charAt(0) <= '3')
+        if (version != null && !version.isEmpty() && importVersion != null && !importVersion.isEmpty())
         {
-            // Before JJazzLab 4 we used Ant, so package code base names dit not have the "org/jjazzlab/"  prefix
-            // Ex: 3.2.1/config/Preferences/org/jjazz/midi.properties  =>   4.0/config/Preferences/org/jjazzlab/org/jjazz/midi.properties
-            if (relPath.startsWith("org/jjazzlab/org/jjazz/"))
+            if (version.compareTo("4") >= 0 && importVersion.compareTo("4") < 0)
             {
-                relPath = relPath.substring(13);
+                if (relPath.startsWith("org/jjazzlab/"))    // eg "org/jjazzlab/org/jjazz/midi.properties"
+                {
+                    // Before JJazzLab 4.0.1 we used Ant, so package code base names dit not have the "org/jjazzlab/" groupId prefix
+                    // Ex: 4.0.1/config/Preferences/org/jjazzlab/org/jjazz/midi.properties => 3.2.1/config/Preferences/org/jjazz/midi.properties   
+                    relPath = relPath.substring(13);
+                }
+            }
+            if (version.compareTo("4.0.3") >= 0 && importVersion.compareTo("4.0.2") <= 0)
+            {
+                // From 4.0.3 artefactId name was simplified ("org-jjazz-midi" -> "midi")
+                // Ex: 4.0.3/config/Preferences/org/jjazzlab/midi.properties => 4.0.2/config/Preferences/org/jjazzab/org/jjazz/midi.properties   
+                // Ex: 4.0.3/config/Preferences/org/jjazzlab/midi.properties => 3.2.1/config/Preferences/org/jjazz/midi.properties   
+                Path p = Path.of(relPath);
+                relPath = p.getParent().resolve("org/jjazz").resolve(p.getFileName()).toString();    // eg "org/jjazzlab/midi.properties" => "org/jjazzlab/org/jjazz/midi.properties"
             }
         }
+
 
         duplicateOldPreferences(modulePrefs, relPath);
     }
@@ -304,8 +319,8 @@ public class UpgradeManager
     // =============================================================================================================
     // Internal class
     // =============================================================================================================
-    @OnStart
-    public static class FreshStartUpgrader implements Runnable
+    @ServiceProvider(service = OnStartTask.class)
+    public static class FreshStartUpgrader implements OnStartTask
     {
 
         @Override
@@ -347,6 +362,18 @@ public class UpgradeManager
             {
                 task.upgrade(version);
             }
+        }
+
+        @Override
+        public int getPriority()
+        {
+            return 0;   // Should run early in order to update the modules preferences before instances are created
+        }
+
+        @Override
+        public String getName()
+        {
+            return "UpgradeManager";
         }
     }
 

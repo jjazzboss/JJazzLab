@@ -8,7 +8,7 @@
         <version>4.0.3-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
-    <artifactId>org-jjazz-musiccontrol</artifactId>
+    <artifactId>musiccontrol</artifactId>
     <name>MusicControl</name>
     <packaging>nbm</packaging>
     <build>
@@ -39,82 +39,82 @@
     <dependencies>      
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-analytics</artifactId> 
+            <artifactId>analytics</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId>
-            <artifactId>org-jjazz-guava</artifactId>
+            <artifactId>guava</artifactId>
             <version>${project.version}</version>
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-harmony</artifactId> 
+            <artifactId>harmony</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-chordleadsheet</artifactId> 
+            <artifactId>chordleadsheet</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-midi</artifactId> 
+            <artifactId>midi</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-midimix</artifactId> 
+            <artifactId>midimix</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-outputsynth</artifactId> 
+            <artifactId>outputsynth</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-phrase</artifactId> 
+            <artifactId>phrase</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-rhythm</artifactId> 
+            <artifactId>rhythm</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-rhythmmusicgeneration</artifactId> 
+            <artifactId>rhythmmusicgeneration</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-song</artifactId> 
+            <artifactId>song</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-songcontext</artifactId> 
+            <artifactId>songcontext</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-songstructure</artifactId> 
+            <artifactId>songstructure</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-testplayerservice</artifactId> 
+            <artifactId>testplayerservice</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-upgrade</artifactId> 
+            <artifactId>upgrade</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-utilities</artifactId> 
+            <artifactId>utilities</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
@@ -139,7 +139,7 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>org-jjazz-activesong</artifactId>
+            <artifactId>activesong</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

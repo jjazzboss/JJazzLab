@@ -31,7 +31,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.harmony.api.ChordSymbol;
 import org.jjazz.harmony.api.ChordType;
-import org.jjazz.harmony.api.ChordTypeDatabase;
+import org.jjazz.harmony.spi.ChordTypeDatabase;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.song.api.SongCreationException;
 
@@ -152,7 +152,7 @@ public class BiabChord
     {
         initChordTypes();
         chordType = null;
-        ChordTypeDatabase ctdb = ChordTypeDatabase.getInstance();
+        ChordTypeDatabase ctdb = ChordTypeDatabase.getDefault();
         if (value > 0 && value < CHORD_TYPES.length && !CHORD_TYPES[value].equals("?"))
         {
             chordType = ctdb.getChordType(CHORD_TYPES[value]);
@@ -436,7 +436,7 @@ public class BiabChord
         };
 
 //        LOGGER.severe("CONTROL DEBUG REMOVE======");
-//        ChordTypeDatabase ctdb = ChordTypeDatabase.getInstance();
+//        ChordTypeDatabase ctdb = ChordTypeDatabase.getDefault();
 //        for (String s : CHORD_TYPES)
 //        {
 //            if (ctdb.getChordType(s) == null)

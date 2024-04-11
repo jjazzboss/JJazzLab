@@ -24,11 +24,15 @@ package org.jjazz.harmony.api;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.jjazz.harmony.spi.ScaleManager;
 
-public class ScaleManager
+/**
+ * Default implementation of a ScaleManager.
+ * <p>
+ */
+public class DefaultScaleManager implements ScaleManager
 {
 
-    private static ScaleManager INSTANCE;
 
     static public final StandardScale MAJOR = new StandardScale("Major",
             Degree.ROOT, Degree.NINTH, Degree.THIRD, Degree.FOURTH_OR_ELEVENTH, Degree.FIFTH, Degree.SIXTH_OR_THIRTEENTH, Degree.SEVENTH);
@@ -64,10 +68,12 @@ public class ScaleManager
             Degree.ROOT, Degree.NINTH, Degree.THIRD, Degree.ELEVENTH_SHARP, Degree.FIFTH, Degree.SIXTH_OR_THIRTEENTH, Degree.SEVENTH_FLAT
     );
     static public final StandardScale DIMINISHED_WHOLE_HALF = new StandardScale("Diminished whole-half",
-            Degree.ROOT, Degree.NINTH, Degree.THIRD_FLAT, Degree.FOURTH_OR_ELEVENTH, Degree.FIFTH_FLAT, Degree.FIFTH_SHARP, Degree.SIXTH_OR_THIRTEENTH, Degree.SEVENTH
+            Degree.ROOT, Degree.NINTH, Degree.THIRD_FLAT, Degree.FOURTH_OR_ELEVENTH, Degree.FIFTH_FLAT, Degree.FIFTH_SHARP, Degree.SIXTH_OR_THIRTEENTH,
+            Degree.SEVENTH
     );
     static public final StandardScale DIMINISHED_HALF_WHOLE = new StandardScale("Diminished half-whole",
-            Degree.ROOT, Degree.NINTH_FLAT, Degree.THIRD_FLAT, Degree.THIRD, Degree.ELEVENTH_SHARP, Degree.FIFTH, Degree.SIXTH_OR_THIRTEENTH, Degree.SEVENTH_FLAT
+            Degree.ROOT, Degree.NINTH_FLAT, Degree.THIRD_FLAT, Degree.THIRD, Degree.ELEVENTH_SHARP, Degree.FIFTH, Degree.SIXTH_OR_THIRTEENTH,
+            Degree.SEVENTH_FLAT
     );
     static public final StandardScale WHOLE_TONE = new StandardScale("Whole tone",
             Degree.ROOT, Degree.NINTH, Degree.THIRD, Degree.FIFTH_FLAT, Degree.THIRTEENTH_FLAT, Degree.SEVENTH_FLAT
@@ -84,19 +90,21 @@ public class ScaleManager
 
     private static ArrayList<StandardScale> stdScales;
 
-    public static ScaleManager getInstance()
+    protected static DefaultScaleManager INSTANCE;
+
+    public static DefaultScaleManager getInstance()
     {
         synchronized (ScaleManager.class)
         {
             if (INSTANCE == null)
             {
-                INSTANCE = new ScaleManager();
+                INSTANCE = new DefaultScaleManager();
             }
         }
         return INSTANCE;
     }
 
-    private ScaleManager()
+    protected DefaultScaleManager()
     {
         stdScales = new ArrayList<>();
         stdScales.add(MAJOR);
@@ -121,8 +129,8 @@ public class ScaleManager
     /**
      * A list of 17 standard scales.
      * <p>
-     * MAJOR DORIAN PHRYGIAN LYDIAN MIXOLYDIAN AEOLIAN LOCRIAN MINOR_HARMONIC MINOR_MELODIC ALTERED LYDIAN_b7
-     * DIMINISHED_WHOLE_HALF DIMINISHED_HALF_WHOLE WHOLE_TONE PENTATONIC_MAJOR PENTATONIC_MINOR BLUES
+     * MAJOR DORIAN PHRYGIAN LYDIAN MIXOLYDIAN AEOLIAN LOCRIAN MINOR_HARMONIC MINOR_MELODIC ALTERED LYDIAN_b7 DIMINISHED_WHOLE_HALF DIMINISHED_HALF_WHOLE
+     * WHOLE_TONE PENTATONIC_MAJOR PENTATONIC_MINOR BLUES
      *
      * @return
      */

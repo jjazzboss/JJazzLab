@@ -8,7 +8,7 @@
         <version>4.0.3-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
-    <artifactId>org-jjazz-songstructure</artifactId>
+    <artifactId>songstructure</artifactId>
     <name>SongStructure</name>
     <packaging>nbm</packaging>
     <build>
@@ -38,42 +38,42 @@
     <dependencies>      
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-harmony</artifactId> 
+            <artifactId>harmony</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-chordleadsheet</artifactId> 
+            <artifactId>chordleadsheet</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-midi</artifactId> 
+            <artifactId>midi</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-rhythm</artifactId> 
+            <artifactId>rhythm</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-rhythmdatabase</artifactId> 
+            <artifactId>rhythmdatabase</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-undomanager</artifactId> 
+            <artifactId>undomanager</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-utilities</artifactId> 
+            <artifactId>utilities</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency>
             <groupId>org.jjazzlab</groupId>
-            <artifactId>org-jjazz-xstream</artifactId>
+            <artifactId>xstream</artifactId>
             <version>${project.version}</version>
         </dependency>        
         <dependency> 

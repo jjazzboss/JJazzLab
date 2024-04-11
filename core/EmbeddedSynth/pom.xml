@@ -8,7 +8,7 @@
         <version>4.0.3-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
-    <artifactId>org-jjazz-embeddedsynth</artifactId>
+    <artifactId>embeddedsynth</artifactId>
     <name>EmbeddedSynth</name>
     <packaging>nbm</packaging>
     <build>
@@ -38,12 +38,12 @@
     <dependencies>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-outputsynth</artifactId> 
+            <artifactId>outputsynth</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-utilities</artifactId> 
+            <artifactId>utilities</artifactId> 
             <version>${project.version}</version>  
         </dependency>
         <dependency>

@@ -8,7 +8,7 @@
         <version>4.0.3-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
-    <artifactId>org-jjazz-upgrade</artifactId>
+    <artifactId>upgrade</artifactId>
     <name>Upgrade</name>
     <packaging>nbm</packaging>
     <build>
@@ -17,9 +17,8 @@
                 <groupId>org.apache.netbeans.utilities</groupId>
                 <artifactId>nbm-maven-plugin</artifactId>
                 <configuration>
-                    <publicPackages>                      
+                    <publicPackages>
                         <publicPackage>org.jjazz.upgrade.api</publicPackage>
-                        <publicPackage>org.jjazz.upgrade.spi</publicPackage>
                     </publicPackages>
                 </configuration>
                 <extensions>true</extensions>
@@ -38,9 +37,19 @@
     <dependencies>      
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-utilities</artifactId> 
+            <artifactId>utilities</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
+        <dependency> 
+            <groupId>${project.groupId}</groupId> 
+            <artifactId>startupmanager</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>         
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>guava</artifactId>
+            <version>${project.version}</version>
+        </dependency>        
         <dependency> 
             <groupId>org.netbeans.api</groupId> 
             <artifactId>org-openide-dialogs</artifactId> 
@@ -60,11 +69,6 @@
             <groupId>org.netbeans.api</groupId> 
             <artifactId>org-openide-util-lookup</artifactId> 
             <version>${netbeans.version}</version>  
-        </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>org-jjazz-guava</artifactId>
-            <version>${project.version}</version>
         </dependency>
     </dependencies>
     <properties>

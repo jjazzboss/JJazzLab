@@ -31,6 +31,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import static org.jjazz.harmony.api.Degree.*;
+import org.jjazz.harmony.spi.ChordTypeDatabase;
 
 /**
  * Represents a chord type like "m7", its aliases and its degrees.
@@ -120,7 +121,7 @@ final public class ChordType
      * @param i13 An integer -1, 0 or 1 that represent the status (flat,natural or sharp) of degree 13. Use NOT_PRESENT constant if a degree
      *            is not present.
      */
-    protected ChordType(String b, String e, Family f, int i9, int i3, int i11, int i5, int i13, int i7)
+    public ChordType(String b, String e, Family f, int i9, int i3, int i11, int i5, int i13, int i7)
     {
         if ((b == null) || (e == null) || !checkDegree(i9) || !checkDegree(i3) || !checkDegree(i11)
                 || !checkDegree(i5) || !checkDegree(i13) || !checkDegree(i7))
@@ -729,7 +730,7 @@ final public class ChordType
             var resDegrees = getDegrees().stream()
                     .limit(nbMaxDegrees)
                     .collect(Collectors.toList());
-            res = ChordTypeDatabase.getInstance().getChordType(resDegrees);
+            res = ChordTypeDatabase.getDefault().getChordType(resDegrees);
             assert res != null : "this=" + this + " resDegrees=" + resDegrees;
         }
 

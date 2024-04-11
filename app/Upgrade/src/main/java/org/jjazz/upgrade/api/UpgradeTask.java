@@ -25,8 +25,8 @@ package org.jjazz.upgrade.api;
 /**
  * An upgrade task.
  * <p>
- * All UpgradeTasks found in the global Lookup will be called by the UpgradeManager upon a fresh JJazzLab start, upon module
- * installation (this means UI is not yet available).
+ * All UpgradeTasks found in the global Lookup will be called by the UpgradeManager upon a fresh JJazzLab start, upon module installation (this means UI is not
+ * yet available).
  */
 public interface UpgradeTask
 {
@@ -35,8 +35,8 @@ public interface UpgradeTask
      * Perform an upgrade task, typically import settings from oldVersion.
      * <p>
      *
-     * @param oldVersion The reference JJazzLab version from which upgrade should be done. Can be null if no previous version was
-     * found on the system.
+     * @param oldVersion The reference JJazzLab version from which upgrade should be done. Can be null if no previous version was found on the system.
      */
     void upgrade(String oldVersion);
+
 }

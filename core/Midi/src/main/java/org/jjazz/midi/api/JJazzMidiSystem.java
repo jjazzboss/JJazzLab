@@ -48,23 +48,20 @@ import javax.sound.midi.Transmitter;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.midi.api.device.JJazzMidiDevice;
 import org.jjazz.midi.api.device.MidiFilter.Config;
-import org.jjazz.upgrade.api.UpgradeManager;
-import org.jjazz.upgrade.api.UpgradeTask;
 import org.jjazz.utilities.api.ResUtil;
 import org.netbeans.api.progress.BaseProgressUtils;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.util.NbPreferences;
 import org.openide.util.Utilities;
-import org.openide.util.lookup.ServiceProvider;
 
 /**
  * Manage the Midi IN and OUT devices for the JJazz application, plus some convenience methods.
  * <p>
  * Scan the available Midi IN/OUT devices at startup. Restore the default Midi IN/OUT devices when possible using Preferences.
  * <p>
- * The application should only connect to JJazzMidiIn and JJazzMidiOut virtual devices. These devices are implemented by a MidiFilter
- * object, enabling filtering and dumping. These devices are connected internally to the selected physical MIDI In/Out devices.
+ * The application should only connect to JJazzMidiIn and JJazzMidiOut virtual devices. These devices are implemented by a MidiFilter object, enabling filtering
+ * and dumping. These devices are connected internally to the selected physical MIDI In/Out devices.
  * <p>
  * Manage a Midi master volume: a factor between 0 and 2 (default=1) which is used on all volume Midi messages.
  */
@@ -147,8 +144,7 @@ public final class JJazzMidiSystem
     }
 
     /**
-     * Collect midi devices information, open the default sequencer, restore the default Midi devices, thru mode, send startup
-     * initialization messages, etc.
+     * Collect midi devices information, open the default sequencer, restore the default Midi devices, thru mode, send startup initialization messages, etc.
      */
     private JJazzMidiSystem()
     {
@@ -200,11 +196,12 @@ public final class JJazzMidiSystem
         } catch (MidiUnavailableException ex)
         {
             LOGGER.log(Level.WARNING, "JJazzMidiSystem() problem getting Java internal synthesizer: {0}", ex.getMessage());
-            
+
             // On Windows this can happen when there is no audio output available on the system, so it's worth notifying the user            
-            NotifyDescriptor nd = new NotifyDescriptor.Message("Problem getting Java internal synth. Please check system audio output.", NotifyDescriptor.ERROR_MESSAGE);
+            NotifyDescriptor nd = new NotifyDescriptor.Message("Problem getting Java internal synth. Please check system audio output.",
+                    NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(nd);
-            
+
             javaInternalSynth = null;
         }
 
@@ -368,8 +365,7 @@ public final class JJazzMidiSystem
     /**
      * Get the java sequencer opened and ready to play music on the JJazzMidiOutDevice.
      * <p>
-     * In general you should use MusicController.acquireSequencer(Object lock), as it allows for access synchronization between various
-     * users.
+     * In general you should use MusicController.acquireSequencer(Object lock), as it allows for access synchronization between various users.
      *
      * @return
      */
@@ -527,8 +523,7 @@ public final class JJazzMidiSystem
      * Previous soundbank instruments are unloaded first. This triggers a specific task since loading a soundfont can take some time.
      *
      * @param f
-     * @param silentRun If false wait until completion of the task and show progress bar. If true nothing is shown and method immediatly
-     *                  returns true.
+     * @param silentRun If false wait until completion of the task and show progress bar. If true nothing is shown and method immediatly returns true.
      * @return true If success. If silentRun=true always return true.
      */
     public boolean loadSoundbankFileOnSynth(final File f, boolean silentRun)
@@ -1029,8 +1024,8 @@ public final class JJazzMidiSystem
     /**
      * Get a friendly name for a MidiDevice.
      * <p>
-     * Remove any trailing "_MD" from the MidiDevice name. Also give a better name to "Gervill" Java internal synth. the Java default synth
-     * (sometimes "Gervill") to JAVA_INTERNAL_SYNTH_NAME. Use DeviceInfo.name otherwise.
+     * Remove any trailing "_MD" from the MidiDevice name. Also give a better name to "Gervill" Java internal synth. the Java default synth (sometimes
+     * "Gervill") to JAVA_INTERNAL_SYNTH_NAME. Use DeviceInfo.name otherwise.
      *
      * @param md
      * @return
@@ -1067,20 +1062,5 @@ public final class JJazzMidiSystem
         return res;
     }
 
-    // =====================================================================================
-    // Upgrade Task
-    // =====================================================================================
-    @ServiceProvider(service = UpgradeTask.class)
-    static public class RestoreSettingsTask implements UpgradeTask
-    {
-
-        @Override
-        public void upgrade(String oldVersion)
-        {
-            UpgradeManager um = UpgradeManager.getInstance();
-            um.duplicateOldPreferences(prefs);
-        }
-
-    }
 
 }

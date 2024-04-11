@@ -36,6 +36,7 @@ import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import org.jjazz.chordleadsheet.api.Section;
+import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.songstructure.api.SongPartParameter;
@@ -667,7 +668,8 @@ public class SptEditorImpl extends SptEditor implements PropertyChangeListener
     private String getParentSectionText(SongPart spt)
     {
         Section section = spt.getParentSection().getData();
-        return ResUtil.getString(getClass(), "CTL_Parent") + ": " + section.getName() + " [" + section.getTimeSignature() + "]";
+        TimeSignature ts = section.getTimeSignature();
+        return ResUtil.getString(getClass(), "CTL_Parent") + ": " + section.getName() + " [" + ts + "]";
     }
 
     private List<RpEditor> getRpEditors()

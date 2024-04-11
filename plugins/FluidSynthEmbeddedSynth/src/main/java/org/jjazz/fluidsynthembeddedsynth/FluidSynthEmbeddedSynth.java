@@ -256,7 +256,7 @@ public class FluidSynthEmbeddedSynth implements EmbeddedSynth, PropertyChangeLis
         {
 
             // Then check standard location for bundled file
-            f = InstalledFileLocator.getDefault().locate(SOUNDFONT_FILE, "org.jjazzlab.org.jjazz.fluidsynthembeddedsynth", false);
+            f = InstalledFileLocator.getDefault().locate(SOUNDFONT_FILE, "org.jjazzlab.fluidsynthembeddedsynth", false);
         }
 
         if (!fastCheckSoundFontFile(f))

@@ -20,48 +20,40 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.harmony.api;
+package org.jjazz.harmony;
 
 import java.util.*;
 import java.util.logging.*;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
-import org.jjazz.upgrade.api.UpgradeManager;
-import org.jjazz.upgrade.api.UpgradeTask;
+import org.jjazz.harmony.api.ChordType;
+import org.jjazz.harmony.api.Degree;
+import org.jjazz.harmony.spi.ChordTypeDatabase;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.util.*;
 import org.openide.util.lookup.ServiceProvider;
 
 /**
- * Manage the list of recognized chordtypes and their aliases.
- * <p>
- * Used to retrieve instances of ChordTypes (which are unmutable). User can alter aliases which are saved as preferences.
+ * Default implementation.
  */
-public class ChordTypeDatabase
+@ServiceProvider(service=ChordTypeDatabase.class)
+public class ChordTypeDatabaseImpl implements ChordTypeDatabase
 {
 
     private static final String PREFIX = "CT_";
 
-    public class InvalidAliasException extends Exception
-    {
 
-        public InvalidAliasException(String msg)
-        {
-            super(msg);
-        }
-    }
-
-    private static ChordTypeDatabase INSTANCE;
     private final List<ChordType> chordTypes = new ArrayList<>();
     private final HashMap<ChordType, String> mapCtDefaultAliases = new HashMap<>();
     private HashMap<String, ChordType> mapAliasCt = new HashMap<>(450);     // Try to avoid rehash
     private final HashMap<String, Integer> mapExtensionIndex = new HashMap<>();
     private final HashMap<String, Integer> mapExtensionIndexIgnoreCase = new HashMap<>(40);
 
-    private static Preferences prefs = NbPreferences.forModule(ChordTypeDatabase.class);
-    private static final Logger LOGGER = Logger.getLogger(ChordTypeDatabase.class.getSimpleName());
+    protected static final Preferences prefs = NbPreferences.forModule(ChordTypeDatabase.class);
+    private static final Logger LOGGER = Logger.getLogger(ChordTypeDatabaseImpl.class.getSimpleName());
 
-    private ChordTypeDatabase()
+    
+    public ChordTypeDatabaseImpl()
     {
         // Just to make lines shorter !
         int NP = ChordType.NOT_PRESENT;
@@ -158,33 +150,22 @@ public class ChordTypeDatabase
 
     }
 
-    public static ChordTypeDatabase getInstance()
-    {
-        synchronized (ChordTypeDatabase.class)
-        {
-            if (INSTANCE == null)
-            {
-                INSTANCE = new ChordTypeDatabase();
-
-            }
-        }
-        return INSTANCE;
-    }
 
     /**
      * Try to guess where the extension part of a chord type string starts.
      * <p>
-     * For example for "madd9", return 1 because base=m and extension="add9". Should be used only if a ChordType.getOriginalName()
-     * differs from ChordType.getName().
+     * For example for "madd9", return 1 because base=m and extension="add9". Should be used only if a ChordType.getOriginalName() differs from
+     * ChordType.getName().
      *
      * @param ctStr A chord type string like "", "sus7", "7dim7M", "Maj7aug", "madd9", etc.
      * @return The index of the first char of the extension. -1 if no extension found.
      */
+    @Override
     public int guessExtension(String ctStr)
     {
         if (ctStr == null)
         {
-            throw new IllegalArgumentException("ctStr=" + ctStr);   
+            throw new IllegalArgumentException("ctStr=" + ctStr);
         }
         if (ctStr.isBlank())
         {
@@ -226,11 +207,12 @@ public class ChordTypeDatabase
      * @throws IllegalArgumentException If ct is not part of this database
      * @throws InvalidAliasException    If alias is invalid, e.g. it's already used by a different chord type.
      */
+    @Override
     public void addAlias(ChordType ct, String alias) throws InvalidAliasException
     {
         if (!chordTypes.contains(ct))
         {
-            throw new IllegalArgumentException("ct=" + ct + " alias=" + alias);   
+            throw new IllegalArgumentException("ct=" + ct + " alias=" + alias);
         }
         ChordType oldCt = mapAliasCt.get(alias);
         if (oldCt == ct)
@@ -252,6 +234,7 @@ public class ChordTypeDatabase
         storeAliasesString(ct, newAliases);
     }
 
+    @Override
     public void resetAliases(ChordType ct)
     {
         storeAliasesString(ct, null);
@@ -261,6 +244,7 @@ public class ChordTypeDatabase
     /**
      * Clear all the user changes.
      */
+    @Override
     public final void resetAliasesToDefault()
     {
         try
@@ -269,7 +253,7 @@ public class ChordTypeDatabase
             buildAliasMap();
         } catch (BackingStoreException ex)
         {
-            LOGGER.log(Level.WARNING, "resetAliasesToDefault() problem resetting aliases : {0}", ex.getMessage());   
+            LOGGER.log(Level.WARNING, "resetAliasesToDefault() problem resetting aliases : {0}", ex.getMessage());
         }
     }
 
@@ -281,6 +265,7 @@ public class ChordTypeDatabase
      * @param ct
      * @return
      */
+    @Override
     public List<String> getAliases(ChordType ct)
     {
         ArrayList<String> res = new ArrayList<>();
@@ -303,6 +288,7 @@ public class ChordTypeDatabase
      *
      * @return
      */
+    @Override
     public ChordType[] getChordTypes()
     {
         return chordTypes.toArray(new ChordType[0]);
@@ -313,6 +299,7 @@ public class ChordTypeDatabase
      *
      * @return
      */
+    @Override
     public int getSize()
     {
         return chordTypes.size();
@@ -324,11 +311,12 @@ public class ChordTypeDatabase
      * @param i The index of the chord type
      * @return
      */
+    @Override
     public ChordType getChordType(int i)
     {
         if ((i < 0) || (i >= chordTypes.size()))
         {
-            throw new IllegalArgumentException("i=" + i);   
+            throw new IllegalArgumentException("i=" + i);
         }
 
         return chordTypes.get(i);
@@ -342,11 +330,12 @@ public class ChordTypeDatabase
      * @param s The String, e.g. "m7".
      * @return A ChordType, null if no ChordType correspond to s.
      */
+    @Override
     public ChordType getChordType(String s)
     {
         if (s == null)
         {
-            throw new IllegalArgumentException("s=" + s);   
+            throw new IllegalArgumentException("s=" + s);
         }
         return mapAliasCt.get(s);
     }
@@ -357,11 +346,12 @@ public class ChordTypeDatabase
      * @param degrees
      * @return Can be null
      */
+    @Override
     public ChordType getChordType(List<Degree> degrees)
     {
         if (degrees == null || degrees.isEmpty())
         {
-            throw new IllegalArgumentException("degrees=" + degrees);   
+            throw new IllegalArgumentException("degrees=" + degrees);
         }
         for (ChordType ct : chordTypes)
         {
@@ -380,11 +370,12 @@ public class ChordTypeDatabase
      * @param ct
      * @return -1 if ct is not present in the database.
      */
+    @Override
     public int getChordTypeIndex(ChordType ct)
     {
         if (ct == null)
         {
-            throw new IllegalArgumentException("ct=" + ct);   
+            throw new IllegalArgumentException("ct=" + ct);
         }
         return chordTypes.indexOf(ct);
     }
@@ -415,7 +406,7 @@ public class ChordTypeDatabase
         int index = chordTypes.indexOf(ct);
         if (index != -1)
         {
-            throw new IllegalStateException("ChordType already exists ! ct=" + ct + " a=" + aliases + " existing_ct=" + chordTypes.get(index));   
+            throw new IllegalStateException("ChordType already exists ! ct=" + ct + " a=" + aliases + " existing_ct=" + chordTypes.get(index));
         }
 
         // Save in the database
@@ -455,7 +446,7 @@ public class ChordTypeDatabase
         }
         if (!b)
         {
-            throw new IllegalStateException("buildAliasMap() error(s) building the alias map, see log messages.");   
+            throw new IllegalStateException("buildAliasMap() error(s) building the alias map, see log messages.");
         }
     }
 
@@ -563,24 +554,5 @@ public class ChordTypeDatabase
         mapExtensionIndex.put("°", 1);
         mapExtensionIndex.put("o", 1);
         mapExtensionIndex.put("h", 1);
-
-
     }
-
-    // =====================================================================================
-    // Upgrade Task
-    // =====================================================================================
-    @ServiceProvider(service = UpgradeTask.class)
-    static public class RestoreSettingsTask implements UpgradeTask
-    {
-
-        @Override
-        public void upgrade(String oldVersion)
-        {
-            UpgradeManager um = UpgradeManager.getInstance();
-            um.duplicateOldPreferences(prefs);
-        }
-
-    }
-
 }

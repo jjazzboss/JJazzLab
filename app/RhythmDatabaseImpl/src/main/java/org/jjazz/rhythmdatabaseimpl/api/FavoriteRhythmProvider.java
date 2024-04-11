@@ -20,7 +20,7 @@
  *
  *  Contributor(s):
  */
-package org.jjazz.rhythmdatabase.api;
+package org.jjazz.rhythmdatabaseimpl.api;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,6 +30,7 @@ import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.spi.RhythmProvider;
+import org.jjazz.rhythmdatabase.api.RhythmInfo;
 import org.jjazz.utilities.api.MultipleErrorsReport;
 import org.jjazz.utilities.api.ResUtil;
 

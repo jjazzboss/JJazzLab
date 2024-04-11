@@ -35,7 +35,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.harmony.api.ChordSymbol;
 import org.jjazz.harmony.api.ChordType;
-import org.jjazz.harmony.api.ChordTypeDatabase;
+import org.jjazz.harmony.spi.ChordTypeDatabase;
 import org.jjazz.harmony.api.Degree;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.harmony.api.SymbolicDuration;
@@ -69,7 +69,7 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
      */
     public ExtChordSymbol()
     {
-        this(new Note(0), new Note(0), ChordTypeDatabase.getInstance().getChordType(""));
+        this(new Note(0), new Note(0), ChordTypeDatabase.getDefault().getChordType(""));
     }
 
     /**
@@ -366,7 +366,7 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
         int p = Note.OCTAVE_STD * 12 + (int) Math.round(Math.random() * 12f);
         Note.Alteration alt = (Math.random() < .5) ? Note.Alteration.FLAT : Note.Alteration.SHARP;
         Note n = new Note(p, SymbolicDuration.QUARTER.getDuration(), 64, alt);
-        ChordTypeDatabase ctb = ChordTypeDatabase.getInstance();
+        ChordTypeDatabase ctb = ChordTypeDatabase.getDefault();
         int index = (int) (ctb.getSize() * Math.random());
         ChordType ct = ctb.getChordType(index);
         ExtChordSymbol ecs = new ExtChordSymbol(n, n, ct);

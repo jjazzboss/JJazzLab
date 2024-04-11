@@ -398,7 +398,7 @@ public class Utilities
             extension = fileName.substring(i + 1);
         }
         return extension;
-    }       
+    }
 
     /**
      * Replace the path extension (the trailing ".something") of filename by ext.
@@ -815,7 +815,10 @@ public class Utilities
      */
     public static <K, V> String toMultilineString(Map<K, V> map)
     {
-        Preconditions.checkNotNull(map);
+        if (map == null)
+        {
+            return "null";
+        }
         var joiner = new StringJoiner("\n", "[", "]");
         if (map instanceof NavigableMap nMap)
         {

@@ -36,9 +36,9 @@ public class Scale
     /**
      * The notes starting on C0
      */
-    private ArrayList<Note> notesInC = new ArrayList<>();
-    private ArrayList<Degree> degrees = new ArrayList<>();
-    private transient ArrayList<Integer> intervals = new ArrayList<>();
+    private final ArrayList<Note> notesInC = new ArrayList<>();
+    private final ArrayList<Degree> degrees = new ArrayList<>();
+    private final transient ArrayList<Integer> intervals = new ArrayList<>();
     private static final Logger LOGGER = Logger.getLogger(Scale.class.getSimpleName());
 
     /**

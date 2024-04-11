@@ -28,7 +28,7 @@ package org.jjazz.harmony.api;
 public class StandardScale extends Scale
 {
 
-    protected StandardScale(String name, Degree... degs)
+    public StandardScale(String name, Degree... degs)
     {
         super(name, degs);
     }

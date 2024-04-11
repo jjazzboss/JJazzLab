@@ -42,7 +42,6 @@ import org.jjazz.midi.api.synths.GMSynth;
 import org.jjazz.midi.api.synths.GSSynth;
 import org.jjazz.midi.api.synths.XGSynth;
 import org.jjazz.midi.spi.MidiSynthFileReader;
-import org.jjazz.startup.spi.StartupTask;
 import static org.jjazz.midi.spi.MidiSynthManager.loadFromResource;
 import org.jjazz.upgrade.api.UpgradeManager;
 import org.jjazz.utilities.api.ResUtil;
@@ -54,12 +53,13 @@ import org.openide.util.Lookup;
 import org.openide.util.lookup.ServiceProvider;
 import org.openide.windows.WindowManager;
 import org.jjazz.midi.spi.MidiSynthManager;
+import org.jjazz.startup.spi.OnShowingTask;
 
 
-
-@ServiceProvider(service=MidiSynthManager.class)
+@ServiceProvider(service = MidiSynthManager.class)
 public class MidiSynthManagerImpl implements MidiSynthManager
 {
+
     // Some builtin MidiSynth names retrieved from a .ins file
     public static String JJAZZLAB_SOUNDFONT_GM2_SYNTH_NAME = "JJazzLab SoundFont (GM2)";
     public static String JJAZZLAB_SOUNDFONT_GS_SYNTH_NAME = "JJazzLab SoundFont (GS)";
@@ -184,7 +184,6 @@ public class MidiSynthManagerImpl implements MidiSynthManager
         return synthFile;
     }
 
-  
 
     /**
      * Add PropertyChangeListener.
@@ -234,18 +233,17 @@ public class MidiSynthManagerImpl implements MidiSynthManager
         return rDir;
     }
 
-   
+
     // =====================================================================================
     // Startup Task
     // =====================================================================================
-
     /**
      * Copy the default Midi files in the app config directory.
      * <p>
      * Could be an UpgradeTask since it should be executed only upon fresh start. But we use a StartupTask because a user dialog might be used.
      */
-    @ServiceProvider(service = StartupTask.class)
-    public static class CopyMidiSynthsTask implements StartupTask
+    @ServiceProvider(service = OnShowingTask.class)
+    public static class CopyMidiSynthsTask implements OnShowingTask
     {
 
         public static final int PRIORITY = 100;
@@ -253,15 +251,11 @@ public class MidiSynthManagerImpl implements MidiSynthManager
         public static final String ZIP_RESOURCE_PATH = "resources/MidiSynthFiles.zip";
 
         @Override
-        public boolean run()
+        public void run()
         {
-            if (!UpgradeManager.getInstance().isFreshStart())
-            {
-                return false;
-            } else
+            if (UpgradeManager.getInstance().isFreshStart())
             {
                 initializeDir();
-                return true;
             }
         }
 

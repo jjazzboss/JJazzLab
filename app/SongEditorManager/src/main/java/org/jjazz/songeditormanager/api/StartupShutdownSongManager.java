@@ -39,7 +39,6 @@ import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongCreationException;
 import org.jjazz.songeditormanager.spi.SongEditorManager;
-import org.jjazz.startup.spi.StartupTask;
 import org.jjazz.upgrade.api.UpgradeManager;
 import org.jjazz.upgrade.api.UpgradeTask;
 import org.jjazz.utilities.api.ResUtil;
@@ -52,6 +51,7 @@ import org.openide.NotifyDescriptor;
 import org.openide.modules.OnStop;
 import org.openide.util.NbPreferences;
 import org.openide.util.lookup.ServiceProvider;
+import org.jjazz.startup.spi.OnShowingTask;
 
 /**
  * Manage the opening/closing of song files at startup/shutdown.
@@ -257,8 +257,8 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
     // =====================================================================================
     // Startup Task
     // =====================================================================================
-    @ServiceProvider(service = StartupTask.class)
-    static public class OpenFilesAtStartupTask implements StartupTask
+    @ServiceProvider(service = OnShowingTask.class)
+    static public class OpenFilesAtStartupTask implements OnShowingTask
     {
 
         public final int PRIORITY = 600;            // Right after Rhythm files loading, but before Example songs and MidiWizard
@@ -269,7 +269,7 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
          * Called upon startup after UI's ready, so AFTER process() which collects optional files from the command line.
          */
         @Override
-        public boolean run()
+        public void run()
         {
             LOGGER.fine("OpenFilesAtStartupTask.run() --");   
 
@@ -298,7 +298,6 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
             }
             instance.isUIready = true;
 
-            return true;
         }
 
         @Override

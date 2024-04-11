@@ -29,7 +29,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import org.jjazz.harmony.api.ChordSymbol;
 import org.jjazz.harmony.api.ChordType;
-import org.jjazz.harmony.api.ChordTypeDatabase;
+import org.jjazz.harmony.spi.ChordTypeDatabase;
 import org.jjazz.harmony.api.StandardScaleInstance;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
@@ -98,7 +98,7 @@ public final class SetChordType extends AbstractAction implements Presenter.Menu
         menu.add(menuDiminished);
         menu.add(menuSus4);
 
-        ChordTypeDatabase ctdb = ChordTypeDatabase.getInstance();
+        ChordTypeDatabase ctdb = ChordTypeDatabase.getDefault();
         for (final ChordType ct : ctdb.getChordTypes())
         {
             JMenuItem mi = new JMenuItem((ct.toString().length() == 0) ? " " : ct.toString());

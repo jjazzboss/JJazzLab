@@ -28,7 +28,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
-import org.jjazz.startup.spi.StartupTask;
 import org.jjazz.upgrade.api.UpgradeManager;
 import org.jjazz.utilities.api.ResUtil;
 import org.jjazz.utilities.api.Utilities;
@@ -36,14 +35,15 @@ import org.netbeans.api.annotations.common.StaticResource;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.util.lookup.ServiceProvider;
+import org.jjazz.startup.spi.OnShowingTask;
 
 /**
  * Copy example songs in the JJazzLab user directory/ExampleSongs upon fresh start.
  * <p>
  * Can't use @OnStart or UpgradeTask because on Linux the NotifyDialogs are hidden behind the splash screen!
  */
-@ServiceProvider(service = StartupTask.class)
-public class CopyExampleSongsTask implements StartupTask
+@ServiceProvider(service = OnShowingTask.class)
+public class CopyExampleSongsTask implements OnShowingTask
 {
 
     public static final int PRIORITY = 1000;
@@ -54,12 +54,12 @@ public class CopyExampleSongsTask implements StartupTask
     private static final Logger LOGGER = Logger.getLogger(CopyExampleSongsTask.class.getSimpleName());
 
     @Override
-    public boolean run()
+    public void run()
     {
         // If not fresh startup do nothing
         if (!UpgradeManager.getInstance().isFreshStart())
         {
-            return false;
+            return;
         }
 
         // Create the dir if it does not exists
@@ -68,12 +68,10 @@ public class CopyExampleSongsTask implements StartupTask
         if (!dir.isDirectory() && !dir.mkdir())
         {
             LOGGER.log(Level.WARNING, "run() Could not create directory {0}.", dir.getAbsolutePath());   
-            return false;
         } else
         {
             // Copy files
             copyFilesOrNot(dir);
-            return true;
         }
     }
 

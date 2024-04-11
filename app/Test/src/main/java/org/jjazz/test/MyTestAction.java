@@ -25,13 +25,31 @@ package org.jjazz.test;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
+import org.jjazz.harmony.api.TimeSignature;
+import org.jjazz.rhythmdatabase.api.RhythmDatabase;
+import org.jjazz.rhythmdatabase.api.RhythmInfo;
+import org.jjazz.rhythmdatabaseimpl.RhythmDbCache;
+import org.jjazz.utilities.api.Utilities;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.modules.InstalledFileLocator;
+import org.openide.util.Exceptions;
 import org.openide.windows.WindowManager;
 
 /**
@@ -58,10 +76,67 @@ public final class MyTestAction implements ActionListener
     public void actionPerformed(ActionEvent ae)
     {
         LOGGER.severe("actionPerformed()");
-        String s = JOptionPane.showInputDialog("String ?");
-        File f = InstalledFileLocator.getDefault().locate(s, "org.jjazzlab.org.jjazz.test", false);
-        JOptionPane.showMessageDialog(WindowManager.getDefault().getMainWindow(), f.getAbsolutePath());
+
+        Map<String, List<RhythmInfo>> map = new HashMap<>();
+
+
+        File f1, f2;
+        try
+        {
+            f1 = Files.createTempFile("tmp", ".tmp").toFile();
+            f2 = Files.createTempFile("tmp", ".tmp").toFile();
+        } catch (IOException ex)
+        {
+            Exceptions.printStackTrace(ex);
+            return;
+        }
+
+        var rdb = RhythmDatabase.getDefault();
+        RhythmInfo ri = rdb.getDefaultRhythm(TimeSignature.FOUR_FOUR);
+        var list = new ArrayList<RhythmInfo>();
+        list.add(ri);
+        list.add(rdb.getDefaultRhythm(TimeSignature.THREE_FOUR));
+        var list2 = new ArrayList<RhythmInfo>();
+        list2.add(rdb.getDefaultRhythm(TimeSignature.TWO_FOUR));
+        map.put("firstrp", list);
+        map.put("secondrp", list2);
+        LOGGER.severe("map=" + Utilities.toMultilineString(map));
+
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(f1)))
+        {
+            LOGGER.severe("writing " + f1.getAbsolutePath());
+            oos.writeObject(map);
+        } catch (IOException ex)
+        {
+            Exceptions.printStackTrace(ex);
+        }
+
+        RhythmInfo ri2 = null;
+        Map<String, List<RhythmInfo>> map2 = null;
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(f1)))
+        {
+            LOGGER.severe("reading " + f1.getAbsolutePath());
+            map2 = (Map<String, List<RhythmInfo>>) ois.readObject();
+        } catch (FileNotFoundException ex)
+        {
+            Exceptions.printStackTrace(ex);
+        } catch (IOException | ClassNotFoundException ex)
+        {
+            Exceptions.printStackTrace(ex);
+        }
+
+        // LOGGER.severe("ri2=" + ri);
+        LOGGER.severe("map2=" + Utilities.toMultilineString(map2));
+
+//        String s = JOptionPane.showInputDialog("String ?");
+//        File f = InstalledFileLocator.getDefault().locate(s, "org.jjazzlab.test", false);
+//        JOptionPane.showMessageDialog(WindowManager.getDefault().getMainWindow(), f.getAbsolutePath());
+
+//        String s = JOptionPane.showInputDialog("String ?");
+//        File f = InstalledFileLocator.getDefault().locate(s, "org.jjazzlab.test", false);
+//        JOptionPane.showMessageDialog(WindowManager.getDefault().getMainWindow(), f.getAbsolutePath());
     }
+
 
     private int comp()
     {

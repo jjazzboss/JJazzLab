@@ -26,7 +26,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Objects;
 import org.jjazz.harmony.api.ChordType;
-import org.jjazz.harmony.api.ChordTypeDatabase;
+import org.jjazz.harmony.spi.ChordTypeDatabase;
 
 /**
  * A chord used in Yamaha styles plus its aliases.
@@ -123,7 +123,7 @@ public class YamChord
      */
     public ChordType getChordType()
     {
-        ChordTypeDatabase ctdb = ChordTypeDatabase.getInstance();
+        ChordTypeDatabase ctdb = ChordTypeDatabase.getDefault();
         ChordType ct = ctdb.getChordType(name);
         if (ct == null)
         {

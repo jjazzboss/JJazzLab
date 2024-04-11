@@ -433,7 +433,6 @@ final class MidiInPanel extends javax.swing.JPanel implements ListSelectionListe
 
     private void cb_enableRemoteControlActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cb_enableRemoteControlActionPerformed
     {//GEN-HEADEREND:event_cb_enableRemoteControlActionPerformed
-        boolean b = cb_enableRemoteControl.isSelected();
         valueChanged(null);
         controller.applyChanges();
         controller.changed();

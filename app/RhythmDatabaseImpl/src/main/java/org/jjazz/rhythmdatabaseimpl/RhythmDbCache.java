@@ -24,8 +24,10 @@ package org.jjazz.rhythmdatabaseimpl;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
@@ -39,11 +41,11 @@ import org.jjazz.rhythm.spi.RhythmProvider;
 public class RhythmDbCache implements Serializable
 {
 
-    private static final long serialVersionUID = 2922229276100L;
-    private static final String DB_CACHE_FILE = "RhythmDbCache.dat";
+    private transient static final long serialVersionUID = 2922229276100L;
+    private transient static final String DB_CACHE_FILE = "RhythmDbCache.dat";
 
-    private final HashMap<String, List<RhythmInfo>> data = new HashMap<>();
-    private static final Logger LOGGER = Logger.getLogger(RhythmDbCache.class.getSimpleName());
+    private Map<String, List<RhythmInfo>> data;
+    private transient static final Logger LOGGER = Logger.getLogger(RhythmDbCache.class.getSimpleName());
 
     /**
      * Create the cache object.
@@ -52,15 +54,17 @@ public class RhythmDbCache implements Serializable
      *
      * @param map
      */
-    public RhythmDbCache(HashMap<RhythmProvider, List<RhythmInfo>> map)
+    public RhythmDbCache(Map<RhythmProvider, List<RhythmInfo>> map)
     {
+        data = new HashMap<>();
+        
         // Copy data : just change RhythmProvider by its id
         for (RhythmProvider rp : map.keySet())
         {
-            var rhythms =  map.get(rp)
+            var rhythms =  new ArrayList<>(map.get(rp)
                     .stream()
                     .filter(ri -> !ri.file().getName().equals("") && !ri.isAdaptedRhythm())
-                    .toList();          
+                    .toList());      // returned object by toList() might not be serializable     
             if (!rhythms.isEmpty())
             {
                 data.put(rp.getInfo().getUniqueId(), rhythms);
@@ -73,9 +77,9 @@ public class RhythmDbCache implements Serializable
      * <p>
      * Cache data is used only for file-based rhythms.
      *
-     * @return RhyhtmProviderId strings are used as kHashMap keys.
+     * @return RhyhtmProviderId strings are used as map keys.
      */
-    public HashMap<String, List<RhythmInfo>> getData()
+    public Map<String, List<RhythmInfo>> getData()
     {
         return data;
     }

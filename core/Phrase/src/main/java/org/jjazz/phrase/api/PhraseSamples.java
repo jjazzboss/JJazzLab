@@ -23,8 +23,8 @@
 package org.jjazz.phrase.api;
 
 import org.jjazz.harmony.api.Note;
-import org.jjazz.harmony.api.ScaleManager;
 import org.jjazz.harmony.api.TimeSignature;
+import org.jjazz.harmony.spi.ScaleManager;
 import org.jjazz.midi.api.MidiConst;
 
 /**

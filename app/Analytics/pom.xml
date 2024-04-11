@@ -8,7 +8,7 @@
         <version>4.0.3-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
-    <artifactId>org-jjazz-analytics</artifactId>
+    <artifactId>analytics</artifactId>
     <name>Analytics</name>
     <packaging>nbm</packaging>
     <build>
@@ -38,12 +38,12 @@
     <dependencies>      
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-upgrade</artifactId> 
+            <artifactId>upgrade</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency>
             <groupId>org.jjazzlab</groupId>
-            <artifactId>org-jjazz-utilities</artifactId>
+            <artifactId>utilities</artifactId>
             <version>${project.version}</version>
         </dependency>        
         <dependency> 

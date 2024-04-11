@@ -42,7 +42,7 @@ import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import org.jjazz.harmony.api.Note;
-import org.jjazz.harmony.api.ScaleManager;
+import org.jjazz.harmony.spi.ScaleManager;
 import org.jjazz.harmony.api.StandardScaleInstance;
 import org.jjazz.chordleadsheet.api.item.AltDataFilter;
 import org.jjazz.chordleadsheet.api.item.AltExtChordSymbol;
@@ -366,7 +366,7 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
         if (ssi != null)
         {
             scaleNotes = ssi.toNoteString();
-            int index = ScaleManager.getInstance().getStandardScales().indexOf(ssi.getScale());
+            int index = ScaleManager.getDefault().getStandardScales().indexOf(ssi.getScale());
             if (index > 0 && index < 7)
             {
                 int pitch = 12 + ssi.getStartNote().getRelativePitch() - ScaleManager.MAJOR.getNotes().get(index).getRelativePitch();
@@ -466,7 +466,7 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
         stdScales.clear();
         List<Integer> indices = new ArrayList<>();
         int index = 0;
-        for (StandardScaleInstance ssi : ScaleManager.getInstance().getMatchingScales(ecs))
+        for (StandardScaleInstance ssi : ScaleManager.getDefault().getMatchingScales(ecs))
         {
             stdScales.addElement(ssi);
             if (saveSelectedValues.contains(ssi))

@@ -7,7 +7,7 @@
         <version>4.0.3-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
-    <artifactId>org-jjazz-harmony</artifactId>
+    <artifactId>harmony</artifactId>
     <name>Harmony</name>
     <packaging>nbm</packaging>
     <build>
@@ -16,8 +16,9 @@
                 <groupId>org.apache.netbeans.utilities</groupId>
                 <artifactId>nbm-maven-plugin</artifactId>
                 <configuration>
-                    <publicPackages>                      
+                    <publicPackages>
                         <publicPackage>org.jjazz.harmony.api</publicPackage>
+                        <publicPackage>org.jjazz.harmony.spi</publicPackage>
                     </publicPackages>
                 </configuration>
                 <extensions>true</extensions>
@@ -36,22 +37,17 @@
     <dependencies>      
         <dependency> 
             <groupId>${project.groupId}</groupId>
-            <artifactId>org-jjazz-guava</artifactId>
+            <artifactId>guava</artifactId>
             <version>${project.version}</version>            
         </dependency>  
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>org-jjazz-xstream</artifactId>
+            <artifactId>xstream</artifactId>
             <version>${project.version}</version>
-        </dependency>        
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-upgrade</artifactId> 
-            <version>${project.version}</version>  
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-utilities</artifactId> 
+            <artifactId>utilities</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 

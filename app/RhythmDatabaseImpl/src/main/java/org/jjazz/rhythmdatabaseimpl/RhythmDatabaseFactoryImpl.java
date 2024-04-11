@@ -26,28 +26,29 @@ package org.jjazz.rhythmdatabaseimpl;
 
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmdatabase.spi.RhythmDatabaseFactory;
-import org.jjazz.startup.spi.StartupTask;
 import org.jjazz.uiutilities.api.PleaseWaitDialog;
 import org.jjazz.utilities.api.ResUtil;
+import org.openide.util.Task;
 import org.openide.util.TaskListener;
 import org.openide.util.lookup.ServiceProvider;
+import org.jjazz.startup.spi.OnShowingTask;
 
 @ServiceProvider(service = RhythmDatabaseFactory.class)
 public class RhythmDatabaseFactoryImpl implements RhythmDatabaseFactory
 {
-    
+
     private static RhythmDatabaseImpl INSTANCE;
-    
+
     public RhythmDatabaseFactoryImpl()
     {
         // INSTANCE should have been created first by CreateDatabaseTask
         if (INSTANCE == null)
-        {            
+        {
             throw new IllegalStateException("INSTANCE is null");
         }
     }
-    
-    
+
+
     @Override
     public RhythmDatabase get()
     {
@@ -63,19 +64,24 @@ public class RhythmDatabaseFactoryImpl implements RhythmDatabaseFactory
 
 
         // Add listener before showing modal dialog. If initTask is finished now directly call the listener
-        initTask.addTaskListener(task -> 
+        TaskListener listener = new TaskListener()
         {
-            dlg.setVisible(false);
-            dlg.dispose();
-            initTask.removeTaskListener((TaskListener) this);
-        });
+            @Override
+            public void taskFinished(Task task)
+            {
+                dlg.setVisible(false);
+                dlg.dispose();
+                initTask.removeTaskListener(this);
+            }
+        };
+        initTask.addTaskListener(listener);
 
         // Show dialog if really not finished (may happen just before this source code line)
         if (!initTask.isFinished())
         {
             dlg.setVisible(true);
         }
-        
+
         return INSTANCE;
     }
 
@@ -83,31 +89,30 @@ public class RhythmDatabaseFactoryImpl implements RhythmDatabaseFactory
     /**
      * Make sure to create the database instance after CopyDefaultRhythmFilesTask.
      */
-    @ServiceProvider(service = StartupTask.class)
-    public static class CreateDatabaseTask implements StartupTask
+    @ServiceProvider(service = OnShowingTask.class)
+    public static class CreateDatabaseTask implements OnShowingTask
     {
-        
+
         public static final int PRIORITY = RhythmDatabaseImpl.CopyDefaultRhythmFilesTask.PRIORITY + 1;
-        
+
         @Override
-        public boolean run()
+        public void run()
         {
             INSTANCE = new RhythmDatabaseImpl(false);
-            return true;
         }
-        
+
         @Override
         public int getPriority()
         {
             return PRIORITY;
         }
-        
+
         @Override
         public String getName()
         {
             return "Create Rhythm database";
         }
-        
+
     }
-    
+
 }

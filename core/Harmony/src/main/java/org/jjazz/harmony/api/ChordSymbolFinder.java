@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import org.jjazz.harmony.spi.ChordTypeDatabase;
 import org.jjazz.utilities.api.Utilities;
 
 /**
@@ -77,7 +78,7 @@ public class ChordSymbolFinder
     {
         if (allChordTypes == null)
         {
-            allChordTypes = Arrays.asList(ChordTypeDatabase.getInstance().getChordTypes());
+            allChordTypes = Arrays.asList(ChordTypeDatabase.getDefault().getChordTypes());
             buildPositionsDatabase();
         }
     }
@@ -240,7 +241,7 @@ public class ChordSymbolFinder
 
 
             // Each chord type
-            for (ChordType ct : ChordTypeDatabase.getInstance().getChordTypes())
+            for (ChordType ct : ChordTypeDatabase.getDefault().getChordTypes())
             {
                 var chord = ct.getChord();
                 int nbNotes = chord.size();

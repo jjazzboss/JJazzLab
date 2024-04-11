@@ -43,7 +43,6 @@
                                     <filtering>true</filtering>
                                 </resource>                               
                             </resources>
-                            <escapeString>\</escapeString>
                         </configuration>
                     </execution>                                   
                 </executions>
@@ -332,317 +331,317 @@
         <!-- =========================================================== -->          
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-activesong</artifactId> 
+            <artifactId>activesong</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-arranger</artifactId> 
+            <artifactId>arranger</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-base</artifactId> 
+            <artifactId>base</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-chordinspector</artifactId> 
+            <artifactId>chordinspector</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-easyreader</artifactId> 
+            <artifactId>easyreader</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-improvisionsupport</artifactId> 
+            <artifactId>improvisionsupport</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-embeddedsynth</artifactId> 
+            <artifactId>embeddedsynth</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-phrase</artifactId> 
+            <artifactId>phrase</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-phrasetransform</artifactId> 
+            <artifactId>phrasetransform</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-pianoroll</artifactId> 
+            <artifactId>pianoroll</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-rpcustomeditorfactoryimpl</artifactId> 
+            <artifactId>rpcustomeditorfactoryimpl</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-songcontext</artifactId> 
+            <artifactId>songcontext</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-testplayerservice</artifactId> 
+            <artifactId>testplayerservice</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-instrumentcomponents</artifactId> 
+            <artifactId>instrumentcomponents</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-score</artifactId> 
+            <artifactId>score</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-uisettings</artifactId> 
+            <artifactId>uisettings</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-filedirectorymanager</artifactId> 
+            <artifactId>filedirectorymanager</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-importers</artifactId> 
+            <artifactId>importers</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-instrumentchooser</artifactId> 
+            <artifactId>instrumentchooser</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-midimix</artifactId> 
+            <artifactId>midimix</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-midimixmanagerimpl</artifactId> 
+            <artifactId>midimixmanagerimpl</artifactId> 
             <version>${project.version}</version> 
         </dependency>  		
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-musiccontrol</artifactId> 
+            <artifactId>musiccontrol</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-outputsynth</artifactId> 
+            <artifactId>outputsynth</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-outputsynthmanagerimpl</artifactId> 
+            <artifactId>outputsynthmanagerimpl</artifactId> 
             <version>${project.version}</version> 
         </dependency>  		
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-print</artifactId> 
+            <artifactId>print</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-rhythmstubs</artifactId> 
+            <artifactId>rhythmstubs</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-songeditormanager</artifactId> 
+            <artifactId>songeditormanager</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-songmemoviewer</artifactId> 
+            <artifactId>songmemoviewer</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-songstructure</artifactId> 
+            <artifactId>songstructure</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-rhythmmusicgeneration</artifactId> 
+            <artifactId>rhythmmusicgeneration</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-rhythmselectiondialog</artifactId> 
+            <artifactId>rhythmselectiondialog</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-test</artifactId> 
+            <artifactId>test</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-flatcomponents</artifactId> 
+            <artifactId>flatcomponents</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-mixconsole</artifactId> 
+            <artifactId>mixconsole</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-musiccontrolactions</artifactId> 
+            <artifactId>musiccontrolactions</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-ss_editor</artifactId> 
+            <artifactId>ss_editor</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-ss_editorimpl</artifactId> 
+            <artifactId>ss_editorimpl</artifactId> 
             <version>${project.version}</version> 
         </dependency>          
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-spteditor</artifactId> 
+            <artifactId>spteditor</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-zoomablesliders</artifactId> 
+            <artifactId>zoomablesliders</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-upgrade</artifactId> 
+            <artifactId>upgrade</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-startupmanager</artifactId> 
+            <artifactId>startupmanager</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-analytics</artifactId> 
+            <artifactId>analytics</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-biab</artifactId> 
+            <artifactId>biab</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-harmony</artifactId> 
+            <artifactId>harmony</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-chordleadsheet</artifactId> 
+            <artifactId>chordleadsheet</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-midi</artifactId> 
+            <artifactId>midi</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-options</artifactId> 
+            <artifactId>options</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-quantizer</artifactId> 
+            <artifactId>quantizer</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-rhythm</artifactId> 
+            <artifactId>rhythm</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-rhythmdatabase</artifactId> 
+            <artifactId>rhythmdatabase</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-rhythmdatabaseimpl</artifactId> 
+            <artifactId>rhythmdatabaseimpl</artifactId> 
             <version>${project.version}</version> 
         </dependency>         
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-song</artifactId> 
+            <artifactId>song</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-cl_editor</artifactId> 
+            <artifactId>cl_editor</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-itemrenderer</artifactId> 
+            <artifactId>itemrenderer</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-uiutilities</artifactId> 
+            <artifactId>uiutilities</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-undomanager</artifactId> 
+            <artifactId>undomanager</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-utilities</artifactId> 
+            <artifactId>utilities</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-fluidsynthembeddedsynth</artifactId> 
+            <artifactId>fluidsynthembeddedsynth</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-guava</artifactId> 
+            <artifactId>guava</artifactId> 
             <version>${project.version}</version> 
         </dependency> 
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-xstream</artifactId> 
+            <artifactId>xstream</artifactId> 
             <version>${project.version}</version> 
         </dependency>         
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-yamjjazz</artifactId> 
+            <artifactId>yamjjazz</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-cl_editorimpl</artifactId> 
+            <artifactId>cl_editorimpl</artifactId> 
             <version>${project.version}</version> 
         </dependency>           
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-popupmenuwindowmenupatch</artifactId> 
+            <artifactId>popupmenuwindowmenupatch</artifactId> 
             <version>${project.version}</version> 
         </dependency>       
     </dependencies>

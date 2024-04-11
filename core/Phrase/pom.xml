@@ -8,7 +8,7 @@
         <version>4.0.3-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
-    <artifactId>org-jjazz-phrase</artifactId>
+    <artifactId>phrase</artifactId>
     <name>Phrase</name>
     <packaging>nbm</packaging>
     <build>
@@ -38,43 +38,43 @@
     <dependencies>      
         <dependency> 
             <groupId>${project.groupId}</groupId>
-            <artifactId>org-jjazz-guava</artifactId>
+            <artifactId>guava</artifactId>
             <version>${project.version}</version>
             
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-harmony</artifactId> 
+            <artifactId>harmony</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-chordleadsheet</artifactId> 
+            <artifactId>chordleadsheet</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-midi</artifactId> 
+            <artifactId>midi</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-uiutilities</artifactId> 
+            <artifactId>uiutilities</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-uisettings</artifactId> 
+            <artifactId>uisettings</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-undomanager</artifactId> 
+            <artifactId>undomanager</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-utilities</artifactId> 
+            <artifactId>utilities</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
@@ -89,7 +89,7 @@
         </dependency>
         <dependency>
             <groupId>org.jjazzlab</groupId>
-            <artifactId>org-jjazz-xstream</artifactId>
+            <artifactId>xstream</artifactId>
             <version>4.0.3-SNAPSHOT</version>
         </dependency>
     </dependencies>

@@ -23,19 +23,18 @@
 package org.jjazz.startup.spi;
 
 /**
- * A startup task which will be executed by StartupManager in priority order.
+ * A startup task which will be executed by StartupManager in priority ascending order when platform is ready (see @onStart).
  * <p>
- * If order of execution does not matter, you can use @OnShowing instead.
+ * If order of execution does not matter, you can directly use @OnStart instead.
  */
-public interface StartupTask
+public interface OnStartTask
 {
 
     /**
      * This method is called upon startup when UI is ready.
      * <p>
-     * @return True if successfully completed task.
      */
-    boolean run();
+    void run();
 
     /**
      * Get the priority of the task.
@@ -49,7 +48,7 @@ public interface StartupTask
     /**
      * Name of the task.
      * <p>
-     * For logging.
+     * Used for logging.
      *
      * @return
      */

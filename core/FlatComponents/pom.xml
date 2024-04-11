@@ -8,7 +8,7 @@
         <version>4.0.3-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
-    <artifactId>org-jjazz-flatcomponents</artifactId>
+    <artifactId>flatcomponents</artifactId>
     <name>FlatComponents</name>
     <packaging>nbm</packaging>
     <build>
@@ -37,23 +37,23 @@
     <dependencies>      
         <dependency> 
             <groupId>${project.groupId}</groupId>
-            <artifactId>org-jjazz-guava</artifactId>
+            <artifactId>guava</artifactId>
             <version>${project.version}</version>
             
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-uisettings</artifactId> 
+            <artifactId>uisettings</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-uiutilities</artifactId> 
+            <artifactId>uiutilities</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-utilities</artifactId> 
+            <artifactId>utilities</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 

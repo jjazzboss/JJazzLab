@@ -8,7 +8,7 @@
         <version>4.0.3-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
-    <artifactId>org-jjazz-filedirectorymanager</artifactId>
+    <artifactId>filedirectorymanager</artifactId>
     <name>FileDirectoryManager</name>
     <packaging>nbm</packaging>
     <build>
@@ -37,7 +37,7 @@
     <dependencies>      
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-upgrade</artifactId> 
+            <artifactId>upgrade</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 

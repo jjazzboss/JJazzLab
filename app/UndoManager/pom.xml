@@ -8,8 +8,8 @@
         <version>4.0.3-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
-    <artifactId>org-jjazz-undomanager</artifactId>
-	<name>UndoManager</name>
+    <artifactId>undomanager</artifactId>
+    <name>UndoManager</name>
     <packaging>nbm</packaging>
     <build>
         <plugins>
@@ -18,8 +18,8 @@
                 <artifactId>nbm-maven-plugin</artifactId>
                 <configuration>
                     <publicPackages>                      
-                     <publicPackage>org.jjazz.undomanager.api</publicPackage>
-</publicPackages>
+                        <publicPackage>org.jjazz.undomanager.api</publicPackage>
+                    </publicPackages>
                 </configuration>
                 <extensions>true</extensions>
             </plugin>
@@ -35,7 +35,37 @@
         </plugins>
     </build>
     <dependencies>      
-     <dependency> <groupId>${project.groupId}</groupId> <artifactId>org-jjazz-utilities</artifactId> <version>${project.version}</version>  </dependency>  <dependency> <groupId>org.netbeans.api</groupId> <artifactId>org-openide-awt</artifactId> <version>${netbeans.version}</version>  </dependency>  <dependency> <groupId>org.netbeans.api</groupId> <artifactId>org-openide-dialogs</artifactId> <version>${netbeans.version}</version>  </dependency>  <dependency> <groupId>org.netbeans.api</groupId> <artifactId>org-openide-util</artifactId> <version>${netbeans.version}</version>  </dependency>  <dependency> <groupId>org.netbeans.api</groupId> <artifactId>org-openide-util-lookup</artifactId> <version>${netbeans.version}</version>  </dependency>  <dependency> <groupId>org.netbeans.api</groupId> <artifactId>org-openide-util-ui</artifactId> <version>${netbeans.version}</version>  </dependency> </dependencies>
+        <dependency> 
+            <groupId>${project.groupId}</groupId> 
+            <artifactId>utilities</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>  
+        <dependency> 
+            <groupId>org.netbeans.api</groupId> 
+            <artifactId>org-openide-awt</artifactId> 
+            <version>${netbeans.version}</version>  
+        </dependency>  
+        <dependency> 
+            <groupId>org.netbeans.api</groupId> 
+            <artifactId>org-openide-dialogs</artifactId> 
+            <version>${netbeans.version}</version>  
+        </dependency>  
+        <dependency> 
+            <groupId>org.netbeans.api</groupId> 
+            <artifactId>org-openide-util</artifactId> 
+            <version>${netbeans.version}</version>  
+        </dependency>  
+        <dependency> 
+            <groupId>org.netbeans.api</groupId> 
+            <artifactId>org-openide-util-lookup</artifactId> 
+            <version>${netbeans.version}</version>  
+        </dependency>  
+        <dependency> 
+            <groupId>org.netbeans.api</groupId> 
+            <artifactId>org-openide-util-ui</artifactId> 
+            <version>${netbeans.version}</version>  
+        </dependency> 
+    </dependencies>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>

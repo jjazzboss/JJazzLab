@@ -8,7 +8,7 @@
         <version>4.0.3-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
-    <artifactId>org-jjazz-midi</artifactId>
+    <artifactId>midi</artifactId>
     <name>Midi</name>
     <packaging>nbm</packaging>
     <build>
@@ -44,24 +44,24 @@
     <dependencies>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-harmony</artifactId> 
+            <artifactId>harmony</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-uiutilities</artifactId> 
+            <artifactId>utilities</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-upgrade</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-utilities</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>guava</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>xstream</artifactId>
+            <version>${project.version}</version>
+        </dependency>          
         <dependency> 
             <groupId>org.netbeans.api</groupId> 
             <artifactId>org-netbeans-api-progress</artifactId> 
@@ -70,11 +70,6 @@
         <dependency> 
             <groupId>org.netbeans.api</groupId> 
             <artifactId>org-openide-dialogs</artifactId> 
-            <version>${netbeans.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>org.netbeans.api</groupId> 
-            <artifactId>org-openide-filesystems</artifactId> 
             <version>${netbeans.version}</version>  
         </dependency>  
         <dependency> 
@@ -91,22 +86,8 @@
             <groupId>org.netbeans.api</groupId> 
             <artifactId>org-openide-util-ui</artifactId> 
             <version>${netbeans.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>org.netbeans.api</groupId> 
-            <artifactId>org-openide-windows</artifactId> 
-            <version>${netbeans.version}</version>  
         </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>org-jjazz-guava</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.jjazzlab</groupId>
-            <artifactId>org-jjazz-xstream</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+      
     </dependencies>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

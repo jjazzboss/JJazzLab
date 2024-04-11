@@ -35,7 +35,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.Timer;
 import org.jjazz.harmony.api.ChordSymbol;
-import org.jjazz.harmony.api.ChordTypeDatabase;
+import org.jjazz.harmony.spi.ChordTypeDatabase;
 import org.jjazz.chordleadsheet.api.item.AltDataFilter;
 import org.jjazz.chordleadsheet.api.item.AltExtChordSymbol;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
@@ -132,7 +132,7 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
             // Chord symbol alias used, need to guess where the extension starts
             int rootNoteLength = ecs.getRootNote().toRelativeNoteString().length();
             String ctString = chordSymbolString.substring(rootNoteLength).replaceFirst("/.*", "");  // Remove root note possible bass note
-            int extStart = ChordTypeDatabase.getInstance().guessExtension(ctString);
+            int extStart = ChordTypeDatabase.getDefault().guessExtension(ctString);
             if (extStart == -1)
             {
                 // No extension found, use major chord symbol by default

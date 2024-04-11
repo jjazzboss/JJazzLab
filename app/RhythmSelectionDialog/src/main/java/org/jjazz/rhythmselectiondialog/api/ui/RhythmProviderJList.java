@@ -31,11 +31,11 @@ import javax.swing.JList;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.jjazz.harmony.api.TimeSignature;
-import org.jjazz.rhythmdatabase.api.FavoriteRhythms;
+import org.jjazz.rhythmdatabaseimpl.api.FavoriteRhythms;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmdatabase.api.RhythmInfo;
 import org.jjazz.rhythm.spi.RhythmProvider;
-import org.jjazz.rhythmdatabase.api.FavoriteRhythmProvider;
+import org.jjazz.rhythmdatabaseimpl.api.FavoriteRhythmProvider;
 import org.openide.util.WeakListeners;
 
 /**

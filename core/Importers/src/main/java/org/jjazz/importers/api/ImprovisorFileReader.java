@@ -37,7 +37,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.jjazz.harmony.api.ChordSymbol;
 import org.jjazz.harmony.api.ChordType;
-import org.jjazz.harmony.api.ChordTypeDatabase;
+import org.jjazz.harmony.spi.ChordTypeDatabase;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
@@ -365,7 +365,7 @@ public class ImprovisorFileReader
                 // No, we can directly use the original chord type string
                 strJJazzCt = strChordType;
             }
-            ChordType ct = ChordTypeDatabase.getInstance().getChordType(strJJazzCt);
+            ChordType ct = ChordTypeDatabase.getDefault().getChordType(strJJazzCt);
             if (ct == null)
             {
                 throw new ParseException("Chord type '" + strJJazzCt + "' not recognized ", 0);

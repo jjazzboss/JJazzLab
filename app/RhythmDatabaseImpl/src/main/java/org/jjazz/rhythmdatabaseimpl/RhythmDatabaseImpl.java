@@ -35,6 +35,7 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -52,7 +53,6 @@ import org.jjazz.rhythmdatabase.api.RhythmInfo;
 import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
 import org.jjazz.utilities.api.MultipleErrorsReport;
 import org.jjazz.rhythm.spi.StubRhythmProvider;
-import org.jjazz.startup.spi.StartupTask;
 import org.jjazz.upgrade.api.UpgradeManager;
 import org.jjazz.upgrade.api.UpgradeTask;
 import org.jjazz.utilities.api.ResUtil;
@@ -62,10 +62,12 @@ import org.openide.util.Lookup;
 import org.netbeans.api.progress.ProgressHandle;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
+import org.openide.util.Exceptions;
 import org.openide.util.NbPreferences;
 import org.openide.util.RequestProcessor;
 import org.openide.util.lookup.ServiceProvider;
 import org.openide.windows.WindowManager;
+import org.jjazz.startup.spi.OnShowingTask;
 
 /**
  * RhythmDatabase implementation.
@@ -89,17 +91,17 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
     /**
      * Main data structure
      */
-    private final HashMap<RhythmProvider, List<RhythmInfo>> mapRpRhythms = new HashMap<>();
+    private final Map<RhythmProvider, List<RhythmInfo>> mapRpRhythms = new HashMap<>();
     /**
      * Save the created Rhythm instances.
      */
-    private final HashMap<RhythmInfo, Rhythm> mapInfoInstance = new HashMap<>();
+    private final Map<RhythmInfo, Rhythm> mapInfoInstance = new HashMap<>();
     /**
      * Keep the AdaptedRhythms instances created on-demand.
      * <p>
      * Map key=originalRhythmId-TimeSignature
      */
-    private final HashMap<String, AdaptedRhythm> mapAdaptedRhythms = new HashMap<>();
+    private final Map<String, AdaptedRhythm> mapAdaptedRhythms = new HashMap<>();
     /**
      * The initialization task.
      */
@@ -243,7 +245,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         {
             throw new NullPointerException("ts=" + ts);
         }
-        return getRhythms(ri ->ri.timeSignature().equals(ts));
+        return getRhythms(ri -> ri.timeSignature().equals(ts));
     }
 
     @Override
@@ -435,7 +437,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         {
             for (RhythmInfo ri : mapRpRhythms.get(rp))
             {
-                TimeSignature ts =ri.timeSignature();
+                TimeSignature ts = ri.timeSignature();
                 if (!res.contains(ts))
                 {
                     res.add(ts);
@@ -613,11 +615,10 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
             {
                 ph.progress(ResUtil.getString(getClass(), "CTL_ReadingRhythmDbCacheFile"));
                 readCache();
-
             } catch (IOException ex)
             {
                 // Notify
-                LOGGER.log(Level.WARNING, "RhythmDatabaseImpl() Can''t load cache file. ex={0}", ex.getMessage());
+                LOGGER.log(Level.WARNING, "RhythmDatabaseImpl() Can''t load cache file. IOException ex={0}", ex.getMessage());
                 String msg = ResUtil.getString(getClass(), "ERR_LoadingCacheFile", RhythmDbCache.getFile().getAbsolutePath());
                 NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
                 DialogDisplayer.getDefault().notify(d);
@@ -630,6 +631,9 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
                 // Rescan
                 ph.progress(msg2);
                 writeCache();
+            } catch (ClassNotFoundException ex)
+            {
+                Exceptions.printStackTrace(ex);
             }
         }
 
@@ -766,21 +770,17 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
     /**
      * Read the cache file and update the database accordingly.
      *
-     * @param cache
-     * @return The number of added RhythmInfo instances
+     * @throws java.io.IOException
+     * @throws java.lang.ClassNotFoundException
      */
-    private void readCache() throws IOException
+    private void readCache() throws IOException, ClassNotFoundException
     {
         // Read the file
         File f = RhythmDbCache.getFile();
-        RhythmDbCache cache = null;
+        RhythmDbCache cache;
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(f)))
         {
             cache = (RhythmDbCache) ois.readObject();
-
-        } catch (ClassNotFoundException ex)
-        {
-            throw new IOException(ex);
         }
 
         assert cache != null;
@@ -978,8 +978,8 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
     // =====================================================================================
     // Startup Tasks
     // =====================================================================================
-    @ServiceProvider(service = StartupTask.class)
-    public static class CopyDefaultRhythmFilesTask implements StartupTask
+    @ServiceProvider(service = OnShowingTask.class)
+    public static class CopyDefaultRhythmFilesTask implements OnShowingTask
     {
 
         public static final int PRIORITY = 500;
@@ -988,15 +988,11 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         public static final String DIR_NAME = "Rhythms";
 
         @Override
-        public boolean run()
+        public void run()
         {
-            if (!UpgradeManager.getInstance().isFreshStart())
-            {
-                return false;
-            } else
+            if (UpgradeManager.getInstance().isFreshStart())
             {
                 initializeUserRhythmDir();
-                return true;
             }
         }
 

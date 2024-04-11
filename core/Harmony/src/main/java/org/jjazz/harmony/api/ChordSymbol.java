@@ -27,6 +27,7 @@ import java.util.Objects;
 import java.util.logging.Logger;
 import org.jjazz.harmony.api.ChordType.DegreeIndex;
 import org.jjazz.harmony.api.Note.Alteration;
+import org.jjazz.harmony.spi.ChordTypeDatabase;
 import org.jjazz.utilities.api.ResUtil;
 
 /**
@@ -67,7 +68,7 @@ public class ChordSymbol implements Cloneable
 
     public ChordSymbol()
     {
-        this(new Note(0), ChordTypeDatabase.getInstance().getChordType(0));
+        this(new Note(0), ChordTypeDatabase.getDefault().getChordType(0));
     }
 
     public ChordSymbol(Note rootDg, ChordType ct)
@@ -194,7 +195,7 @@ public class ChordSymbol implements Cloneable
         }
 
         // Find the ChordType of the chord
-        chordType = ChordTypeDatabase.getInstance().getChordType(sb.toString());
+        chordType = ChordTypeDatabase.getDefault().getChordType(sb.toString());
         if (chordType == null)
         {
             // Chord type not recognized
@@ -649,7 +650,7 @@ public class ChordSymbol implements Cloneable
     {
         int rootPitch = (int) Math.round(Math.random() * 11);
         int bassPitch = Math.round(1) > 0.7 ? rootPitch : (int) Math.round(Math.random() * 11);
-        var chordTypes = ChordTypeDatabase.getInstance().getChordTypes();
+        var chordTypes = ChordTypeDatabase.getDefault().getChordTypes();
         int index = (int) Math.round(Math.random() * (chordTypes.length - 1));
         ChordType ct = chordTypes[index];
         ChordSymbol res = new ChordSymbol(new Note(rootPitch), new Note(bassPitch), ct);

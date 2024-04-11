@@ -7,7 +7,7 @@
         <version>4.0.3-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
-    <artifactId>org-jjazz-guava</artifactId>
+    <artifactId>guava</artifactId>
     <name>Guava</name>
     <packaging>nbm</packaging>
     <build>

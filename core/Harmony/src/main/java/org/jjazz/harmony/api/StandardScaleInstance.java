@@ -32,6 +32,7 @@ import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import org.jjazz.harmony.spi.ScaleManager;
 import org.jjazz.xstream.spi.XStreamConfigurator;
 import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_LOAD;
 import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_SAVE;
@@ -268,13 +269,13 @@ public class StandardScaleInstance implements Serializable
         private SerializationProxy(StandardScaleInstance ssi)
         {
             spStartNotePitch = ssi.getStartNote().getPitch();
-            spStdScaleIndex = ScaleManager.getInstance().getStandardScales().indexOf(ssi.getScale());
+            spStdScaleIndex = ScaleManager.getDefault().getStandardScales().indexOf(ssi.getScale());
             assert spStdScaleIndex != -1;
         }
 
         private Object readResolve() throws ObjectStreamException
         {
-            List<StandardScale> stdScales = ScaleManager.getInstance().getStandardScales();
+            List<StandardScale> stdScales = ScaleManager.getDefault().getStandardScales();
             StandardScale ss;
             if (spStdScaleIndex < 0 || spStdScaleIndex >= stdScales.size())
             {

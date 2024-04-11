@@ -95,8 +95,6 @@ public class FluidSynthEmbeddedSynthProvider implements EmbeddedSynthProvider
             throw new EmbeddedSynthException("FluidSynthEmbeddedSynthProvider is disabled");
         }
 
-        var jms = JJazzMidiSystem.getInstance();
-
         if (b)
         {
             openSynthAndDevice();       // throws EmbeddedSynthException
@@ -108,6 +106,7 @@ public class FluidSynthEmbeddedSynthProvider implements EmbeddedSynthProvider
 
 
             // Use our special MidiDevice
+            var jms = JJazzMidiSystem.getInstance();            
             var md = jms.getDefaultOutDevice();
             saveMidiDeviceName = md == null ? null : md.getDeviceInfo().getName();
             try
@@ -124,6 +123,7 @@ public class FluidSynthEmbeddedSynthProvider implements EmbeddedSynthProvider
             // Desactivate
 
             // Try to restore the previous MidiDevice
+            var jms = JJazzMidiSystem.getInstance();                        
             var md = jms.getMidiDevice(jms.getOutDeviceList(), saveMidiDeviceName);
             try
             {
@@ -134,7 +134,7 @@ public class FluidSynthEmbeddedSynthProvider implements EmbeddedSynthProvider
             }
 
             embeddedSynth.close();
-            midiDevice.close();            
+            midiDevice.close();
 
         }
 

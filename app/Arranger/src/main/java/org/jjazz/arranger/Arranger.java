@@ -34,7 +34,7 @@ import javax.sound.midi.Sequencer;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.analytics.api.Analytics;
 import org.jjazz.harmony.api.ChordSymbol;
-import org.jjazz.harmony.api.ChordTypeDatabase;
+import org.jjazz.harmony.spi.ChordTypeDatabase;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
@@ -421,7 +421,7 @@ public class Arranger implements SgsChangeListener, PropertyChangeListener
         if (clis.isEmpty())
         {
             // Add a "C" chord symbol at the start of the section
-            ExtChordSymbol ecs = new ExtChordSymbol(new Note(0), new Note(0), ChordTypeDatabase.getInstance().getChordType(0));
+            ExtChordSymbol ecs = new ExtChordSymbol(new Note(0), new Note(0), ChordTypeDatabase.getDefault().getChordType(0));
             CLI_ChordSymbol cliCs = CLI_Factory.getDefault().createChordSymbol(ecs, cliSection.getPosition());
             clsWork.addItem(cliCs);
 

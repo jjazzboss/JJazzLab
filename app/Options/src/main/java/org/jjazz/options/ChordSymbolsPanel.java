@@ -28,7 +28,7 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumnModel;
 import org.jjazz.harmony.api.ChordType;
-import org.jjazz.harmony.api.ChordTypeDatabase;
+import org.jjazz.harmony.spi.ChordTypeDatabase;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.DialogDisplayer;
@@ -136,7 +136,7 @@ final class ChordSymbolsPanel extends javax.swing.JPanel implements ListSelectio
     }// </editor-fold>//GEN-END:initComponents
 
     private void btn_addActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_addActionPerformed
-        ChordTypeDatabase ctdb = ChordTypeDatabase.getInstance();
+        ChordTypeDatabase ctdb = ChordTypeDatabase.getDefault();
         int row = tbl_chordSymbols.getSelectedRow();
         if (row == -1)
         {
@@ -177,7 +177,7 @@ final class ChordSymbolsPanel extends javax.swing.JPanel implements ListSelectio
 
     private void btn_resetActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_resetActionPerformed
     {//GEN-HEADEREND:event_btn_resetActionPerformed
-        ChordTypeDatabase ctdb = ChordTypeDatabase.getInstance();
+        ChordTypeDatabase ctdb = ChordTypeDatabase.getDefault();
         int row = tbl_chordSymbols.getSelectedRow();
         if (row == -1)
         {
@@ -190,7 +190,7 @@ final class ChordSymbolsPanel extends javax.swing.JPanel implements ListSelectio
 
     private void btn_resetAllActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_resetAllActionPerformed
     {//GEN-HEADEREND:event_btn_resetAllActionPerformed
-        ChordTypeDatabase ctdb = ChordTypeDatabase.getInstance();
+        ChordTypeDatabase ctdb = ChordTypeDatabase.getDefault();
         String msg = ResUtil.getString(getClass(),"CTL_ResetAllAliases");
         NotifyDescriptor nd = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.OK_CANCEL_OPTION);
         Object result = DialogDisplayer.getDefault().notify(nd);
@@ -293,7 +293,7 @@ final class ChordSymbolsPanel extends javax.swing.JPanel implements ListSelectio
         @Override
         public int getRowCount()
         {
-            return ChordTypeDatabase.getInstance().getSize();
+            return ChordTypeDatabase.getDefault().getSize();
         }
 
         @Override
@@ -305,7 +305,7 @@ final class ChordSymbolsPanel extends javax.swing.JPanel implements ListSelectio
         @Override
         public Object getValueAt(int rowIndex, int columnIndex)
         {
-            ChordTypeDatabase ctdb = ChordTypeDatabase.getInstance();
+            ChordTypeDatabase ctdb = ChordTypeDatabase.getDefault();
             ChordType ct = ctdb.getChordType(rowIndex);
             switch (columnIndex)
             {

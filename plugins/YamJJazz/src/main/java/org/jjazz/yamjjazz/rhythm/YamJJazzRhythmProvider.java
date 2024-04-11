@@ -136,8 +136,11 @@ public class YamJJazzRhythmProvider implements RhythmProvider
         File rDir = FileDirectoryManager.getInstance().getUserRhythmDirectory();
         if (!rDir.isDirectory())
         {
-            LOGGER.log(Level.WARNING, "getFileRhythms() RhythmProvider={0} - Rhythm file directory does not exist : {1}", new Object[]{info.getName(),
-                rDir.getAbsolutePath()});
+            LOGGER.log(Level.WARNING, "getFileRhythms() RhythmProvider={0} - Rhythm file directory does not exist : {1}", new Object[]
+            {
+                info.getName(),
+                rDir.getAbsolutePath()
+            });
             return fileRhythms;
         }
         HashSet<Path> userRhythmPaths = Utilities.listFiles(rDir, fileFilter, PREFIX_IGNORED_SUBDIR, SUBDIR_MAX_DEPTH);
@@ -206,7 +209,8 @@ public class YamJJazzRhythmProvider implements RhythmProvider
             r = new YamJJazzRhythmImpl(baseFile, extFile);           // don't call loadResources() to save time & memory
         } catch (IOException | InvalidMidiDataException | FormatNotSupportedException ex)
         {
-            throw new IOException("Problem reading files baseFile=" + baseFile.getAbsolutePath() + ", extFile=" + extFile.getAbsolutePath() + ". Ex=" + ex.getLocalizedMessage());
+            throw new IOException(
+                    "Problem reading files baseFile=" + baseFile.getAbsolutePath() + ", extFile=" + extFile.getAbsolutePath() + ". Ex=" + ex.getLocalizedMessage());
         }
         return r;
     }
@@ -229,16 +233,14 @@ public class YamJJazzRhythmProvider implements RhythmProvider
     // Private methods
     // -------------------------------------------------------------------------------------------------
 
-   
-        /**
-         *
-         * @return The list of files present in the directory for default rhythm files.
-         */
+    /**
+     *
+     * @return The list of files present in the directory for default rhythm files.
+     */
     private File[] getDefaultRhythmFiles()
     {
         File[] res;
-        File dir = InstalledFileLocator.getDefault().locate(DEFAULT_FILES_DEST_DIRNAME, "org.jjazzlab.org.jjazz.yamjjazz", false);
-
+        File dir = InstalledFileLocator.getDefault().locate(DEFAULT_FILES_DEST_DIRNAME, "org.jjazzlab.yamjjazz", false);
         if (dir == null || !dir.isDirectory())
         {
             LOGGER.severe("getDefaultRhythmFiles() Can't find " + DEFAULT_FILES_DEST_DIRNAME);
@@ -251,8 +253,7 @@ public class YamJJazzRhythmProvider implements RhythmProvider
         return res;
     }
 
-   
-  
+
     private File findBaseStyleFile(File extFile) throws IOException
     {
         for (String ext : YamahaRhythmProvider.FILE_EXTENSIONS)

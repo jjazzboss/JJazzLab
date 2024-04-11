@@ -8,7 +8,7 @@
         <version>4.0.3-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
-    <artifactId>org-jjazz-fluidsynthembeddedsynth</artifactId>
+    <artifactId>fluidsynthembeddedsynth</artifactId>
     <name>FluidSynthEmbeddedSynth</name>
     <packaging>nbm</packaging>
     <build>
@@ -45,42 +45,42 @@
     <dependencies>              
         <dependency> 
             <groupId>org.jjazzlab</groupId> 
-            <artifactId>org-jjazz-fluidsynthjava</artifactId> 
+            <artifactId>fluidsynthjava</artifactId> 
             <version>1.0.0</version>  
         </dependency>                 
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-embeddedsynth</artifactId> 
+            <artifactId>embeddedsynth</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-flatcomponents</artifactId> 
+            <artifactId>flatcomponents</artifactId> 
             <version>${project.version}</version>  
         </dependency>   
         <dependency> 
             <groupId>${project.groupId}</groupId>
-            <artifactId>org-jjazz-guava</artifactId>
+            <artifactId>guava</artifactId>
             <version>${project.version}</version>            
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-midi</artifactId> 
+            <artifactId>midi</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-outputsynth</artifactId> 
+            <artifactId>outputsynth</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-uiutilities</artifactId> 
+            <artifactId>uiutilities</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-utilities</artifactId> 
+            <artifactId>utilities</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 

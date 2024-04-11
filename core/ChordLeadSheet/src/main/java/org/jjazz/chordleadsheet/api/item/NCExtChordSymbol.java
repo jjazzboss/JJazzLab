@@ -28,7 +28,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
 import org.jjazz.harmony.api.ChordSymbol;
-import org.jjazz.harmony.api.ChordTypeDatabase;
+import org.jjazz.harmony.spi.ChordTypeDatabase;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.xstream.spi.XStreamConfigurator;
 import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_LOAD;
@@ -65,7 +65,7 @@ public class NCExtChordSymbol extends ExtChordSymbol implements Serializable
      */
     public NCExtChordSymbol(ChordRenderingInfo rInfo, AltExtChordSymbol altChordSymbol, AltDataFilter altFilter)
     {
-        super(new Note(13), new Note(13), ChordTypeDatabase.getInstance().getChordType(3), rInfo, altChordSymbol, altFilter);
+        super(new Note(13), new Note(13), ChordTypeDatabase.getDefault().getChordType(3), rInfo, altChordSymbol, altFilter);
     }
 
     @Override

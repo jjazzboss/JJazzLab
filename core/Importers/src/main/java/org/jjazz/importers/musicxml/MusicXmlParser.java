@@ -38,7 +38,7 @@ import nu.xom.Element;
 import nu.xom.ParsingException;
 import nu.xom.ValidityException;
 import org.jjazz.harmony.api.ChordType;
-import org.jjazz.harmony.api.ChordTypeDatabase;
+import org.jjazz.harmony.spi.ChordTypeDatabase;
 import org.jjazz.harmony.api.Degree;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.harmony.api.TimeSignature;
@@ -353,7 +353,7 @@ public final class MusicXmlParser
         {
             throw new IllegalArgumentException("harmony=" + elHarmony + " barIndex=" + barIndex + " divisionPosInBar=" + divisionPosInBar);   
         }
-        ChordTypeDatabase ctdb = ChordTypeDatabase.getInstance();
+        ChordTypeDatabase ctdb = ChordTypeDatabase.getDefault();
 
         // Mandatory : the root note
         String strRoot = getNoteFromRootElement(elHarmony);

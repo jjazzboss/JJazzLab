@@ -8,7 +8,7 @@
         <version>4.0.3-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
-    <artifactId>org-jjazz-popupmenuwindowmenupatch</artifactId>
+    <artifactId>popupmenuwindowmenupatch</artifactId>
     <name>PopupWindowMenuPatch</name>
     <packaging>nbm</packaging>
     <build>

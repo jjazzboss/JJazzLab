@@ -8,7 +8,7 @@
         <version>4.0.3-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
-    <artifactId>org-jjazz-base</artifactId>
+    <artifactId>base</artifactId>
     <name>Base</name>
     <packaging>nbm</packaging>
     <build>
@@ -38,50 +38,55 @@
     <dependencies>      
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-filedirectorymanager</artifactId> 
+            <artifactId>filedirectorymanager</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-embeddedsynth</artifactId> 
+            <artifactId>embeddedsynth</artifactId> 
             <version>${project.version}</version>  
         </dependency>          
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-startupmanager</artifactId> 
+            <artifactId>startupmanager</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency>
             <groupId>org.jjazzlab</groupId>
-            <artifactId>org-jjazz-midi</artifactId>
+            <artifactId>midi</artifactId>
             <version>${project.version}</version>
         </dependency>         
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>org-jjazz-utilities</artifactId> 
+            <artifactId>utilities</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency>
             <groupId>org.jjazzlab</groupId>
-            <artifactId>org-jjazz-uiutilities</artifactId>
+            <artifactId>uiutilities</artifactId>
             <version>${project.version}</version>
         </dependency>
        
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>org-jjazz-guava</artifactId>
+            <artifactId>guava</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>org-jjazz-upgrade</artifactId>
+            <artifactId>upgrade</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>org-jjazz-analytics</artifactId>
+            <artifactId>analytics</artifactId>
             <version>${project.version}</version>
         </dependency>        
+        <dependency>
+            <groupId>org.jjazzlab</groupId>
+            <artifactId>harmony</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <dependency> 
             <groupId>org.netbeans.api</groupId> 
             <artifactId>org-netbeans-api-annotations-common</artifactId> 
@@ -146,7 +151,8 @@
             <groupId>org.netbeans.api</groupId> 
             <artifactId>org-openide-windows</artifactId> 
             <version>${netbeans.version}</version>  
-        </dependency>    
+        </dependency>
+
     </dependencies>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
