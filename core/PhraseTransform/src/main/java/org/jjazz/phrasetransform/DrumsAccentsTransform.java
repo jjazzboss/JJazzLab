@@ -40,6 +40,7 @@ import org.jjazz.phrasetransform.api.PtProperties;
 import org.jjazz.songcontext.api.SongPartContext;
 import org.jjazz.uiutilities.api.UIUtilities;
 import org.jjazz.utilities.api.ResUtil;
+import org.jjazz.phrasetransform.spi.PtPropertyEditorFactory;
 
 /**
  * Change velocity of specific drums notes which match cyclic positions.
@@ -158,7 +159,7 @@ public class DrumsAccentsTransform implements PhraseTransform
     public void showUserSettingsDialog(Component anchor)
     {
         String text = ResUtil.getString(getClass(), "AccentStrength");
-        GenericSettingsDialog dlg = new GenericSettingsDialog(properties, getInfo().getName(), PROP_VELOCITY_OFFSET, text, -63, 64,true);
+        var dlg = PtPropertyEditorFactory.getDefault().getSinglePropertyEditor(properties, getInfo().getName(), PROP_VELOCITY_OFFSET, text, -63, 64, true);
         UIUtilities.setDialogLocationRelativeTo(dlg, anchor, 0, 0.5, 0.5);
         dlg.setVisible(true);
         dlg.dispose();

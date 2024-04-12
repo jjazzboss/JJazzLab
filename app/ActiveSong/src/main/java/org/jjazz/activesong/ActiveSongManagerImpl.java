@@ -20,8 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.musiccontrol;
-
+package org.jjazz.activesong;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;

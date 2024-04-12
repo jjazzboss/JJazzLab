@@ -25,6 +25,7 @@ package org.jjazz.base;
 import java.util.logging.*;
 import org.jjazz.harmony.spi.ChordTypeDatabase;
 import org.jjazz.midi.api.JJazzMidiSystem;
+import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.upgrade.api.UpgradeManager;
 import org.jjazz.upgrade.api.UpgradeTask;
 import org.openide.util.NbPreferences;
@@ -35,10 +36,10 @@ import org.openide.util.lookup.ServiceProvider;
  * Upgrade the preferences of JJazzLab core components (which do not have access to the UpgradeManager/UpgradeTask service).
  */
 @ServiceProvider(service = UpgradeTask.class)
-public class UpgradeCoreComponentsPreferences implements UpgradeTask
+public class UpgradeCorePreferencesStartupTask implements UpgradeTask
 {
 
-    private static final Logger LOGGER = Logger.getLogger(UpgradeCoreComponentsPreferences.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(UpgradeCorePreferencesStartupTask.class.getSimpleName());
 
     @Override
     public void upgrade(String oldVersion)
@@ -49,9 +50,13 @@ public class UpgradeCoreComponentsPreferences implements UpgradeTask
         var prefs = NbPreferences.forModule(ChordTypeDatabase.class);
         um.duplicateOldPreferences(prefs);
 
-        
+
         // JJazzMidiSystem
         prefs = NbPreferences.forModule(JJazzMidiSystem.class);
+        um.duplicateOldPreferences(prefs);
+
+        // PlaybackSettings
+        prefs = NbPreferences.forModule(PlaybackSettings.class);
         um.duplicateOldPreferences(prefs);
     }
 

@@ -25,7 +25,7 @@ package org.jjazz.mixconsole;
 import com.google.common.base.Preconditions;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.jjazz.activesong.spi.ActiveSongBackgroundMusicBuilder;
+import org.jjazz.musiccontrol.spi.ActiveSongBackgroundMusicBuilder;
 import org.jjazz.analytics.api.Analytics;
 import org.jjazz.instrumentchooser.spi.InstrumentChooserDialog;
 import org.jjazz.midi.api.DrumKit;

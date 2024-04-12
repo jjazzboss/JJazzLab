@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.musiccontrol;
+package org.jjazz.rhythmselectiondialog;
 
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
@@ -43,7 +43,7 @@ import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.spi.MidiMixManager;
 import org.jjazz.musiccontrol.api.MusicController;
-import org.jjazz.musiccontrol.api.RhythmPreviewer;
+import org.jjazz.rhythmselectiondialog.spi.RhythmPreviewer;
 import org.jjazz.musiccontrol.api.playbacksession.BaseSongSession;
 import org.jjazz.outputsynth.api.OutputSynth;
 import org.jjazz.rhythm.api.AdaptedRhythm;
@@ -176,6 +176,7 @@ public class RhythmPreviewerImpl implements RhythmPreviewer
         Song song = sgContext.getSong();
         MidiMix mm = sgContext.getMidiMix();
         ActiveSongManager asm = ActiveSongManager.getDefault();
+        
         asm.setActive(song, mm);
 
 

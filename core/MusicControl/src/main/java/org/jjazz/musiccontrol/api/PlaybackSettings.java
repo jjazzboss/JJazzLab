@@ -50,9 +50,6 @@ import static org.jjazz.musiccontrol.api.PlaybackSettings.PROP_CLICK_PITCH_LOW;
 import org.jjazz.songcontext.api.SongContext;
 import org.openide.util.NbPreferences;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.upgrade.api.UpgradeManager;
-import org.jjazz.upgrade.api.UpgradeTask;
-import org.openide.util.lookup.ServiceProvider;
 
 /**
  * Playback settings (click, precount, looping, playback transposition, auto-update mode) and related helper methods.
@@ -676,21 +673,5 @@ public class PlaybackSettings
         pcs.firePropertyChange(PROP_MUSIC_GENERATION, id, data);
     }
 
-
-    // =====================================================================================
-    // Upgrade Task
-    // =====================================================================================
-    @ServiceProvider(service = UpgradeTask.class)
-    static public class RestoreSettingsTask implements UpgradeTask
-    {
-
-        @Override
-        public void upgrade(String oldVersion)
-        {
-            UpgradeManager um = UpgradeManager.getInstance();
-            um.duplicateOldPreferences(prefs);
-        }
-
-    }
 
 }

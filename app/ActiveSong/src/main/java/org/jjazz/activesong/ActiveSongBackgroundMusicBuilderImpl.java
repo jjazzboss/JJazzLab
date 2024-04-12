@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.musiccontrol;
+package org.jjazz.activesong;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -28,12 +28,13 @@ import java.util.EnumSet;
 import java.util.logging.Logger;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import org.jjazz.activesong.spi.ActiveSongBackgroundMusicBuilder;
 import org.jjazz.activesong.spi.ActiveSongManager;
 import org.jjazz.midimix.api.MidiMix;
+import org.jjazz.activesong.SongMusicBuilderTask;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.MusicController.State;
 import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession;
+import org.jjazz.musiccontrol.spi.ActiveSongBackgroundMusicBuilder;
 import org.jjazz.rhythmmusicgeneration.api.MusicGenerationQueue;
 import org.jjazz.song.api.Song;
 import org.jjazz.songcontext.api.SongContext;

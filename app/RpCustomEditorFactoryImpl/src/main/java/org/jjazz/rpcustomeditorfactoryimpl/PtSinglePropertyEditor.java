@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.phrasetransform;
+package org.jjazz.rpcustomeditorfactoryimpl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import java.beans.PropertyChangeEvent;
@@ -31,9 +31,9 @@ import org.jjazz.uiutilities.api.UIUtilities;
 import org.openide.windows.WindowManager;
 
 /**
- * A generic dialog to edit a unique property setting of a PhraseTransform.
+ * A generic dialog to edit a single property setting of a PhraseTransform.
  */
-public class GenericSettingsDialog extends javax.swing.JDialog implements PropertyChangeListener
+public class PtSinglePropertyEditor extends javax.swing.JDialog implements PropertyChangeListener
 {
 
     private final PtProperties ptProperties;
@@ -51,7 +51,7 @@ public class GenericSettingsDialog extends javax.swing.JDialog implements Proper
      * @param maxPropertyValue
      * @param usePanoramicKnob 
      */
-    public GenericSettingsDialog(PtProperties ptProperties, String dialogTitle, String property, String propertyDisplayName, int minPropertyValue, int maxPropertyValue, boolean usePanoramicKnob)
+    public PtSinglePropertyEditor(PtProperties ptProperties, String dialogTitle, String property, String propertyDisplayName, int minPropertyValue, int maxPropertyValue, boolean usePanoramicKnob)
     {
         super(WindowManager.getDefault().getMainWindow(), true);
         checkNotNull(ptProperties);

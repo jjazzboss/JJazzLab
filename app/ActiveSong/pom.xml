@@ -43,6 +43,51 @@
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
+            <artifactId>midi</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>  
+        <dependency> 
+            <groupId>${project.groupId}</groupId> 
+            <artifactId>songcontext</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>          
+        <dependency> 
+            <groupId>${project.groupId}</groupId> 
+            <artifactId>outputsynth</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>  
+        <dependency> 
+            <groupId>${project.groupId}</groupId> 
+            <artifactId>rhythm</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>   
+        <dependency>
+            <groupId>org.jjazzlab</groupId>
+            <artifactId>chordleadsheet</artifactId>
+            <version>${project.version}</version>
+        </dependency>        
+        <dependency>
+            <groupId>org.jjazzlab</groupId>
+            <artifactId>phrase</artifactId>
+            <version>${project.version}</version>
+        </dependency>       
+        <dependency>
+            <groupId>org.jjazzlab</groupId>
+            <artifactId>guava</artifactId>
+            <version>${project.version}</version>
+        </dependency>                
+        <dependency> 
+            <groupId>${project.groupId}</groupId> 
+            <artifactId>utilities</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>       
+        <dependency> 
+            <groupId>${project.groupId}</groupId> 
+            <artifactId>musiccontrol</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>     
+        <dependency> 
+            <groupId>${project.groupId}</groupId> 
             <artifactId>rhythmmusicgeneration</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
@@ -66,6 +111,7 @@
             <artifactId>org-openide-util-lookup</artifactId>
             <version>${netbeans.version}</version>
         </dependency>
+
     </dependencies>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

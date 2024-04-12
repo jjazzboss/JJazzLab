@@ -55,7 +55,7 @@ public class BarBoxSettingsImpl implements BarBoxSettings, FontColorUserSettings
     /**
      * The Preferences of this object.
      */
-    private static Preferences prefs = NbPreferences.forModule(BarBoxSettingsImpl.class);
+    private static final Preferences prefs = NbPreferences.forModule(BarBoxSettingsImpl.class);
     /**
      * The listeners for changes of this object.
      */

@@ -8,8 +8,8 @@
         <version>4.0.3-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
-    <artifactId>chordleadsheet</artifactId>
-    <name>ChordLeadSheet</name>
+    <artifactId>coreuicomponents</artifactId>
+    <name>CoreUIcomponents</name>
     <packaging>nbm</packaging>
     <build>
         <plugins>
@@ -17,10 +17,8 @@
                 <groupId>org.apache.netbeans.utilities</groupId>
                 <artifactId>nbm-maven-plugin</artifactId>
                 <configuration>
-                    <publicPackages>                      
-                        <publicPackage>org.jjazz.chordleadsheet.api</publicPackage>
-                        <publicPackage>org.jjazz.chordleadsheet.api.event</publicPackage>
-                        <publicPackage>org.jjazz.chordleadsheet.api.item</publicPackage>
+                    <publicPackages>   
+					  <publicPackage>org.jjazz.coreuicomponents.api</publicPackage>						
                     </publicPackages>
                 </configuration>
                 <extensions>true</extensions>
@@ -38,9 +36,19 @@
     </build>
     <dependencies>      
         <dependency> 
+            <groupId>${project.groupId}</groupId> 
+            <artifactId>phrase</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>  
+        <dependency> 
+            <groupId>${project.groupId}</groupId> 
+            <artifactId>uisettings</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>  
+        <dependency> 
             <groupId>${project.groupId}</groupId>
             <artifactId>guava</artifactId>
-            <version>${project.version}</version>            
+            <version>${project.version}</version>
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
@@ -49,34 +57,14 @@
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>undomanager</artifactId> 
+            <artifactId>uiutilities</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>quantizer</artifactId>
-            <version>${project.version}</version>
-        </dependency>        
         <dependency> 
             <groupId>${project.groupId}</groupId> 
             <artifactId>utilities</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>xstream</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>          
-        <dependency> 
-            <groupId>org.netbeans.api</groupId> 
-            <artifactId>org-openide-util</artifactId> 
-            <version>${netbeans.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>org.netbeans.api</groupId> 
-            <artifactId>org-openide-util-lookup</artifactId> 
-            <version>${netbeans.version}</version>  
-        </dependency>
     </dependencies>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

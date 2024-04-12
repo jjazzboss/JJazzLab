@@ -210,48 +210,9 @@
         
     </profiles>          
     <modules>
-        <module>app/application</module>
-        <module>app/branding</module>
-        <module>app/ActiveSong</module>
-        <module>app/Analytics</module>
-        <module>app/Arranger</module>
-        <module>app/Base</module>
-        <module>app/CL_Editor</module>
-        <module>app/CL_EditorImpl</module>        
-        <module>app/ChordInspector</module>
-        <module>app/EasyReader</module>
-        <module>app/FileDirectoryManager</module>		
-        <module>app/ImprovisationSupport</module>
-        <module>app/InstrumentChooser</module>
-        <module>app/InstrumentComponents</module>
-        <module>app/ItemRenderer</module>		
-        <module>app/MidiMixManagerImpl</module>        
-        <module>app/MixConsole</module>
-        <module>app/MusicControlActions</module>
-        <module>app/Options</module>
-        <module>app/PianoRoll</module>
-        <module>app/PopupWindowMenuPatch</module>
-        <module>app/Print</module>        
-        <module>app/RhythmDatabaseImpl</module>        
-        <module>app/RhythmSelectionDialog</module>
-        <module>app/RpCustomEditorFactoryImpl</module>
-        <module>app/SS_Editor</module>
-        <module>app/SS_EditorImpl</module>                
-        <module>app/Score</module>
-        <module>app/SongEditorManager</module>
-        <module>app/SongMemoViewer</module>
-        <module>app/SptEditor</module>
-        <module>app/StartupManager</module>        		
-        <module>app/Test</module>
-        <module>app/UISettings</module>
-        <module>app/UIUtilities</module>
-        <module>app/UndoManager</module>
-        <module>app/Upgrade</module>
-        <module>app/ZoomableSliders</module>
         <module>core/Biab</module>
         <module>core/ChordLeadSheet</module>
-        <module>core/EmbeddedSynth</module>
-        <module>core/FlatComponents</module>        
+        <module>core/EmbeddedSynth</module>       
         <module>core/Harmony</module>
         <module>core/Importers</module>
         <module>core/Midi</module>
@@ -269,12 +230,53 @@
         <module>core/SongContext</module>
         <module>core/SongStructure</module>
         <module>core/TestPlayerService</module>
+		<module>core/UIUtilities</module>		
+        <module>core/UndoManager</module>		
         <module>core/Utilities</module>
         <module>core/Xstream</module>
-        <module>core/Guava</module>
+        <module>core/Guava</module>	
+        <module>app/application</module>
+        <module>app/branding</module>
+        <module>app/ActiveSong</module>
+        <module>app/Analytics</module>
+        <module>app/Arranger</module>
+        <module>app/Base</module>
+        <module>app/CL_Editor</module>
+        <module>app/CL_EditorImpl</module>        
+        <module>app/ChordInspector</module>
+        <module>app/CoreUIcomponents</module>
+        <module>app/EasyReader</module>
+        <module>app/FileDirectoryManager</module>		
+        <module>app/FlatComponents</module> 		
+        <module>app/ImprovisationSupport</module>
+        <module>app/InstrumentChooser</module>
+        <module>app/InstrumentComponents</module>
+        <module>app/ItemRenderer</module>		
+        <module>app/MidiMixManagerImpl</module>        
+        <module>app/MixConsole</module>
+        <module>app/MusicControlActions</module>
+        <module>app/Options</module>
+        <module>app/OutputSynthManagerImpl</module>		
+        <module>app/PianoRoll</module>
+        <module>app/PopupWindowMenuPatch</module>
+        <module>app/Print</module>        
+        <module>app/RhythmDatabaseImpl</module>        
+        <module>app/RhythmSelectionDialog</module>
+        <module>app/RpCustomEditorFactoryImpl</module>
+        <module>app/SS_Editor</module>
+        <module>app/SS_EditorImpl</module>                
+        <module>app/Score</module>
+        <module>app/SongEditorManager</module>
+        <module>app/SongMemoViewer</module>
+        <module>app/SptEditor</module>
+        <module>app/StartupManager</module>        		
+        <module>app/Test</module>
+        <module>app/UISettings</module>
+        <module>app/Upgrade</module>
+        <module>app/ZoomableSliders</module>
+
         <module>plugins/FluidSynthEmbeddedSynth</module>        
         <module>plugins/YamJJazz</module>
-        <module>app/OutputSynthManagerImpl</module>
     </modules>
     
     

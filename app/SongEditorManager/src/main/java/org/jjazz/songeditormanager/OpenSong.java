@@ -29,6 +29,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import org.jjazz.analytics.api.Analytics;
 import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongCreationException;
@@ -60,7 +61,8 @@ public final class OpenSong implements ActionListener
     public void actionPerformed(ActionEvent e)
     {
         JFileChooser chooser = UIUtilities.getFileChooserInstance();
-        FileNameExtensionFilter filter = new FileNameExtensionFilter(ResUtil.getString(getClass(), "CTL_JJazzOpenSongs") + " (" + "." + Song.SONG_EXTENSION + ")", Song.SONG_EXTENSION);
+        FileNameExtensionFilter filter = new FileNameExtensionFilter(
+                ResUtil.getString(getClass(), "CTL_JJazzOpenSongs") + " (" + "." + Song.SONG_EXTENSION + ")", Song.SONG_EXTENSION);
         chooser.resetChoosableFileFilters();
         chooser.setFileFilter(filter);
         chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
@@ -101,14 +103,18 @@ public final class OpenSong implements ActionListener
             // Show the song in the editors
             Song song = SongEditorManager.getDefault().showSong(songFile, makeActive, updateLastSongDir);
             
+            Analytics.logEvent("Open Song");
+            Analytics.incrementProperties("Nb Open Song", 1);
+
         } catch (SongCreationException ex)
         {
             String msg = ResUtil.getString(OpenSong.class, "ERR_CantOpenSongFile", songFile.getAbsolutePath(), ex.getLocalizedMessage());
-            LOGGER.log(Level.WARNING, "openSong() {0}", msg);   
+            LOGGER.log(Level.WARNING, "openSong() {0}", msg);
             NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(nd);
             b = false;
         }
+        
         return b;
     }
 

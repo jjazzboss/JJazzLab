@@ -29,8 +29,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.Track;
-import org.jjazz.activesong.spi.ActiveSongBackgroundMusicBuilder;
-import org.jjazz.analytics.api.Analytics;
+import org.jjazz.musiccontrol.spi.ActiveSongBackgroundMusicBuilder;
 import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.rhythm.api.MusicGenerationException;
@@ -54,8 +53,7 @@ public class SongMidiExporter
     /**
      * Export a song to the specified midi File.
      * <p>
-     * If song is the active song, try to reuse the last result from the ActiveSongMusicBuilder, otherwise generate the music. Notify user
-     * if a problem occured.
+     * If song is the active song, try to reuse the last result from the ActiveSongMusicBuilder, otherwise generate the music. Notify user if a problem occured.
      *
      * @param song
      * @param midiMix
@@ -88,17 +86,22 @@ public class SongMidiExporter
 
         var sgContext = new SongContext(song, midiMix);
         var ssb = new SongSequenceBuilder(sgContext);
-        SongSequenceBuilder.SongSequence songSequence;
+        SongSequenceBuilder.SongSequence songSequence = null;
 
 
+        // First try to reuse the ActiveSongBackgroundMusicBuilder service if available
         var asmb = ActiveSongBackgroundMusicBuilder.getDefault();
-        var result = asmb.getLastResult();
-        if (asmb.getSong() == song && !asmb.isDirectlyGeneratingMusic() && result != null && result.userException() == null)
+        if (asmb != null)
         {
-            // We can reuse the last music generation
-            songSequence = ssb.buildSongSequence(result.mapRvPhrases());
+            var result = asmb.getLastResult();
+            if (asmb.getSong() == song && !asmb.isDirectlyGeneratingMusic() && result != null && result.userException() == null)
+            {
+                // We can reuse the last music generation
+                songSequence = ssb.buildSongSequence(result.mapRvPhrases());
+            }
+        }
 
-        } else
+        if (songSequence == null)
         {
             try
             {
@@ -173,10 +176,6 @@ public class SongMidiExporter
             DialogDisplayer.getDefault().notify(d);
             return false;
         }
-
-
-        // Log event
-        Analytics.logEvent("Export Midi");
 
 
         return true;

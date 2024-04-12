@@ -33,7 +33,7 @@ import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import org.jjazz.activesong.spi.ActiveSongBackgroundMusicBuilder;
+import org.jjazz.musiccontrol.spi.ActiveSongBackgroundMusicBuilder;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.pianoroll.api.PianoRollEditor;

@@ -46,7 +46,10 @@ public interface ActiveSongManager
     public static ActiveSongManager getDefault()
     {
         var res = Lookup.getDefault().lookup(ActiveSongManager.class);
-        assert res != null;
+        if (res == null)
+        {
+            throw new IllegalStateException("No ActiveSongBackgroundMusicBuilder instance found");
+        }
         return res;
     }
 

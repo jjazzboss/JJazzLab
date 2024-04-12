@@ -644,6 +644,11 @@
             <artifactId>popupmenuwindowmenupatch</artifactId> 
             <version>${project.version}</version> 
         </dependency>       
+        <dependency> 
+            <groupId>${project.groupId}</groupId> 
+            <artifactId>coreuicomponents</artifactId> 
+            <version>${project.version}</version> 
+        </dependency>          
     </dependencies>
    
 </project>

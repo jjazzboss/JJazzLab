@@ -35,12 +35,7 @@
             </plugin>
         </plugins>
     </build>
-    <dependencies>      
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>analytics</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
+    <dependencies>  
         <dependency> 
             <groupId>${project.groupId}</groupId>
             <artifactId>guava</artifactId>

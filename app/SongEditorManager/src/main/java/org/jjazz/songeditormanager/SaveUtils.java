@@ -23,10 +23,15 @@
 package org.jjazz.songeditormanager;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javax.sound.midi.MidiUnavailableException;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import org.jjazz.analytics.api.Analytics;
+import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
+import org.jjazz.chordleadsheet.api.item.ChordRenderingInfo;
 import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.spi.MidiMixManager;
@@ -118,7 +123,7 @@ class SaveUtils
     {
         if (song == null || songFile == null)
         {
-            throw new IllegalArgumentException("song=" + song + " songFile=" + songFile);   
+            throw new IllegalArgumentException("song=" + song + " songFile=" + songFile);
         }
         FileDirectoryManager fdm = FileDirectoryManager.getInstance();
         int resSong;
@@ -138,7 +143,13 @@ class SaveUtils
         // Save song
         resSong = song.saveToFileNotify(songFile, false) ? SAVE_CODE_OK : SAVE_CODE_ERROR_SONGFILE;
 
+        if (resSong == SAVE_CODE_OK)
+        {
+            doAnalytics(song);
+        }
+
         int res = (resSong != SAVE_CODE_OK) ? resSong : resMix;
+
 
         return res;
     }
@@ -160,24 +171,9 @@ class SaveUtils
 
         // Save song and related mix
         int res = saveSongAndMix(song, songFile);
-        if (res == SAVE_CODE_OK)
-        {
-            String mixString = "";
-            try
-            {
-                MidiMix mm = MidiMixManager.getDefault().findMix(song);
-                mixString = ", " + mm.getFile().getAbsolutePath();
-            } catch (MidiUnavailableException ex)
-            {
-                // We should never be there since searched MidiMix already exist 
-                Exceptions.printStackTrace(ex);
-            }            
-            String files = songFile.getAbsolutePath() + mixString;
-        }
         return res;
     }
 
-   
 
     /**
      * Get the file to be used for the specified song.
@@ -210,5 +206,46 @@ class SaveUtils
             }
         }
         return defaultFile;
+    }
+
+
+    /**
+     * Compute some anonymous stats about feature usage.
+     *
+     * @param song
+     */
+    static private void doAnalytics(Song song)
+    {
+        var cls = song.getChordLeadSheet();
+        var ss = song.getSongStructure();
+        var ecss = cls.getItems(CLI_ChordSymbol.class)
+                .stream()
+                .map(cli -> cli.getData())
+                .toList();
+        var cris = ecss.stream().map(ecs -> ecs.getRenderingInfo()).collect(Collectors.toList());
+
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("Memo Char Size", song.getComments().length());
+        map.put("Nb Chord Symbols", cris.stream().count());
+        map.put("Nb Song Parts", ss.getSongParts().size());
+        map.put("LeadSheet Bar Size", cls.getSizeInBars());
+        map.put("Song Structure Bar Size", ss.getSizeInBars());
+        map.put("Use Bass Pedal Chord", cris.stream().anyMatch(cri -> cri.hasOneFeature(ChordRenderingInfo.Feature.PEDAL_BASS)));
+        map.put("Use Accent Chord", cris.stream().anyMatch(cri -> cri.hasOneFeature(ChordRenderingInfo.Feature.ACCENT)));
+        map.put("Use Stronger Accent Chord", cris.stream().anyMatch(cri -> cri.hasOneFeature(
+                ChordRenderingInfo.Feature.ACCENT_STRONGER)));
+        map.put("Use Crash Chord", cris.stream().anyMatch(cri -> cri.hasOneFeature(ChordRenderingInfo.Feature.CRASH)));
+        map.put("Use No Crash Chord", cris.stream().anyMatch(cri -> cri.hasOneFeature(ChordRenderingInfo.Feature.NO_CRASH)));
+        map.put("Use Extended Hold/Shot Chord", cris.stream().anyMatch(cri -> cri.hasOneFeature(
+                ChordRenderingInfo.Feature.EXTENDED_HOLD_SHOT)));
+        map.put("Use Shot Chord", cris.stream().anyMatch(cri -> cri.hasOneFeature(ChordRenderingInfo.Feature.SHOT)));
+        map.put("Use Hold Chord", cris.stream().anyMatch(cri -> cri.hasOneFeature(ChordRenderingInfo.Feature.HOLD)));
+        map.put("Use Scale Chord", cris.stream().anyMatch(cri -> cri.getScaleInstance() != null));
+        map.put("Use Substitute Chord", ecss.stream().anyMatch(ecs -> ecs.getAlternateChordSymbol() != null));
+
+
+        Analytics.logEvent("Save Song", map);
+        Analytics.incrementProperties("Nb Save Song", 1);
+        Analytics.setPropertiesOnce(Analytics.buildMap("First Save", Analytics.toStdDateTimeString()));
     }
 }

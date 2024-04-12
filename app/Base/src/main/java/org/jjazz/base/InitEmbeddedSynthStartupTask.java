@@ -41,13 +41,13 @@ import org.openide.util.lookup.ServiceProvider;
  */
 
 @ServiceProvider(service = OnShowingTask.class)
-public class StartupEmbeddedSynthInitTask implements OnShowingTask
+public class InitEmbeddedSynthStartupTask implements OnShowingTask
 {
 
     private static final String PREF_EMBEDDED_SYNTH_ACTIVATED = "PrefEmbeddedSynthActivated";
     private static final String PREF_FLUIDSYNTH_DISABLED_WARNING_SHOWN = "PrefFluidSynthDisabledWarningShown";
     private static final Preferences prefs = NbPreferences.forModule(JJazzMidiSystem.class);
-    private static final Logger LOGGER = Logger.getLogger(StartupEmbeddedSynthInitTask.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(InitEmbeddedSynthStartupTask.class.getSimpleName());
 
     @Override
     public void run()

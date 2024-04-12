@@ -22,7 +22,7 @@
  */
 package org.jjazz.rhythmselectiondialog.api;
 
-import org.jjazz.musiccontrol.api.RhythmPreviewer;
+import org.jjazz.rhythmselectiondialog.spi.RhythmPreviewer;
 import javax.swing.JDialog;
 import org.jjazz.rhythmdatabase.api.RhythmInfo;
 import org.openide.windows.WindowManager;

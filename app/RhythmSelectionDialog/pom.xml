@@ -49,9 +49,44 @@
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
+            <artifactId>song</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>      
+        <dependency> 
+            <groupId>${project.groupId}</groupId> 
+            <artifactId>songstructure</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>    
+        <dependency> 
+            <groupId>${project.groupId}</groupId> 
+            <artifactId>songcontext</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>      
+        <dependency> 
+            <groupId>${project.groupId}</groupId> 
+            <artifactId>outputsynth</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>              
+        <dependency> 
+            <groupId>${project.groupId}</groupId> 
             <artifactId>midi</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
+        <dependency> 
+            <groupId>${project.groupId}</groupId> 
+            <artifactId>chordleadsheet</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>       
+        <dependency> 
+            <groupId>${project.groupId}</groupId> 
+            <artifactId>midimix</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>              
+        <dependency> 
+            <groupId>${project.groupId}</groupId> 
+            <artifactId>activesong</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>         
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>rhythmdatabaseimpl</artifactId>

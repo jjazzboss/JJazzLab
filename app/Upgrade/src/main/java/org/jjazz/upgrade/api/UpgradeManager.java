@@ -35,7 +35,6 @@ import java.util.prefs.Preferences;
 import org.jjazz.startup.spi.OnStartTask;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.*;
-import org.openide.modules.OnStart;
 import org.openide.modules.Places;
 import org.openide.util.Lookup;
 import org.openide.util.NbPreferences;
@@ -65,7 +64,7 @@ public class UpgradeManager
     private static UpgradeManager INSTANCE;
     private String importSourceVersion = NOT_SET;
     private final boolean isFreshStart;
-    private static Preferences prefs = NbPreferences.forModule(UpgradeManager.class);
+    private static final Preferences prefs = NbPreferences.forModule(UpgradeManager.class);
     private static final Logger LOGGER = Logger.getLogger(UpgradeManager.class.getSimpleName());
 
     static public UpgradeManager getInstance()

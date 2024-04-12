@@ -28,6 +28,7 @@ import java.util.logging.Logger;
 import javax.sound.midi.MidiUnavailableException;
 import javax.swing.AbstractAction;
 import javax.swing.JFileChooser;
+import org.jjazz.analytics.api.Analytics;
 import org.jjazz.musiccontrol.api.SongMidiExporter;
 import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.song.api.Song;
@@ -110,8 +111,12 @@ public class ExportToMidiFile extends AbstractAction
                 return;
             }
         }
+                
 
+        // Log event
+        Analytics.logEvent("Export Midi");
 
+        
         MidiMix midiMix = null;
         try
         {

@@ -40,8 +40,12 @@
             <groupId>${project.groupId}</groupId>
             <artifactId>guava</artifactId>
             <version>${project.version}</version>
-            
         </dependency>  
+        <dependency> 
+            <groupId>${project.groupId}</groupId> 
+            <artifactId>coreuicomponents</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>         
         <dependency> 
             <groupId>${project.groupId}</groupId> 
             <artifactId>harmony</artifactId> 
@@ -117,6 +121,11 @@
             <artifactId>uiutilities</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>analytics</artifactId>
+            <version>${project.version}</version>
+        </dependency>        
         <dependency> 
             <groupId>${project.groupId}</groupId> 
             <artifactId>utilities</artifactId> 
@@ -138,10 +147,12 @@
             <version>${netbeans.version}</version>  
         </dependency>
         <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>analytics</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+            <groupId>org.netbeans.api</groupId>
+            <artifactId>org-openide-windows</artifactId>
+            <version>${netbeans.version}</version>
+        </dependency>        
+
+
     </dependencies>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

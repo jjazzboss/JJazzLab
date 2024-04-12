@@ -41,7 +41,7 @@ import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmdatabase.api.RhythmInfo;
 import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
-import org.jjazz.musiccontrol.api.RhythmPreviewer;
+import org.jjazz.rhythmselectiondialog.spi.RhythmPreviewer;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
 import org.jjazz.ss_editor.api.SS_SelectionUtilities;
@@ -141,13 +141,16 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
         RhythmSelectionDialog dlg = RhythmSelectionDialogProvider.getDefault().getDialog();
         Rhythm rSelSpt0 = selSpt0.getRhythm();
         RhythmPreviewer previewer = RhythmPreviewer.getDefault();
-        try
+        if (previewer != null)
         {
-            previewer.setContext(song, selSpt0);
-        } catch (MidiUnavailableException ex)
-        {
-            LOGGER.log(Level.WARNING, "changeRhythm() Can''t set context ex={0}. RhythmPreviewProvider disabled.", ex.getMessage());
-            previewer = null;
+            try
+            {
+                previewer.setContext(song, selSpt0);
+            } catch (MidiUnavailableException ex)
+            {
+                LOGGER.log(Level.WARNING, "changeRhythm() Can''t set context ex={0}. RhythmPreviewProvider disabled.", ex.getMessage());
+                previewer = null;
+            }
         }
         var rdb = RhythmDatabase.getDefault();
         RhythmInfo ri = rdb.getRhythm(rSelSpt0.getUniqueId());

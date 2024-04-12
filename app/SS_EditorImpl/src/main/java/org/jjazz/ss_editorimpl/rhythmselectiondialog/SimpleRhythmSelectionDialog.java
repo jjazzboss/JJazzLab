@@ -38,7 +38,7 @@ import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.TempoRange;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmdatabase.api.RhythmInfo;
-import org.jjazz.musiccontrol.api.RhythmPreviewer;
+import org.jjazz.rhythmselectiondialog.spi.RhythmPreviewer;
 import org.jjazz.rhythmselectiondialog.api.RhythmSelectionDialog;
 
 public class SimpleRhythmSelectionDialog extends RhythmSelectionDialog implements ListSelectionListener

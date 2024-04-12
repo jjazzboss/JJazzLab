@@ -22,7 +22,7 @@
  *   Contributor(s): 
  * 
  */
-package org.jjazz.musiccontrol.api;
+package org.jjazz.rhythmselectiondialog.spi;
 
 import java.awt.event.ActionListener;
 import java.util.Map;
@@ -36,18 +36,19 @@ import org.openide.util.Lookup;
 
 
 /**
- * The service responsible to preview a rhythm.
+ * A service to "preview" (prehear actually) a rhythm.
  */
 public interface RhythmPreviewer
 {
 
+    /**
+     * Get the first implementation available in the global lookup.
+     *
+     * @return Can be null.
+     */
     static public RhythmPreviewer getDefault()
     {
         var res = Lookup.getDefault().lookup(RhythmPreviewer.class);
-        if (res == null)
-        {
-            throw new IllegalArgumentException("No RhythmPreviewer instance found in global lookup");
-        }
         return res;
     }
 

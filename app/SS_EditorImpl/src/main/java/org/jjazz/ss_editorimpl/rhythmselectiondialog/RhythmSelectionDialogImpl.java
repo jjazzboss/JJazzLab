@@ -59,7 +59,7 @@ import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
 import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Variation;
 import org.jjazz.rhythmdatabaseimpl.api.FavoriteRhythmProvider;
-import org.jjazz.musiccontrol.api.RhythmPreviewer;
+import org.jjazz.rhythmselectiondialog.spi.RhythmPreviewer;
 import org.jjazz.rhythmdatabaseimpl.api.AddRhythmsAction;
 import org.jjazz.rhythmdatabaseimpl.api.DeleteRhythmFile;
 import org.jjazz.rhythmselectiondialog.api.RhythmSelectionDialog;

@@ -362,7 +362,7 @@ public class RP_SYS_CustomPhraseEditor extends RpCustomEditor<RP_SYS_CustomPhras
         jScrollPane1 = new javax.swing.JScrollPane();
         list_rhythmVoices = new javax.swing.JList<>();
         lbl_rhythmVoice = new javax.swing.JLabel();
-        birdViewComponent = new org.jjazz.phrase.api.ui.PhraseBirdsEyeViewComponent();
+        birdViewComponent = new org.jjazz.coreuicomponents.api.PhraseBirdsEyeViewComponent();
         lbl_phraseInfo = new javax.swing.JLabel();
         btn_edit = new javax.swing.JButton();
         btn_cancel = new javax.swing.JButton();
@@ -527,7 +527,7 @@ public class RP_SYS_CustomPhraseEditor extends RpCustomEditor<RP_SYS_CustomPhras
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private org.jjazz.phrase.api.ui.PhraseBirdsEyeViewComponent birdViewComponent;
+    private org.jjazz.coreuicomponents.api.PhraseBirdsEyeViewComponent birdViewComponent;
     private javax.swing.JButton btn_cancel;
     private javax.swing.JButton btn_edit;
     private javax.swing.JButton btn_reset;

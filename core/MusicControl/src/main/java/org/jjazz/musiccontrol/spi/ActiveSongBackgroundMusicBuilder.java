@@ -22,7 +22,7 @@
  *   Contributor(s): 
  * 
  */
-package org.jjazz.activesong.spi;
+package org.jjazz.musiccontrol.spi;
 
 import javax.swing.event.ChangeListener;
 import org.jjazz.rhythmmusicgeneration.api.MusicGenerationQueue;
@@ -39,12 +39,11 @@ public interface ActiveSongBackgroundMusicBuilder
     /**
      * Get the default implementation.
      *
-     * @return Can't be null
+     * @return Can be null
      */
     public static ActiveSongBackgroundMusicBuilder getDefault()
     {
         var res = Lookup.getDefault().lookup(ActiveSongBackgroundMusicBuilder.class);
-        assert res != null;
         return res;
     }
 

@@ -54,19 +54,15 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.undo.UndoableEdit;
-import org.jjazz.analytics.api.Analytics;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.ClsChangeListener;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.chordleadsheet.api.event.ClsActionEvent;
 import org.jjazz.chordleadsheet.api.event.ClsChangeEvent;
-import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
-import org.jjazz.chordleadsheet.api.item.ChordRenderingInfo;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.rhythm.api.Rhythm;
@@ -841,8 +837,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
         song.setSaveNeeded(false);
 
         SongFactory.getInstance().registerSong(song);
-        Analytics.logEvent("Open Song");
-        Analytics.incrementProperties("Nb Open Song", 1);
+
 
         return song;
     }
@@ -863,9 +858,6 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
         {
             throw new IllegalArgumentException("songFile=" + songFile + " isCopy=" + isCopy);
         }
-
-
-        doAnalytics();
 
 
         if (!isCopy)
@@ -1139,41 +1131,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
                 .orElseThrow();
     }
 
-    /**
-     * Compute some anonymous stats about feature usage.
-     */
-    private void doAnalytics()
-    {
-        var ecss = chordLeadSheet.getItems(CLI_ChordSymbol.class)
-                .stream()
-                .map(cli -> cli.getData())
-                .toList();
-        var cris = ecss.stream().map(ecs -> ecs.getRenderingInfo()).collect(Collectors.toList());
-
-        HashMap<String, Object> map = new HashMap<>();
-        map.put("Memo Char Size", getComments().length());
-        map.put("Nb Chord Symbols", cris.stream().count());
-        map.put("Nb Song Parts", songStructure.getSongParts().size());
-        map.put("LeadSheet Bar Size", chordLeadSheet.getSizeInBars());
-        map.put("Song Structure Bar Size", songStructure.getSizeInBars());
-        map.put("Use Bass Pedal Chord", cris.stream().anyMatch(cri -> cri.hasOneFeature(ChordRenderingInfo.Feature.PEDAL_BASS)));
-        map.put("Use Accent Chord", cris.stream().anyMatch(cri -> cri.hasOneFeature(ChordRenderingInfo.Feature.ACCENT)));
-        map.put("Use Stronger Accent Chord", cris.stream().anyMatch(cri -> cri.hasOneFeature(
-                ChordRenderingInfo.Feature.ACCENT_STRONGER)));
-        map.put("Use Crash Chord", cris.stream().anyMatch(cri -> cri.hasOneFeature(ChordRenderingInfo.Feature.CRASH)));
-        map.put("Use No Crash Chord", cris.stream().anyMatch(cri -> cri.hasOneFeature(ChordRenderingInfo.Feature.NO_CRASH)));
-        map.put("Use Extended Hold/Shot Chord", cris.stream().anyMatch(cri -> cri.hasOneFeature(
-                ChordRenderingInfo.Feature.EXTENDED_HOLD_SHOT)));
-        map.put("Use Shot Chord", cris.stream().anyMatch(cri -> cri.hasOneFeature(ChordRenderingInfo.Feature.SHOT)));
-        map.put("Use Hold Chord", cris.stream().anyMatch(cri -> cri.hasOneFeature(ChordRenderingInfo.Feature.HOLD)));
-        map.put("Use Scale Chord", cris.stream().anyMatch(cri -> cri.getScaleInstance() != null));
-        map.put("Use Substitute Chord", ecss.stream().anyMatch(ecs -> ecs.getAlternateChordSymbol() != null));
-
-
-        Analytics.logEvent("Save Song", map);
-        Analytics.incrementProperties("Nb Save Song", 1);
-        Analytics.setPropertiesOnce(Analytics.buildMap("First Save", Analytics.toStdDateTimeString()));
-    }
+   
 
 
     // --------------------------------------------------------------------- 

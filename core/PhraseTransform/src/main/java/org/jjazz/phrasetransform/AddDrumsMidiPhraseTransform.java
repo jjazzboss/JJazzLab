@@ -42,6 +42,7 @@ import org.jjazz.songcontext.api.SongPartContext;
 import org.jjazz.uiutilities.api.UIUtilities;
 import org.jjazz.utilities.api.FloatRange;
 import org.jjazz.utilities.api.ResUtil;
+import org.jjazz.phrasetransform.spi.PtPropertyEditorFactory;
 
 /**
  * Add drums notes from a Midi file to a Drums phrase.
@@ -63,8 +64,8 @@ public class AddDrumsMidiPhraseTransform implements PhraseTransform
      *
      * @param info
      * @param addPhrase Phrase beatrange must start at 0.
-     * @param replace If true the added notes will replaceAll all same-pitch notes from the destination phrase. If false notes are
- just added (but we try to avoid having 2 notes too close).
+     * @param replace   If true the added notes will replaceAll all same-pitch notes from the destination phrase. If false notes are just added (but we try to
+     *                  avoid having 2 notes too close).
      */
     public AddDrumsMidiPhraseTransform(PhraseTransform.Info info, SizedPhrase addPhrase, boolean replace)
     {
@@ -106,7 +107,7 @@ public class AddDrumsMidiPhraseTransform implements PhraseTransform
         {
             // Remove all notes from same pitches before adding the new notes            
             // var addPhrasePitches = addPhrase.getNotesByPitch(ne -> true).keySet();
-            var addPhrasePitches =  Phrases.getNotesByPitch(addPhrase, ne -> true).keySet();
+            var addPhrasePitches = Phrases.getNotesByPitch(addPhrase, ne -> true).keySet();
             res.removeIf(ne -> addPhrasePitches.contains(ne.getPitch()));
             res.add(p);
 
@@ -166,7 +167,7 @@ public class AddDrumsMidiPhraseTransform implements PhraseTransform
     public void showUserSettingsDialog(Component anchor)
     {
         String text = ResUtil.getString(getClass(), "VelocityOffset");
-        GenericSettingsDialog dlg = new GenericSettingsDialog(properties, getInfo().getName(), PROP_VELOCITY_OFFSET, text, -63, 64, true);
+        var dlg = PtPropertyEditorFactory.getDefault().getSinglePropertyEditor(properties, getInfo().getName(), PROP_VELOCITY_OFFSET, text, -63, 64, true);
         UIUtilities.setDialogLocationRelativeTo(dlg, anchor, 0, 0.5, 0.5);
         dlg.setVisible(true);
         dlg.dispose();
@@ -200,11 +201,11 @@ public class AddDrumsMidiPhraseTransform implements PhraseTransform
     /**
      * Get an add-phrase adapted to the destination phrase size/time signature.
      * <p>
-     * Adapted add-phrase will have the same beat range and time signature than the destination phrase. If destination phrase is
-     * larger than the add-phrase, then add-phrase is duplicated as necessary (taking into account possible different time
-     * signatures). If destination phrase is shorter, add-phrase is shortened.
+     * Adapted add-phrase will have the same beat range and time signature than the destination phrase. If destination phrase is larger than the add-phrase,
+     * then add-phrase is duplicated as necessary (taking into account possible different time signatures). If destination phrase is shorter, add-phrase is
+     * shortened.
      *
-     * @param addSp The original add-phrase. Can be any size and any time signature.
+     * @param addSp  The original add-phrase. Can be any size and any time signature.
      * @param destSp The destination phrase. Can be any size and any time signature.
      * @return The new add-phrase adapted to the destination phrase, ready to be added.
      */
@@ -220,7 +221,7 @@ public class AddDrumsMidiPhraseTransform implements PhraseTransform
         int destNbBars = (int) Math.floor(destBr.size() / destTs.getNbNaturalBeats());
 
 
-        int nbAddCopies = destNbBars / addNbBars + ((destNbBars % addNbBars > 0) ? 1 : 0);       
+        int nbAddCopies = destNbBars / addNbBars + ((destNbBars % addNbBars > 0) ? 1 : 0);
 
         int destBarOffset = 0;
         for (int i = 0; i < nbAddCopies; i++)

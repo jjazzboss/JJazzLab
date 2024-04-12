@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.phrase.api.ui;
+package org.jjazz.coreuicomponents.api;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -44,11 +44,11 @@ import javax.swing.SwingUtilities;
 import javax.swing.TransferHandler;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.phrase.api.NoteEvent;
-import org.jjazz.phrase.api.Phrase;
+import org.jjazz.phrase.api.Phrase; 
+import org.jjazz.uisettings.api.GeneralUISettings;
 import org.jjazz.uisettings.api.NoteColorManager;
 import org.jjazz.uiutilities.api.HSLColor;
 import org.jjazz.uiutilities.api.UIUtilities;
-import org.jjazz.uisettings.api.GeneralUISettings;
 import org.jjazz.utilities.api.FloatRange;
 import org.jjazz.utilities.api.IntRange;
 

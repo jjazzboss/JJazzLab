@@ -33,7 +33,7 @@ import java.util.logging.Logger;
 import javax.sound.midi.Sequence;
 import javax.sound.midi.Track;
 import javax.swing.event.SwingPropertyChangeSupport;
-import org.jjazz.activesong.spi.ActiveSongBackgroundMusicBuilder;
+import org.jjazz.musiccontrol.spi.ActiveSongBackgroundMusicBuilder;
 import org.jjazz.chordleadsheet.api.ClsUtilities;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.midi.api.InstrumentMix;
@@ -612,29 +612,33 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
      */
     private SongSequenceBuilder.SongSequence generateSongSequence(SongContext sgContext, boolean silent, boolean useBackgroundMusicBuilder) throws MusicGenerationException
     {
-        SongSequenceBuilder.SongSequence res;
+        SongSequenceBuilder.SongSequence res = null;
         SongSequenceBuilder seqBuilder = new SongSequenceBuilder(sgContext);
 
-        
-        // Reuse ActiveSongBackgroundMusicBuilder result when possible
-        var backgroundMusicBuilder = ActiveSongBackgroundMusicBuilder.getDefault();
-        var lastResult = backgroundMusicBuilder.getLastResult();
-        if (useBackgroundMusicBuilder
-                && !MusicController.getInstance().getState().equals(MusicController.State.STOPPED)
-                && !backgroundMusicBuilder.isDirectlyGeneratingMusic()
-                && sgContext.equals(lastResult)
-                && lastResult.userException() == null)
-        {
-            // Build sequence directly from phrases
-            var mapRvPhrases = lastResult.mapRvPhrases();
-            res = seqBuilder.buildSongSequence(mapRvPhrases);   // Can raise MusicGenerationException
 
-        } else
+        // Reuse ActiveSongBackgroundMusicBuilder result when possible
+        var bmb = ActiveSongBackgroundMusicBuilder.getDefault();
+        if (bmb != null)
+        {
+            var lastResult = bmb.getLastResult();
+            if (useBackgroundMusicBuilder
+                    && !MusicController.getInstance().getState().equals(MusicController.State.STOPPED)
+                    && !bmb.isDirectlyGeneratingMusic()
+                    && sgContext.equals(lastResult)
+                    && lastResult.userException() == null)
+            {
+                // Build sequence directly from phrases
+                var mapRvPhrases = lastResult.mapRvPhrases();
+                res = seqBuilder.buildSongSequence(mapRvPhrases);   // Can raise MusicGenerationException
+            }
+        }
+
+        if (res == null)
         {
             // Build from scratch
             res = seqBuilder.buildAll(silent); // Can raise MusicGenerationException
         }
-        
+
         // Robustness, if unexpected error, assertion error etc.
         if (res == null)
         {
