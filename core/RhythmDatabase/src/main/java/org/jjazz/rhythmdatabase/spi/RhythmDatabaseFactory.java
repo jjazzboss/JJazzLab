@@ -24,6 +24,7 @@
  */
 package org.jjazz.rhythmdatabase.spi;
 
+import org.jjazz.rhythmdatabase.api.DefaultRhythmDatabase;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.openide.util.Lookup;
 
@@ -33,8 +34,35 @@ import org.openide.util.Lookup;
 public interface RhythmDatabaseFactory
 {
 
+    static class DefaultFactory implements RhythmDatabaseFactory
+    {
+
+        static private DefaultFactory INSTANCE;
+        private final RhythmDatabase dbInstance;
+
+        static DefaultFactory getInstance()
+        {
+            if (INSTANCE == null)
+            {
+                INSTANCE = new DefaultFactory();
+            }
+            return INSTANCE;
+        }
+
+        private DefaultFactory()
+        {
+            dbInstance = new DefaultRhythmDatabase();
+        }
+
+        @Override
+        public RhythmDatabase get()
+        {
+            return dbInstance;
+        }
+    }
+
     /**
-     * Return the first implementation found in the global lookup.
+     * Return the first implementation found in the global lookup, or the DefaultFactory.
      *
      * @return
      */
@@ -43,17 +71,18 @@ public interface RhythmDatabaseFactory
         RhythmDatabaseFactory result = Lookup.getDefault().lookup(RhythmDatabaseFactory.class);
         if (result == null)
         {
-            throw new IllegalArgumentException("No RhythmDatabaseFactory implementation found in global lookup");
+            result = DefaultFactory.getInstance();
         }
         return result;
     }
 
 
     /**
-     * Get the RhythmDatabase instance.
+     * A factory to return a DefaultRhythmDatabase instance.
      *
      * @return
      */
     RhythmDatabase get();
+
 
 }

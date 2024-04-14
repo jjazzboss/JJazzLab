@@ -20,8 +20,11 @@
  *
  *  Contributor(s):
  */
-package org.jjazz.biab;
+package org.jjazz.importers.api;
 
+import org.jjazz.importers.api.org.jjazz.importers.SongBuilder;
+import org.jjazz.importers.api.org.jjazz.importers.BiabChord;
+import org.jjazz.importers.api.org.jjazz.importers.StyleFeatures;
 import org.jjazz.song.api.SongCreationException;
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;

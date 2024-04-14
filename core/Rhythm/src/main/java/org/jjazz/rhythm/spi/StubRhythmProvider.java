@@ -37,7 +37,7 @@ public interface StubRhythmProvider extends RhythmProvider
         StubRhythmProvider result = Lookup.getDefault().lookup(StubRhythmProvider.class);
         if (result == null)
         {
-            throw new NullPointerException("result=" + result);   
+            throw new IllegalStateException("No StubRhythmProvider implementation found");  
         }
         return result;
     }

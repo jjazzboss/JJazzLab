@@ -541,11 +541,6 @@
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>biab</artifactId> 
-            <version>${project.version}</version> 
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
             <artifactId>harmony</artifactId> 
             <version>${project.version}</version> 
         </dependency>  

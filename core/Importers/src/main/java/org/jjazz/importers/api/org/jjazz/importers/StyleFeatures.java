@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.biab;
+package org.jjazz.importers.api.org.jjazz.importers;
 
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.rhythm.api.Beat;

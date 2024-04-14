@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.biab;
+package org.jjazz.importers.api.org.jjazz.importers;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,6 +38,7 @@ import org.jjazz.chordleadsheet.api.item.ChordRenderingInfo;
 import org.jjazz.chordleadsheet.api.item.ChordRenderingInfo.Feature;
 import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.harmony.api.Position;
+import org.jjazz.importers.api.BiabFileReader;
 import org.jjazz.rhythm.api.Beat;
 import org.jjazz.rhythm.api.Feel;
 import org.jjazz.rhythm.api.Genre;

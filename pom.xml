@@ -210,7 +210,6 @@
         
     </profiles>          
     <modules>
-        <module>core/Biab</module>
         <module>core/ChordLeadSheet</module>
         <module>core/EmbeddedSynth</module>       
         <module>core/Harmony</module>
