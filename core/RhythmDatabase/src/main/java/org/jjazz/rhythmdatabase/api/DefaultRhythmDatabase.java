@@ -42,7 +42,7 @@ import org.jjazz.utilities.api.MultipleErrorsReport;
 import org.openide.util.NbPreferences;
 
 /**
- * A default implementation.
+ * A default (and basic) implementation which is used by RhythmDatabaseFactory if no other RyhthmDatabase instance is found in global lookup.
  *
  * The database is initialized with the rhythms from the available RhythmProvider instances. If no rhythm instances found, add StubRhythms
  * from the StubRhythmProvider instance.
