@@ -71,7 +71,7 @@ public class SongMidiExporter
         MusicController.getInstance().stop();
 
 
-        // Check there is at least one unmuted track
+        // Check if there is at least one unmuted track
         boolean allMuted = midiMix.getInstrumentMixes().stream()
                 .allMatch(insMix -> insMix.isMute());
         if (allMuted)

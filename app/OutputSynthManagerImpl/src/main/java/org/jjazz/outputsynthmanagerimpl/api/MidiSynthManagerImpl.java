@@ -21,27 +21,18 @@
  * Contributor(s): 
  *
  */
-package org.jjazz.outputsynthmanagerimpl;
+package org.jjazz.outputsynthmanagerimpl.api;
 
-import com.google.common.base.Preconditions;
-import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.JFileChooser;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.midi.api.MidiSynth;
-import org.jjazz.midi.api.synths.GM2Synth;
-import org.jjazz.midi.api.synths.GMSynth;
-import org.jjazz.midi.api.synths.GSSynth;
-import org.jjazz.midi.api.synths.XGSynth;
-import org.jjazz.midi.spi.MidiSynthFileReader;
+import org.jjazz.midi.api.synths.DefaultMidiSynthManager;
 import static org.jjazz.midi.spi.MidiSynthManager.loadFromResource;
 import org.jjazz.upgrade.api.UpgradeManager;
 import org.jjazz.utilities.api.ResUtil;
@@ -49,15 +40,13 @@ import org.jjazz.utilities.api.Utilities;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
-import org.openide.util.Lookup;
 import org.openide.util.lookup.ServiceProvider;
-import org.openide.windows.WindowManager;
 import org.jjazz.midi.spi.MidiSynthManager;
 import org.jjazz.startup.spi.OnShowingTask;
 
 
 @ServiceProvider(service = MidiSynthManager.class)
-public class MidiSynthManagerImpl implements MidiSynthManager
+public class MidiSynthManagerImpl extends DefaultMidiSynthManager
 {
 
     // Some builtin MidiSynth names retrieved from a .ins file
@@ -74,10 +63,8 @@ public class MidiSynthManagerImpl implements MidiSynthManager
     @StaticResource(relative = true)
     private final static String YAMAHA_REF_SYNTH_PATH = "resources/YamahaRefSynth.ins";
 
-
     private static final String MIDISYNTH_FILES_DEST_DIRNAME = "MidiSynthFiles";
 
-    private File lastSynthDir;
     private final List<MidiSynth> midiSynths = new ArrayList<>();
     private static final Logger LOGGER = Logger.getLogger(MidiSynthManagerImpl.class.getSimpleName());
     private transient final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
@@ -85,10 +72,7 @@ public class MidiSynthManagerImpl implements MidiSynthManager
 
     public MidiSynthManagerImpl()
     {
-        midiSynths.add(GMSynth.getInstance());
-        midiSynths.add(GM2Synth.getInstance());
-        midiSynths.add(XGSynth.getInstance());
-        midiSynths.add(GSSynth.getInstance());
+        // Add JJazzLab specific synths
         midiSynths.add(loadFromResource(getClass(), YAMAHA_REF_SYNTH_PATH));
         midiSynths.add(loadFromResource(getClass(), JJAZZLAB_SOUNDFONT_GS_SYNTH_PATH));
         midiSynths.add(loadFromResource(getClass(), JJAZZLAB_SOUNDFONT_GM2_SYNTH_PATH));
@@ -96,151 +80,33 @@ public class MidiSynthManagerImpl implements MidiSynthManager
 
     }
 
-
-    @Override
-    public boolean addMidiSynth(MidiSynth midiSynth)
-    {
-        Preconditions.checkNotNull(midiSynth);
-
-        if (!midiSynths.contains(midiSynth))
-        {
-            midiSynths.add(midiSynth);
-            pcs.firePropertyChange(PROP_MIDISYNTH_LIST, null, midiSynth);
-            return true;
-        }
-
-        return false;
-    }
-
-    @Override
-    public boolean removeMidiSynth(MidiSynth midiSynth)
-    {
-        boolean res = midiSynths.remove(midiSynth);
-        if (res)
-        {
-            pcs.firePropertyChange(PROP_MIDISYNTH_LIST, midiSynth, null);
-        }
-        return res;
-    }
-
-    @Override
-    public List<MidiSynth> getMidiSynths()
-    {
-        return new ArrayList<>(midiSynths);
-    }
-
-    @Override
-    public List<MidiSynth> getMidiSynths(Predicate<MidiSynth> tester)
-    {
-        return midiSynths
-                .stream()
-                .filter(ms -> tester.test(ms))
-                .toList();
-    }
-
-    @Override
-    public MidiSynth getMidiSynth(String name)
-    {
-        return midiSynths
-                .stream()
-                .filter(midiSynth -> midiSynth.getName().equals(name))
-                .findAny()
-                .orElse(null);
-    }
-
-
-    @Override
-    public File showSelectSynthFileDialog()
-    {
-        // Collect all file extensions managed by the MidiSynthFileReaders
-        List<FileNameExtensionFilter> allFilters = new ArrayList<>();
-        for (MidiSynthFileReader r : Lookup.getDefault().lookupAll(MidiSynthFileReader.class))
-        {
-            allFilters.addAll(r.getSupportedFileTypes());
-        }
-
-        // Initialize the file chooser
-        JFileChooser chooser = org.jjazz.uiutilities.api.UIUtilities.getFileChooserInstance();
-        chooser.resetChoosableFileFilters();
-        for (FileNameExtensionFilter filter : allFilters)
-        {
-            chooser.addChoosableFileFilter(filter);
-        }
-        chooser.setAcceptAllFileFilterUsed(false);
-        chooser.setMultiSelectionEnabled(false);
-        chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        chooser.setDialogTitle(ResUtil.getString(getClass(), "MidiSynthManager.DialogTitle"));
-        chooser.setCurrentDirectory(getMidiSynthFilesDir());
-
-        // Show dialog
-        if (chooser.showOpenDialog(WindowManager.getDefault().getMainWindow()) != JFileChooser.APPROVE_OPTION)
-        {
-            // User cancelled
-            return null;
-        }
-
-        File synthFile = chooser.getSelectedFile();
-        lastSynthDir = synthFile.getParentFile();
-        return synthFile;
-    }
-
-
     /**
-     * Add PropertyChangeListener.
+     * The directory where the default MidiSynth files bundled with JJazzLab are stored.
      *
-     * @param listener
+     * @return Can't be null
      */
-    @Override
-    public void addPropertyChangeListener(PropertyChangeListener listener)
+    static public File getAppConfigDirForSynths()
     {
-        pcs.addPropertyChangeListener(listener);
+        File dir = FileDirectoryManager.getInstance().getAppConfigDirectory(MIDISYNTH_FILES_DEST_DIRNAME);
+        if (dir == null)
+        {
+            throw new IllegalStateException("dir is null");
+        }
+        return dir;
     }
 
-    /**
-     * Remove PropertyChangeListener.
-     *
-     * @param listener
-     */
-    @Override
-    public void removePropertyChangeListener(PropertyChangeListener listener)
-    {
-        pcs.removePropertyChangeListener(listener);
-    }
 
     // ===============================================================================
     // Private methods
     // ===============================================================================
-
-    /**
-     * The last used directory, or if not set the standard directory for MidiSynth.
-     * <p>
-     *
-     * @return
-     */
-    private File getMidiSynthFilesDir()
-    {
-        if (lastSynthDir != null)
-        {
-            return lastSynthDir;
-        }
-        File rDir = FileDirectoryManager.getInstance().getAppConfigDirectory(MIDISYNTH_FILES_DEST_DIRNAME);
-        if (rDir == null)
-        {
-            String msg = "SERIOUS ERROR - Can't find the app. config. directory for " + MIDISYNTH_FILES_DEST_DIRNAME;
-            NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
-            DialogDisplayer.getDefault().notify(d);
-        }
-        return rDir;
-    }
-
-
     // =====================================================================================
     // Startup Task
     // =====================================================================================
     /**
      * Copy the default Midi files in the app config directory.
      * <p>
-     * Could be an UpgradeTask since it should be executed only upon fresh start. But we use a StartupTask because a user dialog might be used.
+     * Could be an UpgradeTask since it should be executed only upon fresh start. But we use a StartupTask because a user dialog might be
+     * used.
      */
     @ServiceProvider(service = OnShowingTask.class)
     public static class CopyMidiSynthsTask implements OnShowingTask
@@ -273,15 +139,12 @@ public class MidiSynthManagerImpl implements MidiSynthManager
 
         private void initializeDir()
         {
-            File dir = FileDirectoryManager.getInstance().getAppConfigDirectory(MIDISYNTH_FILES_DEST_DIRNAME);
-            if (dir == null)
-            {
-                return;
-            }
+            File dir = getAppConfigDirForSynths();
             if (!dir.isDirectory())
             {
                 LOGGER.log(Level.WARNING, "CopyMidiSynthsTask.initializeDir() Could not access directory {0}.", dir.getAbsolutePath());
-            } else
+            }
+            else
             {
                 // Copy files 
                 copyFilesOrNot(dir);
@@ -291,8 +154,8 @@ public class MidiSynthManagerImpl implements MidiSynthManager
         /**
          * If dir is not empty ask user confirmation to replace files.
          * <p>
-         * Normally dir will be empty for a real fresh start. But if user deleted its user settings and has changed some Midi synth definition file, better to
-         * ask him if it's OK to copy the files over.
+         * Normally dir will be empty for a real fresh start. But if user deleted its user settings and has changed some Midi synth
+         * definition file, better to ask him if it's OK to copy the files over.
          *
          * @param dir Must exist.
          */
@@ -302,7 +165,8 @@ public class MidiSynthManagerImpl implements MidiSynthManager
             try
             {
                 isEmpty = Utilities.isEmpty(dir.toPath());
-            } catch (IOException ex)
+            }
+            catch (IOException ex)
             {
                 LOGGER.log(Level.WARNING, "CopyMidiSynthsTask.copyFilesOrNot() Can''t check if dir. is empty. ex={0}", ex.getMessage());
                 return;
@@ -316,7 +180,7 @@ public class MidiSynthManagerImpl implements MidiSynthManager
                     "OK", ResUtil.getString(getClass(), "MidiSynthManager.Skip")
                 };
                 NotifyDescriptor d = new NotifyDescriptor(msg, ResUtil.getString(getClass(), "MidiSynthManager.FirstTimeInit"), 0,
-                        NotifyDescriptor.QUESTION_MESSAGE, options, "OK");
+                    NotifyDescriptor.QUESTION_MESSAGE, options, "OK");
                 Object result = DialogDisplayer.getDefault().notify(d);
 
                 if (!result.equals("OK"))

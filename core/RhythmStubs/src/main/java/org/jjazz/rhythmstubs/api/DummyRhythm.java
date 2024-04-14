@@ -42,7 +42,7 @@ import org.jjazz.rhythm.api.RhythmVoice.Type;
 import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Variation;
 
 /**
- * A dummy rhythm which does nothing.
+ * A dummy rhythm with only one STD_Variation RhythmParameter.
  */
 public class DummyRhythm implements Rhythm
 {

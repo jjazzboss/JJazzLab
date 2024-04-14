@@ -26,6 +26,7 @@ package org.jjazz.midimix.spi;
 
 
 import javax.sound.midi.MidiUnavailableException;
+import org.jjazz.midimix.api.DefaultMidiMixManager;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.song.api.Song;
@@ -42,7 +43,7 @@ public interface MidiMixManager
         var res = Lookup.getDefault().lookup(MidiMixManager.class);
         if (res == null)
         {
-            throw new IllegalStateException("No MidiMixManager instance found in global lookup");
+            res = DefaultMidiMixManager.getInstance();
         }
         return res;
     }

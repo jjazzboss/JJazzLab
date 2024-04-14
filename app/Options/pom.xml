@@ -63,8 +63,12 @@
             <groupId>${project.groupId}</groupId>
             <artifactId>guava</artifactId>
             <version>${project.version}</version>
-            
         </dependency>  
+        <dependency> 
+            <groupId>${project.groupId}</groupId> 
+            <artifactId>outputsynthmanagerimpl</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>          
         <dependency> 
             <groupId>${project.groupId}</groupId> 
             <artifactId>harmony</artifactId> 

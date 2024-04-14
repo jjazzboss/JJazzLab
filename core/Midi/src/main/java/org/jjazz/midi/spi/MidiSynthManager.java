@@ -34,6 +34,7 @@ import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.midi.api.MidiSynth;
+import org.jjazz.midi.api.synths.DefaultMidiSynthManager;
 import org.openide.util.Lookup;
 import org.openide.util.lookup.ServiceProvider;
 
@@ -52,7 +53,7 @@ public interface MidiSynthManager
     public static String PROP_MIDISYNTH_LIST = "PropSynthList";
 
     /**
-     * Get the default implementation.
+     * Get the default implementation in the global lookup, or if not found return the DefaultMidiSynthManager instance.
      *
      * @return
      */
@@ -61,7 +62,7 @@ public interface MidiSynthManager
         var res = Lookup.getDefault().lookup(MidiSynthManager.class);
         if (res == null)
         {
-            throw new IllegalStateException("No MidiSynthManager instance found in global lookup");
+            res = DefaultMidiSynthManager.getInstance();
         }
         return res;
     }
@@ -108,14 +109,7 @@ public interface MidiSynthManager
      */
     boolean removeMidiSynth(MidiSynth midiSynth);
 
-    /**
-     * Show a dialog to select a MidiSynth definition file.
-     * <p>
-     * Use the file extensions managed by the MidiSynthFileReaders found in the global lookup.
-     *
-     * @return The selected file. Null if user cancelled or no selection.
-     */
-    File showSelectSynthFileDialog();
+
 
 
     /**
@@ -153,7 +147,8 @@ public interface MidiSynthManager
             List<MidiSynth> synths = r.readSynthsFromStream(is, null);
             assert synths.size() == 1;
             res = synths.get(0);
-        } catch (IOException ex)
+        }
+        catch (IOException ex)
         {
             throw new IllegalStateException("Unexpected error", ex);
         }
@@ -192,7 +187,8 @@ public interface MidiSynthManager
                     // Not created yet, load it and add it to the database
                     res = MidiSynth.loadFromFile(synthFile);    // throws IOException
                     msm.addMidiSynth(res);
-                } catch (IOException ex)
+                }
+                catch (IOException ex)
                 {
                     LOGGER.log(Level.WARNING, "getMidiSynth() can''t load MidiSynth ex={0}", ex.getMessage());
                 }

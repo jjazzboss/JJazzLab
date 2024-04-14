@@ -172,7 +172,7 @@ public class DefaultRhythmDatabase implements RhythmDatabase
     @Override
     public AdaptedRhythm getAdaptedRhythmInstance(Rhythm r, TimeSignature ts)
     {
-        throw new UnsupportedOperationException();
+        return null;
     }
 
 

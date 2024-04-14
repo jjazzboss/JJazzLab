@@ -25,9 +25,18 @@
 package org.jjazz.outputsynth.spi;
 
 import java.beans.PropertyChangeListener;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.jjazz.midi.api.Instrument;
+import org.jjazz.midi.api.JJazzMidiSystem;
+import org.jjazz.midi.api.MidiSynth;
+import org.jjazz.midi.api.synths.GM2Synth;
+import org.jjazz.midi.api.synths.GMSynth;
+import org.jjazz.midi.api.synths.GSSynth;
+import org.jjazz.midi.api.synths.XGSynth;
 import org.jjazz.midimix.api.UserRhythmVoice;
 import org.jjazz.midimix.spi.RhythmVoiceInstrumentProvider;
+import org.jjazz.outputsynth.api.DefaultOutputSynthManager;
 import org.jjazz.outputsynth.api.OutputSynth;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.openide.util.Lookup;
@@ -49,24 +58,31 @@ public interface OutputSynthManager
     public static String STD_YAMAHA_TYROS_REF = "YamahaTyrosRef";
 
     /**
-     * Property change event fired each time a new OutputSynth is associated to the default JJazzLab MidiDevice OUT: oldValue=old OutputSynth, newValue=new
-     * OutputSynth.
+     * Property change event fired each time a new OutputSynth is associated to the default JJazzLab MidiDevice OUT: oldValue=old
+     * OutputSynth, newValue=new OutputSynth.
      * <p>
      * The change event is also fired when default JJazzLab MidiDevice OUT changes.
      */
     String PROP_DEFAULT_OUTPUTSYNTH = "PropDefaultOutputSynth";
     /**
-     * Property change event fired each time a new OutputSynth is associated to a MidiDevice OUT: oldValue=Midi device OUT name, newValue=OutputSynth.
+     * Property change event fired each time a new OutputSynth is associated to a MidiDevice OUT: oldValue=Midi device OUT name,
+     * newValue=OutputSynth.
      */
     String PROP_MDOUT_OUTPUTSYNTH = "MdOut-OutputSynth";
 
+    static final Logger LOGGER = Logger.getLogger(OutputSynthManager.class.getSimpleName());
 
+    /**
+     * Get the first implementation available in the global lookup, or if not found return the DefaultOutputSynthManager instance.
+     *
+     * @return
+     */
     public static OutputSynthManager getDefault()
     {
         var res = Lookup.getDefault().lookup(OutputSynthManager.class);
         if (res == null)
         {
-            throw new IllegalStateException("Can't find OutputSynthManager instance in the global lookup");
+            res = DefaultOutputSynthManager.getInstance();
         }
         return res;
     }
@@ -88,7 +104,43 @@ public interface OutputSynthManager
      * @param stdName The name of the standard output synth, eg "GM".
      * @return Can be null
      */
-    OutputSynth getStandardOutputSynth(String stdName);
+    default OutputSynth getStandardOutputSynth(String stdName)
+    {
+        MidiSynth synth = null;
+        OutputSynth.UserSettings.SendModeOnUponPlay mode = null;
+        switch (stdName)
+        {
+            case OutputSynthManager.STD_GM ->
+            {
+                synth = GMSynth.getInstance();
+                mode = OutputSynth.UserSettings.SendModeOnUponPlay.GM;
+            }
+            case OutputSynthManager.STD_GM2 ->
+            {
+                synth = GM2Synth.getInstance();
+                mode = OutputSynth.UserSettings.SendModeOnUponPlay.GM2;
+            }
+            case OutputSynthManager.STD_GS ->
+            {
+                synth = GSSynth.getInstance();
+                mode = OutputSynth.UserSettings.SendModeOnUponPlay.GS;
+            }
+            case OutputSynthManager.STD_XG ->
+            {
+                synth = XGSynth.getInstance();
+                mode = OutputSynth.UserSettings.SendModeOnUponPlay.XG;
+            }
+            default ->
+            {
+                return null;
+            }
+        }
+
+        var res = new OutputSynth(synth);
+        res.getUserSettings().setSendModeOnUponPlay(mode);
+
+        return res;
+    }
 
 
     /**
@@ -103,7 +155,7 @@ public interface OutputSynthManager
      * Associate outSynth to the specified midi OUT device name.
      *
      * @param mdOutName Can't be null
-     * @param outSynth  Can't be null
+     * @param outSynth Can't be null
      */
     void setMidiDeviceOutputSynth(String mdOutName, OutputSynth outSynth);
 
@@ -112,7 +164,18 @@ public interface OutputSynthManager
      * <p>
      * Should be called if the list of available OUT MidiDevices has changed.
      */
-    void refresh();
+    default void refresh()
+    {
+        LOGGER.fine("refresh() -- ");
+        for (var mdOut : JJazzMidiSystem.getInstance().getOutDeviceList())
+        {
+            var outSynth = getMidiDeviceOutputSynth(mdOut.getDeviceInfo().getName());
+            LOGGER.log(Level.FINE, "refresh() mdOut={0} outSynth{1}", new Object[]
+            {
+                mdOut.getDeviceInfo().getName(), outSynth
+            });
+        }
+    }
 
     void addPropertyChangeListener(PropertyChangeListener l);
 
@@ -148,7 +211,8 @@ public interface OutputSynthManager
             if ((rv instanceof UserRhythmVoice) && !rv.isDrums())
             {
                 ins = outSynth.getUserSettings().getUserMelodicInstrument();
-            } else
+            }
+            else
             {
                 ins = outSynth.findInstrument(rv);
 
