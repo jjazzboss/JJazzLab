@@ -62,6 +62,11 @@ public interface RhythmDatabase
     }
     static final Logger LOGGER = Logger.getLogger(RhythmDatabase.class.getSimpleName());
 
+    /**
+     * Helper method which delegates to RhythmDatabaseFactory.getDefault().get().
+     *
+     * @return
+     */
     public static RhythmDatabase getDefault()
     {
         return RhythmDatabaseFactory.getDefault().get();

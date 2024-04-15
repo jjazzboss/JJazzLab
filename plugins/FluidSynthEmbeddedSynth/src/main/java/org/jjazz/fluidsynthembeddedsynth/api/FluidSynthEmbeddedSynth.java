@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.fluidsynthembeddedsynth;
+package org.jjazz.fluidsynthembeddedsynth.api;
 
 import java.awt.Component;
 import java.beans.PropertyChangeEvent;
@@ -57,11 +57,12 @@ public class FluidSynthEmbeddedSynth implements EmbeddedSynth, PropertyChangeLis
     private static final Reverb DEFAULT_REVERB = Reverb.ROOM_REVERB;
     private static final Chorus DEFAULT_CHORUS = Chorus.NORMAL_CHORUS;
     private static final List<Reverb> REVERB_PRESETS = Arrays.asList(Reverb.ZERO_REVERB, Reverb.SMALL_ROOM_REVERB, Reverb.ROOM_REVERB,
-            Reverb.HALL_REVERB, Reverb.LARGE_HALL_REVERB);
+        Reverb.HALL_REVERB, Reverb.LARGE_HALL_REVERB);
     private static final List<Chorus> CHORUS_PRESETS = Arrays.asList(Chorus.ZERO_CHORUS, Chorus.NORMAL_CHORUS, Chorus.SLOW_CHORUS,
-            Chorus.THICK_CHORUS);
+        Chorus.THICK_CHORUS);
 
     private FluidSynthJava fluidSynth;
+    private File soundFontFile;
     private static final Preferences prefs = NbPreferences.forModule(FluidSynthEmbeddedSynth.class);
     private static final Logger LOGGER = Logger.getLogger(FluidSynthEmbeddedSynth.class.getSimpleName());
 
@@ -69,6 +70,61 @@ public class FluidSynthEmbeddedSynth implements EmbeddedSynth, PropertyChangeLis
     {
         assert REVERB_PRESETS.contains(DEFAULT_REVERB);
         assert CHORUS_PRESETS.contains(DEFAULT_CHORUS);
+    }
+
+    /**
+     * Set the soundfont file to be used when opening the device.
+     *
+     * If synth is already opened, the file will be used only on the next open().
+     *
+     * @param f Can be null.
+     * @see #getSoundFontFile()
+     */
+    public void setSoundFontFile(File f)
+    {
+        soundFontFile = f;
+    }
+
+    /**
+     * Get the SoundFont file to be used when opening the synth.
+     * <p>
+     * The method uses the 3 possibilities in this specified order: <br>
+     * 1/ If it's defined, use file from the SOUNDFONT_FILE_COMMAND_LINE_PROPERTY command line property<br>
+     * 2/ If non-null, use the file set using setSoundFontFile()<br>
+     * 3/ If it exists, use the file bundled in this module at location SOUNDFONT_FILE<br>
+     *
+     * @return
+     * @throws org.jjazz.fluidsynthjava.api.FluidSynthException
+     */
+    public File getSoundFontFile() throws FluidSynthException
+    {
+        File f;
+
+        // First check command line parameter
+        String cmdLinePath = System.getProperty(SOUNDFONT_FILE_COMMAND_LINE_PROPERTY);
+        if (cmdLinePath != null)
+        {
+            f = new File(cmdLinePath);
+            LOGGER.log(Level.FINE, "Using SoundFont file from property " + SOUNDFONT_FILE_COMMAND_LINE_PROPERTY + "={0}", cmdLinePath);
+        }
+        else if (soundFontFile != null)
+        {
+            f = soundFontFile;
+            LOGGER.log(Level.FINE, "Using SoundFont file {0}", soundFontFile.getAbsolutePath());
+        }
+        else
+        {
+            f = InstalledFileLocator.getDefault().locate(SOUNDFONT_FILE, "org.jjazzlab.fluidsynthembeddedsynth", false);
+            LOGGER.log(Level.FINE, "Using SoundFont file from current module (" + SOUNDFONT_FILE + ")");
+        }
+
+        if (!fastCheckSoundFontFile(f))
+        {
+            throw new FluidSynthException(ResUtil.getString(getClass(), "InvalidSoundFontFile", (f == null ? "null" : f.getAbsolutePath())));
+        }
+
+        return f;
+
     }
 
     /**
@@ -100,7 +156,8 @@ public class FluidSynthEmbeddedSynth implements EmbeddedSynth, PropertyChangeLis
             Chorus c = getChorusPreset(prefs.get(PREF_CHORUS, null));
             fluidSynth.setChorus(r == null ? DEFAULT_CHORUS : c);
 
-        } catch (FluidSynthException ex)
+        }
+        catch (FluidSynthException ex)
         {
             close();
             throw new EmbeddedSynthException(ex.getMessage());
@@ -149,7 +206,7 @@ public class FluidSynthEmbeddedSynth implements EmbeddedSynth, PropertyChangeLis
 
     @Override
     public void showSettings(Component c)
-    {       
+    {
         var dialog = new SettingsDialog(this);
         dialog.setLocationRelativeTo(c);
         dialog.setVisible(true);
@@ -161,7 +218,8 @@ public class FluidSynthEmbeddedSynth implements EmbeddedSynth, PropertyChangeLis
         try
         {
             fluidSynth.generateWavFile(midiFile, wavFile);
-        } catch (FluidSynthException ex)
+        }
+        catch (FluidSynthException ex)
         {
             throw new EmbeddedSynthException(ex.getMessage());
         }
@@ -175,12 +233,12 @@ public class FluidSynthEmbeddedSynth implements EmbeddedSynth, PropertyChangeLis
      */
     static public boolean fastCheckSoundFontFile(File f)
     {
-        if (f == null || !f.exists() || !f.isFile())
+        if (f == null || !f.isFile())
         {
             return false;
         }
         long fileSize = f.length();
-        return fileSize > 356719460 && fileSize < 356720650;
+        return fileSize > 10;
     }
 
     protected Reverb[] getReverbPresets()
@@ -221,51 +279,17 @@ public class FluidSynthEmbeddedSynth implements EmbeddedSynth, PropertyChangeLis
     private Reverb getReverbPreset(String name)
     {
         return REVERB_PRESETS.stream()
-                .filter(r -> r.name().equals(name))
-                .findAny()
-                .orElse(null);
+            .filter(r -> r.name().equals(name))
+            .findAny()
+            .orElse(null);
     }
 
     private Chorus getChorusPreset(String name)
     {
         return CHORUS_PRESETS.stream()
-                .filter(r -> r.name().equals(name))
-                .findAny()
-                .orElse(null);
-    }
-
-
-    /**
-     * Retrieve the SoundFont file.
-     *
-     * @return
-     */
-    private File getSoundFontFile() throws FluidSynthException
-    {
-        File f = null;
-
-        // First check command line parameter
-        String cmdLinePath = System.getProperty(SOUNDFONT_FILE_COMMAND_LINE_PROPERTY);
-
-        if (cmdLinePath != null)
-        {
-            f = new File(cmdLinePath);
-            LOGGER.log(Level.INFO, "Using SoundFont file from property " + SOUNDFONT_FILE_COMMAND_LINE_PROPERTY + "={0}", cmdLinePath);
-
-        } else
-        {
-
-            // Then check standard location for bundled file
-            f = InstalledFileLocator.getDefault().locate(SOUNDFONT_FILE, "org.jjazzlab.fluidsynthembeddedsynth", false);
-        }
-
-        if (!fastCheckSoundFontFile(f))
-        {
-            throw new FluidSynthException(ResUtil.getString(getClass(), "InvalidSoundFontFile",
-                    (f == null ? "null" : f.getAbsolutePath())));
-        }
-        return f;
-
+            .filter(r -> r.name().equals(name))
+            .findAny()
+            .orElse(null);
     }
 
 

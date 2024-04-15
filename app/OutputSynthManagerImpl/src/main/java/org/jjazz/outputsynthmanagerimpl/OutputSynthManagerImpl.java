@@ -36,7 +36,7 @@ import org.jjazz.outputsynth.api.DefaultOutputSynthManager;
 
 
 /**
- * Extend DefaultOutputSynthManager with a few features.
+ * Extends DefaultOutputSynthManager with a few features.
  */
 @ServiceProvider(service = OutputSynthManager.class)
 public class OutputSynthManagerImpl extends DefaultOutputSynthManager

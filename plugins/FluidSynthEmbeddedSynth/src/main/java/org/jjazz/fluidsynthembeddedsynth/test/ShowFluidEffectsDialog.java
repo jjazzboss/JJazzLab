@@ -27,7 +27,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.logging.Logger;
 import org.jjazz.embeddedsynth.spi.EmbeddedSynthProvider;
-import org.jjazz.fluidsynthembeddedsynth.FluidSynthEmbeddedSynth;
+import org.jjazz.fluidsynthembeddedsynth.api.FluidSynthEmbeddedSynth;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;

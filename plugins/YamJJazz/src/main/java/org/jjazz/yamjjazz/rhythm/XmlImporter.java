@@ -93,7 +93,7 @@ public class XmlImporter implements SongImporter
             f = getMxlUncompressedFile(f);
         }
 
-        MusicXMLFileReader reader = new MusicXMLFileReader(f, true);
+        MusicXMLFileReader reader = new MusicXMLFileReader(f);
         Song song = reader.readSong();
         // postProcessSong(song, reader.getStyle());
         return song;

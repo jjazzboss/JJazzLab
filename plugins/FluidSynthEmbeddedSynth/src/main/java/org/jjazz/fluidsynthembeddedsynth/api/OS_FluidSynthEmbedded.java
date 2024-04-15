@@ -20,14 +20,12 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.fluidsynthembeddedsynth;
+package org.jjazz.fluidsynthembeddedsynth.api;
 
 import java.util.logging.Logger;
-import org.jjazz.midi.api.MidiSynth;
 import org.jjazz.outputsynth.api.OutputSynth;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.jjazz.midi.spi.MidiSynthManager;
-import org.jjazz.outputsynth.spi.OutputSynthManager;
 
 /**
  * The builtin OutputSynth for our embedded synth (based on OS_JJazzLabSoundFont_XG since FluidSynth can handle XG bank select).

@@ -62,12 +62,8 @@ public class MidiSynthManagerImpl extends DefaultMidiSynthManager
     private final static String JJAZZLAB_SOUNDFONT_XG_SYNTH_PATH = "resources/JJazzLabSoundFontSynth_XG.ins";
     @StaticResource(relative = true)
     private final static String YAMAHA_REF_SYNTH_PATH = "resources/YamahaRefSynth.ins";
-
     private static final String MIDISYNTH_FILES_DEST_DIRNAME = "MidiSynthFiles";
-
-    private final List<MidiSynth> midiSynths = new ArrayList<>();
     private static final Logger LOGGER = Logger.getLogger(MidiSynthManagerImpl.class.getSimpleName());
-    private transient final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
 
     public MidiSynthManagerImpl()

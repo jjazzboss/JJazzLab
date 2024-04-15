@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.fluidsynthembeddedsynth;
+package org.jjazz.fluidsynthembeddedsynth.api;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
@@ -84,13 +84,23 @@ public class FluidSynthEmbeddedSynthProvider implements EmbeddedSynthProvider
         return midiDevice;
     }
 
+    /**
+     * Make FluidSynthJava active.
+     *
+     * Open the FluidSynthJava instance and set FluidSynthMidiDevice as the default Midi OUT device (so that out MidiMessages are redirected
+     * to the FluidSynthJava instance).
+     *
+     * @param b
+     * @throws EmbeddedSynthException
+     */
     @Override
     public void setEmbeddedSynthActive(boolean b) throws EmbeddedSynthException
     {
         if (b == active)
         {
             return;
-        } else if (!enabled)
+        }
+        else if (!enabled)
         {
             throw new EmbeddedSynthException("FluidSynthEmbeddedSynthProvider is disabled");
         }
@@ -100,35 +110,38 @@ public class FluidSynthEmbeddedSynthProvider implements EmbeddedSynthProvider
             openSynthAndDevice();       // throws EmbeddedSynthException
 
 
-            // Connect to the JazzLab application
+            // Connect to the JJazzLab application
             MidiSynthManager.getDefault().addMidiSynth(embeddedSynth.getOutputSynth().getMidiSynth());
             OutputSynthManager.getDefault().setMidiDeviceOutputSynth(midiDevice.getDeviceInfo().getName(), embeddedSynth.getOutputSynth());
 
 
             // Use our special MidiDevice
-            var jms = JJazzMidiSystem.getInstance();            
+            var jms = JJazzMidiSystem.getInstance();
             var md = jms.getDefaultOutDevice();
             saveMidiDeviceName = md == null ? null : md.getDeviceInfo().getName();
             try
             {
                 jms.setDefaultOutDevice(midiDevice);
-            } catch (MidiUnavailableException ex)
+            }
+            catch (MidiUnavailableException ex)
             {
                 // Should never be there, our midiDevice does nothing upon open...
                 Exceptions.printStackTrace(ex);
             }
 
-        } else
+        }
+        else
         {
             // Desactivate
 
             // Try to restore the previous MidiDevice
-            var jms = JJazzMidiSystem.getInstance();                        
+            var jms = JJazzMidiSystem.getInstance();
             var md = jms.getMidiDevice(jms.getOutDeviceList(), saveMidiDeviceName);
             try
             {
                 jms.setDefaultOutDevice(md);
-            } catch (MidiUnavailableException ex)
+            }
+            catch (MidiUnavailableException ex)
             {
                 LOGGER.log(Level.WARNING, "setEmbeddedSynthActive() Can''t restore previous OUT MidiDevice. ex={0}", ex.getLocalizedMessage());
             }
@@ -195,12 +208,14 @@ public class FluidSynthEmbeddedSynthProvider implements EmbeddedSynthProvider
                 {
                     embeddedSynth.open();       // throws EmbeddedSynthException
                     midiDevice.open();          // throws MidiUnavailableException
-                } catch (EmbeddedSynthException ex)
+                }
+                catch (EmbeddedSynthException ex)
                 {
                     // Possible problems: native library loading, wrong soundfont, ...
                     exception = ex;
 
-                } catch (MidiUnavailableException ex)
+                }
+                catch (MidiUnavailableException ex)
                 {
                     // Should never be here !
                     Exceptions.printStackTrace(ex);
