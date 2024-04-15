@@ -42,6 +42,11 @@
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
+            <artifactId>coreuicomponents</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>          
+        <dependency> 
+            <groupId>${project.groupId}</groupId> 
             <artifactId>filedirectorymanager</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
@@ -85,11 +90,6 @@
             <groupId>${project.groupId}</groupId> 
             <artifactId>startupmanager</artifactId> 
             <version>${project.version}</version>  
-        </dependency>  
-        <dependency>
-            <groupId>org.jjazzlab</groupId>
-            <artifactId>midi</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency> 
             <groupId>org.netbeans.api</groupId> 
@@ -104,11 +104,6 @@
         <dependency> 
             <groupId>org.netbeans.api</groupId> 
             <artifactId>org-openide-util</artifactId> 
-            <version>${netbeans.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>org.netbeans.api</groupId> 
-            <artifactId>org-openide-util-lookup</artifactId> 
             <version>${netbeans.version}</version>  
         </dependency>  
         <dependency> 

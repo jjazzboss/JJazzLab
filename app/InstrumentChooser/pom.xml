@@ -42,22 +42,12 @@
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>musiccontrol</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
             <artifactId>outputsynth</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
             <artifactId>rhythm</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>rhythmmusicgeneration</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 

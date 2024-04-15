@@ -48,11 +48,6 @@
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>midi</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
             <artifactId>rhythm</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
@@ -76,11 +71,6 @@
             <artifactId>xstream</artifactId>
             <version>${project.version}</version>
         </dependency>        
-        <dependency> 
-            <groupId>org.netbeans.api</groupId> 
-            <artifactId>org-openide-awt</artifactId> 
-            <version>${netbeans.version}</version>  
-        </dependency>  
         <dependency> 
             <groupId>org.netbeans.api</groupId> 
             <artifactId>org-openide-dialogs</artifactId> 

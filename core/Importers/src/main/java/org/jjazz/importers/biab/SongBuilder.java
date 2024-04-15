@@ -20,8 +20,9 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.importers.api.org.jjazz.importers;
+package org.jjazz.importers.biab;
 
+import org.jjazz.importers.api.BiabStyleFeatures;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
@@ -87,13 +88,13 @@ public class SongBuilder
             Genre g = Genre.UNKNOWN;
             if (reader.styleFileName != null)
             {
-                g = StyleFeatures.guessGenre(reader.styleFileName);
+                g = BiabStyleFeatures.guessGenre(reader.styleFileName);
             }
             if (g == Genre.UNKNOWN)
             {
-                g = StyleFeatures.guessGenre(reader.file.getName());
+                g = BiabStyleFeatures.guessGenre(reader.file.getName());
             }
-            reader.styleFeatures = new StyleFeatures(g, Beat.UNKNOWN, Intensity.UNKNOWN, Feel.UNKNOWN, reader.timeSignature);
+            reader.styleFeatures = new BiabStyleFeatures(g, Beat.UNKNOWN, Intensity.UNKNOWN, Feel.UNKNOWN, reader.timeSignature);
         }
 
         // Compute cls size

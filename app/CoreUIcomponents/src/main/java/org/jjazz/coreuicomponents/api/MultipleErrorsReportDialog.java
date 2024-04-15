@@ -20,19 +20,21 @@
  *
  *  Contributor(s):
  */
-package org.jjazz.utilities.api;
+package org.jjazz.coreuicomponents.api;
 
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
 import javax.swing.JComponent;
+import javax.swing.JDialog;
 import javax.swing.JRootPane;
 import javax.swing.KeyStroke;
+import org.jjazz.utilities.api.MultipleErrorsReport;
 
 /**
- * Notify the user of an MultipleErrorsReport.
+ * A dialog to notify the user of a MultipleErrorsReport.
  */
-public class MultipleErrorsReportDialog extends javax.swing.JDialog
+public class MultipleErrorsReportDialog extends JDialog
 {
 
     MultipleErrorsReport errorRpt;

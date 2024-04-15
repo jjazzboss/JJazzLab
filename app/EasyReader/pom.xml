@@ -72,11 +72,6 @@
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>rhythm</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
             <artifactId>song</artifactId> 
             <version>${project.version}</version>  
         </dependency>  

@@ -20,7 +20,7 @@
  *
  *  Contributor(s):
  */
-package org.jjazz.importers.api.org.jjazz.importers;
+package org.jjazz.importers.biab;
 
 import java.text.ParseException;
 import java.util.ArrayList;

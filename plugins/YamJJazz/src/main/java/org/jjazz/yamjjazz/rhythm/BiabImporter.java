@@ -22,7 +22,6 @@
  */
 package org.jjazz.yamjjazz.rhythm;
 
-import org.jjazz.biab.BiabFileReader;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -33,11 +32,11 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
-import java.util.stream.Collectors;
 import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import org.jjazz.biab.StyleFeatures;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
+import org.jjazz.importers.api.BiabFileReader;
+import org.jjazz.importers.api.BiabStyleFeatures;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmFeatures;
 import org.jjazz.rhythm.api.TempoRange;
@@ -135,7 +134,7 @@ public class BiabImporter implements SongImporter
     {
         // Find the best possible matching rhythm
         var rdb = RhythmDatabase.getDefault();
-        StyleFeatures sf = reader.styleFeatures;
+        BiabStyleFeatures sf = reader.styleFeatures;
         TempoRange tr = new TempoRange(reader.tempo - 15, reader.tempo + 15, "CustomTempoRange");
         RhythmFeatures rf = new RhythmFeatures(sf.feel, sf.beat, sf.genre, tr, sf.intensity);
 

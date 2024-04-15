@@ -44,12 +44,7 @@
             </plugin>
         </plugins>
     </build>
-    <dependencies>      
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>biab</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
+    <dependencies>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
             <artifactId>filedirectorymanager</artifactId> 
@@ -127,11 +122,6 @@
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>uiutilities</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
             <artifactId>utilities</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
@@ -168,11 +158,6 @@
         <dependency> 
             <groupId>org.netbeans.api</groupId> 
             <artifactId>org-openide-util</artifactId> 
-            <version>${netbeans.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>org.netbeans.api</groupId> 
-            <artifactId>org-openide-util-lookup</artifactId> 
             <version>${netbeans.version}</version>  
         </dependency>  
         <dependency> 

@@ -22,7 +22,7 @@
  */
 package org.jjazz.rhythmdatabaseimpl;
 
-import org.jjazz.utilities.api.MultipleErrorsReportDialog;
+import org.jjazz.coreuicomponents.api.MultipleErrorsReportDialog;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;

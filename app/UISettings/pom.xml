@@ -45,11 +45,6 @@
             <artifactId>filedirectorymanager</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
-        <dependency> 
-            <groupId>org.netbeans.api</groupId> 
-            <artifactId>org-netbeans-api-annotations-common</artifactId> 
-            <version>${netbeans.version}</version>  
-        </dependency>  
 <!--        <dependency> 
             <groupId>org.netbeans.api</groupId> 
             <artifactId>org-netbeans-libs-flatlaf</artifactId> 

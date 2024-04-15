@@ -22,9 +22,8 @@
  */
 package org.jjazz.importers.api;
 
-import org.jjazz.importers.api.org.jjazz.importers.SongBuilder;
-import org.jjazz.importers.api.org.jjazz.importers.BiabChord;
-import org.jjazz.importers.api.org.jjazz.importers.StyleFeatures;
+import org.jjazz.importers.biab.SongBuilder;
+import org.jjazz.importers.biab.BiabChord;
 import org.jjazz.song.api.SongCreationException;
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
@@ -66,7 +65,7 @@ public class BiabFileReader
     private int byteIndex;     // Keep track of where we are in the file
     private int styleFamilyId;
     public String styleFileName;
-    public StyleFeatures styleFeatures;     // Provide data that might help find the appropriate rhythm
+    public BiabStyleFeatures styleFeatures;     // Provide data that might help find the appropriate rhythm
     public int version;
     public String title;
     public boolean overallLoop;
@@ -172,7 +171,7 @@ public class BiabFileReader
 
         // Style family 
         styleFamilyId = readUByte(in);
-        styleFeatures = StyleFeatures.getStyleFeatures(styleFamilyId);
+        styleFeatures = BiabStyleFeatures.getStyleFeatures(styleFamilyId);
         if (styleFeatures != null)
         {
             timeSignature = styleFeatures.timeSignature;

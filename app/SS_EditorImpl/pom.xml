@@ -94,11 +94,6 @@
             <groupId>${project.groupId}</groupId> 
             <artifactId>songcontext</artifactId> 
             <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>musiccontrol</artifactId> 
-            <version>${project.version}</version>  
         </dependency>          
         <dependency> 
             <groupId>${project.groupId}</groupId> 

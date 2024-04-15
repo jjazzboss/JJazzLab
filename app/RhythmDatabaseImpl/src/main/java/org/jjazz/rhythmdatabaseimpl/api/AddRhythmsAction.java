@@ -49,7 +49,7 @@ import org.jjazz.rhythmdatabase.api.RhythmDatabase.RpRhythmPair;
 import org.jjazz.rhythm.spi.RhythmProvider;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.utilities.api.MultipleErrorsReport;
-import org.jjazz.utilities.api.MultipleErrorsReportDialog;
+import org.jjazz.coreuicomponents.api.MultipleErrorsReportDialog;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
