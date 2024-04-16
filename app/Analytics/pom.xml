@@ -42,7 +42,7 @@
             <version>${project.version}</version>  
         </dependency>  
         <dependency>
-            <groupId>org.jjazzlab</groupId>
+            <groupId>org.jjazzlab.core</groupId>
             <artifactId>utilities</artifactId>
             <version>${project.version}</version>
         </dependency>        

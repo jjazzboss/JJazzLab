@@ -7,6 +7,7 @@
         <version>4.0.3-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
+    <groupId>org.jjazzlab.core</groupId>
     <artifactId>xstream</artifactId>
     <name>Xstream</name>
     <packaging>nbm</packaging>
@@ -47,7 +48,6 @@
             <groupId>org.netbeans.api</groupId>
             <artifactId>org-openide-modules</artifactId>
             <version>${netbeans.version}</version>
-            <type>jar</type>
         </dependency>
         <dependency>
             <groupId>org.netbeans.api</groupId>

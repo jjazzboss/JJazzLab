@@ -30,68 +30,67 @@
     </build>
     <dependencies>
         <dependency>
-            <groupId>org.jjazzlab</groupId>
+            <groupId>org.jjazzlab.core</groupId>
             <artifactId>rhythm</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.jjazzlab</groupId>
+            <groupId>org.jjazzlab.core</groupId>
             <artifactId>quantizer</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.jjazzlab</groupId>
+            <groupId>org.jjazzlab.core</groupId>
             <artifactId>chordleadsheet</artifactId>
             <version>${project.version}</version>
-            <type>jar</type>
         </dependency>
         <dependency>
-            <groupId>org.jjazzlab</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>itemrenderer</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.jjazzlab</groupId>
+            <groupId>org.jjazzlab.core</groupId>
             <artifactId>harmony</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.jjazzlab</groupId>
+            <groupId>org.jjazzlab.core</groupId>
             <artifactId>song</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.jjazzlab</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>flatcomponents</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.jjazzlab</groupId>
+            <groupId>org.jjazzlab.core</groupId>
             <artifactId>uiutilities</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.jjazzlab</groupId>
+            <groupId>org.jjazzlab.core</groupId>
             <artifactId>undomanager</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.jjazzlab</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>analytics</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.jjazzlab</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>cl_editor</artifactId>
             <version>${project.version}</version>        
         </dependency>
         <dependency>
-            <groupId>org.jjazzlab</groupId>
+            <groupId>org.jjazzlab.core</groupId>
             <artifactId>guava</artifactId>
             <version>${project.version}</version>        
         </dependency>        
         <dependency>
-            <groupId>org.jjazzlab</groupId>
+            <groupId>org.jjazzlab.core</groupId>
             <artifactId>utilities</artifactId>
             <version>${project.version}</version>
         </dependency>        
@@ -111,22 +110,22 @@
             <version>${netbeans.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.jjazzlab</groupId>
+            <groupId>org.jjazzlab.core</groupId>
             <artifactId>songstructure</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.jjazzlab</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>uisettings</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.jjazzlab</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>upgrade</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.jjazzlab</groupId>
+            <groupId>org.jjazzlab.core</groupId>
             <artifactId>rhythmdatabase</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -141,7 +140,7 @@
             <version>${netbeans.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.jjazzlab</groupId>
+            <groupId>org.jjazzlab.core</groupId>
             <artifactId>importers</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -156,10 +155,9 @@
             <version>${netbeans.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.jjazzlab</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>songeditormanager</artifactId>
-            <version>4.0.3-SNAPSHOT</version>
-            <type>jar</type>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 </project>

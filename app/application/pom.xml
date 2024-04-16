@@ -322,13 +322,182 @@
             <scope>test</scope>
             <!-- beyond platform cluster, this often needs to be dropped down to compile/runtime, some other modules in IDE clusters depend on it -->
         </dependency>
+        <!-- JJazzLab Netbeans App Branding =========================================================== -->          
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>jjazzlab-branding</artifactId>
             <version>${project.version}</version>
         </dependency>
                 
-        <!-- =========================================================== -->          
+        <!-- JJazzLab core =========================================================== -->          
+  
+        <dependency> 
+            <groupId>org.jjazzlab.core</groupId> 
+            <artifactId>embeddedsynth</artifactId> 
+            <version>${project.version}</version> 
+        </dependency>  
+        <dependency> 
+            <groupId>org.jjazzlab.core</groupId> 
+            <artifactId>phrase</artifactId> 
+            <version>${project.version}</version> 
+        </dependency>  
+        <dependency> 
+            <groupId>org.jjazzlab.core</groupId> 
+            <artifactId>phrasetransform</artifactId> 
+            <version>${project.version}</version> 
+        </dependency>  
+        <dependency> 
+            <groupId>org.jjazzlab.core</groupId> 
+            <artifactId>songcontext</artifactId> 
+            <version>${project.version}</version> 
+        </dependency>  
+        <dependency> 
+            <groupId>org.jjazzlab.core</groupId> 
+            <artifactId>testplayerservice</artifactId> 
+            <version>${project.version}</version> 
+        </dependency>  
+        <dependency> 
+            <groupId>org.jjazzlab.core</groupId> 
+            <artifactId>midimix</artifactId> 
+            <version>${project.version}</version> 
+        </dependency>          
+        <dependency> 
+            <groupId>org.jjazzlab.core</groupId> 
+            <artifactId>musiccontrol</artifactId> 
+            <version>${project.version}</version> 
+        </dependency>  
+        <dependency> 
+            <groupId>org.jjazzlab.core</groupId> 
+            <artifactId>outputsynth</artifactId> 
+            <version>${project.version}</version> 
+        </dependency>          
+        <dependency> 
+            <groupId>org.jjazzlab.core</groupId> 
+            <artifactId>rhythmstubs</artifactId> 
+            <version>${project.version}</version> 
+        </dependency>          
+        <dependency> 
+            <groupId>org.jjazzlab.core</groupId> 
+            <artifactId>songstructure</artifactId> 
+            <version>${project.version}</version> 
+        </dependency>  
+        <dependency> 
+            <groupId>org.jjazzlab.core</groupId> 
+            <artifactId>rhythmmusicgeneration</artifactId> 
+            <version>${project.version}</version> 
+        </dependency>          
+        <dependency> 
+            <groupId>org.jjazzlab.core</groupId> 
+            <artifactId>harmony</artifactId> 
+            <version>${project.version}</version> 
+        </dependency>  
+        <dependency> 
+            <groupId>org.jjazzlab.core</groupId> 
+            <artifactId>chordleadsheet</artifactId> 
+            <version>${project.version}</version> 
+        </dependency>  
+        <dependency> 
+            <groupId>org.jjazzlab.core</groupId> 
+            <artifactId>midi</artifactId> 
+            <version>${project.version}</version> 
+        </dependency>          
+        <dependency> 
+            <groupId>org.jjazzlab.core</groupId> 
+            <artifactId>quantizer</artifactId> 
+            <version>${project.version}</version> 
+        </dependency>  
+        <dependency> 
+            <groupId>org.jjazzlab.core</groupId> 
+            <artifactId>rhythm</artifactId> 
+            <version>${project.version}</version> 
+        </dependency>  
+        <dependency> 
+            <groupId>org.jjazzlab.core</groupId> 
+            <artifactId>rhythmdatabase</artifactId> 
+            <version>${project.version}</version> 
+        </dependency>          
+        <dependency> 
+            <groupId>org.jjazzlab.core</groupId> 
+            <artifactId>song</artifactId> 
+            <version>${project.version}</version> 
+        </dependency>          
+        <dependency> 
+            <groupId>org.jjazzlab.core</groupId> 
+            <artifactId>uiutilities</artifactId> 
+            <version>${project.version}</version> 
+        </dependency>  
+        <dependency> 
+            <groupId>org.jjazzlab.core</groupId> 
+            <artifactId>undomanager</artifactId> 
+            <version>${project.version}</version> 
+        </dependency>  
+        <dependency> 
+            <groupId>org.jjazzlab.core</groupId> 
+            <artifactId>utilities</artifactId> 
+            <version>${project.version}</version> 
+        </dependency>  
+        <dependency> 
+            <groupId>org.jjazzlab.core</groupId> 
+            <artifactId>guava</artifactId> 
+            <version>${project.version}</version> 
+        </dependency> 
+        <dependency> 
+            <groupId>org.jjazzlab.core</groupId> 
+            <artifactId>xstream</artifactId> 
+            <version>${project.version}</version> 
+        </dependency>     
+        <dependency> 
+            <groupId>org.jjazzlab.core</groupId> 
+            <artifactId>importers</artifactId> 
+            <version>${project.version}</version> 
+        </dependency>                     
+  
+        <!-- JJazzLab app =========================================================== -->  
+        <dependency> 
+            <groupId>${project.groupId}</groupId> 
+            <artifactId>yamjjazz</artifactId> 
+            <version>${project.version}</version> 
+        </dependency>  
+        <dependency> 
+            <groupId>${project.groupId}</groupId> 
+            <artifactId>fluidsynthembeddedsynth</artifactId> 
+            <version>${project.version}</version> 
+        </dependency>          
+        <dependency> 
+            <groupId>${project.groupId}</groupId> 
+            <artifactId>cl_editorimpl</artifactId> 
+            <version>${project.version}</version> 
+        </dependency>           
+        <dependency> 
+            <groupId>${project.groupId}</groupId> 
+            <artifactId>popupmenuwindowmenupatch</artifactId> 
+            <version>${project.version}</version> 
+        </dependency>       
+        <dependency> 
+            <groupId>${project.groupId}</groupId> 
+            <artifactId>coreuicomponents</artifactId> 
+            <version>${project.version}</version> 
+        </dependency>                
+        <dependency> 
+            <groupId>${project.groupId}</groupId> 
+            <artifactId>pianoroll</artifactId> 
+            <version>${project.version}</version> 
+        </dependency>  
+        <dependency> 
+            <groupId>${project.groupId}</groupId> 
+            <artifactId>rpcustomeditorfactoryimpl</artifactId> 
+            <version>${project.version}</version> 
+        </dependency>          
+        <dependency> 
+            <groupId>${project.groupId}</groupId> 
+            <artifactId>instrumentcomponents</artifactId> 
+            <version>${project.version}</version> 
+        </dependency>  
+        <dependency> 
+            <groupId>${project.groupId}</groupId> 
+            <artifactId>score</artifactId> 
+            <version>${project.version}</version> 
+        </dependency>           
         <dependency> 
             <groupId>${project.groupId}</groupId> 
             <artifactId>activesong</artifactId> 
@@ -358,52 +527,7 @@
             <groupId>${project.groupId}</groupId> 
             <artifactId>improvisionsupport</artifactId> 
             <version>${project.version}</version> 
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>embeddedsynth</artifactId> 
-            <version>${project.version}</version> 
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>phrase</artifactId> 
-            <version>${project.version}</version> 
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>phrasetransform</artifactId> 
-            <version>${project.version}</version> 
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>pianoroll</artifactId> 
-            <version>${project.version}</version> 
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>rpcustomeditorfactoryimpl</artifactId> 
-            <version>${project.version}</version> 
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>songcontext</artifactId> 
-            <version>${project.version}</version> 
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>testplayerservice</artifactId> 
-            <version>${project.version}</version> 
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>instrumentcomponents</artifactId> 
-            <version>${project.version}</version> 
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>score</artifactId> 
-            <version>${project.version}</version> 
-        </dependency>  
+        </dependency>              
         <dependency> 
             <groupId>${project.groupId}</groupId> 
             <artifactId>uisettings</artifactId> 
@@ -416,17 +540,7 @@
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>importers</artifactId> 
-            <version>${project.version}</version> 
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
             <artifactId>instrumentchooser</artifactId> 
-            <version>${project.version}</version> 
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>midimix</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
@@ -434,16 +548,6 @@
             <artifactId>midimixmanagerimpl</artifactId> 
             <version>${project.version}</version> 
         </dependency>  		
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>musiccontrol</artifactId> 
-            <version>${project.version}</version> 
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>outputsynth</artifactId> 
-            <version>${project.version}</version> 
-        </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
             <artifactId>outputsynthmanagerimpl</artifactId> 
@@ -456,27 +560,12 @@
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>rhythmstubs</artifactId> 
-            <version>${project.version}</version> 
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
             <artifactId>songeditormanager</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
             <artifactId>songmemoviewer</artifactId> 
-            <version>${project.version}</version> 
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>songstructure</artifactId> 
-            <version>${project.version}</version> 
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>rhythmmusicgeneration</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
@@ -541,37 +630,7 @@
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>harmony</artifactId> 
-            <version>${project.version}</version> 
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>chordleadsheet</artifactId> 
-            <version>${project.version}</version> 
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>midi</artifactId> 
-            <version>${project.version}</version> 
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
             <artifactId>options</artifactId> 
-            <version>${project.version}</version> 
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>quantizer</artifactId> 
-            <version>${project.version}</version> 
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>rhythm</artifactId> 
-            <version>${project.version}</version> 
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>rhythmdatabase</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
@@ -579,11 +638,6 @@
             <artifactId>rhythmdatabaseimpl</artifactId> 
             <version>${project.version}</version> 
         </dependency>         
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>song</artifactId> 
-            <version>${project.version}</version> 
-        </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
             <artifactId>cl_editor</artifactId> 
@@ -594,56 +648,7 @@
             <artifactId>itemrenderer</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>uiutilities</artifactId> 
-            <version>${project.version}</version> 
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>undomanager</artifactId> 
-            <version>${project.version}</version> 
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>utilities</artifactId> 
-            <version>${project.version}</version> 
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>fluidsynthembeddedsynth</artifactId> 
-            <version>${project.version}</version> 
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>guava</artifactId> 
-            <version>${project.version}</version> 
-        </dependency> 
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>xstream</artifactId> 
-            <version>${project.version}</version> 
-        </dependency>         
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>yamjjazz</artifactId> 
-            <version>${project.version}</version> 
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>cl_editorimpl</artifactId> 
-            <version>${project.version}</version> 
-        </dependency>           
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>popupmenuwindowmenupatch</artifactId> 
-            <version>${project.version}</version> 
-        </dependency>       
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>coreuicomponents</artifactId> 
-            <version>${project.version}</version> 
-        </dependency>          
+        
     </dependencies>
    
 </project>

@@ -8,6 +8,7 @@
         <version>4.0.3-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
+    <groupId>org.jjazzlab.core</groupId>
     <artifactId>testplayerservice</artifactId>
     <name>TestPlayerService</name>
     <packaging>nbm</packaging>
@@ -36,12 +37,12 @@
     </build>
     <dependencies>      
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.core</groupId> 
             <artifactId>phrase</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.core</groupId> 
             <artifactId>rhythm</artifactId> 
             <version>${project.version}</version>  
         </dependency>  

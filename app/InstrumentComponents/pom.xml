@@ -37,18 +37,18 @@
     </build>
     <dependencies>      
         <dependency> 
-            <groupId>${project.groupId}</groupId>
+            <groupId>org.jjazzlab.core</groupId>
             <artifactId>guava</artifactId>
             <version>${project.version}</version>
             
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.core</groupId> 
             <artifactId>harmony</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.core</groupId> 
             <artifactId>uiutilities</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
@@ -58,7 +58,7 @@
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.core</groupId> 
             <artifactId>utilities</artifactId> 
             <version>${project.version}</version>  
         </dependency>  

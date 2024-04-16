@@ -8,6 +8,7 @@
         <version>4.0.3-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
+    <groupId>org.jjazzlab.core</groupId>
     <artifactId>songcontext</artifactId>
     <name>SongContext</name>
     <packaging>nbm</packaging>
@@ -36,48 +37,48 @@
     </build>
     <dependencies>      
         <dependency> 
-            <groupId>${project.groupId}</groupId>
+            <groupId>org.jjazzlab.core</groupId>
             <artifactId>guava</artifactId>
             <version>${project.version}</version>
             
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.core</groupId> 
             <artifactId>harmony</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.core</groupId> 
             <artifactId>chordleadsheet</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.core</groupId> 
             <artifactId>midi</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.core</groupId> 
             <artifactId>midimix</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.core</groupId> 
             <artifactId>rhythm</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.core</groupId> 
             <artifactId>song</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.core</groupId> 
             <artifactId>songstructure</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.core</groupId> 
             <artifactId>utilities</artifactId> 
             <version>${project.version}</version>  
         </dependency>  

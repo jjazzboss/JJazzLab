@@ -51,77 +51,77 @@
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.core</groupId> 
             <artifactId>harmony</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.core</groupId> 
             <artifactId>importers</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.core</groupId> 
             <artifactId>chordleadsheet</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.core</groupId> 
             <artifactId>midi</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.core</groupId> 
             <artifactId>midimix</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.core</groupId> 
             <artifactId>outputsynth</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.core</groupId> 
             <artifactId>phrase</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.core</groupId> 
             <artifactId>phrasetransform</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.core</groupId> 
             <artifactId>rhythm</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.core</groupId> 
             <artifactId>rhythmdatabase</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.core</groupId> 
             <artifactId>rhythmmusicgeneration</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.core</groupId> 
             <artifactId>song</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.core</groupId> 
             <artifactId>songcontext</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.core</groupId> 
             <artifactId>songstructure</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.core</groupId> 
             <artifactId>utilities</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
@@ -131,12 +131,12 @@
             <version>${project.version}</version>  
         </dependency>          
         <dependency>
-            <groupId>org.jjazzlab</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>rhythmselectiondialog</artifactId>
             <version>${project.version}</version>
         </dependency>    
         <dependency>
-            <groupId>org.jjazzlab</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>analytics</artifactId>
             <version>${project.version}</version>
         </dependency>                    
