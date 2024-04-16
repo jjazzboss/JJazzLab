@@ -207,7 +207,7 @@ public class StandardScaleInstance implements Serializable
 
         @Override
         public void configure(XStreamConfigurator.InstanceId instanceId, XStream xstream)
-        {
+        {           
             switch (instanceId)
             {
                 case SONG_LOAD, SONG_SAVE ->
@@ -216,6 +216,7 @@ public class StandardScaleInstance implements Serializable
                     {
                         // From 3.0 all public packages are renamed with api or spi somewhere in the path
                         xstream.alias("org.jjazz.harmony.StandardScaleInstance", StandardScaleInstance.class);
+                        xstream.alias("org.jjazz.harmony.StandardScaleInstance$SerializationProxy", SerializationProxy.class);
                     }
 
 

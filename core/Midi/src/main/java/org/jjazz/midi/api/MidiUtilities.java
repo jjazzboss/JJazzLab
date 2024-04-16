@@ -1019,6 +1019,20 @@ public class MidiUtilities
         return res;
     }
 
+      /**
+     * Try to guess if patchName represents a drums/percussion instrument.
+     *
+     * @param patchName
+     * @return
+     */
+    static public boolean guessIsPatchNameDrums(String patchName)
+    {
+        // Exclude drum kits
+        String s = patchName.trim().toLowerCase();
+        boolean b = !s.contains("steel") && (s.contains("drum") || s.contains("kit") || s.contains("kt:") || s.contains("dr:") || s.contains("drm:"));
+        return b;
+    }
+    
     /**
      * Provide an explicit string for a MidiMessage.
      *

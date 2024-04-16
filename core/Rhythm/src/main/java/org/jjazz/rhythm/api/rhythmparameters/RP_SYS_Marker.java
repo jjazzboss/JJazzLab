@@ -59,6 +59,25 @@ public class RP_SYS_Marker extends RP_State
     }
 
     /**
+     * Overridden for backwards compatibility, accept that s can have the wrong upper/lower case.
+     *
+     * @param s
+     * @return
+     */
+    @Override
+    public String loadFromString(String s)
+    {
+        for (String value : getPossibleValues())
+        {
+            if (value.equalsIgnoreCase(s))
+            {
+                return value;
+            }
+        }
+        return null;
+    }
+
+    /**
      * Get the RP_SYS_Marker instance if the specified rhythm uses it.
      *
      * @param r
@@ -68,7 +87,7 @@ public class RP_SYS_Marker extends RP_State
     {
         if (r == null)
         {
-            throw new NullPointerException("r");   
+            throw new NullPointerException("r");
         }
         return r.getRhythmParameters().contains(INSTANCE) ? INSTANCE : null;
     }

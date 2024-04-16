@@ -1605,12 +1605,6 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable, Propert
             {
                 case SONG_LOAD, SONG_SAVE ->
                 {
-                    if (instanceId.equals(SONG_LOAD))
-                    {
-                        // From 4.0 ChordLeadSheet packages were renamed from org.jjazz.leadsheet.chordleadsheet.* to org.jjazz.chordleadsheet.*
-                        xstream.aliasPackage("org.jjazz.leadsheet.chordleadsheet", "org.jjazz.chordleadsheet");
-                    }
-
 
                     // From 4.0.3 new aliases to get rid of fully qualified class names in .sng files
                     xstream.alias("ChordLeadSheetImpl", ChordLeadSheetImpl.class);

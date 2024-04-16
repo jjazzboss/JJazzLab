@@ -50,8 +50,8 @@ import org.openide.util.lookup.ServiceProvider;
 /**
  * A special class for GS instruments.
  * <p>
- * Because GSDrumsInstruments send SysEx to turn channel into drums mode, normal GS Instruments must also do the same to make sure
- * channel is in normal mode (if channel was previously used in drums mode).
+ * Because GSDrumsInstruments send SysEx to turn channel into drums mode, normal GS Instruments must also do the same to make sure channel
+ * is in normal mode (if channel was previously used in drums mode).
  */
 public class GSInstrument extends Instrument implements Serializable
 {
@@ -127,7 +127,7 @@ public class GSInstrument extends Instrument implements Serializable
         super(patchName, bank, ma, kit, substitute);
         if (!ma.getBankSelectMethod().equals(MidiAddress.BankSelectMethod.MSB_ONLY))
         {
-            throw new IllegalArgumentException("patchName=" + patchName + " bank=" + bank + " ma=" + ma);   
+            throw new IllegalArgumentException("patchName=" + patchName + " bank=" + bank + " ma=" + ma);
         }
     }
 
@@ -149,7 +149,7 @@ public class GSInstrument extends Instrument implements Serializable
     {
         if (!MidiConst.checkMidiChannel(channel))
         {
-            throw new IllegalArgumentException("channel=" + channel);   
+            throw new IllegalArgumentException("channel=" + channel);
         }
         MidiMessage[] messages = new MidiMessage[3];
         MidiMessage[] msgs = MidiUtilities.getPatchMessages(channel, this);
@@ -160,14 +160,15 @@ public class GSInstrument extends Instrument implements Serializable
         try
         {
             sysMsg.setMessage(bytes, bytes.length);
-        } catch (InvalidMidiDataException ex)
+        }
+        catch (InvalidMidiDataException ex)
         {
             Exceptions.printStackTrace(ex);
         }
         messages[0] = sysMsg;
         messages[1] = msgs[0];
         messages[2] = msgs[1];
-        LOGGER.log(Level.FINE, "getMidiMessages() Sending SysEx messages to set melodic mode on channel {0}", channel);   
+        LOGGER.log(Level.FINE, "getMidiMessages() Sending SysEx messages to set melodic mode on channel {0}", channel);
         return messages;
     }
 
@@ -190,21 +191,29 @@ public class GSInstrument extends Instrument implements Serializable
 
                 case MIDIMIX_LOAD, MIDIMIX_SAVE ->
                 {
+                    if (instanceId.equals(MIDIMIX_LOAD))
+                    {
+//                        // From 4.0.3 Position was moved from ChordLeadSheet module to Harmony module
+//                        xstream.alias("org.jjazz.chordleadsheet.api.item.Position$SerializationProxy", Position.SerializationProxy.class);
+//                        // At some point the "leadsheet" part was dropped in the package name
+//                        xstream.alias("org.jjazz.leadsheet.chordleadsheet.api.item.Position$SerializationProxy", Position.SerializationProxy.class);
+                    }
+
                     // From 4.0.3 new aliases to get rid of fully qualified class names in .sng files                    
                     xstream.alias("GSInstrument", GSInstrument.class);
                     xstream.alias("GSInstrumentSP", SerializationProxy.class);
                     xstream.useAttributeFor(SerializationProxy.class, "spVERSION");
                     xstream.useAttributeFor(SerializationProxy.class, "spSaveString");
                 }
-                default -> throw new AssertionError(instanceId.name());
+                default ->
+                    throw new AssertionError(instanceId.name());
             }
         }
     }
-    
+
     // --------------------------------------------------------------------- 
     // Serialization
     // --------------------------------------------------------------------- 
-
 
     private Object writeReplace()
     {
@@ -213,7 +222,7 @@ public class GSInstrument extends Instrument implements Serializable
     }
 
     private void readObject(ObjectInputStream stream)
-            throws InvalidObjectException
+        throws InvalidObjectException
     {
         throw new InvalidObjectException("Serialization proxy required");
     }
@@ -221,10 +230,10 @@ public class GSInstrument extends Instrument implements Serializable
     /**
      * Our own serialization proxy.
      * <p>
-     * ==> BAD! writeReplace() should juste use "return new Instrument.SerializationProxy(this);", no need for our own
-     * SerializationProxy !!! But too late to change because user .mix files now contain GSInstrument.SerializationProxy
-     * instances. If we change, the .mix will not be readable again.
-     * 
+     * ==> BAD! writeReplace() should juste use "return new Instrument.SerializationProxy(this);", no need for our own SerializationProxy
+     * !!! But too late to change because user .mix files now contain GSInstrument.SerializationProxy instances. If we change, the .mix will
+     * not be readable again.
+     *
      * spVERSION 2 introduces alias XStreamConfig
      */
     private static class SerializationProxy implements Serializable
@@ -238,7 +247,7 @@ public class GSInstrument extends Instrument implements Serializable
         {
             if (ins.getBank() == null || ins.getBank().getMidiSynth() == null)
             {
-                throw new IllegalStateException("ins=" + ins + " ins.getBank()=" + ins.getBank());   
+                throw new IllegalStateException("ins=" + ins + " ins.getBank()=" + ins.getBank());
             }
             spSaveString = ins.saveAsString();
         }
@@ -248,7 +257,8 @@ public class GSInstrument extends Instrument implements Serializable
             Instrument ins = Instrument.loadFromString(spSaveString);
             if (ins == null || !(ins instanceof GSInstrument))
             {
-                throw new InvalidObjectException("readResolve() Can not retrieve a GSInstrument from saved string=" + spSaveString + ", ins=" + ins);
+                LOGGER.log(Level.WARNING, "readResolve() Could not retrieve a GSInstrument from saved string=\"{0}\". Using default instrument instead.", spSaveString);
+                ins = GSBank.getInstance().getInstrument(0);
             }
             return (GSInstrument) ins;
         }

@@ -43,7 +43,9 @@ import org.jjazz.midi.api.Instrument;
 import org.jjazz.midi.api.MidiAddress;
 import org.jjazz.midi.api.MidiAddress.BankSelectMethod;
 import org.jjazz.midi.api.MidiSynth;
+import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.midi.api.keymap.KeyMapGM;
+import org.jjazz.midi.api.synths.GM1Bank;
 import org.jjazz.midi.api.synths.GMSynth;
 import org.jjazz.midi.spi.KeyMapProvider;
 import org.openide.util.lookup.ServiceProvider;
@@ -262,7 +264,7 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
                             }
 
                             // No DrumKit meta info found, try to guess if it's a drums from patchName
-                            if (kit == null && gmSubstitute == null && GMSynth.getInstance().getGM1Bank().guessIsDrums(patchName))
+                            if (kit == null && gmSubstitute == null && MidiUtilities.guessIsPatchNameDrums(patchName))
                             {
                                 kit = new DrumKit(DrumKit.Type.STANDARD, KeyMapGM.getInstance());
                             }

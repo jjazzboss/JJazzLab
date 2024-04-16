@@ -360,12 +360,6 @@ public class Instrument implements Serializable
 
                 case MIDIMIX_LOAD, MIDIMIX_SAVE ->
                 {
-                    if (instanceId.equals(MIDIMIX_LOAD))
-                    {
-                        // From 3.0 all public packages are renamed with api or spi somewhere in the path
-                        // Need package aliasing required to be able to load old sng/mix files
-                        xstream.aliasPackage("org.jjazz.midi", "org.jjazz.midi.api");
-                    }
 
                     // From 4.0.3 new aliases to get rid of fully qualified class names in .sng files                    
                     xstream.alias("Instrument", Instrument.class);

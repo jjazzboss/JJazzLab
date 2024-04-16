@@ -28,6 +28,7 @@ import java.util.regex.Pattern;
 import org.jjazz.midi.api.Instrument;
 import org.jjazz.midi.api.InstrumentBank;
 import org.jjazz.midi.api.MidiAddress.BankSelectMethod;
+import org.jjazz.midi.api.MidiUtilities;
 
 /**
  * General Midi 1 bank.
@@ -209,20 +210,6 @@ public class GM1Bank extends InstrumentBank<GM1Instrument>
     }
 
     /**
-     * Try to guess if patchName represents a drums/percussion instrument.
-     *
-     * @param patchName
-     * @return
-     */
-    public boolean guessIsDrums(String patchName)
-    {
-        // Exclude drum kits
-        String s = patchName.trim().toLowerCase();
-        boolean b = !s.contains("steel") && (s.contains("drum") || s.contains("kit") || s.contains("kt:") || s.contains("dr:") || s.contains("drm:"));
-        return b;
-    }
-
-    /**
      * Try to guess from patchName the equivalent GM1 Instrument.
      *
      *
@@ -233,7 +220,7 @@ public class GM1Bank extends InstrumentBank<GM1Instrument>
     {
         if (patchName == null)
         {
-            throw new NullPointerException("patchName");   
+            throw new NullPointerException("patchName");
         }
         if (patchName.trim().isEmpty())
         {
@@ -246,7 +233,7 @@ public class GM1Bank extends InstrumentBank<GM1Instrument>
         GM1Instrument ins = null;
         String s = patchName.trim().toLowerCase();
 
-        if (guessIsDrums(s))
+        if (MidiUtilities.guessIsPatchNameDrums(s))
         {
             return null;
         }
@@ -257,50 +244,65 @@ public class GM1Bank extends InstrumentBank<GM1Instrument>
             if (s.contains("bri") || s.contains("rock") || s.contains("atta") || s.contains("tacky") || s.contains("danc") || s.contains("hous"))
             {
                 ins = instruments.get(1);
-            } else if (pInst.CpPiano.matcher(s).find())
+            }
+            else if (pInst.CpPiano.matcher(s).find())
             {
                 ins = instruments.get(2);
-            } else if (s.contains("honk") || s.contains("saloo"))
+            }
+            else if (s.contains("honk") || s.contains("saloo"))
             {
                 ins = instruments.get(3);
-            } else if (s.contains("elec") || s.contains("elp") || s.contains("el.") || s.contains("e."))
+            }
+            else if (s.contains("elec") || s.contains("elp") || s.contains("el.") || s.contains("e."))
             {
                 ins = instruments.get(4);
-            } else
+            }
+            else
             {
                 ins = instruments.get(0);
             }
-        } else if (patchName.contains("EP ") || patchName.contains("EP.") || patchName.contains("DX") || s.contains("wurli") || s.contains("kb:") || s.contains("kbd:"))
+        }
+        else if (patchName.contains("EP ") || patchName.contains("EP.") || patchName.contains("DX") || s.contains("wurli") || s.contains("kb:") || s.contains("kbd:"))
         {
             ins = instruments.get(4);
-        } else if (s.contains("harpsi"))
+        }
+        else if (s.contains("harpsi"))
         {
             ins = instruments.get(6);
-        } else if (s.contains("clavi"))
+        }
+        else if (s.contains("clavi"))
         {
             ins = instruments.get(7);
-        } else if (s.contains("celest"))
+        }
+        else if (s.contains("celest"))
         {
             ins = instruments.get(8);
-        } else if (s.contains("glock"))
+        }
+        else if (s.contains("glock"))
         {
             ins = instruments.get(9);
-        } else if (s.contains("music") && s.contains("box"))
+        }
+        else if (s.contains("music") && s.contains("box"))
         {
             ins = instruments.get(10);
-        } else if (s.contains("vibrap") || s.contains("vibes"))
+        }
+        else if (s.contains("vibrap") || s.contains("vibes"))
         {
             ins = instruments.get(11);
-        } else if (s.contains("marimb"))
+        }
+        else if (s.contains("marimb"))
         {
             ins = instruments.get(12);
-        } else if (s.contains("xylop"))
+        }
+        else if (s.contains("xylop"))
         {
             ins = instruments.get(13);
-        } else if (s.contains("tubul"))
+        }
+        else if (s.contains("tubul"))
         {
             ins = instruments.get(14);
-        } else if (s.contains("dulci") || s.contains("santur"))
+        }
+        else if (s.contains("dulci") || s.contains("santur"))
         {
             ins = instruments.get(15);
         } // ORGANS 16-20
@@ -309,23 +311,29 @@ public class GM1Bank extends InstrumentBank<GM1Instrument>
             if (s.contains("perc") || s.contains("hammo") || s.contains("jazz") || s.contains("chorus"))
             {
                 ins = instruments.get(17);
-            } else if (s.contains("rock") || s.contains("rotar"))
+            }
+            else if (s.contains("rock") || s.contains("rotar"))
             {
                 ins = instruments.get(18);
-            } else if (s.contains("chur") || s.contains("cath") || s.contains("pipe"))
+            }
+            else if (s.contains("chur") || s.contains("cath") || s.contains("pipe"))
             {
                 ins = instruments.get(19);
-            } else if (s.contains("reed"))
+            }
+            else if (s.contains("reed"))
             {
                 ins = instruments.get(20);
-            } else
+            }
+            else
             {
                 ins = instruments.get(16);
             }
-        } else if (s.contains("accord   "))
+        }
+        else if (s.contains("accord   "))
         {
             ins = s.contains("tango") ? instruments.get(23) : instruments.get(21);
-        } else if (s.contains("harmonic"))
+        }
+        else if (s.contains("harmonic"))
         {
             ins = instruments.get(22);
         } // GUITARS 24-31
@@ -334,64 +342,81 @@ public class GM1Bank extends InstrumentBank<GM1Instrument>
             if (s.contains("steel"))
             {
                 ins = instruments.get(25);
-            } else if (s.contains("nylon") || s.contains("acoust") || s.contains("a."))
+            }
+            else if (s.contains("nylon") || s.contains("acoust") || s.contains("a."))
             {
                 ins = instruments.get(24);
-            } else if (s.contains("clean"))
+            }
+            else if (s.contains("clean"))
             {
                 ins = instruments.get(27);
-            } else if (s.contains("mute"))
+            }
+            else if (s.contains("mute"))
             {
                 ins = instruments.get(28);
-            } else if (s.contains("overd"))
+            }
+            else if (s.contains("overd"))
             {
                 ins = instruments.get(29);
-            } else if (s.contains("dist") || s.contains("feedb") || s.contains("lead"))
+            }
+            else if (s.contains("dist") || s.contains("feedb") || s.contains("lead"))
             {
                 ins = instruments.get(30);
-            } else if (s.contains("harm"))
+            }
+            else if (s.contains("harm"))
             {
                 ins = instruments.get(31);
-            } else
+            }
+            else
             {
                 ins = instruments.get(26);
             }
         } // BASSES 32-39
         else if (!(s.contains("lead") || (s.contains("contra") || s.contains("bassoo")))
-                && (s.contains("bass") || s.contains("ba:") || s.contains("bs:") || s.contains("bas:")))
+            && (s.contains("bass") || s.contains("ba:") || s.contains("bs:") || s.contains("bas:")))
         {
             if (s.contains("wood") || s.contains("ac"))
             {
                 ins = instruments.get(32);
-            } else if (s.contains("pick"))
+            }
+            else if (s.contains("pick"))
             {
                 ins = instruments.get(34);
-            } else if (s.contains("fretl"))
+            }
+            else if (s.contains("fretl"))
             {
                 ins = instruments.get(35);
-            } else if (s.contains("slap"))
+            }
+            else if (s.contains("slap"))
             {
                 ins = instruments.get(36);
-            } else if (s.contains("syn"))
+            }
+            else if (s.contains("syn"))
             {
                 ins = instruments.get(38);
-            } else
+            }
+            else
             {
                 ins = instruments.get(33);
             }
-        } else if (s.contains("viola"))
+        }
+        else if (s.contains("viola"))
         {
             ins = instruments.get(41);
-        } else if (s.contains("cello"))
+        }
+        else if (s.contains("cello"))
         {
             ins = instruments.get(42);
-        } else if (s.contains("contra"))
+        }
+        else if (s.contains("contra"))
         {
             ins = instruments.get(43);
-        } else if (s.contains("pizz"))
+        }
+        else if (s.contains("pizz"))
         {
             ins = instruments.get(45);
-        } else if (s.contains("harp"))
+        }
+        else if (s.contains("harp"))
         {
             ins = instruments.get(46);
         }// STRINGS 48-55        
@@ -400,39 +425,48 @@ public class GM1Bank extends InstrumentBank<GM1Instrument>
             if (s.contains("syn"))
             {
                 ins = instruments.get(50);
-            } else
+            }
+            else
             {
                 ins = instruments.get(48);
             }
-        } else if (!s.contains("pad")
-                && s.contains("choir"))
+        }
+        else if (!s.contains("pad")
+            && s.contains("choir"))
         {
             ins = instruments.get(52);
-        } else if (s.contains("orch") && s.contains("hit"))
+        }
+        else if (s.contains("orch") && s.contains("hit"))
         {
             ins = instruments.get(55);
         } // BRASS 56-63
         else if (s.contains("tuba"))
         {
             ins = instruments.get(58);
-        } else if (s.contains("br:") || s.contains("bra:") || s.contains("brass") || s.contains("trump") || s.contains("trp") || s.contains("tromb") || s.contains("horn"))
+        }
+        else if (s.contains("br:") || s.contains("bra:") || s.contains("brass") || s.contains("trump") || s.contains("trp") || s.contains("tromb") || s.contains("horn"))
         {
             if (s.contains("ens") || s.contains("sect") || s.contains("trumpets") || s.contains("horns"))
             {
                 ins = s.contains("syn") ? instruments.get(62) : instruments.get(61);
-            } else if (s.contains("muted") || s.contains("mtd"))
+            }
+            else if (s.contains("muted") || s.contains("mtd"))
             {
                 ins = instruments.get(59);
-            } else if (s.contains("trumpet"))
+            }
+            else if (s.contains("trumpet"))
             {
                 ins = instruments.get(56);
-            } else if (s.contains("trombone"))
+            }
+            else if (s.contains("trombone"))
             {
                 ins = instruments.get(57);
-            } else if (s.contains("horn"))
+            }
+            else if (s.contains("horn"))
             {
                 ins = instruments.get(60);
-            } else
+            }
+            else
             {
                 ins = instruments.get(63);
             }
@@ -442,47 +476,61 @@ public class GM1Bank extends InstrumentBank<GM1Instrument>
             if (s.contains("ens") || s.contains("sect") || s.contains("saxes"))
             {
                 instruments.get(61);
-            } else if (s.contains("sop"))
+            }
+            else if (s.contains("sop"))
             {
                 ins = instruments.get(64);
-            } else if (s.contains("ten"))
+            }
+            else if (s.contains("ten"))
             {
                 ins = instruments.get(66);
-            } else if (s.contains("bari"))
+            }
+            else if (s.contains("bari"))
             {
                 ins = instruments.get(67);
-            } else
+            }
+            else
             {
                 ins = instruments.get(65);
             }
-        } else if (s.contains("oboe"))
+        }
+        else if (s.contains("oboe"))
         {
             ins = instruments.get(68);
-        } else if (s.contains("basson"))
+        }
+        else if (s.contains("basson"))
         {
             ins = instruments.get(70);
-        } else if (s.contains("clarin"))
+        }
+        else if (s.contains("clarin"))
         {
             ins = instruments.get(71);
-        } else if (s.contains("picco"))
+        }
+        else if (s.contains("picco"))
         {
             ins = instruments.get(72);
-        } else if (s.contains("flute"))
+        }
+        else if (s.contains("flute"))
         {
             ins = s.contains("pan") ? instruments.get(75) : instruments.get(73);
-        } else if (s.contains("recorder"))
+        }
+        else if (s.contains("recorder"))
         {
             ins = instruments.get(74);
-        } else if (s.contains("bottl"))
+        }
+        else if (s.contains("bottl"))
         {
             ins = instruments.get(76);
-        } else if (s.contains("shaku"))
+        }
+        else if (s.contains("shaku"))
         {
             ins = instruments.get(77);
-        } else if (s.contains("whistl"))
+        }
+        else if (s.contains("whistl"))
         {
             ins = instruments.get(78);
-        } else if (s.contains("ocarina"))
+        }
+        else if (s.contains("ocarina"))
         {
             ins = instruments.get(79);
         } // LEAD 80-87
@@ -491,16 +539,20 @@ public class GM1Bank extends InstrumentBank<GM1Instrument>
             if (s.contains("voice"))
             {
                 ins = instruments.get(85);
-            } else if (s.contains("saw"))
+            }
+            else if (s.contains("saw"))
             {
                 ins = instruments.get(81);
-            } else if (s.contains("fifth") || s.contains("5th"))
+            }
+            else if (s.contains("fifth") || s.contains("5th"))
             {
                 ins = instruments.get(86);
-            } else if (s.contains("bass"))
+            }
+            else if (s.contains("bass"))
             {
                 ins = instruments.get(87);
-            } else
+            }
+            else
             {
                 ins = instruments.get(80);
             }
@@ -510,16 +562,20 @@ public class GM1Bank extends InstrumentBank<GM1Instrument>
             if (s.contains("syn"))
             {
                 ins = instruments.get(90);
-            } else if (s.contains("saw"))
+            }
+            else if (s.contains("saw"))
             {
                 ins = instruments.get(81);
-            } else if (s.contains("choir"))
+            }
+            else if (s.contains("choir"))
             {
                 ins = instruments.get(91);
-            } else if (s.contains("sweep"))
+            }
+            else if (s.contains("sweep"))
             {
                 ins = instruments.get(95);
-            } else
+            }
+            else
             {
                 ins = instruments.get(89);
             }
@@ -538,7 +594,7 @@ public class GM1Bank extends InstrumentBank<GM1Instrument>
     {
         if (f == null)
         {
-            throw new IllegalArgumentException("f=" + f);   
+            throw new IllegalArgumentException("f=" + f);
         }
         switch (f)
         {
@@ -588,7 +644,7 @@ public class GM1Bank extends InstrumentBank<GM1Instrument>
     {
         if (lsb < 0 || lsb > 127)
         {
-            throw new IllegalArgumentException("lsb=" + lsb);   
+            throw new IllegalArgumentException("lsb=" + lsb);
         }
         this.defaultLsb = lsb;
     }
@@ -597,10 +653,11 @@ public class GM1Bank extends InstrumentBank<GM1Instrument>
     {
         if (msb < 0 || msb > 127)
         {
-            throw new IllegalArgumentException("msb=" + msb);   
+            throw new IllegalArgumentException("msb=" + msb);
         }
         this.defaultMsb = msb;
     }
+
 
     /**
      * Check if the specified bank holds GM1 instruments: check size and a few instruments patch names.
@@ -612,8 +669,8 @@ public class GM1Bank extends InstrumentBank<GM1Instrument>
     {
         List<? extends Instrument> instruments = bank.getInstruments();
         return instruments.size() >= 128
-                && instruments.get(11).getPatchName().toLowerCase().contains("vib")
-                && instruments.get(79).getPatchName().toLowerCase().contains("carin")
-                && instruments.get(127).getPatchName().toLowerCase().contains("gun");
+            && instruments.get(11).getPatchName().toLowerCase().contains("vib")
+            && instruments.get(79).getPatchName().toLowerCase().contains("carin")
+            && instruments.get(127).getPatchName().toLowerCase().contains("gun");
     }
 }

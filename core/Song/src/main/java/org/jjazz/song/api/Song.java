@@ -822,7 +822,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
         // Read file
         try (var fis = new FileInputStream(f))
         {
-            XStream xstream = XStreamInstancesManager.getInstance().getSongLoadInstance();
+            XStream xstream = XStreamInstancesManager.getInstance().getLoadSongInstance();
             Reader r = new BufferedReader(new InputStreamReader(fis, "UTF-8"));        // Needed to support special/accented chars
             song = (Song) xstream.fromXML(r);
 
@@ -867,7 +867,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
 
         try (FileOutputStream fos = new FileOutputStream(songFile))
         {
-            XStream xstream = XStreamInstancesManager.getInstance().getSongSaveInstance();
+            XStream xstream = XStreamInstancesManager.getInstance().getSaveSongInstance();
             Writer w = new BufferedWriter(new OutputStreamWriter(fos, "UTF-8"));        // Needed to support special/accented chars
             xstream.toXML(this, w);
             if (!isCopy)

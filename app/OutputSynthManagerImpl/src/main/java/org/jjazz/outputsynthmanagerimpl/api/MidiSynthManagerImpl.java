@@ -23,15 +23,12 @@
  */
 package org.jjazz.outputsynthmanagerimpl.api;
 
-import java.beans.PropertyChangeSupport;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
-import org.jjazz.midi.api.MidiSynth;
 import org.jjazz.midi.api.synths.DefaultMidiSynthManager;
 import static org.jjazz.midi.spi.MidiSynthManager.loadFromResource;
 import org.jjazz.upgrade.api.UpgradeManager;

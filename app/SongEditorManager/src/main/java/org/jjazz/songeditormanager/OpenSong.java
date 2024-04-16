@@ -47,22 +47,22 @@ import org.openide.windows.WindowManager;
 @ActionID(category = "File", id = "org.jjazz.songeditormanager.OpenSong")
 @ActionRegistration(displayName = "#CTL_OpenSong", lazy = true, iconBase = "org/jjazz/songeditormanager/resources/OpenFile.png") // Will also automatically find OpenFile24.png 
 @ActionReferences(
-        {
-            @ActionReference(path = "Menu/File", position = 5),
-            @ActionReference(path = "Toolbars/File", position = 10),
-            @ActionReference(path = "Shortcuts", name = "D-O")
-        })
+    {
+        @ActionReference(path = "Menu/File", position = 5),
+        @ActionReference(path = "Toolbars/File", position = 10),
+        @ActionReference(path = "Shortcuts", name = "D-O")
+    })
 public final class OpenSong implements ActionListener
 {
-
+    
     private static final Logger LOGGER = Logger.getLogger(OpenSong.class.getSimpleName());
-
+    
     @Override
     public void actionPerformed(ActionEvent e)
     {
         JFileChooser chooser = UIUtilities.getFileChooserInstance();
         FileNameExtensionFilter filter = new FileNameExtensionFilter(
-                ResUtil.getString(getClass(), "CTL_JJazzOpenSongs") + " (" + "." + Song.SONG_EXTENSION + ")", Song.SONG_EXTENSION);
+            ResUtil.getString(getClass(), "CTL_JJazzOpenSongs") + " (" + "." + Song.SONG_EXTENSION + ")", Song.SONG_EXTENSION);
         chooser.resetChoosableFileFilters();
         chooser.setFileFilter(filter);
         chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
@@ -73,17 +73,18 @@ public final class OpenSong implements ActionListener
         {
         }));
         chooser.showOpenDialog(WindowManager.getDefault().getMainWindow());
-
-
+        
+        
         var songFiles = chooser.getSelectedFiles();
-
-
+        
+        
         for (File songFile : songFiles)
         {
             boolean last = (songFile == songFiles[songFiles.length - 1]);
+            LOGGER.log(Level.INFO, "actionPerformed() Loading song {0}", songFile.getAbsolutePath());
             openSong(songFile, last, true);
         }
-
+        
     }
 
     /**
@@ -105,8 +106,9 @@ public final class OpenSong implements ActionListener
             
             Analytics.logEvent("Open Song");
             Analytics.incrementProperties("Nb Open Song", 1);
-
-        } catch (SongCreationException ex)
+            
+        }
+        catch (SongCreationException ex)
         {
             String msg = ResUtil.getString(OpenSong.class, "ERR_CantOpenSongFile", songFile.getAbsolutePath(), ex.getLocalizedMessage());
             LOGGER.log(Level.WARNING, "openSong() {0}", msg);
@@ -117,6 +119,6 @@ public final class OpenSong implements ActionListener
         
         return b;
     }
-
-
+    
+    
 }

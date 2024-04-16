@@ -70,7 +70,7 @@ public class XStreamInstancesManager
      *
      * @return
      */
-    public XStream getSongLoadInstance()
+    public XStream getLoadSongInstance()
     {
         if (songLoadInstance == null)
         {
@@ -86,7 +86,7 @@ public class XStreamInstancesManager
      *
      * @return
      */
-    public XStream getSongSaveInstance()
+    public XStream getSaveSongInstance()
     {
         if (songSaveInstance == null)
         {
@@ -102,7 +102,7 @@ public class XStreamInstancesManager
      *
      * @return
      */
-    public XStream getMidiMixLoadInstance()
+    public XStream getLoadMidiMixInstance()
     {
         if (midiMixLoadInstance == null)
         {
@@ -118,7 +118,7 @@ public class XStreamInstancesManager
      *
      * @return
      */
-    public XStream getMidiMixSaveInstance()
+    public XStream getSaveMidiMixInstance()
     {
         if (midiMixSaveInstance == null)
         {
