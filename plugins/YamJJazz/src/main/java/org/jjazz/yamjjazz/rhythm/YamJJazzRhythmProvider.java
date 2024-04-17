@@ -44,6 +44,7 @@ import org.jjazz.utilities.api.Utilities;
 import org.openide.util.lookup.ServiceProvider;
 import org.jjazz.yamjjazz.FormatNotSupportedException;
 import org.openide.modules.InstalledFileLocator;
+import org.openide.modules.Modules;
 
 
 /**
@@ -122,7 +123,8 @@ public class YamJJazzRhythmProvider implements RhythmProvider
             try
             {
                 r = readFast(f);
-            } catch (IOException ex)
+            }
+            catch (IOException ex)
             {
                 LOGGER.log(Level.WARNING, "getFileRhythms() ex={0}", ex.getLocalizedMessage());
                 errRpt.individualErrorMessages.add(ex.getLocalizedMessage());
@@ -154,7 +156,8 @@ public class YamJJazzRhythmProvider implements RhythmProvider
             try
             {
                 r = readFast(path.toFile());
-            } catch (IOException ex)
+            }
+            catch (IOException ex)
             {
                 LOGGER.log(Level.WARNING, "getFileRhythms() ex={0}", ex.getLocalizedMessage());
                 errRpt.individualErrorMessages.add(ex.getLocalizedMessage());
@@ -187,7 +190,8 @@ public class YamJJazzRhythmProvider implements RhythmProvider
         if (!extFile.exists())
         {
             throw new IOException("File " + extFile.getAbsolutePath() + " not found.");
-        } else if (!extFile.getName().toLowerCase().endsWith(FILE_EXTENSION))
+        }
+        else if (!extFile.getName().toLowerCase().endsWith(FILE_EXTENSION))
         {
             throw new IOException("Invalid file extension for file: " + extFile);
         }
@@ -207,10 +211,11 @@ public class YamJJazzRhythmProvider implements RhythmProvider
         try
         {
             r = new YamJJazzRhythmImpl(baseFile, extFile);           // don't call loadResources() to save time & memory
-        } catch (IOException | InvalidMidiDataException | FormatNotSupportedException ex)
+        }
+        catch (IOException | InvalidMidiDataException | FormatNotSupportedException ex)
         {
             throw new IOException(
-                    "Problem reading files baseFile=" + baseFile.getAbsolutePath() + ", extFile=" + extFile.getAbsolutePath() + ". Ex=" + ex.getLocalizedMessage());
+                "Problem reading files baseFile=" + baseFile.getAbsolutePath() + ", extFile=" + extFile.getAbsolutePath() + ". Ex=" + ex.getLocalizedMessage());
         }
         return r;
     }
@@ -240,12 +245,13 @@ public class YamJJazzRhythmProvider implements RhythmProvider
     private File[] getDefaultRhythmFiles()
     {
         File[] res;
-        File dir = InstalledFileLocator.getDefault().locate(DEFAULT_FILES_DEST_DIRNAME, "org.jjazzlab.yamjjazz", false);
+        File dir = InstalledFileLocator.getDefault().locate(DEFAULT_FILES_DEST_DIRNAME, Modules.getDefault().ownerOf(getClass()).getCodeNameBase(), false);
         if (dir == null || !dir.isDirectory())
         {
             LOGGER.severe("getDefaultRhythmFiles() Can't find " + DEFAULT_FILES_DEST_DIRNAME);
             res = new File[0];
-        } else
+        }
+        else
         {
             res = dir.listFiles(fileFilter);
         }

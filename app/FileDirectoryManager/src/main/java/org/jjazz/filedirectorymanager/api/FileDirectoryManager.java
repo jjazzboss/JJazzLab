@@ -32,6 +32,7 @@ import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.upgrade.api.UpgradeManager;
 import org.jjazz.upgrade.api.UpgradeTask;
 import org.openide.modules.InstalledFileLocator;
+import org.openide.modules.Modules;
 import org.openide.modules.Places;
 import org.openide.util.NbPreferences;
 import org.openide.util.lookup.ServiceProvider;
@@ -119,7 +120,7 @@ public class FileDirectoryManager
      */
     public File getInstallationDirectory()
     {
-        File f = InstalledFileLocator.getDefault().locate("modules", "org.jjazzlab.filedirectorymanager", false).getAbsoluteFile();
+        File f = InstalledFileLocator.getDefault().locate("modules", Modules.getDefault().ownerOf(getClass()).getCodeNameBase(), false).getAbsoluteFile();
         f = f.getParentFile().getParentFile();
         assert f != null && f.isDirectory() : "f=" + f;
         return f;

@@ -40,6 +40,7 @@ import org.jjazz.fluidsynthjava.api.Reverb;
 import org.jjazz.outputsynth.api.OutputSynth;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.modules.InstalledFileLocator;
+import org.openide.modules.Modules;
 import org.openide.util.NbPreferences;
 
 /**
@@ -114,7 +115,7 @@ public class FluidSynthEmbeddedSynth implements EmbeddedSynth, PropertyChangeLis
         }
         else
         {
-            f = InstalledFileLocator.getDefault().locate(SOUNDFONT_FILE, "org.jjazzlab.fluidsynthembeddedsynth", false);
+            f = InstalledFileLocator.getDefault().locate(SOUNDFONT_FILE, Modules.getDefault().ownerOf(getClass()).getCodeNameBase(), false);
             LOGGER.log(Level.FINE, "Using SoundFont file from current module (" + SOUNDFONT_FILE + ")");
         }
 

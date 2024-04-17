@@ -47,6 +47,7 @@ import org.jjazz.utilities.api.Utilities;
 import org.openide.util.lookup.ServiceProvider;
 import org.jjazz.yamjjazz.FormatNotSupportedException;
 import org.openide.modules.InstalledFileLocator;
+import org.openide.modules.Modules;
 
 /**
  * A provider of standard Yamaha style rhythms.
@@ -126,7 +127,8 @@ public class YamahaRhythmProvider implements RhythmProvider
             try
             {
                 r = readFast(f);
-            } catch (IOException ex)
+            }
+            catch (IOException ex)
             {
                 LOGGER.log(Level.WARNING, "getFileRhythms() ex={0}", ex.getLocalizedMessage());
                 errRpt.individualErrorMessages.add(ex.getLocalizedMessage());
@@ -140,8 +142,11 @@ public class YamahaRhythmProvider implements RhythmProvider
         File rDir = FileDirectoryManager.getInstance().getUserRhythmDirectory();
         if (!rDir.isDirectory())
         {
-            LOGGER.log(Level.WARNING, "getFileRhythms() RhythmProvider={0} - Rhythm file directory does not exist : {1}", new Object[]{info.getName(),
-                rDir.getAbsolutePath()});
+            LOGGER.log(Level.WARNING, "getFileRhythms() RhythmProvider={0} - Rhythm file directory does not exist : {1}", new Object[]
+            {
+                info.getName(),
+                rDir.getAbsolutePath()
+            });
             return fileRhythms;
         }
 
@@ -163,7 +168,8 @@ public class YamahaRhythmProvider implements RhythmProvider
             try
             {
                 r = readFast(path.toFile());
-            } catch (IOException ex)
+            }
+            catch (IOException ex)
             {
                 LOGGER.log(Level.WARNING, "getFileRhythms() ex={0}", ex.getLocalizedMessage());
                 errRpt.individualErrorMessages.add(ex.getLocalizedMessage());
@@ -207,7 +213,8 @@ public class YamahaRhythmProvider implements RhythmProvider
         try
         {
             r = new YamJJazzRhythmImpl(stdFile);  // Don't call loadResources() to save memory and gain some time
-        } catch (IOException | InvalidMidiDataException | FormatNotSupportedException ex)
+        }
+        catch (IOException | InvalidMidiDataException | FormatNotSupportedException ex)
         {
             throw new IOException("Problem reading file " + stdFile.getAbsolutePath() + ". Ex=" + ex.getLocalizedMessage());
         }
@@ -235,14 +242,15 @@ public class YamahaRhythmProvider implements RhythmProvider
     private File[] getDefaultRhythmFiles()
     {
         File[] res;
-        File dir = InstalledFileLocator.getDefault().locate(DEFAULT_FILES_DEST_DIRNAME, "org.jjazzlab.yamjjazz", false);
+        File dir = InstalledFileLocator.getDefault().locate(DEFAULT_FILES_DEST_DIRNAME, Modules.getDefault().ownerOf(getClass()).getCodeNameBase(), false);
 
 
         if (dir == null || !dir.isDirectory())
         {
             LOGGER.severe("getDefaultRhythmFiles() Can't find " + DEFAULT_FILES_DEST_DIRNAME);
             res = new File[0];
-        } else
+        }
+        else
         {
             res = dir.listFiles(fileFilter);
         }
@@ -255,8 +263,8 @@ public class YamahaRhythmProvider implements RhythmProvider
     {
         // Get all .yjz files
         var yjzPaths = stylePaths.stream()
-                .filter(p -> p.toString().toLowerCase().endsWith(YamJJazzRhythmProvider.FILE_EXTENSION))
-                .toList();
+            .filter(p -> p.toString().toLowerCase().endsWith(YamJJazzRhythmProvider.FILE_EXTENSION))
+            .toList();
 
 
         // Remove all .yjz files and remove all possible corresponding base styles
