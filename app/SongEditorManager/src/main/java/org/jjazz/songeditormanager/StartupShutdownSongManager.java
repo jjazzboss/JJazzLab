@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.songeditormanager.api;
+package org.jjazz.songeditormanager;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -34,13 +34,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import javax.swing.SwingUtilities;
-import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongCreationException;
 import org.jjazz.songeditormanager.spi.SongEditorManager;
-import org.jjazz.upgrade.api.UpgradeManager;
-import org.jjazz.upgrade.api.UpgradeTask;
 import org.jjazz.utilities.api.ResUtil;
 import org.netbeans.api.sendopts.CommandException;
 import org.netbeans.spi.sendopts.Env;
@@ -52,12 +49,13 @@ import org.openide.modules.OnStop;
 import org.openide.util.NbPreferences;
 import org.openide.util.lookup.ServiceProvider;
 import org.jjazz.startup.spi.OnShowingTask;
+import org.openide.util.Lookup;
 
 /**
  * Manage the opening/closing of song files at startup/shutdown.
  * <p>
- * Upon startup, if file names arguments are passed on the command line, open these files. Otherwise restore the last opened files depending
- * on setting. Upon shutdown ask for user confirmation for unsaved songs.
+ * Upon startup, if file names arguments are passed on the command line, open these files. Otherwise restore the last opened files depending on setting. Upon
+ * shutdown ask for user confirmation for unsaved songs.
  */
 @ServiceProvider(service = OptionProcessor.class)
 @OnStop
@@ -71,7 +69,7 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
     /**
      * Used as the Preference id and property change.
      */
-    private static final String PREF_OPEN_RECENT_FILES_UPON_STARTUP = "OpenRecentFilesUponStartup";
+    private static final String PREF_OPEN_LAST_FILES_UPON_STARTUP = "OpenRecentFilesUponStartup";
     private static final String PREF_FILES_TO_BE_REOPENED_UPON_STARTUP = "FilesToBeReOpenedUponStartup";
     private static final String NO_FILE = "__NO_FILE__";
     private static final int MAX_FILES = 20;
@@ -85,27 +83,39 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
     {
         if (INSTANCE == null)
         {
-            throw new NullPointerException("INSTANCE");   
+            var res = Lookup.getDefault().lookup(StartupShutdownSongManager.class);
+            if (res == null)
+            {
+                throw new IllegalStateException("No StartupShutdownSongManager instance found");
+            }
+            assert INSTANCE != null;
         }
         return INSTANCE;
     }
 
     /**
-     * Reserved do not use : use getInstance() instead.
+     * Reserved, do not use : use getInstance() instead.
+     * <p>
+     * (constructor must be made public because of @ServiceProvider)
      */
     public StartupShutdownSongManager()
     {
+        if (INSTANCE != null)
+        {
+            throw new IllegalStateException("This is the 2nd call of the constructor, this should never happen for this singleton class");
+        }
         INSTANCE = this;
+        LOGGER.info("StartupShutdownSongManager() Starting");
     }
 
-    public void setOpenRecentFilesUponStartup(boolean b)
+    public void setOpenLastFilesUponStartup(boolean b)
     {
-        prefs.putBoolean(PREF_OPEN_RECENT_FILES_UPON_STARTUP, b);
+        prefs.putBoolean(PREF_OPEN_LAST_FILES_UPON_STARTUP, b);
     }
 
-    public final boolean isOpenRecentFilesUponStartup()
+    public boolean isOpenLastFilesUponStartup()
     {
-        return prefs.getBoolean(PREF_OPEN_RECENT_FILES_UPON_STARTUP, true);
+        return prefs.getBoolean(PREF_OPEN_LAST_FILES_UPON_STARTUP, true);
     }
 
     // ==================================================================================
@@ -129,7 +139,10 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
     @Override
     protected void process(Env env, Map<Option, String[]> values) throws CommandException
     {
-        LOGGER.log(Level.FINE, "process() --  env={0} values={1}", new Object[]{env, values});   
+        LOGGER.log(Level.FINE, "process() --  env={0} values={1}", new Object[]
+        {
+            env, values
+        });
 
 
         cmdLineFilesToOpen.clear();
@@ -140,8 +153,11 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
             var fileNames = values.get(openOption);
             for (String fileName : fileNames)
             {
-                LOGGER.log(Level.INFO, "process() Opening command line file: {0}, current dir: {1}", new Object[]{fileName,
-                    env.getCurrentDirectory().getAbsolutePath()});   
+                LOGGER.log(Level.INFO, "process() Opening command line file: {0}, current dir: {1}", new Object[]
+                {
+                    fileName,
+                    env.getCurrentDirectory().getAbsolutePath()
+                });
 
                 // Normally fileName contains the absolute path, but just in case...
                 File file = new File(fileName);
@@ -153,7 +169,7 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
 
                 if (!file.exists())
                 {
-                    LOGGER.log(Level.WARNING, "process() Can''t find {0}", file.getAbsolutePath());   
+                    LOGGER.log(Level.WARNING, "process() Can''t find {0}", file.getAbsolutePath());
                     continue;
 
                 } else
@@ -167,8 +183,11 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
                             SongEditorManager.getDefault().showSong(file, last, true);
                         } catch (SongCreationException ex)
                         {
-                            LOGGER.log(Level.WARNING, "process() Problem opening song file: {0}. ex={1}", new Object[]{file.getAbsolutePath(),
-                                ex.getMessage()});   
+                            LOGGER.log(Level.WARNING, "process() Problem opening song file: {0}. ex={1}", new Object[]
+                            {
+                                file.getAbsolutePath(),
+                                ex.getMessage()
+                            });
                         }
 
                     } else
@@ -189,14 +208,15 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
     /**
      * Called upon shutdown.
      * <p>
-     * Ask user confirmation if unsaved changes (whatever nb of unsaved files), close properly the opened songs (so that listeners with
-     * persistence like RecentFiles are notified).
+     * Ask user confirmation if unsaved changes (whatever nb of unsaved files), close properly the opened songs (so that listeners with persistence like
+     * RecentFiles are notified).
      * <p>
      * Also save the opened songs for possible reopen at startup (see isOpenRecentFilesUponStartup()).
      */
     @Override
     public Boolean call() throws Exception
     {
+        LOGGER.info("call() Shutting down");
         SongEditorManager sem = SongEditorManager.getDefault();
 
 
@@ -208,18 +228,18 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
         {
             // Build message and songs which need save
             StringBuilder msg = new StringBuilder();
-            msg.append(ResUtil.getString(getClass(), "CTL_UnsavedChangesExitAnyway")).append("\n");            
+            msg.append(ResUtil.getString(getClass(), "CTL_UnsavedChangesExitAnyway")).append("\n");
             for (Song s : songsToSave)
             {
                 String strFile = s.getName();
                 if (s.getFile() != null)
                 {
                     File songMixFile = MidiMix.getSongMixFile(s.getFile());
-                    strFile = s.getFile().getAbsolutePath()+", "+songMixFile.getAbsolutePath();                    
+                    strFile = s.getFile().getAbsolutePath() + ", " + songMixFile.getAbsolutePath();
                 }
                 msg.append("  ").append(strFile).append("\n");
             }
-            
+
             NotifyDescriptor nd = new NotifyDescriptor.Confirmation(msg.toString(), NotifyDescriptor.OK_CANCEL_OPTION);
             Object result = DialogDisplayer.getDefault().notify(nd);
             if (result != NotifyDescriptor.OK_OPTION)
@@ -251,6 +271,11 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
         return Boolean.TRUE;
     }
 
+    public void resetRecentFileList()
+    {
+        prefs.put(PREF_FILES_TO_BE_REOPENED_UPON_STARTUP, NO_FILE);
+    }
+
     // ==================================================================================
     // Private methods
     // ==================================================================================
@@ -271,7 +296,7 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
         @Override
         public void run()
         {
-            LOGGER.fine("OpenFilesAtStartupTask.run() --");   
+            LOGGER.fine("OpenFilesAtStartupTask.run() --");
 
             // If command line arguments specified, just open them and ignore recent open files
             var instance = StartupShutdownSongManager.getInstance();
@@ -287,12 +312,15 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
                         sem.showSong(f, last, true);
                     } catch (SongCreationException ex)
                     {
-                        LOGGER.log(Level.WARNING, "OpenFilesAtStartupTask.run() Problem opening song file: {0}. ex={1}", new Object[]{f.getAbsolutePath(),
-                            ex.getMessage()});   
+                        LOGGER.log(Level.WARNING, "OpenFilesAtStartupTask.run() Problem opening song file: {0}. ex={1}", new Object[]
+                        {
+                            f.getAbsolutePath(),
+                            ex.getMessage()
+                        });
                     }
                 }
 
-            } else if (instance.isOpenRecentFilesUponStartup())
+            } else if (instance.isOpenLastFilesUponStartup())
             {
                 openRecentFilesUponStartup();
             }
@@ -330,8 +358,11 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
                             SongEditorManager.getDefault().showSong(f, last, true);
                         } catch (SongCreationException ex)
                         {
-                            LOGGER.log(Level.WARNING, "openRecentFilesUponStartup.run() Problem opening song file: {0}. ex={1}", new Object[]{f.getAbsolutePath(),
-                                ex.getMessage()});   
+                            LOGGER.log(Level.WARNING, "openRecentFilesUponStartup.run() Problem opening song file: {0}. ex={1}", new Object[]
+                            {
+                                f.getAbsolutePath(),
+                                ex.getMessage()
+                            });
                         }
                     }
                 };
@@ -341,23 +372,5 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
 
     }
 
-    // =====================================================================================
-    // Upgrade Task
-    // =====================================================================================
-    @ServiceProvider(service = UpgradeTask.class)
-    static public class RestoreSettingsTask implements UpgradeTask
-    {
-
-        @Override
-        public void upgrade(String oldVersion)
-        {
-            UpgradeManager um = UpgradeManager.getInstance();
-            um.duplicateOldPreferences(prefs);
-
-            // Reset recent files list : avoid opening files upon fresh startup, which can mess the UI with the fresh startup dialogs
-            prefs.put(PREF_FILES_TO_BE_REOPENED_UPON_STARTUP, NO_FILE);
-        }
-
-    }
 
 }

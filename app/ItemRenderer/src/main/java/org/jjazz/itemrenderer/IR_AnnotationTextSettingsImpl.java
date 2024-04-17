@@ -33,11 +33,8 @@ import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.itemrenderer.api.IR_AnnotationTextSettings;
 import org.jjazz.uiutilities.api.FontColorUserSettingsProvider;
 import org.jjazz.uisettings.api.GeneralUISettings;
-import org.jjazz.upgrade.api.UpgradeManager;
-import org.jjazz.upgrade.api.UpgradeTask;
 import org.jjazz.utilities.api.ResUtil;
 import org.jjazz.utilities.api.Utilities;
-import org.openide.util.NbBundle;
 import org.openide.util.NbPreferences;
 import org.openide.util.lookup.ServiceProvider;
 import org.openide.util.lookup.ServiceProviders;
@@ -137,19 +134,4 @@ public class IR_AnnotationTextSettingsImpl implements IR_AnnotationTextSettings,
         return Arrays.asList((FontColorUserSettingsProvider.FCSetting) this);
     }
 
-    // =====================================================================================
-    // Upgrade Task
-    // =====================================================================================
-    @ServiceProvider(service = UpgradeTask.class)
-    static public class RestoreSettingsTask implements UpgradeTask
-    {
-
-        @Override
-        public void upgrade(String oldVersion)
-        {
-            UpgradeManager um = UpgradeManager.getInstance();
-            um.duplicateOldPreferences(prefs);
-        }
-
-    }
 }

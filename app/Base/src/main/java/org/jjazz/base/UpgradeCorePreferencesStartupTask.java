@@ -26,6 +26,7 @@ import java.util.logging.*;
 import org.jjazz.harmony.spi.ChordTypeDatabase;
 import org.jjazz.midi.api.JJazzMidiSystem;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
+import org.jjazz.outputsynth.api.DefaultOutputSynthManager;
 import org.jjazz.upgrade.api.UpgradeManager;
 import org.jjazz.upgrade.api.UpgradeTask;
 import org.openide.util.NbPreferences;
@@ -44,6 +45,11 @@ public class UpgradeCorePreferencesStartupTask implements UpgradeTask
     @Override
     public void upgrade(String oldVersion)
     {
+        if (oldVersion == null)
+        {
+            return;
+        }
+
         UpgradeManager um = UpgradeManager.getInstance();
 
         // ChordTypeDatabase
@@ -51,9 +57,19 @@ public class UpgradeCorePreferencesStartupTask implements UpgradeTask
         um.duplicateOldPreferences(prefs);
 
 
+        // OutputSynthManager        
+        // Preferences before JJazzLab 4 are not imported
+        if (oldVersion.charAt(0) >= '4')
+        {
+            prefs = NbPreferences.forModule(DefaultOutputSynthManager.class);            
+            um.duplicateOldPreferences(prefs);
+        }
+
+
         // JJazzMidiSystem
         prefs = NbPreferences.forModule(JJazzMidiSystem.class);
         um.duplicateOldPreferences(prefs);
+
 
         // PlaybackSettings
         prefs = NbPreferences.forModule(PlaybackSettings.class);

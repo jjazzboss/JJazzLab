@@ -195,20 +195,4 @@ public class SongMemoEditorSettingsImpl implements SongMemoEditorSettings, FontC
         return res;
     }
 
-    // =====================================================================================
-    // Upgrade Task
-    // =====================================================================================
-
-    @ServiceProvider(service = UpgradeTask.class)
-    static public class RestoreSettingsTask implements UpgradeTask
-    {
-
-        @Override
-        public void upgrade(String oldVersion)
-        {
-            UpgradeManager um = UpgradeManager.getInstance();
-            um.duplicateOldPreferences(prefs);
-        }
-
-    }
 }

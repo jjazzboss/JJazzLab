@@ -27,8 +27,6 @@ import org.jjazz.outputsynthmanagerimpl.api.MidiSynthManagerImpl;
 import java.util.logging.Logger;
 import org.jjazz.midi.api.MidiSynth;
 import org.jjazz.outputsynth.api.OutputSynth;
-import org.jjazz.upgrade.api.UpgradeManager;
-import org.jjazz.upgrade.api.UpgradeTask;
 import org.openide.util.lookup.ServiceProvider;
 import org.jjazz.outputsynth.spi.OutputSynthManager;
 import org.jjazz.midi.spi.MidiSynthManager;
@@ -84,27 +82,6 @@ public class OutputSynthManagerImpl extends DefaultOutputSynthManager
         res.getUserSettings().setSendModeOnUponPlay(mode);
 
         return res;
-    }
-
-
-    // =====================================================================================
-    // Upgrade Task
-    // =====================================================================================
-    @ServiceProvider(service = UpgradeTask.class)
-    static public class RestoreSettingsTask implements UpgradeTask
-    {
-
-        @Override
-        public void upgrade(String oldVersion)
-        {
-            // Preferences up to JJazzLab 3 are not reused in JJazzLab 4 and later
-            if (oldVersion != null && oldVersion.length() > 0 && oldVersion.charAt(0) >= '4')
-            {
-                UpgradeManager um = UpgradeManager.getInstance();
-                um.duplicateOldPreferences(prefs);
-            }
-        }
-
     }
 
 }

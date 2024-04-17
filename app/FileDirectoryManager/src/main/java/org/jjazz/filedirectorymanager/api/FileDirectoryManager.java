@@ -29,13 +29,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import javax.swing.event.SwingPropertyChangeSupport;
-import org.jjazz.upgrade.api.UpgradeManager;
-import org.jjazz.upgrade.api.UpgradeTask;
 import org.openide.modules.InstalledFileLocator;
 import org.openide.modules.Modules;
 import org.openide.modules.Places;
 import org.openide.util.NbPreferences;
-import org.openide.util.lookup.ServiceProvider;
 
 /**
  * Manage the various directories and file types used by the application.
@@ -72,7 +69,7 @@ public class FileDirectoryManager
         return INSTANCE;
     }
 
- 
+
     /**
      * The directory user.home/DEFAULT_USER_DIR.
      * <p>
@@ -182,8 +179,8 @@ public class FileDirectoryManager
      * Get the user specific JJazz configuration directory.
      * <p>
      * <p>
-     * Use the APP_CONFIG_PREFIX_DIR subdir of the Netbeans user directory, or if not set of the user.home system property. Create the
-     * directory if it does not exist.
+     * Use the APP_CONFIG_PREFIX_DIR subdir of the Netbeans user directory, or if not set of the user.home system property. Create the directory if it does not
+     * exist.
      *
      * @param subDirName An optional extra subdirectory name (APP_CONFIG_PREFIX_DIR/subDir). Ignored if null or empty.
      * @return Could be null if no user directory found.
@@ -344,24 +341,5 @@ public class FileDirectoryManager
         pcs.removePropertyChangeListener(l);
     }
 
-    // =====================================================================================
-    // Upgrade Task
-    // =====================================================================================
-    @ServiceProvider(service = UpgradeTask.class)
-    static public class RestoreSettingsTask implements UpgradeTask
-    {
-
-        @Override
-        public void upgrade(String oldVersion)
-        {
-            // Set the JJazzLab User Directory as LastSongDirectory
-            getInstance().setLastSongDirectory(getInstance().getJJazzLabUserDirectory());
-
-            // Copy preferences if any
-            UpgradeManager um = UpgradeManager.getInstance();
-            um.duplicateOldPreferences(prefs);
-        }
-
-    }
 
 }

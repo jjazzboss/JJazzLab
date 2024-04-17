@@ -79,29 +79,4 @@ public class CL_EditorSettingsImpl implements CL_EditorSettings
         pcs.removePropertyChangeListener(listener);
     }
 
-    // =====================================================================================
-    // Upgrade Task
-    // =====================================================================================
-    @ServiceProvider(service = UpgradeTask.class)
-    static public class RestoreSettingsTask implements UpgradeTask
-    {
-
-        @Override
-        public void upgrade(String oldVersion)
-        {
-            UpgradeManager um = UpgradeManager.getInstance();
-            
-            // package codebase has changed from JJazzLab 3 to JJazzLab 4: org/jjazz/ui/cl_editor => org/jjazz/cl_editor
-            if (oldVersion != null && oldVersion.length() > 0 && oldVersion.charAt(0) <= '3')
-            {
-                um.duplicateOldPreferences(prefs, "org/jjazz/ui/cl_editor.properties");
-            } else
-            {
-                um.duplicateOldPreferences(prefs);
-            }
-            
-        }
-
-    }
-
 }

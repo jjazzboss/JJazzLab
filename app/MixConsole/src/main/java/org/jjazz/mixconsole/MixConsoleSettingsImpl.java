@@ -31,8 +31,6 @@ import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.mixconsole.api.MixConsoleSettings;
 import org.jjazz.uiutilities.api.FontColorUserSettingsProvider;
 import org.jjazz.uisettings.api.GeneralUISettings;
-import org.jjazz.upgrade.api.UpgradeManager;
-import org.jjazz.upgrade.api.UpgradeTask;
 import org.openide.util.NbPreferences;
 import org.openide.util.lookup.ServiceProvider;
 import org.openide.util.lookup.ServiceProviders;
@@ -197,27 +195,4 @@ public class MixConsoleSettingsImpl implements MixConsoleSettings, FontColorUser
         return res;
     }
 
-    // =====================================================================================
-    // Upgrade Task
-    // =====================================================================================
-    @ServiceProvider(service = UpgradeTask.class)
-    static public class RestoreSettingsTask implements UpgradeTask
-    {
-
-        @Override
-        public void upgrade(String oldVersion)
-        {
-            UpgradeManager um = UpgradeManager.getInstance();
-
-            // package codebase has changed from JJazzLab 3 to JJazzLab 4: org/jjazz/ui/mixconsole => org/jjazz/mixconsole
-            if (oldVersion != null && oldVersion.length() > 0 && oldVersion.charAt(0) <= '3')
-            {
-                um.duplicateOldPreferences(prefs, "org/jjazz/ui/mixconsole.properties");
-            } else
-            {
-                um.duplicateOldPreferences(prefs);
-            }
-        }
-
-    }
 }

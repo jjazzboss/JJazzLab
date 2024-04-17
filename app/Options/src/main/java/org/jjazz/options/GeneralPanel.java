@@ -23,7 +23,6 @@
 package org.jjazz.options;
 
 import java.awt.Component;
-import java.io.File;
 import java.io.IOException;
 import java.util.Locale;
 import java.util.logging.Logger;
@@ -31,8 +30,7 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JList;
 import org.jjazz.analytics.api.Analytics;
-import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
-import org.jjazz.songeditormanager.api.StartupShutdownSongManager;
+import org.jjazz.songeditormanager.spi.SongEditorManager;
 import org.jjazz.uisettings.api.GeneralUISettings;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.DialogDisplayer;
@@ -178,7 +176,7 @@ final class GeneralPanel extends javax.swing.JPanel
         // someTextField.setText(SomeSystemOption.getDefault().getSomeStringProperty());
 
         LOGGER.fine("load() --");
-        cb_loadLastRecentFile.setSelected(StartupShutdownSongManager.getInstance().isOpenRecentFilesUponStartup());
+        cb_loadLastRecentFile.setSelected(SongEditorManager.getDefault().isOpenLastFilesUponStartup());
         cb_disableMouseWheelChangeValue.setSelected(!GeneralUISettings.getInstance().isChangeValueWithMouseWheelEnabled());
 
 
@@ -201,7 +199,7 @@ final class GeneralPanel extends javax.swing.JPanel
         // or:
         // SomeSystemOption.getDefault().setSomeStringProperty(someTextField.getText());
         LOGGER.fine("store() --");
-        StartupShutdownSongManager.getInstance().setOpenRecentFilesUponStartup(cb_loadLastRecentFile.isSelected());
+        SongEditorManager.getDefault().setOpenLastFilesUponStartup(cb_loadLastRecentFile.isSelected());
 
         GeneralUISettings.getInstance().setChangeValueWithMouseWheelEnabled(!cb_disableMouseWheelChangeValue.isSelected());
 

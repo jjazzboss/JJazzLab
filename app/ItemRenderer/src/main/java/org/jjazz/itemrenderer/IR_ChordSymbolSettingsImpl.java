@@ -29,7 +29,6 @@ import java.awt.GraphicsEnvironment;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
@@ -43,8 +42,6 @@ import org.openide.util.lookup.ServiceProvider;
 import org.openide.util.lookup.ServiceProviders;
 import org.jjazz.uiutilities.api.FontColorUserSettingsProvider;
 import org.jjazz.uisettings.api.GeneralUISettings;
-import org.jjazz.upgrade.api.UpgradeManager;
-import org.jjazz.upgrade.api.UpgradeTask;
 import org.netbeans.api.annotations.common.StaticResource;
 
 @ServiceProviders(value =
@@ -179,21 +176,5 @@ public class IR_ChordSymbolSettingsImpl implements IR_ChordSymbolSettings, FontC
     public List<FontColorUserSettingsProvider.FCSetting> getFCSettings()
     {
         return Arrays.asList((FontColorUserSettingsProvider.FCSetting) this);
-    }
-
-    // =====================================================================================
-    // Upgrade Task
-    // =====================================================================================
-    @ServiceProvider(service = UpgradeTask.class)
-    static public class RestoreSettingsTask implements UpgradeTask
-    {
-
-        @Override
-        public void upgrade(String oldVersion)
-        {
-            UpgradeManager um = UpgradeManager.getInstance();
-            um.duplicateOldPreferences(prefs);
-        }
-
     }
 }

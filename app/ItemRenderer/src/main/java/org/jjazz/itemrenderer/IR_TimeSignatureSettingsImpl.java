@@ -138,19 +138,4 @@ public class IR_TimeSignatureSettingsImpl implements IR_TimeSignatureSettings, F
         return Arrays.asList((FontColorUserSettingsProvider.FCSetting) this);
     }
 
-    // =====================================================================================
-    // Upgrade Task
-    // =====================================================================================
-    @ServiceProvider(service = UpgradeTask.class)
-    static public class RestoreSettingsTask implements UpgradeTask
-    {
-
-        @Override
-        public void upgrade(String oldVersion)
-        {
-            UpgradeManager um = UpgradeManager.getInstance();
-            um.duplicateOldPreferences(prefs);
-        }
-
-    }
 }

@@ -34,8 +34,6 @@ import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.ss_editor.sptviewer.spi.SptViewerSettings;
 import org.jjazz.uiutilities.api.FontColorUserSettingsProvider;
 import org.jjazz.uisettings.api.GeneralUISettings;
-import org.jjazz.upgrade.api.UpgradeManager;
-import org.jjazz.upgrade.api.UpgradeTask;
 import org.jjazz.utilities.api.Utilities;
 import org.openide.util.NbPreferences;
 import org.openide.util.lookup.ServiceProvider;
@@ -382,22 +380,6 @@ public class SptViewerSettingsImpl implements SptViewerSettings, FontColorUserSe
         res.add(fcs);
       
         return res;
-    }
-
-    // =====================================================================================
-    // Upgrade Task
-    // =====================================================================================
-    @ServiceProvider(service = UpgradeTask.class)
-    static public class RestoreSettingsTask implements UpgradeTask
-    {
-
-        @Override
-        public void upgrade(String oldVersion)
-        {
-            UpgradeManager um = UpgradeManager.getInstance();
-            um.duplicateOldPreferences(prefs);
-        }
-
     }
 
 }

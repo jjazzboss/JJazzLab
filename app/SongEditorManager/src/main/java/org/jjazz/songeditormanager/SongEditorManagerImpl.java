@@ -278,7 +278,7 @@ public class SongEditorManagerImpl implements SongEditorManager, PropertyChangeL
         if (ext.equalsIgnoreCase("sng"))
         {
             song = Song.loadFromFile(f);       // throws SongCreationException
-            
+
         } else
         {
             var songImporters = SongImporter.getMatchingImporters(SongImporter.getImporters(), ext);
@@ -556,6 +556,18 @@ public class SongEditorManagerImpl implements SongEditorManager, PropertyChangeL
             throw new IllegalArgumentException("s=" + s);
         }
         return mapSongEditors.get(s);
+    }
+
+    @Override
+    public void setOpenLastFilesUponStartup(boolean b)
+    {
+        StartupShutdownSongManager.getInstance().setOpenLastFilesUponStartup(b);
+    }
+
+    @Override
+    public boolean isOpenLastFilesUponStartup()
+    {
+        return StartupShutdownSongManager.getInstance().isOpenLastFilesUponStartup();
     }
 
     @Override

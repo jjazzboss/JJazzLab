@@ -218,7 +218,7 @@ public class DonManagerImpl implements Runnable, DonManager
             code_expirationDateNbDaysFrom2020
         });
         Analytics.logEvent("Code registered");
-        Analytics.setProperties(Analytics.buildMap("Code validity", true, "Code amount", code_amountEuro));        
+        Analytics.setProperties(Analytics.buildMap("Code validity", true, "Code amount", code_amountEuro));
     }
 
     /**
@@ -533,33 +533,4 @@ public class DonManagerImpl implements Runnable, DonManager
 
     }
 
-    // =====================================================================================
-    // Upgrade Task
-    // =====================================================================================
-    @ServiceProvider(service = UpgradeTask.class)
-    static public class RestoreSettingsTask implements UpgradeTask
-    {
-
-        @Override
-        public void upgrade(String oldVersion)
-        {
-            if (oldVersion == null || oldVersion.isBlank() || oldVersion.charAt(0) < '0' || oldVersion.charAt(0) > '9')
-            {
-                return;
-            }
-
-            UpgradeManager um = UpgradeManager.getInstance();
-            if (oldVersion.charAt(0) <= '3')
-            {
-                // Package name was changed in JJazzLab 4: org.jjazzlab.base => org.jjazz.base
-                um.duplicateOldPreferences(prefs, "org/jjazzlab/base.properties");
-
-            } else
-            {
-                // We're importing from JJazzLab 4 and higher, normal                
-                um.duplicateOldPreferences(prefs);
-            }
-        }
-
-    }
 }

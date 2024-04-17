@@ -26,7 +26,6 @@ import com.google.common.base.Preconditions;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.util.List;
-import java.util.Set;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.UserRhythmVoice;
@@ -156,6 +155,18 @@ public interface SongEditorManager
      */
     PianoRollEditorTopComponent showPianoRollEditorForUserTrack(Song song, MidiMix midiMix, UserRhythmVoice userRhythmVoice);
 
+    /**
+     * Set JJazzLab so that it open last opened songs upon startup.
+     *
+     * @param b
+     */
+    void setOpenLastFilesUponStartup(boolean b);
+
+    /**
+     *
+     * @return True if JJazzLab must open last opened songs upon startup.
+     */
+    boolean isOpenLastFilesUponStartup();
 
     void addPropertyChangeListener(PropertyChangeListener l);
 

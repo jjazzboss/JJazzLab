@@ -53,7 +53,6 @@ import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
 import org.jjazz.utilities.api.MultipleErrorsReport;
 import org.jjazz.rhythm.spi.StubRhythmProvider;
 import org.jjazz.upgrade.api.UpgradeManager;
-import org.jjazz.upgrade.api.UpgradeTask;
 import org.jjazz.utilities.api.ResUtil;
 import org.jjazz.utilities.api.Utilities;
 import org.netbeans.api.annotations.common.StaticResource;
@@ -85,8 +84,8 @@ import org.jjazz.startup.spi.OnShowingTask;
 public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListener
 {
 
-    private static final String PREF_DEFAULT_RHYTHM = "DefaultRhythm";
-    private static final String PREF_NEED_RESCAN = "NeedRescan";
+    protected static final String PREF_DEFAULT_RHYTHM = "DefaultRhythm";
+    protected static final String PREF_NEED_RESCAN = "NeedRescan";
 
     /**
      * Main data structure
@@ -840,42 +839,6 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         }
     }
 
-    // =====================================================================================
-    // Upgrade Task
-    // =====================================================================================
-    @ServiceProvider(service = UpgradeTask.class)
-    public static class RdbUpgradeTask implements UpgradeTask
-    {
-
-        @Override
-        public void upgrade(String oldVersion)
-        {
-            UpgradeManager um = UpgradeManager.getInstance();
-
-
-            if (oldVersion != null)
-            {
-                if (oldVersion.compareTo("4") < 0)
-                {
-                    // package codebase has changed from JJazzLab 3 to JJazzLab 4: org/jjazz/rhythm/database => org/jjazz/rhythmdatabase
-                    um.duplicateOldPreferences(prefs, "org/jjazz/rhythm/database.properties");
-                }
-                else if (oldVersion.compareTo("4.0.3") < 0)
-                {
-                    // package codebase has changed from JJazzLab 4.0.3 : org/jjazz/rhythmdatabase => org/jjazz/rhythmdatabaseimpl
-                    um.duplicateOldPreferences(prefs, "org/jjazz/rhythmdatabase.properties");
-
-                }
-            }
-            else
-            {
-                um.duplicateOldPreferences(prefs);
-            }
-            // Make sure rhythm database is rebuilt when upgrading
-            prefs.remove(PREF_NEED_RESCAN);
-
-        }
-    }
 
     // =====================================================================================
     // Startup Tasks

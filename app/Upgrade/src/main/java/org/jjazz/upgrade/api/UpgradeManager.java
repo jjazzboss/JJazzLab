@@ -63,6 +63,7 @@ public class UpgradeManager
     private boolean warningShown;
     private static UpgradeManager INSTANCE;
     private String importSourceVersion = NOT_SET;
+    private String currentVersion;
     private final boolean isFreshStart;
     private static final Preferences prefs = NbPreferences.forModule(UpgradeManager.class);
     private static final Logger LOGGER = Logger.getLogger(UpgradeManager.class.getSimpleName());
@@ -86,11 +87,22 @@ public class UpgradeManager
         {
             prefs.putBoolean(PREF_FRESH_START, false);
         }
+        
+        currentVersion = System.getProperty("jjazzlab.version");
+        if (currentVersion != null && (currentVersion.isBlank() || currentVersion.charAt(0) < '0' || currentVersion.charAt(0) > '9'))
+        {
+            currentVersion = null;
+        }
     }
 
-    public String getVersion()
+    /**
+     * The current JJazzLab version.
+     * 
+     * @return Can be null.
+     */
+    public String getCurrentVersion()
     {
-        return System.getProperty("jjazzlab.version");
+        return currentVersion;
     }
 
     /**
@@ -151,28 +163,43 @@ public class UpgradeManager
 
 
     /**
-     * Copy into modulePrefs all the "old" key/value pairs from the corresponding Properties file in the getImportSourceVersion() directory structure.
+     * Copy into modulePrefs all the "old" key/value pairs from the corresponding Properties file found in the getImportSourceVersion() directory structure.
      * <p>
-     * To be used when package codebase has not changed between 2 versions.
+     * To be used when module codebase has not changed between 2 versions. But note that app-level codebase name changes (which impacted *all* modules) are
+     * handled by this method via adaptPropertiesFileRelativePath().
      *
      * @param modulePrefs The Netbeans preferences of a module.
+     * @see #adaptPropertiesFileRelativePath(java.lang.String)
      */
     public void duplicateOldPreferences(Preferences modulePrefs)
     {
         Preconditions.checkNotNull(modulePrefs);
         LOGGER.log(Level.FINE, "duplicateOldPreferences() -- modulePrefs={0}", modulePrefs.absolutePath());
 
+        String relPath = getPropertiesFileRelativePath(modulePrefs);
+        relPath = adaptPropertiesFileRelativePath(relPath);
+        duplicateOldPreferences(modulePrefs, relPath);
+    }
 
-        String relPath = getPreferencesRelativePath(modulePrefs);
-
-
-        // Adjust relPath if needed
-        // Note that with Maven, module node is made from codename base, i.e. groupId/artefactId , converting '-'s into '/'s.
-        String version = getVersion();
+    /**
+     * Adapt relPath to the import version.
+     * <p>
+     * The returned properties file relative path takes into account possible codebase name changes which occured between getImportSourceVersion() and
+     * getCurrentVersion().
+     *
+     * @param relPath A relative path of a properties file for the current version, eg "org/jjazzlab/midi.properties" for getCurrentVersion()="4.0.3"
+     * @return eg "org/jjazzlab/org/jjazz/midi.properties" for getImportSourceVersion()=4.0.2
+     * @see #getCurrentVersion()
+     * @see #getImportSourceVersion()
+     */
+    public String adaptPropertiesFileRelativePath(String relPath)
+    {
+        // With Ant codename base is defined by a variable in Manifest file, eg "org.jjazz.midi"
+        // With Maven, codename base is groupId/artefactId , converting '-'s into '/'s, eg "org.jjazzlab.midi"
         String importVersion = getImportSourceVersion();
-        if (version != null && !version.isEmpty() && importVersion != null && !importVersion.isEmpty())
+        if (currentVersion != null && !currentVersion.isEmpty() && importVersion != null && !importVersion.isEmpty())
         {
-            if (version.compareTo("4") >= 0 && importVersion.compareTo("4") < 0)
+            if (currentVersion.compareTo("4") >= 0 && importVersion.compareTo("4") < 0)
             {
                 if (relPath.startsWith("org/jjazzlab/"))    // eg "org/jjazzlab/org/jjazz/midi.properties"
                 {
@@ -181,18 +208,16 @@ public class UpgradeManager
                     relPath = relPath.substring(13);
                 }
             }
-            if (version.compareTo("4.0.3") >= 0 && importVersion.compareTo("4.0.2") <= 0)
+            if (currentVersion.compareTo("4.0.3") >= 0 && importVersion.compareTo("4.0.2") <= 0)
             {
                 // From 4.0.3 artefactId name was simplified ("org-jjazz-midi" -> "midi")
-                // Ex: 4.0.3/config/Preferences/org/jjazzlab/midi.properties => 4.0.2/config/Preferences/org/jjazzab/org/jjazz/midi.properties   
+                // Ex: 4.0.3/config/Preferences/org/jjazzlab/midi.properties => 4.0.2/config/Preferences/org/jjazzab/org/jjazz/midi.properties
                 // Ex: 4.0.3/config/Preferences/org/jjazzlab/midi.properties => 3.2.1/config/Preferences/org/jjazz/midi.properties   
                 Path p = Path.of(relPath);
                 relPath = p.getParent().resolve("org/jjazz").resolve(p.getFileName()).toString();    // eg "org/jjazzlab/midi.properties" => "org/jjazzlab/org/jjazz/midi.properties"
             }
         }
-
-
-        duplicateOldPreferences(modulePrefs, relPath);
+        return relPath;
     }
 
     /**
@@ -240,8 +265,8 @@ public class UpgradeManager
                     oldProps.stringPropertyNames().size(),
                     getImportSourceVersion(),
                     relPathToOldPrefFile,
-                    getVersion(),
-                    getPreferencesRelativePath(modulePrefs)
+                    getCurrentVersion(),
+                    getPropertiesFileRelativePath(modulePrefs)
                 });
             } catch (BackingStoreException ex)
             {
@@ -256,7 +281,7 @@ public class UpgradeManager
      * <p>
      * Take first directory from PREVIOUS_VERSIONS where config/Preferences subdir is present.
      *
-     * @return E.g. "2.0.1". Null if no import version available.
+     * @return Either a valid version string (eg "2.0.1") or null if no import version available.
      */
     public String getImportSourceVersion()
     {
@@ -306,9 +331,9 @@ public class UpgradeManager
      * Get the relative path from ..config/Preferences corresponding to nbPrefs.
      *
      * @param nbPrefs
-     * @return
+     * @return e.g. "org/jazzlab/midi.properties"
      */
-    private String getPreferencesRelativePath(Preferences nbPrefs)
+    private String getPropertiesFileRelativePath(Preferences nbPrefs)
     {
         String relPath = nbPrefs.absolutePath().substring(1);
         return relPath + ".properties";

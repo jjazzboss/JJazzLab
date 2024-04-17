@@ -501,27 +501,5 @@ public class RemoteAction
     }
 
 
-    // =====================================================================================
-    // Upgrade Task
-    // =====================================================================================
-    @ServiceProvider(service = UpgradeTask.class)
-    static public class RestoreSettingsTask implements UpgradeTask
-    {
-
-        @Override
-        public void upgrade(String oldVersion)
-        {
-            UpgradeManager um = UpgradeManager.getInstance();
-            // package codebase has changed from JJazzLab 3 to JJazzLab 4: org/jjazz/ui/musiccontrolactions => org/jjazz/musiccontrolactions
-            if (oldVersion != null && oldVersion.length() > 0 && oldVersion.charAt(0) <= '3')
-            {
-                um.duplicateOldPreferences(prefs, "org/jjazz/ui/musiccontrolactions.properties");
-            } else
-            {
-                um.duplicateOldPreferences(prefs);
-            }
-        }
-
-    }
 
 }

@@ -26,7 +26,6 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import org.jjazz.analytics.spi.AnalyticsProcessor;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
@@ -38,10 +37,8 @@ import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import org.jjazz.analytics.mixpanel.MixPanelProcessor;
 import org.jjazz.upgrade.api.UpgradeManager;
-import org.jjazz.upgrade.api.UpgradeTask;
 import org.openide.modules.OnStop;
 import org.openide.util.*;
-import org.openide.util.lookup.ServiceProvider;
 import org.openide.windows.OnShowing;
 
 /**
@@ -340,7 +337,7 @@ public class Analytics
         @Override
         public void run()
         {
-            String jjazzLabVersion = UpgradeManager.getInstance().getVersion();
+            String jjazzLabVersion = UpgradeManager.getInstance().getCurrentVersion();
             if (jjazzLabVersion == null)
             {
                 jjazzLabVersion = "null";
@@ -381,28 +378,6 @@ public class Analytics
         }
     }
 
-    /**
-     * Log the upgrade event.
-     */
-    @ServiceProvider(service = UpgradeTask.class)
-    static public class RestoreSettingsTask implements UpgradeTask
-    {
-
-        @Override
-        public void upgrade(String oldVersion)
-        {
-            // Copy the PREF_JJAZZLAB_COMPUTER_ID preference if present
-            UpgradeManager um = UpgradeManager.getInstance();
-            um.duplicateOldPreferences(prefs);
-
-            String version = System.getProperty("jjazzlab.version");
-            logEvent("Upgrade", buildMap("Old Version", (oldVersion == null ? "unknown" : oldVersion), "New Version", (version == null
-                    ? "unknown" : version)));
-        }
-    }
-    // =====================================================================================
-    // Private methods
-    // =====================================================================================
 
     private static void checkProperties(Map<String, ?> properties)
     {
@@ -418,9 +393,8 @@ public class Analytics
                 throw new IllegalArgumentException("properties=" + properties);
             }
 
-            if (o instanceof Collection)
+            if (o instanceof Collection c)
             {
-                Collection c = (Collection) o;
                 for (Object item : c)
                 {
                     if (!((item instanceof String)
