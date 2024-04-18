@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.yamjjazz.yjzwizard;
+package org.jjazz.yjzwizard;
 
 import java.util.Collections;
 import java.util.logging.Level;

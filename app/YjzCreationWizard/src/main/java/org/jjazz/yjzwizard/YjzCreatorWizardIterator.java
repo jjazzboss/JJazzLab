@@ -20,8 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.yamjjazz.yjzwizard;
-
+package org.jjazz.yjzwizard;
 import java.awt.Component;
 import java.io.IOException;
 import java.util.ArrayList;

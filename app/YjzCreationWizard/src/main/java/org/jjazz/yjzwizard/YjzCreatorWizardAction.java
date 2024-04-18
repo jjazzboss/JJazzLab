@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.yamjjazz.yjzwizard;
+package org.jjazz.yjzwizard;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -58,7 +58,7 @@ import org.openide.awt.StatusDisplayer;
  * YamJJazz extended style file creation wizard.
  * <p>
  */
-@ActionID(category = "JJazz", id = "org.jjazz.yjzcreator.YjzCreatorWizardAction")
+@ActionID(category = "JJazz", id = "org.jjazz.yjzwizard.YjzCreatorWizardAction")
 @ActionRegistration(displayName = "#CTL_ExtStyleCreationDialogAction")
 @ActionReference(path = "Menu/Tools", position = 1400, separatorAfter = 1500)
 public final class YjzCreatorWizardAction implements ActionListener

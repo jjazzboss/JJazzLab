@@ -20,8 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.yamjjazz.yjzwizard;
-
+package org.jjazz.yjzwizard;
 import javax.swing.event.ChangeListener;
 import org.jjazz.rhythmdatabase.api.RhythmInfo;
 import org.openide.WizardDescriptor;

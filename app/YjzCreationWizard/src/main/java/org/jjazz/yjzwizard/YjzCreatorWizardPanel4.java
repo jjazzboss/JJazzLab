@@ -20,39 +20,31 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.yamjjazz.yjzwizard;
-
-import java.util.HashSet;
-import java.util.Set;
-import javax.swing.event.ChangeEvent;
+package org.jjazz.yjzwizard;
 import javax.swing.event.ChangeListener;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import org.jjazz.rhythmdatabase.api.RhythmInfo;
 import org.openide.WizardDescriptor;
 import org.openide.util.HelpCtx;
 
-public class YjzCreatorWizardPanel2 implements WizardDescriptor.Panel<WizardDescriptor>, ListSelectionListener
+public class YjzCreatorWizardPanel4 implements WizardDescriptor.Panel<WizardDescriptor>
 {
 
     /**
      * The visual component that displays this panel. If you need to access the component from this class, just use
      * getComponent().
      */
-    private YjzCreatorVisualPanel2 component;
-    private Set<ChangeListener> listeners = new HashSet<ChangeListener>(1);
+    private YjzCreatorVisualPanel4 component;
 
     // Get the visual component for the panel. In this template, the component
     // is kept separate. This can be more efficient: if the wizard is created
     // but never displayed, or not all panels are displayed, it is better to
     // create only those which really need to be visible.
     @Override
-    public YjzCreatorVisualPanel2 getComponent()
+    public YjzCreatorVisualPanel4 getComponent()
     {
         if (component == null)
         {
-            component = new YjzCreatorVisualPanel2();
-            component.getRhythmTable().getSelectionModel().addListSelectionListener(this);
+            component = new YjzCreatorVisualPanel4();
         }
         return component;
     }
@@ -69,65 +61,35 @@ public class YjzCreatorWizardPanel2 implements WizardDescriptor.Panel<WizardDesc
     @Override
     public boolean isValid()
     {
-        RhythmInfo ri = component.getRhythmTable().getSelectedRhythm();
-        return ri != null && !ri.isAdaptedRhythm() && ri.file() != null && ri.rhythmProviderId().equals("YamahaRhythmProviderID");
+        // If it is always OK to press Next or Finish, then:
+        return true;
+        // If it depends on some condition (form filled out...) and
+        // this condition changes (last form field filled in...) then
+        // use ChangeSupport to implement add/removeChangeListener below.
+        // WizardDescriptor.ERROR/WARNING/INFORMATION_MESSAGE will also be useful.
     }
 
     @Override
-    public final void addChangeListener(ChangeListener l)
+    public void addChangeListener(ChangeListener l)
     {
-        synchronized (listeners)
-        {
-            listeners.add(l);
-        }
     }
 
     @Override
-    public final void removeChangeListener(ChangeListener l)
+    public void removeChangeListener(ChangeListener l)
     {
-        synchronized (listeners)
-        {
-            listeners.remove(l);
-        }
-    }
-
-    protected final void fireChangeEvent()
-    {
-        ChangeEvent ev = new ChangeEvent(this);
-        for (ChangeListener cl : listeners)
-        {
-            cl.stateChanged(ev);
-        }
     }
 
     @Override
     public void readSettings(WizardDescriptor wiz)
     {
-        // use wiz.getProperty to retrieve previous panel state
         RhythmInfo ri = (RhythmInfo) wiz.getProperty(YjzCreatorWizardAction.PROP_BASE_RHYTHM);
-        if (ri != null)
-        {
-            component.getRhythmTable().setSelectedRhythm(ri);
-        }
+        component.setBaseRhythm(ri);
     }
 
     @Override
     public void storeSettings(WizardDescriptor wiz)
     {
-        RhythmInfo ri = component.getRhythmTable().getSelectedRhythm();
-        wiz.putProperty(YjzCreatorWizardAction.PROP_BASE_RHYTHM, ri);
-    }
-
-    // -----------------------------------------------------------------------------------
-    // ListSelectionListener implementation
-    // -----------------------------------------------------------------------------------    
-    @Override
-    public void valueChanged(ListSelectionEvent e)
-    {
-        if (!e.getValueIsAdjusting())
-        {
-            fireChangeEvent();
-        }
+        // use wiz.putProperty to remember current panel state
     }
 
 }

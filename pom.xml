@@ -272,6 +272,7 @@
         <module>app/Test</module>
         <module>app/UISettings</module>
         <module>app/Upgrade</module>
+		<module>app/YjzCreationWizard</module>		
         <module>app/ZoomableSliders</module>
 
         <module>plugins/FluidSynthEmbeddedSynth</module>        

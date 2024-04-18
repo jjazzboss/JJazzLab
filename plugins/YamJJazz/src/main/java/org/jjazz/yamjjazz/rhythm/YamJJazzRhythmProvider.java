@@ -32,12 +32,12 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.InvalidMidiDataException;
-import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythm.spi.RhythmProvider;
+import org.jjazz.rhythm.spi.UserRhythmDirLocator;
 import org.jjazz.utilities.api.MultipleErrorsReport;
 import org.jjazz.utilities.api.ExtensionFileFilter;
 import org.jjazz.utilities.api.Utilities;
@@ -123,8 +123,7 @@ public class YamJJazzRhythmProvider implements RhythmProvider
             try
             {
                 r = readFast(f);
-            }
-            catch (IOException ex)
+            } catch (IOException ex)
             {
                 LOGGER.log(Level.WARNING, "getFileRhythms() ex={0}", ex.getLocalizedMessage());
                 errRpt.individualErrorMessages.add(ex.getLocalizedMessage());
@@ -135,7 +134,7 @@ public class YamJJazzRhythmProvider implements RhythmProvider
 
 
         // Get the list of user rhythm files
-        File rDir = FileDirectoryManager.getInstance().getUserRhythmDirectory();
+        File rDir = UserRhythmDirLocator.getDefault().getUserRhythmDirectory();
         if (!rDir.isDirectory())
         {
             LOGGER.log(Level.WARNING, "getFileRhythms() RhythmProvider={0} - Rhythm file directory does not exist : {1}", new Object[]
@@ -156,8 +155,7 @@ public class YamJJazzRhythmProvider implements RhythmProvider
             try
             {
                 r = readFast(path.toFile());
-            }
-            catch (IOException ex)
+            } catch (IOException ex)
             {
                 LOGGER.log(Level.WARNING, "getFileRhythms() ex={0}", ex.getLocalizedMessage());
                 errRpt.individualErrorMessages.add(ex.getLocalizedMessage());
@@ -190,8 +188,7 @@ public class YamJJazzRhythmProvider implements RhythmProvider
         if (!extFile.exists())
         {
             throw new IOException("File " + extFile.getAbsolutePath() + " not found.");
-        }
-        else if (!extFile.getName().toLowerCase().endsWith(FILE_EXTENSION))
+        } else if (!extFile.getName().toLowerCase().endsWith(FILE_EXTENSION))
         {
             throw new IOException("Invalid file extension for file: " + extFile);
         }
@@ -211,11 +208,10 @@ public class YamJJazzRhythmProvider implements RhythmProvider
         try
         {
             r = new YamJJazzRhythmImpl(baseFile, extFile);           // don't call loadResources() to save time & memory
-        }
-        catch (IOException | InvalidMidiDataException | FormatNotSupportedException ex)
+        } catch (IOException | InvalidMidiDataException | FormatNotSupportedException ex)
         {
             throw new IOException(
-                "Problem reading files baseFile=" + baseFile.getAbsolutePath() + ", extFile=" + extFile.getAbsolutePath() + ". Ex=" + ex.getLocalizedMessage());
+                    "Problem reading files baseFile=" + baseFile.getAbsolutePath() + ", extFile=" + extFile.getAbsolutePath() + ". Ex=" + ex.getLocalizedMessage());
         }
         return r;
     }
@@ -250,8 +246,7 @@ public class YamJJazzRhythmProvider implements RhythmProvider
         {
             LOGGER.severe("getDefaultRhythmFiles() Can't find " + DEFAULT_FILES_DEST_DIRNAME);
             res = new File[0];
-        }
-        else
+        } else
         {
             res = dir.listFiles(fileFilter);
         }

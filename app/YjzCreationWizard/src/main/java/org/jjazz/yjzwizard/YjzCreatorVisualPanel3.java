@@ -20,8 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.yamjjazz.yjzwizard;
-
+package org.jjazz.yjzwizard;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import org.jjazz.utilities.api.ResUtil;

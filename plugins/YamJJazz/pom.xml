@@ -46,11 +46,6 @@
     </build>
     <dependencies>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>filedirectorymanager</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
             <groupId>org.jjazzlab.core</groupId> 
             <artifactId>harmony</artifactId> 
             <version>${project.version}</version>  
@@ -126,21 +121,6 @@
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>flatcomponents</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>          
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>rhythmselectiondialog</artifactId>
-            <version>${project.version}</version>
-        </dependency>    
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>analytics</artifactId>
-            <version>${project.version}</version>
-        </dependency>                    
-        <dependency> 
             <groupId>org.netbeans.api</groupId> 
             <artifactId>org-openide-awt</artifactId> 
             <version>${netbeans.version}</version>  
@@ -152,11 +132,6 @@
         </dependency>  
         <dependency> 
             <groupId>org.netbeans.api</groupId> 
-            <artifactId>org-openide-util-ui</artifactId> 
-            <version>${netbeans.version}</version>  
-        </dependency>         
-        <dependency> 
-            <groupId>org.netbeans.api</groupId> 
             <artifactId>org-openide-util</artifactId> 
             <version>${netbeans.version}</version>  
         </dependency>  
@@ -164,11 +139,6 @@
             <groupId>org.netbeans.api</groupId> 
             <artifactId>org-openide-windows</artifactId> 
             <version>${netbeans.version}</version>  
-        </dependency>
-        <dependency>
-            <groupId>org.netbeans.api</groupId>
-            <artifactId>org-openide-dialogs</artifactId>
-            <version>${netbeans.version}</version>
         </dependency>
     </dependencies>
     <properties>

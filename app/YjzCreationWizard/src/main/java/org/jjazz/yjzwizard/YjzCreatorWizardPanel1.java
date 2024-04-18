@@ -20,32 +20,30 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.yamjjazz.yjzwizard;
-
+package org.jjazz.yjzwizard;
 import javax.swing.event.ChangeListener;
-import org.jjazz.rhythmdatabase.api.RhythmInfo;
 import org.openide.WizardDescriptor;
 import org.openide.util.HelpCtx;
 
-public class YjzCreatorWizardPanel4 implements WizardDescriptor.Panel<WizardDescriptor>
+public class YjzCreatorWizardPanel1 implements WizardDescriptor.Panel<WizardDescriptor>
 {
 
     /**
      * The visual component that displays this panel. If you need to access the component from this class, just use
      * getComponent().
      */
-    private YjzCreatorVisualPanel4 component;
+    private YjzCreatorVisualPanel1 component;
 
     // Get the visual component for the panel. In this template, the component
     // is kept separate. This can be more efficient: if the wizard is created
     // but never displayed, or not all panels are displayed, it is better to
     // create only those which really need to be visible.
     @Override
-    public YjzCreatorVisualPanel4 getComponent()
+    public YjzCreatorVisualPanel1 getComponent()
     {
         if (component == null)
         {
-            component = new YjzCreatorVisualPanel4();
+            component = new YjzCreatorVisualPanel1();
         }
         return component;
     }
@@ -83,8 +81,7 @@ public class YjzCreatorWizardPanel4 implements WizardDescriptor.Panel<WizardDesc
     @Override
     public void readSettings(WizardDescriptor wiz)
     {
-        RhythmInfo ri = (RhythmInfo) wiz.getProperty(YjzCreatorWizardAction.PROP_BASE_RHYTHM);
-        component.setBaseRhythm(ri);
+        // use wiz.getProperty to retrieve previous panel state
     }
 
     @Override

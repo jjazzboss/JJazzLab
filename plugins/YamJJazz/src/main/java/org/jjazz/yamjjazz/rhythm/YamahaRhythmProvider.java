@@ -33,7 +33,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.InvalidMidiDataException;
-import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.Rhythm;
@@ -42,6 +41,7 @@ import org.jjazz.rhythm.spi.RhythmProvider;
 import org.jjazz.utilities.api.MultipleErrorsReport;
 import static org.jjazz.rhythm.spi.RhythmProvider.PREFIX_IGNORED_SUBDIR;
 import static org.jjazz.rhythm.spi.RhythmProvider.SUBDIR_MAX_DEPTH;
+import org.jjazz.rhythm.spi.UserRhythmDirLocator;
 import org.jjazz.utilities.api.ExtensionFileFilter;
 import org.jjazz.utilities.api.Utilities;
 import org.openide.util.lookup.ServiceProvider;
@@ -139,7 +139,7 @@ public class YamahaRhythmProvider implements RhythmProvider
 
 
         // Check user rhythm dir is available
-        File rDir = FileDirectoryManager.getInstance().getUserRhythmDirectory();
+        File rDir = UserRhythmDirLocator.getDefault().getUserRhythmDirectory();
         if (!rDir.isDirectory())
         {
             LOGGER.log(Level.WARNING, "getFileRhythms() RhythmProvider={0} - Rhythm file directory does not exist : {1}", new Object[]

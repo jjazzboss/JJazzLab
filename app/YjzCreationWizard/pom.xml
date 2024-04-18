@@ -8,8 +8,8 @@
         <version>4.0.3-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
-    <artifactId>uisettings</artifactId>
-    <name>UISettings</name>
+    <artifactId>yjzcreationwizard</artifactId>
+    <name>YjzCreationWizard</name>
     <packaging>nbm</packaging>
     <build>
         <plugins>
@@ -18,8 +18,7 @@
                 <artifactId>nbm-maven-plugin</artifactId>
                 <configuration>
                     <publicPackages>                      
-                        <publicPackage>org.jjazz.uisettings.api</publicPackage>
-                    </publicPackages>
+                    </publicPackages>                               
                 </configuration>
                 <extensions>true</extensions>
             </plugin>
@@ -34,76 +33,86 @@
             </plugin>
         </plugins>
     </build>
-    <dependencies>      
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>analytics</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
+    <dependencies>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
             <artifactId>filedirectorymanager</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
+            <groupId>${project.groupId}</groupId> 
+            <artifactId>yamjjazz</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>          
+        <dependency> 
+            <groupId>org.jjazzlab.core</groupId> 
+            <artifactId>harmony</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>  
+        <dependency> 
+            <groupId>org.jjazzlab.core</groupId> 
+            <artifactId>chordleadsheet</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>  
+        <dependency> 
+            <groupId>org.jjazzlab.core</groupId> 
+            <artifactId>midi</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>  
+        <dependency> 
+            <groupId>org.jjazzlab.core</groupId> 
+            <artifactId>phrase</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>  
+        <dependency> 
             <groupId>org.jjazzlab.core</groupId> 
             <artifactId>rhythm</artifactId> 
             <version>${project.version}</version>  
+        </dependency>  
+        <dependency> 
+            <groupId>org.jjazzlab.core</groupId> 
+            <artifactId>rhythmdatabase</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>  
+        <dependency> 
+            <groupId>org.jjazzlab.core</groupId> 
+            <artifactId>utilities</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>  
+        <dependency> 
+            <groupId>${project.groupId}</groupId> 
+            <artifactId>flatcomponents</artifactId> 
+            <version>${project.version}</version>  
         </dependency>          
-<!--        <dependency> 
-            <groupId>org.netbeans.api</groupId> 
-            <artifactId>org-netbeans-libs-flatlaf</artifactId> 
-            <version>${netbeans.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>org.netbeans.api</groupId> 
-            <artifactId>org-netbeans-swing-laf-flatlaf</artifactId> 
-            <version>${netbeans.version}</version>  
-        </dependency>  -->
-        <dependency> 
-            <groupId>org.netbeans.api</groupId> 
-            <artifactId>org-openide-modules</artifactId> 
-            <version>${netbeans.version}</version>  
-        </dependency>  
         <dependency>
-            <groupId>org.netbeans.api</groupId>
-            <artifactId>org-openide-dialogs</artifactId>
-            <version>${netbeans.version}</version>
-        </dependency>        
+            <groupId>${project.groupId}</groupId>
+            <artifactId>rhythmselectiondialog</artifactId>
+            <version>${project.version}</version>
+        </dependency>    
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>analytics</artifactId>
+            <version>${project.version}</version>
+        </dependency>                    
         <dependency> 
             <groupId>org.netbeans.api</groupId> 
-            <artifactId>org-openide-util</artifactId> 
-            <version>${netbeans.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>org.netbeans.api</groupId> 
-            <artifactId>org-openide-util-lookup</artifactId> 
+            <artifactId>org-openide-awt</artifactId> 
             <version>${netbeans.version}</version>  
         </dependency>  
         <dependency> 
             <groupId>org.netbeans.api</groupId> 
             <artifactId>org-openide-util-ui</artifactId> 
             <version>${netbeans.version}</version>  
-        </dependency>
+        </dependency>         
+        <dependency> 
+            <groupId>org.netbeans.api</groupId> 
+            <artifactId>org-openide-util</artifactId> 
+            <version>${netbeans.version}</version>  
+        </dependency>  
         <dependency>
-            <groupId>org.jjazzlab.core</groupId>
-            <artifactId>guava</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.jjazzlab.core</groupId>
-            <artifactId>utilities</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.jjazzlab.core</groupId>
-            <artifactId>uiutilities</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>upgrade</artifactId>
-            <version>${project.version}</version>
+            <groupId>org.netbeans.api</groupId>
+            <artifactId>org-openide-dialogs</artifactId>
+            <version>${netbeans.version}</version>
         </dependency>
     </dependencies>
     <properties>

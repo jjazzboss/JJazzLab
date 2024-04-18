@@ -22,28 +22,29 @@
  */
 package org.jjazz.filedirectorymanager.api;
 
-import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
-import javax.swing.event.SwingPropertyChangeSupport;
+import org.jjazz.rhythm.spi.UserRhythmDirLocator;
 import org.openide.modules.InstalledFileLocator;
 import org.openide.modules.Modules;
 import org.openide.modules.Places;
+import org.openide.util.Lookup;
 import org.openide.util.NbPreferences;
+import org.openide.util.lookup.ServiceProvider;
 
 /**
- * Manage the various directories and file types used by the application.
+ * Manage the various directories used by the application.
  */
-public class FileDirectoryManager
+@ServiceProvider(service = FileDirectoryManager.class)
+public class FileDirectoryManager extends UserRhythmDirLocator.DefaultUserRhythmDirLocator
 {
 
     public static final String APP_CONFIG_PREFIX_DIR = ".jjazz";
     public static final String JJAZZLAB_USER_DIR = "JJazzLab";
     public static final String PROP_LAST_SONG_DIRECTORY = "PropLastSongDirectory";
-    public static final String PROP_RHYTHM_USER_DIRECTORY = "PropRhythmUserDirectory";
 
     private static FileDirectoryManager INSTANCE;
     /**
@@ -51,10 +52,6 @@ public class FileDirectoryManager
      */
     private static final Preferences prefs = NbPreferences.forModule(FileDirectoryManager.class);
 
-    /**
-     * The listeners for changes of this object.
-     */
-    private final SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(FileDirectoryManager.class.getSimpleName());
 
     public static FileDirectoryManager getInstance()
@@ -63,14 +60,22 @@ public class FileDirectoryManager
         {
             if (INSTANCE == null)
             {
-                INSTANCE = new FileDirectoryManager();
+                INSTANCE = Lookup.getDefault().lookup(FileDirectoryManager.class);
+                assert INSTANCE != null;
             }
         }
         return INSTANCE;
     }
-    
+
+    /**
+     * Reserved, should not be called directly (had to make it public because of ServiceProvider implementation).
+     */
     public FileDirectoryManager()
     {
+        if (INSTANCE != null)
+        {
+            throw new IllegalStateException("This is the 2nd time this singleton constructor is called");
+        }
         LOGGER.info("FileDirectoryManager() Started");
     }
 
@@ -128,57 +133,6 @@ public class FileDirectoryManager
         return f;
     }
 
-
-    /**
-     * Get the user directory for Rhythms files.
-     * <p>
-     * If not set use by default the System property "user.home".
-     *
-     * @return Can't be null
-     */
-    public File getUserRhythmDirectory()
-    {
-        String uh = System.getProperty("user.home");
-        String s = prefs.get(PROP_RHYTHM_USER_DIRECTORY, uh);
-        File f = new File(s);
-        if (!f.isDirectory())
-        {
-            LOGGER.log(Level.WARNING, "getUserRhythmDirectory() User rhythm directory not found: {0} Using: {1} instead.", new Object[]
-            {
-                s,
-                uh
-            });
-            f = new File(uh);
-            if (!f.isDirectory())
-            {
-                LOGGER.log(Level.SEVERE,
-                        "getUserRhythmDirectory() No valid user rhythm directory found. Can''t reuse system user directory because it does not exist: {0}",
-                        f.getAbsolutePath());
-            }
-        }
-        LOGGER.log(Level.FINE, "getUserRhythmDirectory() f={0}", f);
-        return f;
-    }
-
-    /**
-     * Set the user directory where to find rhythm files.
-     *
-     * @param dir
-     */
-    public void setUserRhythmDirectory(File dir)
-    {
-        if (!dir.isDirectory())
-        {
-            throw new IllegalArgumentException("dir=" + dir);
-        }
-        File old = getUserRhythmDirectory();
-        prefs.put(PROP_RHYTHM_USER_DIRECTORY, dir.getAbsolutePath());
-        LOGGER.log(Level.FINE, "setUserRhythmDirectory() old={0} new={1}", new Object[]
-        {
-            old, dir
-        });
-        pcs.firePropertyChange(PROP_RHYTHM_USER_DIRECTORY, old, dir);
-    }
 
     /**
      * Get the user specific JJazz configuration directory.
@@ -336,15 +290,10 @@ public class FileDirectoryManager
         pcs.firePropertyChange(PROP_LAST_SONG_DIRECTORY, old, dir);
     }
 
-    public void addPropertyChangeListener(PropertyChangeListener l)
+    @Override
+    protected Preferences getPreferences()
     {
-        pcs.addPropertyChangeListener(l);
+        return NbPreferences.forModule(FileDirectoryManager.class);
     }
-
-    public void removePropertyChangeListener(PropertyChangeListener l)
-    {
-        pcs.removePropertyChangeListener(l);
-    }
-
 
 }
