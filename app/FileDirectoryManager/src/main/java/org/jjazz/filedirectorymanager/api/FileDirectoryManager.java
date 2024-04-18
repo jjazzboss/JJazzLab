@@ -34,11 +34,16 @@ import org.openide.modules.Places;
 import org.openide.util.Lookup;
 import org.openide.util.NbPreferences;
 import org.openide.util.lookup.ServiceProvider;
+import org.openide.util.lookup.ServiceProviders;
 
 /**
  * Manage the various directories used by the application.
  */
-@ServiceProvider(service = FileDirectoryManager.class)
+@ServiceProviders(value =
+{
+    @ServiceProvider(service = FileDirectoryManager.class),
+    @ServiceProvider(service = UserRhythmDirLocator.class)
+})
 public class FileDirectoryManager extends UserRhythmDirLocator.DefaultUserRhythmDirLocator
 {
 
