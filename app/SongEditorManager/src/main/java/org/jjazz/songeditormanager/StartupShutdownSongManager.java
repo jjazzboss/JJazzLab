@@ -105,7 +105,7 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
             throw new IllegalStateException("This is the 2nd call of the constructor, this should never happen for this singleton class");
         }
         INSTANCE = this;
-        LOGGER.info("StartupShutdownSongManager() Starting");
+        LOGGER.info("StartupShutdownSongManager() Started");
     }
 
     public void setOpenLastFilesUponStartup(boolean b)

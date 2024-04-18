@@ -68,6 +68,11 @@ public class FileDirectoryManager
         }
         return INSTANCE;
     }
+    
+    public FileDirectoryManager()
+    {
+        LOGGER.info("FileDirectoryManager() Started");
+    }
 
 
     /**

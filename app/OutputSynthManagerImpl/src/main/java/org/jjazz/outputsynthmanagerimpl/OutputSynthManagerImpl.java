@@ -42,6 +42,10 @@ public class OutputSynthManagerImpl extends DefaultOutputSynthManager
 
     private static final Logger LOGGER = Logger.getLogger(OutputSynthManagerImpl.class.getSimpleName());
 
+    public OutputSynthManagerImpl()
+    {
+        LOGGER.info("OutputSynthManagerImpl() Started");
+    }
 
     @Override
     public OutputSynth getStandardOutputSynth(String stdName)

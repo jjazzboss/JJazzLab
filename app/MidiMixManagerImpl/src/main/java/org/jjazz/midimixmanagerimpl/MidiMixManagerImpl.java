@@ -58,6 +58,11 @@ public class MidiMixManagerImpl implements MidiMixManager, PropertyChangeListene
     private static final Logger LOGGER = Logger.getLogger(MidiMixManagerImpl.class.getSimpleName());
 
 
+    public MidiMixManagerImpl()
+    {
+        LOGGER.info("MidiMixManagerImpl() Started");
+    }
+
     /**
      * Get a MidiMix for the specified song in the following order.
      * <p>

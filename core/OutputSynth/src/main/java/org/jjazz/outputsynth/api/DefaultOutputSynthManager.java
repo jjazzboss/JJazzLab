@@ -56,7 +56,7 @@ public class DefaultOutputSynthManager implements OutputSynthManager, PropertyCh
     protected final Map<String, OutputSynth> mapDeviceNameSynth = new HashMap<>();
     private final OutputSynth defaultGMoutputSynth;
     protected final transient PropertyChangeSupport pcs = new java.beans.PropertyChangeSupport(this);
-    protected static final Preferences prefs = NbPreferences.forModule(DefaultOutputSynthManager.class);
+    private static final Preferences prefs = NbPreferences.forModule(DefaultOutputSynthManager.class);
     private static final Logger LOGGER = Logger.getLogger(DefaultOutputSynthManager.class.getSimpleName());
 
     static public DefaultOutputSynthManager getInstance()

@@ -46,7 +46,7 @@ public class RestoreSettingsTask implements UpgradeTask
         UpgradeManager um = UpgradeManager.getInstance();
         if (oldVersion.charAt(0) <= '3')
         {
-            // Package name was changed from JJazzLab 3 to 4: org/jjazz/config => org/jjazzlab/org/jjazz/base (or org/jjazzlab/base from 4.0.3)
+            // 3.x had a different package name
             um.duplicateOldPreferences(NbPreferences.forModule(getClass()), "org/jjazz/config.properties");
         } else
         {

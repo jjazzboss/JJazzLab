@@ -46,7 +46,7 @@ public class RestoreSettingsTask implements UpgradeTask
         UpgradeManager um = UpgradeManager.getInstance();
         if (oldVersion.compareTo("4") < 0)
         {
-            // package codebase has changed from JJazzLab 3 to JJazzLab 4: org/jjazz/ui/cl_editor => org/jjazzlab/org/jjazz/cl_editor  (or => org/jjazzlab/cl_editorimpl from 4.0.3)              
+            // 3.x had a non-standard package name
             um.duplicateOldPreferences(NbPreferences.forModule(getClass()), "org/jjazz/ui/cl_editor.properties");
         } else
         {

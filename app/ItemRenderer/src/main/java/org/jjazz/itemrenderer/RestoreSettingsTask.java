@@ -39,19 +39,19 @@ public class RestoreSettingsTask implements UpgradeTask
     @Override
     public void upgrade(String oldVersion)
     {
-        if (oldVersion==null)
+        if (oldVersion == null)
         {
             return;
         }
         UpgradeManager um = UpgradeManager.getInstance();
         if (oldVersion.charAt(0) <= '3')
         {
-            // package codebase has changed from JJazzLab 3 to JJazzLab 4: org/jjazz/ui/itemrenderer => org/jjazzlab/itemrenderer  (as of 4.0.3)
+            // 3.x had a non-standard package name
             um.duplicateOldPreferences(NbPreferences.forModule(getClass()), "org/jjazz/ui/itemrenderer.properties");
         } else
         {
             um.duplicateOldPreferences(NbPreferences.forModule(getClass()));
         }
     }
-    
+
 }

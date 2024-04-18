@@ -46,7 +46,7 @@ public class RestoreSettingsTask implements UpgradeTask
         UpgradeManager um = UpgradeManager.getInstance();
         if (oldVersion != null && oldVersion.length() > 0 && oldVersion.charAt(0) <= '3')
         {
-            // package codebase has changed from JJazzLab 3 to JJazzLab 4: org/jjazz/ui/colorsetmanager => org/jjazzlab/uisettings (as of 4.0.3)
+            // 3.x had a different package name              
             um.duplicateOldPreferences(NbPreferences.forModule(getClass()), "org/jjazz/ui/colorsetmanager.properties");
         } else
         {

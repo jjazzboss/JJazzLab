@@ -55,11 +55,11 @@ public class RestoreSettingsTask implements UpgradeTask
 
         if (oldVersion.compareTo("4") < 0)
         {
-            // package codebase has changed from JJazzLab 3 to JJazzLab 4: org/jjazz/rhythm/database => org/jjazzlab/rhythmdatabaseimpl (as of 4.0.3)
+            // 3.x had a different package name            
             um.duplicateOldPreferences(prefs, "org/jjazz/rhythm/database.properties");
         } else if (oldVersion.compareTo("4.0.3") < 0)
         {
-            // package codebase has changed from JJazzLab 4.0.2 to 4.0.3 : org/jjazzlab/org/jjazz/rhythmdatabase => org/jjazzlab/rhythmdatabaseimpl
+            // 4.0.1 and 4.0.2 had a different package name
             um.duplicateOldPreferences(prefs, "org/jjazzlab/org/jjazz/rhythmdatabase.properties");
         } else
         {

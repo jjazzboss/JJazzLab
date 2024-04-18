@@ -70,6 +70,7 @@ public class MidiSynthManagerImpl extends DefaultMidiSynthManager
         midiSynths.add(loadFromResource(getClass(), JJAZZLAB_SOUNDFONT_GS_SYNTH_PATH));
         midiSynths.add(loadFromResource(getClass(), JJAZZLAB_SOUNDFONT_GM2_SYNTH_PATH));
         midiSynths.add(loadFromResource(getClass(), JJAZZLAB_SOUNDFONT_XG_SYNTH_PATH));
+        LOGGER.info("MidiSynthManagerImpl() Started");
 
     }
 

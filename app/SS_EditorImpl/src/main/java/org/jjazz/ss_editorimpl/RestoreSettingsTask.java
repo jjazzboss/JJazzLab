@@ -47,11 +47,11 @@ public class RestoreSettingsTask implements UpgradeTask
 
         if (oldVersion.charAt(0) <= '3')
         {
-            // package codebase has changed from JJazzLab 3 to JJazzLab 4: org/jjazz/ui/ss_editor => org/jjazzlab/ss_editorimpl (as of 4.0.3)            
+            // 3.x had a different package name            
             um.duplicateOldPreferences(NbPreferences.forModule(getClass()), "org/jjazz/ui/ss_editor.properties");
         } else if (oldVersion.compareTo("4.0.3") < 0)
         {
-            // Module was changed from 4.0.2 => 4.0.3 : org/jjazzlab/org/jjazz/ss_editor => org/jjazzlab/ss_editorimpl (as of 4.0.3)            
+            // 4.0.1 and 4.02 had a different package name                        
             um.duplicateOldPreferences(NbPreferences.forModule(getClass()), "org/jjazzlab/org/jjazz/ss_editor.properties");
         } else
         {

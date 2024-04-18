@@ -72,15 +72,15 @@ import org.jjazz.outputsynth.spi.OutputSynthManager;
  * Property changes are fired for:<br>
  * - start/pause/stop/disabled state changes<br>
  * <p>
- * Use NoteListener to get notified of note ON/OFF events. Use PlaybackListener to get notified of other events (e.g. bar/beat changes)
- * during playback. Note that listeners will be notified out of the Swing EDT.<br>
+ * Use NoteListener to get notified of note ON/OFF events. Use PlaybackListener to get notified of other events (e.g. bar/beat changes) during playback. Note
+ * that listeners will be notified out of the Swing EDT.<br>
  * The current output synth latency is taken into account to fire events to NoteListeners and PlaybackListeners.
  * <p>
  * Use acquireSequencer()/releaseSequencer() if you want to use the Java system sequencer independently.
  */
 public class MusicController implements PropertyChangeListener, MetaEventListener
 {
-
+    
     public static final String PROP_STATE = "PropPlaybackState";
     public static final String PROP_PLAYBACK_SESSION = "PropPlaybackSession";
 
@@ -99,7 +99,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     private static MusicController INSTANCE;
     private Sequencer sequencer;
     private PlaybackSession playbackSession;
-
+    
     private State state;
     /**
      * The current beat position during playback (for ControlTrackProvider sessions only).
@@ -143,11 +143,11 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      */
     private boolean debugPlayedSequence = false;
     private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
-
+    
     private final List<PlaybackListener> playbackListeners = new ArrayList<>();
     private final List<NoteListener> noteListeners = new ArrayList<>();
     private static final Logger LOGGER = Logger.getLogger(MusicController.class.getSimpleName());
-
+    
     public static MusicController getInstance()
     {
         synchronized (MusicController.class)
@@ -165,7 +165,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      */
     private MusicController()
     {
-
+        
         state = State.STOPPED;
         sequencer = JJazzMidiSystem.getInstance().getDefaultSequencer();
         receiver = new McReceiver();
@@ -194,15 +194,16 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             audioLatency = outSynth.getUserSettings().getAudioLatency();
             outSynth.getUserSettings().addPropertyChangeListener(this);
         }
-
+        
+        LOGGER.info("MusicController() Started");
     }
 
     /**
      * Try to temporarily acquire the java sequencer opened and connected to the default Midi out device.
      * <p>
-     * You can acquire the sequencer only if MusicController is in the STOPPED state. If acquisition is successful the MusicController is
-     * put in DISABLED state since it can't use the sequencer anymore. When the caller is done with the sequencer, he must call
-     * releaseSequencer(lockHolder) so that the MusicController can use it again.
+     * You can acquire the sequencer only if MusicController is in the STOPPED state. If acquisition is successful the MusicController is put in DISABLED state
+     * since it can't use the sequencer anymore. When the caller is done with the sequencer, he must call releaseSequencer(lockHolder) so that the
+     * MusicController can use it again.
      *
      * @param lockHolder Must be non-null
      * @return Null if sequencer has already a different lock or if MusicController is in the PLAYING state.
@@ -213,9 +214,9 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         {
             throw new NullPointerException("lockHolder");
         }
-
+        
         LOGGER.log(Level.FINE, "acquireSequencer() -- lockHolder={0}", lockHolder);
-
+        
         if (sequencerLockHolder == lockHolder)
         {
             // lock already acquired
@@ -224,21 +225,21 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         {
             // lock acquired by external entity: get disabled
             sequencerLockHolder = lockHolder;
-
-
+            
+            
             closeCurrentPlaybackSession();
 
 
             // Remove the MusicController listeners
             releaseSequencer();
-
+            
             State oldState = getState();
             setState(State.DISABLED);
-
+            
             LOGGER.log(Level.FINE,
                     "acquireSequencer() external lock acquired.  MusicController released the sequencer, oldState={0} newState=DISABLED",
                     oldState);
-
+            
             return sequencer;
         } else
         {
@@ -265,11 +266,11 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         {
             throw new IllegalArgumentException("lockHolder=" + lockHolder + " sequencerLockHolder=" + sequencerLockHolder);
         }
-
+        
         LOGGER.log(Level.FINE, "releaseSequencer() -- lockHolder={0}", lockHolder);
-
+        
         sequencerLockHolder = null;
-
+        
         sequencer.stop(); // Just to make sure
 
         // Initialize sequencer for MusicController
@@ -293,13 +294,13 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      */
     public void setPlaybackSession(PlaybackSession session, boolean silent) throws MusicGenerationException
     {
-
+        
         if (session == playbackSession)
         {
             return;
-
+            
         }
-
+        
         if (session != null && (session.isDirty() || session.getState().equals(PlaybackSession.State.CLOSED)))
         {
             throw new IllegalStateException("session=" + session);
@@ -317,8 +318,8 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             case PLAYING -> throw new MusicGenerationException(ResUtil.getString(getClass(), "A_SONG_IS_ALREADY_PLAYING"));
             default -> throw new AssertionError(state.name());
         }
-
-
+        
+        
         try
         {
             // Reset sequence
@@ -328,14 +329,14 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             // Should never happen
             Exceptions.printStackTrace(ex);
         }
-
+        
         PlaybackSession oldSession = playbackSession;
 
 
         // Update the session
         closeCurrentPlaybackSession();
         playbackSession = session;
-
+        
         if (playbackSession != null)
         {
             playbackSession.addPropertyChangeListener(this);
@@ -346,8 +347,8 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                 playbackSession.generate(silent);         // Throws MusicGenerationException
             }
         }
-
-
+        
+        
         pcs.firePropertyChange(PROP_PLAYBACK_SESSION, oldSession, playbackSession);
     }
 
@@ -357,8 +358,8 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      * Do nothing if no playback session set.
      *
      * @param fromBarIndex
-     * @throws MusicGenerationException If a problem occurred which prevents song playing: no Midi out, rhythm music generation problem,
-     *                                  MusicController state is not PAUSED nor STOPPED, etc.
+     * @throws MusicGenerationException If a problem occurred which prevents song playing: no Midi out, rhythm music generation problem, MusicController state
+     *                                  is not PAUSED nor STOPPED, etc.
      * @throws IllegalStateException    If current session is not in the GENERATED state, or if fromBarIndex is invalid
      *
      */
@@ -368,8 +369,8 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         {
             return;
         }
-
-
+        
+        
         if (!playbackSession.getState().equals(PlaybackSession.State.GENERATED))
         {
             throw new IllegalArgumentException("playbackSession=" + playbackSession + " fromBarIndex=" + fromBarIndex);
@@ -397,8 +398,8 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             case PLAYING -> throw new MusicGenerationException(ResUtil.getString(getClass(), "A_SONG_IS_ALREADY_PLAYING"));
             default -> throw new AssertionError(state.name());
         }
-
-
+        
+        
         if (debugPlayedSequence)
         {
             SongContext sgContext = getSongContext(playbackSession);        // Can be null
@@ -450,7 +451,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
 
         // Change state
         setState(State.PLAYING);
-
+        
     }
 
     /**
@@ -476,8 +477,8 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         {
             throw new IllegalStateException("playbackSession.getState()=" + playbackSession.getState());
         }
-
-
+        
+        
         checkMidi();                // throws MusicGenerationException
 
 
@@ -526,7 +527,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
 
         // Action to be fired after state change
         executeEndOfPlaybackAction();
-
+        
     }
 
     /**
@@ -547,8 +548,8 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             stop();
             return;
         }
-
-
+        
+        
         sequencer.stop();
         clearPendingEvents();
 
@@ -579,15 +580,14 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             throw new IllegalArgumentException(
                     "Invalid barIndex=" + barIndex + " playbackSession.getBarRange()=" + playbackSession.getBarRange());
         }
-
+        
         setPosition(barIndex);
     }
 
     /**
      * The current playback position updated at every natural beat (eg 0, 1, 2, 3 in 4/4).
      * <p>
-     * Note: value is meaningful only for PlaybackSessions which are also ControlTrackProviders. Otherwise returned value is always bar=0,
-     * beat=0.
+     * Note: value is meaningful only for PlaybackSessions which are also ControlTrackProviders. Otherwise returned value is always bar=0, beat=0.
      *
      * @return
      * @see PlaybackListener
@@ -600,8 +600,8 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     /**
      * The current CLI_ChordSymbol being played.
      * <p>
-     * Note: value is meaningful only when playback is on or paused, and for PlaybackSessions which are also ControlTrackProviders.
-     * Otherwise return value is null.
+     * Note: value is meaningful only when playback is on or paused, and for PlaybackSessions which are also ControlTrackProviders. Otherwise return value is
+     * null.
      *
      * @return Can be null.
      * @see PlaybackListener
@@ -614,8 +614,8 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     /**
      * The current SongPart being played.
      * <p>
-     * Note: value is meaningful only when playback is on or paused, and for PlaybackSessions which are also ControlTrackProviders and
-     * SongContextProviders. Otherwise return value is null.
+     * Note: value is meaningful only when playback is on or paused, and for PlaybackSessions which are also ControlTrackProviders and SongContextProviders.
+     * Otherwise return value is null.
      *
      * @return Can be null.
      * @see PlaybackListener
@@ -624,7 +624,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     {
         return currentSongPart;
     }
-
+    
     public State getState()
     {
         return state;
@@ -654,12 +654,12 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         Song song = ((SongContextProvider) playbackSession).getSongContext().getSong();
         return song.getName().startsWith("*!ArrangerSONG!*");
     }
-
+    
     public void setDebugPlayedSequence(boolean b)
     {
         debugPlayedSequence = b;
     }
-
+    
     public boolean isDebugPlayedSequence()
     {
         return debugPlayedSequence;
@@ -679,7 +679,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             noteListeners.add(listener);
         }
     }
-
+    
     public synchronized void removeNoteListener(NoteListener listener)
     {
         noteListeners.remove(listener);
@@ -699,17 +699,17 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             playbackListeners.add(listener);
         }
     }
-
+    
     public synchronized void removePlaybackListener(PlaybackListener listener)
     {
         playbackListeners.remove(listener);
     }
-
+    
     public synchronized void addPropertyChangeListener(PropertyChangeListener listener)
     {
         pcs.addPropertyChangeListener(listener);
     }
-
+    
     public synchronized void removePropertyChangeListener(PropertyChangeListener listener)
     {
         pcs.removePropertyChangeListener(listener);
@@ -730,7 +730,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                 // So if this method impacts the UI, it must use SwingUtilities.InvokeLater() (or InvokeAndWait())
                 LOGGER.fine("Sequence end reached");
                 SwingUtilities.invokeLater(() -> stop());
-
+                
             }
             case ControlTrack.CHORD_SYMBOL_META_EVENT_TYPE ->
             {
@@ -767,7 +767,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                         {
                             LOGGER.log(Level.WARNING, "meta() Unexpected null position meta={0}", meta);
                         }
-
+                        
                     }
                 }
             }
@@ -778,8 +778,8 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                 songPartTempoFactor = SongSequenceBuilder.getTempoFactor(meta);
                 updateTempoFactor();
             }
-
-            default -> 
+            
+            default ->            
             {
                 // Nothing
             }
@@ -827,7 +827,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                 audioLatency = (int) e.getNewValue();
             }
         }
-
+        
         if (e.getSource() == playbackSession)
         {
             switch (e.getPropertyName())
@@ -845,7 +845,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                             closeCurrentPlaybackSession();
                         }
                         default -> throw new AssertionError(playbackSession.getState().name());
-
+                        
                     }
                     // Nothing
                 }
@@ -896,8 +896,8 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         sequencer.removeMetaEventListener(this);
         receiver.setEnabled(false);
     }
-
-
+    
+    
     private void setPosition(int fromBar)
     {
         assert !state.equals(State.DISABLED) : "state=" + state;
@@ -907,7 +907,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         float posInBeats = -1;
         if (playbackSession instanceof SongContextProvider scp)
         {
-
+            
             var sgContext = scp.getSongContext();
             long relativeTick = getRelativeTickFromLoopStart(tick);
             posInBeats = sgContext.toPositionInBeats(relativeTick);
@@ -919,7 +919,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         }
         updateCurrentPosition(fromBar, 0, posInBeats);
     }
-
+    
     private void firePlaybackListenerEnabledChanged(boolean b)
     {
         // No need to use a latency aware event
@@ -928,7 +928,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             pl.enabledChanged(b);
         }
     }
-
+    
     private void fireChordSymbolChanged(CLI_ChordSymbol cliCs)
     {
         if (cliCs == null)
@@ -947,7 +947,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             });
         }
     }
-
+    
     private void fireBeatChanged(Position oldPos, Position newPos, float newPosInBeats)
     {
         fireLatencyAwareEvent(() -> 
@@ -958,7 +958,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             }
         });
     }
-
+    
     private void fireSongPartChanged(SongPart newSpt)
     {
         if (currentSongPart != newSpt)
@@ -973,7 +973,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             });
         }
     }
-
+    
     private void fireNoteOn(long tick, int channel, int pitch, int velocity)
     {
         fireLatencyAwareEvent(() -> 
@@ -984,7 +984,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             }
         });
     }
-
+    
     private void fireNoteOff(long tick, int channel, int pitch)
     {
         fireLatencyAwareEvent(() -> 
@@ -995,8 +995,8 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             }
         });
     }
-
-   
+    
+    
     private void fireMidiActivity(long tick, int channel)
     {
         fireLatencyAwareEvent(() -> 
@@ -1053,7 +1053,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             it.remove();
         }
     }
-
+    
     private SongContext getSongContext(PlaybackSession session)
     {
         SongContext sgContext = session instanceof SongContextProvider ? ((SongContextProvider) session).getSongContext() : null;
@@ -1065,19 +1065,19 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      * <p>
      * If sequencer is already playing or is disabled, do nothing.
      * <p>
-     * If playbackSession is a SongContextProvider and a ControlTrackProvider, and if there is no chord symbol at current position, then
-     * fire a chord change event using the previous chord symbol (ie the current chord symbol at this start position).
+     * If playbackSession is a SongContextProvider and a ControlTrackProvider, and if there is no chord symbol at current position, then fire a chord change
+     * event using the previous chord symbol (ie the current chord symbol at this start position).
      */
     private void seqStart()
     {
         switch (state)
         {
             case DISABLED -> LOGGER.log(Level.WARNING, "seqStart() called with state={0}", state);
-
+            
             case PLAYING ->
             {
             }
-
+            
             case STOPPED, PAUSED ->
             {
                 SongContext sgContext = getSongContext(playbackSession);
@@ -1100,14 +1100,14 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                                 // Fire the event
                                 fireChordSymbolChanged(lastCliCs);
                             }
-
+                            
                             SongPart spt = sgContext.getSong().getSongStructure().getSongPart(posStart.getBar());
                             fireSongPartChanged(spt);
                         }
                     }
                 }
-
-
+                
+                
                 sequencer.start();
                 // JDK -11 BUG: start() resets tempo at 120 !
                 sequencer.setTempoInBPM(MidiConst.SEQUENCER_REF_TEMPO);
@@ -1116,7 +1116,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         }
         // Nothing
     }
-
+    
     private void updateCurrentPosition(int bar, float barBeat, float posInBeats)
     {
         assert !state.equals(State.DISABLED);
@@ -1127,7 +1127,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
 
         // Fire events
         fireBeatChanged(oldPos, new Position(currentBeatPosition), posInBeats);
-     
+
 
         // Possibly fire a songpart change as well
         SongContext sgContext = getSongContext(playbackSession);
@@ -1142,7 +1142,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             }
         }
     }
-
+    
     private void closeCurrentPlaybackSession()
     {
         if (playbackSession != null)
@@ -1152,13 +1152,13 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             playbackSession = null;
         }
     }
-
+    
     private void songTempoChanged(float tempoInBPM)
     {
         songTempoFactor = tempoInBPM / MidiConst.SEQUENCER_REF_TEMPO;
         updateTempoFactor();
     }
-
+    
     private void setState(State newState)
     {
         if (!newState.equals(getState()))
@@ -1183,7 +1183,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         float f = songPartTempoFactor * songTempoFactor;
         sequencer.setTempoFactor(f);
     }
-
+    
     private void checkMidi() throws MusicGenerationException
     {
         if (JJazzMidiSystem.getInstance().getDefaultOutDevice() == null)
@@ -1191,7 +1191,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             throw new MusicGenerationException(ResUtil.getString(getClass(), "ERR_NoMidiOutputDeviceSet"));
         }
     }
-
+    
     private void executeEndOfPlaybackAction()
     {
         if (playbackSession instanceof EndOfPlaybackActionProvider actionProvider)
@@ -1216,7 +1216,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         // was not called yet, and user changed the song that provoked an update        
         if (mapTrackMute != null && sequencer.getSequence() != null)
         {
-
+            
             LOGGER.log(Level.FINE, "updateTracksMuteStatus() mapTrackMute={0}", mapTrackMute);
             for (int trackId : mapTrackMute.keySet())
             {
@@ -1235,8 +1235,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     }
 
     /**
-     * Convert an absolute sequence tick to a relative tick from loop start (whose tick position may be greater than 0 if precount bars are
-     * used).
+     * Convert an absolute sequence tick to a relative tick from loop start (whose tick position may be greater than 0 if precount bars are used).
      * <p>
      *
      * @param sequenceTick
@@ -1265,7 +1264,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         // Store the last Note On millisecond position for each note. Use -1 if initialized.
         private final long lastNoteOnMs[] = new long[16];
         private boolean enabled;
-
+        
         public McReceiver()
         {
             setEnabled(true);
@@ -1293,7 +1292,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                 reset();
             }
         }
-
+        
         @Override
         public void send(MidiMessage msg, long timeStamp)
         {
@@ -1301,15 +1300,15 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             {
                 return;
             }
-
+            
             if (msg instanceof ShortMessage sm)
             {
                 if (playbackListeners.isEmpty() && noteListeners.isEmpty())
                 {
                     return;
                 }
-
-
+                
+                
                 if (sm.getCommand() == ShortMessage.NOTE_ON)
                 {
                     int pitch = sm.getData1();
@@ -1321,8 +1320,8 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                     {
                         noteOffReceived(sm.getChannel(), pitch);
                     }
-
-
+                    
+                    
                 } else if (sm.getCommand() == ShortMessage.NOTE_OFF)
                 {
                     int pitch = sm.getData1();
@@ -1330,7 +1329,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                 }
             }
         }
-
+        
         @Override
         public void close()
         {
@@ -1347,7 +1346,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                 lastNoteOnMs[i] = -1;
             }
         }
-
+        
         private void noteOnReceived(int channel, int pitch, int velocity)
         {
             if (enabled)
@@ -1360,12 +1359,12 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                     fireMidiActivity(-1, channel);
                 }
                 lastNoteOnMs[channel] = pos;
-
-
+                
+                
                 fireNoteOn(-1, channel, pitch, velocity);
             }
         }
-
+        
         private void noteOffReceived(int channel, int pitch)
         {
             if (enabled)
@@ -1374,7 +1373,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                 fireNoteOff(-1, channel, pitch);
             }
         }
-
+        
     }
-
+    
 }

@@ -87,17 +87,18 @@ public class UpgradeManager
         {
             prefs.putBoolean(PREF_FRESH_START, false);
         }
-        
+
         currentVersion = System.getProperty("jjazzlab.version");
         if (currentVersion != null && (currentVersion.isBlank() || currentVersion.charAt(0) < '0' || currentVersion.charAt(0) > '9'))
         {
             currentVersion = null;
         }
+        LOGGER.info("UpgradeManager() Started");
     }
 
     /**
      * The current JJazzLab version.
-     * 
+     *
      * @return Can be null.
      */
     public String getCurrentVersion()
@@ -165,8 +166,8 @@ public class UpgradeManager
     /**
      * Copy into modulePrefs all the "old" key/value pairs from the corresponding Properties file found in the getImportSourceVersion() directory structure.
      * <p>
-     * To be used when module codebase has not changed between 2 versions. But note that app-level codebase name changes (which impacted *all* modules) are
-     * handled by this method via adaptPropertiesFileRelativePath().
+     * To be used when module codebase has not changed between 2 versions. But note that app-level codebase name changes, which impacted *all* (or almost all)
+     * module, are handled by this method via adaptPropertiesFileRelativePath().
      *
      * @param modulePrefs The Netbeans preferences of a module.
      * @see #adaptPropertiesFileRelativePath(java.lang.String)
@@ -187,7 +188,7 @@ public class UpgradeManager
      * The returned properties file relative path takes into account possible codebase name changes which occured between getImportSourceVersion() and
      * getCurrentVersion().
      *
-     * @param relPath A relative path of a properties file for the current version, eg "org/jjazzlab/midi.properties" for getCurrentVersion()="4.0.3"
+     * @param relPath A relative path of a properties file for the current version (&gt;=4.0.3), eg "org/jjazzlab/core/midi.properties"
      * @return eg "org/jjazzlab/org/jjazz/midi.properties" for getImportSourceVersion()=4.0.2
      * @see #getCurrentVersion()
      * @see #getImportSourceVersion()
@@ -195,26 +196,37 @@ public class UpgradeManager
     public String adaptPropertiesFileRelativePath(String relPath)
     {
         // With Ant codename base is defined by a variable in Manifest file, eg "org.jjazz.midi"
-        // With Maven, codename base is groupId/artefactId , converting '-'s into '/'s, eg "org.jjazzlab.midi"
+        // With Maven, codename base is groupId/artefactId , converting '-'s into '/'s, eg groupId="org.jjjazlab", id="yeah-midi" -> "org/jjazzlab/yeah/midi.properties"
         String importVersion = getImportSourceVersion();
-        if (currentVersion != null && !currentVersion.isEmpty() && importVersion != null && !importVersion.isEmpty())
+        if (currentVersion != null && importVersion != null)
         {
-            if (currentVersion.compareTo("4") >= 0 && importVersion.compareTo("4") < 0)
+
+            // The code below was written for 4.0.3
+            assert currentVersion.compareTo("4.0.3") >= 0 : "currentVersion=" + currentVersion;
+
+
+            if (importVersion.compareTo("4.0.3") < 0)
             {
-                if (relPath.startsWith("org/jjazzlab/"))    // eg "org/jjazzlab/org/jjazz/midi.properties"
+                // From 4.0.3, groupId was changed for core and plugins modules: "org/jjazzlab" -> "org/jjazzlab/core" or "org/jjazzlab/plugins".                           
+                // Ex: org/jjazzlab/core/midi.properties => org/jjazzlab/midi.properties   
+                relPath = relPath.replace("org/jjazzlab/core/", "org/jjazzlab/");
+                relPath = relPath.replace("org/jjazzlab/plugins/", "org/jjazzlab/");
+
+
+                // From 4 to 4.0.2 artefactId name was "org-jjazz-midi", from 4.0.3 it was simplified to "midi"
+                if (importVersion.compareTo("4") >= 0)
                 {
-                    // Before JJazzLab 4.0.1 we used Ant, so package code base names dit not have the "org/jjazzlab/" groupId prefix
-                    // Ex: 4.0.1/config/Preferences/org/jjazzlab/org/jjazz/midi.properties => 3.2.1/config/Preferences/org/jjazz/midi.properties   
-                    relPath = relPath.substring(13);
+                    // Ex: "org/jjazzlab/midi.properties" => "org/jjazzlab/org/jjazz/midi.properties"
+                    Path p = Path.of(relPath);
+                    relPath = p.getParent().resolve("org/jjazz").resolve(p.getFileName()).toString();
+                } else
+                {
+                    // Before JJazzLab 4 we used Ant with most modules code base name=org.jjazz.module (exceptions are handled by the module's RestoreSettingsTask 
+                    // by calling duplicateOldPreference(Preferences, String), see for example module ss_editorimpl).                    
+                    // "org/jjazzlab/midi.properties" => "org/jjazz/midi.properties"
+                    relPath = relPath.replace("org/jjazzlab/", "org/jjazz/");
                 }
-            }
-            if (currentVersion.compareTo("4.0.3") >= 0 && importVersion.compareTo("4.0.2") <= 0)
-            {
-                // From 4.0.3 artefactId name was simplified ("org-jjazz-midi" -> "midi")
-                // Ex: 4.0.3/config/Preferences/org/jjazzlab/midi.properties => 4.0.2/config/Preferences/org/jjazzab/org/jjazz/midi.properties
-                // Ex: 4.0.3/config/Preferences/org/jjazzlab/midi.properties => 3.2.1/config/Preferences/org/jjazz/midi.properties   
-                Path p = Path.of(relPath);
-                relPath = p.getParent().resolve("org/jjazz").resolve(p.getFileName()).toString();    // eg "org/jjazzlab/midi.properties" => "org/jjazzlab/org/jjazz/midi.properties"
+
             }
         }
         return relPath;
