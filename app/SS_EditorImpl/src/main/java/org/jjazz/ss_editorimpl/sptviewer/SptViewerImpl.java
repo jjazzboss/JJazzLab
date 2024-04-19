@@ -59,6 +59,7 @@ import org.jjazz.ss_editor.rpviewer.api.RpViewer;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;
+import org.jjazz.flatcomponents.api.FlatComponentsGlobalSettings;
 import org.jjazz.ss_editor.rpviewer.api.RpViewerEditableRenderer;
 import org.jjazz.uisettings.api.GeneralUISettings;
 import org.jjazz.utilities.api.ResUtil;
@@ -807,7 +808,7 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
         } else
         {
             rpv.addMouseMotionListener(this);
-            GeneralUISettings.getInstance().installChangeValueWithMouseWheelSupport(rpv, this);
+            FlatComponentsGlobalSettings.getInstance().installChangeValueWithMouseWheelSupport(rpv, this);
         }
     }
 

@@ -211,7 +211,8 @@
     </profiles>          
     <modules>
         <module>core/ChordLeadSheet</module>
-        <module>core/EmbeddedSynth</module>       
+        <module>core/EmbeddedSynth</module> 
+        <module>core/FlatComponents</module> 		              
         <module>core/Harmony</module>
         <module>core/Importers</module>
         <module>core/Midi</module>
@@ -229,11 +230,12 @@
         <module>core/SongContext</module>
         <module>core/SongStructure</module>
         <module>core/TestPlayerService</module>
-		<module>core/UIUtilities</module>		
+        <module>core/UIUtilities</module>		
         <module>core/UndoManager</module>		
         <module>core/Utilities</module>
         <module>core/Xstream</module>
         <module>core/Guava</module>	
+        
         <module>app/application</module>
         <module>app/branding</module>
         <module>app/ActiveSong</module>
@@ -246,7 +248,6 @@
         <module>app/CoreUIcomponents</module>
         <module>app/EasyReader</module>
         <module>app/FileDirectoryManager</module>		
-        <module>app/FlatComponents</module> 		
         <module>app/ImprovisationSupport</module>
         <module>app/InstrumentChooser</module>
         <module>app/InstrumentComponents</module>
@@ -272,9 +273,9 @@
         <module>app/Test</module>
         <module>app/UISettings</module>
         <module>app/Upgrade</module>
-		<module>app/YjzCreationWizard</module>		
+        <module>app/YjzCreationWizard</module>		
         <module>app/ZoomableSliders</module>
-
+        
         <module>plugins/FluidSynthEmbeddedSynth</module>        
         <module>plugins/YamJJazz</module>
     </modules>

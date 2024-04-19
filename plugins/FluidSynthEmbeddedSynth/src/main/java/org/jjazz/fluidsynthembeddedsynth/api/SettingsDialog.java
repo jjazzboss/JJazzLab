@@ -22,7 +22,6 @@
  */
 package org.jjazz.fluidsynthembeddedsynth.api;
 
-import org.jjazz.fluidsynthembeddedsynth.api.FluidSynthEmbeddedSynth;
 import com.google.common.base.Preconditions;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;

@@ -70,6 +70,7 @@ import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.cl_editor.api.CL_EditorMouseListener;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.cl_editor.api.CL_SelectionUtilities;
+import org.jjazz.flatcomponents.api.FlatComponentsGlobalSettings;
 import org.jjazz.itemrenderer.api.IR_Type;
 import org.jjazz.itemrenderer.api.ItemRenderer;
 import org.jjazz.uisettings.api.GeneralUISettings;
@@ -345,7 +346,7 @@ public class CL_EditorController implements CL_EditorMouseListener
         CL_EditorTopComponent clTc = CL_EditorTopComponent.get(cls);
         clTc.requestActive();
 
-        boolean isWheelChangeEnabled = GeneralUISettings.getInstance().isChangeValueWithMouseWheelEnabled();
+        boolean isWheelChangeEnabled = FlatComponentsGlobalSettings.getInstance().isChangeValueWithMouseWheelEnabled();
         LOGGER.log(Level.FINER, "itemWheelMoved() e.getWheelRotation()={0} isWheelChangeEnabled={1}", new Object[]
         {
             e.getWheelRotation(), isWheelChangeEnabled

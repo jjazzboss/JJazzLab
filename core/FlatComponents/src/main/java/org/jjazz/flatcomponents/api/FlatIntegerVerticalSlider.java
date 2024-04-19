@@ -41,7 +41,6 @@ import java.awt.geom.RoundRectangle2D;
 import java.util.logging.Logger;
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
-import org.jjazz.uisettings.api.GeneralUISettings;
 
 /**
  * A vertical flat slider.
@@ -83,7 +82,7 @@ public class FlatIntegerVerticalSlider extends JComponent implements MouseListen
 
 
         // Use mouse wheel only if enabled
-        GeneralUISettings.getInstance().installChangeValueWithMouseWheelSupport(this, this);
+        FlatComponentsGlobalSettings.getInstance().installChangeValueWithMouseWheelSupport(this, this);
 
         BorderManager.getInstance().register(this, false, false, true);
     }

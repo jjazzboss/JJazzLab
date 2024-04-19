@@ -8,6 +8,7 @@
         <version>4.0.3-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
+    <groupId>org.jjazzlab.core</groupId>
     <artifactId>flatcomponents</artifactId>
     <name>FlatComponents</name>
     <packaging>nbm</packaging>
@@ -39,11 +40,6 @@
             <groupId>org.jjazzlab.core</groupId>
             <artifactId>guava</artifactId>
             <version>${project.version}</version>
-        </dependency>  
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>uisettings</artifactId> 
-            <version>${project.version}</version>  
         </dependency>  
         <dependency> 
             <groupId>org.jjazzlab.core</groupId> 

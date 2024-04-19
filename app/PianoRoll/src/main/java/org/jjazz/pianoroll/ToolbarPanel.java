@@ -36,6 +36,7 @@ import javax.swing.DefaultListCellRenderer;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.SpinnerNumberModel;
+import org.jjazz.flatcomponents.api.FlatComponentsGlobalSettings;
 import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.pianoroll.actions.HearSelection;
@@ -327,7 +328,7 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
         int newSpinnerValue = (int) spn_velocity.getValue();
         boolean isManualEdit;
 
-        if (GeneralUISettings.getInstance().isChangeValueWithMouseWheelEnabled())
+        if (FlatComponentsGlobalSettings.getInstance().isChangeValueWithMouseWheelEnabled())
         {
             isManualEdit = spn_velocity.isChangeFromManualEdit();
         } else

@@ -23,6 +23,7 @@
 package org.jjazz.base;
 
 import java.util.logging.*;
+import org.jjazz.flatcomponents.api.FlatComponentsGlobalSettings;
 import org.jjazz.harmony.spi.ChordTypeDatabase;
 import org.jjazz.midi.api.JJazzMidiSystem;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
@@ -61,7 +62,7 @@ public class UpgradeCorePreferencesStartupTask implements UpgradeTask
         // Preferences before JJazzLab 4 are not imported
         if (oldVersion.charAt(0) >= '4')
         {
-            prefs = NbPreferences.forModule(DefaultOutputSynthManager.class);            
+            prefs = NbPreferences.forModule(DefaultOutputSynthManager.class);
             um.duplicateOldPreferences(prefs);
         }
 
@@ -74,6 +75,20 @@ public class UpgradeCorePreferencesStartupTask implements UpgradeTask
         // PlaybackSettings
         prefs = NbPreferences.forModule(PlaybackSettings.class);
         um.duplicateOldPreferences(prefs);
+
+
+        // FlatComponentsGlobalSettings
+        prefs = NbPreferences.forModule(FlatComponentsGlobalSettings.class);
+        if (oldVersion.compareTo("4.0.3") < 0)
+        {
+            // Before 4.0.3, this setting was in module uisettings
+            String adaptedRelPath = um.adaptPropertiesFileRelativePath("org/jjazzlab/uisettings.properties");
+            um.duplicateOldPreferences(prefs, adaptedRelPath);
+        } else
+        {
+            um.duplicateOldPreferences(prefs);
+        }
+
     }
 
 }

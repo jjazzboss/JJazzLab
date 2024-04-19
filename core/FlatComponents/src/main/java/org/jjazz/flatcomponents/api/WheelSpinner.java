@@ -23,7 +23,6 @@
 package org.jjazz.flatcomponents.api;
 
 import java.awt.Component;
-import org.jjazz.uisettings.api.GeneralUISettings;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
@@ -76,7 +75,7 @@ public class WheelSpinner extends JSpinner implements MouseWheelListener
     {
 
         // Use mouse wheel only if enabled
-        GeneralUISettings.getInstance().installChangeValueWithMouseWheelSupport(this, this);
+        FlatComponentsGlobalSettings.getInstance().installChangeValueWithMouseWheelSupport(this, this);
 
 
         setColumns(3);

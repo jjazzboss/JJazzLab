@@ -30,6 +30,7 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JList;
 import org.jjazz.analytics.api.Analytics;
+import org.jjazz.flatcomponents.api.FlatComponentsGlobalSettings;
 import org.jjazz.songeditormanager.spi.SongEditorManager;
 import org.jjazz.uisettings.api.GeneralUISettings;
 import org.jjazz.utilities.api.ResUtil;
@@ -177,7 +178,7 @@ final class GeneralPanel extends javax.swing.JPanel
 
         LOGGER.fine("load() --");
         cb_loadLastRecentFile.setSelected(SongEditorManager.getDefault().isOpenLastFilesUponStartup());
-        cb_disableMouseWheelChangeValue.setSelected(!GeneralUISettings.getInstance().isChangeValueWithMouseWheelEnabled());
+        cb_disableMouseWheelChangeValue.setSelected(!FlatComponentsGlobalSettings.getInstance().isChangeValueWithMouseWheelEnabled());
 
 
 
@@ -201,7 +202,7 @@ final class GeneralPanel extends javax.swing.JPanel
         LOGGER.fine("store() --");
         SongEditorManager.getDefault().setOpenLastFilesUponStartup(cb_loadLastRecentFile.isSelected());
 
-        GeneralUISettings.getInstance().setChangeValueWithMouseWheelEnabled(!cb_disableMouseWheelChangeValue.isSelected());
+        FlatComponentsGlobalSettings.getInstance().setChangeValueWithMouseWheelEnabled(!cb_disableMouseWheelChangeValue.isSelected());
 
         Analytics.setProperties(Analytics.buildMap("Mouse Wheel Value Change Support", !cb_disableMouseWheelChangeValue.isSelected()));        
 

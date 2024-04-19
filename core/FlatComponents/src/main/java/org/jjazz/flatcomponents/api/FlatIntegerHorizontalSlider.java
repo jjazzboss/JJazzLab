@@ -49,7 +49,6 @@ import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.border.Border;
-import org.jjazz.uisettings.api.GeneralUISettings;
 
 /**
  * An horizontal flat slider.
@@ -153,7 +152,7 @@ public class FlatIntegerHorizontalSlider extends JComponent implements MouseList
         });
         addMouseMotionListener(this);
         // Use mouse wheel only if enabled
-        GeneralUISettings.getInstance().installChangeValueWithMouseWheelSupport(this, this);
+        FlatComponentsGlobalSettings.getInstance().installChangeValueWithMouseWheelSupport(this, this);
         addPropertyChangeListener(this);
         BorderManager.getInstance().register(this);
     }

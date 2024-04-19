@@ -8,6 +8,7 @@
         <version>4.0.3-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
+    <groupId>org.jjazzlab.plugins</groupId>    
     <artifactId>yamjjazz</artifactId>
     <name>YamJJazz</name>
     <packaging>nbm</packaging>

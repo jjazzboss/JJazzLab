@@ -45,7 +45,6 @@ import java.awt.geom.Rectangle2D;
 import java.util.logging.Logger;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
-import org.jjazz.uisettings.api.GeneralUISettings;
 
 /**
  * A flat knob.
@@ -96,7 +95,7 @@ public class FlatIntegerKnob extends JPanel implements MouseMotionListener, Mous
         addMouseListener(this);
 
         // Use mouse wheel to change value, only if enabled
-        GeneralUISettings.getInstance().installChangeValueWithMouseWheelSupport(this, this);
+        FlatComponentsGlobalSettings.getInstance().installChangeValueWithMouseWheelSupport(this, this);
 
         updateToolTipText();
 

@@ -454,12 +454,12 @@
   
         <!-- JJazzLab app =========================================================== -->  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.plugins</groupId> 
             <artifactId>yamjjazz</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.plugins</groupId> 
             <artifactId>fluidsynthembeddedsynth</artifactId> 
             <version>${project.version}</version> 
         </dependency>          
@@ -579,7 +579,7 @@
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.core</groupId> 
             <artifactId>flatcomponents</artifactId> 
             <version>${project.version}</version> 
         </dependency>  

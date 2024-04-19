@@ -95,7 +95,11 @@
             <artifactId>harmony</artifactId>
             <version>${project.version}</version>
         </dependency>  
-        
+        <dependency>
+            <groupId>org.jjazzlab.core</groupId>
+            <artifactId>flatcomponents</artifactId>
+            <version>${project.version}</version>
+        </dependency>          
         <dependency> 
             <groupId>org.netbeans.api</groupId> 
             <artifactId>org-netbeans-modules-autoupdate-services</artifactId> 
