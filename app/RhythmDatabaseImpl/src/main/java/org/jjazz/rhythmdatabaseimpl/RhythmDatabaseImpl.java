@@ -70,8 +70,7 @@ import org.jjazz.startup.spi.OnShowingTask;
  * RhythmDatabase implementation.
  * <p>
  * Upon clean/fresh start:<br>
- * - retrieve all available builtin & file-based rhythm instances by polling RhythmProviders (this can be long if many rhythm files need to
- * be scanned).<br>
+ * - retrieve all available builtin & file-based rhythm instances by polling RhythmProviders (this can be long if many rhythm files need to be scanned).<br>
  * - create RhythmInfo instances from the Rhythm instances and save the file-based RhythmInfos to a cache file.<p>
  * Then upon normal start:<br>
  * - retrieve all available builtin rhythm instances by polling RhythmProviders, create the corresponding RhythmInfos.<br>
@@ -79,7 +78,8 @@ import org.jjazz.startup.spi.OnShowingTask;
  * - create Rhythm instances only when required.<p>
  * <p>
  * Default rhythms are stored as Preferences.
- * @todo Make this database extends DefaultRhythmDatabase ? 
+ *
+ * @todo Make this database extends DefaultRhythmDatabase ?
  */
 public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListener
 {
@@ -129,7 +129,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
 
             // Prepare the ProgressHandle
             boolean needRescan = prefs.getBoolean(PREF_NEED_RESCAN, true);
-            String dir = FileDirectoryManager.getInstance().getUserRhythmDirectory().getAbsolutePath();
+            String dir = FileDirectoryManager.getInstance().getUserRhythmsDirectory().getAbsolutePath();
             String msg1 = ResUtil.getString(getClass(), "CTL_ScanningAllRhythmsInDir", dir);
             String msg2 = ResUtil.getString(getClass(), "CTL_ReadingRhythmDbCacheFile");
             String msg = needRescan ? msg1 : msg2;
@@ -139,8 +139,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
             // Start the task
             Runnable run = () -> initDatabase(ph, needRescan);
             initTask = RequestProcessor.getDefault().post(run);
-        }
-        else
+        } else
         {
             // Only builtin rhythms, no task to update
             addNewRhythmsFromRhythmProviders(false, true, false);
@@ -185,8 +184,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         try
         {
             r = rp.readFast(ri.file());
-        }
-        catch (IOException ex)
+        } catch (IOException ex)
         {
             throw new UnavailableRhythmException(ex.getLocalizedMessage());
         }
@@ -303,9 +301,9 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
 
         // No default rhythm defined : pick a rhythm from the database (AdaptedRhythms excluded)
         List<RhythmInfo> rhythms = getRhythms(ts)
-            .stream()
-            .filter(ri -> !ri.isAdaptedRhythm())
-            .toList();
+                .stream()
+                .filter(ri -> !ri.isAdaptedRhythm())
+                .toList();
 
         assert rhythms.size() > 0 : " mapRpRhythms=" + this.mapRpRhythms;
 
@@ -468,12 +466,12 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
     /**
      * Initialization operations.
      *
-     * @param ph Used to monitor progress (already started)
+     * @param ph         Used to monitor progress (already started)
      * @param needRescan
      */
     private void initDatabase(ProgressHandle ph, boolean needRescan)
     {
-        File rDir = FileDirectoryManager.getInstance().getUserRhythmDirectory();
+        File rDir = FileDirectoryManager.getInstance().getUserRhythmsDirectory();
         boolean cacheFilePresent = RhythmDbCache.getFile().isFile();
         LOGGER.log(Level.INFO, "initDatabase() needRescan={0} cacheFilePresent={1}", new Object[]
         {
@@ -496,8 +494,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
             ph.progress(msg2);
             writeCache();
 
-        }
-        else
+        } else
         {
             // Reuse cache file to avoid a full scan
 
@@ -510,8 +507,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
             {
                 ph.progress(ResUtil.getString(getClass(), "CTL_ReadingRhythmDbCacheFile"));
                 readCache();
-            }
-            catch (IOException ex)
+            } catch (IOException ex)
             {
                 // Notify
                 LOGGER.log(Level.WARNING, "RhythmDatabaseImpl() Can''t load cache file. IOException ex={0}", ex.getMessage());
@@ -527,8 +523,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
                 // Rescan
                 ph.progress(msg2);
                 writeCache();
-            }
-            catch (ClassNotFoundException ex)
+            } catch (ClassNotFoundException ex)
             {
                 Exceptions.printStackTrace(ex);
             }
@@ -583,7 +578,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
                     public void run()
                     {
                         new MultipleErrorsReportDialog(WindowManager.getDefault().getMainWindow(), ResUtil.getString(getClass(), "CTL_BuiltinRhythmErrors"),
-                            builtinErrRpt).setVisible(true);
+                                builtinErrRpt).setVisible(true);
                     }
                 });
             }
@@ -613,7 +608,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
                     public void run()
                     {
                         new MultipleErrorsReportDialog(WindowManager.getDefault().getMainWindow(), ResUtil.getString(getClass(), "CTL_FileBasedRhythmErrors"),
-                            fileErrRpt).setVisible(true);
+                                fileErrRpt).setVisible(true);
                     }
                 });
             }
@@ -621,11 +616,11 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         }
 
         LOGGER.log(Level.INFO, "addNewRhythmsFromRhythmProviders() excludeBuiltinRhythms={0} excludeFileRhythms={1} forceFileRescan={2}. Added {3} rhythms",
-            new Object[]
-            {
-                excludeBuiltinRhythms,
-                excludeFileRhythms, forceFileRescan, n
-            });
+                new Object[]
+                {
+                    excludeBuiltinRhythms,
+                    excludeFileRhythms, forceFileRescan, n
+                });
 
         return n;
     }
@@ -640,7 +635,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
 
         // cacheFile.dump();
         // Save to file
-        Runnable run = () ->
+        Runnable run = () -> 
         {
             File f = RhythmDbCache.getFile();
             try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(f)))
@@ -648,8 +643,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
                 oos.writeObject(cacheFile);
                 prefs.putBoolean(PREF_NEED_RESCAN, false);
                 LOGGER.log(Level.INFO, "writeCache.run() cache file created, size={0}", cacheFile.getSize());
-            }
-            catch (IOException ex)
+            } catch (IOException ex)
             {
                 LOGGER.log(Level.SEVERE, "writeCache.run() Can''t save cache file={0}. ex={1}", new Object[]
                 {
@@ -693,9 +687,9 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
 
             // Get the RhythmProvider
             RhythmProvider rp = rps.stream()
-                .filter(rpi -> rpi.getInfo().getUniqueId().equals(rpId))
-                .findAny()
-                .orElse(null);
+                    .filter(rpi -> rpi.getInfo().getUniqueId().equals(rpId))
+                    .findAny()
+                    .orElse(null);
             if (rp == null)
             {
                 LOGGER.log(Level.WARNING, "readCache.run() No RhythmProvider found for rpId={0}. Ignoring {1} rhythms.", new Object[]
@@ -747,8 +741,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
             rhythms.add(ri);
             mapInfoInstance.put(ri, r);
             return true;
-        }
-        else
+        } else
         {
             return false;
         }
@@ -826,8 +819,8 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         {
             var rhythms = mapRpRhythms.get(rp);
             long nbBuiltins = rhythms.stream()
-                .filter(ri -> ri.file().getName().equals(""))
-                .count();
+                    .filter(ri -> ri.file().getName().equals(""))
+                    .count();
             long nbFiles = rhythms.size() - nbBuiltins;
             String firstRhythm = rhythms.isEmpty() ? "" : "first=" + rhythms.get(0).toString() + "...";
 
@@ -850,7 +843,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         public static final int PRIORITY = 500;
         @StaticResource(relative = true)
         public static final String ZIP_RESOURCE_PATH = "resources/Rhythms.zip";
-        public static final String DIR_NAME = "Rhythms";
+
 
         @Override
         public void run()
@@ -875,23 +868,11 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
 
         private void initializeUserRhythmDir()
         {
-            // Create the dir if it does not exists, and set it as the default user rhythm directory
-            var fdm = FileDirectoryManager.getInstance();
-            File dir = new File(fdm.getJJazzLabUserDirectory(), DIR_NAME);
-            if (!dir.isDirectory() && !dir.mkdir())
-            {
-                LOGGER.log(Level.WARNING, "CopyDefaultRhythmFilesTask.initializeUserRhythmDir() Could not create directory {0}.", dir.getAbsolutePath());
-            }
-            else
-            {
-                // Copy files 
-                copyFilesOrNot(dir);
-                fdm.setUserRhythmDirectory(dir);
-            }
+            copyFilesOrNot(FileDirectoryManager.getInstance().getUserRhythmsDirectory());
         }
 
         /**
-         * If dir is not empty ask user confirmation to replace files.
+         * If dir is not empty ask user for confirmation to replace files.
          *
          * @param dir Must exist.
          */
@@ -901,8 +882,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
             try
             {
                 isEmpty = Utilities.isEmpty(dir.toPath());
-            }
-            catch (IOException ex)
+            } catch (IOException ex)
             {
                 LOGGER.log(Level.WARNING, "CopyDefaultRhythmFilesTask.copyFilesOrNot() Can''t check if dir. is empty. ex={0}", ex.getMessage());
                 return;
@@ -915,8 +895,8 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
                     "OK", ResUtil.getString(getClass(), "CTL_Skip")
                 };
                 NotifyDescriptor d = new NotifyDescriptor(msg, ResUtil.getString(getClass(), "CTL_FirstTimeInit"), 0, NotifyDescriptor.QUESTION_MESSAGE,
-                    options,
-                    "OK");
+                        options,
+                        "OK");
                 Object result = DialogDisplayer.getDefault().notify(d);
 
                 if (!result.equals("OK"))

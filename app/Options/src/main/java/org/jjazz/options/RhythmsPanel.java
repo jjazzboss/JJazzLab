@@ -446,11 +446,11 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
    private void btn_rhythmDirActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_rhythmDirActionPerformed
    {//GEN-HEADEREND:event_btn_rhythmDirActionPerformed
        FileDirectoryManager fdm = FileDirectoryManager.getInstance();
-       File oldDir = fdm.getUserRhythmDirectory();
+       File oldDir = fdm.getUserRhythmsDirectory();
        File newDir = UIUtilities.showDirChooser(tf_rhythmUserDir.getText(), ResUtil.getString(getClass(), "CTL_RhythmDirDialogTitle"));
        if (newDir != null && !oldDir.equals(newDir) && newDir.isDirectory())
        {
-           fdm.setUserRhythmDirectory(newDir);
+           fdm.setUserRhythmsDirectory(newDir);
            btn_rescanActionPerformed(null);
            
            Analytics.logEvent("Change User Rhythm Dir.");
@@ -578,7 +578,7 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
     private void updateRhythmUserDirField()
     {
         FileDirectoryManager fdm = FileDirectoryManager.getInstance();
-        File f = fdm.getUserRhythmDirectory();
+        File f = fdm.getUserRhythmsDirectory();
         String s = f.getAbsolutePath();
         tf_rhythmUserDir.setText(s);
     }

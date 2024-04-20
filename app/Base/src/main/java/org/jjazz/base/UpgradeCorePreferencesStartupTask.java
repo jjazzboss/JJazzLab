@@ -24,6 +24,7 @@ package org.jjazz.base;
 
 import java.util.logging.*;
 import org.jjazz.flatcomponents.api.FlatComponentsGlobalSettings;
+import org.jjazz.fluidsynthembeddedsynth.api.FluidSynthEmbeddedSynth;
 import org.jjazz.harmony.spi.ChordTypeDatabase;
 import org.jjazz.midi.api.JJazzMidiSystem;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
@@ -35,7 +36,7 @@ import org.openide.util.lookup.ServiceProvider;
 
 
 /**
- * Upgrade the preferences of JJazzLab core components (which do not have access to the UpgradeManager/UpgradeTask service).
+ * Upgrade the preferences of JJazzLab core or plugins components (which do not have access to the UpgradeManager/UpgradeTask service).
  */
 @ServiceProvider(service = UpgradeTask.class)
 public class UpgradeCorePreferencesStartupTask implements UpgradeTask
@@ -59,7 +60,6 @@ public class UpgradeCorePreferencesStartupTask implements UpgradeTask
 
 
         // OutputSynthManager        
-        // Preferences before JJazzLab 4 are not imported
         if (oldVersion.charAt(0) >= '4')
         {
             prefs = NbPreferences.forModule(DefaultOutputSynthManager.class);
@@ -88,6 +88,13 @@ public class UpgradeCorePreferencesStartupTask implements UpgradeTask
         {
             um.duplicateOldPreferences(prefs);
         }
+
+        // FluidSynthEmbeddedSynth        
+        if (oldVersion.charAt(0) >= '4')
+        {
+            prefs = NbPreferences.forModule(FluidSynthEmbeddedSynth.class);
+            um.duplicateOldPreferences(prefs);
+        }             
 
     }
 

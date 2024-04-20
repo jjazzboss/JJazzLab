@@ -545,16 +545,6 @@
         </dependency>  
         <dependency> 
             <groupId>${project.groupId}</groupId> 
-            <artifactId>midimixmanagerimpl</artifactId> 
-            <version>${project.version}</version> 
-        </dependency>  		
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
-            <artifactId>outputsynthmanagerimpl</artifactId> 
-            <version>${project.version}</version> 
-        </dependency>  		
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
             <artifactId>print</artifactId> 
             <version>${project.version}</version> 
         </dependency>  

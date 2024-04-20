@@ -30,7 +30,6 @@ import javax.swing.ImageIcon;
 import javax.swing.JTextArea;
 import org.jjazz.base.spi.AboutDialogInfoProvider;
 import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
-import org.jjazz.rhythm.spi.UserRhythmDirLocator;
 import org.jjazz.utilities.api.ResUtil;
 import org.jjazz.utilities.api.Utilities;
 import org.netbeans.api.annotations.common.StaticResource;
@@ -41,6 +40,7 @@ import org.openide.util.ImageUtilities;
 import org.openide.util.Lookup;
 import org.openide.util.NbBundle;
 import org.openide.windows.WindowManager;
+import org.jjazz.rhythm.spi.RhythmDirsLocator;
 
 public class AboutDialog extends javax.swing.JDialog
 {
@@ -122,7 +122,7 @@ public class AboutDialog extends javax.swing.JDialog
         text += "Netbeans.default_userdir_root: " + System.getProperty("netbeans.default_userdir_root", "?") + "\n";
         text += "Nb.native.filechooser: " + System.getProperty("nb.native.filechooser", "?") + "\n";
         text += "JJazzLab user dir: " + fdm.getJJazzLabUserDirectory() + "\n";
-        text += "JJazzLab rhythm user dir: " + fdm.getUserRhythmDirectory().getAbsolutePath() + "\n";
+        text += "JJazzLab rhythm user dir: " + fdm.getUserRhythmsDirectory().getAbsolutePath() + "\n";
         text += "JJazzLab app config dir: " + fdm.getAppConfigDirectory(null) +"\n";
 
         textArea.setText(text);

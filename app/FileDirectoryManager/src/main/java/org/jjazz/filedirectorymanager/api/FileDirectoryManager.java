@@ -27,7 +27,7 @@ import java.nio.file.Path;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
-import org.jjazz.rhythm.spi.UserRhythmDirLocator;
+import org.jjazz.rhythm.api.DefaultUserRhythmDirsLocator;
 import org.openide.modules.InstalledFileLocator;
 import org.openide.modules.Modules;
 import org.openide.modules.Places;
@@ -35,6 +35,7 @@ import org.openide.util.Lookup;
 import org.openide.util.NbPreferences;
 import org.openide.util.lookup.ServiceProvider;
 import org.openide.util.lookup.ServiceProviders;
+import org.jjazz.rhythm.spi.RhythmDirsLocator;
 
 /**
  * Manage the various directories used by the application.
@@ -42,23 +43,24 @@ import org.openide.util.lookup.ServiceProviders;
 @ServiceProviders(value =
 {
     @ServiceProvider(service = FileDirectoryManager.class),
-    @ServiceProvider(service = UserRhythmDirLocator.class)
+    @ServiceProvider(service = RhythmDirsLocator.class)
 })
-public class FileDirectoryManager extends UserRhythmDirLocator.DefaultUserRhythmDirLocator
+public class FileDirectoryManager extends DefaultUserRhythmDirsLocator
 {
-
+    
     public static final String APP_CONFIG_PREFIX_DIR = ".jjazz";
     public static final String JJAZZLAB_USER_DIR = "JJazzLab";
     public static final String PROP_LAST_SONG_DIRECTORY = "PropLastSongDirectory";
-
+    public static final String MIDISYNTH_FILES_DEST_DIRNAME = "MidiSynthFiles";
+    
     private static FileDirectoryManager INSTANCE;
     /**
      * The Preferences of this object.
      */
     private static final Preferences prefs = NbPreferences.forModule(FileDirectoryManager.class);
-
+    
     private static final Logger LOGGER = Logger.getLogger(FileDirectoryManager.class.getSimpleName());
-
+    
     public static FileDirectoryManager getInstance()
     {
         synchronized (FileDirectoryManager.class)
@@ -86,11 +88,11 @@ public class FileDirectoryManager extends UserRhythmDirLocator.DefaultUserRhythm
 
 
     /**
-     * The directory user.home/DEFAULT_USER_DIR.
+     * The directory user.home/JJAZZLAB_USER_DIR.
      * <p>
      * Directory is created if it does not exist.
      *
-     * @return Can't be null. Default to user.home property.
+     * @return An existing directory. Default to user.home property.
      */
     public File getJJazzLabUserDirectory()
     {
@@ -102,13 +104,13 @@ public class FileDirectoryManager extends UserRhythmDirLocator.DefaultUserRhythm
 
 
         // Our user dir
-        File userDir = new File(uh + "/" + JJAZZLAB_USER_DIR);
+        File userDir = new File(uh, JJAZZLAB_USER_DIR);
         if (!userDir.isDirectory())
         {
             // Create the directory
             if (!userDir.mkdir())
             {
-                LOGGER.log(Level.WARNING, "getJJazzLabUserDirectory() Can''t create directory {0}. Using {1} instead...", new Object[]
+                LOGGER.log(Level.WARNING, "getJJazzLabUserDirectory() Can''t create directory {0}. Using {1} instead.", new Object[]
                 {
                     userDir.getAbsolutePath(),
                     uh
@@ -116,11 +118,34 @@ public class FileDirectoryManager extends UserRhythmDirLocator.DefaultUserRhythm
                 userDir = userHome;
             } else
             {
-                LOGGER.log(Level.WARNING, "getJJazzLabUserDirectory() Created JJazzLab user directory {0}", userDir.getAbsolutePath());
+                LOGGER.log(Level.INFO, "getJJazzLabUserDirectory() Created JJazzLab user directory {0}", userDir.getAbsolutePath());
             }
         }
-
+        
         return userDir;
+    }
+
+    /**
+     *
+     * @return getJJazzLabUserDirectory() + USER_RHYTHMS_SUBDIR
+     */
+    @Override
+    public File getUserRhythmsDirectory()
+    {
+        File jjDir = getJJazzLabUserDirectory();
+        assert jjDir != null;
+        File res = new File(jjDir, USER_RHYTHMS_SUBDIR);
+        if (!res.isDirectory() && !res.mkdir())
+        {
+            LOGGER.log(Level.WARNING, "getUserRhythmsDirectory() User rhythm directory not found: {0} Using: {1} instead.", new Object[]
+            {
+                res.getAbsolutePath(), jjDir
+            });
+            res = jjDir;
+        }
+        
+        LOGGER.log(Level.FINE, "getUserRhythmsDirectory() directory={0}", res);
+        return res;
     }
 
     /**
@@ -136,6 +161,21 @@ public class FileDirectoryManager extends UserRhythmDirLocator.DefaultUserRhythm
         f = f.getParentFile().getParentFile();
         assert f != null && f.isDirectory() : "f=" + f;
         return f;
+    }
+
+    /**
+     *
+     * @return getAppConfigDirectory() + DEFAULT_RHYTHMS_SUBDIR
+     */
+    @Override
+    public File getDefaultRhythmsDirectory()
+    {
+        var res = getAppConfigDirectory(DEFAULT_RHYTHMS_SUBDIR);
+        if (!res.isDirectory() && !res.mkdir())
+        {
+            throw new IllegalStateException("Impossible to create directory " + res.getAbsolutePath());
+        }
+        return res;
     }
 
 
@@ -180,7 +220,7 @@ public class FileDirectoryManager extends UserRhythmDirLocator.DefaultUserRhythm
             }
         }
         res = appConfigDir;
-
+        
         if (subDirName != null && !subDirName.isEmpty())
         {
             res = appConfigDir.toPath().resolve(subDirName).toFile();
@@ -189,7 +229,7 @@ public class FileDirectoryManager extends UserRhythmDirLocator.DefaultUserRhythm
                 try
                 {
                     res.mkdir();
-
+                    
                 } catch (SecurityException e)
                 {
                     LOGGER.log(Level.WARNING, "getAppConfigDirectory() impossible to create {0}", res.getAbsolutePath());
@@ -200,6 +240,18 @@ public class FileDirectoryManager extends UserRhythmDirLocator.DefaultUserRhythm
         LOGGER.log(Level.FINE, "getAppConfigDirectory() res={0}", res);
         return res;
     }
+
+    /**
+     * The directory where the default MidiSynth files bundled with JJazzLab are stored.
+     *
+     * @return Might be null 
+     */
+    public File getAppConfigDirForSynths()
+    {
+        var dir = FileDirectoryManager.getInstance().getAppConfigDirectory(MIDISYNTH_FILES_DEST_DIRNAME);
+        return dir;
+    }
+
 
     /**
      * Get the File object corresponding to an existing file (or subdirectory) in the AppConfig directory of an old JJazzLab version.
@@ -217,29 +269,29 @@ public class FileDirectoryManager extends UserRhythmDirLocator.DefaultUserRhythm
         {
             throw new IllegalArgumentException("oldVersion=" + oldVersion + " subDirname=" + relPath);
         }
-
+        
         File userDir = Places.getUserDirectory();
         if (userDir == null || !userDir.isDirectory() || userDir.getParentFile() == null)
         {
             LOGGER.log(Level.WARNING, "getOldAppConfigFile() Invalid Netbeans User Directory userDir={0}", userDir);
             return null;
         }
-
-
+        
+        
         Path parentPath = userDir.getParentFile().toPath();
         Path p = parentPath.resolve(oldVersion).resolve(APP_CONFIG_PREFIX_DIR);
         if (relPath != null)
         {
             p = p.resolve(relPath);
         }
-
-
+        
+        
         File f = p.toFile();
         if (!f.exists())
         {
             f = null;
         }
-
+        
         return f;
     }
 
@@ -294,11 +346,11 @@ public class FileDirectoryManager extends UserRhythmDirLocator.DefaultUserRhythm
         });
         pcs.firePropertyChange(PROP_LAST_SONG_DIRECTORY, old, dir);
     }
-
+    
     @Override
     protected Preferences getPreferences()
     {
         return NbPreferences.forModule(FileDirectoryManager.class);
     }
-
+    
 }

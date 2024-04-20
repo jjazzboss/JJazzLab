@@ -179,7 +179,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         rhythmTable.scrollRectToVisible(rhythmTable.getCellRect(row, 0, true));
         
         
-        tf_userRhythmDir.setText(FileDirectoryManager.getInstance().getUserRhythmDirectory().getAbsolutePath());
+        tf_userRhythmDir.setText(FileDirectoryManager.getInstance().getUserRhythmsDirectory().getAbsolutePath());
         rhythmTable.requestFocusInWindow();
     }
     

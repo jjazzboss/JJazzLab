@@ -157,7 +157,7 @@ public class AddRhythmsAction extends AbstractAction
                 Path userRhythmDir;
                 try
                 {
-                    userRhythmDir = FileDirectoryManager.getInstance().getUserRhythmDirectory().getCanonicalFile().toPath();        // throws IOException
+                    userRhythmDir = FileDirectoryManager.getInstance().getUserRhythmsDirectory().getCanonicalFile().toPath();        // throws IOException
 
                     for (var rprp : pairs)
                     {

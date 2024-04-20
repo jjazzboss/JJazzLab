@@ -35,6 +35,7 @@ import org.jjazz.midi.api.synths.XGSynth;
 import org.jjazz.midi.spi.MidiSynthManager;
 import org.jjazz.outputsynth.api.OutputSynth;
 import org.jjazz.outputsynth.spi.OutputSynthManager;
+import org.netbeans.api.annotations.common.StaticResource;
 
 /**
  * Find a Yamaha specific instrument from the Midi address and AccType found in Yamaha styles.
@@ -44,6 +45,10 @@ public class YamahaInstrumentFinder
 {
 
     private static YamahaInstrumentFinder INSTANCE;
+    public static final String YAMAHA_REF_SYNTH_NAME = "Tyros5 Synth";    
+    @StaticResource(relative = true)    
+    private static final String YAMAHA_REF_SYNTH_PATH = "resources/YamahaRefSynth.ins";
+
     private final MidiSynth yamahaRefSynth;
 
     private static final Logger LOGGER = Logger.getLogger(YamahaInstrumentFinder.class.getSimpleName());
@@ -62,7 +67,9 @@ public class YamahaInstrumentFinder
 
     private YamahaInstrumentFinder()
     {
-        yamahaRefSynth = OutputSynthManager.getDefault().getStandardOutputSynth(OutputSynthManager.STD_YAMAHA_TYROS_REF).getMidiSynth();
+        // Add our MidiSynth
+        yamahaRefSynth = MidiSynthManager.loadFromResource(getClass(), YAMAHA_REF_SYNTH_PATH);
+        MidiSynthManager.getDefault().addMidiSynth(yamahaRefSynth);        
     }
 
     /**

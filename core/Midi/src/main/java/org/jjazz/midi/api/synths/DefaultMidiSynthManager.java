@@ -32,16 +32,31 @@ import java.util.function.Predicate;
 import java.util.logging.Logger;
 import org.jjazz.midi.api.MidiSynth;
 import org.jjazz.midi.spi.MidiSynthManager;
+import static org.jjazz.midi.spi.MidiSynthManager.loadFromResource;
+import org.netbeans.api.annotations.common.StaticResource;
 
 
 /**
- * A default (and basic) implementation of a MidiSynthManager.
+ * Default implementation of a MidiSynthManager.
  *
- * Initialized with GM/GM2/XG/GS synths.
+ * Initialized with GM/GM2/XG/GS and JJazzLabSoundFont-based synths.
  */
 public class DefaultMidiSynthManager implements MidiSynthManager
 {
 
+      // Some builtin MidiSynth names retrieved from a .ins file
+    public static String JJAZZLAB_SOUNDFONT_GM2_SYNTH_NAME = "JJazzLab SoundFont (GM2)";
+    public static String JJAZZLAB_SOUNDFONT_GS_SYNTH_NAME = "JJazzLab SoundFont (GS)";
+    public static String JJAZZLAB_SOUNDFONT_XG_SYNTH_NAME = "JJazzLab SoundFont (XG)";
+
+    @StaticResource(relative = true)
+    private final static String JJAZZLAB_SOUNDFONT_GM2_SYNTH_PATH = "resources/JJazzLabSoundFontSynth_GM2.ins";
+    @StaticResource(relative = true)
+    private final static String JJAZZLAB_SOUNDFONT_GS_SYNTH_PATH = "resources/JJazzLabSoundFontSynth_GS.ins";
+    @StaticResource(relative = true)
+    private final static String JJAZZLAB_SOUNDFONT_XG_SYNTH_PATH = "resources/JJazzLabSoundFontSynth_XG.ins";
+
+    
     private static DefaultMidiSynthManager INSTANCE;
     protected final List<MidiSynth> midiSynths = new ArrayList<>();
     protected transient final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
@@ -62,6 +77,9 @@ public class DefaultMidiSynthManager implements MidiSynthManager
         midiSynths.add(GM2Synth.getInstance());
         midiSynths.add(XGSynth.getInstance());
         midiSynths.add(GSSynth.getInstance());
+        midiSynths.add(loadFromResource(getClass(), JJAZZLAB_SOUNDFONT_GS_SYNTH_PATH));
+        midiSynths.add(loadFromResource(getClass(), JJAZZLAB_SOUNDFONT_GM2_SYNTH_PATH));
+        midiSynths.add(loadFromResource(getClass(), JJAZZLAB_SOUNDFONT_XG_SYNTH_PATH));        
     }
 
     @Override

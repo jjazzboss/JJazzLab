@@ -84,7 +84,7 @@ public final class TestAction implements ActionListener
                 LOGGER.log(Level.INFO, "Default out device class {0} isInstanceOfSynth={1}", new Object[]{md.getClass(),
                     md instanceof Synthesizer});   
                 FileDirectoryManager fdm = FileDirectoryManager.getInstance();
-                File dir = fdm.getUserRhythmDirectory();
+                File dir = fdm.getUserRhythmsDirectory();
                 File soundFontFile = new File(dir, "FluidR3_GM.SF2");
                 Soundbank newSb = MidiSystem.getSoundbank(soundFontFile);
                 LOGGER.log(Level.INFO, "newSb={0}, {1}", new Object[]{newSb.getName(), newSb.getDescription()});   

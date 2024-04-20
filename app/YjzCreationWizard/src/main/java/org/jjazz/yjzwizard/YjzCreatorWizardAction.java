@@ -176,7 +176,7 @@ public final class YjzCreatorWizardAction implements ActionListener
         int index = 1;
         do
         {
-            res = new File(fdm.getUserRhythmDirectory(), filename);
+            res = new File(fdm.getUserRhythmsDirectory(), filename);
             filename = nameNoExt + "-ext" + (index++) + "." + YamJJazzRhythmProvider.FILE_EXTENSION;
         } while (res.exists());
         return res;

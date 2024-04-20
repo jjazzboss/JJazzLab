@@ -46,6 +46,11 @@
             <version>${project.version}</version>  
         </dependency>      
         <dependency> 
+            <groupId>org.jjazzlab.plugins</groupId> 
+            <artifactId>fluidsynthembeddedsynth</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>           
+        <dependency> 
             <groupId>org.jjazzlab.core</groupId> 
             <artifactId>musiccontrol</artifactId> 
             <version>${project.version}</version>  

@@ -252,11 +252,9 @@
         <module>app/InstrumentChooser</module>
         <module>app/InstrumentComponents</module>
         <module>app/ItemRenderer</module>		
-        <module>app/MidiMixManagerImpl</module>        
         <module>app/MixConsole</module>
         <module>app/MusicControlActions</module>
         <module>app/Options</module>
-        <module>app/OutputSynthManagerImpl</module>		
         <module>app/PianoRoll</module>
         <module>app/PopupWindowMenuPatch</module>
         <module>app/Print</module>        

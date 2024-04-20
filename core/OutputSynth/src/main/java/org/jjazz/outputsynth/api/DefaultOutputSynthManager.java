@@ -37,10 +37,12 @@ import java.util.prefs.Preferences;
 import javax.sound.midi.MidiDevice;
 import org.jjazz.midi.api.JJazzMidiSystem;
 import org.jjazz.midi.api.MidiSynth;
+import org.jjazz.midi.api.synths.DefaultMidiSynthManager;
 import org.jjazz.midi.api.synths.GM2Synth;
 import org.jjazz.midi.api.synths.GMSynth;
 import org.jjazz.midi.api.synths.GSSynth;
 import org.jjazz.midi.api.synths.XGSynth;
+import org.jjazz.midi.spi.MidiSynthManager;
 import org.jjazz.outputsynth.api.OutputSynth.UserSettings.SendModeOnUponPlay;
 import org.jjazz.outputsynth.spi.OutputSynthManager;
 import org.jjazz.utilities.api.Utilities;
@@ -78,7 +80,7 @@ public class DefaultOutputSynthManager implements OutputSynthManager, PropertyCh
         // Listen to Midi out changes
         var jms = JJazzMidiSystem.getInstance();
         jms.addPropertyChangeListener(JJazzMidiSystem.PROP_MIDI_OUT,
-            e -> midiOutChanged((MidiDevice) e.getOldValue(), (MidiDevice) e.getNewValue()));
+                e -> midiOutChanged((MidiDevice) e.getOldValue(), (MidiDevice) e.getNewValue()));
 
 
         refresh();
@@ -130,8 +132,7 @@ public class DefaultOutputSynthManager implements OutputSynthManager, PropertyCh
             try
             {
                 outSynth = OutputSynth.loadFromString(s);
-            }
-            catch (IOException ex)
+            } catch (IOException ex)
             {
                 LOGGER.log(Level.WARNING, "getOutputSynth() mdOutName={0} Can''t restore OutputSynth from String s={1}. ex={2}", new Object[]
                 {
@@ -157,7 +158,7 @@ public class DefaultOutputSynthManager implements OutputSynthManager, PropertyCh
      * Associate outSynth to the specified midi OUT device name.
      *
      * @param mdOutName Can't be null
-     * @param outSynth Can't be null
+     * @param outSynth  Can't be null
      */
     @Override
     public void setMidiDeviceOutputSynth(String mdOutName, OutputSynth outSynth)
@@ -171,8 +172,7 @@ public class DefaultOutputSynthManager implements OutputSynthManager, PropertyCh
         if (oldSynth == outSynth)
         {
             return;
-        }
-        else if (oldSynth != null)
+        } else if (oldSynth != null)
         {
             oldSynth.getUserSettings().removePropertyChangeListener(this);
         }
@@ -197,8 +197,8 @@ public class DefaultOutputSynthManager implements OutputSynthManager, PropertyCh
     @Override
     public OutputSynth getStandardOutputSynth(String stdName)
     {
-        MidiSynth synth = null;
-        SendModeOnUponPlay mode = null;
+        MidiSynth synth;
+        SendModeOnUponPlay mode;
         switch (stdName)
         {
             case OutputSynthManager.STD_GM ->
@@ -220,6 +220,21 @@ public class DefaultOutputSynthManager implements OutputSynthManager, PropertyCh
             {
                 synth = XGSynth.getInstance();
                 mode = SendModeOnUponPlay.XG;
+            }
+            case OutputSynthManager.STD_JJAZZLAB_SOUNDFONT_GS ->
+            {
+                synth = MidiSynthManager.getDefault().getMidiSynth(DefaultMidiSynthManager.JJAZZLAB_SOUNDFONT_GS_SYNTH_NAME);
+                mode = OutputSynth.UserSettings.SendModeOnUponPlay.GS;
+            }
+            case OutputSynthManager.STD_JJAZZLAB_SOUNDFONT_XG ->
+            {
+                synth = MidiSynthManager.getDefault().getMidiSynth(DefaultMidiSynthManager.JJAZZLAB_SOUNDFONT_XG_SYNTH_NAME);
+                mode = OutputSynth.UserSettings.SendModeOnUponPlay.XG;
+            }
+            case OutputSynthManager.STD_JJAZZLAB_SOUNDFONT_GM2 ->
+            {
+                synth = MidiSynthManager.getDefault().getMidiSynth(DefaultMidiSynthManager.JJAZZLAB_SOUNDFONT_GM2_SYNTH_NAME);
+                mode = OutputSynth.UserSettings.SendModeOnUponPlay.GM2;
             }
             default ->
             {
@@ -271,8 +286,7 @@ public class DefaultOutputSynthManager implements OutputSynthManager, PropertyCh
             if (mdName != null)
             {
                 store(mdName, outSynth);
-            }
-            else
+            } else
             {
                 LOGGER.log(Level.WARNING, "propertyChange() Unexpected null mdName! outSynth={0}, mapDeviceNameSynth={1}", new Object[]
                 {

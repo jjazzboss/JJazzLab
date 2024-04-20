@@ -55,7 +55,7 @@ public interface OutputSynthManager
     public static String STD_GS = "GS";
     public static String STD_JJAZZLAB_SOUNDFONT_GS = "JJazzLabSoundFontGS";
     public static String STD_JJAZZLAB_SOUNDFONT_XG = "JJazzLabSoundFontXG";
-    public static String STD_YAMAHA_TYROS_REF = "YamahaTyrosRef";
+    public static String STD_JJAZZLAB_SOUNDFONT_GM2 = "JJazzLabSoundFontGM2";
 
     /**
      * Property change event fired each time a new OutputSynth is associated to the default JJazzLab MidiDevice OUT: oldValue=old

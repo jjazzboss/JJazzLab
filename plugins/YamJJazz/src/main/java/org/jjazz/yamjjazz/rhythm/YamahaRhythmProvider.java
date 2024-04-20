@@ -41,13 +41,12 @@ import org.jjazz.rhythm.spi.RhythmProvider;
 import org.jjazz.utilities.api.MultipleErrorsReport;
 import static org.jjazz.rhythm.spi.RhythmProvider.PREFIX_IGNORED_SUBDIR;
 import static org.jjazz.rhythm.spi.RhythmProvider.SUBDIR_MAX_DEPTH;
-import org.jjazz.rhythm.spi.UserRhythmDirLocator;
 import org.jjazz.utilities.api.ExtensionFileFilter;
 import org.jjazz.utilities.api.Utilities;
 import org.openide.util.lookup.ServiceProvider;
 import org.jjazz.yamjjazz.FormatNotSupportedException;
-import org.openide.modules.InstalledFileLocator;
-import org.openide.modules.Modules;
+import org.jjazz.rhythm.spi.RhythmDirsLocator;
+import org.netbeans.api.annotations.common.StaticResource;
 
 /**
  * A provider of standard Yamaha style rhythms.
@@ -57,7 +56,10 @@ public class YamahaRhythmProvider implements RhythmProvider
 {
 
     public static final String RP_ID = "YamahaRhythmProviderID";
-    public static final String DEFAULT_FILES_DEST_DIRNAME = "modules/YamahaDefaultFiles";
+    private static final String DEFAULT_FILES_SUBDIR = "Yamaha";    
+    @StaticResource(relative = true)
+    private static final String DEFAULT_FILES_RESOURCE_ZIP = "resources/YamahaDefaultFiles.zip";
+
     public static final String[] FILE_EXTENSIONS = new String[]
     {
         "sty", "prs", "bcs", "sst"
@@ -127,8 +129,7 @@ public class YamahaRhythmProvider implements RhythmProvider
             try
             {
                 r = readFast(f);
-            }
-            catch (IOException ex)
+            } catch (IOException ex)
             {
                 LOGGER.log(Level.WARNING, "getFileRhythms() ex={0}", ex.getLocalizedMessage());
                 errRpt.individualErrorMessages.add(ex.getLocalizedMessage());
@@ -139,7 +140,7 @@ public class YamahaRhythmProvider implements RhythmProvider
 
 
         // Check user rhythm dir is available
-        File rDir = UserRhythmDirLocator.getDefault().getUserRhythmDirectory();
+        File rDir = RhythmDirsLocator.getDefault().getUserRhythmsDirectory();
         if (!rDir.isDirectory())
         {
             LOGGER.log(Level.WARNING, "getFileRhythms() RhythmProvider={0} - Rhythm file directory does not exist : {1}", new Object[]
@@ -168,8 +169,7 @@ public class YamahaRhythmProvider implements RhythmProvider
             try
             {
                 r = readFast(path.toFile());
-            }
-            catch (IOException ex)
+            } catch (IOException ex)
             {
                 LOGGER.log(Level.WARNING, "getFileRhythms() ex={0}", ex.getLocalizedMessage());
                 errRpt.individualErrorMessages.add(ex.getLocalizedMessage());
@@ -213,8 +213,7 @@ public class YamahaRhythmProvider implements RhythmProvider
         try
         {
             r = new YamJJazzRhythmImpl(stdFile);  // Don't call loadResources() to save memory and gain some time
-        }
-        catch (IOException | InvalidMidiDataException | FormatNotSupportedException ex)
+        } catch (IOException | InvalidMidiDataException | FormatNotSupportedException ex)
         {
             throw new IOException("Problem reading file " + stdFile.getAbsolutePath() + ". Ex=" + ex.getLocalizedMessage());
         }
@@ -235,26 +234,58 @@ public class YamahaRhythmProvider implements RhythmProvider
         return null;
     }
 
+    // -------------------------------------------------------------------------------------------------
+    // Private methods
+    // -------------------------------------------------------------------------------------------------
     /**
+     * Get the list of rhythm files (matching getFilenameFile()) present in the directory for default rhythm files.
+     * <p>
+     * If files are not yet present, extract them.
      *
-     * @return The list of files present in the directory for default rhythm files.
+     * @return
      */
-    private File[] getDefaultRhythmFiles()
+    private List<File> getDefaultRhythmFiles()
     {
-        File[] res;
-        File dir = InstalledFileLocator.getDefault().locate(DEFAULT_FILES_DEST_DIRNAME, Modules.getDefault().ownerOf(getClass()).getCodeNameBase(), false);
-
-
-        if (dir == null || !dir.isDirectory())
+        List<File> res = new ArrayList<>();
+        var ddir = RhythmDirsLocator.getDefault().getDefaultRhythmsDirectory();
+        File rDir = new File(ddir, DEFAULT_FILES_SUBDIR);
+        if (!rDir.isDirectory() && !rDir.mkdir())
         {
-            LOGGER.severe("getDefaultRhythmFiles() Can't find " + DEFAULT_FILES_DEST_DIRNAME);
-            res = new File[0];
-        }
-        else
-        {
-            res = dir.listFiles(fileFilter);
+            LOGGER.log(Level.SEVERE, "getDefaultRhythmFiles() Can''t create directory {0}", rDir.getAbsolutePath());
+            return res;
         }
 
+        File[] files = rDir.listFiles(fileFilter);
+        if (files.length == 0)
+        {
+            for (File f : copyDefaultResourceFiles(rDir))
+            {
+                if (fileFilter.accept(rDir, f.getName()))
+                {
+                    res.add(f);
+                }
+            }
+        } else
+        {
+            res.addAll(Arrays.asList(files));
+        }
+        return res;
+    }
+
+    /**
+     * Copy the default rhythm files within the JAR to destPath.
+     * <p>
+     *
+     * @param destDir
+     * @return The list of copied files in destDir
+     */
+    private List<File> copyDefaultResourceFiles(File destDir)
+    {
+        List<File> res = Utilities.extractZipResource(getClass(), DEFAULT_FILES_RESOURCE_ZIP, destDir.toPath(), true);
+        LOGGER.log(Level.INFO, "copyDefaultResourceFiles() Copied {0} default rhythm files to {1}", new Object[]
+        {
+            res.size(), destDir.getAbsolutePath()
+        });
         return res;
     }
 
@@ -263,8 +294,8 @@ public class YamahaRhythmProvider implements RhythmProvider
     {
         // Get all .yjz files
         var yjzPaths = stylePaths.stream()
-            .filter(p -> p.toString().toLowerCase().endsWith(YamJJazzRhythmProvider.FILE_EXTENSION))
-            .toList();
+                .filter(p -> p.toString().toLowerCase().endsWith(YamJJazzRhythmProvider.FILE_EXTENSION))
+                .toList();
 
 
         // Remove all .yjz files and remove all possible corresponding base styles

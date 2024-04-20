@@ -40,6 +40,7 @@ import org.jjazz.fluidsynthjava.api.Reverb;
 import org.jjazz.outputsynth.api.OutputSynth;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.modules.InstalledFileLocator;
+import org.openide.modules.ModuleInfo;
 import org.openide.modules.Modules;
 import org.openide.util.NbPreferences;
 
@@ -58,9 +59,9 @@ public class FluidSynthEmbeddedSynth implements EmbeddedSynth, PropertyChangeLis
     private static final Reverb DEFAULT_REVERB = Reverb.ROOM_REVERB;
     private static final Chorus DEFAULT_CHORUS = Chorus.NORMAL_CHORUS;
     private static final List<Reverb> REVERB_PRESETS = Arrays.asList(Reverb.ZERO_REVERB, Reverb.SMALL_ROOM_REVERB, Reverb.ROOM_REVERB,
-        Reverb.HALL_REVERB, Reverb.LARGE_HALL_REVERB);
+            Reverb.HALL_REVERB, Reverb.LARGE_HALL_REVERB);
     private static final List<Chorus> CHORUS_PRESETS = Arrays.asList(Chorus.ZERO_CHORUS, Chorus.NORMAL_CHORUS, Chorus.SLOW_CHORUS,
-        Chorus.THICK_CHORUS);
+            Chorus.THICK_CHORUS);
 
     private FluidSynthJava fluidSynth;
     private File soundFontFile;
@@ -75,7 +76,7 @@ public class FluidSynthEmbeddedSynth implements EmbeddedSynth, PropertyChangeLis
 
     /**
      * Set the soundfont file to be used when opening the device.
-     *
+     * <p>
      * If synth is already opened, the file will be used only on the next open().
      *
      * @param f Can be null.
@@ -99,7 +100,8 @@ public class FluidSynthEmbeddedSynth implements EmbeddedSynth, PropertyChangeLis
      */
     public File getSoundFontFile() throws FluidSynthException
     {
-        File f;
+        File f = null;
+        ModuleInfo ownerModule = Modules.getDefault().ownerOf(getClass());  // Might be null if class is in a normal jar
 
         // First check command line parameter
         String cmdLinePath = System.getProperty(SOUNDFONT_FILE_COMMAND_LINE_PROPERTY);
@@ -107,15 +109,13 @@ public class FluidSynthEmbeddedSynth implements EmbeddedSynth, PropertyChangeLis
         {
             f = new File(cmdLinePath);
             LOGGER.log(Level.FINE, "Using SoundFont file from property " + SOUNDFONT_FILE_COMMAND_LINE_PROPERTY + "={0}", cmdLinePath);
-        }
-        else if (soundFontFile != null)
+        } else if (soundFontFile != null)
         {
             f = soundFontFile;
             LOGGER.log(Level.FINE, "Using SoundFont file {0}", soundFontFile.getAbsolutePath());
-        }
-        else
+        } else if (ownerModule != null)
         {
-            f = InstalledFileLocator.getDefault().locate(SOUNDFONT_FILE, Modules.getDefault().ownerOf(getClass()).getCodeNameBase(), false);
+            f = InstalledFileLocator.getDefault().locate(SOUNDFONT_FILE, ownerModule.getCodeNameBase(), false);
             LOGGER.log(Level.FINE, "Using SoundFont file from current module (" + SOUNDFONT_FILE + ")");
         }
 
@@ -157,8 +157,7 @@ public class FluidSynthEmbeddedSynth implements EmbeddedSynth, PropertyChangeLis
             Chorus c = getChorusPreset(prefs.get(PREF_CHORUS, null));
             fluidSynth.setChorus(r == null ? DEFAULT_CHORUS : c);
 
-        }
-        catch (FluidSynthException ex)
+        } catch (FluidSynthException ex)
         {
             close();
             throw new EmbeddedSynthException(ex.getMessage());
@@ -219,8 +218,7 @@ public class FluidSynthEmbeddedSynth implements EmbeddedSynth, PropertyChangeLis
         try
         {
             fluidSynth.generateWavFile(midiFile, wavFile);
-        }
-        catch (FluidSynthException ex)
+        } catch (FluidSynthException ex)
         {
             throw new EmbeddedSynthException(ex.getMessage());
         }
@@ -280,17 +278,17 @@ public class FluidSynthEmbeddedSynth implements EmbeddedSynth, PropertyChangeLis
     private Reverb getReverbPreset(String name)
     {
         return REVERB_PRESETS.stream()
-            .filter(r -> r.name().equals(name))
-            .findAny()
-            .orElse(null);
+                .filter(r -> r.name().equals(name))
+                .findAny()
+                .orElse(null);
     }
 
     private Chorus getChorusPreset(String name)
     {
         return CHORUS_PRESETS.stream()
-            .filter(r -> r.name().equals(name))
-            .findAny()
-            .orElse(null);
+                .filter(r -> r.name().equals(name))
+                .findAny()
+                .orElse(null);
     }
 
 

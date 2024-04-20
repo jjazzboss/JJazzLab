@@ -316,7 +316,7 @@ public class RhythmJTable extends JTable implements PropertyChangeListener
                     }
 
 
-                    Path pUserRhythmDir = FileDirectoryManager.getInstance().getUserRhythmDirectory().toPath();
+                    Path pUserRhythmDir = FileDirectoryManager.getInstance().getUserRhythmsDirectory().toPath();
                     Path pFile = ri.file().toPath();
                     if (!pFile.startsWith(pUserRhythmDir))
                     {

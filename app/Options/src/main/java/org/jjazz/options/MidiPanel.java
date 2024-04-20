@@ -70,7 +70,6 @@ import org.openide.*;
 import org.openide.util.Exceptions;
 import org.jjazz.outputsynth.spi.OutputSynthManager;
 import org.jjazz.midi.spi.MidiSynthManager;
-import org.jjazz.outputsynthmanagerimpl.api.MidiSynthManagerImpl;
 import org.openide.util.Lookup;
 import org.openide.windows.WindowManager;
 
@@ -92,7 +91,7 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
      * Using MidiDevice name because a OUT MidiDevice might appear/disappear/re-appear on the system.
      */
     private record MidiDeviceSynth(String midiDeviceName, MidiSynth midiSynth)
-        {
+            {
 
     }
     /**
@@ -191,14 +190,12 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
             try
             {
                 embeddedSynthProvider.setEmbeddedSynthActive(true);
-            }
-            catch (EmbeddedSynthException ex)
+            } catch (EmbeddedSynthException ex)
             {
                 // It was working before, should still work
                 Exceptions.printStackTrace(ex);
             }
-        }
-        else
+        } else
         {
             if (isEmbeddedSynthAvailable())
             {
@@ -206,8 +203,7 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
                 {
                     embeddedSynthProvider.setEmbeddedSynthActive(false);
 
-                }
-                catch (EmbeddedSynthException ex)
+                } catch (EmbeddedSynthException ex)
                 {
                     // It was working before, should still work
                     Exceptions.printStackTrace(ex);
@@ -233,8 +229,7 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
                 updateUIComponents();
             }
 
-        }
-        else if (evt.getSource() == MidiSynthManager.getDefault())
+        } else if (evt.getSource() == MidiSynthManager.getDefault())
         {
             if (evt.getPropertyName().equals(MidiSynthManager.PROP_MIDISYNTH_LIST))
             {
@@ -245,8 +240,7 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
                     comboModel.addMidiSynth((MidiSynth) evt.getNewValue());
                     updateMapDeviceSynth();
 
-                }
-                else if (evt.getOldValue() != null)
+                } else if (evt.getOldValue() != null)
                 {
                     // A MidiSynth was removed
                     assert evt.getNewValue() == null;
@@ -254,20 +248,17 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
                 }
             }
 
-        }
-        else if (editedOutputSynth != null && evt.getSource() == editedOutputSynth.getUserSettings())
+        } else if (editedOutputSynth != null && evt.getSource() == editedOutputSynth.getUserSettings())
         {
             updateUIComponents();
 
-        }
-        else if (evt.getSource() == embeddedSynthProvider)
+        } else if (evt.getSource() == embeddedSynthProvider)
         {
             if (evt.getPropertyName().equals(EmbeddedSynthProvider.PROP_EMBEDDED_SYNTH_ACTIVE))
             {
                 updateUIComponents();
 
-            }
-            else if (evt.getPropertyName().equals(EmbeddedSynthProvider.PROP_PROVIDER_ENABLED))
+            } else if (evt.getPropertyName().equals(EmbeddedSynthProvider.PROP_PROVIDER_ENABLED))
             {
                 embeddedSynth = null;
                 updateUIComponents();
@@ -331,7 +322,7 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
 
         // Adapt tooltip if embedded synth is not present
         String tooltip = isEmbeddedSynthAvailable() ? ResUtil.getString(getClass(), "MidiPanel.FluidSynthPanelToolTip")
-            : ResUtil.getString(getClass(), "MidiPanel.FluidSynthPanelToolTipDisabled");
+                : ResUtil.getString(getClass(), "MidiPanel.FluidSynthPanelToolTipDisabled");
         pnl_FluidSynth.setToolTipText(tooltip);
         cb_useFluidSynth.setToolTipText(tooltip);
 
@@ -427,8 +418,8 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
         // Create OutputSynths for the builtin synths
         var osm = OutputSynthManager.getDefault();
         var outSynthList = Arrays.asList(osm.getStandardOutputSynth(OutputSynthManager.STD_GM),
-            osm.getStandardOutputSynth(OutputSynthManager.STD_GM2),
-            osm.getStandardOutputSynth(OutputSynthManager.STD_XG));
+                osm.getStandardOutputSynth(OutputSynthManager.STD_GM2),
+                osm.getStandardOutputSynth(OutputSynthManager.STD_XG));
         return outSynthList;
     }
 
@@ -441,10 +432,10 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
     private MidiDevice getOutDevice(String mdName)
     {
         return JJazzMidiSystem.getInstance().getOutDeviceList()
-            .stream()
-            .filter(md -> md.getDeviceInfo().getName().equals(mdName))
-            .findAny()
-            .orElse(null);
+                .stream()
+                .filter(md -> md.getDeviceInfo().getName().equals(mdName))
+                .findAny()
+                .orElse(null);
     }
 
     boolean valid()
@@ -467,8 +458,7 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
         try
         {
             JJazzMidiSystem.getInstance().setDefaultOutDevice(mdOut);
-        }
-        catch (MidiUnavailableException ex)
+        } catch (MidiUnavailableException ex)
         {
             String msg = ResUtil.getString(getClass(), "ERR_DeviceProblem", mdOut.getDeviceInfo().getName());
             msg += "\n\n" + ex.getLocalizedMessage();
@@ -512,8 +502,7 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
             try
             {
                 midiSynth = MidiSynth.loadFromFile(f);
-            }
-            catch (IOException ex)
+            } catch (IOException ex)
             {
                 NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
                 DialogDisplayer.getDefault().notify(d);
@@ -574,12 +563,14 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
      */
     private File getMidiSynthFilesDir()
     {
-        var res = lastSynthDir != null ? lastSynthDir : MidiSynthManagerImpl.getAppConfigDirForSynths();
+        var res = lastSynthDir != null ? lastSynthDir : FileDirectoryManager.getInstance().getAppConfigDirForSynths();
         return res;
     }
 
     /**
      * Send a few notes to the current Midi OUT device and OutputSynth.
+     *
+     * @param ins
      */
     private void sendTestNotes(Instrument ins)
     {
@@ -611,8 +602,7 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
                 JJazzMidiSystem.getInstance().sendMidiMessagesOnJJazzMidiOut(ins.getMidiMessages(channel));
             }
             tp.playTestNotes(channel, -1, 0, endAction);
-        }
-        catch (MusicGenerationException ex)
+        } catch (MusicGenerationException ex)
         {
             endAction.run();
             NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
@@ -626,8 +616,8 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
     }
 
     /**
-     * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of this
-     * method is always regenerated by the Form Editor.
+     * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of this method is always
+     * regenerated by the Form Editor.
      */
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents()
@@ -921,8 +911,7 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
         try
         {
             embeddedSynthProvider.setEmbeddedSynthActive(cb_useFluidSynth.isSelected());
-        }
-        catch (EmbeddedSynthException ex)
+        } catch (EmbeddedSynthException ex)
         {
             LOGGER.log(Level.WARNING, "cb_useFluidSynthActionPerformed() {0}", ex.getMessage());
             NotifyDescriptor nd = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
@@ -945,8 +934,7 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
         if (save != null)
         {
             list_OutDevices.setSelectedValue(save, true);
-        }
-        else
+        } else
         {
             list_OutDevices.setSelectedIndex(0);        // Java Internal Synth
         }
@@ -1097,8 +1085,8 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
         {
             OutputSynthManager.getDefault().refresh();
             addAll(getNewBuiltinOutputSynths().stream()
-                .map(outSynth -> outSynth.getMidiSynth())
-                .toList());
+                    .map(outSynth -> outSynth.getMidiSynth())
+                    .toList());
             addAll(getUserLoadedMidiSynths());
             addElement(FAKE_MULTISYNTH);
         }
