@@ -48,7 +48,7 @@ import org.openide.util.lookup.ServiceProvider;
 public class CopyMidiSynthsStartupTask implements OnShowingTask
 {
 
-    public static final int PRIORITY = 100;
+    public static final int ON_SHOWING_TASK_PRIORITY = 100;
     @StaticResource(relative = true)
     public static final String ZIP_RESOURCE_PATH = "resources/MidiSynthFiles.zip";
     private static final Logger LOGGER = Logger.getLogger(CopyMidiSynthsStartupTask.class.getSimpleName());
@@ -65,7 +65,7 @@ public class CopyMidiSynthsStartupTask implements OnShowingTask
     @Override
     public int getPriority()
     {
-        return PRIORITY;
+        return ON_SHOWING_TASK_PRIORITY;
     }
 
     @Override

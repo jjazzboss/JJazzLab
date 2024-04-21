@@ -23,74 +23,93 @@
 package org.jjazz.rhythmdatabaseimpl;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
-import org.jjazz.rhythmdatabase.api.RhythmInfo;
 import org.jjazz.rhythm.spi.RhythmProvider;
+import org.jjazz.rhythmdatabase.api.RhythmInfo;
+import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 
 /**
  * Contains the serializable cached data of the RhythmDatabase.
  * <p>
+ * Cache file contains only file-based RhythmInfo instances and no AdaptedRhythms.
  */
 public class RhythmDbCache implements Serializable
 {
 
-    private transient static final long serialVersionUID = 2922229276100L;
-    private transient static final String DB_CACHE_FILE = "RhythmDbCache.dat";
+    private static final long serialVersionUID = 2922229276100L;
+    private static final String DB_CACHE_FILE = "RhythmDbCache.dat";
 
-    private Map<String, List<RhythmInfo>> data;
+    private Map<String, List<RhythmInfo>> savedData;
     private transient static final Logger LOGGER = Logger.getLogger(RhythmDbCache.class.getSimpleName());
 
-    /**
-     * Create the cache object.
-     * <p>
-     * Cache will contain only file-based RhythmInfo instances and no AdaptedRhythms.
-     *
-     * @param map
-     */
-    public RhythmDbCache(Map<RhythmProvider, List<RhythmInfo>> map)
+    public RhythmDbCache()
     {
-        data = new HashMap<>();
-        
+    }
+
+    /**
+     * Create a cache object for the specified database.
+     * <p>
+     * @param rdb
+     */
+    public RhythmDbCache(RhythmDatabase rdb)
+    {
+        savedData = new HashMap<>();
+
         // Copy data : just change RhythmProvider by its id
-        for (RhythmProvider rp : map.keySet())
+        for (var rp : rdb.getRhythmProviders())
         {
-            var rhythms =  new ArrayList<>(map.get(rp)
+            var rhythms = new ArrayList<>(rdb.getRhythms(rp) // Use ArrayList because returned object by toList() might not be serializable     
                     .stream()
                     .filter(ri -> !ri.file().getName().equals("") && !ri.isAdaptedRhythm())
-                    .toList());      // returned object by toList() might not be serializable     
+                    .toList());
             if (!rhythms.isEmpty())
             {
-                data.put(rp.getInfo().getUniqueId(), rhythms);
+                savedData.put(rp.getInfo().getUniqueId(), rhythms);
             }
         }
     }
 
+
     /**
-     * The cached data.
-     * <p>
-     * Cache data is used only for file-based rhythms.
+     * Write the cache file.
      *
-     * @return RhyhtmProviderId strings are used as map keys.
+     * @param file
+     * @throws java.io.IOException
      */
-    public Map<String, List<RhythmInfo>> getData()
+    public void saveToFile(File file) throws IOException
     {
-        return data;
+        Objects.requireNonNull(file);
+
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(file)))
+        {
+            oos.writeObject(this);
+        }
     }
+
 
     public void dump()
     {
-        LOGGER.info("dump():");   
-        for (String rpId : data.keySet())
+        LOGGER.info("dump():");
+        for (String rpId : savedData.keySet())
         {
-            var rhythms = data.get(rpId);
-            LOGGER.log(Level.INFO, "- {0}: total={1}", new Object[]{rpId, rhythms.size()});   
+            var rhythms = savedData.get(rpId);
+            LOGGER.log(Level.INFO, "- {0}: total={1}", new Object[]
+            {
+                rpId, rhythms.size()
+            });
         }
     }
 
@@ -102,19 +121,73 @@ public class RhythmDbCache implements Serializable
     public int getSize()
     {
         int n = 0;
-        for (String rpId : this.data.keySet())
+        for (String rpId : this.savedData.keySet())
         {
-            n += data.get(rpId).size();
+            n += savedData.get(rpId).size();
         }
         return n;
     }
 
+    /**
+     * Read a cache file to update the specified database accordingly.
+     *
+     * @param f
+     * @param rdb
+     * @return Number of rhythms successfully added to rdb
+     * @throws java.io.IOException
+     * @throws java.lang.ClassNotFoundException
+     */
+    static public int loadFromFile(File f, RhythmDatabase rdb) throws IOException, ClassNotFoundException
+    {
 
-    static public File getFile()
+        // Read the file
+        RhythmDbCache cache;
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(f)))
+        {
+            cache = (RhythmDbCache) ois.readObject();           // throws IOException, possibly ClassNotFoundException
+        }
+
+
+        // Process it
+        var rps = RhythmProvider.getRhythmProviders();
+        int added = 0;
+        for (String rpId : cache.savedData.keySet())
+        {
+            List<RhythmInfo> rhythmInfos = cache.savedData.get(rpId);
+
+
+            // Check that database is using this RhythmProvider
+            var rp = rps.stream()
+                    .filter(rpi -> rpi.getInfo().getUniqueId().equals(rpId))
+                    .findAny()
+                    .orElse(null);
+            if (rp == null)
+            {
+                LOGGER.log(Level.WARNING, "loadFromFile() No RhythmProvider found for rpId={0}. Ignoring {1} rhythms.", new Object[]
+                {
+                    rpId,
+                    rhythmInfos.size()
+                });
+                continue;
+            }
+
+            // Update database
+            for (var ri : rhythmInfos)
+            {
+                if (rdb.addRhythm(rp, ri))
+                {
+                    added++;
+                }
+            }
+        }
+
+        return added;
+    }
+
+    static public File getDefaultFile()
     {
         var fdm = FileDirectoryManager.getInstance();
         File dir = fdm.getAppConfigDirectory(null);
-        assert dir != null;   
         return new File(dir, DB_CACHE_FILE);
     }
 

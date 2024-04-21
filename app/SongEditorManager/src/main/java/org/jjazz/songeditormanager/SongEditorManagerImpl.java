@@ -69,6 +69,7 @@ import org.openide.windows.Mode;
 import org.openide.windows.TopComponent;
 import org.openide.windows.WindowManager;
 import org.jjazz.outputsynth.spi.OutputSynthManager;
+import org.jjazz.songeditormanager.api.StartupShutdownSongManager;
 
 
 @ServiceProvider(service = SongEditorManager.class)

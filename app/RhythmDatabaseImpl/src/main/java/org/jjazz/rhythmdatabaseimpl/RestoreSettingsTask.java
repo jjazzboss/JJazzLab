@@ -24,7 +24,7 @@
  */
 package org.jjazz.rhythmdatabaseimpl;
 
-import static org.jjazz.rhythmdatabaseimpl.RhythmDatabaseImpl.PREF_NEED_RESCAN;
+import org.jjazz.rhythmdatabaseimpl.api.RhythmDatabaseFactoryImpl;
 import org.jjazz.upgrade.api.UpgradeManager;
 import org.jjazz.upgrade.api.UpgradeTask;
 import org.openide.util.NbPreferences;
@@ -41,16 +41,12 @@ public class RestoreSettingsTask implements UpgradeTask
     public void upgrade(String oldVersion)
     {
 
-        // Make sure rhythm database is rebuilt when upgrading
-        var prefs = NbPreferences.forModule(getClass());
-        prefs.remove(PREF_NEED_RESCAN);
-
-
         if (oldVersion == null)
         {
             return;
         }
 
+        var prefs = NbPreferences.forModule(getClass());
         UpgradeManager um = UpgradeManager.getInstance();
 
         if (oldVersion.compareTo("4") < 0)
@@ -66,6 +62,9 @@ public class RestoreSettingsTask implements UpgradeTask
             // Normal import
             um.duplicateOldPreferences(prefs);
         }
+
+        // Make sure rhythm database is rebuilt when upgrading
+        prefs.remove(RhythmDatabaseFactoryImpl.PREF_NEED_RESCAN);
 
     }
 

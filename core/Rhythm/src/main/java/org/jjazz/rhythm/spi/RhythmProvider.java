@@ -25,11 +25,14 @@ package org.jjazz.rhythm.spi;
 import org.jjazz.utilities.api.MultipleErrorsReport;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.AdaptedRhythm;
+import org.openide.util.Lookup;
 
 /**
  * An object that can provide Rhythms instances.
@@ -41,11 +44,38 @@ public interface RhythmProvider
     /**
      * See getFileRhythms().
      */
-    public static final String PREFIX_IGNORED_SUBDIR = "_";    
+    public static final String PREFIX_IGNORED_SUBDIR = "_";
     /**
      * See getFileRhythms().
      */
     public static final int SUBDIR_MAX_DEPTH = 3;
+
+    /**
+     * The RhythmProviders instances available in the global lookup, sorted by name.
+     *
+     * @return
+     */
+    static public List<RhythmProvider> getRhythmProviders()
+    {
+        List<RhythmProvider> res = new ArrayList<>(Lookup.getDefault().lookupAll(RhythmProvider.class));
+        res.sort((rp1, rp2) -> rp1.getInfo().getName().compareTo(rp2.getInfo().getName()));
+        return res;
+    }
+
+    /**
+     * Get the RhythmProvider in the global lookup which matches rpId.
+     *
+     * @param rpId
+     * @return Can be null
+     */
+    static public RhythmProvider getRhythmProvider(String rpId)
+    {
+        return getRhythmProviders()
+                .stream()
+                .filter(rp -> rp.getInfo().getUniqueId().equals(rpId))
+                .findAny()
+                .orElse(null);
+    }
 
     /**
      * Descriptive information about this provider.
@@ -66,12 +96,11 @@ public interface RhythmProvider
     /**
      * Get the file-based rhythms.
      * <p>
-     * User-provided rhythm files should be scanned in the User directory for rhythm files, see
-     * FileDirectoryManager.getUserRhythmDirectory(). SUBDIR_MAX_DEPTH levels of subdirectories should be scanned. Subdirectories
-     * starting with PREFIX_IGNORED_SUBDIR must be ignored.
+     * User-provided rhythm files should be scanned in the User directory for rhythm files, see FileDirectoryManager.getUserRhythmDirectory(). SUBDIR_MAX_DEPTH
+     * levels of subdirectories should be scanned. Subdirectories starting with PREFIX_IGNORED_SUBDIR must be ignored.
      *
      * @param forceRescan If true RhythmProvider should not rely on its cached data.
-     * @param errRpt Can't be null. RhythmProvider should update this object so that the framework can notify user about problems.
+     * @param errRpt      Can't be null. RhythmProvider should update this object so that the framework can notify user about problems.
      * @return All non builtin rhythms provided by this RhythmProvider. List can be empty but not null.
      */
     public List<Rhythm> getFileRhythms(boolean forceRescan, MultipleErrorsReport errRpt);
@@ -88,8 +117,7 @@ public interface RhythmProvider
     /**
      * A fast method to read specified rhythm file and extract only information needed for description/catalog purposes.
      * <p>
-     * Caller must use loadResources() on the returned rhythm before using it to generate music (possibly lenghty operation, eg if
-     * new file reading required).
+     * Caller must use loadResources() on the returned rhythm before using it to generate music (possibly lenghty operation, eg if new file reading required).
      *
      * @param f
      * @return
@@ -111,8 +139,7 @@ public interface RhythmProvider
     /**
      * Show a modal dialog to modify the user settings of this RhythmProvider.
      * <p>
-     * The RhythmProvider is responsible for the persistence of its settings. The method does nothing if hasUserSettings() returns
-     * false.
+     * The RhythmProvider is responsible for the persistence of its settings. The method does nothing if hasUserSettings() returns false.
      *
      * @see hasUserSettings()
      */
@@ -140,7 +167,7 @@ public interface RhythmProvider
 
         /**
          * @param uniqueId
-         * @param name Must be a non empty string (spaces are trimmed).
+         * @param name        Must be a non empty string (spaces are trimmed).
          * @param description
          * @param author
          * @param version
@@ -149,7 +176,8 @@ public interface RhythmProvider
         {
             if (uniqueId == null || uniqueId.trim().isEmpty() || name == null || name.trim().isEmpty() || description == null || author == null || version == null)
             {
-                throw new IllegalArgumentException("uniqueId=" + uniqueId + " name=" + name + ", description=" + description + ", author=" + author + ", version=" + version);   
+                throw new IllegalArgumentException(
+                        "uniqueId=" + uniqueId + " name=" + name + ", description=" + description + ", author=" + author + ", version=" + version);
             }
             this.uniqueId = uniqueId;
             this.name = name.trim();

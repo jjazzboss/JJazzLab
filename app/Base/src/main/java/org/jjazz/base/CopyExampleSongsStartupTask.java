@@ -46,7 +46,7 @@ import org.jjazz.startup.spi.OnShowingTask;
 public class CopyExampleSongsStartupTask implements OnShowingTask
 {
 
-    public static final int PRIORITY = 1000;
+    public static final int ON_SHOWING_TASK_PRIORITY = 1000;
 
     @StaticResource(relative = true)
     public static final String ZIP_RESOURCE_PATH = "resources/ExampleSongs.zip";
@@ -78,7 +78,7 @@ public class CopyExampleSongsStartupTask implements OnShowingTask
     @Override
     public int getPriority()
     {
-        return PRIORITY;
+        return ON_SHOWING_TASK_PRIORITY;
     }
 
     @Override

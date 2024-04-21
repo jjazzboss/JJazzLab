@@ -22,11 +22,16 @@
  */
 package org.jjazz.rhythmdatabase.api;
 
+import org.jjazz.rhythmdatabase.spi.RhythmDatabaseFactory;
 import java.io.IOException;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -40,17 +45,21 @@ import org.jjazz.rhythm.spi.RhythmProvider;
 import org.jjazz.rhythm.spi.StubRhythmProvider;
 import org.jjazz.utilities.api.MultipleErrorsReport;
 import org.openide.util.NbPreferences;
+import org.openide.util.RequestProcessor;
+import org.openide.util.Task;
 
 /**
- * A default (and basic) implementation which is used by RhythmDatabaseFactory if no other RyhthmDatabase instance is found in global lookup.
- *
- * The database is initialized with the rhythms from the available RhythmProvider instances. If no rhythm instances found, add StubRhythms
- * from the StubRhythmProvider instance.
+ * RhythmDatabase default implementation.
+ * <p>
+ * Default rhythms are stored as Preferences.
  */
 public class DefaultRhythmDatabase implements RhythmDatabase
 {
 
+    private static DefaultRhythmDatabase INSTANCE;
+    private static DefaultFactory INSTANCE_FACTORY;
     private static final String PREF_DEFAULT_RHYTHM = "DefaultRhythm";
+
     /**
      * Main data structure
      */
@@ -59,51 +68,67 @@ public class DefaultRhythmDatabase implements RhythmDatabase
      * Save the created Rhythm instances.
      */
     private final Map<RhythmInfo, Rhythm> mapInfoInstance = new HashMap<>();
-    private final ArrayList<ChangeListener> listeners = new ArrayList<>();
+    /**
+     * Keep the AdaptedRhythms instances created on-demand.
+     * <p>
+     * Map key=originalRhythmId-TimeSignature
+     */
+    private final Map<String, AdaptedRhythm> mapAdaptedRhythms = new HashMap<>();
     /**
      * Used to store the default rhythms
      */
-    private static final Preferences prefs = NbPreferences.forModule(DefaultRhythmDatabase.class);
+    private final Preferences prefs;
+    private final ArrayList<ChangeListener> listeners = new ArrayList<>();
     private static final Logger LOGGER = Logger.getLogger(DefaultRhythmDatabase.class.getSimpleName());
 
 
-    public DefaultRhythmDatabase()
+    public static DefaultRhythmDatabase getInstance()
     {
-        int added = addNewRhythmsFromRhythmProviders(false, false, false);
-
-        if (added == 0)
+        synchronized (DefaultRhythmDatabase.class)
         {
-            LOGGER.info("DefaultRhythmDatabase() empty database, adding RhythmStub instances.");
-            var srp = StubRhythmProvider.getDefault();
-            for (var ts : TimeSignature.values())
+            if (INSTANCE == null)
             {
-                addRhythm(srp, srp.getStubRhythm(ts));
-                added++;
+                INSTANCE = new DefaultRhythmDatabase();
             }
         }
-        LOGGER.log(Level.INFO, "DefaultRhythmDatabase() initialized with {0} rhythms", added);
+        return INSTANCE;
     }
 
-
-    @Override
-    public void forceRescan(final boolean immediate)
+    /**
+     * Get a factory which just provides the DefaultRhythmDatabase instance.
+     *
+     * @return
+     */
+    public static RhythmDatabaseFactory getFactoryInstance()
     {
-        LOGGER.log(Level.INFO, "forceRescan() ignored");
+        synchronized (DefaultFactory.class)
+        {
+            if (INSTANCE_FACTORY == null)
+            {
+                INSTANCE_FACTORY = new DefaultFactory();
+            }
+        }
+        return INSTANCE_FACTORY;
+    }
+
+    protected DefaultRhythmDatabase()
+    {
+        prefs = getPreferences();
     }
 
     @Override
     public Rhythm getRhythmInstance(RhythmInfo ri) throws UnavailableRhythmException
     {
-        if (ri == null)
-        {
-            throw new IllegalArgumentException("ri=" + ri);
-        }
+        Objects.requireNonNull(ri);
 
         Rhythm r = mapInfoInstance.get(ri);
         if (r != null)
         {
             return r;
         }
+
+        // Builtin rhythms should not be there, they must have a RhythmInfo defined
+        assert !ri.file().getName().equals("") : "ri=" + ri + " ri.file()=" + ri.file().getName();
 
         // Get the instance from provider
         RhythmProvider rp = getRhythmProvider(ri);
@@ -114,8 +139,7 @@ public class DefaultRhythmDatabase implements RhythmDatabase
         try
         {
             r = rp.readFast(ri.file());
-        }
-        catch (IOException ex)
+        } catch (IOException ex)
         {
             throw new UnavailableRhythmException(ex.getLocalizedMessage());
         }
@@ -168,11 +192,85 @@ public class DefaultRhythmDatabase implements RhythmDatabase
         return res;
     }
 
+    @Override
+    public List<RhythmProvider> getRhythmProviders()
+    {
+        var res = new ArrayList<>(mapRpRhythms.keySet());
+        return res;
+    }
+
+    @Override
+    public Rhythm getRhythmInstance(String rId) throws UnavailableRhythmException
+    {
+        Rhythm r = null;
+
+        if (rId.contains(AdaptedRhythm.RHYTHM_ID_DELIMITER))
+        {
+            // It's an adapted rhythm
+            String[] strs = rId.split(AdaptedRhythm.RHYTHM_ID_DELIMITER);
+            if (strs.length == 3)
+            {
+                String rpId = strs[0];
+                String rIdOriginal = strs[1];
+                TimeSignature newTs = null;
+
+                try
+                {
+                    newTs = TimeSignature.parse(strs[2]);   // Possible ParseException
+                } catch (ParseException ex)
+                {
+                    LOGGER.log(Level.WARNING, "getRhythmInstance() Invalid time signature in AdaptedRhythm rId={0}", rId);
+                    throw new UnavailableRhythmException("Invalid time signature in adapted rhythm id=" + rId);
+                }
+
+                Rhythm rOriginal = getRhythmInstance(rIdOriginal);      // Possible UnavailableRhythmException exception here                   
+                r = getAdaptedRhythmInstance(rOriginal, newTs);         // Can be null
+
+            }
+        } else
+        {
+            // This a standard rhythm
+            RhythmInfo ri = getRhythm(rId);     // Can be null
+            if (ri != null)
+            {
+                r = getRhythmInstance(ri);      // Possible UnavailableRhythmException here
+            }
+        }
+
+
+        if (r == null)
+        {
+            throw new UnavailableRhythmException("No rhythm found for id=" + rId);
+        }
+
+        return r;
+    }
 
     @Override
     public AdaptedRhythm getAdaptedRhythmInstance(Rhythm r, TimeSignature ts)
     {
-        return null;
+        if (r == null || ts == null || r.getTimeSignature().equals(ts))
+        {
+            throw new IllegalArgumentException("r=" + r + " ts=" + ts);
+        }
+
+        String adaptedRhythmKey = getAdaptedRhythmKey(r.getUniqueId(), ts);
+
+        AdaptedRhythm ar = mapAdaptedRhythms.get(adaptedRhythmKey);
+        if (ar == null)
+        {
+            for (RhythmProvider rp : getRhythmProviders())
+            {
+                ar = rp.getAdaptedRhythm(r, ts);
+                if (ar != null)
+                {
+                    addRhythmInstance(rp, ar);
+                    mapAdaptedRhythms.put(adaptedRhythmKey, ar);
+                    break;
+                }
+            }
+        }
+        return ar;
     }
 
 
@@ -191,6 +289,7 @@ public class DefaultRhythmDatabase implements RhythmDatabase
         List<RhythmInfo> rhythms = new ArrayList<>(rpRhythms);
         return rhythms;
     }
+
 
     @Override
     public RhythmInfo getDefaultRhythm(TimeSignature ts)
@@ -211,11 +310,11 @@ public class DefaultRhythmDatabase implements RhythmDatabase
 
         // No default rhythm defined : pick a rhythm from the database (AdaptedRhythms excluded)
         List<RhythmInfo> rhythms = getRhythms(ts)
-            .stream()
-            .filter(ri -> !ri.isAdaptedRhythm())
-            .toList();
+                .stream()
+                .filter(ri -> !ri.isAdaptedRhythm())
+                .toList();
 
-        assert !rhythms.isEmpty() : " mapRpRhythms=" + this.mapRpRhythms;
+        assert rhythms.size() > 0 : " mapRpRhythms=" + this.mapRpRhythms;
 
         // Take first rhythm which does not come from a StubRhythmProvider
         for (RhythmInfo ri : rhythms)
@@ -230,6 +329,7 @@ public class DefaultRhythmDatabase implements RhythmDatabase
         return rhythms.get(0);
 
     }
+
 
     @Override
     public void setDefaultRhythm(TimeSignature ts, RhythmInfo ri)
@@ -305,26 +405,34 @@ public class DefaultRhythmDatabase implements RhythmDatabase
     }
 
     @Override
-    public int addExtraRhythms(List<RpRhythmPair> pairs)
+    public boolean addRhythm(RhythmProvider rp, RhythmInfo ri)
     {
-        if (pairs == null)
+        List<RhythmInfo> rhythms = mapRpRhythms.get(rp);
+        if (rhythms == null)
         {
-            throw new NullPointerException("pairs");
+            rhythms = new ArrayList<>();
+            mapRpRhythms.put(rp, rhythms);
         }
-        int n = 0;
-        for (RpRhythmPair p : pairs)
+
+        if (!rhythms.contains(ri))
         {
-            if (addRhythm(p.rp(), p.r()))
-            {
-                n++;
-            }
+            rhythms.add(ri);
+            fireChanged();
+            return true;
         }
-        if (n > 0)
-        {
-            fireChanged(new ChangeEvent(this));
-        }
-        return n;
+
+        return false;
     }
+
+    @Override
+    public boolean addRhythmInstance(RhythmProvider rp, Rhythm r)
+    {
+        RhythmInfo ri = new RhythmInfo(r, rp);
+        boolean added = addRhythm(rp, ri);
+        mapInfoInstance.put(ri, r);
+        return added;
+    }
+
 
     @Override
     public String toString()
@@ -356,141 +464,124 @@ public class DefaultRhythmDatabase implements RhythmDatabase
         listeners.remove(l);
     }
 
-    public void dump()
-    {
-        LOGGER.info("DefaultRhythmDatabase dump ----- RhythmInfo instances");
-        for (RhythmInfo ri : this.getRhythms())
-        {
-            LOGGER.log(Level.INFO, "  {0}", ri.toString());
-        }
-        LOGGER.info("DefaultRhythmDatabase dump ----- Rhythm instances");
-        for (RhythmInfo ri : this.mapInfoInstance.keySet())
-        {
-            LOGGER.log(Level.INFO, "  {0} -> RhythmInstance.isResourcesLoaded()={1}", new Object[]
-            {
-                ri.toString(),
-                mapInfoInstance.get(ri).isResourcesLoaded()
-            });
-        }
-
-    }
-
-    // ---------------------------------------------------------------------
-    // Private 
-    // --------------------------------------------------------------------- 
     /**
-     * Add rhythms from the available RhythmProvider instances.
+     * Poll RhythmProvider instances from the global lookup to add rhythms.
      *
      * @param excludeBuiltinRhythms
      * @param excludeFileRhythms
-     * @param forceFileRescan
-     * @return The number of new rhythms added
+     * @param forceFileRhythmsRescan Unused when excludedFileRhythms is true
+     * @return
+     * @see RhythmProvider
      */
-    private int addNewRhythmsFromRhythmProviders(boolean excludeBuiltinRhythms, boolean excludeFileRhythms, boolean forceFileRescan)
+    public MultipleErrorsReport addRhythmsFromRhythmProviders(boolean excludeBuiltinRhythms, boolean excludeFileRhythms, boolean forceFileRhythmsRescan)
     {
 
-        // Get all the available RhythmProviders 
-        var rps = getRhythmProviders();
-        if (rps.isEmpty())
-        {
-            return 0;
-        }
+        var rps = RhythmProvider.getRhythmProviders();
+        final MultipleErrorsReport errReport = new MultipleErrorsReport();
 
         int n = 0;
         for (final RhythmProvider rp : rps)
         {
 
             // First get builtin rhythms         
-            MultipleErrorsReport errReport = new MultipleErrorsReport();
             if (!excludeBuiltinRhythms)
             {
                 for (Rhythm r : rp.getBuiltinRhythms(errReport))
                 {
-                    if (addRhythm(rp, r))
+                    if (addRhythmInstance(rp, r))
                     {
                         n++;
                     }
                 }
             }
 
-            // Notify user of possible errors
-            if (errReport.primaryErrorMessage != null)
-            {
-                LOGGER.log(Level.WARNING, "addNewRhythmsFromRhythmProviders() {0}", errReport.primaryErrorMessage);
-            }
 
-
-            // Add file rhythms
-            errReport = new MultipleErrorsReport();
+            // Add file-based rhythms
             if (!excludeFileRhythms)
             {
-                List<Rhythm> rhythmsNotBuiltin = rp.getFileRhythms(forceFileRescan, errReport);
+                List<Rhythm> rhythmsNotBuiltin = rp.getFileRhythms(forceFileRhythmsRescan, errReport);
                 for (Rhythm r : rhythmsNotBuiltin)
                 {
-                    if (addRhythm(rp, r))
+                    if (addRhythmInstance(rp, r))
                     {
                         n++;
                     }
                 }
             }
-
-            if (errReport.primaryErrorMessage != null)
-            {
-                LOGGER.log(Level.WARNING, "addNewRhythmsFromRhythmProviders() {0}", errReport.primaryErrorMessage);
-            }
-
         }
 
-        return n;
+        Logger.getLogger(RhythmDatabase.class.getSimpleName()).log(Level.FINE,
+                "addRhythmsFromRhythmProviders() excludeBuiltinRhythms={0} excludeFileRhythms={1} forceFileRhythmsRescan={2}:  added {3} rhythms",
+                new Object[]
+                {
+                    excludeBuiltinRhythms,
+                    excludeFileRhythms, forceFileRhythmsRescan, n
+                });
+
+
+        return errReport;
     }
 
-    private void fireChanged(ChangeEvent e)
+
+    // ---------------------------------------------------------------------
+    // Private 
+    // --------------------------------------------------------------------- 
+    private String getPrefString(TimeSignature ts)
+    {
+        return PREF_DEFAULT_RHYTHM + "__" + ts.name();
+    }
+
+    private void fireChanged()
     {
         LOGGER.fine("fireChanged()");
+        var e = new ChangeEvent(this);
         for (ChangeListener l : listeners)
         {
             l.stateChanged(e);
         }
     }
 
-    /**
-     * Add to the database one Rhythm from RhythmProvider rp.
-     * <p>
-     * Do nothing if rhythm already exists in the database for this rp.
-     *
-     * @param rp
-     * @param r
-     * @return True if rhythm was added.
-     */
-    private boolean addRhythm(RhythmProvider rp, Rhythm r)
+    private String getAdaptedRhythmKey(String rId, TimeSignature ts)
     {
-        // Build the RhythmInfo object
-        RhythmInfo ri = new RhythmInfo(r, rp);
+        return rId + "-" + ts.name();
 
-        // Update state
-        List<RhythmInfo> rhythms = mapRpRhythms.get(rp);
-        if (rhythms == null)
+    }
+
+    /**
+     * Can be overridden by subclass to use different preferences.
+     *
+     * @return
+     */
+    protected Preferences getPreferences()
+    {
+        return NbPreferences.forModule(DefaultRhythmDatabase.class);
+    }
+
+    // ================================================================================================
+    // Inner classes
+    // ================================================================================================  
+
+    private static class DefaultFactory implements RhythmDatabaseFactory
+    {
+
+        @Override
+        public Future<?> initialize()
         {
-            rhythms = new ArrayList<>();
-            mapRpRhythms.put(rp, rhythms);
+            return new FutureTask(() -> {}, null);
         }
-        if (!rhythms.contains(ri))
+
+        @Override
+        public boolean isInitialized()
         {
-            rhythms.add(ri);
-            mapInfoInstance.put(ri, r);
             return true;
         }
-        else
+
+        @Override
+        public RhythmDatabase get()
         {
-            return false;
+            return getInstance();
         }
+
     }
-
-
-    private String getPrefString(TimeSignature ts)
-    {
-        return PREF_DEFAULT_RHYTHM + "__" + ts.name();
-    }
-
 
 }

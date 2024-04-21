@@ -24,65 +24,59 @@
  */
 package org.jjazz.rhythmdatabase.spi;
 
+import java.util.concurrent.Future;
 import org.jjazz.rhythmdatabase.api.DefaultRhythmDatabase;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.openide.util.Lookup;
+import org.openide.util.Task;
 
 /**
- * A service to access a RhythmDatabase instance.
+ * A factory for a RhythmDatabase instance.
+ * <p>
  */
 public interface RhythmDatabaseFactory
 {
 
-    static class DefaultFactory implements RhythmDatabaseFactory
-    {
-
-        static private DefaultFactory INSTANCE;
-        private final RhythmDatabase dbInstance;
-
-        static DefaultFactory getInstance()
-        {
-            if (INSTANCE == null)
-            {
-                INSTANCE = new DefaultFactory();
-            }
-            return INSTANCE;
-        }
-
-        private DefaultFactory()
-        {
-            dbInstance = new DefaultRhythmDatabase();
-        }
-
-        @Override
-        public RhythmDatabase get()
-        {
-            return dbInstance;
-        }
-    }
-
     /**
-     * Return the first implementation found in the global lookup, or the DefaultFactory.
+     * Get the default implementation available in the global lookup or, if nothing found, return a factory which just provides the DefaultRhythmDatabase
+     * instance.
      *
      * @return
      */
     public static RhythmDatabaseFactory getDefault()
     {
-        RhythmDatabaseFactory result = Lookup.getDefault().lookup(RhythmDatabaseFactory.class);
-        if (result == null)
+        org.jjazz.rhythmdatabase.spi.RhythmDatabaseFactory res = Lookup.getDefault().lookup(RhythmDatabaseFactory.class);
+        if (res == null)
         {
-            result = DefaultFactory.getInstance();
+            res = DefaultRhythmDatabase.getFactoryInstance();
         }
-        return result;
+        return res;
     }
 
+    /**
+     * Initialize the RhythmDatabase instance.
+     * <p>
+     * As the initialization can take some time (e.g. reading files), the implementation must launch a task in a different thread and return the corresponding
+     * Future so that caller can monitor completion.
+     *
+     * @return
+     */
+    Future<?> initialize();
 
     /**
-     * A factory to return a DefaultRhythmDatabase instance.
+     * Check is the RhythmDatabase instance is initialized.
+     *
+     * @return
+     */
+    boolean isInitialized();
+
+    /**
+     * Get the initialized instance.
+     * <p>
+     * If initialization is not complete yet, implementation may choose to wait for completion or throw an IllegalStateException.
      *
      * @return
      */
     RhythmDatabase get();
-
 
 }

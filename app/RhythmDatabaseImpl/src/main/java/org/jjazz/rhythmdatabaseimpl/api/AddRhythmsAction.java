@@ -45,11 +45,11 @@ import org.jjazz.analytics.api.Analytics;
 import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.rhythm.api.Rhythm;
-import org.jjazz.rhythmdatabase.api.RhythmDatabase.RpRhythmPair;
 import org.jjazz.rhythm.spi.RhythmProvider;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.utilities.api.MultipleErrorsReport;
 import org.jjazz.coreuicomponents.api.MultipleErrorsReportDialog;
+import org.jjazz.rhythmdatabase.api.RhythmInfo;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -61,9 +61,13 @@ import org.openide.windows.WindowManager;
 public class AddRhythmsAction extends AbstractAction
 {
 
+    private record RhythmEntry(RhythmProvider rp, Rhythm r)
+            {
+
+    }
     private static JFileChooser FILE_CHOOSER;
     private static AccessoryComponent accessoryComponent;
-    private RpRhythmPair lastRpRhythmPair;
+    private RhythmInfo lastRhythmInfoAdded;
 
 
     private static final Logger LOGGER = Logger.getLogger(AddRhythmsAction.class.getSimpleName());
@@ -97,7 +101,7 @@ public class AddRhythmsAction extends AbstractAction
 
         // Process files
         MultipleErrorsReport errRpt = new MultipleErrorsReport();
-        final List<RhythmDatabase.RpRhythmPair> pairs = new ArrayList<>();
+        final List<RhythmEntry> rhythmEntries = new ArrayList<>();
         HashSet<TimeSignature> timeSigs = new HashSet<>();
         for (File f : rhythmFiles)
         {
@@ -116,7 +120,7 @@ public class AddRhythmsAction extends AbstractAction
                         errRpt.individualErrorMessages.add(ex.getLocalizedMessage());
                         continue;
                     }
-                    pairs.add(new RhythmDatabase.RpRhythmPair(rp, r));
+                    rhythmEntries.add(new RhythmEntry(rp, r));
                     timeSigs.add(r.getTimeSignature());
                 }
             }
@@ -128,27 +132,37 @@ public class AddRhythmsAction extends AbstractAction
         {
             errRpt.primaryErrorMessage = ResUtil.getString(getClass(), "ERR_RhythmFilesCouldNotBeRead", errRpt.individualErrorMessages.size());
             errRpt.secondaryErrorMessage = "";
-            MultipleErrorsReportDialog dlg = new MultipleErrorsReportDialog(WindowManager.getDefault().getMainWindow(), ResUtil.getString(getClass(),"CTL_RhythmCreationErrors"), errRpt);
+            MultipleErrorsReportDialog dlg = new MultipleErrorsReportDialog(ResUtil.getString(getClass(), "CTL_RhythmCreationErrors"), errRpt);
             dlg.setVisible(true);
         }
 
 
-        lastRpRhythmPair = null;
-        if (!pairs.isEmpty())
+        lastRhythmInfoAdded = null;
+
+        if (!rhythmEntries.isEmpty())
         {
+            int nbActuallyAdded = 0;
             // Add to the rhythmdatabase
-            int nbActuallyAdded = rdb.addExtraRhythms(pairs);   // This will update the rhythmTable on a task put on the EDT
-            int nbAlreadyAdded = pairs.size() - nbActuallyAdded;
+            Rhythm rLast = null;
+            for (var entry : rhythmEntries)
+            {
+                rLast = entry.r();
+                if (rdb.addRhythmInstance(entry.rp(), rLast))               // This will update the rhythmTable on a task put on the EDT
+                {
+                    nbActuallyAdded++;
+                }
+            }
+            assert rLast != null;
+            lastRhythmInfoAdded = rdb.getRhythm(rLast.getUniqueId());
+            int nbAlreadyAdded = rhythmEntries.size() - nbActuallyAdded;
 
 
             // Notify user 
-            String msg = ResUtil.getString(getClass(), "ProcessedFiles", pairs.size(), timeSigs);
+            String msg = ResUtil.getString(getClass(), "ProcessedFiles", rhythmEntries.size(), timeSigs);
             msg += ResUtil.getString(getClass(), "NewRhythmsAdded", nbActuallyAdded);
             msg += ResUtil.getString(getClass(), "PreExistingRhythmsSkipped", nbAlreadyAdded);
             NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.INFORMATION_MESSAGE);
             DialogDisplayer.getDefault().notify(d);
-
-            lastRpRhythmPair = pairs.get(0);
 
 
             // Do we have to add rhythm files permanently ?
@@ -159,7 +173,7 @@ public class AddRhythmsAction extends AbstractAction
                 {
                     userRhythmDir = FileDirectoryManager.getInstance().getUserRhythmsDirectory().getCanonicalFile().toPath();        // throws IOException
 
-                    for (var rprp : pairs)
+                    for (var rprp : rhythmEntries)
                     {
                         Path src = rprp.r().getFile().getCanonicalFile().toPath();           // throws IOException
                         if (!src.startsWith(userRhythmDir))
@@ -167,29 +181,32 @@ public class AddRhythmsAction extends AbstractAction
                             // Copy the file into the user rhythm dir.
                             Path dest = userRhythmDir.resolve(src.getFileName());
                             Files.copy(src, dest, StandardCopyOption.REPLACE_EXISTING);             // throws various exceptions
-                            LOGGER.info("actionPerformed() copied " + src.toString() + " to " + dest.toString());
+                            LOGGER.log(Level.INFO, "actionPerformed() copied {0} to {1}", new Object[]
+                            {
+                                src.toString(), dest.toString()
+                            });
                         }
                     }
                 } catch (IOException | SecurityException ex)
                 {
-                    LOGGER.warning("actionPerformed() " + ex.getMessage());
+                    LOGGER.log(Level.WARNING, "actionPerformed() {0}", ex.getMessage());
                     NotifyDescriptor nd = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
                     DialogDisplayer.getDefault().notify(nd);
                 }
 
-                rdb.forceRescan(false);
+                RhythmDatabaseFactoryImpl.getInstance().markForStartupRescan(true);
             }
         }
     }
 
     /**
-     * Get the last RpRhythmPair.
+     * Get the last added Rhythm.
      *
      * @return Can be null
      */
-    public RpRhythmPair getLastRpRhythmPair()
+    public RhythmInfo getLastRhythmAdded()
     {
-        return lastRpRhythmPair;
+        return lastRhythmInfoAdded;
     }
 
 
@@ -251,6 +268,7 @@ public class AddRhythmsAction extends AbstractAction
 
         return FILE_CHOOSER;
     }
+
 
     /**
      * An accessory component to the FileChooser to indicate that rhythms should be added for this session only.

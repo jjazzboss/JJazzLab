@@ -43,7 +43,7 @@ import org.openide.util.lookup.ServiceProvider;
 @ServiceProvider(service = OnShowingTask.class)
 public class InitEmbeddedSynthStartupTask implements OnShowingTask
 {
-
+    public static final int ON_SHOWING_TASK_PRIORITY = 75;
     private static final String PREF_EMBEDDED_SYNTH_ACTIVATED = "PrefEmbeddedSynthActivated";
     private static final String PREF_FLUIDSYNTH_DISABLED_WARNING_SHOWN = "PrefFluidSynthDisabledWarningShown";
     private static final Preferences prefs = NbPreferences.forModule(JJazzMidiSystem.class);
@@ -96,7 +96,7 @@ public class InitEmbeddedSynthStartupTask implements OnShowingTask
     @Override
     public int getPriority()
     {
-        return 75;
+        return ON_SHOWING_TASK_PRIORITY;
     }
 
     @Override

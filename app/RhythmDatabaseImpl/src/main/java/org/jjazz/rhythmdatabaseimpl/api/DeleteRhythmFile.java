@@ -73,7 +73,7 @@ public class DeleteRhythmFile extends AbstractAction
         if (NotifyDescriptor.YES_OPTION == result)
         {
             ri.file().deleteOnExit();
-            RhythmDatabase.getDefault().forceRescan(false);
+            RhythmDatabaseFactoryImpl.getInstance().markForStartupRescan(true);
         }
     }
 

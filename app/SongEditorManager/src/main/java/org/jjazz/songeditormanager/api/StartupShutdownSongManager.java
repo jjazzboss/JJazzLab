@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.songeditormanager;
+package org.jjazz.songeditormanager.api;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -54,8 +54,9 @@ import org.openide.util.Lookup;
 /**
  * Manage the opening/closing of song files at startup/shutdown.
  * <p>
- * Upon startup, if file names arguments are passed on the command line, open these files. Otherwise restore the last opened files depending on setting. Upon
- * shutdown ask for user confirmation for unsaved songs.
+ * Upon startup, if file names arguments are passed on the command line, open these files. Otherwise restore the last opened files depending on setting.
+ * <p>
+ * Upon shutdown ask for user confirmation for unsaved songs.
  */
 @ServiceProvider(service = OptionProcessor.class)
 @OnStop
@@ -113,9 +114,20 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
         prefs.putBoolean(PREF_OPEN_LAST_FILES_UPON_STARTUP, b);
     }
 
+
     public boolean isOpenLastFilesUponStartup()
     {
         return prefs.getBoolean(PREF_OPEN_LAST_FILES_UPON_STARTUP, true);
+    }
+
+    /**
+     * Get the files specified on the command line to be opened upon startup.
+     *
+     * @return
+     */
+    public synchronized List<File> getCmdLineFilesToOpen()
+    {
+        return new ArrayList<>(cmdLineFilesToOpen);
     }
 
     // ==================================================================================
@@ -137,7 +149,7 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
      * @throws CommandException
      */
     @Override
-    protected void process(Env env, Map<Option, String[]> values) throws CommandException
+    protected synchronized void process(Env env, Map<Option, String[]> values) throws CommandException
     {
         LOGGER.log(Level.FINE, "process() --  env={0} values={1}", new Object[]
         {
@@ -214,59 +226,68 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
      * Also save the opened songs for possible reopen at startup (see isOpenRecentFilesUponStartup()).
      */
     @Override
-    public Boolean call() throws Exception
+    public Boolean call()
     {
-        LOGGER.info("call() Shutting down");
-        SongEditorManager sem = SongEditorManager.getDefault();
-
-
-        // Ask user confirmation if there are still files to be saved
-        var songsToSave = sem.getOpenedSongs().stream()
-                .filter(s -> s.isSaveNeeded())
-                .toList();
-        if (!songsToSave.isEmpty())
+        // We capture all exceptions because when one occurs (ex wrong bundlekey), it is catched somewhere by the framework but nothing is shown, impossible to
+        // know what happened!
+        try
         {
-            // Build message and songs which need save
-            StringBuilder msg = new StringBuilder();
-            msg.append(ResUtil.getString(getClass(), "CTL_UnsavedChangesExitAnyway")).append("\n");
-            for (Song s : songsToSave)
+            LOGGER.info("call() Shutting down");
+            SongEditorManager sem = SongEditorManager.getDefault();
+
+
+            // Ask user confirmation if there are still files to be saved
+            var songsToSave = sem.getOpenedSongs().stream()
+                    .filter(s -> s.isSaveNeeded())
+                    .toList();
+            if (!songsToSave.isEmpty())
             {
-                String strFile = s.getName();
-                if (s.getFile() != null)
+                // Build message and songs which need save
+                StringBuilder msg = new StringBuilder();
+                msg.append(ResUtil.getString(getClass(), "CTL_UnsavedChangesExitAnyway")).append("\n");
+                for (Song s : songsToSave)
                 {
-                    File songMixFile = MidiMix.getSongMixFile(s.getFile());
-                    strFile = s.getFile().getAbsolutePath() + ", " + songMixFile.getAbsolutePath();
+                    String strFile = s.getName();
+                    if (s.getFile() != null)
+                    {
+                        File songMixFile = MidiMix.getSongMixFile(s.getFile());
+                        strFile = s.getFile().getAbsolutePath() + ", " + songMixFile.getAbsolutePath();
+                    }
+                    msg.append("  ").append(strFile).append("\n");
                 }
-                msg.append("  ").append(strFile).append("\n");
+
+                NotifyDescriptor nd = new NotifyDescriptor.Confirmation(msg.toString(), NotifyDescriptor.OK_CANCEL_OPTION);
+                Object result = DialogDisplayer.getDefault().notify(nd);
+                if (result != NotifyDescriptor.OK_OPTION)
+                {
+                    // User cancelled the shutdown
+                    return Boolean.FALSE;
+                }
             }
 
-            NotifyDescriptor nd = new NotifyDescriptor.Confirmation(msg.toString(), NotifyDescriptor.OK_CANCEL_OPTION);
-            Object result = DialogDisplayer.getDefault().notify(nd);
-            if (result != NotifyDescriptor.OK_OPTION)
+
+            // Close the open editors without saving, and update the preferences
+            StringBuilder sb = new StringBuilder();
+            for (Song s : sem.getOpenedSongs())
             {
-                // User cancelled the shutdown
-                return Boolean.FALSE;
+                File f = s.getFile();
+                if (f != null)
+                {
+                    if (sb.length() > 0)
+                    {
+                        sb.append(", ");
+                    }
+                    sb.append(f.getAbsolutePath());
+                }
+                sem.closeSong(s, true);
             }
-        }
-
-
-        // Close the open editors without saving, and update the preferences
-        StringBuilder sb = new StringBuilder();
-        for (Song s : sem.getOpenedSongs())
+            String s = sb.toString();
+            prefs.put(PREF_FILES_TO_BE_REOPENED_UPON_STARTUP, s.isEmpty() ? NO_FILE : s);
+        } catch (Exception e)
         {
-            File f = s.getFile();
-            if (f != null)
-            {
-                if (sb.length() > 0)
-                {
-                    sb.append(", ");
-                }
-                sb.append(f.getAbsolutePath());
-            }
-            sem.closeSong(s, true);
+            e.printStackTrace();
+            throw e;
         }
-        String s = sb.toString();
-        prefs.put(PREF_FILES_TO_BE_REOPENED_UPON_STARTUP, s.isEmpty() ? NO_FILE : s);
 
         return Boolean.TRUE;
     }
@@ -286,7 +307,7 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
     static public class OpenFilesAtStartupTask implements OnShowingTask
     {
 
-        public final int PRIORITY = 600;            // Right after Rhythm files loading, but before Example songs and MidiWizard
+        public final int ON_SHOWING_TASK_PRIORITY = 600;            // Right after Rhythm files loading, but before Example songs
 
         /**
          * Open command line files and recent files.
@@ -300,13 +321,14 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
 
             // If command line arguments specified, just open them and ignore recent open files
             var instance = StartupShutdownSongManager.getInstance();
-            if (!instance.cmdLineFilesToOpen.isEmpty())
+            var filesToOpen = instance.getCmdLineFilesToOpen();
+            if (!filesToOpen.isEmpty())
             {
                 var sem = SongEditorManager.getDefault();
 
-                for (File f : instance.cmdLineFilesToOpen)
+                for (File f : filesToOpen)
                 {
-                    boolean last = f == instance.cmdLineFilesToOpen.get(instance.cmdLineFilesToOpen.size() - 1);
+                    boolean last = f == filesToOpen.get(filesToOpen.size() - 1);
                     try
                     {
                         sem.showSong(f, last, true);
@@ -331,7 +353,7 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
         @Override
         public int getPriority()
         {
-            return PRIORITY;
+            return ON_SHOWING_TASK_PRIORITY;
         }
 
         @Override

@@ -24,6 +24,7 @@
  */
 package org.jjazz.songeditormanager;
 
+import org.jjazz.songeditormanager.api.StartupShutdownSongManager;
 import org.jjazz.upgrade.api.UpgradeManager;
 import org.jjazz.upgrade.api.UpgradeTask;
 import org.openide.util.NbPreferences;

@@ -55,8 +55,7 @@ public final class YjzCreatorVisualPanel2 extends JPanel implements ActionListen
         cmb_timeSignature.setSelectedItem(TimeSignature.FOUR_FOUR);
 
         // Find the standard Yamaha style provider
-        var rdb = RhythmDatabase.getDefault();
-        stdYamahaRhythmProvider = rdb.getRhythmProvider("YamahaRhythmProviderID");
+        stdYamahaRhythmProvider = RhythmProvider.getRhythmProvider("YamahaRhythmProviderID");
         if (stdYamahaRhythmProvider == null)
         {
             String msg = "Rhythm provider for standard Yamaha styles not found !";

@@ -239,13 +239,12 @@ public final class YjzCreatorWizardAction implements ActionListener
 
         // Add the new style in the rhythm database
         var rdb = RhythmDatabase.getDefault();
-        RhythmProvider rp = rdb.getRhythmProvider(YamJJazzRhythmProvider.RP_ID);
+        RhythmProvider rp = RhythmProvider.getRhythmProvider(YamJJazzRhythmProvider.RP_ID);
         assert rp != null;   //NOI18N
         try
         {
             Rhythm r = rp.readFast(yjzFile);
-            var pair = new RhythmDatabase.RpRhythmPair(rp, r);
-            rdb.addExtraRhythms(Arrays.asList(pair));
+            rdb.addRhythmInstance(rp, r);
 
         } catch (IOException ex)
         {

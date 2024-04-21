@@ -64,6 +64,8 @@ public class YamJJazzRhythmProvider implements RhythmProvider
     private final ExtensionFileFilter fileFilter;
     private static final Logger LOGGER = Logger.getLogger(YamJJazzRhythmProvider.class.getSimpleName());
 
+    
+    
     public YamJJazzRhythmProvider()
     {
         info = new Info(RP_ID, "YamJJazz extended styles", "YamJJazz rhythm provider (." + FILE_EXTENSION + ")", "JL", "1");
