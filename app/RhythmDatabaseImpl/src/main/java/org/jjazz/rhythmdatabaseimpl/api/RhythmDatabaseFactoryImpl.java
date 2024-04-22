@@ -28,8 +28,6 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -45,7 +43,6 @@ import org.jjazz.rhythmdatabase.spi.RhythmDatabaseFactory;
 import org.jjazz.rhythmdatabaseimpl.RhythmDbCache;
 import org.jjazz.uiutilities.api.PleaseWaitDialog;
 import org.jjazz.utilities.api.ResUtil;
-import org.openide.util.Task;
 import org.openide.util.lookup.ServiceProvider;
 import org.jjazz.utilities.api.MultipleErrorsReport;
 import org.netbeans.api.progress.ProgressHandle;
@@ -74,7 +71,6 @@ public class RhythmDatabaseFactoryImpl implements RhythmDatabaseFactory, Propert
     private static RhythmDatabaseFactoryImpl INSTANCE;
     private final DefaultRhythmDatabase dbInstance;
     private Future<?> initFuture;
-    private static final RequestProcessor RP = new RequestProcessor(RhythmDatabaseFactoryImpl.class);
     private static final Preferences prefs = NbPreferences.forModule(RhythmDatabaseFactoryImpl.class);
     private static final Logger LOGGER = Logger.getLogger(RhythmDatabaseFactoryImpl.class.getSimpleName());
 
@@ -134,21 +130,9 @@ public class RhythmDatabaseFactoryImpl implements RhythmDatabaseFactory, Propert
     {
         if (!isInitialized())
         {
-            LOGGER.info("get() Waiting for initialization to complete...");
-
             // Show a "please wait" dialog until initialization's complete
-            PleaseWaitDialog dlg = new PleaseWaitDialog(ResUtil.getString(RhythmDatabaseFactoryImpl.class, "CTL_PleaseWait"));
-            dlg.setVisible(true);
-            try
-            {
-                initFuture.get();
-                LOGGER.info("get() GET COMPLETED");
-            } catch (InterruptedException | ExecutionException | CancellationException ex)
-            {
-                LOGGER.log(Level.WARNING, "get() Unexpected exception", ex);
-            }
-            dlg.setVisible(false);
-            dlg.dispose();
+            String msg = ResUtil.getString(RhythmDatabaseFactoryImpl.class, "CTL_PleaseWait");
+            PleaseWaitDialog.show(msg, initFuture);
         }
         return dbInstance;
     }
@@ -204,13 +188,6 @@ public class RhythmDatabaseFactoryImpl implements RhythmDatabaseFactory, Propert
             markedForRescan, cacheFilePresent
         });
 
-        try
-        {
-            Thread.sleep(5000);
-        } catch (InterruptedException ex)
-        {
-            Exceptions.printStackTrace(ex);
-        }
 
         String msgScanAll = ResUtil.getString(getClass(), "CTL_ScanningAllRhythmsInDir",
                 FileDirectoryManager.getInstance().getUserRhythmsDirectory().getAbsolutePath());
