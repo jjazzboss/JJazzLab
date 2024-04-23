@@ -476,7 +476,7 @@ public class BR_ChordPositions extends BarRenderer implements BeatBasedBarRender
             ChordLeadSheetItem<?> item = null;
             try
             {
-                item = clif.createChordSymbol("C7#9", new Position());
+                item = clif.createChordSymbol("C7#9", 0,0);
             } catch (ParseException ex)
             {
                 Exceptions.printStackTrace(ex);

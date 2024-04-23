@@ -45,8 +45,6 @@ import org.jjazz.rhythm.spi.RhythmProvider;
 import org.jjazz.rhythm.spi.StubRhythmProvider;
 import org.jjazz.utilities.api.MultipleErrorsReport;
 import org.openide.util.NbPreferences;
-import org.openide.util.RequestProcessor;
-import org.openide.util.Task;
 
 /**
  * RhythmDatabase default implementation.

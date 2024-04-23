@@ -59,7 +59,7 @@ public class CLI_FactoryImpl implements CLI_Factory
 
         try
         {
-            CHORD_SYMBOL_SAMPLE = createChordSymbol("C#M7#11", new Position(0, 0));
+            CHORD_SYMBOL_SAMPLE = createChordSymbol("C#M7#11", 0, 0);
         } catch (ParseException ex)
         {
             Logger.getLogger(CLI_FactoryImpl.class.getName()).log(Level.SEVERE, null, ex);

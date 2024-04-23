@@ -68,7 +68,7 @@ public class ChordInspectorPanel extends javax.swing.JPanel
         
         try
         {
-            setModel(CLI_Factory.getDefault().createChordSymbol("C", new Position()));
+            setModel(CLI_Factory.getDefault().createChordSymbol("C", 0,0));
         } catch (ParseException ex)
         {
             // Should never happen

@@ -232,7 +232,7 @@ public class TextReader
                 {
                     bar -= beatBarBase;
                     beat -= beatBarBase;
-                    var cliCs = CLI_Factory.getDefault().createChordSymbol(ecs, new Position(bar, beat));
+                    var cliCs = CLI_Factory.getDefault().createChordSymbol(ecs, bar, beat);
                     cliChordSymbols.add(cliCs);
                     if (bar >= barSize)
                     {
@@ -271,7 +271,7 @@ public class TextReader
                     int bar = (int) (posInSeconds / oneBarDurInSeconds);
                     float barPosInSeconds = bar * oneBarDurInSeconds;
                     float beat = (posInSeconds - barPosInSeconds) / oneBeatDurInSeconds;
-                    var cliCs = CLI_Factory.getDefault().createChordSymbol(ecs, new Position(bar, beat));
+                    var cliCs = CLI_Factory.getDefault().createChordSymbol(ecs, bar, beat);
                     cliChordSymbols.add(cliCs);
                     if (bar >= barSize)
                     {

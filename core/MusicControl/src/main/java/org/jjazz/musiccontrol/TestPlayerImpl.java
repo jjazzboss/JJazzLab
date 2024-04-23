@@ -40,6 +40,7 @@ import org.jjazz.phrase.api.Phrases;
 import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.testplayerservice.spi.TestPlayer;
 import org.jjazz.utilities.api.IntRange;
+import org.openide.util.Exceptions;
 import org.openide.util.lookup.ServiceProvider;
 
 /**
@@ -51,19 +52,34 @@ public class TestPlayerImpl implements TestPlayer
 
     private static final Logger LOGGER = Logger.getLogger(TestPlayerImpl.class.getSimpleName());
 
+    @Override
+    public void playTestNotes() throws MusicGenerationException
+    {
+        class EndAction implements Runnable
+        {
 
-    /**
-     * Send a short sequence of Midi notes on specified channel.
-     * <p>
-     * If fixPitch &lt; 0 then fixPitch is ignored: play a series of notes starting at 60+transpose. If fixPitch&gt;=0 then play a
-     * series of notes with same pitch=fixPitch.
-     *
-     * @param channel
-     * @param fixPitch  -1 means not used.
-     * @param transpose Transposition value in semi-tons to be added to test notes. Ignored if fixPitch&gt;=0.
-     * @param endAction Called when playback is over. Can be null.
-     * @throws org.jjazz.rhythm.api.MusicGenerationException If a problem occurred.
-     */
+            volatile boolean isDone = false;
+
+            @Override
+            public void run()
+            {
+                isDone = true;
+            }
+        }
+        EndAction callback = new EndAction();
+        playTestNotes(0, -1, 0, callback);
+        while (!callback.isDone)
+        {
+            try
+            {
+                Thread.sleep(100);
+            } catch (InterruptedException ex)
+            {
+                Exceptions.printStackTrace(ex);
+            }
+        }
+    }
+
     @Override
     public void playTestNotes(int channel, int fixPitch, int transpose, final Runnable endAction) throws MusicGenerationException
     {
@@ -91,10 +107,10 @@ public class TestPlayerImpl implements TestPlayer
     {
         if (phrase == null)
         {
-            throw new NullPointerException("p=" + phrase + " endAction=" + endAction);   
+            throw new NullPointerException("p=" + phrase + " endAction=" + endAction);
         }
 
-        final MusicController mc = MusicController.getInstance();        
+        final MusicController mc = MusicController.getInstance();
         mc.stop();
 
         TestSession session = new TestSession(phrase, endAction);
@@ -119,7 +135,7 @@ public class TestPlayerImpl implements TestPlayer
 
         protected TestSession(Phrase p, Runnable r)
         {
-            this.endAction = evt ->
+            this.endAction = evt -> 
             {
                 if (r != null)
                 {

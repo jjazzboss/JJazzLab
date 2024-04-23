@@ -65,7 +65,7 @@ public class FluidSynthEmbeddedSynthProvider implements EmbeddedSynthProvider
     }
 
     @Override
-    public EmbeddedSynth getEmbeddedSynth()
+    public FluidSynthEmbeddedSynth getEmbeddedSynth()
     {
         if (!enabled)
         {

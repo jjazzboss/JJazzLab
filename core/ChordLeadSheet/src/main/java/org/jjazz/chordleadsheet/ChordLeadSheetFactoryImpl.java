@@ -75,48 +75,34 @@ public class ChordLeadSheetFactoryImpl implements ChordLeadSheetFactory
     {
         if (size < 12)
         {
-            throw new IllegalArgumentException("size=" + size);   
+            throw new IllegalArgumentException("size=" + size);
         }
         ChordLeadSheet cls = new ChordLeadSheetImpl(sectionName, TimeSignature.FOUR_FOUR, size);
         CLI_Factory clif = CLI_Factory.getDefault();
         try
         {
-            cls.addItem(clif.createChordSymbol(ExtChordSymbol.get("Dm7"), new Position(0, 0)));
-            cls.addItem(clif.createChordSymbol(ExtChordSymbol.get("C-7"), new Position(0, 2f)));
-            cls.addItem(clif.createChordSymbol(ExtChordSymbol.get("F#7"),
-                    new Position(1, 0)));
-            cls.addItem(clif.createChordSymbol(ExtChordSymbol.get("Bbmaj7#5"),
-                    new Position(1, 2)));
-            cls.addItem(clif.createChordSymbol(ExtChordSymbol.get("A"),
-                    new Position(1, 3f)));
+            cls.addItem(clif.createChordSymbol(ExtChordSymbol.get("Dm7"), 0, 0));
+            cls.addItem(clif.createChordSymbol(ExtChordSymbol.get("C-7"), 0, 2f));
+            cls.addItem(clif.createChordSymbol(ExtChordSymbol.get("F#7"), 1, 0));
+            cls.addItem(clif.createChordSymbol(ExtChordSymbol.get("Bbmaj7#5"), 1, 2));
+            cls.addItem(clif.createChordSymbol(ExtChordSymbol.get("A"), 1, 3f));
             cls.addSection(clif.createSection("Chorus", TimeSignature.THREE_FOUR, 2, null));
-            cls.addItem(clif.createChordSymbol(ExtChordSymbol.get("D7b9b5"),
-                    new Position(2, 1f)));
-            cls.addItem(clif.createChordSymbol(ExtChordSymbol.get("FM7#11"),
-                    new Position(4, 3f)));
+            cls.addItem(clif.createChordSymbol(ExtChordSymbol.get("D7b9b5"), 2, 1f));
+            cls.addItem(clif.createChordSymbol(ExtChordSymbol.get("FM7#11"), 4, 3f));
             cls.addSection(clif.createSection("Bridge", TimeSignature.FOUR_FOUR, 5, null));
-            cls.addItem(clif.createChordSymbol(ExtChordSymbol.get("Eb7b9#5"),
-                    new Position(5, 0.75f)));
-            cls.addItem(clif.createChordSymbol(ExtChordSymbol.get("Ab7#11"),
-                    new Position(6, 0)));
-            cls.addItem(clif.createChordSymbol(ExtChordSymbol.get("A#"),
-                    new Position(6, 4f)));
-            cls.addItem(clif.createChordSymbol(ExtChordSymbol.get("F7alt"),
-                    new Position(6, 1.5f)));
-            cls.addItem(clif.createChordSymbol(ExtChordSymbol.get("G7#9#5"),
-                    new Position(7, 2f)));
-            cls.addItem(clif.createChordSymbol(ExtChordSymbol.get("G#7dim"),
-                    new Position(8, 0f)));
-            cls.addItem(clif.createChordSymbol(ExtChordSymbol.get("Dbmaj7"),
-                    new Position(8, 2)));
-            cls.addItem(clif.createChordSymbol(ExtChordSymbol.get("Gbmaj7"),
-                    new Position(9, 0)));
-            cls.addItem(clif.createChordSymbol(ExtChordSymbol.get("G#maj7"),
-                    new Position(11, 3f)));
+            cls.addItem(clif.createChordSymbol(ExtChordSymbol.get("Eb7b9#5"), 5, 0.75f));
+            cls.addItem(clif.createChordSymbol(ExtChordSymbol.get("Ab7#11"), 6, 0));
+            cls.addItem(clif.createChordSymbol(ExtChordSymbol.get("A#"), 6, 4f));
+            cls.addItem(clif.createChordSymbol(ExtChordSymbol.get("F7alt"), 6, 1.5f));
+            cls.addItem(clif.createChordSymbol(ExtChordSymbol.get("G7#9#5"), 7, 2f));
+            cls.addItem(clif.createChordSymbol(ExtChordSymbol.get("G#7dim"), 8, 0f));
+            cls.addItem(clif.createChordSymbol(ExtChordSymbol.get("Dbmaj7"), 8, 2));
+            cls.addItem(clif.createChordSymbol(ExtChordSymbol.get("Gbmaj7"), 9, 0));
+            cls.addItem(clif.createChordSymbol(ExtChordSymbol.get("G#maj7"), 11, 3f));
         } catch (ParseException | UnsupportedEditException ex)
         {
             String msg = "Error creating sample leadsheet.\n" + ex.getLocalizedMessage();
-            LOGGER.log(Level.WARNING, "createSampleLeadSheet12bars() {0}", msg);   
+            LOGGER.log(Level.WARNING, "createSampleLeadSheet12bars() {0}", msg);
             throw new IllegalStateException(msg);
         }
         return cls;
@@ -128,19 +114,19 @@ public class ChordLeadSheetFactoryImpl implements ChordLeadSheetFactory
         int sectionId = 0;
         if (size < 1)
         {
-            throw new IllegalArgumentException("size=" + size);   
+            throw new IllegalArgumentException("size=" + size);
         }
         CLI_Factory clif = CLI_Factory.getDefault();
         ChordLeadSheet cls = new ChordLeadSheetImpl(sectionName, ts, size);
         for (int i = 0; i < size; i++)
         {
             ExtChordSymbol cs = ExtChordSymbol.createRandomChordSymbol();
-            CLI_ChordSymbol cli = clif.createChordSymbol(cs, new Position(i, 0));
+            CLI_ChordSymbol cli = clif.createChordSymbol(cs, i, 0);
             cls.addItem(cli);
             if (Math.random() > .8f)
             {
                 cs = ExtChordSymbol.createRandomChordSymbol();
-                cli = clif.createChordSymbol(cs, new Position(i, 2));
+                cli = clif.createChordSymbol(cs, i, 2);
                 cls.addItem(cli);
             }
             if (i > 0 && Math.random() > .9f)
@@ -183,7 +169,7 @@ public class ChordLeadSheetFactoryImpl implements ChordLeadSheetFactory
                 } catch (UnsupportedEditException ex)
                 {
                     // We should not be there normally
-                    throw new IllegalStateException("Unexpected 'UnsupportedEditException'.", ex);   
+                    throw new IllegalStateException("Unexpected 'UnsupportedEditException'.", ex);
                 }
             } else
             {
@@ -192,8 +178,6 @@ public class ChordLeadSheetFactoryImpl implements ChordLeadSheetFactory
         }
         return clsCopy;
     }
-
-
 
 
     // ============================================================================================

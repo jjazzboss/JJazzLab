@@ -45,10 +45,17 @@ public interface TestPlayer
     }
 
     /**
+     * Play a few test notes on channel 0, blocking until sequence is complete.
+     *
+     * @throws MusicGenerationException
+     */
+    void playTestNotes() throws MusicGenerationException;
+
+    /**
      * Send a short sequence of Midi notes on specified channel.
      * <p>
-     * If fixPitch &lt; 0 then fixPitch is ignored: play a series of notes starting at 60+transpose. If fixPitch&gt;=0 then play a
-     * series of notes with same pitch=fixPitch.
+     * If fixPitch &lt; 0 then fixPitch is ignored: play a series of notes starting at 60+transpose. If fixPitch&gt;=0 then play a series of notes with same
+     * pitch=fixPitch.
      *
      * @param channel
      * @param fixPitch  -1 means not used.

@@ -66,6 +66,11 @@ public interface CLI_Factory
      */
     CLI_ChordSymbol createChordSymbol(ExtChordSymbol ecs, Position pos);
 
+    default CLI_ChordSymbol createChordSymbol(ExtChordSymbol ecs, int bar, float beat)
+    {
+        return createChordSymbol(ecs, new Position(bar, beat));
+    }
+
     /**
      * Create a CLI_ChordSymbol from a string specification.
      * <p>
@@ -77,6 +82,11 @@ public interface CLI_Factory
      * @throws java.text.ParseException If chord symbol specification is invalid
      */
     CLI_ChordSymbol createChordSymbol(String chordSymbol, Position pos) throws ParseException;
+
+    default CLI_ChordSymbol createChordSymbol(String chordSymbol, int bar, float beat) throws ParseException
+    {
+        return createChordSymbol(chordSymbol, new Position(bar, beat));
+    }
 
     /**
      * Create a CLI_BarAnnotation at specified bar.

@@ -28,11 +28,9 @@ import java.util.concurrent.Future;
 import org.jjazz.rhythmdatabase.api.DefaultRhythmDatabase;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.openide.util.Lookup;
-import org.openide.util.Task;
 
 /**
  * A factory for a RhythmDatabase instance.
- * <p>
  */
 public interface RhythmDatabaseFactory
 {
