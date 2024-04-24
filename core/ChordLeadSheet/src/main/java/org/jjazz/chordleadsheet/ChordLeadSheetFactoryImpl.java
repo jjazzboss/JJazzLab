@@ -32,9 +32,10 @@ import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.CLI_Factory;
-import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
+import org.jjazz.harmony.api.ChordSymbol;
 import org.jjazz.harmony.api.Position;
+import org.openide.util.Exceptions;
 
 public class ChordLeadSheetFactoryImpl implements ChordLeadSheetFactory
 {
@@ -59,13 +60,21 @@ public class ChordLeadSheetFactoryImpl implements ChordLeadSheetFactory
     }
 
     @Override
-    public ChordLeadSheet createEmptyLeadSheet(String sectionName, TimeSignature ts, int size, boolean addInitialChordSymbol)
+    public ChordLeadSheet createEmptyLeadSheet(String sectionName, TimeSignature ts, int size, String initialChord)
     {
         ChordLeadSheet cls = new ChordLeadSheetImpl(sectionName, ts, size);
         CLI_Factory clif = CLI_Factory.getDefault();
-        if (addInitialChordSymbol)
+        if (initialChord != null)
         {
-            cls.addItem(clif.createChordSymbol(new ExtChordSymbol(), new Position(0, 0)));
+            try
+            {
+                var ecs = new ExtChordSymbol(new ChordSymbol(initialChord));
+                cls.addItem(clif.createChordSymbol(ecs, new Position(0, 0)));
+            } catch (ParseException ex)
+            {
+                LOGGER.log(Level.WARNING, "createEmptyLeadSheet() Invalid initialChord={0}, ignored", initialChord);
+            }
+
         }
         return cls;
     }

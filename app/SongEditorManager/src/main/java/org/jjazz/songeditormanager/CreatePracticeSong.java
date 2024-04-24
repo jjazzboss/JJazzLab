@@ -344,7 +344,7 @@ public final class CreatePracticeSong extends AbstractAction implements ContextA
         int startBar = selectedBars.get(0).getModelBarIndex();
         CLI_Section oldInitSection = cls.getSection(startBar);
         ChordLeadSheet newCls = ChordLeadSheetFactory.getDefault().createEmptyLeadSheet(oldInitSection.getData().getName(),
-                oldInitSection.getData().getTimeSignature(), selectedBars.size(), false);
+                oldInitSection.getData().getTimeSignature(), selectedBars.size(), null);
         CLI_Section newInitSection = newCls.getSection(0);
         newCls.setSectionName(newInitSection, oldInitSection.getData().getName());
 

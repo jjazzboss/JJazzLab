@@ -126,7 +126,7 @@ public class SongBuilder
 
         // Create the initial song
         reader.title = reader.title.isBlank() ? "Title" : reader.title;
-        Song song = SongFactory.getInstance().createEmptySong(reader.title, clsSize);
+        Song song = SongFactory.getInstance().createEmptySong(reader.title, clsSize, "A", TimeSignature.FOUR_FOUR, "C");
         song.setTempo(reader.tempo);
         song.setComments("Imported from file " + reader.file.getName());
         ChordLeadSheet cls = song.getChordLeadSheet();

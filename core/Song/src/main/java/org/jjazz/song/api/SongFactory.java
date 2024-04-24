@@ -28,6 +28,7 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyVetoException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.WeakHashMap;
 import java.util.logging.Logger;
 import org.jjazz.harmony.api.TimeSignature;
@@ -208,37 +209,40 @@ public class SongFactory implements PropertyChangeListener
     }
 
     /**
-     * Create a 8-bar empty song.
+     * Create a 8-bar empty song with only the 4/4 initial Section named "A" and its corresponding SongPart.
      *
-     * @param name
+     * @param songName
      * @return
      */
-    public Song createEmptySong(String name)
+    public Song createEmptySong(String songName)
     {
-        return createEmptySong(name, 8);
+        return createEmptySong(songName, 8, "A", TimeSignature.FOUR_FOUR, null);
     }
 
     /**
-     * Create an empty song of specified length.
+     * Create an empty song with the specified parameters.
      * <p>
-     * Initial section is "A" with a C starting chord symbol.
      *
-     * @param name    The name of the song
-     * @param clsSize The number of bars of the song.
+     * @param songName        The name of the song
+     * @param nbBars
+     * @param initSectionName The name of the initial section
+     * @param ts              The time signature of the initial section
+     * @param initialChord    eg "Cm7". A string describing an initial chord to be put at the start of the song. If null no chord is inserted.
      * @return
      */
-    public Song createEmptySong(String name, int clsSize)
+    public Song createEmptySong(String songName, int nbBars, String initSectionName, TimeSignature ts, String initialChord)
     {
-        if (name == null || name.isEmpty() || clsSize < 1)
-        {
-            throw new IllegalArgumentException("name=" + name + " clsSize=" + clsSize);
-        }
+        Objects.requireNonNull(songName);
+        Objects.requireNonNull(initSectionName);
+        Objects.requireNonNull(ts);
+        Preconditions.checkArgument(nbBars > 0, "nbBars=%s", nbBars);
+
         ChordLeadSheetFactory clsf = ChordLeadSheetFactory.getDefault();
-        ChordLeadSheet cls = clsf.createEmptyLeadSheet("A", TimeSignature.FOUR_FOUR, clsSize, true);
+        ChordLeadSheet cls = clsf.createEmptyLeadSheet(initSectionName, ts, nbBars, initialChord);
         Song song = null;
         try
         {
-            song = new Song(name, cls);
+            song = new Song(songName, cls);
         } catch (UnsupportedEditException ex)
         {
             // We should not be here

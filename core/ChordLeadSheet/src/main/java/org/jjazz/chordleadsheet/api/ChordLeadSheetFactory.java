@@ -40,21 +40,21 @@ public interface ChordLeadSheetFactory
     }
 
     /**
-     * Create an empty leadsheet except initial section.
+     * Create an empty leadsheet with just the initial section.
      *
-     * @param sectionName The name of the initial section.
-     * @param ts The time signature of the initial section
-     * @param size The size in bars (must be &gt; 0)
-     * @param addInitialChordSymbol If true add an initial C chord symbol on first bar.
+     * @param sectionName  The name of the initial section.
+     * @param ts           The time signature of the initial section
+     * @param size         The size in bars (must be &gt; 0)
+     * @param initialChord e.g. "Cm7". A string describing an initial chord to be put at the start of the lead sheet. If null no chord is inserted.
      * @return
      */
-    ChordLeadSheet createEmptyLeadSheet(String sectionName, TimeSignature ts, int size, boolean addInitialChordSymbol);
+    ChordLeadSheet createEmptyLeadSheet(String sectionName, TimeSignature ts, int size, String initialChord);
 
     /**
      * Create a 12 bars (or more) leadsheet which contains sample sections and chords.
      *
      * @param sectionName The name of the initial section.
-     * @param size The size in bars must be &gt;= 12.
+     * @param size        The size in bars must be &gt;= 12.
      * @return
      */
     ChordLeadSheet createSampleLeadSheet12bars(String sectionName, int size);
@@ -63,8 +63,8 @@ public interface ChordLeadSheetFactory
      * Create a leadsheet with a randomly generated content (sections and chords).
      *
      * @param sectionName the value of sectionName
-     * @param ts The time signature of the initial section
-     * @param size The size in bars must be &gt; 0.
+     * @param ts          The time signature of the initial section
+     * @param size        The size in bars must be &gt; 0.
      * @return
      */
     ChordLeadSheet createRamdomLeadSheet(String sectionName, TimeSignature ts, int size);

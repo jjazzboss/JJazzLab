@@ -193,7 +193,7 @@ public class ImprovisorFileReader
                     {
                         // Create an empty leadsheet, 1 bar size
                         ChordLeadSheetFactory clsf = ChordLeadSheetFactory.getDefault();
-                        cls = clsf.createEmptyLeadSheet(String.valueOf(sectionIndex), ts, 1, false);
+                        cls = clsf.createEmptyLeadSheet(String.valueOf(sectionIndex), ts, 1, null);
                     }
                     barIndex = fillInChordLeadSheet(cls, ts, barIndex, line, file, lineCount);
                     // LOGGER.severe("importFromFile() chord line=" + line);

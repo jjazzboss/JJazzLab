@@ -115,7 +115,7 @@ public class BarsTransferable implements Transferable
             }
         }
 
-        var res = ChordLeadSheetFactory.getDefault().createEmptyLeadSheet("A", ts0, data.barRange.size(), false);
+        var res = ChordLeadSheetFactory.getDefault().createEmptyLeadSheet("A", ts0, data.barRange.size(), null);
 
         
         for (var item : data.getItemsCopy(0))

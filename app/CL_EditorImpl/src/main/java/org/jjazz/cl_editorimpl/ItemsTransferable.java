@@ -110,7 +110,7 @@ public class ItemsTransferable implements Transferable
         var cls = cli0.getContainer();        
         TimeSignature ts0 = cls == null ? TimeSignature.FOUR_FOUR : cls.getSection(bar0).getData().getTimeSignature();
 
-        var res = ChordLeadSheetFactory.getDefault().createEmptyLeadSheet("A", ts0, lastBar - bar0 + 1, false);
+        var res = ChordLeadSheetFactory.getDefault().createEmptyLeadSheet("A", ts0, lastBar - bar0 + 1, null);
         for (var item : data.getItemsCopy(0))
         {
             if (item instanceof CLI_Section sectionItem)

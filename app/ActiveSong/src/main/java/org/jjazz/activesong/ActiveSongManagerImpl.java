@@ -50,7 +50,7 @@ import org.jjazz.outputsynth.spi.OutputSynthManager;
 @ServiceProvider(service = ActiveSongManager.class)
 public class ActiveSongManagerImpl implements PropertyChangeListener, VetoableChangeListener, ActiveSongManager
 {
-   
+
     /**
      * By default set to all conditions
      */
@@ -71,6 +71,8 @@ public class ActiveSongManagerImpl implements PropertyChangeListener, VetoableCh
 
         // Listen to pre-playback events
         PlaybackSettings.getInstance().addPlaybackStartVetoableListener(this);
+
+        LOGGER.info("ActiveSongManagerImpl() Started");
 
     }
 
@@ -150,10 +152,9 @@ public class ActiveSongManagerImpl implements PropertyChangeListener, VetoableCh
         activeMidiMix = (sg == null) ? null : mm;
 
 
-        
         // MusicController
         var mc = MusicController.getInstance();
-        mc.stop();                  
+        mc.stop();
         try
         {
             mc.setPlaybackSession(null, false);
@@ -203,12 +204,7 @@ public class ActiveSongManagerImpl implements PropertyChangeListener, VetoableCh
         LOGGER.fine("sendAllMidiMixMessages()");
         if (activeMidiMix != null)
         {
-            for (Integer channel : activeMidiMix.getUsedChannels())
-            {
-                InstrumentMix insMix = activeMidiMix.getInstrumentMix(channel);
-                JJazzMidiSystem jms = JJazzMidiSystem.getInstance();
-                jms.sendMidiMessagesOnJJazzMidiOut(insMix.getAllMidiMessages(channel));
-            }
+            activeMidiMix.sendAllMidiMixMessages();
         }
     }
 
@@ -221,12 +217,7 @@ public class ActiveSongManagerImpl implements PropertyChangeListener, VetoableCh
         LOGGER.fine("sendAllMidiVolumeMessages()");
         if (activeMidiMix != null)
         {
-            for (Integer channel : activeMidiMix.getUsedChannels())
-            {
-                InstrumentMix insMix = activeMidiMix.getInstrumentMix(channel);
-                InstrumentSettings insSet = insMix.getSettings();
-                JJazzMidiSystem.getInstance().sendMidiMessagesOnJJazzMidiOut(insSet.getVolumeMidiMessages(channel));
-            }
+            activeMidiMix.sendAllMidiVolumeMessages();
         }
     }
 

@@ -85,8 +85,7 @@ public class MusicXMLFileReader
         try
         {
             parser.parse(file);
-        }
-        catch (ParsingException ex)
+        } catch (ParsingException ex)
         {
             throw new IOException(ex);
         }
@@ -103,8 +102,7 @@ public class MusicXMLFileReader
             try
             {
                 song.getChordLeadSheet().deleteBars(0, firstPos.getBar() - 1);
-            }
-            catch (UnsupportedEditException ex)
+            } catch (UnsupportedEditException ex)
             {
                 // Should never happen
                 Exceptions.printStackTrace(ex);
@@ -138,7 +136,7 @@ public class MusicXMLFileReader
         MyXmlParserListener()
         {
             // Create a 4/4 empty song, C chord, "A" section
-            song = SongFactory.getInstance().createEmptySong("musicXML import", ChordLeadSheet.MAX_SIZE);  // Make room !
+            song = SongFactory.getInstance().createEmptySong("musicXML import", ChordLeadSheet.MAX_SIZE, "A", TimeSignature.FOUR_FOUR, "C");  // Make room !
             cls = song.getChordLeadSheet();
         }
 
@@ -159,8 +157,7 @@ public class MusicXMLFileReader
             try
             {
                 song.getChordLeadSheet().setSizeInBars(songSizeInBars);
-            }
-            catch (UnsupportedEditException ex)
+            } catch (UnsupportedEditException ex)
             {
                 // Should never happen
                 Exceptions.printStackTrace(ex);
@@ -193,8 +190,7 @@ public class MusicXMLFileReader
                     tempoBPM = TempoRange.TEMPO_MAX;
                 }
                 song.setTempo(tempoBPM);
-            }
-            else
+            } else
             {
                 LOGGER.log(Level.WARNING, "onTempoChanged() Tempo changed to {0} at barIndex={1}: ignored", new Object[]
                 {
@@ -214,19 +210,17 @@ public class MusicXMLFileReader
                 try
                 {
                     cls.setSectionTimeSignature(cliSection, ts);
-                }
-                catch (UnsupportedEditException ex)
+                } catch (UnsupportedEditException ex)
                 {
                     LOGGER.log(Level.WARNING, "onTimeSignatureParsed() Can''t change time signature to {0} at bar {1} because: {2}",
-                        new Object[]
-                        {
-                            ts,
-                            barIndex, ex
-                        });
+                            new Object[]
+                            {
+                                ts,
+                                barIndex, ex
+                            });
                     return;
                 }
-            }
-            else if (!section.getTimeSignature().equals(ts))
+            } else if (!section.getTimeSignature().equals(ts))
             {
                 // Need to introduce a new section
                 sectionChar++;
@@ -234,15 +228,14 @@ public class MusicXMLFileReader
                 try
                 {
                     cls.addSection(cliSection);
-                }
-                catch (UnsupportedEditException ex)
+                } catch (UnsupportedEditException ex)
                 {
                     LOGGER.log(Level.WARNING, "onTimeSignatureParsed() Can''t change time signature to {0} at bar {1} because: {2}",
-                        new Object[]
-                        {
-                            ts,
-                            barIndex, ex
-                        });
+                            new Object[]
+                            {
+                                ts,
+                                barIndex, ex
+                            });
                 }
             }
         }
@@ -281,15 +274,14 @@ public class MusicXMLFileReader
             try
             {
                 ecs = ExtChordSymbol.get(strChord);
-            }
-            catch (ParseException ex)
+            } catch (ParseException ex)
             {
                 LOGGER.log(Level.WARNING, "onChordSymbolParsed() Invalid chord string={0}({1}), can''t insert chord at pos={2}",
-                    new Object[]
-                    {
-                        strChord,
-                        ex.getMessage(), pos
-                    });
+                        new Object[]
+                        {
+                            strChord,
+                            ex.getMessage(), pos
+                        });
                 return;
             }
             CLI_ChordSymbol cliCs = CLI_Factory.getDefault().createChordSymbol(ecs, pos);

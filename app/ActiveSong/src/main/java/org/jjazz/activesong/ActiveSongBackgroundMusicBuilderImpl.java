@@ -30,7 +30,6 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.jjazz.activesong.spi.ActiveSongManager;
 import org.jjazz.midimix.api.MidiMix;
-import org.jjazz.activesong.SongMusicBuilderTask;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.MusicController.State;
 import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession;
@@ -84,6 +83,8 @@ public class ActiveSongBackgroundMusicBuilderImpl implements PropertyChangeListe
         {
             propertyChange(new PropertyChangeEvent(asm, ActiveSongManager.PROP_ACTIVE_SONG, activeMidiMix, activeSong));
         }
+
+        LOGGER.info("ActiveSongBackgroundMusicBuilderImpl() Started");
     }
 
     /**

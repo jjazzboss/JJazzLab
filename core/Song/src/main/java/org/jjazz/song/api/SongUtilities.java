@@ -34,6 +34,7 @@ import org.jjazz.chordleadsheet.api.item.CLI_Factory;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.harmony.api.Position;
+import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.songstructure.api.SongPart;
 import org.openide.util.Exceptions;
 
@@ -44,7 +45,7 @@ public class SongUtilities
 {
 
     /**
-     * @see #getLinearizedSong(org.jjazz.song.api.Song, boolean) 
+     * @see #getLinearizedSong(org.jjazz.song.api.Song, boolean)
      */
     static public final String SECTION_COPY_DELIMITER_CHAR = "#";
 
@@ -180,12 +181,8 @@ public class SongUtilities
 
 
         // Create an empty song with the right leadsheet size
-        var newSong = SongFactory.getInstance().createEmptySong(song.getName(), ss.getSizeInBars());
+        var newSong = SongFactory.getInstance().createEmptySong(song.getName(), ss.getSizeInBars(), "A", TimeSignature.FOUR_FOUR, null);
         var newCls = newSong.getChordLeadSheet();
-        for (var cliCs : newCls.getItems(CLI_ChordSymbol.class))
-        {
-            newCls.removeItem(cliCs);
-        }
         var resSs = newSong.getSongStructure();
         try
         {
@@ -275,10 +272,10 @@ public class SongUtilities
             // Should never happen since copy of existing song
             Exceptions.printStackTrace(ex);
         }
-        
+
         // Copy client properties
         newSong.getClientProperties().set(song.getClientProperties());
-        
+
 
         if (register)
         {
