@@ -398,6 +398,17 @@ public class SongSequenceBuilder
 
         // Add XX mode ON initialization message
         OutputSynth os = OutputSynthManager.getDefault().getDefaultOutputSynth();
+     /**
+     * Send the midi messages to set the mode upon play (GM, GM2, etc.) of this OutpuSynth.
+     * <p>
+     * Midi messages are sent to the default JJazzLab Midi OUT device.
+     *
+     * @see UserSettings#getSendModeOnUponPlay()
+     */
+    public void sendSendModeOnUponPlayMidiMessages()
+    {
+        LOGGER.fine("sendSendModeOnUponPlayMidiMessages()");
+
         SysexMessage sxm = switch (os.getUserSettings().getSendModeOnUponPlay())
         {
             case GM ->

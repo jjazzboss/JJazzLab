@@ -31,10 +31,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.sound.midi.SysexMessage;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.midi.api.Instrument;
 import org.jjazz.midi.api.InstrumentBank;
 import org.jjazz.midi.api.InstrumentMix;
+import org.jjazz.midi.api.InstrumentSettings;
+import org.jjazz.midi.api.JJazzMidiSystem;
 import org.jjazz.midi.api.MidiSynth;
 import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.midi.api.synths.GM1Instrument;
@@ -338,6 +341,7 @@ public class OutputSynth
         }
     }
 
+
     /**
      * Save this OutputSynth as a string so that it can be retrieved by loadFromString().
      * <p>
@@ -626,25 +630,39 @@ public class OutputSynth
 
 
         /**
+         * Get the Sysex messages corresponding to getSendModeOnUponPlay().
+         *
+         * @return Can be null
+         */
+        public SysexMessage getModeOnUponPlaySysexMessages()
+        {
+            SysexMessage res = switch (sendModeOnUponPlay)
+            {
+                case GM ->
+                    MidiUtilities.getGmModeOnSysExMessage();
+                case GM2 ->
+                    MidiUtilities.getGm2ModeOnSysExMessage();
+                case GS ->
+                    MidiUtilities.getGsModeOnSysExMessage();
+                case XG ->
+                    MidiUtilities.getXgModeOnSysExMessage();
+                case OFF ->
+                    null;
+                default ->
+                    throw new IllegalStateException("sendModeOnUponPlay=" + sendModeOnUponPlay);
+            };
+            return res;
+        }
+
+        /**
          * Send the Sysex messages corresponding to getSendModeOnUponPlay().
          */
         public void sendModeOnUponPlaySysexMessages()
         {
-            switch (sendModeOnUponPlay)
+            var sysex = getModeOnUponPlaySysexMessages();
+            if (sysex != null)
             {
-                case GM ->
-                    MidiUtilities.sendSysExMessage(MidiUtilities.getGmModeOnSysExMessage());
-                case GM2 ->
-                    MidiUtilities.sendSysExMessage(MidiUtilities.getGm2ModeOnSysExMessage());
-                case XG ->
-                    MidiUtilities.sendSysExMessage(MidiUtilities.getXgModeOnSysExMessage());
-                case GS ->
-                    MidiUtilities.sendSysExMessage(MidiUtilities.getGsModeOnSysExMessage());
-                case OFF ->
-                {
-                }
-                default ->
-                    throw new IllegalStateException("sendModeOnUponPlay=" + sendModeOnUponPlay);
+                MidiUtilities.sendSysExMessage(sysex);
             }
         }
 
