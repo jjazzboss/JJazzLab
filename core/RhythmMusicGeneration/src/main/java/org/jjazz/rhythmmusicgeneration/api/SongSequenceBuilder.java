@@ -159,8 +159,8 @@ public class SongSequenceBuilder
      * - Ask each used rhythm in the song to produce music (one Phrase per RhythmVoice) via its MusicGenerator implementation.<br>
      * - Add the user phrases if any<br>
      * - Apply on each channel possible instrument transpositions, velocity shift, mute (RP_SYS_Mute).<br>
-     * - Apply the RP_SYS_DrumsMix velocity changes. Note that it is expected that, if there is an AdaptedRhythm for a Rhythm which uses
-     * RP_SYS_DrumsMix, the AdaptedRhythm reuses the same RP_SYS_DrumsMix instance.<br>
+     * - Apply the RP_SYS_DrumsMix velocity changes. Note that it is expected that, if there is an AdaptedRhythm for a Rhythm which uses RP_SYS_DrumsMix, the
+     * AdaptedRhythm reuses the same RP_SYS_DrumsMix instance.<br>
      * - Apply the RP_SYS_CustomPhrase changes<br>
      * - Apply the RP_SYS_DrumsTransform changes<br>
      * - Apply drums rerouting if needed <br>
@@ -195,15 +195,15 @@ public class SongSequenceBuilder
     /**
      * Build the SongSequence from the specified RhythmVoice phrases for the defined context.
      * <p>
-     * - Create a track 0 with no notes but MidiEvents for song name, time signature changes, TEMPO_FACTOR_META_EVENT_TYPE MetaMessages for
-     * the RP_SYS_TempoFactor value (if used by a rhythm). <br>
+     * - Create a track 0 with no notes but MidiEvents for song name, time signature changes, TEMPO_FACTOR_META_EVENT_TYPE MetaMessages for the
+     * RP_SYS_TempoFactor value (if used by a rhythm). <br>
      * - Then create a track per RhythmVoice.
      * <p>
      * If songContext range start bar is &gt; 0, the Midi events are shifted to start at sequence tick 0.
      *
      * @param rvPhrases The RhythmVoice phrases such as produced by buildMapRvPhrase(boolean), must start at beat 0.
-     * @return A Sequence containing accompaniment tracks for the songContext, including time signature change Midi meta events and JJazz
-     *         custom Midi controller messages (MidiConst.CTRL_CHG_JJAZZ_TEMPO_FACTOR) for tempo factor changes.
+     * @return A Sequence containing accompaniment tracks for the songContext, including time signature change Midi meta events and JJazz custom Midi controller
+     *         messages (MidiConst.CTRL_CHG_JJAZZ_TEMPO_FACTOR) for tempo factor changes.
      * @see #buildMapRvPhrase(boolean)
      */
     public SongSequence buildSongSequence(Map<RhythmVoice, Phrase> rvPhrases)
@@ -398,36 +398,14 @@ public class SongSequenceBuilder
 
         // Add XX mode ON initialization message
         OutputSynth os = OutputSynthManager.getDefault().getDefaultOutputSynth();
-     /**
-     * Send the midi messages to set the mode upon play (GM, GM2, etc.) of this OutpuSynth.
-     * <p>
-     * Midi messages are sent to the default JJazzLab Midi OUT device.
-     *
-     * @see UserSettings#getSendModeOnUponPlay()
-     */
-    public void sendSendModeOnUponPlayMidiMessages()
-    {
-        LOGGER.fine("sendSendModeOnUponPlayMidiMessages()");
-
-        SysexMessage sxm = switch (os.getUserSettings().getSendModeOnUponPlay())
-        {
-            case GM ->
-                MidiUtilities.getGmModeOnSysExMessage();
-            case GM2 ->
-                MidiUtilities.getGm2ModeOnSysExMessage();
-            case GS ->
-                MidiUtilities.getGsModeOnSysExMessage();
-            case XG ->
-                MidiUtilities.getXgModeOnSysExMessage();
-            default ->
-                null;
-        };
+        SysexMessage sxm = os.getUserSettings().getModeOnUponPlaySysexMessages();
         if (sxm != null)
         {
             me = new MidiEvent(sxm, 0);
             track0.add(me);
         }
 
+        
         // ========== RhythmVoice tracks settings =============
 
         // Remove elements from muted tracks (don't remove the muted tracks because it would impact mapRvTrack)
