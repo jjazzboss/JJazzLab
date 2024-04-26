@@ -29,6 +29,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiUnavailableException;
 import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
+import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.spi.MidiMixManager;
 import org.jjazz.song.api.Song;
@@ -66,8 +67,7 @@ public final class NewSong implements ActionListener
     /**
      * Create a new song with its mix based on the saved template file.
      * <p>
-     * If no song template file found or problem reading file, use SongManager.createEmptySong(name).<br>
-     * Related MidiMix object is obtained using MidiMixManager.findMidiMix(song).
+     * if no template file create an empty song with a C starting chord.<br>
      * <p>
      * Created song will have its file property set to null.
      *
@@ -113,7 +113,7 @@ public final class NewSong implements ActionListener
 
         if (song == null)
         {
-            song = sf.createEmptySong(name);
+            song = sf.createEmptySong(name, 8, "A", TimeSignature.FOUR_FOUR, "C");
         }
 
         return song;
