@@ -68,6 +68,7 @@ import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.event.SgsActionEvent;
 import org.jjazz.utilities.api.FloatRange;
 import org.jjazz.utilities.api.IntRange;
+import org.jjazz.utilities.api.Utilities;
 import org.jjazz.xstream.spi.XStreamConfigurator;
 import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_LOAD;
 import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_SAVE;
@@ -480,7 +481,7 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
     @Override
     public String toString()
     {
-        return "size=" + getSizeInBars() + " spts=" + songParts.toString();
+        return "size=" + getSizeInBars() + " spts=" + Utilities.toMultilineString(songParts);
     }
 
     @Override
@@ -1390,7 +1391,7 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
         return new SerializationProxy(this);
     }
 
-    private void readObject(ObjectInputStream stream) throws InvalidObjectException            
+    private void readObject(ObjectInputStream stream) throws InvalidObjectException
     {
         throw new InvalidObjectException("Serialization proxy required");
     }

@@ -45,12 +45,13 @@ import org.openide.util.lookup.ServiceProviders;
 public class RhythmStubProviderImpl implements StubRhythmProvider
 {
 
+    public static final String ID = "StubRhythmProviderID";
     private Info info;
     private ArrayList<Rhythm> rhythms = new ArrayList<>();
 
     public RhythmStubProviderImpl()
     {
-        info = new Info("StubRhythmProviderID", ResUtil.getString(getClass(),"DUMMY_RHYTHMS"), ResUtil.getString(getClass(),"DUMMY_RHYTHMS_DESC"), "JL", "1.0");
+        info = new Info(ID, ResUtil.getString(getClass(), "DUMMY_RHYTHMS"), ResUtil.getString(getClass(), "DUMMY_RHYTHMS_DESC"), "JL", "1.0");
         for (TimeSignature ts : TimeSignature.values())
         {
             rhythms.add(new RhythmStub("RhythmStubID-" + ts.toString(), ts));
@@ -62,7 +63,7 @@ public class RhythmStubProviderImpl implements StubRhythmProvider
     {
         if (ts == null)
         {
-            throw new NullPointerException("ts");   
+            throw new NullPointerException("ts");
         }
         Rhythm res = null;
         for (Rhythm r : rhythms)
@@ -132,9 +133,10 @@ public class RhythmStubProviderImpl implements StubRhythmProvider
     }
 
     @Override
-    public AdaptedRhythm getAdaptedRhythm(Rhythm r, TimeSignature ts)
+    public AdaptedRhythmStub getAdaptedRhythm(Rhythm r, TimeSignature ts)
     {
-        return null;
+        var res = (r instanceof RhythmStub rs) ? new AdaptedRhythmStub(rs, ts) : null;
+        return res;
     }
 
 }

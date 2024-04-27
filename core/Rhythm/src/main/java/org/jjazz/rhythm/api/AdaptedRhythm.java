@@ -51,8 +51,8 @@ public interface AdaptedRhythm extends Rhythm
      * A unique string identifier representing this adapted rhythm.
      * <p>
      * As an AdaptedRhythm, the returned id must follow this syntax:<br>
-     * &lt;RhythmProviderId&gt&lt;RHYTHM_ID_DELIMITER&gt;&lt;RhythmId&gt;&lt;RHYTHM_ID_DELIMITER&gt;&lt;TimeSignature&gt;<br>
-     * Example: "YamJJazzRhythmProviderID$@$BossaNova.s25.styID$@$3/4"<br>
+     * &lt;RhythmProviderId&gt;&lt;RHYTHM_ID_DELIMITER&gt;&lt;RhythmId&gt;&lt;RHYTHM_ID_DELIMITER&gt;&lt;TimeSignature&gt;<br>
+     * Example: "YamJJazzRhythmProviderID___BossaNova.s25.styID___3/4"<br>
      * RhythmId must a valid rhythm id for the rhythm provider identified by RhythmProviderId.
      * <p>
      * It will be used by other serialized objects who want to refer this rhythm -typically a Song object.
