@@ -8,6 +8,7 @@
         <version>4.0.3-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
+    <groupId>org.jjazzlab.app</groupId>
     <artifactId>itemrenderer</artifactId>
     <name>ItemRenderer</name>
     <packaging>nbm</packaging>
@@ -30,7 +31,6 @@
             <groupId>org.jjazzlab.core</groupId>
             <artifactId>guava</artifactId>
             <version>${project.version}</version>
-            
         </dependency>  
         <dependency> 
             <groupId>org.jjazzlab.core</groupId> 
@@ -48,12 +48,12 @@
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.app</groupId> 
             <artifactId>uisettings</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.app</groupId> 
             <artifactId>upgrade</artifactId> 
             <version>${project.version}</version>  
         </dependency>  

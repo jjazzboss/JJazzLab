@@ -8,6 +8,7 @@
         <version>4.0.3-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
+    <groupId>org.jjazzlab.app</groupId>
     <artifactId>songeditormanager</artifactId>
     <name>SongEditorManager</name>
     <packaging>nbm</packaging>
@@ -28,17 +29,17 @@
     </build>
     <dependencies>      
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.app</groupId> 
             <artifactId>activesong</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.app</groupId> 
             <artifactId>analytics</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.app</groupId> 
             <artifactId>filedirectorymanager</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
@@ -83,7 +84,7 @@
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.app</groupId> 
             <artifactId>pianoroll</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
@@ -103,12 +104,12 @@
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.app</groupId> 
             <artifactId>cl_editor</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.app</groupId> 
             <artifactId>ss_editor</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
@@ -123,7 +124,7 @@
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.app</groupId> 
             <artifactId>upgrade</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
@@ -133,7 +134,7 @@
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.app</groupId> 
             <artifactId>startupmanager</artifactId> 
             <version>${project.version}</version>  
         </dependency>  

@@ -8,6 +8,7 @@
         <version>4.0.3-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
+    <groupId>org.jjazzlab.app</groupId>
     <artifactId>rhythmselectiondialog</artifactId>
     <name>RhythmSelectionDialog</name>
     <packaging>nbm</packaging>
@@ -29,7 +30,7 @@
     </build>
     <dependencies>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.app</groupId> 
             <artifactId>filedirectorymanager</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
@@ -74,12 +75,12 @@
             <version>${project.version}</version>  
         </dependency>              
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.app</groupId> 
             <artifactId>activesong</artifactId> 
             <version>${project.version}</version>  
         </dependency>         
         <dependency>
-            <groupId>${project.groupId}</groupId>
+            <groupId>org.jjazzlab.app</groupId>
             <artifactId>rhythmdatabaseimpl</artifactId>
             <version>${project.version}</version>
         </dependency>        

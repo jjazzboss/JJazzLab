@@ -8,6 +8,7 @@
         <version>4.0.3-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
+    <groupId>org.jjazzlab.app</groupId>
     <artifactId>coreuicomponents</artifactId>
     <name>CoreUIcomponents</name>
     <packaging>nbm</packaging>
@@ -42,7 +43,7 @@
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.app</groupId> 
             <artifactId>uisettings</artifactId> 
             <version>${project.version}</version>  
         </dependency>  

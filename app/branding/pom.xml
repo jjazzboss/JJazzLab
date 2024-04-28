@@ -8,11 +8,11 @@
         <version>4.0.3-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
-
+    <groupId>org.jjazzlab.app</groupId>
     <artifactId>jjazzlab-branding</artifactId>
     <packaging>nbm</packaging>
 
-    <name>JJazzLabBranding</name>
+    <name>JJazzLab Branding</name>
 
     <dependencies>
         <dependency>

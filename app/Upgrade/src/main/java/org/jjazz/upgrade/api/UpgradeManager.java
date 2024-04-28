@@ -207,10 +207,11 @@ public class UpgradeManager
 
             if (importVersion.compareTo("4.0.3") < 0)
             {
-                // From 4.0.3, groupId was changed for core and plugins modules: "org/jjazzlab" -> "org/jjazzlab/core" or "org/jjazzlab/plugins".                           
+                // From 4.0.3, groupId was changed "org/jjazzlab" -> "org/jjazzlab/core" or "org/jjazzlab/plugins" or "org/jjazzlab/app"                           
                 // Ex: org/jjazzlab/core/midi.properties => org/jjazzlab/midi.properties   
                 relPath = relPath.replace("org/jjazzlab/core/", "org/jjazzlab/");
                 relPath = relPath.replace("org/jjazzlab/plugins/", "org/jjazzlab/");
+                relPath = relPath.replace("org/jjazzlab/app/", "org/jjazzlab/");
 
 
                 // From 4 to 4.0.2 artefactId name was "org-jjazz-midi", from 4.0.3 it was simplified to "midi"

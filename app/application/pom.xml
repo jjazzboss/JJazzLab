@@ -7,6 +7,7 @@
         <version>4.0.3-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
+    <groupId>org.jjazzlab.app</groupId>
     <artifactId>jjazzlab-app</artifactId>
     <packaging>nbm-application</packaging>
     <name>JJazzLab App</name>
@@ -324,7 +325,7 @@
         </dependency>
         <!-- JJazzLab Netbeans App Branding =========================================================== -->          
         <dependency>
-            <groupId>${project.groupId}</groupId>
+            <groupId>org.jjazzlab.app</groupId>
             <artifactId>jjazzlab-branding</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -454,117 +455,107 @@
   
         <!-- JJazzLab app =========================================================== -->  
         <dependency> 
-            <groupId>org.jjazzlab.plugins</groupId> 
-            <artifactId>yamjjazz</artifactId> 
-            <version>${project.version}</version> 
-        </dependency>  
-        <dependency> 
-            <groupId>org.jjazzlab.plugins</groupId> 
-            <artifactId>fluidsynthembeddedsynth</artifactId> 
-            <version>${project.version}</version> 
-        </dependency>          
-        <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.app</groupId> 
             <artifactId>cl_editorimpl</artifactId> 
             <version>${project.version}</version> 
         </dependency>           
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.app</groupId> 
             <artifactId>popupmenuwindowmenupatch</artifactId> 
             <version>${project.version}</version> 
         </dependency>       
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.app</groupId> 
             <artifactId>coreuicomponents</artifactId> 
             <version>${project.version}</version> 
         </dependency>                
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.app</groupId> 
             <artifactId>pianoroll</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.app</groupId> 
             <artifactId>rpcustomeditorfactoryimpl</artifactId> 
             <version>${project.version}</version> 
         </dependency>          
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.app</groupId> 
             <artifactId>instrumentcomponents</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.app</groupId> 
             <artifactId>score</artifactId> 
             <version>${project.version}</version> 
         </dependency>           
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.app</groupId> 
             <artifactId>activesong</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.app</groupId> 
             <artifactId>arranger</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.app</groupId> 
             <artifactId>base</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.app</groupId> 
             <artifactId>chordinspector</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.app</groupId> 
             <artifactId>easyreader</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.app</groupId> 
             <artifactId>improvisionsupport</artifactId> 
             <version>${project.version}</version> 
         </dependency>              
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.app</groupId> 
             <artifactId>uisettings</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.app</groupId> 
             <artifactId>filedirectorymanager</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.app</groupId> 
             <artifactId>instrumentchooser</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.app</groupId> 
             <artifactId>print</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.app</groupId> 
             <artifactId>songeditormanager</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.app</groupId> 
             <artifactId>songmemoviewer</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.app</groupId> 
             <artifactId>rhythmselectiondialog</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.app</groupId> 
             <artifactId>test</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
@@ -574,76 +565,87 @@
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.app</groupId> 
             <artifactId>mixconsole</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.app</groupId> 
             <artifactId>musiccontrolactions</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.app</groupId> 
             <artifactId>ss_editor</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.app</groupId> 
             <artifactId>ss_editorimpl</artifactId> 
             <version>${project.version}</version> 
         </dependency>          
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.app</groupId> 
             <artifactId>spteditor</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.app</groupId> 
             <artifactId>zoomablesliders</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.app</groupId> 
             <artifactId>upgrade</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.app</groupId> 
             <artifactId>startupmanager</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.app</groupId> 
             <artifactId>analytics</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.app</groupId> 
             <artifactId>options</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.app</groupId> 
             <artifactId>rhythmdatabaseimpl</artifactId> 
             <version>${project.version}</version> 
         </dependency>         
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.app</groupId> 
             <artifactId>cl_editor</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.app</groupId> 
             <artifactId>itemrenderer</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 
-            <groupId>${project.groupId}</groupId> 
+            <groupId>org.jjazzlab.app</groupId> 
             <artifactId>yjzcreationwizard</artifactId> 
             <version>${project.version}</version> 
         </dependency>          
         
+        <!-- JJazzLab plugins =================================================================== -->
+        <dependency> 
+            <groupId>org.jjazzlab.plugins</groupId> 
+            <artifactId>yamjjazz</artifactId> 
+            <version>${project.version}</version> 
+        </dependency>  
+        <dependency> 
+            <groupId>org.jjazzlab.plugins</groupId> 
+            <artifactId>fluidsynthembeddedsynth</artifactId> 
+            <version>${project.version}</version> 
+        </dependency>           
     </dependencies>
    
 </project>
