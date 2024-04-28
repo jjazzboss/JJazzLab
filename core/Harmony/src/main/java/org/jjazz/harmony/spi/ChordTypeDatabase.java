@@ -25,6 +25,7 @@
 package org.jjazz.harmony.spi;
 
 import java.util.List;
+import org.jjazz.harmony.ChordTypeDatabaseImpl;
 import org.jjazz.harmony.api.ChordType;
 import org.jjazz.harmony.api.Degree;
 import org.openide.util.Lookup;
@@ -47,7 +48,7 @@ public interface ChordTypeDatabase
     }
 
     /**
-     * Return the first implementation available in the global lookup.
+     * Return the first implementation available in the global lookup,otherwise use the default implementation.
      *
      * @return
      */
@@ -56,7 +57,7 @@ public interface ChordTypeDatabase
         var res = Lookup.getDefault().lookup(ChordTypeDatabase.class);
         if (res == null)
         {
-            throw new IllegalStateException("No ChordTypeDatabase implementation found");
+            res = ChordTypeDatabaseImpl.getInstance();
         }
         return res;
     }

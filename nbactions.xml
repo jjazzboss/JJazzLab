@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <actions>
         <action>
-            <actionName>CUSTOM-javadoc</actionName>
-            <displayName>javadoc</displayName>
+            <actionName>CUSTOM-Prepare release</actionName>
+            <displayName>Prepare release</displayName>
             <goals>
-                <goal>javadoc:aggregate</goal>
+                <goal>install</goal>
             </goals>
+            <activatedProfiles>
+                <activatedProfile>prepare-release</activatedProfile>
+            </activatedProfiles>
         </action>
     </actions>

@@ -7,9 +7,9 @@
         <version>4.0.3-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
-    <artifactId>jjazzlab</artifactId>
+    <artifactId>jjazzlab-app</artifactId>
     <packaging>nbm-application</packaging>
-    <name>jjazzlab-app</name>
+    <name>JJazzLab App</name>
     <description>Where the final JJazzLab Netbeans platform app is assembled.</description>
     
     

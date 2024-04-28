@@ -82,7 +82,7 @@ public class BorderManager implements MouseListener, MouseMotionListener, Proper
      * Register the component with no special handling for mouse pressed or mouse enter/exit, and can not be dragged.
      *
      * @param component
-     * @see register(JComponent, boolean, boolean)
+     * @see register(JComponent, boolean, boolean, boolean)
      */
     public void register(JComponent component)
     {

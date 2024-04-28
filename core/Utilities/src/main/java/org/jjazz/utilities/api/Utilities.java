@@ -810,22 +810,25 @@ public class Utilities
      *
      * @param <K>
      * @param <V>
-     * @param map If it's a NavigableMap, use its ascending order.
+     * @param map           If it's a NavigableMap, use its ascending order.
+     * @param prefixPostfix 1st/2nd string is a prefix/postfix to add on each line
      * @return
      */
-    public static <K, V> String toMultilineString(Map<K, V> map)
+    public static <K, V> String toMultilineString(Map<K, V> map, String... prefixPostfix)
     {
         if (map == null)
         {
             return "null";
         }
+        String prefix = prefixPostfix.length >= 1 ? prefixPostfix[0] : "";
+        String postfix = prefixPostfix.length >= 2 ? prefixPostfix[1] : "";
         var joiner = new StringJoiner("\n", "[", "]");
         if (map instanceof NavigableMap nMap)
         {
-            nMap.navigableKeySet().forEach(k -> joiner.add((k == null ? "null" : k.toString()) + " -> " + nMap.get(k)));
+            nMap.navigableKeySet().forEach(k -> joiner.add(prefix + (k == null ? "null" : k.toString() + " -> " + nMap.get(k)) + postfix));
         } else
         {
-            map.keySet().forEach(k -> joiner.add((k == null ? "null" : k.toString()) + " -> " + map.get(k)));
+            map.keySet().forEach(k -> joiner.add(prefix + (k == null ? "null" : k.toString() + " -> " + map.get(k)) + postfix));
         }
 
         return joiner.toString();
@@ -834,14 +837,17 @@ public class Utilities
     /**
      * Get each element toString() called, one per line.
      *
-     * @param list
+     * @param col
+     * @param prefixPostfix 1st/2nd string is a prefix/postfix to add on each line
      * @return
      */
-    public static String toMultilineString(Collection<?> list)
+    public static String toMultilineString(Collection<?> col, String... prefixPostfix)
     {
-        Preconditions.checkNotNull(list);
+        Preconditions.checkNotNull(col);
+        String prefix = prefixPostfix.length >= 1 ? prefixPostfix[0] : "";
+        String postfix = prefixPostfix.length >= 2 ? prefixPostfix[1] : "";
         var joiner = new StringJoiner("\n", "[", "]");
-        list.forEach(e -> joiner.add(e == null ? "null" : e.toString()));
+        col.forEach(e -> joiner.add(prefix + (e == null ? "null" : e.toString()) + postfix));
         return joiner.toString();
     }
 

@@ -30,22 +30,13 @@
                 </configuration>
                 <extensions>true</extensions>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <configuration>
-                    <archive>
-                        <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
-                    </archive>
-                </configuration>
-            </plugin>
             
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
                     <additionalClasspathDependencies>
-                        <!-- add those modules only for test runtime so that RhythmDatabase is populated -->
+                        <!-- Add those modules only for test runtime so that RhythmDatabase is populated -->
                         <additionalClasspathDependency>
                             <groupId>org.jjazzlab.plugins</groupId>
                             <artifactId>yamjjazz</artifactId>       

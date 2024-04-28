@@ -5,9 +5,9 @@
     <artifactId>jjazzlab-parent</artifactId>
     <version>4.0.3-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <name>jjazzlab</name>
+    <name>JJazzLab Parent</name>
     
-    
+            
     <url>https://github.com/jjazzboss/jjazzlab</url>
     <licenses>
         <license>
@@ -30,8 +30,7 @@
             <email>jl@jjazzlab.org</email>
             <timezone>Europe/Paris</timezone>
         </developer>
-    </developers>
-    
+    </developers>       
     
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>         
@@ -51,6 +50,11 @@
     
     <build>
         <pluginManagement>
+            <!-- 
+            General plugins configuration for current and children POM. 
+            Note that for a plugin configured here to be actually used in the build process, it has to be referenced in this POM or a child POM 
+            in the build/plugins section.
+            -->
             <plugins>
                                 
                 <plugin>
@@ -71,6 +75,18 @@
                     </executions>                      
                 </plugin>
                 
+                <!-- Jar plugin, required for NBM -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>3.4.1</version>                         
+                    <configuration>
+                        <archive>
+                            <!-- required since nbm-maven-plugin 3.0-->
+                            <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+                        </archive>
+                    </configuration>
+                </plugin>                
                 
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -91,32 +107,6 @@
                 
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-javadoc-plugin</artifactId>
-                    <version>3.6.3</version>
-                    <configuration>                            
-                        <excludePackageNames>org.jjazz.embeddedsynth.lame.*</excludePackageNames>
-                        <show>public</show>
-                        <nohelp>false</nohelp>
-                        <detectLinks>false</detectLinks>
-                        <detectOfflineLinks>true</detectOfflineLinks>   
-                        <quiet>false</quiet>
-                        <doclint>none</doclint>
-                        <release>${jjazzlab.compiler.release}</release>   
-                        <sourceFileIncludes>
-                            <include>org/jjazz/**/api/**/*.java</include>
-                            <include>org/jjazz/**/spi/**/*.java</include>
-                        </sourceFileIncludes>
-                    </configuration>                                                          
-                </plugin>                      
-                
-                <plugin>
-                    <!-- Jar plugin, required for NBM -->                    
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-jar-plugin</artifactId>
-                    <version>3.3.0</version>                                
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-dependency-plugin</artifactId>
                     <version>3.5.0</version>
                 </plugin>           
@@ -132,10 +122,9 @@
                 </plugin>    
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-antrun-plugin</artifactId>
-                    <version>3.1.0</version>
-                </plugin>     
-                                         
+                    <artifactId>maven-sources-plugin</artifactId>
+                    <version>3.3.1</version>
+                </plugin>    
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
@@ -143,54 +132,58 @@
                     <configuration>
                         <skipTests>${jjazzlab.surefire.skipTests}</skipTests>
                     </configuration>
-                </plugin>            
+                </plugin>           
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-help-plugin</artifactId>
                     <version>3.4.0</version>
-                    <executions>
-                        <execution>
-                            <id>show-profiles</id>
-                            <phase>compile</phase>
-                            <goals>
-                                <goal>active-profiles</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                </plugin>    
+                </plugin>                 
+             
             </plugins>
         </pluginManagement>
+                
+        <plugins>                       
+        </plugins>
+        
     </build>
     
+    
+
         
     <profiles>
         
-        <!-- Profile to create Javadoc : use mvn -Pcreate-javadoc javadoc:aggregate -->
+        
         <profile>
-            <id>create-javadoc</id>
+            <!-- Use mvn -Pprepare-release install. Prepare a javadoc jar and a sources jar for each module -->
+            <id>prepare-release</id>
             <build>
                 <plugins>                
+                    
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-javadoc-plugin</artifactId>
                         <version>3.6.3</version>
-                        <executions>
-                            <execution>
+                        <executions>     
+                            <execution> 
                                 <id>attach-javadocs</id>
+                                <phase>package</phase>
                                 <goals>
                                     <goal>jar</goal>
-                                </goals>
-                            </execution>
-                            <execution>
+                                </goals> 
+                            </execution>                          
+                            <!--                            <execution>
                                 <id>attach-aggregate-javadoc</id>
+                                <phase>site</phase>
+                                <inherited>false</inherited>
                                 <goals>
                                     <goal>aggregate-jar</goal>
                                 </goals>
-                                <inherited>false</inherited>
-                            </execution>
-                        </executions>
+                                <configuration>
+                                    <doctitle>JJazzLab ${project.version} API Index</doctitle>
+                                </configuration>
+                            </execution>-->
+                        </executions>                                               
                         <configuration>                            
-                            <excludePackageNames>org.jjazz.embeddedsynth.lame.*</excludePackageNames>
                             <show>public</show>
                             <nohelp>false</nohelp>
                             <detectLinks>false</detectLinks>
@@ -203,7 +196,22 @@
                                 <include>org/jjazz/**/spi/**/*.java</include>
                             </sourceFileIncludes>
                         </configuration>                                                          
-                    </plugin>        
+                    </plugin>       
+                    
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>                        
+                        <artifactId>maven-source-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>jar-no-fork</goal>
+                                </goals> 
+                            </execution>
+                        </executions>
+                    </plugin>
+                    
                 </plugins>
             </build>
         </profile>

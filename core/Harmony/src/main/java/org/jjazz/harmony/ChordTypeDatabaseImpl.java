@@ -31,15 +31,14 @@ import org.jjazz.harmony.api.Degree;
 import org.jjazz.harmony.spi.ChordTypeDatabase;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.util.*;
-import org.openide.util.lookup.ServiceProvider;
 
 /**
  * Default implementation.
  */
-@ServiceProvider(service=ChordTypeDatabase.class)
 public class ChordTypeDatabaseImpl implements ChordTypeDatabase
 {
 
+    private static ChordTypeDatabaseImpl INSTANCE;
     private static final String PREFIX = "CT_";
 
 
@@ -52,8 +51,19 @@ public class ChordTypeDatabaseImpl implements ChordTypeDatabase
     protected static final Preferences prefs = NbPreferences.forModule(ChordTypeDatabase.class);
     private static final Logger LOGGER = Logger.getLogger(ChordTypeDatabaseImpl.class.getSimpleName());
 
-    
-    public ChordTypeDatabaseImpl()
+    public static ChordTypeDatabaseImpl getInstance()
+    {
+        synchronized (ChordTypeDatabaseImpl.class)
+        {
+            if (INSTANCE == null)
+            {
+                INSTANCE = new ChordTypeDatabaseImpl();
+            }
+        }
+        return INSTANCE;
+    }
+
+    private ChordTypeDatabaseImpl()
     {
         // Just to make lines shorter !
         int NP = ChordType.NOT_PRESENT;

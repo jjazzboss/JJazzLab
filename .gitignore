@@ -1,3 +1,4 @@
 /*/*/target/
 *.sf2
 nb-configuration.xml
+/target/
