@@ -27,7 +27,8 @@ import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.utilities.api.ResUtil;
 
 /**
- * Standard RhythmParameter
+ * Standard RhythmParameter : a variation of a rhythm.
+ * 
  */
 public class RP_STD_Variation extends RP_State
 {

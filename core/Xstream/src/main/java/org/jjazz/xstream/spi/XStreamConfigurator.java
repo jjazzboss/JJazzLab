@@ -30,7 +30,7 @@ import com.thoughtworks.xstream.XStream;
  * Configure an Xstream instance.
  * <p>
  *
- * @see XStreamInstancesManager
+ * @see org.jjazz.xstream.api.XStreamInstancesManager
  */
 public interface XStreamConfigurator
 {

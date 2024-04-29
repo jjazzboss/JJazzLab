@@ -104,7 +104,25 @@
                         </compilerArgs>
                     </configuration>
                 </plugin>                                                                  
-                
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-javadoc-plugin</artifactId>
+                    <version>3.6.3</version>
+                    <configuration>
+                        <release>${jjazzlab.compiler.release}</release>
+                        <failOnError>false</failOnError>
+                        <sourceFileIncludes>
+                            <include>org/jjazz/**/api/**/*.java</include>
+                            <include>org/jjazz/**/spi/**/*.java</include>
+                        </sourceFileIncludes>                                                        
+                        <show>public</show>
+                        <nohelp>false</nohelp>
+                        <detectLinks>false</detectLinks>
+                        <detectOfflineLinks>true</detectOfflineLinks>   
+                        <quiet>false</quiet>
+                        <doclint>none</doclint>
+                    </configuration>
+                </plugin>    
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-dependency-plugin</artifactId>
@@ -162,7 +180,6 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-javadoc-plugin</artifactId>
-                        <version>3.6.3</version>
                         <executions>     
                             <execution> 
                                 <id>generate-javadocs</id>
@@ -170,32 +187,8 @@
                                 <goals>
                                     <goal>jar</goal>
                                 </goals> 
-                            </execution>                          
-                            <!--                            <execution>
-                                <id>attach-aggregate-javadoc</id>
-                                <phase>site</phase>
-                                <inherited>false</inherited>
-                                <goals>
-                                    <goal>aggregate-jar</goal>
-                                </goals>
-                                <configuration>
-                                    <doctitle>JJazzLab ${project.version} API Index</doctitle>
-                                </configuration>
-                            </execution>-->
-                        </executions>                                               
-                        <configuration>                            
-                            <show>public</show>
-                            <nohelp>false</nohelp>
-                            <detectLinks>false</detectLinks>
-                            <detectOfflineLinks>true</detectOfflineLinks>   
-                            <quiet>false</quiet>
-                            <doclint>none</doclint>
-                            <release>${jjazzlab.compiler.release}</release>   
-                            <sourceFileIncludes>
-                                <include>org/jjazz/**/api/**/*.java</include>
-                                <include>org/jjazz/**/spi/**/*.java</include>
-                            </sourceFileIncludes>
-                        </configuration>                                                          
+                            </execution>                                                     
+                        </executions>                                                                                     
                     </plugin>       
                     
                     <plugin>
