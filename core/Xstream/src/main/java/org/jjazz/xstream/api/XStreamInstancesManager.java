@@ -35,7 +35,7 @@ import org.openide.util.Lookup;
  * The configuration of the XStream instances is done by the XStreamConfigurator instances found in the global lookup. This allows the XStreamConfigurators to
  * add aliases even for private classes or classes from non-public packages of a Netbeans module.
  *
- * @See XStreamConfigurator
+ * @see XStreamConfigurator
  */
 public class XStreamInstancesManager
 {

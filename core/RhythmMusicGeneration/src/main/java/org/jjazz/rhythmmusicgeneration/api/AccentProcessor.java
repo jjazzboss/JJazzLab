@@ -800,7 +800,7 @@ public class AccentProcessor
      * @param grid A grid limited to DRUMS_ACCENT_PITCHES.
      * @param cellIndex
      * @return One of the DRUMS_ACCENT_PITCHES pitches
-     * @See DRUMS_ACCENT_PITCHES
+     * @see DRUMS_ACCENT_PITCHES
      */
     private int computeDrumsAccentPitch(Grid grid, int cellIndex)
     {
