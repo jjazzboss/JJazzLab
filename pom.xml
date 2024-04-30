@@ -52,8 +52,7 @@
         <pluginManagement>
             <!-- 
             General plugins configuration for current and children POM. 
-            Note that for a plugin configured here to be actually used in the build process, it has to be referenced in this POM or a child POM 
-            in the build/plugins section.
+            Note that some plugins might need to be also referenced in the build/plugins section to be part of the build. 
             -->
             <plugins>
                                 
