@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <actions>
         <action>
-            <actionName>CUSTOM-Prepare release</actionName>
-            <displayName>Prepare release</displayName>
+            <actionName>CUSTOM-Prepare deploy</actionName>
+            <displayName>Prepare deploy</displayName>
             <goals>
                 <goal>install</goal>
             </goals>
             <activatedProfiles>
-                <activatedProfile>prepare-release</activatedProfile>
+                <activatedProfile>prepare-deploy</activatedProfile>
             </activatedProfiles>
         </action>
     </actions>

@@ -192,8 +192,13 @@
         
         
         <profile>
-            <!-- Use mvn -Pprepare-release install. Prepare a javadoc jar and a sources jar for each module -->
-            <id>prepare-release</id>
+            <!-- Use mvn -Pprepare-deploy install. Prepare a javadoc jar and a sources jar for each module -->
+            <id>prepare-deploy</id>            
+            
+            <properties>
+                <jjazzlab.surefire.skipTests>false</jjazzlab.surefire.skipTests>
+            </properties>
+            
             <build>
                 <plugins>                
                     
