@@ -74,6 +74,25 @@ public class FluidSynthEmbeddedSynth implements EmbeddedSynth, PropertyChangeLis
         assert CHORUS_PRESETS.contains(DEFAULT_CHORUS);
     }
 
+
+    /**
+     * Redirect to setSoundFontFile().
+     *
+     * @param config Must be a soundfont file.
+     * @see #setSoundFontFile(java.io.File) 
+     */
+    @Override
+    public void configure(Object config)
+    {
+        if (config instanceof File file)
+        {
+            setSoundFontFile(file);
+        } else
+        {
+            LOGGER.log(Level.WARNING, "configure() Invalid config file, ignored. config={0}", config);
+        }
+    }
+
     /**
      * Set the soundfont file to be used when opening the device.
      * <p>
@@ -92,7 +111,7 @@ public class FluidSynthEmbeddedSynth implements EmbeddedSynth, PropertyChangeLis
      * <p>
      * The method uses the 3 possibilities in this specified order: <br>
      * 1/ If it's defined, use file from the SOUNDFONT_FILE_COMMAND_LINE_PROPERTY command line property<br>
-     * 2/ If non-null, use the file set using setSoundFontFile()<br>
+     * 2/ If non-null, use the file set using configure() or setSoundFontFile()<br>
      * 3/ If it exists, use the file bundled in this module at location SOUNDFONT_FILE<br>
      *
      * @return

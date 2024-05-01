@@ -1,3 +1,3 @@
 # core 
 
-The JJazzLab core modules which makes the [JJazzLab Toolkit](https://github.com/jjazzboss/JJazzLabToolkit).
+The JJazzLab core modules which make the [JJazzLab Toolkit](https://github.com/jjazzboss/JJazzLabToolkit).

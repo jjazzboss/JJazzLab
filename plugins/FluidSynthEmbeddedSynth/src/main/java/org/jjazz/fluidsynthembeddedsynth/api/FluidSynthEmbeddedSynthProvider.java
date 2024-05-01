@@ -28,7 +28,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiDevice;
 import javax.sound.midi.MidiUnavailableException;
-import org.jjazz.embeddedsynth.api.EmbeddedSynth;
 import org.jjazz.embeddedsynth.api.EmbeddedSynthException;
 import org.jjazz.embeddedsynth.spi.EmbeddedSynthProvider;
 import org.jjazz.fluidsynthjava.api.FluidSynthJava;
@@ -44,6 +43,7 @@ import org.jjazz.midi.spi.MidiSynthManager;
 public class FluidSynthEmbeddedSynthProvider implements EmbeddedSynthProvider
 {
 
+    public static final String ID = "FluidSynthEmbeddedSynthProviderId";
     private final FluidSynthEmbeddedSynth embeddedSynth;
     private final MidiDevice midiDevice;
     private boolean enabled;
@@ -75,6 +75,12 @@ public class FluidSynthEmbeddedSynthProvider implements EmbeddedSynthProvider
     }
 
     @Override
+    public String getId()
+    {
+        return ID;
+    }
+
+    @Override
     public MidiDevice getOutMidiDevice()
     {
         if (!enabled)
@@ -86,9 +92,9 @@ public class FluidSynthEmbeddedSynthProvider implements EmbeddedSynthProvider
 
     /**
      * Make FluidSynthJava active.
-     *
-     * Open the FluidSynthJava instance and set FluidSynthMidiDevice as the default Midi OUT device (so that out MidiMessages are redirected
-     * to the FluidSynthJava instance).
+     * <p>
+     * Open the FluidSynthJava instance and set FluidSynthMidiDevice as the default Midi OUT device (so that out MidiMessages are redirected to the
+     * FluidSynthJava instance).
      *
      * @param b
      * @throws EmbeddedSynthException
@@ -99,8 +105,7 @@ public class FluidSynthEmbeddedSynthProvider implements EmbeddedSynthProvider
         if (b == active)
         {
             return;
-        }
-        else if (!enabled)
+        } else if (!enabled)
         {
             throw new EmbeddedSynthException("FluidSynthEmbeddedSynthProvider is disabled");
         }
@@ -122,15 +127,13 @@ public class FluidSynthEmbeddedSynthProvider implements EmbeddedSynthProvider
             try
             {
                 jms.setDefaultOutDevice(midiDevice);
-            }
-            catch (MidiUnavailableException ex)
+            } catch (MidiUnavailableException ex)
             {
                 // Should never be there, our midiDevice does nothing upon open...
                 Exceptions.printStackTrace(ex);
             }
 
-        }
-        else
+        } else
         {
             // Desactivate
 
@@ -140,8 +143,7 @@ public class FluidSynthEmbeddedSynthProvider implements EmbeddedSynthProvider
             try
             {
                 jms.setDefaultOutDevice(md);
-            }
-            catch (MidiUnavailableException ex)
+            } catch (MidiUnavailableException ex)
             {
                 LOGGER.log(Level.WARNING, "setEmbeddedSynthActive() Can''t restore previous OUT MidiDevice. ex={0}", ex.getLocalizedMessage());
             }
@@ -208,14 +210,12 @@ public class FluidSynthEmbeddedSynthProvider implements EmbeddedSynthProvider
                 {
                     embeddedSynth.open();       // throws EmbeddedSynthException
                     midiDevice.open();          // throws MidiUnavailableException
-                }
-                catch (EmbeddedSynthException ex)
+                } catch (EmbeddedSynthException ex)
                 {
                     // Possible problems: native library loading, wrong soundfont, ...
                     exception = ex;
 
-                }
-                catch (MidiUnavailableException ex)
+                } catch (MidiUnavailableException ex)
                 {
                     // Should never be here !
                     Exceptions.printStackTrace(ex);

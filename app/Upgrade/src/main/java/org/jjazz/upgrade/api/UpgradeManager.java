@@ -188,7 +188,7 @@ public class UpgradeManager
      * The returned properties file relative path takes into account possible codebase name changes which occured between getImportSourceVersion() and
      * getCurrentVersion().
      *
-     * @param relPath A relative path of a properties file for the current version (&gt;=4.0.3), eg "org/jjazzlab/core/midi.properties"
+     * @param relPath A relative path of a properties file for the current version (&gt;=4.1.0), eg "org/jjazzlab/core/midi.properties"
      * @return eg "org/jjazzlab/org/jjazz/midi.properties" for getImportSourceVersion()=4.0.2
      * @see #getCurrentVersion()
      * @see #getImportSourceVersion()
@@ -201,20 +201,20 @@ public class UpgradeManager
         if (currentVersion != null && importVersion != null)
         {
 
-            // The code below was written for 4.0.3
-            assert currentVersion.compareTo("4.0.3") >= 0 : "currentVersion=" + currentVersion;
+            // The code below was written for 4.1.0
+            assert currentVersion.compareTo("4.1.0") >= 0 : "currentVersion=" + currentVersion;
 
 
-            if (importVersion.compareTo("4.0.3") < 0)
+            if (importVersion.compareTo("4.1.0") < 0)
             {
-                // From 4.0.3, groupId was changed "org/jjazzlab" -> "org/jjazzlab/core" or "org/jjazzlab/plugins" or "org/jjazzlab/app"                           
+                // From 4.1.0, groupId was changed "org/jjazzlab" -> "org/jjazzlab/core" or "org/jjazzlab/plugins" or "org/jjazzlab/app"                           
                 // Ex: org/jjazzlab/core/midi.properties => org/jjazzlab/midi.properties   
                 relPath = relPath.replace("org/jjazzlab/core/", "org/jjazzlab/");
                 relPath = relPath.replace("org/jjazzlab/plugins/", "org/jjazzlab/");
                 relPath = relPath.replace("org/jjazzlab/app/", "org/jjazzlab/");
 
 
-                // From 4 to 4.0.2 artefactId name was "org-jjazz-midi", from 4.0.3 it was simplified to "midi"
+                // From 4 to 4.0.2 artefactId name was "org-jjazz-midi", from 4.1.0 it was simplified to "midi"
                 if (importVersion.compareTo("4") >= 0)
                 {
                     // Ex: "org/jjazzlab/midi.properties" => "org/jjazzlab/org/jjazz/midi.properties"

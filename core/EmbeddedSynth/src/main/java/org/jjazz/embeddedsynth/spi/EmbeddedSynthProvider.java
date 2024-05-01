@@ -40,25 +40,32 @@ public interface EmbeddedSynthProvider
     /**
      * Get the first EmbeddedSynthProvider instance found in the global lookup.
      *
-     * @return
+     * @return Can be null
      */
     static EmbeddedSynthProvider getDefaultProvider()
     {
         return Lookup.getDefault().lookup(EmbeddedSynthProvider.class);
     }
 
+
     /**
-     * Get the default EmbeddedSynth instance.
-     * <p>
-     * Rely on getDefaultProvider().
+     * Helper method Get the synth from the default EmbeddedSynthProvider instance.
      *
-     * @return Can be null.
+     * @return Can be null
      */
     static EmbeddedSynth getDefaultSynth()
     {
         EmbeddedSynthProvider provider = getDefaultProvider();
         return (provider == null) ? null : provider.getEmbeddedSynth();
     }
+
+
+    /**
+     * Get the unique Id of this instance.
+     *
+     * @return
+     */
+    String getId();
 
     /**
      * Get the EmbeddedSynth instance.
@@ -93,9 +100,9 @@ public interface EmbeddedSynthProvider
 
     /**
      * Check if this EmbeddedSynthProvider is enabled.
-     *
-     * By default an EmbeddedSynthProvider is enabled, but it might get itself disabled if it encounters initialization
-     * errors, typically when calling setEmbeddedSynthActive(). When it becomes disabled a PROP_PROVIDER_ENABLED change event is fired.
+     * <p>
+     * By default an EmbeddedSynthProvider is enabled, but it might get itself disabled if it encounters initialization errors, typically when calling
+     * setEmbeddedSynthActive(). When it becomes disabled a PROP_PROVIDER_ENABLED change event is fired.
      *
      * @return
      */

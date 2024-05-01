@@ -22,6 +22,8 @@
  */
 package org.jjazz.yamjjazz.rhythm;
 
+import org.jjazz.yamjjazz.rhythm.api.YamJJazzRhythm;
+import org.jjazz.yamjjazz.rhythm.api.YamJJazzDefaultRhythms;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
@@ -56,12 +58,12 @@ import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhrase;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Marker;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Mute;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_TempoFactor;
-import org.jjazz.yamjjazz.AccType;
+import org.jjazz.yamjjazz.rhythm.api.AccType;
 import org.jjazz.yamjjazz.FormatNotSupportedException;
 import org.jjazz.yamjjazz.MPL_ExtensionFile;
-import org.jjazz.yamjjazz.Style;
-import org.jjazz.yamjjazz.StylePart;
-import org.jjazz.yamjjazz.StylePartType;
+import org.jjazz.yamjjazz.rhythm.api.Style;
+import org.jjazz.yamjjazz.rhythm.api.StylePart;
+import org.jjazz.yamjjazz.rhythm.api.StylePartType;
 
 /**
  * A rhythm based on a Yamaha style file which can optionally be extended using a special Midi extension file.

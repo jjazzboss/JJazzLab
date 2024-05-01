@@ -193,13 +193,13 @@ public class GSInstrument extends Instrument implements Serializable
                 {
                     if (instanceId.equals(MIDIMIX_LOAD))
                     {
-//                        // From 4.0.3 Position was moved from ChordLeadSheet module to Harmony module
+//                        // From 4.1.0 Position was moved from ChordLeadSheet module to Harmony module
 //                        xstream.alias("org.jjazz.chordleadsheet.api.item.Position$SerializationProxy", Position.SerializationProxy.class);
 //                        // At some point the "leadsheet" part was dropped in the package name
 //                        xstream.alias("org.jjazz.leadsheet.chordleadsheet.api.item.Position$SerializationProxy", Position.SerializationProxy.class);
                     }
 
-                    // From 4.0.3 new aliases to get rid of fully qualified class names in .sng files                    
+                    // From 4.1.0 new aliases to get rid of fully qualified class names in .sng files                    
                     xstream.alias("GSInstrument", GSInstrument.class);
                     xstream.alias("GSInstrumentSP", SerializationProxy.class);
                     xstream.useAttributeFor(SerializationProxy.class, "spVERSION");

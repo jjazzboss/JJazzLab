@@ -22,6 +22,7 @@
  */
 package org.jjazz.yamjjazz;
 
+import org.jjazz.yamjjazz.rhythm.api.Style;
 import java.util.logging.Logger;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.harmony.api.TimeSignature;

@@ -391,7 +391,7 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
             {
                 case SONG_LOAD, SONG_SAVE ->
                 {
-                    // From 4.0.3 new aliases to get rid of fully qualified class names in .sng files
+                    // From 4.1.0 new aliases to get rid of fully qualified class names in .sng files
                     xstream.alias("ExtChordSymbol", ExtChordSymbol.class);
                     xstream.alias("ExtChordSymbolSP", SerializationProxy.class);
                     xstream.useAttributeFor(SerializationProxy.class, "spName");
@@ -429,7 +429,7 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
      * Serialization proxy.
      * <p>  
      * spVERSION 2 changes some saved fields, see below.<br>
-     * spVERSION 3 (JJazzLab 4.0.3) introduces several aliases to get rid of hard-coded qualified class names (XStreamConfig class introduction).
+     * spVERSION 3 (JJazzLab 4.1.0) introduces several aliases to get rid of hard-coded qualified class names (XStreamConfig class introduction).
      */
     private static class SerializationProxy implements Serializable
     {

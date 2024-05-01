@@ -22,6 +22,7 @@
  */
 package org.jjazz.yamjjazz.rhythm;
 
+import org.jjazz.yamjjazz.rhythm.api.YamJJazzRhythm;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;

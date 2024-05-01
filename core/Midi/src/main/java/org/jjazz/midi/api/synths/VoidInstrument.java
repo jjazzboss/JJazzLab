@@ -117,7 +117,7 @@ public class VoidInstrument extends GM1Instrument implements Serializable
 
                 case MIDIMIX_LOAD, MIDIMIX_SAVE ->
                 {
-                    // From 4.0.3 new aliases to get rid of fully qualified class names in .sng files                    
+                    // From 4.1.0 new aliases to get rid of fully qualified class names in .sng files                    
                     xstream.alias("VoidInstrument", VoidInstrument.class);
                     xstream.alias("VoidInstrumentSP", SerializationProxy.class);
                     xstream.useAttributeFor(SerializationProxy.class, "spVERSION");

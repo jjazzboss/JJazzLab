@@ -43,12 +43,12 @@ import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmdatabase.api.RhythmInfo;
 import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
-import org.jjazz.yamjjazz.AccType;
-import org.jjazz.yamjjazz.CtabChannelSettings;
-import org.jjazz.yamjjazz.Style;
-import org.jjazz.yamjjazz.StylePart;
-import org.jjazz.yamjjazz.StylePartType;
-import org.jjazz.yamjjazz.rhythm.YamJJazzRhythm;
+import org.jjazz.yamjjazz.rhythm.api.AccType;
+import org.jjazz.yamjjazz.rhythm.api.CtabChannelSettings;
+import org.jjazz.yamjjazz.rhythm.api.Style;
+import org.jjazz.yamjjazz.rhythm.api.StylePart;
+import org.jjazz.yamjjazz.rhythm.api.StylePartType;
+import org.jjazz.yamjjazz.rhythm.api.YamJJazzRhythm;
 
 /**
  * Generate the Midi sequence which will be dumped as a .yjz file.

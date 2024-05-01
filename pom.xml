@@ -7,16 +7,18 @@
     <packaging>pom</packaging>
     <name>JJazzLab Parent</name>
     
-            
-    <url>https://github.com/jjazzboss/jjazzlab</url>
+    <!-- project meta-data  -->
+    <url>https://github.com/jjazzboss/JJazzLab</url>
+    <description>JJazzLab parent project</description>
+    <organization>
+        <url>https://www.jjazzlab.org</url>
+    </organization>   
     <licenses>
         <license>
             <name>GNU LESSER GENERAL PUBLIC LICENSE Version 2.1</name>
             <url>https://www.gnu.org/licenses/lgpl-2.1.en.html#license-text</url>
         </license>
-    </licenses>
-    
-    
+    </licenses>      
     <developers>
         <developer>
             <id>jlelasseux</id>
@@ -30,7 +32,12 @@
             <email>jl@jjazzlab.org</email>
             <timezone>Europe/Paris</timezone>
         </developer>
-    </developers>       
+    </developers>    
+    <scm>
+        <connection>scm:git:git://github.com/jjazzboss/JJazzLab.git</connection>
+        <developerConnection>scm:git:git@github.com:jjazzboss/JJazzLab.git</developerConnection>
+        <url>https://github.com/jjazzboss/JJazzLab</url>
+    </scm>          
     
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>         
@@ -122,6 +129,20 @@
                         <doclint>none</doclint>
                     </configuration>
                 </plugin>    
+                <plugin>
+                    <groupId>org.sonatype.central</groupId>
+                    <artifactId>central-publishing-maven-plugin</artifactId>
+                    <version>0.4.0</version>        
+                </plugin>            
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-release-plugin</artifactId>
+                    <version>3.0.1</version>
+                    <configuration>
+                        <autoVersionSubmodules>true</autoVersionSubmodules>
+                        <tagNameFormat>v@{project.version}</tagNameFormat>                        
+                    </configuration>
+                </plugin>                      
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-dependency-plugin</artifactId>

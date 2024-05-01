@@ -134,7 +134,7 @@ public class NCExtChordSymbol extends ExtChordSymbol implements Serializable
             {
                 case SONG_LOAD, SONG_SAVE ->
                 {
-                    // From 4.0.3 new aliases to get rid of fully qualified class names in .sng files                    
+                    // From 4.1.0 new aliases to get rid of fully qualified class names in .sng files                    
                     xstream.alias("NCExtChordSymbol", NCExtChordSymbol.class);
                     xstream.alias("NCExtChordSymbolSP", SerializationProxy.class);
                     xstream.useAttributeFor(SerializationProxy.class, "spVERSION");

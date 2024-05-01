@@ -22,6 +22,7 @@
  */
 package org.jjazz.yamjjazz.rhythm;
 
+import org.jjazz.yamjjazz.rhythm.api.YamJJazzRhythm;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -71,24 +72,24 @@ import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.rhythmmusicgeneration.api.SongChordSequence.SplitResult;
 import org.jjazz.song.api.SongFactory;
 import org.openide.util.Exceptions;
-import org.jjazz.yamjjazz.AccType;
-import org.jjazz.yamjjazz.CtabChannelSettings;
-import org.jjazz.yamjjazz.StylePart;
-import org.jjazz.yamjjazz.StylePartType;
+import org.jjazz.yamjjazz.rhythm.api.AccType;
+import org.jjazz.yamjjazz.rhythm.api.CtabChannelSettings;
+import org.jjazz.yamjjazz.rhythm.api.StylePart;
+import org.jjazz.yamjjazz.rhythm.api.StylePartType;
 import org.jjazz.yamjjazz.YamChord;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.utilities.api.FloatRange;
 import org.jjazz.utilities.api.IntRange;
-import org.jjazz.yamjjazz.Ctb2ChannelSettings;
-import org.jjazz.yamjjazz.Ctb2ChannelSettings.NoteTranspositionRule;
-import org.jjazz.yamjjazz.Ctb2ChannelSettings.NoteTranspositionTable;
-import static org.jjazz.yamjjazz.Ctb2ChannelSettings.RetriggerRule.NOTE_GENERATOR;
-import static org.jjazz.yamjjazz.Ctb2ChannelSettings.RetriggerRule.PITCH_SHIFT;
-import static org.jjazz.yamjjazz.Ctb2ChannelSettings.RetriggerRule.PITCH_SHIFT_TO_ROOT;
-import static org.jjazz.yamjjazz.Ctb2ChannelSettings.RetriggerRule.RETRIGGER;
-import static org.jjazz.yamjjazz.Ctb2ChannelSettings.RetriggerRule.RETRIGGER_TO_ROOT;
-import static org.jjazz.yamjjazz.Ctb2ChannelSettings.RetriggerRule.STOP;
+import org.jjazz.yamjjazz.rhythm.api.Ctb2ChannelSettings;
+import org.jjazz.yamjjazz.rhythm.api.Ctb2ChannelSettings.NoteTranspositionRule;
+import org.jjazz.yamjjazz.rhythm.api.Ctb2ChannelSettings.NoteTranspositionTable;
+import static org.jjazz.yamjjazz.rhythm.api.Ctb2ChannelSettings.RetriggerRule.NOTE_GENERATOR;
+import static org.jjazz.yamjjazz.rhythm.api.Ctb2ChannelSettings.RetriggerRule.PITCH_SHIFT;
+import static org.jjazz.yamjjazz.rhythm.api.Ctb2ChannelSettings.RetriggerRule.PITCH_SHIFT_TO_ROOT;
+import static org.jjazz.yamjjazz.rhythm.api.Ctb2ChannelSettings.RetriggerRule.RETRIGGER;
+import static org.jjazz.yamjjazz.rhythm.api.Ctb2ChannelSettings.RetriggerRule.RETRIGGER_TO_ROOT;
+import static org.jjazz.yamjjazz.rhythm.api.Ctb2ChannelSettings.RetriggerRule.STOP;
 
 /**
  * Use YamJJazz style tracks to render music.

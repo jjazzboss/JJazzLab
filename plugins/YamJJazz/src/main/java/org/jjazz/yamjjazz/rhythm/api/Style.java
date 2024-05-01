@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.yamjjazz;
+package org.jjazz.yamjjazz.rhythm.api;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -39,6 +39,12 @@ import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.parser.MidiParser;
 import org.jjazz.rhythm.api.Feel;
+import org.jjazz.yamjjazz.CASMDataReader;
+import org.jjazz.yamjjazz.FormatNotSupportedException;
+import org.jjazz.yamjjazz.MPL_ExtensionFile;
+import org.jjazz.yamjjazz.MPL_MiscData;
+import org.jjazz.yamjjazz.MPL_MusicData;
+import org.jjazz.yamjjazz.MPL_SInt;
 
 /**
  * Store all the data of a Yamaha style.

@@ -34,10 +34,10 @@ import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.util.NbBundle;
-import org.jjazz.yamjjazz.Style;
-import org.jjazz.yamjjazz.rhythm.YamJJazzRhythm;
+import org.jjazz.yamjjazz.rhythm.api.Style;
+import org.jjazz.yamjjazz.rhythm.api.YamJJazzRhythm;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.yamjjazz.StylePart;
+import org.jjazz.yamjjazz.rhythm.api.StylePart;
 
 //@ActionID(category = "Test", id = "org.jjazz.test.dumpyamaharhythmphrases")
 //@ActionRegistration(displayName = "#CTL_DumpYamahaRhythmPhrases", lazy = true)

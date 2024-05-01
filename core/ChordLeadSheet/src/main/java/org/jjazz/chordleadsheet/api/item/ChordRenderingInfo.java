@@ -415,7 +415,7 @@ public class ChordRenderingInfo implements Serializable
             {
                 case SONG_LOAD, SONG_SAVE ->
                 {
-                    // From 4.0.3 new aliases to get rid of fully qualified class names in .sng files
+                    // From 4.1.0 new aliases to get rid of fully qualified class names in .sng files
                     xstream.alias("ChordRenderingInfo", ChordRenderingInfo.class);
                     xstream.alias("ChordRenderingInfoSP", SerializationProxy.class);
                     xstream.alias("Feature", Feature.class);                                        
@@ -452,7 +452,7 @@ public class ChordRenderingInfo implements Serializable
      * Serialization proxy.
      * <p>
      * spVERSION 2 changes some saved fields, see below.<br>
-     * spVERSION 3 (JJazzLab 4.0.3) introduces several aliases to get rid of hard-coded qualified class names (XStreamConfig class introduction).
+     * spVERSION 3 (JJazzLab 4.1.0) introduces several aliases to get rid of hard-coded qualified class names (XStreamConfig class introduction).
      */
     private static class SerializationProxy implements Serializable
     {

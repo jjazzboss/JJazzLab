@@ -220,7 +220,7 @@ public class StandardScaleInstance implements Serializable
                     }
 
 
-                    // From 4.0.3 new aliases to get rid of fully qualified class names in .sng files          
+                    // From 4.1.0 new aliases to get rid of fully qualified class names in .sng files          
                     xstream.alias("StdScaleInstance", StandardScaleInstance.class);
                     xstream.alias("StdScaleInstanceSP", SerializationProxy.class);
                     xstream.useAttributeFor(SerializationProxy.class, "spVERSION");

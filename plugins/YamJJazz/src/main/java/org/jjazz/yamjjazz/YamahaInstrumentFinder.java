@@ -22,6 +22,7 @@
  */
 package org.jjazz.yamjjazz;
 
+import org.jjazz.yamjjazz.rhythm.api.AccType;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;

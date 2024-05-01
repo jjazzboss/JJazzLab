@@ -33,6 +33,13 @@ public interface EmbeddedSynth
 {
 
     /**
+     * Give the possibility to configure the synth before being opened.
+     * 
+     * @param config An implementation-specific configuration object, eg a SoundFont file for a SoundFont-based synth.
+     */
+    void configure(Object config);
+
+    /**
      * Initialize the synth (load resources...).
      *
      * @throws org.jjazz.embeddedsynth.api.EmbeddedSynthException
@@ -43,7 +50,7 @@ public interface EmbeddedSynth
      * Release the resources of the synth.
      */
     void close();
-    
+
     boolean isOpen();
 
     String getName();

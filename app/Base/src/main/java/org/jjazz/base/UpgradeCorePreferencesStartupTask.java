@@ -79,9 +79,9 @@ public class UpgradeCorePreferencesStartupTask implements UpgradeTask
 
         // FlatComponentsGlobalSettings
         prefs = NbPreferences.forModule(FlatComponentsGlobalSettings.class);
-        if (oldVersion.compareTo("4.0.3") < 0)
+        if (oldVersion.compareTo("4.1.0") < 0)
         {
-            // Before 4.0.3, this setting was in module uisettings
+            // Before 4.1.0, this setting was in module uisettings
             String adaptedRelPath = um.adaptPropertiesFileRelativePath("org/jjazzlab/uisettings.properties");
             um.duplicateOldPreferences(prefs, adaptedRelPath);
         } else

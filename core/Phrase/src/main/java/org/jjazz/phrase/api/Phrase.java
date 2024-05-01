@@ -1406,7 +1406,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
             {
                 case SONG_LOAD, SONG_SAVE ->
                 {
-                    // From 4.0.3 new aliases to get rid of fully qualified class names in .sng files
+                    // From 4.1.0 new aliases to get rid of fully qualified class names in .sng files
                     xstream.alias("Phrase", Phrase.class);
                     xstream.alias("PhraseSP", SerializationProxy.class);
                     xstream.useAttributeFor(SerializationProxy.class, "spVERSION");

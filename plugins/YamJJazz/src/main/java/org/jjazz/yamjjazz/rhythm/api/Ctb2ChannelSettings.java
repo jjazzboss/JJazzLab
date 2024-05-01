@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.yamjjazz;
+package org.jjazz.yamjjazz.rhythm.api;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;

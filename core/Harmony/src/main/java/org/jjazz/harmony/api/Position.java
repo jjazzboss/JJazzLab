@@ -610,14 +610,14 @@ public final class Position implements Comparable<Position>, Serializable
                 {
                     if (instanceId.equals(SONG_LOAD))
                     {
-                        // From 4.0.3 Position was moved from ChordLeadSheet module to Harmony module
+                        // From 4.1.0 Position was moved from ChordLeadSheet module to Harmony module
                         xstream.alias("org.jjazz.chordleadsheet.api.item.Position$SerializationProxy", SerializationProxy.class);
                         // At some point the "leadsheet" part was dropped in the package name
                         xstream.alias("org.jjazz.leadsheet.chordleadsheet.api.item.Position$SerializationProxy", SerializationProxy.class);
                     }
 
 
-                    // From 4.0.3 new aliases to get rid of fully qualified class names in .sng files          
+                    // From 4.1.0 new aliases to get rid of fully qualified class names in .sng files          
                     xstream.alias("Position", Position.class);
                     xstream.alias("PositionSP", SerializationProxy.class);
                     xstream.useAttributeFor(SerializationProxy.class, "spVERSION");
@@ -652,7 +652,7 @@ public final class Position implements Comparable<Position>, Serializable
     /**
      * Serialization proxy
      * <p>
-     * spVERSION 2 (JJazzLab 4.0.3) introduces aliases to get rid of hard-coded qualified class names (XStreamConfig class introduction).<br>
+     * spVERSION 2 (JJazzLab 4.1.0) introduces aliases to get rid of hard-coded qualified class names (XStreamConfig class introduction).<br>
      */
     private static class SerializationProxy implements Serializable
     {

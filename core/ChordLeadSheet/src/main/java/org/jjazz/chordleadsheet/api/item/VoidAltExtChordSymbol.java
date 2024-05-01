@@ -92,7 +92,7 @@ public class VoidAltExtChordSymbol extends AltExtChordSymbol implements Serializ
             {
                 case SONG_LOAD, SONG_SAVE ->
                 {
-                    // From 4.0.3 new aliases to get rid of fully qualified class names in .sng files                    
+                    // From 4.1.0 new aliases to get rid of fully qualified class names in .sng files                    
                     xstream.alias("VoidAltExtChordSymbol", VoidAltExtChordSymbol.class);
                     xstream.alias("VoidAltExtChordSymbolSP", SerializationProxy.class);
                     xstream.useAttributeFor(SerializationProxy.class, "spName");

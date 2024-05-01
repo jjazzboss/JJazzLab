@@ -114,7 +114,7 @@ public class GM1Instrument extends Instrument implements Serializable
 
                 case MIDIMIX_LOAD, MIDIMIX_SAVE ->
                 {
-                    // From 4.0.3 new aliases to get rid of fully qualified class names in .sng files                    
+                    // From 4.1.0 new aliases to get rid of fully qualified class names in .sng files                    
                     xstream.alias("GM1Instrument", GM1Instrument.class);
                     xstream.alias("InstrumentSP", SerializationProxy.class);
                     xstream.useAttributeFor(SerializationProxy.class, "spVERSION");

@@ -406,7 +406,7 @@ public class Utilities
      * If filename has no path extension just add ext.
      *
      * @param filename
-     * @param ext      A string without spaces in it. If ext does not start with "." it will be added. If "" extension is removed.
+     * @param ext      A string without spaces in it. If ext does not start with "." it will be added. If ext is empty then extension is removed.
      * @return The new filename with extension replaced.
      */
     public static String replaceExtension(String filename, String ext)

@@ -35,7 +35,7 @@ import org.jjazz.harmony.spi.ChordTypeDatabase;
  */
 public class YamChord
 {
-    private String name;
+    private final String name;
     static public final ArrayList<YamChord> ALL_CHORDS = new ArrayList<>();
     static private final HashMap<String, YamChord> mapAliasYamChord = new HashMap<>();
 

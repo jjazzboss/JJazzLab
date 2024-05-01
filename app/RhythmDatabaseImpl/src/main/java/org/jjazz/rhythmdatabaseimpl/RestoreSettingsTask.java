@@ -53,7 +53,7 @@ public class RestoreSettingsTask implements UpgradeTask
         {
             // 3.x had a different package name            
             um.duplicateOldPreferences(prefs, "org/jjazz/rhythm/database.properties");
-        } else if (oldVersion.compareTo("4.0.3") < 0)
+        } else if (oldVersion.compareTo("4.1.0") < 0)
         {
             // 4.0.1 and 4.0.2 had a different package name
             um.duplicateOldPreferences(prefs, "org/jjazzlab/org/jjazz/rhythmdatabase.properties");

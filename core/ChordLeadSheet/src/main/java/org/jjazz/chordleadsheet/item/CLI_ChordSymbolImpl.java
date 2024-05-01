@@ -290,7 +290,7 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
             {
                 case SONG_LOAD, SONG_SAVE ->
                 {
-                    // From 4.0.3 new aliases to get rid of fully qualified class names in .sng files
+                    // From 4.1.0 new aliases to get rid of fully qualified class names in .sng files
                     xstream.alias("CLI_ChordSymbolImpl", CLI_ChordSymbolImpl.class);
                     xstream.alias("CLI_ChordSymbolSP", CLI_ChordSymbolImpl.SerializationProxy.class);
 
@@ -326,7 +326,7 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
      * Serialization proxy.
      * <p>
      * spVERSION 2 changes some saved fields, see below.<br>
-     * spVERSION 3 (JJazzLab 4.0.3) introduces several aliases to get rid of hard-coded qualified class names (XStreamConfig class introduction).
+     * spVERSION 3 (JJazzLab 4.1.0) introduces several aliases to get rid of hard-coded qualified class names (XStreamConfig class introduction).
      */
     private static class SerializationProxy implements Serializable
     {

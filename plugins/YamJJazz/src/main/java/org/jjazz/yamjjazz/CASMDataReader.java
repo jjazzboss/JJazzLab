@@ -22,6 +22,12 @@
  */
 package org.jjazz.yamjjazz;
 
+import org.jjazz.yamjjazz.rhythm.api.Ctb2ChannelSettings;
+import org.jjazz.yamjjazz.rhythm.api.AccType;
+import org.jjazz.yamjjazz.rhythm.api.Style;
+import org.jjazz.yamjjazz.rhythm.api.CtabChannelSettings;
+import org.jjazz.yamjjazz.rhythm.api.StylePartType;
+import org.jjazz.yamjjazz.rhythm.api.StylePart;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
@@ -35,8 +41,8 @@ import java.util.logging.Logger;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.utilities.api.Utilities;
-import org.jjazz.yamjjazz.Ctb2ChannelSettings.NoteTranspositionRule;
-import org.jjazz.yamjjazz.Ctb2ChannelSettings.NoteTranspositionTable;
+import org.jjazz.yamjjazz.rhythm.api.Ctb2ChannelSettings.NoteTranspositionRule;
+import org.jjazz.yamjjazz.rhythm.api.Ctb2ChannelSettings.NoteTranspositionTable;
 
 /**
  * Read CASM data of a Yamaha style file.

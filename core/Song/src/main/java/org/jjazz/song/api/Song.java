@@ -1188,7 +1188,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
      * Serialization proxy.
      * <p>
      * spVERSION 2 and 3 changes saved fields, see below.<br>
-     * spVERSION 4 (JJazzLab 4.0.3) introduces several aliases to get rid of hard-coded qualified class names (XStreamConfig class introduction)
+     * spVERSION 4 (JJazzLab 4.1.0) introduces several aliases to get rid of hard-coded qualified class names (XStreamConfig class introduction)
      */
     private static class SerializationProxy implements Serializable
     {

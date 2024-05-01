@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.yamjjazz;
+package org.jjazz.yamjjazz.rhythm.api;
 
 import org.jjazz.harmony.api.Degree;
 import org.jjazz.midi.api.synths.GM1Instrument;

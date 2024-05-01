@@ -20,8 +20,9 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.yamjjazz.rhythm;
+package org.jjazz.yamjjazz.rhythm.api;
 
+import org.jjazz.yamjjazz.rhythm.api.YamJJazzRhythm;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -39,48 +40,48 @@ import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythm.spi.RhythmProvider;
 import org.jjazz.utilities.api.MultipleErrorsReport;
-import static org.jjazz.rhythm.spi.RhythmProvider.PREFIX_IGNORED_SUBDIR;
-import static org.jjazz.rhythm.spi.RhythmProvider.SUBDIR_MAX_DEPTH;
 import org.jjazz.utilities.api.ExtensionFileFilter;
 import org.jjazz.utilities.api.Utilities;
 import org.openide.util.lookup.ServiceProvider;
 import org.jjazz.yamjjazz.FormatNotSupportedException;
 import org.jjazz.rhythm.spi.RhythmDirsLocator;
+import org.jjazz.yamjjazz.rhythm.YamJJazzAdaptedRhythmImpl;
+import org.jjazz.yamjjazz.rhythm.YamJJazzRhythmImpl;
 import org.netbeans.api.annotations.common.StaticResource;
 
+
 /**
- * A provider of standard Yamaha style rhythms.
+ * A provider of YamJJazz rhythms.
  */
 @ServiceProvider(service = RhythmProvider.class)
-public class YamahaRhythmProvider implements RhythmProvider
+public class YamJJazzRhythmProvider implements RhythmProvider
 {
 
-    public static final String RP_ID = "YamahaRhythmProviderID";
-    private static final String DEFAULT_FILES_SUBDIR = "Yamaha";    
-    @StaticResource(relative = true)
-    private static final String DEFAULT_FILES_RESOURCE_ZIP = "resources/YamahaDefaultFiles.zip";
-
-    public static final String[] FILE_EXTENSIONS = new String[]
-    {
-        "sty", "prs", "bcs", "sst"
-    };
+    public static final String RP_ID = "YamJJazzRhythmProviderID";
+    public static final String FILE_EXTENSION = "yjz";
+    private static final String DEFAULT_FILES_SUBDIR = "YamJJazz";
+    @StaticResource(relative=true)
+    private static final String DEFAULT_FILES_RESOURCE_ZIP = "resources/YamJJazzDefaultFiles.zip";
     private List<Rhythm> fileRhythms;
     private final Info info;
     private final ExtensionFileFilter fileFilter;
-    private static final Logger LOGGER = Logger.getLogger(YamahaRhythmProvider.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(YamJJazzRhythmProvider.class.getSimpleName());
 
-    public YamahaRhythmProvider()
+    
+    
+    public YamJJazzRhythmProvider()
     {
-        info = new Info(RP_ID, "YamJJazz standard styles", "YamJJazz rhythm provider (.prs, .sty, .sst, .bcs)", "JL", "1");
-
-        // Add the .yjz to be able to spot the
+        info = new Info(RP_ID, "YamJJazz extended styles", "YamJJazz rhythm provider (." + FILE_EXTENSION + ")", "JL", "1");
         fileFilter = new ExtensionFileFilter(getSupportedFileExtensions());
     }
 
     @Override
     public final String[] getSupportedFileExtensions()
     {
-        return FILE_EXTENSIONS;
+        return new String[]
+        {
+            FILE_EXTENSION
+        };
     }
 
     @Override
@@ -92,7 +93,7 @@ public class YamahaRhythmProvider implements RhythmProvider
     @Override
     public void showUserSettingsDialog()
     {
-        // nothing
+        // Nothing
     }
 
     @Override
@@ -139,7 +140,7 @@ public class YamahaRhythmProvider implements RhythmProvider
         }
 
 
-        // Check user rhythm dir is available
+        // Get the list of user rhythm files
         File rDir = RhythmDirsLocator.getDefault().getUserRhythmsDirectory();
         if (!rDir.isDirectory())
         {
@@ -150,16 +151,8 @@ public class YamahaRhythmProvider implements RhythmProvider
             });
             return fileRhythms;
         }
-
-
-        // Collect all the user-provided rhythm files (including .yjz files to be able to exclude base styles)
-        ExtensionFileFilter specialFilter = new ExtensionFileFilter(YamJJazzRhythmProvider.FILE_EXTENSION, getSupportedFileExtensions());
-        HashSet<Path> userRhythmPaths = Utilities.listFiles(rDir, specialFilter, PREFIX_IGNORED_SUBDIR, SUBDIR_MAX_DEPTH);
+        HashSet<Path> userRhythmPaths = Utilities.listFiles(rDir, fileFilter, PREFIX_IGNORED_SUBDIR, SUBDIR_MAX_DEPTH);
         LOGGER.log(Level.FINE, "getFileRhythms()   userRhythmPaths={0}", userRhythmPaths);
-
-
-        // Don't add it it's the style is just a base style of a .yjz file
-        removeYjzAndTheirBaseStyles(userRhythmPaths);
 
 
         // Read the user rhythm files
@@ -178,44 +171,54 @@ public class YamahaRhythmProvider implements RhythmProvider
             fileRhythms.add(r);
         }
 
+
         if (!errRpt.individualErrorMessages.isEmpty())
         {
             errRpt.primaryErrorMessage = errRpt.individualErrorMessages.size() + " rhythm files could not be read.";
-            errRpt.secondaryErrorMessage = "Rhythm Provider: YamJJazz";
+            errRpt.secondaryErrorMessage = "Rhythm Provider: YamJJazz Extended";
         }
+
 
         return new ArrayList<>(fileRhythms);
     }
 
     /**
-     * Quickly read a file only to get enough information to build a minimal Rhythm object.
-     * <p>
+     * Read extFile plus the content of the associated Yamaha standard file .sty or .prs.
      *
-     * @param stdFile
-     * @return
+     * @param extFile The extension file (.yjz)
+     * @return Can't be null
+     * @throws IOException In case of file reading problem
      */
     @Override
-    public Rhythm readFast(File stdFile) throws IOException
+    public Rhythm readFast(File extFile) throws IOException
     {
-        LOGGER.log(Level.INFO, "readFast() Reading {0}", stdFile.getAbsolutePath());
-
-        if (!stdFile.exists())
+        if (!extFile.exists())
         {
-            throw new IOException("File " + stdFile.getAbsolutePath() + " not found.");
-        }
-        String ext = Utilities.getExtension(stdFile.getName()).toLowerCase();
-        if (!Arrays.asList(FILE_EXTENSIONS).contains(ext))
+            throw new IOException("File " + extFile.getAbsolutePath() + " not found.");
+        } else if (!extFile.getName().toLowerCase().endsWith(FILE_EXTENSION))
         {
-            throw new IOException("Invalid file extension " + stdFile.getAbsolutePath());
+            throw new IOException("Invalid file extension for file: " + extFile);
         }
 
+
+        // Search the associated standard style file
+        File baseFile = findBaseStyleFile(extFile);     // throws IOException if not found
+
+
+        LOGGER.log(Level.INFO, "readFast() Reading {0} and {1}", new Object[]
+        {
+            extFile.getAbsolutePath(), baseFile.getName()
+        });
+
+        // Create an empty style and fill it with non music data (create StyleParts)      
         Rhythm r = null;
         try
         {
-            r = new YamJJazzRhythmImpl(stdFile);  // Don't call loadResources() to save memory and gain some time
+            r = new YamJJazzRhythmImpl(baseFile, extFile);           // don't call loadResources() to save time & memory
         } catch (IOException | InvalidMidiDataException | FormatNotSupportedException ex)
         {
-            throw new IOException("Problem reading file " + stdFile.getAbsolutePath() + ". Ex=" + ex.getLocalizedMessage());
+            throw new IOException(
+                    "Problem reading files baseFile=" + baseFile.getAbsolutePath() + ", extFile=" + extFile.getAbsolutePath() + ". Ex=" + ex.getLocalizedMessage());
         }
         return r;
     }
@@ -237,6 +240,8 @@ public class YamahaRhythmProvider implements RhythmProvider
     // -------------------------------------------------------------------------------------------------
     // Private methods
     // -------------------------------------------------------------------------------------------------
+
+
     /**
      * Get the list of rhythm files (matching getFilenameFile()) present in the directory for default rhythm files.
      * <p>
@@ -290,27 +295,20 @@ public class YamahaRhythmProvider implements RhythmProvider
     }
 
 
-    private void removeYjzAndTheirBaseStyles(HashSet<Path> stylePaths)
+    private File findBaseStyleFile(File extFile) throws IOException
     {
-        // Get all .yjz files
-        var yjzPaths = stylePaths.stream()
-                .filter(p -> p.toString().toLowerCase().endsWith(YamJJazzRhythmProvider.FILE_EXTENSION))
-                .toList();
-
-
-        // Remove all .yjz files and remove all possible corresponding base styles
-        for (Path yjzPath : yjzPaths)
+        for (String ext : YamahaRhythmProvider.FILE_EXTENSIONS)
         {
-            stylePaths.remove(yjzPath);
-
-            Path parent = yjzPath.getParent();
-            String yjzFilenameNoExt = Utilities.replaceExtension(yjzPath.getFileName().toString(), "");
-            for (String ext : FILE_EXTENSIONS)
+            String stdFilename = Utilities.replaceExtension(extFile.getAbsolutePath(), ext);
+            File stdFile = new File(stdFilename);
+            if (stdFile.exists())
             {
-                Path baseFilePath = parent.resolve(yjzFilenameNoExt + "." + ext);
-                stylePaths.remove(baseFilePath);
+                return stdFile;
             }
         }
+
+        // No base style found
+        throw new IOException("Base style file (.sty/.prs/.sst/.bcs) not found for extension style file: " + extFile.getAbsolutePath());
     }
 
 }

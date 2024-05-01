@@ -449,7 +449,7 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
             {
                 case SONG_LOAD, SONG_SAVE ->
                 {
-                    // From 4.0.3 new aliases to get rid of fully qualified class names in .sng files
+                    // From 4.1.0 new aliases to get rid of fully qualified class names in .sng files
                     xstream.alias("SongPartImpl", SongPartImpl.class);
                     xstream.alias("SongPartImplSP", SerializationProxy.class);
                     xstream.useAttributeFor(SerializationProxy.class, "spName");
@@ -493,7 +493,7 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
      * Can not save RhythmParameters instances: they will change because the Rhythm are not serialized but recreated from the local database.
      * <p>
      * spVERSION 2 changes saved fields.<br>
-     * spVERSION 3 (JJazzLab 4.0.3) introduces several aliases to get rid of hard-coded full class names (XStreamConfig class introduction), discards the
+     * spVERSION 3 (JJazzLab 4.1.0) introduces several aliases to get rid of hard-coded full class names (XStreamConfig class introduction), discards the
      * spMapRpIdDisplayName and spMapRpIdPercentageValue maps, replace legacy SmallMap by HashMap<br>
      * <p>
      */

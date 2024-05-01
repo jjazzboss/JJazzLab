@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.yamjjazz.rhythm;
+package org.jjazz.yamjjazz.rhythm.api;
 
 import java.util.HashMap;
 import org.jjazz.rhythm.api.Beat;

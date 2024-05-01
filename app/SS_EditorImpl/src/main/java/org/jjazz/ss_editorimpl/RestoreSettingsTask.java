@@ -49,7 +49,7 @@ public class RestoreSettingsTask implements UpgradeTask
         {
             // 3.x had a different package name            
             um.duplicateOldPreferences(NbPreferences.forModule(getClass()), "org/jjazz/ui/ss_editor.properties");
-        } else if (oldVersion.compareTo("4.0.3") < 0)
+        } else if (oldVersion.compareTo("4.1.0") < 0)
         {
             // 4.0.1 and 4.02 had a different package name                        
             um.duplicateOldPreferences(NbPreferences.forModule(getClass()), "org/jjazzlab/org/jjazz/ss_editor.properties");

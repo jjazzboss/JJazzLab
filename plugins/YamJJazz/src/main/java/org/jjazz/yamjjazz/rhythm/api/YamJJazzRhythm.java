@@ -20,13 +20,10 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.yamjjazz.rhythm;
+package org.jjazz.yamjjazz.rhythm.api;
 
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
-import org.jjazz.yamjjazz.AccType;
-import org.jjazz.yamjjazz.Style;
-import org.jjazz.yamjjazz.StylePart;
 
 /**
  * Our Rhythm interface extension.

@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.yamjjazz;
+package org.jjazz.yamjjazz.rhythm.api;
 
 /**
  * The possible types of a StylePart, eg "Main_A", "Intro_A", etc.

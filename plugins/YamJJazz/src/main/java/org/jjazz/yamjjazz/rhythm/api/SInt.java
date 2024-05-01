@@ -20,8 +20,9 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.yamjjazz;
+package org.jjazz.yamjjazz.rhythm.api;
 
+import org.jjazz.yamjjazz.rhythm.api.AccType;
 import java.util.HashMap;
 import org.jjazz.midi.api.InstrumentMix;
 import org.jjazz.midi.api.MidiAddress;

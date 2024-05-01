@@ -22,6 +22,7 @@
  */
 package org.jjazz.yamjjazz.rhythm;
 
+import org.jjazz.yamjjazz.rhythm.api.YamJJazzRhythm;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.util.ArrayList;
@@ -55,11 +56,11 @@ import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_TempoFactor;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.utilities.api.ResUtil;
-import org.jjazz.yamjjazz.AccType;
-import org.jjazz.yamjjazz.CtabChannelSettings;
-import org.jjazz.yamjjazz.Style;
-import org.jjazz.yamjjazz.StylePart;
-import org.jjazz.yamjjazz.StylePartType;
+import org.jjazz.yamjjazz.rhythm.api.AccType;
+import org.jjazz.yamjjazz.rhythm.api.CtabChannelSettings;
+import org.jjazz.yamjjazz.rhythm.api.Style;
+import org.jjazz.yamjjazz.rhythm.api.StylePart;
+import org.jjazz.yamjjazz.rhythm.api.StylePartType;
 
 /**
  * A time signature adapter rhythm for our YamJJazz rhythms.

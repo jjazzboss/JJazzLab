@@ -2240,7 +2240,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
                         xstream.aliasPackage("org.jjazz.midimix", "org.jjazz.midimix.api");
                     }
 
-                    // From 4.0.3 new aliases to get rid of fully qualified class names in .sng files
+                    // From 4.1.0 new aliases to get rid of fully qualified class names in .sng files
                     xstream.alias("MidiMix", MidiMix.class);
                     xstream.alias("MidiMixSP", MidiMix.SerializationProxy.class);
                     xstream.alias("RvStorage", MidiMix.SerializationProxy.RvStorage.class);
@@ -2275,7 +2275,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      * <p>
      * MidiMix is saved with Drums rerouting disabled and all solo status OFF, but all Mute status are saved.<p>
      * spVERSION 2 changes saved fields see below<br>
-     * spVERSION 3 (JJazzLab 4.0.3) introduces aliases to get rid of hard-coded qualified class names (XStreamConfig class introduction)
+     * spVERSION 3 (JJazzLab 4.1.0) introduces aliases to get rid of hard-coded qualified class names (XStreamConfig class introduction)
      */
     private static class SerializationProxy implements Serializable
     {

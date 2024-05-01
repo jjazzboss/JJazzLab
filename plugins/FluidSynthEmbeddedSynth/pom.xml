@@ -33,6 +33,45 @@
                     <extensions>true</extensions>
                 </configuration>
             </plugin>
+            
+            <!-- Make sure we don't embedd JJazzLab application dependencies -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>3.4.1</version>
+                <executions>
+                    <execution>
+                        <id>enforce-banned-dependencies</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <bannedDependencies>
+                                    <searchTransitive>true</searchTransitive>
+                                    <excludes>
+                                        <exclude>org.jjazzlab.app</exclude>
+                                    </excludes>   
+                                    <message>Found JJazzLab application modules in dependencies</message> 
+                                </bannedDependencies>
+                            </rules>
+                            <fail>true</fail>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>                      
+            
+            <plugin>
+                <groupId>org.sonatype.central</groupId>
+                <artifactId>central-publishing-maven-plugin</artifactId>
+                <extensions>true</extensions>
+                <configuration>
+                    <publishingServerId>central</publishingServerId>
+                    <tokenAuth>true</tokenAuth>
+                    <skipPublishing>true</skipPublishing>
+                </configuration>
+            </plugin>   
+                                  
         </plugins>
     </build>
     <dependencies>              
@@ -102,8 +141,5 @@
             <version>${netbeans.version}</version>  
         </dependency>
     </dependencies>
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
 </project>
 

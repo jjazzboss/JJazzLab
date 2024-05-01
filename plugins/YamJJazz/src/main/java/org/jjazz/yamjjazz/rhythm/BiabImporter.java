@@ -22,6 +22,8 @@
  */
 package org.jjazz.yamjjazz.rhythm;
 
+import org.jjazz.yamjjazz.rhythm.api.YamahaRhythmProvider;
+import org.jjazz.yamjjazz.rhythm.api.YamJJazzRhythmProvider;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;

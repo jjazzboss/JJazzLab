@@ -1606,7 +1606,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable, Propert
                 case SONG_LOAD, SONG_SAVE ->
                 {
 
-                    // From 4.0.3 new aliases to get rid of fully qualified class names in .sng files
+                    // From 4.1.0 new aliases to get rid of fully qualified class names in .sng files
                     xstream.alias("ChordLeadSheetImpl", ChordLeadSheetImpl.class);
                     xstream.alias("ChordLeadSheetImplSP", SerializationProxy.class);
 
@@ -1641,7 +1641,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable, Propert
      * Need to restore each item's container.
      * <p>
      * Allow to be independent of future chordleadsheet internal data structure changes.<p>
-     * spVERSION 2 (JJazzLab 4.0.3) introduces several aliases to get rid of hard-coded qualified class names (XStreamConfig class introduction).<br>
+     * spVERSION 2 (JJazzLab 4.1.0) introduces several aliases to get rid of hard-coded qualified class names (XStreamConfig class introduction).<br>
      */
     private static class SerializationProxy implements Serializable
     {

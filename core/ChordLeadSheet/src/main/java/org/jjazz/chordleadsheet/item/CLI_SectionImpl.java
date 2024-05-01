@@ -290,7 +290,7 @@ public class CLI_SectionImpl implements CLI_Section, WritableItem<Section>, Seri
             {
                 case SONG_LOAD, SONG_SAVE ->
                 {
-                    // From 4.0.3 new aliases for better XML readibility
+                    // From 4.1.0 new aliases for better XML readibility
                     xstream.alias("CLI_SectionImpl", CLI_SectionImpl.class);
                     xstream.alias("CLI_SectionImplSP", SerializationProxy.class);
                     xstream.useAttributeFor(SerializationProxy.class, "spName");
@@ -330,7 +330,7 @@ public class CLI_SectionImpl implements CLI_Section, WritableItem<Section>, Seri
      * Serialization proxy.
      * <p>
      * spVERSION 2 changes saved fields, see below.<br>
-     * spVERSION 3 (JJazzLab 4.0.3) introduces several aliases to get rid of hard-coded qualified class names (XStreamConfig class introduction).
+     * spVERSION 3 (JJazzLab 4.1.0) introduces several aliases to get rid of hard-coded qualified class names (XStreamConfig class introduction).
      */
     private static class SerializationProxy implements Serializable
     {

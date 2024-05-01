@@ -22,6 +22,11 @@
  */
 package org.jjazz.yamjjazz;
 
+import org.jjazz.yamjjazz.rhythm.api.AccType;
+import org.jjazz.yamjjazz.rhythm.api.Style;
+import org.jjazz.yamjjazz.rhythm.api.CtabChannelSettings;
+import org.jjazz.yamjjazz.rhythm.api.StylePartType;
+import org.jjazz.yamjjazz.rhythm.api.StylePart;
 import org.jjazz.phrase.api.NoteEvent;
 import java.util.logging.Level;
 import java.util.logging.Logger;
