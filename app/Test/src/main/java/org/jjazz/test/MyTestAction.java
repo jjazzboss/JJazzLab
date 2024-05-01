@@ -75,7 +75,7 @@ public final class MyTestAction implements ActionListener
     @Override
     public void actionPerformed(ActionEvent ae)
     {
-        LOGGER.severe("actionPerformed()");
+        LOGGER.info("actionPerformed()");
 
         Map<String, List<RhythmInfo>> map = new HashMap<>();
 
@@ -100,11 +100,11 @@ public final class MyTestAction implements ActionListener
         list2.add(rdb.getDefaultRhythm(TimeSignature.TWO_FOUR));
         map.put("firstrp", list);
         map.put("secondrp", list2);
-        LOGGER.severe("map=" + Utilities.toMultilineString(map));
+        LOGGER.info("map=" + Utilities.toMultilineString(map));
 
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(f1)))
         {
-            LOGGER.severe("writing " + f1.getAbsolutePath());
+            LOGGER.info("writing " + f1.getAbsolutePath());
             oos.writeObject(map);
         } catch (IOException ex)
         {
@@ -115,7 +115,7 @@ public final class MyTestAction implements ActionListener
         Map<String, List<RhythmInfo>> map2 = null;
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(f1)))
         {
-            LOGGER.severe("reading " + f1.getAbsolutePath());
+            LOGGER.info("reading " + f1.getAbsolutePath());
             map2 = (Map<String, List<RhythmInfo>>) ois.readObject();
         } catch (FileNotFoundException ex)
         {
@@ -125,8 +125,8 @@ public final class MyTestAction implements ActionListener
             Exceptions.printStackTrace(ex);
         }
 
-        // LOGGER.severe("ri2=" + ri);
-        LOGGER.severe("map2=" + Utilities.toMultilineString(map2));
+        // LOGGER.info("ri2=" + ri);
+        LOGGER.info("map2=" + Utilities.toMultilineString(map2));
 
 //        String s = JOptionPane.showInputDialog("String ?");
 //        File f = InstalledFileLocator.getDefault().locate(s, "org.jjazzlab.test", false);
@@ -140,7 +140,7 @@ public final class MyTestAction implements ActionListener
 
     private int comp()
     {
-        LOGGER.severe("comp() called");
+        LOGGER.info("comp() called");
         return 2938;
     }
 }

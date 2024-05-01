@@ -623,20 +623,20 @@ public class MidiSynth
 
     public void dump()
     {
-        LOGGER.log(Level.SEVERE, "DUMP synth: {0}({1}) ================================================", new Object[]
+        LOGGER.log(Level.INFO, "DUMP synth: {0}({1}) ================================================", new Object[]
         {
             this.name,
             getNbInstruments()
         });
         for (InstrumentBank<?> bank : getBanks())
         {
-            LOGGER.log(Level.SEVERE, "   Bank={0} ({1}) ---------", new Object[]
+            LOGGER.log(Level.INFO, "   Bank={0} ({1}) ---------", new Object[]
             {
                 bank.getName(), bank.getSize()
             });
             for (Instrument ins : bank.getInstruments())
             {
-                LOGGER.log(Level.SEVERE, "{0}, {1}", new Object[]
+                LOGGER.log(Level.INFO, "{0}, {1}", new Object[]
                 {
                     ins.toLongString(), ins.getMidiAddress()
                 });

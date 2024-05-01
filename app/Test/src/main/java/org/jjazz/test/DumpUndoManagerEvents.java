@@ -61,7 +61,7 @@ public final class DumpUndoManagerEvents implements ActionListener
 
         if (song == null)
         {
-            LOGGER.severe("No current song, aborting");   
+            LOGGER.info("No current song, aborting");   
             return;
         }
 

@@ -675,7 +675,7 @@ public final class Position implements Comparable<Position>, Serializable
                 pos.valueOf(spPos, 0);
             } catch (ParseException ex)
             {
-                LOGGER.log(Level.SEVERE, "Can't read position " + spPos + ", using position(0,0) instead", ex);
+                LOGGER.log(Level.WARNING, "Can't read position " + spPos + ", using position(0,0) instead", ex);
                 pos = new Position(0, 0);
             }
             return pos;

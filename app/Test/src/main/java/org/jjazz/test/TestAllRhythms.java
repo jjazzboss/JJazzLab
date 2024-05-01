@@ -66,11 +66,11 @@ public final class TestAllRhythms implements ActionListener
     @Override
     public void actionPerformed(ActionEvent ae)
     {
-        LOGGER.severe("TestAllRhythms() ------------");   
+        LOGGER.info("TestAllRhythms() ------------");   
         Song song = Utilities.actionsGlobalContext().lookup(Song.class);
         if (song == null)
         {
-            LOGGER.severe("No current song");   
+            LOGGER.info("No current song");   
             return;
         }
 
@@ -108,7 +108,7 @@ public final class TestAllRhythms implements ActionListener
                     r = rdb.getRhythmInstance(ri);
                 } catch (UnavailableRhythmException ex)
                 {
-                    LOGGER.severe("Can't get rhythm instance, skipped");   
+                    LOGGER.info("Can't get rhythm instance, skipped");   
                     continue;
                 }
                 SongPart spt = sgs.getSongPart(0);

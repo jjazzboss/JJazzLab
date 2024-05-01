@@ -65,11 +65,11 @@ public final class TesAllRhythmsGenerateSequence implements ActionListener
     @Override
     public void actionPerformed(ActionEvent ae)
     {
-        LOGGER.severe("TestAllRhythmsGenerateSequence() ------------");   
+        LOGGER.info("TestAllRhythmsGenerateSequence() ------------");   
         Song song = Utilities.actionsGlobalContext().lookup(Song.class);
         if (song == null)
         {
-            LOGGER.severe("No current song");   
+            LOGGER.info("No current song");   
             return;
         }
 
@@ -116,7 +116,7 @@ public final class TesAllRhythmsGenerateSequence implements ActionListener
                     r = rdb.getRhythmInstance(ri);
                 } catch (UnavailableRhythmException ex)
                 {
-                    LOGGER.severe("Can't get rhythm instance, skipped");   
+                    LOGGER.info("Can't get rhythm instance, skipped");   
                     continue;
                 }
                 var oldSpts = sgs.getSongParts();
@@ -134,7 +134,7 @@ public final class TesAllRhythmsGenerateSequence implements ActionListener
                     try
                     {
                         seqBuilder.buildAll(false);       // Can raise MusicGenerationException               
-                        // LOGGER.severe("sequence resolution=" + sequence.getResolution());
+                        // LOGGER.info("sequence resolution=" + sequence.getResolution());
                     } catch (MusicGenerationException ex)
                     {
                         Exceptions.printStackTrace(ex);

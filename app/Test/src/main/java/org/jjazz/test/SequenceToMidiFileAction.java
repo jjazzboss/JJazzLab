@@ -61,7 +61,7 @@ public final class SequenceToMidiFileAction implements ActionListener
         Sequencer s = JJazzMidiSystem.getInstance().getDefaultSequencer();
         if (s == null)
         {
-            LOGGER.severe("actionPerformed() can't acquire sequencer");   
+            LOGGER.info("actionPerformed() can't acquire sequencer");   
             return;
         }
         Sequence seq = s.getSequence();

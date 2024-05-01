@@ -123,23 +123,17 @@
   <SubComponents>
     <Component class="javax.swing.JLabel" name="jLabel5">
       <Properties>
-        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/jjazz/fluidsynthembeddedsynth/test/Bundle.properties" key="FluidEffectsDialog.jLabel5.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-        </Property>
+        <Property name="text" type="java.lang.String" value="REVERB" noResource="true"/>
       </Properties>
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel10">
       <Properties>
-        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/jjazz/fluidsynthembeddedsynth/test/Bundle.properties" key="FluidEffectsDialog.jLabel10.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-        </Property>
+        <Property name="text" type="java.lang.String" value="CHORUS" noResource="true"/>
       </Properties>
     </Component>
     <Component class="javax.swing.JCheckBox" name="cb_triangle">
       <Properties>
-        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/jjazz/fluidsynthembeddedsynth/test/Bundle.properties" key="FluidEffectsDialog.cb_triangle.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-        </Property>
+        <Property name="text" type="java.lang.String" value="triangle" noResource="true"/>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="cb_triangleActionPerformed"/>
@@ -164,9 +158,7 @@
     </Container>
     <Component class="javax.swing.JButton" name="btn_OK">
       <Properties>
-        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/jjazz/fluidsynthembeddedsynth/test/Bundle.properties" key="FluidEffectsDialog.btn_OK.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-        </Property>
+        <Property name="text" type="java.lang.String" value="OK" noResource="true"/>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btn_OKActionPerformed"/>
@@ -174,9 +166,7 @@
     </Component>
     <Component class="javax.swing.JButton" name="btn_rev_store">
       <Properties>
-        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/jjazz/fluidsynthembeddedsynth/test/Bundle.properties" key="FluidEffectsDialog.btn_rev_store.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-        </Property>
+        <Property name="text" type="java.lang.String" value="Store" noResource="true"/>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btn_rev_storeActionPerformed"/>
@@ -242,9 +232,7 @@
             </Container>
             <Component class="javax.swing.JLabel" name="lbl_room">
               <Properties>
-                <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-                  <ResourceString bundle="org/jjazz/fluidsynthembeddedsynth/test/Bundle.properties" key="FluidEffectsDialog.lbl_room.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-                </Property>
+                <Property name="text" type="java.lang.String" value="room=" noResource="true"/>
                 <Property name="alignmentX" type="float" value="0.5"/>
               </Properties>
             </Component>
@@ -277,9 +265,7 @@
             </Container>
             <Component class="javax.swing.JLabel" name="lbl_damp">
               <Properties>
-                <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-                  <ResourceString bundle="org/jjazz/fluidsynthembeddedsynth/test/Bundle.properties" key="FluidEffectsDialog.lbl_damp.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-                </Property>
+                <Property name="text" type="java.lang.String" value="damp=" noResource="true"/>
                 <Property name="alignmentX" type="float" value="0.5"/>
               </Properties>
             </Component>
@@ -312,9 +298,7 @@
             </Container>
             <Component class="javax.swing.JLabel" name="lbl_width">
               <Properties>
-                <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-                  <ResourceString bundle="org/jjazz/fluidsynthembeddedsynth/test/Bundle.properties" key="FluidEffectsDialog.lbl_width.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-                </Property>
+                <Property name="text" type="java.lang.String" value="width=" noResource="true"/>
                 <Property name="alignmentX" type="float" value="0.5"/>
               </Properties>
             </Component>
@@ -347,9 +331,7 @@
             </Container>
             <Component class="javax.swing.JLabel" name="lbl_rev_level">
               <Properties>
-                <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-                  <ResourceString bundle="org/jjazz/fluidsynthembeddedsynth/test/Bundle.properties" key="FluidEffectsDialog.lbl_rev_level.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-                </Property>
+                <Property name="text" type="java.lang.String" value="level=" noResource="true"/>
                 <Property name="alignmentX" type="float" value="0.5"/>
               </Properties>
             </Component>
@@ -390,9 +372,7 @@
             </Container>
             <Component class="javax.swing.JLabel" name="lbl_nr">
               <Properties>
-                <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-                  <ResourceString bundle="org/jjazz/fluidsynthembeddedsynth/test/Bundle.properties" key="FluidEffectsDialog.lbl_nr.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-                </Property>
+                <Property name="text" type="java.lang.String" value="nr=" noResource="true"/>
                 <Property name="alignmentX" type="float" value="0.5"/>
               </Properties>
             </Component>
@@ -426,9 +406,7 @@
             </Container>
             <Component class="javax.swing.JLabel" name="lbl_speed">
               <Properties>
-                <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-                  <ResourceString bundle="org/jjazz/fluidsynthembeddedsynth/test/Bundle.properties" key="FluidEffectsDialog.lbl_speed.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-                </Property>
+                <Property name="text" type="java.lang.String" value="speed=" noResource="true"/>
                 <Property name="alignmentX" type="float" value="0.5"/>
               </Properties>
             </Component>
@@ -461,9 +439,7 @@
             </Container>
             <Component class="javax.swing.JLabel" name="lbl_depth">
               <Properties>
-                <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-                  <ResourceString bundle="org/jjazz/fluidsynthembeddedsynth/test/Bundle.properties" key="FluidEffectsDialog.lbl_depth.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-                </Property>
+                <Property name="text" type="java.lang.String" value="depth=" noResource="true"/>
                 <Property name="alignmentX" type="float" value="0.5"/>
               </Properties>
             </Component>
@@ -496,9 +472,7 @@
             </Container>
             <Component class="javax.swing.JLabel" name="lbl_cho_level">
               <Properties>
-                <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-                  <ResourceString bundle="org/jjazz/fluidsynthembeddedsynth/test/Bundle.properties" key="FluidEffectsDialog.lbl_cho_level.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-                </Property>
+                <Property name="text" type="java.lang.String" value="level=" noResource="true"/>
                 <Property name="alignmentX" type="float" value="0.5"/>
               </Properties>
             </Component>
@@ -508,9 +482,7 @@
     </Container>
     <Component class="javax.swing.JButton" name="btn_rev_remove">
       <Properties>
-        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/jjazz/fluidsynthembeddedsynth/test/Bundle.properties" key="FluidEffectsDialog.btn_rev_remove.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-        </Property>
+        <Property name="text" type="java.lang.String" value="Remove" noResource="true"/>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btn_rev_removeActionPerformed"/>
@@ -528,9 +500,7 @@
     </Component>
     <Component class="javax.swing.JButton" name="btn_Cancel">
       <Properties>
-        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/jjazz/fluidsynthembeddedsynth/test/Bundle.properties" key="FluidEffectsDialog.btn_Cancel.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-        </Property>
+        <Property name="text" type="java.lang.String" value="Cancel" noResource="true"/>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btn_CancelActionPerformed"/>

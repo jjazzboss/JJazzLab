@@ -53,14 +53,14 @@ public final class DumpRdbAction implements ActionListener
     public void actionPerformed(ActionEvent ae)
     {
         RhythmDatabase rdb = RhythmDatabase.getDefault();
-        LOGGER.severe("Dumping rhythm database ----------");   
+        LOGGER.info("Dumping rhythm database ----------");   
         for (RhythmProvider rp : rdb.getRhythmProviders())
         {
-            LOGGER.log(Level.SEVERE, "\n===== RhythmProvider = {0}@{1}", new Object[]{rp.getInfo().getName(),
+            LOGGER.log(Level.INFO, "\n===== RhythmProvider = {0}@{1}", new Object[]{rp.getInfo().getName(),
                 Integer.toHexString(rp.hashCode())});   
             for (RhythmInfo ri : rdb.getRhythms(rp))
             {
-                LOGGER.log(Level.SEVERE, "  {0}", ri);   
+                LOGGER.log(Level.INFO, "  {0}", ri);   
             }
 
         }

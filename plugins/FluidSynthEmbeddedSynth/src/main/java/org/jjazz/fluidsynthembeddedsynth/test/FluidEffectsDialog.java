@@ -384,11 +384,11 @@ public class FluidEffectsDialog extends javax.swing.JDialog implements PropertyC
         setTitle(org.openide.util.NbBundle.getMessage(FluidEffectsDialog.class, "FluidEffectsDialog.title")); // NOI18N
         setAlwaysOnTop(true);
 
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel5, org.openide.util.NbBundle.getMessage(FluidEffectsDialog.class, "FluidEffectsDialog.jLabel5.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(jLabel5, "REVERB"); // NOI18N
 
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel10, org.openide.util.NbBundle.getMessage(FluidEffectsDialog.class, "FluidEffectsDialog.jLabel10.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(jLabel10, "CHORUS"); // NOI18N
 
-        org.openide.awt.Mnemonics.setLocalizedText(cb_triangle, org.openide.util.NbBundle.getMessage(FluidEffectsDialog.class, "FluidEffectsDialog.cb_triangle.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(cb_triangle, "triangle"); // NOI18N
         cb_triangle.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -400,7 +400,7 @@ public class FluidEffectsDialog extends javax.swing.JDialog implements PropertyC
         list_cho_presets.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         jScrollPane1.setViewportView(list_cho_presets);
 
-        org.openide.awt.Mnemonics.setLocalizedText(btn_OK, org.openide.util.NbBundle.getMessage(FluidEffectsDialog.class, "FluidEffectsDialog.btn_OK.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(btn_OK, "OK"); // NOI18N
         btn_OK.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -409,7 +409,7 @@ public class FluidEffectsDialog extends javax.swing.JDialog implements PropertyC
             }
         });
 
-        org.openide.awt.Mnemonics.setLocalizedText(btn_rev_store, org.openide.util.NbBundle.getMessage(FluidEffectsDialog.class, "FluidEffectsDialog.btn_rev_store.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(btn_rev_store, "Store"); // NOI18N
         btn_rev_store.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -450,7 +450,7 @@ public class FluidEffectsDialog extends javax.swing.JDialog implements PropertyC
 
         jPanel1.add(knob_room);
 
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_room, org.openide.util.NbBundle.getMessage(FluidEffectsDialog.class, "FluidEffectsDialog.lbl_room.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_room, "room="); // NOI18N
         lbl_room.setAlignmentX(0.5F);
         jPanel1.add(lbl_room);
 
@@ -474,7 +474,7 @@ public class FluidEffectsDialog extends javax.swing.JDialog implements PropertyC
 
         jPanel2.add(knob_damp);
 
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_damp, org.openide.util.NbBundle.getMessage(FluidEffectsDialog.class, "FluidEffectsDialog.lbl_damp.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_damp, "damp="); // NOI18N
         lbl_damp.setAlignmentX(0.5F);
         jPanel2.add(lbl_damp);
 
@@ -498,7 +498,7 @@ public class FluidEffectsDialog extends javax.swing.JDialog implements PropertyC
 
         jPanel3.add(knob_width);
 
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_width, org.openide.util.NbBundle.getMessage(FluidEffectsDialog.class, "FluidEffectsDialog.lbl_width.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_width, "width="); // NOI18N
         lbl_width.setAlignmentX(0.5F);
         jPanel3.add(lbl_width);
 
@@ -522,7 +522,7 @@ public class FluidEffectsDialog extends javax.swing.JDialog implements PropertyC
 
         jPanel4.add(knob_level_rev);
 
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_rev_level, org.openide.util.NbBundle.getMessage(FluidEffectsDialog.class, "FluidEffectsDialog.lbl_rev_level.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_rev_level, "level="); // NOI18N
         lbl_rev_level.setAlignmentX(0.5F);
         jPanel4.add(lbl_rev_level);
 
@@ -548,7 +548,7 @@ public class FluidEffectsDialog extends javax.swing.JDialog implements PropertyC
 
         jPanel5.add(knob_nr);
 
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_nr, org.openide.util.NbBundle.getMessage(FluidEffectsDialog.class, "FluidEffectsDialog.lbl_nr.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_nr, "nr="); // NOI18N
         lbl_nr.setAlignmentX(0.5F);
         jPanel5.add(lbl_nr);
 
@@ -573,7 +573,7 @@ public class FluidEffectsDialog extends javax.swing.JDialog implements PropertyC
 
         jPanel6.add(knob_speed);
 
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_speed, org.openide.util.NbBundle.getMessage(FluidEffectsDialog.class, "FluidEffectsDialog.lbl_speed.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_speed, "speed="); // NOI18N
         lbl_speed.setAlignmentX(0.5F);
         jPanel6.add(lbl_speed);
 
@@ -597,7 +597,7 @@ public class FluidEffectsDialog extends javax.swing.JDialog implements PropertyC
 
         jPanel7.add(knob_depth);
 
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_depth, org.openide.util.NbBundle.getMessage(FluidEffectsDialog.class, "FluidEffectsDialog.lbl_depth.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_depth, "depth="); // NOI18N
         lbl_depth.setAlignmentX(0.5F);
         jPanel7.add(lbl_depth);
 
@@ -621,13 +621,13 @@ public class FluidEffectsDialog extends javax.swing.JDialog implements PropertyC
 
         jPanel8.add(knob_level_cho);
 
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_cho_level, org.openide.util.NbBundle.getMessage(FluidEffectsDialog.class, "FluidEffectsDialog.lbl_cho_level.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_cho_level, "level="); // NOI18N
         lbl_cho_level.setAlignmentX(0.5F);
         jPanel8.add(lbl_cho_level);
 
         pnl_chorus.add(jPanel8);
 
-        org.openide.awt.Mnemonics.setLocalizedText(btn_rev_remove, org.openide.util.NbBundle.getMessage(FluidEffectsDialog.class, "FluidEffectsDialog.btn_rev_remove.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(btn_rev_remove, "Remove"); // NOI18N
         btn_rev_remove.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -645,7 +645,7 @@ public class FluidEffectsDialog extends javax.swing.JDialog implements PropertyC
             }
         });
 
-        org.openide.awt.Mnemonics.setLocalizedText(btn_Cancel, org.openide.util.NbBundle.getMessage(FluidEffectsDialog.class, "FluidEffectsDialog.btn_Cancel.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(btn_Cancel, "Cancel"); // NOI18N
         btn_Cancel.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
