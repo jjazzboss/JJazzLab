@@ -52,7 +52,6 @@ import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.InvalidMidiDataException;
-import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JLayer;
@@ -62,7 +61,6 @@ import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
-import javax.swing.TransferHandler;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.midi.api.DrumKit;
@@ -104,19 +102,19 @@ import org.jjazz.utilities.api.IntRange;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
-import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 import org.openide.util.lookup.AbstractLookup;
 import org.openide.util.lookup.InstanceContent;
 
 /**
- * A piano roll editor of a phrase.
+ * A piano roll editor of a musical phrase.
  * <p>
- * It can edit whole or part of a Phrase.
+ * Used to edit whole or part of a Phrase. Optional view-only "ghost phrases" can be shown faded in the background of the editor, based on the ghostPhrasesModel
+ * state.
  * <p>
- * Its Lookup must contain :<br>
- * - editor's ActionMap<br>
- * - editor's Zoomable instance
+ * Editor's lookup must contain :<br>
+ * - its ActionMap instance<br>
+ * - a Zoomable instance
  */
 public class PianoRollEditor extends JPanel implements PropertyChangeListener
 {
@@ -183,20 +181,25 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     private int channel = 0;
     private NavigableMap<Float, TimeSignature> mapPosTimeSignature;
     private int phraseStartBar;
+    private final GhostPhrasesModel ghostPhrasesModel;
 
 
     /**
      * Create a piano roll editor for a dummy phrase model.
      *
-     * @param settings Can't be null
+     * @param settings          Can't be null
+     * @param ghostPhrasesModel Can't be null
      */
-    public PianoRollEditor(PianoRollEditorSettings settings)
+    public PianoRollEditor(PianoRollEditorSettings settings, GhostPhrasesModel ghostPhrasesModel)
     {
         Preconditions.checkNotNull(settings);
+        Preconditions.checkNotNull(ghostPhrasesModel);
+
 
         LOGGER.fine("PianoRollEditor() -- ");
 
         this.settings = settings;
+        this.ghostPhrasesModel = ghostPhrasesModel;
         this.phraseStartBar = 0;
         this.rulerStartBar = this.phraseStartBar;
         this.model = new Phrase(0, false);
@@ -211,6 +214,10 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
 
         // Be notified of changes, note added, moved, removed, set
         model.addPropertyChangeListener(this);
+
+
+        // Be notified about ghost phrase visible state changes
+        ghostPhrasesModel.addPropertyChangeListener(this);
 
 
         // Default undo manager to listen for model changes
@@ -261,6 +268,9 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         // Add the notes
         addNotes(model.getNotes());
 
+
+        updateGhostPhrases();
+
     }
 
     /**
@@ -292,6 +302,11 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         return song;
     }
 
+    public GhostPhrasesModel getGhostPhrasesModel()
+    {
+        return ghostPhrasesModel;
+    }
+
     /**
      * Get the channel of the editor.
      * <p>
@@ -315,29 +330,6 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         return editTools;
     }
 
-
-    /**
-     * Optional view-only phrases shown faded in the background of the editor.
-     * <p>
-     * The specified phrases are shown faded in the background in order to facilite the editing of the Phrase model. E.g. if the edited phrase is a bass line,
-     * you can use this method to make the corresponding drums phrase also visible.
-     *
-     * @param mapChannelPhrases A name associated to a Phrase.
-     */
-    public void setGhostPhases(Map<Integer, Phrase> mapChannelPhrases)
-    {
-        notesPanel.setGhostPhrases(mapChannelPhrases);
-    }
-
-    /**
-     * Get the optional view-only phrases shown faded in the background of the editor.
-     *
-     * @return Can be empty
-     */
-    public Map<Integer, Phrase> getGhostPhrases()
-    {
-        return notesPanel.getGhostPhrases();
-    }
 
     /**
      * Get the Phrase edited by this editor.
@@ -399,6 +391,8 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         this.beatRange = beatRange;
         this.mapPosTimeSignature = mapPosTs;
         labelNotes(keyboard, keyMap);
+        ghostPhrasesModel.setVisibleChannels(null);        
+        ghostPhrasesModel.setEditedChannel(channel);
 
 
         model.addPropertyChangeListener(this);
@@ -550,6 +544,8 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         LOGGER.fine("cleanup() --");
         rulerPanel.cleanup();
         notesPanel.cleanup();
+        ghostPhrasesModel.removePropertyChangeListener(this);
+        ghostPhrasesModel.cleanup();
         model.removeUndoableEditListener(undoManager);
         model.removePropertyChangeListener(this);
         firePropertyChange(PROP_EDITOR_ALIVE, true, false);
@@ -1099,6 +1095,15 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
                 }
             }
 
+        } else if (evt.getSource() == ghostPhrasesModel)
+        {
+            switch (evt.getPropertyName())
+            {
+                case GhostPhrasesModel.PROP_VISIBLE_PHRASE_SELECTION, GhostPhrasesModel.PROP_VISIBLE_PHRASE_CONTENT -> updateGhostPhrases();
+                default ->
+                {
+                }
+            }
         }
     }
 
@@ -1127,6 +1132,11 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
             }
             notesPanel.revalidate();
         }
+    }
+
+    private void updateGhostPhrases()
+    {
+        notesPanel.setGhostPhrases(ghostPhrasesModel.getVisibleGhostPhrases());
     }
 
     /**

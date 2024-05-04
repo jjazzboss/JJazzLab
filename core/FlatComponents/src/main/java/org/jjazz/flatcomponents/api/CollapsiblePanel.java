@@ -41,6 +41,8 @@ import javax.swing.border.TitledBorder;
  * <p>
  * User: Vuk Pavlovic Date: Nov 29, 2006 Time: 5:34:46 PM Description: The user-triggered collapsable panel containing the component
  * (trigger) in the titled border
+ * <p>
+ * Changes: Jerome Lelasseux for JJazzLab
  */
 /**
  * The user-triggered collapsable contentPanel containing the component (trigger) in the titled border

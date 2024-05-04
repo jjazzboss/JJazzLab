@@ -22,7 +22,6 @@
  */
 package org.jjazz.pianoroll;
 
-import javax.swing.JButton;
 import javax.swing.JPanel;
 import org.jjazz.pianoroll.api.PianoRollEditor;
 

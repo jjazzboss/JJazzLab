@@ -25,8 +25,6 @@ package org.jjazz.pianoroll;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.logging.Logger;
-import javax.swing.JComponent;
-import javax.swing.KeyStroke;
 import org.jjazz.pianoroll.actions.Quantize;
 import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.quantizer.api.Quantizer;

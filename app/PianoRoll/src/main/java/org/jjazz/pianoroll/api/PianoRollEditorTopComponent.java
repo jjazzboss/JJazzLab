@@ -22,9 +22,7 @@
  */
 package org.jjazz.pianoroll.api;
 
-import org.jjazz.pianoroll.GhostPhraseManager;
 import com.google.common.base.Preconditions;
-import java.awt.BorderLayout;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
@@ -34,17 +32,14 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.sound.midi.MidiUnavailableException;
 import javax.swing.Action;
-import javax.swing.SwingUtilities;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.spi.MidiMixManager;
 import org.jjazz.phrase.api.Phrase;
-import org.jjazz.pianoroll.QuantizePanel;
-import org.jjazz.pianoroll.GhostPhrasesPanel;
+import org.jjazz.pianoroll.SidePanel;
 import org.jjazz.pianoroll.ToolbarPanel;
 import org.jjazz.pianoroll.actions.PasteNotes;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
@@ -54,12 +49,10 @@ import org.jjazz.songstructure.api.SgsChangeListener;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.event.SgsActionEvent;
 import org.jjazz.songstructure.api.event.SgsChangeEvent;
-import org.jjazz.flatcomponents.api.CollapsiblePanel;
 import org.jjazz.utilities.api.FloatRange;
 import org.jjazz.utilities.api.IntRange;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.awt.UndoRedo;
-import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 import org.openide.util.Utilities;
 import org.openide.windows.Mode;
@@ -81,13 +74,13 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
 
     private final PianoRollEditor editor;
     private final ToolbarPanel toolbarPanel;
-    private final QuantizePanel quantizePanel;
-    private final GhostPhrasesPanel backgroundPhrasesPanel;
+    private final SidePanel sidePanel;
     private final Song song;
-    private MidiMix midiMix;
+    private final GhostPhrasesModel ghostPhrasesModel;
+    private final MidiMix midiMix;
     private SongPart songPart;
     private String titleBase;
-    private GhostPhraseManager backgroundPhraseManager;
+
     private static final Logger LOGGER = Logger.getLogger(PianoRollEditorTopComponent.class.getSimpleName());
 
 
@@ -124,21 +117,16 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
 
         this.song = sg;
         setDisplayName(getDefaultTabName(song));
-        try
-        {
-            midiMix = MidiMixManager.getDefault().findMix(song);
-        } catch (MidiUnavailableException ex)
-        {
-            // Should never happen
-            Exceptions.printStackTrace(ex);
-        }
+        midiMix = MidiMixManager.getDefault().findExistingMix(sg);
+        ghostPhrasesModel = new GhostPhrasesModel(midiMix, 0);
 
 
-        editor = new PianoRollEditor(settings);
+        editor = new PianoRollEditor(settings, ghostPhrasesModel);
         editor.setSong(song);
 
 
         toolbarPanel = new ToolbarPanel(this, song.getName());
+        sidePanel = new SidePanel(editor);
 
 
         // WEIRD: only for the callback Paste action, we need BOTH the action here and in the lookup (see PianoRollEditor constructor)
@@ -146,26 +134,13 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
         getActionMap().put("paste-from-clipboard", new PasteNotes(editor));
 
 
+        // Must be called after editor and midiMix are set
         initComponents();
         splitpane_tools_editor.setRightComponent(editor);
+        splitpane_tools_editor.setLeftComponent(sidePanel);
 
-
-        // Update the CollapsiblePanels
-        cpan_quantize.getContentPane().setLayout(new BorderLayout());
-        quantizePanel = new QuantizePanel(editor);
-        cpan_quantize.getContentPane().add(quantizePanel, BorderLayout.CENTER);
-        cpan_showTracks.getContentPane().setLayout(new BorderLayout());
-        backgroundPhrasesPanel = new GhostPhrasesPanel();
-        cpan_showTracks.getContentPane().add(backgroundPhrasesPanel, BorderLayout.CENTER);
-        // Reset splitpane divider location when a panel is collapsed/expanded
-        cpan_quantize.addPropertyChangeListener(CollapsiblePanel.PROP_COLLAPSED,
-                e -> SwingUtilities.invokeLater(() -> updateDividerLocation()));
-        cpan_showTracks.addPropertyChangeListener(CollapsiblePanel.PROP_COLLAPSED,
-                e -> SwingUtilities.invokeLater(() -> updateDividerLocation()));
-
-
-        // Manage the background phrases
-        backgroundPhraseManager = new GhostPhraseManager(this, backgroundPhrasesPanel);
+        // Reset splitpane divider location when a CollapsiblePanel of the sidePanel is collapsed/expanded
+        sidePanel.addPropertyChangeListener(SidePanel.PROP_COLLAPSED_STATE, e -> updateDividerLocation());
 
 
         // Automatically close when song is closed
@@ -188,8 +163,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
      *
      * @param spt     Must belong to the song
      * @param p       The phrase must start at bar/beat 0 (independently of spt start position)
-     * @param channel The Midi channel of the edited phrase (p.getChannel() is ignored). Must correspond to a RhythmVoice of the song part
-     *                rhythm.
+     * @param channel The Midi channel of the edited phrase (p.getChannel() is ignored). Must correspond to a RhythmVoice of the song part rhythm.
      * @param keyMap  Null for melodic phrase
      */
     public void setModelForSongPartCustomPhrase(SongPart spt, Phrase p, int channel, DrumKit.KeyMap keyMap)
@@ -210,8 +184,6 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
 
         refreshToolbarTitle();
 
-
-        backgroundPhraseManager.updateTrackNames();
     }
 
     /**
@@ -219,8 +191,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
      * <p>
      *
      * @param p
-     * @param channel The Midi channel of the edited Phrase (p.getChannel() is ignored). Must correspond to a UserRhythmVoice in the song's
-     *                MidiMix.
+     * @param channel The Midi channel of the edited Phrase (p.getChannel() is ignored). Must correspond to a UserRhythmVoice in the song's MidiMix.
      * @param keyMap  Null for melodic phrase
      */
     public void setModelForUserPhrase(Phrase p, int channel, DrumKit.KeyMap keyMap)
@@ -242,9 +213,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
 
         editor.setModel(p, getBeatRange(), 0, 0, channel, mapPosTs, keyMap);
 
-
         refreshToolbarTitle();
-        backgroundPhraseManager.updateTrackNames();
     }
 
 
@@ -416,8 +385,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
         LOGGER.fine("componentClosed() -- ");
         song.removePropertyChangeListener(this);
         song.getSongStructure().removeSgsChangeListener(this);
-        quantizePanel.cleanup();
-        backgroundPhraseManager.cleanup();
+        sidePanel.cleanup();
         editor.cleanup();
         toolbarPanel.cleanup();
     }
@@ -566,8 +534,8 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
     }
 
     /**
-     * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of this
-     * method is always regenerated by the Form Editor.
+     * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of this method is always
+     * regenerated by the Form Editor.
      */
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents()
@@ -575,10 +543,6 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
 
         pnl_toolbar = toolbarPanel;
         splitpane_tools_editor = new javax.swing.JSplitPane();
-        sidePanel = new javax.swing.JPanel();
-        cpan_quantize = new org.jjazz.flatcomponents.api.CollapsiblePanel();
-        cpan_showTracks = new org.jjazz.flatcomponents.api.CollapsiblePanel();
-        jButton1 = new javax.swing.JButton();
 
         setToolTipText(org.openide.util.NbBundle.getMessage(PianoRollEditorTopComponent.class, "PianoRollEditorTopComponent.toolTipText")); // NOI18N
         setLayout(new java.awt.BorderLayout());
@@ -586,42 +550,12 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
 
         splitpane_tools_editor.setDividerSize(20);
         splitpane_tools_editor.setOneTouchExpandable(true);
-
-        cpan_quantize.setTitleComponentText(org.openide.util.NbBundle.getMessage(PianoRollEditorTopComponent.class, "PianoRollEditorTopComponent.cpan_quantize.titleComponentText")); // NOI18N
-
-        cpan_showTracks.setTitleComponentText(org.openide.util.NbBundle.getMessage(PianoRollEditorTopComponent.class, "PianoRollEditorTopComponent.cpan_showTracks.titleComponentText")); // NOI18N
-
-        javax.swing.GroupLayout sidePanelLayout = new javax.swing.GroupLayout(sidePanel);
-        sidePanel.setLayout(sidePanelLayout);
-        sidePanelLayout.setHorizontalGroup(
-            sidePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(cpan_quantize, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(cpan_showTracks, javax.swing.GroupLayout.DEFAULT_SIZE, 177, Short.MAX_VALUE)
-        );
-        sidePanelLayout.setVerticalGroup(
-            sidePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(sidePanelLayout.createSequentialGroup()
-                .addComponent(cpan_quantize, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(cpan_showTracks, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(187, Short.MAX_VALUE))
-        );
-
-        splitpane_tools_editor.setLeftComponent(sidePanel);
-
-        org.openide.awt.Mnemonics.setLocalizedText(jButton1, "jButton1"); // NOI18N
-        splitpane_tools_editor.setRightComponent(jButton1);
-
         add(splitpane_tools_editor, java.awt.BorderLayout.CENTER);
     }// </editor-fold>//GEN-END:initComponents
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private org.jjazz.flatcomponents.api.CollapsiblePanel cpan_quantize;
-    private org.jjazz.flatcomponents.api.CollapsiblePanel cpan_showTracks;
-    private javax.swing.JButton jButton1;
     private javax.swing.JPanel pnl_toolbar;
-    private javax.swing.JPanel sidePanel;
     private javax.swing.JSplitPane splitpane_tools_editor;
     // End of variables declaration//GEN-END:variables
 

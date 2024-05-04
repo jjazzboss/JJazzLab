@@ -331,7 +331,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
     {
         Preconditions.checkNotNull(ne);
         NoteView nv = getNoteView(ne);  // Might be null in some corner cases ? See Issue #399
-        if (nv != null) 
+        if (nv != null)
         {
             remove(nv);
             nv.cleanup();
@@ -417,6 +417,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
      */
     public void setGhostPhrases(Map<Integer, Phrase> mapChannelPhrase)
     {
+        // LOGGER.log(Level.SEVERE, "setGhostPhrases() mapChannelPhrase={0}", Utilities.toMultilineString(mapChannelPhrase));
         mapChannelGhostPhrase = mapChannelPhrase;
         repaint();
     }

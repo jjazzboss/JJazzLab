@@ -113,9 +113,9 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
 
     public static final String MIX_FILE_EXTENSION = "mix";
     /**
-     * New or removed InstrumentMix.
+     * Added, replaced or removed InstrumentMix.
      * <p>
-     * OldValue=the old InstrumentMix, newValue=channel
+     * OldValue=the old InstrumentMix (null if new InstrumentMix added), newValue=channel
      */
     public static final String PROP_CHANNEL_INSTRUMENT_MIX = "ChannelInstrumentMix";
     /**

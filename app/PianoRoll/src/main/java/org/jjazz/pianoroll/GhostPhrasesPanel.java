@@ -22,147 +22,116 @@
  */
 package org.jjazz.pianoroll;
 
+import org.jjazz.pianoroll.api.GhostPhrasesModel;
+import java.awt.Component;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Logger;
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.JList;
+import org.jjazz.midimix.api.MidiMix;
+import static org.jjazz.pianoroll.api.GhostPhrasesModel.PROP_PHRASE_LIST;
+import static org.jjazz.pianoroll.api.GhostPhrasesModel.PROP_VISIBLE_PHRASE_SELECTION;
 
 /**
- * Let user select the visible tracks.
+ * Let user select the visible ghost phrases.
  */
-public class GhostPhrasesPanel extends javax.swing.JPanel
+public class GhostPhrasesPanel extends javax.swing.JPanel implements PropertyChangeListener
 {
 
-    /**
-     * newValue = ths list of selected track names.
-     */
-    public static final String PROP_SELECTED_TRACK_NAMES = "selectedTrackNames";
-    private List<String> trackNames = new ArrayList<>();
     private boolean blockChangeEventFiring = false;
+    private final GhostPhrasesModel model;
     private static final Logger LOGGER = Logger.getLogger(GhostPhrasesPanel.class.getSimpleName());
 
     /**
-     * Creates new form ShowTracksPanel
+     * Creates a GhostPhrasesPanel
+     *
+     * @param model
      */
-    public GhostPhrasesPanel()
+    public GhostPhrasesPanel(GhostPhrasesModel model)
     {
+        this.model = model;
+
 
         initComponents();
+        list_channels.setCellRenderer(new TrackNameCellRenderer());
 
-        list_tracks.addListSelectionListener(e -> 
+
+        list_channels.addListSelectionListener(e -> 
         {
             if (!e.getValueIsAdjusting() && !blockChangeEventFiring)
             {
-                firePropertyChange(PROP_SELECTED_TRACK_NAMES, null, getSelectedTracks());
+                this.model.setVisibleChannels(list_channels.getSelectedValuesList());
             }
         });
-    }
 
-    
-    /**
-     * Set the track names list.
-     *
-     * @param names
-     */
-    public void setTracks(List<String> names)
-    {
-        String saveSelectedName = list_tracks.getSelectedValue();
-        list_tracks.clearSelection();
-        trackNames.clear();
-        trackNames.addAll(names);
-        list_tracks.setListData(names.toArray(String[]::new));
-        if (saveSelectedName != null)
-        {
-            list_tracks.setSelectedValue(saveSelectedName, true);
-        }
+        this.model.addPropertyChangeListener(this);
+        refreshListAndSelection();
     }
 
 
-    /**
-     * Set the selected tracks.
-     * <p>
-     * NOTE: this method will not fire selection events.
-     *
-     * @param names
-     */
-    public void setSelectedTracks(List<String> names)
+    //=============================================================================
+    // PropertyChangeListener interface
+    //=============================================================================
+    @Override
+    public void propertyChange(PropertyChangeEvent evt)
     {
-        blockChangeEventFiring = true;
-        list_tracks.clearSelection();
-        for (var n : names)
+        if (evt.getSource() == model)
         {
-            int index = trackNames.indexOf(n);
-            if (index != -1)
+            switch (evt.getPropertyName())
             {
-                list_tracks.setSelectedIndex(index);
+                case PROP_VISIBLE_PHRASE_SELECTION -> setSelectedTracksSilent(model.getVisibleChannels());
+                case PROP_PHRASE_LIST -> refreshListAndSelection();
+                default ->
+                {
+                }
             }
         }
-        blockChangeEventFiring = false;
     }
-
-    /**
-     * Get the names of the selected tracks.
-     *
-     * @return
-     */
-    public List<String> getSelectedTracks()
-    {
-        List<String> res = new ArrayList<>();
-        for (var i : list_tracks.getSelectedIndices())
-        {
-            res.add(trackNames.get(i));
-        }
-        return res;
-    }
-
-//    /**
-//     * Overridden because the JList is embedded in a JScollPane.
-//     * <p>
-//     * Note: JList size is sized indirectly via setPrototypeCellValue() in initComponents().
-//     *
-//     * @return
-//     */
-//    @Override
-//    public Dimension getPreferredSize()
-//    {
-//        var d = super.getPreferredSize();
-//        var ld = list_tracks.getPreferredSize();
-//        if (ld.width > d.width)
-//        {
-//            d.width = ld.width; // JScrollPane scrollbars width should be added too
-//        }
-//        return d;
-//    }
-//
-//    /**
-//     * Overridden because the JList is embedded in a JScollPane.
-//     * <p>
-//     * Note: JList is sized indirectly via setPrototypeCellValue() in initComponents().
-//     *
-//     * @return
-//     */
-//    @Override
-//    public Dimension getMinimumSize()
-//    {
-//        if (true)
-//        {
-//            return getPreferredSize();
-//        }
-//        var d = super.getMinimumSize();
-//        var ld = list_tracks.getMinimumSize();
-//        if (ld.width > d.width)
-//        {
-//            d.width = ld.width; // JScrollPane scrollbars width should be added too
-//        }
-//        return d;
-//    }
 
     // ==============================================================================================================
     // Private methods
     // ==============================================================================================================
 
+    private void refreshListAndSelection()
+    {
+        list_channels.clearSelection();
+        var list = new ArrayList<>(model.getAllChannels());
+        Collections.sort(list);
+        list_channels.setListData(list.toArray(Integer[]::new));
+        setSelectedTracksSilent(model.getVisibleChannels());
+    }
+
     /**
-     * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of
-     * this method is always regenerated by the Form Editor.
+     * Set the selected channels without firing selection events.
+     * <p>
+     *
+     * @param selectedChannels
+     */
+    private void setSelectedTracksSilent(Set<Integer> selectedChannels)
+    {
+        if (selectedChannels.equals(new HashSet<>(list_channels.getSelectedValuesList())))
+        {
+            return;
+        }
+
+        blockChangeEventFiring = true;
+        list_channels.clearSelection();
+        for (var channel : selectedChannels)
+        {
+            list_channels.setSelectedValue(channel, true);
+        }
+        blockChangeEventFiring = false;
+    }
+
+    /**
+     * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of this method is always
+     * regenerated by the Form Editor.
      */
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -170,12 +139,12 @@ public class GhostPhrasesPanel extends javax.swing.JPanel
     {
 
         jScrollPane1 = new javax.swing.JScrollPane();
-        list_tracks = new javax.swing.JList<>();
+        list_channels = new javax.swing.JList<>();
         btn_clearAll = new javax.swing.JButton();
 
-        list_tracks.setToolTipText(org.openide.util.NbBundle.getMessage(GhostPhrasesPanel.class, "GhostPhrasesPanel.list_tracks.toolTipText")); // NOI18N
-        list_tracks.setVisibleRowCount(9);
-        jScrollPane1.setViewportView(list_tracks);
+        list_channels.setToolTipText(org.openide.util.NbBundle.getMessage(GhostPhrasesPanel.class, "GhostPhrasesPanel.list_channels.toolTipText")); // NOI18N
+        list_channels.setVisibleRowCount(9);
+        jScrollPane1.setViewportView(list_channels);
 
         org.openide.awt.Mnemonics.setLocalizedText(btn_clearAll, org.openide.util.NbBundle.getMessage(GhostPhrasesPanel.class, "GhostPhrasesPanel.btn_clearAll.text")); // NOI18N
         btn_clearAll.addActionListener(new java.awt.event.ActionListener()
@@ -211,15 +180,35 @@ public class GhostPhrasesPanel extends javax.swing.JPanel
 
     private void btn_clearAllActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_clearAllActionPerformed
     {//GEN-HEADEREND:event_btn_clearAllActionPerformed
-        list_tracks.clearSelection();
+        model.setVisibleChannels(null);
     }//GEN-LAST:event_btn_clearAllActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_clearAll;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JList<String> list_tracks;
+    private javax.swing.JList<Integer> list_channels;
     // End of variables declaration//GEN-END:variables
 
+
+    private class TrackNameCellRenderer extends DefaultListCellRenderer
+    {
+
+        @Override
+        @SuppressWarnings("rawtypes")
+        public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus)
+        {
+            super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus); // returned component=this
+            if (value instanceof Integer channel)
+            {
+                MidiMix midiMix = model.getMidiMix();
+                String rvName = midiMix.getRhythmVoice(channel).getName();
+                String inst = midiMix.getInstrumentMix(channel).getInstrument().getPatchName();
+                String name = String.format("%d: %s - %s", channel + 1, rvName, inst);
+                setText(name);
+            }
+            return this;
+        }
+    }
 
 }
