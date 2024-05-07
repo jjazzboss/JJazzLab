@@ -29,7 +29,7 @@ import java.util.function.Predicate;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.jjazz.midi.api.MidiAddress.BankSelectMethod;
-import org.jjazz.midi.api.synths.Family;
+import org.jjazz.midi.api.synths.InstrumentFamily;
 import org.jjazz.midi.api.synths.GM1Instrument;
 
 /**
@@ -477,7 +477,7 @@ public class InstrumentBank<T extends Instrument>
      * @param f Can't be null
      * @return
      */
-    public List<T> getInstrumentsFromFamily(Family f)
+    public List<T> getInstrumentsFromFamily(InstrumentFamily f)
     {
         if (f == null)
         {

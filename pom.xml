@@ -245,6 +245,7 @@
         <module>core/EmbeddedSynth</module> 
         <module>core/FlatComponents</module> 		              
         <module>core/Harmony</module>
+        <module>core/Humanizer</module>		
         <module>core/Importers</module>
         <module>core/Midi</module>
         <module>core/MidiMix</module>

@@ -306,7 +306,12 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
     @Override
     public Phrase clone()
     {
-        return getProcessedPhrase(ne -> true, ne -> ne.clone());
+        var p = new Phrase(getChannel(), isDrums());
+        for (var ne : this)
+        {
+            p.add(ne.clone());
+        }
+        return p;
     }
 
     /**
@@ -401,7 +406,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
     }
 
     /**
-     * Get a new Phrase with only filtered notes processed by the specified mapper.
+     * Get a a clone of this Phrase with only filtered notes processed by the specified mapper.
      * <p>
      * Notes of the returned phrase will have their PARENT_NOTE client property set to:<br>
      * - source note's PARENT_NOTE client property if this property is not null, or<br>
@@ -413,7 +418,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
      */
     public Phrase getProcessedPhrase(Predicate<NoteEvent> tester, Function<NoteEvent, NoteEvent> mapper)
     {
-        Phrase res = new Phrase(channel, isDrums);
+        Phrase res = clone();           // Use clone() so that method also works for Phrase subclasses
         for (NoteEvent ne : this)
         {
             if (tester.test(ne))
@@ -1452,7 +1457,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
 
     /**
      * Rely on loadFromString()/saveAsString() methods.
-     * 
+     * <p>
      * spVERSION2 introduces XStream aliases (XStreamConfig)
      */
     private static class SerializationProxy implements Serializable

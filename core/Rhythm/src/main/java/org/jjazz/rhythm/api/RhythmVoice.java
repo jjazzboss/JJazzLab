@@ -28,7 +28,7 @@ import org.jjazz.midi.api.DrumKit;
 import org.jjazz.midi.api.Instrument;
 import org.jjazz.midi.api.InstrumentSettings;
 import org.jjazz.midi.api.MidiConst;
-import org.jjazz.midi.api.synths.Family;
+import org.jjazz.midi.api.synths.InstrumentFamily;
 import org.jjazz.midi.api.synths.GM1Bank;
 import org.jjazz.midi.api.synths.GM1Instrument;
 import org.jjazz.midi.api.synths.GMSynth;
@@ -67,19 +67,19 @@ public class RhythmVoice
                 case PERCUSSION:
                     return null;
                 case BASS:
-                    return gmBank.getDefaultInstrument(Family.Bass);
+                    return gmBank.getDefaultInstrument(InstrumentFamily.Bass);
                 case CHORD1:
-                    return gmBank.getDefaultInstrument(Family.Guitar);
+                    return gmBank.getDefaultInstrument(InstrumentFamily.Guitar);
                 case CHORD2:
-                    return gmBank.getDefaultInstrument(Family.Piano);
+                    return gmBank.getDefaultInstrument(InstrumentFamily.Piano);
                 case PAD:
-                    return gmBank.getDefaultInstrument(Family.Ensemble);
+                    return gmBank.getDefaultInstrument(InstrumentFamily.Ensemble);
                 case PHRASE1:
-                    return gmBank.getDefaultInstrument(Family.Brass);
+                    return gmBank.getDefaultInstrument(InstrumentFamily.Brass);
                 case PHRASE2:
-                    return gmBank.getDefaultInstrument(Family.Brass);
+                    return gmBank.getDefaultInstrument(InstrumentFamily.Brass);
                 case OTHER:
-                    return gmBank.getDefaultInstrument(Family.Piano);
+                    return gmBank.getDefaultInstrument(InstrumentFamily.Piano);
                 default:
                     throw new IllegalStateException("this=" + this);   
             }

@@ -34,7 +34,7 @@ import org.jjazz.midi.api.DrumKit;
 import org.jjazz.midi.api.DrumKit.Type;
 import org.jjazz.midi.api.synths.GM1Bank;
 import org.jjazz.midi.api.keymap.KeyMapGM;
-import org.jjazz.midi.api.synths.Family;
+import org.jjazz.midi.api.synths.InstrumentFamily;
 import org.jjazz.midi.api.synths.GMSynth;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.rhythm.api.MusicGenerationException;
@@ -86,7 +86,7 @@ public class RhythmStub implements Rhythm, MusicGenerator
         // Rhythm voices
         GM1Bank gmb = GMSynth.getInstance().getGM1Bank();
         rhythmVoices.add(new RhythmVoice(new DrumKit(Type.STANDARD, KeyMapGM.getInstance()), this, RhythmVoice.Type.DRUMS, "Drums", GMSynth.getInstance().getVoidInstrument(), 9));
-        rhythmVoices.add(new RhythmVoice(this, RhythmVoice.Type.BASS, "Bass", gmb.getDefaultInstrument(Family.Bass), 10));
+        rhythmVoices.add(new RhythmVoice(this, RhythmVoice.Type.BASS, "Bass", gmb.getDefaultInstrument(InstrumentFamily.Bass), 10));
 
         // Our Rhythm Parameters
         rhythmParameters.add(new RP_STD_Variation(true));

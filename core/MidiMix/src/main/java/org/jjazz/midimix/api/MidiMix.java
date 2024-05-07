@@ -63,7 +63,7 @@ import org.jjazz.midi.api.InstrumentMix;
 import org.jjazz.midi.api.InstrumentSettings;
 import org.jjazz.midi.api.JJazzMidiSystem;
 import org.jjazz.midi.api.MidiConst;
-import org.jjazz.midi.api.synths.Family;
+import org.jjazz.midi.api.synths.InstrumentFamily;
 import org.jjazz.midi.api.synths.GMSynth;
 import org.jjazz.midimix.spi.MidiMixManager;
 import org.jjazz.midimix.spi.RhythmVoiceInstrumentProvider;
@@ -1991,7 +1991,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
             mm, r0
         });
         HashMap<String, InstrumentMix> mapKeyMix = new HashMap<>();
-        HashMap<Family, InstrumentMix> mapFamilyMix = new HashMap<>();
+        HashMap<InstrumentFamily, InstrumentMix> mapFamilyMix = new HashMap<>();
         InstrumentMix r0InsMixDrums = null;
         InstrumentMix r0InsMixPerc = null;
         // First try to match InstrumentMixes using a "key" = "3 first char of Rv.getName() + GM1 family"
@@ -2016,7 +2016,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
                 continue;
             }
             GM1Instrument insGM1 = insMix.getInstrument().getSubstitute();  // Might be null            
-            Family family = insGM1 != null ? insGM1.getFamily() : null;
+            InstrumentFamily family = insGM1 != null ? insGM1.getFamily() : null;
             String mapKey = Utilities.truncate(rv.getName().toLowerCase(), 3) + "-" + ((family != null) ? family.name() : "");
             if (mapKeyMix.get(mapKey) == null)
             {
@@ -2045,11 +2045,12 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
                 default ->
                 {
                     GM1Instrument mmInsGM1 = mmInsMix.getInstrument().getSubstitute();  // Can be null            
-                    Family mmFamily = mmInsGM1 != null ? mmInsGM1.getFamily() : null;
+                    InstrumentFamily mmFamily = mmInsGM1 != null ? mmInsGM1.getFamily() : null;
                     String mapKey = Utilities.truncate(mmRv.getName().toLowerCase(), 3) + "-" + ((mmFamily != null)
                             ? mmFamily.name() : "");
                     insMix = mapKeyMix.get(mapKey);
                 }
+
             }
 
             if (insMix != null)
@@ -2080,7 +2081,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
             {
                 continue;
             }
-            Family mmFamily = mmInsGM1.getFamily();
+            InstrumentFamily mmFamily = mmInsGM1.getFamily();
             InstrumentMix insMix = mapFamilyMix.get(mmFamily);
             if (insMix != null)
             {

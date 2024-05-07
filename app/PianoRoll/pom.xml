@@ -37,7 +37,6 @@
             <groupId>org.jjazzlab.core</groupId>
             <artifactId>guava</artifactId>
             <version>${project.version}</version>
-            
         </dependency>  
         <dependency> 
             <groupId>org.jjazzlab.core</groupId> 
@@ -97,6 +96,11 @@
         <dependency> 
             <groupId>org.jjazzlab.core</groupId> 
             <artifactId>songstructure</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>  
+        <dependency> 
+            <groupId>org.jjazzlab.core</groupId> 
+            <artifactId>humanizer</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
@@ -178,7 +182,7 @@
             <groupId>org.netbeans.api</groupId> 
             <artifactId>org-openide-windows</artifactId> 
             <version>${netbeans.version}</version>  
-        </dependency> 
+        </dependency>
     </dependencies>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

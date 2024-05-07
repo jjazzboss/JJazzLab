@@ -132,7 +132,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
      */
     public static final String PROP_MODEL_CHANNEL = "PhraseChannel";
     /**
-     * oldValue=sorted list of NoteViews whose state has changeds, newValue=selected state
+     * oldValue=sorted list of NoteViews whose state has changed, newValue=selected state
      */
     public static final String PROP_SELECTED_NOTE_VIEWS = "NoteViewSelection";
     /**
@@ -171,7 +171,6 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     private EditTool activeTool;
     private final EditToolProxyMouseListener editToolProxyMouseListener;
     private final GenericMouseListener genericMouseListener;
-    private static final Logger LOGGER = Logger.getLogger(PianoRollEditor.class.getSimpleName());
     private boolean snapEnabled;
     private float playbackPointPosition;
     private boolean playbackAutoScrollEnabled;
@@ -182,7 +181,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     private NavigableMap<Float, TimeSignature> mapPosTimeSignature;
     private int phraseStartBar;
     private final GhostPhrasesModel ghostPhrasesModel;
-
+    private static final Logger LOGGER = Logger.getLogger(PianoRollEditor.class.getSimpleName());
 
     /**
      * Create a piano roll editor for a dummy phrase model.
@@ -404,6 +403,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         notesPanel.repaint();
         rulerPanel.revalidate();
         rulerPanel.repaint();
+        
 
 
         // Add the notes

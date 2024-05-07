@@ -34,7 +34,7 @@ import org.jjazz.midi.api.InstrumentBank;
 import org.jjazz.midi.api.InstrumentMix;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.keymap.StandardKeyMapConverter;
-import org.jjazz.midi.api.synths.Family;
+import org.jjazz.midi.api.synths.InstrumentFamily;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.UserRhythmVoice;
@@ -94,7 +94,7 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
 
 
         // Check if we use drums channel for a non drums instrument
-        if (newChannel == MidiConst.CHANNEL_DRUMS && !rvSrc.isDrums() && !Family.couldBeDrums(insMixSrc.getInstrument().getPatchName()))
+        if (newChannel == MidiConst.CHANNEL_DRUMS && !rvSrc.isDrums() && !InstrumentFamily.couldBeDrums(insMixSrc.getInstrument().getPatchName()))
         {
             String msg = ResUtil.getString(getClass(), "MixChannelPanelControllerImpl.Channel10reserved");
             NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);

@@ -36,7 +36,7 @@ import org.jjazz.midi.api.synths.GM1Instrument;
 import org.jjazz.midi.api.Instrument;
 import org.jjazz.midi.api.MidiSynth;
 import org.jjazz.midi.api.keymap.KeyMapGM;
-import org.jjazz.midi.api.synths.Family;
+import org.jjazz.midi.api.synths.InstrumentFamily;
 
 /**
  * The table can associate an Instrument from a MidiSynth to each of the GM1 instruments + the special DRUMS/PERCUSSION static
@@ -74,7 +74,7 @@ public class GMRemapTable implements Serializable
      */
     public static final String PROP_INSTRUMENT = "Instrument";    
     private HashMap<Instrument, Instrument> mapInstruments = new HashMap<>();
-    private HashMap<Family, Instrument> mapFamilyInstruments = new HashMap<>();
+    private HashMap<InstrumentFamily, Instrument> mapFamilyInstruments = new HashMap<>();
     private final MidiSynth midiSynth;
     private final transient PropertyChangeSupport pcs = new java.beans.PropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(GMRemapTable.class.getSimpleName());
@@ -129,7 +129,7 @@ public class GMRemapTable implements Serializable
      *
      * @return
      */
-    public HashMap<Family, Instrument> getFamilyInstrumentMap()
+    public HashMap<InstrumentFamily, Instrument> getFamilyInstrumentMap()
     {
         return new HashMap<>(mapFamilyInstruments);
     }
@@ -214,7 +214,7 @@ public class GMRemapTable implements Serializable
      * @param family
      * @return Null if no mapping defined for this family.
      */
-    public Instrument getInstrument(Family family)
+    public Instrument getInstrument(InstrumentFamily family)
     {
         if (family == null)
         {
@@ -390,7 +390,7 @@ public class GMRemapTable implements Serializable
         }
         if (useAsFamilyDefault && (remappedIns != DRUMS_INSTRUMENT && remappedIns != PERCUSSION_INSTRUMENT))
         {
-            Family family = ((GM1Instrument) remappedIns).getFamily();
+            InstrumentFamily family = ((GM1Instrument) remappedIns).getFamily();
             oldIns = mapFamilyInstruments.put(family, ins);
             if (!Objects.equals(ins, oldIns))
             {

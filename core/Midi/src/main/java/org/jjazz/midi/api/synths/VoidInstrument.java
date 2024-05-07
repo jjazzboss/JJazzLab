@@ -66,7 +66,7 @@ public class VoidInstrument extends GM1Instrument implements Serializable
 
     private VoidInstrument(int programChange, String patchName)
     {
-        super(programChange, patchName, Family.Piano);
+        super(programChange, patchName, InstrumentFamily.Piano);
     }
 
     @Override

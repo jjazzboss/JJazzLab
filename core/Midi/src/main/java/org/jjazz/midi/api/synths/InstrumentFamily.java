@@ -28,13 +28,13 @@ package org.jjazz.midi.api.synths;
  * <p>
  * Based on the GM1 Standard: the values respect the order of the GM1 instruments, each family has 8 instruments in the GM1 bank.
  */
-public enum Family
+public enum InstrumentFamily
 {
     Piano("piano"), Chromatic_Percussion("cperc"), Organ("orgn"), Guitar("guit"), Bass("bass"), Strings("violn"), Ensemble("strgs"), Brass("brass"), Reed("reed"), Pipe("wind"), Synth_Lead("lead"), Synth_Pad("pad"), Synth_Effects("synfx"), Ethnic("ethnc"), Percussive("perc"), Sound_Effects("sndfx");
 
     private final String shortName;
 
-    private Family(String shortName)
+    private InstrumentFamily(String shortName)
     {
         this.shortName = shortName;
     }
@@ -73,7 +73,7 @@ public enum Family
      * @param patchName
      * @return
      */
-    static public Family guessFamily(String patchName)
+    static public InstrumentFamily guessFamily(String patchName)
     {
         patchName = patchName.toLowerCase();
         if (patchName.contains("pn:")

@@ -22,8 +22,6 @@
  */
 package org.jjazz.utilities.api;
 
-import static org.jjazz.utilities.api.IntRange.EMPTY_RANGE;
-
 /**
  * A range between 2 positive floats.
  */

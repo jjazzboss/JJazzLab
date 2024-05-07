@@ -32,7 +32,7 @@ import java.util.logging.Logger;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.midi.api.MidiConst;
-import org.jjazz.midi.api.synths.Family;
+import org.jjazz.midi.api.synths.InstrumentFamily;
 import org.jjazz.phrase.api.PhraseSamples;
 import org.jjazz.rhythm.api.*;
 import org.jjazz.songstructure.api.SongPart;
@@ -98,7 +98,7 @@ public class DummyGenerator implements MusicGenerator
                     pRes.add(p);
                 } else
                 {
-                    if (rv.getPreferredInstrument().getSubstitute().getFamily().equals(Family.Bass))
+                    if (rv.getPreferredInstrument().getSubstitute().getFamily().equals(InstrumentFamily.Bass))
                     {
                         LOGGER.log(Level.FINE, "generateMusic() generate dummy bass track for RhythmVoice: {0}", rv.getName());
                         Phrase p = getBasicBassPhrase(sptPosInBeats, cSeq, destChannel);

@@ -25,7 +25,6 @@ package org.jjazz.pianoroll.api;
 import com.google.common.base.Preconditions;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -299,7 +298,10 @@ public class GhostPhrasesModel implements PropertyChangeListener, ChangeListener
         {
             var rv = midiMix.getRhythmVoice(channel);
             Phrase p = lastResult == null ? new Phrase(channel) : lastResult.mapRvPhrases().get(rv);
-            newMap.put(channel, p);
+            if (p != null)      // Might happen if lastResult does not contain a new user track just added ?
+            {
+                newMap.put(channel, p);
+            }
         }
         mapChannelPhrase = newMap;
 

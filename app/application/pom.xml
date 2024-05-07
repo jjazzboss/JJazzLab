@@ -452,6 +452,11 @@
             <artifactId>importers</artifactId> 
             <version>${project.version}</version> 
         </dependency>                     
+        <dependency> 
+            <groupId>org.jjazzlab.core</groupId> 
+            <artifactId>humanizer</artifactId> 
+            <version>${project.version}</version> 
+        </dependency>                     
   
         <!-- JJazzLab app =========================================================== -->  
         <dependency> 

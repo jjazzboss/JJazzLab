@@ -41,6 +41,7 @@ public class SidePanel extends javax.swing.JPanel
     public static final String PROP_COLLAPSED_STATE = "propCollapsedState";
     private final QuantizePanel quantizePanel;
     private final GhostPhrasesPanel ghostPhrasesPanel;
+    private final HumanizePanel humanizePanel;
     private final PianoRollEditor editor;
 
     public SidePanel(PianoRollEditor editor)
@@ -55,8 +56,14 @@ public class SidePanel extends javax.swing.JPanel
         quantizePanel = new QuantizePanel(editor);
         cpan_quantize.getContentPane().add(quantizePanel, BorderLayout.CENTER);
 
+        
+        // Humanize CollapsiblePanel                
+        cpan_humanizer.getContentPane().setLayout(new BorderLayout());
+        humanizePanel = new HumanizePanel(editor);
+        cpan_humanizer.getContentPane().add(humanizePanel, BorderLayout.CENTER);
 
-        // Ghost phrases CollapsiblePanels                
+        
+        // Ghost phrases CollapsiblePanel
         cpan_showTracks.getContentPane().setLayout(new BorderLayout());
         ghostPhrasesPanel = new GhostPhrasesPanel(this.editor.getGhostPhrasesModel());
         cpan_showTracks.getContentPane().add(ghostPhrasesPanel, BorderLayout.CENTER);
@@ -67,13 +74,16 @@ public class SidePanel extends javax.swing.JPanel
                 e -> SwingUtilities.invokeLater(() -> firePropertyChange(PROP_COLLAPSED_STATE, false, true)));
         cpan_showTracks.addPropertyChangeListener(CollapsiblePanel.PROP_COLLAPSED,
                 e -> SwingUtilities.invokeLater(() -> firePropertyChange(PROP_COLLAPSED_STATE, false, true)));
+        cpan_humanizer.addPropertyChangeListener(CollapsiblePanel.PROP_COLLAPSED,
+                e -> SwingUtilities.invokeLater(() -> firePropertyChange(PROP_COLLAPSED_STATE, false, true)));
 
     }
 
     public void cleanup()
     {
         quantizePanel.cleanup();
-
+        humanizePanel.cleanup();
+        ghostPhrasesPanel.cleanup();
     }
 
     /**
@@ -87,17 +97,21 @@ public class SidePanel extends javax.swing.JPanel
 
         cpan_quantize = new org.jjazz.flatcomponents.api.CollapsiblePanel();
         cpan_showTracks = new org.jjazz.flatcomponents.api.CollapsiblePanel();
+        cpan_humanizer = new org.jjazz.flatcomponents.api.CollapsiblePanel();
 
         cpan_quantize.setTitleComponentText(org.openide.util.NbBundle.getMessage(SidePanel.class, "SidePanel.cpan_quantize.titleComponentText")); // NOI18N
 
         cpan_showTracks.setTitleComponentText(org.openide.util.NbBundle.getMessage(SidePanel.class, "SidePanel.cpan_showTracks.titleComponentText")); // NOI18N
+
+        cpan_humanizer.setTitleComponentText(org.openide.util.NbBundle.getMessage(SidePanel.class, "SidePanel.cpan_humanizer.titleComponentText")); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(cpan_quantize, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(cpan_showTracks, javax.swing.GroupLayout.DEFAULT_SIZE, 287, Short.MAX_VALUE)
+            .addComponent(cpan_humanizer, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 352, Short.MAX_VALUE)
+            .addComponent(cpan_showTracks, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -105,13 +119,16 @@ public class SidePanel extends javax.swing.JPanel
                 .addContainerGap()
                 .addComponent(cpan_quantize, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(cpan_humanizer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(cpan_showTracks, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(88, Short.MAX_VALUE))
+                .addContainerGap(63, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private org.jjazz.flatcomponents.api.CollapsiblePanel cpan_humanizer;
     private org.jjazz.flatcomponents.api.CollapsiblePanel cpan_quantize;
     private org.jjazz.flatcomponents.api.CollapsiblePanel cpan_showTracks;
     // End of variables declaration//GEN-END:variables
