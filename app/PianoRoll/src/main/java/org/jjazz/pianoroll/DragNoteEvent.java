@@ -36,16 +36,20 @@ public class DragNoteEvent extends NoteEvent
     }
 
     @Override
-    public DragNoteEvent getCopyPos(float pos)
+    public DragNoteEvent setAll(int pitch, float duration, int velocity, float posInBeats, boolean copyProperties)
     {
-        return new DragNoteEvent(getPitch(), getDurationInBeats(), getVelocity(), pos);
+        var res = new DragNoteEvent(pitch < 0 ? getPitch() : pitch,
+                duration < 0 ? getDurationInBeats() : duration,
+                velocity < 0 ? getVelocity() : velocity,
+                posInBeats < 0 ? getPositionInBeats() : posInBeats
+        );
+        if (copyProperties)
+        {
+            res.getClientProperties().set(getClientProperties());
+        }
+        return res;
     }
 
-    @Override
-    public DragNoteEvent getCopyPitch(int p)
-    {
-        return new DragNoteEvent(p, getDurationInBeats(), getVelocity(), getPositionInBeats());
-    }
 
     @Override
     public String toString()

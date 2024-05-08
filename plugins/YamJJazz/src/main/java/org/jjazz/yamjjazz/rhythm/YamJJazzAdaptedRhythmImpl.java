@@ -193,8 +193,11 @@ public class YamJJazzAdaptedRhythmImpl implements YamJJazzRhythm, AdaptedRhythm,
                     {
                         newSps = new SourcePhraseSet(oldSps.getClientProperty(SourcePhraseSet.PROP_ID));
                     }
-                    LOGGER.log(Level.FINE, "loadResources() type={0} complexity={1} variationId={2}", new Object[]{type, complexity,
-                        variationId});
+                    LOGGER.log(Level.FINE, "loadResources() type={0} complexity={1} variationId={2}", new Object[]
+                    {
+                        type, complexity,
+                        variationId
+                    });
                     for (Integer channel : oldSps.getSourceChannels())          // Get Phrase per channel
                     {
                         SourcePhrase oldPhrase = oldSps.getPhrase(channel);
@@ -203,10 +206,16 @@ public class YamJJazzAdaptedRhythmImpl implements YamJJazzRhythm, AdaptedRhythm,
                         newSps.setPhrase(channel, newPhrase);
                         if (type == StylePartType.Main_A && oldSp.getAccType(channel) == AccType.RHYTHM)
                         {
-                            LOGGER.log(Level.FINE, "loadResources() MainA AccType={0} oldPhrase=\n{1}", new Object[]{oldSp.getAccType(channel),
-                                oldPhrase});
-                            LOGGER.log(Level.FINE, "loadResources() MainA AccType={0} newPhrase=\n{1}", new Object[]{oldSp.getAccType(channel),
-                                newPhrase});
+                            LOGGER.log(Level.FINE, "loadResources() MainA AccType={0} oldPhrase=\n{1}", new Object[]
+                            {
+                                oldSp.getAccType(channel),
+                                oldPhrase
+                            });
+                            LOGGER.log(Level.FINE, "loadResources() MainA AccType={0} newPhrase=\n{1}", new Object[]
+                            {
+                                oldSp.getAccType(channel),
+                                newPhrase
+                            });
                         }
                     }
                     newSp.addSourcePhraseSet(newSps, complexity);   // Add the new SourcePhraseSet 
@@ -429,7 +438,7 @@ public class YamJJazzAdaptedRhythmImpl implements YamJJazzRhythm, AdaptedRhythm,
                     newDur *= ((float) newNbBeatsPerBar) / oldNbBeatsPerBar;  // Make it longer proportionally
                     durExtended = true;
                 }
-                NoteEvent newNe = ne.getCopyDurPos(newDur, newPosInBeats);
+                NoteEvent newNe = ne.setAll(-1, newDur, -1, newPosInBeats, true);
                 newPhrase.add(newNe);
 
                 if (!durExtended && relPosInBeats < (newNbBeatsPerBar - oldNbBeatsPerBar) - 0.1f)
@@ -438,7 +447,7 @@ public class YamJJazzAdaptedRhythmImpl implements YamJJazzRhythm, AdaptedRhythm,
                     float copyRelPosInBeats = relPosInBeats + oldNbBeatsPerBar;
                     float copyNePos = bar * newNbBeatsPerBar + copyRelPosInBeats;
                     float copyNeDur = copyRelPosInBeats + newDur >= newNbBeatsPerBar ? newNbBeatsPerBar - copyRelPosInBeats - 0.1f : newDur;
-                    NoteEvent copyNe = ne.getCopyDurPos(copyNeDur, copyNePos);
+                    NoteEvent copyNe = ne.setAll(-1, copyNeDur, -1, copyNePos, true);
                     newPhrase.add(copyNe);
                 }
             }
@@ -464,8 +473,8 @@ public class YamJJazzAdaptedRhythmImpl implements YamJJazzRhythm, AdaptedRhythm,
                         // Can't exceed end of phrase
                         newDur = nbBars * newNbBeatsPerBar - newPosInBeats - 0.1f;
                     }
-                    NoteEvent newNe = ne.getCopyDurPos(newDur, newPosInBeats);
-                    newPhrase.add(newNe);          
+                    NoteEvent newNe = ne.setAll(-1, newDur, -1, newPosInBeats, true);
+                    newPhrase.add(newNe);
                 }
             }
         } else

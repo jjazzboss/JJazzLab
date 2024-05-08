@@ -43,8 +43,8 @@ import org.openide.util.Exceptions;
  * A Note with a position and optional client properties.
  * <p>
  * This is an immutable class EXCEPT for the client properties.<p>
- * Two different NoteEvent instances can not be equal. If you need NoteEvent map keys to be considered equal when they share the same Note
- * attributes, use the AsNoteKey inner class.
+ * Two different NoteEvent instances can not be equal. If you need NoteEvent map keys to be considered equal when they share the same Note attributes, use the
+ * AsNoteKey inner class.
  */
 public class NoteEvent extends Note implements Cloneable, Comparable<Note>
 {
@@ -75,6 +75,7 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
 
     /**
      * Create a new NoteEvent from a Note at specified position.
+     * <p>
      *
      * @param n
      * @param posInBeats
@@ -85,131 +86,84 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
     }
 
     /**
-     * Create a new NoteEvent from another NoteEvent.
+     * Create a new and possibly modified NoteEvent from this instance.
      * <p>
-     * Client properties are also copied.
-     *
-     * @param ne
-     * @param pitch      if &lt; 0 reuse ne's pitch, otherwise use this value
-     * @param duration   if &lt; 0 reuse ne's duration, otherwise use this value
-     * @param velocity   if &lt; 0 reuse ne's velocity, otherwise use this value
-     * @param posInBeats if &lt; 0 reuse ne's position, otherwise use this value
-     */
-    public NoteEvent(NoteEvent ne, int pitch, float duration, int velocity, float posInBeats)
-    {
-        this(pitch < 0 ? ne.getPitch() : pitch, duration < 0 ? ne.getDurationInBeats() : duration, velocity < 0 ? ne.getVelocity()
-                : velocity, posInBeats < 0 ? ne.getPositionInBeats() : posInBeats);
-        getClientProperties().set(ne.getClientProperties());
-    }
-
-    /**
-     * Get a copy with one parameter modified.
-     * <p>
-     * Client properties are also copied.
-     *
-     * @param pitch
+     * @param pitch          if &lt; 0 reuse this instance's pitch, otherwise use the parameter value
+     * @param duration       if &lt; 0 reuse this instance's duration, otherwise use the parameter value
+     * @param velocity       if &lt; 0 reuse this instance's velocity, otherwise use the parameter value
+     * @param posInBeats     if &lt; 0 reuse this instance's position, otherwise use the parameter value
+     * @param copyProperties if true copy the properties
      * @return
      */
-    public NoteEvent getCopyPitch(int pitch)
+    public NoteEvent setAll(int pitch, float duration, int velocity, float posInBeats, boolean copyProperties)
     {
-        NoteEvent res = new NoteEvent(pitch, getDurationInBeats(), getVelocity(), getPositionInBeats());
-        res.getClientProperties().set(getClientProperties());
+        var res = new NoteEvent(pitch < 0 ? getPitch() : pitch,
+                duration < 0 ? getDurationInBeats() : duration,
+                velocity < 0 ? getVelocity() : velocity,
+                posInBeats < 0 ? getPositionInBeats() : posInBeats);
+        if (copyProperties)
+        {
+            res.getClientProperties().set(getClientProperties());
+        }
         return res;
     }
 
     /**
-     * Get a copy with one parameter modified.
+     * Get a copy with the pitch parameter modified.
      * <p>
-     * Client properties are also copied.
+     * Client properties are copied.
      *
-     * @param durationInBeats
+     * @param newPitch The new pitch
      * @return
      */
-    public NoteEvent getCopyDur(float durationInBeats)
+    public NoteEvent setPitch(int newPitch)
     {
-        NoteEvent res = new NoteEvent(getPitch(), durationInBeats, getVelocity(), getPositionInBeats());
-        res.getClientProperties().set(getClientProperties());
+        var res = setAll(newPitch, getDurationInBeats(), getVelocity(), position, true);
         return res;
     }
 
     /**
-     * Get a copy with one parameter modified.
+     * Get a copy with the duration parameter modified.
      * <p>
-     * Client properties are also copied.
+     * Client properties are copied.
      *
-     * @param velocity
+     * @param newDurationInBeats
      * @return
      */
-    public NoteEvent getCopyVel(int velocity)
+    public NoteEvent setDuration(float newDurationInBeats)
     {
-        NoteEvent res = new NoteEvent(getPitch(), getDurationInBeats(), velocity, getPositionInBeats());
-        res.getClientProperties().set(getClientProperties());
+        var res = setAll(getPitch(), newDurationInBeats, getVelocity(), position, true);
         return res;
     }
 
     /**
-     * Get a copy with one parameter modified.
+     * Get a copy with the velocity parameter modified.
      * <p>
-     * Client properties are also copied.
+     * Client properties are copied.
      *
-     * @param posInBeats
+     * @param newVelocity
      * @return
      */
-    public NoteEvent getCopyPos(float posInBeats)
+    public NoteEvent setVelocity(int newVelocity)
     {
-        NoteEvent res = new NoteEvent(getPitch(), getDurationInBeats(), getVelocity(), posInBeats);
-        res.getClientProperties().set(getClientProperties());
+        var res = setAll(getPitch(), getDurationInBeats(), newVelocity, position, true);
         return res;
     }
 
     /**
-     * Get a copy with the specified parameters modified.
+     * Get a copy with the position parameter modified.
      * <p>
-     * Client properties are also copied.
+     * Client properties are copied.
      *
-     * @param durationInBeats
-     * @param posInBeats
+     * @param newPositionInBeats
+     * @param copyProperties     If true copy the properties
      * @return
      */
-    public NoteEvent getCopyDurPos(float durationInBeats, float posInBeats)
+    public NoteEvent setPosition(float newPositionInBeats, boolean copyProperties)
     {
-        NoteEvent res = new NoteEvent(getPitch(), durationInBeats, getVelocity(), posInBeats);
-        res.getClientProperties().set(getClientProperties());
+        var res = setAll(getPitch(), getDurationInBeats(), getVelocity(), newPositionInBeats, true);
         return res;
     }
-
-    /**
-     * Get a copy with the specified parameters modified.
-     * <p>
-     * Client properties are also copied.
-     *
-     * @param pitch
-     * @param velocity
-     * @return
-     */
-    public NoteEvent getCopyPitchVel(int pitch, int velocity)
-    {
-        NoteEvent res = new NoteEvent(pitch, getDurationInBeats(), velocity, getPositionInBeats());
-        res.getClientProperties().set(getClientProperties());
-        return res;
-    }
-
-    /**
-     * Get a copy with the specified parameters modified.
-     * <p>
-     * Client properties are also copied.
-     *
-     * @param pitch
-     * @param posInBeats
-     * @return
-     */
-    public NoteEvent getCopyPitchPos(int pitch, float posInBeats)
-    {
-        NoteEvent res = new NoteEvent(pitch, getDurationInBeats(), getVelocity(), posInBeats);
-        res.getClientProperties().set(getClientProperties());
-        return res;
-    }
-
 
     /**
      * Get the client properties.
@@ -295,8 +249,7 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
     /**
      * Check for equality as a Note tolerating slight differences in position and duration.
      * <p>
-     * If the positions are equals +/- beatWindow, positions are considered equal. If the durations are equals +/- 2*beatWindow, durations
-     * are considered equal.
+     * If the positions are equals +/- beatWindow, positions are considered equal. If the durations are equals +/- 2*beatWindow, durations are considered equal.
      * <p>
      * ClientProperties are ignored.
      *
@@ -383,9 +336,10 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
     }
 
     /**
-     * Get the "as Note" key for this instance.
+     * Get the "as Note" map key for this instance.
      *
      * @return
+     * @see AsNoteKey
      */
     public AsNoteKey getAsNoteKey()
     {
@@ -417,14 +371,14 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
 
 
     /**
-     * Also clone the client properties.
+     * Clone this instance, including the client properties.
      *
      * @return
      */
     @Override
     public NoteEvent clone()
     {
-        NoteEvent ne = new NoteEvent(this, -1, -1, -1, -1);
+        NoteEvent ne = setAll(-1, -1, -1, -1, true);
         return ne;
     }
 
@@ -501,8 +455,8 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
 
 
     /**
-     * A NoteEvent wrapper to be used as hash/map key when 2 different NoteEvent instances need to be considered as equal when their
-     * attributes are equal (except client properties).
+     * A NoteEvent wrapper to be used as hash/map key when 2 different NoteEvent instances need to be considered as equal when their note attributes are equal
+     * (except client properties).
      */
     static public class AsNoteKey
     {

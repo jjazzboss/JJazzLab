@@ -130,7 +130,8 @@ public class NoteColorManagerImpl implements NoteColorManager
         Color sc = new Color(220, 220, 0);  // Yellowish
         Color[] selectedcolors =
         {
-            HSLColor.changeLuminance(sc, -18), HSLColor.changeLuminance(sc, -9), sc
+            // HSLColor.changeLuminance(sc, -18), HSLColor.changeLuminance(sc, -9), sc
+            HSLColor.changeLuminance(sc, -30), HSLColor.changeLuminance(sc, -15), sc
         };
         LinearGradientPaint pSelected = new LinearGradientPaint(start, end, dist, selectedcolors);
         g2.setPaint(pSelected);

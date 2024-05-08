@@ -138,6 +138,10 @@ public class UIUtilities
      * Get the size of a text with the specified font.
      * <p>
      * Use a temporary BufferedImage() to calculate the sizing.
+     *
+     * @param text
+     * @param f
+     * @return
      */
     static public Rectangle2D getStringBounds(String text, Font f)
     {
@@ -547,7 +551,7 @@ public class UIUtilities
         return Color.getHSBColor(hsb[0], hsb[1], hsb[2]);
     }
 
-   
+
     /**
      * Change the font size of a menuBar and its submenus.
      *

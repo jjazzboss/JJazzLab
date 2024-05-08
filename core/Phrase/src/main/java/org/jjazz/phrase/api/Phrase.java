@@ -262,7 +262,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
 
         mapNoteNewPos.keySet().forEach(ne -> 
         {
-            var newNe = ne.getCopyPos(mapNoteNewPos.get(ne));
+            var newNe = ne.setPosition(mapNoteNewPos.get(ne), true);
             mapOldNew.put(ne, newNe);
             res.add(newNe);
         });
@@ -472,7 +472,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
         return getProcessedPhrase(ne -> true, ne -> 
         {
             int v = MidiUtilities.limit(f.apply(ne.getVelocity()));
-            NoteEvent newNe = ne.getCopyVel(v);
+            NoteEvent newNe = ne.setVelocity(v);
             return newNe;
         });
     }
@@ -489,7 +489,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
         processNotes(ne -> true, ne -> 
         {
             int v = MidiUtilities.limit(f.apply(ne.getVelocity()));
-            NoteEvent newNe = ne.getCopyVel(v);
+            NoteEvent newNe = ne.setVelocity(v);
             return newNe;
         });
     }
@@ -509,7 +509,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
         return getProcessedPhrase(ne -> true, ne -> 
         {
             int p = MidiUtilities.limit(f.apply(ne.getPitch()));
-            NoteEvent newNe = ne.getCopyPitch(p);
+            NoteEvent newNe = ne.setPitch(p);
             return newNe;
         });
     }
@@ -526,7 +526,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
         processNotes(ne -> true, ne -> 
         {
             int p = MidiUtilities.limit(f.apply(ne.getPitch()));
-            NoteEvent newNe = ne.getCopyPitch(p);
+            NoteEvent newNe = ne.setPitch(p);
             return newNe;
         });
     }

@@ -69,7 +69,7 @@ public class TransposeSelectionUp extends AbstractAction
             int newPitch = ne.getPitch() + 1;
             if (newPitch <= 127)
             {
-                var newNe = ne.getCopyPitch(newPitch);
+                var newNe = ne.setPitch(newPitch);
                 mapOldNew.put(ne, newNe);
             }
         }

@@ -266,7 +266,7 @@ public class PencilTool implements EditTool
             dragStartPos = ne.getPositionInBeats();
             float dur = pos - dragStartPos;
             dur = Math.max(0.1f, dur);
-            dragNote = ne.getCopyDur(dur);
+            dragNote = ne.setDuration(dur);
             editor.getModel().replaceAll(Map.of(ne, dragNote), true);
 
             editor.unselectAll();
@@ -277,7 +277,7 @@ public class PencilTool implements EditTool
             // Continue dragging
             float dur = pos - dragStartPos;
             dur = Math.max(0.1f, dur);
-            var newNe = dragNote.getCopyDur(dur);
+            var newNe = dragNote.setDuration(dur);
             editor.getModel().replaceAll(Map.of(dragNote, newNe), true);
             dragNote = newNe;
         }

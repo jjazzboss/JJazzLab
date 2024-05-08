@@ -70,7 +70,7 @@ public class DecreaseSelectionVelocity extends AbstractAction
             int newVel = MidiUtilities.limit(ne.getVelocity() - IncreaseSelectionVelocity.CHANGE);
             if (newVel != ne.getVelocity())
             {
-                var newNe = ne.getCopyVel(newVel);
+                var newNe = ne.setVelocity(newVel);
                 mapOldNew.put(ne, newNe);
             }
         }

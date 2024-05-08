@@ -132,7 +132,7 @@ public class CopyNoteBuffer
         float delta = targetStartPosition - getFirstNote().getPositionInBeats();
         for (var ne : noteBuffer)
         {
-            notes.add(ne.getCopyPos(ne.getPositionInBeats() + delta));
+            notes.add(ne.setPosition(ne.getPositionInBeats() + delta, true));
         }
         return notes;
     }

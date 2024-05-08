@@ -96,7 +96,7 @@ public class Utilities
             {
                 int destRelPitch = ecsSrc.getRelativePitch(srcNote.getRelativePitch(), ecsDest);
                 int destPitch = new Note(srcNote.getPitch() + rootPitchDelta).getClosestPitch(destRelPitch);
-                NoteEvent destNote = srcNote.getCopyPitch(destPitch);
+                NoteEvent destNote = srcNote.setPitch(destPitch);
                 destNote.getClientProperties().put(PARENT_NOTE, srcNote);
                 pDest.add(destNote);  // Don't need addOrdered here
             }
@@ -120,9 +120,9 @@ public class Utilities
                     "srcDegree=" + srcDegree + " srcNote=" + srcNote + " pSrc=" + pSrc + " ecsDest=" + ecsDest + " chordMode=" + chordMode;
             int destRelPitch = ecsDest.getRelativePitch(destDegree);
             int destPitch = new Note(srcNote.getPitch() + rootPitchDelta).getClosestPitch(destRelPitch);
-            NoteEvent destNote = srcNote.getCopyPitch(destPitch);
+            NoteEvent destNote = srcNote.setPitch(destPitch);
             destNote.getClientProperties().put(PARENT_NOTE, srcNote);
-            pDest.add(destNote);        
+            pDest.add(destNote);
         }
 
         // LOGGER.fine("fitMelodyPhrase2ChordSymbol() pDest=" + pDest);
@@ -134,8 +134,8 @@ public class Utilities
      * Adapt the notes from a bass melody-oriented source phrase to a destination chord symbol.
      * <p>
      * Notes are transposed to the destination root note and adapted to the destination chord type degrees.<br>
-     * If destination symbol bass note is different from the root note, it is used instead of the root note. The method takes also into
-     * account the ChordRenderingInfo.BassLineModifiers of the chord symbol.<br>
+     * If destination symbol bass note is different from the root note, it is used instead of the root note. The method takes also into account the
+     * ChordRenderingInfo.BassLineModifiers of the chord symbol.<br>
      * Ex: if pSrc=C3,G3,B3,E4 and ecsSrc=C7M and ecsDest=F7b5/A, then destination phrase=A3,B3,Eb4,Ab4.<br>
      * <p>
      * Each destination note of the resulting phrase stores its corresponding source note in the PARENT_NOTE client property.
@@ -152,8 +152,11 @@ public class Utilities
         }
 
 
-        LOGGER.log(Level.FINE, "fitBassPhrase2ChordSymbol() -- ecsDest={0} ecsDest.cri={1}", new Object[]{ecsDest,
-            ecsDest.getRenderingInfo()}); //  + " pSrc=" + pSrc);   
+        LOGGER.log(Level.FINE, "fitBassPhrase2ChordSymbol() -- ecsDest={0} ecsDest.cri={1}", new Object[]
+        {
+            ecsDest,
+            ecsDest.getRenderingInfo()
+        }); //  + " pSrc=" + pSrc);   
         Phrase pDest = new Phrase(pSrc.getChannel(), false);
         if (pSrc.isEmpty())
         {
@@ -183,7 +186,7 @@ public class Utilities
                 }
 
                 int destPitch = new Note(srcNote.getPitch() + rootPitchDelta).getClosestPitch(destRelPitch);
-                NoteEvent destNote = srcNote.getCopyPitch(destPitch);
+                NoteEvent destNote = srcNote.setPitch(destPitch);
                 destNote.getClientProperties().put(PARENT_NOTE, srcNote);
                 pDest.add(destNote);         // Don't need addOrdered here
             }
@@ -214,7 +217,7 @@ public class Utilities
             }
 
             int destPitch = new Note(srcNote.getPitch() + rootPitchDelta).getClosestPitch(destRelPitch);
-            NoteEvent destNote = srcNote.getCopyPitch(destPitch);
+            NoteEvent destNote = srcNote.setPitch(destPitch);
             destNote.getClientProperties().put(PARENT_NOTE, srcNote);
             pDest.add(destNote);         // Don't need addOrdered here
         }
@@ -344,7 +347,7 @@ public class Utilities
             if (srcIndex < bestDestChord.size())            // Because of computeParallelChord(), bestDestChord size might be smaller
             {
                 int destPitch = bestDestChord.getNote(srcIndex).getPitch();
-                NoteEvent destNote = srcNote.getCopyPitch(destPitch);
+                NoteEvent destNote = srcNote.setPitch(destPitch);
                 destNote.getClientProperties().put(PARENT_NOTE, srcNote);
                 pDest.add(destNote);     // Don't need addOrdered here
             }
@@ -382,8 +385,8 @@ public class Utilities
     /**
      * Compute a score indicating the "compatibility" between the notes of the 2 chords for chord-oriented voicings or melodies.
      * <p>
-     * Best score is 0, 1 is less good, etc. Both chords should be same size. If not, return a score of 10000. Score is also impacted by
-     * musical problems in the destination chord, such as 2 top contiguous notes for example.
+     * Best score is 0, 1 is less good, etc. Both chords should be same size. If not, return a score of 10000. Score is also impacted by musical problems in the
+     * destination chord, such as 2 top contiguous notes for example.
      *
      * @param cSrc
      * @param cDest

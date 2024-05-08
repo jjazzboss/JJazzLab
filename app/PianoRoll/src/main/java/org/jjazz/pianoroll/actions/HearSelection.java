@@ -118,7 +118,7 @@ public class HearSelection extends ToggleAction implements PropertyChangeListene
         for (var ne : noteEvents)
         {
             float pos = ne.getPositionInBeats() - firstNotePos;
-            var newNe = ne.getCopyPos(pos);
+            var newNe = ne.setPosition(pos, true);
             p.add(newNe);
         }
 

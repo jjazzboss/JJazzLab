@@ -64,8 +64,8 @@ public class Phrases
      * NOTE_ON events without a corresponding NOTE_OFF event are ignored.
      *
      * @param p
-     * @param midiEvents       MidiEvents which are not ShortMessage.Note_ON/OFF are ignored. Must be ordered by tick position, resolution
-     *                         must be MidiConst.PPQ_RESOLUTION.
+     * @param midiEvents       MidiEvents which are not ShortMessage.Note_ON/OFF are ignored. Must be ordered by tick position, resolution must be
+     *                         MidiConst.PPQ_RESOLUTION.
      * @param posInBeatsOffset The position in natural beats of the first tick of the track.
      * @param ignoreChannel    If true, add also NoteEvents for MidiEvents which do not match this phrase channel.
      * @see MidiUtilities#getMidiEvents(javax.sound.midi.Track, java.util.function.Predicate, LongRange)
@@ -210,8 +210,8 @@ public class Phrases
     /**
      * Make sure there is no note ringing in the phrase after the specified position.
      * <p>
-     * Notes starting after posInBeats are removed. If a note starts before posInBeats but is still ON beyond posInBeats, note duration is
-     * shortened to have Note OFF at posInBeats.
+     * Notes starting after posInBeats are removed. If a note starts before posInBeats but is still ON beyond posInBeats, note duration is shortened to have
+     * Note OFF at posInBeats.
      *
      * @param p
      * @param posInBeats
@@ -234,7 +234,7 @@ public class Phrases
             {
                 // Shorten notes before posInBeats but ending after posInBeats
                 float newDuration = posInBeats - pos;
-                NoteEvent newNe = ne.getCopyDur(newDuration);
+                NoteEvent newNe = ne.setDuration(newDuration);
                 tobeReplaced.put(ne, newNe);
             }
         }
@@ -245,11 +245,11 @@ public class Phrases
 
 
     /**
-     * Get a new phrase with cloned NoteEvents but keeping only the notes in the specified beat range, taking into account possible
-     * live-played/non-quantized notes via the beatWindow parameter.
+     * Get a new phrase with cloned NoteEvents but keeping only the notes in the specified beat range, taking into account possible live-played/non-quantized
+     * notes via the beatWindow parameter.
      * <p>
-     * First, if beatWindow &gt; 0 then notes starting in the range [range.from-beatWindow; range.from[ are changed in the returned phrase
-     * so they start at range.from, and notes starting in the range [range.to-beatWindow; range.to[ are removed.
+     * First, if beatWindow &gt; 0 then notes starting in the range [range.from-beatWindow; range.from[ are changed in the returned phrase so they start at
+     * range.from, and notes starting in the range [range.to-beatWindow; range.to[ are removed.
      * <p>
      * Then, if a note is starting before startPos and ending after range.from: <br>
      * - if keepLeft is false, the note is removed<br>
@@ -293,13 +293,13 @@ public class Phrases
                     if (frLeft.contains(neBr, false))
                     {
                         // Note is fully contained in the beatWindow! Probably a drums/perc note, moveAll it
-                        NoteEvent newNe = ne.getCopyPos(range.from);
+                        NoteEvent newNe = ne.setPosition(range.from, true);
                         res.add(newNe);
                     } else
                     {
                         // Note crosses range.from, make it start at range.from
                         float newDur = Math.max(neBr.to - range.from, 0.05f);
-                        NoteEvent newNe = ne.getCopyDurPos(newDur, range.from);
+                        NoteEvent newNe = ne.setAll(-1, newDur, -1, range.from, true);
                         res.add(newNe);
                     }
                     beatWindowProcessedNotes.add(ne);
@@ -352,7 +352,7 @@ public class Phrases
                         }
                     }
                     float newDur = nePosTo - range.from;
-                    NoteEvent newNe = ne.getCopyDurPos(newDur, range.from);
+                    NoteEvent newNe = ne.setAll(-1, newDur, -1, range.from, true);
                     res.add(newNe);
                 }
             } else if (nePosFrom < range.to)
@@ -374,7 +374,7 @@ public class Phrases
                         case 1:
                             // Add it but make it shorter
                             float newDur = range.to - nePosFrom;
-                            NoteEvent newNe = ne.getCopyDur(newDur);
+                            NoteEvent newNe = ne.setDuration(newDur);
                             res.add(newNe);
                             break;
                         case 2:
@@ -396,16 +396,16 @@ public class Phrases
 
 
     /**
-     * Remove all phrase notes whose start position is in the specified beat range, taking into account possible live-played/non-quantized
-     * notes via the beatWindow parameter.
+     * Remove all phrase notes whose start position is in the specified beat range, taking into account possible live-played/non-quantized notes via the
+     * beatWindow parameter.
      * <p>
      * If a note is starting before range.from and ending after range.from: <br>
      * - if cutLeft is false, the note is not removed.<br>
      * - if cutLeft is true, the note is replaced by a shorter identical that ends at range.from, except if the note starts in the range
      * [range.from-beatWindow;range.from[, then it's removed.<p>
      * If a note is starting before range.to and ending after range.to: <br>
-     * - if keepRight is false, the note is removed, except if the note starts in the range [range.to-beatWindow;range.to[, then it's
-     * replaced by a shorter identical one starting at range<br>
+     * - if keepRight is false, the note is removed, except if the note starts in the range [range.to-beatWindow;range.to[, then it's replaced by a shorter
+     * identical one starting at range<br>
      * - if keepRight is true, the note is replaced by a shorter identical one starting at range.to<br>
      *
      * @param p
@@ -454,7 +454,7 @@ public class Phrases
 
                         // Replace
                         float newDur = range.from - nePosFrom;
-                        NoteEvent newNe = ne.getCopyDur(newDur);
+                        NoteEvent newNe = ne.setDuration(newDur);
                         toBeReplaced.put(ne, newNe);
 
 
@@ -462,7 +462,8 @@ public class Phrases
                         if (keepRight && nePosTo > range.to)
                         {
                             newDur = nePosTo - range.to;
-                            newNe = ne.getCopyDurPos(newDur, range.to);
+                            newNe = ne.setAll(-1, newDur, -1, range.to, true);
+
                             toBeAdded.add(newNe);
                         }
                     } else
@@ -481,7 +482,7 @@ public class Phrases
                 if (nePosTo > range.to && (keepRight || frRight.contains(nePosFrom, true)))
                 {
                     float newDur = nePosTo - range.to;
-                    NoteEvent newNe = ne.getCopyDurPos(newDur, range.to);
+                    NoteEvent newNe = ne.setAll(-1, newDur, -1, range.to, true);
                     toBeAdded.add(newNe);
                 }
             } else
@@ -559,8 +560,7 @@ public class Phrases
     /**
      * Remove overlapped phrase notes with identical pitch.
      * <p>
-     * A note N1 is overlapped by N2 if N1's noteOn event occurs after N2's noteOn event and N1's noteOff event occurs before N2's noteOff
-     * event.
+     * A note N1 is overlapped by N2 if N1's noteOn event occurs after N2's noteOn event and N1's noteOff event occurs before N2's noteOff event.
      *
      * @param p
      */
@@ -639,7 +639,7 @@ public class Phrases
             {
                 pitch -= 12;
             }
-            return ne.getCopyPitch(pitch);
+            return ne.setPitch(pitch);
         };
 
         p.processNotes(tester, mapper);
@@ -649,8 +649,8 @@ public class Phrases
     /**
      * Parse a Midi file to extract one phrase from the specified Midi channel notes (notes can be on any track).
      * <p>
-     * As a special case, if midiFile contains notes from only 1 channel and this channel is different from the channel parameter, then the
-     * method will still accept these notes to build the returned phrase, unless the strictChannel parameter is true.
+     * As a special case, if midiFile contains notes from only 1 channel and this channel is different from the channel parameter, then the method will still
+     * accept these notes to build the returned phrase, unless the strictChannel parameter is true.
      *
      * @param midiFile
      * @param channel
@@ -664,7 +664,7 @@ public class Phrases
     public static Phrase importPhrase(File midiFile, int channel, boolean isDrums, boolean strictChannel, boolean notifyUserIfNoChannelNotes) throws IOException, InvalidMidiDataException
     {
         Preconditions.checkNotNull(midiFile);
-        
+
         // Load file into a sequence
         Sequence sequence;
         sequence = MidiSystem.getSequence(midiFile);    // throw exceptions, note that exception message might be null

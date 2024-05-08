@@ -174,13 +174,13 @@ public class SelectionTool implements EditTool
             var selectedNotes = NoteView.getNotes(editor.getSelectedNoteViews());
             if (!selectedNotes.contains(neSource))
             {
+                // If moved note was not previously selected, just select it and create its drag note
                 editor.unselectAll();
                 editor.selectNote(neSource, true);
-                // Create one drag note
                 mapSrcDragNotes.put(neSource, neSource.clone());
             } else
             {
-                // Create the drag notes for the selected notes
+                // Create a drag note for each selected note
                 selectedNotes.forEach(ne -> mapSrcDragNotes.put(ne, ne.clone()));
             }
 
@@ -256,7 +256,7 @@ public class SelectionTool implements EditTool
                         {
                             float newDur = srcNe.getDurationInBeats() - posDelta;
                             newDur = Math.min(newDur, editor.getPhraseBeatRange().to - 0.001f - newPos);
-                            var newDragNe = srcNe.getCopyDurPos(newDur, newPos);
+                            var newDragNe = srcNe.setAll(-1, newDur, -1, newPos, true);
                             mapOldNew.put(dragNe, newDragNe);
                             mapSrcDragNotes.put(srcNe, newDragNe);
                         }
@@ -285,7 +285,7 @@ public class SelectionTool implements EditTool
                                 && (srcNe.getPositionInBeats() + newDur) < editor.getPhraseBeatRange().to)
                         {
                             var dragNe = mapSrcDragNotes.get(srcNe);
-                            var newDragNe = srcNe.getCopyDur(newDur);
+                            var newDragNe = srcNe.setDuration(newDur);
                             mapOldNew.put(dragNe, newDragNe);
                             mapSrcDragNotes.put(srcNe, newDragNe);
                         }
@@ -344,7 +344,7 @@ public class SelectionTool implements EditTool
 
 
                         // Move the drag note
-                        var newDragNe = dragNe.getCopyPitchPos(newDragPitch, newDragPos);
+                        var newDragNe = dragNe.setAll(newDragPitch, -1, -1, newDragPos, true);
                         mapOldNew.put(dragNe, newDragNe);
                         mapSrcDragNotes.put(sne, newDragNe);
                     }
@@ -540,7 +540,7 @@ public class SelectionTool implements EditTool
                 var ne = snv.getModel();
                 int delta = (e.getWheelRotation() < 0) ? STEP : -STEP;
                 int newVel = MidiUtilities.limit(ne.getVelocity() + delta);
-                var newNe = ne.getCopyVel(newVel);
+                var newNe = ne.setVelocity(newVel);
                 mapOldNew.put(ne, newNe);
             }
             editor.getModel().replaceAll(mapOldNew, false);

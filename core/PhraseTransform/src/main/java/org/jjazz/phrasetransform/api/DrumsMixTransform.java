@@ -179,7 +179,7 @@ public class DrumsMixTransform implements PhraseTransform
                 if (offset != 0)
                 {
                     int velocity = MidiUtilities.limit(ne.getVelocity() + offset);
-                    nne = ne.getCopyVel(velocity);
+                    nne = ne.setVelocity(velocity);
                 }
             }
 

@@ -41,8 +41,7 @@ import org.openide.util.Exceptions;
 /**
  * A convenience class to manipulate notes from a Phrase.
  * <p>
- * The class assigns notes in fixed-sized "cells" (eg 4 cells per beats=1/16) which can then be directly accessed or modified using the cell
- * index.
+ * The class assigns notes in fixed-sized "cells" (eg 4 cells per beats=1/16) which can then be directly accessed or modified using the cell index.
  * <p>
  * To accomodate real time playing, notes starting just before a cell are included in that cell, see PRE_CELL_BEAT_WINDOW.
  * <p>
@@ -206,8 +205,7 @@ public class Grid implements Cloneable
      * Return the cell range based on the specified beat range.
      *
      * @param fr
-     * @param strict If true and range is outside the bounds of this grid throw an IllegalArgumentException. Otherwise use the first/last
-     *               cell of the grid.
+     * @param strict If true and range is outside the bounds of this grid throw an IllegalArgumentException. Otherwise use the first/last cell of the grid.
      * @return
      */
     public IntRange getCellRange(FloatRange fr, boolean strict)
@@ -236,8 +234,7 @@ public class Grid implements Cloneable
      * Take into account the getPreCellBeatWindow() value.
      *
      * @param posInBeats
-     * @param strict     If true and posInBeats is not in this grid bounds, throw an IllegalArgumentException. Otherwise use the first or
-     *                   last cell.
+     * @param strict     If true and posInBeats is not in this grid bounds, throw an IllegalArgumentException. Otherwise use the first or last cell.
      * @return
      */
     public int getCell(float posInBeats, boolean strict)
@@ -335,7 +332,7 @@ public class Grid implements Cloneable
             {
                 float newDur = ne.getDurationInBeats() + (cellOff - rg.to) * cellDuration;
                 newDur = Math.max(cellDuration, newDur);
-                NoteEvent newNe = ne.getCopyDur(newDur);       // This clone also the clientProperties
+                NoteEvent newNe = ne.setDuration(newDur);
                 phrase.replace(ne, newNe);
                 usedPitches.add(newNe.getPitch());
 
@@ -370,7 +367,7 @@ public class Grid implements Cloneable
         for (NoteEvent ne : nes)
         {
             int newVelocity = MidiUtilities.limit(f.apply(ne.getVelocity()));
-            NoteEvent newNe = ne.getCopyVel(newVelocity);       // This clone also the clientProperties
+            NoteEvent newNe = ne.setVelocity(newVelocity);
             mapOldNew.put(ne, newNe);
         }
         phrase.replaceAll(mapOldNew, false);
@@ -562,8 +559,7 @@ public class Grid implements Cloneable
      *
      * @param cell
      * @param n            Pitch, duration and velocity are reused to create the NoteEvent.
-     * @param relPosInCell The relative position in beats of the note in the cell. Value must be in the interval
-     *                     [-getPreCellBeatWindow():cellDuration[
+     * @param relPosInCell The relative position in beats of the note in the cell. Value must be in the interval [-getPreCellBeatWindow():cellDuration[
      * @return The added note.
      */
     public NoteEvent addNote(int cell, Note n, float relPosInCell)
@@ -603,8 +599,8 @@ public class Grid implements Cloneable
      *
      * @param cellFrom            The index of the cell containing the notes to be moved.
      * @param cellTo              The index of the destination cell
-     * @param keepNoteOffPosition If true AND notes are moved earlier (cellIndexFrom &gt; cellIndexDest), extend the duration of the moved
-     *                            notes so they keep the same NOTE_OFF position.
+     * @param keepNoteOffPosition If true AND notes are moved earlier (cellIndexFrom &gt; cellIndexDest), extend the duration of the moved notes so they keep
+     *                            the same NOTE_OFF position.
      * @return The number of moved notes
      */
     public int moveNotes(int cellFrom, int cellTo, boolean keepNoteOffPosition)
@@ -632,7 +628,7 @@ public class Grid implements Cloneable
                     // Extend the duration
                     durationInBeats = ne.getPositionInBeats() + ne.getDurationInBeats() - newPosInBeats;
                 }
-                NoteEvent movedNe = ne.getCopyDurPos(durationInBeats, newPosInBeats);
+                NoteEvent movedNe = ne.setAll(-1, durationInBeats, -1, newPosInBeats, true);
                 phrase.remove(ne);
                 phrase.add(movedNe);
             }
@@ -646,8 +642,8 @@ public class Grid implements Cloneable
      *
      * @param cellFrom            The index of the cell containing the note to be moved.
      * @param cellTo              The index of the destination cell
-     * @param keepNoteOffPosition If true AND note is moved earlier (cellIndexFrom &gt; cellIndexDest), extend the duration of the moved
-     *                            note so it keeps the same NOTE_OFF position.
+     * @param keepNoteOffPosition If true AND note is moved earlier (cellIndexFrom &gt; cellIndexDest), extend the duration of the moved note so it keeps the
+     *                            same NOTE_OFF position.
      * @return True if a note was moved.
      */
     public boolean moveFirstNote(int cellFrom, int cellTo, boolean keepNoteOffPosition)
@@ -669,7 +665,7 @@ public class Grid implements Cloneable
                 // Extend the duration
                 durationInBeats = ne.getPositionInBeats() + ne.getDurationInBeats() - newPosInBeats;
             }
-            NoteEvent movedNe = ne.getCopyDurPos(durationInBeats, newPosInBeats);
+            NoteEvent movedNe = ne.setAll(-1, durationInBeats, -1, newPosInBeats, true);            
             phrase.remove(ne);
             phrase.add(movedNe);
             refresh();
@@ -696,7 +692,7 @@ public class Grid implements Cloneable
         for (NoteEvent ne : nes)
         {
             float newDuration = pos - ne.getPositionInBeats();
-            NoteEvent newNe = ne.getCopyDur(newDuration);
+            NoteEvent newNe = ne.setDuration(newDuration);
             mapOldNew.put(ne, newNe);
         }
         phrase.replaceAll(mapOldNew, false);
@@ -736,8 +732,7 @@ public class Grid implements Cloneable
     /**
      * The position in beats of the start of the specified cell.
      * <p>
-     * Note that some notes may belong to a cell even if their position is lower than the value returned by getStartPos(), see
-     * getPreCellBeatWindow().
+     * Note that some notes may belong to a cell even if their position is lower than the value returned by getStartPos(), see getPreCellBeatWindow().
      * <p>
      *
      * @param cell

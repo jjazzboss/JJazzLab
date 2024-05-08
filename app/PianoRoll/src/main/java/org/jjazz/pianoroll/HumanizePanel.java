@@ -27,8 +27,6 @@ import java.beans.PropertyChangeListener;
 import java.util.Collection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import org.jjazz.flatcomponents.api.CollapsiblePanel;
 import org.jjazz.humanizer.api.Humanizer;
 import org.jjazz.phrase.api.Phrase;
@@ -36,9 +34,9 @@ import org.jjazz.pianoroll.api.NoteView;
 import org.jjazz.pianoroll.api.PianoRollEditor;
 
 /**
- * Humanize panel.
+ * The humanize notes panel.
  */
-public class HumanizePanel extends javax.swing.JPanel implements ChangeListener, PropertyChangeListener
+public class HumanizePanel extends javax.swing.JPanel implements PropertyChangeListener
 {
 
     private Humanizer humanizer;
@@ -53,14 +51,15 @@ public class HumanizePanel extends javax.swing.JPanel implements ChangeListener,
 
         initComponents();
 
-
         initializeNewHumanizer();
-    }
 
+        refreshUI();
+    }
 
     public void cleanup()
     {
         editor.removePropertyChangeListener(this);
+        humanizer.cleanup();
     }
 
     /**
@@ -71,7 +70,6 @@ public class HumanizePanel extends javax.swing.JPanel implements ChangeListener,
     {
         super.addNotify();
         assert getParent().getParent() instanceof CollapsiblePanel : "getParent().getParent()=" + getParent().getParent();
-
     }
 
     /**
@@ -81,17 +79,9 @@ public class HumanizePanel extends javax.swing.JPanel implements ChangeListener,
     public void removeNotify()
     {
         super.removeNotify();
+        humanizer.setEnabled(false);
     }
 
-    // ===============================================================================================
-    // ChangeListener
-    // ===============================================================================================
-
-    @Override
-    public void stateChanged(ChangeEvent e)
-    {
-        refreshUI();
-    }
     // ==========================================================================================================
     // PropertyChangeListener interface
     // ==========================================================================================================    
@@ -105,7 +95,11 @@ public class HumanizePanel extends javax.swing.JPanel implements ChangeListener,
         {
             switch (evt.getPropertyName())
             {
-                case PianoRollEditor.PROP_MODEL_PHRASE -> initializeNewHumanizer();
+                case PianoRollEditor.PROP_MODEL_PHRASE ->
+                {
+                    initializeNewHumanizer();
+                    refreshUI();
+                }
 
                 case PianoRollEditor.PROP_SELECTED_NOTE_VIEWS ->
                 {
@@ -113,15 +107,25 @@ public class HumanizePanel extends javax.swing.JPanel implements ChangeListener,
                     boolean b = (boolean) evt.getNewValue();
                     if (b)
                     {
-                        humanizer.addNotes(nes);
+                        humanizer.registerNotes(nes);
+                        humanizer.humanize(null);
                     } else
                     {
-                        humanizer.removeNotes(nes);
+                        humanizer.unregisterNotes(nes);
                     }
+
+                    refreshUI();
                 }
                 default ->
                 {
                 }
+            }
+        } else if (evt.getSource() == humanizer)
+        {
+            switch (evt.getPropertyName())
+            {
+                case Humanizer.PROP_CONFIG -> refreshUI();
+                case Humanizer.PROP_ENABLED -> refreshUI();
             }
         }
     }
@@ -147,21 +151,41 @@ public class HumanizePanel extends javax.swing.JPanel implements ChangeListener,
         strValue = String.format("%1$5d%%", intValue);
         lbl_velocityValue.setText(strValue);
 
-        boolean b = config.equals(Humanizer.DEFAULT_CONFIG);
-        btn_confirm.setEnabled(!b);
-        btn_cancel.setEnabled(!b);
+
+        boolean b = humanizer.isEnabled();
+        cb_enable.setSelected(b);
+
+        lbl_timingText.setEnabled(b);
+        lbl_timingValue.setEnabled(b);
+        sld_timing.setEnabled(b);
+
+        lbl_timingBiasText.setEnabled(b);
+        lbl_timingBiasValue.setEnabled(b);
+        sld_timingBias.setEnabled(b);
+
+        lbl_velocityText.setEnabled(b);
+        lbl_velocityValue.setEnabled(b);
+        sld_velocity.setEnabled(b);
+
+        btn_newSeed.setEnabled(b);
+        btn_cancel.setEnabled(b && !config.equals(Humanizer.DEFAULT_CONFIG));
+
     }
 
     private void initializeNewHumanizer()
     {
         if (humanizer != null)
         {
-            humanizer.removeChangeListener(this);
+            humanizer.removePropertyChangeListener(this);
+            humanizer.cleanup();
         }
         Phrase p = editor.getModel();
         var selectedNotes = NoteView.getNotes(editor.getSelectedNoteViews());
-        humanizer = new Humanizer(p, editor.getPhraseBeatRange(), selectedNotes, null, editor.getSong().getTempo());
-        humanizer.addChangeListener(this);
+        var beatRange = editor.getPhraseBeatRange();
+        var ts = editor.getTimeSignature(beatRange.from);       // Not perfect, but for now Humanizer can't manage multiple time signatures
+        humanizer = new Humanizer(p, ts, beatRange, null, editor.getSong().getTempo());
+        humanizer.registerNotes(selectedNotes);
+        humanizer.addPropertyChangeListener(this);
         refreshUI();
     }
 
@@ -185,8 +209,8 @@ public class HumanizePanel extends javax.swing.JPanel implements ChangeListener,
         lbl_timingBiasValue = new javax.swing.JLabel();
         lbl_velocityValue = new javax.swing.JLabel();
         btn_cancel = new javax.swing.JButton();
-        btn_confirm = new javax.swing.JButton();
         btn_newSeed = new javax.swing.JButton();
+        cb_enable = new javax.swing.JCheckBox();
 
         sld_timingBias.setMaximum(50);
         sld_timingBias.setMinimum(-50);
@@ -274,6 +298,7 @@ public class HumanizePanel extends javax.swing.JPanel implements ChangeListener,
         lbl_timingValue.setFont(lbl_timingValue.getFont().deriveFont(lbl_timingValue.getFont().getSize()-1f));
         org.openide.awt.Mnemonics.setLocalizedText(lbl_timingValue, "30%"); // NOI18N
         lbl_timingValue.setToolTipText(sld_timing.getToolTipText());
+        lbl_timingValue.setHorizontalTextPosition(javax.swing.SwingConstants.LEFT);
         lbl_timingValue.addMouseListener(new java.awt.event.MouseAdapter()
         {
             public void mouseClicked(java.awt.event.MouseEvent evt)
@@ -285,6 +310,7 @@ public class HumanizePanel extends javax.swing.JPanel implements ChangeListener,
         lbl_timingBiasValue.setFont(lbl_timingBiasValue.getFont().deriveFont(lbl_timingBiasValue.getFont().getSize()-1f));
         org.openide.awt.Mnemonics.setLocalizedText(lbl_timingBiasValue, "+20%"); // NOI18N
         lbl_timingBiasValue.setToolTipText(sld_timingBias.getToolTipText());
+        lbl_timingBiasValue.setHorizontalTextPosition(javax.swing.SwingConstants.LEFT);
         lbl_timingBiasValue.addMouseListener(new java.awt.event.MouseAdapter()
         {
             public void mouseClicked(java.awt.event.MouseEvent evt)
@@ -296,6 +322,7 @@ public class HumanizePanel extends javax.swing.JPanel implements ChangeListener,
         lbl_velocityValue.setFont(lbl_velocityValue.getFont().deriveFont(lbl_velocityValue.getFont().getSize()-1f));
         org.openide.awt.Mnemonics.setLocalizedText(lbl_velocityValue, "75%"); // NOI18N
         lbl_velocityValue.setToolTipText(sld_velocity.getToolTipText());
+        lbl_velocityValue.setHorizontalTextPosition(javax.swing.SwingConstants.LEFT);
         lbl_velocityValue.addMouseListener(new java.awt.event.MouseAdapter()
         {
             public void mouseClicked(java.awt.event.MouseEvent evt)
@@ -314,22 +341,23 @@ public class HumanizePanel extends javax.swing.JPanel implements ChangeListener,
             }
         });
 
-        org.openide.awt.Mnemonics.setLocalizedText(btn_confirm, org.openide.util.NbBundle.getMessage(HumanizePanel.class, "HumanizePanel.btn_confirm.text")); // NOI18N
-        btn_confirm.setToolTipText(org.openide.util.NbBundle.getMessage(HumanizePanel.class, "HumanizePanel.btn_confirm.toolTipText")); // NOI18N
-        btn_confirm.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                btn_confirmActionPerformed(evt);
-            }
-        });
-
         org.openide.awt.Mnemonics.setLocalizedText(btn_newSeed, org.openide.util.NbBundle.getMessage(HumanizePanel.class, "HumanizePanel.btn_newSeed.text")); // NOI18N
+        btn_newSeed.setToolTipText(org.openide.util.NbBundle.getMessage(HumanizePanel.class, "HumanizePanel.btn_newSeed.toolTipText")); // NOI18N
         btn_newSeed.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
             {
                 btn_newSeedActionPerformed(evt);
+            }
+        });
+
+        org.openide.awt.Mnemonics.setLocalizedText(cb_enable, org.openide.util.NbBundle.getMessage(HumanizePanel.class, "HumanizePanel.cb_enable.text")); // NOI18N
+        cb_enable.setToolTipText(org.openide.util.NbBundle.getMessage(HumanizePanel.class, "HumanizePanel.cb_enable.toolTipText")); // NOI18N
+        cb_enable.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                cb_enableActionPerformed(evt);
             }
         });
 
@@ -365,10 +393,11 @@ public class HumanizePanel extends javax.swing.JPanel implements ChangeListener,
                                 .addComponent(lbl_timingValue))))
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(btn_newSeed)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 19, Short.MAX_VALUE)
-                        .addComponent(btn_confirm)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btn_cancel)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 97, Short.MAX_VALUE)
+                        .addComponent(btn_cancel))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(cb_enable)
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
 
@@ -377,7 +406,9 @@ public class HumanizePanel extends javax.swing.JPanel implements ChangeListener,
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(11, 11, 11)
+                .addContainerGap()
+                .addComponent(cb_enable)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(sld_timing, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(lbl_timingText)
@@ -396,16 +427,10 @@ public class HumanizePanel extends javax.swing.JPanel implements ChangeListener,
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btn_cancel)
-                    .addComponent(btn_confirm)
                     .addComponent(btn_newSeed))
                 .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
-
-    private void btn_confirmActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_confirmActionPerformed
-    {//GEN-HEADEREND:event_btn_confirmActionPerformed
-        initializeNewHumanizer();
-    }//GEN-LAST:event_btn_confirmActionPerformed
 
     private void btn_cancelActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_cancelActionPerformed
     {//GEN-HEADEREND:event_btn_cancelActionPerformed
@@ -416,19 +441,19 @@ public class HumanizePanel extends javax.swing.JPanel implements ChangeListener,
 
     private void sld_timingStateChanged(javax.swing.event.ChangeEvent evt)//GEN-FIRST:event_sld_timingStateChanged
     {//GEN-HEADEREND:event_sld_timingStateChanged
-        var cfg = humanizer.getUserConfig().getCopy(sld_timing.getValue() / 100f, -1, -1);
+        var cfg = humanizer.getUserConfig().setTimingRandomness(sld_timing.getValue() / 100f);
         humanizer.humanize(cfg);
     }//GEN-LAST:event_sld_timingStateChanged
 
     private void sld_timingBiasStateChanged(javax.swing.event.ChangeEvent evt)//GEN-FIRST:event_sld_timingBiasStateChanged
     {//GEN-HEADEREND:event_sld_timingBiasStateChanged
-        var cfg = humanizer.getUserConfig().getCopy(-1, sld_timingBias.getValue() / 100f, -1);
+        var cfg = humanizer.getUserConfig().setTimingBias(sld_timingBias.getValue() / 100f);
         humanizer.humanize(cfg);
     }//GEN-LAST:event_sld_timingBiasStateChanged
 
     private void sld_velocityStateChanged(javax.swing.event.ChangeEvent evt)//GEN-FIRST:event_sld_velocityStateChanged
     {//GEN-HEADEREND:event_sld_velocityStateChanged
-        var cfg = humanizer.getUserConfig().getCopy(-1, -1, sld_velocity.getValue() / 100f);
+        var cfg = humanizer.getUserConfig().setVelocityRandomness(sld_velocity.getValue() / 100f);
         humanizer.humanize(cfg);
     }//GEN-LAST:event_sld_velocityStateChanged
 
@@ -436,7 +461,7 @@ public class HumanizePanel extends javax.swing.JPanel implements ChangeListener,
     {//GEN-HEADEREND:event_lbl_timingTextMouseClicked
         if (evt.getClickCount() == 2)
         {
-            var cfg = humanizer.getUserConfig().getCopy(0, -1, -1);
+            var cfg = humanizer.getUserConfig().setTimingRandomness(0);
             humanizer.humanize(cfg);
         }
     }//GEN-LAST:event_lbl_timingTextMouseClicked
@@ -445,7 +470,7 @@ public class HumanizePanel extends javax.swing.JPanel implements ChangeListener,
     {//GEN-HEADEREND:event_lbl_timingBiasValueMouseClicked
         if (evt.getClickCount() == 2)
         {
-            var cfg = humanizer.getUserConfig().getCopy(-1, 0, -1);
+            var cfg = humanizer.getUserConfig().setTimingBias(0);
             humanizer.humanize(cfg);
         }
     }//GEN-LAST:event_lbl_timingBiasValueMouseClicked
@@ -454,7 +479,7 @@ public class HumanizePanel extends javax.swing.JPanel implements ChangeListener,
     {//GEN-HEADEREND:event_lbl_velocityTextMouseClicked
         if (evt.getClickCount() == 2)
         {
-            var cfg = humanizer.getUserConfig().getCopy(-1, -1, 0);
+            var cfg = humanizer.getUserConfig().setVelocityRandomness(0);
             humanizer.humanize(cfg);
         }
     }//GEN-LAST:event_lbl_velocityTextMouseClicked
@@ -464,11 +489,16 @@ public class HumanizePanel extends javax.swing.JPanel implements ChangeListener,
         humanizer.newSeed();
     }//GEN-LAST:event_btn_newSeedActionPerformed
 
+    private void cb_enableActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cb_enableActionPerformed
+    {//GEN-HEADEREND:event_cb_enableActionPerformed
+        humanizer.setEnabled(cb_enable.isSelected());
+    }//GEN-LAST:event_cb_enableActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_cancel;
-    private javax.swing.JButton btn_confirm;
     private javax.swing.JButton btn_newSeed;
+    private javax.swing.JCheckBox cb_enable;
     private javax.swing.JLabel lbl_timingBiasText;
     private javax.swing.JLabel lbl_timingBiasValue;
     private javax.swing.JLabel lbl_timingText;

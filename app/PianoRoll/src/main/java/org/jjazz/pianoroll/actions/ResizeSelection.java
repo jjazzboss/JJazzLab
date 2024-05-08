@@ -97,7 +97,7 @@ public class ResizeSelection extends AbstractAction
 
             if (br.contains(pos + newDur, false))
             {
-                var newNe = ne.getCopyDur(newDur);
+                var newNe = ne.setDuration(newDur);
                 mapOldNew.put(ne, newNe);
             }
         }

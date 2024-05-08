@@ -876,7 +876,7 @@ public class YamJJazzRhythmGenerator
 
             // Shorten the previous parent dest note, or even remove it if too short
             float shortenedDuration = posDestNote - prevParentDestNote.getPositionInBeats();
-            NoteEvent shortenedPrevParentDestNote = prevParentDestNote.getCopyDur(shortenedDuration);
+            NoteEvent shortenedPrevParentDestNote = prevParentDestNote.setDuration(shortenedDuration);
 
             if (prevParentDestNote.getDurationInBeats() >= Grid.PRE_CELL_BEAT_WINDOW && shortenedDuration <= Grid.PRE_CELL_BEAT_WINDOW)
             {
@@ -920,7 +920,7 @@ public class YamJJazzRhythmGenerator
                     assert destCliCs != null : "ne=" + destNote + " cSeq=" + cSeq;   //NOI18N
                     Note n = ctb2.bassOn ? destCliCs.getData().getBassNote() : destCliCs.getData().getRootNote();
                     int destCliCsRootPitch = destNote.getClosestPitch(n.getRelativePitch());
-                    NoteEvent newDestNote = destNote.getCopyPitch(destCliCsRootPitch);
+                    NoteEvent newDestNote = destNote.setPitch(destCliCsRootPitch);
                     pDest.replace(destNote, newDestNote);
 
                     LOGGER.log(Level.FINE, "  RETRIGGER_TO_ROOT replace destNote={0} > newDestNote={1}", new Object[]
@@ -1095,7 +1095,7 @@ public class YamJJazzRhythmGenerator
                     p.processNotes(ne -> frg.contains(ne.getPositionInBeats(), true), ne -> 
                     {
                         int v = MidiUtilities.limit(ne.getVelocity() + velShift);
-                        NoteEvent newNe = ne.getCopyVel(v);
+                        NoteEvent newNe = ne.setVelocity(v);
                         return newNe;
                     });
                 }
@@ -1151,7 +1151,7 @@ public class YamJJazzRhythmGenerator
 
                     NoteEvent ne = notes.get(0);
                     int newPitch = ne.getClosestPitch(bassRelPitch);
-                    NoteEvent newNe = ne.getCopyPitch(newPitch);
+                    NoteEvent newNe = ne.setPitch(newPitch);
                     p.replace(ne, newNe);
                     LOGGER.log(Level.FINE, "processBassLine()    => replacing {0} with {1}", new Object[]
                     {
@@ -1344,7 +1344,7 @@ public class YamJJazzRhythmGenerator
                 int newPitch = StandardKeyMapConverter.convertKey(srcKeyMap, oldPitch, destKeyMap);
                 if (newPitch != -1 && newPitch != oldPitch)
                 {
-                    NoteEvent newNe = ne.getCopyPitch(newPitch);
+                    NoteEvent newNe = ne.setPitch(newPitch);
                     mapOldNew.put(ne, newNe);
                     LOGGER.log(Level.FINE, "remapDrumNotes() pitch replaced {0} ==> {1}", new Object[]
                     {

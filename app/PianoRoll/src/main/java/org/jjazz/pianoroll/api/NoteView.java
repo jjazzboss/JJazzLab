@@ -48,7 +48,7 @@ import org.jjazz.utilities.api.ResUtil;
 
 /**
  * A JComponent which represents a NoteEvent.
- * 
+ * <p>
  */
 public class NoteView extends JPanel implements PropertyChangeListener, Comparable<NoteEvent>
 {
@@ -56,10 +56,10 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
     public static final String PROP_SELECTED = "PropSelected";
     public static final String PROP_MODEL = "PropModel";
     private static final Color COLOR_TEXT = Color.WHITE;
-    private static final Font FONT=GeneralUISettings.getInstance().getStdCondensedFont().deriveFont(10f);;
-    private static final int FONT_HEIGHT = (int)UIUtilities.getStringBounds("A", FONT).getHeight();
-    private static String TOOLTIP_HELP = ResUtil.getString(NoteView.class, "NoteViewToolTipHelp");
-        private static final NoteColorManager noteColorManager = NoteColorManager.getDefault();
+    private static final Font FONT = GeneralUISettings.getInstance().getStdCondensedFont().deriveFont(10f);
+    private static final int FONT_HEIGHT = (int) UIUtilities.getStringBounds("A", FONT).getHeight();
+    private static final String TOOLTIP_HELP = ResUtil.getString(NoteView.class, "NoteViewToolTipHelp");
+    private static final NoteColorManager noteColorManager = NoteColorManager.getDefault();
 
     private NoteEvent noteEvent;
     private String noteAsString;
@@ -193,8 +193,7 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
         noteViews.forEach(nv -> res.add(nv.getModel()));
         return res;
     }
- 
-    
+
 
     // ==========================================================================================================
     // PropertyChangeListener interface

@@ -92,7 +92,7 @@ public class Quantize extends AbstractAction
             if (!beatRange.contains(newPosInBeats + ne.getDurationInBeats(), true))
             {
                 float newDur = beatRange.to - newPosInBeats - 0.01f;
-                var newNe = ne.getCopyDurPos(newDur, newPosInBeats);
+                var newNe = ne.setAll(-1, newDur, -1, newPosInBeats, true);
                 mapOldNew.put(ne, newNe);
             } else
             {

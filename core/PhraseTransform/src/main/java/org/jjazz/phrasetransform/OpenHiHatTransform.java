@@ -84,7 +84,7 @@ public class OpenHiHatTransform implements PhraseTransform
             {
                 pitch = destPitch;
             }
-            var newNe = ne.getCopyPitch(pitch);
+            var newNe = ne.setPitch(pitch);
             res.add(newNe);
         }
 

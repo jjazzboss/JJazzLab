@@ -66,7 +66,7 @@ public class SwingTransform implements PhraseTransform
         info = new Info("SwingId",
                 "Swing",
                 ResUtil.getString(getClass(), "SwingTransformDesc"),
-                 PhraseTransformCategory.DRUMS,
+                PhraseTransformCategory.DRUMS,
                 ICON);
 
 
@@ -116,7 +116,7 @@ public class SwingTransform implements PhraseTransform
                     newDur = fr.to - newPos - 0.1f;
                 }
             }
-            var newNe = ne.getCopyDurPos(newDur, newPos);
+            var newNe = ne.setAll(-1, newDur, -1, newPos, true);
             res.add(newNe);
         }
 
@@ -175,5 +175,5 @@ public class SwingTransform implements PhraseTransform
         res.properties = properties.getCopy();
         return res;
     }
- 
+
 }
