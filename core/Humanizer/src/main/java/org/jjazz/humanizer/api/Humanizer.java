@@ -59,7 +59,7 @@ public class Humanizer implements PropertyChangeListener
      * @param velocityRandomness [0-1.0] Amount of randomness to notes velocity
      */
     public record Config(float timingRandomness, float timingBias, float velocityRandomness)
-            {
+        {
 
         public Config()
         {
@@ -156,8 +156,8 @@ public class Humanizer implements PropertyChangeListener
         Objects.nonNull(ts);
         Preconditions.checkArgument(tempo >= 10 && tempo <= 400, "tempo=%f", tempo);
         Preconditions.checkArgument(sourcePhrase.isEmpty() || allowedBeatRange.contains(sourcePhrase.getBeatRange(), false), "phrase=%s allowedBeatRange=%s",
-                sourcePhrase,
-                allowedBeatRange);
+            sourcePhrase,
+            allowedBeatRange);
 
 
         LOGGER.log(Level.SEVERE, "Humanizer() -- phrase.size()={0}", sourcePhrase.size());
@@ -290,14 +290,17 @@ public class Humanizer implements PropertyChangeListener
     /**
      * Humanize the source phrase registered notes.
      * <p>
-     * For each note the method multiplies the note random factors (calculated upon object creation, or when newSeed() is called) by the corresponding value
-     * from newUserConfig. If instance is disabled, notes are left unchanged.
+     * For each note the method multiplies the note random factors (calculated upon object creation, or when newSeed() is called) by the corresponding
+     * value from newUserConfig.
+     * <p>
+     * Notes whose client property NoteEvent.PROP_IS_ADJUSTIING is true are not humanized. If instance is disabled, all notes are left unchanged.
      * <p>
      * Fire a PROP_CONFIG change event if userConfig has changed.
      *
      * @param newUserConfig If null, reuse the same config
      * @see #registerNotes(java.util.List)
      * @see #isEnabled()
+     * @see NoteEvent#PROP_IS_ADJUSTING
      */
     public void humanize(Config newUserConfig)
     {
@@ -314,8 +317,14 @@ public class Humanizer implements PropertyChangeListener
 
         if (enabled)
         {
-            sourcePhrase.processNotes(ne -> notes.contains(ne), ne -> 
+            sourcePhrase.processNotes(ne -> notes.contains(ne), ne ->
             {
+                if (Boolean.TRUE.equals(ne.getClientProperties().get(NoteEvent.PROP_IS_ADJUSTING)))
+                {
+                    LOGGER.log(Level.SEVERE, "humanize() isAdjusting note, skip ne={0}", ne);
+                    return ne;
+                }
+
                 var neOrig = mapNoteOrig.get(ne);
                 assert neOrig != null : "ne=" + ne;
                 float posInBeats = neOrig.getPositionInBeats();
@@ -327,7 +336,7 @@ public class Humanizer implements PropertyChangeListener
 
                 // New position
                 float posShift = (float) (noteRandomFactors.timingFactor() * maxTimingDeviation * userConfig.timingRandomness()
-                        + MAX_TIMING_BIAS_DEVIATION * userConfig.timingBias());
+                    + MAX_TIMING_BIAS_DEVIATION * userConfig.timingBias());
                 float newPosInBeats = posInBeats + posShift;
 
                 // Check that we remain in the allowed range
@@ -355,7 +364,7 @@ public class Humanizer implements PropertyChangeListener
         }
 
 
-        pcs.firePropertyChange(PROP_CONFIG, oldUserConfig, newUserConfig);
+        pcs.firePropertyChange(PROP_CONFIG, oldUserConfig, userConfig);
 
     }
 
@@ -404,6 +413,10 @@ public class Humanizer implements PropertyChangeListener
                         noteReplaced(neOld, mapOldNew.get(neOld), false);
                     }
                 }
+                case Phrase.PROP_NOTES_ADDED ->
+                {
+                    // Nothing
+                }
                 default ->
                 {
                 }
@@ -424,12 +437,15 @@ public class Humanizer implements PropertyChangeListener
      */
     private void noteReplaced(NoteEvent neOld, NoteEvent neNew, boolean resetOriginalNote)
     {
-        notes.remove(neOld);
-        notes.add(neNew);
-        var neOrig = resetOriginalNote ? neNew : mapNoteOrig.remove(neOld);
-        mapNoteOrig.put(neNew, neOrig);
-        var factors = mapNoteRandomFactors.remove(neOld);
-        mapNoteRandomFactors.put(neNew, factors);
+        if (notes.contains(neOld))
+        {
+            notes.remove(neOld);
+            notes.add(neNew);
+            var neOrig = resetOriginalNote ? neNew : mapNoteOrig.remove(neOld);
+            mapNoteOrig.put(neNew, neOrig);
+            var factors = mapNoteRandomFactors.remove(neOld);
+            mapNoteRandomFactors.put(neNew, factors);
+        }
     }
 
 
@@ -485,7 +501,7 @@ public class Humanizer implements PropertyChangeListener
      * @param velocityFactor [-1;1]
      */
     private record NoteFactors(float timingFactor, float velocityFactor)
-            {
+        {
 
         public NoteFactors()
         {

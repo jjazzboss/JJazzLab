@@ -66,8 +66,8 @@ public class PencilTool implements EditTool
     private static final Image CURSOR_IMAGE = new ImageIcon(PencilTool.class.getResource(CURSOR_PATH)).getImage();
     private static final Image CURSOR_IMAGE_WIN = new ImageIcon(PencilTool.class.getResource(CURSOR_PATH_WIN)).getImage();
     private static final Cursor CURSOR = Utilities.isWindows()
-            ? Toolkit.getDefaultToolkit().createCustomCursor(CURSOR_IMAGE_WIN, new Point(0, 31), "Pencil")
-            : Toolkit.getDefaultToolkit().createCustomCursor(CURSOR_IMAGE, new Point(0, 13), "Pencil");
+        ? Toolkit.getDefaultToolkit().createCustomCursor(CURSOR_IMAGE_WIN, new Point(0, 31), "Pencil")
+        : Toolkit.getDefaultToolkit().createCustomCursor(CURSOR_IMAGE, new Point(0, 13), "Pencil");
 
 
     private final PianoRollEditor editor;
@@ -85,7 +85,7 @@ public class PencilTool implements EditTool
 
 
         // Listen to selection to update lastSelectedNoteVelocity
-        this.editor.addPropertyChangeListener(PianoRollEditor.PROP_SELECTED_NOTE_VIEWS, e -> 
+        this.editor.addPropertyChangeListener(PianoRollEditor.PROP_SELECTED_NOTE_VIEWS, e ->
         {
             boolean b = (boolean) e.getNewValue();
             List<NoteView> nvs = (List<NoteView>) e.getOldValue();
@@ -117,6 +117,10 @@ public class PencilTool implements EditTool
     @Override
     public void editorClicked(MouseEvent e)
     {
+        if (e.isPopupTrigger())
+        {
+            return;
+        }
         String undoText = ResUtil.getString(getClass(), "AddNote");
         editor.getUndoManager().startCEdit(editor, undoText);
 
@@ -147,13 +151,15 @@ public class PencilTool implements EditTool
 
 
             dragNote = addNote(e);
+            markAdjustingNote(dragNote, true);
             dragStartPos = dragNote.getPositionInBeats();
             dragPitch = dragNote.getPitch();
 
             editor.unselectAll();
             editor.selectNote(dragNote, true);
 
-        } else if (!editor.isDrums())
+        }
+        else if (!editor.isDrums())
         {
             // Continue dragging
             float dur = pos - dragStartPos;
@@ -185,7 +191,7 @@ public class PencilTool implements EditTool
         // Now we can make the undoable changes
         assert !editor.getUndoManager().isEnabled();
         editor.getUndoManager().setEnabled(true);
-        
+
 
         String undoText = ResUtil.getString(getClass(), "AddNote");
         editor.getUndoManager().startCEdit(editor, undoText);
@@ -267,12 +273,14 @@ public class PencilTool implements EditTool
             float dur = pos - dragStartPos;
             dur = Math.max(0.1f, dur);
             dragNote = ne.setDuration(dur);
+            markAdjustingNote(dragNote, true);
             editor.getModel().replaceAll(Map.of(ne, dragNote), true);
 
             editor.unselectAll();
             editor.selectNote(dragNote, true);
 
-        } else
+        }
+        else
         {
             // Continue dragging
             float dur = pos - dragStartPos;
@@ -297,6 +305,7 @@ public class PencilTool implements EditTool
         String undoText = ResUtil.getString(getClass(), "ResizeNote", dragNote.toPianoOctaveString());
         editor.getUndoManager().startCEdit(editor, undoText);
 
+        markAdjustingNote(dragNote, false);
         editor.getModel().replace(nv.getModel(), dragNote, false);
 
         editor.getUndoManager().endCEdit(undoText);
@@ -365,7 +374,8 @@ public class PencilTool implements EditTool
         }
 
         NoteEvent ne = new NoteEvent(pitch, dur, getNewNoteVelocity(), pos);
-        assert editor.getModel().add(ne) : "ne=" + ne + " editor.getModel()=" + editor.getModel();
+        boolean b = editor.getModel().add(ne);
+        assert b : "ne=" + ne + " editor.getModel()=" + editor.getModel();
 
         return ne;
     }
@@ -373,6 +383,12 @@ public class PencilTool implements EditTool
     private int getNewNoteVelocity()
     {
         return lastSelectedNoteVelocity;
+    }
+
+    private void markAdjustingNote(NoteEvent dragNote, boolean b)
+    {
+        Boolean value = b == true ? Boolean.TRUE : null;
+        dragNote.getClientProperties().put(NoteEvent.PROP_IS_ADJUSTING, value);
     }
 
 }
