@@ -245,7 +245,6 @@ public class GhostPhrasesModel implements PropertyChangeListener, ChangeListener
                     {
                         // The InstrumentMix of a visible ghostPhrase was replaced, this might impact the ghost phrase
                         pcs.firePropertyChange(PROP_VISIBLE_PHRASE_CONTENT, false, true);
-
                     }
                 }
                 case MidiMix.PROP_RHYTHM_VOICE -> pcs.firePropertyChange(PROP_PHRASE_LIST, false, true);
