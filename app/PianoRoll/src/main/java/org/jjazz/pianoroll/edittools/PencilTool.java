@@ -373,7 +373,7 @@ public class PencilTool implements EditTool
         }
         
         NoteEvent ne = new NoteEvent(pitch, dur, getNewNoteVelocity(), pos);
-        boolean b = editor.getModel().add(ne);
+        boolean b = editor.getModel().add(ne);          // Fix Issue #441 (add was performed as an assert !)
         assert b : "ne=" + ne + " editor.getModel()=" + editor.getModel();
         
         return ne;
