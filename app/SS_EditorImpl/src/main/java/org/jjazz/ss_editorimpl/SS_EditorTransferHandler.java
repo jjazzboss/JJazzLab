@@ -263,7 +263,7 @@ public class SS_EditorTransferHandler extends TransferHandler
                 // Should never happen : we just use existing SongParts with the same song
                 String msg = ResUtil.getString(getClass(), "ERR_CantMoveSongPart");
                 msg += "\n" + ex.getLocalizedMessage();
-                um.handleUnsupportedEditException(ResUtil.getString(getClass(), "CTL_MoveSpt"), msg);
+                um.abortCEdit(ResUtil.getString(getClass(), "CTL_MoveSpt"), msg);
                 return false;
             }
             um.endCEdit(ResUtil.getString(getClass(), "CTL_MoveSpt"));
@@ -280,7 +280,7 @@ public class SS_EditorTransferHandler extends TransferHandler
                 // No new rhythm, so we should never be here
                 String msg = ResUtil.getString(getClass(), "ERR_CantCopy");
                 msg += "\n" + ex.getLocalizedMessage();
-                um.handleUnsupportedEditException(ResUtil.getString(getClass(), "CTL_CopySpt"), msg);
+                um.abortCEdit(ResUtil.getString(getClass(), "CTL_CopySpt"), msg);
                 return false;
             }
             um.endCEdit(ResUtil.getString(getClass(), "CTL_CopySpt"));
@@ -421,7 +421,7 @@ public class SS_EditorTransferHandler extends TransferHandler
         {
             String msg = ResUtil.getString(getClass(), "ERR_CantAdd", parentSection.getData());
             msg += ".\n" + ex.getLocalizedMessage();
-            um.handleUnsupportedEditException(ResUtil.getString(getClass(), "CTL_AddSpt"), msg);
+            um.abortCEdit(ResUtil.getString(getClass(), "CTL_AddSpt"), msg);
             return null;
         }
 

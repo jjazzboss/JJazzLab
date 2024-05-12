@@ -122,7 +122,7 @@ public class PasteAppend extends AbstractAction implements ContextAwareAction, S
             {
                 String msg = ResUtil.getString(getClass(), "ERR_Paste");
                 msg += "\n" + ex.getLocalizedMessage();
-                um.handleUnsupportedEditException(undoText, msg);
+                um.abortCEdit(undoText, msg);
                 return;
             }
         }

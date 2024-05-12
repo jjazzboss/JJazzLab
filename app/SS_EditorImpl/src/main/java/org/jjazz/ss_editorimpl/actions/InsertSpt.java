@@ -138,7 +138,7 @@ public class InsertSpt extends AbstractAction implements ContextAwareAction, SS_
             } catch (UnsupportedEditException ex)
             {
                 String msg = ResUtil.getString(getClass(), "ERR_InsertSpt") + "\n" + ex.getLocalizedMessage();
-                um.handleUnsupportedEditException(undoText, msg);
+                um.abortCEdit(undoText, msg);
                 return;
             }
 

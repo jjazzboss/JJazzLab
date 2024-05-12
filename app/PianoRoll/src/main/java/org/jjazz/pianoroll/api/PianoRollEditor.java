@@ -1061,7 +1061,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
-        LOGGER.log(Level.SEVERE, "propertyChange() -- evt={0}", Utilities.toDebugString(evt));
+        // LOGGER.log(Level.FINE, "propertyChange() -- evt={0}", Utilities.toDebugString(evt, 60));
 
         if (evt.getSource() == model)
         {

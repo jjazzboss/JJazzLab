@@ -209,7 +209,7 @@ public class Paste extends AbstractAction implements ContextAwareAction, CL_Cont
                     // Should never happen when resizing bigger
                     String msg = "Impossible to resize.\n" + ex.getLocalizedMessage();
                     msg += "\n" + ex.getLocalizedMessage();
-                    um.handleUnsupportedEditException(undoText, msg);
+                    um.abortCEdit(undoText, msg);
                     return;
                 }
             }
@@ -255,7 +255,7 @@ public class Paste extends AbstractAction implements ContextAwareAction, CL_Cont
                     {
                         String msg = ResUtil.getString(getClass(), "Err_Paste", newSection);
                         msg += "\n" + ex.getLocalizedMessage();
-                        um.handleUnsupportedEditException(undoText, msg);
+                        um.abortCEdit(undoText, msg);
                         return;
                     }
                 }

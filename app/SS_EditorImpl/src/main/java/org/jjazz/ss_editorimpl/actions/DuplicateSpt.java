@@ -132,7 +132,7 @@ public class DuplicateSpt extends AbstractAction implements ContextAwareAction, 
                         // We should not be here, we reuse existing rhythms
                         String msg = ResUtil.getString(getClass(), "ERR_CantDuplicate");
                         msg += "\n" + ex.getLocalizedMessage();
-                        um.handleUnsupportedEditException(undoText, msg);
+                        um.abortCEdit(undoText, msg);
                         return;
                     }
                     um.endCEdit(undoText);

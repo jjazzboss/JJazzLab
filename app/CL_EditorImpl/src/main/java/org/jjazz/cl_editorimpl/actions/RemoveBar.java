@@ -107,7 +107,7 @@ public class RemoveBar extends AbstractAction implements ContextAwareAction, CL_
         } catch (UnsupportedEditException ex)
         {
             String msg = "Impossible to remove bars.\n" + ex.getLocalizedMessage();
-            um.handleUnsupportedEditException(undoText, msg);
+            um.abortCEdit(undoText, msg);
             return;
         }
 

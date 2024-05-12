@@ -725,7 +725,7 @@ public class UIUtilities
     }
 
     /**
-     * Convenience static method to disable all components of a given Container, including nested Containers.
+     * Convenience static method to disable container and all its children.
      * <p>
      * The method saves the enabled state of children, in order to reenable them (or not) as required when calling enableContainer().
      *
@@ -734,8 +734,12 @@ public class UIUtilities
      */
     public static void disableContainer(Container container)
     {
-        List<JComponent> components = getDescendantsOfType(JComponent.class,
-                container, true);
+        if (!container.isEnabled())
+        {
+            return;
+        }
+        container.setEnabled(false);
+        List<JComponent> components = getDescendantsOfType(JComponent.class, container, true);
         List<JComponent> enabledComponents = new ArrayList<>();
         enabledContainers.put(container, enabledComponents);
 
@@ -750,7 +754,7 @@ public class UIUtilities
     }
 
     /**
-     * Convenience static method to enable Components previously disabled by using the disableContainer() method.
+     * Convenience static method to enable container and children components previously disabled by using the disableContainer() method.
      * <p>
      * Only Components disable by the disableContainer() method will be enabled.
      *
@@ -759,6 +763,11 @@ public class UIUtilities
      */
     public static void enableContainer(Container container)
     {
+        if (container.isEnabled())
+        {
+            return;
+        }
+        container.setEnabled(true);
         List<JComponent> enabledComponents = enabledContainers.get(container);
         if (enabledComponents != null)
         {

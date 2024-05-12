@@ -43,8 +43,8 @@ import org.openide.util.Exceptions;
  * A Note with a position and optional client properties.
  * <p>
  * This is an immutable class EXCEPT for the client properties.<p>
- * Two different NoteEvent instances can not be equal. If you need NoteEvent map keys to be considered equal when they share the same Note attributes,
- * use the AsNoteKey inner class.
+ * Two different NoteEvent instances can not be equal. If you need NoteEvent map keys to be considered equal when they share the same Note attributes, use the
+ * AsNoteKey inner class.
  */
 public class NoteEvent extends Note implements Cloneable, Comparable<Note>
 {
@@ -52,12 +52,14 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
     /**
      * If true this note is an "adjusting note".
      * <p>
-     * "Adjusting" means it's a temporary note used by an action which will eventually replace the temporary note by a non-adjusting note. For example
-     * if user is mouse-dragging a note in an editor, editor might generate "adjusting notes" until drag operation is complete.
+     * "Adjusting" means it's a temporary note used by an action which will eventually replace the temporary note by a non-adjusting note. For example if user
+     * is mouse-dragging a note in an editor, editor might generate "adjusting notes" until drag operation is complete.
      * <p>
      * Note that this property is not directly used by the NoteEvent class.
      */
     public static final String PROP_IS_ADJUSTING = "PropIsAdjusting";
+
+
     private float position;
     protected ObservableProperties<Object> clientProperties;
     private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
@@ -107,14 +109,38 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
     public NoteEvent setAll(int pitch, float duration, int velocity, float posInBeats, boolean copyProperties)
     {
         var res = new NoteEvent(pitch < 0 ? getPitch() : pitch,
-            duration < 0 ? getDurationInBeats() : duration,
-            velocity < 0 ? getVelocity() : velocity,
-            posInBeats < 0 ? getPositionInBeats() : posInBeats);
+                duration < 0 ? getDurationInBeats() : duration,
+                velocity < 0 ? getVelocity() : velocity,
+                posInBeats < 0 ? getPositionInBeats() : posInBeats);
         if (copyProperties)
         {
             res.getClientProperties().set(getClientProperties());
         }
         return res;
+    }
+
+    /**
+     * Set or reset the note as isAdjusting.
+     *
+     * @param note
+     * @param b    If true note is marked isAdjusting.
+     * @see #PROP_IS_ADJUSTING
+     */
+    static public void markIsAdjustingNote(NoteEvent note, boolean b)
+    {
+        Boolean value = b == true ? Boolean.TRUE : null;
+        note.getClientProperties().put(NoteEvent.PROP_IS_ADJUSTING, value);
+    }
+
+    /**
+     * Check if note is marked isAdjusting.
+     *
+     * @param ne
+     * @return
+     */
+    static public boolean isAdjustingNote(NoteEvent ne)
+    {
+        return Boolean.TRUE.equals(ne.getClientProperties().get(PROP_IS_ADJUSTING));
     }
 
     /**
@@ -201,8 +227,7 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
             long tickOff = Math.round((position + getDurationInBeats()) * MidiConst.PPQ_RESOLUTION);
             events.add(new MidiEvent(smOn, tickOn));
             events.add(new MidiEvent(smOff, tickOff));
-        }
-        catch (InvalidMidiDataException ex)
+        } catch (InvalidMidiDataException ex)
         {
             Exceptions.printStackTrace(ex);
         }
@@ -242,16 +267,13 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
         if (nearWindow == 0)
         {
             res = Float.floatToIntBits(getPositionInBeats()) == Float.floatToIntBits(posInBeats);
-        }
-        else if (getPositionInBeats() < posInBeats - nearWindow)
+        } else if (getPositionInBeats() < posInBeats - nearWindow)
         {
             res = false;
-        }
-        else if (getPositionInBeats() >= posInBeats + nearWindow)
+        } else if (getPositionInBeats() >= posInBeats + nearWindow)
         {
             res = false;
-        }
-        else
+        } else
         {
             res = true;
         }
@@ -262,8 +284,7 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
     /**
      * Check for equality as a Note tolerating slight differences in position and duration.
      * <p>
-     * If the positions are equals +/- beatWindow, positions are considered equal. If the durations are equals +/- 2*beatWindow, durations are
-     * considered equal.
+     * If the positions are equals +/- beatWindow, positions are considered equal. If the durations are equals +/- 2*beatWindow, durations are considered equal.
      * <p>
      * ClientProperties are ignored.
      *
@@ -315,8 +336,7 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
             {
                 res = super.compareTo(n);
             }
-        }
-        else
+        } else
         {
             res = super.compareTo(n);
         }
@@ -407,7 +427,7 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
     {
         // return String.format("[%s, p=%.3f, d=%.3f, v=%d]", toPianoOctaveString(), position, getDurationInBeats(), getVelocity());
         return String.format("[%s, p=%f, d=%f, v=%d, id=%d]", toPianoOctaveString(), position, getDurationInBeats(), getVelocity(),
-            System.identityHashCode(this));
+                System.identityHashCode(this));
     }
 
     public void addClientPropertyChangeListener(PropertyChangeListener l)
@@ -455,8 +475,7 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
                 Note n = Note.loadAsString(strs[0]);
                 float pos = Float.parseFloat(strs[1]);
                 ne = new NoteEvent(n.getPitch(), n.getDurationInBeats(), n.getVelocity(), pos);
-            }
-            catch (IllegalArgumentException | ParseException ex)   // Will catch NumberFormatException too
+            } catch (IllegalArgumentException | ParseException ex)   // Will catch NumberFormatException too
             {
                 LOGGER.log(Level.WARNING, "loadAsString() Catched ex={0}", ex.getMessage());
             }
@@ -471,8 +490,8 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
 
 
     /**
-     * A NoteEvent wrapper to be used as hash/map key when 2 different NoteEvent instances need to be considered as equal when their note attributes
-     * are equal (except client properties).
+     * A NoteEvent wrapper to be used as hash/map key when 2 different NoteEvent instances need to be considered as equal when their note attributes are equal
+     * (except client properties).
      */
     static public class AsNoteKey
     {
@@ -508,9 +527,9 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
             if (obj instanceof AsNoteKey nk)
             {
                 res = Float.floatToIntBits(noteEvent.getPositionInBeats()) == Float.floatToIntBits(nk.noteEvent.getPositionInBeats())
-                    && noteEvent.getPitch() == nk.noteEvent.getPitch()
-                    && noteEvent.getVelocity() == nk.noteEvent.getVelocity()
-                    && Float.floatToIntBits(noteEvent.getDurationInBeats()) == Float.floatToIntBits(nk.noteEvent.getDurationInBeats());
+                        && noteEvent.getPitch() == nk.noteEvent.getPitch()
+                        && noteEvent.getVelocity() == nk.noteEvent.getVelocity()
+                        && Float.floatToIntBits(noteEvent.getDurationInBeats()) == Float.floatToIntBits(nk.noteEvent.getDurationInBeats());
             }
             return res;
         }

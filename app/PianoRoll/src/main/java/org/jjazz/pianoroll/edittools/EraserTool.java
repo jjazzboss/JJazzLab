@@ -200,6 +200,12 @@ public class EraserTool implements EditTool
     {
         eraseNotes(editor, noteViews);
     }
+    
+    @Override
+    public String toString()
+    {
+        return"EraserTool";
+    }
 
     /**
      * Delete the specified notes as an undoable action.

@@ -272,7 +272,7 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
         } catch (UnsupportedEditException ex)
         {
             String msg = ResUtil.getString(EditRhythm.class, "ERR_EditRhythm") + ": " + newRhythm.getName() + ".\n" + ex.getLocalizedMessage();
-            um.handleUnsupportedEditException(editName, msg);
+            um.abortCEdit(editName, msg);
             return;
         }
 

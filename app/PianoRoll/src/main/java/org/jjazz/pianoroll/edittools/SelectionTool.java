@@ -185,6 +185,10 @@ public class SelectionTool implements EditTool
             }
 
 
+            // Mark all drag notes are isAdjusting
+            mapSrcDragNotes.values().forEach(ne -> NoteEvent.markIsAdjustingNote(ne, true));
+
+
             switch (state)
             {
                 case EDITOR:
@@ -257,6 +261,7 @@ public class SelectionTool implements EditTool
                             float newDur = srcNe.getDurationInBeats() - posDelta;
                             newDur = Math.min(newDur, editor.getPhraseBeatRange().to - 0.001f - newPos);
                             var newDragNe = srcNe.setAll(-1, newDur, -1, newPos, true);
+                            NoteEvent.markIsAdjustingNote(newDragNe, true);
                             mapOldNew.put(dragNe, newDragNe);
                             mapSrcDragNotes.put(srcNe, newDragNe);
                         }
@@ -286,6 +291,7 @@ public class SelectionTool implements EditTool
                         {
                             var dragNe = mapSrcDragNotes.get(srcNe);
                             var newDragNe = srcNe.setDuration(newDur);
+                            NoteEvent.markIsAdjustingNote(newDragNe, true);
                             mapOldNew.put(dragNe, newDragNe);
                             mapSrcDragNotes.put(srcNe, newDragNe);
                         }
@@ -344,7 +350,7 @@ public class SelectionTool implements EditTool
 
 
                         // Move the drag note
-                        var newDragNe = dragNe.setAll(newDragPitch, -1, -1, newDragPos, true);
+                        var newDragNe = dragNe.setAll(newDragPitch, -1, -1, newDragPos, true);          // This also copies the isAdjusting clientProperties flag
                         mapOldNew.put(dragNe, newDragNe);
                         mapSrcDragNotes.put(sne, newDragNe);
                     }
@@ -399,6 +405,7 @@ public class SelectionTool implements EditTool
                 editor.getUndoManager().startCEdit(editor, undoText);
 
 
+                mapSrcDragNotes.values().forEach(nei -> NoteEvent.markIsAdjustingNote(nei, false));
                 editor.getModel().replaceAll(mapSrcDragNotes, false);
 
 
@@ -423,6 +430,7 @@ public class SelectionTool implements EditTool
                 String undoText = ResUtil.getString(getClass(), "MoveNote");
                 editor.getUndoManager().startCEdit(editor, undoText);
 
+                mapSrcDragNotes.values().forEach(nei -> NoteEvent.markIsAdjustingNote(nei, false));
                 editor.getModel().replaceAll(mapSrcDragNotes, false);
 
                 editor.getUndoManager().endCEdit(undoText);
@@ -447,6 +455,7 @@ public class SelectionTool implements EditTool
                 editor.getUndoManager().startCEdit(editor, undoText);
 
 
+                mapSrcDragNotes.values().forEach(nei -> NoteEvent.markIsAdjustingNote(nei, false));
                 editor.getModel().addAll(mapSrcDragNotes.values(), false);
 
 
@@ -474,7 +483,6 @@ public class SelectionTool implements EditTool
     @Override
     public void noteMoved(MouseEvent e, NoteView nv)
     {
-
         State newState;
 
         if (!editor.isDrums() && isNearLeftSide(e, nv))
@@ -561,6 +569,12 @@ public class SelectionTool implements EditTool
     {
         editor.unselectAll();
         editor.selectNotes(NoteView.getNotes(noteViews), true);
+    }
+
+    @Override
+    public String toString()
+    {
+        return "SelectionTool";
     }
 
     // =============================================================================================

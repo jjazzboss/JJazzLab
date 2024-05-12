@@ -424,10 +424,13 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
             if (tester.test(ne))
             {
                 NoteEvent newNe = mapper.apply(ne);
-                newNe.getClientProperties().set(ne.getClientProperties());
-                if (newNe.getClientProperties().get(PARENT_NOTE) == null)
+                if (newNe != ne)
                 {
-                    newNe.getClientProperties().put(PARENT_NOTE, ne);         // If no previous PARENT_NOTE client property we can add one
+                    newNe.getClientProperties().set(ne.getClientProperties());
+                    if (newNe.getClientProperties().get(PARENT_NOTE) == null)
+                    {
+                        newNe.getClientProperties().put(PARENT_NOTE, ne);         // If no previous PARENT_NOTE client property we can add one
+                    }
                 }
                 res.add(newNe);
             }
@@ -451,7 +454,10 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
             if (tester.test(ne))
             {
                 NoteEvent newNe = mapper.apply(ne);
-                mapOldNew.put(ne, newNe);
+                if (newNe != ne)
+                {
+                    mapOldNew.put(ne, newNe);
+                }
             }
         }
         replaceAll(mapOldNew, false);

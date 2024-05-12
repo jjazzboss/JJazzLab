@@ -136,7 +136,7 @@ public class Cut extends AbstractAction implements ContextAwareAction, CL_Contex
             } catch (UnsupportedEditException ex)
             {
                 String msg = "Impossible to cut bars.\n" + ex.getLocalizedMessage();
-                um.handleUnsupportedEditException(undoText, msg);
+                um.abortCEdit(undoText, msg);
                 return;
             }
         } else if (selection.isItemSelected())
@@ -161,7 +161,7 @@ public class Cut extends AbstractAction implements ContextAwareAction, CL_Contex
                         } catch (UnsupportedEditException ex)
                         {
                             String msg = "Impossible to cut section " + section.getData().getName() + ".\n" + ex.getLocalizedMessage();
-                            um.handleUnsupportedEditException(undoText, msg);
+                            um.abortCEdit(undoText, msg);
                             return;
                         }
                     }

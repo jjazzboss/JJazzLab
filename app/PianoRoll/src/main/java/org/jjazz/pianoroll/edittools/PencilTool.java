@@ -30,6 +30,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -52,7 +53,7 @@ import org.netbeans.api.annotations.common.StaticResource;
  */
 public class PencilTool implements EditTool
 {
-    
+
     @StaticResource(relative = true)
     private static final String ICON_PATH_OFF = "resources/PencilOFF.png";
     private static final Icon ICON_SELECTED = new ImageIcon(PencilTool.class.getResource(ICON_PATH_OFF));
@@ -68,16 +69,17 @@ public class PencilTool implements EditTool
     private static final Cursor CURSOR = Utilities.isWindows()
             ? Toolkit.getDefaultToolkit().createCustomCursor(CURSOR_IMAGE_WIN, new Point(0, 31), "Pencil")
             : Toolkit.getDefaultToolkit().createCustomCursor(CURSOR_IMAGE, new Point(0, 13), "Pencil");
-    
-    
+
+
     private final PianoRollEditor editor;
+    private NoteEvent srcNote;
     private NoteEvent dragNote;
     private int dragPitch;
     private float dragStartPos;
     private int lastSelectedNoteVelocity;
-    
+
     private static final Logger LOGGER = Logger.getLogger(PencilTool.class.getSimpleName());
-    
+
     public PencilTool(PianoRollEditor editor)
     {
         this.editor = editor;
@@ -95,44 +97,45 @@ public class PencilTool implements EditTool
             }
         });
     }
-    
+
     @Override
     public Icon getIcon(boolean b)
     {
         return b ? ICON_UNSELECTED : ICON_SELECTED;
     }
-    
+
     @Override
     public Cursor getCursor()
     {
         return CURSOR;
     }
-    
+
     @Override
     public String getName()
     {
         return ResUtil.getString(getClass(), "PencilName");
     }
-    
+
     @Override
     public void editorClicked(MouseEvent e)
     {
-        LOGGER.severe("editorClicked() -- e=" + e);
+        // LOGGER.log(Level.SEVERE, "editorClicked() -- e={0}", e);
         if (!SwingUtilities.isLeftMouseButton(e))
         {
             return;
         }
+        editor.unselectAll();
+
         String undoText = ResUtil.getString(getClass(), "AddNote");
         editor.getUndoManager().startCEdit(editor, undoText);
-        
-        var ne = addNote(e);
-        
+
+        var ne = addNote(e, false);
+
         editor.getUndoManager().endCEdit(undoText);
-        
-        editor.unselectAll();
+
         editor.selectNote(ne, true);
     }
-    
+
     @Override
     public void editorDragged(MouseEvent e)
     {
@@ -140,7 +143,7 @@ public class PencilTool implements EditTool
         boolean overrideSnapSetting = isOverrideSnapSetting(e);
         FloatRange beatRange = editor.getPhraseBeatRange();
         float pos = editor.getPositionFromPoint(point);
-        
+
         if (dragNote == null)
         {
             // Start dragging     
@@ -149,16 +152,15 @@ public class PencilTool implements EditTool
             // Important: we don't want drag note to be recognized by the undoManager, we'll manage  undo at drag release
             assert editor.getUndoManager().isEnabled();
             editor.getUndoManager().setEnabled(false);
-            
-            
-            dragNote = addNote(e);
-            markAdjustingNote(dragNote, true);
+
+
+            dragNote = addNote(e, true);
             dragStartPos = dragNote.getPositionInBeats();
             dragPitch = dragNote.getPitch();
-            
+
             editor.unselectAll();
             editor.selectNote(dragNote, true);
-            
+
         } else if (!editor.isDrums())
         {
             // Continue dragging
@@ -171,12 +173,12 @@ public class PencilTool implements EditTool
                 dur = Math.max(q.getSymbolicDuration().getDuration(), dur);
             }
             dur = Math.min(beatRange.to - dragStartPos, dur);
-            var ne = new NoteEvent(dragPitch, dur, getNewNoteVelocity(), dragStartPos);
+            var ne = dragNote.setDuration(dur);         // This copies also the adjustingNote flag in clientProperties
             editor.getModel().replaceAll(Map.of(dragNote, ne), true);
             dragNote = ne;
         }
     }
-    
+
     @Override
     public void editorReleased(MouseEvent e)
     {
@@ -184,61 +186,63 @@ public class PencilTool implements EditTool
         {
             return;
         }
-        
-        editor.getModel().remove(dragNote, true);
 
+        editor.getModel().remove(dragNote, true);       // This will unselect and remove the NoteViewer
 
         // Now we can make the undoable changes
         assert !editor.getUndoManager().isEnabled();
         editor.getUndoManager().setEnabled(true);
-        
-        
+
+
         String undoText = ResUtil.getString(getClass(), "AddNote");
         editor.getUndoManager().startCEdit(editor, undoText);
-        
+
+        NoteEvent.markIsAdjustingNote(dragNote, false);
         editor.getModel().add(dragNote, false);
-        
+        editor.selectNote(dragNote, true);
+
         editor.getUndoManager().endCEdit(undoText);
-        
+
         dragNote = null;
     }
-    
-    
+
+
     @Override
     public void editorWheelMoved(MouseWheelEvent e)
     {
-        
+
     }
-    
+
     @Override
     public void noteClicked(MouseEvent e, NoteView nv)
     {
+        // LOGGER.log(Level.SEVERE, "noteClicked() nv={0}", nv);
         String undoText = ResUtil.getString(getClass(), "ReplaceNote");
-        editor.getUndoManager().startCEdit(editor, undoText);
         MouseEvent editorEvent = SwingUtilities.convertMouseEvent(nv, e, nv.getParent());
-        
-        
+
+        editor.getUndoManager().startCEdit(editor, undoText);
+
         if (!editor.isDrums())
         {
             // Replace note in melodic mode
             editor.getModel().remove(nv.getModel());
         }
-        NoteEvent ne = addNote(editorEvent);
-        
-        
+        NoteEvent ne = addNote(editorEvent, false);
+
         editor.getUndoManager().endCEdit(undoText);
-        
+
+
         editor.unselectAll();
         editor.selectNote(ne, true);
-        
+
     }
-    
+
     @Override
     public void noteWheelMoved(MouseWheelEvent e, NoteView nv)
     {
-        
+
     }
-    
+
     @Override
     public void noteDragged(MouseEvent e, NoteView nv)
     {
@@ -252,44 +256,46 @@ public class PencilTool implements EditTool
             pos = Quantizer.getQuantized(q, pos);
         }
         pos = Math.min(beatRange.to - 0.1f, pos);
-        
-        
+
+
         if (editor.isDrums())
         {
             // Special mode: just add the note then ignore the rest of the dragging
             if (dragNote == null)
             {
                 var editorEvent = SwingUtilities.convertMouseEvent(nv, e, nv.getParent());
-                dragNote = addNote(editorEvent);
+                dragNote = addNote(editorEvent, false);
+                editor.unselectAll();
+                editor.selectNote(dragNote, true);
             }
             return;
         }
-        
+
         if (dragNote == null)
         {
             // Start dragging  
-            var ne = nv.getModel();
-            dragStartPos = ne.getPositionInBeats();
+            srcNote = nv.getModel();
+            dragStartPos = srcNote.getPositionInBeats();
             float dur = pos - dragStartPos;
             dur = Math.max(0.1f, dur);
-            dragNote = ne.setDuration(dur);
-            markAdjustingNote(dragNote, true);
-            editor.getModel().replaceAll(Map.of(ne, dragNote), true);
-            
+            dragNote = srcNote.setDuration(dur);
+            NoteEvent.markIsAdjustingNote(dragNote, true);
+            editor.getModel().replaceAll(Map.of(srcNote, dragNote), true);
+
             editor.unselectAll();
             editor.selectNote(dragNote, true);
-            
+
         } else
         {
             // Continue dragging
             float dur = pos - dragStartPos;
             dur = Math.max(0.1f, dur);
-            var newNe = dragNote.setDuration(dur);
+            var newNe = dragNote.setDuration(dur);                      // This also copies the adjusting flag in clientProperties
             editor.getModel().replaceAll(Map.of(dragNote, newNe), true);
             dragNote = newNe;
         }
     }
-    
+
     @Override
     public void noteReleased(MouseEvent e, NoteView nv)
     {
@@ -298,67 +304,77 @@ public class PencilTool implements EditTool
             dragNote = null;
             return;
         }
+
+
+        // Restore state
+        editor.getModel().replace(dragNote, srcNote, true);
         
-        editor.getModel().replace(dragNote, nv.getModel(), true);
-        
+
+        // Perform the change        
         String undoText = ResUtil.getString(getClass(), "ResizeNote", dragNote.toPianoOctaveString());
         editor.getUndoManager().startCEdit(editor, undoText);
-        
-        markAdjustingNote(dragNote, false);
-        editor.getModel().replace(nv.getModel(), dragNote, false);
+
+        NoteEvent.markIsAdjustingNote(dragNote, false);
+        editor.getModel().replace(srcNote, dragNote, false);
         
         editor.getUndoManager().endCEdit(undoText);
-        
+
         dragNote = null;
-        
+
     }
-    
+
     @Override
     public void noteMoved(MouseEvent e, NoteView nv)
     {
     }
-    
+
     @Override
     public void noteEntered(MouseEvent e, NoteView nv)
     {
-        
+
     }
-    
+
     @Override
     public void noteExited(MouseEvent e, NoteView nv)
     {
     }
-    
+
     @Override
     public boolean isEditMultipleNotesSupported()
     {
         return false;
     }
-    
+
     @Override
     public void editMultipleNotes(List<NoteView> noteViews)
     {
         throw new UnsupportedOperationException();
     }
 
+    @Override
+    public String toString()
+    {
+        return "PencilTool";
+    }
     // =============================================================================================
     // Private methods
     // =============================================================================================   
 
     /**
-     * Add a NoteEvent at the mouse position.
+     * Add a NoteEvent at the mouse position using the last selected note velocity.
      *
      * @param e
+     * @param isAdjusting
      * @return The created NoteEvent.
      */
-    private NoteEvent addNote(MouseEvent e)
+    private NoteEvent addNote(MouseEvent e, boolean isAdjusting)
     {
         boolean overrideSnapSetting = isOverrideSnapSetting(e);
         var q = editor.getQuantization();
         var point = e.getPoint();
         var beatRange = editor.getPhraseBeatRange();
-        
-        
+
+
         float pos = editor.getPositionFromPoint(point);
         int pitch = editor.getPitchFromPoint(point);
         if ((editor.isSnapEnabled() && !overrideSnapSetting) || (!editor.isSnapEnabled() && overrideSnapSetting))
@@ -371,23 +387,19 @@ public class PencilTool implements EditTool
         {
             dur = beatRange.to - pos;
         }
-        
+
         NoteEvent ne = new NoteEvent(pitch, dur, getNewNoteVelocity(), pos);
-        boolean b = editor.getModel().add(ne);          // Fix Issue #441 (add was performed as an assert !)
+        NoteEvent.markIsAdjustingNote(ne, isAdjusting);
+        boolean b = editor.getModel().add(ne, isAdjusting);          // Fix Issue #441 (add was performed as an assert !)
         assert b : "ne=" + ne + " editor.getModel()=" + editor.getModel();
-        
+
         return ne;
     }
-    
+
     private int getNewNoteVelocity()
     {
         return lastSelectedNoteVelocity;
     }
-    
-    private void markAdjustingNote(NoteEvent dragNote, boolean b)
-    {
-        Boolean value = b == true ? Boolean.TRUE : null;
-        dragNote.getClientProperties().put(NoteEvent.PROP_IS_ADJUSTING, value);
-    }
-    
+
+
 }

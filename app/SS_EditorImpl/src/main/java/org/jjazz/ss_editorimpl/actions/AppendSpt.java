@@ -131,7 +131,7 @@ public class AppendSpt extends AbstractAction
                 // We should not be here, we reuse an existing rhythm
                 String msg = ResUtil.getString(getClass(), "ERR_ImpossibleToAppend");
                 msg += "\n" + ex.getLocalizedMessage();
-                um.handleUnsupportedEditException(undoText, msg);
+                um.abortCEdit(undoText, msg);
                 return;
             }
             

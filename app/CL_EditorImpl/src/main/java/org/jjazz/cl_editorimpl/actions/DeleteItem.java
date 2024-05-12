@@ -138,7 +138,7 @@ public class DeleteItem extends AbstractAction implements ContextAwareAction, CL
                     } catch (UnsupportedEditException ex)
                     {
                         String msg = "Impossible to cut section " + section.getData().getName() + ".\n" + ex.getLocalizedMessage();
-                        um.handleUnsupportedEditException(undoText, msg);
+                        um.abortCEdit(undoText, msg);
                         return;
                     }
                 }

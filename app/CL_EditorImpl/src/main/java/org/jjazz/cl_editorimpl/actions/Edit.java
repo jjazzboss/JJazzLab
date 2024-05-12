@@ -231,7 +231,7 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
 
                     String msg = ResUtil.getString(Edit.class, "ERR_ChangeSection", sectionItem.getData());
                     msg += "\n" + ex.getLocalizedMessage();
-                    um.handleUnsupportedEditException(undoText, msg);
+                    um.abortCEdit(undoText, msg);
                 }
             }
         };
@@ -309,7 +309,7 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
                     {
                         String msg = ResUtil.getString(Edit.class, "ERR_ChangeSection", resultSection.getData());
                         msg += "\n" + ex.getLocalizedMessage();
-                        um.handleUnsupportedEditException(undoText, msg);
+                        um.abortCEdit(undoText, msg);
                         // There are other things to do, restart edit
                         um.startCEdit(undoText);
                     }
@@ -323,7 +323,7 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
                     {
                         String msg = ResUtil.getString(Edit.class, "ERR_ChangeSection", resultSection.getData());
                         msg += "\n" + ex.getLocalizedMessage();
-                        um.handleUnsupportedEditException(undoText, msg);
+                        um.abortCEdit(undoText, msg);
                         // There are other things to do, restart edit
                         um.startCEdit(undoText);
                     }

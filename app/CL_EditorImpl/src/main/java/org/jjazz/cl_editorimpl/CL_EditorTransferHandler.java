@@ -309,7 +309,7 @@ public class CL_EditorTransferHandler extends TransferHandler
                     } catch (UnsupportedEditException ex)
                     {
                         errMsg += "\n" + ex.getLocalizedMessage();
-                        um.handleUnsupportedEditException(editName, errMsg);
+                        um.abortCEdit(editName, errMsg);
                         return false;
                     }
                     editor.selectItem(curSection, true);
@@ -323,7 +323,7 @@ public class CL_EditorTransferHandler extends TransferHandler
                     } catch (UnsupportedEditException ex)
                     {
                         errMsg += "\n" + ex.getLocalizedMessage();
-                        um.handleUnsupportedEditException(editName, errMsg);
+                        um.abortCEdit(editName, errMsg);
                         return false;
                     }
                     editor.selectItem(sectionCopy, true);
@@ -350,7 +350,7 @@ public class CL_EditorTransferHandler extends TransferHandler
                     {
                         // Section is just moved, it was OK before and it should be OK after the move.
                         errMsg += "\n" + ex.getLocalizedMessage();
-                        um.handleUnsupportedEditException(editName, errMsg);
+                        um.abortCEdit(editName, errMsg);
                         return false;
                     }
                     editor.selectItem(curSection, true);
@@ -364,7 +364,7 @@ public class CL_EditorTransferHandler extends TransferHandler
                     } catch (UnsupportedEditException ex)
                     {
                         errMsg += "\n" + ex.getLocalizedMessage();
-                        um.handleUnsupportedEditException(editName, errMsg);
+                        um.abortCEdit(editName, errMsg);
                         return false;
                     }
                     editor.selectItem(cliSection, true);

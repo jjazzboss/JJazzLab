@@ -25,23 +25,29 @@ package org.jjazz.pianoroll;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.Collection;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import org.jjazz.flatcomponents.api.CollapsiblePanel;
 import org.jjazz.humanizer.api.Humanizer;
+import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.pianoroll.api.NoteView;
 import org.jjazz.pianoroll.api.PianoRollEditor;
+import org.jjazz.uiutilities.api.UIUtilities;
 import org.jjazz.utilities.api.Utilities;
 
 /**
  * The humanize notes panel.
  */
-public class HumanizePanel extends javax.swing.JPanel implements PropertyChangeListener
+public class HumanizePanel extends javax.swing.JPanel implements PropertyChangeListener, ChangeListener
 {
 
     private Humanizer humanizer;
     private final PianoRollEditor editor;
+    private final String undoText;
     private static final Logger LOGGER = Logger.getLogger(HumanizePanel.class.getSimpleName());
 
 
@@ -51,6 +57,15 @@ public class HumanizePanel extends javax.swing.JPanel implements PropertyChangeL
         this.editor.addPropertyChangeListener(this);
 
         initComponents();
+        registerOrUnregisterSliders(true);
+        lbl_timingText.setToolTipText(sld_timing.getToolTipText());
+        lbl_timingValue.setToolTipText(sld_timing.getToolTipText());
+        lbl_timingBiasText.setToolTipText(sld_timingBias.getToolTipText());
+        lbl_timingBiasValue.setToolTipText(sld_timingBias.getToolTipText());
+        lbl_velocityText.setToolTipText(sld_velocity.getToolTipText());
+        lbl_velocityValue.setToolTipText(sld_velocity.getToolTipText());
+        undoText = btn_humanize.getText();
+
 
         initializeNewHumanizer();
 
@@ -80,7 +95,35 @@ public class HumanizePanel extends javax.swing.JPanel implements PropertyChangeL
     public void removeNotify()
     {
         super.removeNotify();
-        humanizer.setEnabled(false);
+        // LOGGER.severe("removeNotify()");
+        if (humanizer.getState().equals(Humanizer.State.HUMANIZED))
+        {
+            confirmChanges();
+        }
+    }
+
+    // ==========================================================================================================
+    // ChangeListener interface
+    // ==========================================================================================================   
+    @Override
+    public void stateChanged(ChangeEvent e)
+    {
+        Humanizer.Config cfg = null;
+        if (e.getSource() == sld_timing)
+        {
+            cfg = humanizer.getUserConfig().setTimingRandomness(sld_timing.getValue() / 100f);
+        } else if (e.getSource() == sld_timingBias)
+        {
+            cfg = humanizer.getUserConfig().setTimingBias(sld_timingBias.getValue() / 100f);
+        } else if (e.getSource() == sld_velocity)
+        {
+            cfg = humanizer.getUserConfig().setVelocityRandomness(sld_velocity.getValue() / 100f);
+        } else
+        {
+            throw new IllegalStateException("e.getSource()=" + e.getSource());
+        }
+
+        humanizer.humanize(cfg);
     }
 
     // ==========================================================================================================
@@ -90,7 +133,7 @@ public class HumanizePanel extends javax.swing.JPanel implements PropertyChangeL
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
-        LOGGER.log(Level.SEVERE, "propertyChange() -- evt={0}", Utilities.toDebugString(evt));
+        // LOGGER.log(Level.SEVERE, "propertyChange() -- evt={0}", Utilities.toDebugString(evt));
 
         if (evt.getSource() == editor)
         {
@@ -101,21 +144,30 @@ public class HumanizePanel extends javax.swing.JPanel implements PropertyChangeL
                     initializeNewHumanizer();
                     refreshUI();
                 }
-
                 case PianoRollEditor.PROP_SELECTED_NOTE_VIEWS ->
                 {
-                    var nes = NoteView.getNotes((Collection<NoteView>) evt.getOldValue());
-                    boolean b = (boolean) evt.getNewValue();
-                    if (b)
+                    if (humanizer.getState().equals(Humanizer.State.HUMANIZED))
                     {
-                        humanizer.registerNotes(nes);
-                        humanizer.humanize(null);
+                        humanizer.reset(null);
                     }
-                    else
+                    refreshUI();
+                }
+                default ->
+                {
+                }
+            }
+        } else if (evt.getSource() == humanizer)
+        {
+            switch (evt.getPropertyName())
+            {
+                case Humanizer.PROP_USER_CONFIG -> refreshUI();
+                case Humanizer.PROP_STATE ->
+                {
+                    var newState = (Humanizer.State) evt.getNewValue();
+                    if (newState.equals(Humanizer.State.INIT))
                     {
-                        humanizer.unregisterNotes(nes);
+                        confirmChanges();
                     }
-
                     refreshUI();
                 }
                 default ->
@@ -123,21 +175,15 @@ public class HumanizePanel extends javax.swing.JPanel implements PropertyChangeL
                 }
             }
         }
-        else if (evt.getSource() == humanizer)
-        {
-            switch (evt.getPropertyName())
-            {
-                case Humanizer.PROP_CONFIG -> refreshUI();
-                case Humanizer.PROP_ENABLED -> refreshUI();
-            }
-        }
     }
+
     // ===============================================================================================
     // Private methods
     // ===============================================================================================
 
     private void refreshUI()
     {
+        registerOrUnregisterSliders(false);
         var config = humanizer.getUserConfig();
         var intValue = (int) (100 * config.timingRandomness());
         sld_timing.setValue(intValue);
@@ -153,26 +199,50 @@ public class HumanizePanel extends javax.swing.JPanel implements PropertyChangeL
         sld_velocity.setValue(intValue);
         strValue = String.format("%1$5d%%", intValue);
         lbl_velocityValue.setText(strValue);
+        registerOrUnregisterSliders(true);
 
 
-        boolean b = humanizer.isEnabled();
-        cb_enable.setSelected(b);
+        boolean humanizeState = humanizer.getState().equals(Humanizer.State.HUMANIZED);
+        boolean zeroConfig = config.equals(Humanizer.ZERO_CONFIG);
+        if (humanizeState)
+        {
+            UIUtilities.enableContainer(pnl_sliders);
+        } else
+        {
+            UIUtilities.disableContainer(pnl_sliders);
+        }
+        btn_humanize.setEnabled(!editor.getSelectedNoteViews().isEmpty() && (!humanizeState || !zeroConfig));
+        btn_confirm.setEnabled(humanizeState);
+        btn_cancel.setEnabled(humanizeState && !zeroConfig);
 
-        lbl_timingText.setEnabled(b);
-        lbl_timingValue.setEnabled(b);
-        sld_timing.setEnabled(b);
+    }
 
-        lbl_timingBiasText.setEnabled(b);
-        lbl_timingBiasValue.setEnabled(b);
-        sld_timingBias.setEnabled(b);
+    private void startHumanize()
+    {
+        if (humanizer.getState().equals(Humanizer.State.HUMANIZED))
+        {
+            humanizer.newSeed();
+        } else
+        {
+            editor.getUndoManager().startCEdit(editor, undoText);
 
-        lbl_velocityText.setEnabled(b);
-        lbl_velocityValue.setEnabled(b);
-        sld_velocity.setEnabled(b);
+            humanizer.registerNotes(NoteView.getNotes(editor.getSelectedNoteViews()));
+            humanizer.humanize(null);       // this will update state to State.HUMANIZED
+        }
+    }
 
-        btn_newSeed.setEnabled(b);
-        btn_cancel.setEnabled(b && !config.equals(Humanizer.DEFAULT_CONFIG));
+    private void cancelChanges()
+    {
+        // Cancel all humanize SimpleEdits
+        editor.getUndoManager().abortCEdit(undoText, null);
+        humanizer.reset(null);
+    }
 
+    private void confirmChanges()
+    {
+        // We did some changes as part of the undoAction, complete it
+        editor.getUndoManager().endCEdit(undoText);
+        humanizer.reset(null);
     }
 
     private void initializeNewHumanizer()
@@ -183,156 +253,49 @@ public class HumanizePanel extends javax.swing.JPanel implements PropertyChangeL
             humanizer.cleanup();
         }
         Phrase p = editor.getModel();
-        var selectedNotes = NoteView.getNotes(editor.getSelectedNoteViews());
         var beatRange = editor.getPhraseBeatRange();
         var ts = editor.getTimeSignature(beatRange.from);       // Not perfect, but for now Humanizer can't manage multiple time signatures
         humanizer = new Humanizer(p, ts, beatRange, null, editor.getSong().getTempo());
-        humanizer.registerNotes(selectedNotes);
         humanizer.addPropertyChangeListener(this);
-        refreshUI();
     }
 
+    private void registerOrUnregisterSliders(boolean register)
+    {
+        if (register)
+        {
+            sld_timing.addChangeListener(this);
+            sld_timingBias.addChangeListener(this);
+            sld_velocity.addChangeListener(this);
+        } else
+        {
+            sld_timing.removeChangeListener(this);
+            sld_timingBias.removeChangeListener(this);
+            sld_velocity.removeChangeListener(this);
+        }
+    }
 
     /**
-     * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of this method is
-     * always regenerated by the Form Editor.
+     * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of this method is always
+     * regenerated by the Form Editor.
      */
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents()
     {
 
+        btn_cancel = new javax.swing.JButton();
+        btn_humanize = new javax.swing.JButton();
+        btn_confirm = new javax.swing.JButton();
+        pnl_sliders = new javax.swing.JPanel();
         sld_timingBias = new javax.swing.JSlider();
-        sld_timing = new javax.swing.JSlider();
-        lbl_timingText = new javax.swing.JLabel();
+        lbl_velocityValue = new javax.swing.JLabel();
         lbl_timingBiasText = new javax.swing.JLabel();
-        sld_velocity = new javax.swing.JSlider();
+        lbl_timingText = new javax.swing.JLabel();
+        sld_timing = new javax.swing.JSlider();
         lbl_velocityText = new javax.swing.JLabel();
         lbl_timingValue = new javax.swing.JLabel();
         lbl_timingBiasValue = new javax.swing.JLabel();
-        lbl_velocityValue = new javax.swing.JLabel();
-        btn_cancel = new javax.swing.JButton();
-        btn_newSeed = new javax.swing.JButton();
-        cb_enable = new javax.swing.JCheckBox();
-
-        sld_timingBias.setMaximum(50);
-        sld_timingBias.setMinimum(-50);
-        sld_timingBias.setToolTipText(org.openide.util.NbBundle.getMessage(HumanizePanel.class, "HumanizePanel.sld_timingBias.toolTipText")); // NOI18N
-        sld_timingBias.setValue(0);
-        sld_timingBias.addChangeListener(new javax.swing.event.ChangeListener()
-        {
-            public void stateChanged(javax.swing.event.ChangeEvent evt)
-            {
-                sld_timingBiasStateChanged(evt);
-            }
-        });
-        sld_timingBias.addMouseListener(new java.awt.event.MouseAdapter()
-        {
-            public void mouseClicked(java.awt.event.MouseEvent evt)
-            {
-                lbl_timingBiasValueMouseClicked(evt);
-            }
-        });
-
-        sld_timing.setToolTipText(org.openide.util.NbBundle.getMessage(HumanizePanel.class, "HumanizePanel.sld_timing.toolTipText")); // NOI18N
-        sld_timing.setValue(0);
-        sld_timing.addChangeListener(new javax.swing.event.ChangeListener()
-        {
-            public void stateChanged(javax.swing.event.ChangeEvent evt)
-            {
-                sld_timingStateChanged(evt);
-            }
-        });
-        sld_timing.addMouseListener(new java.awt.event.MouseAdapter()
-        {
-            public void mouseClicked(java.awt.event.MouseEvent evt)
-            {
-                lbl_timingTextMouseClicked(evt);
-            }
-        });
-
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_timingText, org.openide.util.NbBundle.getMessage(HumanizePanel.class, "HumanizePanel.lbl_timingText.text")); // NOI18N
-        lbl_timingText.setToolTipText(sld_timing.getToolTipText());
-        lbl_timingText.addMouseListener(new java.awt.event.MouseAdapter()
-        {
-            public void mouseClicked(java.awt.event.MouseEvent evt)
-            {
-                lbl_timingTextMouseClicked(evt);
-            }
-        });
-
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_timingBiasText, org.openide.util.NbBundle.getMessage(HumanizePanel.class, "HumanizePanel.lbl_timingBiasText.text")); // NOI18N
-        lbl_timingBiasText.setToolTipText(sld_timingBias.getToolTipText());
-        lbl_timingBiasText.addMouseListener(new java.awt.event.MouseAdapter()
-        {
-            public void mouseClicked(java.awt.event.MouseEvent evt)
-            {
-                lbl_timingBiasValueMouseClicked(evt);
-            }
-        });
-
-        sld_velocity.setToolTipText(org.openide.util.NbBundle.getMessage(HumanizePanel.class, "HumanizePanel.sld_velocity.toolTipText")); // NOI18N
-        sld_velocity.setValue(0);
-        sld_velocity.addChangeListener(new javax.swing.event.ChangeListener()
-        {
-            public void stateChanged(javax.swing.event.ChangeEvent evt)
-            {
-                sld_velocityStateChanged(evt);
-            }
-        });
-        sld_velocity.addMouseListener(new java.awt.event.MouseAdapter()
-        {
-            public void mouseClicked(java.awt.event.MouseEvent evt)
-            {
-                lbl_velocityTextMouseClicked(evt);
-            }
-        });
-
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_velocityText, org.openide.util.NbBundle.getMessage(HumanizePanel.class, "HumanizePanel.lbl_velocityText.text")); // NOI18N
-        lbl_velocityText.setToolTipText(sld_velocity.getToolTipText());
-        lbl_velocityText.addMouseListener(new java.awt.event.MouseAdapter()
-        {
-            public void mouseClicked(java.awt.event.MouseEvent evt)
-            {
-                lbl_velocityTextMouseClicked(evt);
-            }
-        });
-
-        lbl_timingValue.setFont(lbl_timingValue.getFont().deriveFont(lbl_timingValue.getFont().getSize()-1f));
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_timingValue, "30%"); // NOI18N
-        lbl_timingValue.setToolTipText(sld_timing.getToolTipText());
-        lbl_timingValue.setHorizontalTextPosition(javax.swing.SwingConstants.LEFT);
-        lbl_timingValue.addMouseListener(new java.awt.event.MouseAdapter()
-        {
-            public void mouseClicked(java.awt.event.MouseEvent evt)
-            {
-                lbl_timingTextMouseClicked(evt);
-            }
-        });
-
-        lbl_timingBiasValue.setFont(lbl_timingBiasValue.getFont().deriveFont(lbl_timingBiasValue.getFont().getSize()-1f));
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_timingBiasValue, "+20%"); // NOI18N
-        lbl_timingBiasValue.setToolTipText(sld_timingBias.getToolTipText());
-        lbl_timingBiasValue.setHorizontalTextPosition(javax.swing.SwingConstants.LEFT);
-        lbl_timingBiasValue.addMouseListener(new java.awt.event.MouseAdapter()
-        {
-            public void mouseClicked(java.awt.event.MouseEvent evt)
-            {
-                lbl_timingBiasValueMouseClicked(evt);
-            }
-        });
-
-        lbl_velocityValue.setFont(lbl_velocityValue.getFont().deriveFont(lbl_velocityValue.getFont().getSize()-1f));
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_velocityValue, "75%"); // NOI18N
-        lbl_velocityValue.setToolTipText(sld_velocity.getToolTipText());
-        lbl_velocityValue.setHorizontalTextPosition(javax.swing.SwingConstants.LEFT);
-        lbl_velocityValue.addMouseListener(new java.awt.event.MouseAdapter()
-        {
-            public void mouseClicked(java.awt.event.MouseEvent evt)
-            {
-                lbl_velocityTextMouseClicked(evt);
-            }
-        });
+        sld_velocity = new javax.swing.JSlider();
 
         org.openide.awt.Mnemonics.setLocalizedText(btn_cancel, org.openide.util.NbBundle.getMessage(HumanizePanel.class, "HumanizePanel.btn_cancel.text")); // NOI18N
         btn_cancel.setToolTipText(org.openide.util.NbBundle.getMessage(HumanizePanel.class, "HumanizePanel.btn_cancel.toolTipText")); // NOI18N
@@ -344,25 +307,172 @@ public class HumanizePanel extends javax.swing.JPanel implements PropertyChangeL
             }
         });
 
-        org.openide.awt.Mnemonics.setLocalizedText(btn_newSeed, org.openide.util.NbBundle.getMessage(HumanizePanel.class, "HumanizePanel.btn_newSeed.text")); // NOI18N
-        btn_newSeed.setToolTipText(org.openide.util.NbBundle.getMessage(HumanizePanel.class, "HumanizePanel.btn_newSeed.toolTipText")); // NOI18N
-        btn_newSeed.addActionListener(new java.awt.event.ActionListener()
+        org.openide.awt.Mnemonics.setLocalizedText(btn_humanize, org.openide.util.NbBundle.getMessage(HumanizePanel.class, "HumanizePanel.btn_humanize.text")); // NOI18N
+        btn_humanize.setToolTipText(org.openide.util.NbBundle.getMessage(HumanizePanel.class, "HumanizePanel.btn_humanize.toolTipText")); // NOI18N
+        btn_humanize.setEnabled(false);
+        btn_humanize.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
             {
-                btn_newSeedActionPerformed(evt);
+                btn_humanizeActionPerformed(evt);
             }
         });
 
-        org.openide.awt.Mnemonics.setLocalizedText(cb_enable, org.openide.util.NbBundle.getMessage(HumanizePanel.class, "HumanizePanel.cb_enable.text")); // NOI18N
-        cb_enable.setToolTipText(org.openide.util.NbBundle.getMessage(HumanizePanel.class, "HumanizePanel.cb_enable.toolTipText")); // NOI18N
-        cb_enable.addActionListener(new java.awt.event.ActionListener()
+        org.openide.awt.Mnemonics.setLocalizedText(btn_confirm, org.openide.util.NbBundle.getMessage(HumanizePanel.class, "HumanizePanel.btn_confirm.text")); // NOI18N
+        btn_confirm.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
             {
-                cb_enableActionPerformed(evt);
+                btn_confirmActionPerformed(evt);
             }
         });
+
+        sld_timingBias.setMaximum(50);
+        sld_timingBias.setMinimum(-50);
+        sld_timingBias.setToolTipText(org.openide.util.NbBundle.getMessage(HumanizePanel.class, "HumanizePanel.sld_timingBias.toolTipText")); // NOI18N
+        sld_timingBias.setValue(0);
+        sld_timingBias.addMouseListener(new java.awt.event.MouseAdapter()
+        {
+            public void mouseClicked(java.awt.event.MouseEvent evt)
+            {
+                lbl_timingBiasValueMouseClicked(evt);
+            }
+        });
+
+        lbl_velocityValue.setFont(lbl_velocityValue.getFont().deriveFont(lbl_velocityValue.getFont().getSize()-1f));
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_velocityValue, "75%"); // NOI18N
+        lbl_velocityValue.setHorizontalTextPosition(javax.swing.SwingConstants.LEFT);
+        lbl_velocityValue.addMouseListener(new java.awt.event.MouseAdapter()
+        {
+            public void mouseClicked(java.awt.event.MouseEvent evt)
+            {
+                lbl_velocityTextMouseClicked(evt);
+            }
+        });
+
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_timingBiasText, org.openide.util.NbBundle.getMessage(HumanizePanel.class, "HumanizePanel.lbl_timingBiasText.text")); // NOI18N
+        lbl_timingBiasText.addMouseListener(new java.awt.event.MouseAdapter()
+        {
+            public void mouseClicked(java.awt.event.MouseEvent evt)
+            {
+                lbl_timingBiasValueMouseClicked(evt);
+            }
+        });
+
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_timingText, org.openide.util.NbBundle.getMessage(HumanizePanel.class, "HumanizePanel.lbl_timingText.text")); // NOI18N
+        lbl_timingText.addMouseListener(new java.awt.event.MouseAdapter()
+        {
+            public void mouseClicked(java.awt.event.MouseEvent evt)
+            {
+                lbl_timingTextMouseClicked(evt);
+            }
+        });
+
+        sld_timing.setToolTipText(org.openide.util.NbBundle.getMessage(HumanizePanel.class, "HumanizePanel.sld_timing.toolTipText")); // NOI18N
+        sld_timing.setValue(0);
+        sld_timing.addMouseListener(new java.awt.event.MouseAdapter()
+        {
+            public void mouseClicked(java.awt.event.MouseEvent evt)
+            {
+                lbl_timingTextMouseClicked(evt);
+            }
+        });
+
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_velocityText, org.openide.util.NbBundle.getMessage(HumanizePanel.class, "HumanizePanel.lbl_velocityText.text")); // NOI18N
+        lbl_velocityText.addMouseListener(new java.awt.event.MouseAdapter()
+        {
+            public void mouseClicked(java.awt.event.MouseEvent evt)
+            {
+                lbl_velocityTextMouseClicked(evt);
+            }
+        });
+
+        lbl_timingValue.setFont(lbl_timingValue.getFont().deriveFont(lbl_timingValue.getFont().getSize()-1f));
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_timingValue, "30%"); // NOI18N
+        lbl_timingValue.setHorizontalTextPosition(javax.swing.SwingConstants.LEFT);
+        lbl_timingValue.addMouseListener(new java.awt.event.MouseAdapter()
+        {
+            public void mouseClicked(java.awt.event.MouseEvent evt)
+            {
+                lbl_timingTextMouseClicked(evt);
+            }
+        });
+
+        lbl_timingBiasValue.setFont(lbl_timingBiasValue.getFont().deriveFont(lbl_timingBiasValue.getFont().getSize()-1f));
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_timingBiasValue, "+20%"); // NOI18N
+        lbl_timingBiasValue.setHorizontalTextPosition(javax.swing.SwingConstants.LEFT);
+        lbl_timingBiasValue.addMouseListener(new java.awt.event.MouseAdapter()
+        {
+            public void mouseClicked(java.awt.event.MouseEvent evt)
+            {
+                lbl_timingBiasValueMouseClicked(evt);
+            }
+        });
+
+        sld_velocity.setToolTipText(org.openide.util.NbBundle.getMessage(HumanizePanel.class, "HumanizePanel.sld_velocity.toolTipText")); // NOI18N
+        sld_velocity.setValue(0);
+        sld_velocity.addMouseListener(new java.awt.event.MouseAdapter()
+        {
+            public void mouseClicked(java.awt.event.MouseEvent evt)
+            {
+                lbl_velocityTextMouseClicked(evt);
+            }
+        });
+
+        javax.swing.GroupLayout pnl_slidersLayout = new javax.swing.GroupLayout(pnl_sliders);
+        pnl_sliders.setLayout(pnl_slidersLayout);
+        pnl_slidersLayout.setHorizontalGroup(
+            pnl_slidersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pnl_slidersLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(pnl_slidersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(lbl_timingText)
+                    .addComponent(lbl_velocityText)
+                    .addComponent(lbl_timingBiasText))
+                .addGroup(pnl_slidersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(pnl_slidersLayout.createSequentialGroup()
+                        .addGroup(pnl_slidersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(pnl_slidersLayout.createSequentialGroup()
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(sld_timingBias, javax.swing.GroupLayout.PREFERRED_SIZE, 1, Short.MAX_VALUE))
+                            .addGroup(pnl_slidersLayout.createSequentialGroup()
+                                .addGap(6, 6, 6)
+                                .addComponent(sld_velocity, javax.swing.GroupLayout.PREFERRED_SIZE, 1, Short.MAX_VALUE)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(pnl_slidersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(lbl_timingBiasValue, javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(lbl_velocityValue, javax.swing.GroupLayout.Alignment.TRAILING)))
+                    .addGroup(pnl_slidersLayout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(sld_timing, javax.swing.GroupLayout.PREFERRED_SIZE, 1, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(lbl_timingValue)))
+                .addContainerGap())
+        );
+
+        pnl_slidersLayout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {lbl_timingBiasValue, lbl_timingValue, lbl_velocityValue});
+
+        pnl_slidersLayout.setVerticalGroup(
+            pnl_slidersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pnl_slidersLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(pnl_slidersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(sld_timing, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(lbl_timingText)
+                    .addComponent(lbl_timingValue))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(pnl_slidersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lbl_timingBiasText)
+                    .addComponent(sld_timingBias, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(lbl_timingBiasValue))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(pnl_slidersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(lbl_velocityText)
+                    .addGroup(pnl_slidersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(sld_velocity, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(lbl_velocityValue)))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -370,95 +480,32 @@ public class HumanizePanel extends javax.swing.JPanel implements PropertyChangeL
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(lbl_timingText)
-                            .addComponent(lbl_velocityText)
-                            .addComponent(lbl_timingBiasText))
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(sld_timingBias, javax.swing.GroupLayout.PREFERRED_SIZE, 1, Short.MAX_VALUE))
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addGap(6, 6, 6)
-                                        .addComponent(sld_velocity, javax.swing.GroupLayout.PREFERRED_SIZE, 1, Short.MAX_VALUE)))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(lbl_timingBiasValue, javax.swing.GroupLayout.Alignment.TRAILING)
-                                    .addComponent(lbl_velocityValue, javax.swing.GroupLayout.Alignment.TRAILING)))
-                            .addGroup(layout.createSequentialGroup()
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(sld_timing, javax.swing.GroupLayout.PREFERRED_SIZE, 1, Short.MAX_VALUE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(lbl_timingValue))))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(btn_newSeed)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 97, Short.MAX_VALUE)
-                        .addComponent(btn_cancel))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(cb_enable)
-                        .addGap(0, 0, Short.MAX_VALUE)))
+                .addComponent(btn_humanize)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 34, Short.MAX_VALUE)
+                .addComponent(btn_confirm)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btn_cancel)
                 .addContainerGap())
+            .addComponent(pnl_sliders, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
-
-        layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {lbl_timingBiasValue, lbl_timingValue, lbl_velocityValue});
-
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(cb_enable)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(sld_timing, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(lbl_timingText)
-                    .addComponent(lbl_timingValue))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(lbl_timingBiasText)
-                    .addComponent(sld_timingBias, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(lbl_timingBiasValue))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(lbl_velocityText)
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(sld_velocity, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(lbl_velocityValue)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(pnl_sliders, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btn_cancel)
-                    .addComponent(btn_newSeed))
+                    .addComponent(btn_humanize)
+                    .addComponent(btn_confirm))
                 .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
 
     private void btn_cancelActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_cancelActionPerformed
     {//GEN-HEADEREND:event_btn_cancelActionPerformed
-        humanizer.humanize(Humanizer.DEFAULT_CONFIG);
-        refreshUI();
-
+        cancelChanges();
     }//GEN-LAST:event_btn_cancelActionPerformed
 
-    private void sld_timingStateChanged(javax.swing.event.ChangeEvent evt)//GEN-FIRST:event_sld_timingStateChanged
-    {//GEN-HEADEREND:event_sld_timingStateChanged
-        var cfg = humanizer.getUserConfig().setTimingRandomness(sld_timing.getValue() / 100f);
-        humanizer.humanize(cfg);
-    }//GEN-LAST:event_sld_timingStateChanged
-
-    private void sld_timingBiasStateChanged(javax.swing.event.ChangeEvent evt)//GEN-FIRST:event_sld_timingBiasStateChanged
-    {//GEN-HEADEREND:event_sld_timingBiasStateChanged
-        var cfg = humanizer.getUserConfig().setTimingBias(sld_timingBias.getValue() / 100f);
-        humanizer.humanize(cfg);
-    }//GEN-LAST:event_sld_timingBiasStateChanged
-
-    private void sld_velocityStateChanged(javax.swing.event.ChangeEvent evt)//GEN-FIRST:event_sld_velocityStateChanged
-    {//GEN-HEADEREND:event_sld_velocityStateChanged
-        var cfg = humanizer.getUserConfig().setVelocityRandomness(sld_velocity.getValue() / 100f);
-        humanizer.humanize(cfg);
-    }//GEN-LAST:event_sld_velocityStateChanged
 
     private void lbl_timingTextMouseClicked(java.awt.event.MouseEvent evt)//GEN-FIRST:event_lbl_timingTextMouseClicked
     {//GEN-HEADEREND:event_lbl_timingTextMouseClicked
@@ -487,27 +534,28 @@ public class HumanizePanel extends javax.swing.JPanel implements PropertyChangeL
         }
     }//GEN-LAST:event_lbl_velocityTextMouseClicked
 
-    private void btn_newSeedActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_newSeedActionPerformed
-    {//GEN-HEADEREND:event_btn_newSeedActionPerformed
-        humanizer.newSeed();
-    }//GEN-LAST:event_btn_newSeedActionPerformed
+    private void btn_humanizeActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_humanizeActionPerformed
+    {//GEN-HEADEREND:event_btn_humanizeActionPerformed
+        startHumanize();
+    }//GEN-LAST:event_btn_humanizeActionPerformed
 
-    private void cb_enableActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cb_enableActionPerformed
-    {//GEN-HEADEREND:event_cb_enableActionPerformed
-        humanizer.setEnabled(cb_enable.isSelected());
-    }//GEN-LAST:event_cb_enableActionPerformed
+    private void btn_confirmActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_confirmActionPerformed
+    {//GEN-HEADEREND:event_btn_confirmActionPerformed
+        confirmChanges();
+    }//GEN-LAST:event_btn_confirmActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_cancel;
-    private javax.swing.JButton btn_newSeed;
-    private javax.swing.JCheckBox cb_enable;
+    private javax.swing.JButton btn_confirm;
+    private javax.swing.JButton btn_humanize;
     private javax.swing.JLabel lbl_timingBiasText;
     private javax.swing.JLabel lbl_timingBiasValue;
     private javax.swing.JLabel lbl_timingText;
     private javax.swing.JLabel lbl_timingValue;
     private javax.swing.JLabel lbl_velocityText;
     private javax.swing.JLabel lbl_velocityValue;
+    private javax.swing.JPanel pnl_sliders;
     private javax.swing.JSlider sld_timing;
     private javax.swing.JSlider sld_timingBias;
     private javax.swing.JSlider sld_velocity;

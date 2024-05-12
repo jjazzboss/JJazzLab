@@ -339,30 +339,30 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
     }
 
     /**
-     * Convenience method : the right way to handle UnsupportedEditException when catched by the highest level caller, ie the one who called
-     * startCEdit() and should call endCEdit().
+     * Abort a compound edit started with startCEdit() in the middle: some SimpleEdits have been done but not all of them (endCEdit() was not called).
      * <p>
-     * This method should be called first in the catch section.
-     * <p>
+     * The method will :<br>
+     * 0/ Possibly show a dialog to notify user with errMsg.<br>
      * 1/ Call endCEdit() on cEditName to terminate properly the compound edit. <br>
-     * Because exception occured some SimpleEdits may be missing in the CEdit (compared to normal).
+     * Because an exception might have occured some SimpleEdits may be missing in the CEdit (compared to normal).
      * <p>
      * If compound edit is not empty:<br>
      * 2/ Call undo()<br>
      * This will roll back the CEdit eEditName, ie undo each of the collected simple edits before the exception occured.
      * <p>
      * 3/ Remove CEdit cEditName from the undomanager, so that it can't be redone.
-     * <p>
-     * 4/ Show a dialog to notify errMsg.
      *
-     * @param cEditName
-     * @param errMsg
+     * @param cEditName The aborted edit name used with startCEdit()
+     * @param errMsg    Error message to notify user. If null user is not notified.
      */
-    public void handleUnsupportedEditException(String cEditName, String errMsg)
+    public void abortCEdit(String cEditName, String errMsg)
     {
-        // Notify user
-        NotifyDescriptor d = new NotifyDescriptor.Message(errMsg, NotifyDescriptor.ERROR_MESSAGE);
-        DialogDisplayer.getDefault().notify(d);
+        if (errMsg != null)
+        {
+            // Notify user
+            NotifyDescriptor d = new NotifyDescriptor.Message(errMsg, NotifyDescriptor.ERROR_MESSAGE);
+            DialogDisplayer.getDefault().notify(d);
+        }
 
 
         if (endCEdit(cEditName))

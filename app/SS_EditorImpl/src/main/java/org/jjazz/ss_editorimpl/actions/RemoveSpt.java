@@ -92,7 +92,7 @@ public class RemoveSpt extends AbstractAction implements ContextAwareAction, SS_
         {
             String msg = ResUtil.getString(getClass(), "ERR_CantRemoveSongParts");
             msg += "\n" + ex.getLocalizedMessage();
-            um.handleUnsupportedEditException(undoText, msg);
+            um.abortCEdit(undoText, msg);
             return;
         }
         um.endCEdit(undoText);

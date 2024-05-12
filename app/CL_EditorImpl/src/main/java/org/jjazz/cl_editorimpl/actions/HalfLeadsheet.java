@@ -73,7 +73,7 @@ public class HalfLeadsheet implements ActionListener
         } catch (UnsupportedEditException ex)
         {
             String msg = "Impossible to half leadsheet.\n" + ex.getLocalizedMessage();
-            um.handleUnsupportedEditException(undoText, msg);
+            um.abortCEdit(undoText, msg);
             return;
         }
 

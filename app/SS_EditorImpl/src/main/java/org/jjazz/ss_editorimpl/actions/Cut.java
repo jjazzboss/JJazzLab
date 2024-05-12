@@ -96,7 +96,7 @@ public class Cut extends AbstractAction implements ContextAwareAction, SS_Contex
         {
             String msg = ResUtil.getString(getClass(), "ERR_CantCut");
             msg += "\n" + ex.getLocalizedMessage();
-            um.handleUnsupportedEditException(undoText, msg);
+            um.abortCEdit(undoText, msg);
             return;
         }
         um.endCEdit(undoText);

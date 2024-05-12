@@ -178,7 +178,7 @@ public final class SetTimeSignature extends AbstractAction implements Presenter.
                 {
                     String msg = ResUtil.getString(getClass(), "ERR_SetTimeSignature", ts);
                     msg += "\n" + ex.getLocalizedMessage();
-                    um.handleUnsupportedEditException(undoText, msg);
+                    um.abortCEdit(undoText, msg);
                     return;
                 }
 

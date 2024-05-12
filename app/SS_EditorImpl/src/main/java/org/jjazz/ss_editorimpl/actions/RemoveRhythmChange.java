@@ -114,7 +114,7 @@ public class RemoveRhythmChange extends AbstractAction implements ContextAwareAc
             // We possibly removed 1 rhythm, can't be here
             String msg = ResUtil.getString(getClass(), "ERR_CantRemoveRhythmChange");
             msg += "\n" + ex.getLocalizedMessage();
-            um.handleUnsupportedEditException(undoText, msg);
+            um.abortCEdit(undoText, msg);
             return;
         }
         um.endCEdit(undoText);

@@ -132,12 +132,12 @@ public class AddUserTrack extends AbstractAction
         } catch (PropertyVetoException ex)
         {
             String msg = "Impossible to add or update user phrase " + name + ": " + ex.getLocalizedMessage();
-            um.handleUnsupportedEditException(UNDO_TEXT, msg);
+            um.abortCEdit(UNDO_TEXT, msg);
             return false;
         } catch (Exception ex)    // Capture other programming exceptions, because method can be called from within a thread
         {
             String msg = "Unexpected exception! Impossible to add or update user phrase " + name + ".\n" + ex.getMessage();
-            um.handleUnsupportedEditException(UNDO_TEXT, msg);
+            um.abortCEdit(UNDO_TEXT, msg);
             LOGGER.log(Level.SEVERE, "setUserPhraseAction() {0}", msg);
             Exceptions.printStackTrace(ex);
             return false;

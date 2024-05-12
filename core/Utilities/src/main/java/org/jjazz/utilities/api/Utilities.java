@@ -866,14 +866,16 @@ public class Utilities
      * A debug string for a PropertyChangeEvent.
      *
      * @param e
+     * @param maxStringLength Truncate oldValue/newValue string representation to maxStringLength. 30 is used if not specified.
      * @return
      */
-    public static String toDebugString(PropertyChangeEvent e)
+    public static String toDebugString(PropertyChangeEvent e, int... maxStringLength)
     {
+        int max = maxStringLength.length == 0 ? 30 : maxStringLength[0];
         return "e.src=" + e.getSource().getClass().getSimpleName()
                 + "   e.prop=" + e.getPropertyName()
-                + "   e.old=" + (e.getOldValue() == null ? "null" : truncateWithDots(e.getOldValue().toString(), 30))
-                + "   e.new=" + (e.getNewValue() == null ? "null" : truncateWithDots(e.getNewValue().toString(), 30));
+                + "   e.old=" + (e.getOldValue() == null ? "null" : truncateWithDots(e.getOldValue().toString(), max))
+                + "   e.new=" + (e.getNewValue() == null ? "null" : truncateWithDots(e.getNewValue().toString(), max));
     }
 
     /**
