@@ -23,15 +23,16 @@
 package org.jjazz.humanizer.api;
 
 import com.google.common.base.Preconditions;
-import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
+import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.event.SwingPropertyChangeSupport;
@@ -42,14 +43,13 @@ import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.utilities.api.FloatRange;
-import org.jjazz.utilities.api.Utilities;
 
 /**
  * Humanize notes from a Phrase.
  * <p>
  * TODO: use all constructor parameters for a smarter humanization algorithm, enable multiple time signatures
  */
-public class Humanizer implements PropertyChangeListener
+public class Humanizer
 {
 
     /**
@@ -88,10 +88,38 @@ public class Humanizer implements PropertyChangeListener
         {
             return new Config(this.timingRandomness(), this.timingBias(), newValue);
         }
+
+        public String toSaveString()
+        {
+            return Float.toString(timingRandomness()) + " " + Float.toString(timingBias()) + " " + Float.toString(velocityRandomness());
+        }
+
+        static public Config loadFromString(String str)
+        {
+            Objects.requireNonNull(str);
+            Config res;
+            Scanner s = new Scanner(str).useLocale(Locale.ENGLISH);  // Because Float.toString() alwyas uses english locale ("." in floating point)
+            try
+            {
+                float tr = s.nextFloat();
+                float tb = s.nextFloat();
+                float vr = s.nextFloat();
+                res = new Config(tr, tb, vr);
+            } catch (Exception ex)
+            {
+                LOGGER.log(Level.WARNING, "loadFromString() Invalid string value ={0}. ex={1}. Using default value instead", new Object[]
+                {
+                    str, ex.getMessage()
+                });
+                res = new Config();
+            }
+            s.close();
+            return res;
+        }
     }
 
     /**
-     * Fired by humanize() with a new user config. oldValue=old config, newValue=new config.
+     * ldValue=old config, newValue=new config.
      */
     public static final String PROP_USER_CONFIG = "PropUserConfig";
     /**
@@ -102,22 +130,22 @@ public class Humanizer implements PropertyChangeListener
     /**
      * The default config used by default.
      */
-    public static final Config DEFAULT_CONFIG = new Config(0.2f, 0, 0.2f);
+    public static final Config DEFAULT_CONFIG = new Config(0.2f, 0f, 0.2f);
     /**
      * A configuration which does not change notes.
      */
-    public static final Config ZERO_CONFIG = new Config(0, 0, 0);
+    public static final Config ZERO_CONFIG = new Config(0f, 0f, 0f);
 
     public enum State
     {
         /**
-         * Default state upon Humanizer creation.
+         * Default state upon Humanizer creation or after reset() is called.
          */
         INIT,
         /**
          * humanize() was called at least once.
          */
-        HUMANIZED
+        HUMANIZING
     };
     private static final float MAX_TIMING_DEVIATION = 0.25f;          // +/- 0.2 beat
     private static final float MAX_TIMING_BIAS_DEVIATION = 0.25f;          // +/- 0.25 beat
@@ -131,7 +159,7 @@ public class Humanizer implements PropertyChangeListener
     private final InstrumentFamily insFamily;
     private final int tempo;
     private final HashSet<NoteEvent> registeredNotes;
-    private Config userConfig;
+    private Config config;
     private Map<NoteEvent, NoteEvent> mapNoteOrig = new HashMap<>(); //  note => original note
     private Map<NoteEvent, NoteFactors> mapNoteRandomFactors = new HashMap<>(); //  note => random factors 
     private final transient SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
@@ -189,7 +217,7 @@ public class Humanizer implements PropertyChangeListener
         this.registeredNotes = new HashSet<>();
         this.insFamily = insFamily;
         this.tempo = tempo;
-        userConfig = DEFAULT_CONFIG;
+        config = DEFAULT_CONFIG;
         state = State.INIT;
 
 
@@ -199,33 +227,22 @@ public class Humanizer implements PropertyChangeListener
 
     }
 
-    public void cleanup()
-    {
-        sourcePhrase.removePropertyChangeListener(this);
-    }
-
     public State getState()
     {
         return state;
     }
 
     /**
-     * Reset state at INIT with no registered notes.
-     *
-     * @param newUserConfig If null the current userConfig is unchanged.
-     * @param silent If true no PROP_STATE change event is fired.
+     * Reset this instance.
+     * <p>
+     * Clear the registered notes and set the INIT state.
+     * <p>
      */
-    public void reset(Config newUserConfig, boolean silent)
+    public void reset()
     {
         registeredNotes.clear();
-        sourcePhrase.removePropertyChangeListener(this);
         mapNoteOrig.clear();
         mapNoteRandomFactors.clear();
-        if (newUserConfig != null)
-        {
-            changeUserConfig(newUserConfig);
-        }
-        jh
         changeState(State.INIT);
     }
 
@@ -233,33 +250,24 @@ public class Humanizer implements PropertyChangeListener
     /**
      * Add phrase notes to be humanized by the humanize() method.
      * <p>
-     * Humanizer automatically resets its state if one the registered notes is changed externally (moved/replaced/removed).
-     *
      * @param nes The notes must be part of the source phrase. Note is ignored if already registered or if it's an adjusting note.
      * @see #humanize(org.jjazz.humanizer.api.Humanizer.Config)
      * @see NoteEvent#isAdjustingNote(org.jjazz.phrase.api.NoteEvent)
-     * @see #reset(org.jjazz.humanizer.api.Humanizer.Config)
      */
     public void registerNotes(Collection<NoteEvent> nes)
     {
         LOGGER.log(Level.SEVERE, "registerNotes() -- nes={0}", nes);
-        boolean wasEmpty = registeredNotes.isEmpty();
-        var nonAdjustingNotes = new ArrayList<NoteEvent>();
+        var newNotes = new ArrayList<NoteEvent>();
         for (var ne : nes)
         {
-            if (!NoteEvent.isAdjustingNote(ne))
+            if (!NoteEvent.isAdjustingNote(ne) && !registeredNotes.contains(ne))
             {
                 registeredNotes.add(ne);
                 mapNoteOrig.put(ne, ne.clone());
-                nonAdjustingNotes.add(ne);
+                newNotes.add(ne);
             }
         }
-        computeRandomFactors(nonAdjustingNotes);
-        if (wasEmpty && !registeredNotes.isEmpty())
-        {
-            // Listen to phrase changes only when it's useful
-            this.sourcePhrase.addPropertyChangeListener(this);
-        }
+        computeRandomFactors(newNotes);
     }
 
     public Collection<NoteEvent> getRegisteredNotes()
@@ -268,42 +276,18 @@ public class Humanizer implements PropertyChangeListener
     }
 
     /**
-     * Unregister phrase notes : they won't be humanized anymore by humanize().
-     * <p>
-     *
-     * @param nes
-     */
-    public void unregisterNotes(Collection<NoteEvent> nes)
-    {
-        LOGGER.log(Level.SEVERE, "unregisterNotes() -- nes={0}", nes);
-        for (var ne : nes)
-        {
-            if (registeredNotes.remove(ne))
-            {
-                mapNoteOrig.remove(ne);
-                mapNoteRandomFactors.remove(ne);
-            }
-        }
-        if (registeredNotes.isEmpty())
-        {
-            sourcePhrase.removePropertyChangeListener(this);
-        }
-    }
-
-    /**
-     * Recompute random factors for all notes, then re-humanize notes with the current user config.
+     * Recompute random factors for all notes, with effect on the next call to humanize().
      */
     public void newSeed()
     {
         LOGGER.log(Level.SEVERE, "newSeed() -- notes={0}", registeredNotes);
         mapNoteRandomFactors.clear();
         computeRandomFactors(registeredNotes);
-        humanize(userConfig);
     }
 
 
     /**
-     * The phrase whose some notes are being humanized.
+     * The phrase whose notes are being humanized.
      *
      * @return
      */
@@ -313,36 +297,48 @@ public class Humanizer implements PropertyChangeListener
     }
 
     /**
-     * Get the last Config used by the humanize method.
+     * Change the config.
+     * <p>
+     * May fire a PROP_USER_CONFIG change event.
      *
-     * @return
-     * @see #humanize(org.jjazz.humanizer.api.Humanizer.Config)
+     * @param newConfig
+     * @see #humanize()
      */
-    public Config getUserConfig()
+    public void setConfig(Config newConfig)
     {
-        return userConfig;
+        Objects.requireNonNull(newConfig);
+        var old = config;
+        config = newConfig;
+        pcs.firePropertyChange(PROP_USER_CONFIG, old, config);
     }
 
     /**
-     * Humanize the source phrase registered notes.
+     * Get the Config used by the humanize method.
+     *
+     * @return
+     * @see #humanize()
+     * @see #setConfig(org.jjazz.humanizer.api.Humanizer.Config)
+     */
+    public Config getConfig()
+    {
+        return config;
+    }
+
+    /**
+     * Humanize the registered notes with the current config.
      * <p>
      * For each note the method multiplies the note random factors (calculated upon object creation, or when newSeed() is called) by the corresponding value
      * from newUserConfig.
      * <p>
-     * Fire a PROP_CONFIG change event if userConfig has changed. If state was INIT it is changed to HUMANIZED.
+     * If state was INIT it is changed to HUMANIZED.
      *
-     * @param newUserConfig If null, reuse the same config
      * @see #registerNotes(java.util.List)
+     * @see #getConfig()
      */
-    public void humanize(Config newUserConfig)
+    public void humanize()
     {
+        LOGGER.log(Level.SEVERE, "humanize() -- config={0} ", config);
 
-        LOGGER.log(Level.SEVERE, "humanize() -- newUserConfig={0} ", newUserConfig);
-
-        changeUserConfig(newUserConfig);
-
-        // Ignore Phrase.PROP_REPLACED_NOTES events generated by procesNotes()
-        sourcePhrase.removePropertyChangeListener(this);
         sourcePhrase.processNotes(ne -> registeredNotes.contains(ne), ne -> 
         {
             var neOrig = mapNoteOrig.get(ne);
@@ -355,8 +351,8 @@ public class Humanizer implements PropertyChangeListener
 
 
             // New position
-            float posShift = (float) (noteRandomFactors.timingFactor() * maxTimingDeviation * userConfig.timingRandomness()
-                    + MAX_TIMING_BIAS_DEVIATION * userConfig.timingBias());
+            float posShift = (float) (noteRandomFactors.timingFactor() * maxTimingDeviation * config.timingRandomness()
+                    + MAX_TIMING_BIAS_DEVIATION * config.timingBias());
             float newPosInBeats = posInBeats + posShift;
 
             // Check that we remain in the allowed range
@@ -370,7 +366,7 @@ public class Humanizer implements PropertyChangeListener
 
 
             // New velocity
-            int velShift = Math.round(noteRandomFactors.velocityFactor() * MAX_VELOCITY_DEVIATION * userConfig.velocityRandomness);
+            int velShift = Math.round(noteRandomFactors.velocityFactor() * MAX_VELOCITY_DEVIATION * config.velocityRandomness);
             int newVelocity = MidiUtilities.limit(velocity + velShift);
 
 
@@ -399,9 +395,8 @@ public class Humanizer implements PropertyChangeListener
             });
             return newNe;
         });
-        sourcePhrase.addPropertyChangeListener(this);
 
-        changeState(State.HUMANIZED);
+        changeState(State.HUMANIZING);
     }
 
 
@@ -415,54 +410,10 @@ public class Humanizer implements PropertyChangeListener
         pcs.removePropertyChangeListener(listener);
     }
 
-    // ==========================================================================================================
-    // PropertyChangeListener interface
-    // ==========================================================================================================    
-
-    @Override
-    public void propertyChange(PropertyChangeEvent evt)
-    {
-        LOGGER.log(Level.SEVERE, "propertyChange() -- evt={0}", Utilities.toDebugString(evt, 60));
-
-        if (evt.getSource() == sourcePhrase)
-        {
-            switch (evt.getPropertyName())
-            {
-                case Phrase.PROP_NOTES_MOVED, Phrase.PROP_NOTES_MOVED_ADJUSTING, Phrase.PROP_NOTES_REPLACED, Phrase.PROP_NOTES_REPLACED_ADJUSTING ->
-                {
-                    var mapOldNew = (Map<NoteEvent, NoteEvent>) evt.getNewValue();
-                    for (var ne : mapOldNew.keySet())
-                    {
-                        if (registeredNotes.contains(ne))
-                        {
-                            reset(null);
-                            break;
-                        }
-                    }
-                }
-                case Phrase.PROP_NOTES_REMOVED, Phrase.PROP_NOTES_REMOVED_ADJUSTING ->
-                {
-                    var removedNotes = (Collection<NoteEvent>) evt.getNewValue();
-                    for (var ne : removedNotes)
-                    {
-                        if (registeredNotes.contains(ne))
-                        {
-                            reset(null);
-                            break;
-                        }
-                    }
-                }
-                default ->
-                {
-                }
-            }
-        }
-    }
 
     // ====================================================================================
     // Private methods
     // ====================================================================================    
-
     /**
      * Get the next gaussian random value between -1 and 1 (standard deviation is 0.3)
      *
@@ -505,13 +456,6 @@ public class Humanizer implements PropertyChangeListener
         pcs.firePropertyChange(PROP_STATE, old, state);
     }
 
-    private void changeUserConfig(Config newUserConfig)
-    {
-        assert userConfig != null;
-        var oldUserConfig = userConfig;
-        userConfig = newUserConfig == null ? oldUserConfig : newUserConfig;
-        pcs.firePropertyChange(PROP_USER_CONFIG, oldUserConfig, userConfig);
-    }
 
     // ====================================================================================
     // Inner classes

@@ -17,8 +17,7 @@
     <DimensionLayout dim="0">
       <Group type="103" groupAlignment="0" attributes="0">
           <Component id="cpan_quantize" alignment="0" max="32767" attributes="0"/>
-          <Component id="cpan_humanizer" alignment="1" pref="352" max="32767" attributes="0"/>
-          <Component id="cpan_showTracks" alignment="0" max="32767" attributes="0"/>
+          <Component id="cpan_showTracks" alignment="0" pref="221" max="32767" attributes="0"/>
       </Group>
     </DimensionLayout>
     <DimensionLayout dim="1">
@@ -26,11 +25,9 @@
           <Group type="102" attributes="0">
               <EmptySpace max="-2" attributes="0"/>
               <Component id="cpan_quantize" min="-2" max="-2" attributes="0"/>
-              <EmptySpace max="-2" attributes="0"/>
-              <Component id="cpan_humanizer" min="-2" max="-2" attributes="0"/>
-              <EmptySpace max="-2" attributes="0"/>
+              <EmptySpace type="unrelated" max="-2" attributes="0"/>
               <Component id="cpan_showTracks" min="-2" max="-2" attributes="0"/>
-              <EmptySpace pref="63" max="32767" attributes="0"/>
+              <EmptySpace pref="23" max="32767" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -47,13 +44,6 @@
       <Properties>
         <Property name="titleComponentText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
           <ResourceString bundle="org/jjazz/pianoroll/Bundle.properties" key="SidePanel.cpan_showTracks.titleComponentText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-        </Property>
-      </Properties>
-    </Component>
-    <Component class="org.jjazz.flatcomponents.api.CollapsiblePanel" name="cpan_humanizer">
-      <Properties>
-        <Property name="titleComponentText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/jjazz/pianoroll/Bundle.properties" key="SidePanel.cpan_humanizer.titleComponentText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
         </Property>
       </Properties>
     </Component>
