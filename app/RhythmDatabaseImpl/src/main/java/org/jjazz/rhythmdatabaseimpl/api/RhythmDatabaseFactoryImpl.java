@@ -133,6 +133,7 @@ public class RhythmDatabaseFactoryImpl implements RhythmDatabaseFactory, Propert
             // Show a "please wait" dialog until initialization's complete
             String msg = ResUtil.getString(RhythmDatabaseFactoryImpl.class, "CTL_PleaseWait");
             PleaseWaitDialog.show(msg, initFuture);
+            LOGGER.severe("=====================================\n=================================get() CHECK BUG POSSIBLY HERE CALLED with initFuture==null");
         }
         return dbInstance;
     }

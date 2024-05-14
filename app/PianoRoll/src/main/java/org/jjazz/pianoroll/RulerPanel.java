@@ -62,14 +62,15 @@ import org.jjazz.uisettings.api.ColorSetManager;
 import org.jjazz.ss_editor.api.SS_EditorTopComponent;
 import org.jjazz.uiutilities.api.HSLColor;
 import org.jjazz.uiutilities.api.StringMetrics;
+import org.jjazz.utilities.api.IntRange;
 
 /**
  * The ruler panel that shows the beat position marks + time signatures over the NotesPanel.
  * <p>
  * The ruler has its own startBar which might be different from the model phrase start bar.
  * <p>
- * If a song is associated, show also the chord symbols and song parts. The RulerPanel listens to chord symbols changes to refresh itself
- * (song structure changes are handled by the PianoRollEditor).
+ * If a song is associated, show also the chord symbols and song parts. The RulerPanel listens to chord symbols changes to refresh itself (song structure
+ * changes are handled by the PianoRollEditor).
  */
 public class RulerPanel extends javax.swing.JPanel implements ClsChangeListener, PropertyChangeListener
 {
@@ -77,6 +78,7 @@ public class RulerPanel extends javax.swing.JPanel implements ClsChangeListener,
     private static final int BAR_TICK_LENGTH = 7;
     private static final int BEAT_TICK_LENGTH = 5;
     private static final int SIXTEENTH_TICK_LENGTH = 3;
+    private static final Color COLOR_LOOP_ZONE = new Color(112, 110, 110);
     private static final Color COLOR_BAR_FONT = new Color(176, 199, 220);
     private static final Color COLOR_BEAT_FONT = new Color(80, 80, 80);
     private static final Color COLOR_TIME_SIGNATURE_FONT = COLOR_BAR_FONT;
@@ -201,7 +203,7 @@ public class RulerPanel extends javax.swing.JPanel implements ClsChangeListener,
     public void paintComponent(Graphics g)
     {
         Graphics2D g2 = (Graphics2D) g;
-        
+
         // g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         var settings = editor.getSettings();
@@ -215,7 +217,7 @@ public class RulerPanel extends javax.swing.JPanel implements ClsChangeListener,
         int yTopChordSymbolLane = yBottomTimeSignatureLane + 1;
         int yBottomChordSymbolLane = yTopBarLane - 1;
         Font baseFont = settings.getRulerBaseFont();
-
+        var loopZone = editor.getLoopZone();
 
         // Default background
         g2.setColor(settings.getRulerBackgroundColor());
@@ -242,14 +244,14 @@ public class RulerPanel extends javax.swing.JPanel implements ClsChangeListener,
         {
             var offsettedBarRange = editor.getPhraseBarRange().getTransformed(barOffset);
             ChordSequence cs = new ChordSequence(offsettedBarRange);
-            SongChordSequence.fillChordSequence(cs, song, offsettedBarRange); 
+            SongChordSequence.fillChordSequence(cs, song, offsettedBarRange);
             int lastBar = -1;
 
 
             for (var cliCs : cs)
             {
                 var pos = cliCs.getPosition();
-                
+
                 if (oneBeatPixelSize > 14 || (pos.getBar() != lastBar && pos.isFirstBarBeat()))
                 {
                     // Draw the chord symbol
@@ -271,13 +273,13 @@ public class RulerPanel extends javax.swing.JPanel implements ClsChangeListener,
                     // No room to draw several chord symbols per bar
                     continue;
                 }
-                
+
                 lastBar = pos.getBar();
             }
         }
 
 
-        // Draw ticks, bar/beat number, time signatures, vertical bars, and possibly song part if available
+        // Draw ticks, bar/beat number, time signatures, vertical bars, and possibly song part and loop zone
         boolean paintSixteenthTicks = oneBeatPixelSize > 40;
         boolean paintBeatTicks = oneBeatPixelSize > 5;
         TimeSignature lastTs = null;
@@ -374,6 +376,43 @@ public class RulerPanel extends javax.swing.JPanel implements ClsChangeListener,
             }
 
 
+            // Draw the loop zone
+            if (loopZone != null)
+            {
+                final int SIDE_LENGTH = 12;
+                g2.setColor(COLOR_LOOP_ZONE);
+                int y = yBottomBarLane;
+                if (pos.getBar() == loopZone.from && pos.isFirstBarBeat())
+                {
+                    // Loop zone start
+                    int x2 = x;
+                    if (x2 == 0)
+                    {
+                        x2 = SIDE_LENGTH - 1;       // Make sure polygon remains visible even at extreme left
+                    }
+                    Polygon p = new Polygon();
+                    p.addPoint(x2, y);
+                    p.addPoint(x2, y - SIDE_LENGTH + 1);
+                    p.addPoint(x2 - SIDE_LENGTH + 1, y);
+                    g2.fill(p);
+                } else if (pos.getBar() == loopZone.to && pos.isLastBarBeat(ts))
+                {
+                    // Loop zone end
+                    int oneBeatPixelSizeInt = Math.round(oneBeatPixelSize);
+                    int x2 = x + oneBeatPixelSizeInt;
+                    if (pos == allBeatPositions.last())
+                    {
+                        x2 -= SIDE_LENGTH;           // Make sure polygon remains visible even at extreme right
+                    }
+                    Polygon p = new Polygon();
+                    p.addPoint(x2, y);
+                    p.addPoint(x2, y - SIDE_LENGTH + 1);
+                    p.addPoint(x2 + SIDE_LENGTH - 1, y);
+                    g2.fill(p);
+                }
+            }
+
+
             // Draw bar or beat number
             AttributedString aStr = null;
             int offsettedBar = pos.getBar() + 1 + barOffset;
@@ -410,7 +449,7 @@ public class RulerPanel extends javax.swing.JPanel implements ClsChangeListener,
         {
             g2.setColor(MouseDragLayerUI.COLOR_PLAYBACK_LINE);
             Polygon p = new Polygon();
-            int HALF_SIZE = 4;
+            final int HALF_SIZE = 4;
             int yMax = h - 1;
             p.addPoint(playbackPointX, yMax);
             p.addPoint(playbackPointX + HALF_SIZE, yMax - HALF_SIZE);
@@ -474,33 +513,77 @@ public class RulerPanel extends javax.swing.JPanel implements ClsChangeListener,
     // ==========================================================================================================    
 
     /**
-     * Enable scroll when dragging the ruler, and when clicked update the selection on chord leadsheet and song structure editors.
+     * Manage click and dragging operations on the ruler.
+     * <p>
+     * - dragging sets the loop zone by dragging the ruler (shift+drag to extend existing loop zone)<br>
+     * - ctrl+dragging moves the editor.<br>
+     * - A simple click resets the loop zone and update the selection on chord leadsheet and song structure editors.<br>
+     * - A shift+click extends loop zone if already set.
      */
     private class RulerMouseAdapter extends MouseAdapter
     {
 
-        private int xOrigin = Integer.MIN_VALUE;
+        private int xOrigin = Integer.MIN_VALUE;    // If MIN_VALUE drag has not started
+        private int loopZoneBarOrigin = -1;     // If >= 0 it's a drag to set the loop zone
 
         @Override
         public void mousePressed(MouseEvent e)
         {
+            LOGGER.fine("mousePressed() --");
             xOrigin = e.getX();
+            if (!e.isControlDown())
+            {
+                var loopZone = editor.getLoopZone();
+                int bar = xMapper.getPosition(xOrigin).getBar();
+                if (e.isShiftDown() && loopZone != null)
+                {
+                    if (bar < loopZone.from)
+                    {
+                        loopZoneBarOrigin = loopZone.to;
+                        editor.showLoopZone(new IntRange(bar, loopZoneBarOrigin));
+                    } else
+                    {
+                        loopZoneBarOrigin = loopZone.from;
+                        editor.showLoopZone(new IntRange(loopZoneBarOrigin, bar));
+                    }
+                } else
+                {
+                    // Start setting new loop zone
+                    loopZoneBarOrigin = bar;
+                }
+            }
             setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         }
 
         @Override
         public void mouseClicked(MouseEvent e)
         {
+            LOGGER.fine("mouseClicked() --");
+
             if (song == null)
             {
                 return;
             }
+
+
             float posInBeats = editor.getPositionFromPoint(e.getPoint()); // ignore y
             if (posInBeats == -1 || !editor.getPhraseBeatRange().contains(posInBeats, true))
             {
                 return;
             }
             Position pos = editor.toPosition(posInBeats);
+
+
+            var loopZone = editor.getLoopZone();
+            if (e.isShiftDown() && loopZone != null)
+            {
+                // Do nothing
+                return;
+            }
+
+
+            // Reset loop zone
+            editor.showLoopZone(null);
 
 
             // Select the corresponding song part
@@ -530,14 +613,20 @@ public class RulerPanel extends javax.swing.JPanel implements ClsChangeListener,
         public void mouseReleased(MouseEvent e)
         {
             xOrigin = Integer.MIN_VALUE;
+            loopZoneBarOrigin = -1;
             setCursor(Cursor.getDefaultCursor());
         }
 
         @Override
         public void mouseDragged(MouseEvent e)
         {
-            if (xOrigin != Integer.MIN_VALUE)
+            if (xOrigin == Integer.MIN_VALUE)
             {
+                return;
+            }
+            if (loopZoneBarOrigin < 0)
+            {
+                // Move the editor
                 JViewport viewPort = (JViewport) SwingUtilities.getAncestorOfClass(JViewport.class, notesPanel);
                 if (viewPort != null)
                 {
@@ -546,6 +635,13 @@ public class RulerPanel extends javax.swing.JPanel implements ClsChangeListener,
                     view.x += deltaX;
                     notesPanel.scrollRectToVisible(view);
                 }
+            } else
+            {
+                // Set loop zone
+                int bar = xMapper.getPosition(e.getX()).getBar();
+                int min = Math.min(bar, loopZoneBarOrigin);
+                int max = Math.max(bar, loopZoneBarOrigin);
+                editor.showLoopZone(new IntRange(min, max));
             }
         }
     }

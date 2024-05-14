@@ -463,6 +463,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
     // ========================================================================================
     // Private methods
     // ========================================================================================
+
     private void drawHorizontalGrid(Graphics2D g2)
     {
         var settings = PianoRollEditorSettings.getDefault();
@@ -472,13 +473,31 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
         }
         Color cb1 = settings.getBackgroundColor1();
         Color cb2 = settings.getBackgroundColor2();
-        Color cl1 = settings.getBarLineColor();
-        Color cl2 = HSLColor.changeLuminance(cl1, 8);      // lighter color
+        Color cB_C = settings.getBarLineColor();
+        Color cE_F = HSLColor.changeLuminance(cB_C, 8);
         int w = getWidth();
+
+
+        // prepare LoopZone data
+        int loopZoneXfrom = -1;
+        int loopZoneWidth = -1;
+        Color cb1_loopZone = null;
+        Color cb2_loopZone = null;
+        IntRange loopZone = editor.getLoopZone();
+        if (loopZone != null)
+        {
+            cb1_loopZone = HSLColor.changeLuminance(cb1, -6);
+            cb2_loopZone = HSLColor.changeLuminance(cb2, -6);
+            loopZoneXfrom = xMapper.getX(new Position(loopZone.from, 0));
+            int xTo = xMapper.getBarRange().contains(loopZone.to + 1) ? xMapper.getX(new Position(loopZone.to + 1, 0)) : xMapper.getLastWidth() - 1;
+            loopZoneWidth = xTo - loopZoneXfrom;
+        }
 
         // only draw what's visible
         IntRange pitchRange = editor.getVisiblePitchRange();
 
+
+        // Draw a rectangle per pitch
         for (int p = pitchRange.from; p <= pitchRange.to; p++)
         {
             int pp = p % 12;
@@ -486,13 +505,24 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
             g2.setColor(c);
             var yRange = yMapper.getNoteViewChannelYRange(p);
             g2.fillRect(0, yRange.from, w, yRange.size());
+
+
+            // Draw loop zone if any
+            if (loopZone != null)
+            {
+                Color cLz = (c == cb1) ? cb1_loopZone : cb2_loopZone;
+                g2.setColor(cLz);
+                g2.fillRect(loopZoneXfrom, yRange.from, loopZoneWidth, yRange.size());
+            }
+
+
+            // Draw lines between B and C and lighter ones between E and F       
             if (pp == 0 || pp == 5)
             {
-                g2.setColor(pp == 0 ? cl1 : cl2);
+                g2.setColor(pp == 0 ? cB_C : cE_F);
                 g2.drawLine(0, yRange.to, w - 1, yRange.to);
             }
         }
-
 
     }
 
@@ -504,14 +534,17 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
             return;
         }
         Color cl1 = settings.getBarLineColor();
-        Color cl2 = HSLColor.changeLuminance(cl1, 8);      // lighter color
-        Color cl3 = HSLColor.changeLuminance(cl2, 4);      // lighter color
+        Color cl2 = HSLColor.changeLuminance(cl1, 9);      // lighter color
+        Color cl2_lz = HSLColor.changeLuminance(cl1, 4);      // not so lighter in loop zone
+        Color cl3 = HSLColor.changeLuminance(cl2, 3);      // even lighter
+        Color cl3_lz = HSLColor.changeLuminance(cl2_lz, 3);
 
         int y0 = yMapper.getKeyboardYRange(0).to;
         int y1 = yMapper.getKeyboardYRange(127).from;
         var barRange = editor.getVisibleBarRange();
         var mapQPosX = xMapper.getQuantizedXPositions(barRange);              // only draw what's visible        
         boolean paintSixteenth = xMapper.getOneBeatPixelSize() > 20;
+        IntRange loopZone = editor.getLoopZone();
 
         for (Position pos : mapQPosX.navigableKeySet())
         {
@@ -526,6 +559,10 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
             if (!pos.isFirstBarBeat())
             {
                 c = pos.isOffBeat() ? cl3 : cl2;
+                if (loopZone != null && loopZone.contains(pos.getBar()))
+                {
+                    c = (c == cl3) ? cl3_lz : cl2_lz;
+                }
             }
 
             g2.setColor(c);

@@ -100,7 +100,6 @@ import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.utilities.api.FloatRange;
 import org.jjazz.utilities.api.IntRange;
 import org.jjazz.utilities.api.ResUtil;
-import org.jjazz.utilities.api.Utilities;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.util.Lookup;
@@ -141,6 +140,10 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
      */
     public static final String PROP_ACTIVE_TOOL = "ActiveTool";
     /**
+     * oldValue=old loop zone, newValue=new loop zone
+     */
+    public static final String PROP_LOOP_ZONE = "LoopZone";
+    /**
      * newValue=boolean
      */
     public static final String PROP_SNAP_ENABLED = "SnapEnabled";
@@ -161,6 +164,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     private JLayer mouseDragLayer;
     private ZoomValue zoomValue;
     private Phrase model;
+    private IntRange loopZone;
     private DrumKit.KeyMap keyMap;
     private final PianoRollEditorSettings settings;
     private final TreeSet<NoteView> selectedNoteViews = new TreeSet<>((nv1, nv2) -> nv1.getModel().compareTo(nv2.getModel()));
@@ -210,7 +214,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         this.mapPosTimeSignature = new TreeMap<>();
         this.snapEnabled = true;
         this.mapPosTimeSignature.put(0f, TimeSignature.FOUR_FOUR);
-
+        this.loopZone = null;
 
         // Be notified of changes, note added, moved, removed, set
         model.addPropertyChangeListener(this);
@@ -391,7 +395,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         this.beatRange = beatRange;
         this.mapPosTimeSignature = mapPosTs;
         labelNotes(keyboard, keyMap);
-        ghostPhrasesModel.setVisibleChannels(null);        
+        ghostPhrasesModel.setVisibleChannels(null);
         ghostPhrasesModel.setEditedChannel(channel);
 
 
@@ -404,7 +408,6 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         notesPanel.repaint();
         rulerPanel.revalidate();
         rulerPanel.repaint();
-        
 
 
         // Add the notes
@@ -811,6 +814,34 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     public void setPlaybackAutoScrollEnabled(boolean playbackAutoScrollEnabled)
     {
         this.playbackAutoScrollEnabled = playbackAutoScrollEnabled;
+    }
+
+    /**
+     * Set the loop zone.
+     *
+     * @param barRange If null loop zone is hidden
+     */
+    public void showLoopZone(IntRange barRange)
+    {
+        Preconditions.checkArgument(barRange == null || getPhraseBarRange().contains(barRange), "barRange=%s", barRange);
+        var old = loopZone;
+        loopZone = barRange;
+        if (!Objects.equals(old, loopZone))
+        {
+            notesPanel.repaint();
+            rulerPanel.repaint();
+            firePropertyChange(PROP_LOOP_ZONE, old, loopZone);
+        }
+    }
+
+    /**
+     * Get the loop zone.
+     *
+     * @return Can be null if no loop zone is set
+     */
+    public IntRange getLoopZone()
+    {
+        return loopZone;
     }
 
     /**

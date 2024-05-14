@@ -23,6 +23,8 @@
  */
 package org.jjazz.utilities.api;
 
+import com.google.common.base.Preconditions;
+
 /**
  * A basic integer (zero or positive) interval.
  * <p>
@@ -47,7 +49,7 @@ public class IntRange
     {
         if (from < 0 || from > to)
         {
-            throw new IllegalArgumentException("from=" + from + " to=" + to);   
+            throw new IllegalArgumentException("from=" + from + " to=" + to);
         }
         this.from = from;
         this.to = to;
@@ -130,8 +132,22 @@ public class IntRange
         int high = Math.max(to, r.to);
         return new IntRange(low, high);
     }
-    
- 
+
+    /**
+     * Extend the current range to include x.
+     * <p>
+     * If this range is empty, return the empty range.
+     *
+     * @param x
+     * @return
+     */
+    public IntRange getUnion(int x)
+    {
+        Preconditions.checkArgument(x >= 0);
+        return getUnion(new IntRange(x, x));
+    }
+
+
     /**
      *
      * @param r

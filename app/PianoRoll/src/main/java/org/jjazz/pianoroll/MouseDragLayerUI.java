@@ -38,6 +38,7 @@ public class MouseDragLayerUI extends LayerUI<JComponent>
 
     private Rectangle rectangle;
     private int playbackPointX;
+    
     private static final Color COLOR_BORDER_OUT = Color.DARK_GRAY;
     private static final Color COLOR_BORDER_IN = Color.WHITE;
     public static final Color COLOR_PLAYBACK_LINE = Color.WHITE;
