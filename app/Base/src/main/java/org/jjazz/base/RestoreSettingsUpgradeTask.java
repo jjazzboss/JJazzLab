@@ -22,38 +22,36 @@
  *   Contributor(s): 
  * 
  */
-package org.jjazz.startup;
+package org.jjazz.base;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.jjazz.startup.spi.OnShowingTask;
-import org.openide.util.Lookup;
-import org.openide.windows.OnShowing;
+import org.jjazz.upgrade.api.UpgradeManager;
+import org.jjazz.upgrade.api.UpgradeTask;
+import org.openide.util.NbPreferences;
+import org.openide.util.lookup.ServiceProvider;
 
 /**
- * Execute OnShowing startup tasks based on ascending priority order.
+ * Import module preferences upon upgrade.
  */
-@OnShowing
-public class OnShowingStartupManager implements Runnable
+@ServiceProvider(service = UpgradeTask.class)
+public class RestoreSettingsUpgradeTask implements UpgradeTask
 {
 
-    private static final Logger LOGGER = Logger.getLogger(OnShowingStartupManager.class.getSimpleName());
-
     @Override
-    public void run()
+    public void upgrade(String oldVersion)
     {
-        // Get all tasks sorted by priority
-        var res = new ArrayList<>(Lookup.getDefault().lookupAll(OnShowingTask.class));
-        Collections.sort(res, (t1, t2) -> Integer.compare(t1.getPriority(), t2.getPriority()));
-        for (var task : res)
+        if (oldVersion == null)
         {
-            LOGGER.log(Level.INFO, "Starting task {1} : {0}", new Object[]
-            {
-                task.getName(), task.getPriority()
-            });
-            task.run();
+            return;
+        }
+        UpgradeManager um = UpgradeManager.getInstance();
+        if (oldVersion.charAt(0) <= '3')
+        {
+            // 3.x had a different package name
+            um.duplicateOldPreferences(NbPreferences.forModule(getClass()), "org/jjazz/config.properties");
+        } else
+        {
+            // We're importing from JJazzLab 4 and higher, normal
+            um.duplicateOldPreferences(NbPreferences.forModule(getClass()));
         }
     }
 

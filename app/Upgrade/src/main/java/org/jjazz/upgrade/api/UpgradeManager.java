@@ -360,6 +360,11 @@ public class UpgradeManager
     public static class FreshStartUpgrader implements OnStartTask
     {
 
+        /**
+         * Should run early in order to update the modules preferences before instances are created
+         */
+        public static final int ONSTART_TASK_PRIORITY = 0;
+
         @Override
         public void run()
         {
@@ -404,7 +409,7 @@ public class UpgradeManager
         @Override
         public int getPriority()
         {
-            return 0;   // Should run early in order to update the modules preferences before instances are created
+            return ONSTART_TASK_PRIORITY;
         }
 
         @Override

@@ -28,26 +28,27 @@ import java.util.prefs.Preferences;
 import org.jjazz.embeddedsynth.api.EmbeddedSynthException;
 import org.jjazz.embeddedsynth.spi.EmbeddedSynthProvider;
 import org.jjazz.midi.api.JJazzMidiSystem;
-import org.jjazz.startup.spi.OnShowingTask;
+import org.jjazz.startup.api.OnStartMessageNotifier;
+import org.jjazz.startup.spi.OnStartTask;
 import org.jjazz.upgrade.api.UpgradeManager;
 import org.jjazz.utilities.api.ResUtil;
-import org.openide.DialogDisplayer;
-import org.openide.NotifyDescriptor;
 import org.openide.util.*;
 import org.openide.util.lookup.ServiceProvider;
 
 /**
  * Manage the fresh startup case and restore EmbeddedSynth active state upon application restarts.
+ * <p>
+ * Should be done as early as possible since synth initialization (eg load soundfont) might take some time.
  */
-
-@ServiceProvider(service = OnShowingTask.class)
-public class InitEmbeddedSynthStartupTask implements OnShowingTask
+@ServiceProvider(service = OnStartTask.class)
+public class InitEmbeddedSynthOnStartTask implements OnStartTask
 {
-    public static final int ON_SHOWING_TASK_PRIORITY = 75;
+
+    public static final int ONSTART_TASK_PRIORITY = 75;
     private static final String PREF_EMBEDDED_SYNTH_ACTIVATED = "PrefEmbeddedSynthActivated";
     private static final String PREF_FLUIDSYNTH_DISABLED_WARNING_SHOWN = "PrefFluidSynthDisabledWarningShown";
     private static final Preferences prefs = NbPreferences.forModule(JJazzMidiSystem.class);
-    private static final Logger LOGGER = Logger.getLogger(InitEmbeddedSynthStartupTask.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(InitEmbeddedSynthOnStartTask.class.getSimpleName());
 
     @Override
     public void run()
@@ -76,7 +77,7 @@ public class InitEmbeddedSynthStartupTask implements OnShowingTask
             {
                 LOGGER.log(Level.WARNING, "run() Can''t activate embedded synth: {0}", ex.getMessage());
                 showOnceNoFluidSynthWarning();
-                
+
             }
         }
 
@@ -87,8 +88,7 @@ public class InitEmbeddedSynthStartupTask implements OnShowingTask
         if (!prefs.getBoolean(PREF_FLUIDSYNTH_DISABLED_WARNING_SHOWN, false))
         {
             String msg = ResUtil.getString(getClass(), "FluidSynthNotAvailable");
-            NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
-            DialogDisplayer.getDefault().notify(d);
+            OnStartMessageNotifier.postErrorMessage(msg);
             prefs.putBoolean(PREF_FLUIDSYNTH_DISABLED_WARNING_SHOWN, true);
         }
     }
@@ -96,12 +96,12 @@ public class InitEmbeddedSynthStartupTask implements OnShowingTask
     @Override
     public int getPriority()
     {
-        return ON_SHOWING_TASK_PRIORITY;
+        return ONSTART_TASK_PRIORITY;
     }
 
     @Override
     public String getName()
     {
-        return "StartupEmbeddedSynthInitTask";
+        return "InitEmbeddedSynthStartupTask";
     }
 }

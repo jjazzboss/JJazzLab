@@ -49,7 +49,7 @@ public class OnStartStartupManager implements Runnable
         Collections.sort(res, (t1, t2) -> Integer.compare(t1.getPriority(), t2.getPriority()));
         for (var task : res)
         {
-            LOGGER.log(Level.INFO, "Starting task: {0} priority={1}", new Object[]
+            LOGGER.log(Level.INFO, "Starting task {1} : {0}", new Object[]
             {
                 task.getName(), task.getPriority()
             });

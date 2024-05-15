@@ -28,6 +28,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -42,19 +43,24 @@ import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmdatabase.spi.RhythmDatabaseFactory;
 import org.jjazz.rhythmdatabaseimpl.RhythmDbCache;
 import org.jjazz.uiutilities.api.PleaseWaitDialog;
+import org.jjazz.upgrade.api.UpgradeManager;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.util.lookup.ServiceProvider;
 import org.jjazz.utilities.api.MultipleErrorsReport;
+import org.jjazz.utilities.api.Utilities;
+import org.netbeans.api.annotations.common.StaticResource;
 import org.netbeans.api.progress.ProgressHandle;
+import org.openide.DialogDisplayer;
+import org.openide.NotifyDescriptor;
 import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 import org.openide.util.NbPreferences;
-import org.openide.util.RequestProcessor;
 
 /**
  * Create and initialize the RhythmDatabase instance via a cache file.
  * <p>
  * Upon clean/fresh start:<br>
+ * - copy default rhythm files<br>
  * - retrieve all available builtin & file-based rhythm instances by polling RhythmProviders (this can be long if many rhythm files need to be scanned).<br>
  * - update the database<br>
  * - save the file-based RhythmInfos to a cache file.<p>
@@ -66,6 +72,9 @@ import org.openide.util.RequestProcessor;
 @ServiceProvider(service = RhythmDatabaseFactory.class)
 public class RhythmDatabaseFactoryImpl implements RhythmDatabaseFactory, PropertyChangeListener
 {
+
+    @StaticResource(relative = true)
+    public static final String ZIP_RESOURCE_PATH = "resources/Rhythms.zip";
 
     public static final String PREF_NEED_RESCAN = "NeedRescan";
     private static RhythmDatabaseFactoryImpl INSTANCE;
@@ -112,6 +121,16 @@ public class RhythmDatabaseFactoryImpl implements RhythmDatabaseFactory, Propert
     {
         if (initFuture == null)
         {
+
+            if (UpgradeManager.getInstance().isFreshStart())
+            {
+                // This could be done in doInitialization(), but doInitialisation() is run in a separate thread, and because copyFilesOrNot might show user 
+                // a confirmation dialog, we want to hold the task so that the next OnShowingTask is started after this user confirmation.
+                LOGGER.info("initialize() Copying default rhythm files");
+                copyFilesOrNot(FileDirectoryManager.getInstance().getUserRhythmsDirectory());
+            }
+
+
             ExecutorService executor = Executors.newSingleThreadExecutor();
             initFuture = executor.submit(() -> doInitialization());
         }
@@ -130,10 +149,14 @@ public class RhythmDatabaseFactoryImpl implements RhythmDatabaseFactory, Propert
     {
         if (!isInitialized())
         {
+            if (initFuture == null)
+            {
+                initialize();
+            }
+
             // Show a "please wait" dialog until initialization's complete
             String msg = ResUtil.getString(RhythmDatabaseFactoryImpl.class, "CTL_PleaseWait");
             PleaseWaitDialog.show(msg, initFuture);
-            LOGGER.severe("=====================================\n=================================get() CHECK BUG POSSIBLY HERE CALLED with initFuture==null");
         }
         return dbInstance;
     }
@@ -180,6 +203,9 @@ public class RhythmDatabaseFactoryImpl implements RhythmDatabaseFactory, Propert
     // ================================================================================================
     // Private methods
     // ================================================================================================
+    /**
+     * Read the cache or ask RhythmProviders to rescan all the rhythm files.
+     */
     private void doInitialization()
     {
         boolean markedForRescan = isMarkedForStartupRescan();
@@ -305,5 +331,45 @@ public class RhythmDatabaseFactoryImpl implements RhythmDatabaseFactory, Propert
 
     }
 
+
+    /**
+     * If dir is not empty ask user for confirmation to replace files.
+     *
+     * @param dir Must exist.
+     */
+    private void copyFilesOrNot(File dir)
+    {
+        boolean isEmpty;
+        try
+        {
+            isEmpty = Utilities.isEmpty(dir.toPath());
+        } catch (IOException ex)
+        {
+            LOGGER.log(Level.WARNING, "copyFilesOrNot() Can''t check if dir. is empty. ex={0}", ex.getMessage());
+            return;
+        }
+        if (!isEmpty)
+        {
+            String msg = ResUtil.getString(getClass(), "CTL_CopyDefaultRhythmConfirmOverwrite", dir.getAbsolutePath());
+            String[] options = new String[]
+            {
+                "OK", ResUtil.getString(getClass(), "SKIP")
+            };
+            NotifyDescriptor d = new NotifyDescriptor(msg, ResUtil.getString(getClass(), "CTL_FirstTimeInit"), 0, NotifyDescriptor.QUESTION_MESSAGE, options,
+                    "OK");
+            Object result = DialogDisplayer.getDefault().notify(d);
+            if (!result.equals("OK"))
+            {
+                return;
+            }
+        }
+        // Copy the default rhythms
+        List<File> res = Utilities.extractZipResource(getClass(), ZIP_RESOURCE_PATH, dir.toPath(), true);
+        LOGGER.log(Level.INFO, "copyFilesOrNot() Copied {0} rhythm files to {1}",
+                new Object[]
+                {
+                    res.size(), dir.getAbsolutePath()
+                });
+    }
 
 }

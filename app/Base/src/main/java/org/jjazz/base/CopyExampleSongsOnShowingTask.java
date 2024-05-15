@@ -43,7 +43,7 @@ import org.jjazz.startup.spi.OnShowingTask;
  * Can't use @OnStart or UpgradeTask because on Linux the NotifyDialogs are hidden behind the splash screen!
  */
 @ServiceProvider(service = OnShowingTask.class)
-public class CopyExampleSongsStartupTask implements OnShowingTask
+public class CopyExampleSongsOnShowingTask implements OnShowingTask
 {
 
     public static final int ON_SHOWING_TASK_PRIORITY = 1000;
@@ -51,7 +51,7 @@ public class CopyExampleSongsStartupTask implements OnShowingTask
     @StaticResource(relative = true)
     public static final String ZIP_RESOURCE_PATH = "resources/ExampleSongs.zip";
     public static final String DIR_NAME = "ExampleSongs";
-    private static final Logger LOGGER = Logger.getLogger(CopyExampleSongsStartupTask.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(CopyExampleSongsOnShowingTask.class.getSimpleName());
 
     @Override
     public void run()

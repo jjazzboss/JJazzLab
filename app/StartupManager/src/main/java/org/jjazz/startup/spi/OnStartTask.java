@@ -25,7 +25,11 @@ package org.jjazz.startup.spi;
 /**
  * A startup task which will be executed by StartupManager in priority ascending order when platform is ready (see @onStart).
  * <p>
- * If order of execution does not matter, you can directly use @OnStart instead.
+ * If order of execution does not matter, you might directly use @OnStart instead.
+ * <p>
+ * NOTE: Do not directly use NotifyDialog in these tasks, use OnStartMessageNotifier instead.
+ *
+ * @see org.jjazz.startup.api.OnStartMessageNotifier;
  */
 public interface OnStartTask
 {

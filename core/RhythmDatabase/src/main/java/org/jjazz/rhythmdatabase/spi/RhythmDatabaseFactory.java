@@ -43,7 +43,7 @@ public interface RhythmDatabaseFactory
      */
     public static RhythmDatabaseFactory getDefault()
     {
-        org.jjazz.rhythmdatabase.spi.RhythmDatabaseFactory res = Lookup.getDefault().lookup(RhythmDatabaseFactory.class);
+        RhythmDatabaseFactory res = Lookup.getDefault().lookup(RhythmDatabaseFactory.class);
         if (res == null)
         {
             res = DefaultRhythmDatabase.getFactoryInstance();
@@ -62,7 +62,7 @@ public interface RhythmDatabaseFactory
     Future<?> initialize();
 
     /**
-     * Check is the RhythmDatabase instance is initialized.
+     * Check if the RhythmDatabase instance is initialized.
      *
      * @return
      */
@@ -71,7 +71,7 @@ public interface RhythmDatabaseFactory
     /**
      * Get the initialized instance.
      * <p>
-     * If initialization is not complete yet, implementation may choose to wait for completion or throw an IllegalStateException.
+     * If initialization is not done, call initialize(). If initialization is not complete, wait for its completion.
      *
      * @return
      */

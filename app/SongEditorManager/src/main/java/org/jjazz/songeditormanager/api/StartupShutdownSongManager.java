@@ -307,7 +307,7 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
     static public class OpenFilesAtStartupTask implements OnShowingTask
     {
 
-        public final int ON_SHOWING_TASK_PRIORITY = 600;            // Right after Rhythm files loading, but before Example songs
+        public final int ON_SHOWING_TASK_PRIORITY = 300;            // After Rhythm files loading, but before Example songs
 
         /**
          * Open command line files and recent files.

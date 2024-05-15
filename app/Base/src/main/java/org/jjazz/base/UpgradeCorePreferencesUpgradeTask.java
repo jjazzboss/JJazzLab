@@ -39,10 +39,10 @@ import org.openide.util.lookup.ServiceProvider;
  * Upgrade the preferences of JJazzLab core or plugins components (which do not have access to the UpgradeManager/UpgradeTask service).
  */
 @ServiceProvider(service = UpgradeTask.class)
-public class UpgradeCorePreferencesStartupTask implements UpgradeTask
+public class UpgradeCorePreferencesUpgradeTask implements UpgradeTask
 {
 
-    private static final Logger LOGGER = Logger.getLogger(UpgradeCorePreferencesStartupTask.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(UpgradeCorePreferencesUpgradeTask.class.getSimpleName());
 
     @Override
     public void upgrade(String oldVersion)

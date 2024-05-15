@@ -22,34 +22,33 @@
  */
 package org.jjazz.base;
 
+import java.awt.EventQueue;
 import java.util.logging.Logger;
-import javax.swing.JFrame;
+import org.openide.awt.ToolbarPool;
 import org.openide.windows.OnShowing;
-import org.openide.windows.WindowManager;
 
 /**
- * Set the main window title.
+ * Class only used to apply the toolbar configuration defined in the layer file ("Toolbars" directory).
  * <p>
- * Need to be done once the UI is ready.
+ * Because I could not find another way to get rid of the Profiling toolbar by default !<br>
+ * There is still the Warning upon run : "Not all children in Toolbars/ marked with the position attribute: [MusicControls,
+ * MyToolBarConfig.xml], but some are: [File, Clipboard, UndoRedo, Memory]" Did not find how to get rid of this, although
+ * MusicControls "position" is specified in my MyToolBarConfig.xml.
  */
 @OnShowing
-public class SetMainWindowTitleStartupTask implements Runnable
+public class ApplyToolbarConfigOnShowingTask implements Runnable
 {
-    private static final Logger LOGGER = Logger.getLogger(SetMainWindowTitleStartupTask.class.getSimpleName());
 
+    private static final Logger LOGGER = Logger.getLogger(ApplyToolbarConfigOnShowingTask.class.getSimpleName());
+
+    /**
+     * Will be executed when Netbeans app UI is ready (@onShowing)
+     */
     @Override
     public void run()
     {
-        JFrame mainFrame = (JFrame) WindowManager.getDefault().getMainWindow();
-        String version = System.getProperty("jjazzlab.version");
-        if (version == null)
-        {
-            LOGGER.warning("SetMainWindowTitle.run() The jjazzlab.version system property is not set.");
-            version = "";
-        } else
-        {
-            version = " " + version;
-        }
-        mainFrame.setTitle("JJazzLab " + version);
+        assert EventQueue.isDispatchThread();   
+        LOGGER.fine("ApplyToolbarConfig.run() --");   
+        ToolbarPool.getDefault().setConfiguration("MyToolBarConfig");
     }
 }

@@ -30,7 +30,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
-import org.jjazz.rhythmdatabaseimpl.api.RhythmDatabaseFactoryImpl;
 import org.jjazz.startup.spi.OnShowingTask;
 import org.jjazz.upgrade.api.UpgradeManager;
 import org.jjazz.utilities.api.ResUtil;
@@ -41,30 +40,29 @@ import org.openide.NotifyDescriptor;
 import org.openide.util.lookup.ServiceProvider;
 
 /**
- * Initialize the application RhythmDatabase.
- * <p>
- * Upon upgrade, also copy the default rhythm files in the user rhythms directory *before* initializing the RhythmDatabase.
+ * Copy the default Midi files in the appropriate application config directory upon startup.
  * <p>
  * Could be an UpgradeTask since it should be executed only upon fresh start. But we use an OnShowingTask because a user dialog might be used.
  */
 @ServiceProvider(service = OnShowingTask.class)
-public class InitRhythmDatabaseStartupTask implements OnShowingTask
+public class CopyMidiSynthsOnShowingTask implements OnShowingTask
 {
 
-    public static final int ON_SHOWING_TASK_PRIORITY = 500;
+    /**
+     * Must be before RhythmDatase initialization.
+     */
+    public static final int ON_SHOWING_TASK_PRIORITY = 100;
     @StaticResource(relative = true)
-    public static final String ZIP_RESOURCE_PATH = "resources/Rhythms.zip";
-    private static final Logger LOGGER = Logger.getLogger(InitRhythmDatabaseStartupTask.class.getSimpleName());
+    public static final String ZIP_RESOURCE_PATH = "resources/MidiSynthFiles.zip";
+    private static final Logger LOGGER = Logger.getLogger(CopyMidiSynthsOnShowingTask.class.getSimpleName());
 
     @Override
     public void run()
     {
         if (UpgradeManager.getInstance().isFreshStart())
         {
-            copyFilesOrNot(FileDirectoryManager.getInstance().getUserRhythmsDirectory());
+            initializeDir();
         }
-
-        RhythmDatabaseFactoryImpl.getInstance().initialize();
     }
 
     @Override
@@ -76,11 +74,27 @@ public class InitRhythmDatabaseStartupTask implements OnShowingTask
     @Override
     public String getName()
     {
-        return UpgradeManager.getInstance().isFreshStart() ? "Initialize rhythm database (fresh start mode)" : "Initialize rhythm database";
+        return "Copy default Midi synth definition files";
+    }
+
+    private void initializeDir()
+    {
+        File dir = FileDirectoryManager.getInstance().getAppConfigDirForSynths();
+        if (dir == null || !dir.isDirectory())
+        {
+            LOGGER.log(Level.WARNING, "initializeDir() Could not access directory {0}.", dir);
+        } else
+        {
+            // Copy files
+            copyFilesOrNot(dir);
+        }
     }
 
     /**
-     * If dir is not empty ask user for confirmation to replace files.
+     * If dir is not empty ask user confirmation to replace files.
+     * <p>
+     * Normally dir will be empty for a real fresh start. But if user deleted its user settings and has changed some Midi synth definition file, better to ask
+     * him if it's OK to copy the files over.
      *
      * @param dir Must exist.
      */
@@ -97,13 +111,13 @@ public class InitRhythmDatabaseStartupTask implements OnShowingTask
         }
         if (!isEmpty)
         {
-            String msg = ResUtil.getString(getClass(), "CTL_CopyDefaultRhythmConfirmOverwrite", dir.getAbsolutePath());
+            String msg = ResUtil.getString(getClass(), "MidiSynthFilesOverwriteConfirmation", dir.getAbsolutePath());
             String[] options = new String[]
             {
                 "OK", ResUtil.getString(getClass(), "SKIP")
             };
-            NotifyDescriptor d = new NotifyDescriptor(msg, ResUtil.getString(getClass(), "CTL_FirstTimeInit"), 0, NotifyDescriptor.QUESTION_MESSAGE, options,
-                    "OK");
+            NotifyDescriptor d = new NotifyDescriptor(msg, ResUtil.getString(getClass(), "CTL_FirstTimeInit"), 0, NotifyDescriptor.QUESTION_MESSAGE,
+                    options, "OK");
             Object result = DialogDisplayer.getDefault().notify(d);
             if (!result.equals("OK"))
             {
@@ -112,7 +126,7 @@ public class InitRhythmDatabaseStartupTask implements OnShowingTask
         }
         // Copy the default rhythms
         List<File> res = Utilities.extractZipResource(getClass(), ZIP_RESOURCE_PATH, dir.toPath(), true);
-        LOGGER.log(Level.INFO, "copyFilesOrNot() Copied {0} rhythm files to {1}",
+        LOGGER.log(Level.INFO, "copyFilesOrNot() Copied {0} Midi synth definition files to {1}",
                 new Object[]
                 {
                     res.size(), dir.getAbsolutePath()

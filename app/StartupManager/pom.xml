@@ -20,6 +20,7 @@
                 <configuration>
                     <publicPackages>                      
                         <publicPackage>org.jjazz.startup.spi</publicPackage>
+                        <publicPackage>org.jjazz.startup.api</publicPackage>
                     </publicPackages>
                 </configuration>
                 <extensions>true</extensions>
@@ -37,6 +38,11 @@
             <artifactId>org-openide-windows</artifactId> 
             <version>${netbeans.version}</version>  
         </dependency>         
+        <dependency> 
+            <groupId>org.netbeans.api</groupId> 
+            <artifactId>org-openide-dialogs</artifactId> 
+            <version>${netbeans.version}</version>  
+        </dependency>          
         <dependency>
             <groupId>org.netbeans.api</groupId>
             <artifactId>org-netbeans-api-annotations-common</artifactId>

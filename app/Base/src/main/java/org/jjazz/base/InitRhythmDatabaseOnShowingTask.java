@@ -24,35 +24,42 @@
  */
 package org.jjazz.base;
 
-import org.jjazz.upgrade.api.UpgradeManager;
-import org.jjazz.upgrade.api.UpgradeTask;
-import org.openide.util.NbPreferences;
+import java.util.logging.Logger;
+import org.jjazz.rhythmdatabase.spi.RhythmDatabaseFactory;
+import org.jjazz.startup.spi.OnShowingTask;
 import org.openide.util.lookup.ServiceProvider;
 
 /**
- * Import preferences upon upgrade.
+ * Initialize the RhythmDatabase.
+ * <p>
  */
-@ServiceProvider(service = UpgradeTask.class)
-public class RestoreSettingsTask implements UpgradeTask
+@ServiceProvider(service = OnShowingTask.class)
+public class InitRhythmDatabaseOnShowingTask implements OnShowingTask
 {
 
+    /**
+     * Must be after MidiSynths initialization.
+     */
+    public static final int ON_SHOWING_TASK_PRIORITY = 200;
+    private static final Logger LOGGER = Logger.getLogger(InitRhythmDatabaseOnShowingTask.class.getSimpleName());
+
     @Override
-    public void upgrade(String oldVersion)
+    public void run()
     {
-        if (oldVersion == null)
-        {
-            return;
-        }
-        UpgradeManager um = UpgradeManager.getInstance();
-        if (oldVersion.charAt(0) <= '3')
-        {
-            // 3.x had a different package name
-            um.duplicateOldPreferences(NbPreferences.forModule(getClass()), "org/jjazz/config.properties");
-        } else
-        {
-            // We're importing from JJazzLab 4 and higher, normal
-            um.duplicateOldPreferences(NbPreferences.forModule(getClass()));
-        }
+        RhythmDatabaseFactory.getDefault().initialize();
     }
+
+    @Override
+    public int getPriority()
+    {
+        return ON_SHOWING_TASK_PRIORITY;
+    }
+
+    @Override
+    public String getName()
+    {
+        return "Initialize rhythm database";
+    }
+
 
 }
