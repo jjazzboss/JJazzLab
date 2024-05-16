@@ -210,7 +210,7 @@ public class Humanizer
                 allowedBeatRange);
 
 
-        LOGGER.log(Level.SEVERE, "Humanizer() -- phrase.size()={0}", sourcePhrase.size());
+        LOGGER.log(Level.FINE, "Humanizer() -- phrase.size()={0}", sourcePhrase.size());
         this.sourcePhrase = sourcePhrase;
         this.timeSignature = ts;
         this.allowedBeatRange = allowedBeatRange;
@@ -256,7 +256,7 @@ public class Humanizer
      */
     public void registerNotes(Collection<NoteEvent> nes)
     {
-        LOGGER.log(Level.SEVERE, "registerNotes() -- nes={0}", nes);
+        LOGGER.log(Level.FINE, "registerNotes() -- nes={0}", nes);
         var newNotes = new ArrayList<NoteEvent>();
         for (var ne : nes)
         {
@@ -280,7 +280,7 @@ public class Humanizer
      */
     public void newSeed()
     {
-        LOGGER.log(Level.SEVERE, "newSeed() -- notes={0}", registeredNotes);
+        LOGGER.log(Level.FINE, "newSeed() -- notes={0}", registeredNotes);
         mapNoteRandomFactors.clear();
         computeRandomFactors(registeredNotes);
     }
@@ -337,7 +337,7 @@ public class Humanizer
      */
     public void humanize()
     {
-        LOGGER.log(Level.SEVERE, "humanize() -- config={0} ", config);
+        LOGGER.log(Level.FINE, "humanize() -- config={0} ", config);
 
         sourcePhrase.processNotes(ne -> registeredNotes.contains(ne), ne -> 
         {
@@ -389,7 +389,7 @@ public class Humanizer
             mapNoteRandomFactors.put(newNe, factors);
 
 
-            LOGGER.log(Level.SEVERE, "humanize() processed ne={0} => newNe={1}", new Object[]
+            LOGGER.log(Level.FINE, "humanize() processed ne={0} => newNe={1}", new Object[]
             {
                 ne, newNe
             });

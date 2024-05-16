@@ -124,8 +124,8 @@ public class RhythmDatabaseFactoryImpl implements RhythmDatabaseFactory, Propert
 
             if (UpgradeManager.getInstance().isFreshStart())
             {
-                // This could be done in doInitialization(), but doInitialisation() is run in a separate thread, and because copyFilesOrNot might show user 
-                // a confirmation dialog, we want to hold the task so that the next OnShowingTask is started after this user confirmation.
+                // This could be done in doInitialization(), but doInitialization() is run in a separate thread, and because copyFilesOrNot might show user 
+                // a confirmation dialog, we want to hold the task so that the next OnShowingTask is started *after* this user confirmation.
                 LOGGER.info("initialize() Copying default rhythm files");
                 copyFilesOrNot(FileDirectoryManager.getInstance().getUserRhythmsDirectory());
             }
