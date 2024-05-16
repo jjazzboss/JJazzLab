@@ -92,7 +92,9 @@ import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.song.api.Song;
 import org.jjazz.instrumentcomponents.keyboard.api.KeyboardComponent;
 import org.jjazz.instrumentcomponents.keyboard.api.KeyboardRange;
+import org.jjazz.pianoroll.actions.InvertNoteSelection;
 import org.jjazz.uiutilities.api.SingleFileDragInTransferHandler;
+import org.jjazz.uiutilities.api.UIUtilities;
 import static org.jjazz.uiutilities.api.UIUtilities.getGenericControlKeyStroke;
 import org.jjazz.uiutilities.api.Zoomable;
 import org.jjazz.undomanager.api.JJazzUndoManager;
@@ -1354,7 +1356,9 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         // Action with no UI button or menu associated
         getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(getGenericControlKeyStroke(KeyEvent.VK_F), ZoomToFit.ACTION_ID);
         getActionMap().put(ZoomToFit.ACTION_ID, new ZoomToFit(this));
-
+        getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(UIUtilities.getGenericControlShiftKeyStroke(KeyEvent.VK_I), InvertNoteSelection.ACTION_ID);
+        getActionMap().put(InvertNoteSelection.ACTION_ID, new InvertNoteSelection(this));
+        
 
         // Use the notesPanel input map to avoid the arrow keys being captured by the enclosing JScrollPane
         notesPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("LEFT"),
