@@ -204,7 +204,7 @@ public class RulerPanel extends javax.swing.JPanel implements ClsChangeListener,
     {
         Graphics2D g2 = (Graphics2D) g;
 
-        // g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         var settings = editor.getSettings();
 
@@ -382,7 +382,10 @@ public class RulerPanel extends javax.swing.JPanel implements ClsChangeListener,
                 final int SIDE_LENGTH = 12;
                 g2.setColor(COLOR_LOOP_ZONE);
                 int y = yBottomBarLane;
-                if (pos.getBar() == loopZone.from && pos.isFirstBarBeat())
+                int bar = pos.getBar();
+                int oneBeatPixelSizeInt = Math.round(oneBeatPixelSize);
+
+                if (bar == loopZone.from && pos.isFirstBarBeat())
                 {
                     // Loop zone start
                     int x2 = x;
@@ -394,11 +397,12 @@ public class RulerPanel extends javax.swing.JPanel implements ClsChangeListener,
                     p.addPoint(x2, y);
                     p.addPoint(x2, y - SIDE_LENGTH + 1);
                     p.addPoint(x2 - SIDE_LENGTH + 1, y);
+                    g2.draw(p);
                     g2.fill(p);
-                } else if (pos.getBar() == loopZone.to && pos.isLastBarBeat(ts))
+                } else if (bar == loopZone.to && pos.isLastBarBeat(ts))
                 {
                     // Loop zone end
-                    int oneBeatPixelSizeInt = Math.round(oneBeatPixelSize);
+
                     int x2 = x + oneBeatPixelSizeInt;
                     if (pos == allBeatPositions.last())
                     {
@@ -408,7 +412,16 @@ public class RulerPanel extends javax.swing.JPanel implements ClsChangeListener,
                     p.addPoint(x2, y);
                     p.addPoint(x2, y - SIDE_LENGTH + 1);
                     p.addPoint(x2 + SIDE_LENGTH - 1, y);
+                    g2.draw(p);
                     g2.fill(p);
+                }
+                if (loopZone.contains(bar))
+                {
+                    // Draw a thin rectangle at the bottom
+                    double HEIGHT = 2d;
+                    var r = new Rectangle2D.Double(x, y - HEIGHT + 1, oneBeatPixelSize, HEIGHT);
+                    g2.draw(r);
+                    g2.fill(r);
                 }
             }
 
@@ -454,6 +467,7 @@ public class RulerPanel extends javax.swing.JPanel implements ClsChangeListener,
             p.addPoint(playbackPointX, yMax);
             p.addPoint(playbackPointX + HALF_SIZE, yMax - HALF_SIZE);
             p.addPoint(playbackPointX - HALF_SIZE, yMax - HALF_SIZE);
+            g2.draw(p);
             g2.fill(p);
         }
 

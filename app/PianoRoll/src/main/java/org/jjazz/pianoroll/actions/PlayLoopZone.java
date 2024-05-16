@@ -34,9 +34,7 @@ import javax.swing.KeyStroke;
 import org.jjazz.activesong.spi.ActiveSongManager;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
-import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession;
-import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSessionOnePlay;
 import org.jjazz.musiccontrol.api.playbacksession.UpdateProviderSongSession;
 import org.jjazz.pianoroll.api.PianoRollEditorTopComponent;
 import org.jjazz.rhythm.api.MusicGenerationException;
@@ -47,18 +45,18 @@ import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 
 /**
- * Action to force the play of the editor phrase in loop mode.
+ * Action to play the loop zone.
  */
-public class PlayEditor extends AbstractAction
+public class PlayLoopZone extends AbstractAction
 {
 
-    public static final String ACTION_ID = "PlayEditor";
-    public static final String KEYBOARD_SHORTCUT = "ctrl alt SPACE";
+    public static final String ACTION_ID = "PlayLoopZone";
+    public static final String KEYBOARD_SHORTCUT = "ctrl shift SPACE";
     private final PianoRollEditorTopComponent topComponent;
 
-    private static final Logger LOGGER = Logger.getLogger(PlayEditor.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(PlayLoopZone.class.getSimpleName());
 
-    public PlayEditor(PianoRollEditorTopComponent topComponent)
+    public PlayLoopZone(PianoRollEditorTopComponent topComponent)
     {
         this.topComponent = topComponent;
 
@@ -70,8 +68,8 @@ public class PlayEditor extends AbstractAction
 
 
         topComponent.getEditor().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KEYBOARD_SHORTCUT),
-                PlayEditor.ACTION_ID);
-        topComponent.getEditor().getActionMap().put(PlayEditor.ACTION_ID, this);
+                PlayLoopZone.ACTION_ID);
+        topComponent.getEditor().getActionMap().put(PlayLoopZone.ACTION_ID, this);
     }
 
 
@@ -93,13 +91,16 @@ public class PlayEditor extends AbstractAction
         var mc = MusicController.getInstance();
         mc.stop();
 
-        
+
         UpdatableSongSession session = null;
         try
         {
-            IntRange barRange = topComponent.getBarRange();
+            IntRange absoluteBarRange = topComponent.getBarRange();
+            IntRange loopZone = topComponent.getEditor().getLoopZone();
+            IntRange barRange = loopZone == null ? absoluteBarRange : loopZone.getTransformed(absoluteBarRange.from);
             SongContext context = new SongContext(topComponent.getSong(), topComponent.getMidiMix(), barRange);
 
+            
             // Check that all listeners are OK to start playback     
             PlaybackSettings.getInstance().firePlaybackStartVetoableChange(context);  // can raise PropertyVetoException
 

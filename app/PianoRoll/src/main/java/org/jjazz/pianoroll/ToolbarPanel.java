@@ -40,7 +40,7 @@ import org.jjazz.flatcomponents.api.FlatComponentsGlobalSettings;
 import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.pianoroll.actions.HearSelection;
-import org.jjazz.pianoroll.actions.PlayEditor;
+import org.jjazz.pianoroll.actions.PlayLoopZone;
 import org.jjazz.pianoroll.actions.PlaybackAutoScroll;
 import org.jjazz.pianoroll.actions.SnapToGrid;
 import org.jjazz.pianoroll.actions.Solo;
@@ -48,7 +48,6 @@ import org.jjazz.pianoroll.api.NoteView;
 import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.pianoroll.api.PianoRollEditorTopComponent;
 import org.jjazz.quantizer.api.Quantization;
-import org.jjazz.uisettings.api.GeneralUISettings;
 import org.jjazz.utilities.api.ResUtil;
 
 
@@ -67,6 +66,9 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
 
     /**
      * Creates new form ToolbarPanel
+     *
+     * @param preTc
+     * @param title
      */
     public ToolbarPanel(PianoRollEditorTopComponent preTc, String title)
     {
@@ -81,7 +83,7 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
         lbl_title.setText(title);
 
 
-        btn_playEditor.setAction(new PlayEditor(topComponent));
+        btn_playEditor.setAction(new PlayLoopZone(topComponent));
         tbtn_hearNotes.setToggleAction(new HearSelection(editor));
         tbtn_snap.setToggleAction(new SnapToGrid(editor));
         tbtn_playbackAutoScroll.setToggleAction(new PlaybackAutoScroll(editor));

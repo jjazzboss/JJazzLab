@@ -389,6 +389,8 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         model = p;
         this.rulerStartBar = rulerStartBar;
         this.phraseStartBar = phraseStartBar;
+        var oldLoopZone = loopZone;
+        loopZone = null;
         keyMap = kMap;
         int oldChannel = this.channel;
         this.channel = channel;
@@ -421,7 +423,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
 
         firePropertyChange(PROP_MODEL_PHRASE, oldModel, model);
         firePropertyChange(PROP_MODEL_CHANNEL, oldChannel, this.channel);
-
+        firePropertyChange(PROP_LOOP_ZONE, oldLoopZone, this.loopZone);
     }
 
 
