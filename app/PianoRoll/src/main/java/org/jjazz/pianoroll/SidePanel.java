@@ -28,6 +28,7 @@ import java.awt.BorderLayout;
 import javax.swing.SwingUtilities;
 import org.jjazz.flatcomponents.api.CollapsiblePanel;
 import org.jjazz.pianoroll.api.PianoRollEditor;
+import org.jjazz.pianoroll.api.PianoRollEditorTopComponent;
 
 /**
  * The left side panel.
@@ -41,24 +42,24 @@ public class SidePanel extends javax.swing.JPanel
     public static final String PROP_COLLAPSED_STATE = "propCollapsedState";
     private final QuantizePanel quantizePanel;
     private final GhostPhrasesPanel ghostPhrasesPanel;
-    private final PianoRollEditor editor;
+    private final PianoRollEditorTopComponent editorTc;
 
-    public SidePanel(PianoRollEditor editor)
+    public SidePanel(PianoRollEditorTopComponent tc)
     {
-        this.editor = editor;
+        this.editorTc = tc;
 
 
         initComponents();
 
         // Quantize CollapsiblePanel
         cpan_quantize.getContentPane().setLayout(new BorderLayout());
-        quantizePanel = new QuantizePanel(editor);
+        quantizePanel = new QuantizePanel(editorTc);
         cpan_quantize.getContentPane().add(quantizePanel, BorderLayout.CENTER);
 
         
         // Ghost phrases CollapsiblePanel
         cpan_showTracks.getContentPane().setLayout(new BorderLayout());
-        ghostPhrasesPanel = new GhostPhrasesPanel(this.editor.getGhostPhrasesModel());
+        ghostPhrasesPanel = new GhostPhrasesPanel(editorTc.getEditor().getGhostPhrasesModel());
         cpan_showTracks.getContentPane().add(ghostPhrasesPanel, BorderLayout.CENTER);
 
 

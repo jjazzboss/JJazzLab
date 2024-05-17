@@ -110,6 +110,7 @@ public class PlayLoopZone extends AbstractAction
             session = UpdatableSongSession.getSession(dynSession);
             mc.setPlaybackSession(session, false); // can raise MusicGenerationException            
 
+            
             // Play it
             mc.play(barRange.from);
             PlaybackSettings.getInstance().setLoopCount(Sequencer.LOOP_CONTINUOUSLY);

@@ -126,7 +126,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
 
 
         toolbarPanel = new ToolbarPanel(this, song.getName());
-        sidePanel = new SidePanel(editor);
+        sidePanel = new SidePanel(this);
 
 
         // WEIRD: only for the callback Paste action, we need BOTH the action here and in the lookup (see PianoRollEditor constructor)

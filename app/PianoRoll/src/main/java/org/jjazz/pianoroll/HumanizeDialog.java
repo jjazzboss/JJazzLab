@@ -33,10 +33,14 @@ import javax.swing.event.ChangeListener;
 import org.jjazz.humanizer.api.Humanizer;
 import org.jjazz.humanizer.api.Humanizer.Config;
 import org.jjazz.humanizer.api.Humanizer.State;
+import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.phrase.api.Phrase;
+import org.jjazz.pianoroll.actions.PlayLoopZone;
 import org.jjazz.pianoroll.api.NoteView;
 import org.jjazz.pianoroll.api.PianoRollEditor;
+import org.jjazz.pianoroll.api.PianoRollEditorTopComponent;
 import org.jjazz.uiutilities.api.UIUtilities;
+import org.jjazz.utilities.api.IntRange;
 import org.openide.util.NbPreferences;
 import org.openide.windows.WindowManager;
 
@@ -48,17 +52,19 @@ public class HumanizeDialog extends javax.swing.JDialog implements ChangeListene
 
     private static final String PREF_CONFIG = "PrefConfig";
     private final Humanizer humanizer;
+    private final PianoRollEditorTopComponent editorTc;
     private final PianoRollEditor editor;
     private final String undoText;
     private static final Preferences prefs = NbPreferences.forModule(HumanizeDialog.class);
     private static final Logger LOGGER = Logger.getLogger(HumanizeDialog.class.getSimpleName());
 
-    public HumanizeDialog(PianoRollEditor editor)
+    public HumanizeDialog(PianoRollEditorTopComponent tc)
     {
         super(WindowManager.getDefault().getMainWindow(), true);
 
 
-        this.editor = editor;
+        this.editorTc = tc;
+        this.editor = editorTc.getEditor();
         Phrase p = editor.getModel();
         var beatRange = editor.getPhraseBeatRange();
         var ts = editor.getTimeSignature(beatRange.from);       // Not perfect, but for now Humanizer can't manage multiple time signatures
@@ -66,6 +72,10 @@ public class HumanizeDialog extends javax.swing.JDialog implements ChangeListene
         Config cfg = Config.loadFromString(prefs.get(PREF_CONFIG, Humanizer.DEFAULT_CONFIG.toSaveString()));
         humanizer.setConfig(cfg);
         humanizer.addPropertyChangeListener(this);
+
+
+        // Listen to playback state
+        MusicController.getInstance().addPropertyChangeListener(this);
 
 
         initComponents();
@@ -80,8 +90,8 @@ public class HumanizeDialog extends javax.swing.JDialog implements ChangeListene
         setLocationRelativeTo(WindowManager.getDefault().getMainWindow());
 
 
-        UIUtilities.installEnterKeyAction(this, () -> btn_confirmActionPerformed(null));
-        UIUtilities.installEscapeKeyAction(this, () -> btn_cancelActionPerformed(null));
+        UIUtilities.installEnterKeyAction(this, () -> doOk());
+        UIUtilities.installEscapeKeyAction(this, () -> doCancel());
 
 
         boolean selectionEmpty = editor.getSelectedNoteViews().isEmpty();
@@ -90,6 +100,7 @@ public class HumanizeDialog extends javax.swing.JDialog implements ChangeListene
         setSelectedNotesOnly(!selectionEmpty);
 
         refreshUI();
+
 
         // Start the undoable action from here
         editor.getUndoManager().startCEdit(editor, undoText);
@@ -135,6 +146,22 @@ public class HumanizeDialog extends javax.swing.JDialog implements ChangeListene
             switch (evt.getPropertyName())
             {
                 case Humanizer.PROP_USER_CONFIG, Humanizer.PROP_STATE -> refreshUI();
+                default ->
+                {
+                }
+            }
+        } else if (evt.getSource() == MusicController.getInstance())
+        {
+            switch (evt.getPropertyName())
+            {
+                case MusicController.PROP_STATE ->
+                {
+                    MusicController.State state = (MusicController.State) evt.getNewValue();
+                    if (!state.equals(MusicController.State.PLAYING))
+                    {
+                        tbtn_play.setSelected(false);
+                    }
+                }
                 default ->
                 {
                 }
@@ -196,8 +223,7 @@ public class HumanizeDialog extends javax.swing.JDialog implements ChangeListene
         // Cancel all humanize SimpleEdits
         editor.getUndoManager().abortCEdit(undoText, null);
 
-        setVisible(false);
-        dispose();
+        exit();
 
     }
 
@@ -208,8 +234,8 @@ public class HumanizeDialog extends javax.swing.JDialog implements ChangeListene
 
         prefs.put(PREF_CONFIG, humanizer.getConfig().toSaveString());
 
-        setVisible(false);
-        dispose();
+        exit();
+
     }
 
     private void registerOrUnregisterSliders(boolean register)
@@ -229,6 +255,10 @@ public class HumanizeDialog extends javax.swing.JDialog implements ChangeListene
 
     private void setSelectedNotesOnly(boolean b)
     {
+        var mc = MusicController.getInstance();
+        mc.stop();
+
+
         boolean wasHumanizing = humanizer.getState().equals(State.HUMANIZING);
 
         if (wasHumanizing)
@@ -248,6 +278,44 @@ public class HumanizeDialog extends javax.swing.JDialog implements ChangeListene
         {
             humanizer.humanize();
         }
+    }
+
+    private void playHumanizedNotes(boolean play)
+    {
+
+        if (play)
+        {
+            // Set the loop zone
+            IntRange barRange = null;     // By default play the whole phrase
+            if (cb_selectedNotesOnly.isSelected())
+            {
+                var selNotes = NoteView.getNotes(editor.getSelectedNoteViews());
+                assert !selNotes.isEmpty();
+                int barFrom = editor.toPosition(selNotes.get(0).getPositionInBeats()).getBar();
+                int barTo = editor.toPosition(selNotes.get(selNotes.size() - 1).getPositionInBeats()).getBar();
+                barRange = new IntRange(barFrom, barTo);
+            }
+            editor.showLoopZone(barRange);
+
+
+            // Start playback in loop mode
+            var playAction = new PlayLoopZone(editorTc);
+            playAction.actionPerformed(null);
+        } else
+        {
+            // Stop the music
+            var mc = MusicController.getInstance();
+            mc.stop();
+        }
+    }
+
+    private void exit()
+    {
+        var mc = MusicController.getInstance();
+        mc.stop();
+        mc.removePropertyChangeListener(this);
+        setVisible(false);
+        dispose();
     }
 
     /**
@@ -274,6 +342,7 @@ public class HumanizeDialog extends javax.swing.JDialog implements ChangeListene
         lbl_timingBiasValue = new javax.swing.JLabel();
         sld_velocity = new javax.swing.JSlider();
         cb_selectedNotesOnly = new javax.swing.JCheckBox();
+        tbtn_play = new javax.swing.JToggleButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
@@ -458,6 +527,16 @@ public class HumanizeDialog extends javax.swing.JDialog implements ChangeListene
             }
         });
 
+        tbtn_play.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/pianoroll/actions/resources/PlayEditor-OFF.png"))); // NOI18N
+        tbtn_play.setToolTipText(org.openide.util.NbBundle.getMessage(HumanizeDialog.class, "HumanizeDialog.tbtn_play.toolTipText")); // NOI18N
+        tbtn_play.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                tbtn_playActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -474,17 +553,20 @@ public class HumanizeDialog extends javax.swing.JDialog implements ChangeListene
                         .addComponent(btn_cancel))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addComponent(cb_selectedNotesOnly)
-                        .addGap(0, 0, Short.MAX_VALUE)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(tbtn_play)))
                 .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(cb_selectedNotesOnly)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(cb_selectedNotesOnly)
+                    .addComponent(tbtn_play))
                 .addGap(18, 18, 18)
                 .addComponent(pnl_sliders, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 15, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 8, Short.MAX_VALUE)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btn_cancel)
                     .addComponent(btn_humanize)
@@ -574,6 +656,11 @@ public class HumanizeDialog extends javax.swing.JDialog implements ChangeListene
         setSelectedNotesOnly(cb_selectedNotesOnly.isSelected());
     }//GEN-LAST:event_cb_selectedNotesOnlyActionPerformed
 
+    private void tbtn_playActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_tbtn_playActionPerformed
+    {//GEN-HEADEREND:event_tbtn_playActionPerformed
+        playHumanizedNotes(tbtn_play.isSelected());
+    }//GEN-LAST:event_tbtn_playActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_cancel;
     private javax.swing.JButton btn_confirm;
@@ -590,6 +677,7 @@ public class HumanizeDialog extends javax.swing.JDialog implements ChangeListene
     private javax.swing.JSlider sld_timing;
     private javax.swing.JSlider sld_timingBias;
     private javax.swing.JSlider sld_velocity;
+    private javax.swing.JToggleButton tbtn_play;
     // End of variables declaration//GEN-END:variables
 
 
