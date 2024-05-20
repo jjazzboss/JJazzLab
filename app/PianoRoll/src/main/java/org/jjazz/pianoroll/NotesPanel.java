@@ -100,7 +100,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
     }
 
     /**
-     * Early detection of size changes in order update xMapper as soon as possible.
+     * Early detection of size changes in order to update xMapper as soon as possible.
      * <p>
      * Ovverridden because this method is called (by parent's layoutManager) before component is painted and before the component resized/moved event is fired.
      * This lets us update xMapper as soon as possible.
@@ -292,7 +292,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
         }
 
         drawHorizontalGrid(g2);
-        drawVerticalGrid(g2);
+        drawVerticalGrid(g2, yMapper.getKeyboardYRange(0).to, yMapper.getKeyboardYRange(127).from);
         drawGhostPhrases(g2);
 
     }
@@ -303,6 +303,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
      * Caller is responsible to call revalidate() and/or repaint() after, if required.
      *
      * @param ne
+     * @return
      */
     public NoteView addNoteView(NoteEvent ne)
     {
@@ -442,6 +443,57 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
     }
 
 
+    /**
+     * Draw the vertical lines for each bar/beat on g2.
+     *
+     * @param g2
+     * @param y0 start of the vertical lines
+     * @param y1 end of the vertical lines
+     */
+    public void drawVerticalGrid(Graphics2D g2, int y0, int y1)
+    {
+        var settings = PianoRollEditorSettings.getDefault();
+        if (settings == null)
+        {
+            return;
+        }
+        Color cl1 = settings.getBarLineColor();
+        Color cl2 = HSLColor.changeLuminance(cl1, 9);      // lighter color
+        Color cl2_lz = HSLColor.changeLuminance(cl1, 4);      // not so lighter in loop zone
+        Color cl3 = HSLColor.changeLuminance(cl2, 3);      // even lighter
+        Color cl3_lz = HSLColor.changeLuminance(cl2_lz, 3);
+
+
+        var barRange = editor.getVisibleBarRange();
+        var mapQPosX = xMapper.getQuantizedXPositions(barRange);              // only draw what's visible        
+        boolean paintSixteenth = xMapper.getOneBeatPixelSize() > 20;
+        IntRange loopZone = editor.getLoopZone();
+
+        for (Position pos : mapQPosX.navigableKeySet())
+        {
+            if (!paintSixteenth && pos.isOffBeat())
+            {
+                continue;
+            }
+            Integer xI = mapQPosX.get(pos);
+            assert xI != null : "pos=" + pos + " mapQPosX=" + Utilities.toMultilineString(mapQPosX);
+            int x = xI;
+            Color c = cl1;
+            if (!pos.isFirstBarBeat())
+            {
+                c = pos.isOffBeat() ? cl3 : cl2;
+                if (loopZone != null && loopZone.contains(pos.getBar()))
+                {
+                    c = (c == cl3) ? cl3_lz : cl2_lz;
+                }
+            }
+
+            g2.setColor(c);
+            g2.drawLine(x, y0, x, y1);
+        }
+    }
+
+
     // ==========================================================================================================
     // PropertyChangeListener interface
     // ==========================================================================================================    
@@ -526,49 +578,6 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
 
     }
 
-    private void drawVerticalGrid(Graphics2D g2)
-    {
-        var settings = PianoRollEditorSettings.getDefault();
-        if (settings == null)
-        {
-            return;
-        }
-        Color cl1 = settings.getBarLineColor();
-        Color cl2 = HSLColor.changeLuminance(cl1, 9);      // lighter color
-        Color cl2_lz = HSLColor.changeLuminance(cl1, 4);      // not so lighter in loop zone
-        Color cl3 = HSLColor.changeLuminance(cl2, 3);      // even lighter
-        Color cl3_lz = HSLColor.changeLuminance(cl2_lz, 3);
-
-        int y0 = yMapper.getKeyboardYRange(0).to;
-        int y1 = yMapper.getKeyboardYRange(127).from;
-        var barRange = editor.getVisibleBarRange();
-        var mapQPosX = xMapper.getQuantizedXPositions(barRange);              // only draw what's visible        
-        boolean paintSixteenth = xMapper.getOneBeatPixelSize() > 20;
-        IntRange loopZone = editor.getLoopZone();
-
-        for (Position pos : mapQPosX.navigableKeySet())
-        {
-            if (!paintSixteenth && pos.isOffBeat())
-            {
-                continue;
-            }
-            Integer xI = mapQPosX.get(pos);
-            assert xI != null : "pos=" + pos + " mapQPosX=" + Utilities.toMultilineString(mapQPosX);
-            int x = xI;
-            Color c = cl1;
-            if (!pos.isFirstBarBeat())
-            {
-                c = pos.isOffBeat() ? cl3 : cl2;
-                if (loopZone != null && loopZone.contains(pos.getBar()))
-                {
-                    c = (c == cl3) ? cl3_lz : cl2_lz;
-                }
-            }
-
-            g2.setColor(c);
-            g2.drawLine(x, y0, x, y1);
-        }
-    }
 
     private void drawGhostPhrases(Graphics2D g2)
     {

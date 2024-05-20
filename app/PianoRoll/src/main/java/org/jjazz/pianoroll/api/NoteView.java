@@ -65,6 +65,7 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
     private String noteAsString;
     private boolean selected;
     private boolean muted;
+    private boolean showNoteString;
 
 
     private PianoRollEditorSettings settings;
@@ -75,6 +76,7 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
     {
         noteEvent = ne;
         settings = PianoRollEditorSettings.getDefault();
+        showNoteString = true;
         updateGraphics();
 
         settings.addPropertyChangeListener(this);
@@ -135,6 +137,21 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
         repaint();
     }
 
+    public boolean isShowNoteString()
+    {
+        return showNoteString;
+    }
+
+    /**
+     * Decide if we show the note string in the viewer (eg "Eb").
+     *
+     * @param b
+     */
+    public void setShowNoteString(boolean b)
+    {
+        this.showNoteString = b;
+        repaint();
+    }
 
     @Override
     public void paintComponent(Graphics g)
@@ -145,7 +162,7 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
 
         var r = UIUtilities.getUsableArea(this);
 
-        if (r.height >= FONT_HEIGHT)
+        if (showNoteString && r.height >= FONT_HEIGHT)
         {
             // Draw note            
             g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);

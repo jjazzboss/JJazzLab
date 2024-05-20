@@ -41,6 +41,7 @@ import org.jjazz.midimix.spi.MidiMixManager;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.pianoroll.SidePanel;
 import org.jjazz.pianoroll.ToolbarPanel;
+import org.jjazz.pianoroll.VelocityPanel;
 import org.jjazz.pianoroll.actions.PasteNotes;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
 import org.jjazz.rhythm.api.RhythmVoice;
@@ -121,10 +122,9 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
         ghostPhrasesModel = new GhostPhrasesModel(midiMix, 0);
 
 
+        // Create the main graphical components
         editor = new PianoRollEditor(settings, ghostPhrasesModel);
         editor.setSong(song);
-
-
         toolbarPanel = new ToolbarPanel(this, song.getName());
         sidePanel = new SidePanel(this);
 
@@ -136,8 +136,9 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
 
         // Must be called after editor and midiMix are set
         initComponents();
-        splitpane_tools_editor.setRightComponent(editor);
         splitpane_tools_editor.setLeftComponent(sidePanel);
+        splitpane_tools_editor.setRightComponent(editor);
+        
 
         // Reset splitpane divider location when a CollapsiblePanel of the sidePanel is collapsed/expanded
         sidePanel.addPropertyChangeListener(SidePanel.PROP_COLLAPSED_STATE, e -> updateDividerLocation());

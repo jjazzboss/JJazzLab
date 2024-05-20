@@ -27,8 +27,11 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -54,12 +57,15 @@ import java.util.logging.Logger;
 import javax.sound.midi.InvalidMidiDataException;
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JLayer;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 import javax.swing.KeyStroke;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.harmony.api.Position;
@@ -92,6 +98,7 @@ import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.song.api.Song;
 import org.jjazz.instrumentcomponents.keyboard.api.KeyboardComponent;
 import org.jjazz.instrumentcomponents.keyboard.api.KeyboardRange;
+import org.jjazz.pianoroll.VelocityPanel;
 import org.jjazz.pianoroll.actions.InvertNoteSelection;
 import org.jjazz.uiutilities.api.SingleFileDragInTransferHandler;
 import org.jjazz.uiutilities.api.UIUtilities;
@@ -159,9 +166,13 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     public static final String PROP_PLAYBACK_POINT_POSITION = "PlaybackPointPosition";
     private static final float MAX_WIDTH_FACTOR = 1.5f;
     private NotesPanel notesPanel;
+    private VelocityPanel velocityPanel;
     private KeyboardComponent keyboard;
     private RulerPanel rulerPanel;
-    private JScrollPane scrollpane;
+    private JScrollPane scrollPaneEditor;
+    private JScrollPane scrollPaneVelocity;
+    private JLabel lbl_velocity;
+    private JPanel pnl_keyboard;
     private MouseDragLayerUI mouseDragLayerUI;
     private JLayer mouseDragLayer;
     private ZoomValue zoomValue;
@@ -421,6 +432,8 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         notesPanel.scrollToFirstNote();
         notesPanel.revalidate();
         notesPanel.repaint();
+        velocityPanel.revalidate();
+        velocityPanel.repaint();
 
 
         firePropertyChange(PROP_MODEL_PHRASE, oldModel, model);
@@ -552,6 +565,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         LOGGER.fine("cleanup() --");
         rulerPanel.cleanup();
         notesPanel.cleanup();
+        velocityPanel.cleanup();
         ghostPhrasesModel.removePropertyChangeListener(this);
         ghostPhrasesModel.cleanup();
         model.removeUndoableEditListener(undoManager);
@@ -966,7 +980,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     {
         Preconditions.checkArgument(pitch >= 0 && pitch < 128);
 
-        var vpRect = scrollpane.getViewport().getViewRect();
+        var vpRect = scrollPaneEditor.getViewport().getViewRect();
         float vpCenterY = vpRect.y + vpRect.height / 2f;
         IntRange pitchYRange = notesPanel.getYMapper().getKeyboardYRange(pitch);
         float pitchCenterY = (int) pitchYRange.getCenter();
@@ -989,7 +1003,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     {
         Preconditions.checkArgument(getPhraseBeatRange().contains(posInBeats, true));
 
-        var vpRect = scrollpane.getViewport().getViewRect();
+        var vpRect = scrollPaneEditor.getViewport().getViewRect();
         int vpCenterX = vpRect.x + vpRect.width / 2;
         int posCenterX = notesPanel.getXMapper().getX(posInBeats);
         int dx = vpCenterX - posCenterX;
@@ -1013,7 +1027,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
                 "YMapper.getLastKeyboardHeight()=" + notesPanel.getYMapper().getLastKeyboardHeight()
                 + " kbd.getHeight()=" + keyboard.getHeight()
                 + " kbd.getPreferredHeight()=" + keyboard.getPreferredSize().getHeight();
-        IntRange vpYRange = getYRange(scrollpane.getViewport().getViewRect());
+        IntRange vpYRange = getYRange(scrollPaneEditor.getViewport().getViewRect());
         IntRange keysYRange = getYRange(keyboard.getKeysBounds());
         IntRange ir = keysYRange.getIntersection(vpYRange);
         var pitchBottom = notesPanel.getYMapper().getPitch(ir.to);
@@ -1031,7 +1045,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         assert notesPanel.getXMapper().isUptodate() : "notesPanel.getWidth()=" + notesPanel.getWidth()
                 + "XMapper.getLastWidth()=" + notesPanel.getXMapper().getLastWidth()
                 + "notesPanel.getPreferredWidth()=" + notesPanel.getPreferredSize().getWidth();
-        var vpRect = scrollpane.getViewport().getViewRect();
+        var vpRect = scrollPaneEditor.getViewport().getViewRect();
         var notesPanelBounds = notesPanel.getBounds();
         var vRect = vpRect.intersection(notesPanelBounds);
         var posLeft = notesPanel.getXMapper().getPositionInBeats(vRect.x);
@@ -1107,6 +1121,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
                     List<NoteEvent> nes = (List<NoteEvent>) evt.getNewValue();
                     addNotes(nes);
                     notesPanel.revalidate();
+                    velocityPanel.revalidate();
                 }
                 case Phrase.PROP_NOTES_REMOVED, Phrase.PROP_NOTES_REMOVED_ADJUSTING ->
                 {
@@ -1114,6 +1129,8 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
                     removeNotes(nes);
                     notesPanel.revalidate();
                     notesPanel.repaint();
+                    velocityPanel.revalidate();
+                    velocityPanel.repaint();
                 }
                 case Phrase.PROP_NOTES_MOVED, Phrase.PROP_NOTES_MOVED_ADJUSTING, Phrase.PROP_NOTES_REPLACED, Phrase.PROP_NOTES_REPLACED_ADJUSTING ->
                 {
@@ -1122,9 +1139,12 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
                     {
                         var newNe = mapOldNew.get(oldNe);
                         notesPanel.setNoteViewModel(oldNe, newNe);
+                        velocityPanel.setNoteViewModel(oldNe, newNe);
                     }
                     notesPanel.revalidate();
                     notesPanel.repaint();
+                    velocityPanel.revalidate();
+                    velocityPanel.repaint();
                 }
                 default ->
                 {
@@ -1165,8 +1185,8 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
             {
                 var nv = notesPanel.addNoteView(ne);
                 registerNoteView(nv);
+                velocityPanel.addNoteView(ne);
             }
-            notesPanel.revalidate();
         }
     }
 
@@ -1196,6 +1216,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
                     unregisterNoteView(nv);
                 }
                 notesPanel.removeNoteView(ne);
+                velocityPanel.removeNoteView(ne);
             }
         }
     }
@@ -1249,40 +1270,66 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         // The keyboard 
         // We need an enclosing panel for keyboard, so that keyboard size changes when its scaleFactor changes (zoom in/out). If we put the keyboard directly
         // in the JScrollpane, keyboard size might not change when JScrollpane is much bigger than the keys bounds.
-        JPanel pnl_keyboard = new JPanel();
+        pnl_keyboard = new JPanel();
         pnl_keyboard.setLayout(new BorderLayout());
         keyboard = new KeyboardComponent(KeyboardRange._128_KEYS, KeyboardComponent.Orientation.RIGHT, false);
         labelNotes(keyboard, keyMap);
         pnl_keyboard.add(keyboard, BorderLayout.PAGE_START);
 
 
-        // The scrollpane and the notesPanel inside
+        // The components
         mouseDragLayerUI = new MouseDragLayerUI();
         notesPanel = new NotesPanel(this, keyboard);
         mouseDragLayer = new JLayer(notesPanel, mouseDragLayerUI);
         rulerPanel = new RulerPanel(this, notesPanel);
-        scrollpane = new JScrollPane();
-        scrollpane.setViewportView(mouseDragLayer);
-        scrollpane.setRowHeaderView(pnl_keyboard);
-        scrollpane.setColumnHeaderView(rulerPanel);
-        var vsb = scrollpane.getVerticalScrollBar();
-        var hsb = scrollpane.getHorizontalScrollBar();
+
+
+        // Scroll pane
+        scrollPaneEditor = new JScrollPane();
+        scrollPaneEditor.setViewportView(mouseDragLayer);
+        scrollPaneEditor.setRowHeaderView(pnl_keyboard);
+        scrollPaneEditor.setColumnHeaderView(rulerPanel);
+        var vsb = scrollPaneEditor.getVerticalScrollBar();
+        var hsb = scrollPaneEditor.getHorizontalScrollBar();
         vsb.setUnitIncrement(vsb.getUnitIncrement() * 10);   // view can be large...
         hsb.setUnitIncrement(hsb.getUnitIncrement() * 10);
 
 
-        // The splitpane
-//        velocityPanel = new VelocityPanel(this, notesPanel);
-//        splitPane = new javax.swing.JSplitPane();
-//        splitPane.setDividerSize(3);
-//        splitPane.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
-//        splitPane.setResizeWeight(1.0);
-//        splitPane.setLeftComponent(scrollpane);
-//        splitPane.setRightComponent(velocityPanel);
+        // The velocity bottom 
+        scrollPaneVelocity = new JScrollPane(JScrollPane.VERTICAL_SCROLLBAR_NEVER, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        lbl_velocity = new JLabel("velocity");
+        lbl_velocity.setVerticalAlignment(SwingConstants.TOP);
+        velocityPanel = new VelocityPanel(this, notesPanel);
+        scrollPaneVelocity.setViewportView(velocityPanel);
+        scrollPaneVelocity.setRowHeaderView(lbl_velocity);
+        JSplitPane splitPane = new JSplitPane();
+        splitPane.setDividerSize(10);
+        splitPane.setOneTouchExpandable(true);
+        splitPane.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
+        splitPane.setResizeWeight(0.9);
+        splitPane.setTopComponent(scrollPaneEditor);
+        splitPane.setBottomComponent(scrollPaneVelocity);
+
+
+        // We need to keep velocityPanel vertically aligned with notesPanel        
+        update_lbl_velocityPreferredWidth();
+        pnl_keyboard.addComponentListener(new ComponentAdapter()
+        {
+            @Override
+            public void componentResized(ComponentEvent e)
+            {
+                update_lbl_velocityPreferredWidth();
+            }
+        });
+
+
+        // Link scrollPaneVelocity to scrollPaneEditor for horizontal scroll
+        scrollPaneVelocity.getHorizontalScrollBar().setModel(scrollPaneEditor.getHorizontalScrollBar().getModel());
+
+
         // Final layout
         setLayout(new BorderLayout());
-        // add(splitPane, BorderLayout.CENTER);
-        add(scrollpane, BorderLayout.CENTER);
+        add(splitPane, BorderLayout.CENTER);
 
 
         // Create the popupmenu
@@ -1353,13 +1400,11 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         getActionMap().put("jjazz-selectall", new SelectAllNotes(this));
 
 
-        // Action with no UI button or menu associated
+        // Actions with no UI button or menu associated
         getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(getGenericControlKeyStroke(KeyEvent.VK_F), ZoomToFit.ACTION_ID);
         getActionMap().put(ZoomToFit.ACTION_ID, new ZoomToFit(this));
         getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(UIUtilities.getGenericControlShiftKeyStroke(KeyEvent.VK_I), InvertNoteSelection.ACTION_ID);
         getActionMap().put(InvertNoteSelection.ACTION_ID, new InvertNoteSelection(this));
-        
-
         // Use the notesPanel input map to avoid the arrow keys being captured by the enclosing JScrollPane
         notesPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("LEFT"),
                 "MoveSelectionLeft");
@@ -1386,6 +1431,19 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         notesPanel.getActionMap().put("TransposeDown", new TransposeSelectionDown(this));
 
 
+    }
+
+    /**
+     * Make the label have the same size than the keyboard panel, so that velocityPanel and notesPanel remain always left-aligned.
+     */
+    private void update_lbl_velocityPreferredWidth()
+    {
+        int keyboardWidth = pnl_keyboard.getWidth();        // + scrollPaneEditor.getInsets().left;
+        // LOGGER.log(Level.SEVERE, "createUI().componentResized() -- keyboardWidth={0}", keyboardWidth);
+        var pd = lbl_velocity.getPreferredSize();
+        lbl_velocity.setPreferredSize(new Dimension(keyboardWidth, pd.height)); 
+        lbl_velocity.revalidate();      // required when keyboard got smaller
+        lbl_velocity.repaint();         // required when keyboard got smaller
     }
 
 
@@ -1480,7 +1538,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
             var lastNe = nvs.get(nvs.size() - 1).getModel();
 
 
-            int visibleWidthPixel = Math.max(100, scrollpane.getViewport().getViewRect().width);
+            int visibleWidthPixel = Math.max(100, scrollPaneEditor.getViewport().getViewRect().width);
             var notesBeatRange = firstNe.getBeatRange().getUnion(lastNe.getBeatRange());
             float beatRange = Math.max(4f, notesBeatRange.size());
 

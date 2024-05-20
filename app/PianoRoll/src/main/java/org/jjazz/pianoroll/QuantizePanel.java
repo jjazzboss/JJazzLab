@@ -25,6 +25,7 @@ package org.jjazz.pianoroll;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.logging.Logger;
+import org.jjazz.pianoroll.actions.Humanize;
 import org.jjazz.pianoroll.actions.Quantize;
 import org.jjazz.pianoroll.api.PianoRollEditorTopComponent;
 import org.jjazz.quantizer.api.Quantizer;
@@ -34,30 +35,31 @@ import org.jjazz.quantizer.api.Quantizer;
  */
 public class QuantizePanel extends javax.swing.JPanel implements PropertyChangeListener
 {
-    
+
     private final PianoRollEditorTopComponent editorTc;
-    private static final Logger LOGGER = Logger.getLogger(QuantizePanel.class.getSimpleName());    
-    
-    
+    private static final Logger LOGGER = Logger.getLogger(QuantizePanel.class.getSimpleName());
+
+
     public QuantizePanel(PianoRollEditorTopComponent tc)
     {
         this.editorTc = tc;
-        
+
         initComponents();
-        
+
         btn_quantize.setAction(new Quantize(editorTc.getEditor()));
-        
-        
+        btn_humanize.setAction(new Humanize(editorTc));
+
+
         var quantizer = Quantizer.getInstance();
         cb_iterative.setSelected(quantizer.isIterativeQuantizeEnabled());
         quantizer.addPropertyChangeListener(this);
     }
-    
+
     public void cleanup()
     {
         Quantizer.getInstance().removePropertyChangeListener(this);
     }
-    
+
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
@@ -98,8 +100,7 @@ public class QuantizePanel extends javax.swing.JPanel implements PropertyChangeL
             }
         });
 
-        org.openide.awt.Mnemonics.setLocalizedText(btn_humanize, org.openide.util.NbBundle.getMessage(QuantizePanel.class, "QuantizePanel.btn_humanize.text")); // NOI18N
-        btn_humanize.setToolTipText(org.openide.util.NbBundle.getMessage(QuantizePanel.class, "QuantizePanel.btn_humanize.toolTipText")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(btn_humanize, "Humanize..."); // NOI18N
         btn_humanize.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -145,8 +146,8 @@ public class QuantizePanel extends javax.swing.JPanel implements PropertyChangeL
 
     private void btn_humanizeActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_humanizeActionPerformed
     {//GEN-HEADEREND:event_btn_humanizeActionPerformed
-        var dlg = new HumanizeDialog(editorTc);
-        dlg.setVisible(true);
+        var a = new Humanize(editorTc);
+        a.actionPerformed(null);
     }//GEN-LAST:event_btn_humanizeActionPerformed
 
 
@@ -157,5 +158,5 @@ public class QuantizePanel extends javax.swing.JPanel implements PropertyChangeL
     private javax.swing.JSeparator jSeparator1;
     // End of variables declaration//GEN-END:variables
 
-    
+
 }
