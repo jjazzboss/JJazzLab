@@ -24,19 +24,30 @@ package org.jjazz.pianoroll;
 
 import com.google.common.base.Preconditions;
 import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NavigableSet;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.pianoroll.api.NoteView;
@@ -50,6 +61,7 @@ import org.jjazz.utilities.api.FloatRange;
 public class VelocityPanel extends JPanel implements PropertyChangeListener
 {
 
+    private static final int TOP_PADDING = 2;
     private final PianoRollEditor editor;
     private final NotesPanel notesPanel;
     private final TreeMap<NoteEvent, NoteView> mapNoteViews = new TreeMap<>();
@@ -77,6 +89,9 @@ public class VelocityPanel extends JPanel implements PropertyChangeListener
             }
         });
 
+        var vml = new VelocityMouseListener();
+        addMouseListener(vml);
+        addMouseMotionListener(vml);
 
     }
 
@@ -207,7 +222,7 @@ public class VelocityPanel extends JPanel implements PropertyChangeListener
         if (loopZone != null)
         {
             c = HSLColor.changeLuminance(c, -6);
-            g2.setColor(c);            
+            g2.setColor(c);
             int xFrom = xMapper.getX(new Position(loopZone.from, 0));
             int xTo = xMapper.getBarRange().contains(loopZone.to + 1) ? xMapper.getX(new Position(loopZone.to + 1, 0)) : xMapper.getLastWidth() - 1;
             g2.fillRect(xFrom, 0, xTo - xFrom, getHeight());
@@ -225,7 +240,7 @@ public class VelocityPanel extends JPanel implements PropertyChangeListener
     public void doLayout()
     {
         // LOGGER.severe("doLayout() -- ");
-        int TOP_PADDING = 2;
+        int NOTE_WIDTH = 4;
         int height = getHeight() - TOP_PADDING;
 
         for (NoteView nv : mapNoteViews.values())
@@ -235,7 +250,7 @@ public class VelocityPanel extends JPanel implements PropertyChangeListener
             int x = editor.getXFromPosition(br.from);
             int h = Math.round(height * (ne.getVelocity() / 127f));
             int y = getHeight() - h;
-            int w = 4;
+            int w = NOTE_WIDTH;
             nv.setBounds(x, y, w, h);
         }
 
@@ -275,6 +290,133 @@ public class VelocityPanel extends JPanel implements PropertyChangeListener
     private void settingsChanged()
     {
         repaint();
+    }
+
+    // ==========================================================================================================
+    // Inner classes
+    // ==========================================================================================================    
+
+    /**
+     * Handle mouse events.
+     * <p>
+     * - Dragging or clicking update notes velocity.<br>
+     * - ctrl+drag move the editor.
+     */
+    private class VelocityMouseListener implements MouseListener, MouseMotionListener, MouseWheelListener
+    {
+
+        /**
+         * Null if no dragging.
+         */
+        private Point startDraggingPoint;
+        private NavigableSet<NoteEvent> notes = new TreeSet<>();
+
+
+        @Override
+        public void mouseClicked(MouseEvent e)
+        {
+            // Nothing
+        }
+
+
+        @Override
+        public void mousePressed(MouseEvent e)
+        {
+            if (!notes.isEmpty())
+            {
+                int v = getVelocity(e.getPoint());
+                for (var ne : notes.toArray(new NoteEvent[0]))
+                {
+                    var newNe = ne.setVelocity(v);
+                    editor.getModel().replace(ne, newNe);
+                }
+            }
+        }
+
+
+        @Override
+        public void mouseMoved(MouseEvent e)
+        {
+            var xMapper = notesPanel.getXMapper();
+            float posInBeats = xMapper.getPositionInBeats(e.getX());
+            if (posInBeats < 0)
+            {
+                return;
+            }
+            final float HALF_WIDTH = 0.1f;
+            var br = new FloatRange(Math.max(0, posInBeats - HALF_WIDTH), posInBeats + HALF_WIDTH);
+            notes = editor.getModel().subSet(br, false);
+            if (notes.isEmpty())
+            {
+                setCursor(Cursor.getDefaultCursor());
+            }
+            else
+            {
+                setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            }
+        }
+
+
+        @Override
+        public void mouseEntered(MouseEvent e)
+        {
+            // Nothing
+        }
+
+
+        @Override
+        public void mouseExited(MouseEvent e)
+        {
+        }
+
+
+        @Override
+        public void mouseDragged(MouseEvent e)
+        {
+
+            if (SwingUtilities.isLeftMouseButton(e))
+            {
+                if (startDraggingPoint == null)
+                {
+                    startDraggingPoint = e.getPoint();
+                    // unselectAll();
+                }
+                else
+                {
+                    ((JPanel) e.getSource()).scrollRectToVisible(new Rectangle(e.getX(), e.getY(), 1, 1));
+
+                }
+            }
+
+        }
+
+
+        @Override
+        public void mouseReleased(MouseEvent e)
+        {
+            if (startDraggingPoint != null)
+            {
+                startDraggingPoint = null;
+
+            }
+        }
+
+
+        @Override
+        public void mouseWheelMoved(MouseWheelEvent e)
+        {
+        }
+
+        // ============================================================================================
+        // Private methods
+        // ============================================================================================
+
+        private int getVelocity(Point p)
+        {
+            int v = Math.round((127 * (getHeight() - 1f - p.y)) / (getHeight() - TOP_PADDING));
+            return v;
+        }
+
     }
 
 
