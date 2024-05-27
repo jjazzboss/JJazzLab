@@ -33,6 +33,7 @@ import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
@@ -58,7 +59,6 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
     private static final Color COLOR_TEXT = Color.WHITE;
     private static final Font FONT = GeneralUISettings.getInstance().getStdCondensedFont().deriveFont(10f);
     private static final int FONT_HEIGHT = (int) UIUtilities.getStringBounds("A", FONT).getHeight();
-    private static final String TOOLTIP_HELP = ResUtil.getString(NoteView.class, "NoteViewToolTipHelp");
     private static final NoteColorManager noteColorManager = NoteColorManager.getDefault();
 
     private NoteEvent noteEvent;
@@ -66,9 +66,10 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
     private boolean selected;
     private boolean muted;
     private boolean showNoteString;
+    private String extraTooltip = ResUtil.getString(NoteView.class, "NoteViewToolTipHelp");
 
 
-    private PianoRollEditorSettings settings;
+    private final PianoRollEditorSettings settings;
     private static final Logger LOGGER = Logger.getLogger(NoteView.class.getSimpleName());
 
 
@@ -151,6 +152,23 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
     {
         this.showNoteString = b;
         repaint();
+    }
+
+    public String getExtraTooltip()
+    {
+        return extraTooltip;
+    }
+
+    /**
+     * The extra help tooltip text added to note name and velocity.
+     *
+     * @param text
+     */
+    public void setExtraTooltip(String text)
+    {
+        Objects.requireNonNull(text);
+        this.extraTooltip = text;
+        updateGraphics();
     }
 
     @Override
@@ -258,7 +276,11 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
         setBackground(bgColor);
         setBorder(BorderFactory.createLineBorder(getBorderColor(bgColor, selected), 1));
         noteAsString = new Note(noteEvent.getPitch()).toPianoOctaveString();
-        String tt = noteAsString + " (" + noteEvent.getPitch() + ") v=" + noteEvent.getVelocity() + ". " + TOOLTIP_HELP;
+        String tt = noteAsString + " (" + noteEvent.getPitch() + ") v=" + noteEvent.getVelocity();
+        if (!extraTooltip.isBlank())
+        {
+            tt += ". " + extraTooltip;
+        }
         setToolTipText(tt);
     }
 

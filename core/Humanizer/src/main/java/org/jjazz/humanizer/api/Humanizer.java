@@ -147,8 +147,8 @@ public class Humanizer
          */
         HUMANIZING
     };
-    private static final float MAX_TIMING_DEVIATION = 0.25f;          // +/- 0.2 beat
-    private static final float MAX_TIMING_BIAS_DEVIATION = 0.25f;          // +/- 0.25 beat
+    private static final float MAX_TIMING_DEVIATION = 0.2f;          // +/- 0.2 beat
+    private static final float MAX_TIMING_BIAS_DEVIATION = 0.2f;          // +/- 0.2 beat
     private static final int MAX_VELOCITY_DEVIATION = 20;         // +/- 20    
 
     private State state;

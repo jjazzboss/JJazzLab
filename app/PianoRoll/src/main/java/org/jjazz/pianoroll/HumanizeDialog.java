@@ -295,7 +295,7 @@ public class HumanizeDialog extends javax.swing.JDialog implements ChangeListene
                 int barTo = editor.toPosition(selNotes.get(selNotes.size() - 1).getPositionInBeats()).getBar();
                 barRange = new IntRange(barFrom, barTo);
             }
-            editor.showLoopZone(barRange);
+            editor.setLoopZone(barRange);
 
 
             // Start playback in loop mode

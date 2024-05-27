@@ -32,6 +32,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -49,11 +50,15 @@ import java.util.logging.Logger;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import org.jjazz.harmony.api.Position;
+import org.jjazz.midi.api.MidiConst;
+import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.pianoroll.api.NoteView;
 import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.uiutilities.api.HSLColor;
+import org.jjazz.uiutilities.api.RedispatchingMouseAdapter;
 import org.jjazz.utilities.api.FloatRange;
+import org.jjazz.utilities.api.ResUtil;
 
 /**
  * Show the velocity of notes in the bottom side of the editor.
@@ -65,6 +70,8 @@ public class VelocityPanel extends JPanel implements PropertyChangeListener
     private final PianoRollEditor editor;
     private final NotesPanel notesPanel;
     private final TreeMap<NoteEvent, NoteView> mapNoteViews = new TreeMap<>();
+    private float scaleFactorX = 1;
+    private final RedispatchingMouseAdapter mouseRedispatcher;
     private static final Logger LOGGER = Logger.getLogger(VelocityPanel.class.getSimpleName());
 
 
@@ -72,6 +79,7 @@ public class VelocityPanel extends JPanel implements PropertyChangeListener
     {
         this.editor = editor;
         this.notesPanel = notesPanel;
+        this.mouseRedispatcher = new RedispatchingMouseAdapter();
 
         var settings = editor.getSettings();
         settings.addPropertyChangeListener(this);
@@ -104,7 +112,7 @@ public class VelocityPanel extends JPanel implements PropertyChangeListener
     public Dimension getPreferredSize()
     {
         var pd = super.getPreferredSize();
-        return new Dimension(notesPanel.getPreferredSize().width, pd.width);
+        return new Dimension(notesPanel.getPreferredSize().width, pd.height);
     }
 
     /**
@@ -121,7 +129,10 @@ public class VelocityPanel extends JPanel implements PropertyChangeListener
         Preconditions.checkArgument(editor.getPhraseBeatRange().contains(ne.getBeatRange(), false));
 
         NoteView nv = new NoteView(ne);
+        nv.addMouseListener(mouseRedispatcher);
+        nv.addMouseMotionListener(mouseRedispatcher);
         nv.setShowNoteString(false);
+        nv.setExtraTooltip("");
         mapNoteViews.put(ne, nv);
         add(nv);
         LOGGER.log(Level.FINE, "addNoteView() ne={0} ==> mapNoteViews={1}", new Object[]
@@ -144,6 +155,8 @@ public class VelocityPanel extends JPanel implements PropertyChangeListener
         NoteView nv = getNoteView(ne);  // Might be null in some corner cases ? See Issue #399
         if (nv != null)
         {
+            nv.removeMouseListener(mouseRedispatcher);
+            nv.removeMouseMotionListener(mouseRedispatcher);
             remove(nv);
             nv.cleanup();
         }
@@ -240,20 +253,53 @@ public class VelocityPanel extends JPanel implements PropertyChangeListener
     public void doLayout()
     {
         // LOGGER.severe("doLayout() -- ");
-        int NOTE_WIDTH = 4;
-        int height = getHeight() - TOP_PADDING;
+        final int USABLE_HEIGHT = getHeight() - TOP_PADDING;
+        final int NOTE_WIDTH_DEFAULT = 5;
+        final int NOTE_WIDTH_DELTA = 3;
+        int w = Math.round(NOTE_WIDTH_DEFAULT + (2f * editor.getZoom().hValueFloat() - 1f) * NOTE_WIDTH_DELTA);
+
 
         for (NoteView nv : mapNoteViews.values())
         {
             NoteEvent ne = nv.getModel();
             FloatRange br = ne.getBeatRange();
             int x = editor.getXFromPosition(br.from);
-            int h = Math.round(height * (ne.getVelocity() / 127f));
+            int h = Math.round(USABLE_HEIGHT * (ne.getVelocity() / 127f));
             int y = getHeight() - h;
-            int w = NOTE_WIDTH;
+
             nv.setBounds(x, y, w, h);
         }
 
+    }
+
+    /**
+     * Set the X scale factor.
+     * <p>
+     * Impact the width of the notes.
+     *
+     * @param factorX A value &gt; 0
+     */
+    public void setScaleFactorX(float factorX)
+    {
+        Preconditions.checkArgument(factorX > 0);
+
+        if (this.scaleFactorX != factorX)
+        {
+            scaleFactorX = factorX;
+            revalidate();
+            repaint();
+        }
+    }
+
+
+    /**
+     * Get the current scale factor on the X axis.
+     *
+     * @return
+     */
+    public float getScaleFactorX()
+    {
+        return scaleFactorX;
     }
 
     public void cleanup()
@@ -305,52 +351,55 @@ public class VelocityPanel extends JPanel implements PropertyChangeListener
     private class VelocityMouseListener implements MouseListener, MouseMotionListener, MouseWheelListener
     {
 
+        private final String UNDO_TEXT = "Update note(s) velocity";
         /**
          * Null if no dragging.
          */
         private Point startDraggingPoint;
-        private NavigableSet<NoteEvent> notes = new TreeSet<>();
+        /**
+         * Notes matching the x value of the mouse pointer.
+         */
+        private NavigableSet<NoteEvent> impactedNotes = new TreeSet<>();
 
 
         @Override
         public void mouseClicked(MouseEvent e)
         {
-            // Nothing
+            // LOGGER.severe("mouseClicked()");
+            if (SwingUtilities.isLeftMouseButton(e))
+            {
+                updateVelocity(e);
+
+                // End undoable action
+                editor.getUndoManager().endCEdit(UNDO_TEXT);
+
+            }
         }
 
 
         @Override
         public void mousePressed(MouseEvent e)
         {
-            if (!notes.isEmpty())
+            // LOGGER.severe("mousePressed()");
+
+            if (SwingUtilities.isLeftMouseButton(e))
             {
-                int v = getVelocity(e.getPoint());
-                for (var ne : notes.toArray(new NoteEvent[0]))
-                {
-                    var newNe = ne.setVelocity(v);
-                    editor.getModel().replace(ne, newNe);
-                }
+                // Start undoable action
+                editor.getUndoManager().startCEdit(editor, UNDO_TEXT);
             }
+
         }
 
 
         @Override
         public void mouseMoved(MouseEvent e)
         {
-            var xMapper = notesPanel.getXMapper();
-            float posInBeats = xMapper.getPositionInBeats(e.getX());
-            if (posInBeats < 0)
-            {
-                return;
-            }
-            final float HALF_WIDTH = 0.1f;
-            var br = new FloatRange(Math.max(0, posInBeats - HALF_WIDTH), posInBeats + HALF_WIDTH);
-            notes = editor.getModel().subSet(br, false);
-            if (notes.isEmpty())
+            updateImpactedNotes(e);
+
+            if (impactedNotes.isEmpty() && startDraggingPoint == null)
             {
                 setCursor(Cursor.getDefaultCursor());
-            }
-            else
+            } else
             {
                 setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
             }
@@ -379,12 +428,16 @@ public class VelocityPanel extends JPanel implements PropertyChangeListener
                 if (startDraggingPoint == null)
                 {
                     startDraggingPoint = e.getPoint();
-                    // unselectAll();
-                }
-                else
+                    setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+                } else
                 {
-                    ((JPanel) e.getSource()).scrollRectToVisible(new Rectangle(e.getX(), e.getY(), 1, 1));
-
+                    // LOGGER.severe("mouseDragged() continue");
+                    scrollRectToVisible(new Rectangle(e.getX(), e.getY(), 1, 1));
+                    if (contains(e.getX(), e.getY()))
+                    {
+                        updateImpactedNotes(e);
+                        updateVelocity(e);
+                    }
                 }
             }
 
@@ -394,10 +447,14 @@ public class VelocityPanel extends JPanel implements PropertyChangeListener
         @Override
         public void mouseReleased(MouseEvent e)
         {
-            if (startDraggingPoint != null)
+            // LOGGER.severe("mouseReleased()");
+            if (startDraggingPoint != null && SwingUtilities.isLeftMouseButton(e))
             {
                 startDraggingPoint = null;
+                setCursor(Cursor.getDefaultCursor());
 
+                // End undoable action
+                editor.getUndoManager().endCEdit(UNDO_TEXT);
             }
         }
 
@@ -414,9 +471,44 @@ public class VelocityPanel extends JPanel implements PropertyChangeListener
         private int getVelocity(Point p)
         {
             int v = Math.round((127 * (getHeight() - 1f - p.y)) / (getHeight() - TOP_PADDING));
-            return v;
+            return MidiUtilities.limit(v);
         }
 
+        /**
+         * Update the list of impacted notes.
+         *
+         * @param e
+         */
+        private void updateImpactedNotes(MouseEvent e)
+        {
+            var xMapper = notesPanel.getXMapper();
+            float posInBeats = xMapper.getPositionInBeats(e.getX());
+            if (posInBeats < 0)
+            {
+                return;
+            }
+            final float HALF_WIDTH = 0.1f;
+            var br = new FloatRange(Math.max(0, posInBeats - HALF_WIDTH), posInBeats + HALF_WIDTH);
+            impactedNotes = editor.getModel().subSet(br, false);
+        }
+
+        /**
+         * Update the velocity of the impactedNotes.
+         *
+         * @param e
+         */
+        private void updateVelocity(MouseEvent e)
+        {
+            if (!impactedNotes.isEmpty())
+            {
+                int v = getVelocity(e.getPoint());
+                for (var ne : impactedNotes.toArray(NoteEvent[]::new))
+                {
+                    var newNe = ne.setVelocity(v);
+                    editor.getModel().replace(ne, newNe);
+                }
+            }
+        }
     }
 
 

@@ -31,9 +31,7 @@ import java.awt.event.MouseWheelListener;
 import javax.swing.SwingUtilities;
 
 /**
- * A MouseAdapter that transmit everything to a parent.
- *
- * @author Jerome
+ * A MouseAdapter that transmits everything to a parent.
  */
 public class RedispatchingMouseAdapter implements MouseListener, MouseWheelListener, MouseMotionListener
 {
@@ -51,7 +49,7 @@ public class RedispatchingMouseAdapter implements MouseListener, MouseWheelListe
     /**
      * Dispatch to a specific parent
      *
-     * @param toParent Must be in the parent hierarchy.
+     * @param toParent Must be in the parent hierarchy. If null redirect to direct parent.
      */
     public RedispatchingMouseAdapter(Container toParent)
     {

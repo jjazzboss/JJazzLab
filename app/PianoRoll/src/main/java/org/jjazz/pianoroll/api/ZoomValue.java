@@ -29,7 +29,7 @@ import java.util.logging.Logger;
 /**
  * Zoom value for an editor.
  * <p>
- * hValue and vValue must be in the range [0;100].
+ * hValue and vValue must be in the range [0;100], 50 is default.
  */
 public record ZoomValue(int hValue, int vValue)
         {
@@ -58,7 +58,7 @@ public record ZoomValue(int hValue, int vValue)
      * @param newHValue
      * @return
      */
-    public ZoomValue getHCopy(int newHValue)
+    public ZoomValue setH(int newHValue)
     {
         if (!checkValue(newHValue))
         {
@@ -74,7 +74,7 @@ public record ZoomValue(int hValue, int vValue)
      * @param newVValue
      * @return
      */
-    public ZoomValue getVCopy(int newVValue)
+    public ZoomValue setV(int newVValue)
     {
         if (!checkValue(newVValue))
         {
@@ -90,7 +90,7 @@ public record ZoomValue(int hValue, int vValue)
      * @param vDelta
      * @return
      */
-    public ZoomValue getCopy(int hDelta, int vDelta)
+    public ZoomValue offset(int hDelta, int vDelta)
     {
         int newh = hValue + hDelta;
         newh = Math.max(0, newh);
@@ -99,6 +99,26 @@ public record ZoomValue(int hValue, int vValue)
         newv = Math.max(0, newv);
         newv = Math.min(100, newv);
         return new ZoomValue(newh, newv);
+    }
+
+    /**
+     * hValue as a float.
+     *
+     * @return [0;1]
+     */
+    public float hValueFloat()
+    {
+        return hValue() / 100f;
+    }
+    
+        /**
+     * hValue as a float.
+     *
+     * @return [0;1]
+     */
+    public float vValueFloat()
+    {
+        return vValue() / 100f;
     }
 
     /**

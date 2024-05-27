@@ -165,6 +165,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
      */
     public static final String PROP_PLAYBACK_POINT_POSITION = "PlaybackPointPosition";
     private static final float MAX_WIDTH_FACTOR = 1.5f;
+    private static final String CLIENT_PROP_VELOCITY_NV="VelocityNv";
     private NotesPanel notesPanel;
     private VelocityPanel velocityPanel;
     private KeyboardComponent keyboard;
@@ -257,11 +258,12 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         createUI();
 
 
-        // NotesPanel mouse listeners
+        // Install mouse listeners
         genericMouseListener = new GenericMouseListener();
         notesPanel.addMouseListener(genericMouseListener);
         notesPanel.addMouseMotionListener(genericMouseListener);
         notesPanel.addMouseWheelListener(genericMouseListener);
+        velocityPanel.addMouseWheelListener(genericMouseListener);
         editToolProxyMouseListener = new EditToolProxyMouseListener();
         notesPanel.addMouseListener(editToolProxyMouseListener);
         notesPanel.addMouseMotionListener(editToolProxyMouseListener);
@@ -593,7 +595,9 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
             float saveCenterPosInBeats = getVisibleBeatRange().getCenter();
 
             // This updates notesPanel preferred size and calls revalidate(), which will update the size on the EDT
-            notesPanel.setScaleFactorX(toScaleFactorX(zoom.hValue()));
+            float f = toScaleFactorX(zoom.hValue());
+            notesPanel.setScaleFactorX(f);
+            velocityPanel.setScaleFactorX(f);
 
             // Restore position at center
             // Must be done later on the EDT to get the notesPanel effectively resized after previous command, so that
@@ -684,7 +688,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
 
     public void selectNote(NoteEvent ne, boolean b)
     {
-        PianoRollEditor.this.selectNotes(Arrays.asList(ne), b);
+        selectNotes(Arrays.asList(ne), b);
     }
 
     /**
@@ -720,6 +724,8 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
                 nvs.add(nv);
             }
             nv.setSelected(b);
+            var nvVelocity=velocityPanel.getNoteView(n);
+            nvVelocity.setSelected(b);
         }
 
         if (!nvs.isEmpty())
@@ -837,9 +843,9 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     /**
      * Set the loop zone.
      *
-     * @param barRange If null loop zone is hidden
+     * @param barRange If null there is no loop zone
      */
-    public void showLoopZone(IntRange barRange)
+    public void setLoopZone(IntRange barRange)
     {
         Preconditions.checkArgument(barRange == null || getPhraseBarRange().contains(barRange), "barRange=%s", barRange);
         var old = loopZone;
@@ -1207,7 +1213,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
                 .toList();
         if (!rangeNotes.isEmpty())
         {
-            PianoRollEditor.this.selectNotes(rangeNotes, false);
+            selectNotes(rangeNotes, false);
             for (var ne : rangeNotes)
             {
                 var nv = notesPanel.getNoteView(ne);        // Might be null in corner cases !? Issue #399

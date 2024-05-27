@@ -554,11 +554,11 @@ public class RulerPanel extends javax.swing.JPanel implements ClsChangeListener,
                     if (bar < loopZone.from)
                     {
                         loopZoneBarOrigin = loopZone.to;
-                        editor.showLoopZone(new IntRange(bar, loopZoneBarOrigin));
+                        editor.setLoopZone(new IntRange(bar, loopZoneBarOrigin));
                     } else
                     {
                         loopZoneBarOrigin = loopZone.from;
-                        editor.showLoopZone(new IntRange(loopZoneBarOrigin, bar));
+                        editor.setLoopZone(new IntRange(loopZoneBarOrigin, bar));
                     }
                 } else
                 {
@@ -597,7 +597,7 @@ public class RulerPanel extends javax.swing.JPanel implements ClsChangeListener,
 
 
             // Reset loop zone
-            editor.showLoopZone(null);
+            editor.setLoopZone(null);
 
 
             // Select the corresponding song part
@@ -655,7 +655,7 @@ public class RulerPanel extends javax.swing.JPanel implements ClsChangeListener,
                 int bar = xMapper.getPosition(e.getX()).getBar();
                 int min = Math.min(bar, loopZoneBarOrigin);
                 int max = Math.max(bar, loopZoneBarOrigin);
-                editor.showLoopZone(new IntRange(min, max));
+                editor.setLoopZone(new IntRange(min, max));
             }
         }
     }

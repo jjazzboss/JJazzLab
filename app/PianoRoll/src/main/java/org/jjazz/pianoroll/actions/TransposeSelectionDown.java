@@ -63,7 +63,7 @@ public class TransposeSelectionDown extends AbstractAction
         String undoText = ResUtil.getString(getClass(), "TransposeNoteUp");
         editor.getUndoManager().startCEdit(editor, undoText);
 
-                Map<NoteEvent, NoteEvent> mapOldNew = new HashMap<>();
+        Map<NoteEvent, NoteEvent> mapOldNew = new HashMap<>();
         for (var ne : NoteView.getNotes(nvs))
         {
             int newPitch = ne.getPitch() - 1;
@@ -74,7 +74,7 @@ public class TransposeSelectionDown extends AbstractAction
             }
         }
         model.replaceAll(mapOldNew, false);
-        
+
 
         editor.getUndoManager().endCEdit(undoText);
     }
