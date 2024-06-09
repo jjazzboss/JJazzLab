@@ -344,7 +344,14 @@ public class HumanizeDialog extends javax.swing.JDialog implements ChangeListene
         cb_selectedNotesOnly = new javax.swing.JCheckBox();
         tbtn_play = new javax.swing.JToggleButton();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
+        addWindowListener(new java.awt.event.WindowAdapter()
+        {
+            public void windowClosing(java.awt.event.WindowEvent evt)
+            {
+                formWindowClosing(evt);
+            }
+        });
 
         org.openide.awt.Mnemonics.setLocalizedText(btn_cancel, org.openide.util.NbBundle.getMessage(HumanizeDialog.class, "HumanizeDialog.btn_cancel.text")); // NOI18N
         btn_cancel.setToolTipText(org.openide.util.NbBundle.getMessage(HumanizeDialog.class, "HumanizeDialog.btn_cancel.toolTipText")); // NOI18N
@@ -660,6 +667,12 @@ public class HumanizeDialog extends javax.swing.JDialog implements ChangeListene
     {//GEN-HEADEREND:event_tbtn_playActionPerformed
         playHumanizedNotes(tbtn_play.isSelected());
     }//GEN-LAST:event_tbtn_playActionPerformed
+
+    private void formWindowClosing(java.awt.event.WindowEvent evt)//GEN-FIRST:event_formWindowClosing
+    {//GEN-HEADEREND:event_formWindowClosing
+        // User press the upper right window close button
+        doCancel();
+    }//GEN-LAST:event_formWindowClosing
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_cancel;

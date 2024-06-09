@@ -101,13 +101,6 @@ public class QuantizePanel extends javax.swing.JPanel implements PropertyChangeL
         });
 
         org.openide.awt.Mnemonics.setLocalizedText(btn_humanize, "Humanize..."); // NOI18N
-        btn_humanize.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                btn_humanizeActionPerformed(evt);
-            }
-        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -143,12 +136,6 @@ public class QuantizePanel extends javax.swing.JPanel implements PropertyChangeL
     {//GEN-HEADEREND:event_cb_iterativeActionPerformed
         Quantizer.getInstance().setIterativeQuantizeEnabled(cb_iterative.isSelected());
     }//GEN-LAST:event_cb_iterativeActionPerformed
-
-    private void btn_humanizeActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_humanizeActionPerformed
-    {//GEN-HEADEREND:event_btn_humanizeActionPerformed
-        var a = new Humanize(editorTc);
-        a.actionPerformed(null);
-    }//GEN-LAST:event_btn_humanizeActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

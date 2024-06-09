@@ -28,7 +28,6 @@ import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JComponent;
-import javax.swing.KeyStroke;
 import org.jjazz.pianoroll.HumanizeDialog;
 import org.jjazz.pianoroll.api.PianoRollEditorTopComponent;
 import static org.jjazz.uiutilities.api.UIUtilities.getGenericControlKeyStroke;
