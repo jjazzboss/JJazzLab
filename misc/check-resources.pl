@@ -87,9 +87,15 @@ sub processProjectDir
 	print "== ============================================================\n";
 	print "PROCESSING $projectDir \n";
 	
-	if (! -d $projectDir || ! -f "$projectDir/pom.xml" || ! -d "$projectDir/src/main/java" )
+	if (! -d $projectDir || ! -f "$projectDir/pom.xml" || ! -d "$projectDir/src/main/java")
 	{
 		print "SKIPPING invalid Maven project dir\n";
+		return;
+	}
+
+	if (! -d "$projectDir/src/main/resources")
+	{
+		print "SKIPPING Maven project dir with no resources\n";
 		return;
 	}
 	
