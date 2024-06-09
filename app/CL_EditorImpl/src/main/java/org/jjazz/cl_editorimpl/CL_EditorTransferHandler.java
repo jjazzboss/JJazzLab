@@ -88,7 +88,7 @@ public class CL_EditorTransferHandler extends TransferHandler
     @Override
     public int getSourceActions(JComponent c)
     {
-        LOGGER.log(Level.FINE, "getSourceActions()  c{0}", c);
+        LOGGER.log(Level.FINE, "getSourceActions()  c.class={0}", c.getClass().getName());
         int res = TransferHandler.NONE;
 
         if (c instanceof ItemRenderer ir)
@@ -96,6 +96,7 @@ public class CL_EditorTransferHandler extends TransferHandler
             ChordLeadSheetItem<?> cli = ir.getModel();
             res = (cli instanceof CLI_Section) && cli.getPosition().getBar() == 0 ? TransferHandler.COPY : TransferHandler.COPY_OR_MOVE;
         }
+        LOGGER.log(Level.FINE, "getSourceActions()  res={0}", res);
         return res;
     }
 
@@ -152,41 +153,15 @@ public class CL_EditorTransferHandler extends TransferHandler
 
         if (info.isDataFlavorSupported(DataFlavor.javaFileListFlavor))
         {
-            File file = SingleFileDragInTransferHandler.getAcceptedFile(info, dragInFileExtensions);
-
-            // Special handling for MacOS: on Mac getAcceptedFile() will always return false, even if DataFlavor.javaFileListFlavor is supported.
-            // On MacOS The TransferHandler.TransferSupport parameter is initialized only when importData() is called.
-            if (file == null && org.jjazz.utilities.api.Utilities.isMac())
-            {
-                LOGGER.fine("canImport() MacOs - ignoring null return value of getAcceptedFile(info)");
-                b = true;
-            } else
-            {
-                b = file != null;
-            }
+            b = canImportFile(info);
+            
         } else if (info.isDataFlavorSupported(CLI_ChordSymbol.DATA_FLAVOR)
                 || info.isDataFlavorSupported(CLI_Section.DATA_FLAVOR)
                 || info.isDataFlavorSupported(CLI_BarAnnotation.DATA_FLAVOR))
         {
             b = canImportItemRenderer(info);
         }
-
-
-        // Copy mode must be supported
-        if ((COPY & info.getSourceDropActions()) != COPY)
-        {
-            b = false;
-        }
-
-
-        if (!b)
-        {
-            LOGGER.log(Level.FINE, "canImport() returns false: unsupported DataFlavor transferable={0}", info.getTransferable());
-        } else
-        {
-            // Use copy drop icon
-            info.setDropAction(COPY);
-        }
+    
 
         return b;
     }
@@ -443,6 +418,41 @@ public class CL_EditorTransferHandler extends TransferHandler
         return true;
     }
 
+    private boolean canImportFile(TransferSupport info)
+    {
+        boolean b;
+        
+        // Copy mode must be supported
+        if ((COPY & info.getSourceDropActions()) != COPY)
+        {
+            return false;
+        }
+
+        
+        File file = SingleFileDragInTransferHandler.getAcceptedFile(info, dragInFileExtensions);
+        // Special handling for MacOS: on Mac getAcceptedFile() will always return false, even if DataFlavor.javaFileListFlavor is supported.
+        // On MacOS The TransferHandler.TransferSupport parameter is initialized only when importData() is called.
+        if (file == null && org.jjazz.utilities.api.Utilities.isMac())
+        {
+            LOGGER.fine("canImportFile() MacOs - ignoring null return value of getAcceptedFile(info)");
+            b = true;
+        } else
+        {
+            b = file != null;
+        }
+        
+
+        if (!b)
+        {
+            LOGGER.log(Level.FINE, "canImportFile() returns false: unsupported DataFlavor transferable={0}", info.getTransferable());
+        } else
+        {
+            // Always use copy drop icon
+            info.setDropAction(COPY);
+        }        
+        
+        return b;
+    }
 
     private boolean canImportItemRenderer(TransferSupport info)
     {
@@ -482,6 +492,8 @@ public class CL_EditorTransferHandler extends TransferHandler
             info.setDropAction(MOVE);
         }
 
+        
+        LOGGER.log(Level.FINE, "canImport() getDropAction()={0}", info.getDropAction());
 
         // Show the insertion point
         editor.showInsertionPoint(true, sourceItem, newPos, (info.getDropAction() & COPY) == COPY);
