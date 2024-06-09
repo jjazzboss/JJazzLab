@@ -905,22 +905,6 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         org.jjazz.uiutilities.api.UIUtilities.changeMenuBarFontSize(mBar, -2f);
 
 
-//        // Replace File & Edit menus (hard-coded in the declaratively-registered actions) by internationalized strings
-//        for (int i = 0; i < menuBar.getMenuCount(); i++)
-//        {
-//            JMenu menu = menuBar.getMenu(i);
-//            if (menu != null)
-//            {
-//                menu.setText("bobo");
-//                if (menu.getText().equals("File"))
-//                {
-//                    menu.setText(ResUtil.getString(getClass(), "MixConsoleMenuFile"));
-//                } else if (menu.getText().equals("Edit"))
-//                {
-//                    menu.setText(ResUtil.getString(getClass(), "MixConsoleMenuEdit"));
-//                }
-//            }
-//        }
         return mBar;
     }
 

@@ -25,7 +25,6 @@ package org.jjazz.easyreader;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.logging.Logger;
-import javax.swing.Action;
 import org.jjazz.analytics.api.Analytics;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -35,16 +34,14 @@ import org.openide.windows.WindowManager;
 
 /**
  * Show the Easy Reader TopComponent.
- *
+ * <p>
  * Do not use @TopComponent.OpenActionRegistration because we want to log an event.
  */
 @ActionID(
         category = "Window",
         id = "org.jjazz.easyreader.EasyReaderAction"
 )
-@ActionRegistration(
-        displayName = "#CTL_EasyReader"
-)
+@ActionRegistration(displayName = "#CTL_EasyReader")
 @ActionReference(path = "Menu/Tools", position = 22)
 public final class EasyReaderAction implements ActionListener
 {

@@ -254,7 +254,7 @@ public class AddRhythmsAction extends AbstractAction
         }
         if (allExts.isEmpty())
         {
-            NotifyDescriptor d = new NotifyDescriptor.Message(ResUtil.getString(getClass(), "ERR_NoRhythmProviderFound."),
+            NotifyDescriptor d = new NotifyDescriptor.Message(ResUtil.getString(getClass(), "ERR_NoRhythmProviderFound"),
                     NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(d);
             FILE_CHOOSER = null;

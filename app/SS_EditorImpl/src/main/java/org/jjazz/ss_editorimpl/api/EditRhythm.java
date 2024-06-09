@@ -75,10 +75,11 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
 {
 
     public static final KeyStroke KEYSTROKE = KeyStroke.getKeyStroke("R");
-    static private boolean dialogShown = false;
+    private static boolean dialogShown = false;
+    private static String undoText = ResUtil.getString(EditRhythm.class, "CTL_EditRhythm");    
     private Lookup context;
     private SS_ContextActionSupport cap;
-    private String undoText = ResUtil.getString(getClass(), "CTL_EditRhythm");
+
     private static final Logger LOGGER = Logger.getLogger(EditRhythm.class.getSimpleName());
 
     public EditRhythm()
@@ -194,8 +195,7 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
 
         // Start the edit : update the tempo (optional) and each songpart's rhythm
         JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(sgs);
-        String editName = ResUtil.getString(EditRhythm.class, "CTL_EditRhythm");
-        um.startCEdit(editName);
+        um.startCEdit(undoText);
 
 
         // Change tempo if required
@@ -271,13 +271,13 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
             sgs.replaceSongParts(oldSpts, newSpts);
         } catch (UnsupportedEditException ex)
         {
-            String msg = ResUtil.getString(EditRhythm.class, "ERR_EditRhythm") + ": " + newRhythm.getName() + ".\n" + ex.getLocalizedMessage();
-            um.abortCEdit(editName, msg);
+            String msg = undoText + ": " + newRhythm.getName() + ".\n" + ex.getLocalizedMessage();
+            um.abortCEdit(undoText, msg);
             return;
         }
 
 
-        um.endCEdit(editName);
+        um.endCEdit(undoText);
 
 
         dlg.cleanup();

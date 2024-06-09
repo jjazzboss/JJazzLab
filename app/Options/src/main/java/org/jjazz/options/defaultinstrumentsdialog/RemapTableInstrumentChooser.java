@@ -482,7 +482,7 @@ public class RemapTableInstrumentChooser extends JDialog implements ChangeListen
         });
 
         lbl_Title.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_Title, org.openide.util.NbBundle.getMessage(RemapTableInstrumentChooser.class, "RemapTableInstrumentChooser.lbl_Title.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_Title, "Select an instrument to replace GM Acoustic Piano"); // NOI18N
 
         jScrollPane1.setViewportView(tbl_Instruments);
 

@@ -253,7 +253,7 @@ public class Paste extends AbstractAction implements ContextAwareAction, CL_Cont
                     }
                     catch (UnsupportedEditException ex)
                     {
-                        String msg = ResUtil.getString(getClass(), "Err_Paste", newSection);
+                        String msg = ResUtil.getString(getClass(), "ERR_Paste", newSection);
                         msg += "\n" + ex.getLocalizedMessage();
                         um.abortCEdit(undoText, msg);
                         return;

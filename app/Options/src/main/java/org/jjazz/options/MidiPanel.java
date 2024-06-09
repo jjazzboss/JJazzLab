@@ -655,7 +655,7 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
 
         jScrollPane6.setViewportView(instrumentTable2);
 
-        pnl_outputSynth.setBorder(javax.swing.BorderFactory.createTitledBorder("Output Synth for : ")); // NOI18N
+        pnl_outputSynth.setBorder(javax.swing.BorderFactory.createTitledBorder("Output Synth for : "));
 
         combo_midiSynths.setRenderer(new MidiSynthComboBoxRenderer());
         combo_midiSynths.addActionListener(new java.awt.event.ActionListener()
@@ -868,7 +868,6 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
         );
 
         jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/options/resources/ArrowRightBig.png"))); // NOI18N
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.jLabel1.text")); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
