@@ -310,9 +310,17 @@ sub getKeyValuePairsToBeMoved
 sub getKeysFromJavaLine
 {
     my ($line) = @_;
-	my @keys1 = ($line =~ /ResUtil\.getString\([^"]*"([^"]+)/g);    # g modifier power! see https://perldoc.perl.org/perlretut#Global-matching
+	if ($line =~ /^\s*\/\//)
+	{
+		return;
+	}
+	my @keys1 = ($line =~ /ResUtil\.getString\([^"]*"([^"]+)/g);    # g modifier power! see https://perldoc.perl.org/perlretut#Global-matching		
 	my @keys2 = ($line =~ /NbBundle\.getMessage\([^"]*"([^"]+)/g);
-    return (@keys1, @keys2);
+	my @keys3 = ($line =~ /NbBundle\.getBundle\(.*class\)\.getString\([^"]*"([^"]+)/g);
+	my @keys4 = ($line =~ /displayName\s*=\s*"#([^"]+)/g);
+	my @keys5 = ($line =~ /categoryName\s*=\s*"#([^"]+)/g);
+	my @keys6 = ($line =~ /keywords\s*=\s*"#([^"]+)/g);
+    return (@keys1, @keys2, @keys3, @keys4, @keys5, @keys6);
 }
 
 
