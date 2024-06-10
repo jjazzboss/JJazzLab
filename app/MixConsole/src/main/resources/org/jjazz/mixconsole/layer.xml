@@ -6,11 +6,11 @@
         <folder name="MixConsole">
             <folder name="MenuBar">
                 <folder name="File">                                     
-                    <attr name="displayName" bundlevalue="org.jjazz.mixconsole.Bundle#Actions/MixConsole/MenuBar/File"/>
+                    <attr name="displayName" bundlevalue="org.jjazz.mixconsole.Bundle#MixConsoleMenuBarFile"/>
                     <attr intvalue="100" name="position"/>
                 </folder>
                 <folder name="Edit">
-                    <attr name="displayName" bundlevalue="org.jjazz.mixconsole.Bundle#Actions/MixConsole/MenuBar/Edit"/>                    
+                    <attr name="displayName" bundlevalue="org.jjazz.mixconsole.Bundle#MixConsoleMenuBarEdit"/>                    
                     <attr intvalue="200" name="position"/>
                 </folder>
                 <folder name="Midi">

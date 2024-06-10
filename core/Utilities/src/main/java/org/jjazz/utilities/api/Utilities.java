@@ -1148,8 +1148,7 @@ public class Utilities
             }
         } else
         {
-            errMsg = org.openide.util.NbBundle.getBundle(org.jjazz.utilities.api.Utilities.class
-            ).getString("ErrNoExternalCommand");
+            errMsg = ResUtil.getString(Utilities.class, "ErrNoExternalCommand");
         }
 
         if (errMsg != null)
@@ -1195,8 +1194,7 @@ public class Utilities
             }
         } else
         {
-            errMsg = org.openide.util.NbBundle.getBundle(org.jjazz.utilities.api.Utilities.class
-            ).getString("ErrNoExternalCommand");
+            errMsg = ResUtil.getString(Utilities.class, "ErrNoExternalCommand");
         }
 
         if (errMsg != null)
@@ -1253,8 +1251,7 @@ public class Utilities
             }
         } else
         {
-            errMsg = org.openide.util.NbBundle.getBundle(org.jjazz.utilities.api.Utilities.class
-            ).getString("ErrNoExternalCommand");
+            errMsg = ResUtil.getString(Utilities.class, "ErrNoExternalCommand");
         }
 
         if (errMsg != null)

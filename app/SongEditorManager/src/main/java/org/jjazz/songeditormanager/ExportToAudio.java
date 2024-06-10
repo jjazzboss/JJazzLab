@@ -246,8 +246,7 @@ public class ExportToAudio extends AbstractAction
                     }
                     if (tmpMidiFile.length() < 10)                      // Robustness
                     {
-                        errorMessage = ResUtil.getString(getClass(),
-                                "ErrorGeneratingAudioFile",
+                        errorMessage = ResUtil.getString(getClass(), "ErrorGeneratingAudioFile",
                                 file.getAbsolutePath(),
                                 "temporary Midi file is empty " + tmpMidiFile.getAbsolutePath());
                         return;

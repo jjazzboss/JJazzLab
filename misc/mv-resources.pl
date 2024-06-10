@@ -314,6 +314,11 @@ sub getKeysFromJavaLine
 	{
 		return;
 	}
+	if ($line =~ /[^.]ResUtil\.getString\([^"]*$/)
+	{
+		print "WARNING unparsable ResUtil.getString(...) detected, please fix : $line\n";
+		return;
+	}
 	my @keys1 = ($line =~ /ResUtil\.getString\([^"]*"([^"]+)/g);    # g modifier power! see https://perldoc.perl.org/perlretut#Global-matching		
 	my @keys2 = ($line =~ /NbBundle\.getMessage\([^"]*"([^"]+)/g);
 	my @keys3 = ($line =~ /NbBundle\.getBundle\(.*class\)\.getString\([^"]*"([^"]+)/g);
@@ -357,15 +362,20 @@ sub getAllKeyValuePairs
 		open my $handle, '<', $file or die "Cannot open $file for reading: $!";	
 		while (<$handle>)
 		{
-				chomp;	
-				next if /^\s*#/ || ! /=/;                
-				my ($key, $val) = split /\s*=\s*/;
-				$res{$key} = $val;
+			chomp;	
+			next if /^\s*#/ || ! /=/;     
+			my $eqIndex = index($_, "=");
+			my $key = substr($_, 0, $eqIndex);
+			my $val = substr($_, $eqIndex+1);
+			$res{$key} = $val;
 		}
 		close $handle;	
 	}	
     return %res;	
 }
+
+
+
 
 sub trim 
 {
