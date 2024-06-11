@@ -63,6 +63,7 @@ import org.jjazz.ss_editor.api.SS_EditorTopComponent;
 import org.jjazz.uiutilities.api.HSLColor;
 import org.jjazz.uiutilities.api.StringMetrics;
 import org.jjazz.utilities.api.IntRange;
+import org.jjazz.utilities.api.ResUtil;
 
 /**
  * The ruler panel that shows the beat position marks + time signatures over the NotesPanel.
@@ -115,6 +116,8 @@ public class RulerPanel extends javax.swing.JPanel implements ClsChangeListener,
 
 
         this.editor.getSettings().addPropertyChangeListener(this);
+        
+        setToolTipText(ResUtil.getString(getClass(), "RulerPanelTooltip"));
 
 
         // Repaint ourself when notesPanel is resized
