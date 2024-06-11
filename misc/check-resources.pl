@@ -59,7 +59,8 @@ $doNotRemoveKeys{"AddCongas4_desc"} = 1;
 sub usage
 {
 	print "\nUSAGE: $0 [options] maven_project_dir1 [maven_project_dir2] ... \n";
-	print "Parse all java files in Maven projet dir(s) to find used ResourceBundle keys, then check for extra or missing keys in bundle properties files.\n";	
+	print "Parse all java files in Maven projet dir(s) to find used ResourceBundle keys, then check for extra or missing keys in bundle properties files.\n";
+	print "Also checks if there are java U-based hexadecimal escapes (a.k.a. unicode escapes) like \\u00E1 into the properties files.\n";
     print "PARAMETERS:\n";
 	print "  maven_project_dir: a maven standard project directory which must contain a pom.xml file at its root.\n";
 	print "OPTIONS: \n";
@@ -274,6 +275,7 @@ sub processBundleFile
 		{
 				chomp;	
 				next if /^\s*#/ || ! /=/;     
+				print "###### WARNING Possible Java U-based unicode escapes found: $_\n" if (/u00/);					
 				my $eqIndex = index($_, "=");
 				my $key = substr($_, 0, $eqIndex);
 				my $val = substr($_, $eqIndex+1);
