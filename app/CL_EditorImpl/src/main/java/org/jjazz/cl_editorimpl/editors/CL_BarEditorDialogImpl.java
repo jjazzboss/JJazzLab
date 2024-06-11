@@ -65,14 +65,14 @@ import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.util.lookup.ServiceProvider;
 
-@ServiceProvider(service=CL_BarEditorDialog.class)
+@ServiceProvider(service = CL_BarEditorDialog.class)
 public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
 {
 
     static private final Icon ICON_COLLAPSED = new ImageIcon(CL_BarEditorDialogImpl.class.getResource("resources/arrow_collapsed.png"));
     static private final Icon ICON_EXPANDED = new ImageIcon(CL_BarEditorDialogImpl.class.getResource("resources/arrow_expanded.png"));
 
-  
+
     /**
      * The ChordLeadSheet which is edited.
      */
@@ -213,8 +213,8 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
         setAnnotationPanelExpanded(!saveAnnotationText.isBlank());
 
 
-        setTitle(ResUtil.getString(getClass(),
-                "CL_BarEditorDialogImpl.CTL_Bar") + " " + (barIndx + 1) + " - " + modelSection.getData().getName() + " " + modelSection.getData().getTimeSignature());
+        setTitle(ResUtil.getString(getClass(), "CL_BarEditorDialogImpl.CTL_Bar") + " " + (barIndx + 1)
+                + " - " + modelSection.getData().getName() + " " + modelSection.getData().getTimeSignature());
         undoManager.discardAllEdits();
 
         // Specific actions depending on presets

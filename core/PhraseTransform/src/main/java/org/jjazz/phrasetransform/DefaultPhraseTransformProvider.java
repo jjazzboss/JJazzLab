@@ -85,7 +85,7 @@ public class DefaultPhraseTransformProvider implements PhraseTransformProvider
     private static final Icon ADD_COWBELL_ICON = new ImageIcon(DefaultPhraseTransformProvider.class.getResource(ADD_COWBELL_ICON_PATH));
     @StaticResource(relative = true)
     private static final String ADD_SHAKER_ICON_PATH = "resources/AddMaracas-Transformer-48x24.png";
-    private static final Icon ADD_SHAKER_ICON = new ImageIcon(DefaultPhraseTransformProvider.class.getResource(ADD_SHAKER_ICON_PATH));    
+    private static final Icon ADD_SHAKER_ICON = new ImageIcon(DefaultPhraseTransformProvider.class.getResource(ADD_SHAKER_ICON_PATH));
     @StaticResource(relative = true)
     private static final String ADD_TAMBOURINE24_PATH = "resources/Tambourine2-4.mid";
     @StaticResource(relative = true)
@@ -138,7 +138,7 @@ public class DefaultPhraseTransformProvider implements PhraseTransformProvider
 
         transforms.add(getCowBellBeat());
         transforms.add(getCabasaEighths());
-        transforms.add(getTriangleEighths());                
+        transforms.add(getTriangleEighths());
         transforms.add(getTriangleSixteenths());
         transforms.add(getShakerSixteenths());
 
@@ -231,9 +231,11 @@ public class DefaultPhraseTransformProvider implements PhraseTransformProvider
     private AddDrumsMidiPhraseTransform getCongas2bar(int index, String midiResourcePath)
     {
         String name = "AddCongas" + index;
+        String name_name = name + "_name";
+        String name_desc = name + "_desc";
         PhraseTransform.Info info = new PhraseTransform.Info(name + "Id",
-                ResUtil.getString(getClass(),  name + "_name"),
-                ResUtil.getString(getClass(), name + "_desc"),
+                ResUtil.getString(getClass(), name_name),
+                ResUtil.getString(getClass(), name_desc),
                 PhraseTransformCategory.DRUMS,
                 ADD_CONGAS_ICON
         );
@@ -270,8 +272,8 @@ public class DefaultPhraseTransformProvider implements PhraseTransformProvider
         AddDrumsMidiPhraseTransform t = new AddDrumsMidiPhraseTransform(info, sp, true);
         return t;
     }
-    
-        private AddDrumsMidiPhraseTransform getTriangleEighths()
+
+    private AddDrumsMidiPhraseTransform getTriangleEighths()
     {
         PhraseTransform.Info info = new PhraseTransform.Info("AddTriangleEighthsId",
                 ResUtil.getString(getClass(), "AddTriangleEighths_name"),

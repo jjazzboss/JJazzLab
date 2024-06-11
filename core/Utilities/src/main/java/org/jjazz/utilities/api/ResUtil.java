@@ -79,5 +79,11 @@ public class ResUtil
     {
         String res = getString(ResUtil.class, key, params);
         return (res == null) ? "<" + key + ">" : res;
+        
+        /**
+         * Trick so that check-resources.pl --remove-extra does not remove our common strings:
+         * ResUtil.getString(bla.class, "CTL_CL_ConfirmClose");
+         * ResUtil.getString(bla.class, "ErrorLoadingSongFile");
+         */
     }
 }

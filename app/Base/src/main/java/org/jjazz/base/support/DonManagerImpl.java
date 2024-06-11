@@ -176,7 +176,7 @@ public class DonManagerImpl implements Runnable, DonManager
             code_expirationDateNbDaysFrom2020 = Integer.valueOf(strNbDaysFrom2020);
         } catch (NumberFormatException ex)
         {
-            String msg = ResUtil.getString(getClass(), "InvalidNbd", strNbDaysFrom2020);
+            String msg = "InvalidNbd: "+ strNbDaysFrom2020;
             LOGGER.log(Level.WARNING, "** Donation code registration error: {0}", msg);
             throw new ParseException(msg, 0);
         }

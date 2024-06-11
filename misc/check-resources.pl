@@ -35,17 +35,40 @@ binmode(STDOUT, ":utf8");          # treat as if it is UTF-8
 binmode(STDIN, ":encoding(utf8)"); # actually check if it is UTF-8
 
 
+
+# These are special JJazzLab keys without any reference in the java code, but which should not be removed by --remove-extra
+my %doNotRemoveKeys;
+# Base module (predefined Netbeans properties)
+$doNotRemoveKeys{"Services/AutoupdateType/org_jjazz_base_update_center.instance"} = 1;
+$doNotRemoveKeys{"org_jjazz_base_update_center"} = 1;
+# MixConsole module (reference from layer.xml)
+$doNotRemoveKeys{"MixConsoleMenuBarEdit"} = 1;
+$doNotRemoveKeys{"MixConsoleMenuBarFile"} = 1;
+# PhraseTransform module (key names are programmatically built in ResUtil.getString())
+$doNotRemoveKeys{"AddCongas1_name"} = 1;
+$doNotRemoveKeys{"AddCongas1_desc"} = 1;
+$doNotRemoveKeys{"AddCongas2_name"} = 1;
+$doNotRemoveKeys{"AddCongas2_desc"} = 1;
+$doNotRemoveKeys{"AddCongas3_name"} = 1;
+$doNotRemoveKeys{"AddCongas3_desc"} = 1;
+$doNotRemoveKeys{"AddCongas4_name"} = 1;
+$doNotRemoveKeys{"AddCongas4_desc"} = 1;
+
+
+
 sub usage
 {
-	print "\nUSAGE: $0 [options] maven_project_dir1 [maven_project_dir2] ... n\n";
-	print "Parse all java files in Maven projet dir to find used ResourceBundle keys, then check for extra or missing keys in bundle properties files.\n";	
+	print "\nUSAGE: $0 [options] maven_project_dir1 [maven_project_dir2] ... \n";
+	print "Parse all java files in Maven projet dir(s) to find used ResourceBundle keys, then check for extra or missing keys in bundle properties files.\n";
+	print "Also checks if there are java U-based hexadecimal escapes (a.k.a. unicode escapes) like \\u00E1 into the properties files.\n";
     print "PARAMETERS:\n";
 	print "  maven_project_dir: a maven standard project directory which must contain a pom.xml file at its root.\n";
 	print "OPTIONS: \n";
-	print "  --remove-extra : remove extra keys from bundle properties files\n";	
+	print "  --remove-extra : remove extra keys from bundle properties files.\n";	
 	print "  --missing-only : only show missing keys.\n";	
 	print "  --ignore-translations : only process 'Bundle.properties files', ignoring translation variants 'Bundle_*.properties' files.\n";
-	print "Author: Jerome Lelasseux \@2024\n";	
+	print "  --ignore-keys=key1,key2,... : one or more keys to be ignored\n";
+	print "AUTHOR: Jerome Lelasseux \@2024\n";	
 	exit;
 }
 
@@ -53,12 +76,23 @@ sub usage
 my $removeExtra=0;
 my $ignoreTranslations=0;
 my $missingOnly=0;
+my $ignoredKeys=0;
 GetOptions(
 	'remove-extra' => \$removeExtra,
 	'missing-only' => \$missingOnly,	
-	'ignore-translations' => \$ignoreTranslations    
+	'ignore-translations' => \$ignoreTranslations,    
+	'ignore-keys=s' => \$ignoredKeys	
 ) or usage();
 usage() if ($#ARGV < 0);
+if ($ignoredKeys)
+{
+	my @keys = split(',', $ignoredKeys);
+	foreach my $key (@keys)
+	{					
+		$doNotRemoveKeys{$key} = 1;
+	}
+}
+		
 
 
 
@@ -85,13 +119,20 @@ sub processProjectDir
 	my $resDir="$projectDir/src/main/resources";
 	
 	print "== ============================================================\n";
-	print "PROCESSING $projectDir \n";
+	print "PROCESSING $projectDir... ";
 	
-	if (! -d $projectDir || ! -f "$projectDir/pom.xml" || ! -d "$projectDir/src/main/java" )
+	if (! -d $projectDir || ! -f "$projectDir/pom.xml" || ! -d "$projectDir/src/main/java")
 	{
-		print "SKIPPING invalid Maven project dir\n";
+		print "skipped - invalid Maven project dir\n";
 		return;
 	}
+
+	if (! -d "$projectDir/src/main/resources")
+	{
+		print "skipped - no resources dir\n";	
+		return;
+	}
+	print "\n";
 	
 	
 	
@@ -136,7 +177,7 @@ sub processProjectDir
 						open my $handle, ">", "$fn" or die "Can't create $fn\n";
 						while (my($key, $value) = each %keyValuePairs ) 
 						{
-							if ($javaKeysHRef->{$key})
+							if ($javaKeysHRef->{$key} || $doNotRemoveKeys{$key})
 							{
 								print $handle "$key=$value\n";
 							} else
@@ -151,7 +192,7 @@ sub processProjectDir
 						# Just display the extra keys
 						 while (my($key, $value) = each %keyValuePairs ) 
 						 {
-							if (!$javaKeysHRef->{$key})
+							if (!$javaKeysHRef->{$key} && !$doNotRemoveKeys{$key})
 							{
 								printf("Extra: %-40s    (%s) \n", $key, $relFn);
 							}
@@ -182,6 +223,11 @@ sub getKeysFromJavaLine
     my ($line) = @_;
 	if ($line =~ /^\s*\/\//)
 	{
+		return;
+	}
+	if ($line =~ /[^.]ResUtil\.getString\([^"]*$/)
+	{
+		print "###### WARNING unparsable ResUtil.getString(...) detected, please fix : $line\n";
 		return;
 	}
 	my @keys1 = ($line =~ /ResUtil\.getString\([^"]*"([^"]+)/g);    # g modifier power! see https://perldoc.perl.org/perlretut#Global-matching		
@@ -228,8 +274,11 @@ sub processBundleFile
 		while (<$handle>)
 		{
 				chomp;	
-				next if /^\s*#/ || ! /=/;                
-				my ($key, $val) = split /\s*=\s*/;
+				next if /^\s*#/ || ! /=/;     
+				print "###### WARNING Possible Java U-based unicode escapes found: $_\n" if (/u00/);					
+				my $eqIndex = index($_, "=");
+				my $key = substr($_, 0, $eqIndex);
+				my $val = substr($_, $eqIndex+1);
 				$res{$key} = $val;
 		}
 		close $handle;	

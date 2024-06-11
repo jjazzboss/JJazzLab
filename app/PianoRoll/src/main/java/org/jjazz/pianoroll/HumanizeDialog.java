@@ -345,6 +345,7 @@ public class HumanizeDialog extends javax.swing.JDialog implements ChangeListene
         tbtn_play = new javax.swing.JToggleButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
+        setTitle(org.openide.util.NbBundle.getMessage(HumanizeDialog.class, "HumanizeDialog.title")); // NOI18N
         addWindowListener(new java.awt.event.WindowAdapter()
         {
             public void windowClosing(java.awt.event.WindowEvent evt)

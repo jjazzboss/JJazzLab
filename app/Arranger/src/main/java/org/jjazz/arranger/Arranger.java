@@ -83,7 +83,7 @@ public class Arranger implements SgsChangeListener, PropertyChangeListener
     private CLI_ChordSymbol firstChordSymbol;
     private boolean playing;
     private SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
-    private static final Logger LOGGER = Logger.getLogger(Arranger.class.getSimpleName());      
+    private static final Logger LOGGER = Logger.getLogger(Arranger.class.getSimpleName());
 
     /**
      * Create an arranger for the specified song context.
@@ -305,10 +305,9 @@ public class Arranger implements SgsChangeListener, PropertyChangeListener
     // =========================================================================================
 
     /**
-     * Use the parameters to prepare a song context which contains only one SongPart (or 2 if songPart uses an AdaptedRhythm).
+     * Use the parameters to prepare a song context which contains only one SongPart.
      * <p>
-     * Make sure there is only one chord symbol at the start of the chord leadsheet, and that the section/song part size is not
-     * greater than maxSptWorkNbBars.
+     * Make sure there is only one chord symbol at the start of the chord leadsheet, and that the section/song part size is not greater than maxSptWorkNbBars.
      *
      * @param sgContext
      * @param spt
@@ -329,85 +328,28 @@ public class Arranger implements SgsChangeListener, PropertyChangeListener
         var spts = sgsWork.getSongParts();
         var clsWork = songWork.getChordLeadSheet();
         SongPart sptWork = sgsWork.getSongPart(spt.getStartBarIndex());
-        Rhythm r = sptWork.getRhythm();
 
         try
         {
-            if (!(r instanceof AdaptedRhythm))
+            // Keep only our SongPart
+            List<SongPart> unusedSpts = new ArrayList<>(spts);
+            unusedSpts.remove(sptWork);
+            try
             {
-                // Easy 
-                // Keep only our SongPart
-                List<SongPart> unusedSpts = new ArrayList<>(spts);
-                unusedSpts.remove(sptWork);
-                try
-                {
-                    sgsWork.removeSongParts(unusedSpts);
-                } catch (UnsupportedEditException ex)
-                {
-                    // Should never happen
-                    Exceptions.printStackTrace(ex);
-                }
-
-                // Shorten section size if required
-                if (sptWork.getNbBars() > maxSptWorkNbBars)
-                {
-                    var parentSection = sptWork.getParentSection();
-                    clsWork.setSizeInBars(parentSection.getPosition().getBar() + maxSptWorkNbBars);  // throws UnsupportedEditException
-                }
-
-            } else
+                sgsWork.removeSongParts(unusedSpts);
+            } catch (UnsupportedEditException ex)
             {
-                // We use an AdaptedRhythm, need to keep the source rhythm in a 2nd song part
-                AdaptedRhythm ar = (AdaptedRhythm) r;
-                Rhythm sr = ar.getSourceRhythm();
-
-
-                // Clean everything
-                sgsWork.removeSongParts(spts);
-
-
-                // Prepare the added song parts
-                List<SongPart> addSpts = new ArrayList<>();
-                sptWork = sptWork.clone(null, 0, sptWork.getNbBars(), sptWork.getParentSection());
-                addSpts.add(sptWork);   // New work song part starts at 0
-
-
-                // Find the first song part which uses the source rhythm
-                SongPart srcSptWork = spts.stream()
-                        .filter(spti -> spti.getRhythm() == sr)
-                        .findAny()
-                        .orElse(null);
-                assert srcSptWork != null : "spts=" + spts;
-                int startBar = sptWork.getNbBars(); // Will be right after sptWork
-                srcSptWork = srcSptWork.clone(null, startBar, srcSptWork.getNbBars(), srcSptWork.getParentSection());
-                addSpts.add(srcSptWork);
-
-
-                // Add the SongParts
-                sgsWork.addSongParts(addSpts);
-
-
-                // Adjust section size if required
-                if (sptWork.getNbBars() > maxSptWorkNbBars)
-                {
-                    var sptWorkParentSection = sptWork.getParentSection();
-                    int sptWorkParentSectionBar = sptWorkParentSection.getPosition().getBar();
-                    var srcSptWorkParentSection = srcSptWork.getParentSection();
-                    int srcSptWorkParentSectionBar = srcSptWorkParentSection.getPosition().getBar();
-                    if (sptWorkParentSectionBar > srcSptWorkParentSectionBar)
-                    {
-                        // We can just shorten the chord leadsheet
-                        clsWork.setSizeInBars(sptWorkParentSectionBar + maxSptWorkNbBars);   // throws UnsupportedEditException
-                    } else
-                    {
-                        // Can't shorten cls size, need to move the next section
-                        var nextSection = clsWork.getSection(sptWorkParentSectionBar + sptWork.getNbBars());
-                        clsWork.moveSection(nextSection, sptWorkParentSectionBar + maxSptWorkNbBars);
-                    }
-                }
-
-
+                // Should never happen
+                Exceptions.printStackTrace(ex);
             }
+
+            // Shorten section size if required
+            if (sptWork.getNbBars() > maxSptWorkNbBars)
+            {
+                var parentSection = sptWork.getParentSection();
+                clsWork.setSizeInBars(parentSection.getPosition().getBar() + maxSptWorkNbBars);  // throws UnsupportedEditException
+            }
+
         } catch (UnsupportedEditException ex)
         {
             // Should never happen 
