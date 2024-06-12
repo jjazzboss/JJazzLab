@@ -774,7 +774,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
         boolean b = true;
         if (f.exists() && !f.canWrite())
         {
-            String msg = ResUtil.getString(getClass(), "CAN_NOT_OVERWRITE", f.getName());
+            String msg = ResUtil.getString(getClass(), "ErrCantOverrideSong", f.getName());
             LOGGER.log(Level.WARNING, "saveToFileNotify() {0}", msg);
             NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.WARNING_MESSAGE);
             DialogDisplayer.getDefault().notify(nd);

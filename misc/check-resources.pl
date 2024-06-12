@@ -60,11 +60,12 @@ sub usage
 {
 	print "\nUSAGE: $0 [options] maven_project_dir1 [maven_project_dir2] ... \n";
 	print "Parse all java files in Maven projet dir(s) to find used ResourceBundle keys, then check for extra or missing keys in bundle properties files.\n";
-	print "Also checks if there are java U-based hexadecimal escapes (a.k.a. unicode escapes) like \\u00E1 into the properties files.\n";
+	print "Also checks if there are java U-based hexadecimal escapes (a.k.a. unicode escapes) like \\u00E1 into the properties files, or if file is empty.\n";
     print "PARAMETERS:\n";
 	print "  maven_project_dir: a maven standard project directory which must contain a pom.xml file at its root.\n";
 	print "OPTIONS: \n";
 	print "  --remove-extra : remove extra keys from bundle properties files.\n";	
+	print "  --remove-emptyfiles : remove empty bundle properties files.\n";	
 	print "  --missing-only : only show missing keys.\n";	
 	print "  --ignore-translations : only process 'Bundle.properties files', ignoring translation variants 'Bundle_*.properties' files.\n";
 	print "  --ignore-keys=key1,key2,... : one or more keys to be ignored\n";
@@ -74,11 +75,13 @@ sub usage
 
 # Command line arguments
 my $removeExtra=0;
+my $removeEmptyFiles=0;
 my $ignoreTranslations=0;
 my $missingOnly=0;
 my $ignoredKeys=0;
 GetOptions(
 	'remove-extra' => \$removeExtra,
+	'remove-emptyfiles' => \$removeEmptyFiles,	
 	'missing-only' => \$missingOnly,	
 	'ignore-translations' => \$ignoreTranslations,    
 	'ignore-keys=s' => \$ignoredKeys	
@@ -166,7 +169,8 @@ sub processProjectDir
 				my $relFn="$relPath/$fn";
 				my $javaKeysHRef=$relDirKeys{$relPath};		
 				my %keyValuePairs=processBundleFile($_);		
-
+				
+				
 				# check consistency
 				if (! $missingOnly)
 				{				
@@ -207,6 +211,20 @@ sub processProjectDir
 						printf("Missing: %-40s    (%s) \n", $key, $relFn);
 					}
 				} 	
+				
+				if (! %keyValuePairs)
+				{
+					print "###### WARNING empty file : $relFn";
+					if ($removeEmptyFiles)
+					{
+						print "     REMOVED\n";
+						unlink($fn);																
+					}
+					else
+					{
+						print "\n";
+					}					
+				}				
 				
 			}, 
 		$resDir );	
