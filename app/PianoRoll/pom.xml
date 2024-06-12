@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.jjazzlab</groupId>
         <artifactId>jjazzlab-parent</artifactId>
-        <version>4.0.3-SNAPSHOT</version>
+        <version>4.1.0</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
     <groupId>org.jjazzlab.app</groupId>
@@ -151,7 +151,7 @@
         <dependency> 
             <groupId>org.jjazzlab.core</groupId> 
             <artifactId>utilities</artifactId> 
-            <version>${project.version}</version>  
+            <version>${project.version}</version>
         </dependency>  
         <dependency> 
             <groupId>org.netbeans.api</groupId> 

@@ -1303,7 +1303,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
 
         // The velocity bottom 
         scrollPaneVelocity = new JScrollPane(JScrollPane.VERTICAL_SCROLLBAR_NEVER, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-        lbl_velocity = new JLabel("velocity");
+        lbl_velocity = new JLabel(ResUtil.getString(getClass(), "Velocity"));
         lbl_velocity.setVerticalAlignment(SwingConstants.TOP);
         velocityPanel = new VelocityPanel(this, notesPanel);
         scrollPaneVelocity.setViewportView(velocityPanel);

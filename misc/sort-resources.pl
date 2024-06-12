@@ -106,6 +106,12 @@ sub processProjectDir
 				$count++;
 				my %keyValuePairs=processBundleFile($_);		
 			
+				if (! %keyValuePairs)
+				{
+					print "###### WARNING empty file : $relFn\n";		
+					return;					
+				}
+			
 				# Rewrite file with keys sorted
 				if (!$preview)
 				{
