@@ -23,6 +23,12 @@ JJazzLab is based on the [Apache Netbeans Platform](https://netbeans.org/feature
 
 Developers can easily add music generation capabilities or try new ideas, without taking care of all the "plumbing".
 
+## JJazzLab Toolkit
+
+The [JJazzLab Toolkit](https://github.com/jjazzboss/JJazzLabToolkit)  is a single standalone jar (all dependencies are included) which contains the JJazzLab core (no GUI).
+
+It makes it easy to experiment with JJazzLab models and algorithms, or create your own plugins.
+
 ## Download 
 
 Visit [www.jjazzlab.org](https://www.jjazzlab.org) for ready-to-use installers for Win, Linux and Mac.
@@ -31,11 +37,9 @@ Visit [www.jjazzlab.org](https://www.jjazzlab.org) for ready-to-use installers f
 
 Lesser GPL v2 (LGPL v2.1)
 
-## User guide
+## Documentation
 
 [https://jjazzlab.gitbook.io/user-guide/](https://jjazzlab.gitbook.io/user-guide)
-
-## Developer's guide 
 
 [https://jjazzlab.gitbook.io/developer-guide/](https://jjazzlab.gitbook.io/developer-guide/)
 
