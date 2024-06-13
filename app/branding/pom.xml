@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.jjazzlab</groupId>
+        <artifactId>jjazzlab-parent</artifactId>
+        <version>4.1.0</version>
+        <relativePath>../../pom.xml</relativePath>
+    </parent>
+    <groupId>org.jjazzlab.app</groupId>
+    <artifactId>jjazzlab-branding</artifactId>
+    <packaging>nbm</packaging>
+
+    <name>JJazzLab Branding</name>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.netbeans.api</groupId>
+            <artifactId>org-netbeans-api-annotations-common</artifactId>
+            <version>${netbeans.version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.netbeans.utilities</groupId>
+                <artifactId>nbm-maven-plugin</artifactId>
+                <executions>
+                    <!-- Enable branding only for this module (disabled in parent pom)  -->
+                    <execution>
+                        <id>default-branding</id>
+                        <phase>package</phase>
+                    </execution>               
+                </executions>
+            </plugin>                       
+
+        </plugins>
+    </build>
+</project>

@@ -1,4 +1,0 @@
-Manifest-Version: 1.0
-AutoUpdate-Show-In-Client: true
-OpenIDE-Module-Localizing-Bundle: org/jjazz/chordsymboltextinput/api/Bundle.properties
-

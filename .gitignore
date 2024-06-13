@@ -1,7 +1,4 @@
-/target/
-/*/target/
-/modules/*/target/
-/libs/*/target/
+/*/*/target/
 *.sf2
 nb-configuration.xml
-
+/target/

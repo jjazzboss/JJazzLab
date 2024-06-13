@@ -1,0 +1,3 @@
+Manifest-Version: 1.0
+OpenIDE-Module-Localizing-Bundle: org/jjazz/cl_editor/Bundle.properties
+OpenIDE-Module-Requires: org.openide.windows.WindowManager
