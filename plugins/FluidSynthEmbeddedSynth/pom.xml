@@ -12,6 +12,42 @@
     <artifactId>fluidsynthembeddedsynth</artifactId>
     <name>FluidSynthEmbeddedSynth</name>
     <packaging>nbm</packaging>
+    
+
+     <!-- project meta-data  required for deployment/publishing on sonatype -->
+    <url>https://github.com/jjazzboss/JJazzLab/tree/master/plugins/FluidSynthEmbeddedSynth</url>
+    <description>JJazzLab plugin to use a FluidSynth instance as output synth</description>
+    <organization>
+        <url>https://www.jjazzlab.org</url>
+    </organization>   
+    <licenses>
+        <license>
+            <name>GNU LESSER GENERAL PUBLIC LICENSE Version 2.1</name>
+            <url>https://www.gnu.org/licenses/lgpl-2.1.en.html#license-text</url>
+        </license>
+    </licenses>      
+    <developers>
+        <developer>
+            <id>jlelasseux</id>
+            <name>Jerome Lelasseux</name>
+            <roles>
+                <role>architect</role>
+                <role>developer</role>
+            </roles>
+            <organization>JJazzLab</organization>
+            <organizationUrl>https://www.jjazzlab.org</organizationUrl>            
+            <email>jl@jjazzlab.org</email>
+            <timezone>Europe/Paris</timezone>
+        </developer>
+    </developers>    
+    <scm>
+        <connection>scm:git:git://github.com/jjazzboss/JJazzLab.git</connection>
+        <developerConnection>scm:git:git@github.com:jjazzboss/JJazzLab.git</developerConnection>
+        <url>https://github.com/jjazzboss/JJazzLab</url>
+    </scm>         
+    
+    
+    
     <build>
         <plugins>
             <plugin>
@@ -61,6 +97,26 @@
                 </executions>
             </plugin>                      
             
+            
+   <!-- GPG Signed Components -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>3.2.4</version>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                        <configuration>
+                            <executable>c:/Program Files (x86)/GnuPG/bin/gpg.exe</executable>       
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>            
+                        
             <plugin>
                 <groupId>org.sonatype.central</groupId>
                 <artifactId>central-publishing-maven-plugin</artifactId>
