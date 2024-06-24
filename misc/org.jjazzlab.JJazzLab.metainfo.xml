@@ -54,6 +54,17 @@
                 </ul>
             </description>
         </release>
+        <release version="4.1.0" date="2024-06-24">
+            <url type="details">https://github.com/jjazzboss/JJazzLab/releases/tag/4.1.0</url>
+            <description>
+                <p>Release description</p>
+                <ul>
+                    <li>New JJazzLab Toolkit available (for developers)</li>
+                    <li>Improved Notes Editor</li>
+                    <li>Many improvements and bug fixes</li>
+                </ul>
+            </description>
+        </release>        
     </releases>
     <content_rating type="oars-1.1"/>
 </component>
