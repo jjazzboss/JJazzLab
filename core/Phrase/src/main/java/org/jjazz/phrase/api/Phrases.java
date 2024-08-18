@@ -37,6 +37,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.logging.Logger;
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiEvent;
 import javax.sound.midi.MidiSystem;
@@ -44,6 +45,7 @@ import javax.sound.midi.Sequence;
 import javax.sound.midi.ShortMessage;
 import javax.sound.midi.Track;
 import org.jjazz.harmony.api.Chord;
+import org.jjazz.harmony.api.Note;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.utilities.api.FloatRange;
@@ -58,10 +60,12 @@ import org.openide.NotifyDescriptor;
 public class Phrases
 {
 
+    private static final Logger LOGGER = Logger.getLogger(Phrases.class.getSimpleName());
+
     /**
      * Add NoteEvents from a list of NOTE_ON/OFF Midi events at MidiConst.PPQ_RESOLUTION.
      * <p>
-     * NOTE_ON events without a corresponding NOTE_OFF event are ignored.
+     * NOTE_ON events without a corresponding NOTE_OFF event are ignored. Notes with 0-tick length are ignored.
      *
      * @param p
      * @param midiEvents       MidiEvents which are not ShortMessage.Note_ON/OFF are ignored. Must be ordered by tick position, resolution must be
@@ -112,10 +116,18 @@ public class Phrases
                     // Create the NoteEvent
                     long tickOn = meOn.getTick();
                     ShortMessage smOn = (ShortMessage) meOn.getMessage();
-                    float duration = ((float) tick - tickOn) / MidiConst.PPQ_RESOLUTION;
-                    float posInBeats = posInBeatsOffset + ((float) tickOn / MidiConst.PPQ_RESOLUTION);
-                    NoteEvent ne = new NoteEvent(pitch, duration, smOn.getData2(), posInBeats);
-                    nes.add(ne);
+                    float duration = ((float) tick - tickOn) / MidiConst.PPQ_RESOLUTION;        // Might be 0 
+                    if (duration > 0)
+                    {
+                        float posInBeats = posInBeatsOffset + ((float) tickOn / MidiConst.PPQ_RESOLUTION);
+                        assert posInBeats >= 0 :
+                                "smOn=" + MidiUtilities.toString(smOn, tickOn) + " tick=" + tick + "(duration=" + duration + ") posInBeats=" + posInBeats + " pitch=" + pitch;
+                        NoteEvent ne = new NoteEvent(pitch, duration, smOn.getData2(), posInBeats);
+                        nes.add(ne);
+                    } else
+                    {
+                        LOGGER.warning("addMidiEvents() Ignoring zero-length note at tick position=" + tickOn + " pitch=" + pitch);
+                    }
 
                     // Clean the last NoteOn
                     lastNoteOn[pitch] = null;
@@ -740,7 +752,7 @@ public class Phrases
                         p = new Phrase(channel, channel == MidiConst.CHANNEL_DRUMS);
                         mapChannelPhrase.put(channel, p);
                     }
-                    Phrases.addMidiEvents(p, trackEvents, 0, false);
+                    addMidiEvents(p, trackEvents, 0, false);
                 }
             }
         }
