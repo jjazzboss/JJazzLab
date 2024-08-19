@@ -116,7 +116,7 @@ public class GM1Instrument extends Instrument implements Serializable
                 {
                     // From 4.1.0 new aliases to get rid of fully qualified class names in .sng files                    
                     xstream.alias("GM1Instrument", GM1Instrument.class);
-                    xstream.alias("InstrumentSP", SerializationProxy.class);
+                    xstream.alias("GM1InstrumentSP", SerializationProxy.class);
                     xstream.useAttributeFor(SerializationProxy.class, "spVERSION");
                     xstream.useAttributeFor(SerializationProxy.class, "spProgChange");
                 }
@@ -133,15 +133,14 @@ public class GM1Instrument extends Instrument implements Serializable
         return new SerializationProxy(this);
     }
 
-    private void readObject(ObjectInputStream stream)
-            throws InvalidObjectException
+    private void readObject(ObjectInputStream stream) throws InvalidObjectException
     {
         throw new InvalidObjectException("Serialization proxy required");
     }
 
     /**
      * If Instrument's bank is null serialization will fail.
-     * 
+     * <p>
      * spVERSION 2 introduces alias XStreamConfig
      */
     private static class SerializationProxy implements Serializable
