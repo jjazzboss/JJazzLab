@@ -42,13 +42,13 @@ import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import org.jjazz.analytics.api.Analytics;
-import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.spi.RhythmProvider;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.utilities.api.MultipleErrorsReport;
 import org.jjazz.coreuicomponents.api.MultipleErrorsReportDialog;
+import org.jjazz.rhythm.spi.RhythmDirsLocator;
 import org.jjazz.rhythmdatabase.api.RhythmInfo;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.DialogDisplayer;
@@ -171,7 +171,7 @@ public class AddRhythmsAction extends AbstractAction
                 Path userRhythmDir;
                 try
                 {
-                    userRhythmDir = FileDirectoryManager.getInstance().getUserRhythmsDirectory().getCanonicalFile().toPath();        // throws IOException
+                    userRhythmDir = RhythmDirsLocator.getDefault().getUserRhythmsDirectory().getCanonicalFile().toPath();        // throws IOException
 
                     for (var rprp : rhythmEntries)
                     {

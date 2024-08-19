@@ -69,6 +69,8 @@ public class MidiUtilities
 
     /**
      * Get MidiEvents converted from MidiEvents with a different PPQ resolution (Midi Pulses Per Quarter).
+     * <p>
+     * Note: if PPQ resolution is made smaller, it might be possible that the result contains zero-length notes (i.e. NOTE_ON and NOTE_OFF have same tick position).
      *
      * @param srcEvents A list of MidiEvents at srcPPQ resolution
      * @param srcPPQ    E.g. 480
@@ -124,8 +126,8 @@ public class MidiUtilities
     }
 
     /**
-     * Get track MidiEvents whose MidiMessage is instance of msgClass, which satisfy the specified MidiMessage tester, and whose tick
-     * position is within trackTickRange.
+     * Get track MidiEvents whose MidiMessage is instance of msgClass, which satisfy the specified MidiMessage tester, and whose tick position is within
+     * trackTickRange.
      * <p>
      * @param <T>
      * @param track
@@ -644,7 +646,6 @@ public class MidiUtilities
         return buildMessage(ShortMessage.CONTROL_CHANGE, channel, MidiConst.CTRL_CHG_RESET_ALL_CONTROLLERS, 0);
     }
 
-   
 
     /**
      * Convert a tempo in BPM (beat per minute) into a tempo in microseconds per quarter.
@@ -876,8 +877,8 @@ public class MidiUtilities
     /**
      * Change the global duration of the sequence.
      * <p>
-     * If tickEnd is shorter than current sequence duration, remove all MidiEvents after tickEnd and adjust notes onsets to stop no later
-     * than tickEnd. If tickEnd is greater than current sequence duration, just change end event position.
+     * If tickEnd is shorter than current sequence duration, remove all MidiEvents after tickEnd and adjust notes onsets to stop no later than tickEnd. If
+     * tickEnd is greater than current sequence duration, just change end event position.
      *
      * @param sequence
      * @param tickEnd
@@ -1019,7 +1020,7 @@ public class MidiUtilities
         return res;
     }
 
-      /**
+    /**
      * Try to guess if patchName represents a drums/percussion instrument.
      *
      * @param patchName
@@ -1032,7 +1033,7 @@ public class MidiUtilities
         boolean b = !s.contains("steel") && (s.contains("drum") || s.contains("kit") || s.contains("kt:") || s.contains("dr:") || s.contains("drm:"));
         return b;
     }
-    
+
     /**
      * Provide an explicit string for a MidiMessage.
      *
@@ -1423,6 +1424,5 @@ public class MidiUtilities
         CONTROL_CHANGE_STRINGS[123] = "ALL_NOTES_OFF";
     }
 
- 
 
 }

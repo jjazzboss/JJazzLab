@@ -122,7 +122,7 @@ public class AboutDialog extends javax.swing.JDialog
         text += "Netbeans.default_userdir_root: " + System.getProperty("netbeans.default_userdir_root", "?") + "\n";
         text += "Nb.native.filechooser: " + System.getProperty("nb.native.filechooser", "?") + "\n";
         text += "JJazzLab user dir: " + fdm.getJJazzLabUserDirectory() + "\n";
-        text += "JJazzLab rhythm user dir: " + fdm.getUserRhythmsDirectory().getAbsolutePath() + "\n";
+        text += "JJazzLab rhythm user dir: " + RhythmDirsLocator.getDefault().getUserRhythmsDirectory().getAbsolutePath() + "\n";
         text += "JJazzLab app config dir: " + fdm.getAppConfigDirectory(null) +"\n";
 
         textArea.setText(text);

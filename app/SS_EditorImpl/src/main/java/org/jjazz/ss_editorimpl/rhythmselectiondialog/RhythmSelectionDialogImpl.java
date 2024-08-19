@@ -58,6 +58,7 @@ import org.jjazz.rhythm.spi.RhythmProvider;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
 import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Variation;
+import org.jjazz.rhythm.spi.RhythmDirsLocator;
 import org.jjazz.rhythmdatabaseimpl.api.FavoriteRhythmProvider;
 import org.jjazz.rhythmselectiondialog.spi.RhythmPreviewer;
 import org.jjazz.rhythmdatabaseimpl.api.AddRhythmsAction;
@@ -179,7 +180,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         rhythmTable.scrollRectToVisible(rhythmTable.getCellRect(row, 0, true));
 
 
-        tf_userRhythmDir.setText(FileDirectoryManager.getInstance().getUserRhythmsDirectory().getAbsolutePath());
+        tf_userRhythmDir.setText(RhythmDirsLocator.getDefault().getUserRhythmsDirectory().getAbsolutePath());
         rhythmTable.requestFocusInWindow();
     }
 

@@ -38,6 +38,7 @@ import org.jjazz.analytics.api.Analytics;
 import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.Rhythm;
+import org.jjazz.rhythm.spi.RhythmDirsLocator;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmdatabase.api.RhythmInfo;
 import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
@@ -168,14 +169,14 @@ public final class YjzCreatorWizardAction implements ActionListener
     public static File getExtendedFile(RhythmInfo baseRhythm)
     {
         File res;
-        FileDirectoryManager fdm = FileDirectoryManager.getInstance();
+        var rdl = RhythmDirsLocator.getDefault();
         String baseFilename = baseRhythm.file().getName();
         String nameNoExt = Utilities.replaceExtension(baseFilename, "");
         String filename = nameNoExt + "-ext." + YamJJazzRhythmProvider.FILE_EXTENSION;
         int index = 1;
         do
         {
-            res = new File(fdm.getUserRhythmsDirectory(), filename);
+            res = new File(rdl.getUserRhythmsDirectory(), filename);
             filename = nameNoExt + "-ext" + (index++) + "." + YamJJazzRhythmProvider.FILE_EXTENSION;
         } while (res.exists());
         return res;

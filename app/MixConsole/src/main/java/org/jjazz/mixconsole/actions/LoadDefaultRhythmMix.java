@@ -29,12 +29,12 @@ import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import static javax.swing.Action.NAME;
 import static javax.swing.Action.SHORT_DESCRIPTION;
-import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.song.api.Song;
 import org.jjazz.mixconsole.api.MixConsole;
 import org.jjazz.mixconsole.api.MixConsoleTopComponent;
+import org.jjazz.rhythm.spi.RhythmDirsLocator;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -96,7 +96,7 @@ public class LoadDefaultRhythmMix extends AbstractAction
         String loadedFiles = "";
         for (Rhythm r : rhythms)
         {
-            File f = MidiMix.getRhythmMixFile(r.getName(), r.getFile(), FileDirectoryManager.getInstance().getUserRhythmsDirectory());
+            File f = MidiMix.getRhythmMixFile(r.getName(), r.getFile(), RhythmDirsLocator.getDefault().getUserRhythmsDirectory());
             if (!f.exists())
             {                
                 String msg = ResUtil.getString(getClass(), "CTL_NoDefaultRhythmMix", r.getName());

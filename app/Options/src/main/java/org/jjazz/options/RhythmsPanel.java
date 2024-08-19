@@ -29,6 +29,8 @@ import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -40,8 +42,8 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import org.jjazz.analytics.api.Analytics;
-import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.harmony.api.TimeSignature;
+import org.jjazz.rhythm.spi.RhythmDirsLocator;
 import org.jjazz.rhythm.spi.RhythmProvider;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmdatabase.api.RhythmInfo;
@@ -59,16 +61,16 @@ import org.openide.NotifyDescriptor;
 
 final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeListener, ChangeListener, ListSelectionListener, ActionListener
 {
-    
+
     private final RhythmsOptionsPanelController controller;
     private TimeSignature selectedTimeSignature;
     private final RhythmJTable rhythmTable = new RhythmJTable();
     private final RhythmProviderJList rhythmProviderList = new RhythmProviderJList();
     private final AddRhythmsAction addRhythmsAction = new AddRhythmsAction();
     private final DeleteRhythmFile deleteRhythmFileAction = new DeleteRhythmFile();
-    
+
     private static final Logger LOGGER = Logger.getLogger(RhythmsPanel.class.getSimpleName());
-    
+
     RhythmsPanel(RhythmsOptionsPanelController controller)
     {
         this.controller = controller;
@@ -80,8 +82,7 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
 
         // TODO listen to changes in form fields and call controller.changed()
         // Listen to directory changes
-        FileDirectoryManager fdm = FileDirectoryManager.getInstance();
-        fdm.addPropertyChangeListener(this); // RhythmDir changes        
+        RhythmDirsLocator.getDefault().addPropertyChangeListener(this);
 
         // Listen to rdb changes
         RhythmDatabase rdb = RhythmDatabase.getDefault();
@@ -92,7 +93,7 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
         ((RhythmProviderJList) list_rhythmProviders).setTimeSignatureFilter(selectedTimeSignature);
         rhythmTable.getSelectionModel().addListSelectionListener(this);
         cmb_timeSignature.addActionListener(this);
-        
+
         rhythmTable.addMouseListener(new MouseAdapter()
         {
             @Override
@@ -102,15 +103,14 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
             }
         });
     }
-    
+
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
         LOGGER.log(Level.FINE, "PropertyChangeEvent() evt={0}", evt);
-        FileDirectoryManager fdm = FileDirectoryManager.getInstance();
-        if (evt.getSource() == fdm)
+        if (evt.getSource() == RhythmDirsLocator.getDefault())
         {
-            if (evt.getPropertyName() == FileDirectoryManager.PROP_RHYTHM_USER_DIRECTORY)
+            if (evt.getPropertyName() == RhythmDirsLocator.PROP_RHYTHM_USER_DIRECTORY)
             {
                 updateRhythmUserDirField();
             }
@@ -446,23 +446,43 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
 
    private void btn_rhythmDirActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_rhythmDirActionPerformed
    {//GEN-HEADEREND:event_btn_rhythmDirActionPerformed
-       FileDirectoryManager fdm = FileDirectoryManager.getInstance();
-       File oldDir = fdm.getUserRhythmsDirectory();
+       RhythmDirsLocator rdl = RhythmDirsLocator.getDefault();
+       File oldDir = rdl.getUserRhythmsDirectory();
        File newDir = UIUtilities.showDirChooser(tf_rhythmUserDir.getText(), ResUtil.getString(getClass(), "CTL_RhythmDirDialogTitle"));
-       if (newDir != null && !oldDir.equals(newDir) && newDir.isDirectory())
+       if (newDir == null || !newDir.isDirectory())
        {
-           fdm.setUserRhythmsDirectory(newDir);
-           btn_rescanActionPerformed(null);
-           
-           Analytics.logEvent("Change User Rhythm Dir.");
+           return;
        }
+
+       try
+       {
+           if (!Files.isSameFile(oldDir.toPath(), newDir.toPath()))
+           {
+               String msg = ResUtil.getString(getClass(), "CTL_ConfirmUserRhythmDirChange");
+               NotifyDescriptor d = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.YES_NO_OPTION);
+               Object result = DialogDisplayer.getDefault().notify(d);
+               if (NotifyDescriptor.YES_OPTION == result)
+               {
+                   Analytics.logEvent("Change User Rhythm Dir.");
+                   rdl.setUserRhythmsDirectory(newDir);     // This will trigger a startup at rescan by RhythmDatabaseFactoryImpl
+
+                   LifecycleManager.getDefault().markForRestart();
+                   LifecycleManager.getDefault().exit();
+               }
+
+           }
+       } catch (IOException ex)
+       {
+           LOGGER.log(Level.WARNING, "btn_rhythmDirActionPerformed() Unexpected error comparing old and new user rhythms directory. ex={0}", ex.getMessage());
+       }
+
    }//GEN-LAST:event_btn_rhythmDirActionPerformed
 
     private void btn_rescanActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_rescanActionPerformed
     {//GEN-HEADEREND:event_btn_rescanActionPerformed
         RhythmDatabaseFactoryImpl.getInstance().markForStartupRescan(true);
-        
-        
+
+
         String msg = ResUtil.getString(getClass(), "CTL_ConfirmFullRescanRestart");
         NotifyDescriptor d = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.YES_NO_OPTION);
         Object result = DialogDisplayer.getDefault().notify(d);
@@ -498,7 +518,7 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
     private void btn_addRhythmsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_addRhythmsActionPerformed
     {//GEN-HEADEREND:event_btn_addRhythmsActionPerformed
         addRhythmsAction.actionPerformed(null);
-        
+
         var ri = addRhythmsAction.getLastRhythmAdded();
         if (ri != null)
         {
@@ -531,7 +551,7 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
             deleteRhythmFileAction.deleteRhythmFile(ri);
         }
     }//GEN-LAST:event_btn_deleteRhythmsActionPerformed
-    
+
     void load()
     {
         // TODO read settings and initialize GUI
@@ -547,7 +567,7 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
         updateRhythmUserDirField();
         updateRhythmProviderList();
     }
-    
+
     void store()
     {
         // TODO store modified settings
@@ -560,7 +580,7 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
 
         // NOTHING: changes are stored on the fly
     }
-    
+
     boolean valid()
     {
         // TODO check whether form is consistent and complete
@@ -577,11 +597,11 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
             btn_setDefaultRhythmActionPerformed(null);
         }
     }
-    
+
     private void updateRhythmUserDirField()
     {
-        FileDirectoryManager fdm = FileDirectoryManager.getInstance();
-        File f = fdm.getUserRhythmsDirectory();
+        RhythmDirsLocator rdl = RhythmDirsLocator.getDefault();
+        File f = rdl.getUserRhythmsDirectory();
         String s = f.getAbsolutePath();
         tf_rhythmUserDir.setText(s);
     }
@@ -598,7 +618,7 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
         RhythmDatabase rdb = RhythmDatabase.getDefault();
         RhythmProvider[] rps = rdb.getRhythmProviders().toArray(new RhythmProvider[0]);
         list_rhythmProviders.setListData(rps);
-        
+
         if (rps.length > 0)
         {
             list_rhythmProviders.setSelectedIndex(0);
@@ -631,7 +651,7 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
         });
         rhythmTable.getModel().setRhythms(rhythms);
     }
-    
+
     private void updateDefaultRhythmField()
     {
         RhythmDatabase rdb = RhythmDatabase.getDefault();

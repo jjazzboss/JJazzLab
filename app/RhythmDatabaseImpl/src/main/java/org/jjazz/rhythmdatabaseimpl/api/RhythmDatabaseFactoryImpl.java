@@ -37,7 +37,7 @@ import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import javax.swing.SwingUtilities;
 import org.jjazz.coreuicomponents.api.MultipleErrorsReportDialog;
-import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
+import org.jjazz.rhythm.spi.RhythmDirsLocator;
 import org.jjazz.rhythmdatabase.api.DefaultRhythmDatabase;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmdatabase.spi.RhythmDatabaseFactory;
@@ -111,7 +111,8 @@ public class RhythmDatabaseFactoryImpl implements RhythmDatabaseFactory, Propert
         dbInstance = DefaultRhythmDatabase.getInstance();
 
         // Be notified of user rhythm directory location changes
-        FileDirectoryManager.getInstance().addPropertyChangeListener(this);
+        RhythmDirsLocator rdl = RhythmDirsLocator.getDefault();
+        rdl.addPropertyChangeListener(this);
 
         INSTANCE = this;
     }
@@ -127,7 +128,7 @@ public class RhythmDatabaseFactoryImpl implements RhythmDatabaseFactory, Propert
                 // This could be done in doInitialization(), but doInitialization() is run in a separate thread, and because copyFilesOrNot might show user 
                 // a confirmation dialog, we want to hold the task so that the next OnShowingTask is started *after* this user confirmation.
                 LOGGER.info("initialize() Copying default rhythm files");
-                copyFilesOrNot(FileDirectoryManager.getInstance().getUserRhythmsDirectory());
+                copyFilesOrNot(RhythmDirsLocator.getDefault().getUserRhythmsDirectory());
             }
 
 
@@ -189,9 +190,9 @@ public class RhythmDatabaseFactoryImpl implements RhythmDatabaseFactory, Propert
     public void propertyChange(PropertyChangeEvent evt)
     {
         LOGGER.log(Level.FINE, "propertyChange() evt={0}", evt);
-        if (evt.getSource() == FileDirectoryManager.getInstance())
+        if (evt.getSource() == RhythmDirsLocator.getDefault())
         {
-            if (evt.getPropertyName().equals(FileDirectoryManager.PROP_RHYTHM_USER_DIRECTORY))
+            if (evt.getPropertyName().equals(RhythmDirsLocator.PROP_RHYTHM_USER_DIRECTORY))
             {
                 // Directory has changed, plan a rescan
                 markForStartupRescan(true);
@@ -217,7 +218,7 @@ public class RhythmDatabaseFactoryImpl implements RhythmDatabaseFactory, Propert
 
 
         String msgScanAll = ResUtil.getString(getClass(), "CTL_ScanningAllRhythmsInDir",
-                FileDirectoryManager.getInstance().getUserRhythmsDirectory().getAbsolutePath());
+                RhythmDirsLocator.getDefault().getUserRhythmsDirectory().getAbsolutePath());
 
 
         if (markedForRescan || !cacheFilePresent)

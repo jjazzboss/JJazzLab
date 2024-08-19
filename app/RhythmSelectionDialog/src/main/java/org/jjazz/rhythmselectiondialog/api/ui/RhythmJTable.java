@@ -45,8 +45,8 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
-import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.midi.api.synths.GM1Instrument;
+import org.jjazz.rhythm.spi.RhythmDirsLocator;
 import org.jjazz.rhythmdatabaseimpl.api.FavoriteRhythms;
 import org.jjazz.rhythmdatabase.api.RhythmInfo;
 import org.jjazz.utilities.api.ResUtil;
@@ -316,7 +316,7 @@ public class RhythmJTable extends JTable implements PropertyChangeListener
                     }
 
 
-                    Path pUserRhythmDir = FileDirectoryManager.getInstance().getUserRhythmsDirectory().toPath();
+                    Path pUserRhythmDir = RhythmDirsLocator.getDefault().getUserRhythmsDirectory().toPath();
                     Path pFile = ri.file().toPath();
                     if (!pFile.startsWith(pUserRhythmDir))
                     {

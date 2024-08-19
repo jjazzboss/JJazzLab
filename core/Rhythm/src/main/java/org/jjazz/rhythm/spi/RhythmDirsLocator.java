@@ -24,8 +24,9 @@
  */
 package org.jjazz.rhythm.spi;
 
+import java.beans.PropertyChangeListener;
 import java.io.File;
-import org.jjazz.rhythm.api.DefaultUserRhythmDirsLocator;
+import org.jjazz.rhythm.DefaultRhythmDirsLocatorImpl;
 import org.openide.util.Lookup;
 
 /**
@@ -34,7 +35,6 @@ import org.openide.util.Lookup;
 public interface RhythmDirsLocator
 {
 
-    static final String USER_RHYTHMS_SUBDIR = "Rhythms";
     static final String DEFAULT_RHYTHMS_SUBDIR = "Default";
 
     /**
@@ -52,14 +52,14 @@ public interface RhythmDirsLocator
         var res = Lookup.getDefault().lookup(RhythmDirsLocator.class);
         if (res == null)
         {
-            return DefaultUserRhythmDirsLocator.getInstance();
+            return DefaultRhythmDirsLocatorImpl.getInstance();
         }
         return res;
     }
 
 
     /**
-     * Get the user base directory for Rhythm files, ends with USER_RHYTHMS_SUBDIR.
+     * Get the user base directory for Rhythm files.
      * <p>
      * Create the directory if required.
      *
@@ -72,7 +72,7 @@ public interface RhythmDirsLocator
      * <p>
      * If changed the method fires a PROP_RHYTHM_USER_DIRECTORY property change event.
      *
-     * @param dir
+     * @param dir Must exist
      */
     void setUserRhythmsDirectory(File dir);
 
@@ -92,4 +92,8 @@ public interface RhythmDirsLocator
         }
         return res;
     }
+
+    void addPropertyChangeListener(PropertyChangeListener l);
+
+    void removePropertyChangeListener(PropertyChangeListener l);
 }

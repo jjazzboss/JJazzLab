@@ -39,6 +39,7 @@ import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.song.api.Song;
 import org.jjazz.mixconsole.api.MixConsole;
 import org.jjazz.mixconsole.api.MixConsoleTopComponent;
+import org.jjazz.rhythm.spi.RhythmDirsLocator;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -100,7 +101,7 @@ public class SaveRhythmDefaultMix extends AbstractAction
         // Save each rhythm
         for (Rhythm r : savedRhythms)
         {
-            File f = MidiMix.getRhythmMixFile(r.getName(), r.getFile(), FileDirectoryManager.getInstance().getUserRhythmsDirectory());
+            File f = MidiMix.getRhythmMixFile(r.getName(), r.getFile(), RhythmDirsLocator.getDefault().getUserRhythmsDirectory());
             MidiMix rhythmMix = new MidiMix();
             try
             {
