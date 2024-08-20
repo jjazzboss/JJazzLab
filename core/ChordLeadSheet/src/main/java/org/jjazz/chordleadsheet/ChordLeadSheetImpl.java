@@ -973,7 +973,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable, Propert
                 this.setSectionName(initSection, newInitSectionName);
 
 
-                // Create a copy of the init section with different name
+                // Create a copy of the init section restoring the original name
                 CLI_Factory clif = CLI_Factory.getDefault();
                 CLI_Section initSectionCopy = clif.createSection(oldInitSectionName,
                         initSection.getData().getTimeSignature(),

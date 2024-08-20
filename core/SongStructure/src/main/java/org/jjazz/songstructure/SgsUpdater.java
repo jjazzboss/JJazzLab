@@ -44,8 +44,11 @@ import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.chordleadsheet.api.ClsChangeListener;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
+import org.jjazz.chordleadsheet.api.event.ClsActionEvent;
 import org.jjazz.chordleadsheet.api.event.ItemClientPropertyChangedEvent;
 import org.jjazz.chordleadsheet.api.event.SizeChangedEvent;
+import org.jjazz.rhythmdatabase.api.RhythmDatabase;
+import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
 import org.jjazz.songstructure.api.SongPart;
 import org.openide.util.Exceptions;
 
@@ -55,7 +58,12 @@ import org.openide.util.Exceptions;
 public class SgsUpdater implements ClsChangeListener
 {
 
-    private SongStructureImpl sgs;
+    private enum State
+    {
+        DEFAULT, INSERT_INIT_BARS
+    };
+    private State state;
+    private SongStructureImpl songStructure;
     private ChordLeadSheet parentCls;
     private static final Logger LOGGER = Logger.getLogger(SgsUpdater.class.getSimpleName());
 
@@ -65,7 +73,8 @@ public class SgsUpdater implements ClsChangeListener
         {
             throw new IllegalArgumentException("sgs=" + sgs);
         }
-        this.sgs = sgs;
+        state = State.DEFAULT;
+        this.songStructure = sgs;
         parentCls = sgs.getParentChordLeadSheet();
         if (parentCls != null)
         {
@@ -105,7 +114,7 @@ public class SgsUpdater implements ClsChangeListener
         });
 
 
-        JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(sgs);
+        JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(songStructure);
         if (um != null && um.isUndoRedoInProgress())
         {
             // IMPORTANT : SongStructure generates his own undoableEdits,
@@ -123,40 +132,109 @@ public class SgsUpdater implements ClsChangeListener
                 .toList();
 
 
-        if (evt instanceof SizeChangedEvent)
+        switch (state)
         {
-            processSizeChanged(authorizeOnly);
-
-        } else if (!cliSections.isEmpty() && (evt instanceof ItemBarShiftedEvent ise))
-        {
-            processSectionsShifted(ise, cliSections, authorizeOnly);
-
-        } else if (!cliSections.isEmpty() && (evt instanceof ItemChangedEvent ice))
-        {
-            processSectionChanged(ice, cliSections.get(0), authorizeOnly);
-
-        } else if (!cliSections.isEmpty() && (evt instanceof ItemAddedEvent iae))
-        {
-            processSectionsAdded(iae, cliSections, authorizeOnly);
-
-        } else if (!cliSections.isEmpty() && (evt instanceof ItemRemovedEvent ire))
-        {
-            processSectionsRemoved(ire, cliSections, authorizeOnly);
-
-        } else if (evt instanceof SectionMovedEvent sme)
-        {
-            if (authorizeOnly)
+            case DEFAULT ->
             {
-                authorizeSectionMove(sme, cliSections.get(0));
-            } else
-            {
-                processSectionMoved(sme, cliSections.get(0));
+                if (evt instanceof ClsActionEvent cae
+                        && cae.getActionId().equals("insertBars")
+                        && cae.isActionStarted()
+                        && cae.getData().equals(Integer.valueOf(0)))
+                {
+                    // When inserting initial bars ("before" bar 0), ChordLeadSheet produces an unusual change event sequence because of the special init section. 
+                    // This leads to a song structure not updated as the user would expect (see Issue #459).
+                    // So it's better to wait for the "insert initial bars ClsActionEvent" to be completed then update song structure properly.                    
+                    state = State.INSERT_INIT_BARS;
+
+                } else if (evt instanceof SizeChangedEvent)
+                {
+                    processSizeChanged(authorizeOnly);
+
+                } else if (!cliSections.isEmpty() && (evt instanceof ItemBarShiftedEvent ise))
+                {
+                    processSectionsShifted(ise, cliSections, authorizeOnly);
+
+                } else if (!cliSections.isEmpty() && (evt instanceof ItemChangedEvent ice))
+                {
+                    processSectionChanged(ice, cliSections.get(0), authorizeOnly);
+
+                } else if (!cliSections.isEmpty() && (evt instanceof ItemAddedEvent iae))
+                {
+                    processSectionsAdded(iae, cliSections, authorizeOnly);
+
+                } else if (!cliSections.isEmpty() && (evt instanceof ItemRemovedEvent ire))
+                {
+                    processSectionsRemoved(ire, cliSections, authorizeOnly);
+
+                } else if (evt instanceof SectionMovedEvent sme)
+                {
+                    if (authorizeOnly)
+                    {
+                        authorizeSectionMove(sme, cliSections.get(0));
+                    } else
+                    {
+                        processSectionMoved(sme, cliSections.get(0));
+                    }
+
+                } else if (evt instanceof ItemClientPropertyChangedEvent e)
+                {
+                    // Nothing
+                }
             }
 
-        } else if (evt instanceof ItemClientPropertyChangedEvent e)
-        {
-            // Nothing
+            case INSERT_INIT_BARS ->
+            {
+                if (evt instanceof ClsActionEvent cae
+                        && cae.getActionId().equals("insertBars")
+                        && cae.isActionComplete())
+                {
+                    // Now we can update the song structure
+
+                    
+                    // Reaffect the parent section of the song parts that were assigned to the initial section (before the insert bars action)
+                    var initSection = parentCls.getSection(0);
+                    var secondSection = (CLI_Section) parentCls.getNextItem(initSection);
+                    assert secondSection != null : "initSection=" + initSection;
+                    var oldSpts = songStructure.getSongParts(spt -> spt.getParentSection() == initSection);
+                    var newSpts = oldSpts.stream()
+                            .map(spt -> spt.clone(null, spt.getStartBarIndex(), spt.getNbBars(), secondSection))
+                            .toList();
+                    songStructure.replaceSongParts(oldSpts, newSpts);
+
+
+                    
+                    // Now add the new initial song part linked to the new initial section
+                    var ts = initSection.getData().getTimeSignature();
+                    Rhythm r = songStructure.getLastUsedRhythm(ts);     // Might be null in special cases where songStructure is empty
+                    if (r == null)  
+                    {
+                        var rdb = RhythmDatabase.getDefault();
+                        try
+                        {
+                            r = rdb.getRhythmInstance(rdb.getDefaultRhythm(ts));
+                        } catch (UnavailableRhythmException ex)
+                        {
+                            LOGGER.log(Level.WARNING, "processChangeEvent() Can''t add initial song part with ts={0}. ex={1}", new Object[]
+                            {
+                                ts, ex.getMessage()
+                            });
+                        }
+                    }
+                    if (r != null)
+                    {
+                        var initSpt = songStructure.createSongPart(r, initSection.getData().getName(), 0, secondSection.getPosition().getBar(), initSection, false);
+                        songStructure.addSongParts(List.of(initSpt));
+                    }
+
+                    // Go back to default behaviour
+                    state = State.DEFAULT;
+                }
+            }
+            default -> throw new AssertionError(state.name());
+
         }
+
+
     }
 
 
@@ -184,21 +262,21 @@ public class SgsUpdater implements ClsChangeListener
             // It's a "small move", do not cross any other section, so it's just resize operations
             fillMapSptSize(mapSptSize, cliSection);
             fillMapSptSize(mapSptSize, prevSection);
-            sgs.resizeSongParts(mapSptSize);
+            songStructure.resizeSongParts(mapSptSize);
 
         } else
         {
             // It's a "big move", which crosses at least another section
 
             // We remove and re-add
-            sgs.removeSongParts(getSongParts(cliSection));
+            songStructure.removeSongParts(getSongParts(cliSection));
             SongPart spt = createSptAfterSection(cliSection, parentCls.getBarRange(cliSection).size(), prevSection);
-            sgs.addSongParts(Arrays.asList(spt));
+            songStructure.addSongParts(Arrays.asList(spt));
 
             // Resize impacted SongParts 
             fillMapSptSize(mapSptSize, sectionPrevBar);
             fillMapSptSize(mapSptSize, prevSection);
-            sgs.resizeSongParts(mapSptSize);
+            songStructure.resizeSongParts(mapSptSize);
 
         }
 
@@ -233,9 +311,9 @@ public class SgsUpdater implements ClsChangeListener
 
         // We remove and re-add
         CLI_Section prevSection = parentCls.getSection(newBarIndex - 1);
-        sgs.authorizeRemoveSongParts(getSongParts(cliSection));
+        songStructure.authorizeRemoveSongParts(getSongParts(cliSection));
         SongPart spt = createSptAfterSection(cliSection, getVirtualSectionSize(newBarIndex), prevSection);
-        sgs.authorizeAddSongParts(Arrays.asList(spt));
+        songStructure.authorizeAddSongParts(Arrays.asList(spt));
 
     }
 
@@ -246,10 +324,10 @@ public class SgsUpdater implements ClsChangeListener
         {
             if (authorizeOnly)
             {
-                sgs.authorizeRemoveSongParts(getSongParts(cliSection));
+                songStructure.authorizeRemoveSongParts(getSongParts(cliSection));
             } else
             {
-                sgs.removeSongParts(getSongParts(cliSection));
+                songStructure.removeSongParts(getSongParts(cliSection));
             }
 
 
@@ -259,7 +337,7 @@ public class SgsUpdater implements ClsChangeListener
                 Map<SongPart, Integer> mapSptSize = new HashMap<>();
                 CLI_Section prevSection = parentCls.getSection(barIndex - 1);
                 fillMapSptSize(mapSptSize, prevSection);
-                sgs.resizeSongParts(mapSptSize);
+                songStructure.resizeSongParts(mapSptSize);
             }
         }
     }
@@ -275,19 +353,19 @@ public class SgsUpdater implements ClsChangeListener
             if (authorizeOnly)
             {
                 SongPart spt = createSptAfterSection(cliSection, getVirtualSectionSize(barIndex), prevSection);
-                sgs.authorizeAddSongParts(Arrays.asList(spt));
+                songStructure.authorizeAddSongParts(Arrays.asList(spt));
             } else
             {
                 // Possible exception here !
                 SongPart spt = createSptAfterSection(cliSection, parentCls.getBarRange(cliSection).size(), prevSection);
-                sgs.addSongParts(Arrays.asList(spt));
+                songStructure.addSongParts(Arrays.asList(spt));
             }
             if (prevSection != null && !authorizeOnly)
             {
                 // Resize previous section if there is one
                 Map<SongPart, Integer> mapSptSize = new HashMap<>();
                 fillMapSptSize(mapSptSize, prevSection);
-                sgs.resizeSongParts(mapSptSize);
+                songStructure.resizeSongParts(mapSptSize);
             }
         }
 
@@ -312,7 +390,7 @@ public class SgsUpdater implements ClsChangeListener
             {
 
                 // Get the new rhythm to use
-                Rhythm newRhythm = sgs.getRecommendedRhythm(newTs, oldSpts.get(0).getStartBarIndex());
+                Rhythm newRhythm = songStructure.getRecommendedRhythm(newTs, oldSpts.get(0).getStartBarIndex());
 
 
                 ArrayList<SongPart> newSpts = new ArrayList<>();
@@ -334,11 +412,11 @@ public class SgsUpdater implements ClsChangeListener
                 if (authorizeOnly)
                 {
                     // Possible exception here                        
-                    sgs.authorizeReplaceSongParts(oldSpts, newSpts);
+                    songStructure.authorizeReplaceSongParts(oldSpts, newSpts);
                 } else
                 {
                     // Possible exception here
-                    sgs.replaceSongParts(oldSpts, newSpts);
+                    songStructure.replaceSongParts(oldSpts, newSpts);
                 }
             }
         }
@@ -350,7 +428,7 @@ public class SgsUpdater implements ClsChangeListener
             List<SongPart> spts = getSongParts(cliSection).stream()
                     .filter(spt -> spt.getName().equalsIgnoreCase(oldName))
                     .toList();
-            sgs.setSongPartsName(spts, newName);
+            songStructure.setSongPartsName(spts, newName);
         }
     }
 
@@ -375,7 +453,7 @@ public class SgsUpdater implements ClsChangeListener
         int lastBarIndex = evt.getItems().get(evt.getItems().size() - 1).getPosition().getBar();
         CLI_Section lastSection = parentCls.getSection(lastBarIndex);
         fillMapSptSize(mapSptSize, lastSection);
-        sgs.resizeSongParts(mapSptSize);
+        songStructure.resizeSongParts(mapSptSize);
     }
 
     private void processSizeChanged(boolean authorizeOnly)
@@ -389,7 +467,7 @@ public class SgsUpdater implements ClsChangeListener
         Map<SongPart, Integer> mapSptSize = new HashMap<>();
         CLI_Section lastSection = parentCls.getSection(parentCls.getSizeInBars() - 1);
         fillMapSptSize(mapSptSize, lastSection);
-        sgs.resizeSongParts(mapSptSize);
+        songStructure.resizeSongParts(mapSptSize);
     }
 
     /**
@@ -401,7 +479,7 @@ public class SgsUpdater implements ClsChangeListener
     private List<SongPart> getSongParts(CLI_Section parentSection)
     {
         ArrayList<SongPart> spts = new ArrayList<>();
-        for (SongPart spt : sgs.getSongParts())
+        for (SongPart spt : songStructure.getSongParts())
         {
             if (spt.getParentSection() == parentSection)
             {
@@ -449,7 +527,7 @@ public class SgsUpdater implements ClsChangeListener
         } else if (getSongParts(prevSection).isEmpty())
         {
             // Append
-            sptBarIndex = sgs.getSizeInBars();
+            sptBarIndex = songStructure.getSizeInBars();
 
         } else
         {
@@ -468,10 +546,10 @@ public class SgsUpdater implements ClsChangeListener
         }
 
         // Choose rhythm
-        Rhythm r = sgs.getRecommendedRhythm(newSection.getData().getTimeSignature(), sptBarIndex);
+        Rhythm r = songStructure.getRecommendedRhythm(newSection.getData().getTimeSignature(), sptBarIndex);
 
         // Create the song part       
-        SongPart spt = sgs.createSongPart(
+        SongPart spt = songStructure.createSongPart(
                 r,
                 newSection.getData().getName(),
                 sptBarIndex,
