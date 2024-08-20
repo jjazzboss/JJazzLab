@@ -70,6 +70,7 @@ import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.cl_editor.api.CL_EditorMouseListener;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.cl_editor.api.CL_SelectionUtilities;
+import org.jjazz.cl_editorimpl.actions.InsertBar;
 import org.jjazz.flatcomponents.api.FlatComponentsGlobalSettings;
 import org.jjazz.itemrenderer.api.IR_Type;
 import org.jjazz.itemrenderer.api.ItemRenderer;
@@ -134,7 +135,7 @@ public class CL_EditorController implements CL_EditorMouseListener
         editor.getActionMap().put("MoveItemRight", Actions.forID("JJazz", "org.jjazz.cl_editor.actions.moveitemright"));
         editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(SetEndBar.KEYSTROKE, "SetEndBar");
         editor.getActionMap().put("SetEndBar", Actions.forID("JJazz", "org.jjazz.cl_editor.actions.setendbar"));
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(InsertBarAnnotation.KEYSTROKE, "InsertBar");
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(InsertBar.KEYSTROKE, "InsertBar");
         editor.getActionMap().put("InsertBar", Actions.forID("JJazz", "org.jjazz.cl_editor.actions.InsertBar"));
         editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(InterpretationNext.KEYSTROKE, "NextInterpretation");
         editor.getActionMap().put("NextInterpretation", Actions.forID("JJazz", "org.jjazz.cl_editor.actions.interpretationnext"));
