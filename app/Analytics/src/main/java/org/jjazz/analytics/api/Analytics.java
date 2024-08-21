@@ -46,7 +46,7 @@ import org.openide.windows.OnShowing;
  * <p>
  * The class acts as a centralized bridge to collect all feature analytics events and pass them to AnalyticsProcessor instances present in the global lookup.
  * <p>
- * Properties/event names examples: "Upgrade" or "New Version"<br>
+ * Properties/event names examples: "Upgrade" or "New Version"
  * <p>
  */
 public class Analytics
@@ -68,7 +68,6 @@ public class Analytics
     private static final String PREF_ANALYTICS_ENABLED = "AnalyticsEnabled";
     private static Analytics INSTANCE;
     private final List<AnalyticsProcessor> processors;
-    private boolean enabled;
     private static final Preferences prefs = NbPreferences.forModule(Analytics.class);
     private static final Logger LOGGER = Logger.getLogger(Analytics.class.getSimpleName());
 
@@ -86,13 +85,12 @@ public class Analytics
 
     private Analytics()
     {
-        processors = Arrays.asList(new MixPanelProcessor());
-        enabled = processors.size() > 0 && prefs.getBoolean(PREF_ANALYTICS_ENABLED, true);
+        processors = List.of(new MixPanelProcessor());
     }
 
     public void setEnabled(boolean b)
     {
-        if (enabled == b)
+        if (isEnabled() == b)
         {
             return;
         }
@@ -103,7 +101,6 @@ public class Analytics
         }
 
         prefs.putBoolean(PREF_ANALYTICS_ENABLED, b);
-        enabled = b;
 
         if (b)
         {
@@ -114,7 +111,7 @@ public class Analytics
 
     public boolean isEnabled()
     {
-        return enabled;
+        return !processors.isEmpty() && prefs.getBoolean(PREF_ANALYTICS_ENABLED, true);
     }
 
     /**

@@ -80,6 +80,9 @@ public class RhythmDatabaseFactoryImpl implements RhythmDatabaseFactory, Propert
     private static RhythmDatabaseFactoryImpl INSTANCE;
     private final DefaultRhythmDatabase dbInstance;
     private Future<?> initFuture;
+    /**
+     * Stores PREF_NEED_RESCAN
+     */
     private static final Preferences prefs = NbPreferences.forModule(RhythmDatabaseFactoryImpl.class);
     private static final Logger LOGGER = Logger.getLogger(RhythmDatabaseFactoryImpl.class.getSimpleName());
 
@@ -108,7 +111,7 @@ public class RhythmDatabaseFactoryImpl implements RhythmDatabaseFactory, Propert
             throw new IllegalStateException("INSTANCE is not null");
         }
 
-        dbInstance = DefaultRhythmDatabase.getInstance();
+        dbInstance = DefaultRhythmDatabase.getInstance(prefs);
 
         // Be notified of user rhythm directory location changes
         RhythmDirsLocator rdl = RhythmDirsLocator.getDefault();

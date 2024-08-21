@@ -73,20 +73,25 @@ public class DefaultRhythmDatabase implements RhythmDatabase
      */
     private final Map<String, AdaptedRhythm> mapAdaptedRhythms = new HashMap<>();
     /**
-     * Used to store the default rhythms
+     * Stores the default rhythms per time signature
      */
     private final Preferences prefs;
     private final ArrayList<ChangeListener> listeners = new ArrayList<>();
     private static final Logger LOGGER = Logger.getLogger(DefaultRhythmDatabase.class.getSimpleName());
 
 
-    public static DefaultRhythmDatabase getInstance()
+    /**
+     *
+     * @param prefs The preferences to store the default rhythms (per time signature)
+     * @return
+     */
+    public static DefaultRhythmDatabase getInstance(Preferences prefs)
     {
         synchronized (DefaultRhythmDatabase.class)
         {
             if (INSTANCE == null)
             {
-                INSTANCE = new DefaultRhythmDatabase();
+                INSTANCE = new DefaultRhythmDatabase(prefs);
             }
         }
         return INSTANCE;
@@ -109,9 +114,10 @@ public class DefaultRhythmDatabase implements RhythmDatabase
         return INSTANCE_FACTORY;
     }
 
-    protected DefaultRhythmDatabase()
+    private DefaultRhythmDatabase(Preferences prefs)
     {
-        prefs = getPreferences();
+        Objects.requireNonNull(prefs);
+        this.prefs = prefs;
     }
 
     @Override
@@ -545,27 +551,19 @@ public class DefaultRhythmDatabase implements RhythmDatabase
 
     }
 
-    /**
-     * Can be overridden by subclass to use different preferences.
-     *
-     * @return
-     */
-    protected Preferences getPreferences()
-    {
-        return NbPreferences.forModule(DefaultRhythmDatabase.class);
-    }
 
     // ================================================================================================
     // Inner classes
     // ================================================================================================  
-
     private static class DefaultFactory implements RhythmDatabaseFactory
     {
 
         @Override
         public Future<?> initialize()
         {
-            return new FutureTask(() -> {}, null);
+            return new FutureTask(() -> 
+            {
+            }, null);
         }
 
         @Override
@@ -577,7 +575,7 @@ public class DefaultRhythmDatabase implements RhythmDatabase
         @Override
         public RhythmDatabase get()
         {
-            return getInstance();
+            return getInstance(NbPreferences.forModule(DefaultRhythmDatabase.class));
         }
 
     }

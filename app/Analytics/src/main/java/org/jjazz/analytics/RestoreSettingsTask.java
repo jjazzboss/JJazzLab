@@ -36,19 +36,24 @@ import org.openide.util.lookup.ServiceProvider;
 @ServiceProvider(service = UpgradeTask.class)
 public class RestoreSettingsTask implements UpgradeTask
 {
+
     @Override
     public void upgrade(String oldVersion)
     {
-        String version = System.getProperty("jjazzlab.version");
-        Analytics.logEvent("Upgrade",
-                Analytics.buildMap("Old Version", oldVersion == null ? "unknown" : oldVersion, "New Version", version == null ? "unknown" : version));
-        
-        if (oldVersion==null)
+
+        if (oldVersion == null)
         {
             return;
         }
+
         UpgradeManager um = UpgradeManager.getInstance();
         um.duplicateOldPreferences(NbPreferences.forModule(getClass()));
+
+        // Must be after the preferences import (analytics might be disabled)
+        String version = System.getProperty("jjazzlab.version");
+        Analytics.logEvent("Upgrade",
+                Analytics.buildMap("Old Version", oldVersion == null ? "unknown" : oldVersion,
+                        "New Version", version == null ? "unknown" : version));
     }
 
 }

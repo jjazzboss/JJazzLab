@@ -114,7 +114,7 @@ public class GeneralUISettings
 
 
     private static final String PREF_THEME_UPON_RESTART = "ThemeUponRestart";
-        private static GeneralUISettings INSTANCE;
+    private static GeneralUISettings INSTANCE;
     private final Theme sessionTheme;
 
     private static final Preferences prefs = NbPreferences.forModule(GeneralUISettings.class);
@@ -138,7 +138,8 @@ public class GeneralUISettings
         String name = prefs.get(PREF_THEME_UPON_RESTART, null);
         sessionTheme = getTheme(name, DEFAULT_THEME);
 
-        Analytics.setProperties(Analytics.buildMap("Theme", sessionTheme.getName()));
+        // From 4.1.1, in order to avoid an issue with the Analytics instance enabled state, the Analytics call below had to be replaced by an event in setThemeUponRestart()
+        // Analytics.setProperties(Analytics.buildMap("Theme", sessionTheme.getName()));
     }
 
     /**
@@ -224,6 +225,7 @@ public class GeneralUISettings
 
 
         prefs.put(PREF_THEME_UPON_RESTART, theme.getName());
+        Analytics.logEvent("Set theme", Analytics.buildMap("Theme", sessionTheme.getName()));
 
         if (org.openide.util.Utilities.isWindows())
         {
@@ -444,7 +446,5 @@ public class GeneralUISettings
     //=============================================================================
     // Inner classes
     //=============================================================================    
-
-   
 
 }
