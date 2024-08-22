@@ -14,7 +14,7 @@
     <packaging>nbm</packaging>
     
 
-     <!-- project meta-data  required for deployment/publishing on sonatype -->
+    <!-- project meta-data  required for deployment/publishing on sonatype -->
     <url>https://github.com/jjazzboss/JJazzLab/tree/master/plugins/FluidSynthEmbeddedSynth</url>
     <description>JJazzLab plugin to use a FluidSynth instance as output synth</description>
     <organization>
@@ -98,7 +98,7 @@
             </plugin>                      
             
             
-   <!-- GPG Signed Components -->
+            <!-- GPG Signed Components -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-gpg-plugin</artifactId>
@@ -106,7 +106,7 @@
                 <executions>
                     <execution>
                         <id>sign-artifacts</id>
-                        <phase>verify</phase>
+                        <phase>deploy</phase>
                         <goals>
                             <goal>sign</goal>
                         </goals>
