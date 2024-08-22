@@ -84,6 +84,9 @@ public class ResUtil
          * Trick so that check-resources.pl --remove-extra does not remove our common strings:
          * ResUtil.getString(bla.class, "CTL_CL_ConfirmClose");
          * ResUtil.getString(bla.class, "ErrorLoadingSongFile");
+         * ResUtil.getString(bla.class, "Cut");
+         * ResUtil.getString(bla.class, "Copy");
+         * ResUtil.getString(bla.class, "Paste");
          */
     }
 }
