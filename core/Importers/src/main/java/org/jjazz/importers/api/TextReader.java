@@ -41,7 +41,6 @@ import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.CLI_Factory;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
-import org.jjazz.harmony.api.Position;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
 
@@ -84,6 +83,7 @@ import org.jjazz.song.api.SongFactory;
  * "title=My song name" : if specified the created song will use this title as name.<br>
  * "useBase1" : if specified the bar/beat positions start at 1.<br>
  * Accepted delimiter characters are ',', ';' or space or tab
+ * '|' can be replaced by '!' when importing text ("!C7 !D6 ! Gm !  !" is valid).
  */
 public class TextReader
 {
@@ -97,7 +97,7 @@ public class TextReader
     private final Pattern pUseBase1 = Pattern.compile("^useBase1\\s*$", Pattern.CASE_INSENSITIVE);
     private final Pattern pBeatBasedChord = Pattern.compile("^(\\d+)\\s*[,;\\s]\\s*([0-9.]+)\\s*[,;\s]\\s*(\\S+)\\s*$");
     private final Pattern pTimeBasedChord = Pattern.compile("^([0-9.]+)\\s*[,;\\s]\\s*(\\S+)\\s*$");
-    private final Pattern pGridBasedLine = Pattern.compile("^\\|");
+    private final Pattern pGridBasedLine = Pattern.compile("^[|!]");
     private static final Logger LOGGER = Logger.getLogger(TextReader.class.getSimpleName());
 
     public TextReader(File f) throws IOException
@@ -273,8 +273,8 @@ public class TextReader
             {
                 isDataValid = true;
                 // for split to create the right nb of bars, remove first '|' and possibly last '|' if only trailing spaces 
-                String lineGrid = line.substring(1).replaceFirst("\\|\\s*$", "");
-                String[] strBars = lineGrid.split("\\|");
+                String lineGrid = line.substring(1).replaceFirst("[|!]\\s*$", "");
+                String[] strBars = lineGrid.split("[|!]");
                 List<CLI_ChordSymbol> curBarChords;
 
                 for (String strBar : strBars)
