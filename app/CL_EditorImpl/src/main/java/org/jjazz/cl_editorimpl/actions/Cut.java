@@ -111,7 +111,7 @@ public class Cut extends AbstractAction implements ContextAwareAction, CL_Contex
         Transferable t = null;
         List<ChordLeadSheetItem> items = new ArrayList<>();
 
-        
+
         JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(cls);
         um.startCEdit(undoText);
 
@@ -119,15 +119,15 @@ public class Cut extends AbstractAction implements ContextAwareAction, CL_Contex
         // Prepare the transferable        
         if (selection.isBarSelectedWithinCls())
         {
-            for (Integer modelBarIndex : selection.getSelectedBarIndexesWithinCls())
+            var clsBarIndexes = selection.getSelectedBarIndexesWithinCls();
+            for (Integer modelBarIndex : clsBarIndexes)
             {
                 items.addAll(cls.getItems(modelBarIndex, modelBarIndex, ChordLeadSheetItem.class));
             }
 
-
             IntRange barRange = selection.getBarRangeWithinCls();
-            assert barRange != null;
-            var data = new BarsTransferable.Data(barRange, items);
+            var firstSection = cls.getSection(clsBarIndexes.get(0)).getData();
+            var data = new BarsTransferable.Data(firstSection, barRange, items);
             t = new BarsTransferable(data);
 
             try
@@ -177,8 +177,7 @@ public class Cut extends AbstractAction implements ContextAwareAction, CL_Contex
         assert t != null;
         var clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
         clipboard.setContents(t, this);
-        
-        
+
 
         um.endCEdit(undoText);
     }
@@ -199,7 +198,7 @@ public class Cut extends AbstractAction implements ContextAwareAction, CL_Contex
     {
         selectionChange(cap.getSelection());
     }
-    
+
 
     // =========================================================================================================
     // ClipboardOwner
@@ -209,6 +208,6 @@ public class Cut extends AbstractAction implements ContextAwareAction, CL_Contex
     {
         // Nothing
     }
-    
-    
+
+
 }

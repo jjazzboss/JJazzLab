@@ -44,6 +44,7 @@ import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.cl_editorimpl.BarsTransferable;
 import org.jjazz.cl_editor.api.CL_SelectionUtilities;
 import static org.jjazz.uiutilities.api.UIUtilities.getGenericControlKeyStroke;
+import org.jjazz.utilities.api.IntRange;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.actions.CopyAction;
 import org.openide.awt.ActionID;
@@ -110,11 +111,15 @@ public class Copy extends AbstractAction implements ContextAwareAction, CL_Conte
         // Prepare the transferable
         if (selection.isBarSelectedWithinCls())
         {
-            for (Integer modelBarIndex : selection.getSelectedBarIndexesWithinCls())
+            var clsBarIndexes = selection.getSelectedBarIndexesWithinCls();
+            for (Integer modelBarIndex : clsBarIndexes)
             {
                 items.addAll(cls.getItems(modelBarIndex, modelBarIndex, ChordLeadSheetItem.class));
             }
-            var data = new BarsTransferable.Data(selection.getBarRangeWithinCls(), items);
+
+            IntRange barRange = selection.getBarRangeWithinCls();
+            var firstSection = cls.getSection(clsBarIndexes.get(0)).getData();
+            var data = new BarsTransferable.Data(firstSection, barRange, items);
             t = new BarsTransferable(data);
 
         } else if (selection.isItemSelected())
