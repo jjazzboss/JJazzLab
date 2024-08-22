@@ -56,7 +56,7 @@ import org.openide.util.Utilities;
 import org.openide.util.actions.SystemAction;
 
 @ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.copy")
-@ActionRegistration(displayName = "#CTL_Copy", lazy = false)
+@ActionRegistration(displayName = "cl-copy-not-used", lazy = false)
 @ActionReferences(
         {
             @ActionReference(path = "Actions/Section", position = 1100),
@@ -67,7 +67,7 @@ import org.openide.util.actions.SystemAction;
 public class Copy extends AbstractAction implements ContextAwareAction, CL_ContextActionListener, ClipboardOwner
 {
 
-    private final String undoText = ResUtil.getString(getClass(), "CTL_Copy");
+    private final String undoText = ResUtil.getCommonString("CTL_Copy");
     private Lookup context;
     private CL_ContextActionSupport cap;
 

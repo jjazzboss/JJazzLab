@@ -47,7 +47,7 @@ import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.utilities.api.ResUtil;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ss_editorimpl.actions.cut")
-@ActionRegistration(displayName = "#CTL_Cut", lazy = false)
+@ActionRegistration(displayName = "cut-not-used", lazy = false)
 @ActionReferences(
         {
             @ActionReference(path = "Actions/SongPart", position = 1000, separatorBefore = 900),
@@ -57,7 +57,7 @@ public class Cut extends AbstractAction implements ContextAwareAction, SS_Contex
 
     private Lookup context;
     private SS_ContextActionSupport cap;
-    private String undoText = ResUtil.getString(getClass(), "CTL_Cut");
+    private String undoText = ResUtil.getCommonString("CTL_Cut");
 
     public Cut()
     {

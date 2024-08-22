@@ -60,7 +60,7 @@ import org.openide.util.Utilities;
 import org.openide.util.actions.SystemAction;
 
 @ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.cut")
-@ActionRegistration(displayName = "#CTL_Cut", lazy = false)
+@ActionRegistration(displayName = "cl-cut-not-used", lazy = false)
 @ActionReferences(
         {
             @ActionReference(path = "Actions/Section", position = 1000),
@@ -73,7 +73,7 @@ public class Cut extends AbstractAction implements ContextAwareAction, CL_Contex
 
     private Lookup context;
     private CL_ContextActionSupport cap;
-    private final String undoText = ResUtil.getString(getClass(), "CTL_Cut");
+    private final String undoText = ResUtil.getCommonString("CTL_Cut");
 
     public Cut()
     {

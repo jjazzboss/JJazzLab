@@ -70,7 +70,7 @@ import org.openide.util.actions.SystemAction;
  * case of pasting a copied string representing a song.
  */
 @ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.paste")
-@ActionRegistration(displayName = "#CTL_Paste", lazy = false)
+@ActionRegistration(displayName = "cl-paste-not-used", lazy = false)
 @ActionReferences(
     {
         @ActionReference(path = "Actions/Section", position = 1200),
@@ -84,7 +84,7 @@ public class Paste extends AbstractAction implements ContextAwareAction, CL_Cont
     private static final List<DataFlavor> SUPPORTED_FLAVORS = Arrays.asList(ItemsTransferable.DATA_FLAVOR, BarsTransferable.DATA_FLAVOR, DataFlavor.stringFlavor);
     private Lookup context;
     private CL_ContextActionSupport cap;
-    private final String undoText = ResUtil.getString(getClass(), "CTL_Paste");
+    private final String undoText = ResUtil.getCommonString("CTL_Paste");
     protected static final Logger LOGGER = Logger.getLogger(Paste.class.getName());
 
     public Paste()

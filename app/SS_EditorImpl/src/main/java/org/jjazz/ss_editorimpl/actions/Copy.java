@@ -53,7 +53,7 @@ import org.jjazz.utilities.api.ResUtil;
  * Triggered by the SongPart menu entry and the CTRL-C keyboard shortcut. If RhythmParameters are selected reuse CopyRpValue methods.
  */
 @ActionID(category = "JJazz", id = "org.jjazz.ss_editorimpl.actions.copy")
-@ActionRegistration(displayName = "#CTL_Copy", lazy = false)
+@ActionRegistration(displayName = "copy-not-used", lazy = false)
 @ActionReferences(
         {
             @ActionReference(path = "Actions/SongPart", position = 1100),     // CopyRpValue action will also insert its own entry in Actions/RhythmParameter
@@ -63,7 +63,7 @@ public class Copy extends AbstractAction implements ContextAwareAction, SS_Conte
 
     private Lookup context;
     private SS_ContextActionSupport cap;
-    private String undoText = ResUtil.getString(getClass(), "CTL_Copy");
+    private String undoText = ResUtil.getCommonString("CTL_Copy");
 
     public Copy()
     {
