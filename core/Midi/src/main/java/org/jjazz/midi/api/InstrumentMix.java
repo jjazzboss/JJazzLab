@@ -279,8 +279,7 @@ public class InstrumentMix implements Serializable
         return new SerializationProxy(this);
     }
 
-    private void readObject(ObjectInputStream stream)
-            throws InvalidObjectException
+    private void readObject(ObjectInputStream stream) throws InvalidObjectException
     {
         throw new InvalidObjectException("Serialization proxy required");
 

@@ -29,9 +29,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.TreeSet;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.ChordLeadSheetFactory;
+import org.jjazz.chordleadsheet.api.Section;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
@@ -105,19 +107,10 @@ public class BarsTransferable implements Transferable
     private ChordLeadSheet buildCls()
     {
 
-        TimeSignature ts0 = TimeSignature.FOUR_FOUR;
-        if (!data.items.isEmpty())
-        {
-            ChordLeadSheet cls = data.items.first().getContainer();
-            if (cls != null)
-            {
-                ts0 = cls.getSection(data.barRange.from).getData().getTimeSignature();
-            }
-        }
+        var res = ChordLeadSheetFactory.getDefault().createEmptyLeadSheet(data.firstBarSection.getName(), data.firstBarSection.getTimeSignature(),
+                data.barRange.size(), null);
 
-        var res = ChordLeadSheetFactory.getDefault().createEmptyLeadSheet("A", ts0, data.barRange.size(), null);
 
-        
         for (var item : data.getItemsCopy(0))
         {
             if (item instanceof CLI_Section sectionItem)
@@ -159,20 +152,23 @@ public class BarsTransferable implements Transferable
 
         private final TreeSet<ChordLeadSheetItem> items = new TreeSet<>();
         private final IntRange barRange;
+        private final Section firstBarSection;
+
 
         /**
          *
+         * @param firstBarSection
          * @param barRange
-         * @param items    Can be empty
+         * @param items           Can be empty
          */
-        public Data(IntRange barRange, List<? extends ChordLeadSheetItem> items)
+        public Data(Section firstBarSection, IntRange barRange, List<? extends ChordLeadSheetItem> items)
         {
-            if (items == null || barRange == null)
-            {
-                throw new IllegalArgumentException("barRange=" + barRange + " items=" + items);
-            }
+            Objects.requireNonNull(firstBarSection);
+            Objects.requireNonNull(barRange);
+            Objects.requireNonNull(items);
             items.stream().forEach(item -> this.items.add(item.getCopy(null)));
             this.barRange = barRange;
+            this.firstBarSection = firstBarSection;
         }
 
         /**
@@ -188,6 +184,11 @@ public class BarsTransferable implements Transferable
             return barRange;
         }
 
+        public Section getFirstBarSection()
+        {
+            return firstBarSection;
+        }
+
         /**
          * Return a copy of the items adjusted to targetBarIndex and with the specified container.
          * <p>
@@ -199,14 +200,17 @@ public class BarsTransferable implements Transferable
         public List<ChordLeadSheetItem> getItemsCopy(int targetBarIndex)
         {
             List<ChordLeadSheetItem> res = new ArrayList<>();
-            int minBarIndex = items.first().getPosition().getBar();
-            int itemShift = minBarIndex - barRange.from;
-            int barShift = targetBarIndex < 0 ? 0 : targetBarIndex + itemShift - minBarIndex;
-            for (ChordLeadSheetItem<?> item : items)
+            if (!items.isEmpty())
             {
-                Position newPos = item.getPosition().getMoved(barShift, 0);
-                ChordLeadSheetItem<?> newItem = item.getCopy(newPos);
-                res.add(newItem);
+                int minBarIndex = items.first().getPosition().getBar();
+                int itemShift = minBarIndex - barRange.from;
+                int barShift = targetBarIndex < 0 ? 0 : targetBarIndex + itemShift - minBarIndex;
+                for (ChordLeadSheetItem<?> item : items)
+                {
+                    Position newPos = item.getPosition().getMoved(barShift, 0);
+                    ChordLeadSheetItem<?> newItem = item.getCopy(newPos);
+                    res.add(newItem);
+                }
             }
 
             return res;

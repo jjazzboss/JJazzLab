@@ -46,7 +46,7 @@ public class ClsActionEvent extends ClsChangeEvent
      * @param src
      * @param actionId          The corresponding method name from the ChordLeadSheet interface which performs the change, e.g. "addItem".
      * @param startedOrComplete False means action has started, true action is complete
-     * @param undo              If true this action is part of
+     * @param undo              If true this action is part of an undo operation
      * @param data              An optional data associated to the event
      */
     public ClsActionEvent(ChordLeadSheet src, String actionId, boolean startedOrComplete, boolean undo, Object data)

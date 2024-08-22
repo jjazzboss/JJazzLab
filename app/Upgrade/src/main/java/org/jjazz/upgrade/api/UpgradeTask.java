@@ -26,7 +26,8 @@ package org.jjazz.upgrade.api;
  * An upgrade task.
  * <p>
  * All UpgradeTasks found in the global Lookup will be called by the UpgradeManager upon a fresh JJazzLab start, upon module installation (this means UI is not
- * yet available).
+ * available yet).
+ * <p>
  */
 public interface UpgradeTask
 {

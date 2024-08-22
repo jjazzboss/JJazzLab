@@ -58,7 +58,7 @@ import org.jjazz.utilities.api.ResUtil;
  * Triggered by the SongPart menu entry and the CTRL-V keyboard shortcut. If RhythmParameters are selected reuse PasteRpValue methods.
  */
 @ActionID(category = "JJazz", id = "org.jjazz.ss_editorimpl.actions.paste")
-@ActionRegistration(displayName = "#CTL_Paste", lazy = false)
+@ActionRegistration(displayName = "paste-not-used", lazy = false)
 @ActionReferences(
         {
             @ActionReference(path = "Actions/SongPart", position = 1200),
@@ -68,7 +68,7 @@ public class Paste extends AbstractAction implements ContextAwareAction, SS_Cont
 
     private Lookup context;
     private SS_ContextActionSupport cap;
-    private String undoText = ResUtil.getString(getClass(), "CTL_Paste");
+    private String undoText = ResUtil.getCommonString("CTL_Paste");
 
     public Paste()
     {

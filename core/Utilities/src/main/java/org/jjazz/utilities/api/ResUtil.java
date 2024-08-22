@@ -81,9 +81,14 @@ public class ResUtil
         return (res == null) ? "<" + key + ">" : res;
         
         /**
-         * Trick so that check-resources.pl --remove-extra does not remove our common strings:
+         * IMPORTANT:
+         * Trick so that running "check-resources.pl --remove-extra" does not remove the common strings defined in Bundle.properties:
+         * 
          * ResUtil.getString(bla.class, "CTL_CL_ConfirmClose");
          * ResUtil.getString(bla.class, "ErrorLoadingSongFile");
+         * ResUtil.getString(bla.class, "CTL_Cut");
+         * ResUtil.getString(bla.class, "CTL_Copy");
+         * ResUtil.getString(bla.class, "CTL_Paste");
          */
     }
 }

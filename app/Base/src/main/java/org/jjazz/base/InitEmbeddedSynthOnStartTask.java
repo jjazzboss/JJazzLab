@@ -59,14 +59,22 @@ public class InitEmbeddedSynthOnStartTask implements OnStartTask
         if (provider == null || !provider.isEnabled())
         {
             showOnceNoFluidSynthWarning();
-        } else
-        {
-            // Save the EmbeddedSynth active status
-            provider.addPropertyChangeListener(e -> prefs.putBoolean(PREF_EMBEDDED_SYNTH_ACTIVATED, (Boolean) e.getNewValue()));
+            return;
         }
 
-        boolean activate = um.isFreshStart() || prefs.getBoolean(PREF_EMBEDDED_SYNTH_ACTIVATED, false);
 
+        // EmbeddedSynth is available
+        // Make sure to always save the EmbeddedSynth active status as a preference
+        provider.addPropertyChangeListener(e -> prefs.putBoolean(PREF_EMBEDDED_SYNTH_ACTIVATED, (Boolean) e.getNewValue()));
+
+
+        // Force activate upon fresh start only if current Midi OUT is not defined or it's a crappy one...
+        var md = JJazzMidiSystem.getInstance().getDefaultOutDevice();
+        var mdName = md == null ? null : md.getDeviceInfo().getName().toLowerCase();
+        boolean freshStartActivate = um.isFreshStart() && (mdName == null || mdName.contains("java") || mdName.contains("microsoft") || mdName.contains("gervil"));
+
+        boolean activate = prefs.getBoolean(PREF_EMBEDDED_SYNTH_ACTIVATED, false) || freshStartActivate;
+        
         if (activate)
         {
             try

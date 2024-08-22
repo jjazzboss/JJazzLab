@@ -49,7 +49,8 @@ import org.openide.windows.WindowManager;
         })
 public class InsertBar extends AbstractAction implements ContextAwareAction, CL_ContextActionListener
 {
-public static final KeyStroke KEYSTROKE = KeyStroke.getKeyStroke("I");
+
+    public static final KeyStroke KEYSTROKE = KeyStroke.getKeyStroke("I");
     private Lookup context;
     private CL_ContextActionSupport cap;
     private int insertModelBarIndex;
@@ -75,14 +76,14 @@ public static final KeyStroke KEYSTROKE = KeyStroke.getKeyStroke("I");
     @Override
     public Action createContextAwareInstance(Lookup context)
     {
-        LOGGER.log(Level.FINE, "createContextAwareInstance()");   
+        LOGGER.log(Level.FINE, "createContextAwareInstance()");
         return new InsertBar(context);
     }
 
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        assert insertModelBarIndex >= 0;   
+        assert insertModelBarIndex >= 0;
         CL_SelectionUtilities selection = cap.getSelection();
         ChordLeadSheet cls = selection.getChordLeadSheet();
         InsertBarDialog dlg = InsertBarDialog.getInstance();
@@ -121,7 +122,7 @@ public static final KeyStroke KEYSTROKE = KeyStroke.getKeyStroke("I");
                 insertNbBars = selection.getSelectedBars().size();
             }
         }
-        LOGGER.log(Level.FINE, "selectionChange() b={0}", b);   
+        LOGGER.log(Level.FINE, "selectionChange() b={0}", b);
         setEnabled(b);
     }
 
