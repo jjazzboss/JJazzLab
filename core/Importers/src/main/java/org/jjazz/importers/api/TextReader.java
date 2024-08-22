@@ -49,7 +49,7 @@ import org.jjazz.song.api.SongFactory;
  * <p>
  * There are 3 possible formats to specify chords, GRID-BASED, BEAT-BASED or TIME-BASED.
  * <p>
- * GRID-BASED="|4/4 chord1 chord2 | chord3 | chord4|"<br>
+ * GRID-BASED="|4/4 chord1 chord2 | chord3 | chord4|" <br>
  * Use % in a bar to repeat the same chords from the previous bar. Bars can start with an optional time signature. <br>
  * Example:<br>
  * | C | F7 Eb7 | % | Db7 | <br>
