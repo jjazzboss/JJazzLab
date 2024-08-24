@@ -24,6 +24,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.Reader;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +33,8 @@ import java.util.TreeMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParserFactory;
 import nu.xom.Attribute;
 import nu.xom.Builder;
 import nu.xom.Document;
@@ -44,12 +48,19 @@ import org.jjazz.harmony.api.Note;
 import org.jjazz.harmony.api.TimeSignature;
 import static org.jjazz.importers.musicxml.MusicXmlParser.XMLtoJJazzChordMap;
 import org.jjazz.harmony.api.Position;
+import org.jjazz.utilities.api.Utilities;
+import org.netbeans.api.annotations.common.StaticResource;
+import org.openide.util.BaseUtilities;
+import org.openide.util.Exceptions;
+import org.xml.sax.EntityResolver;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+import org.xml.sax.XMLReader;
 
 /**
  * Parses a MusicXML file, and fires events for <code>MusicXmlParserListener</code> interfaces when tokens are interpreted.
  * <p>
- * The <code>ParserListener</code> does intelligent things with the resulting events, such as create music, draw sheet music, or
- * transform the data.
+ * The <code>ParserListener</code> does intelligent things with the resulting events, such as create music, draw sheet music, or transform the data.
  * <p>
  * MusicXmlParser.parse can be called with a file name, File, InputStream, or Reader
  *
@@ -63,12 +74,15 @@ import org.jjazz.harmony.api.Position;
 public final class MusicXmlParser
 {
 
-    private final CopyOnWriteArrayList<MusicXmlParserListener> parserListeners;
-    private final Builder xomBuilder;
-    private Document xomDoc;
+    @StaticResource(relative = true)
+    public static final String ZIP_RESOURCE_PATH = "resources/partwise-dtd.zip";
 
+    private static Builder XOM_BUILDER;
+    private static File DTD_FILE;
+    private Document xomDoc;
+    private final CopyOnWriteArrayList<MusicXmlParserListener> parserListeners;
     private byte divisionsPerBeat;
-    public TimeSignature timeSignature; 
+    public TimeSignature timeSignature;
     private int curBarIndex;
     private int curDivisionInBar;
 
@@ -82,7 +96,6 @@ public final class MusicXmlParser
         initChordMap();
 
         parserListeners = new CopyOnWriteArrayList<MusicXmlParserListener>();
-        xomBuilder = new Builder();
 
         // Set up MusicXML default values
         divisionsPerBeat = 1;
@@ -91,27 +104,26 @@ public final class MusicXmlParser
         timeSignature = TimeSignature.FOUR_FOUR;
     }
 
-    public void parse(String musicXmlString) throws ValidityException, ParsingException, IOException
+    public void parse(String musicXmlString) throws ValidityException, ParsingException, IOException, SAXException, ParserConfigurationException
     {
         // URI is null when parsing a String as it's coming from somewhere else
-        parse(xomBuilder.build(musicXmlString, (String) null));
+        parse(getBuilder().build(musicXmlString, (String) null));
     }
 
-    public void parse(File inputFile) throws ValidityException, ParsingException, IOException
+    public void parse(File inputFile) throws ValidityException, ParsingException, IOException, ParserConfigurationException, SAXException
     {
-        parse(xomBuilder.build(inputFile));
+        parse(getBuilder().build(inputFile));
     }
 
     public void parse(FileInputStream inputStream) throws ValidityException,
-            ParsingException, IOException
+            ParsingException, IOException, ParserConfigurationException, SAXException
     {
-        parse(xomBuilder.build(inputStream));
+        parse(getBuilder().build(inputStream));
     }
 
-    public void parse(Reader reader) throws ValidityException,
-            ParsingException, IOException
+    public void parse(Reader reader) throws ValidityException, ParsingException, IOException, ParserConfigurationException, SAXException
     {
-        parse(xomBuilder.build(reader));
+        parse(getBuilder().build(reader));
     }
 
     private void parse(Document document)
@@ -123,8 +135,8 @@ public final class MusicXmlParser
     /**
      * Parses a MusicXML file and fires events to subscribed <code>ParserListener</code> interfaces.
      * <p>
-     * As the file is parsed, events are sent to <code>ParserListener</code> interfaces, which are responsible for doing something
-     * interesting with the music data.
+     * As the file is parsed, events are sent to <code>ParserListener</code> interfaces, which are responsible for doing something interesting with the music
+     * data.
      * <p>
      * the input is a XOM Document, which has been built previously
      *
@@ -136,7 +148,7 @@ public final class MusicXmlParser
         Element root = xomDoc.getRootElement();
         if (root.getQualifiedName().equalsIgnoreCase("score-timewise"))
         {
-            LOGGER.warning("parse() score-timewise musicXML is not currently supported.");   
+            LOGGER.warning("parse() score-timewise musicXML is not currently supported.");
             return;
         } else if (root.getQualifiedName().equalsIgnoreCase("score-partwise"))
         {
@@ -150,24 +162,24 @@ public final class MusicXmlParser
         Element part = findPartContainingHarmony(root);
         if (part == null)
         {
-            LOGGER.warning("parseHarmonyPartWise() No part found with an harmony element.");   
+            LOGGER.warning("parseHarmonyPartWise() No part found with an harmony element.");
             return;
         }
 
         Attribute partId = part.getAttribute("id");     // Some files don't have an id !?
         if (partId == null)
         {
-            LOGGER.log(Level.WARNING, "parseHarmonyPartWise() No id found for part={0}", part.getLocalName());   
+            LOGGER.log(Level.WARNING, "parseHarmonyPartWise() No id found for part={0}", part.getLocalName());
         } else
         {
-            LOGGER.log(Level.FINE, "parseHarmonyPartWise() Processing part id={0}", partId.getValue());   
+            LOGGER.log(Level.FINE, "parseHarmonyPartWise() Processing part id={0}", partId.getValue());
         }
 
 
         for (Element elMeasure : part.getChildElements("measure"))
         {
             String numberId = elMeasure.getAttribute("number").getValue();
-            LOGGER.log(Level.FINE, "parseHarmonyPartWise() processing measure numberId={0} curBarIndex={1}", new Object[]   
+            LOGGER.log(Level.FINE, "parseHarmonyPartWise() processing measure numberId={0} curBarIndex={1}", new Object[]
             {
                 numberId, curBarIndex
             });
@@ -217,8 +229,11 @@ public final class MusicXmlParser
                 timeSignature = TimeSignature.get(upper, lower);
                 if (timeSignature == null)
                 {
-                    LOGGER.log(Level.WARNING, "parseMusicData() Invalid time signature={0}/{1}. Using 4/4 instead.", new Object[]{upper,
-                        lower});   
+                    LOGGER.log(Level.WARNING, "parseMusicData() Invalid time signature={0}/{1}. Using 4/4 instead.", new Object[]
+                    {
+                        upper,
+                        lower
+                    });
                     timeSignature = TimeSignature.FOUR_FOUR;
                 }
                 fireTimeSignatureParsed(timeSignature, curBarIndex);
@@ -227,7 +242,7 @@ public final class MusicXmlParser
 
         for (Element el : musicDataRoot.getChildElements())
         {
-            LOGGER.log(Level.FINE, "parseMeasure() el={0}", el.getLocalName());   
+            LOGGER.log(Level.FINE, "parseMeasure() el={0}", el.getLocalName());
             switch (el.getLocalName())
             {
                 case "harmony":
@@ -283,8 +298,11 @@ public final class MusicXmlParser
             }
             if (curDivisionInBar < 0)
             {
-                LOGGER.log(Level.SEVERE, "parseMusicData() invalid value for curDivisionInBar={0}, el={1}. Resetting value to 0", new Object[]{curDivisionInBar,
-                    el});   
+                LOGGER.log(Level.SEVERE, "parseMusicData() invalid value for curDivisionInBar={0}, el={1}. Resetting value to 0", new Object[]
+                {
+                    curDivisionInBar,
+                    el
+                });
                 curDivisionInBar = 0;
             }
         }
@@ -351,7 +369,7 @@ public final class MusicXmlParser
     {
         if (barIndex < 0 || divisionPosInBar < 0)
         {
-            throw new IllegalArgumentException("harmony=" + elHarmony + " barIndex=" + barIndex + " divisionPosInBar=" + divisionPosInBar);   
+            throw new IllegalArgumentException("harmony=" + elHarmony + " barIndex=" + barIndex + " divisionPosInBar=" + divisionPosInBar);
         }
         ChordTypeDatabase ctdb = ChordTypeDatabase.getDefault();
 
@@ -373,8 +391,12 @@ public final class MusicXmlParser
             divisionPosInBar += offset;
             if (divisionPosInBar < 0)
             {
-                LOGGER.log(Level.SEVERE, "parseHarmony() invalid value for divisionPosInBar={0}, barIndex={1}, elOffset={2}, elHarmony={3}. Resetting value to 0", new Object[]{divisionPosInBar,
-                    barIndex, elOffset, elHarmony});   
+                LOGGER.log(Level.SEVERE,
+                        "parseHarmony() invalid value for divisionPosInBar={0}, barIndex={1}, elOffset={2}, elHarmony={3}. Resetting value to 0", new Object[]
+                        {
+                            divisionPosInBar,
+                            barIndex, elOffset, elHarmony
+                        });
                 divisionPosInBar = 0;
             }
         }
@@ -392,7 +414,7 @@ public final class MusicXmlParser
         Element chord_kind = elHarmony.getFirstChildElement("kind");    // In rare cases was null!
         if (chord_kind == null)
         {
-            LOGGER.log(Level.WARNING, "parseHarmony() No kind value for element harmony={1}. Using major chord instead.", new Object[]   
+            LOGGER.log(Level.WARNING, "parseHarmony() No kind value for element harmony={1}. Using major chord instead.", new Object[]
             {
                 elHarmony.toString()
             });
@@ -405,7 +427,7 @@ public final class MusicXmlParser
         if (strKindValue == null || strKindValue.isBlank())
         {
             // Robustness cases - it should never happen but some .xml are malformed
-            LOGGER.log(Level.WARNING, "parseHarmony() Invalid empty kind value={0} in element harmony={1}. Using major chord instead.", new Object[]   
+            LOGGER.log(Level.WARNING, "parseHarmony() Invalid empty kind value={0} in element harmony={1}. Using major chord instead.", new Object[]
             {
                 strKindValue, elHarmony.toString()
             });
@@ -438,15 +460,19 @@ public final class MusicXmlParser
                 }
 
                 // Default
-                LOGGER.log(Level.WARNING, "parseHarmony() No chord type found for kind_value={0} in element harmony={1}. Using major chord instead.", new Object[]{strKindValue,
-                    elHarmony.toString()});   
+                LOGGER.log(Level.WARNING, "parseHarmony() No chord type found for kind_value={0} in element harmony={1}. Using major chord instead.",
+                        new Object[]
+                        {
+                            strKindValue,
+                            elHarmony.toString()
+                        });
                 strChordType = "";
 
             }
 
             // Get the corresponding chordtype which will give us the Degrees
             ChordType ct = ctdb.getChordType(strChordType);
-            assert ct != null : "strChordType=" + strChordType;   
+            assert ct != null : "strChordType=" + strChordType;
             degrees.addAll(ct.getDegrees());
         }
 
@@ -468,8 +494,11 @@ public final class MusicXmlParser
             if (ct == null)
             {
                 ct = ctdb.getChordType(0); // Default if problem
-                LOGGER.log(Level.WARNING, "parseHarmony() Can''t parse chord symbol for {0}. Using chord kind value={1} instead.", new Object[]{strKindText,
-                    ct.getName()});   
+                LOGGER.log(Level.WARNING, "parseHarmony() Can''t parse chord symbol for {0}. Using chord kind value={1} instead.", new Object[]
+                {
+                    strKindText,
+                    ct.getName()
+                });
             }
         }
 
@@ -581,14 +610,14 @@ public final class MusicXmlParser
                     degree = Degree.getDegree(Degree.Natural.SIXTH, intAlter);
                     break;
                 default:
-                    LOGGER.log(Level.WARNING, "parseDegrees() degree-value={0} not supported. Skipping degree element...", intValue);   
+                    LOGGER.log(Level.WARNING, "parseDegrees() degree-value={0} not supported. Skipping degree element...", intValue);
                     continue;
             }
 
             if (degree == null)
             {
                 // Example found: 13 degree with alter=+1 !
-                LOGGER.log(Level.WARNING, "parseDegrees() degree-value={0}/degree-alter={1} not supported. Skipping degree element...",   
+                LOGGER.log(Level.WARNING, "parseDegrees() degree-value={0}/degree-alter={1} not supported. Skipping degree element...",
                         new Object[]
                         {
                             intValue, intAlter
@@ -604,17 +633,17 @@ public final class MusicXmlParser
                     degrees.add(degree);
                     break;
                 case "subtract":
-                    LOGGER.warning("parseDegrees() degree-type=substract not handled. Skipping degree element...");   
+                    LOGGER.warning("parseDegrees() degree-type=substract not handled. Skipping degree element...");
                     continue;
                 default:
-                    throw new IllegalStateException("strType=" + strType);   
+                    throw new IllegalStateException("strType=" + strType);
             }
         }
     }
 
     /**
-     * converts beats per minute (BPM) to pulses per minute (PPM) assuming 240 pulses per second In MusicXML, BPM can be
-     * fractional, so <code>BPMtoPPM</code> takes a float argument
+     * converts beats per minute (BPM) to pulses per minute (PPM) assuming 240 pulses per second In MusicXML, BPM can be fractional, so <code>BPMtoPPM</code>
+     * takes a float argument
      *
      * @param bpm
      * @return ppm
@@ -647,6 +676,110 @@ public final class MusicXmlParser
     // =========================================================================================
     // Private methods
     // =========================================================================================
+
+    /**
+     * Get the builder configured to use our local dtd file.
+     *
+     * @return
+     * @throws ParserConfigurationException
+     * @throws SAXException
+     */
+    private Builder getBuilder() throws ParserConfigurationException, SAXException
+    {
+        if (XOM_BUILDER != null)
+        {
+            return XOM_BUILDER;
+        }
+
+        // Some dtd uri referenced in .musicxml files are not available anymore, like "http://www.musicxml.org/dtds/partwise.dtd", which caused Issue #461
+        // Plus it's better to have files locally for performance reasons (especially when importing in batch mode).
+        // From 4.1.1 we now embed our own musicxml 4.0 dtd local copy. This means we need a custom EntityResolver().
+        // (also tried https://xerces.apache.org/xerces2-j/faq-xcatalogs.html but never managed to make it work, too complicated).
+
+        final File dtdFile;
+        try
+        {
+            dtdFile = getDtdFile(); // extract the files in a tmp directory if not already done
+        } catch (IOException ex)
+        {
+            throw new SAXException("Impossible to create the local dtd file. ex=" + ex.getMessage());
+        }
+
+
+        var spf = SAXParserFactory.newDefaultInstance();
+        XMLReader reader = spf.newSAXParser().getXMLReader();
+        reader.setEntityResolver(new EntityResolver()
+        {
+
+            @Override
+            public InputSource resolveEntity(String publicId, String systemId) throws SAXException, IOException
+            {
+                LOGGER.log(Level.FINE, "resolveEntity() publicId={0} systemId={1}", new Object[]
+                {
+                    publicId, systemId
+                });
+
+                InputSource res = null;  // By default, no substitution is proposed, so parser (the caller) will set up an URI connection to the system idenfifier
+
+                if (publicId.matches("-//Recordare//DTD MusicXML [1-9]\\.[0-9] Partwise//EN"))
+                {
+                    LOGGER.log(Level.FINE, "                ==> handling {0}", publicId);
+                    FileInputStream fis = new FileInputStream(dtdFile);        // throws FileNotFoundException (subclass of IOException)
+                    res = new InputSource(fis);
+                    res.setSystemId(BaseUtilities.toURI(dtdFile).toString());
+                }
+                return res;
+            }
+        });
+
+
+        XOM_BUILDER = new Builder(reader);
+        return XOM_BUILDER;
+    }
+
+    /**
+     * Get the local copy of the partwise.dtd file (+ related files in same directory).
+     *
+     * @return The existing partwise.dtd file
+     * @throws java.io.IOException A problem occured
+     */
+    private File getDtdFile() throws IOException
+    {
+        if (DTD_FILE != null && DTD_FILE.exists())
+        {
+            return DTD_FILE;
+        }
+
+        DTD_FILE = null;
+
+        // Create a temporary directory -always the same so it can be reused
+        Path tmpDir = Path.of(System.getProperty("java.io.tmpdir")).resolve("jl-musicxml");
+        if (!Files.isDirectory(tmpDir))
+        {
+            Files.createDirectory(tmpDir);
+        }
+
+        // Extract the dtd files
+        List<File> res = Utilities.extractZipResource(getClass(), ZIP_RESOURCE_PATH, tmpDir, true);
+        for (var f : res)
+        {
+            if (f.getName().equals("partwise.dtd"))
+            {
+                DTD_FILE = f;
+                break;
+            }
+        }
+
+        LOGGER.log(Level.INFO, "getDtdFile() DTD_FILE={0}", DTD_FILE);
+
+        if (DTD_FILE == null)
+        {
+            throw new IOException("Could not create dtd file");
+        }
+
+        return DTD_FILE;
+    }
+
     //
     // Event firing methods
     //

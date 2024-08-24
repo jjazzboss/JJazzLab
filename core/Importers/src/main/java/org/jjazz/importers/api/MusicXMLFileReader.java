@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.xml.parsers.ParserConfigurationException;
 import nu.xom.ParsingException;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.harmony.api.TimeSignature;
@@ -44,6 +45,7 @@ import org.jjazz.rhythm.api.TempoRange;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
 import org.openide.util.Exceptions;
+import org.xml.sax.SAXException;
 
 /**
  * MusicXML leadsheet file reader.
@@ -85,7 +87,7 @@ public class MusicXMLFileReader
         try
         {
             parser.parse(file);
-        } catch (ParsingException ex)
+        } catch (ParsingException | ParserConfigurationException | SAXException ex)
         {
             throw new IOException(ex);
         }
