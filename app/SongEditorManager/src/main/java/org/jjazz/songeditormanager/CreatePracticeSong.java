@@ -358,7 +358,7 @@ public final class CreatePracticeSong extends AbstractAction implements ContextA
             if (cliSection.getPosition().getBar() == barIndex)
             {
                 // There is a section on barIndex, copy it
-                var newCliSection = (CLI_Section) cliSection.getCopy(new Position(barIndex - startBar, 0), newCls);
+                var newCliSection = (CLI_Section) cliSection.getCopy(new Position(barIndex - startBar), newCls);
                 try
                 {
                     newCls.addSection(newCliSection);
@@ -387,9 +387,9 @@ public final class CreatePracticeSong extends AbstractAction implements ContextA
         {
             assert startBar > 0 : "startBar=" + startBar + " cliChordSymbols=" + cliChordSymbols;
             // var cliCs = cls.getLastItem(0, startBar - 1, CLI_ChordSymbol.class);
-            var cliCs = cls.getLastItemBefore(new Position(startBar, 0), false, CLI_ChordSymbol.class, cli -> true);
+            var cliCs = cls.getLastItemBefore(new Position(startBar), false, CLI_ChordSymbol.class, cli -> true);
             assert cliCs != null : "startBar=" + startBar + " cls=" + cls;
-            var cliCsNew = cliCs.getCopy(new Position(0, 0));
+            var cliCsNew = cliCs.getCopy(new Position(0));
             newCls.addItem(cliCsNew);
         }
 

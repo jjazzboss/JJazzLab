@@ -22,6 +22,7 @@
  */
 package org.jjazz.chordleadsheet.item;
 
+import org.jjazz.chordleadsheet.api.item.WritableItem;
 import com.thoughtworks.xstream.XStream;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.UnsupportedFlavorException;
@@ -55,7 +56,7 @@ public class CLI_SectionImpl implements CLI_Section, WritableItem<Section>, Seri
     /**
      * Position of the item.
      */
-    private Position position = new Position(0, 0);
+    private Position position = new Position(0);
     /**
      * The data section.
      */
@@ -86,7 +87,7 @@ public class CLI_SectionImpl implements CLI_Section, WritableItem<Section>, Seri
             throw new IllegalArgumentException("sectionName=" + sectionName + " ts=" + ts + " barIndex=" + barIndex);
         }
         data = new Section(sectionName, ts);
-        position = new Position(barIndex, 0);
+        position = new Position(barIndex);
         clientProperties = new StringProperties(this);
     }
 

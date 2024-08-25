@@ -134,7 +134,7 @@ public class SimpleChordSequence extends ChordSequence
         Preconditions.checkNotNull(cliCs);
 
         Position pos = cliCs.getPosition();
-        Position nextPos = cliCs == last() ? new Position(getBarRange().to + 1, 0) : higher(cliCs).getPosition();
+        Position nextPos = cliCs == last() ? new Position(getBarRange().to + 1) : higher(cliCs).getPosition();
         float duration = pos.getDuration(nextPos, timeSignature);
 
         return duration;

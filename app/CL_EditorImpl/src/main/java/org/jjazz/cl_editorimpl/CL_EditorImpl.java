@@ -680,7 +680,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         BarBox bb = (BarBox) c;
         Point bbPoint = SwingUtilities.convertPoint(this, editorPoint, bb);
         Position bbPos = bb.getPositionFromPoint(bbPoint);
-        return (bbPos != null) ? bbPos : new Position(bb.getBarIndex(), 0);
+        return (bbPos != null) ? bbPos : new Position(bb.getBarIndex());
     }
 
     @Override

@@ -83,11 +83,11 @@ public class ChordLeadSheetImplTest
         {
             // Test leadsheet init
             cls1.setSizeInBars(8);
-            cls1.addItem(new CLI_ChordSymbolImpl(ExtChordSymbol.get("Dm7"), new Position(0, 0)));
-            cls1.addItem(new CLI_ChordSymbolImpl(ExtChordSymbol.get("F#7"), new Position(1, 0)));
+            cls1.addItem(new CLI_ChordSymbolImpl(ExtChordSymbol.get("Dm7"), new Position(0)));
+            cls1.addItem(new CLI_ChordSymbolImpl(ExtChordSymbol.get("F#7"), new Position(1)));
             cls1.addItem(new CLI_ChordSymbolImpl(ExtChordSymbol.get("Bbmaj7#5"), new Position(1, 3)));
             cls1.addSection(new CLI_SectionImpl("Section2", TimeSignature.THREE_FOUR, 2));
-            cls1.addItem(new CLI_ChordSymbolImpl(ExtChordSymbol.get("D7b9b5"), new Position(2, 0)));
+            cls1.addItem(new CLI_ChordSymbolImpl(ExtChordSymbol.get("D7b9b5"), new Position(2)));
             cls1.addItem(new CLI_ChordSymbolImpl(ExtChordSymbol.get("FM7#11"), new Position(4, 1)));
             cls1.addSection(new CLI_SectionImpl("Section3", TimeSignature.FOUR_FOUR, 5));
             cls1.addItem(new CLI_ChordSymbolImpl(ExtChordSymbol.get("Eb7b9#5"), new Position(5, 0.75f)));
@@ -97,11 +97,11 @@ public class ChordLeadSheetImplTest
 
             // COPY
             cls2.setSizeInBars(8);
-            cls2.addItem(new CLI_ChordSymbolImpl(ExtChordSymbol.get("Dm7"), new Position(0, 0)));
-            cls2.addItem(new CLI_ChordSymbolImpl(ExtChordSymbol.get("F#7"), new Position(1, 0)));
+            cls2.addItem(new CLI_ChordSymbolImpl(ExtChordSymbol.get("Dm7"), new Position(0)));
+            cls2.addItem(new CLI_ChordSymbolImpl(ExtChordSymbol.get("F#7"), new Position(1)));
             cls2.addItem(new CLI_ChordSymbolImpl(ExtChordSymbol.get("Bbmaj7#5"), new Position(1, 3)));
             cls2.addSection(new CLI_SectionImpl("Section2", TimeSignature.THREE_FOUR, 2));
-            cls2.addItem(new CLI_ChordSymbolImpl(ExtChordSymbol.get("D7b9b5"), new Position(2, 0)));
+            cls2.addItem(new CLI_ChordSymbolImpl(ExtChordSymbol.get("D7b9b5"), new Position(2)));
             cls2.addItem(new CLI_ChordSymbolImpl(ExtChordSymbol.get("FM7#11"), new Position(4, 1)));
             cls2.addSection(new CLI_SectionImpl("Section3", TimeSignature.FOUR_FOUR, 5));
             cls2.addItem(new CLI_ChordSymbolImpl(ExtChordSymbol.get("Eb7b9#5"), new Position(5, 0.75f)));
@@ -112,7 +112,7 @@ public class ChordLeadSheetImplTest
             cliSection44_b4 = new CLI_SectionImpl("NewSection44", TimeSignature.FOUR_FOUR, 4);
             cliSection54_b5 = new CLI_SectionImpl("NewSection54", TimeSignature.FIVE_FOUR, 5);
             cliChordSymbolF_b3_3 = new CLI_ChordSymbolImpl(ExtChordSymbol.get("F-"), new Position(3, 3));
-            cliChordSymbolG_b6_0 = new CLI_ChordSymbolImpl(ExtChordSymbol.get("G-"), new Position(6, 0));
+            cliChordSymbolG_b6_0 = new CLI_ChordSymbolImpl(ExtChordSymbol.get("G-"), new Position(6));
             cliChordSymbolA_b12_2 = new CLI_ChordSymbolImpl(ExtChordSymbol.get("A-"), new Position(12, 2));
 
             // Start one edit
@@ -145,8 +145,8 @@ public class ChordLeadSheetImplTest
         System.out.println("=== testGetItemsCustom() ");
         TreeSet<ChordLeadSheetItem> items = new TreeSet<>();
         CLI_Section initSection = new CLI_SectionImpl("NewSection34", TimeSignature.THREE_FOUR, 0);
-        var chord0 = new CLI_ChordSymbolImpl(ExtChordSymbol.get("Dm7"), new Position(0, 0));
-        var chord4 = new CLI_ChordSymbolImpl(ExtChordSymbol.get("C"), new Position(4, 0));
+        var chord0 = new CLI_ChordSymbolImpl(ExtChordSymbol.get("Dm7"), new Position(0));
+        var chord4 = new CLI_ChordSymbolImpl(ExtChordSymbol.get("C"), new Position(4));
         items.add(initSection);
         items.add(chord0);
         items.add(cliChordSymbolF_b3_3);
@@ -160,39 +160,39 @@ public class ChordLeadSheetImplTest
         res = items.subSet(initSection, false, cliChordSymbolG_b6_0, true);
         System.out.println("subItems2(false-true)=" + res);
 
-        res = items.subSet(ChordLeadSheetItem.createItemFrom(new Position(0, 0), true), true, cliChordSymbolG_b6_0, true);
+        res = items.subSet(ChordLeadSheetItem.createItemFrom(new Position(0), true), true, cliChordSymbolG_b6_0, true);
         System.out.println("subItems3(true0, true)=" + res);
         assertSame(res.first(), initSection);
         assertSame(res.last(), cliChordSymbolG_b6_0);
 
-        res = items.subSet(ChordLeadSheetItem.createItemFrom(new Position(0, 0), false), false,
-                ChordLeadSheetItem.createItemTo(new Position(6, 0), true), true);
+        res = items.subSet(ChordLeadSheetItem.createItemFrom(new Position(0), false), false,
+                ChordLeadSheetItem.createItemTo(new Position(6), true), true);
         System.out.println("subItems4(false0, true6)=" + res);
         assertSame(res.first(), cliChordSymbolF_b3_3);
         assertSame(res.last(), cliChordSymbolG_b6_0);
 
 
-        res = items.subSet(ChordLeadSheetItem.createItemFrom(new Position(0, 0), false), false,
-                ChordLeadSheetItem.createItemTo(new Position(6, 0), false), false);
+        res = items.subSet(ChordLeadSheetItem.createItemFrom(new Position(0), false), false,
+                ChordLeadSheetItem.createItemTo(new Position(6), false), false);
         System.out.println("subItems5(false0, false6)=" + res);
         assertSame(res.first(), cliChordSymbolF_b3_3);
         assertSame(res.last(), chord4);
 
 
-        res = items.subSet(ChordLeadSheetItem.createItemFrom(new Position(0, 0), false), false,
-                ChordLeadSheetItem.createItemTo(new Position(4, 0), true), true);
+        res = items.subSet(ChordLeadSheetItem.createItemFrom(new Position(0), false), false,
+                ChordLeadSheetItem.createItemTo(new Position(4), true), true);
         System.out.println("subItems6(false0, true4)=" + res);
         assertSame(res.first(), cliChordSymbolF_b3_3);
         assertSame(res.last(), chord4);
 
-        res = items.subSet(ChordLeadSheetItem.createItemFrom(new Position(0, 0), false), false,
-                ChordLeadSheetItem.createItemTo(new Position(4, 0), false), false);
+        res = items.subSet(ChordLeadSheetItem.createItemFrom(new Position(0), false), false,
+                ChordLeadSheetItem.createItemTo(new Position(4), false), false);
         System.out.println("subItems7(false0, false4)=" + res);
         assertSame(res.first(), cliChordSymbolF_b3_3);
         assertSame(res.last(), cliChordSymbolF_b3_3);
 
-        res = items.subSet(ChordLeadSheetItem.createItemFrom(new Position(0, 0), true), true,
-                ChordLeadSheetItem.createItemTo(new Position(4, 0), false), false);
+        res = items.subSet(ChordLeadSheetItem.createItemFrom(new Position(0), true), true,
+                ChordLeadSheetItem.createItemTo(new Position(4), false), false);
         System.out.println("subItems8(true0, false4)=" + res);
         assertSame(res.first(), initSection);
         assertSame(res.last(), cliChordSymbolF_b3_3);
@@ -203,9 +203,9 @@ public class ChordLeadSheetImplTest
     public void testGetItems()
     {
         System.out.println("=== getItems() ");
-        var res = cls1.getItems(new Position(0, 0),
+        var res = cls1.getItems(new Position(0),
                 true,
-                new Position(2, 0),
+                new Position(2),
                 false,
                 ChordLeadSheetItem.class,
                 cli -> true);
@@ -214,9 +214,9 @@ public class ChordLeadSheetImplTest
         assertEquals(res.get(3).getPosition(), new Position(1, 3));
 
 
-        res = cls1.getItems(new Position(0, 0),
+        res = cls1.getItems(new Position(0),
                 true,
-                new Position(2, 0),
+                new Position(2),
                 true,
                 ChordLeadSheetItem.class,
                 cli -> true);
@@ -225,15 +225,15 @@ public class ChordLeadSheetImplTest
         assertSame(res.get(4), cls1.getSection(2));
 
 
-        res = cls1.getItems(new Position(0, 0),
+        res = cls1.getItems(new Position(0),
                 false,
-                new Position(2, 0),
+                new Position(2),
                 true,
                 ChordLeadSheetItem.class,
                 cli -> true);
         assertEquals(res.size(), 4);
         assertTrue(res.get(0) != cls1.getSection(0));
-        assertEquals(res.get(0).getPosition(), new Position(1, 0));
+        assertEquals(res.get(0).getPosition(), new Position(1));
         assertSame(res.get(2), cls1.getSection(2));
 
 
@@ -314,7 +314,7 @@ public class ChordLeadSheetImplTest
     public void testAddSectionAdjustItemPosition()
     {
         System.out.println("=== addSection adjust position of items");
-        cliSection34_b3.setPosition(new Position(1, 0));
+        cliSection34_b3.setPosition(new Position(1));
         try
         {
             cls1.addSection(cliSection34_b3);

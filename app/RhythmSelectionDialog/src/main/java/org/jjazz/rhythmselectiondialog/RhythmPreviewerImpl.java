@@ -265,7 +265,7 @@ public class RhythmPreviewerImpl implements RhythmPreviewer
         {
             Rhythm sourceRhythm = ar.getSourceRhythm();
             // Find a parent section with the right signature
-            parentSection = newCls.getFirstItemAfter(new Position(0, 0),
+            parentSection = newCls.getFirstItemAfter(new Position(0),
                     true,
                     CLI_Section.class,
                     s -> s.getData().getTimeSignature().equals(sourceRhythm.getTimeSignature()));

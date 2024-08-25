@@ -93,12 +93,12 @@ public class LinkedSongStructureTest
         try
         {
             cls1.setSizeInBars(8);
-            cls1.addItem(new CLI_ChordSymbolImpl(ExtChordSymbol.get("Dm7"), new Position(0, 0)));
-            cls1.addItem(new CLI_ChordSymbolImpl(ExtChordSymbol.get("F#7"), new Position(1, 0)));
+            cls1.addItem(new CLI_ChordSymbolImpl(ExtChordSymbol.get("Dm7"), new Position(0)));
+            cls1.addItem(new CLI_ChordSymbolImpl(ExtChordSymbol.get("F#7"), new Position(1)));
             cls1.addItem(new CLI_ChordSymbolImpl(ExtChordSymbol.get("Bbmaj7#5"), new Position(1, 3)));
             section2 = new CLI_SectionImpl("Section2", TimeSignature.THREE_FOUR, 2);
             cls1.addSection(section2);
-            cls1.addItem(new CLI_ChordSymbolImpl(ExtChordSymbol.get("D7b9b5"), new Position(2, 0)));
+            cls1.addItem(new CLI_ChordSymbolImpl(ExtChordSymbol.get("D7b9b5"), new Position(2)));
             cls1.addItem(new CLI_ChordSymbolImpl(ExtChordSymbol.get("FM7#11"), new Position(4, 1)));
             section3 = new CLI_SectionImpl("Section3", TimeSignature.FOUR_FOUR, 5);
             cls1.addSection(section3);

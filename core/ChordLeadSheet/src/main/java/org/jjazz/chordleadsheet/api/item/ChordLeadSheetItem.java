@@ -103,7 +103,7 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
     StringProperties getClientProperties();
 
     /**
-     * First compare using position, then use isBarSingleItem(), then use System.identifyHashCode().
+     * Default implementations first compares using position, then use isBarSingleItem(), then use System.identifyHashCode().
      * <p>
      * Performs a special handling for ComparableItems.
      *
@@ -219,7 +219,7 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
      */
     public static DefaultComparableItem createItemFrom(int bar)
     {
-        return new DefaultComparableItem(new Position(bar, 0), true, true);
+        return new DefaultComparableItem(new Position(bar), true, true);
     }
 
     // ==================================================================================================

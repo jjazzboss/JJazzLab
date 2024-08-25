@@ -82,7 +82,7 @@ public class ChordListener implements CL_ContextActionListener, PropertyChangeLi
         {
             // Find the last chord valid for this bar
             var cls = selection.getChordLeadSheet();
-            newSelectedChordSymbol = cls.getLastItemBefore(new Position(selection.getMinBarIndex() + 1, 0), false, CLI_ChordSymbol.class,
+            newSelectedChordSymbol = cls.getLastItemBefore(new Position(selection.getMinBarIndex() + 1), false, CLI_ChordSymbol.class,
                     cli -> true);
             if (newSelectedChordSymbol == null)
             {

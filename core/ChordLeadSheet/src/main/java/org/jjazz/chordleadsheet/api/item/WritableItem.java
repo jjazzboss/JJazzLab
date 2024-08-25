@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.chordleadsheet.item;
+package org.jjazz.chordleadsheet.api.item;
 
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;

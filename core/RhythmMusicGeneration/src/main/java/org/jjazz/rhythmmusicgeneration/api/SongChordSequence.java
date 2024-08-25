@@ -91,7 +91,7 @@ public class SongChordSequence extends ChordSequence
             {
                 throw new UserErrorGenerationException("Missing chord symbol at the start of song " + song.getName());
             }
-            var prevCliCs = song.getChordLeadSheet().getLastItemBefore(new Position(clsRange.from, 0),
+            var prevCliCs = song.getChordLeadSheet().getLastItemBefore(new Position(clsRange.from),
                     false, CLI_ChordSymbol.class,
                     item -> true);
             CLI_ChordSymbol newCs = getInitCopy(prevCliCs);
@@ -154,7 +154,7 @@ public class SongChordSequence extends ChordSequence
         Preconditions.checkNotNull(ts);
 
         Position pos = cliCs.getPosition();
-        Position nextPos = cliCs == last() ? new Position(getBarRange().to + 1, 0) : higher(cliCs).getPosition();
+        Position nextPos = cliCs == last() ? new Position(getBarRange().to + 1) : higher(cliCs).getPosition();
         float duration = pos.getDuration(nextPos, ts);
 
         return duration;
@@ -303,7 +303,7 @@ public class SongChordSequence extends ChordSequence
                 ExtChordSymbol newEcs = ecs.getChordSymbol(sptMarker);      // Use alternate chord symbol if relevant      
 
                 // Don't allow Void chordsymbol if it's the init chord symbol
-                if (newEcs == VoidAltExtChordSymbol.getInstance() && newPos.equals(new Position(0, 0)))
+                if (newEcs == VoidAltExtChordSymbol.getInstance() && newPos.equals(new Position(0)))
                 {
                     LOGGER.log(Level.INFO, "fillChordSequence() Can''t use the void alternate chord symbol of {0} at initial position.",
                             ecs.getName());

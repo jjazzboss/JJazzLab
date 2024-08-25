@@ -538,7 +538,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
         CL_Editor clEditor = CL_EditorTopComponent.get(cls).getEditor();
 
 
-        var clsPos = sg.getSongStructure().toClsPosition(new Position(0, 0));
+        var clsPos = sg.getSongStructure().toClsPosition(new Position(0));
         int modelBarIndex = clsPos != null ? clsPos.getBar() : -1;
 
         barBox = new BarBox(clEditor, 0, modelBarIndex, cls,
@@ -548,7 +548,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
         pnl_barBox.add(barBox);
 
 
-        clsPos = sg.getSongStructure().toClsPosition(new Position(1, 0));
+        clsPos = sg.getSongStructure().toClsPosition(new Position(1));
         modelBarIndex = clsPos != null ? clsPos.getBar() : -1;
 
         nextBarBox = new BarBox(clEditor, 1, modelBarIndex, cls,
@@ -567,9 +567,9 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
      */
     private void updateBarBoxes(int songBar)
     {
-        int clsBar = song.getSongStructure().toClsPosition(new Position(songBar, 0)).getBar();
+        int clsBar = song.getSongStructure().toClsPosition(new Position(songBar)).getBar();
         int next1SongBar = songBar + 1;
-        var next1SongBarPos = new Position(next1SongBar, 0);
+        var next1SongBarPos = new Position(next1SongBar);
         var next1ClsBarPos = song.getSongStructure().toClsPosition(next1SongBarPos);
         var next1ClsBar = next1ClsBarPos != null ? next1ClsBarPos.getBar() : -1;
         barBox.setBarIndex(songBar);
@@ -608,7 +608,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
 
         // Next chord        
         CLI_ChordSymbol nextChord = null;
-        var next2SongBarPos = new Position(next2SongBar, 0);
+        var next2SongBarPos = new Position(next2SongBar);
         var next2ClsBarPos = song.getSongStructure().toClsPosition(next2SongBarPos);
         if (next2ClsBarPos != null)
         {

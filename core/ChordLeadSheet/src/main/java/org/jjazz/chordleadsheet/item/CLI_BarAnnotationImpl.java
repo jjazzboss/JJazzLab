@@ -22,6 +22,7 @@
  */
 package org.jjazz.chordleadsheet.item;
 
+import org.jjazz.chordleadsheet.api.item.WritableItem;
 import com.google.common.base.Preconditions;
 import com.thoughtworks.xstream.XStream;
 import java.awt.datatransfer.DataFlavor;
@@ -54,7 +55,7 @@ public class CLI_BarAnnotationImpl implements CLI_BarAnnotation, WritableItem<St
     /**
      * Position of the item.
      */
-    private Position position = new Position(0, 0);
+    private Position position = new Position(0);
     /**
      * The data section.
      */
@@ -83,7 +84,7 @@ public class CLI_BarAnnotationImpl implements CLI_BarAnnotation, WritableItem<St
         Preconditions.checkArgument(barIndex >= 0, "barIndex=%d", barIndex);
 
         data = annotation;
-        position = new Position(barIndex, 0);
+        position = new Position(barIndex);
         clientProperties = new StringProperties(this);
     }
 

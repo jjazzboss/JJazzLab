@@ -52,7 +52,7 @@ public interface ChordLeadSheet
      * <p>
      * Item position might be adjusted to the bar's TimeSignature. This will set the item's container to this ChordLeadSheet.
      *
-     * @param item The ChordLeadSheetItem to add.
+     * @param item The ChordLeadSheetItem to add. Must be a WritableItem.
      * @throws IllegalArgumentException If item's position out of leadsheet bounds or item is a section.
      */
     void addItem(ChordLeadSheetItem<?> item);
@@ -124,7 +124,7 @@ public interface ChordLeadSheet
      * <p>
      * Can not be used on a Section. Item position might be adjusted to the bar's TimeSignature.
      *
-     * @param item The item to be moved
+     * @param item The item to be moved.  Must be a WritableItem.
      * @param pos  The new position.
      * @throws IllegalArgumentException If new position is not valid.
      */
@@ -144,7 +144,7 @@ public interface ChordLeadSheet
      * Can not be used on Section, use setSectionName() or setSectionTimeSignature() instead.
      *
      * @param <T>
-     * @param item
+     * @param item  Must be a WritableItem.
      * @param data
      */
     <T> void changeItem(ChordLeadSheetItem<T> item, T data);
@@ -266,8 +266,8 @@ public interface ChordLeadSheet
      */
     default <T extends ChordLeadSheetItem<?>> List<T> getItems(int barFrom, int barTo, Class<T> itemClass, Predicate<T> tester)
     {
-        var posFrom = new Position(barFrom, 0);
-        var posTo = new Position(barTo < Integer.MAX_VALUE ? barTo + 1 : barTo, 0);
+        var posFrom = new Position(barFrom);
+        var posTo = new Position(barTo < Integer.MAX_VALUE ? barTo + 1 : barTo);
         return getItems(posFrom, true, posTo, false, itemClass, tester);
     }
 
@@ -314,7 +314,7 @@ public interface ChordLeadSheet
      */
     default <T extends ChordLeadSheetItem<?>> List<T> getItemsBefore(Position posTo, boolean inclusive, Class<T> itemClass, Predicate<T> tester)
     {
-        var posFrom = new Position(0, 0);
+        var posFrom = new Position(0);
         return getItems(posFrom, true, posTo, inclusive, itemClass, tester);
     }
 
@@ -414,7 +414,7 @@ public interface ChordLeadSheet
     default CLI_Section getSection(int barIndex)
     {
         Preconditions.checkArgument(barIndex >= 0, "barIndex=%d" + barIndex);
-        return getLastItemBefore(new Position(barIndex, 0), true, CLI_Section.class, cli -> true);
+        return getLastItemBefore(new Position(barIndex), true, CLI_Section.class, cli -> true);
     }
 
     /**
@@ -425,7 +425,7 @@ public interface ChordLeadSheet
      */
     default CLI_Section getSection(String sectionName)
     {
-        return getFirstItemAfter(new Position(0, 0), true, CLI_Section.class, cli -> cli.getData().getName().equals(sectionName));
+        return getFirstItemAfter(new Position(0), true, CLI_Section.class, cli -> cli.getData().getName().equals(sectionName));
     }
 
 
@@ -509,7 +509,7 @@ public interface ChordLeadSheet
     public default String toDebugString()
     {
         StringBuilder sb = new StringBuilder();
-        sb.append(toString());
+        sb.append(toString()).append(" ");
         for (var item : getItems())
         {
             if (item instanceof CLI_Section)

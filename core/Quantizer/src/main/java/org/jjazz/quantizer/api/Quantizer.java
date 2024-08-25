@@ -403,7 +403,7 @@ public class Quantizer
         } else if ((bar + 1) <= maxBarIndex)
         {
             // Go to next bar
-            newPos = new Position(bar + 1, 0);
+            newPos = new Position(bar + 1);
         } else
         {
             // Can't go to next bar, stick to last possible position

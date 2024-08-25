@@ -85,7 +85,7 @@ public class ClsUtilities
                 var item1beat = item1.getPosition().getBeat();
                 if (item1beat - item0beat < halfBarBeat)
                 {
-                    simplifiedCls.moveItem(item0, new Position(barIndex, 0));
+                    simplifiedCls.moveItem(item0, new Position(barIndex));
                     simplifiedCls.moveItem(item1, new Position(barIndex, halfBarBeat));
                 }
 

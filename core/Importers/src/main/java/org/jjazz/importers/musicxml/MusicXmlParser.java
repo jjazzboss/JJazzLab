@@ -48,10 +48,10 @@ import org.jjazz.harmony.api.Note;
 import org.jjazz.harmony.api.TimeSignature;
 import static org.jjazz.importers.musicxml.MusicXmlParser.XMLtoJJazzChordMap;
 import org.jjazz.harmony.api.Position;
+import org.jjazz.importers.musicxml.MusicXmlParserListener.NavigationMark;
 import org.jjazz.utilities.api.Utilities;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.openide.util.BaseUtilities;
-import org.openide.util.Exceptions;
 import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -81,7 +81,7 @@ public final class MusicXmlParser
     private static File DTD_FILE;
     private Document xomDoc;
     private final CopyOnWriteArrayList<MusicXmlParserListener> parserListeners;
-    private byte divisionsPerBeat;
+    private int divisionsPerBeat;
     public TimeSignature timeSignature;
     private int curBarIndex;
     private int curDivisionInBar;
@@ -100,7 +100,7 @@ public final class MusicXmlParser
         // Set up MusicXML default values
         divisionsPerBeat = 1;
         curBarIndex = 0;
-        curDivisionInBar = 0;
+        curDivisionInBar = 0;        
         timeSignature = TimeSignature.FOUR_FOUR;
     }
 
@@ -139,8 +139,7 @@ public final class MusicXmlParser
      * data.
      * <p>
      * the input is a XOM Document, which has been built previously
-     *
-     * @throws Exception if there is an error parsing the pattern
+     * <p>
      */
     public void parse()
     {
@@ -218,7 +217,7 @@ public final class MusicXmlParser
         Element attributes = musicDataRoot.getFirstChildElement("attributes");
         if (attributes != null)
         {
-            this.divisionsPerBeat = getByteValueOrDefault(attributes.getFirstChildElement("divisions"), this.divisionsPerBeat);
+            this.divisionsPerBeat = getIntValueOrDefault(attributes.getFirstChildElement("divisions"), this.divisionsPerBeat);
 
             // Time signature
             Element elTime = attributes.getFirstChildElement("time");
@@ -245,10 +244,8 @@ public final class MusicXmlParser
             LOGGER.log(Level.FINE, "parseMeasure() el={0}", el.getLocalName());
             switch (el.getLocalName())
             {
-                case "harmony":
-                    parseHarmony(el, curBarIndex, curDivisionInBar);
-                    break;
-                case "note":
+                case "harmony" -> parseHarmony(el, curBarIndex, curDivisionInBar);
+                case "note" ->
                 {
                     // Grace notes don't have a duration
                     Element dur = el.getFirstChildElement("duration");
@@ -259,43 +256,75 @@ public final class MusicXmlParser
                         int release = getIntAttributeOrDefault(el, "release", 0);
                         curDivisionInBar += duration + attack + release;
                     }
-                    break;
                 }
-                case "backup":
+                case "backup" ->
                 {
                     int duration = Integer.parseInt(el.getFirstChildElement("duration").getValue());
                     curDivisionInBar -= duration;
-                    break;
                 }
-                case "forward":
+                case "forward" ->
                 {
                     int duration = Integer.parseInt(el.getFirstChildElement("duration").getValue());
                     curDivisionInBar += duration;
-                    break;
                 }
-                // sound can be embedded in direction
-                case "direction":
+                case "direction" ->
+                {
                     Element sound = el.getFirstChildElement("sound");
                     if (sound != null)
                     {
-                        String value = sound.getAttributeValue("tempo");
-                        if (value != null)
-                        {
-                            fireTempoChanged(Math.round(Float.parseFloat(value)), curBarIndex);
-                        }
+                        parseDirectionSound(sound);
                     }
-                    break;
-                // sound can be directly in the measure as well
-                case "sound":
+
+                    Element rehearsal = getFirstGrandChild(el, "direction-type", "rehearsal");                   
+                    if (rehearsal != null)
+                    {
+                        String value = rehearsal.getValue();
+                        fireRehearsalParsed(curBarIndex, value);
+                    }
+                }
+                case "barline" ->
+                {
+                    Element ending = el.getFirstChildElement("ending");
+                    if (ending != null)
+                    {
+                        String strNumbers = ending.getAttributeValue("number");       // examples: "1", "2", "1,2", "1,3,4"
+                        var numbers = toList(strNumbers);
+                        int type = switch (ending.getAttributeValue("type"))
+                        {
+                            case "start" ->
+                                0;
+                            case "stop" ->
+                                1;
+                            default ->
+                                2;  // "discontinue"
+                        };
+                        fireEndingParsed(curBarIndex, numbers, type);
+                    }
+
+
+                    Element repeat = el.getFirstChildElement("repeat");
+                    if (repeat != null)
+                    {
+                        boolean repeatStart = repeat.getAttributeValue("direction").equals("forward");
+                        int times = getIntAttributeOrDefault(repeat, "times", -1);
+                        fireRepeatParsed(curBarIndex, repeatStart, times);
+                    }
+                }
+                case "sound" ->
+                {
                     String value = el.getAttributeValue("tempo");
                     if (value != null)
                     {
                         fireTempoChanged(Math.round(Float.parseFloat(value)), curBarIndex);
                     }
-                    break;
-                default:
-                // Nothing
+                }
+                default ->
+                {
+                }
             }
+            // sound can be embedded in direction
+            // sound can be directly in the measure as well
+            // Nothing
             if (curDivisionInBar < 0)
             {
                 LOGGER.log(Level.SEVERE, "parseMusicData() invalid value for curDivisionInBar={0}, el={1}. Resetting value to 0", new Object[]
@@ -308,16 +337,69 @@ public final class MusicXmlParser
         }
     }
 
+
+    private void parseDirectionSound(Element sound) throws NumberFormatException
+    {
+        String value = sound.getAttributeValue("tempo");
+        if (value != null)
+        {
+            fireTempoChanged(Math.round(Float.parseFloat(value)), curBarIndex);
+        }
+
+        Element otherPlay = getFirstGrandChild(sound, "play", "other-play");
+        if (otherPlay != null)
+        {
+            value = otherPlay.getValue();
+            String type = otherPlay.getAttributeValue("type");
+            fireOtherPlayParsed(curBarIndex, value, type);
+        }
+
+
+        value = sound.getAttributeValue("time-only");
+        List<Integer> timeOnly = value == null ? new ArrayList<>() : toList(value);
+        value = sound.getAttributeValue("coda");
+        if (value != null)
+        {
+            fireStructureMarkerParsed(curBarIndex, NavigationMark.CODA, value, timeOnly);
+        }
+        value = sound.getAttributeValue("dacoda");
+        if (value != null)
+        {
+            fireStructureMarkerParsed(curBarIndex, NavigationMark.DACODA, value, timeOnly);
+        }
+        value = sound.getAttributeValue("tocoda");
+        if (value != null)
+        {
+            fireStructureMarkerParsed(curBarIndex, NavigationMark.TOCODA, value, timeOnly);
+        }
+        value = sound.getAttributeValue("segno");
+        if (value != null)
+        {
+            fireStructureMarkerParsed(curBarIndex, NavigationMark.SEGNO, value, timeOnly);
+        }
+        value = sound.getAttributeValue("dalsegno");
+        if (value != null)
+        {
+            fireStructureMarkerParsed(curBarIndex, NavigationMark.DALSEGNO, value, timeOnly);
+        }
+        value = sound.getAttributeValue("fine");
+        if (value != null)
+        {
+            fireStructureMarkerParsed(curBarIndex, NavigationMark.FINE, value, timeOnly);
+        }
+    }
+
+
     /**
      * Search the first child element corresponding to elementHierarchy.
      * <p>
-     * Example: if elementHierarchy=["time", "beat"], search the first element "beat" within the first element "time".
+     * Example: if elementHierarchy=["direction-type", "rehearsal"], search the first grandchild element "rehearsal" (child of a direction-type)
      *
      * @param element
      * @param elementHierarchy
      * @return Null if could not find the last element of elementHierarchy.
      */
-    private Element getFirstChildElementInHierarchy(Element element, String... elementHierarchy)
+    private Element getFirstGrandChild(Element element, String... elementHierarchy)
     {
         Element el = element;
         for (String c : elementHierarchy)
@@ -329,6 +411,49 @@ public final class MusicXmlParser
             el = el.getFirstChildElement(c);
         }
         return el;
+    }
+
+    private int getIntValueOrDefault(Element element, int defaultValue)
+    {
+        int res = defaultValue;
+        if (element != null)
+        {
+            try
+            {
+                res = Integer.parseInt(element.getValue());
+            } catch (NumberFormatException ex)
+            {
+            }
+        }
+        return res;
+    }
+
+    /**
+     * Convert an integer list string ("2,4,5") to a list of Integer.
+     * <p>
+     * Invalid numbers are ignored.
+     *
+     * @param intList
+     * @return
+     */
+    private List<Integer> toList(String intList)
+    {
+        List<Integer> res = new ArrayList<>();
+        for (var str : intList.split(","))
+        {
+            try
+            {
+                res.add(Integer.parseInt(str));
+            } catch (NumberFormatException ex)
+            {
+                LOGGER.log(Level.WARNING, "toList() Invalid integer value ex={0} bar={1}", new Object[]
+                {
+                    ex.getMessage(),
+                    curBarIndex
+                });
+            }
+        }
+        return res;
     }
 
     private int getIntAttributeOrDefault(Element el, String attr, int defaultValue)
@@ -349,21 +474,13 @@ public final class MusicXmlParser
         return res;
     }
 
-    private byte getByteValueOrDefault(Element element, byte defaultValue)
-    {
-        if (element != null)
-        {
-            int value = Integer.parseInt(element.getValue());
-            return (byte) value;
-            //return (byte) (value - 1);
-        }
-        return defaultValue;
-    }
 
     /**
      * Parse the Harmony element.
      *
      * @param elHarmony
+     * @param barIndex
+     * @param divisionPosInBar
      */
     private void parseHarmony(Element elHarmony, int barIndex, int divisionPosInBar)
     {
@@ -785,8 +902,7 @@ public final class MusicXmlParser
     //
     private void fireBeforeParsingStarts()
     {
-        List<MusicXmlParserListener> listeners = getParserListeners();
-        for (MusicXmlParserListener listener : listeners)
+        for (MusicXmlParserListener listener : parserListeners)
         {
             listener.beforeParsingStarts();
         }
@@ -794,8 +910,7 @@ public final class MusicXmlParser
 
     private void fireAfterParsingFinished()
     {
-        List<MusicXmlParserListener> listeners = getParserListeners();
-        for (MusicXmlParserListener listener : listeners)
+        for (MusicXmlParserListener listener : parserListeners)
         {
             listener.afterParsingFinished();
         }
@@ -803,17 +918,55 @@ public final class MusicXmlParser
 
     private void fireTempoChanged(int tempoBPM, int barIndex)
     {
-        List<MusicXmlParserListener> listeners = getParserListeners();
-        for (MusicXmlParserListener listener : listeners)
+        for (MusicXmlParserListener listener : parserListeners)
         {
             listener.onTempoChanged(tempoBPM, barIndex);
         }
     }
 
+    private void fireOtherPlayParsed(int barIndex, String value, String type)
+    {
+        for (MusicXmlParserListener listener : parserListeners)
+        {
+            listener.onOtherPlayParsed(barIndex, value, type);
+        }
+    }
+
+    private void fireEndingParsed(int barIndex, List<Integer> numbers, int type)
+    {
+        for (MusicXmlParserListener listener : parserListeners)
+        {
+            listener.onEndingParsed(barIndex, numbers, type);
+        }
+    }
+
+    private void fireRehearsalParsed(int barIndex, String value)
+    {
+        for (MusicXmlParserListener listener : parserListeners)
+        {
+            listener.onRehearsalParsed(barIndex, value);
+        }
+    }
+
+    private void fireStructureMarkerParsed(int barIndex, MusicXmlParserListener.NavigationMark marker, String value, List<Integer> timesOnly)
+    {
+        for (MusicXmlParserListener listener : parserListeners)
+        {
+            listener.onNavigationMarkParsed(barIndex, marker, value, timesOnly);
+        }
+    }
+
+    private void fireRepeatParsed(int barIndex, boolean repeatStart, int times)
+    {
+        for (MusicXmlParserListener listener : parserListeners)
+        {
+            listener.onRepeatParsed(barIndex, repeatStart, times);
+        }
+    }
+
     private void fireTimeSignatureParsed(TimeSignature ts, int barIndex)
     {
-        List<MusicXmlParserListener> listeners = getParserListeners();
-        for (MusicXmlParserListener listener : listeners)
+        for (MusicXmlParserListener listener : parserListeners)
         {
             listener.onTimeSignatureParsed(ts, barIndex);
         }
@@ -821,8 +974,7 @@ public final class MusicXmlParser
 
     private void fireBarLineParsed(String id, int barIndex)
     {
-        List<MusicXmlParserListener> listeners = getParserListeners();
-        for (MusicXmlParserListener listener : listeners)
+        for (MusicXmlParserListener listener : parserListeners)
         {
             listener.onBarLineParsed(id, barIndex);
         }
@@ -830,8 +982,7 @@ public final class MusicXmlParser
 
     private void fireLyricParsed(String lyric, Position pos)
     {
-        List<MusicXmlParserListener> listeners = getParserListeners();
-        for (MusicXmlParserListener listener : listeners)
+        for (MusicXmlParserListener listener : parserListeners)
         {
             listener.onLyricParsed(lyric, pos);
         }
@@ -839,8 +990,7 @@ public final class MusicXmlParser
 
     private void fireNoteParsed(Note note, Position pos)
     {
-        List<MusicXmlParserListener> listeners = getParserListeners();
-        for (MusicXmlParserListener listener : listeners)
+        for (MusicXmlParserListener listener : parserListeners)
         {
             listener.onNoteParsed(note, pos);
         }
@@ -848,8 +998,7 @@ public final class MusicXmlParser
 
     private void fireChordSymbolParsed(String strChord, Position pos)
     {
-        List<MusicXmlParserListener> listeners = getParserListeners();
-        for (MusicXmlParserListener listener : listeners)
+        for (MusicXmlParserListener listener : parserListeners)
         {
             listener.onChordSymbolParsed(strChord, pos);
         }

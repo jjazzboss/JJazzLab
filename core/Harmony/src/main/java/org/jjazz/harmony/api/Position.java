@@ -76,6 +76,16 @@ public final class Position implements Comparable<Position>, Serializable
     }
 
     /**
+     * A position on first beat (0) of the specified bar.
+     *
+     * @param bar
+     */
+    public Position(int bar)
+    {
+        this(bar, 0);
+    }
+
+    /**
      * @param bar  The index of the bar (&gt;=0).
      * @param beat The beat within this bar.
      */
@@ -321,7 +331,7 @@ public final class Position implements Comparable<Position>, Serializable
      */
     public Position getNextBarStart()
     {
-        return new Position(bar + 1, 0);
+        return new Position(bar + 1);
     }
 
     /**
@@ -676,7 +686,7 @@ public final class Position implements Comparable<Position>, Serializable
             } catch (ParseException ex)
             {
                 LOGGER.log(Level.WARNING, "Can't read position " + spPos + ", using position(0,0) instead", ex);
-                pos = new Position(0, 0);
+                pos = new Position(0);
             }
             return pos;
         }

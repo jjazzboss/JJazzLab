@@ -161,7 +161,7 @@ public class ChordSequence extends TreeSet<CLI_ChordSymbol> implements Comparabl
 
         if (addInitChordSymbol && !cSeq.hasChordAtBeginning())
         {
-            var beforeChord = getLastBefore(new Position(subRange.from, 0), false, cs -> true);
+            var beforeChord = getLastBefore(new Position(subRange.from), false, cs -> true);
             if (beforeChord != null)
             {
                 CLI_ChordSymbol newCs = cSeq.getInitCopy(beforeChord);
@@ -276,7 +276,7 @@ public class ChordSequence extends TreeSet<CLI_ChordSymbol> implements Comparabl
     {
         // Add a copy of the chord symbol
         ExtChordSymbol ecs = cliCs.getData();
-        Position newPos = new Position(barRange.from, 0);
+        Position newPos = new Position(barRange.from);
         ChordRenderingInfo newCri = new ChordRenderingInfo((EnumSet<Feature>) null, ecs.getRenderingInfo().getScaleInstance());
         ExtChordSymbol newEcs = ecs.getCopy(null, newCri, null, null);
         CLI_ChordSymbol res = CLI_Factory.getDefault().createChordSymbol(newEcs, newPos);

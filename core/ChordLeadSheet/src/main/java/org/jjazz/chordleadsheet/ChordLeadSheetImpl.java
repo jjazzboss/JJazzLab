@@ -49,7 +49,7 @@ import org.jjazz.chordleadsheet.api.event.*;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.chordleadsheet.item.CLI_SectionImpl;
-import org.jjazz.chordleadsheet.item.WritableItem;
+import org.jjazz.chordleadsheet.api.item.WritableItem;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.chordleadsheet.api.ClsChangeListener;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
@@ -719,7 +719,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable, Propert
             adjustItemsToTimeSignature(ts, oldPosNewTs, iitems);
         }
 
-        changeItemPositionChecked(cliSection, new Position(newBarIndex, 0));
+        changeItemPositionChecked(cliSection, new Position(newBarIndex));
 
         // Create the undoable event
         UndoableEdit edit = new SimpleEdit("Move " + cliSection)
@@ -731,7 +731,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable, Propert
                 {
                     cliSection, newBarIndex
                 });
-                changeItemPositionChecked(cliSection, new Position(oldBarIndex, 0));
+                changeItemPositionChecked(cliSection, new Position(oldBarIndex));
                 fireAuthorizedChangeEvent(new SectionMovedEvent(ChordLeadSheetImpl.this, cliSection, newBarIndex, oldBarIndex));
             }
 
@@ -742,7 +742,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable, Propert
                 {
                     cliSection, newBarIndex
                 });
-                changeItemPositionChecked(cliSection, new Position(newBarIndex, 0));
+                changeItemPositionChecked(cliSection, new Position(newBarIndex));
                 fireAuthorizedChangeEvent(new SectionMovedEvent(ChordLeadSheetImpl.this, cliSection, oldBarIndex, newBarIndex));
             }
         };

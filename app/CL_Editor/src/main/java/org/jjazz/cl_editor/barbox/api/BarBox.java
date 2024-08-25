@@ -449,7 +449,7 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
             }
         }
         // Return raw position
-        return new Position(modelBarIndex, 0);
+        return new Position(modelBarIndex);
     }
 
     /**

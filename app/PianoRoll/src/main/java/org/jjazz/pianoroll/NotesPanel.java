@@ -540,8 +540,8 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
         {
             cb1_loopZone = HSLColor.changeLuminance(cb1, -6);
             cb2_loopZone = HSLColor.changeLuminance(cb2, -6);
-            loopZoneXfrom = xMapper.getX(new Position(loopZone.from, 0));
-            int xTo = xMapper.getBarRange().contains(loopZone.to + 1) ? xMapper.getX(new Position(loopZone.to + 1, 0)) : xMapper.getLastWidth() - 1;
+            loopZoneXfrom = xMapper.getX(new Position(loopZone.from));
+            int xTo = xMapper.getBarRange().contains(loopZone.to + 1) ? xMapper.getX(new Position(loopZone.to + 1)) : xMapper.getLastWidth() - 1;
             loopZoneWidth = xTo - loopZoneXfrom;
         }
 
@@ -813,7 +813,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
             {
                 barRange = editor.getPhraseBarRange();
             }
-            var res = tmap_allQuantizedPos2X.subMap(new Position(barRange.from, 0), true, new Position(barRange.to + 1, 0), false);
+            var res = tmap_allQuantizedPos2X.subMap(new Position(barRange.from), true, new Position(barRange.to + 1), false);
             return res;
         }
 
@@ -839,7 +839,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
             {
                 barRange = editor.getPhraseBarRange();
             }
-            var res = tmap_allIntPos2X.subMap(new Position(barRange.from, 0), true, new Position(barRange.to + 1, 0), false);
+            var res = tmap_allIntPos2X.subMap(new Position(barRange.from), true, new Position(barRange.to + 1), false);
             return res;
         }
 

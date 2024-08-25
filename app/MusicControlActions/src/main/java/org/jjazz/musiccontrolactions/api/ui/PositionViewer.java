@@ -50,7 +50,7 @@ public class PositionViewer extends JLabel implements PropertyChangeListener
     public PositionViewer()
     {
         timeShown = true;
-        updateEditor(new Position(0, 0));
+        updateEditor(new Position(0));
     }
 
     public void setModel(Song song, Position pos)

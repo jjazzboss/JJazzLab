@@ -22,6 +22,7 @@
  */
 package org.jjazz.chordleadsheet.item;
 
+import org.jjazz.chordleadsheet.api.item.WritableItem;
 import com.thoughtworks.xstream.XStream;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.UnsupportedFlavorException;
@@ -51,7 +52,7 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
     /**
      * Position of the item.
      */
-    private Position position = new Position(0, 0);
+    private Position position = new Position(0);
     /**
      * The data section.
      */

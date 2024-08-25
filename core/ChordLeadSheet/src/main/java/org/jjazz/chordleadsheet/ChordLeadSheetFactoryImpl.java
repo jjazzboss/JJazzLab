@@ -69,7 +69,7 @@ public class ChordLeadSheetFactoryImpl implements ChordLeadSheetFactory
             try
             {
                 var ecs = new ExtChordSymbol(new ChordSymbol(initialChord));
-                cls.addItem(clif.createChordSymbol(ecs, new Position(0, 0)));
+                cls.addItem(clif.createChordSymbol(ecs, new Position(0)));
             } catch (ParseException ex)
             {
                 LOGGER.log(Level.WARNING, "createEmptyLeadSheet() Invalid initialChord={0}, ignored", initialChord);

@@ -52,7 +52,7 @@ public class BeatIterator implements Iterator<Position>
      */
     public BeatIterator(Song song)
     {
-        this(song, new Position(0, 0));
+        this(song, new Position(0));
     }
 
     /**
@@ -211,13 +211,13 @@ public class BeatIterator implements Iterator<Position>
         Position res = new Position(position);
         if (!position.isFirstBarBeat())
         {
-            position = new Position(position.getBar() + 1, 0);
+            position = new Position(position.getBar() + 1);
             res = new Position(position);
         }
 
 
         // Set position to next bar
-        position = new Position(position.getBar() + 1, 0);
+        position = new Position(position.getBar() + 1);
 
         return res;
     }
@@ -262,13 +262,13 @@ public class BeatIterator implements Iterator<Position>
             res = new Position(position);
         } else
         {
-            position = new Position(position.getBar() + 1, 0);
+            position = new Position(position.getBar() + 1);
             res = new Position(position);
         }
 
 
         // Set position to the next half-bar         
-        position = position.isFirstBarBeat() ? new Position(position.getBar(), halfBeat) : new Position(position.getBar() + 1, 0);
+        position = position.isFirstBarBeat() ? new Position(position.getBar(), halfBeat) : new Position(position.getBar() + 1);
 
 
         return res;

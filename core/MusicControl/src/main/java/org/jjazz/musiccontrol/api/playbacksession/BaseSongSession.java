@@ -302,7 +302,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
             } else
             {
                 // Precount if OFF or barIndex is not the first possible bar
-                tick = songContext.toRelativeTick(new Position(barIndex, 0));
+                tick = songContext.toRelativeTick(new Position(barIndex));
                 if (tick != -1)
                 {
                     tick += loopStartTick;

@@ -60,7 +60,7 @@ public class XmlImporter implements SongImporter
      */
     private HashMap<String, String> map = new HashMap<>();
 
-    private final FileNameExtensionFilter FILTER = new FileNameExtensionFilter(ResUtil.getString(getClass(), "CTL_MXML_Files") + " (.mxl, .xml)", "mxl", "xml");
+    private final FileNameExtensionFilter FILTER = new FileNameExtensionFilter(ResUtil.getString(getClass(), "CTL_MXML_Files") + " (.mxl, .xml, .musicxml)", "mxl", "xml", "musicxml");
     protected static final Logger LOGGER = Logger.getLogger(XmlImporter.class.getName());
 
     public XmlImporter()

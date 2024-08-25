@@ -166,12 +166,12 @@ public interface CLI_ChordSymbol extends ChordLeadSheetItem<ExtChordSymbol>
             if (rawStrings.length == 1)
             {
                 // Position on first beat
-                CLI_ChordSymbol i0 = toCLI_ChordSymbol(rawStrings[0], new Position(barIndex, 0), cls);
+                CLI_ChordSymbol i0 = toCLI_ChordSymbol(rawStrings[0], new Position(barIndex), cls);
                 newItems.add(i0);
             } else if (rawStrings.length == 2)
             {
                 // Position on first beat and half bar
-                CLI_ChordSymbol i0 = toCLI_ChordSymbol(rawStrings[0], new Position(barIndex, 0), cls);
+                CLI_ChordSymbol i0 = toCLI_ChordSymbol(rawStrings[0], new Position(barIndex), cls);
                 errorChordIndex++;
                 CLI_ChordSymbol i1 = toCLI_ChordSymbol(rawStrings[1], new Position(barIndex, ts.getHalfBarBeat(swing)), cls);
                 newItems.add(i0);
@@ -179,7 +179,7 @@ public interface CLI_ChordSymbol extends ChordLeadSheetItem<ExtChordSymbol>
             } else if (rawStrings.length == 3 && ts.getNbNaturalBeats() > 3)
             {
                 // Position on first beat and half bar, and last beat
-                CLI_ChordSymbol i0 = toCLI_ChordSymbol(rawStrings[0], new Position(barIndex, 0), cls);
+                CLI_ChordSymbol i0 = toCLI_ChordSymbol(rawStrings[0], new Position(barIndex), cls);
                 errorChordIndex++;
                 CLI_ChordSymbol i1 = toCLI_ChordSymbol(rawStrings[1], new Position(barIndex, ts.getHalfBarBeat(swing)), cls);
                 errorChordIndex++;
@@ -190,7 +190,7 @@ public interface CLI_ChordSymbol extends ChordLeadSheetItem<ExtChordSymbol>
             } else if (rawStrings.length == 3)     // TimeSignature like 3/4 or 2/4
             {
                 // Position on first beat and half bar, and last beat
-                CLI_ChordSymbol i0 = toCLI_ChordSymbol(rawStrings[0], new Position(barIndex, 0), cls);
+                CLI_ChordSymbol i0 = toCLI_ChordSymbol(rawStrings[0], new Position(barIndex), cls);
                 errorChordIndex++;
                 CLI_ChordSymbol i1 = toCLI_ChordSymbol(rawStrings[1], new Position(barIndex, 1), cls);
                 errorChordIndex++;
@@ -201,7 +201,7 @@ public interface CLI_ChordSymbol extends ChordLeadSheetItem<ExtChordSymbol>
             } else if (rawStrings.length == 4 && ts.getNbNaturalBeats() >= 4)
             {
                 // Position on first beat and half bar, and last beat
-                CLI_ChordSymbol i0 = toCLI_ChordSymbol(rawStrings[0], new Position(barIndex, 0), cls);
+                CLI_ChordSymbol i0 = toCLI_ChordSymbol(rawStrings[0], new Position(barIndex), cls);
                 errorChordIndex++;
                 CLI_ChordSymbol i1 = toCLI_ChordSymbol(rawStrings[1], new Position(barIndex, 1), cls);
                 errorChordIndex++;
@@ -393,7 +393,7 @@ public interface CLI_ChordSymbol extends ChordLeadSheetItem<ExtChordSymbol>
      */
     public static CLI_ChordSymbol createItemFrom(int bar)
     {
-        return new ComparableCsItem(new Position(bar, 0), true, true);
+        return new ComparableCsItem(new Position(bar), true, true);
     }
 
 
