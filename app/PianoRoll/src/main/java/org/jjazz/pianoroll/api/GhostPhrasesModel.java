@@ -90,6 +90,7 @@ public class GhostPhrasesModel implements PropertyChangeListener, ChangeListener
 
         setEditedChannel(editedChannel);
         this.midiMix = midiMix;
+        this.lastResult = null;
 
 
         midiMix.addPropertyChangeListener(this);
@@ -98,23 +99,14 @@ public class GhostPhrasesModel implements PropertyChangeListener, ChangeListener
         // Get notified of when new song phrases are generated
         var asmb = ActiveSongBackgroundMusicBuilder.getDefault();
         asmb.addChangeListener(this);
-        lastResult = asmb.getLastResult();          // Might be null, but important to get some data if PianoRollEditor is created after bsmb produced a result
-
-
-        if (lastResult != null)
+        
+        
+        var result = asmb.getLastResult();          // Might be null, but important to get some data if PianoRollEditor is created after bsmb produced a result
+        if (result != null)
         {
-            // Update phrases from the last music generation
-            Map<Integer, Phrase> newMap = new HashMap<>();
-            for (int channel : midiMix.getUsedChannels())
-            {
-                var rv = midiMix.getRhythmVoice(channel);
-                Phrase p = lastResult == null ? new Phrase(channel) : lastResult.mapRvPhrases().get(rv);
-                if (p != null)      // Might happen if lastResult does not contain a new user track just added
-                {
-                    newMap.put(channel, p);
-                }
-            }
+            musicGenerationResultReceived(result);
         }
+
     }
 
     public int getEditedChannel()
@@ -279,6 +271,7 @@ public class GhostPhrasesModel implements PropertyChangeListener, ChangeListener
      */
     private void musicGenerationResultReceived(MusicGenerationQueue.Result result)
     {
+        Preconditions.checkNotNull(result);
         LOGGER.fine("musicGenerationResultReceived() -- ");
         lastResult = result;
 
