@@ -83,6 +83,24 @@ public class StringProperties extends ObservableProperties<String> implements Se
         put(prop, String.valueOf(value));
     }
 
+    /**
+     * Add an offset to an int property value.
+     * <p>
+     * If property does not exist yet, the method creates it with initValue then adds offset.
+     *
+     * @param prop
+     * @param offset
+     * @param initValue
+     * @return The new int property value.
+     */
+    public int shiftInt(String prop, int offset, int initValue)
+    {
+        int value = getInt(prop, initValue);
+        value += offset;
+        putInt(prop, value);
+        return value;
+    }
+
     public Color getColor(String prop, Color defaultValue)
     {
         Integer rgb = getInt(prop, defaultValue != null ? defaultValue.getRGB() : null);

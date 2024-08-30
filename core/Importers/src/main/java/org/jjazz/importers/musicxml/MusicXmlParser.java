@@ -100,7 +100,7 @@ public final class MusicXmlParser
         // Set up MusicXML default values
         divisionsPerBeat = 1;
         curBarIndex = 0;
-        curDivisionInBar = 0;        
+        curDivisionInBar = 0;
         timeSignature = TimeSignature.FOUR_FOUR;
     }
 
@@ -272,10 +272,27 @@ public final class MusicXmlParser
                     Element sound = el.getFirstChildElement("sound");
                     if (sound != null)
                     {
-                        parseDirectionSound(sound);
+                        // sound/dacapo or sound/dalsegno does not directly specify if we should go al coda or al fine (or nothing). However, at least in the iRealPro export files, this 
+                        // can be found in direction/direction-type/words ("D.S. al Fine", "D.S. al Coda", "D.C. al Coda", "D.C. al Fine"...). 
+                        // So we try to reuse this info when available.
+                        String alCodaOrAlFine = "";       // By default no information specified
+                        Element words = getFirstGrandChild(el, "direction-type", "words");
+                        if (words != null)
+                        {
+                            String wordsValue = words.getValue().toLowerCase();
+                            if (wordsValue.contains("fine"))
+                            {
+                                alCodaOrAlFine = "alfine";
+                            } else if (wordsValue.contains("coda"))
+                            {
+                                alCodaOrAlFine = "alcoda";
+                            }
+                        }
+
+                        parseDirectionSound(sound, alCodaOrAlFine);
                     }
 
-                    Element rehearsal = getFirstGrandChild(el, "direction-type", "rehearsal");                   
+                    Element rehearsal = getFirstGrandChild(el, "direction-type", "rehearsal");
                     if (rehearsal != null)
                     {
                         String value = rehearsal.getValue();
@@ -338,7 +355,14 @@ public final class MusicXmlParser
     }
 
 
-    private void parseDirectionSound(Element sound) throws NumberFormatException
+    /**
+     * Process a sound element
+     *
+     * @param sound
+     * @param alCodaOrAlFine "" or "alcoda" or "alfine" (only used for dalsegno or dacapo)
+     * @throws NumberFormatException
+     */
+    private void parseDirectionSound(Element sound, String alCodaOrAlFine) throws NumberFormatException
     {
         String value = sound.getAttributeValue("tempo");
         if (value != null)
@@ -354,34 +378,73 @@ public final class MusicXmlParser
             fireOtherPlayParsed(curBarIndex, value, type);
         }
 
-
-        value = sound.getAttributeValue("time-only");
+        value = sound.getAttributeValue("time-only");   // only used by tocoda, dacapo, dalsegno
         List<Integer> timeOnly = value == null ? new ArrayList<>() : toList(value);
+        
         value = sound.getAttributeValue("coda");
         if (value != null)
         {
             fireStructureMarkerParsed(curBarIndex, NavigationMark.CODA, value, timeOnly);
         }
-        value = sound.getAttributeValue("dacoda");
+        
+        value = sound.getAttributeValue("dacapo");      // If not null it will be "yes"
         if (value != null)
         {
-            fireStructureMarkerParsed(curBarIndex, NavigationMark.DACODA, value, timeOnly);
+            if (timeOnly.isEmpty())
+            {
+                timeOnly = List.of(1);      // default value for dacapo
+            }
+            NavigationMark nm = switch (alCodaOrAlFine)
+            {
+                case "alcoda" ->
+                    NavigationMark.DACAPO_ALCODA;
+                case "alfine" ->
+                    NavigationMark.DACAPO_ALFINE;
+                default ->
+                    NavigationMark.DACAPO;
+            };
+            fireStructureMarkerParsed(curBarIndex, nm, "coda", timeOnly);
         }
+        
         value = sound.getAttributeValue("tocoda");
         if (value != null)
         {
+            if (timeOnly.isEmpty())
+            {
+                timeOnly = List.of(2);      // default value for tocoda
+            }
             fireStructureMarkerParsed(curBarIndex, NavigationMark.TOCODA, value, timeOnly);
         }
+        
         value = sound.getAttributeValue("segno");
         if (value != null)
         {
             fireStructureMarkerParsed(curBarIndex, NavigationMark.SEGNO, value, timeOnly);
         }
+        
         value = sound.getAttributeValue("dalsegno");
         if (value != null)
         {
-            fireStructureMarkerParsed(curBarIndex, NavigationMark.DALSEGNO, value, timeOnly);
+            if (timeOnly.isEmpty())
+            {
+                timeOnly = List.of(1);      // default value for dalsegno
+            }
+            if (value.equals("yes"))
+            {
+                value = "segno";
+            }
+            NavigationMark nm = switch (alCodaOrAlFine)
+            {
+                case "alcoda" ->
+                    NavigationMark.DALSEGNO_ALCODA;
+                case "alfine" ->
+                    NavigationMark.DALSEGNO_ALFINE;
+                default ->
+                    NavigationMark.DALSEGNO;
+            };
+            fireStructureMarkerParsed(curBarIndex, nm, value, timeOnly);
         }
+        
         value = sound.getAttributeValue("fine");
         if (value != null)
         {
@@ -439,7 +502,7 @@ public final class MusicXmlParser
     private List<Integer> toList(String intList)
     {
         List<Integer> res = new ArrayList<>();
-        for (var str : intList.split(","))
+        for (var str : intList.split("\\s*,\\s*"))
         {
             try
             {
@@ -553,7 +616,7 @@ public final class MusicXmlParser
         } else if (strKindValue.equals("none"))
         {
             // Special case: no chord 
-            // Not supported in JJazzLab, just don't insert a chord
+            fireChordSymbolParsed("NC", pos);
             return;
         } else if (strKindValue.equals("other"))
         {

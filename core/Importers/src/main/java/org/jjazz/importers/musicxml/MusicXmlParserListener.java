@@ -28,13 +28,17 @@ import org.jjazz.harmony.api.Position;
 public interface MusicXmlParserListener
 {
 
-    public enum NavigationMark
+    static public enum NavigationMark
     {
         CODA,
-        DACODA,
         TOCODA,
         SEGNO,
         DALSEGNO,
+        DALSEGNO_ALCODA,
+        DALSEGNO_ALFINE,
+        DACAPO,
+        DACAPO_ALCODA,
+        DACAPO_ALFINE,
         FINE,
     }
 
@@ -77,10 +81,11 @@ public interface MusicXmlParserListener
 
     /**
      * Parsed a Sound attribute releated to song structure.
+     * <p>
      *
      * @param barIndex
      * @param marker
-     * @param value
+     * @param value    The attribute value
      * @param timeOnly The time-only attribute associated to the marker. Can be empty.
      */
     void onNavigationMarkParsed(int barIndex, NavigationMark marker, String value, List<Integer> timeOnly);

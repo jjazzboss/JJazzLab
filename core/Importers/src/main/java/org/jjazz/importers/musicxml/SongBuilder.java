@@ -24,10 +24,6 @@
  */
 package org.jjazz.importers.musicxml;
 
-import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.UnsupportedFlavorException;
-import java.beans.PropertyChangeListener;
-import java.io.IOException;
 import java.text.ParseException;
 import java.util.List;
 import java.util.logging.Level;
@@ -41,14 +37,22 @@ import org.jjazz.chordleadsheet.api.item.CLI_Factory;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
-import org.jjazz.chordleadsheet.api.item.WritableItem;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.harmony.api.TimeSignature;
+import static org.jjazz.importers.musicxml.MusicXmlParserListener.NavigationMark.CODA;
+import static org.jjazz.importers.musicxml.MusicXmlParserListener.NavigationMark.DACAPO;
+import static org.jjazz.importers.musicxml.MusicXmlParserListener.NavigationMark.DACAPO_ALCODA;
+import static org.jjazz.importers.musicxml.MusicXmlParserListener.NavigationMark.DACAPO_ALFINE;
+import static org.jjazz.importers.musicxml.MusicXmlParserListener.NavigationMark.DALSEGNO;
+import static org.jjazz.importers.musicxml.MusicXmlParserListener.NavigationMark.DALSEGNO_ALCODA;
+import static org.jjazz.importers.musicxml.MusicXmlParserListener.NavigationMark.DALSEGNO_ALFINE;
+import static org.jjazz.importers.musicxml.MusicXmlParserListener.NavigationMark.FINE;
+import static org.jjazz.importers.musicxml.MusicXmlParserListener.NavigationMark.SEGNO;
+import static org.jjazz.importers.musicxml.MusicXmlParserListener.NavigationMark.TOCODA;
 import org.jjazz.rhythm.api.TempoRange;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
-import org.jjazz.utilities.api.StringProperties;
 import org.openide.util.Exceptions;
 
 /**
@@ -57,10 +61,6 @@ import org.openide.util.Exceptions;
 public class SongBuilder implements MusicXmlParserListener
 {
 
-    private enum EndingType
-    {
-        START, STOP, DISCONTINUE
-    };
     private int nbMeasures = 0;
     private int sectionNumber = 1;
     private TimeSignature timeSignature = TimeSignature.FOUR_FOUR;
@@ -220,7 +220,9 @@ public class SongBuilder implements MusicXmlParserListener
             barIndex, startOrEnd, times
         });
         Repeat data = new Repeat(startOrEnd, times);
-        float beat = startOrEnd ? 0 : timeSignature.getNbNaturalBeats() - 0.01f;
+        // Repeat-forward position should be AFTER a CODA/SEGNO        
+        // Repeat-backward position should be AFTER an ending-stop, but before a DS or DC
+        float beat = startOrEnd ? 0.0001f : timeSignature.getNbNaturalBeats() - 0.0001f;
         CLI_Repeat cliItem = new CLI_Repeat(new Position(barIndex, beat), data);
         clsWork.addItem(cliItem);
     }
@@ -272,31 +274,57 @@ public class SongBuilder implements MusicXmlParserListener
             barIndex, numbers, type
         });
 
-
-        EndingType endType = switch (type)
+        final float beat;
+        final float LAST_BEAT = timeSignature.getNbNaturalBeats() - 0.0002f;   // 0.0002 because ending stop/discontinue must be BEFORE a repeat-backward
+        EndingType endType;
+        switch (type)
         {
             case 0 ->
-                EndingType.START;
+            {
+                endType = EndingType.START;
+                beat = 0;
+            }
             case 1 ->
-                EndingType.STOP;
+            {
+                endType = EndingType.STOP;
+                beat = LAST_BEAT;
+            }
             default ->
-                EndingType.DISCONTINUE;
-        };
+            {
+                endType = EndingType.DISCONTINUE;
+                beat = LAST_BEAT;
+
+            }
+        }
+
         Ending data = new Ending(endType, numbers);
-        float beat = endType.equals(EndingType.STOP) ? 0 : timeSignature.getNbNaturalBeats() - 0.01f;
         CLI_Ending cliItem = new CLI_Ending(new Position(barIndex, beat), data);
         clsWork.addItem(cliItem);
     }
 
     @Override
-    public void onNavigationMarkParsed(int barIndex, NavigationMark marker, String value, List<Integer> timeOnly)
+    public void onNavigationMarkParsed(int barIndex, NavigationMark mark, String value, List<Integer> timeOnly)
     {
         LOGGER.log(Level.FINE, "onStructureMarkerParsed() barIndex={0} marker={1} value={2}, timeOnly={3}", new Object[]
         {
-            barIndex, marker, value, timeOnly
+            barIndex, mark, value, timeOnly
         });
-        NavigationItem data = new NavigationItem(marker, value, timeOnly);
-        CLI_NavigationItem cliItem = new CLI_NavigationItem(new Position(barIndex), data);
+        final float LAST_BEAT = timeSignature.getNbNaturalBeats() - 0.00005f;   // After a repeat-end
+        final float LAST_BEAT2 = timeSignature.getNbNaturalBeats() - 0.00001f;   // After other navigation mark
+        NavItem data = new NavItem(mark, value, timeOnly);
+        float beat = switch (mark)
+        {
+            case TOCODA, DALSEGNO, DALSEGNO_ALCODA, DALSEGNO_ALFINE ->
+                LAST_BEAT;
+            case DACAPO, DACAPO_ALCODA, DACAPO_ALFINE ->
+                LAST_BEAT;
+            case FINE ->
+                LAST_BEAT2;
+            default ->
+                0;
+        };
+
+        CLI_NavigationItem cliItem = new CLI_NavigationItem(new Position(barIndex, beat), data);
         clsWork.addItem(cliItem);
     }
 
@@ -316,8 +344,15 @@ public class SongBuilder implements MusicXmlParserListener
      */
     private Song buildSong()
     {
+        int currentRepeatStartBarIndex;
+        int currentRepeatNumber;
+        boolean goingAlCoda;
+        boolean goingAlFine;
+
+
         // Set minimum size
-        if (nbMeasures == 0)
+        if (nbMeasures
+                == 0)
         {
             nbMeasures = 4;
         }
@@ -329,6 +364,15 @@ public class SongBuilder implements MusicXmlParserListener
 
         LOGGER.severe("buildSong() musicalStyle=" + musicalStyle);
         LOGGER.severe("buildSong() clsWork=" + clsWork.toDebugString());
+
+
+        // Process structure
+        var it = new NavigationIterator(clsWork);
+        while (it.hasNext())
+        {
+            var cli = it.next();
+            // LOGGER.info(cli.toString());
+        }
 
 
         // Remove useless bars (BIAB export seems to systematically insert 2 bars at the beginning)                            
@@ -346,7 +390,8 @@ public class SongBuilder implements MusicXmlParserListener
 //        }
 
 
-        if (firstChordPos == null)
+        if (firstChordPos
+                == null)
         {
             LOGGER.warning("afterParsingFinished() No chord symbols found, importing an empty song.");
         }
@@ -354,319 +399,11 @@ public class SongBuilder implements MusicXmlParserListener
         return sg;
     }
 
-    // ============================================================================
-    // Private classes
-    // ============================================================================
-    static private record Ending(EndingType type, List<Integer> numbers)
-            {
 
-    }
-
-    static private record Repeat(boolean startOrEnd, int times)
-            {
-
-    }
-
-    static private record NavigationItem(NavigationMark mark, String value, List<Integer> timeOnly)
-            {
-
-    }
-
-    static private class CLI_Ending implements ChordLeadSheetItem<Ending>, WritableItem<Ending>
+    private boolean isSection(ChordLeadSheetItem cli)
     {
-
-        private ChordLeadSheet container;
-        private Position position;
-        private Ending data;
-
-        public CLI_Ending(Position position, Ending data)
-        {
-            this.position = position;
-            this.data = data;
-        }
-
-        @Override
-        public ChordLeadSheet getContainer()
-        {
-            return container;
-        }
-
-        @Override
-        public Ending getData()
-        {
-            return data;
-        }
-
-        @Override
-        public Position getPosition()
-        {
-            return position;
-        }
-
-        @Override
-        public ChordLeadSheetItem<Ending> getCopy(Position newPos)
-        {
-            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-        }
-
-        @Override
-        public boolean isBarSingleItem()
-        {
-            return true;
-        }
-
-        @Override
-        public StringProperties getClientProperties()
-        {
-            return new StringProperties();
-        }
-
-        @Override
-        public void addPropertyChangeListener(PropertyChangeListener listener)
-        {
-            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-        }
-
-        @Override
-        public void removePropertyChangeListener(PropertyChangeListener listener)
-        {
-            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-        }
-
-        @Override
-        public DataFlavor[] getTransferDataFlavors()
-        {
-            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-        }
-
-        @Override
-        public boolean isDataFlavorSupported(DataFlavor flavor)
-        {
-            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-        }
-
-        @Override
-        public Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException, IOException
-        {
-            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-        }
-
-        @Override
-        public void setPosition(Position pos)
-        {
-            this.position = pos;
-        }
-
-        @Override
-        public void setData(Ending data)
-        {
-            this.data = data;
-        }
-
-        @Override
-        public void setContainer(ChordLeadSheet cls)
-        {
-            this.container = container;
-        }
-
+        return cli instanceof CLI_Section;
     }
 
-
-    static private class CLI_Repeat implements ChordLeadSheetItem<Repeat>, WritableItem<Repeat>
-    {
-
-        private ChordLeadSheet container;
-        private Position position;
-        private Repeat data;
-
-        public CLI_Repeat(Position position, Repeat data)
-        {
-            this.position = position;
-            this.data = data;
-        }
-
-        @Override
-        public ChordLeadSheet getContainer()
-        {
-            return container;
-        }
-
-        @Override
-        public Repeat getData()
-        {
-            return data;
-        }
-
-        @Override
-        public Position getPosition()
-        {
-            return position;
-        }
-
-        @Override
-        public ChordLeadSheetItem<Repeat> getCopy(Position newPos)
-        {
-            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-        }
-
-        @Override
-        public boolean isBarSingleItem()
-        {
-            return true;
-        }
-
-        @Override
-        public StringProperties getClientProperties()
-        {
-            return new StringProperties();
-        }
-
-        @Override
-        public void addPropertyChangeListener(PropertyChangeListener listener)
-        {
-            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-        }
-
-        @Override
-        public void removePropertyChangeListener(PropertyChangeListener listener)
-        {
-            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-        }
-
-        @Override
-        public DataFlavor[] getTransferDataFlavors()
-        {
-            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-        }
-
-        @Override
-        public boolean isDataFlavorSupported(DataFlavor flavor)
-        {
-            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-        }
-
-        @Override
-        public Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException, IOException
-        {
-            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-        }
-
-        @Override
-        public void setPosition(Position pos)
-        {
-            this.position = pos;
-        }
-
-        @Override
-        public void setData(Repeat data)
-        {
-            this.data = data;
-        }
-
-        @Override
-        public void setContainer(ChordLeadSheet cls)
-        {
-            this.container = container;
-        }
-
-    }
-
-    static private class CLI_NavigationItem implements ChordLeadSheetItem<NavigationItem>, WritableItem<NavigationItem>
-    {
-
-        private ChordLeadSheet container;
-        private Position position;
-        private NavigationItem data;
-
-        public CLI_NavigationItem(Position position, NavigationItem data)
-        {
-            this.position = position;
-            this.data = data;
-        }
-
-        @Override
-        public ChordLeadSheet getContainer()
-        {
-            return container;
-        }
-
-        @Override
-        public NavigationItem getData()
-        {
-            return data;
-        }
-
-        @Override
-        public Position getPosition()
-        {
-            return position;
-        }
-
-        @Override
-        public ChordLeadSheetItem<NavigationItem> getCopy(Position newPos)
-        {
-            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-        }
-
-        @Override
-        public boolean isBarSingleItem()
-        {
-            return true;
-        }
-
-        @Override
-        public StringProperties getClientProperties()
-        {
-            return new StringProperties();
-        }
-
-        @Override
-        public void addPropertyChangeListener(PropertyChangeListener listener)
-        {
-            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-        }
-
-        @Override
-        public void removePropertyChangeListener(PropertyChangeListener listener)
-        {
-            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-        }
-
-        @Override
-        public DataFlavor[] getTransferDataFlavors()
-        {
-            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-        }
-
-        @Override
-        public boolean isDataFlavorSupported(DataFlavor flavor)
-        {
-            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-        }
-
-        @Override
-        public Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException, IOException
-        {
-            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-        }
-
-        @Override
-        public void setPosition(Position pos)
-        {
-            this.position = pos;
-        }
-
-        @Override
-        public void setData(NavigationItem data)
-        {
-            this.data = data;
-        }
-
-        @Override
-        public void setContainer(ChordLeadSheet cls)
-        {
-            this.container = container;
-        }
-    }
 
 }
