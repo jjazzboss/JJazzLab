@@ -40,19 +40,20 @@ import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.harmony.api.TimeSignature;
-import static org.jjazz.importers.musicxml.MusicXmlParserListener.NavigationMark.CODA;
-import static org.jjazz.importers.musicxml.MusicXmlParserListener.NavigationMark.DACAPO;
-import static org.jjazz.importers.musicxml.MusicXmlParserListener.NavigationMark.DACAPO_ALCODA;
-import static org.jjazz.importers.musicxml.MusicXmlParserListener.NavigationMark.DACAPO_ALFINE;
-import static org.jjazz.importers.musicxml.MusicXmlParserListener.NavigationMark.DALSEGNO;
-import static org.jjazz.importers.musicxml.MusicXmlParserListener.NavigationMark.DALSEGNO_ALCODA;
-import static org.jjazz.importers.musicxml.MusicXmlParserListener.NavigationMark.DALSEGNO_ALFINE;
-import static org.jjazz.importers.musicxml.MusicXmlParserListener.NavigationMark.FINE;
-import static org.jjazz.importers.musicxml.MusicXmlParserListener.NavigationMark.SEGNO;
-import static org.jjazz.importers.musicxml.MusicXmlParserListener.NavigationMark.TOCODA;
+import static org.jjazz.importers.musicxml.NavigationMark.CODA;
+import static org.jjazz.importers.musicxml.NavigationMark.DACAPO;
+import static org.jjazz.importers.musicxml.NavigationMark.DACAPO_ALCODA;
+import static org.jjazz.importers.musicxml.NavigationMark.DACAPO_ALFINE;
+import static org.jjazz.importers.musicxml.NavigationMark.DALSEGNO;
+import static org.jjazz.importers.musicxml.NavigationMark.DALSEGNO_ALCODA;
+import static org.jjazz.importers.musicxml.NavigationMark.DALSEGNO_ALFINE;
+import static org.jjazz.importers.musicxml.NavigationMark.FINE;
+import static org.jjazz.importers.musicxml.NavigationMark.SEGNO;
+import static org.jjazz.importers.musicxml.NavigationMark.TOCODA;
 import org.jjazz.rhythm.api.TempoRange;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
+import org.jjazz.utilities.api.Utilities;
 import org.openide.util.Exceptions;
 
 /**
@@ -220,9 +221,7 @@ public class SongBuilder implements MusicXmlParserListener
             barIndex, startOrEnd, times
         });
         Repeat data = new Repeat(startOrEnd, times);
-        // Repeat-forward position should be AFTER a CODA/SEGNO        
-        // Repeat-backward position should be AFTER an ending-stop, but before a DS or DC
-        float beat = startOrEnd ? 0.0001f : timeSignature.getNbNaturalBeats() - 0.0001f;
+        float beat = startOrEnd ? 0 : getLastPossibleBeat();
         CLI_Repeat cliItem = new CLI_Repeat(new Position(barIndex, beat), data);
         clsWork.addItem(cliItem);
     }
@@ -230,7 +229,7 @@ public class SongBuilder implements MusicXmlParserListener
     @Override
     public void onRehearsalParsed(int barIndex, String value)
     {
-        LOGGER.log(Level.FINE, "onRehearsalParsed() barIndex={0} value={1}", new Object[]
+        LOGGER.log(Level.SEVERE, "onRehearsalParsed() barIndex={0} value={1}", new Object[]
         {
             barIndex, value
         });
@@ -275,7 +274,6 @@ public class SongBuilder implements MusicXmlParserListener
         });
 
         final float beat;
-        final float LAST_BEAT = timeSignature.getNbNaturalBeats() - 0.0002f;   // 0.0002 because ending stop/discontinue must be BEFORE a repeat-backward
         EndingType endType;
         switch (type)
         {
@@ -287,14 +285,14 @@ public class SongBuilder implements MusicXmlParserListener
             case 1 ->
             {
                 endType = EndingType.STOP;
-                beat = LAST_BEAT;
+                beat = getLastPossibleBeat();
             }
-            default ->
+            case 2 ->
             {
                 endType = EndingType.DISCONTINUE;
-                beat = LAST_BEAT;
-
+                beat = getLastPossibleBeat();
             }
+            default -> throw new IllegalStateException("type=" + type);
         }
 
         Ending data = new Ending(endType, numbers);
@@ -309,19 +307,15 @@ public class SongBuilder implements MusicXmlParserListener
         {
             barIndex, mark, value, timeOnly
         });
-        final float LAST_BEAT = timeSignature.getNbNaturalBeats() - 0.00005f;   // After a repeat-end
-        final float LAST_BEAT2 = timeSignature.getNbNaturalBeats() - 0.00001f;   // After other navigation mark
         NavItem data = new NavItem(mark, value, timeOnly);
         float beat = switch (mark)
         {
-            case TOCODA, DALSEGNO, DALSEGNO_ALCODA, DALSEGNO_ALFINE ->
-                LAST_BEAT;
-            case DACAPO, DACAPO_ALCODA, DACAPO_ALFINE ->
-                LAST_BEAT;
-            case FINE ->
-                LAST_BEAT2;
-            default ->
+            case TOCODA, DACAPO, DACAPO_ALCODA, DACAPO_ALFINE, DALSEGNO, DALSEGNO_ALCODA, DALSEGNO_ALFINE, FINE ->
+                getLastPossibleBeat();
+            case CODA, SEGNO ->
                 0;
+            default ->
+                throw new IllegalStateException("mark=" + mark);
         };
 
         CLI_NavigationItem cliItem = new CLI_NavigationItem(new Position(barIndex, beat), data);
@@ -334,7 +328,7 @@ public class SongBuilder implements MusicXmlParserListener
 
     private String getSectionUniqueName()
     {
-        return "TMP**" + sectionNumber++;
+        return "S_" + sectionNumber++;
     }
 
     /**
@@ -344,12 +338,6 @@ public class SongBuilder implements MusicXmlParserListener
      */
     private Song buildSong()
     {
-        int currentRepeatStartBarIndex;
-        int currentRepeatNumber;
-        boolean goingAlCoda;
-        boolean goingAlFine;
-
-
         // Set minimum size
         if (nbMeasures
                 == 0)
@@ -362,8 +350,8 @@ public class SongBuilder implements MusicXmlParserListener
         var cls = sg.getChordLeadSheet();
         var sgs = sg.getSongStructure();
 
-        LOGGER.severe("buildSong() musicalStyle=" + musicalStyle);
-        LOGGER.severe("buildSong() clsWork=" + clsWork.toDebugString());
+        LOGGER.log(Level.SEVERE, "buildSong() musicalStyle={0}", musicalStyle);
+        LOGGER.log(Level.SEVERE, "buildSong() clsWork={0}", Utilities.toMultilineString(clsWork.getItems(), "  "));
 
 
         // Process structure
@@ -405,5 +393,9 @@ public class SongBuilder implements MusicXmlParserListener
         return cli instanceof CLI_Section;
     }
 
+    private float getLastPossibleBeat()
+    {
+        return timeSignature.getNbNaturalBeats() - 0.001f;
+    }
 
 }

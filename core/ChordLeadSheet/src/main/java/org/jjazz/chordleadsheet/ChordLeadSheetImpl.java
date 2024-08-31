@@ -208,14 +208,21 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable, Propert
     @Override
     public synchronized <T extends ChordLeadSheetItem<?>> T getFirstItemAfter(Position posFrom, boolean inclusiveFrom, Class<T> itemClass, Predicate<T> tester)
     {
-        Preconditions.checkNotNull(posFrom);
+        var itemFrom = ChordLeadSheetItem.createItemFrom(posFrom, inclusiveFrom);
+        T res = getFirstItemAfter(itemFrom, itemClass, tester);
+        return res;
+    }
+
+    @Override
+    public synchronized <T extends ChordLeadSheetItem<?>> T getFirstItemAfter(ChordLeadSheetItem<?> cli, Class<T> itemClass, Predicate<T> tester)
+    {
+        Preconditions.checkNotNull(cli);
         Preconditions.checkNotNull(tester);
         Preconditions.checkNotNull(itemClass);
 
         T res = null;
 
-        var tailSet = items.tailSet(ChordLeadSheetItem.createItemFrom(posFrom, inclusiveFrom),
-                inclusiveFrom);   // useless because of createItemFrom
+        var tailSet = items.tailSet(cli, false);
         for (var item : tailSet)
         {
             if (itemClass.isAssignableFrom(item.getClass()))
@@ -236,13 +243,20 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable, Propert
     @Override
     public synchronized <T extends ChordLeadSheetItem<?>> T getLastItemBefore(Position posTo, boolean inclusiveTo, Class<T> itemClass, Predicate<T> tester)
     {
-        Preconditions.checkNotNull(posTo);
+        var itemTo = ChordLeadSheetItem.createItemTo(posTo, inclusiveTo);
+        T res = getLastItemBefore(itemTo, itemClass, tester);
+        return res;
+    }
+
+    @Override
+    public synchronized <T extends ChordLeadSheetItem<?>> T getLastItemBefore(ChordLeadSheetItem<?> cli, Class<T> itemClass, Predicate<T> tester)
+    {
+        Preconditions.checkNotNull(cli);
         Preconditions.checkNotNull(tester);
         Preconditions.checkNotNull(itemClass);
         T res = null;
 
-        var headSet = items.headSet(ChordLeadSheetItem.createItemTo(posTo, inclusiveTo),
-                false);   // useless because of createItemFrom
+        var headSet = items.headSet(cli, false);
         var it = headSet.descendingIterator();
         while (it.hasNext())
         {
@@ -335,7 +349,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable, Propert
         return "ChordLeadSheet section0=" + getSection(0).getData().getName() + " size=" + getSizeInBars();
     }
 
- 
+
     // ============================================================================================= 
     // PropertyChangeListener interface
     // =============================================================================================    
@@ -977,7 +991,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable, Propert
                 CLI_Factory clif = CLI_Factory.getDefault();
                 CLI_Section initSectionCopy = clif.createSection(oldInitSectionName,
                         initSection.getData().getTimeSignature(),
-                        nbBars, 
+                        nbBars,
                         this);
                 try
                 {
@@ -1251,10 +1265,6 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable, Propert
 
         for (ChordLeadSheetItem<?> item : iitems)
         {
-            if (item.isBarSingleItem())
-            {
-                continue;
-            }
             Position oldPos = item.getPosition();
             Position newPos = oldPos.getConverted(oldTs, newTs);
             if (!newPos.equals(oldPos))

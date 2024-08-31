@@ -36,7 +36,6 @@ import java.util.logging.Logger;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.item.CLI_BarAnnotation;
-import org.jjazz.chordleadsheet.api.item.NCExtChordSymbol;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.utilities.api.StringProperties;
 import org.jjazz.xstream.spi.XStreamConfigurator;
@@ -51,7 +50,7 @@ import org.openide.util.lookup.ServiceProvider;
  */
 public class CLI_BarAnnotationImpl implements CLI_BarAnnotation, WritableItem<String>, Serializable
 {
-
+    
     /**
      * Position of the item.
      */
@@ -261,6 +260,12 @@ public class CLI_BarAnnotationImpl implements CLI_BarAnnotation, WritableItem<St
         {
             throw new UnsupportedFlavorException(fl);
         }
+    }
+
+    @Override
+    public int getPositionOrder()
+    {
+        return POSITION_ORDER;
     }
 
   /**

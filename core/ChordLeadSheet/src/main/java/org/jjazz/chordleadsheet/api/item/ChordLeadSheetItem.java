@@ -27,6 +27,8 @@ import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.utilities.api.StringProperties;
@@ -53,6 +55,7 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
      * oldValue=old position, newValue=new position.
      */
     public static String PROP_ITEM_POSITION = "ItemPosition";
+    static final Logger LOGGER = Logger.getLogger(ChordLeadSheetItem.class.getSimpleName());
 
 
     /**
@@ -78,15 +81,24 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
     Position getPosition();
 
     /**
+     * A unique constant value used to order items which have the same position.
+     * <p>
+     *
+     * @return Must be a unique value for each type of item
+     * @see #compareTo(org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem)
+     */
+    int getPositionOrder();
+
+    /**
      * Get a copy of this item at a specified position.
      * <p>
      * Client properties are also copied. Returned copy has its ChordLeadSheet container set to null.
      *
      * @param newPos If null, the copy will have the same position that this object.
-     * @return 
+     * @return
      */
     ChordLeadSheetItem<T> getCopy(Position newPos);
-    
+
 
     /**
      * Return true if there can be only one single item perbar, like a time signature.
@@ -102,13 +114,14 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
      */
     StringProperties getClientProperties();
 
+
     /**
-     * Default implementations first compares using position, then use isBarSingleItem(), then use System.identifyHashCode().
+     * Default implementation compares items using position then positionOrder if required.
      * <p>
-     * Performs a special handling for ComparableItems.
      *
      * @param other
      * @return 0 only if this == other, so that comparison is consistent with equals().
+     * @see #getPositionOrder()
      */
     @Override
     default int compareTo(ChordLeadSheetItem<?> other)
@@ -117,49 +130,21 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
         {
             return 0;
         }
-
         int res = getPosition().compareTo(other.getPosition());
         if (res == 0)
         {
-            if (this instanceof ComparableItem ciThis && other instanceof ComparableItem ciOther)
+            res = Integer.compare(getPositionOrder(), other.getPositionOrder());
+            if (res == 0)
             {
-                if (ciThis.isBeforeItem() == ciOther.isBeforeItem())
-                {
-                    throw new IllegalStateException("this=" + this + " other=" + other);
-                }
-                res = ciThis.isBeforeItem() ? -1 : 1;
-            } else if (this instanceof ComparableItem ciThis)
-            {
-                if (ciThis.isBeforeItem())
-                {
-                    res = ciThis.isInclusive() ? -1 : 1;
-                } else
-                {
-                    res = ciThis.isInclusive() ? 1 : -1;
-                }
-            } else if (other instanceof ComparableItem ciOther)
-            {
-                if (ciOther.isBeforeItem())
-                {
-                    res = ciOther.isInclusive() ? 1 : -1;
-                } else
-                {
-                    res = ciOther.isInclusive() ? -1 : 1;
-                }
-            } else if (isBarSingleItem() && !other.isBarSingleItem())
-            {
-                res = -1;
-            } else if (!isBarSingleItem() && other.isBarSingleItem())
-            {
-                res = 1;
-            } else
-            {
+                // e.g. for non-isBarSingleItem() item like CLI_ChordSymbol
                 res = Long.compare(System.identityHashCode(this), System.identityHashCode(other));
+                LOGGER.log(Level.FINE, "compareTo() Using hashcode to compare this={0} and other={1} -> res={2}", new Object[]
+                {
+                    this, other, res
+                });
             }
-            // System.out.println("compareTo() samePos > res=" + res + " this=" + this + " other=" + other);            
         }
-
-
+        assert res != 0;        // For consistency with equals(), important because ChordLeadSheetItems are used in order-based collections
         return res;
     }
 
@@ -226,43 +211,35 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
     // Inner classes
     // ==================================================================================================
 
-    /**
-     * An interface for items used only for position comparison purposes, when using the NavigableSet/SortedSet-based methods of ChordLeadSheet or
-     * ChordSequence.
-     */
-    public interface ComparableItem
+    static class DefaultComparableItem implements ChordLeadSheetItem<Object>
     {
 
-        boolean isBeforeItem();
-
-        public boolean isInclusive();
-    }
-
-    public static class DefaultComparableItem implements ComparableItem, ChordLeadSheetItem<Object>
-    {
-
+        private final int positionOrder;
         private final Position position;
-        private final boolean beforeItem;
-        private final boolean inclusive;
 
-
-        private DefaultComparableItem(Position pos, boolean beforeItem, boolean inclusive)
+        /**
+         *
+         * @param pos
+         * @param beforeOrAfterItem If true it's a "before item", otherwise an "after" item
+         * @param inclusive         If true other items at same pos should be included
+         */
+        private DefaultComparableItem(Position pos, boolean beforeOrAfterItem, boolean inclusive)
         {
-            this.beforeItem = beforeItem;
             this.position = pos;
-            this.inclusive = inclusive;
+
+            if (beforeOrAfterItem)
+            {
+                positionOrder = inclusive ? Integer.MIN_VALUE : Integer.MAX_VALUE;
+            } else
+            {
+                positionOrder = inclusive ? Integer.MAX_VALUE : Integer.MIN_VALUE;
+            }
         }
 
         @Override
-        public boolean isBeforeItem()
+        public int getPositionOrder()
         {
-            return beforeItem;
-        }
-
-        @Override
-        public boolean isInclusive()
-        {
-            return inclusive;
+            return positionOrder;
         }
 
         @Override
@@ -328,7 +305,7 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
         @Override
         public String toString()
         {
-            return (beforeItem ? "beforeCompItem" : "afterCompItem") + "-" + getPosition() + "-" + (inclusive ? "inclusive" : "exclusive");
+            return getClass().getSimpleName() + "[" + getPosition() + ", posOrder=" + positionOrder + "]";
         }
 
         @Override
@@ -336,6 +313,7 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
         {
             throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
         }
+
     }
 
 

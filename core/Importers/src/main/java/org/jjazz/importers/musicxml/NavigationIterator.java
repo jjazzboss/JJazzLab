@@ -33,9 +33,10 @@ import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.harmony.api.Position;
-import org.jjazz.importers.musicxml.MusicXmlParserListener.NavigationMark;
+import org.jjazz.importers.musicxml.NavigationMark;
 import org.jjazz.utilities.api.StringProperties;
 
 /**
@@ -56,7 +57,8 @@ public class NavigationIterator implements Iterator<ChordLeadSheetItem>
     private HashMap<ChordLeadSheetItem, StringProperties> mapCliProps = new HashMap<>();
     private static final Predicate<ChordLeadSheetItem> IS_NAV_ITEM = cli -> cli instanceof CLI_Repeat
             || cli instanceof CLI_NavigationItem
-            || cli instanceof CLI_Ending;
+            || cli instanceof CLI_Ending
+            || cli instanceof CLI_Section;
     private static final Logger LOGGER = Logger.getLogger(NavigationIterator.class.getSimpleName());
 
     public NavigationIterator(ChordLeadSheet cls)
@@ -138,6 +140,9 @@ public class NavigationIterator implements Iterator<ChordLeadSheetItem>
         } else if (currentElement instanceof CLI_NavigationItem cliNavItem)
         {
             res = nextNavigationItem(cliNavItem);
+        } else if (currentElement instanceof CLI_Section cliSection)
+        {
+            res = nextSection(cliSection);
         } else
         {
             throw new IllegalStateException("currentElement=" + currentElement);
@@ -159,7 +164,7 @@ public class NavigationIterator implements Iterator<ChordLeadSheetItem>
                 if (navItem.value().equals(goingAlCoda))
                 {
                     // We reached the right coda, continue
-                    res = cls.getFirstItemAfter(currentPos, false, ChordLeadSheetItem.class, IS_NAV_ITEM);
+                    res = cls.getFirstItemAfter(cliNavItem, ChordLeadSheetItem.class, IS_NAV_ITEM);
                 } else
                 {
                     // We arrived to the end of the song, do like we reached a DACAPO_ALCODA
@@ -181,12 +186,12 @@ public class NavigationIterator implements Iterator<ChordLeadSheetItem>
                         {
                             navItem.value(), currentPos.getBar()
                         });
-                        res = cls.getFirstItemAfter(currentPos, false, ChordLeadSheetItem.class, IS_NAV_ITEM);
+                        res = cls.getFirstItemAfter(cliNavItem, ChordLeadSheetItem.class, IS_NAV_ITEM);
                     }
                 } else
                 {
                     // Continue
-                    res = cls.getFirstItemAfter(currentPos, false, ChordLeadSheetItem.class, IS_NAV_ITEM);
+                    res = cls.getFirstItemAfter(cliNavItem, ChordLeadSheetItem.class, IS_NAV_ITEM);
                 }
 
                 // Update state
@@ -195,7 +200,7 @@ public class NavigationIterator implements Iterator<ChordLeadSheetItem>
             }
             case SEGNO ->
             {
-                res = cls.getFirstItemAfter(currentPos, false, ChordLeadSheetItem.class, IS_NAV_ITEM);
+                res = cls.getFirstItemAfter(cliNavItem, ChordLeadSheetItem.class, IS_NAV_ITEM);
             }
             case DALSEGNO, DALSEGNO_ALCODA ->
             {
@@ -215,12 +220,12 @@ public class NavigationIterator implements Iterator<ChordLeadSheetItem>
                         {
                             navItem.value(), currentPos.getBar()
                         });
-                        res = cls.getFirstItemAfter(currentPos, false, ChordLeadSheetItem.class, IS_NAV_ITEM);
+                        res = cls.getFirstItemAfter(cliNavItem, ChordLeadSheetItem.class, IS_NAV_ITEM);
                     }
                 } else
                 {
                     // Continue
-                    res = cls.getFirstItemAfter(currentPos, false, ChordLeadSheetItem.class, IS_NAV_ITEM);
+                    res = cls.getFirstItemAfter(cliNavItem, ChordLeadSheetItem.class, IS_NAV_ITEM);
                 }
                 // Update state
                 getProps(cliNavItem).shiftInt(PROP_TIME, 1, 0);
@@ -243,12 +248,12 @@ public class NavigationIterator implements Iterator<ChordLeadSheetItem>
                         {
                             navItem.value(), currentPos.getBar()
                         });
-                        res = cls.getFirstItemAfter(currentPos, false, ChordLeadSheetItem.class, IS_NAV_ITEM);
+                        res = cls.getFirstItemAfter(cliNavItem, ChordLeadSheetItem.class, IS_NAV_ITEM);
                     }
                 } else
                 {
                     // Continue
-                    res = cls.getFirstItemAfter(currentPos, false, ChordLeadSheetItem.class, IS_NAV_ITEM);
+                    res = cls.getFirstItemAfter(cliNavItem, ChordLeadSheetItem.class, IS_NAV_ITEM);
                 }
                 // Update state
                 getProps(cliNavItem).shiftInt(PROP_TIME, 1, 0);
@@ -266,7 +271,7 @@ public class NavigationIterator implements Iterator<ChordLeadSheetItem>
                 } else
                 {
                     // Continue
-                    res = cls.getFirstItemAfter(currentPos, false, ChordLeadSheetItem.class, IS_NAV_ITEM);
+                    res = cls.getFirstItemAfter(cliNavItem, ChordLeadSheetItem.class, IS_NAV_ITEM);
                 }
                 // Update state
                 getProps(cliNavItem).shiftInt(PROP_TIME, 1, 0);
@@ -284,14 +289,14 @@ public class NavigationIterator implements Iterator<ChordLeadSheetItem>
                 } else
                 {
                     // Continue
-                    res = cls.getFirstItemAfter(currentPos, false, ChordLeadSheetItem.class, IS_NAV_ITEM);
+                    res = cls.getFirstItemAfter(cliNavItem, ChordLeadSheetItem.class, IS_NAV_ITEM);
                 }
                 // Update state
                 getProps(cliNavItem).shiftInt(PROP_TIME, 1, 0);
             }
             case FINE ->
             {
-                res = (goingAlFine || goingAlCoda != null) ? null : cls.getFirstItemAfter(currentPos, false, ChordLeadSheetItem.class, IS_NAV_ITEM);
+                res = goingAlFine ? null : cls.getFirstItemAfter(cliNavItem, ChordLeadSheetItem.class, IS_NAV_ITEM);
             }
             default -> throw new AssertionError(cliNavItem.getData().mark().name());
         }
@@ -318,12 +323,12 @@ public class NavigationIterator implements Iterator<ChordLeadSheetItem>
             if (cliEnding.getData().numbers().contains(time + 1))
             {
                 // Continue
-                res = cls.getFirstItemAfter(currentPos, false, ChordLeadSheetItem.class, IS_NAV_ITEM);
+                res = cls.getFirstItemAfter(cliEnding, ChordLeadSheetItem.class, IS_NAV_ITEM);
 //                LOGGER.severe("nextEnding() start - continuing on next bar");
             } else
             {
                 // Need to find ending start for time+1, or a ending discontinue
-                res = cls.getFirstItemAfter(currentPos, false, ChordLeadSheetItem.class,
+                res = cls.getFirstItemAfter(cliEnding, ChordLeadSheetItem.class,
                         cli -> cli instanceof CLI_Ending cliE
                         && ((cliE.isStartType() && cliE.getData().numbers().contains(time + 1))
                         || cliE.getData().type().equals(EndingType.DISCONTINUE))
@@ -353,7 +358,7 @@ public class NavigationIterator implements Iterator<ChordLeadSheetItem>
                 // Something's wrong
                 LOGGER.log(Level.WARNING, "nextEnding() Ending-stop bar {0} without a start repeat bar.", currentPos.getBar());
 
-                res = cls.getFirstItemAfter(currentPos, false, ChordLeadSheetItem.class, IS_NAV_ITEM);
+                res = cls.getFirstItemAfter(cliEnding, ChordLeadSheetItem.class, IS_NAV_ITEM);
             } else
             {
                 // Go back to repeat start
@@ -366,7 +371,7 @@ public class NavigationIterator implements Iterator<ChordLeadSheetItem>
         } else
         {
             // Ending-discontinue
-            res = cls.getFirstItemAfter(currentPos, false, ChordLeadSheetItem.class, IS_NAV_ITEM);
+            res = cls.getFirstItemAfter(cliEnding, ChordLeadSheetItem.class, IS_NAV_ITEM);
         }
 
 
@@ -396,7 +401,7 @@ public class NavigationIterator implements Iterator<ChordLeadSheetItem>
             currentRepeatStart = cliRepeat;
             getProps(cliRepeat).shiftInt(PROP_TIME, 1, 0);
 
-            res = cls.getFirstItemAfter(currentPos, false, ChordLeadSheetItem.class, IS_NAV_ITEM);
+            res = cls.getFirstItemAfter(cliRepeat, ChordLeadSheetItem.class, IS_NAV_ITEM);
 
         } else
         {
@@ -406,7 +411,7 @@ public class NavigationIterator implements Iterator<ChordLeadSheetItem>
                 // Something's wrong
                 LOGGER.log(Level.WARNING, "Repeat-end bar {0} without a start repeat bar.", currentPos.getBar());
 
-                res = cls.getFirstItemAfter(currentPos, false, ChordLeadSheetItem.class, IS_NAV_ITEM);
+                res = cls.getFirstItemAfter(cliRepeat, ChordLeadSheetItem.class, IS_NAV_ITEM);
             } else
             {
                 // Go back to repeat start
@@ -418,7 +423,7 @@ public class NavigationIterator implements Iterator<ChordLeadSheetItem>
                 } else
                 {
                     // Continue
-                    res = cls.getFirstItemAfter(currentPos, false, ChordLeadSheetItem.class, IS_NAV_ITEM);
+                    res = cls.getFirstItemAfter(cliRepeat, ChordLeadSheetItem.class, IS_NAV_ITEM);
                     currentRepeatStart = null;
                 }
                 // Update state
@@ -426,6 +431,12 @@ public class NavigationIterator implements Iterator<ChordLeadSheetItem>
             }
         }
 
+        return res;
+    }
+
+    private ChordLeadSheetItem nextSection(CLI_Section cliSection)
+    {
+        ChordLeadSheetItem res = cls.getFirstItemAfter(cliSection, ChordLeadSheetItem.class, IS_NAV_ITEM);
         return res;
     }
 

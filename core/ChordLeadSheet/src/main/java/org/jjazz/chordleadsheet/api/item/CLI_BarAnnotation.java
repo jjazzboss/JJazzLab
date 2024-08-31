@@ -31,6 +31,7 @@ import java.awt.datatransfer.DataFlavor;
 public interface CLI_BarAnnotation extends ChordLeadSheetItem<String>
 {
 
+    public final static int POSITION_ORDER = 300;
     public static final DataFlavor DATA_FLAVOR = new DataFlavor(CLI_BarAnnotation.class, "Bar Annotation");
 
 }

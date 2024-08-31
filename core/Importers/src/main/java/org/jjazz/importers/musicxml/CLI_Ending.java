@@ -30,6 +30,8 @@ import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.util.List;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
+import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.chordleadsheet.api.item.WritableItem;
 import org.jjazz.harmony.api.Position;
@@ -49,6 +51,8 @@ record Ending(EndingType type, List<Integer> numbers)
 public class CLI_Ending implements ChordLeadSheetItem<Ending>, WritableItem<Ending>
 {
 
+    public static final int POSITION_ORDER_START = -1000;
+    public static final int POSITION_ORDER_END = 2000;
     private ChordLeadSheet container;
     private Position position;
     private Ending data;
@@ -74,6 +78,59 @@ public class CLI_Ending implements ChordLeadSheetItem<Ending>, WritableItem<Endi
     public ChordLeadSheet getContainer()
     {
         return container;
+    }
+
+    @Override
+    public int getPositionOrder()
+    {
+        return isStartType() ? POSITION_ORDER_START : POSITION_ORDER_END;
+    }
+
+    /**
+     * Overridden because order matters with other navigation items which are on the same position.
+     * <p>
+     * @param other
+     * @return
+     */
+    @Override
+    public int compareTo(ChordLeadSheetItem<?> other)
+    {
+        if (this == other)
+        {
+            return 0;
+        }
+
+        int res = getPosition().compareTo(other.getPosition());
+        if (res != 0)
+        {
+            return res;
+        }
+
+        if (other instanceof CLI_Repeat cliRepeat)
+        {
+            // Ending start must be before a repeat-start
+            // Ending stop/discontinue must be before a repeat-backward
+            assert isStartType() == cliRepeat.getData().startOrEnd();
+            res = -1;
+
+        } else if (other instanceof CLI_NavigationItem cliNavItem)
+        {
+            // Ending start must be before "left" navigation mark  (CODA or SEGNO)
+            // Ending stop/discontinue must be after "right" navigation marks (FINE, TOCODA, DACAPO..., DALSEGNO...)
+            res = isStartType() ? -1 : 1;
+
+        } else if (other instanceof CLI_Section cliSection)
+        {
+            // Ending start must be before a section
+            res = -1;
+        } else if (other instanceof CLI_ChordSymbol)
+        {
+            res = -1;  // eg CLI_ChordSymbol
+        } else
+        {
+            throw new IllegalStateException("other=" + other);
+        }
+        return res;
     }
 
     @Override
@@ -103,8 +160,9 @@ public class CLI_Ending implements ChordLeadSheetItem<Ending>, WritableItem<Endi
     @Override
     public boolean isBarSingleItem()
     {
-        return true;
+        return false;
     }
+
 
     @Override
     public StringProperties getClientProperties()
@@ -157,7 +215,7 @@ public class CLI_Ending implements ChordLeadSheetItem<Ending>, WritableItem<Endi
     @Override
     public void setContainer(ChordLeadSheet cls)
     {
-        this.container = container;
+        this.container = cls;
     }
 
 }

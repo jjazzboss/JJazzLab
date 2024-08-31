@@ -124,7 +124,7 @@ public interface ChordLeadSheet
      * <p>
      * Can not be used on a Section. Item position might be adjusted to the bar's TimeSignature.
      *
-     * @param item The item to be moved.  Must be a WritableItem.
+     * @param item The item to be moved. Must be a WritableItem.
      * @param pos  The new position.
      * @throws IllegalArgumentException If new position is not valid.
      */
@@ -144,7 +144,7 @@ public interface ChordLeadSheet
      * Can not be used on Section, use setSectionName() or setSectionTimeSignature() instead.
      *
      * @param <T>
-     * @param item  Must be a WritableItem.
+     * @param item Must be a WritableItem.
      * @param data
      */
     <T> void changeItem(ChordLeadSheetItem<T> item, T data);
@@ -207,6 +207,16 @@ public interface ChordLeadSheet
     <T extends ChordLeadSheetItem<?>> T getLastItemBefore(Position posTo, boolean inclusiveTo, Class<T> itemClass, Predicate<T> tester);
 
     /**
+     * Get the last matching item before cli.
+     *
+     * @param <T>
+     * @param itemClass Accept items which are assignable from aClass
+     * @param tester
+     * @return Can be null.
+     */
+    <T extends ChordLeadSheetItem<?>> T getLastItemBefore(ChordLeadSheetItem<?> cli, Class<T> itemClass, Predicate<T> tester);
+
+    /**
      * Get the first matching item whose position is after (or equal, if inclusive is true) posFrom.
      *
      * @param <T>
@@ -217,6 +227,17 @@ public interface ChordLeadSheet
      * @return Can be null
      */
     <T extends ChordLeadSheetItem<?>> T getFirstItemAfter(Position posFrom, boolean inclusiveFrom, Class<T> itemClass, Predicate<T> tester);
+
+    /**
+     * Get the first matching item after cli.
+     *
+     * @param <T>
+     * @param cli
+     * @param itemClass
+     * @param tester
+     * @return Can be null
+     */
+    <T extends ChordLeadSheetItem<?>> T getFirstItemAfter(ChordLeadSheetItem<?> cli, Class<T> itemClass, Predicate<T> tester);
 
     /**
      * Get all the items.
@@ -388,7 +409,7 @@ public interface ChordLeadSheet
      */
     default <T> ChordLeadSheetItem<T> getNextItem(ChordLeadSheetItem<T> item)
     {
-        return getFirstItemAfter(item.getPosition(), false, item.getClass(), cli -> true);
+        return getFirstItemAfter(item, item.getClass(), cli -> true);
     }
 
     /**
@@ -400,7 +421,7 @@ public interface ChordLeadSheet
      */
     default <T> ChordLeadSheetItem<T> getPreviousItem(ChordLeadSheetItem<T> item)
     {
-        return getLastItemBefore(item.getPosition(), false, item.getClass(), cli -> true);
+        return getLastItemBefore(item, item.getClass(), cli -> true);
     }
 
     /**
@@ -459,7 +480,7 @@ public interface ChordLeadSheet
         Position pos = cliSection.getPosition();
         Preconditions.checkArgument(getSection(pos.getBar()) == cliSection, "cliSection=%s this=%s", cliSection, this);
 
-        var nextSection = getFirstItemAfter(pos, false, CLI_Section.class, cli -> true);
+        var nextSection = getNextItem(cliSection);
         int lastBar = nextSection == null ? getSizeInBars() - 1 : nextSection.getPosition().getBar() - 1;
         return new IntRange(pos.getBar(), lastBar);
     }
@@ -504,7 +525,8 @@ public interface ChordLeadSheet
 
     /**
      * Get a string showing the complete chord leadsheet.
-     * @return 
+     *
+     * @return
      */
     public default String toDebugString()
     {

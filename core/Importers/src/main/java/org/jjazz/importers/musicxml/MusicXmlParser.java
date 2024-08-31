@@ -48,7 +48,7 @@ import org.jjazz.harmony.api.Note;
 import org.jjazz.harmony.api.TimeSignature;
 import static org.jjazz.importers.musicxml.MusicXmlParser.XMLtoJJazzChordMap;
 import org.jjazz.harmony.api.Position;
-import org.jjazz.importers.musicxml.MusicXmlParserListener.NavigationMark;
+import org.jjazz.importers.musicxml.NavigationMark;
 import org.jjazz.utilities.api.Utilities;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.openide.util.BaseUtilities;
@@ -1011,7 +1011,7 @@ public final class MusicXmlParser
         }
     }
 
-    private void fireStructureMarkerParsed(int barIndex, MusicXmlParserListener.NavigationMark marker, String value, List<Integer> timesOnly)
+    private void fireStructureMarkerParsed(int barIndex, NavigationMark marker, String value, List<Integer> timesOnly)
     {
         for (MusicXmlParserListener listener : parserListeners)
         {

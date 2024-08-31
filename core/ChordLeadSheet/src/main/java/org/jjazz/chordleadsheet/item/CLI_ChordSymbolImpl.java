@@ -71,6 +71,7 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
     private transient SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(CLI_ChordSymbolImpl.class.getSimpleName());
 
+
     /**
      * Create an object from the specified arguments.
      * <p>
@@ -119,6 +120,12 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
             position = new Position(p);
             pcs.firePropertyChange(PROP_ITEM_POSITION, oldPos, position);
         }
+    }
+
+    @Override
+    public int getPositionOrder()
+    {
+        return POSITION_ORDER;
     }
 
     @Override

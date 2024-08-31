@@ -28,19 +28,6 @@ import org.jjazz.harmony.api.Position;
 public interface MusicXmlParserListener
 {
 
-    static public enum NavigationMark
-    {
-        CODA,
-        TOCODA,
-        SEGNO,
-        DALSEGNO,
-        DALSEGNO_ALCODA,
-        DALSEGNO_ALFINE,
-        DACAPO,
-        DACAPO_ALCODA,
-        DACAPO_ALFINE,
-        FINE,
-    }
 
     /**
      * Called when the parser first starts up, but before it starts parsing anything.

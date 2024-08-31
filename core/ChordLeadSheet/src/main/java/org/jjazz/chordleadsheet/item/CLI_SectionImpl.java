@@ -136,6 +136,12 @@ public class CLI_SectionImpl implements CLI_Section, WritableItem<Section>, Seri
     }
 
     @Override
+    public int getPositionOrder()
+    {
+        return POSITION_ORDER;
+    }
+
+    @Override
     public synchronized CLI_Section getCopy(Position newPos)
     {
         return getCopy(newPos, null);

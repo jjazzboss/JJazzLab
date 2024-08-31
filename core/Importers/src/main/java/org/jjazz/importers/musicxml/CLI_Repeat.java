@@ -46,6 +46,10 @@ record Repeat(boolean startOrEnd, int times)
 public class CLI_Repeat implements ChordLeadSheetItem<Repeat>, WritableItem<Repeat>
 {
 
+    public static final int POSITION_ORDER_START = -800;
+    public static final int POSITION_ORDER_END = 2100;
+
+
     private ChordLeadSheet container;
     private Position position;
     private Repeat data;
@@ -89,9 +93,15 @@ public class CLI_Repeat implements ChordLeadSheetItem<Repeat>, WritableItem<Repe
     }
 
     @Override
+    public int getPositionOrder()
+    {
+        return data.startOrEnd() ? POSITION_ORDER_START : POSITION_ORDER_END;
+    }
+
+    @Override
     public boolean isBarSingleItem()
     {
-        return true;
+        return false;
     }
 
     @Override
@@ -145,7 +155,7 @@ public class CLI_Repeat implements ChordLeadSheetItem<Repeat>, WritableItem<Repe
     @Override
     public void setContainer(ChordLeadSheet cls)
     {
-        this.container = container;
+        this.container = cls;
     }
 
 }

@@ -34,7 +34,6 @@ import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.chordleadsheet.api.item.WritableItem;
 import org.jjazz.harmony.api.Position;
-import org.jjazz.importers.musicxml.MusicXmlParserListener.NavigationMark;
 import org.jjazz.utilities.api.StringProperties;
 
 
@@ -52,6 +51,9 @@ record NavItem(NavigationMark mark, String value, List<Integer> timeOnly)
 
 public class CLI_NavigationItem implements ChordLeadSheetItem<NavItem>, WritableItem<NavItem>
 {
+    public static final int POSITION_ORDER_CODA_SEGNO = -900;
+    public static final int POSITION_ORDER_FINE = 2200;
+    public static final int POSITION_ORDER_DS_DC_TOCODA = 2300;
 
     private ChordLeadSheet container;
     private Position position;
@@ -96,7 +98,7 @@ public class CLI_NavigationItem implements ChordLeadSheetItem<NavItem>, Writable
     @Override
     public boolean isBarSingleItem()
     {
-        return true;
+        return false;
     }
 
     @Override
@@ -150,6 +152,21 @@ public class CLI_NavigationItem implements ChordLeadSheetItem<NavItem>, Writable
     @Override
     public void setContainer(ChordLeadSheet cls)
     {
-        this.container = container;
+        this.container = cls;
+    }
+
+    @Override
+    public int getPositionOrder()
+    {
+        var res = switch (data.mark())
+        {
+            case CODA, SEGNO -> POSITION_ORDER_CODA_SEGNO;
+            case TOCODA, DALSEGNO, DALSEGNO_ALCODA, DALSEGNO_ALFINE, DACAPO, DACAPO_ALCODA, DACAPO_ALFINE -> POSITION_ORDER_DS_DC_TOCODA;
+            case FINE -> POSITION_ORDER_FINE;
+            default -> throw new AssertionError(data.mark().name());            
+        };
+        
+        return res;
+            
     }
 }

@@ -46,6 +46,8 @@ import org.jjazz.utilities.api.StringProperties;
 public interface CLI_ChordSymbol extends ChordLeadSheetItem<ExtChordSymbol>
 {
 
+    public static final int POSITION_ORDER = 1000;    
+    
     public enum PositionDisplay
     {
         NO, // C7
@@ -404,31 +406,35 @@ public interface CLI_ChordSymbol extends ChordLeadSheetItem<ExtChordSymbol>
      * A dummy CLI_ChordSymbol class which can be used only for position comparison when using the NavigableSet/SortedSet-based methods of ChordLeadSheet or
      * ChordSequence.
      */
-    public static class ComparableCsItem implements CLI_ChordSymbol, ComparableItem
+    public static class ComparableCsItem implements CLI_ChordSymbol
     {
 
+        private final int positionOrder;
         private final Position position;
-        private final boolean beforeItem;
-        private final boolean inclusive;
 
-
-        private ComparableCsItem(Position pos, boolean beforeItem, boolean inclusive)
+        /**
+         *
+         * @param pos
+         * @param beforeOrAfterItem If true it's a "before item", otherwise an "after" item
+         * @param inclusive         If true other items at same pos should be included
+         */
+        private ComparableCsItem(Position pos, boolean beforeOrAfterItem, boolean inclusive)
         {
-            this.beforeItem = beforeItem;
             this.position = pos;
-            this.inclusive = inclusive;
+
+            if (beforeOrAfterItem)
+            {
+                positionOrder = inclusive ? Integer.MIN_VALUE : Integer.MAX_VALUE;
+            } else
+            {
+                positionOrder = inclusive ? Integer.MAX_VALUE : Integer.MIN_VALUE;
+            }
         }
 
         @Override
-        public boolean isBeforeItem()
+        public int getPositionOrder()
         {
-            return beforeItem;
-        }
-
-        @Override
-        public boolean isInclusive()
-        {
-            return inclusive;
+            return positionOrder;
         }
 
         @Override
@@ -494,7 +500,7 @@ public interface CLI_ChordSymbol extends ChordLeadSheetItem<ExtChordSymbol>
         @Override
         public String toString()
         {
-            return (beforeItem ? "beforeCompItem" : "afterCompItem") + "-" + getPosition() + "-" + (inclusive ? "inclusive" : "exclusive");
+            return getClass().getSimpleName() + "[" + getPosition() + ", posOrder=" + positionOrder + "]";
         }
 
         @Override

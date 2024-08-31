@@ -89,6 +89,12 @@ public class IP_ChordSymbol implements CLI_ChordSymbol
     }
 
     @Override
+    public int getPositionOrder()
+    {
+        return CLI_ChordSymbol.POSITION_ORDER - 1;
+    }
+
+    @Override
     public Position getPosition()
     {
         return new Position(position);

@@ -35,7 +35,8 @@ import org.jjazz.harmony.api.Position;
  */
 public interface CLI_Section extends ChordLeadSheetItem<Section>
 {
-
+    public final static int POSITION_ORDER = 0;
+    
     public static final DataFlavor DATA_FLAVOR = new DataFlavor(CLI_Section.class, "Section");
 
     static Pattern PATTERN = Pattern.compile("[0-9]+$");
