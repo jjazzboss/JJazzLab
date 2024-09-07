@@ -48,7 +48,6 @@ import org.jjazz.harmony.api.Note;
 import org.jjazz.harmony.api.TimeSignature;
 import static org.jjazz.importers.musicxml.MusicXmlParser.XMLtoJJazzChordMap;
 import org.jjazz.harmony.api.Position;
-import org.jjazz.importers.musicxml.NavigationMark;
 import org.jjazz.utilities.api.Utilities;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.openide.util.BaseUtilities;
@@ -380,13 +379,13 @@ public final class MusicXmlParser
 
         value = sound.getAttributeValue("time-only");   // only used by tocoda, dacapo, dalsegno
         List<Integer> timeOnly = value == null ? new ArrayList<>() : toList(value);
-        
+
         value = sound.getAttributeValue("coda");
         if (value != null)
         {
             fireStructureMarkerParsed(curBarIndex, NavigationMark.CODA, value, timeOnly);
         }
-        
+
         value = sound.getAttributeValue("dacapo");      // If not null it will be "yes"
         if (value != null)
         {
@@ -405,7 +404,7 @@ public final class MusicXmlParser
             };
             fireStructureMarkerParsed(curBarIndex, nm, "coda", timeOnly);
         }
-        
+
         value = sound.getAttributeValue("tocoda");
         if (value != null)
         {
@@ -415,13 +414,13 @@ public final class MusicXmlParser
             }
             fireStructureMarkerParsed(curBarIndex, NavigationMark.TOCODA, value, timeOnly);
         }
-        
+
         value = sound.getAttributeValue("segno");
         if (value != null)
         {
             fireStructureMarkerParsed(curBarIndex, NavigationMark.SEGNO, value, timeOnly);
         }
-        
+
         value = sound.getAttributeValue("dalsegno");
         if (value != null)
         {
@@ -444,7 +443,7 @@ public final class MusicXmlParser
             };
             fireStructureMarkerParsed(curBarIndex, nm, value, timeOnly);
         }
-        
+
         value = sound.getAttributeValue("fine");
         if (value != null)
         {
@@ -698,10 +697,11 @@ public final class MusicXmlParser
             Element element_alter = element.getFirstChildElement("root-alter"); // Optional
             if (element_alter != null)
             {
-                if (element_alter.getValue().equals("-1"))
+                int intValue = getIntValueOrDefault(element_alter, 0);
+                if (intValue == -1)
                 {
                     sb.append("b");
-                } else if (element_alter.getValue().equals("+1"))
+                } else if (intValue == 1)
                 {
                     sb.append("#");
                 }
@@ -725,10 +725,11 @@ public final class MusicXmlParser
             Element element_alter = element.getFirstChildElement("bass-alter"); // Optional
             if (element_alter != null)
             {
-                if (element_alter.getValue().equals("-1"))
+                int intValue = getIntValueOrDefault(element_alter, 0);
+                if (intValue == -1)
                 {
                     sb.append("b");
-                } else if (element_alter.getValue().equals("+1"))
+                } else if (intValue == 1)
                 {
                     sb.append("#");
                 }
