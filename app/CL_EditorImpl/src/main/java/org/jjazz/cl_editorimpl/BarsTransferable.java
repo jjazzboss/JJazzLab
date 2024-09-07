@@ -117,15 +117,7 @@ public class BarsTransferable implements Transferable
             {
                 try
                 {
-                    if (sectionItem.getPosition().getBar() == 0)
-                    {
-                        CLI_Section s0 = res.getSection(0);
-                        res.setSectionName(s0, sectionItem.getData().getName());
-                        res.setSectionTimeSignature(s0, sectionItem.getData().getTimeSignature());
-                    } else
-                    {
-                        res.addSection(sectionItem);
-                    }
+                    res.addSection(sectionItem);
                 } catch (UnsupportedEditException ex)
                 {
                     // Should never happen

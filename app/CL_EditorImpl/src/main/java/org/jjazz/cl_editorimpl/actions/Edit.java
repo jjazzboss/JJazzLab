@@ -315,7 +315,7 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
                     }
                 } else
                 {
-                    // Add new section
+                    // Add section
                     try
                     {
                         cls.addSection(resultSection);
@@ -362,7 +362,7 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
             {
                 editor.setBarAnnotationVisible(true);
             }
-            if (preNbAnnotations==0 && postNbAnnotations == 1)
+            if (preNbAnnotations == 0 && postNbAnnotations == 1)
             {
                 Analytics.logEvent("Bar annotation first input");
             }

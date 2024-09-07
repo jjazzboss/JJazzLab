@@ -154,14 +154,14 @@ public class CL_EditorTransferHandler extends TransferHandler
         if (info.isDataFlavorSupported(DataFlavor.javaFileListFlavor))
         {
             b = canImportFile(info);
-            
+
         } else if (info.isDataFlavorSupported(CLI_ChordSymbol.DATA_FLAVOR)
                 || info.isDataFlavorSupported(CLI_Section.DATA_FLAVOR)
                 || info.isDataFlavorSupported(CLI_BarAnnotation.DATA_FLAVOR))
         {
             b = canImportItemRenderer(info);
         }
-    
+
 
         return b;
     }
@@ -273,37 +273,17 @@ public class CL_EditorTransferHandler extends TransferHandler
                 CLI_Section sectionCopy = cliSection.getCopy(newPos, cls);  // Adjust section name if required
 
                 String errMsg = ResUtil.getString(getClass(), "IMPOSSIBLE_TO_COPY_SECTION", cliSection.getData());
-
-                if (curSection.getPosition().getBar() == newBarIndex)
+                try
                 {
-                    // There is already a section there, just update the content
-                    try
-                    {
-                        cls.setSectionName(curSection, sectionCopy.getData().getName());
-                        cls.setSectionTimeSignature(curSection, sectionCopy.getData().getTimeSignature());
-                    } catch (UnsupportedEditException ex)
-                    {
-                        errMsg += "\n" + ex.getLocalizedMessage();
-                        um.abortCEdit(editName, errMsg);
-                        return false;
-                    }
-                    editor.selectItem(curSection, true);
-                    editor.setFocusOnItem(curSection, IR_Type.Section);
-                } else
+                    sectionCopy = cls.addSection(sectionCopy);
+                } catch (UnsupportedEditException ex)
                 {
-                    try
-                    {
-                        // No section there, easy just copy
-                        cls.addSection(sectionCopy);
-                    } catch (UnsupportedEditException ex)
-                    {
-                        errMsg += "\n" + ex.getLocalizedMessage();
-                        um.abortCEdit(editName, errMsg);
-                        return false;
-                    }
-                    editor.selectItem(sectionCopy, true);
-                    editor.setFocusOnItem(sectionCopy, IR_Type.Section);
+                    errMsg += "\n" + ex.getLocalizedMessage();
+                    um.abortCEdit(editName, errMsg);
+                    return false;
                 }
+                editor.selectItem(sectionCopy, true);
+                editor.setFocusOnItem(sectionCopy, IR_Type.Section);
                 um.endCEdit(editName);
             } else
             {
@@ -421,14 +401,14 @@ public class CL_EditorTransferHandler extends TransferHandler
     private boolean canImportFile(TransferSupport info)
     {
         boolean b;
-        
+
         // Copy mode must be supported
         if ((COPY & info.getSourceDropActions()) != COPY)
         {
             return false;
         }
 
-        
+
         File file = SingleFileDragInTransferHandler.getAcceptedFile(info, dragInFileExtensions);
         // Special handling for MacOS: on Mac getAcceptedFile() will always return false, even if DataFlavor.javaFileListFlavor is supported.
         // On MacOS The TransferHandler.TransferSupport parameter is initialized only when importData() is called.
@@ -440,7 +420,7 @@ public class CL_EditorTransferHandler extends TransferHandler
         {
             b = file != null;
         }
-        
+
 
         if (!b)
         {
@@ -449,8 +429,8 @@ public class CL_EditorTransferHandler extends TransferHandler
         {
             // Always use copy drop icon
             info.setDropAction(COPY);
-        }        
-        
+        }
+
         return b;
     }
 
@@ -492,7 +472,7 @@ public class CL_EditorTransferHandler extends TransferHandler
             info.setDropAction(MOVE);
         }
 
-        
+
         LOGGER.log(Level.FINE, "canImport() getDropAction()={0}", info.getDropAction());
 
         // Show the insertion point

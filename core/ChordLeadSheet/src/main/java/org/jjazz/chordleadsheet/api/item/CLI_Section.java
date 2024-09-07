@@ -35,11 +35,12 @@ import org.jjazz.harmony.api.Position;
  */
 public interface CLI_Section extends ChordLeadSheetItem<Section>
 {
+
     public final static int POSITION_ORDER = 0;
-    
+
     public static final DataFlavor DATA_FLAVOR = new DataFlavor(CLI_Section.class, "Section");
 
-    static Pattern PATTERN = Pattern.compile("[0-9]+$");
+    static Pattern PATTERN = Pattern.compile("-([0-9]+)$");
 
 
     /**
@@ -56,7 +57,7 @@ public interface CLI_Section extends ChordLeadSheetItem<Section>
     /**
      * Derive a new section name which is unique in the specified chord leadsheet.
      * <p>
-     * If sectionName is not used, just return it. Otherwise append a number to sectionName (eg "Chorus2") until we get a non-used section name.
+     * If sectionName is not used, just return it. Otherwise append a number to sectionName (eg "Chorus-2") until we get a non-used section name.
      *
      * @param sectionName Create a name from this parameter.
      * @param cls         If null just returns sectionName
@@ -74,7 +75,7 @@ public interface CLI_Section extends ChordLeadSheetItem<Section>
         StringBuilder baseName = new StringBuilder(sectionName);
         if (m.find())
         {
-            index = Integer.parseInt(m.group());
+            index = Integer.parseInt(m.group(1));
             baseName.delete(m.start(), m.end());
         }
         int robustness = 1000;
@@ -83,7 +84,7 @@ public interface CLI_Section extends ChordLeadSheetItem<Section>
         {
             robustness--;
             index++;
-            newName = baseName.toString() + index;
+            newName = baseName.toString() + "-" + index;
         } while (cls.getSection(newName) != null && robustness > 0);
 
         if (robustness == 0)

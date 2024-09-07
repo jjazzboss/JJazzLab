@@ -297,13 +297,14 @@ public class ChordLeadSheetImplTest
         assertEquals(1, res.size());
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testAddSectionOver()
     {
         System.out.println("=== addSection over another");
         try
         {
-            cls1.addSection(cliSection54_b5);
+            var cli = cls1.addSection(cliSection54_b5);
+            assertNotEquals(cli, cliSection54_b5);
         } catch (UnsupportedEditException ex)
         {
             Exceptions.printStackTrace(ex);

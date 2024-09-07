@@ -106,8 +106,8 @@ public class ItemsTransferable implements Transferable
         var cli0 = data.items.first();
         int bar0 = cli0.getPosition().getBar();
         int lastBar = data.items.last().getPosition().getBar();
-        
-        var cls = cli0.getContainer();        
+
+        var cls = cli0.getContainer();
         TimeSignature ts0 = cls == null ? TimeSignature.FOUR_FOUR : cls.getSection(bar0).getData().getTimeSignature();
 
         var res = ChordLeadSheetFactory.getDefault().createEmptyLeadSheet("A", ts0, lastBar - bar0 + 1, null);
@@ -117,15 +117,7 @@ public class ItemsTransferable implements Transferable
             {
                 try
                 {
-                    if (sectionItem.getPosition().getBar() == 0)
-                    {
-                        CLI_Section s0 = res.getSection(0);
-                        res.setSectionName(s0, sectionItem.getData().getName());
-                        res.setSectionTimeSignature(s0, sectionItem.getData().getTimeSignature());
-                    } else
-                    {
-                        res.addSection(sectionItem);
-                    }
+                    sectionItem = res.addSection(sectionItem);
                 } catch (UnsupportedEditException ex)
                 {
                     // Should never happen

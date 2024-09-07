@@ -108,8 +108,11 @@ public class SongBuilder
             tagDestSize = reader.tagEndBar - reader.tagBeginBar + 1;
         }
         int endSize = reader.generate2barsEnding ? 2 : 0;
-        LOGGER.log(Level.FINE, "buildSong() introSize={0}, oneChorusSize={1}, lastChorusSize={2}, tagDestSize={3}, endSize={4}", new Object[]{introSize,
-            oneChorusSize, lastChorusSize, tagDestSize, endSize});
+        LOGGER.log(Level.FINE, "buildSong() introSize={0}, oneChorusSize={1}, lastChorusSize={2}, tagDestSize={3}, endSize={4}", new Object[]
+        {
+            introSize,
+            oneChorusSize, lastChorusSize, tagDestSize, endSize
+        });
         int clsSize = introSize;
         if (reader.chorusNbRepeats == 1)
         {
@@ -522,7 +525,7 @@ public class SongBuilder
     {
         try
         {
-            s.getChordLeadSheet().addSection(section);
+            section = s.getChordLeadSheet().addSection(section);
         } catch (UnsupportedEditException ex)
         {
             // Should never happen

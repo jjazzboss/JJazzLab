@@ -66,15 +66,16 @@ public interface ChordLeadSheet
     void removeItem(ChordLeadSheetItem<?> item);
 
     /**
-     * Add a section to the leadsheet.
+     * Add a section to the leadsheet or, if a section already exists at the same bar, update its section name and time signature.
      * <p>
      * Trailing items' position might be adjusted if it results in a time signature change.
      *
-     * @param section
-     * @throws IllegalArgumentException If section already exists at specified position or invalid section.
+     * @param cliSection
+     * @return cliSection if it was added, or the existing CLI_Section that was updated.
+     * @throws IllegalArgumentException If section is invalid (e.g. section is after chordleadsheet size)
      * @throws UnsupportedEditException If a ChordLeadSheet change listener does not authorize this edit. Exception is thrown before any change is done.
      */
-    void addSection(CLI_Section section) throws UnsupportedEditException;
+    CLI_Section addSection(CLI_Section cliSection) throws UnsupportedEditException;
 
     /**
      * Remove a section from the leadsheet.

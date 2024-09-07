@@ -35,6 +35,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.TreeSet;
 import java.util.function.Predicate;
 import java.util.logging.Level;
@@ -123,9 +124,34 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable, Propert
 
 
     @Override
-    public void addSection(final CLI_Section cliSection) throws UnsupportedEditException
+    public CLI_Section addSection(final CLI_Section cliSection) throws UnsupportedEditException
     {
-        addSection(cliSection, true);
+        Objects.requireNonNull(cliSection);
+        var bar = cliSection.getPosition().getBar();
+        if (bar >= getSizeInBars())
+        {
+            throw new IllegalArgumentException("cliSection=" + cliSection + ", getSize()=" + getSizeInBars());
+        }
+        var sameNameSection = getSection(cliSection.getData().getName());
+        if (sameNameSection != null && sameNameSection.getPosition().getBar() != bar)
+        {
+            throw new IllegalArgumentException("cliSection=" + cliSection + ", sameNameSection=" + sameNameSection);
+        }
+
+        CLI_Section res;
+        var curSection = getSection(bar);
+        if (curSection.getPosition().getBar() == bar)
+        {
+            setSectionName(curSection, cliSection.getData().getName());
+            setSectionTimeSignature(curSection, cliSection.getData().getTimeSignature());
+            res = curSection;
+        } else
+        {
+            addSection(cliSection, true);
+            res = cliSection;
+        }
+
+        return res;
     }
 
 
@@ -539,14 +565,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable, Propert
 
     private void addSection(final CLI_Section cliSection, boolean enableActionEvent) throws UnsupportedEditException
     {
-        if (cliSection == null || cliSection.getPosition().getBar() >= getSizeInBars() || getSection(cliSection.getData().getName()) != null
-                || !(cliSection instanceof WritableItem))
-        {
-            throw new IllegalArgumentException("cliSection=" + cliSection
-                    + ", getSize()=" + getSizeInBars()
-                    + (cliSection != null ? ", getSection(cliSection.getData().getName())=" + getSection(cliSection.getData().getName())
-                            : ""));
-        }
+        Preconditions.checkArgument(cliSection instanceof WritableItem, "cliSection=", cliSection);
 
         LOGGER.log(Level.FINE, "addSection() -- cliSection={0}", cliSection);
 

@@ -25,7 +25,10 @@
 package org.jjazz.importers.musicxml;
 
 import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
@@ -63,7 +66,6 @@ public class SongBuilder implements MusicXmlParserListener
 {
 
     private int nbMeasures = 0;
-    private int sectionNumber = 1;
     private TimeSignature timeSignature = TimeSignature.FOUR_FOUR;
     private Position firstChordPos = null;
     private int tempo = 120;
@@ -75,7 +77,7 @@ public class SongBuilder implements MusicXmlParserListener
     public SongBuilder()
     {
         // clsWork is just used to store all parsed items, actual song creation will be done after
-        clsWork = ChordLeadSheetFactory.getDefault().createEmptyLeadSheet(getSectionUniqueName(), TimeSignature.FOUR_FOUR, ChordLeadSheet.MAX_SIZE, null);
+        clsWork = ChordLeadSheetFactory.getDefault().createEmptyLeadSheet("A", TimeSignature.FOUR_FOUR, ChordLeadSheet.MAX_SIZE, null);
     }
 
     /**
@@ -130,26 +132,11 @@ public class SongBuilder implements MusicXmlParserListener
         timeSignature = ts;
         CLI_Section cliSection = clsWork.getSection(barIndex);
         Section section = cliSection.getData();
-        if (barIndex == 0)
+        if (!section.getTimeSignature().equals(ts))
         {
-            // Special case
-            try
-            {
-                clsWork.setSectionTimeSignature(cliSection, ts);
-            } catch (UnsupportedEditException ex)
-            {
-                LOGGER.log(Level.WARNING, "onTimeSignatureParsed() Can''t change time signature to {0} at bar {1} because: {2}",
-                        new Object[]
-                        {
-                            ts,
-                            barIndex, ex
-                        });
-                return;
-            }
-        } else if (!section.getTimeSignature().equals(ts))
-        {
-            // Need to introduce a new section
-            cliSection = CLI_Factory.getDefault().createSection(getSectionUniqueName(), ts, barIndex, null);
+            // Introduce a new section (or change current
+            String name = CLI_Section.createSectionName(cliSection.getData().getName(), clsWork);
+            cliSection = CLI_Factory.getDefault().createSection(name, ts, barIndex, null);
             try
             {
                 clsWork.addSection(cliSection);
@@ -158,8 +145,7 @@ public class SongBuilder implements MusicXmlParserListener
                 LOGGER.log(Level.WARNING, "onTimeSignatureParsed() Can''t change time signature to {0} at bar {1} because: {2}",
                         new Object[]
                         {
-                            ts,
-                            barIndex, ex
+                            ts, barIndex, ex
                         });
             }
         }
@@ -233,24 +219,24 @@ public class SongBuilder implements MusicXmlParserListener
         {
             barIndex, value
         });
-        var cliSection = clsWork.getSection(barIndex);
-        if (cliSection.getPosition().getBar() < barIndex)
+        CLI_Section curSection = clsWork.getSection(barIndex);
+        if (curSection.getPosition().getBar() == barIndex && curSection.getData().getName().equals(value))
         {
-            // Add a section
-            var newSection = CLI_Factory.getDefault().createSection(value, timeSignature, barIndex, clsWork);
-            try
-            {
-                clsWork.addSection(newSection);
-            } catch (UnsupportedEditException ex)
-            {
-                Exceptions.printStackTrace(ex);     // Should never happen, we don't change the time signature
-            }
-        } else
+            // Special case, nothing to do
+            return;
+        }
+
+        // Add a section 
+        var newSection = CLI_Factory.getDefault().createSection(value, timeSignature, barIndex, clsWork);
+        try
         {
-            // Change section letter
-            clsWork.setSectionName(cliSection, value);
+            clsWork.addSection(newSection);
+        } catch (UnsupportedEditException ex)
+        {
+            Exceptions.printStackTrace(ex);     // Should never happen, we don't change the time signature
         }
     }
+
 
     @Override
     public void onOtherPlayParsed(int barIndex, String value, String type)
@@ -326,11 +312,6 @@ public class SongBuilder implements MusicXmlParserListener
     // Private methods
     // ==========================================================================================
 
-    private String getSectionUniqueName()
-    {
-        return "S_" + sectionNumber++;
-    }
-
     /**
      * Build the final song from parsed data collected into clsWork.
      *
@@ -338,28 +319,214 @@ public class SongBuilder implements MusicXmlParserListener
      */
     private Song buildSong()
     {
-        // Set minimum size
-        if (nbMeasures
-                == 0)
+        if (nbMeasures == 0)
         {
             nbMeasures = 4;
         }
-
-
-        var sg = SongFactory.getInstance().createEmptySong("songBuilder song");
-        var cls = sg.getChordLeadSheet();
-        var sgs = sg.getSongStructure();
+        try
+        {
+            clsWork.setSizeInBars(nbMeasures);
+        } catch (UnsupportedEditException ex)
+        {
+            // Should never occur
+            Exceptions.printStackTrace(ex);
+        }
 
         LOGGER.log(Level.SEVERE, "buildSong() musicalStyle={0}", musicalStyle);
         LOGGER.log(Level.SEVERE, "buildSong() clsWork={0}", Utilities.toMultilineString(clsWork.getItems(), "  "));
 
 
-        // Process structure
-        var it = new NavigationIterator(clsWork);
+        // Add a section for each repeat start or coda 
+        for (var cli : clsWork.getItems(ChordLeadSheetItem.class, cli -> (cli instanceof CLI_Repeat) || (cli instanceof CLI_NavigationItem)))
+        {
+            int bar = cli.getPosition().getBar();
+            var curSection = clsWork.getSection(bar);
+
+            if (curSection.getPosition().getBar() == bar)
+            {
+                // There is already a section 
+                continue;
+            }
+            String name = null;
+            if (cli instanceof CLI_Repeat cliRepeat && cliRepeat.getData().startOrEnd())
+            {
+                name = curSection.getData().getName();
+            } else if (cli instanceof CLI_NavigationItem cliNavItem && cliNavItem.getData().mark().equals(NavigationMark.CODA))
+            {
+                name = "CODA";
+            }
+
+            if (name != null)
+            {
+                var sectionName = CLI_Section.createSectionName(name, clsWork);
+                var newSection = CLI_Factory.getDefault().createSection(sectionName, curSection.getData().getTimeSignature(), bar, clsWork);
+                try
+                {
+                    clsWork.addSection(newSection);
+                } catch (UnsupportedEditException ex)
+                {
+                    // Should never happen, don't add new timeSignature
+                    Exceptions.printStackTrace(ex);
+                }
+            }
+        }
+
+
+        // Retrieve the barlists and related sections
+        List<CLI_Section> sectionsOrdered = new ArrayList<>();
+        List<List<Integer>> barListsOrdered = new ArrayList<>();
+        List<Integer> curBarList = new ArrayList<>();
+        var it = new BarNavigationIterator(clsWork);
         while (it.hasNext())
         {
-            var cli = it.next();
-            // LOGGER.info(cli.toString());
+            var bar = it.next();
+            var curSection = clsWork.getSection(bar);
+            if (curSection.getPosition().getBar() == bar)
+            {
+                // Save barList of previous section
+                if (!curBarList.isEmpty())
+                {
+                    barListsOrdered.add(curBarList);
+                }
+
+                // Reset barList
+                curBarList = new ArrayList<Integer>();
+                sectionsOrdered.add(curSection);
+            }
+
+            curBarList.add(bar);
+
+
+            var barSection = curSection.getPosition().getBar() != bar ? null : curSection;
+            String barSectionName = barSection != null ? barSection.getData().getName() : "";
+            LOGGER.log(Level.INFO, "buildSong()  bar= {0}    {1} ", new Object[]
+            {
+                bar, barSectionName
+            });
+
+        }
+        // Add the last curBarList
+        barListsOrdered.add(curBarList);
+
+
+        for (int i = 0; i < sectionsOrdered.size(); i++)
+        {
+            LOGGER.log(Level.INFO, "{0} : {1}", new Object[]
+            {
+                sectionsOrdered.get(i), barListsOrdered.get(i)
+            });
+        }
+        assert sectionsOrdered.size() == barListsOrdered.size();
+
+
+        // Now we can build the resulting song
+        var sg = SongFactory.getInstance().createEmptySong("MusicXML-import", 4, "A", TimeSignature.FOUR_FOUR, null);
+        var cls = sg.getChordLeadSheet();
+        var sgs = sg.getSongStructure();
+        try
+        {
+            cls.setSectionTimeSignature(cls.getSection(0), clsWork.getSection(0).getData().getTimeSignature());
+        } catch (UnsupportedEditException ex)
+        {
+
+            Exceptions.printStackTrace(ex);         // Should not happen, would have broken before
+        }
+
+
+        // Add each barList to the chordleadsheet, unless it was already done and we can just add a songpart
+        Map<List<Integer>, CLI_Section> mapBarListSection = new HashMap<>();
+        int songBarIndex = 0;
+        int clsBarIndex = 0;
+        for (var barList : barListsOrdered)
+        {
+            var cliSection = mapBarListSection.get(barList);
+            LOGGER.severe("===== barList=" + barList + "   cliSection=" + cliSection + "  clsBarIndex=" + clsBarIndex + " songBarIndex=" + songBarIndex);
+
+            // Is this bar list already associated to a section ?             
+            if (cliSection == null)
+            {
+                try
+                {
+                    // No, create the section with the implied SongPart
+                    cls.setSizeInBars(clsBarIndex + barList.size());
+                } catch (UnsupportedEditException ex)
+                {
+                    Exceptions.printStackTrace(ex);  // Should never occur
+                }
+                CLI_Section clsWorkSection = sectionsOrdered.get(barListsOrdered.indexOf(barList));
+                var name = clsWorkSection.getData().getName();
+                if (clsBarIndex > 0)
+                {
+                    name = CLI_Section.createSectionName(name, cls);
+                }
+                TimeSignature ts = clsWorkSection.getData().getTimeSignature();
+                CLI_Section newSection = CLI_Factory.getDefault().createSection(name, ts, clsBarIndex, cls);
+                try
+                {
+                    newSection = cls.addSection(newSection);
+                    LOGGER.severe(" adding " + newSection);
+                } catch (UnsupportedEditException ex)
+                {
+                    // Should never happen, would have broke before
+                    Exceptions.printStackTrace(ex);
+                }
+
+
+                // Adding the section has created a SongPart at default location (see SongStructure/SgsUpdater). We need to check if it's the right location.
+                var sTmp = newSection;  // for lambda next line
+                var spt = sgs.getSongParts(spti -> spti.getParentSection() == sTmp).get(0);
+                if (spt.getStartBarIndex() != songBarIndex)
+                {
+                    // Need to move it
+                    var newSpt = spt.clone(null, songBarIndex, spt.getNbBars(), newSection);
+                    try
+                    {
+                        sgs.removeSongParts(List.of(spt));
+                        sgs.addSongParts(List.of(newSpt));
+                    } catch (UnsupportedEditException ex)
+                    {
+                        Exceptions.printStackTrace(ex); // Should never happen, would have broke before
+                    }
+                }
+
+
+                // Copy the rest of the bars
+                for (int bar : barList)
+                {
+                    var items = clsWork.getItems(bar, bar, CLI_ChordSymbol.class, cli -> true);
+                    for (var item : items)
+                    {
+                        Position pos = item.getPosition();
+                        var newPos = new Position(clsBarIndex, pos.getBeat());
+                        cls.addItem(item.getCopy(newPos));
+                    }
+                    clsBarIndex++;
+                }
+
+                // Save the new associated section
+                mapBarListSection.putIfAbsent(barList, newSection);
+
+            } else
+            {
+                // Yes, just add the corresponding song part                
+                var spts = sgs.getSongParts();
+                LOGGER.severe("spts=" + spts);
+                var curSpt = spts.stream()
+                        .filter(spt -> spt.getParentSection() == cliSection)
+                        .findAny()
+                        .orElseThrow();
+                var spt = sgs.createSongPart(curSpt.getRhythm(), cliSection.getData().getName(), songBarIndex, barList.size(), cliSection, true);
+                LOGGER.severe(" Adding SongPart=" + spt);
+                try
+                {
+                    sgs.addSongParts(List.of(spt));
+                } catch (UnsupportedEditException ex)
+                {
+                    Exceptions.printStackTrace(ex);     // Should never happen, would have broke before
+                }
+            }
+
+            songBarIndex += barList.size();
         }
 
 
@@ -378,8 +545,7 @@ public class SongBuilder implements MusicXmlParserListener
 //        }
 
 
-        if (firstChordPos
-                == null)
+        if (firstChordPos == null)
         {
             LOGGER.warning("afterParsingFinished() No chord symbols found, importing an empty song.");
         }
@@ -397,5 +563,14 @@ public class SongBuilder implements MusicXmlParserListener
     {
         return timeSignature.getNbNaturalBeats() - 0.001f;
     }
+
+    private <T> T getLast(List<T> list)
+    {
+        return list.isEmpty() ? null : list.get(list.size() - 1);
+    }
+
+    // ===================================================================================================
+    // Private classes
+    // ===================================================================================================
 
 }

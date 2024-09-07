@@ -69,7 +69,16 @@ public class CLI_FactoryImpl implements CLI_Factory
     @Override
     public CLI_Section createSection(String sectionName, TimeSignature ts, int barIndex, ChordLeadSheet cls)
     {
-        var newSectionName = CLI_Section.createSectionName(sectionName, cls);
+        var newSectionName = sectionName;
+        if (cls != null)
+        {
+            var curSection = cls.getSection(barIndex);
+            var curSectionBar = curSection.getPosition().getBar();
+            if (curSectionBar != barIndex || !curSection.getData().getName().equals(sectionName))
+            {
+                newSectionName = CLI_Section.createSectionName(sectionName, cls);
+            }
+        }
         CLI_SectionImpl cli = new CLI_SectionImpl(newSectionName, ts, barIndex);
         return cli;
     }

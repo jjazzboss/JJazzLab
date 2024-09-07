@@ -984,7 +984,7 @@ public class YamJJazzRhythmGenerator
                 int fillSectionBar = section.getPosition().getBar() + sectionSize - 1;
                 CLI_Section fillSection = CLI_Factory.getDefault().createSection(fillSectionName, section.getData().getTimeSignature(),
                         fillSectionBar, null);
-                cls.addSection(fillSection);
+                fillSection = cls.addSection(fillSection);
 
                 // Update all impacted SongParts
                 for (SongPart spt : ss.getSongParts())

@@ -232,7 +232,7 @@ public class SongUtilities
                 resCliSection.getClientProperties().set(parentCliSection.getClientProperties());
                 try
                 {
-                    newCls.addSection(resCliSection);
+                    resCliSection = newCls.addSection(resCliSection);
                     // The section creation automatically creates a SongPart, remove it
                     resSs.removeSongParts(resSs.getSongParts());
                 } catch (UnsupportedEditException ex)
