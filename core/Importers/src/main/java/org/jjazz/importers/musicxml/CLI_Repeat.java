@@ -35,6 +35,10 @@ import org.jjazz.harmony.api.Position;
 import org.jjazz.utilities.api.StringProperties;
 
 
+/**
+ * @param startOrEnd True if it's a start/forward repeat
+ * @param times      Not used for an end repeat
+ */
 record Repeat(boolean startOrEnd, int times)
         {
 

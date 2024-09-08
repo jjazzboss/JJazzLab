@@ -56,6 +56,7 @@ import static org.jjazz.importers.musicxml.NavigationMark.TOCODA;
 import org.jjazz.rhythm.api.TempoRange;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
+import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.utilities.api.Utilities;
 import org.openide.util.Exceptions;
 
@@ -215,7 +216,7 @@ public class SongBuilder implements MusicXmlParserListener
     @Override
     public void onRehearsalParsed(int barIndex, String value)
     {
-        LOGGER.log(Level.SEVERE, "onRehearsalParsed() barIndex={0} value={1}", new Object[]
+        LOGGER.log(Level.FINE, "onRehearsalParsed() barIndex={0} value={1}", new Object[]
         {
             barIndex, value
         });
@@ -332,97 +333,83 @@ public class SongBuilder implements MusicXmlParserListener
             Exceptions.printStackTrace(ex);
         }
 
-        LOGGER.log(Level.SEVERE, "buildSong() musicalStyle={0}", musicalStyle);
-        LOGGER.log(Level.SEVERE, "buildSong() clsWork={0}", Utilities.toMultilineString(clsWork.getItems(), "  "));
+        LOGGER.log(Level.FINE, "buildSong() musicalStyle={0}", musicalStyle);
+        LOGGER.log(Level.FINE, "buildSong() clsWork={0}", Utilities.toMultilineString(clsWork.getItems(), "  "));
+        LOGGER.log(Level.FINE, "buildSong() ====");
 
 
-        // Add a section for each repeat start or coda 
-        for (var cli : clsWork.getItems(ChordLeadSheetItem.class, cli -> (cli instanceof CLI_Repeat) || (cli instanceof CLI_NavigationItem)))
-        {
-            int bar = cli.getPosition().getBar();
-            var curSection = clsWork.getSection(bar);
+        // Add section if required for coda and repeat-start
+        addMissingSections();
 
-            if (curSection.getPosition().getBar() == bar)
-            {
-                // There is already a section 
-                continue;
-            }
-            String name = null;
-            if (cli instanceof CLI_Repeat cliRepeat && cliRepeat.getData().startOrEnd())
-            {
-                name = curSection.getData().getName();
-            } else if (cli instanceof CLI_NavigationItem cliNavItem && cliNavItem.getData().mark().equals(NavigationMark.CODA))
-            {
-                name = "CODA";
-            }
 
-            if (name != null)
-            {
-                var sectionName = CLI_Section.createSectionName(name, clsWork);
-                var newSection = CLI_Factory.getDefault().createSection(sectionName, curSection.getData().getTimeSignature(), bar, clsWork);
-                try
-                {
-                    clsWork.addSection(newSection);
-                } catch (UnsupportedEditException ex)
-                {
-                    // Should never happen, don't add new timeSignature
-                    Exceptions.printStackTrace(ex);
-                }
-            }
-        }
+        // Fix missing repeat-start error (common in some files)
+        fixMissingRepeatStartError();
 
 
         // Retrieve the barlists and related sections
         List<CLI_Section> sectionsOrdered = new ArrayList<>();
         List<List<Integer>> barListsOrdered = new ArrayList<>();
-        List<Integer> curBarList = new ArrayList<>();
-        var it = new BarNavigationIterator(clsWork);
-        while (it.hasNext())
-        {
-            var bar = it.next();
-            var curSection = clsWork.getSection(bar);
-            if (curSection.getPosition().getBar() == bar)
-            {
-                // Save barList of previous section
-                if (!curBarList.isEmpty())
-                {
-                    barListsOrdered.add(curBarList);
-                }
-
-                // Reset barList
-                curBarList = new ArrayList<Integer>();
-                sectionsOrdered.add(curSection);
-            }
-
-            curBarList.add(bar);
+        computeBarListsWithSections(barListsOrdered, sectionsOrdered);
 
 
-            var barSection = curSection.getPosition().getBar() != bar ? null : curSection;
-            String barSectionName = barSection != null ? barSection.getData().getName() : "";
-            LOGGER.log(Level.INFO, "buildSong()  bar= {0}    {1} ", new Object[]
-            {
-                bar, barSectionName
-            });
-
-        }
-        // Add the last curBarList
-        barListsOrdered.add(curBarList);
-
-
+        LOGGER.log(Level.FINE, "buildSong() ====");
         for (int i = 0; i < sectionsOrdered.size(); i++)
         {
-            LOGGER.log(Level.INFO, "{0} : {1}", new Object[]
+            LOGGER.log(Level.FINE, "{0} : {1}", new Object[]
             {
                 sectionsOrdered.get(i), barListsOrdered.get(i)
             });
         }
         assert sectionsOrdered.size() == barListsOrdered.size();
+        LOGGER.log(Level.FINE, "buildSong() ====");
 
 
-        // Now we can build the resulting song
+        // Now we can create the song
+        var sg = createSong(barListsOrdered, sectionsOrdered);
+
+
+        // Remove useless bars (BIAB export seems to systematically insert 2 bars at the beginning)                            
+        Position firstPos = firstChordPos;
+//        if (firstPos != null && firstPos.isFirstBarBeat() && firstPos.getBar() > 0)
+//        {
+//            try
+//            {
+//                cls.deleteBars(0, firstPos.getBar() - 1);
+//            } catch (UnsupportedEditException ex)
+//            {
+//                // Should never happen
+//                Exceptions.printStackTrace(ex);
+//            }
+//        }
+
+
+        if (firstChordPos == null)
+        {
+            LOGGER.warning("afterParsingFinished() No chord symbols found, importing an empty song.");
+        }
+
+        return sg;
+    }
+
+    private void fixMissingRepeatStartError()
+    {
+        var repeatEnd = clsWork.getFirstItemAfter(new Position(0), false, CLI_Repeat.class, cli -> !cli.getData().startOrEnd());
+        if (repeatEnd != null)
+        {
+            var repeatStart = clsWork.getLastItemBefore(repeatEnd, CLI_Repeat.class, cli -> cli.getData().startOrEnd());
+            if (repeatStart == null)
+            {
+                // Probably an error, assume repeat-start bar is on first bar
+                repeatStart = new CLI_Repeat(new Position(0), new Repeat(true, 2));     // times is ignored for repeat-start
+                clsWork.addItem(repeatStart);
+            }
+        }
+    }
+
+    private Song createSong(List<List<Integer>> barListsOrdered, List<CLI_Section> sectionsOrdered)
+    {
         var sg = SongFactory.getInstance().createEmptySong("MusicXML-import", 4, "A", TimeSignature.FOUR_FOUR, null);
         var cls = sg.getChordLeadSheet();
-        var sgs = sg.getSongStructure();
         try
         {
             cls.setSectionTimeSignature(cls.getSection(0), clsWork.getSection(0).getData().getTimeSignature());
@@ -431,6 +418,7 @@ public class SongBuilder implements MusicXmlParserListener
 
             Exceptions.printStackTrace(ex);         // Should not happen, would have broken before
         }
+        var sgs = sg.getSongStructure();
 
 
         // Add each barList to the chordleadsheet, unless it was already done and we can just add a songpart
@@ -440,7 +428,11 @@ public class SongBuilder implements MusicXmlParserListener
         for (var barList : barListsOrdered)
         {
             var cliSection = mapBarListSection.get(barList);
-            LOGGER.severe("===== barList=" + barList + "   cliSection=" + cliSection + "  clsBarIndex=" + clsBarIndex + " songBarIndex=" + songBarIndex);
+            LOGGER.log(java.util.logging.Level.FINE, "buildSong() barList={0} cliSection={1} clsBarIndex={2} songBarIndex={3}", new Object[]
+            {
+                barList,
+                cliSection, clsBarIndex, songBarIndex
+            });
 
             // Is this bar list already associated to a section ?             
             if (cliSection == null)
@@ -464,7 +456,7 @@ public class SongBuilder implements MusicXmlParserListener
                 try
                 {
                     newSection = cls.addSection(newSection);
-                    LOGGER.severe(" adding " + newSection);
+                    LOGGER.log(java.util.logging.Level.FINE, "buildSong() Adding new section {0}", newSection);
                 } catch (UnsupportedEditException ex)
                 {
                     // Should never happen, would have broke before
@@ -510,13 +502,12 @@ public class SongBuilder implements MusicXmlParserListener
             {
                 // Yes, just add the corresponding song part                
                 var spts = sgs.getSongParts();
-                LOGGER.severe("spts=" + spts);
                 var curSpt = spts.stream()
                         .filter(spt -> spt.getParentSection() == cliSection)
                         .findAny()
                         .orElseThrow();
                 var spt = sgs.createSongPart(curSpt.getRhythm(), cliSection.getData().getName(), songBarIndex, barList.size(), cliSection, true);
-                LOGGER.severe(" Adding SongPart=" + spt);
+                LOGGER.log(java.util.logging.Level.FINE, "buildSong() Adding SongPart={0}", spt);
                 try
                 {
                     sgs.addSongParts(List.of(spt));
@@ -529,28 +520,82 @@ public class SongBuilder implements MusicXmlParserListener
             songBarIndex += barList.size();
         }
 
-
-        // Remove useless bars (BIAB export seems to systematically insert 2 bars at the beginning)                            
-        Position firstPos = firstChordPos;
-//        if (firstPos != null && firstPos.isFirstBarBeat() && firstPos.getBar() > 0)
-//        {
-//            try
-//            {
-//                cls.deleteBars(0, firstPos.getBar() - 1);
-//            } catch (UnsupportedEditException ex)
-//            {
-//                // Should never happen
-//                Exceptions.printStackTrace(ex);
-//            }
-//        }
-
-
-        if (firstChordPos == null)
-        {
-            LOGGER.warning("afterParsingFinished() No chord symbols found, importing an empty song.");
-        }
-
         return sg;
+    }
+
+    private void computeBarListsWithSections(List<List<Integer>> barListsOrdered, List<CLI_Section> sectionsOrdered)
+    {
+        List<Integer> curBarList = new ArrayList<>();
+        var it = new BarNavigationIterator(clsWork);
+        while (it.hasNext())
+        {
+            var bar = it.next();
+            var curSection = clsWork.getSection(bar);
+            if (curSection.getPosition().getBar() == bar)
+            {
+                // Save barList of previous section
+                if (!curBarList.isEmpty())
+                {
+                    barListsOrdered.add(curBarList);
+                }
+
+                // Reset barList
+                curBarList = new ArrayList<>();
+                sectionsOrdered.add(curSection);
+            }
+            curBarList.add(bar);
+
+
+            var barSection = curSection.getPosition().getBar() != bar ? null : curSection;
+            String barSectionName = barSection != null ? barSection.getData().getName() : "";
+            LOGGER.log(Level.FINE, "buildSong()  bar= {0}    {1} ", new Object[]
+            {
+                bar, barSectionName
+            });
+
+        }
+        // Add the last curBarList
+        barListsOrdered.add(curBarList);
+    }
+
+    /**
+     * Make sure there is a section for each repeat start or coda.
+     */
+    private void addMissingSections()
+    {
+        for (var cli : clsWork.getItems(ChordLeadSheetItem.class, cli -> (cli instanceof CLI_Repeat) || (cli instanceof CLI_NavigationItem)))
+        {
+            int bar = cli.getPosition().getBar();
+            var curSection = clsWork.getSection(bar);
+
+            if (curSection.getPosition().getBar() == bar)
+            {
+                // There is already a section
+                continue;
+            }
+            String name = null;
+            if (cli instanceof CLI_Repeat cliRepeat && cliRepeat.getData().startOrEnd())
+            {
+                name = curSection.getData().getName();
+            } else if (cli instanceof CLI_NavigationItem cliNavItem && cliNavItem.getData().mark().equals(NavigationMark.CODA))
+            {
+                name = "CODA";
+            }
+
+            if (name != null)
+            {
+                var sectionName = CLI_Section.createSectionName(name, clsWork);
+                var newSection = CLI_Factory.getDefault().createSection(sectionName, curSection.getData().getTimeSignature(), bar, clsWork);
+                try
+                {
+                    clsWork.addSection(newSection);
+                } catch (UnsupportedEditException ex)
+                {
+                    // Should never happen, don't add new timeSignature
+                    Exceptions.printStackTrace(ex);
+                }
+            }
+        }
     }
 
 

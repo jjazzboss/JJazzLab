@@ -183,9 +183,8 @@ public class BarNavigationIterator implements Iterator<Integer>
                 // Update state
                 int time = getProps(cliEndingStart).getInt(PROP_TIME, 0) + 1;
                 getProps(cliEndingStart).putInt(PROP_TIME, time);
-
-
-                if (!cliEndingStart.getData().numbers().contains(time))
+                var numbers = cliEndingStart.getData().numbers();
+                if (!numbers.contains(time))
                 {
                     // Need to find the next Ending-start 
                     var cliEndingStart2 = cls.getFirstItemAfter(cliEndingStart,
@@ -194,15 +193,30 @@ public class BarNavigationIterator implements Iterator<Integer>
                     if (cliEndingStart2 == null)
                     {
                         // Something's wrong
-                        LOGGER.log(Level.WARNING, "nextImpl() Cant find matching Ending-start after {0} for time={1}. Continuing on next bar.",
+                        LOGGER.log(Level.WARNING, "nextImpl() Cant find matching Ending-start after {0} for time={1}. Continuing after next ending-stop",
                                 new Object[]
                                 {
                                     cliEndingStart, time
                                 });
+                        var cliEndingStop = cls.getFirstItemAfter(cliEndingStart, CLI_Ending.class, cle -> cle.isStopType());
+                        if (cliEndingStop == null)
+                        {
+                            LOGGER.log(Level.WARNING, "nextImpl() Cant find Ending-stop after {0}", cliEndingStart);
+                        } else
+                        {
+                            res = cliEndingStop.getPosition().getBar() + 1;
+                        }
                     } else
                     {
                         // Change next bar
                         res = cliEndingStart2.getPosition().getBar();   // The only jump which doesn't need a section
+
+                        // Reset currentRepeatStart if there is no more repeat planned
+                        var numbers2 = cliEndingStart2.getData().numbers();
+                        if (!numbers.contains(time + 1) && !numbers2.contains(time + 1))
+                        {
+                            currentRepeatStart = null;
+                        }
                     }
                 }
             }
@@ -256,6 +270,7 @@ public class BarNavigationIterator implements Iterator<Integer>
                     if (cliCoda != null)
                     {
                         res = cliCoda.getPosition().getBar();
+                        currentRepeatStart = null;      // TOCODA is sometimes in the middle of a repeat
                     } else
                     {
                         // Something's wrong
@@ -354,14 +369,7 @@ public class BarNavigationIterator implements Iterator<Integer>
 
         if (cliEnding.isStartType())
         {
-            // Ending-start
-            // Mainly processed in nextImpl(), here we just check consistency
-
-            if (currentRepeatStart == null)
-            {
-                // Something's wrong
-                LOGGER.log(Level.WARNING, "nextEnding() Ending-start at bar {0} without a start repeat bar.", pos.getBar());
-            }
+            // Ending-start is processed in nextImpl()
 
         } else if (cliEnding.isStopType())
         {
@@ -410,9 +418,7 @@ public class BarNavigationIterator implements Iterator<Integer>
 
             }
 
-            // Update state
             currentRepeatStart = cliRepeat;
-            getProps(cliRepeat).shiftInt(PROP_TIME, 1, 0);
 
         } else
         {
