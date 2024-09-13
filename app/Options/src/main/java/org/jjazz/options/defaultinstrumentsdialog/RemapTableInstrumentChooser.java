@@ -470,7 +470,7 @@ public class RemapTableInstrumentChooser extends JDialog implements ChangeListen
             }
         });
 
-        btn_Hear.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/outputsynth/api/ui/resources/SpeakerRed-20x20.png"))); // NOI18N
+        btn_Hear.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/options/resources/SpeakerRed-20x20.png"))); // NOI18N
         btn_Hear.setToolTipText(org.openide.util.NbBundle.getMessage(RemapTableInstrumentChooser.class, "RemapTableInstrumentChooser.btn_Hear.toolTipText")); // NOI18N
         btn_Hear.setDisabledIcon(GeneralUISettings.getInstance().getIcon("speaker.icon.disabled"));
         btn_Hear.addActionListener(new java.awt.event.ActionListener()
