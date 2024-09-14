@@ -34,9 +34,6 @@ import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.importers.api.ImprovisorFileReader;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.rhythm.api.Rhythm;
-import org.jjazz.rhythmdatabase.api.RhythmDatabase;
-import org.jjazz.rhythmdatabase.api.RhythmInfo;
-import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
 import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Fill;
 import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Intensity;
 import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Variation;
@@ -47,6 +44,7 @@ import org.jjazz.song.spi.SongImporter;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.utilities.api.ResUtil;
+import org.jjazz.yamjjazz.rhythm.api.YamJJazzRhythm;
 import org.openide.util.Exceptions;
 import org.openide.util.lookup.ServiceProvider;
 
@@ -62,10 +60,6 @@ public class ImprovisorImporter implements SongImporter
     private final FileNameExtensionFilter FILTER = new FileNameExtensionFilter(ResUtil.getString(getClass(), "CTL_ImprovisorFiles") + " (.ls)", "ls");
     protected static final Logger LOGGER = Logger.getLogger(ImprovisorImporter.class.getName());
 
-    public ImprovisorImporter()
-    {
-        initMap();
-    }
 
     @Override
     public String getId()
@@ -91,51 +85,24 @@ public class ImprovisorImporter implements SongImporter
     // =================================================================================================
     // Private methods
     // =================================================================================================
-    private void postProcessSong(Song song, String style)
+    private void postProcessSong(Song song, String styleText)
     {
+        LOGGER.log(Level.INFO, "postProcessSong() -- styleText={0}", styleText);
         SongStructure ss = song.getSongStructure();
         List<SongPart> spts = ss.getSongParts();
         SongPart spt0 = spts.get(0);
         TimeSignature ts = spt0.getRhythm().getTimeSignature();
 
-        // Check TimeSignature
-        switch (ts)
-        {
-            case THREE_FOUR:
-            case FOUR_FOUR:
-                break;
-            default:
-                // Post processing not supported yet
-                LOGGER.log(Level.INFO, "postProcessSong() time signature not yet supported: {0}. Post-processing aborted.", ts);
-                return;
-        }
 
-        // Style
+        // Find rhythm
         Rhythm r = null;
-        if (style != null)
+        r = ImporterRhythmFinder.findRhythm(styleText, song.getTempo(), ts);
+        assert r != null;
+        if (!(r instanceof YamJJazzRhythm) || r.getRhythmParameters().size() < 5)
         {
-            r = getRhythmFromStyle(style, song.getTempo(), ts);
-        }
-        if (r == null)
-        {
-            r = getDefaultRhythm(song.getTempo(), ts);
-            if (r == null)
-            {
-                LOGGER.log(Level.WARNING, "postProcessImportedSong() Unexpected null rhythm. style={0}, song.getTempo()={1}. PostProcess stopped.", new Object[]{style,
-                    song.getTempo()});
-                return;
-            }
+            LOGGER.log(Level.INFO, "postProcessSong() Rhythm not supported for post-processing {0}, Post-processing aborted.", r);
         }
 
-        assert r.getRhythmParameters().size() >= 5 : " r=" + r;   //NOI18N
-
-        // Special case for the samba rhythm
-//        if (r.getUniqueId().equals("SambaCity213.s460.yjz-ID") && tempo >= 180)
-//        {
-//            tempo = tempo / 2;
-//            song.setTempo(tempo);
-//            SongUtils.halfChordLeadsheet(song);
-//        }
         // Assign the new rhythm
         SongPart newSpt = spt0.clone(r, spt0.getStartBarIndex(), spt0.getNbBars(), spt0.getParentSection());
         try
@@ -236,184 +203,6 @@ public class ImprovisorImporter implements SongImporter
             Exceptions.printStackTrace(ex);
         }
         return newSpt;
-    }
-
-    /**
-     * Get a JJazzLab rhythm from a style and tempo.
-     *
-     * @param style
-     * @param tempo
-     * @param ts
-     * @return Null if no matching found.
-     */
-    private Rhythm getRhythmFromStyle(String style, int tempo, TimeSignature ts)
-    {
-        String rId = null;
-        switch (ts)
-        {
-            case THREE_FOUR:
-                if (tempo > 160)
-                {
-                    rId = "JazzWaltzFast.S499.sty-ID";
-                } else
-                {
-                    rId = "JazzWaltz4.S001.sty-ID";
-                }
-                break;
-            case FOUR_FOUR:
-                // Get the mapped rhythm
-                String s = getValueFromMap(style);
-                if (s == null)
-                {
-                    break;
-                }
-                rId = s + "-ID";
-
-                // Handle special cases
-                if (style.toLowerCase().startsWith("ballad"))
-                {
-                    if (tempo < 90)
-                    {
-                        rId = "SlowJazz.STY-ID";
-                    } else if (tempo < 130)
-                    {
-                        rId = "LACoolSwing.STY-ID";
-                    }
-                } else if (style.toLowerCase().startsWith("footprints"))
-                {
-                    if (tempo < 160)
-                    {
-                        rId = "SJazzWaltz4.S001.sty-ID";
-                    }
-                } else if (style.toLowerCase().startsWith("funk"))
-                {
-                    if (tempo < 120)
-                    {
-                        rId = "JazzRock_Cz2k.S563.yjz-ID";
-                    }
-                } else if (style.toLowerCase().startsWith("latin") || style.toLowerCase().startsWith("samba"))
-                {
-                    if (tempo < 80)
-                    {
-                        rId = "SlowBossa2.S460.prs-ID";
-                    } else if (tempo < 130)
-                    {
-                        rId = "SambaCity213.s460.yjz-ID";
-                    }
-                } else if (style.toLowerCase().startsWith("swing"))
-                {
-                    if (tempo < 90)
-                    {
-                        rId = "SlowJazz.STY-ID";
-                    } else if (tempo < 180)
-                    {
-                        rId = Math.random() > 0.5d ? "MediumJazz.S499.sty-ID" : "AcousticJazz1.S563.sty-ID";
-                    }
-                }
-                break;
-            default:
-            // Nothing
-        }
-
-        Rhythm r = null;
-        if (rId != null)
-        {
-            RhythmDatabase rdb = RhythmDatabase.getDefault();
-            try
-            {
-                r = rdb.getRhythmInstance(rId);
-            } catch (UnavailableRhythmException ex)
-            {
-                LOGGER.log(Level.WARNING, "getRhythmFromStyle() can''t get RhythmInstance for rId={0}. ex={1}", new Object[]{rId,
-                    ex.getLocalizedMessage()});
-            }
-        }
-
-        return r;
-    }
-
-    /**
-     * The default rhythm to use.
-     *
-     * @param tempo
-     * @param ts
-     * @return Can be null
-     */
-    private Rhythm getDefaultRhythm(int tempo, TimeSignature ts)
-    {
-        // String rId = (tempo <= 150) ? "PopBossa1.S629.prs-ID" : "FastJazz.S741.sst-ID";
-        RhythmDatabase rdb = RhythmDatabase.getDefault();
-        var ri = rdb.getDefaultRhythm(ts);        
-        Rhythm r = null;
-        try
-        {
-            r = rdb.getRhythmInstance(ri);
-        } catch (UnavailableRhythmException ex)
-        {
-            LOGGER.log(Level.WARNING, "getRhythmFromStyle() can''t get RhythmInstance for ri={0}. ex={1}", new Object[]{ri,
-                ex.getLocalizedMessage()});
-
-        }
-        return r;
-    }
-
-    /**
-     * Special get: match if the map key matches the first chars of style.
-     *
-     * @param style
-     * @return
-     */
-    private String getValueFromMap(String style)
-    {
-        String value = null;
-        for (String key : map.keySet())
-        {
-            if (style.toLowerCase().startsWith(key.toLowerCase()))
-            {
-                value = map.get(key);
-                break;
-            }
-        }
-        return value;
-    }
-
-    private void initMap()
-    {
-        map.put("afri", "FastBossa.S629.prs");
-        map.put("bossa", "BossaNova.STY");
-        map.put("cha", "OrganChaCha.sty");
-        map.put("folk", "CoolPop.sty");
-        map.put("song-for-my-father", "FastBossa.S629.prs");
-        map.put("mambo", "BigBandMambo.S380.sst");
-        map.put("rhumba", "PopRumba.S625.bcs");
-        map.put("rock", "CoolPop.sty");
-        map.put("rock-heavy-even", "PowerRock.STY");
-        map.put("rock-slow", "16beat.S556.yjz");
-        map.put("rock-triplet", "LovelyShuffle.S502.prs");
-        map.put("salsa", "Salsa 1.S651.STY");
-        map.put("blues", "JazzBluesSimple.S740.sty");
-        map.put("shuffle", "LovelyShuffle.S502.prs");
-        map.put("soul", "Soul.S584.prs");
-        map.put("ballad", "MediumJazz.S737.sst");
-        map.put("footprints", "JazzWaltzFast.S499.sty");
-        map.put("funk", "SoulBeat.STY");
-        map.put("latin", "FastBossa.S629.prs");
-        map.put("samba", "FastBossa.S629.prs");
-        map.put("swing", "FastJazz.S741.sst");
-        map.put("waltz", "JazzWaltzFast.S499.sty");
-
-        // Log errors (if list of available styles has changed)
-        RhythmDatabase rdb = RhythmDatabase.getDefault();
-        for (String key : map.keySet().toArray(new String[0]))
-        {
-            String id = map.get(key) + "-ID";
-            RhythmInfo ri = rdb.getRhythm(id);
-            if (ri == null)
-            {
-                LOGGER.log(Level.FINE, "initMap() No rhythm found for rhythmId: {0}", id);
-                map.remove(key);
-            }
-        }
     }
 
 }

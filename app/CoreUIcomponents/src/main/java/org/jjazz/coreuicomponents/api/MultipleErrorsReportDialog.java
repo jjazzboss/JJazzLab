@@ -136,7 +136,7 @@ public class MultipleErrorsReportDialog extends JDialog
         lbl_primaryMsg.setFont(lbl_primaryMsg.getFont().deriveFont(lbl_primaryMsg.getFont().getStyle() | java.awt.Font.BOLD));
         org.openide.awt.Mnemonics.setLocalizedText(lbl_primaryMsg, errorRpt.primaryErrorMessage);
 
-        jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/utilities/api/resources/Warning-48x48.png"))); // NOI18N
+        jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/coreuicomponents/api/resources/Warning-48x48.png"))); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);

@@ -26,7 +26,6 @@ import org.jjazz.utilities.api.MultipleErrorsReport;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import org.jjazz.harmony.api.TimeSignature;

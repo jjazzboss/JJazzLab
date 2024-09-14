@@ -54,7 +54,7 @@ public class RhythmFeatures implements Serializable
     {
         if (f == null || b == null || g == null || rg == null || i == null)
         {
-            throw new NullPointerException("f=" + f + " b=" + b + " g=" + g + " tg=" + rg + " i=" + i);   
+            throw new NullPointerException("f=" + f + " b=" + b + " g=" + g + " tg=" + rg + " i=" + i);
         }
         feel = f;
         beat = b;
@@ -180,15 +180,16 @@ public class RhythmFeatures implements Serializable
      * <p>
      * Use featureValues to fix some values in the returned RhythmFeatures.
      *
-     * @param name eg "Bossa Nova"
-     * @param fixedValues If Intensity object use it for intensity, if Feel object use it for feel, etc.
+     * @param rhythmName          eg "Bossa Nova"
+     * @param defaultValues If Intensity object use it for intensity, if Feel object use it for feel, etc.
      * @return If no guess all features will be UNKNOWN or TempoRange.ALL_TEMPO
+     * TODO: to be completed!
      */
-    static public RhythmFeatures guessFeatures(String name, Object... fixedValues)
+    static public RhythmFeatures guessFeatures(String rhythmName, Object... defaultValues)
     {
-        if (name == null || name.isBlank())
+        if (rhythmName == null || rhythmName.isBlank())
         {
-            throw new IllegalArgumentException("rName=" + name + " fixedValues=" + fixedValues);   
+            throw new IllegalArgumentException("rName=" + rhythmName + " fixedValues=" + defaultValues);
         }
 
 
@@ -199,12 +200,12 @@ public class RhythmFeatures implements Serializable
         Beat b = Beat.UNKNOWN;
 
 
-        if (name.toLowerCase().contains("bossa"))
+        if (rhythmName.toLowerCase().contains("bossa"))
         {
             g = Genre.LATIN;
             f = Feel.BINARY;
             b = Beat.EIGHT;
-        } else if (name.toLowerCase().contains("funk"))
+        } else if (rhythmName.toLowerCase().contains("funk"))
         {
             g = Genre.FUNK;
             f = Feel.BINARY;
@@ -212,11 +213,11 @@ public class RhythmFeatures implements Serializable
         }
 
         // Override values
-        f = getFixedValue(Feel.class, fixedValues) == null ? f : getFixedValue(Feel.class, fixedValues);
-        g = getFixedValue(Genre.class, fixedValues) == null ? g : getFixedValue(Genre.class, fixedValues);
-        b = getFixedValue(Beat.class, fixedValues) == null ? b : getFixedValue(Beat.class, fixedValues);
-        tr = getFixedValue(TempoRange.class, fixedValues) == null ? tr : getFixedValue(TempoRange.class, fixedValues);
-        i = getFixedValue(Intensity.class, fixedValues) == null ? i : getFixedValue(Intensity.class, fixedValues);
+        f = getDefaultValue(Feel.class, defaultValues) == null ? f : getDefaultValue(Feel.class, defaultValues);
+        g = getDefaultValue(Genre.class, defaultValues) == null ? g : getDefaultValue(Genre.class, defaultValues);
+        b = getDefaultValue(Beat.class, defaultValues) == null ? b : getDefaultValue(Beat.class, defaultValues);
+        tr = getDefaultValue(TempoRange.class, defaultValues) == null ? tr : getDefaultValue(TempoRange.class, defaultValues);
+        i = getDefaultValue(Intensity.class, defaultValues) == null ? i : getDefaultValue(Intensity.class, defaultValues);
 
         return new RhythmFeatures(f, b, g, tr, i);
     }
@@ -269,9 +270,17 @@ public class RhythmFeatures implements Serializable
     }
 
 
-    static private <T> T getFixedValue(Class<T> c, Object... values)
+    /**
+     * Get the first default value which is an instance of c.
+     *
+     * @param <T>
+     * @param c
+     * @param defaultValues
+     * @return can be null
+     */
+    static private <T> T getDefaultValue(Class<T> c, Object... defaultValues)
     {
-        for (Object value : values)
+        for (Object value : defaultValues)
         {
             if (value != null && c.isInstance(value))
             {

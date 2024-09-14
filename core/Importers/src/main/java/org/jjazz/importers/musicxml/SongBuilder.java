@@ -56,7 +56,6 @@ import static org.jjazz.importers.musicxml.NavigationMark.TOCODA;
 import org.jjazz.rhythm.api.TempoRange;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
-import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.utilities.api.Utilities;
 import org.openide.util.Exceptions;
 
@@ -79,6 +78,16 @@ public class SongBuilder implements MusicXmlParserListener
     {
         // clsWork is just used to store all parsed items, actual song creation will be done after
         clsWork = ChordLeadSheetFactory.getDefault().createEmptyLeadSheet("A", TimeSignature.FOUR_FOUR, ChordLeadSheet.MAX_SIZE, null);
+    }
+
+    /**
+     * The String found in other-play/groove.
+     *
+     * @return Can be null
+     */
+    public String getMusicalStyle()
+    {
+        return musicalStyle;
     }
 
     /**
@@ -368,21 +377,6 @@ public class SongBuilder implements MusicXmlParserListener
         var sg = createSong(barListsOrdered, sectionsOrdered);
 
 
-        // Remove useless bars (BIAB export seems to systematically insert 2 bars at the beginning)                            
-        Position firstPos = firstChordPos;
-//        if (firstPos != null && firstPos.isFirstBarBeat() && firstPos.getBar() > 0)
-//        {
-//            try
-//            {
-//                cls.deleteBars(0, firstPos.getBar() - 1);
-//            } catch (UnsupportedEditException ex)
-//            {
-//                // Should never happen
-//                Exceptions.printStackTrace(ex);
-//            }
-//        }
-
-
         if (firstChordPos == null)
         {
             LOGGER.warning("afterParsingFinished() No chord symbols found, importing an empty song.");
@@ -598,20 +592,9 @@ public class SongBuilder implements MusicXmlParserListener
         }
     }
 
-
-    private boolean isSection(ChordLeadSheetItem cli)
-    {
-        return cli instanceof CLI_Section;
-    }
-
     private float getLastPossibleBeat()
     {
         return timeSignature.getNbNaturalBeats() - 0.001f;
-    }
-
-    private <T> T getLast(List<T> list)
-    {
-        return list.isEmpty() ? null : list.get(list.size() - 1);
     }
 
     // ===================================================================================================

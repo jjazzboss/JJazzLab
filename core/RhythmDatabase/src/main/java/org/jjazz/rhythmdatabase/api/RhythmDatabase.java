@@ -30,6 +30,7 @@ import javax.swing.event.ChangeListener;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.Rhythm;
+import org.jjazz.rhythm.api.RhythmFeatures;
 import org.jjazz.rhythm.spi.RhythmProvider;
 import org.jjazz.rhythm.spi.StubRhythmProvider;
 
@@ -133,36 +134,7 @@ public interface RhythmDatabase
      */
     List<RhythmInfo> getRhythms(RhythmProvider rp);
 
-    /**
-     * Try to find a rhythm in the database which is "similar" to the specified rhythm info.
-     * <p>
-     * "Similar" means at least share the same time signature. The default implementation uses RhythmFeatures.getMatchingScore() to help identify the most
-     * similar rhythm.
-     *
-     * @param ri
-     * @return A "similar" rhythm which at least share the same timesignature. Null if nothing relevant found.
-     */
-    default RhythmInfo getSimilarRhythm(RhythmInfo ri)
-    {
-        int max = -1;
-        RhythmInfo res = null;
-        for (RhythmInfo rii : getRhythms())
-        {
-            if (!rii.timeSignature().equals(ri.timeSignature()) || rii == ri)
-            {
-                continue;
-            }
-            int score = ri.rhythmFeatures().getMatchingScore(rii.rhythmFeatures());
-            if (score > max)
-            {
-                max = score;
-                res = rii;
-            }
-        }
-
-        return res;
-    }
-
+  
     /**
      * @return All rhythms stored in the database.
      */

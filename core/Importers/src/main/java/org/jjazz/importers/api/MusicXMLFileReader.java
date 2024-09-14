@@ -39,6 +39,7 @@ public class MusicXMLFileReader
 {
 
     private File file;
+    private String musicalStyle;
     private static final Logger LOGGER = Logger.getLogger(MusicXMLFileReader.class.getSimpleName());
 
     /**
@@ -52,6 +53,16 @@ public class MusicXMLFileReader
             throw new NullPointerException("f");
         }
         this.file = f;
+    }
+
+    /**
+     * An optional String indicating musical style.
+     *
+     * @return Can be null
+     */
+    public String getMusicalStyle()
+    {
+        return musicalStyle;
     }
 
     /**
@@ -83,7 +94,8 @@ public class MusicXMLFileReader
         {
             throw new IOException("Error creating imported song. Please check log file.");
         }
-
+        musicalStyle = songBuilder.getMusicalStyle();        
+        
 
         // Set name
         int dotIndex = file.getName().lastIndexOf('.');

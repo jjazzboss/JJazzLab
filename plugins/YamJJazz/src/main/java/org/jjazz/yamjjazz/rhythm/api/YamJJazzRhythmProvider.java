@@ -22,7 +22,6 @@
  */
 package org.jjazz.yamjjazz.rhythm.api;
 
-import org.jjazz.yamjjazz.rhythm.api.YamJJazzRhythm;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
