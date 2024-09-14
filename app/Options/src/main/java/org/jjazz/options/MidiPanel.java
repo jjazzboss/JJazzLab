@@ -88,7 +88,7 @@ final class MidiPanel extends javax.swing.JPanel implements PropertyChangeListen
     /**
      * Used as a map key for mapDeviceSynth.
      * <p>
-     * Using MidiDevice name because a OUT MidiDevice might appear/disappear/re-appear on the system.
+     * Using MidiDevice name because a OUT MidiDevice might appear/disappear/re-appear on the system. 
      */
     private record MidiDeviceSynth(String midiDeviceName, MidiSynth midiSynth)
             {
