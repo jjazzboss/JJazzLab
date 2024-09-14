@@ -25,7 +25,7 @@ public class EnterDonCodeDialog extends javax.swing.JDialog
 
 
         // Add a paste popup menu for each field
-        String pasteText = ResUtil.getCommonString("Paste");
+        String pasteText = ResUtil.getCommonString("CTL_Paste");
         var popupMenuCode = new JPopupMenu();
         popupMenuCode.add(new PopupPasteAction(pasteText, tf_code));
         tf_code.setComponentPopupMenu(popupMenuCode);
