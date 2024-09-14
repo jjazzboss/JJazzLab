@@ -234,48 +234,6 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
     private javax.swing.JToolBar toolbar;
     // End of variables declaration//GEN-END:variables
 
-    @Override
-    public void componentOpened()
-    {
-
-        // Try to restore zoom factor X from client property, or zoom to fit width
-//        Runnable r = () -> 
-//        {
-//            String str = songModel.getClientProperties().get(SS_EditorImpl.PROP_ZOOM_FACTOR_X, null);
-//            if (str != null)
-//            {
-//                int zfx = -1;
-//                trys
-//                {
-//                    zfx = Integer.parseInt(str);
-//                } catch (NumberFormatException e)
-//                {
-//                    // Nothing
-//                }
-//                if (zfx < 0 || zfx > 100)
-//                {
-//                    LOGGER.log(Level.WARNING, "SS_EditorController() Invalid zoom factor X client property={0} in song={1}",
-//                            new Object[]
-//                            {
-//                                str,
-//                                ssEditor.getSongModel().getName()
-//                            });
-//                } else
-//                {
-//                    Zoomable zoomable = ssEditor.getLookup().lookup(Zoomable.class);
-//                    if (zoomable != null)
-//                    {
-//                        zoomable.setZoomXFactor(zfx, false);    // This will mark songModel as modified via Song.putClientProperty()
-//                    }
-//                }
-//            } else
-//            {
-//                ssEditor.setZoomHFactorToFitWidth(SS_EditorTopComponent.this.getWidth());   // This will mark songModel as modified via Song.putClientProperty()
-//            }
-//        };
-//        // If invokeLater is not used layout is not yet performed and components size are = 0 !
-//        SwingUtilities.invokeLater(r);
-    }
 
     /**
      * Close the TopComponent without asking for user confirmation.
