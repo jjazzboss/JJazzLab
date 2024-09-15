@@ -42,6 +42,17 @@
         </screenshot>
     </screenshots>
     <releases>
+        <release version="4.1.1" date="2024-09-16">
+            <url type="details">https://github.com/jjazzboss/JJazzLab/releases/tag/4.1.1</url>
+            <description>
+                <p>Release description</p>
+                <ul>
+                    <li>About 30 new default styles</li>
+                    <li>Import songs from iRealPro or ChordPulse via musicXML or text files</li>
+                    <li>Many bug fixes</li>
+                </ul>
+            </description>
+        </release> 	
         <release version="4.0.2" date="2024-01-07">
             <url type="details">https://github.com/jjazzboss/JJazzLab/releases/tag/4.0.2</url>
             <description>
@@ -54,17 +65,7 @@
                 </ul>
             </description>
         </release>
-        <release version="4.1.0" date="2024-06-24">
-            <url type="details">https://github.com/jjazzboss/JJazzLab/releases/tag/4.1.0</url>
-            <description>
-                <p>Release description</p>
-                <ul>
-                    <li>New JJazzLab Toolkit available (for developers)</li>
-                    <li>Improved Notes Editor</li>
-                    <li>Many improvements and bug fixes</li>
-                </ul>
-            </description>
-        </release>        
+       
     </releases>
     <content_rating type="oars-1.1"/>
 </component>

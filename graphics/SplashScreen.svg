@@ -48,18 +48,6 @@
        id="rect39640" />
     <linearGradient
        inkscape:collect="always"
-       id="linearGradient37742">
-      <stop
-         style="stop-color:#f9f921;stop-opacity:1;"
-         offset="0"
-         id="stop37738" />
-      <stop
-         style="stop-color:#f9f921;stop-opacity:0;"
-         offset="1"
-         id="stop37740" />
-    </linearGradient>
-    <linearGradient
-       inkscape:collect="always"
        id="linearGradient26903">
       <stop
          style="stop-color:#f9f921;stop-opacity:1"
@@ -653,7 +641,7 @@
        gradientTransform="matrix(0.78456644,0,0,0.78456644,49.100922,25.664179)" />
     <radialGradient
        inkscape:collect="always"
-       xlink:href="#linearGradient37742"
+       xlink:href="#linearGradient26903"
        id="radialGradient37744"
        cx="113.4334"
        cy="139.74042"
@@ -765,9 +753,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.35000001"
-     inkscape:cx="1467.1428"
-     inkscape:cy="435.71427"
+     inkscape:zoom="0.35355339"
+     inkscape:cx="1144.0988"
+     inkscape:cy="618.01133"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -1242,9 +1230,9 @@
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.54382px;line-height:1.25;font-family:'Eras Medium ITC';-inkscape-font-specification:'Eras Medium ITC, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;white-space:pre;shape-inside:url(#rect14402);vector-effect:none;fill:#f9f921;fill-opacity:1;stroke:none;stroke-width:0.475685;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;-inkscape-stroke:none;stop-color:#000000"><tspan
          x="496.99414"
          y="836.61064"
-         id="tspan35677"><tspan
+         id="tspan5829"><tspan
            style="stroke-width:0.654292"
-           id="tspan35675">YOU CAN PLAY!</tspan></tspan></text>
+           id="tspan5827">YOU CAN PLAY!</tspan></tspan></text>
     <flowRoot
        transform="matrix(0.43947921,0,0,0.4529174,-178.78986,8.9468029)"
        style="font-style:normal;font-variant:normal;font-weight:200;font-stretch:normal;font-size:29.574px;line-height:1.25;font-family:'DejaVu Sans';-inkscape-font-specification:'DejaVu Sans, Ultra-Light';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#808080;fill-opacity:1;stroke:#ffffff;stroke-width:0.920823;stroke-opacity:1;opacity:0.75"
@@ -1283,11 +1271,11 @@
          style="font-variation-settings:normal;vector-effect:none;fill:#f9f921;fill-opacity:1;stroke-width:0.911538;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;-inkscape-stroke:none;stop-color:#000000;stop-opacity:1">JJazzLab</flowPara></flowRoot>
     <text
        xml:space="preserve"
-       transform="matrix(1.04766,0,0,1.04766,-791.46022,-942.22633)"
+       transform="matrix(0.9126245,0,0,0.88308552,-679.16291,-553.39518)"
        id="text23263"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:40px;line-height:1.25;font-family:'Arial Rounded MT Bold';-inkscape-font-specification:'Arial Rounded MT Bold, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;white-space:pre;shape-inside:url(#rect23265);opacity:1;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.634747;stroke-miterlimit:4;stroke-dasharray:none"><tspan
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:40px;line-height:1.25;font-family:'Comic Sans MS';-inkscape-font-specification:'Comic Sans MS, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;white-space:pre;shape-inside:url(#rect23265);opacity:1;fill:#f2f2f2;fill-opacity:1;stroke:none;stroke-width:0.740753;stroke-miterlimit:4;stroke-dasharray:none"><tspan
          x="1137.1426"
-         y="944.6186"
-         id="tspan35679">4.1</tspan></text>
+         y="943.32703"
+         id="tspan5831">4.1.1</tspan></text>
   </g>
 </svg>
