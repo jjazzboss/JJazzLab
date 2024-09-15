@@ -293,7 +293,8 @@ sub processBundleFile
 		{
 				chomp;	
 				next if /^\s*#/ || ! /=/;     
-				print "###### WARNING Possible Java U-based unicode escapes found: $_\n" if (/u00/);					
+				
+				print "###### WARNING Possible Java U-based unicode escapes found (Ã might be legit in portugese) : $_\n" if (/u00|Ã/);					
 				my $eqIndex = index($_, "=");
 				my $key = substr($_, 0, $eqIndex);
 				my $val = substr($_, $eqIndex+1);
