@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -82,8 +83,7 @@ import org.jjazz.song.api.SongFactory;
  * // Put comment after // <br>
  * "title=My song name" : if specified the created song will use this title as name.<br>
  * "useBase1" : if specified the bar/beat positions start at 1.<br>
- * Accepted delimiter characters are ',', ';' or space or tab
- * '|' can be replaced by '!' when importing text ("!C7 !D6 ! Gm !  !" is valid).
+ * Accepted delimiter characters are ',', ';' or space or tab '|' can be replaced by '!' when importing text ("!C7 !D6 ! Gm ! !" is valid).
  */
 public class TextReader
 {
@@ -91,13 +91,13 @@ public class TextReader
     static private final String TEXT_DATASOURCE = "TextBuffer";
     private final List<String> lines = new ArrayList<>();
     private final String dataSource;  // used for error messages
-    private final Pattern pTitle = Pattern.compile("^title\\s*=\\s*(\\S.+)", Pattern.CASE_INSENSITIVE);
-    private final Pattern pTimeSignature = Pattern.compile("^timeSignature\\s*=\\s*(\\d+)/(\\d+)", Pattern.CASE_INSENSITIVE);
-    private final Pattern pTempo = Pattern.compile("^tempoBPM\\s*=\\s*(\\d+)", Pattern.CASE_INSENSITIVE);
-    private final Pattern pUseBase1 = Pattern.compile("^useBase1\\s*$", Pattern.CASE_INSENSITIVE);
-    private final Pattern pBeatBasedChord = Pattern.compile("^(\\d+)\\s*[,;\\s]\\s*([0-9.]+)\\s*[,;\s]\\s*(\\S+)\\s*$");
-    private final Pattern pTimeBasedChord = Pattern.compile("^([0-9.]+)\\s*[,;\\s]\\s*(\\S+)\\s*$");
-    private final Pattern pGridBasedLine = Pattern.compile("^[|!]");
+    private final Pattern pTitle = Pattern.compile("^\\s*title\\s*=\\s*(\\S.+)", Pattern.CASE_INSENSITIVE);
+    private final Pattern pTimeSignature = Pattern.compile("^\\s*timeSignature\\s*=\\s*(\\d+)/(\\d+)", Pattern.CASE_INSENSITIVE);
+    private final Pattern pTempo = Pattern.compile("^\\s*tempo(BPM)?\\s*[=:]\\s*(\\d+)", Pattern.CASE_INSENSITIVE);
+    private final Pattern pUseBase1 = Pattern.compile("^\\s*useBase1\\s*$", Pattern.CASE_INSENSITIVE);
+    private final Pattern pBeatBasedChord = Pattern.compile("^\\s*(\\d+)\\s*[,;\\s]\\s*([0-9.]+)\\s*[,;\s]\\s*(\\S+)\\s*$");
+    private final Pattern pTimeBasedChord = Pattern.compile("^\\s*([0-9.]+)\\s*[,;\\s]\\s*(\\S+)\\s*$");
+    private final Pattern pGridBasedLine = Pattern.compile("^\\s*[|!]");
     private static final Logger LOGGER = Logger.getLogger(TextReader.class.getSimpleName());
 
     public TextReader(File f) throws IOException
@@ -184,7 +184,7 @@ public class TextReader
 
             } else if (mTempo.find())
             {
-                int tmp = readUIntFromString(mTempo.group(1), 120, lineCount);
+                int tmp = readUIntFromString(mTempo.group(2), 120, lineCount);
                 if (tmp >= 20 && tmp <= 400)
                 {
                     tempoBPM = tmp;
@@ -272,9 +272,18 @@ public class TextReader
             } else if (mGridBasedLine.find())
             {
                 isDataValid = true;
-                // for split to create the right nb of bars, remove first '|' and possibly last '|' if only trailing spaces 
-                String lineGrid = line.substring(1).replaceFirst("[|!]\\s*$", "");
-                String[] strBars = lineGrid.split("[|!]");
+
+
+                // To be compatible with ChordPulse text export, remove all "." and isolated "/" (indicate a beat position)
+                String lineGrid = line.replaceAll("\\.", "");
+                lineGrid = lineGrid.replaceAll("/ ", "");
+                
+                // for split to create the right nb of bars, remove first '|' and possibly last '|'
+                lineGrid = lineGrid.replaceFirst("^\\s*[|!]", "");
+                lineGrid = lineGrid.replaceFirst("[|!]\\s*$", "");
+                String[] strBars = lineGrid.split("[|!]", -1);
+                
+                
                 List<CLI_ChordSymbol> curBarChords;
 
                 for (String strBar : strBars)
@@ -352,6 +361,9 @@ public class TextReader
                     barIndex++;
                 }
 
+            } else
+            {
+                LOGGER.log(Level.INFO, "readSong() Ignored line: {0}", line);
             }
         }
 
@@ -396,9 +408,9 @@ public class TextReader
         // Add the chord symbols
         cliChordSymbols.forEach(cliCs -> cls.addItem(cliCs));
 
-
         return song;
     }
+
 
     private int readUIntFromString(String strUInt, int defaultValue, int lineId)
     {
