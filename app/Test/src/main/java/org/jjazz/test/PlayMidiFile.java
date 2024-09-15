@@ -54,7 +54,7 @@ import org.openide.windows.WindowManager;
 @ActionReferences(
         {
             // @ActionReference(path = "Menu/Edit", position = 37893),
-            @ActionReference(path = "Shortcuts", name = "SD-P")    // ctrl-shift-P
+            // @ActionReference(path = "Shortcuts", name = "SD-P")    // ctrl-shift-P
         })
 public final class PlayMidiFile implements ActionListener, MetaEventListener
 {

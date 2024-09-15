@@ -34,22 +34,21 @@ import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.util.NbBundle;
-import org.jjazz.yamjjazz.rhythm.api.Style;
 import org.jjazz.yamjjazz.rhythm.api.YamJJazzRhythm;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.yamjjazz.rhythm.api.StylePart;
 
-//@ActionID(category = "Test", id = "org.jjazz.test.dumpyamaharhythmphrases")
-//@ActionRegistration(displayName = "#CTL_DumpYamahaRhythmPhrases", lazy = true)
-//@ActionReferences(
-//        {
-//            @ActionReference(path = "Actions/SongPart", position = 680)      // Add to popupmenu
-//        })
-//@NbBundle.Messages(
-//        {
-//            "CTL_DumpYamahaRhythmPhrases=[DEBUG] Dump Yamaha Rhythm Phrases"
-//        })
-
+@ActionID(category = "Test", id = "org.jjazz.test.dumpyamaharhythmphrases")
+@ActionRegistration(displayName = "#CTL_DumpYamahaRhythmPhrases", lazy = true)
+@ActionReferences(
+        {
+            // @ActionReference(path = "Actions/SongPart", position = 680),      // Add to popupmenu
+            @ActionReference(path = "Shortcuts", name = "DS-P")           // ctrl-shift P                
+        })
+@NbBundle.Messages(
+        {
+            "CTL_DumpYamahaRhythmPhrases=[DEBUG] Dump Yamaha Rhythm Phrases"
+        })
 public class DumpYamahaRhythmPhrases implements ActionListener
 {
 
