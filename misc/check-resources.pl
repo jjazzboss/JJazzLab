@@ -245,7 +245,7 @@ sub getKeysFromJavaLine
 	}
 	if ($line =~ /[^.]ResUtil\.getString\([^"]*$/)
 	{
-		print "###### WARNING unparsable ResUtil.getString(...) detected, please fix : $line\n";
+		print "###### WARNING unparsable key string within ResUtil.getString(...) detected, ignored : $line\n";
 		return;
 	}
 	my @keys1 = ($line =~ /ResUtil\.getString\([^"]*"([^"]+)/g);    # g modifier power! see https://perldoc.perl.org/perlretut#Global-matching		
