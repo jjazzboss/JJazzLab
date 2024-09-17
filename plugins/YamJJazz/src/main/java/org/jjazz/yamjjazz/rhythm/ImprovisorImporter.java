@@ -97,10 +97,14 @@ public class ImprovisorImporter implements SongImporter
         // Find rhythm
         Rhythm r = null;
         r = ImporterRhythmFinder.findRhythm(styleText, song.getTempo(), ts);
-        assert r != null;
+        if (r == null)
+        {
+            r = spt0.getRhythm();
+        }
         if (!(r instanceof YamJJazzRhythm) || r.getRhythmParameters().size() < 5)
         {
             LOGGER.log(Level.INFO, "postProcessSong() Rhythm not supported for post-processing {0}, Post-processing aborted.", r);
+            return;
         }
 
         // Assign the new rhythm

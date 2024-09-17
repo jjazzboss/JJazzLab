@@ -24,9 +24,13 @@
  */
 package org.jjazz.yamjjazz.rhythm;
 
+import com.google.common.base.Preconditions;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.harmony.api.TimeSignature;
@@ -46,20 +50,22 @@ public class ImporterRhythmFinder
     protected static final Logger LOGGER = Logger.getLogger(ImporterRhythmFinder.class.getName());
 
     /**
-     * Find a rhythm from the specified parameters.
+     * Try to find a rhythm from the specified parameters.
      * <p>
-     * If no match, return a default rhythm for the tempo and time signature.
      *
-     * @param styleText eg "rock", "bossa". If null returns the default rhythm for the time signature.
+     * @param styleText eg "rock", "bossa"
      * @param tempo
      * @param ts
-     * @return Can't be null
+     * @return Can be null
      */
     static public Rhythm findRhythm(String styleText, int tempo, TimeSignature ts)
     {
+        Objects.requireNonNull(styleText);
         Objects.requireNonNull(ts);
+        Rhythm res = null;
 
 
+        // Simplify for 3/4: ignore styleText
         if (ts.equals(TimeSignature.THREE_FOUR))
         {
             if (tempo > 170)
@@ -75,50 +81,23 @@ public class ImporterRhythmFinder
         }
 
 
-        // Get the mapped rhythmId
-        String s = getValueFromMap(styleText);
-        if (s == null)
+        String strRhythm = getValueFromMap(styleText);
+        if (strRhythm != null)
         {
-            // Default rhythms
-            if (ts.equals(TimeSignature.FOUR_FOUR))
-            {
-                s = tempo > 130 ? getValueFromMap("bossa") : getValueFromMap("even 8");
-                assert s != null;
-            } else
-            {
-                s = "";     // nothing will be found in the database
-            }
-        }
-
-
-        String rId = s + "-ID";
-        Rhythm r = null;
-        RhythmDatabase rdb = RhythmDatabase.getDefault();
-        try
-        {
-            r = (YamJJazzRhythm) rdb.getRhythmInstance(rId);
-        } catch (UnavailableRhythmException ex)
-        {
-            var ri = rdb.getDefaultRhythm(ts);
-            LOGGER.log(Level.WARNING, "findRhythm() can''t get rhythm instance for styleText={0} rId={1}. Using {2} instead.", new Object[]
-            {
-                styleText, rId, ri
-            });
+            String rId = strRhythm + "-ID";
             try
             {
-                r = rdb.getRhythmInstance(ri);
-            } catch (UnavailableRhythmException ex1)
+                res = RhythmDatabase.getDefault().getRhythmInstance(rId);
+            } catch (UnavailableRhythmException ex)
             {
-                r = rdb.getDefaultStubRhythmInstance(ts);
-                LOGGER.log(Level.WARNING, "findRhythm() Can''t get rhythm instance for {0}. Using rhythm stub {1} instead.", new Object[]
+                LOGGER.log(Level.WARNING, "findRhythm() can''t get rhythm instance for rId={0}  (styleText={1}) ", new Object[]
                 {
-                    ri, r
+                    rId, styleText
                 });
             }
         }
 
-        assert r != null;
-        return r;
+        return res;
     }
 
     // ==========================================================================================================
@@ -126,30 +105,34 @@ public class ImporterRhythmFinder
     // ==========================================================================================================
 
     /**
-     * Special get: match if the map key matches the first chars of style.
+     * Get the key which has the longest match for styleText, then return the corresponding value.
      *
-     * @param style
-     * @return
+     * @param styleText
+     * @return Can be null
      */
-    static private String getValueFromMap(String style)
+    static private String getValueFromMap(String styleText)
     {
-        if (style == null)
+        if (styleText == null)
         {
             return null;
         }
-        String value = null;
+        styleText = styleText.toLowerCase();
+
+        String res = null;
+        int maxKeySize = 0;
         for (String key : getMap().keySet())
         {
-            if (style.toLowerCase().startsWith(key.toLowerCase()))
+            if (styleText.startsWith(key) && key.length() > maxKeySize)
             {
-                value = getMap().get(key);
-                break;
+                res = getMap().get(key);
+                maxKeySize = key.length();
             }
         }
-        return value;
+
+        return res;
     }
 
-    static Map<String, String> getMap()
+    static private Map<String, String> getMap()
     {
         if (MAP_TEXT_RHYTHMID.isEmpty())
         {
@@ -167,18 +150,18 @@ public class ImporterRhythmFinder
 
             MAP_TEXT_RHYTHMID.put("rock", "StandardRock.STY");
             MAP_TEXT_RHYTHMID.put("rock-heavy-even", "StandardRock.STY");
-            MAP_TEXT_RHYTHMID.put("rock pop", "AcousticRock.S080.prs");       
-            MAP_TEXT_RHYTHMID.put("rock-slow", "90'sOrgRockBld.T162.STY");    
-            MAP_TEXT_RHYTHMID.put("slow rock", "90'sOrgRockBld.T162.STY");    
+            MAP_TEXT_RHYTHMID.put("rock pop", "AcousticRock.S080.prs");
+            MAP_TEXT_RHYTHMID.put("rock-slow", "90'sOrgRockBld.T162.STY");
+            MAP_TEXT_RHYTHMID.put("slow rock", "90'sOrgRockBld.T162.STY");
             MAP_TEXT_RHYTHMID.put("rock-triplet", "RockShuffle.S547.bcs");
 
             MAP_TEXT_RHYTHMID.put("even 8", "Cool8Beat.S737.sst");
             MAP_TEXT_RHYTHMID.put("even 16", "16beat.S556.yjz");
 
-            MAP_TEXT_RHYTHMID.put("folk", "Folkball.S702.sty");       
+            MAP_TEXT_RHYTHMID.put("folk", "Folkball.S702.sty");
             MAP_TEXT_RHYTHMID.put("blues", "BluesRock.S524.sst");   // son bizarre Em        
             MAP_TEXT_RHYTHMID.put("shuffle", "PopShuffle1.S552.prs");
-            MAP_TEXT_RHYTHMID.put("soul", "Soul.S199.prs");          
+            MAP_TEXT_RHYTHMID.put("soul", "Soul.S199.prs");
             MAP_TEXT_RHYTHMID.put("funk", "Urban Funk.S066.STY");
             MAP_TEXT_RHYTHMID.put("ballad", "16BeatBallad2.S014.prs");
 

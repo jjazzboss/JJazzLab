@@ -29,7 +29,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
@@ -38,9 +40,11 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.importers.api.MusicXMLFileReader;
+import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Fill;
 import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Variation;
+import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.spi.SongImporter;
 import org.jjazz.songstructure.api.SongPart;
@@ -151,27 +155,46 @@ public class XmlImporter implements SongImporter
         LOGGER.log(Level.FINE, "postProcessSong() -- styleText={0}", styleText);
         SongStructure sgs = song.getSongStructure();
         List<SongPart> spts = sgs.getSongParts();
-        SongPart spt0 = spts.get(0);
-        TimeSignature ts = spt0.getRhythm().getTimeSignature();
-
-
-        // Set rhythm
-        Rhythm r = null;
-        r = ImporterRhythmFinder.findRhythm(styleText, song.getTempo(), ts);
-        assert r != null;
-        if (!(r instanceof YamJJazzRhythm) || r.getRhythmParameters().size() < 5)
+        if (spts.isEmpty())
         {
-            LOGGER.log(Level.INFO, "postProcessSong() Rhythm not supported for post-processing {0}, Post-processing aborted.", r);
+            LOGGER.warning("postProcessSong() no song parts found");
+            return;
         }
 
 
-        RP_STD_Variation rpVariation = RP_STD_Variation.getVariationRp(r);
-        RP_STD_Fill rpFill = RP_STD_Fill.getFillRp(r);
+        var r0 = spts.get(0).getRhythm(); 
+        var ts0 = r0.getTimeSignature();
+        if (!(r0 instanceof AdaptedRhythm))
+        {
+            r0 = ImporterRhythmFinder.findRhythm(styleText, song.getTempo(), ts0);  
+        }
+             
 
         for (int i = 0; i < spts.size(); i++)
         {
             // Update rhythm
             SongPart oldSpt = spts.get(i);
+            var ts = oldSpt.getParentSection().getData().getTimeSignature();
+            var r = r0;     // By default
+            if (!ts.equals(ts0))
+            {                
+                if (r0 instanceof AdaptedRhythm ar0)
+                {
+                    var rSource = ar0.getSourceRhythm();
+                    r = rSource.getTimeSignature().equals(ts) ? rSource : RhythmDatabase.getDefault().getAdaptedRhythmInstance(rSource, ts);
+                } else
+                {
+                    r = RhythmDatabase.getDefault().getAdaptedRhythmInstance(r0, ts);
+                }
+            }            
+            if (r == null)
+            {
+                LOGGER.log(Level.WARNING, "postProcessSong() No adapted rhythm found for r0={0} ts={1}", new Object[]
+                {
+                    r0, ts
+                });
+                r = oldSpt.getRhythm();
+            }
             var newSpt = oldSpt.clone(r, oldSpt.getStartBarIndex(), oldSpt.getNbBars(), oldSpt.getParentSection());
             try
             {
@@ -180,6 +203,8 @@ public class XmlImporter implements SongImporter
             {
                 Exceptions.printStackTrace(ex);
             }
+
+            RP_STD_Variation rpVariation = RP_STD_Variation.getVariationRp(r0);
             if (rpVariation != null)
             {
                 if (i % 4 == 0)
@@ -196,6 +221,8 @@ public class XmlImporter implements SongImporter
                     sgs.setRhythmParameterValue(newSpt, rpVariation, "Main B-1");
                 }
             }
+
+            RP_STD_Fill rpFill = RP_STD_Fill.getFillRp(r0);
             if (rpFill != null)
             {
                 sgs.setRhythmParameterValue(newSpt, rpFill, "always");

@@ -144,7 +144,7 @@ public class SongBuilder implements MusicXmlParserListener
         Section section = cliSection.getData();
         if (!section.getTimeSignature().equals(ts))
         {
-            // Introduce a new section (or change current
+            // Introduce a new section (or change current)
             String name = CLI_Section.createSectionName(cliSection.getData().getName(), clsWork);
             cliSection = CLI_Factory.getDefault().createSection(name, ts, barIndex, null);
             try

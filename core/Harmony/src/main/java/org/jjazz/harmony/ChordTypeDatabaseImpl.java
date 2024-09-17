@@ -101,7 +101,7 @@ public class ChordTypeDatabaseImpl implements ChordTypeDatabase
         addBuiltin("7", "b9", S, ":7-9:7(b9):", -1, 0, NP, 0, NP, -1);
         addBuiltin("7", "#9", S, ":7+9:7(#9):", +1, 0, NP, 0, NP, -1);
         addBuiltin("7", "#9#5", S, ":7+5+9:7#5#9:7alt:", +1, 0, NP, +1, NP, -1);
-        addBuiltin("7", "b9#5", S, ":7+5-9:7#5b9:", -1, 0, NP, +1, NP, -1);
+        addBuiltin("7", "b9#5", S, ":7+5-9:7#5b9:7b9b13:", -1, 0, NP, +1, NP, -1);
         addBuiltin("7", "b9b5", S, ":7-5-9:7b5b9:", -1, 0, NP, -1, NP, -1);
         addBuiltin("7", "#9b5", S, ":7-5+9:7b5#9:", +1, 0, NP, -1, NP, -1);
         addBuiltin("7", "#11", S, ":7+11:", NP, 0, +1, 0, NP, -1);
@@ -445,8 +445,8 @@ public class ChordTypeDatabaseImpl implements ChordTypeDatabase
                 if (curCt != null)
                 {
                     mapAliasCt = mapSave;
-//                    String msg = "Alias '" + alias + "' can not be used for chord type '" + ct + "', it's already used for chord type '" + curCt + "'";                    
-                    // LOGGER.severe("buildAliasMap() " + msg);
+                    String msg = "Alias '" + alias + "' can not be used for chord type '" + ct + "', it's already used for chord type '" + curCt + "'";
+                    LOGGER.severe("buildAliasMap() " + msg);
                     b = false;
                 } else
                 {
