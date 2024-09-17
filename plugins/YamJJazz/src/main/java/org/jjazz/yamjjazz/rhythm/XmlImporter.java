@@ -22,16 +22,13 @@
  */
 package org.jjazz.yamjjazz.rhythm;
 
-import org.jjazz.yamjjazz.rhythm.api.YamJJazzRhythm;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
@@ -45,12 +42,17 @@ import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Fill;
 import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Variation;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
+import org.jjazz.rhythmdatabase.api.RhythmInfo;
+import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.spi.SongImporter;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.utilities.api.ResUtil;
 import org.jjazz.utilities.api.Utilities;
+import org.jjazz.yamjjazz.rhythm.api.YamJJazzRhythm;
+import org.jjazz.yamjjazz.rhythm.api.YamJJazzRhythmProvider;
+import org.jjazz.yamjjazz.rhythm.api.YamahaRhythmProvider;
 import org.openide.util.Exceptions;
 import org.openide.util.lookup.ServiceProvider;
 
@@ -91,7 +93,17 @@ public class XmlImporter implements SongImporter
 
         MusicXMLFileReader reader = new MusicXMLFileReader(f);
         Song song = reader.readSong();
+
         postProcessSong(song, reader.getMusicalStyle());
+
+        int tempo = reader.getTempo();
+        if (tempo == -1 && song.getSize() > 0)
+        {
+            // Use preferred tempo from the initial rhythm
+            tempo = song.getSongStructure().getSongPart(0).getRhythm().getPreferredTempo();
+            song.setTempo(tempo);
+        }
+
         return song;
     }
 
@@ -162,38 +174,53 @@ public class XmlImporter implements SongImporter
         }
 
 
-        var r0 = spts.get(0).getRhythm(); 
-        var ts0 = r0.getTimeSignature();
-        if (!(r0 instanceof AdaptedRhythm))
+        // Compute the initial rhythm
+        var rdb = RhythmDatabase.getDefault();
+        Rhythm rOrig = spts.get(0).getRhythm();            // The rhythm by default when song was first created, might be a stub rhythm (eg if rare timesignature)
+        var ts0 = rOrig.getTimeSignature();
+        YamJJazzRhythm yjr0 = ImporterRhythmFinder.findRhythm(styleText, ts0, -1);
+        if (yjr0 == null)
         {
-            r0 = ImporterRhythmFinder.findRhythm(styleText, song.getTempo(), ts0);  
+            yjr0 = findDefaultYamJJazzRhythm(ts0);
+            if (yjr0 == null)
+            {
+                // Create an AdaptedRhythm from the default 4/4 rhythm
+                var r44 = findDefaultYamJJazzRhythm(TimeSignature.FOUR_FOUR);
+                if (r44 == null)
+                {
+                    LOGGER.warning("postProcessSong() Unexpected no 4/4 YamJJazz rhythm available, exiting");
+                    return;
+                }
+                yjr0 = (YamJJazzRhythm) rdb.getAdaptedRhythmInstance(r44, ts0);
+            }
         }
-             
 
+
+        // Update each song part
         for (int i = 0; i < spts.size(); i++)
         {
             // Update rhythm
             SongPart oldSpt = spts.get(i);
             var ts = oldSpt.getParentSection().getData().getTimeSignature();
-            var r = r0;     // By default
+            var r = yjr0;     // By default
             if (!ts.equals(ts0))
-            {                
-                if (r0 instanceof AdaptedRhythm ar0)
+            {
+                if (yjr0 instanceof AdaptedRhythm ayjr0)
                 {
-                    var rSource = ar0.getSourceRhythm();
-                    r = rSource.getTimeSignature().equals(ts) ? rSource : RhythmDatabase.getDefault().getAdaptedRhythmInstance(rSource, ts);
+                    var rSource = ayjr0.getSourceRhythm();
+                    r = (YamJJazzRhythm) (rSource.getTimeSignature().equals(ts) ? rSource : RhythmDatabase.getDefault().getAdaptedRhythmInstance(rSource, ts));
                 } else
                 {
-                    r = RhythmDatabase.getDefault().getAdaptedRhythmInstance(r0, ts);
+                    r = (YamJJazzRhythm) RhythmDatabase.getDefault().getAdaptedRhythmInstance(yjr0, ts);
                 }
-            }            
+            }
             if (r == null)
             {
-                LOGGER.log(Level.WARNING, "postProcessSong() No adapted rhythm found for r0={0} ts={1}", new Object[]
+                LOGGER.log(Level.WARNING, "postProcessSong() No adapted rhythm found from yjr0={0} ts={1}, exit postprocessing", new Object[]
                 {
-                    r0, ts
+                    yjr0, ts
                 });
-                r = oldSpt.getRhythm();
+                return;
             }
             var newSpt = oldSpt.clone(r, oldSpt.getStartBarIndex(), oldSpt.getNbBars(), oldSpt.getParentSection());
             try
@@ -204,7 +231,9 @@ public class XmlImporter implements SongImporter
                 Exceptions.printStackTrace(ex);
             }
 
-            RP_STD_Variation rpVariation = RP_STD_Variation.getVariationRp(r0);
+
+            // Update rhythm parameters
+            RP_STD_Variation rpVariation = RP_STD_Variation.getVariationRp(yjr0);
             if (rpVariation != null)
             {
                 if (i % 4 == 0)
@@ -222,13 +251,55 @@ public class XmlImporter implements SongImporter
                 }
             }
 
-            RP_STD_Fill rpFill = RP_STD_Fill.getFillRp(r0);
+            RP_STD_Fill rpFill = RP_STD_Fill.getFillRp(yjr0);
             if (rpFill != null)
             {
                 sgs.setRhythmParameterValue(newSpt, rpFill, "always");
             }
         }
 
+    }
+
+    private boolean isYamJJazz(RhythmInfo ri)
+    {
+        return YamahaRhythmProvider.isMine(ri) || YamJJazzRhythmProvider.isMine(ri);
+    }
+
+    /**
+     * @param ts
+     * @return Might be null
+     */
+    private YamJJazzRhythm findDefaultYamJJazzRhythm(TimeSignature ts)
+    {
+        YamJJazzRhythm res = null;
+        var rdb = RhythmDatabase.getDefault();
+
+
+        var yjri = rdb.getDefaultRhythm(ts);
+        if (!isYamJJazz(yjri))
+        {
+            // No, search for the first one in the database
+            yjri = rdb.getRhythms(ts).stream()
+                    .filter(rii -> isYamJJazz(rii))
+                    .findAny()
+                    .orElse(null);
+        }
+
+        if (yjri != null)
+        {
+            try
+            {
+                res = (YamJJazzRhythm) rdb.getRhythmInstance(yjri);
+            } catch (UnavailableRhythmException ex)
+            {
+                LOGGER.log(Level.WARNING, "findYamJJazzRhythm() ts={0} ex={1}", new Object[]
+                {
+                    ts, ex.getMessage()
+                });
+            }
+        }
+
+        return res;
     }
 
 

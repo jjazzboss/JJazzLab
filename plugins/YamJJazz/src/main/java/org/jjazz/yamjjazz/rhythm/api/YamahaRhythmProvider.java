@@ -22,7 +22,6 @@
  */
 package org.jjazz.yamjjazz.rhythm.api;
 
-import org.jjazz.yamjjazz.rhythm.api.YamJJazzRhythm;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -47,6 +46,7 @@ import org.jjazz.utilities.api.Utilities;
 import org.openide.util.lookup.ServiceProvider;
 import org.jjazz.yamjjazz.FormatNotSupportedException;
 import org.jjazz.rhythm.spi.RhythmDirsLocator;
+import org.jjazz.rhythmdatabase.api.RhythmInfo;
 import org.jjazz.yamjjazz.rhythm.YamJJazzAdaptedRhythmImpl;
 import org.jjazz.yamjjazz.rhythm.YamJJazzRhythmImpl;
 import org.netbeans.api.annotations.common.StaticResource;
@@ -59,7 +59,7 @@ public class YamahaRhythmProvider implements RhythmProvider
 {
 
     public static final String RP_ID = "YamahaRhythmProviderID";
-    private static final String DEFAULT_FILES_SUBDIR = "Yamaha";    
+    private static final String DEFAULT_FILES_SUBDIR = "Yamaha";
     @StaticResource(relative = true)
     private static final String DEFAULT_FILES_RESOURCE_ZIP = "resources/YamahaDefaultFiles.zip";
 
@@ -235,6 +235,11 @@ public class YamahaRhythmProvider implements RhythmProvider
             return new YamJJazzAdaptedRhythmImpl(getInfo().getUniqueId(), (YamJJazzRhythm) r, ts);
         }
         return null;
+    }
+
+    static public boolean isMine(RhythmInfo ri)
+    {
+        return ri.rhythmProviderId().equals(RP_ID);
     }
 
     // -------------------------------------------------------------------------------------------------

@@ -22,6 +22,7 @@
  */
 package org.jjazz.rhythm.api.rhythmparameters;
 
+import java.util.Objects;
 import org.jjazz.rhythm.api.RP_State;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.utilities.api.ResUtil;
@@ -53,10 +54,7 @@ public class RP_STD_Variation extends RP_State
      */
     static public RP_STD_Variation getVariationRp(Rhythm rhythm)
     {
-        if (rhythm == null)
-        {
-            throw new NullPointerException("r");   
-        }
+        Objects.requireNonNull(rhythm);
         return (RP_STD_Variation) rhythm.getRhythmParameters()
                 .stream()
                 .filter(rp -> (rp instanceof RP_STD_Variation))

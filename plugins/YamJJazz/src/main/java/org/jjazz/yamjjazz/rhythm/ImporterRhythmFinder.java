@@ -24,13 +24,9 @@
  */
 package org.jjazz.yamjjazz.rhythm;
 
-import com.google.common.base.Preconditions;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.SortedMap;
-import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.harmony.api.TimeSignature;
@@ -50,23 +46,22 @@ public class ImporterRhythmFinder
     protected static final Logger LOGGER = Logger.getLogger(ImporterRhythmFinder.class.getName());
 
     /**
-     * Try to find a rhythm from the specified parameters.
+     * Try to find a YamJJazz rhythm from the specified parameters.
      * <p>
      *
      * @param styleText eg "rock", "bossa"
-     * @param tempo
      * @param ts
+     * @param tempo     Optional tempo, -1 if unknown
      * @return Can be null
      */
-    static public Rhythm findRhythm(String styleText, int tempo, TimeSignature ts)
+    static public YamJJazzRhythm findRhythm(String styleText, TimeSignature ts, int tempo)
     {
         Objects.requireNonNull(styleText);
         Objects.requireNonNull(ts);
-        Rhythm res = null;
 
 
         // Simplify for 3/4: ignore styleText
-        if (ts.equals(TimeSignature.THREE_FOUR))
+        if (ts.equals(TimeSignature.THREE_FOUR) && tempo > 0)
         {
             if (tempo > 170)
             {
@@ -80,14 +75,22 @@ public class ImporterRhythmFinder
             }
         }
 
-
+        YamJJazzRhythm res = null;
         String strRhythm = getValueFromMap(styleText);
         if (strRhythm != null)
         {
             String rId = strRhythm + "-ID";
             try
             {
-                res = RhythmDatabase.getDefault().getRhythmInstance(rId);
+                Rhythm r = RhythmDatabase.getDefault().getRhythmInstance(rId);
+                assert r instanceof YamJJazzRhythm : "r=" + r;
+                if (r.getTimeSignature().equals(ts))
+                {
+                    res = (YamJJazzRhythm) r;
+                } else
+                {
+                    res = null;
+                }
             } catch (UnavailableRhythmException ex)
             {
                 LOGGER.log(Level.WARNING, "findRhythm() can''t get rhythm instance for rId={0}  (styleText={1}) ", new Object[]

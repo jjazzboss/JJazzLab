@@ -40,6 +40,7 @@ public class MusicXMLFileReader
 
     private File file;
     private String musicalStyle;
+    private int tempo;
     private static final Logger LOGGER = Logger.getLogger(MusicXMLFileReader.class.getSimpleName());
 
     /**
@@ -63,6 +64,16 @@ public class MusicXMLFileReader
     public String getMusicalStyle()
     {
         return musicalStyle;
+    }
+
+    /**
+     * -1 if tempo was not set in the musicXML file.
+     *
+     * @return
+     */
+    public int getTempo()
+    {
+        return tempo;
     }
 
     /**
@@ -94,8 +105,9 @@ public class MusicXMLFileReader
         {
             throw new IOException("Error creating imported song. Please check log file.");
         }
-        musicalStyle = songBuilder.getMusicalStyle();        
-        
+        musicalStyle = songBuilder.getMusicalStyle();
+        tempo = songBuilder.getTempo();
+
 
         // Set name
         int dotIndex = file.getName().lastIndexOf('.');

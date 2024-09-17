@@ -96,7 +96,7 @@ public class ImprovisorImporter implements SongImporter
 
         // Find rhythm
         Rhythm r = null;
-        r = ImporterRhythmFinder.findRhythm(styleText, song.getTempo(), ts);
+        r = ImporterRhythmFinder.findRhythm(styleText, ts, song.getTempo());
         if (r == null)
         {
             r = spt0.getRhythm();

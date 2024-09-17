@@ -44,6 +44,7 @@ import org.jjazz.utilities.api.Utilities;
 import org.openide.util.lookup.ServiceProvider;
 import org.jjazz.yamjjazz.FormatNotSupportedException;
 import org.jjazz.rhythm.spi.RhythmDirsLocator;
+import org.jjazz.rhythmdatabase.api.RhythmInfo;
 import org.jjazz.yamjjazz.rhythm.YamJJazzAdaptedRhythmImpl;
 import org.jjazz.yamjjazz.rhythm.YamJJazzRhythmImpl;
 import org.netbeans.api.annotations.common.StaticResource;
@@ -59,15 +60,14 @@ public class YamJJazzRhythmProvider implements RhythmProvider
     public static final String RP_ID = "YamJJazzRhythmProviderID";
     public static final String FILE_EXTENSION = "yjz";
     private static final String DEFAULT_FILES_SUBDIR = "YamJJazz";
-    @StaticResource(relative=true)
+    @StaticResource(relative = true)
     private static final String DEFAULT_FILES_RESOURCE_ZIP = "resources/YamJJazzDefaultFiles.zip";
     private List<Rhythm> fileRhythms;
     private final Info info;
     private final ExtensionFileFilter fileFilter;
     private static final Logger LOGGER = Logger.getLogger(YamJJazzRhythmProvider.class.getSimpleName());
 
-    
-    
+
     public YamJJazzRhythmProvider()
     {
         info = new Info(RP_ID, "YamJJazz extended styles", "YamJJazz rhythm provider (." + FILE_EXTENSION + ")", "JL", "1");
@@ -236,10 +236,14 @@ public class YamJJazzRhythmProvider implements RhythmProvider
         return null;
     }
 
+    static public boolean isMine(RhythmInfo ri)
+    {
+        return ri.rhythmProviderId().equals(RP_ID);
+    }
+
     // -------------------------------------------------------------------------------------------------
     // Private methods
     // -------------------------------------------------------------------------------------------------
-
 
     /**
      * Get the list of rhythm files (matching getFilenameFile()) present in the directory for default rhythm files.

@@ -68,7 +68,7 @@ public class SongBuilder implements MusicXmlParserListener
     private int nbMeasures = 0;
     private TimeSignature timeSignature = TimeSignature.FOUR_FOUR;
     private Position firstChordPos = null;
-    private int tempo = 120;
+    private int tempo = -1;
     private final ChordLeadSheet clsWork;
     private Song song = null;
     private String musicalStyle;
@@ -88,6 +88,16 @@ public class SongBuilder implements MusicXmlParserListener
     public String getMusicalStyle()
     {
         return musicalStyle;
+    }
+
+    /**
+     * -1 if tempo was not set in the musicXML file.
+     *
+     * @return
+     */
+    public int getTempo()
+    {
+        return tempo;
     }
 
     /**
@@ -402,11 +412,12 @@ public class SongBuilder implements MusicXmlParserListener
 
     private Song createSong(List<List<Integer>> barListsOrdered, List<CLI_Section> sectionsOrdered)
     {
-        var sg = SongFactory.getInstance().createEmptySong("MusicXML-import", 4, "A", TimeSignature.FOUR_FOUR, null);
+        var ts0 = sectionsOrdered.get(0).getData().getTimeSignature();        
+        var sg = SongFactory.getInstance().createEmptySong("MusicXML-import", 4, "A", ts0, null);
         var cls = sg.getChordLeadSheet();
         try
         {
-            cls.setSectionTimeSignature(cls.getSection(0), clsWork.getSection(0).getData().getTimeSignature());
+            cls.setSectionTimeSignature(cls.getSection(0), ts0);
         } catch (UnsupportedEditException ex)
         {
 
