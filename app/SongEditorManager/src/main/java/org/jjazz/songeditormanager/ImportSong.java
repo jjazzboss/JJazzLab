@@ -27,14 +27,15 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
+import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
+import javax.swing.JPanel;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import org.jjazz.analytics.api.Analytics;
 import org.jjazz.song.api.Song;
@@ -43,6 +44,7 @@ import org.jjazz.song.api.SongCreationException;
 import org.jjazz.song.spi.SongImporter;
 import org.jjazz.songeditormanager.spi.SongEditorManager;
 import org.jjazz.utilities.api.ResUtil;
+import org.jjazz.utilities.api.Utilities;
 import org.netbeans.api.progress.*;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -50,6 +52,7 @@ import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
+import org.openide.util.Exceptions;
 import org.openide.util.NbPreferences;
 import org.openide.windows.WindowManager;
 
@@ -69,6 +72,8 @@ public final class ImportSong implements ActionListener
 
     public static final String SYSTEM_PROP_SKIP_OPENING = "importSongSkipOpening";
     public static final String PREF_LAST_IMPORT_DIRECTORY = "LastImportDirectory";
+    private static JFileChooser FILE_CHOOSER;
+    private static AccessoryComponent accessoryComponent;
     private static final Preferences prefs = NbPreferences.forModule(ImportSong.class);
     private static final Logger LOGGER = Logger.getLogger(ImportSong.class.getSimpleName());
 
@@ -91,8 +96,12 @@ public final class ImportSong implements ActionListener
 
 
         // Initialize the file chooser
-        JFileChooser chooser = org.jjazz.uiutilities.api.UIUtilities.getFileChooserInstance();
+        JFileChooser chooser = getFileChooser();
+
+
+        // Update file filters each time, in case a new import plugin was added at runtime
         chooser.resetChoosableFileFilters();
+        chooser.setAcceptAllFileFilterUsed(false);
         if (allExtensionsFilter != null)
         {
             chooser.addChoosableFileFilter(allExtensionsFilter);
@@ -105,12 +114,7 @@ public final class ImportSong implements ActionListener
                 chooser.addChoosableFileFilter(filter);
             }
         }
-        chooser.setAcceptAllFileFilterUsed(false);
-        chooser.setMultiSelectionEnabled(true);
-        chooser.setSelectedFile(new File(""));
-        chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        chooser.setCurrentDirectory(getLastImportDirectory());
-        chooser.setDialogTitle(ResUtil.getString(getClass(), "IMPORT_SONG_FROM_FILE"));
+
         if (chooser.showOpenDialog(WindowManager.getDefault().getMainWindow()) != JFileChooser.APPROVE_OPTION)
         {
             // User cancelled
@@ -172,10 +176,11 @@ public final class ImportSong implements ActionListener
             mapExtImporter.put(ext, importer);
         }
 
+        boolean batchConvertMode = accessoryComponent.cb_batchConvertMode.isSelected();
 
         // Log event
         List<String> importerUniqueNames = mapFileImporter.values().stream().distinct().map(i -> i.getId()).collect(Collectors.toList());
-        Analytics.logEvent("Import Song From File", Analytics.buildMap("Importers", importerUniqueNames));
+        Analytics.logEvent("Import Song From File", Analytics.buildMap("Importers", importerUniqueNames, "BatchConvertMode", batchConvertMode));
 
 
         // Use a different thread because possible import of many files
@@ -184,58 +189,65 @@ public final class ImportSong implements ActionListener
             @Override
             public void run()
             {
-                importFiles(mapFileImporter);
+                importFiles(mapFileImporter, batchConvertMode);
             }
         };
         // new Thread(r).start();
         BaseProgressUtils.showProgressDialogAndRun(r, ResUtil.getString(getClass(), "IMPORTING"));
     }
 
-    private void importFiles(HashMap<File, SongImporter> mapFileImporter)
+    private void importFiles(HashMap<File, SongImporter> mapFileImporter, boolean batchConvertMode)
     {
+        List<String> errorFilenames = new ArrayList<>();          // only used in batch convert mode
         var songFiles = new ArrayList<>(mapFileImporter.keySet());
         songFiles.sort((f1, f2) -> f1.getName().compareTo(f2.getName()));
-        boolean batchMode = System.getProperty(SYSTEM_PROP_SKIP_OPENING) != null;
-        if (batchMode)
+
+        if (batchConvertMode)
         {
-            LOGGER.info("importFiles() running in special batch mode");
+            LOGGER.info("importFiles() -- Running in batch convert mode");
         }
 
         for (File f : songFiles)
         {
+            String filename = f.getName();
             SongImporter importer = mapFileImporter.get(f);
             Song song = null;
             try
             {
-                LOGGER.log(Level.INFO, "importFiles() -- importerId={0} Importing file {1}", new Object[]
+                LOGGER.log(Level.INFO, "importFiles() Importing file {0}  importerId={1}", new Object[]
                 {
-                    importer.getId(),
-                    f.getAbsolutePath()
+                    f.getAbsolutePath(),
+                    importer.getId()
+
                 });
                 song = importer.importFromFile(f);
             } catch (SongCreationException | IOException ex)
             {
-                LOGGER.log(Level.WARNING, "importFiles() error ex={0}", ex.getMessage());
-                if (!batchMode)
+                LOGGER.log(Level.WARNING, "importFiles() error: {0}", ex.getMessage());
+                if (!batchConvertMode)
                 {
                     NotifyDescriptor nd = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
                     DialogDisplayer.getDefault().notify(nd);
+                } else
+                {
+                    errorFilenames.add(filename);
                 }
                 continue;
             }
 
             if (song == null)
             {
-                LOGGER.log(Level.WARNING, "importFiles() error song=null, importer={0} f={1}", new Object[]
-                {
-                    importer.getId(), f.getAbsolutePath()
-                });
-                if (!batchMode)
+                LOGGER.log(Level.WARNING, "importFiles() unexpected song=null");
+                if (!batchConvertMode)
                 {
                     NotifyDescriptor nd = new NotifyDescriptor.Message(ResUtil.getString(getClass(), "ERR_UnexpectedError"), NotifyDescriptor.ERROR_MESSAGE);
                     DialogDisplayer.getDefault().notify(nd);
+                } else if (!errorFilenames.contains(filename))
+                {
+                    errorFilenames.add(filename);
                 }
-            } else if (!batchMode)
+
+            } else if (!batchConvertMode)
             {
                 // Ok we got the new song show it !
                 song.setFile(null);     // Make sure song is not associated with the import file
@@ -243,8 +255,43 @@ public final class ImportSong implements ActionListener
 
                 boolean last = (f == songFiles.get(songFiles.size() - 1));
                 SongEditorManager.getDefault().showSong(song, last, true);
+            } else
+            {
+                // Save the imported song in the same directory
+                File saveFile = new File(f.getParentFile(), Utilities.replaceExtension(filename, "sng"));
+                try
+                {
+                    song.saveToFile(saveFile, true);
+                    LOGGER.log(Level.INFO, "importFiles() saved to {0}", saveFile.getName());
+                } catch (IOException ex)
+                {
+                    LOGGER.log(Level.WARNING, "importFiles() error: {0}", ex.getMessage());
+                    errorFilenames.add(saveFile.getName());
+                    if (saveFile.exists() && !saveFile.delete())
+                    {
+                        LOGGER.log(Level.WARNING, "importFiles() could not delete {0}. ex={1}", new Object[]
+                        {
+                            saveFile.getAbsolutePath(), ex.getMessage()
+                        });
+                    }
+                }
             }
         }
+
+        if (batchConvertMode && !songFiles.isEmpty())
+        {
+            int nbErrors = errorFilenames.size();
+            int nbOk = songFiles.size() - nbErrors;
+            String errorStr = nbErrors == 0 ? "" : errorFilenames.toString();
+            LOGGER.log(Level.INFO, "importFiles() batch mode convert complete: {0} file(s) successfully converted, {1} error(s) {2} ", new Object[]
+            {
+                nbOk, nbErrors, errorStr
+            });
+            String msg = ResUtil.getString(getClass(), "BatchModeImportComplete", nbOk, nbErrors);
+            NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.INFORMATION_MESSAGE);
+            DialogDisplayer.getDefault().notify(nd);
+        }
+
     }
 
     // ================================================================================================
@@ -268,6 +315,51 @@ public final class ImportSong implements ActionListener
             f = null;
         }
         return f;
+    }
+
+
+    /**
+     * Get the file chooser with the batch mode convert button.
+     *
+     * @return
+     */
+    private JFileChooser getFileChooser()
+    {
+        if (FILE_CHOOSER != null)
+        {
+            return FILE_CHOOSER;
+        }
+
+        // Prepare FileChooser
+        FILE_CHOOSER = new JFileChooser();
+        FILE_CHOOSER.setMultiSelectionEnabled(true);
+        FILE_CHOOSER.setSelectedFile(new File(""));
+        FILE_CHOOSER.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        FILE_CHOOSER.setCurrentDirectory(getLastImportDirectory());
+        FILE_CHOOSER.setDialogTitle(ResUtil.getString(getClass(), "IMPORT_SONG_FROM_FILE"));
+
+
+        // Add the accessory component
+        accessoryComponent = new AccessoryComponent();
+        FILE_CHOOSER.setAccessory(accessoryComponent);
+
+        return FILE_CHOOSER;
+    }
+
+
+    /**
+     * An accessory component to the FileChooser to indicate that rhythms should be added for this session only.
+     */
+    private static class AccessoryComponent extends JPanel
+    {
+
+        private final JCheckBox cb_batchConvertMode = new JCheckBox(ResUtil.getString(getClass(), "ImportBatchConvertMode"));
+
+        public AccessoryComponent()
+        {
+            cb_batchConvertMode.setToolTipText(ResUtil.getString(getClass(), "ImportBatchConvertModeTooltip"));
+            add(cb_batchConvertMode);
+        }
     }
 
 }
