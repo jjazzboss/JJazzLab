@@ -18,27 +18,17 @@
         <p>"Love it, works as expected, bow, thanks to the author", "Absolutely fantastic app!" (YouTube comments)</p>
         <p>Features:</p>
         <ul>
-            <li>
-                <strong>Dynamic backing tracks</strong>
-                <br />Start a solo slowly and gradually build up the atmosphere.</li>
-            <li>
-                <strong>Rhythmic accents</strong>
-                <br />Use chord anticipations and rhythmic accents to spice up the arrangement.</li>
-            <li>
-                <strong>Benefit from 1000's of free Yamaha style files</strong>
-                <br />JJazzLab can read Yamaha style files. It also introduces new extension files for even more style variations.</li>
-            <li>
-                <strong>A simple and powerful user interface</strong>
-                <br />Type in a few chord symbols, pick up a rhythm, and press start, it’s a matter of seconds. Need more? Introduce rhythm and intensity variations, custom bass phrases, etc.</li>
-            <li>
-                <strong>An open platform for developers</strong>
-                <br />Leverage the JJazzLab open-source code to add features and new music generation capabilities via plugins.</li>
+          <li><em>Dynamic backing tracks</em> - Start a solo slowly and gradually build up the atmosphere.</li>
+          <li><em>Rhythmic accents</em> - Use chord anticipations and rhythmic accents to spice up the arrangement.</li>
+          <li><em>Benefit from 1000's of free Yamaha style files</em> - JJazzLab can read Yamaha style files. It also introduces new extension files for even more style variations.</li>
+          <li><em>A simple and powerful user interface</em> - Type in a few chord symbols, pick up a rhythm, and press start, it’s a matter of seconds. Need more? Introduce rhythm and intensity variations, custom bass phrases, etc.</li>
+          <li><em>An open platform for developers</em> - Leverage the JJazzLab open-source code to add features and new music generation capabilities via plugins.</li>
         </ul>
     </description>
     <screenshots>
         <screenshot type="default">
             <caption>The main window with a sample song</caption>
-            <image xml:lang="en">https://github.com/jjazzboss/JJazzLab/blob/23a952ac085c4658f86a064705ae8c3b79614c4d/graphics/JJazzLab-1000x700.png?raw=true</image>
+            <image>https://github.com/jjazzboss/JJazzLab/blob/23a952ac085c4658f86a064705ae8c3b79614c4d/graphics/JJazzLab-1000x700.png?raw=true</image>
         </screenshot>
     </screenshots>
     <releases>
